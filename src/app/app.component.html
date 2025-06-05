@@ -1,0 +1,150 @@
+<nz-layout class="app-layout">
+    <nz-sider class="menu-sidebar" nzCollapsible nzWidth="256px" nzBreakpoint="md" [(nzCollapsed)]="isCollapsed"
+        [nzTrigger]="null">
+        <div class="sidebar-logo">
+            <a href="/welcome">
+                <img src="https://ng.ant.design/assets/img/logo.svg" alt="logo" />
+                <h1>RTC</h1>
+            </a>
+        </div>
+        <ul nz-menu nzTheme="dark" nzMode="inline" [nzInlineCollapsed]="isCollapsed">
+            <li nz-submenu nzOpen nzTitle="Dashboard" nzIcon="dashboard">
+                <ul>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/welcome'])">Welcome</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/project'])">Dự án</a>
+                    </li>
+                    <!-- <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/welcome'])">Workplace</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/welcome'])">Welcome</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/employees'])">Monitor</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/welcome'])">Workplace</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/welcome'])">Welcome</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/employees'])">Monitor</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/welcome'])">Workplace</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/welcome'])">Welcome</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/employees'])">Monitor</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/welcome'])">Workplace</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/welcome'])">Welcome</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/employees'])">Monitor</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/welcome'])">Workplace</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/welcome'])">Welcome</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/employees'])">Monitor</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/welcome'])">Workplace</a>
+                    </li> -->
+                </ul>
+            </li>
+            <li nz-submenu nzOpen nzTitle="Form" nzIcon="form">
+                <ul>
+                    <li nz-menu-item nzMatchRouter>
+                        <a>Basic Form</a>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </nz-sider>
+    <nz-layout>
+        <!-- <nz-header>
+            <div class="app-header">
+                <span class="header-trigger" (click)="isCollapsed = !isCollapsed">
+                    <nz-icon class="trigger" [nzType]="isCollapsed ? 'menu-unfold' : 'menu-fold'" />
+                </span>
+                <nz-tabset nzLinkRouter (nzClose)="closeTab($event)" nzType="editable-card" nzHideAdd
+                    [(nzSelectedIndex)]="selectedIndex">
+                    @for (tab of dynamicTabs; track tab.title) {
+                    <nz-tab nzClosable>
+                        <a *nzTabLink nz-tab-link [routerLink]="tab.routerLink" [queryParams]="tab.queryParams ?? {}"
+                            queryParamsHandling="merge">
+                            {{ tab.title }}
+                        </a>
+                    </nz-tab>
+                    }
+                </nz-tabset>
+
+            </div>
+        </nz-header> -->
+
+        <nz-header>
+            <div class="app-header">
+                <span class="header-trigger" (click)="isCollapsed = !isCollapsed">
+                    <nz-icon class="trigger" [nzType]="isCollapsed ? 'menu-unfold' : 'menu-fold'" />
+                </span>
+                <div style="width: 100%; max-width: 100%; overflow: auto">
+                    <nz-tabset nzLinkRouter (nzClose)="closeTab($event)" nzType="editable-card" nzHideAdd
+                        [(nzSelectedIndex)]="selectedIndex" [nzSize]="'small'">
+                        @for (tab of dynamicTabs; track tab.title) {
+                        <nz-tab nzClosable>
+                            <a *nzTabLink nz-tab-link [routerLink]="tab.routerLink"
+                                [queryParams]="tab.queryParams ?? {}" queryParamsHandling="merge" class="text-light">
+                                {{ tab.title }}
+                            </a>
+                        </nz-tab>
+                        }
+                    </nz-tabset>
+                </div>
+                <div class="header-trigger">
+                    <button nz-button nz-dropdown [nzDropdownMenu]="menu1" nzPlacement="bottomRight" nzType="text">
+                        <nz-icon nzType="bell" />
+                    </button>
+                    <button nz-button nz-dropdown [nzDropdownMenu]="menu2" nzPlacement="bottomRight" nzShape="circle"
+                        class="ms-2">
+                        <nz-icon nzType="user" />
+                    </button>
+                    <!-- <span>user</span> -->
+
+                    <nz-dropdown-menu #menu1="nzDropdownMenu">
+                        <ul nz-menu>
+                            <li nz-menu-item>menu1 1st menu item</li>
+                            <li nz-menu-item>menu1 2nd menu item</li>
+                            <li nz-menu-item>menu1 3rd menu item</li>
+                        </ul>
+                    </nz-dropdown-menu>
+                    <nz-dropdown-menu #menu2="nzDropdownMenu">
+                        <ul nz-menu>
+                            <li nz-menu-item>menu2 1st menu item</li>
+                            <li nz-menu-item>menu2 2nd menu item</li>
+                            <li nz-menu-item>menu2 3rd menu item</li>
+                        </ul>
+                    </nz-dropdown-menu>
+                </div>
+            </div>
+        </nz-header>
+        <nz-content class="m-0 px-2 py-0">
+            <router-outlet></router-outlet>
+
+        </nz-content>
+        <nz-footer class="p-2 text-uppercase"> &copy; 2025, made by rtc technology việt nam</nz-footer>
+    </nz-layout>
+</nz-layout>

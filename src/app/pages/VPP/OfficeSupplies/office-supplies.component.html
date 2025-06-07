@@ -1,0 +1,339 @@
+<div class="layout-wrapper d-flex" style="height: 100%">
+  <div
+    class="offcanvas offcanvas-left custom-offcanvas border border-1"
+    tabindex="-1"
+    id="searchOffcanvas"
+    data-bs-backdrop="false"
+  >
+    <div class="offcanvas-header pt-0 mt-2 pb-0 mb-2">
+      <h6 class="offcanvas-title ">Tìm kiếm</h6>
+      <button
+        type="button"
+        class="btn-close text-reset "
+        data-bs-dismiss="offcanvas"
+        aria-label="Close"
+      ></button>
+    </div>
+    <div class="offcanvas-body pt-0 pb-0">
+      <div class="row h-auto">
+        <div class="col-12">
+          <div class="form-group">
+            <label class="">Nhập từ khóa</label>
+            <input
+              type="text"
+              [(ngModel)]="searchText" (input)="onSearchChange($event)" placeholder="Tìm kiếm..."
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container-fluid project-container" id="projectParent">
+    <div class="row">
+      <div class="col-12 p-0">
+        <div class="card">
+          <div class="card-header p-0">
+            <div class="d-flex justify-content-between">
+              <div class="d-flex gap-2">
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary p-0 ps-2 pe-2"
+                  title="Thêm mới" (click)="openModalForNewProduct()"
+                >
+                  <i class="fas fa-plus"></i> Thêm
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary p-0 ps-2 pe-2"
+                  title="Sửa" (click)="edit()"
+                >
+                  <i class="fas fa-pen"></i> Sửa
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary p-0 ps-2 pe-2"
+                  title="Xóa" (click)="delete()"
+                >
+                  <i class="fas fa-trash"></i> Xóa
+               
+                </button>
+                <button
+                type="button"
+                class="btn btn-outline-secondary p-0 ps-2 pe-2"
+                title="Đơn vị tính" (click)="openModalDVT()"
+              >Đơn vị tính
+              </button>
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary p-0 ps-2 pe-2"
+                  title="Nhập Excel" (click)="OpenModalExcel()"
+                >
+                  <i class="fas fa-file-excel"></i> Nhập excel
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary p-0 ps-2 pe-2"
+                  title="Xuất Excel"  (click)="exportToExcel()"
+                >
+                  <i class="fas fa-file-excel"></i> Xuất excel
+                </button>
+              </div>
+              
+              <div class="d-flex gap-2 align-items-center " style="width: 500px; ">
+                <input type="text" class="form-control form-control-sm fs-12" [(ngModel)]="searchText" (input)="onSearchChange($event)" placeholder="Tìm kiếm..."
+              style="font-style: italic;"
+                >
+                
+              </div>
+            </div>
+
+          </div>
+          <div class="card-body p-0">
+              <div id="datatable"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="detailProductModal" tabindex="-1" aria-labelledby="addProductModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div  class="modal-header  bg-primary text-white text-uppercase" >
+       <h6 class="modal-title" id="addProductModalLabel">Chi tiết sản phẩm</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form class="row g-3 needs-validation was-validated" novalidate>
+          <div class="row">
+            <div class="col-md-6 pb-3">
+              <label for="CodeRTC" class="form-label fs-12">Mã RTC <sup style="color: red;"> (*)</sup></label>
+              <input type="text" class="form-control fs-12 " [(ngModel)]="newProduct.CodeRTC" name="CodeRTC" readonly>
+            </div>
+            <div class="col-md-6 pb-3">
+              <label for="CodeNCC" class="form-label fs-12">Mã NCC <sup style="color: red;"> (*)</sup></label>
+              <input type="text" class="form-control fs-12 " [(ngModel)]="newProduct.CodeNCC" name="CodeNCC"
+                placeholder="Nhập mã NCCC" required>
+              <div class="invalid-feedback">
+                Vui lòng nhập mã NCC!
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <div class="col md-12 pb-3">
+                <label for="NameRTC" class="form-label fs-12">Tên RTC <sup style="color: red;"> (*)</sup></label>
+                <input type="text" class="form-control fs-12" [(ngModel)]="newProduct.NameRTC" name="NamRTC"
+                  placeholder="Nhập tên RTC">
+              </div>
+            </div>
+
+          </div>
+          <div class="row">
+            <div>
+                <div class="col md-12 pb-3">
+                <label for="NameNCC" class="form-label fs-12">Tên NCC <sup style="color: red;"> (*)</sup></label>
+                <input type="text" class="form-control fs-12" [(ngModel)]="newProduct.NameNCC" name="NameNCC"
+                  placeholder="Nhập tên NCC" required>
+                <div class="invalid-feedback">
+                  Vui lòng nhập tên nhà cung cấp!
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+              <div class="col md-6 pb-3 ">
+              <label for="SupplyUnitID" class="form-label fs-12">Đơn vị tính <sup style="color: red;"> (*)</sup></label>
+              <div class="d-flex gap-2 align-items-center">
+                <nz-select
+                  [(ngModel)]="newProduct.SupplyUnitID"
+                  name="SupplyUnitID"
+                  nzPlaceHolder="Chọn đơn vị"
+                  class="col-md-10"
+                  required>
+                  <nz-option
+                    *ngFor="let unit of listUnit"
+                    [nzValue]="unit.ID"
+                    [nzLabel]="unit.Name">
+                  </nz-option>
+                </nz-select>
+                
+                <button type="button" class="btn btn-outline-primary col-md-2 d-flex align-items-center justify-content-center"
+                  data-bs-toggle="modal"
+                  data-bs-target="#addUnitModal">
+                  <i class="fa-solid fa-plus"></i>
+                </button>
+              </div>
+              <div class="invalid-feedback ">
+                Vui lòng chọn đơn vị tính!
+              </div>
+            </div>
+            <div class="col md-6 pb-4">
+              <label for="Price" class="form-label fs-12 ">Giá sản phẩm<sup style="color: red;"> (*)</sup></label>
+              <input style="text-align: right;" type="number" min="1" class="form-control fs-12 " [(ngModel)]="newProduct.Price"
+                placeholder="Nhập giá" name="Price" required>
+              <div class="invalid-feedback">
+                Vui lòng nhập giá sản phẩm!
+              </div>
+            </div>
+          </div>
+          <div class="row mb-3 ">
+            <div class="col md-6 pb-4">
+              <label for="RequestLimit" class="form-label fs-12">Định mức</label>
+              <input type="number" style="text-align: right;" class="form-control fs-12" min="0"
+                [(ngModel)]="newProduct.RequestLimit" placeholder="" name="RequestLimit" required>
+                <div class="invalid-feedback">
+                  Vui lòng nhập định mức!
+                </div>
+            </div>
+            <div class="col md-6">
+              <label for="Type" class="form-label fs-12 ">Chọn loại sản phẩm<sup style="color: red;"> (*)</sup></label>
+              <nz-select
+                [(ngModel)]="newProduct.Type"
+                name="Type"
+                nzPlaceHolder="Chọn loại sản phẩm"
+                class="fs-12"
+                required>
+                <nz-option
+                  *ngFor="let type of typeOptions"
+                  [nzValue]="type.id"
+                  [nzLabel]="type.name">
+                </nz-option>
+              </nz-select>
+              <div class="invalid-feedback ">
+                Vui lòng chọn loại sản phẩm!
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary p-0 ps-2 pe-2 "  data-bs-dismiss="modal">Đóng</button>
+        <button type="submit" class="btn btn-success p-0 ps-2 pe-2 " (click)="isCheckmode? update(): add()">Lưu thay đổi</button>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal thêm đơn vị tính -->
+<div class="modal fade" id="addUnitModal" tabindex="-1" aria-labelledby="addUnitModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white text-uppercase ">
+       <h6 class="modal-title" id="addUnitModalLabel">Thêm đơn vị tính mới</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form class="needs-validation" novalidate>
+          <div class="mb-3">
+          </div>
+          <div class="mb-3 ">
+            <label for="unitName" class="form-label fs-12">Tên đơn vị <sup style="color: red;"> (*)</sup></label>
+            <input type="text" class="form-control " id="unitName" [(ngModel)]="newUnit.Name" name="unitName" required placeholder="Nhập tên đơn vị">  
+            <div class="invalid-feedback">
+              Vui lòng nhập tên đơn vị!
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary p-0 ps-2 pe-2 " data-bs-dismiss="modal">Đóng</button>
+        <button type="button" class="btn btn-success p-0 ps-2 pe-2" (click)="addNewUnit()">Lưu thay đỏi</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- modal hiện danh sách đơn vị tính và kèm chức năng thêm, sửa-->
+<div class="modal fade" id="officeSupplyUnitModal" tabindex="-1" aria-labelledby="officeSupplyUnitModalLabel"  aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white text-uppercase ">
+       <h6 class="modal-title" id="addUnitModalLabel">Danh sách đơn vị tính</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form class="needs-validation" novalidate>
+          <div class="d-flex gap-2 align-items-center p-2">
+              <input type="text" class="form-control form-control-sm" [(ngModel)]="selectedItem.Name" name="unitName" placeholder="Nhập đơn vị tính">
+			  <button
+              type="button"
+              class="btn btn-outline-primary p-0 ps-2 pe-2"
+              title="Cập nhật đơn vị tính" (click)="saveSelectedItem()"
+              style="white-space: nowrap;"
+            >Cập nhật
+            </button>
+          </div>
+          <div class="card-body p-2">
+            <div id="datatable2"></div>
+          </div>
+        </form>
+      </div>   
+    </div>
+  </div>
+</div>
+<!-- modal hiện nhập khẩu excel  -->
+<div class="modal fade" id="ExcelModal" tabindex="-1" aria-labelledby="ExcelModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header  bg-success text-white text-uppercase ">
+       <h6 class="modal-title" id="ExcelModalLabel">NHẬP DỮ LIỆU EXCEL</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="d-flex gap-2 align-items-center p-2">
+          <div class="flex-grow-1">
+            <div class="progress">
+              <div class="progress-bar" role="progressbar" [style.width.%]="displayProgress" [attr.aria-valuenow]="displayProgress" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-text-overlay fs-12 text-black" style="
+                  text-align: center; position: absolute; width: 100%;">
+                  {{displayText}}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <form class="needs-validation" novalidate>
+          <div class="d-flex flex-column gap-2 p-2">
+            <div class="d-flex gap-2 align-items-center">
+              <div class="d-flex align-items-center gap-2" style="flex: 2;">
+                <label class="mb-0 fs-12" style="white-space: nowrap;">Đường dẫn:</label>
+                <div class="d-flex gap-2 flex-grow-1">
+                  <input type="text" class="form-control form-control-sm fs-12" placeholder="Đường dẫn" name="path" id="pathInput" [(ngModel)]="filePath" readonly>
+                  <input type="file" class="d-none fs-12" id="fileInput" accept=".xlsx,.xls" (change)="onFileSelected($event)">
+                  <button type="button" class="btn btn-warning  btn-sm" (click)="openFileExplorer()" style="height: auto;">
+                    <i class="fas fa-folder-open"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="d-flex align-items-center gap-2" style="flex: 1;">
+                <label class="mb-0 fs-12" style="white-space: nowrap;">Tên Sheet:</label>
+                <select class="form-select form-select-sm fs-12" name="sheet" id="sheetSelect" [(ngModel)]="selectedSheet" (change)="onSheetChange()">
+                  <option value="">Chọn Sheet</option>
+                  <option *ngFor="let sheet of excelSheets" [value]="sheet">{{sheet}}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="card-body p-2">
+            <div id="datatableExcel" style="height: 300px; overflow-y: auto;">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary p-0 ps-2 pe-2 "  data-bs-dismiss="modal">Đóng</button>
+            <button  type="button" class="btn btn-info p-0 ps-2 pe-2">
+              <a href="/assets/templateForm/MauVPP.xlsx" download="MauVPP.xlsx" style="text-decoration: none; color: inherit;">Mẫu Excel</a>
+            </button>
+            <button type="submit" class="btn btn-success p-0 ps-2 pe-2 " (click)="saveExcelData()">Lưu thay đổi</button>   
+          </div>
+        </form>
+      </div>   
+    </div>
+  </div>
+</div>

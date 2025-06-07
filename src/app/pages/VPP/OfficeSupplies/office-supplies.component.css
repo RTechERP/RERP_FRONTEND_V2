@@ -1,0 +1,94 @@
+/* Đảm bảo phần thân đúng layout */
+.layout-wrapper {
+  height: 100%;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+.ng-select .ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-child {
+  font-size: 12px !important;
+}
+
+/* Thẻ offcanvas */
+.custom-offcanvas {
+  width: 300px;
+  position: absolute;
+  height: 100%;
+  transform: translateX(-100%);
+  transition: transform 0.2s ease;
+  z-index: 1;
+}
+
+/* Khi show, trượt vào */
+.offcanvas-left.show {
+  transform: translateX(0);
+}
+
+.card {
+  height: 100%;
+}
+
+.row {
+  height: 100%;
+}
+
+.offcanvas-left.show + .project-container {
+  margin-left: 300px;
+  width: calc(100% - 300px);
+}
+
+::ng-deep ng-select .ng-value-container {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  white-space: nowrap !important;
+}
+
+.tabulator {
+  font-size: 0.75rem;
+}
+
+.tabulator-cell {
+  padding: 0px;
+}
+
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+.btn {
+  font-weight: bold;
+  height: 3.5vh;
+  font-size: 0.75rem;
+  border: none;
+}
+
+::ng-deep ng-select.form-control .ng-clear-wrapper {
+  display: flex;
+  align-items: center;
+  margin-left: 20px;
+  
+}
+.row{
+  margin:auto !important;
+}
+
+::ng-deep ng-select.form-control .ng-clear-wrapper:hover {
+  color: #d9363e;
+}
+
+::ng-deep .ng-select.ng-select-multiple .ng-select-container .ng-value-container .ng-value {
+    margin-top: 3px;
+    margin-right: 1px;
+    font-size: .75rem;
+    background-color: #fafafa;
+    border: none;
+    border-radius: 2px;
+    height: 24px;
+    line-height: 22px;
+}
+/* cap nhat */
+/* Đảm bảo thanh tiến trình luôn hiển thị văn bản bên trong */
+
+
+/* Optional: Đảm bảo vùng chứa progress bar có đủ không gian và nền rõ ràng */

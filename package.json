@@ -19,13 +19,16 @@
     "@angular/platform-browser-dynamic": "^19.2.0",
     "@angular/router": "^19.2.0",
     "@fortawesome/fontawesome-free": "^6.7.2",
+    "@types/exceljs": "^0.5.3",
     "bootstrap": "^5.3.6",
+    "exceljs": "^4.4.0",
     "font-awesome": "^4.7.0",
     "luxon": "^3.6.1",
     "ng-zorro-antd": "^19.3.1",
     "rxjs": "~7.8.0",
     "tabulator-tables": "^6.3.1",
     "tslib": "^2.3.0",
+    "xlsx": "^0.18.5",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {

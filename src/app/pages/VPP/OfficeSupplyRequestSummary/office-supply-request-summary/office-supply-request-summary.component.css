@@ -55,9 +55,6 @@
 
 .btn {
   font-weight: bold;
-  height: 3.5vh;
-  font-size: 0.75rem;
-  border: none;
 }
 
 ::ng-deep ng-select.form-control .ng-clear-wrapper {

@@ -1,6 +1,6 @@
-import { Component, OnInit,AfterViewInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit,AfterViewInit, ViewEncapsulation, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NonNullableFormBuilder, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator.min.css';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
@@ -10,23 +10,23 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
-import { NzMessageModule } from 'ng-zorro-antd/message';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzFormModule } from 'ng-zorro-antd/form';
 
 @Component({
   selector: 'app-office-supply-component',
   standalone: true,
   imports: [
     CommonModule, 
-    FormsModule, 
+    FormsModule,
+    ReactiveFormsModule,
     NzButtonModule, 
     NzModalModule, 
     NzSplitterModule,
     NzIconModule,
     NzTypographyModule,
-    NzMessageModule,
-    NzButtonModule
+    NzButtonModule,
+    NzFormModule
   ],
   templateUrl: './office-supply-component.component.html',
   styleUrl: './office-supply-component.component.css',
@@ -43,13 +43,67 @@ export class OfficeSupplyComponentComponent implements OnInit, AfterViewInit {
   lastAddedId: number | null = null; // Thêm biến để theo dõi ID của đơn vị mới thêm
   sizeSearch: string = '0';
   sizeTable: string = '0';
+  private fb: NonNullableFormBuilder;
+  validateForm: any;
+
   constructor(
     private OSU: OfficeSupplyUnitServiceService,
     private modal: NzModalService,
-    private notification: NzNotificationService,
-    private message: NzMessageService,
-  ) { }
+    private notification: NzNotificationService
+  ) {
+    this.fb = inject(NonNullableFormBuilder);
+    this.initForm();
+  }
+
+  private initForm() {
+    this.validateForm= this.fb.group({
+      unitName: [null, [Validators.required]]
+    });
+  }
   ngOnInit(): void {
+  }
+  submitForm(): void {
+    if (this.validateForm.valid) {
+      // Lấy giá trị từ form
+      const formValue = this.validateForm.value;
+      
+      // Gán giá trị vào selectedItem
+      this.selectedItem = {
+        ID: this.isCheckmode ? this.selectedItem.ID : 0,
+        Name: formValue.unitName
+      };
+
+      // Gọi API
+      this.OSU.updatedata(this.selectedItem).subscribe({
+        next: (response) => {
+          let newItem;
+          if (response && response.data) {
+            newItem = Array.isArray(response.data) ? response.data[0] : response.data;
+          }       
+          if (this.isCheckmode) {
+            this.notification.success('Thông báo', `Cập nhật thành công!`);
+          } else {
+            this.lastAddedId = newItem.ID;
+            this.notification.success('Thông báo', `Thêm mới thành công!`);
+          }
+          this.selectedItem = {}; // reset form
+          this.closeUnitModal();
+          this.get(); // Tải lại bảng
+        },
+        error: (err) => {
+          console.error('Lỗi khi lưu dữ liệu:', err);
+          this.notification.error('Thông báo','Có lỗi xảy ra khi cập nhật!');
+        }
+      });
+    } else {
+      Object.values(this.validateForm.controls).forEach((control: unknown) => {
+        const formControl = control as AbstractControl;
+        if (formControl.invalid) {
+          formControl.markAsDirty();
+          formControl.updateValueAndValidity({ onlySelf: true });
+        }
+      });
+    }
   }
   ngAfterViewInit(): void {
     this.drawTable();
@@ -86,8 +140,7 @@ export class OfficeSupplyComponentComponent implements OnInit, AfterViewInit {
         movableColumns: true,
         resizableRows: true,
         reactiveData: true,
-        selectableRows:15,
-      
+        selectableRows:15,    
         columns: [
           {
             title: "",
@@ -99,19 +152,12 @@ export class OfficeSupplyComponentComponent implements OnInit, AfterViewInit {
             width: 40,
             frozen: true,
 
-          },
-          {
-            title: 'Mã đơn vị',
-            field: 'ID',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            width: 80
-          },
+          },       
           {
             title: 'Tên đơn vị',
             field: 'Name',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
+            hozAlign: 'left',
+            headerHozAlign: 'left',
             width: "90%"
           }
         ]
@@ -130,9 +176,8 @@ export class OfficeSupplyComponentComponent implements OnInit, AfterViewInit {
         let data = null;
         if (response?.data) {
           data = Array.isArray(response.data) ? response.data[0] : response.data;
-
         } else {
-          data = response; // fallback nếu không có response.data
+          data = response;
         }
 
         if (data && typeof data === 'object' && Object.keys(data).length > 0) {
@@ -140,6 +185,10 @@ export class OfficeSupplyComponentComponent implements OnInit, AfterViewInit {
             ID: data.ID || '',
             Name: data.Name || '',
           };
+          // Set giá trị vào form
+          this.validateForm.patchValue({
+            unitName: data.Name
+          });
         } else {
           console.warn('Không có dữ liệu để fill');
           console.log('Giá trị data:', data);
@@ -158,47 +207,27 @@ export class OfficeSupplyComponentComponent implements OnInit, AfterViewInit {
     }
   }
   saveSelectedItem() {
-    this.OSU.updatedata(this.selectedItem).subscribe({
-      next: (response) => {
-        let newItem;
-        if (response && response.data) {
-          newItem = Array.isArray(response.data) ? response.data[0] : response.data;
-        }       
-        if (this.isCheckmode) {
-          this.notification.success('Thông báo', `Cập nhật thành công ID: ${this.selectedItem.ID} !`);
-        } else {
-          this.lastAddedId = newItem.ID;
-          this.notification.success('Thông báo', `Thêm mới thành công!`);
-        }
-        this.selectedItem = {}; // reset form
-        this.closeUnitModal();
-        this.get(); // Tải lại bảng
-      },
-      error: (err) => {
-        console.error('Lỗi khi lưu dữ liệu:', err);
-        this.notification.error('Thông báo','Có lỗi xảy ra khi cập nhật!');
-      }
-    });
+   this.submitForm();
   }
   deleteUnit() {
     var dataSelect = this.table.getSelectedData();
     this.selectedList = dataSelect; // Cập nhật lại selectedList với dữ liệu mới nhất
     const ids = this.selectedList.map(item => item.ID);
     if (ids.length == 0) {
-      this.message.warning("Vui lòng chọn ít nhất 1 sản phẩm để xóa!")
+      this.notification.warning("Thông báo", "Vui lòng chọn ít nhất 1 sản phẩm để xóa!");
       return;
     }
     else {
       this.modal.create({
         nzTitle: 'Thông báo',
-        nzContent: `Bạn có chắc chắn muốn xóa các ID: ${ids.join(', ')} !`,
-        nzOkText: 'Đồng ý',
+        nzContent: `Bạn có chắc chắn muốn xóa đơn vị: ${this.selectedList.map(item => item.Name).join(' , ')} !`,
+        nzOkText: 'Lưu',
         nzOkType: 'primary',
         nzOkDanger: true,
         nzOnOk: () => {
           this.OSU.deletedata(ids).subscribe({
             next: () => {
-             this.notification.success("Thông báo", `Xóa thành công các ID: ${ids.join(', ')} !`);
+             this.notification.success("Thông báo", `Xóa thành công ${this.selectedList.length} đơn vị!`);
               this.get();
               this.selectedList = [];
             },
@@ -218,6 +247,8 @@ export class OfficeSupplyComponentComponent implements OnInit, AfterViewInit {
   }
   openUnitModalForNewUnit() {
     this.isCheckmode = false;
+    this.selectedItem={};
+    this.validateForm.reset();
     this.openUnitModal();
   }
   openUnitModalForUpdateUnit() {
@@ -227,11 +258,11 @@ export class OfficeSupplyComponentComponent implements OnInit, AfterViewInit {
 
     const ids = this.selectedList.map(item => item.ID);
     if (this.selectedList.length == 0) {
-      this.message.warning('Vui lòng chọn ít nhất 1 sản phẩm để sửa!');
+      this.notification.warning("Thông báo", "Vui lòng chọn 1 sản phẩm để sửa!");
       this.selectedList = [];
       return;
     } else if (this.selectedList.length > 1) {
-      this.message.warning('Vui lòng chỉ chọn 1 sản phẩm để sửa!')
+      this.notification.warning("Thông báo", "Vui lòng chỉ chọn 1 sản phẩm để sửa!");
       this.selectedList = [];
       return;
     } else {

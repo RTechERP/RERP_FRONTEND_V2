@@ -1,4 +1,4 @@
-Đảm bảo phần thân đúng layout
+/* Đảm bảo phần thân đúng layout */
 .layout-wrapper {
   height: 100%;
   display: flex;
@@ -53,12 +53,7 @@
   font-size: 0.75rem;
 }
 
-.btn {
-  font-weight: bold;
-  height: 3.5vh;
-  font-size: 0.75rem;
-  border: none;
-}
+
 
 ::ng-deep ng-select.form-control .ng-clear-wrapper {
   display: flex;

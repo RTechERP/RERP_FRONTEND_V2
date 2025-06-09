@@ -6,6 +6,7 @@ import {OfficeSupplyComponentComponent} from './pages/VPP/OfficeSupplyUnit/offic
 import { DailyreportComponent } from './pages/dailyreport/dailyreport.component';
 import { OfficeSupplyRequestSummaryComponent } from './pages/VPP/OfficeSupplyRequestSummary/office-supply-request-summary/office-supply-request-summary.component';
 import { OfficeSupplyRequestsComponent } from './pages/VPP/OfficeSupplyRequests/office-supply-requests.component';
+import { OfficeSuppliesComponent } from './pages/VPP/OfficeSupplies/office-supplies.component';
 export const routes: Routes = [
   { path: '', redirectTo: '/welcome', pathMatch: 'full' },
   { path: 'app', component: AppComponent },
@@ -19,5 +20,6 @@ export const routes: Routes = [
   //router báo cáo công việc 
   {path: 'dailyreport', component:DailyreportComponent},
   {path:'officesupplyrequestsummury', component:OfficeSupplyRequestSummaryComponent},
-  {path:'officesupplyrequest', component:OfficeSupplyRequestsComponent}
+  {path:'officesupplyrequest', component:OfficeSupplyRequestsComponent},
+  {path:'officesupplies', component:OfficeSuppliesComponent}
 ];

@@ -1,16 +1,23 @@
 import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
 import {OfficeSuppliesService } from './office-supplies-service/office-supplies-service.service';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator.min.css'; //import Tabulator stylesheet
 import { RowComponent } from 'tabulator-tables';
 import * as ExcelJS from 'exceljs';
-import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService } from 'ng-zorro-antd/modal';
-import { NzMessageModule } from 'ng-zorro-antd/message';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
+import { NzSplitterModule } from 'ng-zorro-antd/splitter';
+import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzProgressModule } from 'ng-zorro-antd/progress';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
+
 
 interface Unit {
   ID: number;
@@ -37,15 +44,23 @@ declare var bootstrap: any; // Đảm bảo khai báo bên ngoài class, trướ
   imports: [
     CommonModule, 
     FormsModule, 
-    NzMessageModule, 
+    ReactiveFormsModule,
     NzModalModule,
-    NzSelectModule
+    NzSelectModule,
+    NzSplitterModule,
+    NzIconModule,
+    NzButtonModule,
+    NzProgressModule,
+    NzInputModule,
+    NzFormModule,
+    NzInputNumberModule
   ],
   templateUrl: './office-supplies.component.html',
   styleUrls: ['./office-supplies.component.css'],
 })
-export class OfficeSuppliesComponent implements OnInit {
+export class OfficeSuppliesComponent implements OnInit, AfterViewInit {
 
+  validateForm!: FormGroup;
   lstVP: any[] = [];
   listUnit: any[] = [];
   table: any; // instance của Tabulator
@@ -91,17 +106,26 @@ export class OfficeSuppliesComponent implements OnInit {
 
   constructor(
     private lstVPP: OfficeSuppliesService,
-    private message: NzMessageService,
-    private modal: NzModalService
+    private notification: NzNotificationService,
+    private modal: NzModalService,
+    private fb: FormBuilder
   ) { }
 
+  private initForm() {
+    this.validateForm= this.fb.group({
+      unitName: [null, [Validators.required]]
+    });
+  }
   ngOnInit(): void {
-    this.drawTable(); // Khởi tạo tất cả các bảng ở đây
     this.getAll();
     this.getUnits();
   }
 
-//lấy ra danh sách đơn vị tính
+  ngAfterViewInit(): void {
+    this.drawTable(); // Khởi tạo tất cả các bảng ở đây
+  }
+
+  //lấy ra danh sách đơn vị tính
   getUnits(): void {
     this.lstVPP.getUnit().subscribe({
       next: (res) => {
@@ -135,13 +159,13 @@ export class OfficeSuppliesComponent implements OnInit {
     });
   }
   
-  private drawTable(): void {
+  drawTable() {
     // Khởi tạo bảng chính (this.table)
     if (!this.table) { // Chỉ khởi tạo nếu chưa có
       this.table = new Tabulator('#datatable', {
         data: this.dataTable,
         layout: 'fitDataFill',
-        height: '70vh',
+        height: '85vh',
         selectableRows: 10,
         pagination: true,
         paginationSize: 50,
@@ -207,17 +231,11 @@ export class OfficeSuppliesComponent implements OnInit {
         reactiveData: true,
         columns: [
           {
-            title: 'Mã đơn vị',
-            field: 'ID',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-          },
-          {
             title: 'Tên đơn vị',
             field: 'Name',
             hozAlign: 'center',
             headerHozAlign: 'center',
-            width: "50%"
+            width: "100%"
           }
         ]
       });
@@ -299,7 +317,7 @@ export class OfficeSuppliesComponent implements OnInit {
   }
   saveSelectedItem() {
     if (!this.selectedItem?.Name) {
-      this.message.error('Tên đơn vị không được để trống!');
+      this.notification.error('Thông báo', 'Tên đơn vị không được để trống!');
       return;
     }
 
@@ -311,26 +329,26 @@ export class OfficeSuppliesComponent implements OnInit {
             const newItem = Array.isArray(response.data) ? response.data[0] : response.data;
             this.lastAddedId = newItem.ID;
           }
-          this.message.success('Thêm mới thành công!');
+          this.notification.success('Thông báo', 'Thêm mới thành công!');
           this.selectedItem = {};
           this.getUnits();
         },
         error: (err) => {
           console.error('Lỗi khi thêm mới:', err);
-          this.message.error('Có lỗi xảy ra khi thêm mới!');
+          this.notification.error('Thông báo', 'Có lỗi xảy ra khi thêm mới!');
         }
       });
     } else {
       // Nếu có ID, cập nhật
       this.lstVPP.updatedataUnit(this.selectedItem).subscribe({
         next: (response) => {
-          this.message.success('Cập nhật thành công!');
+          this.notification.success('Thông báo', 'Cập nhật thành công!');
           this.selectedItem = {};
           this.getUnits();
         },
         error: (err) => {
           console.error('Lỗi khi cập nhật dữ liệu:', err);
-          this.message.error('Có lỗi xảy ra khi cập nhật dữ liệu!');
+          this.notification.error('Thông báo', 'Có lỗi xảy ra khi cập nhật dữ liệu!');
         }
       });
     }
@@ -381,7 +399,7 @@ export class OfficeSuppliesComponent implements OnInit {
 
   add(): void {
     if (!this.newProduct.CodeNCC || !this.newProduct.NameNCC || !this.newProduct.Price || !this.newProduct.SupplyUnitID) {
-      this.message.warning('Vui lòng điền đầy đủ thông tin!');
+      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin!');
       return;
     }
     this.lstVPP.adddata(this.newProduct).subscribe({
@@ -390,7 +408,7 @@ export class OfficeSuppliesComponent implements OnInit {
           const newItem = Array.isArray(res.data) ? res.data[0] : res.data;
           this.lastAddedIdProduct = newItem.ID;
         }
-        this.message.success('Thêm thành công!');
+        this.notification.success('Thông báo', 'Thêm thành công!');
         this.closeModal();
         this.getAll(); 
 
@@ -401,7 +419,7 @@ export class OfficeSuppliesComponent implements OnInit {
         }
       },
       error: (err) => {
-        this.message.error('Có lỗi xảy ra khi thêm dữ liệu!');
+        this.notification.error('Thông báo', 'Có lỗi xảy ra khi thêm dữ liệu!');
       }
     });
   }
@@ -414,7 +432,7 @@ export class OfficeSuppliesComponent implements OnInit {
     });
     const ids = this.selectedList.map(item => item.ID);
     if (ids.length == 0) {
-      this.message.warning('Vui lòng chọn 1 sản phẩm để xóa!');
+      this.notification.warning('Thông báo', 'Vui lòng chọn 1 sản phẩm để xóa!');
       return;
     }
     
@@ -426,12 +444,12 @@ export class OfficeSuppliesComponent implements OnInit {
       nzOnOk: () => {
         this.lstVPP.deletedata(ids).subscribe({
           next: () => {
-            this.message.success('Đã xóa thành công!');
+            this.notification.success('Thông báo', 'Đã xóa thành công!');
             this.getAll();
             this.selectedList = [];
           },
           error: (err: any) => {
-            this.message.error('Có lỗi xảy ra khi xóa dữ liệu!');
+            this.notification.error('Thông báo', 'Có lỗi xảy ra khi xóa dữ liệu!');
           }
         });
       }
@@ -441,18 +459,18 @@ export class OfficeSuppliesComponent implements OnInit {
   //cập nhật
   update(): void {
     if (!this.newProduct.CodeNCC || !this.newProduct.NameNCC || !this.newProduct.Price || !this.newProduct.SupplyUnitID) {
-      this.message.warning('Vui lòng điền đầy đủ thông tin!');
+      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin!');
       return;
     }
     console.log('Dữ liệu update:', this.newProduct);
     this.lstVPP.updatedata(this.newProduct).subscribe({
       next: (res) => {
-        this.message.success('Cập nhật thành công!');
+        this.notification.success('Thông báo', 'Cập nhật thành công!');
         this.closeModal();
         this.getAll();
       },
       error: (err) => {
-        this.message.error('Có lỗi xảy ra khi cập nhật dữ liệu!');
+        this.notification.error('Thông báo', 'Có lỗi xảy ra khi cập nhật dữ liệu!');
       }
     });
   }
@@ -495,10 +513,10 @@ export class OfficeSuppliesComponent implements OnInit {
   }
 
   openModalDVT(){
+    this.getUnits();
     const modalEl = document.getElementById('officeSupplyUnitModal');
     if (modalEl) {
       const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-
       modal.show();
       console.log('ischeckmode:', this.isCheckmode);
     }
@@ -567,11 +585,11 @@ export class OfficeSuppliesComponent implements OnInit {
     const ids = this.selectedList.map(item => item.ID);
     this.isCheckmode = true;
     if (this.selectedList.length == 0) {
-      this.message.warning('Vui lòng chọn 1 sản phẩm để sửa!');
+      this.notification.warning('Thông báo', 'Vui lòng chọn 1 sản phẩm để sửa!');
       this.selectedList=[];
       return;
     } else if (this.selectedList.length > 1) {
-      this.message.warning('Vui lòng chỉ chọn 1 sản phẩm để sửa!');
+      this.notification.warning('Thông báo', 'Vui lòng chỉ chọn 1 sản phẩm để sửa!');
       this.selectedList=[];
       return;
     } else {
@@ -590,19 +608,18 @@ export class OfficeSuppliesComponent implements OnInit {
 //Thêm đơn vị tính
   addNewUnit(): void {
     if (!this.newUnit.Name) {
-      this.message.warning('Vui lòng điền đầy đủ thông tin đơn vị!');
+      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin đơn vị!');
       return;
     }
     this.lstVPP.addUnit(this.newUnit).subscribe({
       next: (response: any) => {
-        this.message.success('Thêm đơn vị thành công!');
+        this.notification.success('Thông báo', 'Thêm đơn vị thành công!');
         this.newUnit={ID:0,Name:''};
         this.closeUnitModal();
         this.getUnits(); 
-        
       },
       error: (error: any) => {
-        this.message.error('Có lỗi xảy ra khi thêm đơn vị!');
+        this.notification.error('Thông báo', 'Có lỗi xảy ra khi thêm đơn vị!');
       }
     });
   }
@@ -811,10 +828,10 @@ export class OfficeSuppliesComponent implements OnInit {
     });
     
     if (this.selectedList.length === 0) {
-      this.message.warning('Vui lòng chọn 1 sản phẩm để sửa!');
+      this.notification.warning('Thông báo', 'Vui lòng chọn 1 sản phẩm để sửa!');
       return;
     } else if (this.selectedList.length > 1) {
-      this.message.warning('Vui lòng chỉ chọn 1 sản phẩm để sửa!');
+      this.notification.warning('Thông báo', 'Vui lòng chỉ chọn 1 sản phẩm để sửa!');
       this.selectedList = [];
       return;
     }
@@ -837,7 +854,7 @@ export class OfficeSuppliesComponent implements OnInit {
     if (this.table) {
       this.table.import("xlsx", [".xlsx", ".csv", ".ods"], "buffer");
     } else {
-      this.message.warning('Bảng chưa được khởi tạo!');
+      this.notification.warning('Thông báo', 'Bảng chưa được khởi tạo!');
     }
   }
 
@@ -856,7 +873,7 @@ export class OfficeSuppliesComponent implements OnInit {
         console.log('Phần mở rộng:', fileExtension); // Log để kiểm tra
 
         if (fileExtension !== 'xlsx' && fileExtension !== 'xls') {
-            this.message.warning('Vui lòng chọn tệp Excel (.xlsx hoặc .xls)!');
+            this.notification.warning('Thông báo', 'Vui lòng chọn tệp Excel (.xlsx hoặc .xls)!');
             input.value = ''; // Xóa input để có thể chọn lại file
             this.resetExcelImportState(); // Reset trạng thái khi có lỗi định dạng
             return;
@@ -928,12 +945,12 @@ export class OfficeSuppliesComponent implements OnInit {
 
                 } else {
                     console.warn('File Excel không chứa bất kỳ sheet nào.'); // Log
-                    this.message.warning('File Excel không có sheet nào!');
+                    this.notification.warning('Thông báo', 'File Excel không có sheet nào!');
                     this.resetExcelImportState();
                 }
             } catch (error) {
                 console.error('Lỗi khi đọc tệp Excel trong FileReader.onload:', error); // Log chi tiết lỗi
-                this.message.error('Không thể đọc tệp Excel. Vui lòng đảm bảo tệp không bị hỏng và đúng định dạng.');
+                this.notification.error('Thông báo', 'Không thể đọc tệp Excel. Vui lòng đảm bảo tệp không bị hỏng và đúng định dạng.');
                 this.resetExcelImportState(); // Reset trạng thái khi có lỗi
             }
             input.value = ''; // Xóa input để có thể chọn lại cùng file
@@ -1050,7 +1067,7 @@ export class OfficeSuppliesComponent implements OnInit {
 
     } catch (error) {
       console.error('Lỗi khi đọc dữ liệu từ sheet trong readExcelData:', error); // Log chi tiết lỗi
-      this.message.error('Không thể đọc dữ liệu từ sheet! Vui lòng kiểm tra định dạng dữ liệu.');
+      this.notification.error('Thông báo', 'Không thể đọc dữ liệu từ sheet! Vui lòng kiểm tra định dạng dữ liệu.');
       this.resetExcelImportState(); // Reset trạng thái khi có lỗi
     }
   }
@@ -1074,7 +1091,7 @@ export class OfficeSuppliesComponent implements OnInit {
                     console.log('Dữ liệu đã được đọc lại sau khi thay đổi sheet.'); // Log
                 } catch (error) {
                     console.error('Lỗi khi đọc tệp Excel khi thay đổi sheet:', error);
-                    this.message.error('Không thể đọc dữ liệu từ sheet đã chọn!');
+                    this.notification.error('Thông báo', 'Không thể đọc dữ liệu từ sheet đã chọn!');
                     this.resetExcelImportState(); // Reset trạng thái khi có lỗi
                 }
             };
@@ -1089,7 +1106,7 @@ export class OfficeSuppliesComponent implements OnInit {
     console.log('Dữ liệu Excel hiện tại (trước lọc):', this.dataTableExcel);
 
     if (!this.dataTableExcel || this.dataTableExcel.length === 0) {
-      this.message.warning('Không có dữ liệu để lưu!');
+      this.notification.warning('Thông báo', 'Không có dữ liệu để lưu!');
       console.log('Không có dữ liệu để lưu.');
       return;
     }
@@ -1105,7 +1122,7 @@ export class OfficeSuppliesComponent implements OnInit {
     console.log('Dữ liệu hợp lệ để lưu:', validDataToSave);
 
     if (validDataToSave.length === 0) {
-      this.message.warning('Không có dữ liệu hợp lệ (STT là số) để lưu!');
+      this.notification.warning('Thông báo', 'Không có dữ liệu hợp lệ (STT là số) để lưu!');
       console.log('Không có dữ liệu hợp lệ (STT là số) để lưu.');
       this.displayProgress = 0;
       this.displayText = `0/${this.totalRowsAfterFileRead} bản ghi`;
@@ -1162,7 +1179,7 @@ export class OfficeSuppliesComponent implements OnInit {
         let completedRequests = 0;
 
         if (processedData.length === 0) {
-          this.message.info('Không có sản phẩm hợp lệ để tiến hành lưu.');
+          this.notification.info('Thông báo', 'Không có sản phẩm hợp lệ để tiến hành lưu.');
           this.closeExcelModal();
           console.log('Không có sản phẩm nào để lưu sau xử lý map.');
           return;
@@ -1221,7 +1238,7 @@ export class OfficeSuppliesComponent implements OnInit {
       },
       error: (err) => {
         console.error('Lỗi khi kiểm tra mã sản phẩm từ API:', err);
-        this.message.error('Có lỗi xảy ra khi kiểm tra mã sản phẩm từ database!');
+        this.notification.error('Thông báo', 'Có lỗi xảy ra khi kiểm tra mã sản phẩm từ database!');
         this.displayText = 'Lỗi kiểm tra sản phẩm!';
         this.displayProgress = 0;
       }
@@ -1234,11 +1251,11 @@ export class OfficeSuppliesComponent implements OnInit {
     console.log(`Tổng sản phẩm: ${totalProducts}, Thành công: ${successCount}, Thất bại: ${errorCount}`);
 
     if (errorCount === 0) {
-      this.message.success(`Đã lưu ${successCount} sản phẩm thành công`);
+      this.notification.success('Thông báo', `Đã lưu ${successCount} sản phẩm thành công`);
     } else if (successCount === 0) {
-        this.message.error(`Lưu thất bại ${errorCount}/${totalProducts} sản phẩm`);
+        this.notification.error('Thông báo', `Lưu thất bại ${errorCount}/${totalProducts} sản phẩm`);
     } else {
-      this.message.warning(`Đã lưu ${successCount} sản phẩm thành công, ${errorCount} sản phẩm thất bại`);
+      this.notification.warning('Thông báo', `Đã lưu ${successCount} sản phẩm thành công, ${errorCount} sản phẩm thất bại`);
     }
     this.closeExcelModal();
     this.getAll(); // Refresh the table
@@ -1275,5 +1292,9 @@ export class OfficeSuppliesComponent implements OnInit {
       modal.hide();
     }
     this.resetExcelImportState(); // Gọi hàm reset khi đóng modal
+  }
+
+  formatProgressText = (percent: number): string => {
+    return this.displayText;
   }
 }

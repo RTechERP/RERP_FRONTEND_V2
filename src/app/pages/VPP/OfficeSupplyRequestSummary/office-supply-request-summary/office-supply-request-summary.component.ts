@@ -15,6 +15,8 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { en_US, NzI18nService, zh_CN } from 'ng-zorro-antd/i18n';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 @Component({
   selector: 'app-office-supply-request-summary',
@@ -32,7 +34,8 @@ import { NzMessageService } from 'ng-zorro-antd/message';
     NzInputModule,
     NzInputNumberModule,
     NzSelectModule,
-    NzDatePickerModule
+    NzDatePickerModule,
+    NzSpinModule
   ],
   templateUrl: './office-supply-request-summary.component.html',
   styleUrl: './office-supply-request-summary.component.css',
@@ -44,12 +47,14 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit,AfterViewInit
   dataDeparment: any[] = [];
   searchParams = {
     year: new Date().getFullYear(),
-    month: new Date().getMonth()+1,
+    month: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
     departmentId: 0,
     keyword: ''
   };
   isVisible = false;
   sizeSearch = '0';
+  isLoading = false;
+  monthFormat = 'MM/yyyy';
 
   constructor(
     private officeSupplyRequestSummaryService: OfficeSupplyRequestSummaryServiceService,
@@ -64,14 +69,28 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit,AfterViewInit
     this.getdataOfficeSupplyRequestSummary();
   }
   
-  search(): void {
+  search(date: Date): void {
+    this.isLoading = true;
+    if (date) {
+      this.searchParams.month = date;
+      this.searchParams.year = date.getFullYear();
+    setTimeout(() => {
       this.getdataOfficeSupplyRequestSummary();
+    }, 1500);
+    this.toggleSearchPanel();
   }
+}
   getdataOfficeSupplyRequestSummary(): void {
+    const selectedYear = this.searchParams.month ? this.searchParams.month.getFullYear() : new Date().getFullYear();
+    const selectedMonth = this.searchParams.month ? this.searchParams.month.getMonth() + 1 : new Date().getMonth() + 1;
+    
+    const departmentId = this.searchParams.departmentId || 0;
+    
+    console.log('Search params:', this.searchParams);
     this.officeSupplyRequestSummaryService.getdataOfficeSupplyRequestSummary(
-      this.searchParams.departmentId,
-      this.searchParams.year, 
-      this.searchParams.month,  
+    departmentId,
+      selectedYear, 
+      selectedMonth,  
       this.searchParams.keyword
     ).subscribe({
       next: (res) => {
@@ -87,10 +106,12 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit,AfterViewInit
         } else {
           console.warn('Bảng chưa được khởi tạo');
         }
+        this.isLoading = false;
       },
       error: (err) => {
         console.error('Lỗi khi lấy dữ liệu:', err);
         this.message.error('Có lỗi xảy ra khi lấy dữ liệu');
+        this.isLoading = false;
       }
     });
   }
@@ -141,7 +162,7 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit,AfterViewInit
 
         this.table = new Tabulator("#office-supply-request-summary-table", {
           data: this.datatable,
-          height: '50vh',
+          height: '80vh',
           layout: "fitDataFill",
           pagination: true,
           paginationSize: 30,
@@ -152,8 +173,8 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit,AfterViewInit
             // headerWordWrap: true,
             headerVertical: false,
             headerHozAlign: "center",           
-            minWidth: 60,
-            headerFilter:true,
+            minWidth: 100,
+            vertAlign: "middle",
             resizable: true,
            
           },
@@ -241,7 +262,7 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit,AfterViewInit
                 { 
                   title: "Ghi chú", 
                   field: "Note", 
-                  width: 120,
+                  width: 250,
                   resizable: true,
                   formatter: "textarea",
                   variableHeight: true
@@ -273,4 +294,15 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit,AfterViewInit
   handleCancel(): void {
     this.isVisible = false;
   }
+
+  resetform(): void {
+    this.searchParams = {     
+      year: new Date().getFullYear(),
+  month: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+      departmentId: 0,
+      keyword: ''
+    }
+    this.getdataOfficeSupplyRequestSummary();
+  }
+ 
 } 

@@ -17,13 +17,13 @@
             <nz-form-item>
               <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <nz-date-picker class="w-100" nzSize="small" [(ngModel)]="searchParams.dateStart" name="dateStart"></nz-date-picker>
+                <nz-date-picker [nzFormat]="dateFormat" class="w-100" nzSize="small" [(ngModel)]="searchParams.dateStart" name="dateStart"></nz-date-picker>
               </nz-form-control>
             </nz-form-item>
             <nz-form-item class="mt-2">
               <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <nz-date-picker class="w-100" nzSize="small" [(ngModel)]="searchParams.dateEnd" name="dateEnd"></nz-date-picker>
+                <nz-date-picker [nzFormat]="dateFormat" class="w-100" nzSize="small" [(ngModel)]="searchParams.dateEnd" name="dateEnd"></nz-date-picker>
               </nz-form-control>
             </nz-form-item>
             <!-- Employee -->
@@ -45,15 +45,16 @@
             <nz-form-item class="mt-2">
               <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                  <input nz-input placeholder="Nhập từ khóa" [(ngModel)]="searchParams.keyword" name="keyword" nzSize="small" />
+                  <input class="w-100" nz-input placeholder="Nhập từ khóa" [(ngModel)]="searchParams.keyword" name="keyword" nzSize="small" />
               </nz-form-control>
             </nz-form-item>
 
-            <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
-              <button nz-button nzType="default" nzSize="small">Đặt lại</button>
-              <button nz-button nzType="primary" nzSize="small" (click)="search()">Tìm kiếm</button>
-            </div>
+           
           </form>
+        </div>
+        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+          <button nz-button nzType="default" nzSize="small" (click)="resetform()">Đặt lại</button>
+          <button nz-button nzType="primary" nzSize="small" (click)="search()">Tìm kiếm</button>
         </div>
       </div>
     </nz-splitter-panel>
@@ -74,7 +75,10 @@
         ">
           <nz-tabset nzSize="small" (nzSelectedIndexChange)="onTabChange($event)">
             <nz-tab  nzTitle="Hành chính nhân sự -IT">
-              <div id="table_dailyreportHCNSIT"></div>
+              <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải..." style="height: 100%; flex-grow: 1;">
+                <div id="table_dailyreportHCNSIT"></div>
+              </nz-spin>  
+             
             </nz-tab>
             <nz-tab nzTitle="Cắt phim">
               <div id="table_dailyreportCP"></div>

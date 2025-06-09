@@ -57,6 +57,7 @@ import { NzFormLabelComponent } from 'ng-zorro-antd/form';
 import { NzFormControlComponent } from 'ng-zorro-antd/form';
 import { NzFormSplitComponent } from 'ng-zorro-antd/form';
 import { NzFormTextComponent } from 'ng-zorro-antd/form';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 
 interface Unit {
   Code: string;
@@ -143,6 +144,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
   selectedList: any[] = [];
   sizeSearch = '0';
   isVisible = false;
+  monthFormat = 'MM/yyyy';
 
   newUnit: Unit = {
     Code: '',
@@ -160,17 +162,15 @@ export class OfficeSupplyRequestsComponent implements OnInit {
     Type: 2,
     RequestLimit: 0
   };
-
   searchParams = {
-    year: new Date().getFullYear(),
-    month: new Date().getMonth() + 1,
+    month: new Date(),
     departmentId: 0,
     keyword: ''
   };
 
   constructor(
     private lstDKVPP: DangkyvppServiceService,
-    private message: NzMessageService,
+    private notification: NzNotificationService,
     private modal: NzModalService
   ) { }
 
@@ -194,23 +194,22 @@ export class OfficeSupplyRequestsComponent implements OnInit {
           this.dataDeparment = res.data;
         } else {
           this.dataDeparment = [];
-          this.message.warning("Phản hồi không chứa danh sách");
+          this.notification.warning("Thông báo", "Phản hồi không chứa danh sách");
         }
       },
       error: (err) => {
         console.error('Lỗi khi lấy đơn vị tính:', err);
-        this.message.error('Có lỗi xảy ra khi lấy danh sách phòng ban');
+        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy danh sách phòng ban');
       }
     });
   }
 
   getdataDKVPP(): void {
     this.isLoading = true;
-    const searchDate = new Date(this.searchParams.year, this.searchParams.month);
 
     this.lstDKVPP.spGetOfficeSupplyRequests(
       this.searchParams.keyword,
-      searchDate,
+      this.searchParams.month,
       0,
       this.searchParams.departmentId
     ).subscribe({
@@ -227,7 +226,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
           if (this.table) {
             this.table.replaceData([]);
           }
-          this.message.warning("Không tìm thấy dữ liệu phù hợp");
+          this.notification.warning("Thông báo", "Không tìm thấy dữ liệu phù hợp");
         }
       },
       error: (err) => {
@@ -236,7 +235,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
         if (this.table) {
           this.table.replaceData([]);
         }
-        this.message.error('Có lỗi xảy ra khi lấy dữ liệu');
+        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
       },
       complete: () => {
         this.isLoading = false;
@@ -244,25 +243,25 @@ export class OfficeSupplyRequestsComponent implements OnInit {
     });
   }
 
-  onYearChange(value: number): void {
-    this.searchParams.year = value;
-    this.getdataDKVPP();
-  }
+  // onYearChange(value: number): void {
+  //   this.searchParams.year = value;
+  //   this.getdataDKVPP();
+  // }
 
-  onMonthChange(value: number): void {
-    this.searchParams.month = value;
-    this.getdataDKVPP();
-  }
+  // onMonthChange(value: number): void {
+  //   this.searchParams.month = value;
+  //   this.getdataDKVPP();
+  // }
 
-  onDepartmentChange(value: number): void {
-    this.searchParams.departmentId = value;
-    this.getdataDKVPP();
-  }
+  // onDepartmentChange(value: number): void {
+  //   this.searchParams.departmentId = value;
+  //   this.getdataDKVPP();
+  // }
 
-  onKeywordChange(value: string): void {
-    this.searchParams.keyword = value;
-    this.getdataDKVPP();
-  }
+  // onKeywordChange(value: string): void {
+  //   this.searchParams.keyword = value;
+  //   this.getdataDKVPP();
+  // }
 
   private drawTable(): void {
     if (this.table) {
@@ -312,7 +311,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
           {
             title: 'Ngày TBP duyệt',
             field: 'DateApproved',
-            hozAlign: 'center',
+            hozAlign: 'left',
             headerHozAlign: 'center',
             formatter: (cell) => {
               const value = cell.getValue();
@@ -321,7 +320,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
               const day = String(date.getDate()).padStart(2, '0');
               const month = String(date.getMonth() + 1).padStart(2, '0');
               const year = date.getFullYear();
-              return `${day}-${month}-${year}`;
+             return `${day}/${month}/${year}`;
             }
           },
           { title: 'Họ tên TBP duyệt', field: 'FullNameApproved', hozAlign: 'left', headerHozAlign: 'center', width: 200 },
@@ -330,7 +329,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
           {
             title: 'Ngày đăng ký',
             field: 'DateRequest',
-            hozAlign: 'center',
+            hozAlign: 'left',
             headerHozAlign: 'center',
             width: 200,
             formatter: (cell) => {
@@ -340,7 +339,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
               const day = String(date.getDate()).padStart(2, '0');
               const month = String(date.getMonth() + 1).padStart(2, '0');
               const year = date.getFullYear();
-              return `${day}-${month}-${year}`;
+             return `${day}/${month}/${year}`;
             }
           }
         ]
@@ -421,7 +420,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
         this.drawTable();
       },
       error: (err) => {
-        this.message.error('Có lỗi xảy ra khi lấy chi tiết');
+        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy chi tiết');
       }
     });
   }
@@ -433,7 +432,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
       this.selectedList.push(row);
     });
     if (this.selectedList.length === 0) {
-      this.message.warning('Vui lòng chọn ít nhất 1 người đăng ký để duyệt/hủy duyệt!');
+      this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất 1 người đăng ký để duyệt/hủy duyệt!');
       return false;
     }
     return true;
@@ -454,10 +453,10 @@ export class OfficeSupplyRequestsComponent implements OnInit {
           next: (res) => {
             this.getdataDKVPP();
             this.selectedList = [];
-            this.message.success('Duyệt thành công!');
+            this.notification.success('Thông báo', 'Duyệt thành công!');
           },
           error: (error: any) => {
-            this.message.error('Có lỗi xảy ra khi duyệt!');
+            this.notification.error('Thông báo', 'Có lỗi xảy ra khi duyệt!');
           }
         });
       }
@@ -473,7 +472,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
     const cannotUnapproveItems = this.selectedList.filter(item => item.IsApproved);
 
     if (canUnapproveItems.length === 0) {
-      this.message.error('Không có item nào có thể hủy duyệt!');
+      this.notification.error('Thông báo', 'Không có item nào có thể hủy duyệt!');
       return;
     }
 
@@ -506,10 +505,10 @@ export class OfficeSupplyRequestsComponent implements OnInit {
       next: (res) => {
         this.getdataDKVPP();
         this.selectedList = [];
-        this.message.success('Hủy duyệt thành công!');
+        this.notification.success('Thông báo', 'Hủy duyệt thành công!');
       },
       error: (error: any) => {
-        this.message.error('Có lỗi xảy ra khi hủy duyệt!');
+        this.notification.error('Thông báo', 'Có lỗi xảy ra khi hủy duyệt!');
       }
     });
   }
@@ -523,7 +522,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
     const unapprovedItems = this.selectedList.filter(item => !item.IsAdminApproved);
 
     if (approvedItems.length === 0) {
-      this.message.error('Không có item nào được admin duyệt để thực hiện duyệt!');
+      this.notification.error('Thông báo', 'Không có item nào được admin duyệt để thực hiện duyệt!');
       return;
     }
 
@@ -556,10 +555,10 @@ export class OfficeSupplyRequestsComponent implements OnInit {
       next: (res) => {
         this.getdataDKVPP();
         this.selectedList = [];
-        this.message.success('Duyệt thành công!');
+        this.notification.success('Thông báo', 'Duyệt thành công!');
       },
       error: (error: any) => {
-        this.message.error('Có lỗi xảy ra khi duyệt!');
+        this.notification.error('Thông báo', 'Có lỗi xảy ra khi duyệt!');
       }
     });
   }
@@ -573,7 +572,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
     const cannotUnapproveItems = this.selectedList.filter(item => !item.IsAdminApproved);
 
     if (canUnapproveItems.length === 0) {
-      this.message.error('Không có item nào được admin duyệt để hủy duyệt!');
+      this.notification.error('Thông báo', 'Không có item nào được admin duyệt để hủy duyệt!');
       return;
     }
 
@@ -606,10 +605,10 @@ export class OfficeSupplyRequestsComponent implements OnInit {
       next: (res) => {
         this.getdataDKVPP();
         this.selectedList = [];
-        this.message.success('Hủy duyệt thành công!');
+        this.notification.success('Thông báo', 'Hủy duyệt thành công!');
       },
       error: (error: any) => {
-        this.message.error('Có lỗi xảy ra khi hủy duyệt!');
+        this.notification.error('Thông báo', 'Có lỗi xảy ra khi hủy duyệt!');
       }
     });
   }

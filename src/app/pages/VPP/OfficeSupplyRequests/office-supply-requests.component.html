@@ -6,7 +6,7 @@
         <div class="card-header bg-white p-1">
             <div class="d-flex justify-content-between align-items-center">
                 <h6 class="m-0 ms-2">Tìm kiếm</h6>
-                <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+                <button class="border-0 me-2 btn" nz-button nzSize="small" nzType="default" nzDanger
                     (click)="toggleSearchPanel()">
                     <nz-icon nzType="close" nzTheme="outline" />
                 </button>
@@ -14,33 +14,19 @@
         </div>
         <div class="card-body">
           <form nz-form nzLayout="vertical">
-            <!-- Năm -->
-            <nz-form-item>
-              <nz-form-label class="fs-12" [nzSpan]="24">Năm</nz-form-label>
-              <nz-form-control>
-                <nz-input-number
-                  [(ngModel)]="searchParams.year"
-                  name="year"
-                  (ngModelChange)="onYearChange($event)"
-                  [nzMin]="2024"
-                  [nzMax]="9999"
-                  class="w-100">
-                </nz-input-number>
-              </nz-form-control>
-            </nz-form-item>
 
-            <!-- Tháng -->
-            <nz-form-item>
-              <nz-form-label class="fs-12" [nzSpan]="24">Tháng</nz-form-label>
+
+            <nz-form-item class="searchform">
+              <nz-form-label>Thời gian</nz-form-label>
               <nz-form-control>
-                <nz-input-number
-                  [(ngModel)]="searchParams.month"
+                <nz-date-picker 
+                  nzMode="month" 
+                  [nzFormat]="monthFormat"
+                  [(ngModel)]="searchParams.month" 
                   name="month"
-                  (ngModelChange)="onMonthChange($event)"
-                  [nzMin]="1"
-                  [nzMax]="12"
+                  nzPlaceHolder="Chọn thời gian"      
                   class="w-100">
-                </nz-input-number>
+                </nz-date-picker>
               </nz-form-control>
             </nz-form-item>
 
@@ -51,7 +37,6 @@
                 <nz-select
                   [(ngModel)]="searchParams.departmentId"
                   name="departmentId"
-                  (ngModelChange)="onDepartmentChange($event)"
                   nzPlaceHolder="Chọn phòng ban"
                   class="w-100">
                   <nz-option
@@ -71,16 +56,15 @@
                   nz-input
                   [(ngModel)]="searchParams.keyword"
                   name="keyword"
-                  (ngModelChange)="onKeywordChange($event)"
+               
                   placeholder="Nhập từ khóa...">
               </nz-form-control>
             </nz-form-item>
           </form>
-          
-          <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
-            <button nz-button nzType="default" nzSize="small">Đặt lại</button>
-            <button nz-button nzType="primary" nzSize="small" (click)="getdataDKVPP()">Tìm kiếm</button>
-          </div>
+        </div>
+        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+          <button nz-button nzType="default" nzSize="small" class="btn">Đặt lại</button>
+          <button nz-button nzType="primary" nzSize="small" (click)="getdataDKVPP()" class="btn">Tìm kiếm</button>
         </div>
       </div>
     </nz-splitter-panel>
@@ -90,29 +74,29 @@
       <div class="card h-100 border-0 rounded-0">
         <div class="card-header bg-white p-1">
           <div class="d-flex gap-1">
-            <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
+            <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()" class="btn">
               <nz-icon nzType="search" />
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small">
+            <button class="fs-12 btn" nz-button nzType="default" nzSize="small">
               <nz-icon nzType="plus" /> Thêm
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small">
+            <button class="fs-12 btn" nz-button nzType="default" nzSize="small">
               <nz-icon nzType="edit" nzTheme="fill" />Sửa
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small">
+            <button class="fs-12 btn" nz-button nzType="default" nzSize="small">
               <nz-icon nzType="delete" nzTheme="fill" />Xóa
             </button>
-            <button class="fs-12" nz-button nzType="primary" nzSize="small" (click)="IsAdminApproved()">
-              <i nz-icon nzType="check"></i> Admin duyệt
+            <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="IsAdminApproved()">
+              <i nz-icon nzType="check" style="color: green;"></i> Admin duyệt
             </button>
-            <button class="fs-12" nz-button nzSize="small" nzDanger (click)="UnAdminApproved()">
-              <i nz-icon nzType="close"></i> Admin hủy
+            <button class="fs-12 btn" nz-button nzSize="small" nzType="default" (click)="UnAdminApproved()">
+              <i nz-icon nzType="close" style="color: red;"></i> Admin hủy
             </button>
-            <button class="fs-12" nz-button nzType="primary" nzSize="small" (click)="IsApproved()">
-              <i nz-icon nzType="check"></i> TBP duyệt
+            <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="IsApproved()">
+              <i nz-icon nzType="check" style="color: green;"></i> TBP duyệt
             </button>
-            <button  class="fs-12"nz-button nzSize="small" nzDanger  (click)="UnIsApproved()">
-              <i nz-icon nzType="close" ></i> TBP hủy
+            <button  class="fs-12 btn"nz-button nzSize="small" nzType="default"  (click)="UnIsApproved()">
+              <i nz-icon nzType="close" style="color: red;" ></i> TBP hủy
             </button>
           </div>
         </div>

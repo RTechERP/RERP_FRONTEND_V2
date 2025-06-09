@@ -1,13 +1,12 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { API_URL } from '../../../../config/app.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class OfficeSuppliesService {
-  private baseUrl = `${API_URL}/api/OfficeSupplies`;
+  private baseUrl = `https://localhost:7187/api/OfficeSupplies`;
 
   constructor(private httpclient: HttpClient) { }
 
@@ -16,11 +15,11 @@ export class OfficeSuppliesService {
   }
 
   getUnit(): Observable<any> {
-    return this.httpclient.get<any>(`${API_URL}/api/OfficeSupplyUnit/getdataofficesupplyunit`);
+    return this.httpclient.get<any>(`https://localhost:7187/api/OfficeSupplyUnit/getdataofficesupplyunit`);
   }
 
   addUnit(data: any): Observable<any> {
-    return this.httpclient.post<any>(`${API_URL}/api/OfficeSupplyUnit/savedatofficesupplyunit`, data);
+    return this.httpclient.post<any>(`https://localhost:7187/api/OfficeSupplyUnit/savedatofficesupplyunit`, data);
   }
 
   getdatafill(id: number): Observable<any> {
@@ -28,7 +27,7 @@ export class OfficeSuppliesService {
   }
 
   getdataUnitfill(id: number): Observable<any> {
-    return this.httpclient.get(`${API_URL}/api/OfficeSupplyUnit/getbyidofficesupplyunit?id=${id}`);
+    return this.httpclient.get(`https://localhost:7187/api/OfficeSupplyUnit/getbyidofficesupplyunit?id=${id}`);
   }
 
   adddata(data: any): Observable<any> {
@@ -40,7 +39,7 @@ export class OfficeSuppliesService {
   }
 
   updatedataUnit(data: any): Observable<any> {
-    return this.httpclient.post<any>(`${API_URL}/api/OfficeSupplyUnit/savedatofficesupplyunit`, data);
+    return this.httpclient.post<any>(`https://localhost:7187/api/OfficeSupplyUnit/savedatofficesupplyunit`, data);
   }
 
   deletedata(ids: number[]): Observable<any> {

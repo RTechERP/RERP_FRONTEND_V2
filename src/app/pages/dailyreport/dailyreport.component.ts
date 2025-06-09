@@ -14,11 +14,11 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { NzMessageModule } from 'ng-zorro-antd/message';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzSpinComponent, NzSpinModule } from 'ng-zorro-antd/spin';
 
 @Component({
   selector: 'app-dailyreport',
@@ -36,7 +36,8 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
     NzSelectModule,
     NzFormModule,
     NzTabsModule,
-    NzDatePickerModule
+    NzDatePickerModule,
+    NzSpinModule  
   ],
   templateUrl: './dailyreport.component.html',
   styleUrls: ['./dailyreport.component.css'],
@@ -66,12 +67,12 @@ export class DailyreportComponent implements OnInit, AfterViewInit {
   dataEmployees: any[] = [];
 
   searchText: string = '';
+  isLoading: boolean = false;
+  dateFormat = 'dd/MM/yyyy';
 
   constructor(
-    private dailyreportService: DailyreportService,
-    private modal: NzModalService,
+    private dailyreportService: DailyreportService, 
     private notification: NzNotificationService,
-    private message: NzMessageService,
   ) { }
 
   ngOnInit(): void {
@@ -132,6 +133,7 @@ export class DailyreportComponent implements OnInit, AfterViewInit {
             this.table1.replaceData(this.dataTable1);
           }
         }
+        this.isLoading = false;
       },
       error: (err) => {
         console.error('Lỗi khi lấy báo cáo HCNS-IT:', err);
@@ -139,7 +141,8 @@ export class DailyreportComponent implements OnInit, AfterViewInit {
         if(this.table1) {
           this.table1.replaceData(this.dataTable1);
         }
-        this.notification.error("Thông báo",'Lỗi khi lấy báo cáo HCNS-IT')
+        this.notification.error("Thông báo",'Lỗi khi lấy báo cáo HCNS-IT');
+        this.isLoading = false;
       }
     });
   }
@@ -249,6 +252,7 @@ export class DailyreportComponent implements OnInit, AfterViewInit {
             this.table3.replaceData(this.dataTable3);
           }
         }
+        this.isLoading = false;
       },
       error: (err) => {
         console.error('Lỗi khi lấy báo cáo cắt phim:', err);
@@ -260,7 +264,8 @@ export class DailyreportComponent implements OnInit, AfterViewInit {
         if(this.table3) {
           this.table3.replaceData(this.dataTable3);
         }
-        this.notification.error("Thông báo",'Lỗi khi lấy báo cáo cắt phim và lái xe')
+        this.notification.error("Thông báo",'Lỗi khi lấy báo cáo cắt phim và lái xe');
+        this.isLoading = false;
       }
     });
   }
@@ -342,20 +347,41 @@ export class DailyreportComponent implements OnInit, AfterViewInit {
   search(): void {
     //gọi Api tương ứng với tab đang được chọn
     //không tạo lại bảng chỉ cập nhật dữ liệu
+    this.isLoading = true;
     switch(this.ischeckmodeExcel) {
       case 0:
-        this.getDailyReportHCNSIT();
-        this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+        setTimeout(() => {
+          this.getDailyReportHCNSIT();
+          this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+        }, 1500);
         break;
       case 1:
-        this.getDailyReportFilmAndDriver();
-        this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+        setTimeout(() => {
+          this.getDailyReportFilmAndDriver();
+          this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+        }, 1500);
         break;
       case 2:
-        this.getDailyReportFilmAndDriver();
-        this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+        setTimeout(() => {
+          this.getDailyReportFilmAndDriver();
+          this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+        }, 1500);
         break;
     }
+  }
+
+  resetform(): void {
+    this.searchParams = {
+      dateStart: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split('T')[0],
+      dateEnd: new Date().toISOString().split('T')[0],
+      employeeId: 0,
+      userID: 0,
+      teamID: 0,
+      departmentId: 6,
+      keyword: ''
+    };
+    this.searchText = '';
+    this.getAll();
   }
 
   //Báo cáo lái xe
@@ -458,11 +484,13 @@ export class DailyreportComponent implements OnInit, AfterViewInit {
                 this.table1.setData(this.dataTable1);
               } else {
                 this.drawTable1();
+                
               }
             } else {
               this.dataTable1 = [];
               if(this.table1) {
                 this.table1.clearData();
+               
               }
             }
           },
@@ -471,6 +499,7 @@ export class DailyreportComponent implements OnInit, AfterViewInit {
             this.dataTable1 = [];
             if(this.table1) {
               this.table1.clearData();
+              this.isLoading=false;
             }
           },
         });
@@ -500,6 +529,7 @@ export class DailyreportComponent implements OnInit, AfterViewInit {
             this.dataTable2 = [];
             if(this.table2) {
               this.table2.clearData();
+              this.isLoading=false;
             }
           },
         });
@@ -529,6 +559,7 @@ export class DailyreportComponent implements OnInit, AfterViewInit {
             this.dataTable3 = [];
             if(this.table3) {
               this.table3.clearData();
+              this.isLoading=false;
             }
           },
         });
@@ -537,8 +568,8 @@ export class DailyreportComponent implements OnInit, AfterViewInit {
   }
 
   onSearchChange(event: any = null): void {
-    this.getAll();
-  }
+   this.getAll();
+}
 }
 
  

@@ -11,12 +11,16 @@
         "pattern": "$tsc",
         "background": {
           "activeOnStart": true,
-          "beginsPattern": {
-            "regexp": "(.*?)"
-          },
-          "endsPattern": {
-            "regexp": "bundle generation complete"
-          }
+          "beginsPattern": { "regexp": "(.*?)" },
+          "endsPattern": { "regexp": "bundle generation complete" }
+        }
+      },
+      "options": {
+        "statusbar": {
+          "hide": true
+          // "label": "$(play) Start debugging",
+          // "color": "#16c04c",
+          // "detail": "Run 'ng serve' and add Angular dev tools to the anonymous chrome tab"
         }
       }
     },
@@ -29,14 +33,40 @@
         "pattern": "$tsc",
         "background": {
           "activeOnStart": true,
-          "beginsPattern": {
-            "regexp": "(.*?)"
-          },
-          "endsPattern": {
-            "regexp": "bundle generation complete"
-          }
+          "beginsPattern": { "regexp": "(.*?)" },
+          "endsPattern": { "regexp": "bundle generation complete" }
+        }
+      },
+      "options": {
+        "statusbar": {
+          "hide": true
         }
       }
+    },
+    {
+      "label": "stop dev server",
+      "type": "shell",
+      "command": "${input:terminate}",
+      "presentation": {
+        "reveal": "never",
+        "panel": "dedicated",
+        "showReuseMessage": false,
+        "close": true
+      },
+      "problemMatcher": [],
+      "options": {
+        "statusbar": {
+          "hide": true
+        }
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "terminate",
+      "type": "command",
+      "command": "workbench.action.tasks.terminate",
+      "args": "terminateAll"
     }
   ]
 }

@@ -1,0 +1,81 @@
+<div class="modal-header bg-primary p-2">
+  <h6 class="modal-title text-white" id="priceRequestModalLabel">
+    CHI TIẾT BÁO GIÁ
+  </h6>
+  <button
+    type="button"
+    class="btn-close"
+    aria-label="Close"
+    (click)="close()"
+  ></button>
+</div>
+
+<div class="modal-body">
+  <form class="row g-3">
+    <div class="col-md-6">
+      <label for="requesterSelect" class="form-label">
+        Người yêu cầu
+      </label>
+      <nz-form-item>
+        <nz-form-control [nzSpan]="24">
+          <nz-select
+            id="requesterSelect"
+            [(ngModel)]="requester"
+            name="requesterId"
+            nzShowSearch
+            nzAllowClear
+            nzPlaceHolder="Chọn người yêu cầu"
+            [nzServerSearch]="true"
+            (nzSearchChange)="requesterSearchChange($event)"
+            [nzNotFoundContent]="notFoundContent"
+            [nzLoading]="requesterLoading"
+          >
+            <nz-option class="cdk-overlay-container"
+              *ngFor="let item of users"
+              [nzValue]="item.ID"
+              [nzLabel]="item.FullName"
+            ></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+    </div>
+    <div class="col-md-6">
+      <label for="requestDate" class="form-label">
+        Ngày yêu cầu
+      </label>
+      <input
+        id="requestDate"
+        type="date"
+        class="form-control fs-12"
+        [(ngModel)]="requestDate"
+        name="requestDate"
+      />
+    </div>
+  </form>
+
+  <button
+    class="btn btn-sm btn-primary mt-3"
+    (click)="addRow()"
+  >
+    + Thêm dòng
+  </button>
+
+  <div #table class="mt-2"></div>
+</div>
+
+<div class="modal-footer">
+  <button
+    type="button"
+    class="btn btn-outline-danger"
+    (click)="close()"
+  >
+    Đóng
+  </button>
+  <button
+    type="button"
+    class="btn btn-primary"
+    (click)="saveAndClose()"
+  >
+    Lưu dữ liệu
+  </button>
+</div>

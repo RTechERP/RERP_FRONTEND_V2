@@ -6,8 +6,14 @@
   all: revert;
 }
 
+.ant-splitter-panel{
+  position: relative;
+}
+
 .tabulator {
   font-size: 0.75rem;
+  position: absolute;
+  width: 100%;
 }
 
 .tabulator-cell {

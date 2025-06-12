@@ -1,4 +1,10 @@
-import { Component, ViewEncapsulation } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  ViewEncapsulation,
+} from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
@@ -58,6 +64,16 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     console.log(now.toFormat('HH:mm:ss dd-MM-yyyy')); // 👉 14:30:59 05-06-2025
     console.log(now.toFormat('EEEE, dd LLL yyyy')); // 👉 Thursday, 05 Jun 2025
    */
+  @Input() value: string = '';
+  @Output() valueChange = new EventEmitter<string>();
+
+  selected = '';
+  options = [
+    { label: 'Mới', value: 'new' },
+    { label: 'Đang xử lý', value: 'processing' },
+    { label: 'Hoàn thành', value: 'done' },
+  ];
+
   constructor(
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef
@@ -93,6 +109,10 @@ export class ProjectComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     this.drawTbProjects();
+  }
+
+  onChange(val: string) {
+    this.valueChange.emit(val);
   }
 
   // Khai báo các hàm
@@ -155,7 +175,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     }
     this.tb_projects = new Tabulator(`#tb_projects`, {
       data: data,
-      height: '70vh',
+      height: '85vh',
       layout: 'fitDataFill',
       rowHeader: {
         width: 20,
@@ -232,6 +252,16 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           field: 'PriotityText',
           hozAlign: 'right',
           headerHozAlign: 'center',
+          editable: true,
+          formatter(cell, formatterParams, onRendered) {
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = `<app-projects></app-projects>`;
+            document.body.appendChild(wrapper);
+
+            // Bạn có thể dùng Angular's ViewContainerRef để inject component động nếu cần nâng cao.
+
+            return wrapper;
+          },
         },
         {
           title: 'Mức độ ưu tiên cá nhân',

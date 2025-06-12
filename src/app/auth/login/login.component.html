@@ -1,0 +1,10 @@
+<div class="login-container">
+    <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
+        <label>Tên đăng nhập:</label>
+        <input type="text" formControlName="loginname" />
+        <label>Mật khẩu:</label>
+        <input type="password" formControlName="passwordhash" />
+        <button type="submit" [disabled]="loginForm.invalid">Đăng nhập</button>
+        <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+    </form>
+</div>

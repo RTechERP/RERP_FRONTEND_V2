@@ -28,5 +28,8 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(),
   ],
 };
-
-export const host = 'https://localhost:44365/';
+export const APP_LOGIN_NAME = 'admin';
+export const EMPLOYEE_ID = 0;
+export const ISADMIN = true;
+export const USER_NAME='ADMINSW';
+export const HOST = 'https://localhost:44365/';

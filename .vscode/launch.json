@@ -7,7 +7,12 @@
       "type": "chrome",
       "request": "launch",
       "preLaunchTask": "npm: start",
-      "url": "http://localhost:4200/"
+      "url": "http://localhost:4200/",
+      "runtimeArgs": [
+        "--disable-session-crashed-bubble",
+        "--load-extension=C:/Users/ninhn/AppData/Local/Google/Chrome/User Data/Default/Extensions/ienfalfjdbdpebioblfackkekamfmbnh/1.0.33_0"
+      ],
+      "postDebugTask": "stop dev server"
     },
     {
       "name": "ng test",

@@ -37,4 +37,7 @@ export class ViewPokhService {
   loadMainIndex(): Observable<any> {
     return this.http.get<any>(this._url + 'LoadMainIndex');
   }
+  saveData(data: any): Observable<any> {
+    return this.http.post<any>(this._url + 'SavePOKHDetail', data);
+  }
 }

@@ -80,3 +80,22 @@
       height: 24px;
       line-height: 22px;
   }
+
+  .saved-tab {
+    color: #52c41a;
+    font-weight: 500;
+  }
+
+  .saved-icon {
+    margin-left: 5px;
+    color: #52c41a;
+  }
+
+  /* Thêm hiệu ứng hover cho tab đã lưu */
+  .saved-tab:hover {
+    color: #389e0d;
+  }
+
+  .saved-tab:hover .saved-icon {
+    color: #389e0d;
+  }

@@ -1193,6 +1193,40 @@ export class PokhComponent implements OnInit, AfterViewInit {
   }
   //#endregion
   //#region : Các hàm xử lý sự kiện
+  onDelete(): void {
+    if (!this.selectedRow) {
+      alert('Vui lòng chọn một PO cần xóa!');
+      return;
+    }
+
+    if (confirm('Bạn có chắc chắn muốn xóa PO này ?')) {
+      const pokhData = {
+        ID: this.selectedRow['ID'],
+        ...this.poFormData,
+        IsDeleted: true
+      };
+
+      this.POKHService.handlePOKH({
+        POKH: pokhData,
+        pOKHDetails: [],
+        pOKHDetailsMoney: []
+      }).subscribe({
+        next: (response) => {
+          if (response.status === 1) {
+            alert('Xóa PO thành công');
+            this.loadPOKH();
+            this.selectedRow = null;
+          } else {
+            alert('Có lỗi xảy ra khi xóa PO');
+          }
+        },
+        error: (error) => {
+          console.error('Lỗi khi xóa PO:', error);
+          alert('Có lỗi xảy ra khi xóa PO');
+        }
+      });
+    }
+  }
   validateForm(): boolean {
     if (this.poFormData.status < 0) {
       alert('Xin hãy chọn trạng thái.');

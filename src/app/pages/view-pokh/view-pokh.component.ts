@@ -20,7 +20,7 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzFormModule } from 'ng-zorro-antd/form';
-import { TabulatorFull as Tabulator, RowComponent, CellComponent } from 'tabulator-tables';
+import { TabulatorFull as Tabulator, RowComponent, CellComponent, CellComponent as TabulatorCell } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { OnInit, AfterViewInit } from '@angular/core';
@@ -38,6 +38,13 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { HandoverMinutesComponent } from '../handover-minutes/handover-minutes.component';
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
+import { HandoverMinutesService } from '../handover-minutes/handover-minutes/handover-minutes.service';
+
+interface GroupedData {
+    CustomerName: string;
+    EFullName: string;
+    Items: any[];
+}
 
 @Component({
   selector: 'app-view-pokh',
@@ -62,6 +69,8 @@ import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
 export class ViewPokhComponent implements OnInit, AfterViewInit {
   @ViewChild('ViewPOKH', { static: false }) viewPOKHTableElement!: ElementRef;
   sizeSearch: string = '0';
+  private isRecallCellValueChanged: boolean = false;
+  private modifiedRows: Set<number> = new Set();
 
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch === '0' ? '22%' : '0';
@@ -93,6 +102,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
   constructor(
     public activeModal: NgbActiveModal,
     private viewPokhService: ViewPokhService,
+    private handoverMinutesService: HandoverMinutesService,
     private modalService: NgbModal
   ) { }
 
@@ -142,20 +152,120 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
         }
       });
     });
+
+    // Xử lý sự kiện chỉnh sửa cell
+    this.viewPOKH.on("cellEdited", (cell: TabulatorCell) => {
+      if (this.isRecallCellValueChanged) return;
+      
+      try {
+        this.isRecallCellValueChanged = true;
+        
+        const column = cell.getColumn().getField();
+        const row = cell.getRow();
+        const rowData = row.getData();
+        
+        this.modifiedRows.add(rowData["ID"]);
+        
+        if (column === 'BillNumber' || column === 'BillDate' || column === 'DeliveryRequestedDate') {
+          const newValue = cell.getValue();
+          if (newValue === null) return;
+
+          const selectedRows = this.viewPOKH.getSelectedRows();
+          if (selectedRows.length > 0) {
+            selectedRows.forEach(selectedRow => {
+              if (selectedRow !== row) {
+                selectedRow.update({ [column]: newValue });
+                const selectedRowData = selectedRow.getData();
+                this.modifiedRows.add(selectedRowData["ID"]);
+              }
+            });
+          }
+        }
+      } finally {
+        this.isRecallCellValueChanged = false;
+      }
+    });
+
+    // Thêm event listener cho việc chọn toàn bộ (header checkbox)
+    this.viewPOKH.on("rowSelectionChanged", (data, rows) => {
+      // Cập nhật selectedRows khi có thay đổi selection từ header checkbox
+      this.selectedRows = data;
+      console.log('Selection changed - Selected Rows:', this.selectedRows);
+    });
   }
   //#region Hàm xử lý modal
   openHandoverMinutesModal() {
-    if (this.selectedRows.length > 0) {
-      const modalRef = this.modalService.open(HandoverMinutesComponent, {
-        size: 'xl',
-        backdrop: 'static',
-        keyboard: false
-      });
-    } else {
+    if (this.selectedRows.length === 0) {
       alert('Vui lòng chọn ít nhất 1 dòng để xem biên bản giao hàng');
-      console.log("Số dòng đã chọn", this.selectedRows.length);
       return;
     }
+  
+    // Lọc các dòng có QuantityPending > 0
+    const validRows = this.selectedRows.filter(row => row.QuantityPending > 0);
+    if (validRows.length === 0) {
+      alert('Không có dòng nào có số lượng chờ giao!');
+      return;
+    }
+  
+    // Nhóm dữ liệu theo CustomerID và EID
+    const groupedData = validRows.reduce<Record<string, GroupedData>>((acc, row) => {
+      const key = `${row.CustomerID}_${row.EID}`;
+      if (!acc[key]) {
+        acc[key] = {
+          CustomerName: row.CustomerName,
+          EFullName: row.EFullName,
+          Items: []
+        };
+      }
+      acc[key].Items.push({
+        POKHDetailID: row.ID,
+        STT: acc[key].Items.length + 1,
+        Maker: row.Maker,
+        CustomerID: row.CustomerID,
+        Quantity: row.QuantityPending,
+        ProductName: row.ProductName,
+        ProductCode: row.ProductCode,
+        CustomerName: row.CustomerName,
+        POCode: row.POCode,
+        FullName: row.EFullName,
+        Unit: row.Unit,
+        ProductStatus: row.ProductStatus,
+        Guarantee: row.Guarantee,
+        DeliveryStatus: row.DeliveryStatus,
+        EID: row.EID,
+        QuantityPending: row.QuantityPending
+      });
+      return acc;
+    }, {});
+  
+    // Chuyển đổi object thành array để dễ xử lý
+    const groupedArray = Object.entries(groupedData).map(([key, group]: [string, GroupedData]) => ({
+      key,
+      customerName: group.CustomerName,
+      employeeName: group.EFullName,
+      items: group.Items
+    }));
+  
+    // Mở 1 modal duy nhất với tất cả các tab
+    const modalRef = this.modalService.open(HandoverMinutesComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false
+    });
+  
+    // Truyền dữ liệu vào modal
+    modalRef.componentInstance.groupedData = groupedArray;
+    modalRef.componentInstance.isMultipleGroups = groupedArray.length > 1;
+
+    // Xử lý kết quả khi modal đóng
+    modalRef.result.then((result) => {
+      if (result && result.reloadTable) {
+        // Load lại dữ liệu
+        this.loadData();
+      }
+    }).catch((reason) => {
+      console.log('Modal dismissed:', reason);
+    });
   }
   closeModal(): void {
     this.activeModal.close();
@@ -264,6 +374,53 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
     );
   }
   //#endregion
+  //#region Hàm xử lý SavePOKHDetail
+  savePOKHDetail(): void {
+    if (this.modifiedRows.size === 0) {
+      console.log('Không có dữ liệu cần lưu thay đổi.');
+      return;
+    }
+  
+    // Lấy tất cả dữ liệu từ table
+    const allData = this.viewPOKH.getData();
+    
+    // Lọc những dòng đã chỉnh sửa
+    const modifiedData = allData.filter(row => this.modifiedRows.has(row.ID));
+    
+    // Tạo một Set để lưu các ID đã được cập nhật
+    const updatedrowID = new Set(modifiedData.map(row => row.ID));
+    
+    // Tìm tất cả các dòng có cùng ID với các dòng đã chỉnh sửa
+    const allRelatedRows = allData.filter(row => updatedrowID.has(row.ID));
+    
+    // Cập nhật dữ liệu cho tất cả các dòng liên quan
+    const finalData = allRelatedRows.map(row => {
+      // Tìm dòng đã chỉnh sửa có cùng ID
+      const modifiedRow = modifiedData.find(mr => mr.ID === row.ID);
+      if (modifiedRow) {
+        return {
+          ...row,
+          BillNumber: modifiedRow.BillNumber,
+          BillDate: modifiedRow.BillDate,
+          DeliveryRequestedDate: modifiedRow.DeliveryRequestedDate,
+          UpdatedDate: new Date()
+        };
+      }
+      return row;
+    });
+  
+    this.viewPokhService.saveData(finalData).subscribe(
+      response => {
+        console.log('Lưu thành công:', response);
+        this.modifiedRows.clear();
+        this.loadData(); 
+      },
+      error => {
+        console.error('Lỗi khi lưu:', error);
+      }
+    );
+  }
+  //#endregion
   //#region Hàm vẽ bảng
   initViewPOKHTable(): void {
     this.viewPOKH = new Tabulator(this.viewPOKHTableElement.nativeElement, {
@@ -291,6 +448,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
           titleFormatter: "rowSelection",
           hozAlign: "center",
           headerSort: false,
+          frozen: true,
           width: 40,
           cellClick: (e, cell) => {
             // Sửa logic chọn dòng đơn lẻ
@@ -314,8 +472,9 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
             console.log('Selected Rows:', this.selectedRows);
           }
         },
-        { title: 'Mã dự án', field: 'ProjectCode', sorter: 'string', width: 120 },
-        { title: 'Số POKH', field: 'PONumber', sorter: 'string', width: 70 },
+        { title: 'ID', field: 'ID', sorter: 'number', width: 100, frozen: true, visible: false },
+        { title: 'Mã dự án', field: 'ProjectCode', sorter: 'string', width: 120, frozen: true },
+        { title: 'Số POKH', field: 'PONumber', sorter: 'string', width: 70, frozen: true },
         { title: 'Trạng thái', field: 'Status', sorter: 'number', width: 80 },
         {
           title: 'Ngày PO',
@@ -325,7 +484,8 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
             const date = cell.getValue();
             return date ? new Date(date).toLocaleDateString('vi-VN') : '';
           },
-          width: 100
+          width: 100, 
+          
         },
         { title: 'Sale phụ trách', field: 'FullName', sorter: 'string', width: 150 },
         { title: 'Hãng', field: 'Maker', sorter: 'string', width: 100 },
@@ -348,7 +508,8 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
             const date = cell.getValue();
             return date ? new Date(date).toLocaleDateString('vi-VN') : '';
           },
-          width: 100
+          width: 100,
+          editor: "date"  
         },
         { title: 'Ngày giao hàng thực tế', field: 'DateMinutes', sorter: 'string', width: 120 },
         {
@@ -372,7 +533,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
           width: 100
         },
         { title: 'Công ty', field: 'CompanyName', sorter: 'string', width: 150 },
-        { title: 'Số hóa đơn', field: 'BillNumber', sorter: 'string', width: 120 },
+        { title: 'Số hóa đơn', field: 'BillNumber', sorter: 'string', width: 120, editor:"input" },
         {
           title: 'Ngày hóa đơn',
           field: 'BillDate',
@@ -381,7 +542,8 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
             const date = cell.getValue();
             return date ? new Date(date).toLocaleDateString('vi-VN') : '';
           },
-          width: 100
+          width: 100,
+          editor:"date"
         },
         {
           title: 'Ngày đặt hàng',
@@ -424,14 +586,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
         // { title: 'ProductCode', field: 'ProductCode', sorter: 'string', width: 120 },
         // { title: 'ProductName', field: 'ProductName', sorter: 'string', width: 200 },
         // { title: 'Trạng thái', field: 'StatusText', sorter: 'string', width: 150 },
-
       ]
-    });
-    // Thêm event listener cho việc chọn toàn bộ (header checkbox)
-    this.viewPOKH.on("rowSelectionChanged", (data, rows) => {
-      // Cập nhật selectedRows khi có thay đổi selection từ header checkbox
-      this.selectedRows = data;
-      console.log('Selection changed - Selected Rows:', this.selectedRows);
     });
   }
   //#endregion

@@ -18,10 +18,6 @@ export class HandoverMinutesService {
     return this.http.get<any>(this._url + 'LoadProduct');
   }
 
-  loadCustomer(): Observable<any> {
-    return this.http.get<any>(this._url + 'LoadCustomer');
-  }
-  
   save(handoverMinutes: any): Observable<any> {
     return this.http.post<any>(this._url + 'Save', handoverMinutes);
   }

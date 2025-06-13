@@ -65,15 +65,14 @@
           </div>
 
           <div class="row">
-            <div>
-              <div class="col md-12 pb-3">
+              <div class="col-md-12 pb-3">
                   <nz-form-label class="fs-12">Tên RTC</nz-form-label>
                   <nz-form-control>
                       <input nz-input placeholder="Nhập tên RTC" required   [(ngModel)]="newProduct.NameRTC" name="NamRTC" />
-                  </nz-form-control>
-              </div>
+                  </nz-form-control>      
             </div>
           </div>
+        
           <div class="row">
             <div>
                 <div class="col md-12 pb-3">
@@ -86,7 +85,7 @@
             </div>
           </div>
           <div class="row">
-              <div class="col md-6 pb-3 ">
+              <div class="col-md-6 pb-3 ">
                 <nz-form-label class="fs-12">Đơn vị tính<sup style="color: red;"> (*)</sup></nz-form-label>
                 <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn đơn vị tính">
                   <nz-input-group nzSearch [nzAddOnAfter]="suffixIconButton" nzSize="default" class="w-100">
@@ -114,7 +113,7 @@
                 </nz-form-control>
             </div>
            
-            <div class="col md-6 pb-4">
+            <div class="col-md-6">
               <nz-form-label for="Price" class="fs-12">Giá sản phẩm <sup style="color: red;"> (*)</sup></nz-form-label>
               <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập giá sản phẩm">
                 <nz-input-number [style.width.%]="100" [(ngModel)]="newProduct.Price"
@@ -126,14 +125,14 @@
             </div>
           </div>
           <div class="row mb-3 ">
-            <div class="col md-6 pb-4">
+            <div class="col-md-6">
               <nz-form-label for="Price" class="fs-12">Định mức</nz-form-label>
               <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập định mức">
                 <nz-input-number [style.width.%]="100"  [(ngModel)]="newProduct.RequestLimit" placeholder="" name="RequestLimit" required>
                 </nz-input-number>
               </nz-form-control>
             </div>
-            <div class="col md-6">
+            <div class="col-md-6">
               <nz-form-label class="fs-12">Chọn loại sản phẩm<sup style="color: red;"> (*)</sup> </nz-form-label>
               <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn loại sản phẩm">
                 <nz-input-group nzSearch nzSize="default" class="w-100">
@@ -159,8 +158,8 @@
         </form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary p-0 ps-2 pe-2 "  data-bs-dismiss="modal">Đóng</button>
-        <button type="submit" class="btn btn-success p-0 ps-2 pe-2 " (click)="isCheckmode? update(): add()">Lưu</button>
+        <button class="fs-12 btn" nz-button nzDanger data-bs-dismiss="modal">Đóng</button>
+        <button tclass="fs-12 btn" nz-button nzType="primary"   (click)="isCheckmode? update(): add()">Lưu</button>
       </div>
     </div>
   </div>
@@ -177,13 +176,13 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <form class="row g-3 needs-validation was-validated" novalidate>
+        <form class="row needs-validation was-validated" novalidate>
           <div class="row">
-            <div class="col-md-6 pb-3">
+            <div class="col-md-6">
               <label for="CodeRTC" class="form-label fs-12">Mã RTC <sup style="color: red;"> (*)</sup></label>
               <input type="text" class="form-control fs-12 " [(ngModel)]="newProduct.CodeRTC" name="CodeRTC" readonly>
             </div>
-            <div class="col-md-6 pb-3">
+            <div class="col-md-6">
               <label for="CodeNCC" class="form-label fs-12">Mã NCC <sup style="color: red;"> (*)</sup></label>
               <input type="text" class="form-control fs-12 " [(ngModel)]="newProduct.CodeNCC" name="CodeNCC"
                 placeholder="Nhập mã NCCC" required>
@@ -194,7 +193,7 @@
           </div>
           <div class="row">
             <div>
-              <div class="col md-12 pb-3">
+              <div class="col md-12">
                 <label for="NameRTC" class="form-label fs-12">Tên RTC <sup style="color: red;"> (*)</sup></label>
                 <input type="text" class="form-control fs-12" [(ngModel)]="newProduct.NameRTC" name="NamRTC"
                   placeholder="Nhập tên RTC">
@@ -204,7 +203,7 @@
           </div>
           <div class="row">
             <div>
-                <div class="col md-12 pb-3">
+                <div class="col md-12">
                 <label for="NameNCC" class="form-label fs-12">Tên NCC <sup style="color: red;"> (*)</sup></label>
                 <input type="text" class="form-control fs-12" [(ngModel)]="newProduct.NameNCC" name="NameNCC"
                   placeholder="Nhập tên NCC" required>
@@ -215,7 +214,7 @@
             </div>
           </div>
           <div class="row">
-              <div class="col md-6 pb-3 ">
+              <div class="col-md-6">
               <label for="SupplyUnitID" class="form-label fs-12">Đơn vị tính <sup style="color: red;"> (*)</sup></label>
               <div class="d-flex gap-2 align-items-center">
                 <nz-select
@@ -237,21 +236,21 @@
                   <i class="fa-solid fa-plus"></i>
                 </button>
               </div>
-              <div class="invalid-feedback ">
+              <!-- <div class="invalid-feedback ">
                 Vui lòng chọn đơn vị tính!
-              </div>
+              </div> -->
             </div>
-            <div class="col md-6 pb-4">
+            <div class="col-md-6">
               <label for="Price" class="form-label fs-12 ">Giá sản phẩm<sup style="color: red;"> (*)</sup></label>
               <input style="text-align: right;" type="number" min="1" class="form-control fs-12 " [(ngModel)]="newProduct.Price"
                 placeholder="Nhập giá" name="Price" required>
-              <div class="invalid-feedback">
+              <!-- <div class="invalid-feedback">
                 Vui lòng nhập giá sản phẩm!
-              </div>
+              </div> -->
             </div>
           </div>
-          <div class="row mb-3 ">
-            <div class="col md-6 pb-4">
+          <div class="row">
+            <div class="col-md-6">
               <label for="RequestLimit" class="form-label fs-12">Định mức</label>
               <input type="number" style="text-align: right;" class="form-control fs-12" min="0"
                 [(ngModel)]="newProduct.RequestLimit" placeholder="" name="RequestLimit" required>
@@ -259,7 +258,7 @@
                   Vui lòng nhập định mức!
                 </div>
             </div>
-            <div class="col md-6">
+            <div class="col-md-6">
               <label for="Type" class="form-label fs-12 ">Chọn loại sản phẩm<sup style="color: red;"> (*)</sup></label>
               <nz-select
                 [(ngModel)]="newProduct.Type"
@@ -281,8 +280,8 @@
         </form>
       </div>
       <div class="modal-footer">
-         <button nz-button nzDanger nzSize="small" data-bs-dismiss="modal">Đóng</button>
-        <button nz-button nzType="primary" nzSize="small" (click)="isCheckmode? update(): add()">Lưu</button>
+         <button nz-button nzDanger data-bs-dismiss="modal">Đóng</button>
+        <button nz-button nzType="primary" (click)="isCheckmode? update(): add()">Lưu</button>
       </div>
     </div>
   </div>
@@ -292,8 +291,8 @@
 <div class="modal fade" id="officeSupplyUnitModal" tabindex="-1" aria-labelledby="officeSupplyUnitModalLabel"  aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header text-uppercase ">
-       <h6 class="modal-title" id="addUnitModalLabel">Danh sách đơn vị tính</h6>
+      <div class="modal-header bg-primary text-uppercase ">
+       <h6 class="modal-title text-white" id="addUnitModalLabel">Danh sách đơn vị tính</h6>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -318,8 +317,8 @@
 <div class="modal fade" id="ExcelModal" tabindex="-1" aria-labelledby="ExcelModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
-      <div class="modal-header text-uppercase ">
-       <h6 class="modal-title" id="ExcelModalLabel">NHẬP DỮ LIỆU EXCEL</h6>
+      <div class="modal-header bg-primary text-uppercase py-2 ">
+       <h6 class="modal-title text-white" id="ExcelModalLabel">NHẬP DỮ LIỆU EXCEL</h6>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -362,11 +361,11 @@
             </div>
           </div>
           <div class="modal-footer">
-             <button type="button" class="btn btn-outline-danger p-0 ps-2 pe-2 "  data-bs-dismiss="modal">Đóng</button>
-            <button  type="button" class="btn btn-info p-0 ps-2 pe-2">
+             <button class="fs-12 btn" nz-button nzDanger  data-bs-dismiss="modal">Đóng</button>
+            <button  class="fs-12 btn" nz-button >
               <a href="/assets/templateForm/MauVPP.xlsx" download="MauVPP.xlsx" style="text-decoration: none; color: inherit;"><nz-icon nzType="download" nzTheme="outline" /> Mẫu</a>
             </button>
-            <button type="submit" class="btn btn-success p-0 ps-2 pe-2 " (click)="saveExcelData()">Lưu</button>   
+            <button class="fs-12 btn" nz-button nzType="primary" (click)="saveExcelData()">Lưu</button>   
           </div>
         </form>
       </div>   

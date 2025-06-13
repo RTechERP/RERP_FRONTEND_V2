@@ -93,6 +93,15 @@
                     </li>
                 </ul>
             </li>
+            <!-- <nz-icon nzType="unordered-list" nzTheme="outline" /> -->
+            <li nz-submenu nzOpen nzTitle="Danh mục" nzIcon="unordered-list">
+                <ul>
+                    <li nzIcon="code-sandbox" nz-menu-item nzMatchRouter>
+                        <nz-icon nzType="code-sandbox" nzTheme="outline" />
+                        <a (click)="newTab(['/productsale'])">Vật tư kho</a>
+                    </li>
+                </ul>
+            </li>
         </ul>
     </nz-sider>
     <nz-layout>

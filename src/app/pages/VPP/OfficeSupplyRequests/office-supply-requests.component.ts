@@ -58,6 +58,7 @@ import { NzFormControlComponent } from 'ng-zorro-antd/form';
 import { NzFormSplitComponent } from 'ng-zorro-antd/form';
 import { NzFormTextComponent } from 'ng-zorro-antd/form';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { DateTime } from 'luxon';
 
 interface Unit {
   Code: string;
@@ -126,7 +127,7 @@ interface Product {
     NzFormLabelComponent,
     NzFormControlComponent,
     NzFormSplitComponent,
-    NzFormTextComponent
+    NzFormTextComponent,
   ],
   templateUrl: './office-supply-requests.component.html',
   styleUrls: ['./office-supply-requests.component.css'],
@@ -315,12 +316,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
             headerHozAlign: 'center',
             formatter: (cell) => {
               const value = cell.getValue();
-              if (value && typeof value === 'object') return '';
-              const date = new Date(value);
-              const day = String(date.getDate()).padStart(2, '0');
-              const month = String(date.getMonth() + 1).padStart(2, '0');
-              const year = date.getFullYear();
-             return `${day}/${month}/${year}`;
+              return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy'):'';
             }
           },
           { title: 'Họ tên TBP duyệt', field: 'FullNameApproved', hozAlign: 'left', headerHozAlign: 'center', width: 200 },
@@ -334,12 +330,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
             width: 200,
             formatter: (cell) => {
               const value = cell.getValue();
-              if (!value) return '';
-              const date = new Date(value);
-              const day = String(date.getDate()).padStart(2, '0');
-              const month = String(date.getMonth() + 1).padStart(2, '0');
-              const year = date.getFullYear();
-             return `${day}/${month}/${year}`;
+              return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy'):'';
             }
           }
         ]

@@ -7,6 +7,7 @@ import { DailyreportComponent } from './pages/dailyreport/dailyreport.component'
 import { OfficeSupplyRequestSummaryComponent } from './pages/VPP/OfficeSupplyRequestSummary/office-supply-request-summary/office-supply-request-summary.component';
 import { OfficeSupplyRequestsComponent } from './pages/VPP/OfficeSupplyRequests/office-supply-requests.component';
 import { OfficeSuppliesComponent } from './pages/VPP/OfficeSupplies/office-supplies.component';
+import { ProductSaleComponent } from './pages/Sale/product-sale/product-sale.component';
 export const routes: Routes = [
   { path: '', redirectTo: '/welcome', pathMatch: 'full' },
   { path: 'app', component: AppComponent },
@@ -21,5 +22,6 @@ export const routes: Routes = [
   {path: 'dailyreport', component:DailyreportComponent},
   {path:'officesupplyrequestsummury', component:OfficeSupplyRequestSummaryComponent},
   {path:'officesupplyrequest', component:OfficeSupplyRequestsComponent},
-  {path:'officesupplies', component:OfficeSuppliesComponent}
+  {path:'officesupplies', component:OfficeSuppliesComponent},
+  {path:'productsale', component:ProductSaleComponent}
 ];

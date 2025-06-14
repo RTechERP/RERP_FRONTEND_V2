@@ -1,1 +1,17 @@
-/* You can add global styles to this file, and also import other style files */
+/* Y/* Tùy chỉnh modal header */
+.ant-modal-header {
+    background: #1890ff;
+}
+  
+.ant-modal-title {
+    color: white;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+
+
+.cdk-overlay-container {
+    z-index: 9999 !important;
+  }
+  

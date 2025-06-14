@@ -1,0 +1,474 @@
+<ng-container class="w-100">
+  <nz-splitter>
+    <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-1">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="m-0 ms-2">Tìm kiếm</h6>
+            <button
+              class="border-0 me-2"
+              nz-button
+              nzSize="default"
+              nzType="default"
+              nzDanger
+              (click)="toggleSearchPanel()"
+            >
+              <nz-icon nzType="close" nzTheme="outline" />
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <form nz-form [formGroup]="searchForm" nzLayout="vertical">
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Team</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select
+                  class="w-100"
+                  nzShowSearch
+                  nzAllowClear
+                  nzSize="default"
+                  nzPlaceHolder="Chọn Team"
+                  [nzOptions]="searchTeamList"
+                  formControlName="team"
+                >
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Nhân viên sale</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select
+                  class="w-100"
+                  nzShowSearch
+                  nzAllowClear
+                  nzSize="default"
+                  nzPlaceHolder="Chọn nhân viên sale"
+                  [nzOptions]="searchEmployeeList"
+                  formControlName="employee"
+                >
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <input 
+                  nz-input 
+                  placeholder="Nhập từ khóa" 
+                  nzSize="default"
+                  formControlName="keyword"
+                />
+              </nz-form-control>
+            </nz-form-item>
+          </form>
+        </div>
+        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+          <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">Đặt lại</button>
+          <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">Tìm kiếm</button>
+        </div>
+      </div>
+    </nz-splitter-panel>
+    <nz-splitter-panel>
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-2">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex gap-2">
+              <button
+                nz-button
+                nzType="default"
+                nzSize="small"
+                (click)="toggleSearchPanel()"
+              >
+                <nz-icon nzType="search" />
+              </button>
+              <button
+                nz-button
+                nzType="default"
+                nzSize="small"
+                style="font-size: 0.75rem; font-weight: bold"
+                (click)="openAddModal()"
+              >
+                <nz-icon nzType="plus" /> Thêm
+              </button>
+              <button
+                nz-button
+                nzType="default"
+                nzSize="small"
+                style="font-size: 0.75rem; font-weight: bold"
+                (click)="openEditModal()"
+                [nzLoading]="isLoading"
+              >
+                <nz-icon nzType="edit" /> Sửa
+              </button>
+              <button
+                nz-button
+                nzType="default"
+                nzSize="small"
+                style="font-size: 0.75rem; font-weight: bold"
+                (click)="openDeleteModal()"
+              >
+                <nz-icon nzType="delete" /> Xóa
+              </button>
+              <button
+                nz-button
+                nzType="default"
+                nzSize="small"
+                style="font-size: 0.75rem; font-weight: bold"
+                (click)="openCustomerSpecializationForm()"
+              >
+                <nz-icon nzType="diff" /> Nghành nghề
+              </button>
+              <button
+                nz-button
+                nzType="default"
+                nzSize="small"
+                style="font-size: 0.75rem; font-weight: bold"
+                (click)="exportToExcel()"
+              >
+                <nz-icon nzType="export" /> Xuất excel
+              </button>
+            </div>
+            <!-- <div class="d-flex gap-2">
+              <nz-input-group nzPrefixIcon="search" nzSize="small">
+                <input type="text" nz-input placeholder="Tìm kiếm..." (input)="onSearch($event)" />
+              </nz-input-group>
+            </div> -->
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <nz-splitter>
+            <nz-splitter-panel
+              nzSize="60%"
+              [nzCollapsible]="true"
+              nzResizable="true"
+            >
+              <div #tb_Customer></div>
+            </nz-splitter-panel>
+            <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
+              <nz-tabset class="ps-1">
+                <nz-tab nzTitle="Thông tin liên hệ">
+                  <div #tb_Contact class="h-100"></div>
+                </nz-tab>
+                <nz-tab nzTitle="Địa chỉ giao hàng" class="fs-12">
+                  <div #tb_AddressStock class="h-100"></div>
+                </nz-tab>
+                <nz-tab nzTitle="Nhân viên sale" class="fs-12">
+                  <div #tb_EmployeeSale class="h-100"></div>
+                </nz-tab>
+              </nz-tabset>
+            </nz-splitter-panel>
+          </nz-splitter>
+        </div>
+      </div>
+    </nz-splitter-panel>
+  </nz-splitter>
+</ng-container>
+
+<nz-modal
+  [(nzVisible)]="isModalVisible"
+  [nzTitle]="isEditMode ? 'Sửa khách hàng' : 'Tạo khách hàng mới'"
+  [nzWidth]="1500"
+  [nzFooter]="modalFooter"
+  (nzOnCancel)="closeModal()"
+  nzMaskClosable="false"
+  [nzOkLoading]="isSubmitting"
+>
+  <ng-container *nzModalContent>
+    <form
+      nz-form
+      [formGroup]="customerForm"
+      (ngSubmit)="onSubmit()"
+      nzLayout="vertical"
+    >
+      <nz-row [nzGutter]="24">
+        <nz-col [nzSpan]="4">
+          <nz-form-item>
+            <nz-form-label [nzSpan]="24">Tỉnh <sup class="text-danger">(*)</sup></nz-form-label>
+            <nz-form-control nzErrorTip="Vui lòng chọn tỉnh">
+              <nz-select
+                formControlName="Province"
+                nzPlaceHolder="Chọn tỉnh"
+                (ngModelChange)="onProvinceChange($event)"
+                [nzAllowClear]="true"
+                style="width: 11vw;"
+                [nzOptions]="provinces"
+              >
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzSpan]="3">
+          <nz-form-item>
+            <nz-form-label>Mã tỉnh<sup class="text-danger">(*)</sup></nz-form-label>
+            <nz-form-control>
+              <input nz-input formControlName="CodeProvinces" readonly />
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzSpan]="3">
+          <nz-form-item>
+            <nz-form-label>Mã khách<sup class="text-danger">(*)</sup></nz-form-label>
+            <nz-form-control nzErrorTip="Vui lòng nhập mã khách">
+              <input
+                nz-input
+                formControlName="CustomerCode"
+              />
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzSpan]="3">
+          <nz-form-item>
+            <nz-form-label>Ký hiệu<sup class="text-danger">(*)</sup></nz-form-label>
+            <nz-form-control nzErrorTip="Vui lòng nhập ký hiệu">
+              <input
+                nz-input
+                formControlName="CustomerShortName"
+                placeholder="Ký hiệu"
+              />
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzSpan]="4">
+          <nz-form-item>
+            <nz-form-label nzSpan="24">Mã số thuế</nz-form-label>
+            <nz-form-control nzSpan="24">
+              <input
+                nz-input
+                formControlName="TaxCode"
+                placeholder="Mã số thuế"
+              />
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzSpan]="4">
+          <nz-form-item>
+            <nz-form-label>Loại hình</nz-form-label>
+            <nz-form-control>
+              <nz-select
+                formControlName="CustomerType"
+                nzPlaceHolder="Chọn loại hình"
+                style="width: 11vw;"
+                nzAllowClear
+              >
+                <nz-option nzValue="1" nzLabel="SL"></nz-option>
+                <nz-option nzValue="2" nzLabel="Thương mại"></nz-option>
+                <nz-option nzValue="3" nzLabel="Sản xuất"></nz-option>
+                <nz-option nzValue="4" nzLabel="Chế tạo máy"></nz-option>
+                <nz-option nzValue="5" nzLabel="Cá nhân"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzSpan]="3">
+          <nz-form-item class="mt-4 ms-3">
+            <nz-form-control>
+              <label nz-checkbox formControlName="BigAccount"
+                >Big account</label
+              >
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+
+      <nz-row [nzGutter]="24">
+        <nz-col [nzSpan]="9">
+          <nz-form-item>
+            <nz-form-label nzSpan="24">Tên khách hàng<sup class="text-danger">(*)</sup></nz-form-label>
+            
+            <nz-form-control nzSpan="24" nzErrorTip="Vui lòng nhập tên khách hàng">
+              <input
+                nz-input
+                formControlName="CustomerName"
+                placeholder="Tên khách hàng"
+              />
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzSpan]="9">
+          <nz-form-item>
+            <nz-form-label nzSpan="24">Địa chỉ <sup class="text-danger">(*)</sup> </nz-form-label>
+            <nz-form-control nzSpan="24" nzErrorTip="Vui lòng nhập địa chỉ">
+              <input nz-input formControlName="Address" placeholder="Địa chỉ" />
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzSpan]="6">
+          <nz-form-item>
+            <nz-form-label nzSpan="24">Sản phẩm đã bán</nz-form-label>
+            <nz-form-control >
+              <nz-select
+                formControlName="BusinessFieldID"
+                nzPlaceHolder="Chọn sản phẩm"
+                nzSpan="24"
+                style="width: 18vw;"
+                [nzOptions]="businessFieldList"
+                nzAllowClear
+              >
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+
+      <nz-row [nzGutter]="24">
+        <nz-col [nzSpan]="9">
+          <nz-form-item>
+            <nz-form-label nzSpan="24">Ngành nghề <sup class="text-danger">(*)</sup></nz-form-label>
+            <nz-form-control nzErrorTip="Vui lòng chọn ngành nghề">
+              <nz-select
+                formControlName="CustomerSpecializationID"
+                nzPlaceHolder="Chọn ngành nghề"
+                nzShowSearch
+                nzSpan="24"
+                style="width: 28vw;"
+                [nzOptions]="majorList"
+                nzAllowClear
+              >
+                
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzSpan]="9">
+          <nz-form-item>
+            <nz-form-label nzSpan="24">SP chi tiết</nz-form-label>
+            <nz-form-control nzSpan="24">
+              <input
+                nz-input
+                formControlName="ProductDetails"
+                placeholder="SP chi tiết"
+              />
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzSpan]="6">
+          <nz-form-item>
+            <nz-form-label nzSpan="24">Công nợ</nz-form-label>
+            <nz-form-control nzSpan="24">
+              <input nz-input formControlName="Debt" placeholder="Công nợ" />
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+
+      <nz-row [nzGutter]="24">
+        <nz-col [nzSpan]="9">
+          <nz-form-item>
+            <nz-form-label nzSpan="24">Lưu ý giao</nz-form-label>
+            <nz-form-control nzSpan="24">
+              <input
+                nz-input
+                formControlName="NoteDelivery"
+                placeholder="Lưu ý giao"
+              />
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzSpan]="9">
+          <nz-form-item>
+            <nz-form-label nzSpan="24">Lưu ý chứng từ</nz-form-label>
+            <nz-form-control nzSpan="24">
+              <input
+                nz-input
+                formControlName="NoteVoucher"
+                placeholder="Lưu ý chứng từ"
+              />
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzSpan]="6">
+          <nz-form-item>
+            <nz-form-label nzSpan="24">Ngày chốt công nợ</nz-form-label>
+            <nz-form-control nzSpan="24">
+              <nz-date-picker
+                formControlName="ClosingDateDebt"
+                class="w-100"
+                nzFormat="dd/MM/yyyy"
+              ></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+
+      <nz-row [nzGutter]="24">
+        <nz-col [nzSpan]="12">
+          <nz-form-item>
+            <nz-form-label nzSpan="24">Đầu mối gửi chứng từ bản cứng</nz-form-label>
+            <nz-form-control nzSpan="24">
+              <textarea
+                nz-input
+                formControlName="HardCopyVoucher"
+                placeholder="Đầu mối gửi chứng từ bản cứng"
+              ></textarea>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+
+        <nz-col [nzSpan]="12">
+          <nz-form-item nzSpan="24">
+            <nz-form-label>Đầu mối gửi check chứng từ</nz-form-label>
+            <nz-form-control nzSpan="24">
+              <textarea
+                nz-input
+                formControlName="CheckVoucher"
+                placeholder="Đầu mối gửi check chứng từ"
+              ></textarea>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+
+      <nz-row [nzGutter]="16">
+        <nz-col [nzSpan]="12">
+            <h6 class="mb-2">Thông tin liên hệ</h6>
+            <div id="customerContact-table-create"></div>
+        </nz-col>
+
+        <nz-col [nzSpan]="6">
+            <h6 class="mb-2">Địa chỉ giao hàng</h6>
+            <div
+              id="address-table-create"></div>
+        </nz-col>
+
+        <nz-col [nzSpan]="6">
+            <h6 class="mb-2">Nhân viên sale</h6>
+            <div
+              id="employeeSale-table-create"></div>
+        </nz-col>
+      </nz-row>
+    </form>
+  </ng-container>
+
+  <ng-template #modalFooter>
+    <button nz-button nzType="default" (click)="closeModal()">Hủy</button>
+    <button nz-button nzType="primary" (click)="onSubmit()">Lưu</button>
+  </ng-template>
+</nz-modal>
+
+
+<div class="modal fade" id="customerSpecializationModal" tabindex="-1"
+  aria-labelledby="customerSpecializationModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header bg-primary">
+        <h6 class="modal-title text-uppercase text-white" id="customerSpecializationModalLabel">Quản lý ngành nghề</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body fs-12">
+        <app-customer-specialization-form></app-customer-specialization-form>
+      </div>
+    </div>
+  </div>
+</div>

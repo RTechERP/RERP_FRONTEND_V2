@@ -138,13 +138,13 @@
         <div class="card-body p-0">
           <nz-splitter>
             <nz-splitter-panel
-              nzSize="60%"
+              nzSize=""
               [nzCollapsible]="true"
               nzResizable="true"
             >
               <div #tb_Customer></div>
             </nz-splitter-panel>
-            <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
+            <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" [nzSize]="sizeTbDetail">
               <nz-tabset class="ps-1">
                 <nz-tab nzTitle="Thông tin liên hệ">
                   <div #tb_Contact class="h-100"></div>

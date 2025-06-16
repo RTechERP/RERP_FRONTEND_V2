@@ -90,6 +90,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   employeeSales: any[] = [];
   address: any[] = [];
   sizeSearch: string = '0';
+  sizeTbDetail: any ='0';  
   customerForm!: FormGroup;
   customersToExcel: any[] = [];
   isModalVisible = false;
@@ -249,6 +250,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
 
     this.tabulator.on('rowClick', (e: UIEvent, row: RowComponent) => {
       this.selectedCustomer = row.getData();
+      this.sizeTbDetail = null;
     })
 
     this.tabulator.on('rowDblClick', (e: UIEvent, row: RowComponent) => {

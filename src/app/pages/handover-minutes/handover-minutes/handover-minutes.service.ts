@@ -11,14 +11,14 @@ export class HandoverMinutesService {
   constructor(private http: HttpClient) { }
 
   loadEmployeeAndDepartment(): Observable<any> {
-    return this.http.get<any>(this._url + 'LoadEmployee');
+    return this.http.get<any>(this._url + 'get-employee');
   }
 
-  loadProduct(): Observable<any>{
-    return this.http.get<any>(this._url + 'LoadProduct');
-  }
+  loadPOKHDetail(): Observable<any>{
+    return this.http.get<any>(this._url + 'get-pokh-detail');
+  } 
 
   save(handoverMinutes: any): Observable<any> {
-    return this.http.post<any>(this._url + 'Save', handoverMinutes);
+    return this.http.post<any>(this._url + 'save-data', handoverMinutes);
   }
 } 

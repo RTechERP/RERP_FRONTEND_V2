@@ -34,14 +34,17 @@ import { CommonModule } from '@angular/common';
 import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { map, catchError, of, forkJoin } from 'rxjs';
 import * as ExcelJS from 'exceljs';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+
+
 import { HandoverMinutesService } from './handover-minutes/handover-minutes.service';
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 
 @Component({
     selector: 'app-handover-minutes',
     standalone: true,
-    imports: [CommonModule, FormsModule, NzSelectModule, NzButtonModule, NzTabsModule, NzDropDownModule, NzIconModule],
+    imports: [CommonModule, FormsModule, NzSelectModule, NzButtonModule, NzTabsModule, NzDropDownModule, NzIconModule, NzModalModule],
     templateUrl: './handover-minutes.component.html',
     styleUrl: './handover-minutes.component.css'
 })
@@ -67,11 +70,11 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
     customers: any[] = [];
     products: any[] = [];
     details: any[] = [];
-    productStatusOptions = [
+    private productStatusOptions = [
         { value: 1, label: 'Mới' },
         { value: 2, label: 'Cũ' },
     ];
-    deliveryStatusOptions = [
+    private deliveryStatusOptions = [
         { value: 1, label: 'Nhận đủ' },
         { value: 2, label: 'Thiếu' },
     ];
@@ -80,7 +83,9 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
         private modalService: NgbModal,
         private handoverMinutesService: HandoverMinutesService,
         public activeModal: NgbActiveModal,
-        private viewPokhService: ViewPokhService
+        private viewPokhService: ViewPokhService,
+        private notification: NzNotificationService,
+        private modal: NzModalService
     ) { }
 
     ngOnInit(): void {
@@ -97,7 +102,7 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
             if (this.groupedData && this.groupedData.length > 0) {
                 this.switchTab(0);
             }
-        }, 250);
+        }, 170);
     }
 
     ngAfterViewInit(): void {
@@ -113,11 +118,11 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
                         this.initializeTabFormData();
                     }, 1);
                 } else {
-                    console.error('Lỗi khi tải Customer:', response.message);
+                    this.notification.error('Lỗi khi tải Customer:', response.message);
                 }
             },
             error => {
-                console.error('Lỗi kết nối khi tải Customer:', error);
+                this.notification.error('Lỗi kết nối khi tải Customer:', error);
             }
         );
     }
@@ -131,16 +136,16 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
                     );
                     console.log("Employees and Departments:", this.employeesAndDepartments);
                 } else {
-                    console.error('Lỗi khi tải Employee và Department:', response.message);
+                    this.notification.error('Lỗi khi tải Employee và Department:', response.message);
                 }
             },
             error => {
-                console.error('Lỗi kết nối khi tải Employee và Department:', error);
+                this.notification.error('Lỗi kết nối khi tải Employee và Department:', error);
             }
         );
     }
     loadProduct(): void {
-        this.handoverMinutesService.loadProduct().subscribe(
+        this.handoverMinutesService.loadPOKHDetail().subscribe(
             response => {
                 if (response.status === 1) {
                     this.products = response.data[0];
@@ -151,11 +156,11 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
                         }
                     }, 1);
                 } else {
-                    console.error('Lỗi khi tải products:', response.message);
+                    this.notification.error('Lỗi khi tải products:', response.message);
                 }
             },
             error => {
-                console.error('Lỗi kết nối khi tải products:', error);
+                this.notification.error('Lỗi kết nối khi tải products:', error);
             }
         );
     }
@@ -166,6 +171,9 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
             data: this.details,
             height: '400px',
             layout: 'fitColumns',
+            reactiveData: true,
+            resizableRows: true,
+            movableColumns: true,
             columns: [
                 {
                     title: '', field: 'actions', formatter: (cell) => {
@@ -175,19 +183,25 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
                     hozAlign: "center",
                     cellClick: (e, cell) => {
                         if ((e.target as HTMLElement).classList.contains('delete-btn')) {
-                            if (confirm('Bạn có chắc chắn muốn xóa người phụ trách này?')) {
-                                const row = cell.getRow();
-                                const rowData = row.getData();
+                            this.modal.confirm({
+                                nzTitle: 'Xác nhận xóa',
+                                nzContent: 'Bạn có chắc chắn muốn xóa người dòng này?',
+                                nzOkText: 'Đồng ý',
+                                nzCancelText: 'Hủy',
+                                nzOnOk: () => {
+                                    const row = cell.getRow();
+                                    const rowData = row.getData();
 
-                                // thêm id của người phụ trách đã xóa vào mảng deletedHandoverMinutesDetailIds
-                                if (rowData['ID']) {
-                                    this.deletedHandoverMinutesDetailIds.push(rowData['ID']);
+                                    // thêm id của người phụ trách đã xóa vào mảng deletedHandoverMinutesDetailIds
+                                    if (rowData['ID']) {
+                                        this.deletedHandoverMinutesDetailIds.push(rowData['ID']);
+                                    }
+                                    console.log('deletedHandoverMinutesDetailIds:', this.deletedHandoverMinutesDetailIds);
+
+                                    row.delete();
+                                    this.details = this.table.getData();
                                 }
-                                console.log('deletedHandoverMinutesDetailIds:', this.deletedHandoverMinutesDetailIds);
-
-                                row.delete();
-                                this.details = this.table.getData();
-                            }
+                            });
                         }
                     }
                 },
@@ -303,7 +317,7 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
                         this.activeModal.close({ success: true, reloadTable: true });
                     }
                 } else {
-                    console.error('Lỗi khi lưu biên bản:', response.message);
+                    this.notification.error('Lỗi khi lưu biên bản:', response.message);
                 }
             },
             error: (error) => {
@@ -380,47 +394,47 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
     //#region Xử lý dữ liệu 
     validateForm(): boolean {
         if (this.formData.dateMinutes < 0) {
-            alert('Xin hãy chọn ngày nhập.');
+            this.notification.warning('Thông báo', 'Xin hãy chọn ngày nhập.');
             return false;
         }
         if (!this.formData.employeeName) {
-            alert('Xin hãy chọn nhân viên.');
+            this.notification.warning('Thông báo', 'Xin hãy chọn nhân viên.');
             return false;
         }
         if (!this.formData.employeePhone) {
-            alert('Xin hãy nhập số điện thoại nhân viên.');
+            this.notification.warning('Thông báo', 'Xin hãy nhập số điện thoại nhân viên.');
             return false;
         }
         if (!this.formData.emailCaNhan) {
-            alert('Xin hãy nhập email nhân viên.');
+            this.notification.warning('Thông báo', 'Xin hãy nhập email nhân viên.');
             return false;
         }
         if (!this.formData.customerId) {
-            alert('Xin hãy chọn khách hàng.');
+            this.notification.warning('Thông báo', 'Xin hãy chọn khách hàng.');
             return false;
         }
         if (!this.formData.customerContact) {
-            alert('Xin hãy nhập liên hệ khách hàng.');
+            this.notification.warning('Thông báo', 'Xin hãy nhập liên hệ khách hàng.');
             return false;
         }
         if (!this.formData.customerPhone) {
-            alert('Xin hãy nhập số điện thoại khách hàng');
+            this.notification.warning('Thông báo', 'Xin hãy nhập số điện thoại khách hàng');
             return false;
         }
         if (!this.formData.customerAddress) {
-            alert('Xin hãy nhập địa chỉ khách hàng');
+            this.notification.warning('Thông báo', 'Xin hãy nhập địa chỉ khách hàng');
             return false;
         }
         if (!this.formData.receiver) {
-            alert('Xin hãy điền người nhận');
+            this.notification.warning('Thông báo', 'Xin hãy điền người nhận');
             return false;
         }
         if (!this.formData.receiverPhone) {
-            alert('Xin hãy điền số điện thoại người nhận');
+            this.notification.warning('Thông báo', 'Xin hãy điền số điện thoại người nhận');
             return false;
         }
         if (!this.formData.adminWarehouse) {
-            alert('Xin hãy điền thủ kho');
+            this.notification.warning('Thông báo', 'Xin hãy điền thủ kho');
             return false;
         }
         return true;
@@ -432,7 +446,7 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
             employeeName: null,
             employeePhone: '',
             emailCaNhan: '',
-            departmentName: '',
+            departmentName: '', 
             customerId: null,
             customerName: null,
             customerContact: '',

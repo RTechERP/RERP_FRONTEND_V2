@@ -13,3 +13,41 @@
     margin-left: 20px;
   }
   
+:host ::ng-deep .ant-select-selection-item {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+:host ::ng-deep .ant-select-dropdown {
+  max-width: 300px !important;
+}
+
+:host ::ng-deep .ant-select-item-option-content {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 280px;
+}  
+/* dropdown text scroll */
+::ng-deep .ant-select-dropdown {
+  max-width: 300px !important;
+}
+::ng-deep .ant-select-dropdown .ant-select-item {
+  white-space: nowrap !important;
+  overflow: visible !important;
+}
+::ng-deep .ant-select-dropdown .ant-select-item-option-content {
+  white-space: nowrap !important;
+  overflow-x: auto !important;
+  text-overflow: initial !important;
+  max-width: none !important;
+}
+::ng-deep .ant-select-dropdown .ant-select-item-option-content::-webkit-scrollbar {
+  height: 4px;
+}
+::ng-deep .ant-select-dropdown .ant-select-item-option-content::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 2px;
+}

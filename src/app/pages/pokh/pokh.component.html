@@ -81,67 +81,69 @@
       </div>
     </nz-splitter-panel>
     <nz-splitter-panel nzDefaultSize="100%">
-      <div class="card h-100 border-0 rounded-0">
-        <div class="card-header bg-white p-1" style="overflow-x: auto;">
-          <div class="d-flex gap-1">
-            <button style="min-width: 25px;" nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
-              <nz-icon nzType="search"></nz-icon>
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openModal()">
-              <nz-icon nzType="plus"></nz-icon> Thêm
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onEdit()">
-              <nz-icon nzType="edit" nzTheme="fill"></nz-icon> Sửa
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onDelete()">
-              <nz-icon nzType="delete" nzTheme="fill"></nz-icon> Xóa
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" title="Nhập Excel">
-              <nz-icon nzType="file-excel"></nz-icon> Nhập Excel
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" title="Duyệt" (click)="handlePOKHApproval(true)">
-              <nz-icon nzType="check-circle"></nz-icon> Duyệt
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" title="Hủy Duyệt" (click)="handlePOKHApproval(false)">
-              <nz-icon nzType="close-circle"></nz-icon> Hủy Duyệt
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" title="Chuyển đặt hàng">
-              <nz-icon nzType="swap"></nz-icon> Chuyển đặt hàng
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" title="Xuất PO" (click)="exportToExcel()">
-              <nz-icon nzType="file-text"></nz-icon> Xuất PO
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" title="Xuất Phiếu" (click)="exportMainTableToExcel()">
-              <nz-icon nzType="file-done"></nz-icon> Xuất Phiếu
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" title="Chi tiết POKH" (click)="openModalViewPOKH()">
-              <nz-icon nzType="info-circle"></nz-icon> Chi tiết POKH
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" title="Tiền về">
-              <nz-icon nzType="dollar"></nz-icon> Tiền về
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" title="Yêu cầu mua hàng">
-              <nz-icon nzType="shopping-cart"></nz-icon> Yêu cầu mua hàng
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" title="Yêu cầu xuất kho">
-              <nz-icon nzType="inbox"></nz-icon> Yêu cầu xuất kho
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" title="Lịch sử bán hàng">
-              <nz-icon nzType="history"></nz-icon> Lịch sử bán hàng
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" title="Copy">
-              <nz-icon nzType="copy"></nz-icon> Copy
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" title="Yêu cầu báo giá">
-              <nz-icon nzType="file-search"></nz-icon> Yêu cầu báo giá
-            </button>
-            
-          </div>
-        </div>
         <div class="card-body p-0 ">
           <nz-splitter>
             <nz-splitter-panel nzSize="" [nzCollapsible]="true" nzResizable="true">
-              <div id="tb_POKH"></div>
+              <div class="card h-100 border-0 rounded-0">
+                <div class="card-header bg-white p-1" style="overflow-x: auto;">
+                  <div class="d-flex gap-1">
+                    <button style="min-width: 25px;" nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
+                      <nz-icon nzType="search"></nz-icon>
+                    </button>
+                    <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openModal()">
+                      <nz-icon nzType="plus"></nz-icon> Thêm
+                    </button>
+                    <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openModal()">
+                      <nz-icon nzType="edit" nzTheme="fill"></nz-icon> Sửa
+                    </button>
+                    <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onDelete()">
+                      <nz-icon nzType="delete" nzTheme="fill"></nz-icon> Xóa
+                    </button>
+                    <button class="fs-12" nz-button nzType="default" nzSize="small" title="Nhập Excel">
+                      <nz-icon nzType="file-excel"></nz-icon> Nhập Excel
+                    </button>
+                    <button class="fs-12" nz-button nzType="default" nzSize="small" title="Duyệt" (click)="handlePOKHApproval(true)">
+                      <nz-icon nzType="check-circle"></nz-icon> Duyệt
+                    </button>
+                    <button class="fs-12" nz-button nzType="default" nzSize="small" title="Hủy Duyệt" (click)="handlePOKHApproval(false)">
+                      <nz-icon nzType="close-circle"></nz-icon> Hủy Duyệt
+                    </button>
+                    <button class="fs-12" nz-button nzType="default" nzSize="small" title="Chuyển đặt hàng">
+                      <nz-icon nzType="swap"></nz-icon> Chuyển đặt hàng
+                    </button>
+                    <button class="fs-12" nz-button nzType="default" nzSize="small" title="Xuất PO" (click)="exportToExcel()">
+                      <nz-icon nzType="file-text"></nz-icon> Xuất PO
+                    </button>
+                    <button class="fs-12" nz-button nzType="default" nzSize="small" title="Xuất Phiếu" (click)="exportMainTableToExcel()">
+                      <nz-icon nzType="file-done"></nz-icon> Xuất Phiếu
+                    </button>
+                    <button class="fs-12" nz-button nzType="default" nzSize="small" title="Chi tiết POKH" (click)="openModalViewPOKH()">
+                      <nz-icon nzType="info-circle"></nz-icon> Chi tiết POKH
+                    </button>
+                    <button class="fs-12" nz-button nzType="default" nzSize="small" title="Tiền về">
+                      <nz-icon nzType="dollar"></nz-icon> Tiền về
+                    </button>
+                    <button class="fs-12" nz-button nzType="default" nzSize="small" title="Yêu cầu mua hàng">
+                      <nz-icon nzType="shopping-cart"></nz-icon> Yêu cầu mua hàng
+                    </button>
+                    <button class="fs-12" nz-button nzType="default" nzSize="small" title="Yêu cầu xuất kho" (click)="openWarehouseReleaseRequestModal()">
+                      <nz-icon nzType="inbox"></nz-icon> Yêu cầu xuất kho
+                    </button>
+                    <button class="fs-12" nz-button nzType="default" nzSize="small" title="Lịch sử bán hàng" (click)="openFollowProductReturnModal()">
+                      <nz-icon nzType="history"></nz-icon> Lịch sử bán hàng
+                    </button>
+                    <button class="fs-12" nz-button nzType="default" nzSize="small" title="Copy" (click)="onCopy()">
+                      <nz-icon nzType="copy"></nz-icon> Copy
+                    </button>
+                    <button class="fs-12" nz-button nzType="default" nzSize="small" title="Yêu cầu báo giá">
+                      <nz-icon nzType="file-search"></nz-icon> Yêu cầu báo giá
+                    </button>
+                  </div>
+                </div>
+                <div class="card-body p-0">
+                  <div id="tb_POKH"></div>
+                </div>
+              </div>
             </nz-splitter-panel>
             <nz-splitter-panel nzDefaultSize="20%" [nzCollapsible]="true" nzResizable="true">
               <div class="card border-0 rounded-0">
@@ -163,7 +165,6 @@
             </nz-splitter-panel>
           </nz-splitter>
         </div>
-      </div>
     </nz-splitter-panel>
   </nz-splitter>
 </ng-container>
@@ -174,7 +175,7 @@
     <h5 class="modal-title">Chi tiết PO</h5>
     <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
   </div>
-  <div class="px-4 pt-3">
+  <div class="px-4 pt-3 pokh-modal-content">
     <div class="d-flex gap-2 mb-3 flex-wrap">
       <button nz-button nzType="default" nzSize="small" (click)="savePOKH()">
         <nz-icon nzType="save"></nz-icon> Lưu
@@ -199,9 +200,9 @@
       </button>
     </div>
 
-    <nz-tabset>
+    <nz-tabset class="pokh-tabset">
       <nz-tab nzTitle="Chi tiết PO">
-        <div class="p-3">
+        <div class="p-3 pokh-tab-content">
           <form nz-form nzLayout="horizontal" class="ant-advanced-search-form">
             <div nz-row [nzGutter]="[16, 16]">
               <!-- Row 1 -->
@@ -291,9 +292,13 @@
                   <nz-form-control [nzSm]="16" [nzXs]="24">
                     <nz-input-group nzSearch nzSize="default" [nzAddOnAfter]="suffixIconButton_ProjectName">
                       <nz-select nzShowSearch name="projectId" nzPlaceHolder="Chọn dự án" nzAllowClear nzSize="default"
-                        class="w-100" [(ngModel)]="poFormData.projectId">
+                        class="w-100" [(ngModel)]="poFormData.projectId" style="max-width: 127px;">
                         <nz-option *ngFor="let project of dataProjects" [nzValue]="project.ID"
-                          [nzLabel]="project.ProjectName"></nz-option>
+                          [nzLabel]="project.ProjectName" [nzTitle]="project.ProjectName">
+                          <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">
+                            {{project.ProjectName}}
+                          </div>
+                        </nz-option>
                       </nz-select>
                     </nz-input-group>
                     <ng-template #suffixIconButton_ProjectName>
@@ -325,7 +330,7 @@
                   <nz-form-control [nzSm]="16" [nzXs]="24">
                     <nz-select nzShowSearch name="departmentId" nzPlaceHolder="Chọn bộ phận" nzAllowClear nzSize="default"
                       class="w-100" [(ngModel)]="poFormData.departmentId">
-                      <nz-option *ngFor="let part of dataParts" [nzValue]="part.ID" [nzLabel]="part.PartName"></nz-option>
+                      <nz-option *ngFor="let part of dataParts" [nzValue]="part.ID" [nzLabel]="part.PartName + ' - ' + part.PartCode + ' - ' + part.Description"></nz-option>
                     </nz-select>
                   </nz-form-control>
                 </nz-form-item>
@@ -392,7 +397,7 @@
         </div>
       </nz-tab>
       <nz-tab nzTitle="Chi tiết sản phẩm">
-        <div class="p-3">
+        <div class="p-3 pokh-tab-content">
           <!-- Phần trên -->
           <div class="mb-4">
             <h6 class="mb-3">Danh sách sản phẩm</h6>
@@ -431,3 +436,38 @@
     <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
   </div>
 </ng-template>
+
+<style>
+.pokh-modal-content {
+  height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+
+.pokh-tabset {
+  height: 100%;
+}
+
+.pokh-tab-content {
+  height: calc(100vh - 300px);
+  overflow-y: auto;
+}
+
+/* Ensure these styles only apply to the POKH modal */
+::ng-deep .pokh-modal .ant-modal {
+  width: 90% !important;
+  max-width: 1400px;
+}
+
+::ng-deep .pokh-modal .ant-modal-body {
+  height: calc(100vh - 200px);
+  overflow: hidden;
+}
+
+::ng-deep .pokh-modal .ant-tabs-content {
+  height: 100%;
+}
+
+::ng-deep .pokh-modal .ant-tabs-tabpane {
+  height: 100%;
+}
+</style>

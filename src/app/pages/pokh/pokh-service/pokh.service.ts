@@ -8,11 +8,9 @@ import { Observable } from 'rxjs';
 export class PokhService {
   private _url = 'https://localhost:7187/api/POKH/';
   constructor(private http: HttpClient) { }
-  getPokhById(id: number): Observable<any> {
-    return this.http.get<any>(this._url + 'GetPOKHByID' + id);
-  }
+
   getPOKH(filterText: string, pageNumber: number, pageSize: number, customerId: number, userId: number, POType: number, status: number, group: number, startDate: Date, endDate: Date, warehouseId: number, employeeTeamSaleId: number): Observable<any> {
-    return this.http.get<any>((this._url + 'GetPOKH'), {
+    return this.http.get<any>((this._url + 'get-pokh'), {
       params: {
         filterText,
         pageNumber: pageNumber.toString(),
@@ -30,16 +28,10 @@ export class PokhService {
     });
   }
   handlePOKH(pokh: any): Observable<any> {
-    return this.http.post<any>(this._url + 'Handle', pokh);
-  }
-  deletePOKH(id: number): Observable<any> {
-    return this.http.delete<any>(this._url + 'DeletePOKH' + id);
-  }
-  deleteRangePOKH(ids: number[]): Observable<any> {
-    return this.http.post<any>(this._url + 'DeleteRangePOKH', ids);
+    return this.http.post<any>(this._url + 'handle', pokh);
   }
   loadEmployeeManagers(group: number = 0, userId: number = 0, teamId: number = 0): Observable<any> {
-    return this.http.get<any>(this._url + 'GetEmployeeManager', {
+    return this.http.get<any>(this._url + 'get-employee-manager', {
       params: {
         group: group.toString(),
         userId: userId.toString(),
@@ -48,21 +40,20 @@ export class PokhService {
     });
   }
   loadProject(): Observable<any> {
-    return this.http.get<any>(this._url + 'LoadProject');
+    return this.http.get<any>(this._url + 'get-project');
   }
 
   getTypePO(): Observable<any> {
-    return this.http.get<any>(this._url + 'GetTypePO');
+    return this.http.get<any>(this._url + 'get-typePO');
   }
 
-
   getCurrency(): Observable<any> {
-    return this.http.get<any>(this._url + 'GetCurrency');
+    return this.http.get<any>(this._url + 'get-currency');
   }
 
 
   getPOKHProduct(id: number = 0, idDetail: number = 0): Observable<any> {
-    return this.http.get<any>(this._url + 'LoadPOKHProduct', {
+    return this.http.get<any>(this._url + 'get-pokh-product', {
       params: {
         id: id.toString(),
         idDetail: idDetail.toString()
@@ -70,14 +61,14 @@ export class PokhService {
     });
   }
   getPOKHFile(id: number = 0): Observable<any> {
-    return this.http.get<any>(this._url + 'LoadPOKHFiles', {
+    return this.http.get<any>(this._url + 'get-pokh-files', {
       params: {
         id: id.toString()
       }
     });
   }
   generatePOCode(customer: string, isCopy: boolean, warehouseID: number, pokhID: number): Observable<any> {
-    return this.http.get<any>(this._url + 'GeneratePOCode',
+    return this.http.get<any>(this._url + 'generate-POcode',
       {
         params: {
           customer: customer,
@@ -89,10 +80,10 @@ export class PokhService {
     );
   }
   loadProducts(): Observable<any> {
-    return this.http.get<any>(this._url + 'LoadProduct');
+    return this.http.get<any>(this._url + 'get-product');
   }
   loadUserDetail(id: number, idDetail: number): Observable<any> {
-    return this.http.get<any>(this._url + 'LoadDetailUser',
+    return this.http.get<any>(this._url + 'get-detail-user',
       {
         params: {
           id: id,
@@ -102,16 +93,27 @@ export class PokhService {
     )
   }
   uploadFiles(formData: FormData, pokhId: number): Observable<any> {
-    return this.http.post<any>(`${this._url}Upload?poKHID=${pokhId}`, formData);
+    return this.http.post<any>(`${this._url}upload?poKHID=${pokhId}`, formData);
   }
   getPOKHByID(id: number):Observable<any>{
-    return this.http.get<any>(this._url + 'GetPOKHByID',{
-      params:{
-        id:id.toString()
-      }
-    });
+    return this.http.get<any>(this._url + id );
   }
   deleteFiles(fileIds: number[]): Observable<any> {
-    return this.http.post<any>(this._url + 'DeleteFile', fileIds);
+    return this.http.post<any>(this._url + 'delete-file', fileIds);
+  }
+  createdDataGroup(items: any[], groupByField: string): any[] {
+    const grouped: Record<string, any[]> = items.reduce((acc, item) => {
+      const groupKey = item[groupByField] || '';
+      if (!acc[groupKey]) acc[groupKey] = [];
+      acc[groupKey].push(item);
+      return acc;
+    }, {});
+
+    return Object.entries(grouped).map(([groupLabel, groupItems]) => ({
+      label: groupLabel,
+      options: groupItems.map((item) => ({
+        item: item,
+      })),
+    }));
   }
 }

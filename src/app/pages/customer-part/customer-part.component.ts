@@ -34,13 +34,14 @@ import { CommonModule } from '@angular/common';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { map, catchError, of, forkJoin } from 'rxjs';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 
 import { CustomerPartService } from './customer-part/customer-part.service';
 
 @Component({
   selector: 'app-customer-part',
   standalone: true,
-  imports: [CommonModule, FormsModule, NzSelectModule, NzIconModule, NzButtonModule],
+  imports: [CommonModule, FormsModule, NzSelectModule, NzIconModule, NzButtonModule, NzModalModule],
   templateUrl: './customer-part.component.html',
   styleUrl: './customer-part.component.css'
 })
@@ -55,7 +56,12 @@ export class CustomerPartComponent implements OnInit, AfterViewInit {
   originalCustomerParts: any[] = [];
   selectedCustomer: any = null;
 
-  constructor(public activeModal: NgbActiveModal, private customePartService: CustomerPartService) { }
+  constructor(
+    public activeModal: NgbActiveModal, 
+    private customePartService: CustomerPartService,
+    private notification: NzNotificationService,
+    private modal: NzModalService
+  ) { }
 
   ngOnInit(): void {
     this.loadCustomers();
@@ -77,11 +83,11 @@ export class CustomerPartComponent implements OnInit, AfterViewInit {
             }
           }
         } else {
-          console.error('Lỗi khi tải khách hàng:', response.message);
+          this.notification.error('Lỗi khi tải khách hàng:', response.message);
         }
       },
       error => {
-        console.error('Lỗi kết nối khi tải khách hàng:', error);
+        this.notification.error('Lỗi kết nối khi tải khách hàng:', error);
       }
     );
   }
@@ -94,11 +100,11 @@ export class CustomerPartComponent implements OnInit, AfterViewInit {
           this.originalCustomerParts = JSON.parse(JSON.stringify(this.customerParts));
           this.initCustomerPartsTable();
         } else {
-          console.error("Lỗi khi lấy CustomerPart", response.message);
+          this.notification.error("Lỗi khi lấy CustomerPart", response.message);
         }
       },
       error => {
-        console.error("Lỗi kết nối khi tải CustomerPart", error);
+        this.notification.error("Lỗi kết nối khi tải CustomerPart", error);
       }
     );
   }
@@ -132,7 +138,15 @@ export class CustomerPartComponent implements OnInit, AfterViewInit {
           },
           width: '10%',
           cellClick: (e, cell) => {
-            cell.getRow().delete();
+            this.modal.confirm({
+              nzTitle: 'Xác nhận xóa',
+              nzContent: 'Bạn có chắc chắn muốn xóa bộ phận này?',
+              nzOkText: 'Đồng ý',
+              nzCancelText: 'Hủy',
+              nzOnOk: () => {
+                cell.getRow().delete();
+              }
+            });
           }
         },
         { title: 'Mã bộ phận', field: 'PartCode', sorter: 'string', width: "45%", editor: "input" },
@@ -143,7 +157,7 @@ export class CustomerPartComponent implements OnInit, AfterViewInit {
 
   addNewRow(): void {
     if (!this.selectedCustomer) {
-      alert('Vui lòng chọn khách hàng trước!');
+      this.notification.warning('Thông báo', 'Vui lòng chọn khách hàng trước!');
       return;
     }
 
@@ -157,7 +171,7 @@ export class CustomerPartComponent implements OnInit, AfterViewInit {
   }
   saveCustomerParts() {
     if (!this.selectedCustomer) {
-      alert('Vui lòng chọn khách hàng trước!');
+      this.notification.warning('Thông báo', 'Vui lòng chọn khách hàng trước!');
       return;
     }
     //Lấy dữ liệu ban đầu
@@ -219,14 +233,14 @@ export class CustomerPartComponent implements OnInit, AfterViewInit {
 
     this.customePartService.saveCustomerPart(saveData).subscribe(response => {
       if (response.status === 1) {
-        alert('Lưu thành công');
+        this.notification.success('Thông báo', 'Lưu thành công');
         this.activeModal.close(true);
       } else {
-        alert('Lỗi khi lưu' + response.message);
+        this.notification.error('Thông báo', 'Lỗi khi lưu: ' + response.message);
       }
     }, error => {
       console.error("Lỗi khi lưu:", error);
-      alert("Có lỗi xảy ra khi lưu dữ liệu");
+      this.notification.error('Thông báo', 'Có lỗi xảy ra khi lưu dữ liệu');
     });
 
   }

@@ -9,7 +9,7 @@ export class ViewPokhService {
   private _url = 'https://localhost:7187/api/ViewPOKH/'
   constructor(private http: HttpClient) { }
   loadViewPOKH(datetimeS: Date, datetimeE: Date, employeeTeamSaleId: number, userId: number, poType: number, status: number, customerId: number, keyword: string): Observable<any> {
-    return this.http.get<any>(this._url + 'LoadViewPOKH',{
+    return this.http.get<any>(this._url + 'get-viewpokh',{
       params:{
         datetimeS: datetimeS.toISOString(),
         datetimeE: datetimeE.toISOString(),
@@ -23,21 +23,21 @@ export class ViewPokhService {
     });
   }
   loadUser(): Observable<any> {
-    return this.http.get<any>(this._url + 'LoadUser');
+    return this.http.get<any>(this._url + 'get-user');
   }
   loadCustomer(): Observable<any> {
-    return this.http.get<any>(this._url + 'LoadCustomer');
+    return this.http.get<any>(this._url + 'get-customer');
   }
   loadGroupSale(): Observable<any> {
-    return this.http.get<any>(this._url + 'LoadGroupSale');
+    return this.http.get<any>(this._url + 'get-groupsale');
   }
   loadEmployeeTeamSale(): Observable<any> {
-    return this.http.get<any>(this._url + 'LoadEmployeeTeamSale');
+    return this.http.get<any>(this._url + 'get-employee-team-sale');
   }
   loadMainIndex(): Observable<any> {
-    return this.http.get<any>(this._url + 'LoadMainIndex');
+    return this.http.get<any>(this._url + 'get-mainindex');
   }
   saveData(data: any): Observable<any> {
-    return this.http.post<any>(this._url + 'SavePOKHDetail', data);
+    return this.http.post<any>(this._url + 'save-data', data);
   }
 }

@@ -1,22 +1,11 @@
 <div class="modal-header py-1">
-    <h6 class="modal-title mb-0">Xem POKH</h6> 
+    <h6 class="modal-title mb-0">Lịch sử hàng về</h6> 
     <button type="button" class="btn-close" aria-label="Close" (click)="closeModal()"></button>
 </div>
 <div class="modal-body p-1">
     <div class="d-flex gap-1">
         <button style="min-width: 25px;" nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
             <nz-icon nzType="search"></nz-icon>
-        </button>
-        <button class="fs-12" nz-button nzType="default" nzSize="small" title="Lưu" (click)="savePOKHDetail()">
-            <nz-icon nzType="save"></nz-icon> Lưu
-        </button>
-        <button class="fs-12" nz-button nzType="default" nzSize="small" title="Biên bản giao hàng"
-            (click)="openHandoverMinutesModal()">
-            <nz-icon nzType="file-text"></nz-icon> Biên bản giao hàng
-        </button>
-        <button class="fs-12" nz-button nzType="default" nzSize="small" title="Yêu cầu xuất hóa đơn"
-            (click)="openRequestInvoiceDetailModal()">
-            <nz-icon nzType="exception"></nz-icon> Yêu cầu xuất hóa đơn 
         </button>
         <button class="fs-12" nz-button nzType="default" nzSize="small" title="Xuất excel">
             <nz-icon nzType="file-excel"></nz-icon> Xuất excel
@@ -52,12 +41,12 @@
                                 </nz-form-control>
                             </nz-form-item>
                             <nz-form-item class="mt-1">
-                                <nz-form-label class="fs-12" [nzSpan]="24">Khách hàng</nz-form-label>
+                                <nz-form-label class="fs-12" [nzSpan]="24">Nhóm</nz-form-label>
                                 <nz-form-control [nzSpan]="24">
-                                    <nz-select name="customerId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
-                                        nzPlaceHolder="Chọn khách hàng" [(ngModel)]="filters.customerId">
-                                        <nz-option *ngFor="let customer of customers" [nzValue]="customer.ID"
-                                            [nzLabel]="customer.CustomerName"></nz-option>
+                                    <nz-select name="Group" class="w-100" nzShowSearch nzAllowClear nzSize="small"
+                                        nzPlaceHolder="Chọn nhóm" [(ngModel)]="filters.groupId">
+                                        <nz-option *ngFor="let item of groups" [nzValue]="item.ID"
+                                            [nzLabel]="item.GroupSalesName"></nz-option>
                                     </nz-select>
                                 </nz-form-control>
                             </nz-form-item>
@@ -72,35 +61,12 @@
                                 </nz-form-control>
                             </nz-form-item>
                             <nz-form-item class="mt-1">
-                                <nz-form-label class="fs-12" [nzSpan]="24">Lọc</nz-form-label>
+                                <nz-form-label class="fs-12" [nzSpan]="24">Khách hàng</nz-form-label>
                                 <nz-form-control [nzSpan]="24">
-                                    <nz-select name="status" class="w-100" nzShowSearch nzAllowClear nzSize="small"
-                                        nzPlaceHolder="Lọc" [(ngModel)]="filters.poType">
-                                        <nz-option *ngFor="let item of statuses" [nzValue]="item.ID"
-                                            [nzLabel]="item.MainIndex1"></nz-option>
-                                    </nz-select>
-                                </nz-form-control>
-                            </nz-form-item>
-                            <nz-form-item class="mt-1">
-                                <nz-form-label class="fs-12" [nzSpan]="24">Nhóm</nz-form-label>
-                                <nz-form-control [nzSpan]="24">
-                                    <nz-select name="employeeTeamSaleId" class="w-100" nzShowSearch nzAllowClear
-                                        nzSize="small" nzPlaceHolder="Nhóm" [(ngModel)]="filters.employeeTeamSaleId">
-                                        <nz-option *ngFor="let item of EmployeeTeamSale" [nzValue]="item.ID"
-                                            [nzLabel]="item.Name"></nz-option>
-                                    </nz-select>
-                                </nz-form-control>
-                            </nz-form-item>
-                            <nz-form-item class="mt-1">
-                                <nz-form-label class="fs-12" [nzSpan]="24">Trạng thái</nz-form-label>
-                                <nz-form-control [nzSpan]="24">
-                                    <nz-select name="status" class="w-100" nzShowSearch nzAllowClear nzSize="small"
-                                        nzPlaceHolder="Chọn trạng thái" [(ngModel)]="filters.status">
-                                        <nz-option [nzValue]="0" [nzLabel]="'Chưa giao , chưa thanh toán'"></nz-option>
-                                        <nz-option [nzValue]="1" [nzLabel]="'Đã giao, đã thanh toán'"></nz-option>
-                                        <nz-option [nzValue]="2" [nzLabel]="'Chưa giao, đã thanh toán'"></nz-option>
-                                        <nz-option [nzValue]="3" [nzLabel]="'Đã giao, nhưng chưa thanh toán'"></nz-option>
-                                        <nz-option [nzValue]="4" [nzLabel]="'Đã thanh toán, GH chưa xuất hóa đơn'"></nz-option>
+                                    <nz-select name="customer" class="w-100" nzShowSearch nzAllowClear nzSize="small"
+                                        nzPlaceHolder="Chọn khách hàng" [(ngModel)]="filters.customerId">
+                                        <nz-option *ngFor="let item of customers" [nzValue]="item.ID"
+                                            [nzLabel]="item.CustomerName"></nz-option>
                                     </nz-select>
                                 </nz-form-control>
                             </nz-form-item>
@@ -124,7 +90,7 @@
             <nz-splitter-panel nzDefaultSize="100%">
                 <div class="card h-100 border-0 rounded-0">
                     <div class="card-body p-0 mt-2">
-                        <div #ViewPOKH></div>
+                        <div #dataTable></div>
                     </div>
                 </div>
             </nz-splitter-panel>

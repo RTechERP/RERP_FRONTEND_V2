@@ -31,6 +31,7 @@ import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
 import { EnvironmentInjector } from '@angular/core';
 import { ProjectStatusDetailComponent } from '../project-status-detail/project-status-detail.component';
+import { SelectProjectEmployeeGroupComponent } from '../project-control/select-project-employee-group';
 
 @Component({
   selector: 'app-project-detail',
@@ -742,7 +743,6 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       });
       return;
     }
-
     if (this.projectStatusIdDetail <= 0) {
       this.notification.error('', 'Vui lòng chọn trạng thái dự án!', {
         nzStyle: { fontSize: '0.75rem' },

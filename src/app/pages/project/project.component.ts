@@ -35,6 +35,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ProjectChangeComponent } from './project-change/project-change.component';
 import { ProjectStatusComponent } from './project-status/project-status.component';
 import { Router } from '@angular/router';
+import { ProjectEmployeeComponent } from './project-employee/project-employee.component';
 @Component({
   selector: 'app-projects',
   standalone: true,
@@ -173,6 +174,13 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           '<span style="font-size: 0.75rem;"><i class="fas fa-list-ul"></i> Danh sách báo cáo công việc</span>',
         action: (e: any, row: any) => {
           this.openProjectListWorkReport();
+        },
+      },
+      {
+        label:
+          '<span style="font-size: 0.75rem;"><i class="fas fa-users"></i> Người tham gia</span>',
+        action: (e: any, row: any) => {
+          this.openProjectEmployee();
         },
       },
       {
@@ -664,7 +672,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           width: 100,
         },
       ],
-      initialSort: [{ column: 'STT', dir: 'asc' }],
+      initialSort: [{ column: 'ID', dir: 'asc' }],
     });
   }
 
@@ -1107,6 +1115,35 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     }
 
     this.router.navigate(['/projectListWork', selectedIDs[0]]);
+  }
+  //#endregion
+
+  //#region Người tham gia dự án
+  openProjectEmployee() {
+    let selectedRows = this.tb_projects.getSelectedRows();
+    let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
+
+    if (selectedIDs.length != 1) {
+      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
+        nzStyle: { fontSize: '0.75rem' },
+      });
+      return;
+    }
+
+    let modalRef = this.modalService.open(ProjectEmployeeComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+    });
+
+    modalRef.componentInstance.projectId = selectedIDs[0] ?? 0;
+
+    modalRef.result.catch((reason) => {
+      if (reason == true) {
+        this.searchProjects();
+      }
+    });
   }
   //#endregion
 }

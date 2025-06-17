@@ -323,32 +323,63 @@ export class ProjectService {
     );
   }
 
+  saveProjectEmployee(prjEmployees: any): Observable<any> {
+    return this.http.post<any>(
+      this.apiUrl + `save-project-employee`,
+      prjEmployees
+    );
+  }
+
   createdDataTree(
     items: any[],
     parentField: string,
     valueField: string,
-    labelField: string
+    labelField: string,
+    rootValue: any = 0
   ): any[] {
-    const grouped = items.reduce((acc: Record<string, any[]>, item: any) => {
-      const parentKey = item[parentField] ? String(item[parentField]) : '';
-      if (!acc[parentKey]) {
-        acc[parentKey] = [];
-      }
-      acc[parentKey].push(item);
-      return acc;
-    }, {});
+    const map = new Map<any, any>();
 
-    return Object.entries(grouped).map(([parentKey, groupItems]) => ({
-      title: parentKey,
-      key: parentKey,
-      value: parentKey,
-      children: groupItems.map((item: any) => ({
-        title: String(item[labelField]),
+    // Tạo node dạng tree và lưu tạm vào map
+    for (const item of items) {
+      const node = {
+        title: item[labelField],
         key: item[valueField],
-        value: item[valueField],
         isLeaf: true,
-      })),
-    }));
+        children: [],
+      };
+      map.set(item[valueField], node);
+    }
+
+    const tree: any[] = [];
+
+    for (const item of items) {
+      const parentId = item[parentField];
+      const node = map.get(item[valueField]);
+
+      if (parentId === rootValue || !map.has(parentId)) {
+        // Nếu là node gốc
+        tree.push(node);
+      } else {
+        const parentNode = map.get(parentId);
+        if (!parentNode.children) parentNode.children = [];
+        parentNode.children.push(node);
+      }
+    }
+
+    this.removeEmptyChildren(tree);
+    console.log('tree', tree);
+    return tree;
+  }
+
+  removeEmptyChildren(nodes: any[]) {
+    for (const node of nodes) {
+      if (node.children.length === 0) {
+        delete node.children;
+      } else {
+        delete node.isLeaf;
+        this.removeEmptyChildren(node.children);
+      }
+    }
   }
 
   createdDataGroup(items: any[], groupByField: string): any[] {

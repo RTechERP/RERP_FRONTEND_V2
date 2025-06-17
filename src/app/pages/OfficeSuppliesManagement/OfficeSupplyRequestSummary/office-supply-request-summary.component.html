@@ -1,0 +1,97 @@
+<ng-container class="w-100 h-100">
+  <nz-splitter class="h-100">
+    <nz-splitter-panel [nzSize]="sizeSearch" [nzCollapsible]="true" nzResizable="true">
+      <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+        <div class="d-flex justify-content-between align-items-center">
+          <h6 class="m-0 ms-2">Tìm kiếm</h6>
+          <button class="border-0 me-2 btn" nz-button nzSize="small" nzType="default" nzDanger
+              (click)="toggleSearchPanel()">
+              <nz-icon nzType="close" nzTheme="outline" />
+          </button>
+      </div>
+        <div class="card-body">
+          <form nz-form [nzLayout]="'vertical'">
+            <!-- Năm -->
+            <!-- <nz-form-item>
+              <nz-form-label>Năm</nz-form-label>
+              <nz-form-control>
+                <nz-input-number
+                  [(ngModel)]="searchParams.year"
+                  [nzMin]="2024"
+                  [nzMax]="9999"
+                  name="year"
+                  class="w-100">
+                </nz-input-number>
+              </nz-form-control>
+            </nz-form-item> -->
+
+          
+            <!-- Thời gian -->
+            <nz-form-item class="searchform">
+              <nz-form-label>Thời gian</nz-form-label>
+              <nz-form-control>
+                <nz-date-picker 
+                  nzMode="month" 
+                  [nzFormat]="monthFormat"
+                  [(ngModel)]="searchParams.month" 
+                  name="month"
+                  nzPlaceHolder="Chọn tháng"      
+                  class="w-100">
+                </nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+
+            <!-- Phòng ban -->
+            <nz-form-item>
+              <nz-form-label>Phòng ban</nz-form-label>
+              <nz-form-control>
+                <nz-select nzShowSearch nzAllowClear
+                  [(ngModel)]="searchParams.departmentId"
+                  name="departmentId"
+                  nzPlaceHolder="Chọn phòng ban"
+                  class="w-100">
+                  <nz-option
+                    *ngFor="let dept of dataDeparment"
+                    [nzValue]="dept.ID"
+                    [nzLabel]="dept.Name">
+                    <div class="row text-center">
+                      <div class="col-4 fs-12">{{ dept.Code }}</div>
+                      <div class="col-4 fs-12">{{ dept.Name }}</div>
+                    </div>
+                  </nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+
+          
+          </form>
+        </div>
+        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+          <button nz-button nzType="default" nzSize="small" (click)="resetform()" class="btn">Đặt lại</button>
+          <button nz-button nzType="primary" nzSize="small" (click)="searchData(searchParams.month)" class="btn">Tìm kiếm</button>
+        </div>
+      </div>
+    </nz-splitter-panel>
+
+    <nz-splitter-panel nzDefaultSize="100%">
+      <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+        <div class="card-header bg-white p-1">
+          <div class="d-flex gap-1">
+            <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()" class="btn">
+              <i nz-icon nzType="search"></i>
+            </button>
+            <button nz-button nzType="default" nzSize="small" (click)="exportToExcel()" class="btn fs-12">
+              <i nz-icon nzType="file-excel"></i> Xuất Excel
+            </button>
+          </div>
+        </div>
+        <div class="card-body p-0 flex-grow-1 d-flex flex-column">
+          <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải..." style="height: 100%; flex-grow: 1;">
+            <div id="office-supply-request-summary-table" style="height: 100%;"></div>
+          </nz-spin>      
+        </div>
+      </div>
+    </nz-splitter-panel>
+  </nz-splitter>
+</ng-container>
+     

@@ -1,0 +1,86 @@
+<div class="modal-dialog-scrollable">
+      <div class="modal-header bg-primary text-uppercase py-2" >
+       <h6 class="modal-title text-white" id="addProductGroupModalLabel">Thông tin Group</h6>
+        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form  nz-form class="g-3 needs-validation was-validated" >
+          <div class="row">
+            <div>
+                <div class="col md-12 pb-3">
+                  <nz-form-label class="fs-12">Kho</nz-form-label>
+                <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn kho">
+                  <nz-input-group required nzSearch nzSize="default" class="w-100">
+                    <nz-select
+                      [(ngModel)]="newProductGroup.WareHouseID"
+                      name="WareHouseID"
+                      nzPlaceHolder="Chọn kho"
+                      class="fs-12 w-100"
+                      required
+                      nzShowSearch
+                      nzAllowClear               
+                    >
+                      <nz-option
+                        *ngFor="let id of listWH"
+                        [nzValue]="id.ID"
+                        [nzLabel]="id.WarehouseName"
+                      ></nz-option>
+                    </nz-select>
+                  </nz-input-group>
+                </nz-form-control>
+              </div>
+            </div>
+          </div>              
+          <div class="row">
+            <div>
+                <div class="col md-12 pb-3">
+                  <nz-form-label class="fs-12">Ký hiệu</nz-form-label>
+                  <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng mã nhóm">
+                      <input nz-input [(ngModel)]=" newProductGroup.ProductGroupID" name="ProductGroupID"
+                      placeholder="Nhập tên NCC" required />
+                  </nz-form-control>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-12 pb-3">
+                <nz-form-label class="fs-12">Tên nhóm</nz-form-label>
+                <nz-form-control  [nzSpan]="24" nzErrorTip="Vui lòng tên nhóm ">
+                    <input nz-input placeholder="Nhập tên nhóm" required [(ngModel)]="newProductGroup.ProductGroupName" name="ProductGroupName" />
+                </nz-form-control>      
+          </div>
+        </div> 
+          <div class="row">
+            <div>
+                <div class="col md-12 pb-3">
+                  <nz-form-label class="fs-12">Nhân viên phụ trách</nz-form-label>
+                <nz-form-control [nzSpan]="24" nzErrorTip="">
+                  <nz-input-group nzSearch nzSize="default" class="w-100">
+                    <nz-select
+                      [(ngModel)]="newProductGroup.EmployeeID"
+                      name="EmployeeID"
+                      nzPlaceHolder="Chọn nhân viên"
+                      class="fs-12 w-100"
+                      required
+                      nzShowSearch
+                      nzAllowClear               
+                    >
+                      <nz-option
+                        *ngFor="let id of listEmployee"
+                        [nzValue]="id.ID"
+                        [nzLabel]="id.FullName + ' - ' + id.Code"
+                      ></nz-option>
+                    </nz-select>
+                  </nz-input-group>
+                </nz-form-control>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
+        <button tclass="fs-12 btn" nz-button nzType="primary"(click)="saveDataProductGroup()"   >Lưu</button>
+        <!-- (click)="isCheckmode? updateProductGroup(): addProductGroup()" -->
+      </div>
+    </div>

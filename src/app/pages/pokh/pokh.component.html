@@ -177,9 +177,6 @@
   </div>
   <div class="px-4 pt-3 pokh-modal-content">
     <div class="d-flex gap-2 mb-3 flex-wrap">
-      <button nz-button nzType="default" nzSize="small" (click)="savePOKH()">
-        <nz-icon nzType="save"></nz-icon> Lưu
-      </button>
       <button nz-button nzType="default" nzSize="small">
         <nz-icon nzType="user-add"></nz-icon> Thêm khách hàng
       </button>
@@ -373,14 +370,14 @@
               <div nz-col [nzSpan]="24">
                 <nz-form-item>
                   <nz-form-label [nzSm]="5" [nzXs]="24">Ghi chú</nz-form-label>
-                  <nz-form-control [nzSm]="21" [nzXs]="10">
+                  <nz-form-control [nzSm]="21" [nzXs]="10" class="d-flex align-items-start gap-2">
                     <textarea name="note" nz-input rows="2" nzPlaceHolder="Nhập ghi chú" nzSize="default" class="w-100"
                       [(ngModel)]="poFormData.note"></textarea>
+                    <label nz-checkbox>
+                      <input type="checkbox">
+                      <span>New Account</span>
+                    </label>
                   </nz-form-control>
-                  <label nz-checkbox>
-                    <input type="checkbox">
-                    <span>New Account</span>
-                  </label>
                 </nz-form-item>
               </div>
             </div>
@@ -433,6 +430,7 @@
     </nz-tabset>
   </div>
   <div class="modal-footer">
+    <button nz-button nzType="primary" nzSize="default" (click)="savePOKH()">Lưu</button>
     <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
   </div>
 </ng-template>

@@ -3,7 +3,6 @@ import { WelcomeComponent } from './pages/welcome/welcome.component';
 import { AppComponent } from './app.component';
 import { ProjectComponent } from './pages/project/project.component';
 import { PokhComponent } from './pages/pokh/pokh.component';
-import { ProjectTestComponent } from './pages/project-test/project-test.component';
 import { RequestInvoiceDetailComponent } from './pages/request-invoice-detail/request-invoice-detail.component';
 import { ViewPokhComponent } from './pages/view-pokh/view-pokh.component';
 
@@ -15,7 +14,6 @@ export const routes: Routes = [
   // Router danh mục dự án
   { path: 'project', component: ProjectComponent }, // Dự án master
   { path: 'pokh', component: PokhComponent},
-  { path: 'test', component: ProjectTestComponent},
   { path: 'view-pokh', component: ViewPokhComponent},
   
 ];

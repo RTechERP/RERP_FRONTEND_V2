@@ -1925,7 +1925,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
       dataTreeChildField: "_children",
       dataTreeChildIndent: 15,
       dataTreeElementColumn: "STT",
-      height: "35vh",
+      height: "30vh",
       layout: 'fitDataFill',
       pagination: true,
       paginationSize: 10,

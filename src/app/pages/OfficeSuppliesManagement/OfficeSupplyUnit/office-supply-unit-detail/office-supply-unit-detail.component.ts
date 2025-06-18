@@ -31,7 +31,7 @@ interface newOfficeSupplyUnit {
   styleUrl: './office-supply-unit-detail.component.css'
 })
 export class OfficeSupplyUnitDetailComponent implements OnInit {
-  @Input() isCheckmode: boolean = false;
+  @Input() isCheckmode: any;
   @Input() selectedItem: any = {};
   validateForm: any;
   unitName: string = '';
@@ -60,40 +60,37 @@ export class OfficeSupplyUnitDetailComponent implements OnInit {
     }
   }
 
-  add(): void {
+  saveDataOfficeSupplyUnit(){
     if (!this.selectedItem.Name) {
       this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin!');
       return;
     }
-    this.officesupplyunitSV.savedata(this.selectedItem).subscribe({
-      next: (res) => {
-        this.notification.success('Thông báo', 'Thêm thành công!');
-        this.activeModal.close('success');
-      },
-      error: (err) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi thêm dữ liệu!');
-      }
-    });
-  }
-
-  update(): void {
-    if (!this.selectedItem.Name) {
-      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin!');
-      return;
+    if(this.isCheckmode==true){
+      console.log('Dữ liệu update:', this.selectedItem);
+      this.officesupplyunitSV.savedata(this.selectedItem).subscribe({
+        next: (res) => {
+          this.notification.success('Thông báo', 'Cập nhật thành công!');
+          this.activeModal.close('success');
+        },
+        error: (err) => {
+          this.notification.error('Thông báo', 'Có lỗi xảy ra khi cập nhật dữ liệu!');
+        }
+      });
     }
-    console.log('Dữ liệu update:', this.selectedItem);
-    this.officesupplyunitSV.savedata(this.selectedItem).subscribe({
-      next: (res) => {
-        this.notification.success('Thông báo', 'Cập nhật thành công!');
-        this.activeModal.close('success');
-      },
-      error: (err) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi cập nhật dữ liệu!');
-      }
-    });
+    else{
+      this.officesupplyunitSV.savedata(this.selectedItem).subscribe({
+        next: (res) => {
+          this.notification.success('Thông báo', 'Thêm thành công!');
+          this.activeModal.close('success');
+        },
+        error: (err) => {
+          this.notification.error('Thông báo', 'Có lỗi xảy ra khi thêm dữ liệu!');
+        }
+      });
+    }
   }
 
   closeModal() {
-    this.activeModal.dismiss('cancel');
+    this.activeModal.dismiss(true);
   }
 }

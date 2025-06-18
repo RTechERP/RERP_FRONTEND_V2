@@ -7,6 +7,7 @@ import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { RowComponent } from 'tabulator-tables';
 import { DailyreportService } from './daily-report-service/daily-report.service';
 import * as XLSX from 'xlsx';
+import * as ExcelJS from 'exceljs';
 (window as any).XLSX = XLSX;
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
@@ -329,21 +330,119 @@ export class DailyreportComponent implements OnInit, AfterViewInit {
     this.onTabChange(mode);
   }
 
-  exportToExcel() {
-    const now = new Date();
-    const dateStr = `${now.getDate()}-${now.getMonth() + 1}-${now.getFullYear()}`;
-    
+  //#region xuất excel
+  async exportExcel() {
+    let table: any = null;
+    let sheetName = ''; 
+    debugger
+    // Xác định table và tên sheet dựa trên tab đang chọn
     if(this.ischeckmodeExcel == 0 && this.table1){
-      this.table1.download('xlsx', `BaoCaoHCNSIT_${dateStr}.xlsx`, { sheetName: 'Báo cáo HCNS-IT' });
+      table = this.table1;
+      sheetName = 'Báo cáo HCNS-IT';
     } else if (this.ischeckmodeExcel == 1 && this.table2) {
-      this.table2.download('xlsx', `BaoCaoCP_${dateStr}.xlsx`, { sheetName: 'Báo cáo cắt phim' });
+      table = this.table2;
+      sheetName = 'Báo cáo cắt phim';
     } else if (this.ischeckmodeExcel == 2 && this.table3) {
-      this.table3.download('xlsx', `BaoCaoLX_${dateStr}.xlsx`, { sheetName: 'Báo cáo lái xe' });
+      table = this.table3;
+      sheetName = 'Báo cáo lái xe';
     } else {
       console.warn('Bảng chưa được khởi tạo');
       this.notification.info('Oops',"Bảng chưa được khởi tạo!");
+      return;
     }
+
+    if (!table) return;
+
+    const data = table.getData();
+    if (!data || data.length === 0) {
+      this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet(sheetName);
+
+    const columns = table.getColumns();
+    // Thêm cột STT vào đầu danh sách headers
+    const headers = ['STT', ...columns.map(
+      (col: any) => col.getDefinition().title
+    )];
+    worksheet.addRow(headers);
+
+    data.forEach((row: any, index: number) => {
+      const rowData = [index + 1, ...columns.map((col: any) => {
+        const field = col.getField();
+        let value = row[field];
+
+        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+          value = new Date(value);
+        }
+
+        return value;
+      })];
+
+      worksheet.addRow(rowData);
+    });
+
+    // Format cột có giá trị là Date
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return; // bỏ qua tiêu đề
+      row.eachCell((cell, colNumber) => {
+        if (cell.value instanceof Date) {
+          cell.numFmt = 'dd/mm/yyyy'; // hoặc 'yyyy-mm-dd'
+        }
+      });
+    });
+
+    // Tự động căn chỉnh độ rộng cột
+    worksheet.columns.forEach((column: any) => {
+      let maxLength = 10;
+      column.eachCell({ includeEmpty: true }, (cell: any) => {
+        const cellValue = cell.value ? cell.value.toString() : '';
+        // Giới hạn độ dài tối đa của cell là 50 ký tự
+        maxLength = Math.min(Math.max(maxLength, cellValue.length + 2), 50);
+        cell.alignment = { wrapText: true, vertical: 'middle' };
+      });
+      // Giới hạn độ rộng cột tối đa là 30
+      column.width = Math.min(maxLength, 30);
+    });
+
+    // Thêm bộ lọc cho toàn bộ cột (từ A1 đến cột cuối cùng)
+    worksheet.autoFilter = {
+      from: {
+        row: 1,
+        column: 1,
+      },
+      to: {
+        row: 1,
+        column: columns.length,
+      },
+    };
+
+    // Xuất file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+
+    const formattedDate = new Date()
+      .toISOString()
+      .slice(2, 10)
+      .split('-')
+      .reverse()
+      .join('');
+
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = `Báo cáo công việc.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(link.href);
   }
+
+  //#endregion
+ 
   searchData(): void {
     //gọi Api tương ứng với tab đang được chọn
     //không tạo lại bảng chỉ cập nhật dữ liệu
@@ -444,6 +543,7 @@ export class DailyreportComponent implements OnInit, AfterViewInit {
   // Add new method to handle tab changes
   onTabChange(index: number): void {
     console.log('Tab changed to:', index);
+    this.ischeckmodeExcel = index; // Cập nhật ischeckmodeExcel khi tab thay đổi
     switch(index) {
       case 0: // HCNS-IT
         if (!this.table1) {

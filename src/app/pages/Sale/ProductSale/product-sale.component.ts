@@ -22,6 +22,7 @@ import { ProductsaleServiceService } from './product-sale-service/product-sale-s
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { ProductSaleDetailComponent } from './product-sale-detail/product-sale-detail.component';
 import { ProductGroupDetailComponent } from './product-group-detail/product-group-detail.component';
+import { ImportExcelProductSaleComponent } from './import-excel-product-sale/import-excel-product-sale.component';
 
 interface ProductGroup {
   ID?: number;
@@ -62,7 +63,8 @@ interface ProductSale {
     NzInputNumberModule,
     NzCheckboxModule,
     NgbModule,
-    ProductSaleDetailComponent
+    ProductSaleDetailComponent,
+    ImportExcelProductSaleComponent
   ],
   templateUrl: './product-sale.component.html',
   styleUrl: './product-sale.component.css'
@@ -150,7 +152,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     this.getDataWareHouse();
     this.getdataUnit();
     this.getDataProductGroupCBB();
-  }
+    }
   //#region các hàm lấy dữ liệu và mở mđ ProductGroup 
   getProductGroup() {
     this.productsaleSV.getdataProductGroup().subscribe({
@@ -244,7 +246,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
   //#endregion
  
   //#region hàm liên quan productSale
-   getAllProductSale() {
+  getAllProductSale() {
     if (this.checkedALL == true) {
       this.productsaleSV.getdataProductSalebyID(0, this.keyword, this.checkedALL).subscribe({
         next: (res) => {
@@ -267,7 +269,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
       this.getDataProductSaleByIDgroup(this.id);
 
     }
-  } 
+  }
   getProductSaleByID(id: number) {
     if (!this.id) return;
     this.productsaleSV.getdataProductSalebyID(id, this.keyword, this.checkedALL).subscribe({
@@ -473,16 +475,16 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
       reactiveData: true,
       selectableRows: 5,
       columns: [
-        {
+        { 
           title: "",
-          formatter: "rowSelection",
+          formatter: "rowSelection", 
           titleFormatter: "rowSelection",
           hozAlign: "center",
           headerHozAlign: "center",
           headerSort: false,
           width: 40,
           frozen: true,
-
+          
         },
         { title: 'Tên nhóm', field: 'ProductGroupName', hozAlign: 'left', headerHozAlign: 'center' },
         { title: 'Mã Sản phẩm', field: 'ProductCode', hozAlign: 'left', headerHozAlign: 'center' },
@@ -494,8 +496,8 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
         { title: 'Chi tiết nhập', field: 'Detail', hozAlign: 'left', headerHozAlign: 'center' },
         { title: 'Ghi chú', field: 'Note', hozAlign: 'left', headerHozAlign: 'center' }
       ]
-    }
-    );
+    }   
+  );
     this.table_productsale.on("rowDblClick", (e: MouseEvent, row: RowComponent) => {
       const rowData = row.getData();
       this.selectedList = [rowData];  // Make it an array with single item
@@ -516,12 +518,12 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
               FirmID: data.FirmID,
               Note: data.Note,
             };
-
+            
             // Tải dữ liệu location cho nhóm sản phẩm đã chọn
             this.productsaleSV.getDataLocation(this.newProductSale.ProductGroupID).subscribe({
               next: (locationRes) => {
                 if (locationRes?.data) {
-                  this.listLocation = Array.isArray(locationRes.data) ? locationRes.data : [];
+                  this.listLocation = Array.isArray(locationRes.data) ? locationRes.data : [];              
                   this.openModalProductSale();
                 }
               },
@@ -561,7 +563,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
           this.dataPGWareHouse = res.data;
           if (!this.table_pgwarehouse) {
             this.drawTable_PGWareHouse();
-          } else {
+        } else {
             this.table_pgwarehouse.setData(this.dataPGWareHouse);
           }
         }
@@ -621,7 +623,6 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     });
   }
 
-
   openModalProductSale() {
     const modalRef = this.modalService.open(ProductSaleDetailComponent, {
       centered: true,
@@ -664,6 +665,26 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     };
     this.openModalProductSale();
   }
+
+  openModalImportExcel() {
+    const modalRef = this.modalService.open(ImportExcelProductSaleComponent, {
+      centered: true,
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false
+    });
+    modalRef.componentInstance.id = this.id;
+
+    modalRef.result.catch(
+      (result) => {
+        if (result == true) {
+        
+          this.getDataProductSaleByIDgroup(this.id);
+
+        }
+      },
+    );
+  }
   //#region xuất excel
   async exportExcel() {
     const table = this.table_productsale;
@@ -681,13 +702,13 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     const columns = table.getColumns();
     // Bỏ qua cột đầu tiên
     const filteredColumns = columns.slice(1);
-    const headers = filteredColumns.map(
+    const headers = ['STT', ...filteredColumns.map(
       (col: any) => col.getDefinition().title
-    );
+    )];
     worksheet.addRow(headers);
 
-    data.forEach((row: any) => {
-      const rowData = filteredColumns.map((col: any) => {
+    data.forEach((row: any, index: number) => {
+      const rowData = [index + 1, ...filteredColumns.map((col: any) => {
         const field = col.getField();
         let value = row[field];
 
@@ -696,7 +717,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
         }
 
         return value;
-      });
+      })];
 
       worksheet.addRow(rowData);
     });

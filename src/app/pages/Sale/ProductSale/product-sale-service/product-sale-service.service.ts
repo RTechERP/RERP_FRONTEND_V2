@@ -80,6 +80,8 @@ export class ProductsaleServiceService {
   saveDataUnitCount(data:any){
     return this.httpclient.post<any>(`${this.unitcountUrl}/save-data`,data)
   }
-
+  checkProductSaleCodes(data:any){
+    return this.httpclient.post<any>(`${this.baseUrl}/check-codes`,data)
+  }
   }
 

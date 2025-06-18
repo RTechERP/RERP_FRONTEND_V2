@@ -115,6 +115,7 @@ export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
       });
       this.table.on("rowClick", (e: MouseEvent, row: RowComponent) => {
         const rowData = row.getData();
+        
         this.getdatabyid(rowData['ID']);
       });
     }
@@ -199,7 +200,6 @@ export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
     });
     modalRef.componentInstance.isCheckmode = this.isCheckmode;
     modalRef.componentInstance.selectedItem = this.selectedItem;
-
     modalRef.result.then(
       (result) => {
         if (result === 'success') {

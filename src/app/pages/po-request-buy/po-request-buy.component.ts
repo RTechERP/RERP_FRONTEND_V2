@@ -190,16 +190,17 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
       DateReturnExpected: this.dateReturnExpected,
       Quantity: row.QuantityRequestRemain,
       Note: row.Note,
-      ProductSaleID: row.ProductSaleID,
+      ProductSaleID: row.ProductID,
       ProductGroupID: row.ProductGroupID,
-      CurrencyID: row.CurrencyID,
-      CurrencyRate: row.CurrencyRate,
+      CurrencyID: row.CurrencyID || 0,
+      CurrencyRate: row.CurrencyRate || 0,
       TotalPrice: row.IntoMoney,
       VAT: row.VAT,
       TotaMoneyVAT: row.TotalPriceIncludeVAT,
       POKHDetailID: row.ID,
       UnitName: row.Unit,
-      DateReceive: row.DeliveryRequestedDate 
+      DateReceive: row.DeliveryRequestedDate,
+      
     }));
     this.PoRequestBuyService.saveData(requestData).subscribe({
       next: (res) => {
@@ -219,7 +220,6 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
     this.dataTable = new Tabulator(this.dataTableElement.nativeElement, {
       data: this.gridData,
       layout: "fitDataFill",
-
       movableColumns: true,
       pagination: true,
       height: "78vh",
@@ -237,17 +237,15 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
             const checkbox = document.createElement("input");
             checkbox.type = "checkbox";
             checkbox.style.marginRight = "5px";
-            
             // Event listener cho header checkbox
             checkbox.addEventListener("change", (e) => {
               const target = e.target as HTMLInputElement;
               if (target.checked) {
-                this.selectAllTreeRows();
+                this.selectAllRows();
               } else {
-                this.deselectAllTreeRows();
+                this.deselectAllRows();
               }
             });
-            
             return checkbox;
           },
           hozAlign: "center",
@@ -255,12 +253,10 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
           frozen: true,
           width: 100,
           cellClick: (e, cell) => {
-            // Logic chọn dòng đơn lẻ (giữ nguyên)
+            // Logic chọn dòng đơn lẻ (bình thường, không tree)
             const row = cell.getRow();
             const rowData = row.getData();
-  
             const isCurrentlySelected = row.isSelected();
-  
             if (isCurrentlySelected) {
               row.deselect();
               this.selectedRows = this.selectedRows.filter(r => r["ID"] !== rowData["ID"]);
@@ -270,7 +266,6 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
                 this.selectedRows.push(rowData);
               }
             }
-            
             // Cập nhật trạng thái header checkbox
             this.updateHeaderCheckbox();
             console.log('Selected Rows:', this.selectedRows);
@@ -284,6 +279,8 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
         { title: 'Số lượng PO', field: 'Qty', sorter: 'number', width: 100, },
         { title: 'SL đã yêu cầu', field: 'QuantityRequest', sorter: 'number', width: 100, },
         { title: 'SL yêu cầu', field: 'QuantityRequestRemain', sorter: 'number', width: 100, },
+        { title: 'CurrencyRate', field: 'CurrencyRate', sorter: 'number', width: 100, editor: "input" },
+        { title: 'CurrencyID', field: 'CurrencyID', sorter: 'number', width: 100, editor: "input" },
         { title: 'Kích thước phim cắt', field: 'FilmSize', sorter: 'number', width: 100, },
         { title: 'ĐVT', field: 'Unit', sorter: 'number', width: 80, },
         {
@@ -328,54 +325,44 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
         { title: 'Ngày y/c thanh toán', field: 'PayDate', sorter: 'number', width: 100, },
         { title: 'Nhóm', field: 'GroupPO', sorter: 'number', width: 100, },
         { title: 'Ghi chú', field: 'Note', sorter: 'number', width: 100, },
-      ]
-    })
-  }
-  
-  // Thêm các helper methods vào class
-  private selectAllTreeRows(): void {
-    // Lấy tất cả các rows từ Tabulator (bao gồm cả dòng con)
-    const allRows = this.dataTable.getRows();
-    this.selectedRows = [];
-    
-    this.selectRowsRecursively(allRows);
-    console.log('All Selected Rows:', this.selectedRows);
-  }
-  
-  private selectRowsRecursively(rows: RowComponent[]): void {
-    rows.forEach(row => {
-      // Chọn dòng hiện tại
-      row.select();
-      const rowData = row.getData();
-      
-      // Thêm vào selectedRows nếu chưa có
-      if (!this.selectedRows.some(r => r["ID"] === rowData["ID"])) {
-        this.selectedRows.push(rowData);
-      }
-      
-      // Đệ quy chọn các dòng con
-      const children = row.getTreeChildren();
-      if (children && children.length > 0) {
-        this.selectRowsRecursively(children);
-      }
+      ],
+    });
+    // Lắng nghe sự kiện rowSelectionChanged để đồng bộ selectedRows
+    this.dataTable.on('rowSelectionChanged', (data: any[]) => {
+      this.selectedRows = data;
+      this.updateHeaderCheckbox();
+      console.log('Selected Rows (rowSelectionChanged):', this.selectedRows);
     });
   }
   
-  private deselectAllTreeRows(): void {
+  private selectAllRows(): void {
+    // Lấy tất cả các rows từ Tabulator (chỉ các dòng hiện tại, không tree)
+    const allRows = this.dataTable.getRows();
+    this.selectedRows = [];
+    allRows.forEach(row => {
+      row.select();
+      const rowData = row.getData();
+      if (!this.selectedRows.some(r => r["ID"] === rowData["ID"])) {
+        this.selectedRows.push(rowData);
+      }
+    });
+    console.log('All Selected Rows:', this.selectedRows);
+  }
+
+  private deselectAllRows(): void {
     // Bỏ chọn tất cả
     this.dataTable.deselectRow();
     this.selectedRows = [];
     console.log('All Deselected');
   }
-  
+
   private updateHeaderCheckbox(): void {
     // Cập nhật trạng thái của header checkbox dựa trên số dòng đã chọn
     setTimeout(() => {
       const headerCheckbox = this.dataTableElement.nativeElement.querySelector('input[type="checkbox"]') as HTMLInputElement;
       if (headerCheckbox) {
-        const totalRows = this.getAllRowsCount();
+        const totalRows = this.dataTable.getRows().length;
         const selectedCount = this.selectedRows.length;
-        
         if (selectedCount === 0) {
           headerCheckbox.checked = false;
           headerCheckbox.indeterminate = false;
@@ -388,22 +375,5 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
         }
       }
     }, 10);
-  }
-  
-  private getAllRowsCount(): number {
-    return this.getAllRowsRecursive(this.gridData).length;
-  }
-  
-  private getAllRowsRecursive(data: any[]): any[] {
-    let allRows: any[] = [];
-    
-    data.forEach(item => {
-      allRows.push(item);
-      if (item._children && item._children.length > 0) {
-        allRows = allRows.concat(this.getAllRowsRecursive(item._children));
-      }
-    });
-    
-    return allRows;
   }
 }

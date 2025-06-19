@@ -8,68 +8,48 @@
             </a>
         </div>
         <ul nz-menu nzTheme="dark" nzMode="inline" [nzInlineCollapsed]="isCollapsed">
-            <li nz-submenu nzOpen nzTitle="Dashboard" nzIcon="dashboard">
+            <li nz-submenu nzOpen nzTitle="Tài sản" nzIcon="dashboard">
                 <ul>
                     <li nz-menu-item nzMatchRouter>
                         <a (click)="newTab(['/welcome'])">Welcome</a>
                     </li>
+
                     <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/project'])">Dự án</a>
-                    </li>
-                    <!-- <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/welcome'])">Workplace</a>
+                        <a (click)="newTab(['/AssetsManagemnet'])">Quản lí tài sản</a>
                     </li>
                     <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/welcome'])">Welcome</a>
+                        <a (click)="newTab(['/AssetsAllocation'])">Cấp phát tài sản</a>
                     </li>
                     <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/employees'])">Monitor</a>
+                        <a (click)="newTab(['/AssetsTransfer'])">Điều chuyển tài sản</a>
                     </li>
                     <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/welcome'])">Workplace</a>
+                        <a (click)="newTab(['/AssetsRecovery'])">Thu hồi tài sản</a>
                     </li>
                     <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/welcome'])">Welcome</a>
+                        <a (click)="newTab(['/AssetSource'])">Nguồn gốc tài sản</a>
                     </li>
                     <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/employees'])">Monitor</a>
+                        <a (click)="newTab(['/AssetsType'])">Loại tài sản </a>
                     </li>
                     <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/welcome'])">Workplace</a>
+                        <a (click)="newTab(['/AssetsStatus'])">Trạng thái tài sản</a>
                     </li>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/welcome'])">Welcome</a>
-                    </li>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/employees'])">Monitor</a>
-                    </li>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/welcome'])">Workplace</a>
-                    </li>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/welcome'])">Welcome</a>
-                    </li>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/employees'])">Monitor</a>
-                    </li>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/welcome'])">Workplace</a>
-                    </li>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/welcome'])">Welcome</a>
-                    </li>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/employees'])">Monitor</a>
-                    </li>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/welcome'])">Workplace</a>
-                    </li> -->
+
+
+
                 </ul>
             </li>
-            <li nz-submenu nzOpen nzTitle="Form" nzIcon="form">
+            <li nz-submenu nzOpen nzTitle="Tài sản cá nhân" nzIcon="form">
                 <ul>
                     <li nz-menu-item nzMatchRouter>
-                        <a>Basic Form</a>
+                        <a (click)="newTab(['/assetmanagemnetpersonal'])">Quản lí tài sản cá nhân</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/assetallocationpersonal'])">Cấp phát tài sản cá nhân</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/assetRecoveryPersonal'])">Thu hồi tài sản cá nhân </a>
                     </li>
                 </ul>
             </li>

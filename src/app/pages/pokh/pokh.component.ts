@@ -19,6 +19,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
+import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { TabulatorFull as Tabulator, RowComponent, CellComponent } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -43,8 +44,9 @@ import { CustomerPartComponent } from '../customer-part/customer-part.component'
 import { ViewPokhComponent } from '../view-pokh/view-pokh.component';
 import { WarehouseReleaseRequestComponent } from '../warehouse-release-request/warehouse-release-request.component';
 import { AppComponent } from '../../app.component';
-import { POKHControlerComponent } from '../pokh-control/pokh-control';
+import { POKHControllerComponent } from '../pokh-control/pokh-control';
 import { FollowProductReturnComponent } from '../follow-product-return/follow-product-return.component';
+import { PoRequestBuyComponent } from '../po-request-buy/po-request-buy.component';
 @Component({
   selector: 'app-pokh',
   imports: [
@@ -70,6 +72,7 @@ import { FollowProductReturnComponent } from '../follow-product-return/follow-pr
     NzModalModule,
     NzUploadModule,
     NzSwitchModule,
+    NzCheckboxModule,
     CommonModule,
   ],
   templateUrl: './pokh.component.html',
@@ -584,9 +587,9 @@ export class PokhComponent implements OnInit, AfterViewInit {
       this.uploadFiles(pokhId);
     }
     this.notification.success('Thông báo', 'Lưu thành công');
+    this.closeModal();
     this.loadPOKH();
     this.isCopy = false;
-    this.closeModal();
   }
   handleError(error: any) {
     this.notification.error('Thông báo', 'Có lỗi xảy ra: ' + error.message);
@@ -1356,7 +1359,6 @@ export class PokhComponent implements OnInit, AfterViewInit {
 
     if (this.tb_ProductDetailTreeList) {
       this.tb_ProductDetailTreeList.addRow(newRow);
-      this.tb_ProductDetailTreeList.scrollToRow(newRow.ID, "bottom", true);
     }
   }
   addChildRow(): void {
@@ -1520,6 +1522,30 @@ export class PokhComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
       windowClass: 'full-screen-modal',
     });
+  }
+  openPORequestBuyModal(){
+    if (!this.selectedId) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn POKH trước!');
+      return;
+    }
+
+    const modalRef = this.modalService.open(PoRequestBuyComponent, {
+      centered: true,
+      backdrop: 'static',
+      windowClass: 'full-screen-modal',
+    });
+    modalRef.componentInstance.pokhId = this.selectedId;
+
+    modalRef.result.then(
+      (result) => {
+        if (result) {
+          // Handle successful modal close if needed
+        }
+      },
+      (reason) => {
+        console.log('Modal dismissed');
+      }
+    );
   }
   openModal() {
     this.isModalOpen = true;
@@ -1914,10 +1940,6 @@ export class PokhComponent implements OnInit, AfterViewInit {
     // };
   }
   initProductDetailTreeList(): void {
-    if (!this.tbProductDetailTreeListElement || !this.tbProductDetailTreeListElement.nativeElement) return;
-    if (this.tb_ProductDetailTreeList) {
-      this.tb_ProductDetailTreeList.destroy();
-    }
     this.tb_ProductDetailTreeList = new Tabulator(this.tbProductDetailTreeListElement.nativeElement, {
       data: this.dataPOKHProduct,
       dataTree: true,
@@ -1976,15 +1998,26 @@ export class PokhComponent implements OnInit, AfterViewInit {
         },
         { title: 'STT', field: 'STT', sorter: 'number', width: 70, frozen: true },
         {
-          title: 'Mã Nội Bộ', field: 'ProductNewCode', sorter: 'string', width: 120, editor: "list", frozen: true, editorParams: {
-            values: this.dataProducts.map(product => ({
-              label: `${product.ProductNewCode}  - ${product.ProductCode} - ${product.ProductName}`,
-              value: product.ProductNewCode,
-              id: product.ID
-            })),
-            listOnEmpty: true,
-            autocomplete: true,
-            freetext: true,
+          title: 'Mã Nội Bộ', 
+          field: 'ProductNewCode', 
+          sorter: 'string', 
+          width: 120, 
+          editor: "list", 
+          tooltip: true,
+          frozen: true, 
+          editorParams: {
+            values: this.dataProducts.map(product => {
+              const shortLabel = `${product.ProductNewCode} ${product.ProductCode}`.length > 30 
+                ? `${product.ProductNewCode} ${product.ProductCode}`.substring(0, 30) + '...'
+                : `${product.ProductNewCode} ${product.ProductCode}`;
+              
+              return {
+                label: shortLabel,
+                value: product.ProductNewCode,
+                id: product.ID
+              }
+            }),
+            autocomplete: true, 
           },
         },
         { title: 'Mã Sản Phẩm (Cũ)', field: 'ProductCode', sorter: 'string', width: 120, editor: "input", frozen: true },
@@ -2101,10 +2134,6 @@ export class PokhComponent implements OnInit, AfterViewInit {
     });
   }
   initDetailTable(): void {
-    if (!this.tbDetailUserElement || !this.tbDetailUserElement.nativeElement) return;
-    if (this.tb_DetailUser) {
-      this.tb_DetailUser.destroy();
-    }
     this.tb_DetailUser = new Tabulator(this.tbDetailUserElement.nativeElement, {
       data: this.dataPOKHDetailUser,
       layout: "fitDataFill",
@@ -2160,36 +2189,35 @@ export class PokhComponent implements OnInit, AfterViewInit {
           field: 'ResponsibleUser',
           sorter: 'string',
           width: '25%',
-          editor: this.createdControl(
-            POKHControlerComponent,
-            this.injector,
-            this.appRef,
-            this.dataUsers
-          ),
-          formatter: (cell) => {
-            const val = cell.getValue();
-            console.log(this.dictDetailUser);
-            return val
-              ? `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${this.dictDetailUser[val]}</p> <i class="fas fa-angle-down"></i> <div>`
-              : '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">Chọn người phụ trách</p> <i class="fas fa-angle-down"></i> <div>';
+          editor: "list",
+          editorParams: {
+            values: this.dataUsers.map(user => ({
+              label: `${user.FullName}`,
+              value: user.FullName,
+            })),
+            listOnEmpty: true,
+            autocomplete: true
           },
-          // editor: "list",
-          // editorParams: {
-          //   values: this.dataUsers.map(user => ({
-          //     label: `${user.FullName}`,
-          //     value: user.FullName,
-          //     id: user.ID
-          //   })),
-          //   listOnEmpty: true,
-          //   autocomplete: true
+          cellEdited: (cell) => {
+            const selectedUser = this.dataUsers.find(user => user.FullName === cell.getValue());
+            if (selectedUser) {
+              const currentRow = cell.getRow();
+              currentRow.update({ UserID: selectedUser.ID });
+            }
+          }
+          // editor: this.createdControl(
+          //   POKHControllerComponent,
+          //   this.injector,
+          //   this.appRef,
+          //   this.dataUsers
+          // ),
+          // formatter: (cell) => {
+          //   const val = cell.getValue();
+          //   console.log(this.dictDetailUser);
+          //   return val
+          //     ? `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${this.dictDetailUser[val]}</p> <i class="fas fa-angle-down"></i> <div>`
+          //     : '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">Chọn người phụ trách</p> <i class="fas fa-angle-down"></i> <div>';
           // },
-          // cellEdited: (cell) => {
-          //   const selectedUser = this.dataUsers.find(user => user.FullName === cell.getValue());
-          //   if (selectedUser) {
-          //     const currentRow = cell.getRow();
-          //     currentRow.update({ UserID: selectedUser.ID });
-          //   }
-          // }
         },
         {
           title: 'Phần trăm', field: 'PercentUser', sorter: 'number', editor: "input", width: '30%',

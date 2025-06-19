@@ -1,8 +1,7 @@
 <!-- Form yêu cầu xuất hóa đơn với bố cục cân đối -->
-<div class="modal-header">
-    <h4 class="modal-title">Yêu cầu xuất hóa đơn</h4>
-    <button type="button" class="btn-close" aria-label="Close" (click)="closeModal()">
-    </button>
+<div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">YÊU CẦU XUẤT HÓA ĐƠN</h6>
+    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
 </div>
 
 <div class="modal-body">
@@ -132,7 +131,8 @@
     </form>
 
     <div class="modal-footer py-1">
-        <button nz-button nzType="primary" nzSize="default" (click)="saveAndClose()">Lưu và đóng</button>
         <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
+        <button nz-button nzType="primary" nzSize="default" (click)="saveAndClose()">Lưu</button>
+
     </div>
 </div>

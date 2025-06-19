@@ -30,7 +30,7 @@ import { PokhService } from '../pokh/pokh-service/pokh.service';
     </nz-select>
   `,
 })
-export class POKHControlerComponent implements OnInit {
+export class POKHControllerComponent implements OnInit {
   constructor(private PokhService: PokhService) {}
   ngOnInit(): void {
     console.log('leader', this.leaders);

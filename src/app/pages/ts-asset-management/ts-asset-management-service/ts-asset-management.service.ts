@@ -8,6 +8,7 @@ import { API_ORIGIN } from '../../../app.config';
 })
 export class AssetsManagementService {
   urlGetAssets = `${API_ORIGIN}api/Assets/get-asset`;
+  urlDepartment = `${API_ORIGIN}api/Department/getall`;
   constructor(private httpclient: HttpClient) { }
   saveDataAsset(assets: any): Observable<any> {
     const url = `${API_ORIGIN}api/Assets/save-data`;
@@ -20,8 +21,11 @@ export class AssetsManagementService {
   getAsset(request: any) {
     return this.httpclient.post<any>(`${this.urlGetAssets}`, request);
   }
-    getAssetCode(assetDate: string): Observable<{ status: number, data: string }> {
+  getAssetCode(assetDate: string): Observable<{ status: number, data: string }> {
     const params = new HttpParams().set('assetDate', assetDate);
     return this.httpclient.get<{ status: number, data: string }>(`${API_ORIGIN}api/Assets/get-asset-code`, { params });
+  }
+  getDepartment(): Observable<any> {
+    return this.httpclient.get<any>(this.urlDepartment);
   }
 }

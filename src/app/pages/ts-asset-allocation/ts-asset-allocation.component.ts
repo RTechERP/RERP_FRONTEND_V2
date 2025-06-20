@@ -479,22 +479,30 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
+      this.notification.warning('Thông báo', 'Không có dữ liệu để xuất Excel!');
       return;
     }
+
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Danh sách dự án');
-    const columns = table.getColumns();
-    const filteredColumns = columns.slice(1);
-    const headers = filteredColumns.map(
-      (col: any) => col.getDefinition().title
-    );
+    const worksheet = workbook.addWorksheet('Danh sách cấp phát');
+
+    // Lọc các cột có title, field và không bị ẩn
+    const visibleColumns = table.getColumns().filter((col: any) => {
+      const def = col.getDefinition();
+      return def.title && def.field && def.visible !== false && def.field !== '';
+    });
+
+    // Lấy tiêu đề cột
+    const headers = visibleColumns.map((col: any) => col.getDefinition().title);
     worksheet.addRow(headers);
 
+    // Lấy dữ liệu từng dòng
     data.forEach((row: any) => {
-      const rowData = filteredColumns.map((col: any) => {
+      const rowData = visibleColumns.map((col: any) => {
         const field = col.getField();
         let value = row[field];
+
+        // Nếu là chuỗi ngày ISO thì parse thành Date để format về sau
         if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
           value = new Date(value);
         }
@@ -502,55 +510,48 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
       });
       worksheet.addRow(rowData);
     });
+
+    // Format ngày cho cell kiểu Date
     worksheet.eachRow((row, rowNumber) => {
-      if (rowNumber === 1) return; // bỏ qua tiêu đề
-      row.eachCell((cell, colNumber) => {
+      if (rowNumber === 1) return; // bỏ qua dòng tiêu đề
+      row.eachCell((cell) => {
         if (cell.value instanceof Date) {
-          cell.numFmt = 'dd/mm/yyyy'; // hoặc 'yyyy-mm-dd'
+          cell.numFmt = 'dd/mm/yyyy';
         }
       });
     });
-    worksheet.columns.forEach((column: any) => {
+
+    // Căn chỉnh độ rộng cột và wrap text
+    worksheet.columns.forEach((col: any) => {
       let maxLength = 10;
-      column.eachCell({ includeEmpty: true }, (cell: any) => {
-        const cellValue = cell.value ? cell.value.toString() : '';
-        // Giới hạn độ dài tối đa của cell là 50 ký tự
-        maxLength = Math.min(Math.max(maxLength, cellValue.length + 2), 50);
-        cell.alignment = { wrapText: true, vertical: 'middle' };
+      col.eachCell({ includeEmpty: true }, (cell: any) => {
+        const val = cell.value ? cell.value.toString() : '';
+        maxLength = Math.min(Math.max(maxLength, val.length + 2), 50);
+        cell.alignment = { vertical: 'middle', wrapText: true };
       });
-      column.width = Math.min(maxLength, 30);
+      col.width = Math.min(maxLength, 30);
     });
+
+    // Thêm bộ lọc
     worksheet.autoFilter = {
-      from: {
-        row: 1,
-        column: 1,
-      },
-      to: {
-        row: 1,
-        column: filteredColumns.length,
-      },
+      from: { row: 1, column: 1 },
+      to: { row: 1, column: visibleColumns.length },
     };
 
-    // Xuất file
+    // Tạo và tải file
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
-    const formattedDate = new Date()
-      .toISOString()
-      .slice(2, 10)
-      .split('-')
-      .reverse()
-      .join('');
+    const formattedDate = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     const link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
-    link.download = `CapPhatTaiSan.xlsx`;
+    link.download = `CapPhatTaiSan_${formattedDate}.xlsx`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(link.href);
   }
-
   //#endregion
 
 }

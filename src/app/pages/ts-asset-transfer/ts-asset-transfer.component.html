@@ -1,6 +1,6 @@
 <div class="w-100 fs-11">
   <nz-splitter style="height: 90vh; ">
-    <nz-splitter-panel *ngIf="isSearchVisible" [nzSize]="'20%'" [nzResizable]="false">
+  <nz-splitter-panel *ngIf="isSearchVisible" [nzSize]="'20%'" [nzResizable]="false">
       <div class="card h-100 border-0 rounded-0">
         <!-- Header -->
         <div class="card-header bg-white p-1">
@@ -12,46 +12,61 @@
             </button>
           </div>
         </div>
-        <div class="card-body fs-11">
+        <div class="card-body">
           <form nz-form nzLayout="vertical">
             <nz-form-item class="mt-2">
               <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <nz-date-picker class="w-100" nzSize="small" name="dateStart"></nz-date-picker>
+                <nz-date-picker class="w-100" nzSize="small" name="dateStart" [(ngModel)]="DateStart"></nz-date-picker>
               </nz-form-control>
             </nz-form-item>
+
             <nz-form-item class="mt-2">
               <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <nz-date-picker class="w-100" nzSize="small" name="dateEnd"></nz-date-picker>
+                <nz-date-picker class="w-100" nzSize="small" name="dateEnd" [(ngModel)]="DateEnd"></nz-date-picker>
               </nz-form-control>
             </nz-form-item>
-            <nz-form-item class="mt-2">
-              <nz-form-label class="fs-12" [nzSpan]="24">Chọn nhân viên</nz-form-label>
-              <nz-form-control [nzSpan]="24">
 
-              </nz-form-control>
-            </nz-form-item>
             <nz-form-item class="mt-2">
-              <nz-form-label class="fs-12" [nzSpan]="24">Chọn nhân viên</nz-form-label>
+              <nz-form-label class="fs-12" [nzSpan]="24">Diều chuyển từ</nz-form-label>
               <nz-form-control [nzSpan]="24">
-
+                <nz-select class="w-100 fs-12" nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên..."
+                  name="employeeReturnID" [(ngModel)]="DeliverID">
+                  <nz-option *ngFor="let emp of emPloyeeLists" [nzLabel]="emp.Code + ' - ' + emp.FullName"
+                    [nzValue]="emp.ID"></nz-option>
+                </nz-select>
               </nz-form-control>
             </nz-form-item>
+
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Người nhận</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select class="w-100 fs-12" nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên..."
+                  name="employeeRecoveryID" [(ngModel)]="ReceiverID">
+                  <nz-option *ngFor="let emp of emPloyeeLists" [nzLabel]="emp.Code + ' - ' + emp.FullName"
+                    [nzValue]="emp.ID"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+
             <nz-form-item class="mt-2">
               <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <input nz-input placeholder="Nhập từ khóa" nzSize="small" name="filterText" />
+                <input nz-input placeholder="Nhập từ khóa" nzSize="small" name="filterText" [(ngModel)]="TextFilter" />
               </nz-form-control>
             </nz-form-item>
           </form>
+
         </div>
-        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end flex-wrap">
-          <button nz-button nzType="default" nzSize="small">Đặt lại</button>
-          <button nz-button nzType="primary" nzSize="small">Tìm kiếm</button>
-        </div>
+      <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end flex-wrap">
+  <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">Đặt lại</button>
+  <button nz-button nzType="primary" nzSize="small" (click)="getTranferAsset()">Tìm kiếm</button>
+</div>
+
       </div>
     </nz-splitter-panel>
+
     <nz-splitter-panel [nzSize]="isSearchVisible ? '80%' : '100%'">
       <div class="card  border-0 rounded-0">
         <div class="card-header  bg-white p-1">
@@ -69,22 +84,22 @@
               <nz-icon nzType="delete" nzTheme="fill" />Xóa
             </button>
 
-            <button class="fs-12" nz-button nzType="default" nzSize="small"(click)="updateApprove(1)">
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="updateApprove(1)">
               <nz-icon nzType="check" nzTheme="outline"></nz-icon> Cá nhân duyệt
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small"(click)="updateApprove(2)">
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="updateApprove(2)">
               <nz-icon nzType="close" nzTheme="outline"></nz-icon> Cá nhân hủy duyệt
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small"(click)="updateApprove(3)">
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="updateApprove(3)">
               <nz-icon nzType="check" nzTheme="outline"></nz-icon> HR duyệt
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small"(click)="updateApprove(4)">
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="updateApprove(4)">
               <nz-icon nzType="close" nzTheme="outline"></nz-icon> HR hủy duyệt
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small"(click)="updateApprove(5)">
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="updateApprove(5)">
               <nz-icon nzType="check" nzTheme="outline"></nz-icon> KT duyệt
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small"(click)="updateApprove(6)">
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="updateApprove(6)">
               <nz-icon nzType="close" nzTheme="outline"></nz-icon> KT hủy duyệt
             </button>
             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel()">

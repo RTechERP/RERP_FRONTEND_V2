@@ -1,4 +1,4 @@
-import { inject } from '@angular/core';
+ import { inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
@@ -25,6 +25,7 @@ import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
 import { EnvironmentInjector } from '@angular/core';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
+
 import { DateTime } from 'luxon';
 declare var bootstrap: any;
 import * as ExcelJS from 'exceljs';
@@ -37,6 +38,7 @@ import { AssetsManagementService } from './ts-asset-management-service/ts-asset-
 import { TsAssetManagementFormComponent } from './ts-asset-management-form/ts-asset-management-form.component';
 import { TsAssetManagementReportBorkenFormComponent } from './ts-asset-management-report-borken-form/ts-asset-management-report-borken-form.component';
 import { TsAssetManagementReportLossFormComponent } from './ts-asset-management-report-loss-form/ts-asset-management-report-loss-form.component';
+import { TsAssetManagementImportExcelComponent } from './ts-asset-management-import-excel/ts-asset-management-import-excel.component';
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
@@ -62,10 +64,7 @@ function formatDateCell(cell: CellComponent): string {
     NzSelectModule,
     NzTableModule,
     NzTabsModule,
-    NgbModalModule,
-    TsAssetManagementFormComponent,
-    TsAssetManagementReportBorkenFormComponent,
-    TsAssetManagementReportLossFormComponent
+    NgbModalModule
   ],
   selector: 'app-ts-asset-management',
   templateUrl: './ts-asset-management.component.html',
@@ -84,7 +83,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
   assetTable: Tabulator | null = null;
   assetDetailtable: Tabulator | null = null;
   assetManagementDetail: any[] = [];
-  AssetData: any[] = [];
+  assetData: any[] = [];
   isSearchVisible: boolean = false;
   emPloyeeLists: any[] = [];
   dateStart: string = '';
@@ -95,26 +94,32 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
   filterText: string = '';
   selectedEmployee: any = null;
   assetDate: string = "";
+  departmentData: any[] = [];
   ngOnInit() {
   }
   ngAfterViewInit(): void {
     this.getAssetmanagement();
     this.drawEmployeeTable();
     this.getListEmployee();
+    this.getDepartment();
   }
   getAssetmanagement() {
+    const formatDate = (date: any) => {
+      return date ? DateTime.fromJSDate(date).toISODate() : '';
+    };
     const request = {
-      filterText: '',
+      filterText: this.filterText || '',
       pageNumber: 1,
       pageSize: 10000,
-      dateStart: '2022-05-22T00:00:00',
-      dateEnd: '2027-05-22T23:59:59',
+      dateStart: formatDate(this.dateStart) || '2000-05-22',
+      dateEnd: formatDate(this.dateEnd) || '2027-05-22',
       status: '0,1,2,3,4,5,6,7,8',
       department: '0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24'
     };
     this.assetManagementService.getAsset(request).subscribe({
       next: (response: any) => {
-        this.AssetData = response.data?.assets || [];
+        this.assetData = response.data?.assets || [];
+        console.log(this.assetData);
         this.drawTable();
       },
       error: (err) => {
@@ -129,6 +134,18 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     this.filterText = '';
     this.getAssetmanagement();
   }
+  getDepartment() {
+    this.assetManagementService.getDepartment().subscribe({
+      next: (response: any) => {
+        this.departmentData = response.data || [];
+        console.log(this.departmentData);
+      },
+      error: (err) => {
+        console.error('Lỗi khi lấy dữ liệu tài sản:', err);
+      }
+    });
+  }
+
   getListEmployee() {
     this.assetManagementPersonalService.getListEmployee().subscribe((respon: any) => {
       this.emPloyeeLists = respon.employees;
@@ -145,10 +162,10 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
   }
   public drawTable(): void {
     if (this.assetTable) {
-      this.assetTable.setData(this.AssetData);
+      this.assetTable.setData(this.assetData);
     } else {
       this.assetTable = new Tabulator('#datatablemanagement', {
-        data: this.AssetData,
+        data: this.assetData,
         layout: "fitDataFill",
         pagination: true,
         selectableRows: 1,
@@ -177,7 +194,8 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             field: 'Name',
             hozAlign: 'center',
             width: 70,
-            headerHozAlign: 'center'
+            headerHozAlign: 'center',
+            visible: false,
           },
           {
             title: 'STT',
@@ -482,8 +500,8 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             { title: 'Họ và tên', field: 'FullName', headerHozAlign: 'center' },
             { title: 'Phòng ban', field: 'dpmName', headerHozAlign: 'center' },
             { title: 'Chức vụ', field: 'CVName', headerHozAlign: 'center' },
-            {title: 'Ngày cập nhật', field: 'UpdatedDate',headerHozAlign: 'center', formatter: formatDateCell, hozAlign: 'center'},
-            {title: 'Ngày tạo', field: 'CreatedDate',headerHozAlign: 'center', formatter: formatDateCell, hozAlign: 'center'},
+            { title: 'Ngày cập nhật', field: 'UpdatedDate', headerHozAlign: 'center', formatter: formatDateCell, hozAlign: 'center' },
+            { title: 'Ngày tạo', field: 'CreatedDate', headerHozAlign: 'center', formatter: formatDateCell, hozAlign: 'center' },
             { title: 'Ghi chú', field: 'Note', headerHozAlign: 'center' },
           ]
         });
@@ -612,7 +630,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
 
   }
   onExportExcel() {
-
+this.exportToExcelAdvanced();
   }
   onDisposeAsset() {
 
@@ -620,82 +638,103 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
   onDisposeAssetRequest() {
 
   }
-  async exportToExcelAdvanced() {
-    if (!this.assetTable) return;
-    const selectedData = this.assetTable.getData();
-    console.log("select ư", selectedData)
+  
 
-    if (!selectedData || selectedData.length === 0) {
-      this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
-      return;
-    }
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Danh sách tài sản');
-    const columns = this.assetTable.getColumnDefinitions().filter((col: any) =>
-      col.visible !== false && col.field !== ''
-    );
-    const headerRow = worksheet.addRow(columns.map((col: any) => col.title || col.field));
-    headerRow.font = { bold: true };
-    headerRow.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFE0E0E0' },
-    };
-    selectedData.forEach((row: any) => {
-      const rowData = columns.map((col: any) => {
-        const value = row[col.field];
-        switch (col.field) {
-          case 'IsAllocation':
-            return value ? 'Có' : 'Không';
-          case 'CreatedDate':
-          case 'UpdatedDate':
-          case 'DateBuy':
-          case 'DateEffect':
-            return value ? new Date(value).toLocaleDateString('vi-VN') : '';
-          case 'Status':
-            return value || '';
-          default:
-            if (value === null || value === undefined) return '';
-            return typeof value === 'object' ? JSON.stringify(value) : value;
-        }
-      });
-      worksheet.addRow(rowData);
-    });
 
-    worksheet.columns.forEach((col, index) => {
-      const content = Array.isArray(col.values)
-        ? col.values.map((v: any) => (v?.toString?.() ?? ''))
-        : [];
-      const maxLength = Math.max(...content.map(val => val.length), 10);
-      col.width = maxLength + 2;
-    });
+async exportToExcelAdvanced() {
+  if (!this.assetTable) return;
 
-    worksheet.eachRow((row, rowNumber) => {
-      row.eachCell((cell) => {
-        cell.border = {
-          top: { style: 'thin' },
-          left: { style: 'thin' },
-          bottom: { style: 'thin' },
-          right: { style: 'thin' },
-        };
-        if (rowNumber === 1) {
-          cell.alignment = { horizontal: 'center', vertical: 'middle' };
-        }
-      });
-    });
+  const selectedData = [...this.assetData]; // ✅ Dữ liệu gốc, bỏ getRows()
 
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    });
+  console.log("selectedData:", selectedData);
 
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `danh-sach-tai-san-${new Date().toISOString().split('T')[0]}.xlsx`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(link.href);
+  if (!selectedData || selectedData.length === 0) {
+    this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
+    return;
   }
 
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Danh sách tài sản');
+
+  const columns = this.assetTable.getColumnDefinitions().filter((col: any) =>
+    col.visible !== false && col.field && col.field.trim() !== ''
+  );
+
+  console.log("columns:", columns.map(c => c.field));
+
+  const headerRow = worksheet.addRow(columns.map((col: any) => col.title || col.field));
+  headerRow.font = { bold: true };
+  headerRow.fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FFE0E0E0' },
+  };
+
+  selectedData.forEach((row: any) => {
+    const rowData = columns.map((col: any) => {
+      const value = row[col.field];
+      switch (col.field) {
+        case 'IsAllocation':
+          return value ? 'Có' : 'Không';
+        case 'CreatedDate':
+        case 'UpdatedDate':
+        case 'DateBuy':
+        case 'DateEffect':
+          return value ? new Date(value).toLocaleDateString('vi-VN') : '';
+        case 'Status':
+          return value || '';
+        default:
+          return value !== null && value !== undefined ? value : '';
+      }
+    });
+    worksheet.addRow(rowData);
+  });
+
+  worksheet.columns.forEach((col) => {
+    col.width = 20;
+  });
+
+  worksheet.eachRow((row, rowNumber) => {
+    row.eachCell((cell) => {
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' },
+      };
+      if (rowNumber === 1) {
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      }
+    });
+  });
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `danh-sach-tai-san-${new Date().toISOString().split('T')[0]}.xlsx`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
+}
+openModalImportExcel() {
+    const modalRef = this.ngbModal.open(TsAssetManagementImportExcelComponent, {
+      centered: true,
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false
+    });
+    modalRef.result.catch(
+      (result) => {
+        if (result == true) {
+        
+
+        }
+      },
+    );
+  }
 }

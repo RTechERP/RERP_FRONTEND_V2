@@ -30,18 +30,6 @@
             <nz-date-picker class="w-100" nzSize="small" [(ngModel)]="dateEnd" name="dateEnd"></nz-date-picker>
           </nz-form-control>
         </nz-form-item>
-
-        <!-- Chọn nhân viên -->
-        <nz-form-item class="mt-2">
-          <nz-form-label class="fs-12" [nzSpan]="24">Chọn nhân viên</nz-form-label>
-          <nz-form-control [nzSpan]="24">
-            <nz-select class="w-100 fs-12" nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên..."
-                        [(ngModel)]="employeeID" name="employeeID">
-              <nz-option *ngFor="let emp of emPloyeeLists" [nzLabel]="emp.Code + ' - ' + emp.FullName" [nzValue]="emp.ID"></nz-option>
-            </nz-select>
-          </nz-form-control>
-        </nz-form-item>
-
         <!-- Từ khóa -->
         <nz-form-item class="mt-2">
           <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
@@ -92,7 +80,10 @@
             <button class="fs-12" nz-button nzType="default" nzSize="small">
               <nz-icon nzType="shopping-cart" nzTheme="outline" />Thanh lí
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportToExcelAdvanced()">
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openModalImportExcel()">
+              <nz-icon nzType="file-excel" nzTheme="outline" /> Nhập Excel
+            </button>
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onExportExcel()">
               <nz-icon nzType="file-excel" nzTheme="outline" /> Xuất Excel
             </button>
           </div>

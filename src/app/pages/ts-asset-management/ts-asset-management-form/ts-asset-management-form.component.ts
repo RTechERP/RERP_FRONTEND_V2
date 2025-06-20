@@ -62,7 +62,6 @@ export class TsAssetManagementFormComponent implements OnInit, AfterViewInit {
   constructor(private notification: NzNotificationService) { }
   ngOnInit() {
     this.getunit();
-   
     this.dataInput.DateBuy = this.formatDateForInput(this.dataInput.DateBuy);
     this.dataInput.DateEffect = this.formatDateForInput(this.dataInput.DateEffect);
     this.loadAsset();

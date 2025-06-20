@@ -24,6 +24,7 @@ import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DateTime } from 'luxon';
 declare var bootstrap: any;
+import { TsAssetManagementPersonalService } from '../ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
 import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification'
 import { TsAssetTransferFormComponent } from './ts-asset-transfer-form/ts-asset-transfer-form.component';
@@ -64,8 +65,10 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
   constructor(
     private notification: NzNotificationService,
     private tsAssetTransferService: TsAssetTransferService,
+     private TsAssetManagementPersonalService:TsAssetManagementPersonalService
   ) { }
   private ngbModal = inject(NgbModal);
+    emPloyeeLists: any[] = [];
   modalData: any = [];
   selectedRow: any = "";
   sizeTbDetail: any = '0';
@@ -86,25 +89,41 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
   }
   ngAfterViewInit(): void {
     this.getTranferAsset();
+    this.getListEmployee();
   }
-  getTranferAsset() {
-    const request = {
-      dateStart: this.DateStart || '2020-01-01',
-      dateEnd: this.DateEnd || '2025-12-31',
-      IsApproved: this.IsApproved || -1,
-      DeliverID: this.DeliverID || 0,
-      ReceiverID: this.ReceiverID || 0,
-      TextFilter: this.TextFilter || '',
-      PageSize: 20000,
-      PageNumber: 1
-    };
-    this.tsAssetTransferService.getAssetTranfer(request).subscribe((data: any) => {
+ getTranferAsset() {
+  const request = {
+    dateStart: this.DateStart ? DateTime.fromJSDate(new Date(this.DateStart)).toFormat('yyyy-MM-dd') : '2020-01-01',
+    dateEnd: this.DateEnd ? DateTime.fromJSDate(new Date(this.DateEnd)).toFormat('yyyy-MM-dd') : '2025-12-31',
+    IsApproved: this.IsApproved ?? -1,
+    DeliverID: this.DeliverID || 0,
+    ReceiverID: this.ReceiverID || 0,
+    TextFilter: this.TextFilter || '',
+    PageSize: 20000,
+    PageNumber: 1
+  };
 
-      this.assetTranferData = data.assetTranfer || [];
-      console.log(" mhfdehqfcqe", this.assetTranferData)
-      this.drawTable();
+  this.tsAssetTransferService.getAssetTranfer(request).subscribe((data: any) => {
+    this.assetTranferData = data.assetTranfer || [];
+    console.log("Dữ liệu lấy về:", this.assetTranferData);
+    this.drawTable(); // Gọi hàm vẽ lại bảng
+  });
+}
+ getListEmployee() {
+    this.TsAssetManagementPersonalService.getListEmployee().subscribe((respon: any) => {
+      this.emPloyeeLists = respon.employees;
+      console.log(this.emPloyeeLists);
     });
   }
+resetSearch(): void {
+  this.DateStart = '';
+  this.DateEnd = '';
+  this.IsApproved = -1;
+  this.DeliverID = 0;
+  this.ReceiverID = 0;
+  this.TextFilter = '';
+  this.getTranferAsset();
+}
   toggleSearchPanel(): void {
     this.isSearchVisible = !this.isSearchVisible;
   }
@@ -471,98 +490,87 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
     );
   }
   //#region xuất excel
-  async exportExcel() {
-    const table = this.assetTranferTable;
-    if (!table) return;
+ async exportExcel() {
+  const table = this.assetTranferTable;
+  if (!table) return;
 
-    const data = table.getData();
-    if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
-      return;
-    }
-
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Danh sách điều chuyển tài sản');
-
-    const columns = table.getColumns();
-    // Bỏ qua cột đầu tiên
-    const filteredColumns = columns.slice(1);
-    const headers = filteredColumns.map(
-      (col: any) => col.getDefinition().title
-    );
-    worksheet.addRow(headers);
-
-    data.forEach((row: any) => {
-      const rowData = filteredColumns.map((col: any) => {
-        const field = col.getField();
-        let value = row[field];
-
-        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
-          value = new Date(value);
-        }
-
-        return value;
-      });
-
-      worksheet.addRow(rowData);
-    });
-
-    // Format cột có giá trị là Date
-    worksheet.eachRow((row, rowNumber) => {
-      if (rowNumber === 1) return; // bỏ qua tiêu đề
-      row.eachCell((cell, colNumber) => {
-        if (cell.value instanceof Date) {
-          cell.numFmt = 'dd/mm/yyyy'; // hoặc 'yyyy-mm-dd'
-        }
-      });
-    });
-
-    // Tự động căn chỉnh độ rộng cột
-    worksheet.columns.forEach((column: any) => {
-      let maxLength = 10;
-      column.eachCell({ includeEmpty: true }, (cell: any) => {
-        const cellValue = cell.value ? cell.value.toString() : '';
-        // Giới hạn độ dài tối đa của cell là 50 ký tự
-        maxLength = Math.min(Math.max(maxLength, cellValue.length + 2), 50);
-        cell.alignment = { wrapText: true, vertical: 'middle' };
-      });
-      // Giới hạn độ rộng cột tối đa là 30
-      column.width = Math.min(maxLength, 30);
-    });
-
-    // Thêm bộ lọc cho toàn bộ cột (từ A1 đến cột cuối cùng)
-    worksheet.autoFilter = {
-      from: {
-        row: 1,
-        column: 1,
-      },
-      to: {
-        row: 1,
-        column: filteredColumns.length,
-      },
-    };
-
-    // Xuất file
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    });
-
-    const formattedDate = new Date()
-      .toISOString()
-      .slice(2, 10)
-      .split('-')
-      .reverse()
-      .join('');
-
-    const link = document.createElement('a');
-    link.href = window.URL.createObjectURL(blob);
-    link.download = `DieuChuyenTaiSan.xlsx`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(link.href);
+  const data = table.getData();
+  if (!data || data.length === 0) {
+    this.notification.warning('Thông báo', 'Không có dữ liệu để xuất Excel!');
+    return;
   }
+
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Danh sách điều chuyển tài sản');
+
+  // Lọc các cột hiển thị, có field và title
+  const visibleColumns = table.getColumns().filter((col: any) => {
+    const def = col.getDefinition();
+    return def.visible !== false && def.field && def.title;
+  });
+
+  // Thêm dòng tiêu đề
+  const headers = visibleColumns.map((col: any) => col.getDefinition().title);
+  worksheet.addRow(headers);
+
+  // Thêm dữ liệu
+  data.forEach((row: any) => {
+    const rowData = visibleColumns.map((col: any) => {
+      const field = col.getField();
+      let value = row[field];
+
+      if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+        value = new Date(value);
+      }
+
+      return value;
+    });
+
+    worksheet.addRow(rowData);
+  });
+
+  // Format ngày
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber === 1) return;
+    row.eachCell((cell) => {
+      if (cell.value instanceof Date) {
+        cell.numFmt = 'dd/mm/yyyy';
+      }
+    });
+  });
+
+  // Tự động căn chỉnh độ rộng cột và wrap
+  worksheet.columns.forEach((column: any) => {
+    let maxLength = 10;
+    column.eachCell({ includeEmpty: true }, (cell: any) => {
+      const val = cell.value ? cell.value.toString() : '';
+      maxLength = Math.min(Math.max(maxLength, val.length + 2), 50);
+      cell.alignment = { vertical: 'middle', wrapText: true };
+    });
+    column.width = Math.min(maxLength, 30);
+  });
+
+  // Thêm bộ lọc tiêu đề
+  worksheet.autoFilter = {
+    from: { row: 1, column: 1 },
+    to: { row: 1, column: visibleColumns.length },
+  };
+
+  // Tạo và tải file Excel
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+
+  const formattedDate = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  const link = document.createElement('a');
+  link.href = window.URL.createObjectURL(blob);
+  link.download = `DieuChuyenTaiSan_${formattedDate}.xlsx`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(link.href);
+}
 
   //#endregion
 

@@ -94,22 +94,24 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
     this.drawtable();
     this.getListEmployee();   
   }
-  getRecovery(): void {
-    const request = {
-      dateStart: this.dateStart || '2020-01-01',
-      dateEnd: this.dateEnd || '2035-12-31',
-      employeeReturnID: this.employeeReturnID || 0,
-      employeeRecoveryID: this.employeeRecoveryID || 0,
-      status: this.status || -1,
-      filterText: this.filterText || '',
-      pageSize: 20000,
-      pageNumber: 1
-    };
-    this.assetsRecoveryService.getAssetsRecovery(request).subscribe((response: any) => {
-      this.assetRecoveryData = response.assetsrecovery;
-      this.drawtable();
-    });
-  }
+  
+getRecovery(): void {
+  const request = {
+    dateStart: this.dateStart ? DateTime.fromJSDate(new Date(this.dateStart)).toFormat('yyyy-MM-dd') : '2020-01-01',
+    dateEnd: this.dateEnd ? DateTime.fromJSDate(new Date(this.dateEnd)).toFormat('yyyy-MM-dd') : '2035-12-31',
+    employeeReturnID: this.employeeReturnID || 0,
+    employeeRecoveryID: this.employeeRecoveryID || 0,
+    status: this.status || -1,
+    filterText: this.filterText || '',
+    pageSize: 20000,
+    pageNumber: 1
+  };
+
+  this.assetsRecoveryService.getAssetsRecovery(request).subscribe((response: any) => {
+    this.assetRecoveryData = response.assetsrecovery;
+    this.drawtable(); // Vẽ lại bảng nếu cần
+  });
+}
   toggleSearchPanel(): void {
     this.isSearchVisible = !this.isSearchVisible;
   }
@@ -516,98 +518,91 @@ resetSearch(): void {
     });
   }
   //#region xuất excel
-  async exportExcel() {
-    const table = this.recoveryTable;
-    if (!table) return;
+ async exportExcel() {
+  const table = this.recoveryTable;
+  if (!table) return;
 
-    const data = table.getData();
-    if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
-      return;
-    }
-
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Danh sách thu hồi tài sản');
-
-    const columns = table.getColumns();
-    // Bỏ qua cột đầu tiên
-    const filteredColumns = columns.slice(1);
-    const headers = filteredColumns.map(
-      (col: any) => col.getDefinition().title
-    );
-    worksheet.addRow(headers);
-
-    data.forEach((row: any) => {
-      const rowData = filteredColumns.map((col: any) => {
-        const field = col.getField();
-        let value = row[field];
-
-        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
-          value = new Date(value);
-        }
-
-        return value;
-      });
-
-      worksheet.addRow(rowData);
-    });
-
-    // Format cột có giá trị là Date
-    worksheet.eachRow((row, rowNumber) => {
-      if (rowNumber === 1) return; // bỏ qua tiêu đề
-      row.eachCell((cell, colNumber) => {
-        if (cell.value instanceof Date) {
-          cell.numFmt = 'dd/mm/yyyy'; // hoặc 'yyyy-mm-dd'
-        }
-      });
-    });
-
-    // Tự động căn chỉnh độ rộng cột
-    worksheet.columns.forEach((column: any) => {
-      let maxLength = 10;
-      column.eachCell({ includeEmpty: true }, (cell: any) => {
-        const cellValue = cell.value ? cell.value.toString() : '';
-        // Giới hạn độ dài tối đa của cell là 50 ký tự
-        maxLength = Math.min(Math.max(maxLength, cellValue.length + 2), 50);
-        cell.alignment = { wrapText: true, vertical: 'middle' };
-      });
-      // Giới hạn độ rộng cột tối đa là 30
-      column.width = Math.min(maxLength, 30);
-    });
-
-    // Thêm bộ lọc cho toàn bộ cột (từ A1 đến cột cuối cùng)
-    worksheet.autoFilter = {
-      from: {
-        row: 1,
-        column: 1,
-      },
-      to: {
-        row: 1,
-        column: filteredColumns.length,
-      },
-    };
-
-    // Xuất file
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    });
-
-    const formattedDate = new Date()
-      .toISOString()
-      .slice(2, 10)
-      .split('-')
-      .reverse()
-      .join('');
-
-    const link = document.createElement('a');
-    link.href = window.URL.createObjectURL(blob);
-    link.download = `ThuHoiTaiSan.xlsx`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(link.href);
+  const data = table.getData();
+  if (!data || data.length === 0) {
+    this.notification.warning('Thông báo', 'Không có dữ liệu xuất Excel!');
+    return;
   }
+
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Danh sách thu hồi tài sản');
+
+  // Lọc ra các cột hiển thị (visible !== false), có field & title rõ ràng
+  const visibleColumns = table.getColumns().filter((col: any) => {
+    const def = col.getDefinition();
+    return def.visible !== false && def.field && def.title;
+  });
+
+  // Thêm tiêu đề
+  const headers = visibleColumns.map((col: any) => col.getDefinition().title);
+  worksheet.addRow(headers);
+
+  // Thêm dữ liệu
+  data.forEach((row: any) => {
+    const rowData = visibleColumns.map((col: any) => {
+      const field = col.getField();
+      let value = row[field];
+
+      if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+        value = new Date(value);
+      }
+
+      return value;
+    });
+
+    worksheet.addRow(rowData);
+  });
+
+  // Format ngày
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber === 1) return;
+    row.eachCell((cell) => {
+      if (cell.value instanceof Date) {
+        cell.numFmt = 'dd/mm/yyyy';
+      }
+    });
+  });
+
+  // Tự động căn chỉnh độ rộng cột và wrap text
+  worksheet.columns.forEach((column: any) => {
+    let maxLength = 10;
+    column.eachCell({ includeEmpty: true }, (cell: any) => {
+      const val = cell.value ? cell.value.toString() : '';
+      maxLength = Math.min(Math.max(maxLength, val.length + 2), 50);
+      cell.alignment = { vertical: 'middle', wrapText: true };
+    });
+    column.width = Math.min(maxLength, 30);
+  });
+
+  // Thêm filter hàng đầu
+  worksheet.autoFilter = {
+    from: { row: 1, column: 1 },
+    to: { row: 1, column: visibleColumns.length },
+  };
+
+  // Xuất file
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+
+  const formattedDate = new Date()
+    .toISOString()
+    .slice(0, 10)
+    .replace(/-/g, '');
+
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `ThuHoiTaiSan_${formattedDate}.xlsx`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
+}
 
   //#endregion
 

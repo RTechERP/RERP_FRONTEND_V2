@@ -21,8 +21,7 @@
           <form nz-form nzLayout="vertical">
             <nz-form-item>
               <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
-              <nz-form-control [nzSpan]="24">
-                <nz-date-picker
+              <nz-form-control [nzSpan]="24"><nz-date-picker
                   name="dateStart"
                   class="w-100"
                   nzFormat="dd/MM/yyyy"
@@ -303,6 +302,14 @@
               (click)="deletedProjects()"
             >
               <nz-icon nzType="delete" nzTheme="fill" />Xóa
+            </button>
+            <button
+              class="fs-12"
+              nz-button
+              nzType="default"
+              nzSize="small"
+            >
+              <nz-icon nzType="delete" nzTheme="fill" /> Hạng mục công việc
             </button>
           </div>
         </div>

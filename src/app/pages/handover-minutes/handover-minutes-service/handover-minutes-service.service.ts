@@ -32,4 +32,8 @@ export class HandoverMinutesService {
   {
     return this.http.delete<any>(this._url + id)
   }
+  export(id: number): Observable<Blob>
+  {
+    return this.http.get(`${this._url}export-excel/${id}`, { responseType: 'blob' });
+  }
 }

@@ -76,8 +76,10 @@ import { RequestInvoiceDetailService } from './request-invoice-detail-service/re
 })
 export class RequestInvoiceDetailComponent implements OnInit {
   @ViewChild('tb_InvoiceFile', { static: false }) tb_InvoiceFileElement!: ElementRef;
+  @ViewChild('tb_DataTable', {static : false}) tb_DataTableElement!: ElementRef;
 
   private tb_InvoiceFile!: Tabulator;
+  private tb_DataTable!: Tabulator;
   
   //Form data
   formData: any = this.getDefaultFormData();
@@ -120,6 +122,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
 
   ngAfterViewInit(): void {
     this.initInvoiceFile();
+    this.initDataTable();
   }
   //#region Load dữ liệu từ API
   loadCustomer(): void {
@@ -234,7 +237,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
           formatter: (cell) => {
             return `<i class="bi bi-trash3 text-danger delete-btn" style="font-size:15px; cursor: pointer;"></i>`;
           },
-          width: "10%",
+          width: "30%",
           hozAlign: "center",
           cellClick: (e, cell) => {
             if ((e.target as HTMLElement).classList.contains('delete-btn')) {
@@ -253,7 +256,35 @@ export class RequestInvoiceDetailComponent implements OnInit {
             }
           }
         },
-        { title: 'Tên file', field: 'fileName', sorter: 'string', width: "60%" },
+        { title: 'Tên file', field: 'fileName', sorter: 'string', width: "70%" },
+      ]
+    })
+  }
+  initDataTable(): void {
+    this.tb_DataTable = new Tabulator(this.tb_DataTableElement.nativeElement, {
+      data: this.products, //sai du lieu
+      layout: 'fitDataFill',
+      movableColumns: true,
+      pagination: true,
+      height:"40vh",
+      paginationSize: 5,
+      columnDefaults: {
+        headerWordWrap: true,
+        headerVertical: false
+      },
+      columns: [
+        { title: 'Mã nội bộ', field: 'ProductNewCode', sorter: 'string', width: "10%" },
+        { title: 'Mã sản phẩm', field: 'ProductSaleID', sorter: 'string', width: "15%" },
+        { title: 'Mã sản phẩm theo Dự án', field: 'ProductFullName', sorter: 'string', width: "15%" },
+        { title: 'Tên sản phẩm', field: 'ProductName', sorter: 'string', width: "15%" },
+        { title: 'ĐVT', field: 'Unit', sorter: 'string', width: "10%" },
+        { title: 'Số lượng', field: 'Quantity', sorter: 'string', width: "10%" },
+        { title: 'Mã dự án', field: 'ProjectCode', sorter: 'string', width: "15%" },
+        { title: 'Dự án', field: 'ProjectID', sorter: 'string', width: "15%" },
+        { title: 'Ghi chú', field: 'Note', sorter: 'string', width: "15%" },
+        { title: 'Thông số kỹ thuật', field: 'Specifications', sorter: 'string', width: "15%" },
+        { title: 'Số hóa đơn', field: 'InvoiceNumber', sorter: 'string', width: "15%" },
+        { title: 'Ngày hóa đơn', field: 'InvoiceDate', sorter: 'string', width: "15%" },
       ]
     })
   }

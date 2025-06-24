@@ -10,12 +10,12 @@
             <!-- Column 1: Customer Info --> 
             <div class="col-md-4 pe-2">
                 <div class="row">
-                    <div class="col-md-12 mb-2">
+                    <div class="col-md-6 mb-2">
                         <label class="mb-0 fs-12">Số phiếu</label>
                         <input type="text" class="form-control form-control-sm fs-12"
                             [(ngModel)]="formData.customerCode" name="customerCode" disabled>
                     </div>
-                    <div class="col-md-12 mb-2">
+                    <div class="col-md-6 mb-2">
                         <label class="mb-0 fs-12">Công ty bán</label>
                         <nz-select nzShowSearch name="taxCompany" nzPlaceHolder="Chọn công ty bán" nzAllowClear
                             nzSize="default" class="w-100" [(ngModel)]="formData.taxCompanyId">
@@ -36,6 +36,11 @@
                         <label class="mb-0 fs-12">Địa chỉ</label>
                         <textarea class="form-control form-control-sm fs-12" [(ngModel)]="formData.address"
                             name="address" rows="3" (ngModelChange)="onFormChange()" style="height: 10px; " disabled></textarea>
+                    </div>
+                    <div class="col-md-12 mb-2">
+                        <label class="mb-0 fs-12">Ghi chú</label>
+                        <textarea class="form-control form-control-sm fs-12" [(ngModel)]="formData.note"
+                            name="note" rows="1" placeholder="Nhập ghi chú"></textarea>
                     </div>
                 </div>
             </div>
@@ -94,39 +99,7 @@
                     <i nz-icon nzType="plus"></i> Thêm sản phẩm
                 </button>
             </div>
-            <nz-table #productTable [nzData]="products" [nzPageSize]="5" [nzShowPagination]="true">
-                <thead>
-                    <tr>
-                        <th>STT</th>
-                        <th>Sản phẩm</th>
-                        <th>Mã sản phẩm</th>
-                        <th>Đơn vị</th>
-                        <th>Số lượng</th>
-                        <th>Dự án</th>
-                        <th>Ghi chú</th>
-                        <th>Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let product of products; let i = index">
-                        <td>{{i + 1}}</td>
-                        <td>{{product.productName}}</td>
-                        <td>{{product.productCode}}</td>
-                        <td>{{product.unit}}</td>
-                        <td>{{product.quantity}}</td>
-                        <td>{{product.projectName}}</td>
-                        <td>{{product.note}}</td>
-                        <td>
-                            <button nz-button nzType="primary" nzSize="small" class="me-1">
-                                <i nz-icon nzType="edit"></i>
-                            </button>
-                            <button nz-button nzType="primary" nzDanger nzSize="small">
-                                <i nz-icon nzType="delete"></i>
-                            </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </nz-table>
+            <div #tb_DataTable></div>
         </div>
     </form>
 

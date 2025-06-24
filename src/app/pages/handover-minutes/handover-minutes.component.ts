@@ -1,4 +1,4 @@
-import { Component, ViewEncapsulation, ViewChild, TemplateRef, ElementRef, Input } from '@angular/core';
+import { Component, ViewEncapsulation, ViewChild, TemplateRef, ElementRef, Input, IterableDiffers } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
@@ -181,6 +181,7 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
       }
     );
   }
+
   onEdit() {
     if (!this.selectedId) {
       this.notification.error("Lỗi", "Vui lòng chọn bản ghi cần sửa")
@@ -244,6 +245,32 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
             this.notification.error('Lỗi', error);
           }
         });
+      }
+    });
+  }
+  onExport() {
+    if (!this.selectedId) {
+      this.notification.error("Lỗi", "Vui lòng chọn bản ghi cần xuất file");
+      return;
+    }
+    const selectedHandover = this.data.find(item => item.ID === this.selectedId);
+    this.HandoverMinutesService.export(this.selectedId).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const now = new Date();
+        const dateString = `${now.getFullYear().toString().slice(-2)}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+        const fileName = `${selectedHandover?.Code || 'export'}_${dateString}.xlsx`;
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        this.notification.success('Thành công', 'Đã xuất file thành công!');
+      },
+      error: () => {
+        this.notification.error('Lỗi', 'Có lỗi xảy ra khi xuất file.');
       }
     });
   }

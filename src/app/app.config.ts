@@ -16,3 +16,5 @@ registerLocaleData(vi);
 export const appConfig: ApplicationConfig = {
   providers: [provideZoneChangeDetection({ eventCoalescing: true }), provideRouter(routes), provideNzIcons(icons), provideNzI18n(vi_VN), importProvidersFrom(FormsModule), provideAnimationsAsync(), provideHttpClient()]
 };
+
+export const API_URL = "https://localhost:7187/";

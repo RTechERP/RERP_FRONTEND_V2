@@ -39,8 +39,9 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 
 import { HandoverMinutesComponent } from '../handover-minutes/handover-minutes.component';
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
-import { HandoverMinutesService } from '../handover-minutes/handover-minutes/handover-minutes.service';
+import { HandoverMinutesDetailService } from '../handover-minutes-detail/handover-minutes-detail/handover-minutes-detail.service';
 import { RequestInvoiceDetailComponent } from '../request-invoice-detail/request-invoice-detail.component';
+import { HandoverMinutesDetailComponent } from '../handover-minutes-detail/handover-minutes-detail.component';
 
 interface GroupedData {
   CustomerName: string;
@@ -104,7 +105,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
   constructor(
     public activeModal: NgbActiveModal,
     private viewPokhService: ViewPokhService,
-    private handoverMinutesService: HandoverMinutesService,
+    private HandoverMinutesDetailService: HandoverMinutesDetailService,
     private modalService: NgbModal,
     private notification: NzNotificationService
   ) { }
@@ -250,7 +251,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
     }));
 
     // Mở 1 modal duy nhất với tất cả các tab
-    const modalRef = this.modalService.open(HandoverMinutesComponent, {
+    const modalRef = this.modalService.open(HandoverMinutesDetailComponent, {
       size: 'xl',
       backdrop: 'static',
       keyboard: false

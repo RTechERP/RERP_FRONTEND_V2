@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_URL } from '../../../app.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ViewPokhService {
-  private _url = 'https://localhost:7187/api/ViewPOKH/'
+  private _url = API_URL + 'api/ViewPOKH/'
   constructor(private http: HttpClient) { }
   loadViewPOKH(datetimeS: Date, datetimeE: Date, employeeTeamSaleId: number, userId: number, poType: number, status: number, customerId: number, keyword: string): Observable<any> {
     return this.http.get<any>(this._url + 'get-viewpokh',{

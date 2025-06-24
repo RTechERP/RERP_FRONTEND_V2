@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_URL } from '../../../app.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class WarehouseReleaseRequestService {
-  private _url = 'https://localhost:7187/api/WarehouseReleaseRequest/';
+  private _url = API_URL + 'api/WarehouseReleaseRequest/';
   constructor(private http: HttpClient) { }
   loadProductGroup(): Observable<any> {
     return this.http.get<any>(this._url + 'get-productgroup');

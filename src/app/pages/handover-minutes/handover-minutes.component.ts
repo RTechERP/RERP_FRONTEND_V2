@@ -19,6 +19,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
+import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { TabulatorFull as Tabulator, RowComponent, CellComponent } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -31,495 +32,287 @@ import { DateTime } from 'luxon';
 import { FormGroup, FormBuilder } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { map, catchError, of, forkJoin } from 'rxjs';
-import * as ExcelJS from 'exceljs';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import * as ExcelJS from 'exceljs';
 
-
-import { HandoverMinutesService } from './handover-minutes/handover-minutes.service';
-import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
-
+import { HandoverMinutesService } from './handover-minutes-service/handover-minutes-service.service';
+import { HandoverMinutesDetailComponent } from '../handover-minutes-detail/handover-minutes-detail.component';
 @Component({
-    selector: 'app-handover-minutes',
-    standalone: true,
-    imports: [CommonModule, FormsModule, NzSelectModule, NzButtonModule, NzTabsModule, NzDropDownModule, NzIconModule, NzModalModule],
-    templateUrl: './handover-minutes.component.html',
-    styleUrl: './handover-minutes.component.css'
+  selector: 'app-handover-minutes',
+  imports: [
+    NzCardModule,
+    FormsModule,
+    ReactiveFormsModule,
+    NzButtonModule,
+    NzIconModule,
+    NzRadioModule,
+    NzSpaceModule,
+    NzLayoutModule,
+    NzFlexModule,
+    NzDrawerModule,
+    NzSplitterModule,
+    NzGridModule,
+    NzDatePickerModule,
+    NzAutocompleteModule,
+    NzInputModule,
+    NzInputNumberModule,
+    NzSelectModule,
+    NzTableModule,
+    NzTabsModule,
+    NzModalModule,
+    NzUploadModule,
+    NzSwitchModule,
+    NzCheckboxModule,
+    CommonModule,
+  ],
+  templateUrl: './handover-minutes.component.html',
+  styleUrl: './handover-minutes.component.css'
 })
 export class HandoverMinutesComponent implements OnInit, AfterViewInit {
-    @ViewChild('handoverMinutesTable', { static: false }) tableElement!: ElementRef;
-    private table!: Tabulator;
+  @ViewChild('tb_MainTable', { static: false }) tb_MainTableElement!: ElementRef;
+  @ViewChild('tb_Detail', { static: false }) tb_DetailTableElement!: ElementRef;
 
-    @Input() groupedData: any[] = []; // Dữ liệu từ component cha truyền vào
-    @Input() isMultipleGroups: boolean = false; // Flag để kiểm tra có nhiều tab không
-    activeTabIndex: number = 0; // Index của tab hiện tại
-    currentTabData: any = null; // Dữ liệu của tab hiện tại
-    savedTabs: Set<number> = new Set(); // Theo dõi các tab đã được lưu
+  private mainTable!: Tabulator;
+  private detailTable!: Tabulator;
 
-    // Form data
-    formData: any = this.getDefaultFormData();
+  constructor(
+    private injector: EnvironmentInjector,
+    private appRef: ApplicationRef,
+    private HandoverMinutesService: HandoverMinutesService,
+    private notification: NzNotificationService,
+    private modal: NzModalService,
+    private modalService: NgbModal,
+  ) { }
 
-    //Lưu trữ form data cho từng tab
-    tabFormData: any[] = []; // Mảng chứa form data cho từng tab 
+  data: any[] = [];
+  dataDetail: any[] = [];
+  selectedId: number = 0;
+  isEditMode: boolean = false;
 
-    // Data arrays
-    deletedHandoverMinutesDetailIds: number[] = [];
-    employeesAndDepartments: any[] = [];
-    customers: any[] = [];
-    products: any[] = [];
-    details: any[] = [];
-    private productStatusOptions = [
-        { value: 1, label: 'Mới' },
-        { value: 2, label: 'Cũ' },
-    ];
-    private deliveryStatusOptions = [
-        { value: 1, label: 'Nhận đủ' },
-        { value: 2, label: 'Thiếu' },
-    ];
 
-    constructor(
-        private modalService: NgbModal,
-        private handoverMinutesService: HandoverMinutesService,
-        public activeModal: NgbActiveModal,
-        private viewPokhService: ViewPokhService,
-        private notification: NzNotificationService,
-        private modal: NzModalService
-    ) { }
+  sizeSearch: string = '0';
+  toggleSearchPanel() {
+    this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+  }
 
-    ngOnInit(): void {
-        // Load dữ liệu cần thiết trước
-        this.loadCustomer();
-        this.loadEmployeeAndDepartment();
-        this.loadProduct();
-        this.initializeTabFormData();
+  filters: any = {
+    filterText: "",
+    startDate: new Date(),
+    endDate: new Date(),
+  };
 
-        // Sau khi load xong customers, mới khởi tạo form data
-        setTimeout(() => {
-            this.loadTabFormData(this.activeTabIndex);
-            // Khởi tạo tab đầu tiên
-            if (this.groupedData && this.groupedData.length > 0) {
-                this.switchTab(0);
-            }
-        }, 170);
-    }
+  ngOnInit(): void {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 30); // Lấy dữ liệu 30 ngày gần nhất
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(23, 59, 59, 999);
+    this.filters.startDate = startDate;
+    this.filters.endDate = endDate;
+    this.loadMainData(this.filters.startDate, this.filters.endDate, this.filters.filterText);
+  }
 
-    ngAfterViewInit(): void {
-    }
-    //#region Hàm tải dữ liệu từ API
-    loadCustomer(): void {
-        this.viewPokhService.loadCustomer().subscribe(
-            response => {
-                if (response.status === 1) {
-                    this.customers = response.data;
-                    // Khởi tạo form data sau khi đã load xong customers
-                    setTimeout(() => {
-                        this.initializeTabFormData();
-                    }, 1);
-                } else {
-                    this.notification.error('Lỗi khi tải Customer:', response.message);
-                }
-            },
-            error => {
-                this.notification.error('Lỗi kết nối khi tải Customer:', error);
-            }
-        );
-    }
-    loadEmployeeAndDepartment(): void {
-        this.handoverMinutesService.loadEmployeeAndDepartment().subscribe(
-            response => {
-                if (response.status === 1) {
-                    // Sort employees by FullName alphabetically
-                    this.employeesAndDepartments = response.data.sort((a: any, b: any) =>
-                        a.Employee.FullName.localeCompare(b.Employee.FullName, 'vi')
-                    );
-                    console.log("Employees and Departments:", this.employeesAndDepartments);
-                } else {
-                    this.notification.error('Lỗi khi tải Employee và Department:', response.message);
-                }
-            },
-            error => {
-                this.notification.error('Lỗi kết nối khi tải Employee và Department:', error);
-            }
-        );
-    }
-    loadProduct(): void {
-        this.handoverMinutesService.loadPOKHDetail().subscribe(
-            response => {
-                if (response.status === 1) {
-                    this.products = response.data[0];
-                    this.initTable();
-                    setTimeout(() => {
-                        if (this.details.length > 0) {
-                            this.updateTableWithPOCode();
-                        }
-                    }, 1);
-                } else {
-                    this.notification.error('Lỗi khi tải products:', response.message);
-                }
-            },
-            error => {
-                this.notification.error('Lỗi kết nối khi tải products:', error);
-            }
-        );
-    }
-    //#endregion
-    //#region Vẽ bảng
-    initTable(): void {
-        this.table = new Tabulator(this.tableElement.nativeElement, {
-            data: this.details,
-            height: '400px',
-            layout: 'fitColumns',
-            reactiveData: true,
-            resizableRows: true,
-            movableColumns: true,
-            columns: [
-                {
-                    title: '', field: 'actions', formatter: (cell) => {
-                        return `<i class="bi bi-trash3 text-danger delete-btn" style="font-size:15px; cursor: pointer;"></i>`;
-                    },
-                    width: '5%',
-                    hozAlign: "center",
-                    cellClick: (e, cell) => {
-                        if ((e.target as HTMLElement).classList.contains('delete-btn')) {
-                            this.modal.confirm({
-                                nzTitle: 'Xác nhận xóa',
-                                nzContent: 'Bạn có chắc chắn muốn xóa người dòng này?',
-                                nzOkText: 'Đồng ý',
-                                nzCancelText: 'Hủy',
-                                nzOnOk: () => {
-                                    const row = cell.getRow();
-                                    const rowData = row.getData();
-
-                                    // thêm id của người phụ trách đã xóa vào mảng deletedHandoverMinutesDetailIds
-                                    if (rowData['ID']) {
-                                        this.deletedHandoverMinutesDetailIds.push(rowData['ID']);
-                                    }
-                                    console.log('deletedHandoverMinutesDetailIds:', this.deletedHandoverMinutesDetailIds);
-
-                                    row.delete();
-                                    this.details = this.table.getData();
-                                }
-                            });
-                        }
-                    }
-                },
-                { title: 'STT', field: 'STT', width: 60, hozAlign: 'center' },
-                {
-                    title: 'Số PO / Số hợp đồng', field: 'POCode', width: 120, editor: "list", editorParams: {
-                        values: this.products.map((product) => ({
-                            label: product.POCode,
-                            value: product.POKHDetailID
-                        }))
-                    }, formatter: (cell) => {
-                        const value = cell.getValue();
-                        const product = this.products.find(p => p.POKHDetailID === value);
-                        return product ? product.POCode : value;
-                    }
-                },
-                { title: 'Mã sản phẩm', field: 'ProductCode', width: 120, editor: "input" },
-                { title: 'Tên sản phẩm', field: 'ProductName', width: 200, editor: "input" },
-                { title: 'Hãng', field: 'Maker', width: 100, editor: "input" },
-                { title: 'Số lượng', field: 'Quantity', width: 100, hozAlign: 'right', editor: "input" },
-                { title: 'SL còn lại', field: 'QuantityPending', width: 100, hozAlign: 'right' },
-                { title: 'ĐVT', field: 'Unit', width: 100, editor: "input" },
-                {
-                    title: 'Tình trạng hàng', field: 'ProductStatus', width: 120, editor: "list", editorParams: {
-                        values: this.productStatusOptions.map(option => ({
-                            label: option.label,
-                            value: option.value
-                        })),
-                    }, formatter: (cell) => {
-                        const value = cell.getValue();
-                        const option = this.productStatusOptions.find(opt => opt.value === value);
-                        return option ? option.label : value;
-                    }
-                },
-                { title: 'Bảo hành', field: 'Guarantee', width: 100, editor: "input" },
-                {
-                    title: 'Tình trạng giao hàng (Nhận đủ/ Thiếu)', field: 'DeliveryStatus', width: 150, editor: "list", editorParams: {
-                        values: this.deliveryStatusOptions.map(option => ({
-                            label: option.label,
-                            value: option.value
-                        }))
-                    }, formatter: (cell) => {
-                        const value = cell.getValue();
-                        const option = this.deliveryStatusOptions.find(opt => opt.value === value);
-                        return option ? option.label : value;
-                    }
-                },
-            ],
-        });
-
-        this.table.on('cellEdited', (cell: CellComponent) => {
-            if (cell.getColumn().getField() === 'POCode') {
-                const pokhDetailId = cell.getValue();
-                const selectedProduct = this.products.find(p => p.POKHDetailID === pokhDetailId);
-
-                if (selectedProduct) {
-                    const row = cell.getRow();
-                    row.update({
-                        ProductCode: selectedProduct.ProductCode,
-                        ProductName: selectedProduct.ProductName,
-                        Maker: selectedProduct.Maker,
-                        Quantity: selectedProduct.Quantity,
-                        Unit: selectedProduct.Unit
-                    });
-                }
-            }
-        });
-    }
-    //#endregion
-    //#region Xử lý sự kiện
-    saveAndClose(): void {
-        if(!this.validateForm()){
-            return;
+  ngAfterViewInit(): void {
+    this.initDetailTable();
+  }
+  loadMainData(startDate: Date, endDate: Date, keywords: string): void {
+    // Đặt giờ bắt đầu là 00:00:00 và giờ kết thúc là 23:59:59
+    const start = new Date(startDate);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+    this.HandoverMinutesService.getHandoverMinutes(start, end, keywords).subscribe({
+      next: (response) => {
+        if (response.status === 1) {
+          this.data = response.data;
+          this.initMainTable();
+          if (this.mainTable) {
+            this.mainTable.setData(this.data);
+          }
+        } else {
+          this.notification.error('Lỗi', response.message);
         }
-        // Lưu form data của tab hiện tại
-        this.saveCurrentTabFormData();
+      },
+      error: (error) => {
+        this.notification.error('Lỗi', error);
+      }
+    });
+  }
+  loadDetailData(id: number): void {
+    this.HandoverMinutesService.getDetail(id).subscribe({
+      next: (response) => {
+        if (response.status === 1) {
+          this.dataDetail = response.data;
+          if (this.detailTable) {
+            this.detailTable.setData(this.dataDetail);
+          }
+        } else {
+          this.notification.error('Lỗi', response.message);
+        }
+      },
+      error: (error) => {
+        this.notification.error('Lỗi', error);
+      }
+    });
+  }
+  openModal() {
+    const modalRef = this.modalService.open(HandoverMinutesDetailComponent, {
+      centered: true,
+      size: "xl",
+      backdrop: 'static',
+    });
+    modalRef.componentInstance.groupedData = [{
+      ID: 0,
+      items: [],
+    }];
+    modalRef.componentInstance.isMultipleGroups = false;
 
-        // Chuẩn bị dữ liệu để gửi lên server
-        const currentFormData = this.tabFormData[this.activeTabIndex];
-        const currentDetails = this.details;
+    modalRef.result.then(
+      (result) => {
+        if (result.success && result.reloadData) {
+          this.loadMainData(this.filters.startDate, this.filters.endDate, this.filters.filterText);
+        }
+      },
+      (reason) => {
+        console.log('Modal closed');
+      }
+    );
+  }
+  onEdit() {
+    if (!this.selectedId) {
+      this.notification.error("Lỗi", "Vui lòng chọn bản ghi cần sửa")
+      return;
+    }
 
-        const handoverMinutesData = {
-            ID: this.currentTabData?.ID || 0,
-            DateMinutes: currentFormData.dateMinutes,
-            CustomerID: currentFormData.customerId,
-            CustomerAddress: currentFormData.customerAddress,
-            CustomerContact: currentFormData.customerContact,
-            CustomerPhone: currentFormData.customerPhone,
-            EmployeeID: currentFormData.employeeName,
-            Receiver: currentFormData.receiver,
-            ReceiverPhone: currentFormData.receiverPhone,
-            AdminWarehouseID: currentFormData.adminWarehouse,
-            Details: currentDetails.map((detail, index) => ({
-                ID: detail.ID || 0,
-                STT: index + 1,
-                POKHDetailID: detail.POKHDetailID,
-                Quantity: detail.Quantity,
-                ProductStatus: detail.ProductStatus,
-                Guarantee: detail.Guarantee,
-                DeliveryStatus: detail.DeliveryStatus
-            }))
-        };
-
-        // Gọi API để lưu dữ liệu
-        this.handoverMinutesService.save(handoverMinutesData).subscribe({
-            next: (response) => {
-                if (response.status === 1) {
-                    // Đánh dấu tab hiện tại đã được lưu
-                    this.savedTabs.add(this.activeTabIndex);
-
-                    // Kiểm tra nếu tất cả các tab đã được lưu thì mới đóng modal
-                    if (this.savedTabs.size === this.groupedData.length) {
-                        this.activeModal.close({ success: true, reloadTable: true });
-                    }
-                } else {
-                    this.notification.error('Lỗi khi lưu biên bản:', response.message);
-                }
+    this.HandoverMinutesService.getDetail(this.selectedId).subscribe({
+      next: (response) => {
+        if (response.status === 1) {
+          const DetailDATA = response.data;
+          const MainData = this.data.find(item => item.ID === this.selectedId);
+          const groupedData = [{
+            MainData: MainData,
+            ID: this.selectedId,
+            items: DetailDATA,
+          }];
+          const modalRef = this.modalService.open(HandoverMinutesDetailComponent, {
+            centered: true,
+            size: "xl",
+            backdrop: 'static'
+          });
+          modalRef.componentInstance.groupedData = groupedData;
+          modalRef.componentInstance.isMultipleGroups = false;
+          modalRef.componentInstance.isEditMode = true;
+          modalRef.result.then(
+            (result) => {
+              if (result.success && result.reloadData) {
+                this.loadMainData(this.filters.startDate, this.filters.endDate, this.filters.filterText);
+              }
             },
-            error: (error) => {
-                console.error('Lỗi kết nối khi lưu biên bản:', error);
+            (reason) => {
+              console.log('Modal closed');
             }
-        });
-    }
-    closeModal(): void {
-        this.activeModal.close({ reloadTable: this.savedTabs.size > 0 });
-    }
-    onEmployeeChange(employeeId: number): void {
-        const selectedEmployee = this.employeesAndDepartments.find(emp => emp.Employee.ID === employeeId);
-        if (selectedEmployee) {
-            this.formData.departmentName = selectedEmployee.Department?.Name || '';
-            this.formData.emailCaNhan = selectedEmployee.Employee.EmailCaNhan || '';
-            this.formData.employeePhone = selectedEmployee.Employee.SDTCaNhan || '';
+          );
+        } else {
+          this.notification.error('Lỗi', response.message);
         }
-        this.saveCurrentTabFormData();
-    }
-    onCustomerChange(customerId: number): void {
-        const selectedCustomer = this.customers.find(cust => cust.ID === customerId);
-        console.log("Customer đã chọn: ", selectedCustomer);
-        if (selectedCustomer) {
-            this.formData.customerId = selectedCustomer.ID;
-            this.formData.customerName = selectedCustomer.CustomerName;
-            this.formData.customerAddress = selectedCustomer.Address || '';
-            this.formData.customerContact = selectedCustomer.ContactPerson || '';
-            this.formData.customerPhone = selectedCustomer.Phone || '';
-        }
-        this.saveCurrentTabFormData();
-    }
-    // Hàm chuyển tab 
-    switchTab(index: number): void {
-        // Lưu form data và dữ liệu bảng của tab hiện tại
-        this.saveCurrentTabFormData();
-        if (this.table) {
-            const currentTableData = this.table.getData();
-            if (this.activeTabIndex >= 0 && this.activeTabIndex < this.tabFormData.length) {
-                this.tabFormData[this.activeTabIndex].tableData = currentTableData;
-            }
-        }
-
-        // Chuyển sang tab mới
-        this.activeTabIndex = index;
-        this.currentTabData = this.groupedData[index];
-
-        // Load form data của tab mới
-        this.loadTabFormData(index);
-
-        // Cập nhật dữ liệu bảng
-        if (this.currentTabData) {
-            // Kiểm tra xem có dữ liệu đã lưu của tab này không
-            const savedTableData = this.tabFormData[index]?.tableData;
-            if (savedTableData) {
-                this.details = savedTableData;
+      },
+      error: (error) => {
+        this.notification.error('Lỗi', error);
+      }
+    });
+  }
+  onDelete() {
+    this.modal.confirm({
+      nzTitle: 'Bạn có chắc chắn muốn xóa?',
+      nzContent: 'Hành động này không thể hoàn tác.',
+      nzOkText: 'Xóa',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        this.HandoverMinutesService.delete(this.selectedId).subscribe({
+          next: (response) => {
+            if (response.status === 1) {
+              this.notification.success('Thành công', 'Đã xóa thành công!');
+              this.loadMainData(this.filters.startDate, this.filters.endDate, this.filters.filterText);
             } else {
-                this.details = this.currentTabData.items || [];
-                // Cập nhật POCode cho dữ liệu details
-                if (this.products.length > 0) {
-                    this.details = this.updateDetailsWithPOCode(this.details);
-                }
+              this.notification.error('Lỗi', response.message);
             }
-            // Cập nhật bảng với dữ liệu mới
-            if (this.table) {
-                this.table.setData(this.details);
-            }
-        }
-    }
-    onFormChange(): void {
-        // Tự động lưu khi có thay đổi
-        this.saveCurrentTabFormData();
-    }
-    //#endregion
-    //#region Xử lý dữ liệu 
-    validateForm(): boolean {
-        if (this.formData.dateMinutes < 0) {
-            this.notification.warning('Thông báo', 'Xin hãy chọn ngày nhập.');
-            return false;
-        }
-        if (!this.formData.employeeName) {
-            this.notification.warning('Thông báo', 'Xin hãy chọn nhân viên.');
-            return false;
-        }
-        if (!this.formData.employeePhone) {
-            this.notification.warning('Thông báo', 'Xin hãy nhập số điện thoại nhân viên.');
-            return false;
-        }
-        if (!this.formData.emailCaNhan) {
-            this.notification.warning('Thông báo', 'Xin hãy nhập email nhân viên.');
-            return false;
-        }
-        if (!this.formData.customerId) {
-            this.notification.warning('Thông báo', 'Xin hãy chọn khách hàng.');
-            return false;
-        }
-        if (!this.formData.customerContact) {
-            this.notification.warning('Thông báo', 'Xin hãy nhập liên hệ khách hàng.');
-            return false;
-        }
-        if (!this.formData.customerPhone) {
-            this.notification.warning('Thông báo', 'Xin hãy nhập số điện thoại khách hàng');
-            return false;
-        }
-        if (!this.formData.customerAddress) {
-            this.notification.warning('Thông báo', 'Xin hãy nhập địa chỉ khách hàng');
-            return false;
-        }
-        if (!this.formData.receiver) {
-            this.notification.warning('Thông báo', 'Xin hãy điền người nhận');
-            return false;
-        }
-        if (!this.formData.receiverPhone) {
-            this.notification.warning('Thông báo', 'Xin hãy điền số điện thoại người nhận');
-            return false;
-        }
-        if (!this.formData.adminWarehouse) {
-            this.notification.warning('Thông báo', 'Xin hãy điền thủ kho');
-            return false;
-        }
-        return true;
-    }
-    // Hàm tạo form data mặc định
-    getDefaultFormData(): any {
-        return {
-            dateMinutes: new Date().toISOString().split('T')[0],
-            employeeName: null,
-            employeePhone: '',
-            emailCaNhan: '',
-            departmentName: '', 
-            customerId: null,
-            customerName: null,
-            customerContact: '',
-            customerPhone: '',
-            customerAddress: '',
-            receiver: '',
-            receiverPhone: '',
-            adminWarehouse: null
-        };
-    }
-    saveCurrentTabFormData(): void {
-        if (this.activeTabIndex >= 0 && this.activeTabIndex < this.tabFormData.length) {
-            this.tabFormData[this.activeTabIndex] = { ...this.formData };
-        }
-    }
+          },
+          error: (error) => {
+            this.notification.error('Lỗi', error);
+          }
+        });
+      }
+    });
+  }
 
-    // Load form data từ tab
-    loadTabFormData(tabIndex: number): void {
-        if (tabIndex >= 0 && tabIndex <= this.tabFormData.length) {
-            this.formData = { ...this.tabFormData[tabIndex] };
-        }
-    }
-    // Khởi tạo form data cho từng tab
-    initializeTabFormData(): void {
-        this.tabFormData = [];
-        for (let i = 0; i < this.groupedData.length; i++) {
-            const defaultForm = this.getDefaultFormData();
-            // Lấy CustomerID từ items
-            const customerId = this.groupedData[i].items.find((item: any) => item.CustomerID)?.CustomerID;
-            if (customerId) {
-                defaultForm.customerId = customerId;
-                // Tìm thông tin chi tiết khách hàng từ mảng customers
-                const customerDetail = this.customers.find(c => c.ID === customerId);
-                if (customerDetail) {
-                    defaultForm.customerName = customerDetail.CustomerName;
-                    defaultForm.customerAddress = customerDetail.Address || '';
-                    defaultForm.customerContact = customerDetail.ContactEmail || '';
-                    defaultForm.customerPhone = customerDetail.ContactPhone || '';
-                }
-            }
-            // Set employee information if available
-            defaultForm.employeeName = this.groupedData[i].employeeName;
-            this.tabFormData.push(defaultForm);
-        }
-    }
-    //#endregion
-    //#region Hàm xử lý POCode
-    // Hàm lấy POCode từ POKHDetailID
-    getPOCodeByDetailID(pokhDetailId: number): string {
-        const product = this.products.find((p: any) => p.POKHDetailID == pokhDetailId);
-        return product ? product.POCode : '';
-    }
-
-    // Hàm cập nhật dữ liệu với POCode
-    updateDetailsWithPOCode(details: any[]): any[] {
-        return details.map(detail => ({
-            ...detail,
-            POCode: this.getPOCodeByDetailID(detail.POKHDetailID)
-        }));
-    }
-
-    // Hàm cập nhật bảng với POCode
-    updateTableWithPOCode(): void {
-        if (this.table && this.details.length > 0) {
-            const updatedDetails = this.updateDetailsWithPOCode(this.details);
-            this.details = updatedDetails;
-            this.table.setData(updatedDetails);
-        }
-    }
-    //#endregion
-
-    // Thêm hàm kiểm tra tab đã được lưu chưa
-    isTabSaved(tabIndex: number): boolean {
-        return this.savedTabs.has(tabIndex);
-    }
-} 
+  initMainTable(): void {
+    this.mainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
+      data: this.data,
+      layout: 'fitDataFill',
+      height: '100%',
+      selectableRows: 1,
+      pagination: true,
+      paginationSize: 50,
+      movableColumns: true,
+      resizableRows: true,
+      reactiveData: true,
+      columnDefaults: {
+        headerWordWrap: true,
+        headerVertical: false,
+        headerHozAlign: "center",
+        minWidth: 60,
+        resizable: true
+      },
+      columns: [
+        { title: 'STT', field: 'STT', sorter: 'string', width: 50 },
+        { title: 'Mã biên bản', field: 'Code', sorter: 'string', width: 150 },
+        {
+          title: 'Ngày lập', field: 'DateMinutes', sorter: 'string', width: 150, formatter: (cell) => {
+            const value = cell.getValue();
+            return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
+          }
+        },
+        { title: 'Tên khách hàng', field: 'CustomerName', sorter: 'string', width: 150 },
+        { title: 'Địa chỉ', field: 'CustomerAddress', sorter: 'string', width: 150 },
+        { title: 'Người liên hệ', field: 'CustomerContact', sorter: 'string', width: 150 },
+        { title: 'SDT khách hàng', field: 'CustomerPhone', sorter: 'string', width: 150 },
+        { title: 'Nhân viên', field: 'FullName', sorter: 'string', width: 150 },
+        { title: 'Bộ phận', field: 'DepartmentName', sorter: 'string', width: 150 },
+        { title: 'Email', field: 'EmailCaNhan', sorter: 'string', width: 150 },
+        { title: 'SDT nhân viên', field: 'SDTCaNhan', sorter: 'string', width: 150 },
+        { title: 'Người nhận', field: 'Receiver', sorter: 'string', width: 150 },
+        { title: 'SDT người nhận', field: 'ReceiverPhone', sorter: 'string', width: 150 },
+      ]
+    });
+    this.mainTable.on('rowClick', (e: any, row: RowComponent) => {
+      const ID = row.getData()['ID'];
+      this.selectedId = ID;
+      this.loadDetailData(ID);
+    });
+  }
+  initDetailTable(): void {
+    this.detailTable = new Tabulator(this.tb_DetailTableElement.nativeElement, {
+      data: this.dataDetail,
+      layout: 'fitDataFill',
+      movableColumns: true,
+      height: "88.5vh",
+      resizableRows: true,
+      reactiveData: true,
+      columns: [
+        { title: 'STT', field: 'STT', sorter: 'string', width: 80 },
+        { title: 'Số PO / Số Hợp đồng', field: 'POCode', sorter: 'string', width: 200 },
+        { title: 'Tên sản phẩm', field: 'ProductName', sorter: 'string', width: 150 },
+        { title: 'Mã sản phẩm', field: 'ProductCode', sorter: 'string', width: 150 },
+        { title: 'Hãng sản xuất', field: 'Maker', sorter: 'string', width: 150 },
+        { title: 'Số lượng', field: 'Quantity', sorter: 'string', width: 100 },
+        { title: 'ĐVT', field: 'Unit', sorter: 'string', width: 100 },
+        { title: 'Tình trạng hàng', field: 'ProductStatus', sorter: 'string', width: 200 },
+        { title: 'Bảo hành', field: 'Guarantee', sorter: 'string', width: 200 },
+        { title: 'Tình trạng giao hàng(Nhận đủ/Thiếu)', field: 'DeliveryStatus', sorter: 'string', width: 200 },
+      ]
+    });
+  }
+}

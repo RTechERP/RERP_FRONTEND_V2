@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_URL } from '../../../app.config';
 
 @Injectable({
   providedIn: 'root'
 })
-export class HandoverMinutesService {
-  private _url = 'https://localhost:7187/api/HandoverMinutes/';
+export class HandoverMinutesDetailService {
+  private _url = API_URL + 'api/HandoverMinutesDetail/';
 
   constructor(private http: HttpClient) { }
 

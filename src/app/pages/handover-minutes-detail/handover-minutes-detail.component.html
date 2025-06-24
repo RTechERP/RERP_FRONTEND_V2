@@ -1,0 +1,128 @@
+<!-- handover-minutes.component.html -->
+<div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">BIÊN BẢN GIAO HÀNG</h6>
+    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body">
+    <!-- Hiển thị tabs nếu có nhiều nhóm -->
+    <div *ngIf="isMultipleGroups" class="mb-3">
+        <nz-tabset [nzSelectedIndex]="activeTabIndex" (nzSelectedIndexChange)="switchTab($event)">
+            <nz-tab *ngFor="let group of groupedData; let i = index"
+                [nzTitle]="'Biên bản ' + i + ' - ID: ' + group.items[0].POKHDetailID">
+            </nz-tab>
+        </nz-tabset>
+    </div>
+
+    <!-- Nội dung tab hiện tại -->
+    <div class="tab-content" *ngIf="currentTabData">
+        <form>
+            <div class="row g-1">
+                <!-- Column 1: Customer Info -->
+                <div class="col-md-4">
+                    <div class="row g-1">
+                        <div class="col-md-12">
+                            <label class="mb-0 fs-12">Tên khách hàng</label>
+                            <nz-select nzShowSearch name="customerId" nzPlaceHolder="Chọn khách hàng" nzAllowClear
+                                nzSize="default" class="w-100" [(ngModel)]="formData.customerId"
+                                (ngModelChange)="onCustomerChange($event)">
+                                <nz-option *ngFor="let customer of customers" [nzValue]="customer.ID"
+                                    [nzLabel]="customer.CustomerName"></nz-option>
+                            </nz-select>
+                        </div>
+                        <div class="col-md-12 mt-1">
+                            <label class="mb-0 fs-12">Địa chỉ</label>
+                            <textarea class="form-control form-control-sm fs-12" [(ngModel)]="formData.customerAddress"
+                                name="customerAddress" rows="4" (ngModelChange)="onFormChange()"></textarea>
+                        </div>
+                        <div class="col-md-6 mt-1">
+                            <label class="mb-0 fs-12">Liên hệ</label>
+                            <input type="text" class="form-control form-control-sm fs-12"
+                                [(ngModel)]="formData.customerContact" name="customerContact"
+                                (ngModelChange)="onFormChange()">
+                        </div>
+                        <div class="col-md-6 mt-1">
+                            <label class="mb-0 fs-12">SĐT liên hệ</label>
+                            <input type="text" class="form-control form-control-sm fs-12"
+                                [(ngModel)]="formData.customerPhone" name="customerPhone"
+                                (ngModelChange)="onFormChange()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column 2: Employee Info -->
+                <div class="col-md-4">
+                    <div class="row g-1">
+                        <div class="col-md-12">
+                            <label class="mb-0 fs-12">Tên nhân viên</label>
+                            <nz-select nzShowSearch name="employeeId" nzPlaceHolder="Chọn nhân viên" nzAllowClear
+                                nzSize="default" class="w-100" [(ngModel)]="formData.employeeId"
+                                (ngModelChange)="onEmployeeChange($event)">
+                                <nz-option *ngFor="let employee of employeesAndDepartments"
+                                    [nzValue]="employee.Employee.ID" [nzLabel]="employee.Employee.FullName"></nz-option>
+                            </nz-select>
+                        </div>
+                        <div class="col-md-12 mt-1">
+                            <label class="mb-0 fs-12">Bộ phận</label>
+                            <input type="text" class="form-control form-control-sm fs-12"
+                                [(ngModel)]="formData.departmentName" name="departmentName" disabled>
+                        </div>
+                        <div class="col-md-12 mt-1">
+                            <label class="mb-0 fs-12">Email nhân viên</label>
+                            <input type="email" class="form-control form-control-sm fs-12"
+                                [(ngModel)]="formData.emailCaNhan" name="emailCaNhan" disabled>
+                        </div>
+                        <div class="col-md-12 mt-1">
+                            <label class="mb-0 fs-12">SĐT nhân viên</label>
+                            <input type="text" class="form-control form-control-sm fs-12"
+                                [(ngModel)]="formData.employeePhone" name="employeePhone" disabled>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column 3: Handover Info -->
+                <div class="col-md-4">
+                    <div class="row g-1">
+                        <div class="col-md-12">
+                            <label class="mb-0 fs-12">Ngày lập</label>
+                            <input type="date" class="form-control form-control-sm fs-12"
+                                [(ngModel)]="formData.dateMinutes" name="dateMinutes" (ngModelChange)="onFormChange()">
+                        </div>
+                        <div class="col-md-12 mt-1">
+                            <label class="mb-0 fs-12">Thủ kho</label>
+                            <nz-select nzShowSearch name="adminWarehouseId" nzPlaceHolder="Chọn thủ kho" nzAllowClear
+                                nzSize="default" class="w-100" [(ngModel)]="formData.adminWarehouse"
+                                (ngModelChange)="onFormChange()">
+                                <nz-option *ngFor="let employee of employeesAndDepartments"
+                                    [nzValue]="employee.Employee.ID" [nzLabel]="employee.Employee.FullName"></nz-option>
+                            </nz-select>
+                        </div>
+                        <div class="col-md-12 mt-1">
+                            <label class="mb-0 fs-12">Người nhận</label>
+                            <input type="text" class="form-control form-control-sm fs-12"
+                                [(ngModel)]="formData.receiver" name="receiver" (ngModelChange)="onFormChange()">
+                        </div>
+                        <div class="col-md-12 mt-1">
+                            <label class="mb-0 fs-12">SĐT người nhận</label>
+                            <input type="text" class="form-control form-control-sm fs-12"
+                                [(ngModel)]="formData.receiverPhone" name="receiverPhone"
+                                (ngModelChange)="onFormChange()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button nz-button nzType="primary" nzSize="small" (click)="addNewRow()">
+                <nz-icon nzType="plus"></nz-icon> Thêm dòng
+            </button>
+            <div class="mt-2">
+                <div #handoverMinutesTable></div>
+            </div>
+        </form>
+
+        <div class="modal-footer py-1">
+            <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
+            <button nz-button nzType="primary" nzSize="default" (click)="saveAndClose()"
+                [disabled]="isTabSaved(activeTabIndex)">{{isTabSaved(activeTabIndex) ? 'Biên bản đã được lưu' :
+                'Lưu'}}</button>
+        </div>
+    </div>

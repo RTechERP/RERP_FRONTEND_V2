@@ -1,12 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-
+import { API_URL } from '../../../app.config';
 @Injectable({
   providedIn: 'root'
 })
 export class PokhService {
-  private _url = 'https://localhost:7187/api/POKH/';
+  private _url = API_URL + 'api/POKH/';
   constructor(private http: HttpClient) { }
 
   getPOKH(filterText: string, pageNumber: number, pageSize: number, customerId: number, userId: number, POType: number, status: number, group: number, startDate: Date, endDate: Date, warehouseId: number, employeeTeamSaleId: number): Observable<any> {

@@ -993,12 +993,21 @@ export class PokhComponent implements OnInit, AfterViewInit {
       CurrencyID: this.poFormData.currencyId || 0,
       Year: poDate.getFullYear(),
       Month: poDate.getMonth() + 1,
-      IsDeleted: false
+      IsDeleted: false,
     };
   }
   calculateTotalMoneyKoVAT() {
-    return this.tb_ProductDetailTreeList.getData()
-      .reduce((total: number, row: any) => total + (row.qty * row.unitPrice), 0);
+    let total = 0;
+    const processRows = (rows: any[]) => {
+      rows.forEach(row => {
+        total += Number(row.IntoMoney) || 0;
+        if (row._children && Array.isArray(row._children)) {
+          processRows(row._children);
+        }
+      });
+    };
+    processRows(this.tb_ProductDetailTreeList.getData());
+    return total;
   }
   formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('vi-VN', {

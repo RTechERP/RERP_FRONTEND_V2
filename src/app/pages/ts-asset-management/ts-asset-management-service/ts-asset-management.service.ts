@@ -18,6 +18,10 @@ export class AssetsManagementService {
     const url = `${API_ORIGIN}api/Assets/get-allocation-detail?id=${id}`;
     return this.httpclient.get<any>(url);
   }
+    getAssetRepair(assetManagementID: number): Observable<any> {
+    const url = `${API_ORIGIN}api/Assets/get-repair?assetManagementID=${assetManagementID}`;
+    return this.httpclient.get<any>(url);
+  }
   getAsset(request: any) {
     return this.httpclient.post<any>(`${this.urlGetAssets}`, request);
   }

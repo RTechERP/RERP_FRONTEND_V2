@@ -194,5 +194,4 @@ export class TsAssetManagementFormComponent implements OnInit, AfterViewInit {
     this.closeModal.emit();
     this.activeModal.dismiss('cancel');
   }
-
 }

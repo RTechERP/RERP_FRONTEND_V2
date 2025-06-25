@@ -121,13 +121,7 @@ export class TsAssetTransferFormComponent implements OnInit {
           { title: 'AssetManagementID', field: 'AssetManagementID', hozAlign: 'center', width: 60, visible:false },
           { title: 'TSTranferAssetID', field: 'TSTranferAssetID', hozAlign: 'center', width: 60 , visible:false},
           { title: 'ID', field: 'ID', hozAlign: 'center', width: 60, visible:false },
-          {
-            title: 'STT',
-            hozAlign: 'center',
-            width: 60,
-            formatter: "rownum"
-          },
-
+          {title: 'STT',hozAlign: 'center',width: 60,formatter: "rownum"},
           { title: 'Mã tài sản', field: 'TSCodeNCC' },
           { title: 'Số lượng', field: 'Quantity', hozAlign: 'center' },
           { title: 'Tên tài sản', field: 'TSAssetName' },

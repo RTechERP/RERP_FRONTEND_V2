@@ -33,4 +33,9 @@ export class AssetsRecoveryService {
   saveAssetRecovery(assetrecovery: any): Observable<any> {
     return this.http.post<any>(this.urlSaveRecovery, assetrecovery)
   }
+    exportRecoveryReport(request: any): Observable<Blob> {
+    return this.http.post(`${API_ORIGIN}api/AssetsRecovery/export-recovery-asset-report`, request, {
+      responseType: 'blob'
+    });
+  }
 }

@@ -8,8 +8,8 @@ import { API_ORIGIN } from '../../../app.config';
 })
 export class TsAssetTransferService {
   private url = `${API_ORIGIN}api/AssetTranfer/`;
-constructor(private http: HttpClient) { }
-getAssetTranferDetail(id: number): Observable<any> {
+  constructor(private http: HttpClient) { }
+  getAssetTranferDetail(id: number): Observable<any> {
     const url = `${this.url + `get-asset-tranfer-detail`}?id=${id}`;
     return this.http.get<any>(url);
   }
@@ -23,4 +23,10 @@ getAssetTranferDetail(id: number): Observable<any> {
     const params = new HttpParams().set('transferDate', transferDate);
     return this.http.get<{ status: number, data: string }>(`${API_ORIGIN}api/AssetTranfer/get-asset-tranfer-code`, { params });
   }
+  exportTransferReport(request: any): Observable<Blob> {
+    return this.http.post(`${this.url}export-transfer-asset-report`, request, {
+      responseType: 'blob'
+    });
+  }
+
 }

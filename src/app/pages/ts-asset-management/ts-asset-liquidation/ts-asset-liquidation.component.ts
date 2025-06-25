@@ -1,13 +1,5 @@
 import { NzNotificationService } from 'ng-zorro-antd/notification'
-import {
-  Component,
-  OnInit,
-  Input,
-  Output,
-  EventEmitter,
-  inject,
-  AfterViewInit
-} from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, inject, AfterViewInit } from '@angular/core';
 import { DateTime } from 'luxon';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -22,12 +14,10 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { AssetsManagementService } from '../ts-asset-management-service/ts-asset-management.service';
 import { TsAssetManagementPersonalService } from '../../ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
-import { UnitService } from '../../ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
-import { TypeAssetsService } from '../../ts-asset-type/ts-asset-type-service/ts-asset-type.service';
-import { AssetsService } from '../../ts-asset-source/ts-asset-source-service/ts-asset-source.service';
+
 @Component({
-  standalone: true,
-  imports: [
+  standalone:true,
+    imports: [
     CommonModule,
     FormsModule,
     NzTabsModule,
@@ -39,32 +29,31 @@ import { AssetsService } from '../../ts-asset-source/ts-asset-source-service/ts-
     NzButtonModule,
     NzModalModule,
   ],
-  selector: 'app-ts-asset-management-report-loss-form',
-  templateUrl: './ts-asset-management-report-loss-form.component.html',
-  styleUrls: ['./ts-asset-management-report-loss-form.component.css']
+  selector: 'app-ts-asset-liquidation',
+  templateUrl: './ts-asset-liquidation.component.html',
+  styleUrls: ['./ts-asset-liquidation.component.css']
 })
-export class TsAssetManagementReportLossFormComponent implements OnInit, AfterViewInit {
+export class TsAssetLiquidationComponent implements OnInit, AfterViewInit {
   @Input() dataInput: any; // nhận từ component cha
   @Output() closeModal = new EventEmitter<void>();
   @Output() formSubmitted = new EventEmitter<void>();
+  constructor(private notification: NzNotificationService) { }
   private assetService = inject(AssetsManagementService);
   public activeModal = inject(NgbActiveModal);
-  constructor(private notification: NzNotificationService) { }
+  private assetManagementPersonalService = inject(TsAssetManagementPersonalService);
   assetData: any[] = [];
   emPloyeeLists: any[] = [];
-  dateLostReport: DateTime = DateTime.now();
+dateLiquidation:string="";
   reason: string = "";
-  ngAfterViewInit(): void {
-  }
+  employeeIDLiqui: number | null = null;
   ngOnInit() {
-    this.loadAsset();
-    this.dataInput.DateBuy = this.formatDateForInput(this.dataInput.DateBuy);
+    this.dateLiquidation = DateTime.now().toFormat('yyyy-MM-dd');
   }
-  formatDateForInput(dateString: string): string {
-    if (!dateString) return '';
-    return DateTime.fromISO(dateString).toFormat('yyyy-MM-dd');
+  ngAfterViewInit(): void {
+      this.loadAsset();
+    this.getListEmployee();
   }
-  private loadAsset() {
+private loadAsset() {
     const request = {
       filterText: '',
       pageNumber: 1,
@@ -85,34 +74,48 @@ export class TsAssetManagementReportLossFormComponent implements OnInit, AfterVi
     });
 
   }
-  saveAsset() {
-    const payloadAsset = {
-      tSLostReportAsset: {
+   close() {
+    this.closeModal.emit();
+    this.activeModal.dismiss('cancel');
+  }
+   getListEmployee() {
+    this.assetManagementPersonalService.getListEmployee().subscribe((respon: any) => {
+      this.emPloyeeLists = respon.employees;
+    });
+  }
+  saveLiquidation()
+{
+const payloadLiqui = {
+      tSLiQuidationAsset: {
         ID: 0,
         AssetManagementID: this.dataInput.ID,
-        DateLostReport: this.dateLostReport,
-        Reason: this.reason,
-
+        EmployeeID: this.employeeIDLiqui,
+        IsApproved: true,
+        DateSuggest: DateTime.now().toISO(),
+        DateLiquidation: this.dateLiquidation,
+        Reason: this.reason
       },
       tSAssetManagements: [{
         ID: this.dataInput.ID,
-        Status: 'Mất',
-        StatusID: 4,
-        Note: this.reason,
+        EmployeeID: this.employeeIDLiqui,
+        DepartmentID: this.dataInput.DepartmentID,
+      
+        StatusID: 6,
+          Status: "Đã thanh lý"
       }],
       tSAllocationEvictionAssets: [{
         ID: 0,
         AssetManagementID: this.dataInput.ID,
-        EmployeeID: this.dataInput.EmployeeID,
-        DepartmentID: this.dataInput.DepartmentID,
+        EmployeeID: this.employeeIDLiqui,
         ChucVuID: 30,
-        Status: 'Mất',
-        StatusID: 4,
+        Status: "Đã thanh lý",
+        StatusID: 6,
         Note: this.reason,
-        
+        DepartmentID: this.dataInput.DepartmentID,
+        DateAllocation: DateTime.now().toISO(),
       }]
-    }
-    this.assetService.saveDataAsset(payloadAsset).subscribe({
+    };
+    this.assetService.saveDataAsset(payloadLiqui).subscribe({
       next: () => {
         this.notification.success("Thông báo", "Thành công");
         this.loadAsset();
@@ -124,10 +127,5 @@ export class TsAssetManagementReportLossFormComponent implements OnInit, AfterVi
         console.error('Lỗi khi lưu đơn vị!');
       }
     });
-  }
-  close() {
-    this.closeModal.emit();
-    this.activeModal.dismiss('cancel');
-  }
-
+}
 }

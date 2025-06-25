@@ -20,4 +20,9 @@ export class AssetAllocationService {
     const params = new HttpParams().set('allocationDate', allocationDate);
     return this.http.get<{ status: number, data: string }>(`${this.url + `get-allocation-code`}`, { params });
   }
+  exportAllocationReport(request: any): Observable<Blob> {
+    return this.http.post(`${API_ORIGIN}api/AssetsAllocation/export-allocation-asset-report`, request, {
+      responseType: 'blob'
+    });
+  }
 }

@@ -38,6 +38,15 @@
                 </nz-select>
               </nz-form-control>
             </nz-form-item>
+            <nz-form-item>
+              <nz-form-label [nzSpan]="24">Trạng thái duyệt</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select class="w-100" [(ngModel)]="selectedApproval" name="isApprovedStatus" nzAllowClear
+                  nzSize="small">
+                  <nz-option *ngFor="let item of statusData" [nzValue]="item.ID" [nzLabel]="item.Name"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
 
             <nz-form-item class="mt-2">
               <nz-form-label class="fs-12" [nzSpan]="24">Nhân viên thu hồi</nz-form-label>
@@ -59,10 +68,10 @@
           </form>
 
         </div>
-      <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end flex-wrap">
-  <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">Đặt lại</button>
-  <button nz-button nzType="primary" nzSize="small" (click)="getRecovery()">Tìm kiếm</button>
-</div>
+        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end flex-wrap">
+          <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">Đặt lại</button>
+          <button nz-button nzType="primary" nzSize="small" (click)="getRecovery()">Tìm kiếm</button>
+        </div>
 
       </div>
     </nz-splitter-panel>
@@ -101,8 +110,8 @@
             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="updateApprove(6)">
               <nz-icon nzType="close" nzTheme="outline"></nz-icon> KT hủy duyệt
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
-              <nz-icon nzType="file-excel" nzTheme="outline" /> Xuất Excel
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportRecoveryAssetReport()">
+              <nz-icon nzType="file-excel" nzTheme="outline" /> Xuất Phiếu
             </button>
           </div>
         </div>

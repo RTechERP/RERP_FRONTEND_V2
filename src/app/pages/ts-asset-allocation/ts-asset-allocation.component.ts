@@ -32,6 +32,8 @@ function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
 }
+// @ts-ignore
+import { saveAs } from 'file-saver';
 @Component({
   standalone: true,
   imports: [
@@ -72,7 +74,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
   dateStart: string = '';
   dateEnd: string = '';
   employeeID: number | null = null;
-  status: number = -1;
+  status: number[] = [];
   filterText: string = '';
   pageSize: number = 1000000;
   pageNumber: number = 1;
@@ -81,6 +83,13 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
   allocationDetailTable: Tabulator | null = null;
   allocationDetailData: any[] = [];
   isSearchVisible: boolean = false;
+  statusData = [
+    { ID: 0, Name: 'Chưa duyệt' },
+    { ID: 1, Name: 'Đã duyệt' }
+  ];
+  selectedApproval: number | null = null; // gán từ combobox
+
+
   ngOnInit() {
   }
   ngAfterViewInit(): void {
@@ -89,21 +98,26 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
     this.drawDetail();
   }
   getAllocation(): void {
+    let statusString = '-1'; 
+    if (this.selectedApproval !== null) {
+      statusString = this.selectedApproval === 1 ? '1' : '0';
+    }
     const request = {
       dateStart: this.dateStart || '2020-01-01',
       dateEnd: this.dateEnd || '2025-12-31',
       employeeID: this.employeeID || 0,
-      status: this.status || -1,
+      status: statusString,
       filterText: this.filterText || '',
-      pageSize: 2000,
-      pageNumber: 1
+      pageSize: this.pageSize,
+      pageNumber: this.pageNumber
     };
+  
     this.assetAllocationService.getAssetAllocation(request).subscribe((data: any) => {
-
       this.assetAllocationData = data.assetAllocation || [];
       this.drawTable();
     });
   }
+
   getListEmployee() {
     this.TsAssetManagementPersonalService.getListEmployee().subscribe((respon: any) => {
       this.emPloyeeLists = respon.employees;
@@ -115,8 +129,10 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
     this.dateEnd = '2035-12-31';
     this.employeeID = 0;
     this.filterText = '';
+    this.selectedApproval = null;
     this.getAllocation();
   }
+
   toggleSearchPanel(): void {
     this.isSearchVisible = !this.isSearchVisible;
   }
@@ -553,5 +569,54 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
     window.URL.revokeObjectURL(link.href);
   }
   //#endregion
+ exportAllocationAssetReport() {
+    const selectedMaster = this.allocationTable?.getSelectedData()[0];
+    const details = this.allocationDetailTable?.getData();
 
+    if (!selectedMaster || !details || details.length === 0) {
+      this.notification.warning('Thông báo', 'Không có dữ liệu để xuất Excel!');
+      return;
+    }
+    const payload = {
+      Master: {
+        ID: selectedMaster.ID,
+        Code: selectedMaster.Code,
+        DateAllocation: selectedMaster.DateAllocation,
+        EmployeeName: selectedMaster.EmployeeName,
+        Department: selectedMaster.Department,
+        Possition: selectedMaster.Possition,
+        Note: selectedMaster.Note,
+        IsApproved: selectedMaster.IsApproved,
+        IsApproveAccountant: selectedMaster.IsApproveAccountant,
+        IsApprovedPersonalProperty: selectedMaster.IsApprovedPersonalProperty,
+        CreatedDate: selectedMaster.CreatedDate,
+        DateApproveAccountant: selectedMaster.DateApproveAccountant,
+        DateApprovedPersonalProperty: selectedMaster.DateApprovedPersonalProperty,
+        DateApprovedHR: selectedMaster.DateApprovedHR,
+      },
+      Details: details.map((d: any) => ({
+        ID: d.ID,
+        TSAssetAllocationID: d.TSAssetAllocationID,
+        AssetManagementID: d.AssetManagementID,
+        Quantity: d.Quantity,
+        Note: d.Note,
+        TSAssetName: d.TSAssetName,
+        TSCodeNCC: d.TSCodeNCC,
+        UnitName: d.UnitName,
+        FullName: d.FullName,
+        DepartmentName: d.DepartmentName,
+        PositionName: d.PositionName,
+      }))
+    };
+    this.assetAllocationService.exportAllocationReport(payload).subscribe({
+      next: (blob: Blob) => {
+       const fileName = `PhieuBanGiao_${selectedMaster.Code}.xlsx`;
+        saveAs(blob, fileName); // 🟢 Lưu file Excel
+      },
+      error: (err) => {
+        this.notification.error('Lỗi', 'Không thể xuất file!');
+        console.error(err);
+      }
+    });
+  }
 }

@@ -1,52 +1,75 @@
 <ng-container class="w-100">
   <nz-splitter style="height: 90vh; ">
-  <nz-splitter-panel *ngIf="isSearchVisible" [nzSize]="'20%'" [nzResizable]="false">
-  <div class="card h-100 border-0 rounded-0">
-    <!-- Header -->
-    <div class="card-header bg-white p-1">
-      <div class="d-flex justify-content-between align-items-center">
-        <h6 class="m-0 ms-2">Tìm kiếm</h6>
-        <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger (click)="toggleSearchPanel()">
-          <nz-icon nzType="close" nzTheme="outline"></nz-icon>
-        </button>
+    <nz-splitter-panel *ngIf="isSearchVisible" [nzSize]="'20%'" [nzResizable]="false">
+      <div class="card h-100 border-0 rounded-0">
+        <!-- Header -->
+        <div class="card-header bg-white p-1">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="m-0 ms-2">Tìm kiếm</h6>
+            <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+              (click)="toggleSearchPanel()">
+              <nz-icon nzType="close" nzTheme="outline"></nz-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Body -->
+        <div class="card-body">
+          <form nz-form nzLayout="vertical">
+            <!-- Từ ngày -->
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-date-picker class="w-100" nzSize="small" [(ngModel)]="dateStart" name="dateStart"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+
+            <!-- Đến ngày -->
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-date-picker class="w-100" nzSize="small" [(ngModel)]="dateEnd" name="dateEnd"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Lọc theo trạng thái</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select class="w-100" nzShowSearch nzAllowClear nzMode="multiple" nzSize="small" [(ngModel)]="status"
+                  name="status">
+                  <nz-option *ngFor="let item of statusData" [nzValue]="item.ID" [nzLabel]="item.Status">
+                    <span>{{ item.Status }}</span>
+                  </nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+                <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Lọc theo phòng ban</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select class="w-100" nzShowSearch nzAllowClear nzMode="multiple" nzSize="small" [(ngModel)]="department"
+                  name="status">
+                  <nz-option *ngFor="let item of departmentData" [nzValue]="item.ID" [nzLabel]="item.Name">
+                    <span>{{ item.Name }}</span>
+                  </nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <!-- Từ khóa -->
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <input nz-input placeholder="Nhập từ khóa" nzSize="small" [(ngModel)]="filterText" name="filterText" />
+              </nz-form-control>
+            </nz-form-item>
+          </form>
+        </div>
+
+        <!-- Footer -->
+        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end flex-wrap">
+          <button nz-button nzType="default" nzSize="small" (click)="clearAllFilters()">Đặt lại</button>
+          <button nz-button nzType="primary" nzSize="small" (click)="getAssetmanagement()">Tìm kiếm</button>
+        </div>
       </div>
-    </div>
-
-    <!-- Body -->
-    <div class="card-body">
-      <form nz-form nzLayout="vertical">
-        <!-- Từ ngày -->
-        <nz-form-item class="mt-2">
-          <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
-          <nz-form-control [nzSpan]="24">
-            <nz-date-picker class="w-100" nzSize="small" [(ngModel)]="dateStart" name="dateStart"></nz-date-picker>
-          </nz-form-control>
-        </nz-form-item>
-
-        <!-- Đến ngày -->
-        <nz-form-item class="mt-2">
-          <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
-          <nz-form-control [nzSpan]="24">
-            <nz-date-picker class="w-100" nzSize="small" [(ngModel)]="dateEnd" name="dateEnd"></nz-date-picker>
-          </nz-form-control>
-        </nz-form-item>
-        <!-- Từ khóa -->
-        <nz-form-item class="mt-2">
-          <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
-          <nz-form-control [nzSpan]="24">
-            <input nz-input placeholder="Nhập từ khóa" nzSize="small" [(ngModel)]="filterText" name="filterText" />
-          </nz-form-control>
-        </nz-form-item>
-      </form>
-    </div>
-
-    <!-- Footer -->
-    <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end flex-wrap">
-      <button nz-button nzType="default" nzSize="small" (click)="clearAllFilters()">Đặt lại</button>
-      <button nz-button nzType="primary" nzSize="small" (click)="getAssetmanagement()">Tìm kiếm</button>
-    </div>
-  </div>
-</nz-splitter-panel>
+    </nz-splitter-panel>
 
     <nz-splitter-panel [nzSize]="isSearchVisible ? '80%' : '100%'">
       <div class="card  border-0 rounded-0">
@@ -68,16 +91,19 @@
             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onReportLoss()">
               <nz-icon nzType="loading" nzTheme="outline" /> Báo mất
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small"   (click)="onReportBroken()">
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onReportBroken()">
               <nz-icon nzType="tool" nzTheme="outline" /> Báo hỏng
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small">
+              <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onRepaireAsset()">
+              <nz-icon nzType="redo" nzTheme="outline" />Sửa chữa, bảo dưỡng 
+            </button>
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onReuseAsset()">
               <nz-icon nzType="redo" nzTheme="outline" /> Đưa vào sử dụng lại
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small">
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onReportLiquidation()">
               <nz-icon nzType="shopping-cart" nzTheme="outline" /> Đề nghị thanh lí
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small">
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onLiquidation()">
               <nz-icon nzType="shopping-cart" nzTheme="outline" />Thanh lí
             </button>
             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openModalImportExcel()">
@@ -88,14 +114,14 @@
             </button>
           </div>
         </div>
-          <nz-splitter style="height: 86vh;">
-            <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" >
-              <div id="datatablemanagement" style="height: 100%;"></div>
-            </nz-splitter-panel>
-            <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" [nzSize]="sizeTbDetail">
-              <div id="datatableemployee" style="height: 100%; "></div>
-            </nz-splitter-panel>
-          </nz-splitter>
+        <nz-splitter style="height: 86vh;">
+          <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
+            <div id="datatablemanagement" style="height: 100%;"></div>
+          </nz-splitter-panel>
+          <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" [nzSize]="sizeTbDetail">
+            <div id="datatableemployee" style="height: 100%; "></div>
+          </nz-splitter-panel>
+        </nz-splitter>
       </div>
     </nz-splitter-panel>
   </nz-splitter>

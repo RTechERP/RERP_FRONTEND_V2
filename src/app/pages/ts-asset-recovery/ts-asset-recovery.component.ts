@@ -32,6 +32,8 @@ function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
 }
+// @ts-ignore
+import { saveAs } from 'file-saver';
 @Component({
   standalone: true,
   imports: [
@@ -80,9 +82,14 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
   recoveryTable: Tabulator | null = null;
   recoveryDetailTable: Tabulator | null = null;
   modalData: any = [];
+  statusData = [
+    { ID: 0, Name: 'Chưa duyệt' },
+    { ID: 1, Name: 'Đã duyệt' }
+  ];
+  selectedApproval: number | null = null;
   constructor(private notification: NzNotificationService,
     private assetsRecoveryService: AssetsRecoveryService,
-    private TsAssetManagementPersonalService:TsAssetManagementPersonalService
+    private TsAssetManagementPersonalService: TsAssetManagementPersonalService
   ) { }
 
   ngOnInit() {
@@ -92,37 +99,41 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
     this.getRecovery();
     this.drawDetail();
     this.drawtable();
-    this.getListEmployee();   
+    this.getListEmployee();
   }
-  
-getRecovery(): void {
-  const request = {
-    dateStart: this.dateStart ? DateTime.fromJSDate(new Date(this.dateStart)).toFormat('yyyy-MM-dd') : '2020-01-01',
-    dateEnd: this.dateEnd ? DateTime.fromJSDate(new Date(this.dateEnd)).toFormat('yyyy-MM-dd') : '2035-12-31',
-    employeeReturnID: this.employeeReturnID || 0,
-    employeeRecoveryID: this.employeeRecoveryID || 0,
-    status: this.status || -1,
-    filterText: this.filterText || '',
-    pageSize: 20000,
-    pageNumber: 1
-  };
 
-  this.assetsRecoveryService.getAssetsRecovery(request).subscribe((response: any) => {
-    this.assetRecoveryData = response.assetsrecovery;
-    this.drawtable(); // Vẽ lại bảng nếu cần
-  });
-}
+  getRecovery(): void {
+    let statusString = '-1';
+    if (this.selectedApproval !== null) {
+      statusString = this.selectedApproval === 1 ? '1' : '0';
+    }
+    const request = {
+      dateStart: this.dateStart ? DateTime.fromJSDate(new Date(this.dateStart)).toFormat('yyyy-MM-dd') : '2020-01-01',
+      dateEnd: this.dateEnd ? DateTime.fromJSDate(new Date(this.dateEnd)).toFormat('yyyy-MM-dd') : '2035-12-31',
+      employeeReturnID: this.employeeReturnID || 0,
+      employeeRecoveryID: this.employeeRecoveryID || 0,
+      status: statusString,
+      filterText: this.filterText || '',
+      pageSize: 20000,
+      pageNumber: 1
+    };
+
+    this.assetsRecoveryService.getAssetsRecovery(request).subscribe((response: any) => {
+      this.assetRecoveryData = response.assetsrecovery;
+      this.drawtable(); // Vẽ lại bảng nếu cần
+    });
+  }
   toggleSearchPanel(): void {
     this.isSearchVisible = !this.isSearchVisible;
   }
-resetSearch(): void {
-  this.dateStart = '2020-01-01';
-  this.dateEnd = '2035-12-31';
-  this.employeeReturnID = 0;
-  this.employeeRecoveryID = 0;
-  this.filterText = '';
-  this.getRecovery();
-}
+  resetSearch(): void {
+    this.dateStart = '2020-01-01';
+    this.dateEnd = '2035-12-31';
+    this.employeeReturnID = 0;
+    this.employeeRecoveryID = 0;
+    this.filterText = '';
+    this.getRecovery();
+  }
   getListEmployee() {
     this.TsAssetManagementPersonalService.getListEmployee().subscribe((respon: any) => {
       this.emPloyeeLists = respon.employees;
@@ -160,8 +171,8 @@ resetSearch(): void {
           },
           {
             title: 'ID',
-            field: 'ID', 
-            visible:false
+            field: 'ID',
+            visible: false
           },
           {
             title: 'Cá Nhân Duyệt',
@@ -284,10 +295,10 @@ resetSearch(): void {
         field: 'ID',
         hozAlign: 'center',
         width: 60
-        , visible:false
+        , visible: false
       },
-      { title: 'AssetManagementID', field: 'AssetManagementID', hozAlign: 'center', width: 60 , visible:false},
-      { title: 'TSAssetRecoveryID', field: 'TSAssetRecoveryID', visible:false },
+      { title: 'AssetManagementID', field: 'AssetManagementID', hozAlign: 'center', width: 60, visible: false },
+      { title: 'TSAssetRecoveryID', field: 'TSAssetRecoveryID', visible: false },
       { title: 'STT', field: 'STT', hozAlign: 'center', width: 60, headerHozAlign: 'center' },
       { title: 'Mã NCC', field: 'TSCodeNCC', headerHozAlign: 'center' },
       { title: 'Tên tài sản', field: 'TSAssetName' },
@@ -338,7 +349,7 @@ resetSearch(): void {
       }
     });
   }
- validateApprove(number: 1 | 2 | 3 | 4 | 5 | 6): boolean {
+  validateApprove(number: 1 | 2 | 3 | 4 | 5 | 6): boolean {
     if (!this.recoveryTable) {
       this.notification.warning("Thông báo", "Chọn một biên bản để duyệt");
       return false;
@@ -358,13 +369,13 @@ resetSearch(): void {
             return false;
           }
           break;
-            case 3:
+        case 3:
           if (row.IsApprovedPersonalProperty != true) {
             this.notification.warning("Thông báo", `Biên bản ${row.Code} chưa được cá nhân duyệt, HR không thể duyệt!`);
             return false;
           }
           break;
-             case 5:
+        case 5:
           if (row.Status != 1) {
             this.notification.warning("Thông báo", `Biên bản ${row.Code} chưa được HR duyệt, Kế Toán không thể duyệt!`);
             return false;
@@ -509,101 +520,145 @@ resetSearch(): void {
       }))
     };
     console.log('payload', payloadRecovery);
-      this.assetsRecoveryService.saveAssetRecovery(payloadRecovery).subscribe({
+    this.assetsRecoveryService.saveAssetRecovery(payloadRecovery).subscribe({
       next: () => {
         this.getRecovery();
       },
-      error: (err) => {   
+      error: (err) => {
       }
     });
   }
   //#region xuất excel
- async exportExcel() {
-  const table = this.recoveryTable;
-  if (!table) return;
+  async exportExcel() {
+    const table = this.recoveryTable;
+    if (!table) return;
 
-  const data = table.getData();
-  if (!data || data.length === 0) {
-    this.notification.warning('Thông báo', 'Không có dữ liệu xuất Excel!');
-    return;
+    const data = table.getData();
+    if (!data || data.length === 0) {
+      this.notification.warning('Thông báo', 'Không có dữ liệu xuất Excel!');
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Danh sách thu hồi tài sản');
+
+    // Lọc ra các cột hiển thị (visible !== false), có field & title rõ ràng
+    const visibleColumns = table.getColumns().filter((col: any) => {
+      const def = col.getDefinition();
+      return def.visible !== false && def.field && def.title;
+    });
+
+    // Thêm tiêu đề
+    const headers = visibleColumns.map((col: any) => col.getDefinition().title);
+    worksheet.addRow(headers);
+
+    // Thêm dữ liệu
+    data.forEach((row: any) => {
+      const rowData = visibleColumns.map((col: any) => {
+        const field = col.getField();
+        let value = row[field];
+
+        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+          value = new Date(value);
+        }
+
+        return value;
+      });
+
+      worksheet.addRow(rowData);
+    });
+
+    // Format ngày
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return;
+      row.eachCell((cell) => {
+        if (cell.value instanceof Date) {
+          cell.numFmt = 'dd/mm/yyyy';
+        }
+      });
+    });
+
+    // Tự động căn chỉnh độ rộng cột và wrap text
+    worksheet.columns.forEach((column: any) => {
+      let maxLength = 10;
+      column.eachCell({ includeEmpty: true }, (cell: any) => {
+        const val = cell.value ? cell.value.toString() : '';
+        maxLength = Math.min(Math.max(maxLength, val.length + 2), 50);
+        cell.alignment = { vertical: 'middle', wrapText: true };
+      });
+      column.width = Math.min(maxLength, 30);
+    });
+
+    // Thêm filter hàng đầu
+    worksheet.autoFilter = {
+      from: { row: 1, column: 1 },
+      to: { row: 1, column: visibleColumns.length },
+    };
+
+    // Xuất file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+
+    const formattedDate = new Date()
+      .toISOString()
+      .slice(0, 10)
+      .replace(/-/g, '');
+
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `ThuHoiTaiSan_${formattedDate}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
   }
-
-  const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet('Danh sách thu hồi tài sản');
-
-  // Lọc ra các cột hiển thị (visible !== false), có field & title rõ ràng
-  const visibleColumns = table.getColumns().filter((col: any) => {
-    const def = col.getDefinition();
-    return def.visible !== false && def.field && def.title;
-  });
-
-  // Thêm tiêu đề
-  const headers = visibleColumns.map((col: any) => col.getDefinition().title);
-  worksheet.addRow(headers);
-
-  // Thêm dữ liệu
-  data.forEach((row: any) => {
-    const rowData = visibleColumns.map((col: any) => {
-      const field = col.getField();
-      let value = row[field];
-
-      if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
-        value = new Date(value);
-      }
-
-      return value;
-    });
-
-    worksheet.addRow(rowData);
-  });
-
-  // Format ngày
-  worksheet.eachRow((row, rowNumber) => {
-    if (rowNumber === 1) return;
-    row.eachCell((cell) => {
-      if (cell.value instanceof Date) {
-        cell.numFmt = 'dd/mm/yyyy';
-      }
-    });
-  });
-
-  // Tự động căn chỉnh độ rộng cột và wrap text
-  worksheet.columns.forEach((column: any) => {
-    let maxLength = 10;
-    column.eachCell({ includeEmpty: true }, (cell: any) => {
-      const val = cell.value ? cell.value.toString() : '';
-      maxLength = Math.min(Math.max(maxLength, val.length + 2), 50);
-      cell.alignment = { vertical: 'middle', wrapText: true };
-    });
-    column.width = Math.min(maxLength, 30);
-  });
-
-  // Thêm filter hàng đầu
-  worksheet.autoFilter = {
-    from: { row: 1, column: 1 },
-    to: { row: 1, column: visibleColumns.length },
-  };
-
-  // Xuất file
-  const buffer = await workbook.xlsx.writeBuffer();
-  const blob = new Blob([buffer], {
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  });
-
-  const formattedDate = new Date()
-    .toISOString()
-    .slice(0, 10)
-    .replace(/-/g, '');
-
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `ThuHoiTaiSan_${formattedDate}.xlsx`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(link.href);
-}
 
   //#endregion
 
+  exportRecoveryAssetReport() {
+    const selectedMaster = this.recoveryTable?.getSelectedData()[0];
+    const details = this.recoveryDetailTable?.getData();
+
+    if (!selectedMaster || !details || details.length === 0) {
+      this.notification.warning('Thông báo', 'Không có dữ liệu để xuất Excel!');
+      return;
+    }
+    const payload = {
+      Master: {
+        ID: selectedMaster.ID,
+        Code: selectedMaster.Code,
+        DateRecovery: selectedMaster.DateRecovery,
+        EmployeeReturnName: selectedMaster.EmployeeReturnName,
+        DepartmentReturn: selectedMaster.DepartmentReturn,
+        PossitionReturn: selectedMaster.PossitionReturn,
+        EmployeeRecoveryName: selectedMaster.EmployeeRecoveryName,
+        DepartmentRecovery: selectedMaster.DepartmentRecovery,
+        PossitionRecovery: selectedMaster.PossitionRecovery,
+        Note: selectedMaster.Note,
+      },
+      Details: details.map((d: any) => ({
+        TSAssetRecoveryID: d.TSAssetRecoveryID,
+        AssetManagementID: d.AssetManagementID,
+        Quantity: d.Quantity,
+        Note: d.Note,
+        TSAssetName: d.TSAssetName,
+        TSCodeNCC: d.TSCodeNCC,
+        UnitName: d.UnitName,
+        TinhTrang: d.TinhTrang,
+
+      }))
+    };
+    this.assetsRecoveryService.exportRecoveryReport(payload).subscribe({
+      next: (blob: Blob) => {
+        const fileName = `PhieuBanGiao_${selectedMaster.CodeReport}.xlsx`;
+        saveAs(blob, fileName); // 🟢 Lưu file Excel
+      },
+      error: (err) => {
+        this.notification.error('Lỗi', 'Không thể xuất file!');
+        console.error(err);
+      }
+    });
+  }
 }

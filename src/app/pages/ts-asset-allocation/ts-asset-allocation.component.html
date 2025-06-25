@@ -35,13 +35,23 @@
             <nz-form-item class="mt-2">
               <nz-form-label class="fs-12" [nzSpan]="24">Chọn nhân viên</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <nz-select class="w-100 fs-12" nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên..."
+                <nz-select class="w-100 fs-12"     nzSize="small" nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên..."
                   [(ngModel)]="employeeID" name="employeeID">
                   <nz-option *ngFor="let emp of emPloyeeLists" [nzLabel]="emp.Code + ' - ' + emp.FullName"
                     [nzValue]="emp.ID"></nz-option>
                 </nz-select>
               </nz-form-control>
             </nz-form-item>
+            <nz-form-item>
+              <nz-form-label [nzSpan]="24">Trạng thái duyệt</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select class="w-100" [(ngModel)]="selectedApproval" name="isApprovedStatus" nzAllowClear
+                  nzSize="small">
+                  <nz-option *ngFor="let item of statusData" [nzValue]="item.ID" [nzLabel]="item.Name"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+
 
             <!-- Từ khóa -->
             <nz-form-item class="mt-2">
@@ -94,8 +104,8 @@
             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="updateApprove(6)">
               <nz-icon nzType="close" nzTheme="outline"></nz-icon> KT hủy duyệt
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
-              <nz-icon nzType="file-excel" nzTheme="outline" /> Xuất Excel
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportAllocationAssetReport()">
+              <nz-icon nzType="file-excel" nzTheme="outline" /> Xuất Phiếu
             </button>
           </div>
         </div>

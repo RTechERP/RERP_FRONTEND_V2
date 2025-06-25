@@ -1,16 +1,16 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, shareReplay } from 'rxjs';
-import { API_URL } from '../../../app.config';
+import { HOST } from '../../../app.config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ProjectPartlistPriceRequestService {
   private http = inject(HttpClient);
-  private baseUrl = `${API_URL}/api/ProjectPartlistPriceRequest`;
+  private baseUrl = `${HOST}/api/ProjectPartlistPriceRequest`;
 
-  // Gọi API lấy danh sách price requests
+  // Sửa đổi method getAllPartlist để có thể lấy nhiều dữ liệu hơn
   getAllPartlist(
     dateStart: string,
     dateEnd: string,
@@ -20,7 +20,9 @@ export class ProjectPartlistPriceRequestService {
     isDeleted: number,
     projectTypeID: number,
     poKHID: number,
-    isCommercialProduct = -1
+    isCommercialProduct = -1,
+    page: number = 1,
+    size: number = 10000 // Tăng size mặc định để lấy nhiều dữ liệu
   ): Observable<any> {
     let params = new HttpParams()
       .set('dateStart', dateStart)
@@ -31,32 +33,34 @@ export class ProjectPartlistPriceRequestService {
       .set('isDeleted', isDeleted.toString())
       .set('projectTypeID', projectTypeID.toString())
       .set('poKHID', poKHID.toString())
-      .set('isCommercialProduct', isCommercialProduct.toString());
+      .set('isCommercialProduct', isCommercialProduct.toString())
+      .set('page', page.toString())
+      .set('size', size.toString());
 
     return this.http.get<any>(
-      `${this.baseUrl}/getallProjectParListPriceRequest`,
+      `${this.baseUrl}/get-all-project-parList-price-request`,
       { params }
     );
   }
-  getAPIPricerequest(){
-    return this.baseUrl+'/getallProjectParListPriceRequest';
+  getAPIPricerequest() {
+    return this.baseUrl + '/get-all-project-parList-price-request';
   }
   // Gọi API lấy danh sách types
   getTypes(employeeID: number): Observable<any> {
     const params = new HttpParams().set('employeeID', employeeID.toString());
-    return this.http.get<any>(`${this.baseUrl}/getType`, { params });
+    return this.http.get<any>(`${this.baseUrl}/get-type`, { params });
   }
   getProject(): Observable<any> {
-    return this.http.get(`${this.baseUrl}/getAllProjects`);
+    return this.http.get(`${this.baseUrl}/get-all-projects`);
   }
   getEmployee(): Observable<any> {
-    return this.http.get(`${this.baseUrl}/getAllEmployee`);
+    return this.http.get(`${this.baseUrl}/get-all-employee`);
   }
   getPOKH(): Observable<any> {
-    return this.http.get(`${this.baseUrl}/getPoCode`);
+    return this.http.get(`${this.baseUrl}/get-po-code`);
   }
   getProductSale(page: number = 1, pageSize: number = 100000): Observable<any> {
-    return this.http.get(`${this.baseUrl}/getProductSale`, {
+    return this.http.get(`${this.baseUrl}/get-product-sale`, {
       params: {
         page: page.toString(),
         pageSize: pageSize.toString(),
@@ -64,26 +68,24 @@ export class ProjectPartlistPriceRequestService {
     });
   }
   saveData(lstModel: any[]) {
-    return this.http.post(`${this.baseUrl}/saveData`, lstModel);
+    return this.http.post(`${this.baseUrl}/save-data`, lstModel);
   }
-  getCurrency():Observable<any>{
-    return this.http.get(`${this.baseUrl}/getCurrency`);
+  getCurrency(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/get-currency`);
   }
-  getSuplierSale():Observable<any>{
-    return this.http.get(`${this.baseUrl}/getSupplierSale`);
-
+  getSuplierSale(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/get-supplier-sale`);
   }
-  saveChangedData(data:any[]){
-    return this.http.post(`${this.baseUrl}/saveData`,data);
+  saveChangedData(data: any[]) {
+    return this.http.post(`${this.baseUrl}/save-Data`, data);
   }
-downloadFile(payload: {
-  projectId: number;
-  partListId: number;
-  productCode: string;
-}): Observable<Blob> {
-  return this.http.post(`${this.baseUrl}/download`, payload, {
-    responseType: 'blob',
-  });
-}
-
+  downloadFile(payload: {
+    projectId: number;
+    partListId: number;
+    productCode: string;
+  }): Observable<Blob> {
+    return this.http.post(`${this.baseUrl}/download`, payload, {
+      responseType: 'blob',
+    });
+  }
 }

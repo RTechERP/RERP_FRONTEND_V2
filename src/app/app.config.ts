@@ -16,8 +16,9 @@ registerLocaleData(vi);
 export const appConfig: ApplicationConfig = {
   providers: [provideZoneChangeDetection({ eventCoalescing: true }), provideRouter(routes), provideNzIcons(icons), provideNzI18n(vi_VN), importProvidersFrom(FormsModule), provideAnimationsAsync(), provideHttpClient()]
 };
-export const API_URL = 'https://localhost:7187';
+export const HOST = 'http://localhost:5207';
 export const APP_LOGIN_NAME = 'admin';
-export const EMPLOYEE_ID = 0;
-export const ISADMIN = true;
-export const USER_NAME='ADMINSW';
+export const EMPLOYEE_ID = 229;
+export const IS_ADMIN = true;
+export const LOGIN_NAME='ADMINSW';
+export const SERVER_PATH= "C:/RTC/UPLOADFILE/TrainingRegistration/";

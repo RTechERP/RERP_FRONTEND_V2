@@ -24,7 +24,6 @@
               <nz-form-control [nzSpan]="24">
                 <nz-date-picker
                   [(ngModel)]="filters.dateStart"
-                  
                   class="w-100"
                   nzSize="small"
                 ></nz-date-picker>
@@ -240,7 +239,12 @@
               <nz-icon nzType="plus-circle" nzTheme="fill" />Thêm nhà cung cấp
             </button>
             <div class="btn-group">
-              <button nz-button nz-dropdown [nzDropdownMenu]="menu"  class="p-0 fs-12 h-auto">
+              <button
+                nz-button
+                nz-dropdown
+                [nzDropdownMenu]="menu"
+                class="p-0 fs-12 h-auto"
+              >
                 <nz-icon nzType="file-excel" nzTheme="fill" />Xuất Excel
                 <i nz-icon nzType="down"></i>
               </button>

@@ -1,0 +1,37 @@
+<div class="modal-header">
+  <h4 class="modal-title">Hủy duyệt đăng ký đào tạo</h4>
+  <button type="button" class="btn-close" aria-label="Close" (click)="activeModal.dismiss()"></button>
+</div>
+<div class="modal-body">
+  <form nz-form nzLayout="vertical">
+    <nz-form-item>
+      <nz-form-label [nzSpan]="24" nzRequired>Lý do hủy duyệt</nz-form-label>
+      <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập lý do hủy duyệt!">
+        <textarea 
+          nz-input 
+          [(ngModel)]="formData.unapprovalReason" 
+          name="unapprovalReason"
+          placeholder="Nhập lý do hủy duyệt"
+          [nzAutosize]="{ minRows: 3, maxRows: 5 }"
+          required
+        ></textarea>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-label [nzSpan]="24">Ghi chú</nz-form-label>
+      <nz-form-control [nzSpan]="24">
+        <textarea 
+          nz-input 
+          [(ngModel)]="formData.note" 
+          name="note"
+          placeholder="Nhập ghi chú (nếu có)"
+          [nzAutosize]="{ minRows: 2, maxRows: 4 }"
+        ></textarea>
+      </nz-form-control>
+    </nz-form-item>
+  </form>
+</div>
+<div class="modal-footer">
+  <button nz-button nzType="default" (click)="cancel()">Hủy</button>
+  <button nz-button nzType="primary" [disabled]="!formData.unapprovalReason" (click)="confirm()">Xác nhận</button>
+</div>

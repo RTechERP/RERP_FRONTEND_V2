@@ -70,9 +70,11 @@
                 >Chọn dự án</nz-form-label
               >
               <nz-form-control [nzSpan]="24">
+                <!-- Sửa các nz-select và input thiếu name -->
                 <nz-select
                   class="w-100"
                   [(ngModel)]="filters.projectId"
+                  name="projectId"
                   nzShowSearch
                   nzAllowClear
                   nzSize="small"
@@ -81,6 +83,30 @@
                   <nz-option
                     *ngFor="let item of dtproject"
                     [nzLabel]="item.ProjectCode + '--' + item.ProjectName"
+                    [nzValue]="item.ID"
+                  ></nz-option>
+                </nz-select>
+
+                <input 
+                  nz-input 
+                  placeholder="Nhập từ khóa" 
+                  nzSize="small" 
+                  [(ngModel)]="filters.Keyword"
+                  name="keyword"
+                />
+
+                <nz-select
+                  class="w-100"
+                  [nzMaxTagCount]="4"
+                  nzMode="multiple"
+                  nzPlaceHolder="Chọn lĩnh vực dự án"
+                  nzSize="small"
+                  [(ngModel)]="filters.poKHID"
+                  name="poKHID"
+                >
+                  <nz-option
+                    *ngFor="let item of dtPOKH"
+                    [nzLabel]="item.POCode"
                     [nzValue]="item.ID"
                   ></nz-option>
                 </nz-select>
@@ -193,21 +219,21 @@
               </button>
             <div class="btn-group fs-12">
               <button nz-button nz-dropdown [nzDropdownMenu]="menu" class="p-0 fs-12 h-auto">
-                <nz-icon nzType="file-excel" nzTheme="fill" />Xuất excel
+                <nz-icon nzType="file-excel" nzTheme="fill" class="mx-2" />Xuất excel
                 <i nz-icon nzType="down"></i>
               </button>
               <nz-dropdown-menu #menu="nzDropdownMenu" class="p-0 m-0">
                 <ul nz-menu >
                   <li nz-menu-item class="fs-12">
-                    <i nz-icon nzType="check" nzTheme="outline"></i>Theo dòng đã
+                    <i nz-icon nzType="check" nzTheme="outline" class="me-2"></i>Theo dòng đã
                     chọn
                   </li>
                   <li nz-menu-item class="fs-12">
-                    <i nz-icon nzType="file" nzTheme="outline"></i>Trang hiện
+                    <i nz-icon nzType="file" nzTheme="outline" class="me-2"></i>Trang hiện
                     tại
                   </li>
                   <li nz-menu-item class="fs-12">
-                    <i nz-icon nzType="global" nzTheme="outline"></i>Tất cả
+                    <i nz-icon nzType="global" nzTheme="outline" class="me-2"></i>Tất cả
                   </li>
                 </ul>
               </nz-dropdown-menu>
@@ -216,165 +242,35 @@
         </div>
         <div class="card-body p-0">
           <nz-splitter>
-            <nz-splitter-panel
-              nzSize=""
-              [nzCollapsible]="true"
-              nzResizable="true"
-            >
+            <nz-splitter-panel nzSize="" [nzCollapsible]="true" nzResizable="true">
               <div class="custom-tabs-container">
-                <ul class="nav nav-tabs" id="customTab" role="tablist">
-                  <li class="nav-item" role="presentation">
-                    <a
-                      class="nav-link"
-                      [class.active]="activeTabId === 1"
-                      id="tab-1"
-                      data-bs-toggle="tab"
-                      href="#pane-1"
-                      role="tab"
-                      aria-controls="pane-1"
-                      [attr.aria-selected]="activeTabId === 1"
-                      (click)="SelectProjectType(1)"
-                    >
-                      Yêu cầu mua dự án
-                    </a>
-                  </li>
-                  <li class="nav-item" role="presentation">
-                    <a
-                      class="nav-link"
-                      [class.active]="activeTabId === 2"
-                      id="tab-2"
-                      data-bs-toggle="tab"
-                      href="#pane-2"
-                      role="tab"
-                      aria-controls="pane-2"
-                      [attr.aria-selected]="activeTabId === 2"
-                      (click)="SelectProjectType(2)"
-                    >
-                      Kỹ thuật đã mua
-                    </a>
-                  </li>
-                  <li class="nav-item" role="presentation">
-                    <a
-                      class="nav-link"
-                      [class.active]="activeTabId === 3"
-                      id="tab-3"
-                      data-bs-toggle="tab"
-                      href="#pane-3"
-                      role="tab"
-                      aria-controls="pane-3"
-                      [attr.aria-selected]="activeTabId === 3"
-                      (click)="SelectProjectType(3)"
-                    >
-                      Yêu cầu mua hàng demo
-                    </a>
-                  </li>
-                  <li class="nav-item" role="presentation">
-                    <a
-                      class="nav-link"
-                      [class.active]="activeTabId === 4"
-                      id="tab-4"
-                      data-bs-toggle="tab"
-                      href="#pane-4"
-                      role="tab"
-                      aria-controls="pane-4"
-                      [attr.aria-selected]="activeTabId === 4"
-                      (click)="SelectProjectType(4)"
-                    >
-                      Yêu cầu mượn hàng demo
-                    </a>
-                  </li>
-                  <li class="nav-item" role="presentation">
-                    <a
-                      class="nav-link"
-                      [class.active]="activeTabId === 5"
-                      id="tab-5"
-                      data-bs-toggle="tab"
-                      href="#pane-5"
-                      role="tab"
-                      aria-controls="pane-5"
-                      [attr.aria-selected]="activeTabId === 5"
-                      (click)="SelectProjectType(5)"
-                    >
-                      Thương mại
+                <ul class="nav nav-tabs">
+                  <li class="nav-item" *ngFor="let tab of [
+                    { id: 1, name: 'Yêu cầu mua dự án' },
+                    { id: 2, name: 'Kỹ thuật đã mua' },
+                    { id: 3, name: 'Yêu cầu mua hàng demo' },
+                    { id: 4, name: 'Yêu cầu mượn hàng demo' },
+                    { id: 5, name: 'Thương mại' }
+                  ]">
+                    <a class="nav-link" [class.active]="activeTabId === tab.id"
+                       (click)="SelectProjectType(tab.id)">
+                      {{ tab.name }}
                     </a>
                   </li>
                 </ul>
 
+                <!-- Tab content với một bảng duy nhất -->
                 <div class="tab-content p-0" id="customTabContent">
-                  <div
-                    class="tab-pane fade"
-                    [class.show]="activeTabId === 1"
-                    [class.active]="activeTabId === 1"
-                    id="pane-1"
-                    role="tabpanel"
-                    aria-labelledby="tab-1"
-                  >
-                    <div class="p-1">
-                      <div
-                        id="datatable-1"
-                        class="tabulator-container container-fluid p-0"
-                      ></div>
+                  <div class="p-1">
+                    <div *ngIf="isLoading" class="text-center p-3">
+                      <nz-spin nzSimple></nz-spin>
+                      <p class="mt-2">Đang tải dữ liệu...</p>
                     </div>
-                  </div>
-                  <div
-                    class="tab-pane fade"
-                    [class.show]="activeTabId === 2"
-                    [class.active]="activeTabId === 2"
-                    id="pane-2"
-                    role="tabpanel"
-                    aria-labelledby="tab-2"
-                  >
-                    <div class="p-1">
-                      <div
-                        id="datatable-2"
-                        class="tabulator-container container-fluid p-0"
-                      ></div>
-                    </div>
-                  </div>
-                  <div
-                    class="tab-pane fade"
-                    [class.show]="activeTabId === 3"
-                    [class.active]="activeTabId === 3"
-                    id="pane-3"
-                    role="tabpanel"
-                    aria-labelledby="tab-3"
-                  >
-                    <div class="p-1">
-                      <div
-                        id="datatable-3"
-                        class="tabulator-container container-fluid p-0"
-                      ></div>
-                    </div>
-                  </div>
-                  <div
-                    class="tab-pane fade"
-                    [class.show]="activeTabId === 4"
-                    [class.active]="activeTabId === 4"
-                    id="pane-4"
-                    role="tabpanel"
-                    aria-labelledby="tab-4"
-                  >
-                    <div class="p-1">
-                      <div
-                        id="datatable-4"
-                        class="tabulator-container container-fluid p-0"
-                      ></div>
-                    </div>
-                  </div>
-                  <div
-                    class="tab-pane fade"
-                    [class.show]="activeTabId === 5"
-                    [class.active]="activeTabId === 5"
-                    id="pane-5"
-                    role="tabpanel"
-                    aria-labelledby="tab-5"
-                  >
-                    <div class="p-1">
-                      <div
-                        id="datatable-5"
-                        class="tabulator-container container-fluid p-0"
-                      ></div>
-                    </div>
+                    <div
+                      id="table"
+                      class="tabulator-container container-fluid p-0"
+                      [style.display]="isLoading ? 'none' : 'block'"
+                    ></div>
                   </div>
                 </div>
               </div>

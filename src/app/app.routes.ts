@@ -24,7 +24,12 @@ export const routes: Routes = [
     import('./pages/project-partlist-price-request/project-partlist-price-request.component').then(
       m => m.ProjectPartlistPriceRequestComponent
     )
-}
-
-
+},
+  {
+    path: 'training-registration',
+    loadComponent: () =>
+      import('./pages/training-registration/training-registration.component').then(
+        m => m.TrainingRegistrationComponent
+      )
+  }
 ];

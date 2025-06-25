@@ -257,7 +257,7 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
       URL.revokeObjectURL(fileUrl);
     });
   }
-  approvedTrainingRegistration(status: number) {
+  approvedTrainingRegistration(status: number, flowID:number) {
     if (this.selectedRowData == null) {
       this.notification.info('Thông báo', 'Vui lòng chọn ít nhất một dòng trước khi duyệt');
       return;
@@ -369,7 +369,7 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
       }
     );
   }
-  
+
   getDetail() {
     this.trainingRegistrationService
       .getDetail(this.trainingRegistrationID)

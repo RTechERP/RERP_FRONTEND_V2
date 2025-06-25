@@ -30,23 +30,27 @@
 }
 
 .trigger:hover {
-  color: #1890ff;
+  color: #23458a;
 }
 
 .sidebar-logo {
   position: relative;
   height: 64px;
-  padding-left: 24px;
+  /* padding-left: 24px; */
   overflow: hidden;
   line-height: 64px;
-  background: #001529;
+  /* background: #001529; */
   transition: all 0.3s;
+
+  /* display: flex;
+  justify-content: center;
+  align-items: center; */
 }
 
 .sidebar-logo img {
   display: inline-block;
-  height: 32px;
-  width: 32px;
+  /* height: 32px; */
+  width: 50%;
   vertical-align: middle;
 }
 
@@ -70,12 +74,12 @@ nz-header {
   position: relative;
   height: 40px;
   padding: 0;
-  background: #47536d;
+  background: #23458a;
   box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
 }
 
 nz-content {
-  margin: 24px;
+  margin: 0.5rem;
 }
 
 .inner-content {
@@ -114,6 +118,7 @@ nz-sider {
 ::ng-deep .ant-tabs-card.ant-tabs-top > .ant-tabs-nav .ant-tabs-tab {
   border: unset;
   border-radius: unset;
+  font-size: 0.75rem;
 }
 
 ::ng-deep
@@ -127,7 +132,9 @@ nz-sider {
 
 ::ng-deep .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active,
 .ant-tabs-card > div > .ant-tabs-nav .ant-tabs-tab-active {
-  background-color: #c5463f;
+  background-color: #ef4723;
+  padding: 7px 16px;
+  /* color: #fff; */
 }
 
 ::ng-deep
@@ -156,4 +163,5 @@ nz-sider {
 
 ::ng-deep .ant-tabs-card.ant-tabs-small > .ant-tabs-nav .ant-tabs-tab {
   padding: 8px 16px;
+  font-size: 0.75rem;
 }

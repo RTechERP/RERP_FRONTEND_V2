@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import {
   Params,
   Route,
@@ -14,6 +14,14 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { WelcomeComponent } from './pages/welcome/welcome.component';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { BrowserModule } from '@angular/platform-browser';
+import { ReactiveFormsModule } from '@angular/forms';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { MenuService } from './pages/menus/menu-service/menu.service';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzBadgeModule } from 'ng-zorro-antd/badge';
+import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 
 @Component({
   selector: 'app-root',
@@ -26,14 +34,24 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
     NzButtonModule,
     NzTabsModule,
     NzDropDownModule,
+    // NzBadgeModule,
+    // NzAvatarModule,
+    // BrowserModule,
+    ReactiveFormsModule,
+    // HttpClient,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
   standalone: true,
 })
-export class AppComponent {
-  constructor(private router: Router) {}
+export class AppComponent implements OnInit {
+  constructor(
+    private router: Router,
+    private menuService: MenuService,
+    private notification: NzNotificationService
+  ) {}
 
+  //#region Khai báo biến
   isCollapsed = true;
   selectedIndex = 0;
   dynamicTabs: Array<{
@@ -42,6 +60,13 @@ export class AppComponent {
     queryParams?: Params;
     routerLink: string[];
   }> = [];
+
+  menus: any[] = [];
+  //#endregion
+
+  ngOnInit(): void {
+    this.getMenus();
+  }
 
   newTab(routerLink: string[]): void {
     const { length } = this.dynamicTabs;
@@ -62,13 +87,6 @@ export class AppComponent {
     setTimeout(() => {
       this.selectedIndex = this.dynamicTabs.length - 1;
     });
-
-    // this.dynamicTabs.forEach((tab, index) => {
-    //   console.log(`Index: ${index}, Title: ${tab.title}`);
-    // });
-    // this.selectedIndex = newTabId - 1;
-
-    // console.log(this.selectedIndex);
   }
 
   closeTab({ index }: { index: number }): void {
@@ -77,5 +95,28 @@ export class AppComponent {
     if (this.dynamicTabs.length === 0) {
       this.router.navigate(['/welcome']);
     }
+  }
+
+  getMenus(): void {
+    let date = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth(),
+      new Date().getDate(),
+      15,
+      0,
+      0,
+      0
+    );
+    this.menuService.getMenus().subscribe({
+      next: (response: any) => {
+        if (response.status == 1) {
+          this.menus = response.data;
+          console.log(this.menus);
+        }
+      },
+      error: (err) => {
+        this.notification.error('Thông báo', err.error.status);
+      },
+    });
   }
 }

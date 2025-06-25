@@ -146,3 +146,7 @@
         </nz-splitter-panel>
     </nz-splitter>
 </ng-container>
+
+
+<nz-select [(ngModel)]="selected" (ngModelChange)="onChange($event)" [nzOptions]="options" [nzShowSearch]="true"
+    nzPlaceHolder="Chọn giá trị" style="width: 100%;"></nz-select>

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { host } from '../app.config';
+import { HOST } from '../app.config';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 
@@ -7,7 +7,7 @@ import { Observable, tap } from 'rxjs';
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = host + 'api/home/login';
+  private apiUrl = HOST + 'api/home/login';
   constructor(private http: HttpClient) {}
 
   login(credentials: { loginname: string; password: string }): Observable<any> {

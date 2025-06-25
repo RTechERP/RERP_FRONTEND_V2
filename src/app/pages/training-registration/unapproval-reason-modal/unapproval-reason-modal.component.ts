@@ -20,9 +20,8 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
   ]
 })
 export class UnapprovalReasonModalComponent implements OnInit {
-  @Input() trainingRegistrationApprovedID!: number;
 
-  
+
   // Dữ liệu form
   formData = {
     unapprovalReason: '',
@@ -44,13 +43,13 @@ export class UnapprovalReasonModalComponent implements OnInit {
     if (!this.formData.unapprovalReason) {
       return; // Không cho phép xác nhận nếu chưa nhập lý do
     }
-    
+
     const result = {
-      ID: this.trainingRegistrationApprovedID,
+      // ID: this.trainingRegistrationApprovedID,
       unapprovalReason: this.formData.unapprovalReason,
       note: this.formData.note
     };
-    
+
     this.activeModal.close(result);
   }
 }

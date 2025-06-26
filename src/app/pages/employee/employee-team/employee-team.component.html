@@ -34,16 +34,16 @@
       </div>
     </div>
     <div class="card-body p-0">
-      <div id="tb_contract"></div>
+      <div id="tb_employeeTeam"></div>
     </div>
   </div>
 </ng-container>
 
 <div
   class="modal fade"
-  id="addContractModal"
+  id="addEmployeeTeamModal"
   tabindex="-1"
-  aria-labelledby="addContractModalLabel"
+  aria-labelledby="addEmployeeTeamModalLabel"
   aria-hidden="true"
 >
   <div class="modal-dialog modal-dialog-centered fs-12">
@@ -53,7 +53,7 @@
           class="modal-title text-uppercase text-white"
           id="addSpecializationModalLabel"
         >
-          {{ isEditMode ? "Sửa hợp đồng" : "Thêm hợp đồng mới" }}
+          CHI TIẾT TEAM PHÒNG BAN
         </h6>
         <button
           type="button"
@@ -64,21 +64,41 @@
       </div>
       <div class="modal-body">
         <form
-          nz-form [formGroup]="contractForm" (ngSubmit)="onSubmit()"
+          nz-form [formGroup]="employeeTeamForm"
         >
-        <nz-form-item>
-          <nz-form-label [nzSpan]="24">Mã hợp đồng<span class="text-danger"> (*)</span></nz-form-label>
-          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập mã hợp đồng">
-            <input nz-input formControlName="Code" placeholder="Nhập mã hợp đồng" />
-          </nz-form-control>
-        </nz-form-item>
-  
-        <nz-form-item>
-          <nz-form-label [nzSpan]="24">Loại hợp đồng <span class="text-danger"> (*)</span></nz-form-label>
-          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập loại hợp đồng">
-            <input nz-input formControlName="Name" placeholder="Nhập loại hợp đồng" />
-          </nz-form-control>
-        </nz-form-item>
+          <nz-form-item>
+            <nz-form-label [nzSpan]="24">STT</nz-form-label>
+            <nz-form-control [nzSpan]="24">
+              <input nz-input formControlName="STT"/>
+            </nz-form-control>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-form-label [nzSpan]="24">Phòng ban<span class="text-danger"> (*)</span></nz-form-label>
+            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn phòng ban">
+                <nz-select
+                formControlName="DepartmentID"
+                nzPlaceHolder="Chọn phòng ban"
+                nzSpan="24"
+                style="width: 100%;"
+                [nzOptions]="departmentList"
+                nzAllowClear
+              >
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-form-label [nzSpan]="24">Mã team<span class="text-danger"> (*)</span></nz-form-label>
+            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập mã team">
+              <input nz-input formControlName="Code" placeholder="Nhập mã team" />
+            </nz-form-control>
+          </nz-form-item>
+    
+          <nz-form-item>
+            <nz-form-label [nzSpan]="24">Tên team<span class="text-danger"> (*)</span></nz-form-label>
+            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập tên team">
+              <input nz-input formControlName="Name" placeholder="Nhập tên team" />
+            </nz-form-control>
+          </nz-form-item>
         </form>
       </div>
       <div class="modal-footer">
@@ -86,7 +106,6 @@
           type="button"
           class="btn btn-outline-danger"
           data-bs-dismiss="modal"
-          style="height: 3vh; border: 1px solid; border-radius: 0;"
         >
           Đóng
         </button>
@@ -94,7 +113,6 @@
           type="button"
           class="btn btn-primary"
           (click)="onSubmit()"
-          style="height: 3vh; border-radius: 0;"
         >
           Lưu
         </button>

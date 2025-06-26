@@ -1,0 +1,8 @@
+.ant-form-item-label {
+    padding: 0px !important;
+  }
+  
+  /* Hoặc target cụ thể hơn */
+  nz-form-label .ant-form-item-label {
+    padding: 0px !important;
+  }

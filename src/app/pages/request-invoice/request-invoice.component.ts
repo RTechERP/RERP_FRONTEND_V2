@@ -38,11 +38,12 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 
-import { HandoverMinutesService } from './handover-minutes-service/handover-minutes-service.service';
-import { HandoverMinutesDetailService } from '../handover-minutes-detail/handover-minutes-detail/handover-minutes-detail.service';
-import { HandoverMinutesDetailComponent } from '../handover-minutes-detail/handover-minutes-detail.component';
+import { RequestInvoiceService } from './request-invoice-service/request-invoice-service.service';
+import { RequestInvoiceDetailService } from '../request-invoice-detail/request-invoice-detail-service/request-invoice-detail-service.service';
+import { RequestInvoiceDetailComponent } from '../request-invoice-detail/request-invoice-detail.component';
+
 @Component({
-  selector: 'app-handover-minutes',
+  selector: 'app-request-invoice',
   imports: [
     NzCardModule,
     FormsModule,
@@ -69,36 +70,33 @@ import { HandoverMinutesDetailComponent } from '../handover-minutes-detail/hando
     NzCheckboxModule,
     CommonModule,
   ],
-  templateUrl: './handover-minutes.component.html',
-  styleUrl: './handover-minutes.component.css'
+  templateUrl: './request-invoice.component.html',
+  styleUrl: './request-invoice.component.css'
 })
-export class HandoverMinutesComponent implements OnInit, AfterViewInit {
+export class RequestInvoiceComponent implements OnInit, AfterViewInit {
   @ViewChild('tb_MainTable', { static: false }) tb_MainTableElement!: ElementRef;
   @ViewChild('tb_Detail', { static: false }) tb_DetailTableElement!: ElementRef;
+  @ViewChild('tb_File', { static: false }) tb_FileTableElement!: ElementRef;
+
 
   private mainTable!: Tabulator;
   private detailTable!: Tabulator;
+  private fileTable!: Tabulator;
 
   constructor(
+    private modalService: NgbModal,
+    private RequestInvoiceService: RequestInvoiceService,
+    private notification: NzNotificationService,
+    private modal: NzModalService,
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
-    private HandoverMinutesService: HandoverMinutesService,
-    private notification: NzNotificationService,
-    private HandoverMinutesDetailService: HandoverMinutesDetailService,
-    private modal: NzModalService,
-    private modalService: NgbModal,
+    private RequestInvoiceDetailService: RequestInvoiceDetailService,
   ) { }
 
   data: any[] = [];
   dataDetail: any[] = [];
+  dataFile: any[] = [];
   selectedId: number = 0;
-  isEditMode: boolean = false;
-
-
-  sizeSearch: string = '0';
-  toggleSearchPanel() {
-    this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
-  }
 
   filters: any = {
     filterText: "",
@@ -106,10 +104,15 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
     endDate: new Date(),
   };
 
+  sizeSearch: string = '0';
+  toggleSearchPanel() {
+    this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+  }
+
   ngOnInit(): void {
     const endDate = new Date();
     const startDate = new Date();
-    startDate.setDate(startDate.getDate() - 30); // Lấy dữ liệu 30 ngày gần nhất
+    startDate.setDate(startDate.getDate() - 1); // Lấy dữ liệu 1000 ngày trước tạm thời
     startDate.setHours(0, 0, 0, 0);
     endDate.setHours(23, 59, 59, 999);
     this.filters.startDate = startDate;
@@ -118,15 +121,18 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.initDetailTable();
+    this.initMainTable()
+    this.initDetailTable()
+    this.initFileTable()
   }
+
   loadMainData(startDate: Date, endDate: Date, keywords: string): void {
     // Đặt giờ bắt đầu là 00:00:00 và giờ kết thúc là 23:59:59
     const start = new Date(startDate);
     start.setHours(0, 0, 0, 0);
     const end = new Date(endDate);
     end.setHours(23, 59, 59, 999);
-    this.HandoverMinutesService.getHandoverMinutes(start, end, keywords).subscribe({
+    this.RequestInvoiceService.getRequestInvoice(start, end, keywords).subscribe({
       next: (response) => {
         if (response.status === 1) {
           this.data = response.data;
@@ -143,13 +149,18 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
       }
     });
   }
+
   loadDetailData(id: number): void {
-    this.HandoverMinutesService.getDetail(id).subscribe({
+    this.RequestInvoiceService.getDetail(id).subscribe({
       next: (response) => {
         if (response.status === 1) {
           this.dataDetail = response.data;
+          this.dataFile = response.files;
           if (this.detailTable) {
             this.detailTable.setData(this.dataDetail);
+          }
+          if (this.fileTable) {
+            this.fileTable.setData(this.dataFile);
           }
         } else {
           this.notification.error('Lỗi', response.message);
@@ -160,8 +171,9 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
       }
     });
   }
+
   openModal() {
-    const modalRef = this.modalService.open(HandoverMinutesDetailComponent, {
+    const modalRef = this.modalService.open(RequestInvoiceDetailComponent, {
       centered: true,
       size: "xl",
       backdrop: 'static',
@@ -171,6 +183,7 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
       items: [],
     }];
     modalRef.componentInstance.isMultipleGroups = false;
+    modalRef.componentInstance.selectedId = this.selectedId;
 
     modalRef.result.then(
       (result) => {
@@ -183,109 +196,42 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
       }
     );
   }
-
-  onEdit() {
-    if (!this.selectedId) {
-      this.notification.error("Lỗi", "Vui lòng chọn bản ghi cần sửa")
+  onDelete(){
+    if(!this.selectedId)
+    {
+      this.notification.error("Thông báo!","Vui lòng chọn yêu cầu cần xóa!");
       return;
     }
-
-    this.HandoverMinutesService.getDetail(this.selectedId).subscribe({
-      next: (response) => {
-        if (response.status === 1) {
-          const DetailDATA = response.data;
-          const MainData = this.data.find(item => item.ID === this.selectedId);
-          const groupedData = [{
-            MainData: MainData,
-            ID: this.selectedId,
-            items: DetailDATA,
-          }];
-          const modalRef = this.modalService.open(HandoverMinutesDetailComponent, {
-            centered: true,
-            size: "xl",
-            backdrop: 'static'
-          });
-          modalRef.componentInstance.groupedData = groupedData;
-          modalRef.componentInstance.isMultipleGroups = false;
-          modalRef.componentInstance.isEditMode = true;
-          modalRef.result.then(
-            (result) => {
-              if (result.success && result.reloadData) {
-                this.loadMainData(this.filters.startDate, this.filters.endDate, this.filters.filterText);
-              }
-            },
-            (reason) => {
-              console.log('Modal closed');
-            }
-          );
-        } else {
-          this.notification.error('Lỗi', response.message);
-        }
-      },
-      error: (error) => {
-        this.notification.error('Lỗi', error);
-      }
-    });
-  }
-  onDelete() {
-    if (!this.selectedId) {
-      this.notification.error("Thông báo!", "Vui lòng chọn yêu cầu cần xóa!");
-      return;
-    }
-
     this.modal.confirm({
       nzTitle: 'Bạn có chắc chắn muốn xóa?',
       nzContent: 'Hành động này không thể hoàn tác.',
       nzOkText: 'Xóa',
-      nzCancelText: 'Hủy',
-      nzOnOk: () => {
+      nzCancelText:'Hủy',
+      nzOnOk:()=>{
         const DATA = {
           ID: this.selectedId,
           IsDeleted: true
         }
-        this.HandoverMinutesDetailService.save(DATA).subscribe({
+        
+        this.RequestInvoiceDetailService.saveData({
+          RequestInvoices: DATA,
+          RequestInvoiceDetails: []
+        }).subscribe({
           next: (response) => {
             if (response.status === 1) {
-              this.notification.success('Thành công', 'Đã xóa thành công!');
-              this.loadMainData(this.filters.startDate, this.filters.endDate, this.filters.filterText);
+              this.notification.success('Thành công', 'Lưu dữ liệu thành công');
+              this.loadMainData(this.filters.startDate, this.filters.endDate, this.filters.filterText)
             } else {
-              this.notification.error('Lỗi', response.message);
+              this.notification.error('Lỗi', response.message || 'Lưu dữ liệu thất bại!');
             }
           },
-          error: (error) => {
-            this.notification.error('Lỗi', error);
+          error: (err) => {
+            this.notification.error('Lỗi', 'Không thể lưu dữ liệu!');
           }
         });
       }
-    });
+    })
   }
-  onExport() {
-    if (!this.selectedId) {
-      this.notification.error("Lỗi", "Vui lòng chọn bản ghi cần xuất file");
-      return;
-    }
-    const selectedHandover = this.data.find(item => item.ID === this.selectedId);
-    this.HandoverMinutesService.export(this.selectedId).subscribe({
-      next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        const now = new Date();
-        const dateString = `${now.getFullYear().toString().slice(-2)}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
-        const fileName = `${selectedHandover?.Code || 'export'}_${dateString}.xlsx`;
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-        this.notification.success('Thành công', 'Đã xuất file thành công!');
-      },
-      error: () => {
-        this.notification.error('Lỗi', 'Có lỗi xảy ra khi xuất file.');
-      }
-    });
-  }
-
   initMainTable(): void {
     this.mainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
       data: this.data,
@@ -305,24 +251,18 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
         resizable: true
       },
       columns: [
-        { title: 'STT', field: 'STT', sorter: 'string', width: 50 },
-        { title: 'Mã biên bản', field: 'Code', sorter: 'string', width: 150 },
+        { title: 'Trạng thái', field: 'StatusText', sorter: 'string', width: 100 },
+        { title: 'Mã lệnh', field: 'Code', sorter: 'string', width: 200 },
+        { title: 'Khách hàng', field: 'CustomerName', sorter: 'string', width: 215 },
+        { title: 'Địa chỉ', field: 'Address', sorter: 'string', width: 200 },
+        { title: 'Công ty bán', field: 'Name', sorter: 'string', width: 200 },
+        { title: 'Ghi chú', field: 'Note', sorter: 'string', width: 200 },
         {
-          title: 'Ngày lập', field: 'DateMinutes', sorter: 'string', width: 150, formatter: (cell) => {
+          title: 'Ngày yêu cầu', field: 'DateRequest', sorter: 'string', width: 200, formatter: (cell) => {
             const value = cell.getValue();
             return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
           }
         },
-        { title: 'Tên khách hàng', field: 'CustomerName', sorter: 'string', width: 150 },
-        { title: 'Địa chỉ', field: 'CustomerAddress', sorter: 'string', width: 150 },
-        { title: 'Người liên hệ', field: 'CustomerContact', sorter: 'string', width: 150 },
-        { title: 'SDT khách hàng', field: 'CustomerPhone', sorter: 'string', width: 150 },
-        { title: 'Nhân viên', field: 'FullName', sorter: 'string', width: 150 },
-        { title: 'Bộ phận', field: 'DepartmentName', sorter: 'string', width: 150 },
-        { title: 'Email', field: 'EmailCaNhan', sorter: 'string', width: 150 },
-        { title: 'SDT nhân viên', field: 'SDTCaNhan', sorter: 'string', width: 150 },
-        { title: 'Người nhận', field: 'Receiver', sorter: 'string', width: 150 },
-        { title: 'SDT người nhận', field: 'ReceiverPhone', sorter: 'string', width: 150 },
       ]
     });
     this.mainTable.on('rowClick', (e: any, row: RowComponent) => {
@@ -335,21 +275,63 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
     this.detailTable = new Tabulator(this.tb_DetailTableElement.nativeElement, {
       data: this.dataDetail,
       layout: 'fitDataFill',
+      height: '50vh',
+      selectableRows: 1,
+      pagination: true,
+      paginationSize: 50,
       movableColumns: true,
-      height: "88.5vh",
       resizableRows: true,
       reactiveData: true,
+      columnDefaults: {
+        headerWordWrap: true,
+        headerVertical: false,
+        headerHozAlign: "center",
+        minWidth: 60,
+        resizable: true
+      },
       columns: [
-        { title: 'STT', field: 'STT', sorter: 'string', width: 80 },
-        { title: 'Số PO / Số Hợp đồng', field: 'POCode', sorter: 'string', width: 200 },
-        { title: 'Tên sản phẩm', field: 'ProductName', sorter: 'string', width: 150 },
+        { title: 'Mã nội bộ', field: 'ProductNewCode', sorter: 'string', width: 100 },
         { title: 'Mã sản phẩm', field: 'ProductCode', sorter: 'string', width: 150 },
-        { title: 'Hãng sản xuất', field: 'Maker', sorter: 'string', width: 150 },
-        { title: 'Số lượng', field: 'Quantity', sorter: 'string', width: 100 },
-        { title: 'ĐVT', field: 'Unit', sorter: 'string', width: 100 },
-        { title: 'Tình trạng hàng', field: 'ProductStatus', sorter: 'string', width: 200 },
-        { title: 'Bảo hành', field: 'Guarantee', sorter: 'string', width: 200 },
-        { title: 'Tình trạng giao hàng(Nhận đủ/Thiếu)', field: 'DeliveryStatus', sorter: 'string', width: 200 },
+        { title: 'Mã sản phẩm theo dự án', field: 'ProductByProject', sorter: 'string', width: 150 },
+        { title: 'Tên sản phẩm', field: 'ProductName', sorter: 'string', width: 150 },
+        { title: 'ĐVT', field: 'Unit', sorter: 'string', width: 150 },
+        { title: 'Số lượng', field: 'Quantity', sorter: 'string', width: 150 },
+        { title: 'Dự án', field: 'ProjectName', sorter: 'string', width: 150 },
+        { title: 'Mã dự án', field: 'ProjectCode', sorter: 'string', width: 150 },
+        { title: 'Ghi chú (PO)', field: 'Note', sorter: 'string', width: 150 },
+        { title: 'Thông số kỹ thuật', field: 'Specifications', sorter: 'string', width: 150 },
+        { title: 'Số hóa đơn', field: 'InvoiceNumber', sorter: 'string', width: 150 },
+        {
+          title: 'Ngày hóa đơn', field: 'InvoiceDate', sorter: 'string', width: 150, formatter: (cell) => {
+            const value = cell.getValue();
+            return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
+          }
+        },
+
+      ]
+    });
+  }
+  initFileTable(): void {
+    this.fileTable = new Tabulator(this.tb_FileTableElement.nativeElement, {
+      data: this.dataFile,
+      layout: 'fitDataFill',
+      height: '34.9vh',
+      selectableRows: 1,
+      pagination: true,
+      paginationSize: 50,
+      movableColumns: true,
+      resizableRows: true,
+      reactiveData: true,
+      columnDefaults: {
+        headerWordWrap: true,
+        headerVertical: false,
+        headerHozAlign: "center",
+        minWidth: 60,
+        resizable: true
+      },
+      columns: [
+        { title: 'Tên file', field: 'FileName', sorter: 'string', width: "100%" },
+        { title: 'Server Path', field: 'ServerPath', sorter: 'string', visible: false },
       ]
     });
   }

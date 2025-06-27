@@ -276,10 +276,78 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
       this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất 1 dòng mở yêu cầu xuất hóa đơn');
       return;
     }
-    const modalRef = this.modalService.open(RequestInvoiceDetailComponent, {
-      size: 'xl',
-      backdrop: 'static',
-      keyboard: false
+
+    // Nhóm dữ liệu theo CustomerID
+    const groupedData = this.selectedRows.reduce<Record<string, any[]>>((acc, row) => {
+      const customerID = row.CustomerID;
+      const key = `${customerID}`;
+
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+
+      acc[key].push({
+        POKHDetailID: row.ID,
+        STT: acc[key].length + 1,
+        ProductSaleID: row.ProductID,
+        CustomerID: row.CustomerID,
+        Quantity: row.Qty,
+        ProductName: row.ProductName,
+        ProductCode: row.ProductCode,
+        CustomerName: this.customers.find(x=>x.ID == customerID)?.CustomerName,
+        ProductNewCode: row.ProductNewCode,
+        ProjectCode: row.ProjectCode,
+        ProjectID: row.ProjectID,
+        ProjectName: row.ProjectName,
+        POCode: row.POCode,
+        Address: row.Address,
+        Unit: row.Unit,
+        InvoiceDate: null,
+        InvoiceNumber: null
+      });
+
+      return acc;
+    }, {});
+
+    if (Object.keys(groupedData).length === 0) {
+      this.notification.warning('Thông báo', 'Không có dữ liệu hợp lệ để tạo yêu cầu xuất hóa đơn');
+      return;
+    }
+
+    // Hiển thị thông báo nếu có nhiều khách hàng
+    if (Object.keys(groupedData).length > 1) {
+      this.notification.info('Thông báo', `Bạn chọn sản phẩm từ ${Object.keys(groupedData).length} khách hàng. Phần mềm sẽ tự động tạo ${Object.keys(groupedData).length} hóa đơn xuất.`);
+    }
+
+    // Mở modal cho từng nhóm khách hàng
+    Object.entries(groupedData).forEach(([key, data], index) => {
+      const customerID = parseInt(key);
+      const customerName = data[0]?.CustomerName || 'Khách hàng';
+      
+      // Tạo delay để mở modal tuần tự
+      setTimeout(() => {
+        const modalRef = this.modalService.open(RequestInvoiceDetailComponent, {
+          size: 'xl',
+          backdrop: 'static',
+          keyboard: false
+        });
+
+        // Truyền dữ liệu vào modal
+        modalRef.componentInstance.selectedRowsData = data;
+        modalRef.componentInstance.customerID = customerID;
+        modalRef.componentInstance.customerName = customerName;
+        modalRef.componentInstance.isFromPOKH = true;
+
+        // Xử lý kết quả khi modal đóng
+        modalRef.result.then((result) => {
+          if (result && result.reloadTable) {
+            // Load lại dữ liệu
+            this.loadData();
+          }
+        }).catch((reason) => {
+          console.log('Modal dismissed:', reason);
+        });
+      }, index * 100); // Delay 100ms giữa các modal
     });
   }
   closeModal(): void {

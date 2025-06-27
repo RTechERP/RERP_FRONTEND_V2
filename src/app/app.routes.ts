@@ -3,7 +3,7 @@ import { WelcomeComponent } from './pages/welcome/welcome.component';
 import { AppComponent } from './app.component';
 import { ProjectComponent } from './pages/project/project.component';
 import { PokhComponent } from './pages/pokh/pokh.component';
-import { RequestInvoiceDetailComponent } from './pages/request-invoice-detail/request-invoice-detail.component';
+import { RequestInvoiceComponent } from './pages/request-invoice/request-invoice.component';
 import { ViewPokhComponent } from './pages/view-pokh/view-pokh.component';
 import { HandoverMinutesComponent } from './pages/handover-minutes/handover-minutes.component';
 
@@ -16,5 +16,6 @@ export const routes: Routes = [
   { path: 'project', component: ProjectComponent }, // Dự án master
   { path: 'pokh', component: PokhComponent},
   { path: 'handover-minutes', component: HandoverMinutesComponent},
+  { path: 'request-invoice', component: RequestInvoiceComponent}
   
 ];

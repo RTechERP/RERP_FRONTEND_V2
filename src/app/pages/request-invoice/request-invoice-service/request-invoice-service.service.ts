@@ -6,11 +6,10 @@ import { API_URL } from '../../../app.config';
 @Injectable({
   providedIn: 'root'
 })
-export class HandoverMinutesService {
-  private _url = API_URL + 'api/HandoverMinutes/';
+export class RequestInvoiceService {
+  private _url = API_URL + 'api/RequestInvoice/';
   constructor(private http: HttpClient) { }
-
-  getHandoverMinutes(dateStart: Date, dateEnd: Date, filterText: string): Observable<any>
+  getRequestInvoice(dateStart: Date, dateEnd: Date, filterText: string): Observable<any>
   {
     return this.http.get<any>(this._url, {
       params: {
@@ -28,8 +27,6 @@ export class HandoverMinutesService {
       }
     });
   }
-  export(id: number): Observable<Blob>
-  {
-    return this.http.get(`${this._url}export-excel/${id}`, { responseType: 'blob' });
-  }
+
+  
 }

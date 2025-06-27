@@ -12,4 +12,60 @@
     height: 100%;
     border-radius: 0;
   }
+
+/* Giới hạn độ dài dropdown list của Tabulator - CSS Global */
+.tabulator-edit-list {
+  max-width: 400px !important;
+  min-width: 200px !important;
+  width: 400px !important;
+  box-sizing: border-box !important;
+}
+
+.tabulator-edit-list .tabulator-edit-list-item {
+  max-width: 400px !important;
+  min-width: 200px !important;
+  width: 400px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  padding: 4px 8px !important;
+  box-sizing: border-box !important;
+}
+
+/* Tùy chỉnh riêng cho từng cột */
+.tabulator-cell[data-column="POCode"] .tabulator-edit-list {
+  max-width: 350px !important;
+  min-width: 150px !important;
+  width: 350px !important;
+}
+
+.tabulator-cell[data-column="POCode"] .tabulator-edit-list .tabulator-edit-list-item {
+  max-width: 350px !important;
+  min-width: 150px !important;
+  width: 350px !important;
+}
+
+.tabulator-cell[data-column="ProductStatus"] .tabulator-edit-list {
+  max-width: 380px !important;
+  min-width: 200px !important;
+  width: 380px !important;
+}
+
+.tabulator-cell[data-column="ProductStatus"] .tabulator-edit-list .tabulator-edit-list-item {
+  max-width: 380px !important;
+  min-width: 200px !important;
+  width: 380px !important;
+}
+
+.tabulator-cell[data-column="DeliveryStatus"] .tabulator-edit-list {
+  max-width: 450px !important;
+  min-width: 250px !important;
+  width: 450px !important;
+}
+
+.tabulator-cell[data-column="DeliveryStatus"] .tabulator-edit-list .tabulator-edit-list-item {
+  max-width: 450px !important;
+  min-width: 250px !important;
+  width: 450px !important;
+}
   

@@ -319,35 +319,49 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
       this.notification.info('Thông báo', `Bạn chọn sản phẩm từ ${Object.keys(groupedData).length} khách hàng. Phần mềm sẽ tự động tạo ${Object.keys(groupedData).length} hóa đơn xuất.`);
     }
 
-    // Mở modal cho từng nhóm khách hàng
-    Object.entries(groupedData).forEach(([key, data], index) => {
-      const customerID = parseInt(key);
-      const customerName = data[0]?.CustomerName || 'Khách hàng';
-      
-      // Tạo delay để mở modal tuần tự
-      setTimeout(() => {
-        const modalRef = this.modalService.open(RequestInvoiceDetailComponent, {
-          size: 'xl',
-          backdrop: 'static',
-          keyboard: false
-        });
+    // Chuyển đổi object thành array để dễ xử lý
+    const groupedArray = Object.entries(groupedData).map(([key, data]) => ({
+      key,
+      customerID: parseInt(key),
+      customerName: data[0]?.CustomerName || 'Khách hàng',
+      data: data
+    }));
 
-        // Truyền dữ liệu vào modal
-        modalRef.componentInstance.selectedRowsData = data;
-        modalRef.componentInstance.customerID = customerID;
-        modalRef.componentInstance.customerName = customerName;
-        modalRef.componentInstance.isFromPOKH = true;
+    // Mở modal tuần tự
+    this.openModalSequentially(groupedArray, 0);
+  }
 
-        // Xử lý kết quả khi modal đóng
-        modalRef.result.then((result) => {
-          if (result && result.reloadTable) {
-            // Load lại dữ liệu
-            this.loadData();
-          }
-        }).catch((reason) => {
-          console.log('Modal dismissed:', reason);
-        });
-      }, index * 100); // Delay 100ms giữa các modal
+  private openModalSequentially(groupedArray: any[], index: number): void {
+    if (index >= groupedArray.length) {
+      return; // Đã mở hết tất cả modal
+    }
+
+    const currentGroup = groupedArray[index];
+    
+    const modalRef = this.modalService.open(RequestInvoiceDetailComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false
+    });
+
+    // Truyền dữ liệu vào modal
+    modalRef.componentInstance.selectedRowsData = currentGroup.data;
+    modalRef.componentInstance.customerID = currentGroup.customerID;
+    modalRef.componentInstance.customerName = currentGroup.customerName;
+    modalRef.componentInstance.isFromPOKH = true;
+
+    // Xử lý kết quả khi modal đóng
+    modalRef.result.then((result) => {
+      if (result && result.reloadTable) {
+        // Load lại dữ liệu
+        this.loadData();
+      }
+      // Mở modal tiếp theo
+      this.openModalSequentially(groupedArray, index + 1);
+    }).catch((reason) => {
+      console.log('Modal dismissed:', reason);
+      // Mở modal tiếp theo ngay cả khi modal hiện tại bị đóng
+      this.openModalSequentially(groupedArray, index + 1);
     });
   }
   closeModal(): void {

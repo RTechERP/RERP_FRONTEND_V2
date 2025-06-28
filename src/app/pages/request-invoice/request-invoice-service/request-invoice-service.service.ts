@@ -9,6 +9,7 @@ import { API_URL } from '../../../app.config';
 export class RequestInvoiceService {
   private _url = API_URL + 'api/RequestInvoice/';
   constructor(private http: HttpClient) { }
+  
   getRequestInvoice(dateStart: Date, dateEnd: Date, filterText: string): Observable<any>
   {
     return this.http.get<any>(this._url, {
@@ -19,6 +20,7 @@ export class RequestInvoiceService {
       }
     });
   }
+  
   getDetail(id: number): Observable<any>
   {
     return this.http.get<any>(this._url + "get-details",{
@@ -27,6 +29,4 @@ export class RequestInvoiceService {
       }
     });
   }
-
-  
 }

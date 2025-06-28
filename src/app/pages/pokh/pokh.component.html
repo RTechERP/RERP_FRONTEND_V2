@@ -307,7 +307,7 @@
                   <nz-form-control [nzSm]="16" [nzXs]="24">
                     <nz-input-group nzSearch nzSize="default" [nzAddOnAfter]="suffixIconButton_ProjectName">
                       <nz-select nzShowSearch name="projectId" nzPlaceHolder="Chọn dự án" nzAllowClear nzSize="default"
-                        class="w-100" [(ngModel)]="poFormData.projectId" style="max-width: 127px;">
+                        class="w-100" [(ngModel)]="poFormData.projectId" style="max-width: 125px;">
                         <nz-option *ngFor="let project of dataProjects" [nzValue]="project.ID"
                           [nzLabel]="project.ProjectName" [nzTitle]="project.ProjectName">
                           <div
@@ -391,7 +391,7 @@
                 <nz-form-item>
                   <nz-form-label [nzSm]="5" [nzXs]="24">Ghi chú</nz-form-label>
                   <nz-form-control [nzSm]="21" [nzXs]="10" class="d-flex align-items-start gap-2">
-                    <textarea name="note" nz-input rows="2" nzPlaceHolder="Nhập ghi chú" nzSize="default" class="w-100"
+                    <textarea name="note" nz-input rows="2" nzPlaceHolder="Nhập ghi chú" nzSize="default" class="w-100" 
                       [(ngModel)]="poFormData.note"></textarea>
                     <label name="isBigAccount" nz-checkbox [(ngModel)]="poFormData.isBigAccount">
                       <span>New Account</span>

@@ -171,6 +171,51 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
       }
     });
   }
+  onEdit() {
+    if (!this.selectedId) {
+      this.notification.error("Lỗi", "Vui lòng chọn bản ghi cần sửa")
+      return;
+    }
+    this.RequestInvoiceService.getDetail(this.selectedId).subscribe({
+      next: (response) => {
+        if (response.status === 1) {
+          const DETAIL = response.data;
+          const FILE = response.files;
+          const MAINDATA = this.data.find(item => item.ID === this.selectedId);
+          const groupedData = [{
+            MainData: MAINDATA,
+            ID: this.selectedId,
+            items: DETAIL,
+            files: FILE
+          }];
+          const modalRef = this.modalService.open(RequestInvoiceDetailComponent, {
+            centered: true,
+            size: "xl",
+            backdrop: 'static'
+          });
+          modalRef.componentInstance.groupedData = groupedData;
+          modalRef.componentInstance.isEditMode = true;
+          modalRef.componentInstance.selectedId = this.selectedId;
+          modalRef.result.then(
+            (result) => {
+              if (result.success && result.reloadData) {
+                this.loadMainData(this.filters.startDate, this.filters.endDate, this.filters.filterText);
+              }
+            },
+            (reason) => {
+              console.log('Modal closed');
+            }
+          );
+        } else {
+          this.notification.error('Lỗi', response.message);
+        }
+      },
+      error: (error) => {
+        this.notification.error('Lỗi', error);
+      }
+    });
+    
+  }
 
   openModal() {
     const modalRef = this.modalService.open(RequestInvoiceDetailComponent, {
@@ -196,23 +241,22 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
       }
     );
   }
-  onDelete(){
-    if(!this.selectedId)
-    {
-      this.notification.error("Thông báo!","Vui lòng chọn yêu cầu cần xóa!");
+  onDelete() {
+    if (!this.selectedId) {
+      this.notification.error("Thông báo!", "Vui lòng chọn yêu cầu cần xóa!");
       return;
     }
     this.modal.confirm({
       nzTitle: 'Bạn có chắc chắn muốn xóa?',
       nzContent: 'Hành động này không thể hoàn tác.',
       nzOkText: 'Xóa',
-      nzCancelText:'Hủy',
-      nzOnOk:()=>{
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
         const DATA = {
           ID: this.selectedId,
           IsDeleted: true
         }
-        
+
         this.RequestInvoiceDetailService.saveData({
           RequestInvoices: DATA,
           RequestInvoiceDetails: []
@@ -251,6 +295,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
         resizable: true
       },
       columns: [
+        { title: 'ID', field: 'ID', sorter: 'string', width: 100 },
         { title: 'Trạng thái', field: 'StatusText', sorter: 'string', width: 100 },
         { title: 'Mã lệnh', field: 'Code', sorter: 'string', width: 200 },
         { title: 'Khách hàng', field: 'CustomerName', sorter: 'string', width: 215 },

@@ -83,6 +83,8 @@ export class RequestInvoiceDetailComponent implements OnInit {
   @Input() customerName: string = '';
   @Input() isFromPOKH: boolean = false;
   @Input() selectedId = 0;
+  @Input() groupedData: any[] = [];
+  @Input() isEditMode: boolean = false;
 
   private tb_InvoiceFile!: Tabulator;
   private tb_DataTable!: Tabulator;
@@ -130,11 +132,14 @@ export class RequestInvoiceDetailComponent implements OnInit {
     this.loadProductSale();
     this.loadProject();
 
-    this.generateBillNumber(0);// Xử lí nếu ở trạng thái sửa
+    // Xử lý dữ liệu khi ở chế độ edit
+    if (this.isEditMode && this.groupedData.length > 0) {
+      this.handleEditModeData();
+    }
 
-    // Xử lý dữ liệu từ POKH nếu có
-    if (this.isFromPOKH && this.selectedRowsData.length > 0) {
-      this.handlePOKHData();
+    // Chỉ tạo số phiếu mới khi không ở chế độ edit
+    if (!this.isEditMode) {
+      this.generateBillNumber(0);
     }
   }
 
@@ -146,6 +151,16 @@ export class RequestInvoiceDetailComponent implements OnInit {
         this.updateDataTable();
       }, 100);
     }
+    
+    // Cập nhật dữ liệu bảng nếu ở chế độ edit
+    if (this.isEditMode && this.groupedData.length > 0) {
+      setTimeout(() => {
+        this.updateDataTable();
+        if (this.tb_InvoiceFile) {
+          this.tb_InvoiceFile.setData(this.files);
+        }
+      }, 100);
+    }
   }
 
   //#region Load dữ liệu từ API
@@ -154,6 +169,11 @@ export class RequestInvoiceDetailComponent implements OnInit {
       response => {
         if (response.status === 1) {
           this.customers = response.data;
+          
+          // Xử lý dữ liệu từ POKH sau khi customers đã được load
+          if (this.isFromPOKH && this.selectedRowsData.length > 0) {
+            this.handlePOKHData();
+          }
         } else {
           console.error('Lỗi khi tải Customer:', response.message);
         }
@@ -278,7 +298,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
     this.selectedId = 0;
     this.activeModal.close({
       success: true,
-      reloadTable: true,
+      reloadData: true,
       data: response.data
     });
   }
@@ -515,13 +535,16 @@ export class RequestInvoiceDetailComponent implements OnInit {
     if (this.selectedRowsData.length > 0) {
       const firstRow = this.selectedRowsData[0];
 
+      // Tìm thông tin khách hàng từ danh sách customers
+      const customer = this.customers.find(c => c.ID === this.customerID);
+
       // Cập nhật form data
       this.formData.customerId = this.customerID;
-      this.formData.customerCode = firstRow.CustomerName || '';
-      this.formData.address = firstRow.Address || '';
+      this.formData.customerCode = customer?.CustomerName || firstRow.CustomerName || '';
+      this.formData.address = customer?.Address || firstRow.Address || '';
 
       // Cập nhật products array để hiển thị trong bảng
-      this.products = this.selectedRowsData.map((row, index) => ({
+      this.details = this.selectedRowsData.map((row, index) => ({
         ...row,
         STT: index + 1,
         Note: row.Note || '',
@@ -529,6 +552,72 @@ export class RequestInvoiceDetailComponent implements OnInit {
         InvoiceNumber: row.InvoiceNumber || '',
         InvoiceDate: row.InvoiceDate || null
       }));
+    }
+  }
+
+  // Hàm xử lý dữ liệu khi ở chế độ edit
+  handleEditModeData(): void {
+    console.log('Handling edit mode data:', this.groupedData);
+    if (this.groupedData.length > 0) {
+      const data = this.groupedData[0];
+      
+      // Cập nhật form data từ MainData
+      if (data.MainData) {
+        this.formData.Code = data.MainData.Code || '';
+        this.formData.customerId = data.MainData.CustomerID || null;
+        this.formData.customerCode = data.MainData.CustomerName || '';
+        this.formData.address = data.MainData.Address || '';
+        this.formData.userId = data.MainData.EmployeeRequestID || null;
+        if (data.MainData.DateRequest) {
+          const dateRequest = new Date(data.MainData.DateRequest);
+          const year = dateRequest.getFullYear();
+          const month = String(dateRequest.getMonth() + 1).padStart(2, '0');
+          const day = String(dateRequest.getDate()).padStart(2, '0');
+          this.formData.requestDate = `${year}-${month}-${day}`;
+        } else {
+          this.formData.requestDate = new Date().toISOString().split('T')[0];
+        }        
+        this.formData.exportDate = data.MainData.ExportDate ? new Date(data.MainData.ExportDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+        this.formData.taxCompanyId = data.MainData.TaxCompanyID || null;
+        this.formData.status = data.MainData.Status || null;
+        this.formData.note = data.MainData.Note || '';
+        this.selectedId = data.ID || 0;
+      }
+
+      // Cập nhật details từ items
+      if (data.items && data.items.length > 0) {
+        this.details = data.items.map((item: any, index: number) => ({
+          ...item,
+          STT: index + 1,
+          ProductNewCode: item.ProductNewCode || '',
+          ProductSaleID: item.ProductSaleID || '',
+          ProductByProject: item.ProductByProject || '',
+          ProductName: item.ProductName || '',
+          Unit: item.Unit || '',
+          Quantity: item.Quantity || null,
+          ProjectCode: item.ProjectCode || '',
+          ProjectID: item.ProjectID || '',
+          ProjectName: item.ProjectName || '',
+          POCode: item.POCode || '',
+          Note: item.Note || '',
+          Specifications: item.Specifications || '',
+          InvoiceNumber: item.InvoiceNumber || '',
+          InvoiceDate: item.InvoiceDate || null
+        }));
+      }
+
+      // Cập nhật files nếu có
+      if (data.files && data.files.length > 0) {
+        this.files = data.files.map((file: any) => ({
+          ID: file.ID,
+          fileName: file.FileName || file.fileName,
+          fileSize: file.FileSize ? this.formatFileSize(file.FileSize) : '',
+          fileType: file.FileName ? this.getFileType(file.FileName) : '',
+          uploadDate: file.UploadDate ? new Date(file.UploadDate).toLocaleDateString('vi-VN') : new Date().toLocaleDateString('vi-VN'),
+          ServerPath: file.ServerPath || ''
+        }));
+        console.log('Updated files:', this.files);
+      }
     }
   }
 

@@ -295,12 +295,12 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
         resizable: true
       },
       columns: [
-        { title: 'ID', field: 'ID', sorter: 'string', width: 100 },
+        { title: 'ID', field: 'ID', sorter: 'string', width: 50 },
         { title: 'Trạng thái', field: 'StatusText', sorter: 'string', width: 100 },
         { title: 'Mã lệnh', field: 'Code', sorter: 'string', width: 200 },
         { title: 'Khách hàng', field: 'CustomerName', sorter: 'string', width: 215 },
         { title: 'Địa chỉ', field: 'Address', sorter: 'string', width: 200 },
-        { title: 'Công ty bán', field: 'Name', sorter: 'string', width: 200 },
+        { title: 'Công ty bán', field: 'Name', sorter: 'string', width: 140 },
         { title: 'Ghi chú', field: 'Note', sorter: 'string', width: 200 },
         {
           title: 'Ngày yêu cầu', field: 'DateRequest', sorter: 'string', width: 200, formatter: (cell) => {

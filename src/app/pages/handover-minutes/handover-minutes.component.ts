@@ -94,7 +94,6 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
   selectedId: number = 0;
   isEditMode: boolean = false;
 
-
   sizeSearch: string = '0';
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';

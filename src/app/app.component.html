@@ -16,16 +16,6 @@
                     <li nz-menu-item nzMatchRouter>
                         <a (click)="newTab(['/project'])">Dự án</a>
                     </li>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/pokh'])">PO Khách hàng</a>
-                    </li>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/handover-minutes'])">Biên bản giao hàng</a>
-                    </li>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/request-invoice'])">Yêu cầu xuất hóa đơn</a>
-                    </li>
-                    
                     <!--<li nz-menu-item nzMatchRouter>
                         <a (click)="newTab(['/welcome'])">Welcome</a>
                     </li>
@@ -78,6 +68,24 @@
                     <li nz-menu-item nzMatchRouter>
                         <a>Basic Form</a>
                     </li>
+                </ul>
+            </li>
+            <li nz-submenu nzOpen nzTitle="Phòng Sale" nzIcon="area-chart">
+                <ul>
+
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/pokh'])">PO KHÁCH HÀNG</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/quotation-kh'])">BÁO GIÁ KHÁCH HÀNG</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/handover-minutes'])">Biên bản giao hàng</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/request-invoice'])">Yêu cầu xuất hóa đơn</a>
+                    </li>
+
                 </ul>
             </li>
         </ul>

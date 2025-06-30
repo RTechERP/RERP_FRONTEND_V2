@@ -413,18 +413,24 @@ export class RequestInvoiceDetailComponent implements OnInit {
           hozAlign: "center",
           cellClick: (e, cell) => {
             if ((e.target as HTMLElement).classList.contains('delete-btn')) {
-              if (confirm('Bạn có chắc chắn muốn xóa file này?')) {
-                const row = cell.getRow();
-                const rowData = row.getData();
+              this.modal.confirm({
+                nzTitle: 'Xác nhận xóa',
+                nzContent: 'Bạn có chắc chắn muốn xóa file này?',
+                nzOkText: 'Đồng ý',
+                nzCancelText: 'Hủy',
+                nzOnOk: () => {
+                  const row = cell.getRow();
+                  const rowData = row.getData();
 
-                // thêm id của file đã xóa vào mảng deletedFileIds
-                if (rowData['ID']) {
-                  this.deletedFileIds.push(rowData['ID']);
+                  // thêm id của file đã xóa vào mảng deletedFileIds
+                  if (rowData['ID']) {
+                    this.deletedFileIds.push(rowData['ID']);
+                  }
+
+                  row.delete();
+                  this.files = this.tb_InvoiceFile.getData();
                 }
-
-                row.delete();
-                this.files = this.tb_InvoiceFile.getData();
-              }
+              });
             }
           }
         },

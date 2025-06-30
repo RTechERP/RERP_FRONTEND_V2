@@ -6,6 +6,7 @@ import { PokhComponent } from './pages/pokh/pokh.component';
 import { RequestInvoiceComponent } from './pages/request-invoice/request-invoice.component';
 import { ViewPokhComponent } from './pages/view-pokh/view-pokh.component';
 import { HandoverMinutesComponent } from './pages/handover-minutes/handover-minutes.component';
+import { QuotationKhComponent } from './pages/quotation-kh/quotation-kh.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/welcome', pathMatch: 'full' },
@@ -16,6 +17,7 @@ export const routes: Routes = [
   { path: 'project', component: ProjectComponent }, // Dự án master
   { path: 'pokh', component: PokhComponent},
   { path: 'handover-minutes', component: HandoverMinutesComponent},
-  { path: 'request-invoice', component: RequestInvoiceComponent}
+  { path: 'request-invoice', component: RequestInvoiceComponent},
+  { path: 'quotation-kh', component: QuotationKhComponent},
   
 ];

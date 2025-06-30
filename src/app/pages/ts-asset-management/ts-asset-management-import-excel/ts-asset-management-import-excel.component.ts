@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild, Input } from '@angular/core';
+  import { Component, OnInit, AfterViewInit, ViewChild, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { TabulatorFull as Tabulator, CellComponent, ColumnDefinition } from 'tabulator-tables';
@@ -29,10 +29,8 @@ function formatDateCell(cell: CellComponent): string {
 }
 function formatDate(value: any): string | null {
   if (!value) return null;
-
   // Cố gắng parse theo định dạng dd/M/yyyy hoặc dd/MM/yyyy
   const date = DateTime.fromFormat(value.trim(), 'd/M/yyyy');
-
   return date.isValid ? date.toISODate() : null;
 }
 @Component({
@@ -85,7 +83,6 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
   ngAfterViewInit(): void {
     this.loadUnit();
     this.drawtable();
-
   }
   drawtable() {
     if (!this.tableExcel) { // Chỉ khởi tạo nếu chưa có
@@ -682,7 +679,6 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
     }
     console.log('Trạng thái nhập Excel đã được reset.'); // Log
   }
-
   closeExcelModal() {
     this.modalService.dismissAll(true);
   }

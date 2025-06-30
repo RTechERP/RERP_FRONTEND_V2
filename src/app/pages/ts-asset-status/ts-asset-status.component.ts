@@ -179,7 +179,7 @@ export class TsAssetStatusComponent implements OnInit, AfterViewInit {
       IsDeleted: true
     }
     console.log(payloadStatusAsset);
-    this.tsAssetService.SaveData(payloadStatusAsset).subscribe({
+    this.tsAssetService.saveData(payloadStatusAsset).subscribe({
       next: (res) => {
         if (res.status === 1) {
           this.notification.success("Thông báo", "Thành công");

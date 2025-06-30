@@ -797,10 +797,6 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
   onDisposeAsset() {
 
   }
-
-
-
-
   async exportToExcelAdvanced() {
     if (!this.assetTable) return;
 
@@ -884,9 +880,10 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
   openModalImportExcel() {
     const modalRef = this.ngbModal.open(TsAssetManagementImportExcelComponent, {
       centered: true,
-      size: 'lg',
+      size: 'xl',
       backdrop: 'static',
-      keyboard: false
+      keyboard: false,
+      windowClass: 'modal-fullscreen',
     });
     modalRef.result.catch(
       (result) => {

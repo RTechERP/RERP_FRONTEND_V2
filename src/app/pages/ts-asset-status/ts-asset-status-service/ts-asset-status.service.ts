@@ -13,7 +13,7 @@ getStatus():Observable<any>
 {
   return this.httpclient.get<any>(this.url);
 }
- SaveData(status:any):Observable<any>
+ saveData(status:any):Observable<any>
  {
   return this.httpclient.post(this.urlSaveData,status)
  }

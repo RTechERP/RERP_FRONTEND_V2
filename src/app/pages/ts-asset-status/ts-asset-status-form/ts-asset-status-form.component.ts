@@ -62,10 +62,9 @@ export class TsAssetStatusFormComponent implements OnInit {
   const isEditing = this.dataInput && this.dataInput.ID;
   const status = {
     ID: isEditing ? this.dataInput.ID : 0,
-    Status: this.assetStatus.trim(),
     };
 console.log("Payload edit unit",status);
-  this.assetStatusService.SaveData(status).subscribe({
+  this.assetStatusService.saveData(status).subscribe({
     next: () => {
       this.loadAssetStatus();
       this.formSubmitted.emit();

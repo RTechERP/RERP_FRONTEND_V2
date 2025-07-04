@@ -12,6 +12,8 @@ export class ProjectService {
   constructor(private http: HttpClient) {}
 
   GlobalEmployeeId: number = 78;
+  LoginName: string = 'ADMIN';
+  ISADMIN: boolean = true;
   // Lấy danh sách thư mục dự án
   getFolders(): Observable<any> {
     return this.http.get<any>(this.apiUrl + 'Project/getfolders');
@@ -39,7 +41,9 @@ export class ProjectService {
 
   // Danh sách loại dự án ProjectTypeLink
   getProjectTypeLinks(id: number): Observable<any> {
-    return this.http.get<any>(this.apiUrl + `Project/getprojecttypelinks/${id}`);
+    return this.http.get<any>(
+      this.apiUrl + `Project/getprojecttypelinks/${id}`
+    );
   }
 
   // Load Hạng mục công việc
@@ -84,12 +88,16 @@ export class ProjectService {
 
   //modal lấy dữ liệu FollowProjectBase
   getFollowProjectBases(id: number): Observable<any> {
-    return this.http.get<any>(this.apiUrl + `Project/getfollowprojectbases/${id}`);
+    return this.http.get<any>(
+      this.apiUrl + `Project/getfollowprojectbases/${id}`
+    );
   }
 
   //modal lấy dữ liệu projectprioritydetail
   getprojectprioritydetail(id: number): Observable<any> {
-    return this.http.get<any>(this.apiUrl + `Project/getprojectprioritydetail/${id}`);
+    return this.http.get<any>(
+      this.apiUrl + `Project/getprojectprioritydetail/${id}`
+    );
   }
 
   //modal lấy dữ liệu projectprioritydetail
@@ -116,7 +124,9 @@ export class ProjectService {
 
   // lấy chi tiết dự án
   getProjectStatusById(projectId: number): Observable<any> {
-    return this.http.get<any>(this.apiUrl + `Project/getprojectstatuss/${projectId}`);
+    return this.http.get<any>(
+      this.apiUrl + `Project/getprojectstatuss/${projectId}`
+    );
   }
 
   // lấy mã dự án
@@ -143,13 +153,16 @@ export class ProjectService {
 
   // lấy ưu tiên dự án
   getProjectPriorityModal(id: any): Observable<any> {
-    return this.http.get<any>(this.apiUrl + `Project/getprojectprioritymodal/${id}`);
+    return this.http.get<any>(
+      this.apiUrl + `Project/getprojectprioritymodal/${id}`
+    );
   }
 
   // lấy hiện trạng  dự án
   getProjectCurrentSituation(projectId: any, employeeId: any): Observable<any> {
     return this.http.get<any>(
-      this.apiUrl + `Project/getprojectcurrentsituation/${projectId}/${employeeId}`
+      this.apiUrl +
+        `Project/getprojectcurrentsituation/${projectId}/${employeeId}`
     );
   }
 
@@ -195,7 +208,9 @@ export class ProjectService {
   // Xóa dự án
   deletedProject(ids: number[]): Observable<any> {
     const idArray = ids.join(',');
-    return this.http.get<any>(this.apiUrl + `Project/deletedproject/${idArray}`);
+    return this.http.get<any>(
+      this.apiUrl + `Project/deletedproject/${idArray}`
+    );
   }
 
   // Lưu dữ liệu dự án
@@ -244,7 +259,8 @@ export class ProjectService {
   // Lưu dữ liệu trạng thái dự án
   saveProjectStatus(Stt: any, statusName: any): Observable<any> {
     return this.http.post<any>(
-      this.apiUrl + `Project/saveprojectstatus?Stt=${Stt}&statusName=${statusName}`,
+      this.apiUrl +
+        `Project/saveprojectstatus?Stt=${Stt}&statusName=${statusName}`,
       {}
     );
   }
@@ -256,18 +272,18 @@ export class ProjectService {
     );
   }
 
-  setDataTree(flatData: any[]): any[] {
+  setDataTree(flatData: any[],valueField:string): any[] {
     const map = new Map<number, any>();
     const tree: any[] = [];
 
     // Bước 1: Map từng item theo ID
     flatData.forEach((item) => {
-      map.set(item.ID, { ...item, _children: [] });
+      map.set(item[valueField], { ...item, _children: [] });
     });
 
     // Bước 2: Gắn item vào parent hoặc top-level
     flatData.forEach((item) => {
-      const current = map.get(item.ID);
+      const current = map.get(item[valueField]);
       if (item.ParentID && item.ParentID != 0) {
         const parent = map.get(item.ParentID);
         if (parent) {
@@ -300,8 +316,10 @@ export class ProjectService {
   }
 
   // Chức năng người tham gia dự án
-  getProjectEmployee(): Observable<any> {
-    return this.http.get<any>(this.apiUrl + `Project/getprojectemployee`);
+  getProjectEmployee(status: number): Observable<any> {
+    return this.http.get<any>(
+      this.apiUrl + `Project/getprojectemployee/${status}`
+    );
   }
 
   getStatusProjectEmployee(): Observable<any> {
@@ -313,7 +331,9 @@ export class ProjectService {
   }
 
   getEmployeeSuggest(projectId: number): Observable<any> {
-    return this.http.get<any>(this.apiUrl + `Project/getemployeesuggest/${projectId}`);
+    return this.http.get<any>(
+      this.apiUrl + `Project/getemployeesuggest/${projectId}`
+    );
   }
 
   getEmployeeMain(projectId: number, isDeleted: number): Observable<any> {
@@ -400,7 +420,134 @@ export class ProjectService {
 
   //#region Tiến độ công việc dự án
   getWorkPropress(projectId: number): Observable<any> {
-    return this.http.get<any>(this.apiUrl + `ProjectWorkPropress/get-work-propress/${projectId}`);
+    return this.http.get<any>(
+      this.apiUrl + `ProjectWorkPropress/get-work-propress/${projectId}`
+    );
+  }
+  //#endregion
+
+  //#region Timeline công việc
+  getDepartment(): Observable<any> {
+    return this.http.get<any>(
+      this.apiUrl + `ProjectWorkTimeline/get-department`
+    );
+  }
+
+  getUserTeam(departmentId: number): Observable<any> {
+    return this.http.get<any>(
+      this.apiUrl + `ProjectWorkTimeline/get-user-team/${departmentId}`
+    );
+  }
+
+  getDataWorkTimeline(data: any): Observable<any> {
+    return this.http.get<any>(this.apiUrl + `ProjectWorkTimeline/get-data`, {
+      params: data,
+    });
+  }
+
+  getDataWorkTimelineDetail(data: any): Observable<any> {
+    return this.http.get<any>(this.apiUrl + `ProjectWorkTimeline/get-data-detail`, {
+      params: data,
+    });
+  }
+
+  //#endregion
+
+  //#region Khảo sát dự án
+  getDataProjectSurvey(data: any): Observable<any> {
+    return this.http.get<any>(this.apiUrl + `ProjectSurvey/get-project-survey`, {
+      params: data,
+    });
+  }
+
+  approvedUrgent(data: any): Observable<any> {
+    return this.http.get<any>(this.apiUrl + `ProjectSurvey/approved-urgent`, {
+      params: data,
+    });
+  }
+
+  approved(data: any): Observable<any> {
+    return this.http.get<any>(
+      this.apiUrl + `ProjectSurvey/approved-request`,
+     { params: data}
+    );
+  }
+
+  getTbDetail(data: any): Observable<any> {
+    return this.http.get<any>(
+      this.apiUrl + `ProjectSurvey/get-tb-detail`,
+     { params: data}
+    );
+  }
+
+  getDetail(data: any): Observable<any> {
+    return this.http.get<any>(
+      this.apiUrl + `ProjectSurvey/get-detail`,
+     { params: data}
+    );
+  }
+
+  getFileDetail(data: any): Observable<any> {
+    return this.http.get<any>(
+      this.apiUrl + `ProjectSurvey/get-files`,
+     { params: data}
+    );
+  }
+
+  viewFile(data: any): Observable<any> {
+    return this.http.get<any>(
+      this.apiUrl + `ProjectSurvey/see-file`,
+     { params: data}
+    );
+  }
+
+  checkStatusDetail(data: any): Observable<any> {
+    return this.http.get<any>(
+      this.apiUrl + `ProjectSurvey/check-status-detail`,
+     { params: data}
+    );
+  }
+
+  deletedProjectSurvey(data: any): Observable<any> {
+    return this.http.get<any>(
+      this.apiUrl + `ProjectSurvey/deleted-project-survey`,
+     { params: data}
+    );
+  }
+
+  openFolder(data: any): Observable<any> {
+    return this.http.get<any>(
+      this.apiUrl + `ProjectSurvey/open-folder`,
+     { params: data}
+    );
+  }
+
+  getDetailByid(data: any): Observable<any> {
+    return this.http.get<any>(
+      this.apiUrl + `ProjectSurvey/get-detail-byid`,
+     { params: data}
+    );
+  }
+
+  saveProjectSurvey(projectSurveyDTO: any): Observable<any> {
+    return this.http.post<any>(
+      this.apiUrl + `ProjectSurvey/save-project-survey`,
+      projectSurveyDTO
+    );
+  }
+
+  saveProjectSurveyFiles(data: any): Observable<any> {
+    return this.http.post<any>(
+      this.apiUrl + `ProjectSurvey/save-project-survey-files`,
+      data
+    );
+  }
+
+  saveProjectSurveyResult(data: any): Observable<any> {
+    return this.http.post<any>(
+      this.apiUrl + `ProjectSurvey/save-project-survey-result`,
+      data
+    );
   }
   //#endregion
 }

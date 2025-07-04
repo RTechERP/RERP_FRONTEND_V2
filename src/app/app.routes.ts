@@ -1,3 +1,4 @@
+import { ProjectSurveyComponent } from './pages/project/project-survey/project-survey.component';
 import { Routes } from '@angular/router';
 import { WelcomeComponent } from './pages/welcome/welcome.component';
 import { AppComponent } from './app.component';
@@ -18,4 +19,5 @@ export const routes: Routes = [
   { path: 'projectWorkCategory', component: ProjectWorkCategoryComponent }, // Hạng mục dự án
   { path: 'projectWorkPropress/:id', component: ProjectWorkPropressComponent }, // Tiến độ công việc
   { path: 'projectWorkTimeline', component: ProjectWorkTimelineComponent }, // TimeLine công việc
+  { path: 'projectSurvey', component: ProjectSurveyComponent }, // Khảo sát dự án
 ];

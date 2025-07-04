@@ -155,7 +155,7 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
   }
 
   getProjectEmployee() {
-    this.projectService.getProjectEmployee().subscribe({
+    this.projectService.getProjectEmployee(-1).subscribe({
       next: (response: any) => {
         this.employees = this.projectService.createdDataGroup(
           response.data,

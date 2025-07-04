@@ -642,64 +642,6 @@ export class ProjectWorkPropressComponent implements OnInit, AfterViewInit {
         fgColor: { argb: 'FFE0E0E0' },
       };
 
-      // Ghi dữ liệu thực tế
-
-      // Gán dữ liệu
-      //87cefa
-      // rows.forEach((row: any) => {
-      //   let ds = DateTime.fromISO(row.StartDate);
-      //   let de = DateTime.fromISO(row.EndDate);
-      //   let typeText = String(row.TypeText).toLowerCase();
-      //   let itemLate = Number(row.ItemLate);
-      //   for (const key in row) {
-      //     if (Object.prototype.hasOwnProperty.call(row, key)) {
-      //       // Kiểm tra key có đúng định dạng dd/MM/yyyy
-      //       const isDateKey = /^\d{2}\/\d{2}\/\d{4}$/.test(key);
-
-      //       if (isDateKey) {
-      //         const keyDate = DateTime.fromFormat(key, 'dd/MM/yyyy');
-      //         if (keyDate.weekday == 7) {
-      //           row[key] = 'gray';
-      //         }
-
-      //         if (keyDate >= ds && keyDate <= de) {
-      //           if (keyDate.weekday == 7) {
-      //             if (typeText == 'plan') {
-      //               row[key] = 'argbgrayblue';
-      //             } else {
-      //               if (itemLate != 0) {
-      //                 row[key] = 'argbgrayred';
-      //               } else {
-      //                 row[key] = 'argbgrayyellow';
-      //               }
-      //             }
-      //           } else {
-      //             if (typeText == 'plan') {
-      //               row[key] = 'lightblue';
-      //             } else if(typeText == 'actual'){
-      //               if (itemLate != 0) {
-      //                 row[key] = 'red';
-      //               } else {
-      //                 row[key] = 'yellow';
-      //               }
-      //             }
-      //           }
-      //         }
-      //       }
-      //     }
-      //   }
-      //   const rowData = columns.map((col: any) => {
-      //     const field = col.getField?.();
-      //     let value = row[field];
-      //     if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
-      //       value = new Date(value);
-      //     }
-      //     return value;
-      //   });
-      //   debugger;
-      //   worksheet.addRow(rowData);
-      // });
-
       const colorMap: Record<string, string> = {
         gray: 'FFE0E0E0',
         lightblue: '87cefa',

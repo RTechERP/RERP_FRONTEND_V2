@@ -134,7 +134,7 @@ export class ProjectPriorityDetailComponent implements OnInit {
           Selected: response.checks.includes(item.ID) ? true : false,
         }));
 
-        let data = this.projectService.setDataTree(test);
+        let data = this.projectService.setDataTree(test, 'ID');
         this.tb_projectPriority.setData(data);
         this.caculatorPriority();
       },

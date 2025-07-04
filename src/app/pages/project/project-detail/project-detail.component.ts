@@ -826,7 +826,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     this.projectService.getProjectTypeLinks(this.projectId).subscribe({
       next: (response: any) => {
         this.tb_projectTypeLinks.setData(
-          this.projectService.setDataTree(response.data)
+          this.projectService.setDataTree(response.data, 'ID')
         );
       },
       error: (error) => {
@@ -911,7 +911,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     this.projectService.getProjectTypeLinks(this.projectIdleader).subscribe({
       next: (response: any) => {
         this.tb_projectTypeLinksDetail.setData(
-          this.projectService.setDataTree(response.data)
+          this.projectService.setDataTree(response.data, 'ID')
         );
       },
       error: (error) => {

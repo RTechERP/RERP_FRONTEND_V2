@@ -32,6 +32,8 @@
               <nz-form-control [nzSpan]="24">
                 <nz-select name="userId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
                   nzPlaceHolder="Người phụ trách" [(ngModel)]="filters.userId">
+                  <nz-option *ngFor="let item of filterUserData" [nzValue]="item.ID"
+                  [nzLabel]="item.FullName"></nz-option>
                 </nz-select>
               </nz-form-control>
             </nz-form-item>
@@ -40,6 +42,8 @@
               <nz-form-control [nzSpan]="24">
                 <nz-select name="employeeTeamSaleId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
                   nzPlaceHolder="Nhóm" [(ngModel)]="filters.employeeTeamSaleId">
+                  <nz-option *ngFor="let item of filterEmployeeTeamSale" [nzValue]="item.ID"
+                  [nzLabel]="item.Name"></nz-option>
                 </nz-select>
               </nz-form-control>
             </nz-form-item>

@@ -1,0 +1,161 @@
+<!-- quotation-kh-detail.component.html -->
+<div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">BÁO GIÁ KHÁCH HÀNG CHI TIẾT</h6>
+    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body p-1">
+    <div class="d-flex gap-1 mb-2">
+        <button class="fs-12" nz-button nzType="default" nzSize="small" title="Lưu">
+            <nz-icon nzType="save"></nz-icon> Lưu
+        </button>
+        <button class="fs-12" nz-button nzType="default" nzSize="small" title="Đính kèm file">
+            <nz-icon nzType="paper-clip"></nz-icon> Đính kèm file
+        </button>
+        <button class="fs-12" nz-button nzType="default" nzSize="small" title="Nhập File">
+            <nz-icon nzType="upload"></nz-icon> Nhập File
+        </button>
+        <button class="fs-12" nz-button nzType="default" nzSize="small" title="Kiểm tra tồn kho">
+            <nz-icon nzType="search"></nz-icon> Kiểm tra tồn kho
+        </button>
+    </div>
+    <form>
+        <div class="container-fluid">
+            <div class="row g-2">
+                <div class="col-md-2">
+                    <label class="mb-0 fs-12">Trạng thái</label>
+                    <nz-select nzShowSearch nzPlaceHolder="Chọn trạng thái" nzAllowClear nzSize="default" class="w-100"
+                        [(ngModel)]="formData.status" name="status">
+                        <nz-option *ngFor="let status of statusOptions" [nzValue]="status.value"
+                            [nzLabel]="status.label"></nz-option>
+                    </nz-select>
+                </div>
+                <div class="col-md-2">
+                    <label class="mb-0 fs-12">Mã</label>
+                    <input type="text" class="form-control form-control-sm fs-12" [(ngModel)]="formData.code"
+                        name="code">
+                </div>
+                <div class="col-md-2">
+                    <label class="mb-0 fs-12">Số PO</label>
+                    <input type="text" class="form-control form-control-sm fs-12" [(ngModel)]="formData.poCode"
+                        name="poCode">
+                </div>
+                <div class="col-md-2">
+                    <label class="mb-0 fs-12">Ngày tạo</label>
+                    <input type="date" class="form-control form-control-sm fs-12" [(ngModel)]="formData.createDate"
+                        name="createDate">
+                </div>
+                <div class="col-md-2">
+                    <label class="mb-0 fs-12">Ngày báo giá</label>
+                    <input type="date" class="form-control form-control-sm fs-12" [(ngModel)]="formData.quotationDate"
+                        name="quotationDate">
+                </div>
+                <div class="col-md-2">
+                    <label class="mb-0 fs-12">Công ty</label>
+                    <nz-select nzShowSearch nzPlaceHolder="Chọn công ty" nzAllowClear nzSize="default" class="w-100"
+                        [(ngModel)]="formData.company" name="company">
+                        <nz-option *ngFor="let company of companyOptions" [nzValue]="company.value"
+                            [nzLabel]="company.label"></nz-option>
+                    </nz-select>
+                </div>
+            </div>
+            <div class="row g-2 mt-1">
+                <div class="col-md-2">
+                    <label class="mb-0 fs-12">Tổng báo giá</label>
+                    <input type="text" class="form-control form-control-sm fs-12" [(ngModel)]="formData.totalPrice"
+                        name="totalPrice">
+                </div>
+                <div class="col-md-2">
+                    <label class="mb-0 fs-12">Giải trình Fail</label>
+                    <input type="text" class="form-control form-control-sm fs-12" [(ngModel)]="formData.explanation"
+                        name="explanation">
+                </div>
+                <div class="col-md-2">
+                    <label class="mb-0 fs-12">SĐT liên hệ</label>
+                    <input type="text" class="form-control form-control-sm fs-12" [(ngModel)]="formData.customerPhone"
+                        name="customerPhone">
+                </div>
+                <div class="col-md-2">
+                    <label class="mb-0 fs-12">Tiền COM</label>
+                    <input type="text" class="form-control form-control-sm fs-12" [(ngModel)]="formData.csomMoney"
+                        name="comMoney">
+                </div>
+                <div class="col-md-2">
+                    <label class="mb-0 fs-12">Người phụ trách</label>
+                    <nz-select nzShowSearch name="userId" nzPlaceHolder="Chọn người phụ trách" nzAllowClear
+                        nzSize="default" class="w-100" [(ngModel)]="formData.userId">
+                        <nz-option *ngFor="let item of Users" [nzValue]="item.ID" [nzLabel]="item.FullName"></nz-option>
+                    </nz-select>
+                </div>
+                <div class="col-md-2">
+                    <label class="mb-0 fs-12">Người liên hệ</label>
+                    <nz-select nzShowSearch name="contactId" nzPlaceHolder="Chọn người liên hệ" nzAllowClear
+                        nzSize="default" class="w-100" [(ngModel)]="formData.contactId" (ngModelChange)="onContactChange($event)">
+                        <nz-option *ngFor="let item of contact" [nzValue]="item.ID"
+                            [nzLabel]="item.ContactName"></nz-option>
+                    </nz-select>
+                </div>
+            </div>
+            <div class="row g-2 mt-2">
+                <div class="col-12 col-md-4">
+                    <label class="mb-0 fs-12">Khách hàng</label>
+                    <div class="d-flex align-items-center">
+                        <nz-select nzShowSearch name="customerId" nzPlaceHolder="Chọn khách hàng" nzAllowClear
+                            nzSize="default" class="w-100" [(ngModel)]="formData.customerId"
+                            (ngModelChange)="onCustomerChange($event)">
+                            <nz-option *ngFor="let customer of customers" [nzValue]="customer.ID"
+                                [nzLabel]="customer.CustomerShortName"></nz-option>
+                        </nz-select>
+                        <button nz-button nzType="default" nzSize="small" (click)="onAddCustomer()">
+                            <nz-icon nzType="plus" nzTheme="outline"></nz-icon>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="mb-0 fs-12">Dự án</label>
+                    <div class="d-flex align-items-center">
+                        <nz-select nzShowSearch name="projectId" nzPlaceHolder="Chọn dự án" nzAllowClear nzSize="default"
+                            class="w-100" [(ngModel)]="formData.projectId" (ngModelChange)="onProjectChange($event)">
+                            <nz-option *ngFor="let item of projects" [nzValue]="item.ID"
+                                [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName">
+                            </nz-option>
+                        </nz-select>
+                        <button nz-button nzType="default" nzSize="small" (click)="onAddProject()">
+                            <nz-icon nzType="plus" nzTheme="outline"></nz-icon>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="mb-0 fs-12">COM (%)</label>
+                    <div class="d-flex align-items-center">
+                        <input type="checkbox" [(ngModel)]="formData.comEnabled" name="comEnabled" class="me-1" />
+                        <input type="number" class="form-control form-control-sm fs-12" [(ngModel)]="formData.comPercent"
+                            name="comPercent">
+                    </div>
+                </div>
+            </div>
+            <!-- Bảng sản phẩm chi tiết -->
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <button nz-button nzType="primary" nzSize="small" (click)="addNewRow()">
+                            <nz-icon nzType="plus"></nz-icon> Thêm dòng
+                        </button>
+                        <div class="d-flex align-items-center">
+                            <label class="d-flex align-items-center mb-0 fs-12" style="cursor: pointer;">
+                                <input type="checkbox" [(ngModel)]="showRTCCode" (change)="onRTCCodeToggle($any($event.target).checked)" 
+                                       class="me-2" style="width: 16px; height: 16px; cursor: pointer;" />
+                                Hiện Mã RTC
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div #tb_MainTable id="tb_MainTable"></div>
+            </div>
+        </div>
+    </form>
+    <div class="modal-footer py-1">
+        <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
+        <button nz-button nzType="primary" nzSize="default" (click)="saveAndClose()">Lưu</button>
+    </div>
+</div>

@@ -27,6 +27,9 @@ export class PokhService {
       }
     });
   }
+  getPOKHAjax(): string{
+    return this._url + 'get-pokh';
+  }
   handlePOKH(pokh: any): Observable<any> {
     return this.http.post<any>(this._url + 'handle', pokh);
   }
@@ -100,6 +103,9 @@ export class PokhService {
   }
   deleteFiles(fileIds: number[]): Observable<any> {
     return this.http.post<any>(this._url + 'delete-file', fileIds);
+  }
+  copyFromDTO(dto: any): Observable<any> {
+    return this.http.post<any>(this._url + 'copy-dto', dto);
   }
   createdDataGroup(items: any[], groupByField: string): any[] {
     const grouped: Record<string, any[]> = items.reduce((acc, item) => {

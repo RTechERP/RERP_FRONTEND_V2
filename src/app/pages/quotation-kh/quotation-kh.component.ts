@@ -38,6 +38,11 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 
+import { QuotationKhServicesService } from './quotation-kh-services/quotation-kh-services.service';
+import { QuotationKhDetailComponent } from '../quotation-kh-detail/quotation-kh-detail.component';
+import { QuotationKhDetailServiceService } from '../quotation-kh-detail/quotation-kh-detail-service/quotation-kh-detail-service.service';
+import { CustomerPartService } from '../customer-part/customer-part/customer-part.service';
+
 @Component({
   selector: 'app-quotation-kh',
   imports: [
@@ -65,6 +70,7 @@ import * as ExcelJS from 'exceljs';
     NzSwitchModule,
     NzCheckboxModule,
     CommonModule,
+
   ],
   templateUrl: './quotation-kh.component.html',
   styleUrl: './quotation-kh.component.css'
@@ -82,12 +88,28 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private modal: NzModalService,
     private modalService: NgbModal,
+    private quotationKhServices: QuotationKhServicesService,
+    private quotationKhDetailService: QuotationKhDetailServiceService,
+    private customerPartService: CustomerPartService,
   ) { }
-
-  data: any[] = [];
+  filterUserData: any[] = [];
+  filterCustomerData: any[] = [];
   dataDetail: any[] = [];
   selectedId: number = 0;
   isEditMode: boolean = false;
+
+  filters: any = {
+    filterText: "",
+    customerId: 0,
+    userId: 0,
+    status: -1,
+  };
+
+  statusOptions = [
+    { value: 0, label: 'Chờ phản hồi' },
+    { value: 1, label: 'Fail' },
+    { value: 2, label: 'Thành PO' },
+  ];
 
   sizeSearch: string = '0';
   toggleSearchPanel() {
@@ -95,18 +117,102 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
-    
+    this.loadUsers();
+    this.loadCustomer();
   }
   ngAfterViewInit(): void {
     this.initMainTable();
     this.initDetailTable();
   }
+  openModal() {
+    const modalRef = this.modalService.open(QuotationKhDetailComponent, {
+      centered: true,
+      windowClass: 'full-screen-modal',
+      backdrop: 'static',
+    });
 
+    modalRef.result.then(
+      (result) => {
+        if (result.success && result.reloadData) {
+        }
+      },
+      (reason) => {
+        console.log('Modal closed');
+      }
+    );
+  }
+
+  loadUsers(): void {
+    this.quotationKhDetailService.getUser().subscribe(
+      response => {
+        if (response.status === 1) {
+          this.filterUserData = response.data;
+
+        } else {
+          this.notification.error('Lỗi khi tải dữ liệu User:', response.message);
+        }
+      },
+      error => {
+        this.notification.error('Lỗi kết nối khi tải User:', error);
+      }
+    );
+  }
+
+  loadCustomer(): void{
+    this.customerPartService.getCustomer().subscribe(
+      response => {
+        if (response.status === 1) {
+          this.filterCustomerData = response.data;
+
+        } else {
+          this.notification.error('Lỗi khi tải dữ liệu Customer:', response.message);
+        }
+      },
+      error => {
+        this.notification.error('Lỗi kết nối khi tải Customer:', error);
+      }
+    );
+  }
+
+  searchData(): void {
+    if (this.mainTable) {
+      this.mainTable.setData(); 
+    }
+  }
+
+  loadQuotationKHDetail(id: number): void {
+    this.quotationKhServices.getQuotationKHDetail(id).subscribe({
+      next: (response) => {
+        if (response.status === 1) {
+          this.dataDetail = response.data;
+          if (this.detailTable) {
+            this.detailTable.setData(this.dataDetail);
+          }
+        } else {
+          this.notification.error('Lỗi', response.message);
+        }
+      },
+      error: (error) => {
+        this.notification.error('Lỗi', error);
+      }
+    });
+  }
+  getQuotationKHAjaxParams(): any {
+    return (params: any) => {
+      console.log("Params từ Tabulator:", params);
+
+      return {
+        filterText: this.filters.filterText || "",
+        customerId: this.filters.customerId || 0,
+        userId: this.filters.userId || 0,
+        status: this.filters.status || -1,
+      };
+    };
+  }
   initMainTable(): void {
     this.mainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
-      data: this.data,
       layout: 'fitDataFill',
-      height: '100%',
+      height: '91vh',
       selectableRows: 1,
       pagination: true,
       paginationSize: 50,
@@ -120,6 +226,29 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
         minWidth: 60,
         resizable: true
       },
+      paginationMode: 'remote',
+      paginationSizeSelector: [10, 30, 50, 100, 300],
+      ajaxURL: this.quotationKhServices.getQuotationKHAjax(),
+      ajaxParams: this.getQuotationKHAjaxParams(),
+      ajaxResponse: (url, params, res) => {
+        console.log('total', res.data[0].TotalPage);
+        console.log('data', res.data);
+        return {
+          data: res.data,
+          last_page: res.data[0].TotalPage,
+        };
+      },
+      langs: {
+        vi: {
+          pagination: {
+            first: '<<',
+            last: '>>',
+            prev: '<',
+            next: '>',
+          },
+        },
+      },
+      locale: 'vi',
       columns: [
         {
           title: 'Duyệt', field: 'IsApproved', sorter: 'boolean', width: 80, formatter: (cell) => {
@@ -194,15 +323,16 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
     this.mainTable.on('rowClick', (e: any, row: RowComponent) => {
       const ID = row.getData()['ID'];
       this.selectedId = ID;
-      // this.loadDetailData(ID);
+      this.loadQuotationKHDetail(ID);
     });
   }
+
   initDetailTable(): void {
     this.detailTable = new Tabulator(this.tb_DetailTableElement.nativeElement, {
       data: this.dataDetail,
       layout: 'fitDataFill',
       movableColumns: true,
-      height: "88.5vh",
+      height: "88vh",
       resizableRows: true,
       reactiveData: true,
       columns: [
@@ -214,7 +344,7 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
         { title: 'Số lượng', field: 'Qty', sorter: 'string', width: 150 },
         { title: 'Đơn giá báo trước VAT', field: 'UnitPrice', sorter: 'string', width: 150 },
         {
-          title: 'Thành tiền trước VAT', field: 'IntoMoney', sorter: 'number', width: 200, formatter: "money",
+          title: 'Thành tiền trước VAT', field: 'IntoMoney', sorter: 'number', width: 200,
           formatterParams: {
             precision: 0,
             decimal: ".",
@@ -250,7 +380,6 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
         { title: 'Giá net', field: 'GiaNet', sorter: 'string', width: 150 },
         { title: 'Nhóm', field: 'GroupQuota', sorter: 'string', width: 150 },
         { title: 'Ghi chú', field: 'Note', sorter: 'string', width: 150 },
-
       ]
     });
   }

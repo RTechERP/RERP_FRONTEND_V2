@@ -7,6 +7,7 @@ import { ProjectListWorkReportComponent } from './pages/project/project-list-wor
 import { ProjectWorkCategoryComponent } from './pages/project/project-work-category/project-work-category.component';
 import { ProjectWorkPropressComponent } from './pages/project/project-work-propress/project-work-propress.component';
 import { ProjectWorkTimelineComponent } from './pages/project/project-work-timeline/project-work-timeline.component';
+import { ProjectItemLateComponent } from './pages/project/project-item-late/project-item-late.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/welcome', pathMatch: 'full' },
@@ -20,4 +21,5 @@ export const routes: Routes = [
   { path: 'projectWorkPropress/:id', component: ProjectWorkPropressComponent }, // Tiến độ công việc
   { path: 'projectWorkTimeline', component: ProjectWorkTimelineComponent }, // TimeLine công việc
   { path: 'projectSurvey', component: ProjectSurveyComponent }, // Khảo sát dự án
+  { path: 'projectItemlate', component: ProjectItemLateComponent }, // Hạng mục công việc chậm tiến độ
 ];

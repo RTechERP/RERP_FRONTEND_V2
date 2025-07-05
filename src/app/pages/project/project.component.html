@@ -21,7 +21,8 @@
           <form nz-form nzLayout="vertical">
             <nz-form-item>
               <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
-              <nz-form-control [nzSpan]="24"><nz-date-picker
+              <nz-form-control [nzSpan]="24"
+                ><nz-date-picker
                   name="dateStart"
                   class="w-100"
                   nzFormat="dd/MM/yyyy"
@@ -206,7 +207,7 @@
                 <ng-template #tagPlaceHolder let-selectedList>...</ng-template>
               </nz-form-control>
             </nz-form-item>
-            <nz-form-item class="mt-2">
+            <nz-form-item class="mt-2" *ngIf="isHide">
               <nz-form-label class="fs-12" [nzSpan]="24"
                 >Trạng thái</nz-form-label
               >
@@ -282,6 +283,7 @@
               nzType="default"
               nzSize="small"
               (click)="updateProject(0)"
+              *ngIf="isHide"
             >
               <nz-icon nzType="plus" /> Thêm
             </button>
@@ -291,6 +293,7 @@
               nzType="default"
               nzSize="small"
               (click)="updateProject(1)"
+              *ngIf="isHide"
             >
               <nz-icon nzType="edit" nzTheme="fill" />Sửa
             </button>
@@ -300,15 +303,11 @@
               nzType="default"
               nzSize="small"
               (click)="deletedProjects()"
+              *ngIf="isHide"
             >
               <nz-icon nzType="delete" nzTheme="fill" />Xóa
             </button>
-            <button
-              class="fs-12"
-              nz-button
-              nzType="default"
-              nzSize="small"
-            >
+            <button class="fs-12" nz-button nzType="default" nzSize="small" *ngIf="isHide">
               <nz-icon nzType="delete" nzTheme="fill" /> Hạng mục công việc
             </button>
           </div>

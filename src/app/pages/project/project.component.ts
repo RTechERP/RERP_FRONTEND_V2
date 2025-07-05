@@ -36,6 +36,8 @@ import { ProjectChangeComponent } from './project-change/project-change.componen
 import { ProjectStatusComponent } from './project-status/project-status.component';
 import { Router } from '@angular/router';
 import { ProjectEmployeeComponent } from './project-employee/project-employee.component';
+import { ActivatedRoute } from '@angular/router';
+import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-projects',
   standalone: true,
@@ -60,6 +62,7 @@ import { ProjectEmployeeComponent } from './project-employee/project-employee.co
     NzSpinModule,
     NzTreeSelectModule,
     NzModalModule,
+    CommonModule,
   ],
   templateUrl: './project.component.html',
   styleUrl: './project.component.css',
@@ -73,7 +76,8 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private modal: NzModalService,
     private modalService: NgbModal,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   //#region Khai báo biến
@@ -83,6 +87,8 @@ export class ProjectComponent implements OnInit, AfterViewInit {
   tb_projectWorkReportContainer!: ElementRef;
   @ViewChild('tb_projectTypeLink', { static: false })
   tb_projectTypeLinkContainer!: ElementRef;
+
+  isHide: any = false;
 
   sizeSearch: string = '0';
   sizeTbDetail: any = '0';
@@ -116,11 +122,27 @@ export class ProjectComponent implements OnInit, AfterViewInit {
   //#endregion
 
   //#region chạy khi mở chương trình
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.route.paramMap.subscribe((params) => {
+      let id = params.get('id');
+      if (Number(id) == 2) {
+        this.isHide = false;
+        this.projectTypeIds = [2];
+        this.drawTbProjects(this.tb_projectsContainer.nativeElement);
+        this.drawTbProjectTypeLinks(this.tb_projectTypeLinkContainer.nativeElement);
+      } else {
+        this.isHide = true;
+        this.projectTypeIds = [];
+        this.drawTbProjects(this.tb_projectsContainer.nativeElement);
+        this.drawTbProjectTypeLinks(this.tb_projectTypeLinkContainer.nativeElement);
+      }
+      console.log(this.isHide);
+    });
+  }
 
   ngAfterViewInit(): void {
-    this.drawTbProjects(this.tb_projectsContainer.nativeElement);
-    this.drawTbProjectTypeLinks(this.tb_projectTypeLinkContainer.nativeElement);
+    // this.drawTbProjects(this.tb_projectsContainer.nativeElement);
+    // this.drawTbProjectTypeLinks(this.tb_projectTypeLinkContainer.nativeElement);
     this.drawTbProjectWorkReports(
       this.tb_projectWorkReportContainer.nativeElement
     );
@@ -144,7 +166,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
 
   //#region xử lý bảng danh sách dự án
   drawTbProjects(container: HTMLElement) {
-    const contextMenuProject = [
+    let contextMenuProject = [
       {
         label: `<span style="font-size: 0.75rem;"><i class="fas fa-chart-bar"></i> Mức độ ưu tiên cá nhân</span>`,
         menu: [1, 2, 3, 4, 5].map((level) => ({
@@ -198,6 +220,18 @@ export class ProjectComponent implements OnInit, AfterViewInit {
         },
       },
     ];
+
+    if (!this.isHide) {
+      contextMenuProject = [
+        {
+          label:
+            '<span style="font-size: 0.75rem;"><i class="fas fa-file-excel"></i> Xuất excel</span>',
+          action: (e: any, row: any) => {
+            this.exportExcel();
+          },
+        },
+      ];
+    }
 
     this.tb_projects = new Tabulator(container, {
       // data:[{ID:1}],
@@ -422,7 +456,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
         },
         {
           title: 'Người tạo',
-          field: 'Người tạo',
+          field: 'CreatedBy',
           headerHozAlign: 'center',
           hozAlign: 'left',
           width: 100,
@@ -466,7 +500,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       dateTimeE: DateTime.fromJSDate(new Date(this.dateEnd))
         .set({ hour: 23, minute: 59, second: 59 })
         .toFormat('yyyy-MM-dd HH:mm:ss'),
-      keywword: this.keyword ?? '',
+      keyword: this.keyword ?? '',
       customerID: this.customerId ?? 0,
       saleID: this.userId ?? 0,
       projectType: projectTypeStr ?? '',
@@ -476,6 +510,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       globalUserID: this.projectService.GlobalEmployeeId,
       bussinessFieldID: this.businessFieldId ?? 0,
       projectStatus: projectStatusStr ?? '',
+      isAGV: this.isHide,
     };
   }
   getDay() {
@@ -696,10 +731,6 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           title: 'Chọn',
           field: 'Selected',
           headerHozAlign: 'center',
-          // formatter: function (cell, formatterParams, onRendered) {
-          //   const checked = cell.getValue() ? 'checked' : '';
-          //   return `<input type='checkbox' ${checked} disable/>`;
-          // },
           formatter: 'tickCross',
         },
         {
@@ -707,7 +738,12 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           field: 'ProjectTypeName',
           headerHozAlign: 'center',
         },
-        { title: 'Leader', field: 'FullName', headerHozAlign: 'center' },
+        {
+          title: 'Leader',
+          field: 'FullName',
+          headerHozAlign: 'center',
+          visible: this.isHide,
+        },
       ],
     });
   }

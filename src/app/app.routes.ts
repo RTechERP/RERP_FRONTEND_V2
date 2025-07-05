@@ -15,7 +15,7 @@ export const routes: Routes = [
   { path: 'welcome', component: WelcomeComponent },
 
   // Router danh mục dự án
-  { path: 'project', component: ProjectComponent }, // Dự án master
+  { path: 'project/:id', component: ProjectComponent }, // 2 là tổng hợp công việc AGV còn lại là dự án
   { path: 'projectListWork/:id', component: ProjectListWorkReportComponent }, // Dự án master
   { path: 'projectWorkCategory', component: ProjectWorkCategoryComponent }, // Hạng mục dự án
   { path: 'projectWorkPropress/:id', component: ProjectWorkPropressComponent }, // Tiến độ công việc

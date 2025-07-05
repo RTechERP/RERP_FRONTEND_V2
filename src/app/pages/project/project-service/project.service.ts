@@ -2,14 +2,18 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { HttpParams } from '@angular/common/http';
-
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import * as ExcelJS from 'exceljs';
 @Injectable({
   providedIn: 'root',
 })
 export class ProjectService {
   private apiUrl = 'https://localhost:44365/api/';
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private notification: NzNotificationService
+  ) {}
 
   GlobalEmployeeId: number = 78;
   LoginName: string = 'ADMIN';
@@ -272,7 +276,7 @@ export class ProjectService {
     );
   }
 
-  setDataTree(flatData: any[],valueField:string): any[] {
+  setDataTree(flatData: any[], valueField: string): any[] {
     const map = new Map<number, any>();
     const tree: any[] = [];
 
@@ -318,7 +322,7 @@ export class ProjectService {
   // Chức năng người tham gia dự án
   getProjectEmployee(status: number): Observable<any> {
     return this.http.get<any>(
-      this.apiUrl + `Project/getprojectemployee/${status}`
+      this.apiUrl + `Project/get-project-employee/${status}`
     );
   }
 
@@ -446,18 +450,24 @@ export class ProjectService {
   }
 
   getDataWorkTimelineDetail(data: any): Observable<any> {
-    return this.http.get<any>(this.apiUrl + `ProjectWorkTimeline/get-data-detail`, {
-      params: data,
-    });
+    return this.http.get<any>(
+      this.apiUrl + `ProjectWorkTimeline/get-data-detail`,
+      {
+        params: data,
+      }
+    );
   }
 
   //#endregion
 
   //#region Khảo sát dự án
   getDataProjectSurvey(data: any): Observable<any> {
-    return this.http.get<any>(this.apiUrl + `ProjectSurvey/get-project-survey`, {
-      params: data,
-    });
+    return this.http.get<any>(
+      this.apiUrl + `ProjectSurvey/get-project-survey`,
+      {
+        params: data,
+      }
+    );
   }
 
   approvedUrgent(data: any): Observable<any> {
@@ -467,66 +477,59 @@ export class ProjectService {
   }
 
   approved(data: any): Observable<any> {
-    return this.http.get<any>(
-      this.apiUrl + `ProjectSurvey/approved-request`,
-     { params: data}
-    );
+    return this.http.get<any>(this.apiUrl + `ProjectSurvey/approved-request`, {
+      params: data,
+    });
   }
 
   getTbDetail(data: any): Observable<any> {
-    return this.http.get<any>(
-      this.apiUrl + `ProjectSurvey/get-tb-detail`,
-     { params: data}
-    );
+    return this.http.get<any>(this.apiUrl + `ProjectSurvey/get-tb-detail`, {
+      params: data,
+    });
   }
 
   getDetail(data: any): Observable<any> {
-    return this.http.get<any>(
-      this.apiUrl + `ProjectSurvey/get-detail`,
-     { params: data}
-    );
+    return this.http.get<any>(this.apiUrl + `ProjectSurvey/get-detail`, {
+      params: data,
+    });
   }
 
   getFileDetail(data: any): Observable<any> {
-    return this.http.get<any>(
-      this.apiUrl + `ProjectSurvey/get-files`,
-     { params: data}
-    );
+    return this.http.get<any>(this.apiUrl + `ProjectSurvey/get-files`, {
+      params: data,
+    });
   }
 
   viewFile(data: any): Observable<any> {
-    return this.http.get<any>(
-      this.apiUrl + `ProjectSurvey/see-file`,
-     { params: data}
-    );
+    return this.http.get<any>(this.apiUrl + `ProjectSurvey/see-file`, {
+      params: data,
+    });
   }
 
   checkStatusDetail(data: any): Observable<any> {
     return this.http.get<any>(
       this.apiUrl + `ProjectSurvey/check-status-detail`,
-     { params: data}
+      { params: data }
     );
   }
 
   deletedProjectSurvey(data: any): Observable<any> {
     return this.http.get<any>(
       this.apiUrl + `ProjectSurvey/deleted-project-survey`,
-     { params: data}
+      { params: data }
     );
   }
 
   openFolder(data: any): Observable<any> {
-    return this.http.get<any>(
-      this.apiUrl + `ProjectSurvey/open-folder`,
-     { params: data}
-    );
+    return this.http.get<any>(this.apiUrl + `ProjectSurvey/open-folder`, {
+      params: data,
+    });
   }
 
   getDetailByid(data: any): Observable<any> {
-    return this.http.get<any>(
-      this.apiUrl + `ProjectSurvey/get-detail-byid`,
-     { params: data}
-    );
+    return this.http.get<any>(this.apiUrl + `ProjectSurvey/get-detail-byid`, {
+      params: data,
+    });
   }
 
   saveProjectSurvey(projectSurveyDTO: any): Observable<any> {
@@ -548,6 +551,173 @@ export class ProjectService {
       this.apiUrl + `ProjectSurvey/save-project-survey-result`,
       data
     );
+  }
+  //#endregion
+
+  //#region Hang mục công việc chậm tiến độ
+  getProjectItemLate(data: any): Observable<any> {
+    return this.http.get<any>(this.apiUrl + `ProjectItemLate/get-data`, {
+      params: data,
+    });
+  }
+  //#endregion
+
+  //#region Xuất excel theo group
+  async exportExcel(
+    table: any,
+    data: any,
+    sheetName: string,
+    fileName: string,
+    groupName: string
+  ) {
+    if (!data) {
+      if (!data || data.length === 0) {
+        if (!data || data.length === 0) {
+          this.notification.error('Thông báo', 'Không có dữ liệu để xuất!');
+          return;
+        }
+      }
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet(sheetName);
+
+    const columns = table.getColumns();
+    // Bỏ qua cột đầu tiên
+    const headers = columns.map((col: any) => col.getDefinition().title);
+    worksheet.addRow(headers);
+
+    let nums: number[] = [];
+    const groupedData = new Map<string, any[]>();
+
+    // Nhóm dữ liệu theo ProjectCode
+    data.forEach((row: any) => {
+      const type = row[groupName] || '';
+      if (!groupedData.has(type)) {
+        groupedData.set(type, []);
+      }
+      groupedData.get(type)?.push(row);
+    });
+
+    // Duyệt qua từng nhóm và ghi dữ liệu
+    groupedData.forEach((rows, grname) => {
+      const groupRow = worksheet.addRow([`${grname}`]);
+      const groupRowIndex = groupRow.number;
+      worksheet.mergeCells(`A${groupRowIndex}:D${groupRowIndex}`);
+      nums.push(groupRowIndex);
+
+      groupRow.font = { bold: true };
+      groupRow.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFE0E0E0' },
+      };
+
+      // Ghi dữ liệu thực tế của nhóm này
+      rows.forEach((row: any) => {
+        const rowData = columns.map((col: any, colIndex: number) => {
+          const field = col.getField();
+          let value = row[field];
+
+          // Nếu là 2 cột đầu và kiểu boolean, chuyển thành checkbox biểu tượng
+          if (typeof value === 'boolean') {
+            return value ? '☑' : '☐';
+          }
+          // Format ngày nếu là ISO string
+          if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+            value = new Date(value);
+          }
+
+          return value;
+        });
+        const newRow = worksheet.addRow(rowData);
+      });
+    });
+
+    // Format cột có giá trị là Date
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return; // bỏ qua tiêu đề
+      row.eachCell((cell, colNumber) => {
+        if (cell.value instanceof Date) {
+          cell.numFmt = 'dd/mm/yyyy'; // hoặc 'yyyy-mm-dd'
+        }
+      });
+    });
+
+    // Tự động căn chỉnh độ rộng cột
+    worksheet.columns.forEach((column: any, colIndex: number) => {
+      if (colIndex === 0) {
+        column.width = 20;
+        return;
+      }
+
+      let maxLength = 10;
+
+      column.eachCell({ includeEmpty: true }, (cell: any) => {
+        let cellValue = '';
+
+        if (cell.value != null) {
+          if (typeof cell.value === 'object') {
+            if (cell.value.richText) {
+              cellValue = cell.value.richText.map((t: any) => t.text).join('');
+            } else if (cell.value.text) {
+              cellValue = cell.value.text;
+            } else if (cell.value.result) {
+              cellValue = cell.value.result.toString();
+            } else {
+              cellValue = cell.value.toString();
+            }
+          } else {
+            cellValue = cell.value.toString();
+          }
+        }
+
+        const length = cellValue.length;
+        maxLength = Math.max(maxLength, length + 1);
+      });
+
+      column.width = Math.min(maxLength, 20);
+    });
+
+    // Thêm bộ lọc cho toàn bộ cột (từ A1 đến cột cuối cùng)
+    worksheet.autoFilter = {
+      from: {
+        row: 1,
+        column: 1,
+      },
+      to: {
+        row: 1,
+        column: columns.length,
+      },
+    };
+
+    worksheet.eachRow({ includeEmpty: true }, (row) => {
+      if (row.number === 1) return;
+      row.eachCell({ includeEmpty: true }, (cell) => {
+        cell.alignment = { vertical: 'middle', wrapText: true };
+      });
+    });
+
+    // Xuất file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+
+    const formattedDate = new Date()
+      .toISOString()
+      .slice(2, 10)
+      .split('-')
+      .reverse()
+      .join('');
+
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = fileName + `.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(link.href);
   }
   //#endregion
 }

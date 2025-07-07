@@ -305,6 +305,8 @@ export class HandoverMinutesDetailComponent implements OnInit, AfterViewInit {
             Receiver: currentFormData.receiver,
             ReceiverPhone: currentFormData.receiverPhone,
             AdminWarehouseID: currentFormData.adminWarehouse,
+            DeletedDetailIds: this.deletedHandoverMinutesDetailIds,
+            IsDeleted: false,
             Details: currentDetails.map((detail, index) => ({
                 ID: detail.ID || 0,
                 STT: index + 1,

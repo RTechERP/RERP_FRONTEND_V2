@@ -260,7 +260,7 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
       projectId: '',
       comPercent: 0,
       comMoney: '',
-      comEnabled: true,
+      comEnabled: false,
       quotationDate: new Date().toISOString().split('T')[0],
       company: 'RTC',
       explanation: '',
@@ -278,7 +278,18 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
       adminWarehouse: null
     };
   }
+  formatCurrency = (value: number): string => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(value);
+  }
 
+  parseCurrency = (value: string): number => {
+    return Number(value.replace(/[^0-9-]/g, ''));
+  }
   addNewRow(): void {
     const newRow = {
       STT: this.details.length + 1,
@@ -317,7 +328,7 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
           title: '', field: 'actions', formatter: (cell) => {
             return `<i class="bi bi-trash3 text-danger delete-btn" style="font-size:15px; cursor: pointer;"></i>`;
           },
-          width: '5%',
+          width: 20,
           hozAlign: "center",
           cellClick: (e, cell) => {
             if ((e.target as HTMLElement).classList.contains('delete-btn')) {
@@ -364,17 +375,118 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
         { title: 'Mã báo khách', field: 'InternalCode', width: 150, editor: "input" },
         { title: 'Hãng', field: 'Maker', width: 120, editor: "input" },
         { title: 'Đơn vị', field: 'Unit', width: 120, editor: "input" },
-        { title: 'Số lượng', field: 'Qty', width: 120, editor: "input" },
-        { title: 'Đơn giá báo trước VAT', field: 'UnitPrice', width: 150, editor: "input" },
-        { title: 'Thành tiền trước VAT', field: 'IntoMoney', width: 150, editor: "input" },
+        { title: 'Số lượng', field: 'Qty', width: 120, editor: "number" },
+        { title: 'Đơn giá báo trước VAT', field: 'UnitPrice', width: 150, editor: "input", formatter: "money", },
+        { title: 'Thành tiền trước VAT', field: 'IntoMoney', width: 150, editor: "input", formatter: "money",
+          formatterParams: {
+            precision: 0,
+            decimal: ".",
+            thousand: ",",
+            symbol: "",
+            symbolAfter: true
+          },
+          bottomCalc: "sum",
+          bottomCalcFormatter: "money",
+          bottomCalcFormatterParams: {
+            precision: 0,
+            decimal: ".",
+            thousand: ",",
+            symbol: "",
+            symbolAfter: true
+          } 
+        },
         { title: 'Loại tiền', field: 'TypeOfPrice', width: 120, editor: "input" },
-        { title: 'Đơn giá nhập', field: 'UnitPriceImport', width: 150, editor: "input" },
-        { title: 'Tổng giá nhập', field: 'TotalPriceImport', width: 150, editor: "input" },
-        { title: 'Giá NET', field: 'GiaNet', width: 120, editor: "input" },
+        { title: 'Đơn giá nhập', field: 'UnitPriceImport', width: 150, editor: "input", formatter: "money", },
+        { title: 'Tổng giá nhập', field: 'TotalPriceImport', width: 150, editor: "input", formatter: "money", },
+        { title: 'Giá NET', field: 'GiaNet', width: 120, editor: "input", formatter: "money",
+          formatterParams: {
+            precision: 0,
+            decimal: ".",
+            thousand: ",",
+            symbol: "",
+            symbolAfter: true
+          },
+          bottomCalc: "sum",
+          bottomCalcFormatter: "money",
+          bottomCalcFormatterParams: {
+            precision: 0,
+            decimal: ".",
+            thousand: ",",
+            symbol: "",
+            symbolAfter: true
+          } 
+        },
         { title: 'Ghi chú', field: 'Note', width: 120, editor: "input" },
         { title: 'Nhóm', field: 'GroupQuota', width: 120, editor: "input" },
       ]
     })
+    // Thêm sự kiện cellEdited để auto-fill các trường khi chọn Mã RTC
+    this.mainTable.on("cellEdited", (cell) => {
+      if (cell.getColumn().getField() === "ProductRTCCode") {
+        const selectedProduct = this.products.find(
+          p => p.ProductNewCode === cell.getValue()
+        );
+        if (selectedProduct) {
+          const row = cell.getRow();
+          row.update({
+            ProductNewCode: selectedProduct.ProductCode,
+            ProductName: selectedProduct.ProductName,
+            Unit: selectedProduct.Unit,
+            Maker: selectedProduct.Maker
+          });
+        }
+      }
+      this.handleCellValueChange(cell);
+    });
+  }
+
+  handleCellValueChange(cell: any): void {
+    const row = cell.getRow();
+    const columnField = cell.getColumn().getField();
+    const rowData = row.getData();
+
+    const quantity = Number(rowData.Qty) || 0;
+    const unitPrice = Number(rowData.UnitPrice) || 0;
+    const unitPriceImport = Number(rowData.UnitPriceImport) || 0;
+
+    try {
+      // Tính toán khi thay đổi Qty, UnitPrice hoặc UnitPriceImport
+      if (columnField === 'Qty' || columnField === 'UnitPrice' || columnField === 'UnitPriceImport') {
+        const intoMoney = quantity * unitPrice;
+        const totalPriceImport = quantity * unitPriceImport;
+        
+        row.update({
+          IntoMoney: intoMoney,
+          TotalPriceImport: totalPriceImport
+        });
+        
+        this.calculateFinishTotal();
+      }
+
+      // Xử lý khi thay đổi ProductNewCode
+      if (columnField === 'ProductNewCode') {
+        const selectedProduct = this.products.find(p => p.ProductNewCode === cell.getValue());
+        if (selectedProduct) {
+          row.update({
+            ProductRTCCode: selectedProduct.ID,
+            ProductName: selectedProduct.ProductName,
+            ProductCode: selectedProduct.ProductCode,
+            Maker: selectedProduct.Maker,
+            Unit: selectedProduct.Unit
+          });
+        }
+      }
+    } catch (error) {
+      this.notification.error('Lỗi', 'Lỗi:' + error);
+    }
+  }
+
+  onCommissionPercentChange(): void {
+    this.calculateFinishTotal();
+  }
+
+  onCommissionEnabledChange(): void {
+    this.calculateFinishTotal();
   }
 
   onRTCCodeToggle(checked: boolean) {
@@ -388,6 +500,40 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
         this.mainTable.getColumn('ProductRTCCode').hide();
       }
     }
+  }
+
+  calculateFinishTotal(): void {
+    if (!this.mainTable) return;
+    
+    const allData = this.mainTable.getData();
+    let totalIntoMoney = 0;
+    let totalGiaNet = 0;
+    
+    allData.forEach((row: any) => {
+      totalIntoMoney += Number(row.IntoMoney) || 0;
+      totalGiaNet += Number(row.GiaNet) || 0;
+    });
+    
+    // Cập nhật tổng tiền vào formData
+    this.formData.totalPrice = totalIntoMoney;
+    
+    // Tính toán commission money
+    const comPercent = Number(this.formData.comPercent) || 0;
+    const comEnabled = this.formData.comEnabled;
+    
+    if (comEnabled) {
+      // Nếu commission được bật, tính dựa trên (total - gianet) * comPercent
+      this.formData.comMoney = (totalIntoMoney - totalGiaNet) * (comPercent / 100);
+    } else {
+      // Nếu commission tắt, tính dựa trên total * comPercent
+      this.formData.comMoney = totalIntoMoney * (comPercent / 100);
+    }
+    
+    // Format commission money để hiển thị
+    this.formData.comMoney = Number(this.formData.comMoney.toFixed(0));
+    
+    console.log('Tổng thành tiền:', totalIntoMoney);
+    console.log('Tổng giá NET:', totalGiaNet);
   }
 
 }

@@ -175,6 +175,7 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
       (result) => {
         if (result.success && result.reloadData) {
           this.loadMainData(this.filters.startDate, this.filters.endDate, this.filters.filterText);
+          this.detailTable.setData([]);
         }
       },
       (reason) => {

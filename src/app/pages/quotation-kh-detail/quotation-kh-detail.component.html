@@ -62,8 +62,10 @@
             <div class="row g-2 mt-1">
                 <div class="col-md-2">
                     <label class="mb-0 fs-12">Tổng báo giá</label>
-                    <input type="text" class="form-control form-control-sm fs-12" [(ngModel)]="formData.totalPrice"
-                        name="totalPrice">
+                    <nz-input-number name="totalPrice" nzPlaceHolder="0" [nzMin]="0" nzSize="default" class="w-100"
+                      [(ngModel)]="formData.totalPrice" [nzFormatter]="formatCurrency" [nzParser]="parseCurrency"
+                      nzReadOnly="true">
+                    </nz-input-number>
                 </div>
                 <div class="col-md-2">
                     <label class="mb-0 fs-12">Giải trình Fail</label>
@@ -77,8 +79,10 @@
                 </div>
                 <div class="col-md-2">
                     <label class="mb-0 fs-12">Tiền COM</label>
-                    <input type="text" class="form-control form-control-sm fs-12" [(ngModel)]="formData.csomMoney"
-                        name="comMoney">
+                    <nz-input-number name="comMoney" nzPlaceHolder="0" [nzMin]="0" nzSize="default" class="w-100"
+                      [(ngModel)]="formData.comMoney" [nzFormatter]="formatCurrency" [nzParser]="parseCurrency"
+                      nzReadOnly="true">
+                    </nz-input-number>
                 </div>
                 <div class="col-md-2">
                     <label class="mb-0 fs-12">Người phụ trách</label>
@@ -128,9 +132,10 @@
                 <div class="col-12 col-md-4">
                     <label class="mb-0 fs-12">COM (%)</label>
                     <div class="d-flex align-items-center">
-                        <input type="checkbox" [(ngModel)]="formData.comEnabled" name="comEnabled" class="me-1" />
+                        <input type="checkbox" [(ngModel)]="formData.comEnabled" name="comEnabled" 
+                               (ngModelChange)="onCommissionEnabledChange()" class="me-1" />
                         <input type="number" class="form-control form-control-sm fs-12" [(ngModel)]="formData.comPercent"
-                            name="comPercent">
+                            name="comPercent" (ngModelChange)="onCommissionPercentChange()">
                     </div>
                 </div>
             </div>

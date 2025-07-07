@@ -272,7 +272,8 @@ export class RequestInvoiceDetailComponent implements OnInit {
 
     const payload = {
       RequestInvoices: requestInvoices,
-      RequestInvoiceDetails: requestInvoiceDetails
+      RequestInvoiceDetails: requestInvoiceDetails,
+      DeletedDetailIds: this.deletedRequestInvoiceDetailIds,
     };
 
     this.RIDService.saveData(payload).subscribe({

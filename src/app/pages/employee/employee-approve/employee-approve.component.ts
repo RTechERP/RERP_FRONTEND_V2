@@ -64,7 +64,7 @@ export class EmployeeApproveComponent implements OnInit, AfterViewInit {
   }
 
   loadEmployeeApprove() {
-    this.employeeService.getEmployeeApprove(1, 0).subscribe({
+    this.employeeService.getEmployeeApprove().subscribe({
       next: (data: any) => {
         this.employeeApproveList = data.data;
         this.employeeApproveTabulator.setData(this.employeeApproveList);

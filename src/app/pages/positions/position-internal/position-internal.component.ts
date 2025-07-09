@@ -438,22 +438,47 @@ export class PositionInternalComponent implements OnInit {
       this.notification.warning('Cảnh báo', 'Vui lòng chọn chức vụ nội bộ cần xóa');
       return;
     }
-    const idsToDelete = selectedRows.map(row => row.getData()['ID']);
+    // const idsToDelete = selectedRows.map(row => row.getData()['ID']);
     
+    // this.modal.confirm({
+    //   nzTitle: 'Xác nhận xóa',
+    //   nzContent: `Bạn có chắc chắn muốn xóa ${idsToDelete.length} chức vụ nội bộ đã chọn?`,
+    //   nzOkText: 'Xóa',
+    //   nzOkType: 'primary',
+    //   nzOkDanger: true,
+    //   nzOnOk: () => {
+    //     Promise.all(idsToDelete.map(id =>
+    //       this.positionService.deletePositionInternal(id).toPromise()
+    //     )).then(() => {
+    //       this.notification.success('Thành công', 'Đã xóa thành công các chức vụ nội bộ đã chọn');
+    //       this.loadPositionInternal();
+    //     }).catch(() => {
+    //       this.notification.error('Lỗi', 'Có lỗi xảy ra khi xóa');
+    //     });
+    //   },
+    //   nzCancelText: 'Hủy'
+    // });
+
+
+    const selectedPositionInternal = selectedRows[0].getData();
     this.modal.confirm({
-      nzTitle: 'Xác nhận xóa',
-      nzContent: `Bạn có chắc chắn muốn xóa ${idsToDelete.length} chức vụ nội bộ đã chọn?`,
-      nzOkText: 'Xóa',
-      nzOkType: 'primary',
+      nzTitle: "Xác nhận xóa",
+      nzContent: `Bạn có chắc chắn muốn xóa chức vụ nội bộ đã chọn không?`,
+      nzOkText:"Xóa",
+      nzOkType:'primary',
       nzOkDanger: true,
       nzOnOk: () => {
-        Promise.all(idsToDelete.map(id =>
-          this.positionService.deletePositionInternal(id).toPromise()
-        )).then(() => {
-          this.notification.success('Thành công', 'Đã xóa thành công các chức vụ nội bộ đã chọn');
-          this.loadPositionInternal();
-        }).catch(() => {
-          this.notification.error('Lỗi', 'Có lỗi xảy ra khi xóa');
+        this.positionService.savePositionInternal({
+          ...selectedPositionInternal,
+          IsDeleted: true
+        }).subscribe({
+          next: (response) => {
+            this.notification.success('Thành công', 'Xóa chức vụ nội bộ thành công');
+            this.loadPositionInternal();
+          },
+          error: (error) => {
+            this.notification.error('Lỗi', 'Xóa chức vụ nội bộ thất bại: ' + error.message);
+          }
         });
       },
       nzCancelText: 'Hủy'

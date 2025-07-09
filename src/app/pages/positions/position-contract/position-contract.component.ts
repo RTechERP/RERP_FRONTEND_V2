@@ -436,22 +436,27 @@ export class PositionContractComponent implements OnInit {
       this.notification.warning('Cảnh báo', 'Vui lòng chọn chức vụ theo hợp đồng cần xóa');
       return;
     }
-    const idsToDelete = selectedRows.map(row => row.getData()['ID']);
+    const selectedPositionContract = selectedRows[0].getData();
+
     
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: `Bạn có chắc chắn muốn xóa ${idsToDelete.length} chức vụ theo hợp đồng đã chọn?`,
+      nzContent: `Bạn có chắc chắn muốn xóa chức vụ theo hợp đồng đã chọn?`,
       nzOkText: 'Xóa',
       nzOkType: 'primary',
       nzOkDanger: true,
       nzOnOk: () => {
-        Promise.all(idsToDelete.map(id =>
-          this.positionService.deletePositionContract(id).toPromise()
-        )).then(() => {
-          this.notification.success('Thành công', 'Đã xóa thành công các chức vụ theo hợp đồng đã chọn');
-          this.loadPositionContract();
-        }).catch(() => {
-          this.notification.error('Lỗi', 'Có lỗi xảy ra khi xóa');
+        this.positionService.savePositionContract({
+          ...selectedPositionContract,
+          IsDeleted: true
+        }).subscribe({
+          next: (response) => {
+            this.notification.success('Thành công', 'Xóa chức vụ theo hợp đồng thành công');
+            this.loadPositionContract();
+          },
+          error: (error) => {
+            this.notification.error('Lỗi', 'Xóa chức vụ theo hợp đồng thất bại: ' + error.message);
+          }
         });
       },
       nzCancelText: 'Hủy'

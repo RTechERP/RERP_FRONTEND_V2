@@ -90,7 +90,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   employeeSales: any[] = [];
   address: any[] = [];
   sizeSearch: string = '0';
-  sizeTbDetail: any ='0';  
+  sizeTbDetail: any ='0';
   customerForm!: FormGroup;
   customersToExcel: any[] = [];
   isModalVisible = false;

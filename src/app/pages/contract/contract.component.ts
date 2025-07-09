@@ -95,8 +95,8 @@ export class ContractComponent implements OnInit {
             this.closeModal();
             this.loadContracts();
           },
-          error: (error) => {
-            this.notification.error('Lỗi', 'Cập nhật hợp đồng thất bại: ' + error.message);
+          error: (response) => {
+            this.notification.error('Lỗi', 'Cập nhật hợp đồng thất bại: ' + response.error.message);
           }
         });
       } else {
@@ -106,8 +106,8 @@ export class ContractComponent implements OnInit {
             this.closeModal();
             this.loadContracts();
           },
-          error: (error) => {
-            this.notification.error('Lỗi', 'Thêm hợp đồng mới thất bại: ' + error.message);
+          error: (response) => {
+            this.notification.error('Lỗi', 'Thêm hợp đồng mới thất bại: ' + response.error.message);
           }
         });
       }

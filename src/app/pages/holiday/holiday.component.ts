@@ -119,9 +119,9 @@ export class HolidayComponent implements OnInit {
     this.holidayForm = this.fb.group({
       ID: [0],
       HolidayDate: [currentDate],
-      HolidayName: [''],
+      HolidayName: ['', Validators.required],
       HolidayCode: [''],
-      TypeHoliday: [null],
+      TypeHoliday: [null, Validators.required],
       Note: [''],
       HolidayYear: [0],
       HolidayMonth:[0],
@@ -213,13 +213,24 @@ export class HolidayComponent implements OnInit {
   }
 
   onSubmit() {
+
+    if(this.holidayForm.invalid) {
+        Object.values(this.holidayForm.controls).forEach(control => {
+          if (control.invalid) {
+            control.markAsTouched();
+            control.updateValueAndValidity({ onlySelf: true });
+          }
+        });
+        this.notification.warning('Cảnh báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
+    }
+
     if (this.holidayForm.valid) {
 
       const formData = {
         ...this.holidayForm.value,
-        HolidayYear: this.holidayForm.value.HolidayDate.getFullYear(),
-        HolidayMonth: this.holidayForm.value.HolidayDate.getMonth() + 1,
-        HolidayDay: this.holidayForm.value.HolidayDate.getDate(),
+        HolidayYear: new Date(this.holidayForm.value.HolidayDate).getFullYear(),
+        HolidayMonth: new Date(this.holidayForm.value.HolidayDate).getMonth() + 1,
+        HolidayDay: new Date(this.holidayForm.value.HolidayDate).getDate(),
         DayValue: 'H',
       };
 
@@ -229,19 +240,11 @@ export class HolidayComponent implements OnInit {
           this.closeModal();
           this.loadHolidays();
         },  
-        error: (error) => {
-          this.notification.error('Lỗi', 'Lưu ngày nghỉ thất bại: ' + error.message);
+        error: (response) => {
+          this.notification.error('Lỗi', 'Lưu ngày nghỉ thất bại: ' + response.error.message);
         }
       });
-    } else {
-      Object.values(this.holidayForm.controls).forEach(control => {
-        if (control.invalid) {
-          control.markAsTouched();
-          control.updateValueAndValidity({ onlySelf: true });
-        }
-      });
-      this.notification.warning('Cảnh báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
-    }
+    } 
   }
 
   closeModal() {
@@ -273,7 +276,10 @@ export class HolidayComponent implements OnInit {
   }
 
   deleteHoliday() {
-    this.holidayService.deleteHoliday(this.selectedHoliday.ID).subscribe({
+    this.holidayService.saveHoliday({
+      ...this.selectedHoliday,
+      IsDeleted: true
+    }).subscribe({
       next: () => {
         this.notification.success('Thành công', 'Xóa ngày nghỉ thành công');
         this.loadHolidays();

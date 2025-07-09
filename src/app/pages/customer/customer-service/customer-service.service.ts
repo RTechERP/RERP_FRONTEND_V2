@@ -54,9 +54,8 @@ export class CustomerServiceService {
     return this.http.post<any>(this._url + 'Customer', customer);
   }
   deleteCustomer(customerId:number):Observable<any>{
-    return this.http.delete<any>(this._url + 'Customer/' + customerId);
+    return this.http.get<any>(this._url + 'Customer/' + customerId);
   }
-
   // Business Field Link methods
   createBusinessFieldLink(businessField: any): Observable<any> {
     return this.http.post<any>(this._url + 'BusinessField', businessField);

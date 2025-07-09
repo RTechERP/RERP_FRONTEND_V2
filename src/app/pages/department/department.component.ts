@@ -222,8 +222,8 @@ export class DepartmentComponent implements OnInit {
         this.loadDepartments();
         this.selectedDepartment = null;
       },
-      error: (error) => {
-        this.notification.error('Lỗi', 'Xóa phòng ban thất bại: ' + error.message);
+      error: (response) => {
+        this.notification.error('Lỗi', 'Xóa phòng ban thất bại: ' + response.error.message);
       }
     });
   }

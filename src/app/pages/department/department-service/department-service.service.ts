@@ -24,7 +24,7 @@ export class DepartmentServiceService {
 
 
   deleteDepartment(id:number):Observable<any>{
-    return this.http.delete<any>(this._url + 'Department/' + id);
+    return this.http.get<any>(this._url + 'Department/' + id);
   }
 
   getEmployees(): Observable<any> {

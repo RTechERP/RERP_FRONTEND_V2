@@ -17,9 +17,6 @@ export class HolidayServiceService {
     return this.http.post<any>(this._url + 'Holiday', holiday);
   }
 
-  deleteHoliday(id: any) {
-    return this.http.delete<any>(this._url + 'Holiday/' + id);
-  }
 
   getEmployeeScheduleWork(month: number, year: number) : Observable<any> {
     return this.http.get<any>(this._url + `EmployeeScheduleWork/schedule-work?month=${month}&year=${year}`);

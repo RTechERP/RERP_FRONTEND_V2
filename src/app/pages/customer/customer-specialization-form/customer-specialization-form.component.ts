@@ -133,7 +133,7 @@ export class CustomerSpecializationFormComponent implements OnInit {
       this.notification.warning('Cảnh báo', 'Vui lòng chọn ngành nghề cần xóa');
       return;
     }
-    this.selectedSpecializationId = selectedRows[0].getData()['ID'];
+    const selectedSpecialization = selectedRows[0].getData();
     
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
@@ -142,7 +142,18 @@ export class CustomerSpecializationFormComponent implements OnInit {
       nzOkType: 'primary',
       nzOkDanger: true,
       nzOnOk: () => {
-        this.deleteSpecialization();
+        this.customerService.saveCustomerSpecialization({
+          ...selectedSpecialization,
+          IsDeleted: true
+        }).subscribe({
+          next: (response) => {
+            this.notification.success('Thành công', 'Xóa ngành nghề thành công');
+            this.loadCustomerSpecialization();
+          },
+          error: (error) => {
+            this.notification.error('Lỗi', 'Xóa ngành nghề thất bại: ' + error.message);
+          }
+        });
       },
       nzCancelText: 'Hủy'
     });
@@ -178,19 +189,19 @@ export class CustomerSpecializationFormComponent implements OnInit {
     }
   }
 
-  deleteSpecialization() {
-    if (this.selectedSpecializationId) {
-      this.customerService.deleteCustomerSpecialization(this.selectedSpecializationId).subscribe({
-        next: (response) => {
-          this.loadCustomerSpecialization();
-          this.notification.success('Thành công', 'Xóa ngành nghề thành công');
-        },
-        error: (response) => {
-          this.notification.error('Thất bại', 'Xóa ngành nghề thất bại: ' + response.error.message);
-        }
-      });
-    }
-  }
+  // deleteSpecialization() {
+  //   if (this.selectedSpecializationId) {
+  //     this.customerService.deleteCustomerSpecialization(this.selectedSpecializationId).subscribe({
+  //       next: (response) => {
+  //         this.loadCustomerSpecialization();
+  //         this.notification.success('Thành công', 'Xóa ngành nghề thành công');
+  //       },
+  //       error: (response) => {
+  //         this.notification.error('Thất bại', 'Xóa ngành nghề thất bại: ' + response.error.message);
+  //       }
+  //     });
+  //   }
+  // }
 
   closeModal() {
     const modal = document.getElementById('addSpecializationModal');

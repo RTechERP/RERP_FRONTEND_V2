@@ -10,6 +10,10 @@ export class EmployeeService {
   private _url = 'https://localhost:7187/api/';
   constructor(private http: HttpClient) { }
 
+  getAllEmployee() : Observable<any> {
+    return this.http.get(this._url + 'Employee/get-all');
+  }
+
   getEmployees(): Observable<any> {
     return this.http.get(this._url + 'Employee?status=0&departmentID=0&keyword=');
   }
@@ -26,8 +30,8 @@ export class EmployeeService {
     return this.http.get<any>(this._url + 'EmployeeEducationLevel/' + id)
   }
 
-  getEmployeeApprove(type: number, projectID: number) : Observable<any> {
-    return this.http.get<any>(this._url + `EmployeeApprove?type=${type}&projectID=${projectID}`);
+  getEmployeeApprove() : Observable<any> {
+    return this.http.get<any>(this._url + `EmployeeApprove?type=1&projectID=0`);
   }
 
   addEmployeeApprove(request: {ListEmployeeID: number[]}): Observable<any> {

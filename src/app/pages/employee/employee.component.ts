@@ -2012,7 +2012,7 @@ export class EmployeeComponent implements OnInit {
   }
 
   resetSearch() {
-    this.searchForm.reset();
+    this.initSearchForm();
     this.loadEmployees();
   }
 

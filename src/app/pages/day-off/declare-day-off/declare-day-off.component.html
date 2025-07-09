@@ -1,0 +1,124 @@
+<ng-container class="w-100">
+  <div class="card h-100 border-0 rounded-0">
+    <div class="card-header bg-white p-2">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex gap-2">
+          <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;" (click)="openAddModal()">
+            <nz-icon nzType="plus" /> Thêm
+          </button>
+          <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;" (click)="openEditModal()">
+            <nz-icon nzType="edit" /> Sửa
+          </button>
+          <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;" (click)="openDeleteModal()">
+            <nz-icon nzType="delete" /> Xóa
+          </button>
+          <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;" (click)="openImportExcelForm()">
+            <nz-icon nzType="import" /> Nhập excel
+          </button>
+          <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;" (click)="exportToExcel()">
+            <nz-icon nzType="export" /> Xuất excel
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="card-body p-0">   
+      <div id="tb_declare_day_off"></div>
+    </div>
+  </div>
+</ng-container>
+
+
+<div
+  class="modal fade"
+  id="addDeclareDayOffModal"
+  tabindex="-1"
+  aria-labelledby="addDeclareDayOffModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered fs-12">
+    <div class="modal-content">
+      <div class="modal-header bg-primary">
+        <h6
+          class="modal-title text-uppercase text-white"
+          id="addDeclareDayOffModalLabel"
+        >
+          CHI TIẾT NGÀY NGHỈ PHÉP
+        </h6>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form
+          nz-form [formGroup]="declareDayOffForm"
+        >
+        <nz-form-item>
+          <nz-form-label [nzSpan]="24">Họ và tên<span class="text-danger"> (*)</span></nz-form-label>
+          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn tên nhân viên">
+            <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="default"
+              formControlName="EmployeeID" nzPlaceHolder="Chọn họ tên nhân viên">
+              @for (item of employeeList; track $index) {
+                <nz-option
+                  nzCustomContent="true"
+                  [nzLabel]="item.FullName"
+                  [nzValue]="item.ID"
+                  >{{ item.Code + " - " + item.FullName }}</nz-option
+                >
+                }
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+  
+        <nz-form-item>
+          <nz-form-label [nzSpan]="24">Năm<span class="text-danger"> (*)</span></nz-form-label>
+          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập năm" >
+            <nz-input-number nzMin="1" nzMax="3000" nzSize="default" style="width: 100%" formControlName="YearOnleave"/>
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label [nzSpan]="24">Tổng số ngày phép</nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <nz-input-number nzMin="1" nzMax="3000" nzSize="default" style="width: 100%" formControlName="TotalDayInYear"/>
+          </nz-form-control>
+        </nz-form-item>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-outline-danger"
+          (click)="closeModal()"
+        >
+          Đóng
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="onSubmit()"
+        >
+          Lưu
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="modal fade" id="importExcelForm" tabindex="-1"
+  aria-labelledby="importExcelModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary">
+        <h6 class="modal-title text-uppercase text-white" id="importExcelModalLabel">NHẬP DỮ LIỆU EXCEL</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body fs-12">
+         <app-day-off-import-excel></app-day-off-import-excel>
+      </div>
+    </div>
+  </div>
+</div>

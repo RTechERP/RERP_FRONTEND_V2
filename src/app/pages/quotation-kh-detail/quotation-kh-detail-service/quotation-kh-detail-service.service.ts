@@ -29,4 +29,7 @@ export class QuotationKhDetailServiceService {
       }
     })
   }
+  save(data: any): Observable<any> {
+    return this.http.post<any>(this._url + 'save-data', data);
+  }
 }

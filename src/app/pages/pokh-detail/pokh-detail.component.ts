@@ -38,17 +38,14 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 
-import { PokhService } from './pokh-service/pokh.service';
+import { PokhService } from '../pokh/pokh-service/pokh.service';
 import { CustomerPartService } from '../customer-part/customer-part/customer-part.service';
 import { CustomerPartComponent } from '../customer-part/customer-part.component';
 import { ViewPokhComponent } from '../view-pokh/view-pokh.component';
 import { WarehouseReleaseRequestComponent } from '../warehouse-release-request/warehouse-release-request.component';
-import { AppComponent } from '../../app.component';
-import { POKHControllerComponent } from '../pokh-control/pokh-control';
 import { FollowProductReturnComponent } from '../follow-product-return/follow-product-return.component';
 import { PoRequestBuyComponent } from '../po-request-buy/po-request-buy.component';
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
-import { PokhDetailComponent } from '../pokh-detail/pokh-detail.component';
 @Component({
   selector: 'app-pokh',
   imports: [
@@ -77,13 +74,14 @@ import { PokhDetailComponent } from '../pokh-detail/pokh-detail.component';
     NzCheckboxModule,
     CommonModule,
   ],
-  templateUrl: './pokh.component.html',
-  styleUrl: './pokh.component.css',
+  templateUrl: './pokh-detail.component.html',
+  styleUrl: './pokh-detail.component.css',
 })
-export class PokhComponent implements OnInit, AfterViewInit {
-  @ViewChild('addModalContent') addModalContent!: TemplateRef<any>;
+export class PokhDetailComponent implements OnInit, AfterViewInit {
   @ViewChild('tbProductDetailTreeList', { static: false }) tbProductDetailTreeListElement!: ElementRef;
   @ViewChild('tbDetailUser', { static: false }) tbDetailUserElement!: ElementRef;
+  @Input() isEditMode: boolean = false;
+  @Input() selectedId: number = 0;
   sizeSearch: string = '0';
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
@@ -97,6 +95,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
     private modalService: NgbModal,
     private notification: NzNotificationService,
     private viewPOKHService: ViewPokhService,
+    public activeModal: NgbActiveModal
   ) { }
 
   //#region : Khai báo
@@ -115,10 +114,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
   deletedPOKHDetailIds: number[] = [];
   deletedDetailUserIds: number[] = [];
   deletedFileIds: number[] = [];
-  selectedId: number = 0;
   selectedRow: any = null;
-  filterUserData: any[] = [];
-  filterEmployeeTeamSale: any[] = [];
   dataPOKH: any[] = [];
   dataPOKHProduct: any[] = [];
   dataPOKHFiles: any[] = [];
@@ -177,7 +173,6 @@ export class PokhComponent implements OnInit, AfterViewInit {
   ];
 
   //Mode
-  isEditMode: boolean = false;
   isModalOpen: boolean = false;
   lockEvents: boolean = false;
   isResponsibleUsersEnabled: boolean = false;
@@ -192,11 +187,12 @@ export class PokhComponent implements OnInit, AfterViewInit {
     startDate.setMonth(endDate.getMonth() - 3);
     this.filters.startDate = startDate;
     this.filters.endDate = endDate;
-    this.loadPOKH();
-    this.loadCustomers();
-    this.loadUser();
+    this.loadCustomers(() => {
+      if (this.isEditMode) {
+        this.loadPOKHData(this.selectedId);
+      }
+    });
     this.loadEmployeeManagers();
-    this.loadEmployeeTeamSale();
     this.loadProjects();
     this.loadTypePO();
     this.loadCurrency();
@@ -204,78 +200,38 @@ export class PokhComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.drawPOKHTable();
-    this.initProductTable();
-    this.initFileTable();
-  }
-  //#endregion
-  //#region : Hàm load dữ liệu từ api
-  // loadPOKH(): void {
-  //   const params = {
-  //     filterText: this.filters.keyword || "",
-  //     pageNumber: 1,
-  //     pageSize: 50,
-  //     customerId: this.filters.customerId || 0,
-  //     userId: this.filters.userId || 0,
-  //     POType: this.filters.poType || 0,
-  //     status: this.filters.status || 0,
-  //     group: 0,
-  //     warehouseId: 1,
-  //     employeeTeamSaleId: 0,
-  //   };
+    if (this.isEditMode) {
+      this.loadPOKHData(this.selectedId)
+    }
+    else {
+      // Chế độ thêm mới
+      this.resetForm(); // Reset form và dữ liệu
+      this.dataPOKHProduct = [];
+      this.dataPOKHDetailFile = [];
+      this.dataPOKHDetailUser = [];
+      this.isResponsibleUsersEnabled = false; // Mặc định tắt bảng người phụ trách
 
-  //   this.POKHService.getPOKH(
-  //     params.filterText,
-  //     params.pageNumber,
-  //     params.pageSize,
-  //     params.customerId,
-  //     params.userId,
-  //     params.POType,
-  //     params.status,
-  //     params.group,
-  //     this.filters.startDate,
-  //     this.filters.endDate,
-  //     params.warehouseId,
-  //     params.employeeTeamSaleId,
-  //   )
-  //     .subscribe((response) => {
-  //       this.dataPOKH = response.data;
-  //       console.log(this.dataPOKH);
-  //       if (this.tb_POKH) {
-  //         this.tb_POKH.setData(this.dataPOKH);
-  //       }
-  //     });
-  // }
-  loadPOKH(): void {
-    if (this.tb_POKH) {
-      // Gọi setData() với tham số true để force reload data từ server
-      this.tb_POKH.setData(null, true);
+      this.initProductDetailTreeList(); // Khởi tạo với dữ liệu rỗng
+      this.tb_ProductDetailTreeList?.setData([]);
+
+      this.initFileUploadedTable(); // Khởi tạo với dữ liệu rỗng
+      this.tb_POKHDetailFile?.setData([]);
+
+      // Nếu bảng DetailUser đã tồn tại từ lần mở trước, hủy nó đi
+      if (this.tb_DetailUser) {
+        this.tb_DetailUser.destroy();
+        this.isResponsibleUsersEnabled = false;
+      }
     }
   }
+  //#endregion
 
-  getPOKHAjaxParams(): any {
-    return (params: any) => {
-      console.log("Params từ Tabulator:", params);
-
-      return {
-        filterText: this.filters.filterText || "",
-        customerId: this.filters.customerId || 0,
-        userId: this.filters.userId || 0,
-        POType: this.filters.POType || 0,
-        status: this.filters.status || 0,
-        group: this.filters.group || 0,
-        warehouseId: this.filters.warehouseId || 1,
-        employeeTeamSaleId: this.filters.employeeTeamSaleId || 0,
-        startDate: this.filters.startDate?.toISOString() || new Date().toISOString(),
-        endDate: this.filters.endDate?.toISOString() || new Date().toISOString()
-      };
-    };
-  }
-  loadCustomers(): void {
+  loadCustomers(callback?: () => void): void {
     this.customerPartService.getCustomer().subscribe(
       response => {
         if (response.status === 1) {
           this.dataCustomers = response.data;
+          if (callback) callback();
         } else {
           this.notification.error('Lỗi khi tải khách hàng:', response.message);
           return;
@@ -397,39 +353,17 @@ export class PokhComponent implements OnInit, AfterViewInit {
       }
     });
   }
-  loadUser(): void {
-    this.viewPOKHService.loadUser().subscribe({
-      next: (response) => {
-        if (response.status === 1) {
-          this.filterUserData = response.data;
-        } else {
-          this.notification.error('Thông báo', 'Lỗi khi tải tệp POKH: ' + response.message);
-        }
-      },
-      error: (error) => {
-        this.notification.error('Thông báo', 'Lỗi kết nối khi tải tệp POKH: ' + error);
-      }
-    });
-  }
-  loadEmployeeTeamSale(): void {
-    this.viewPOKHService.loadEmployeeTeamSale().subscribe({
-      next: (response) => {
-        if (response.status === 1) {
-          this.filterEmployeeTeamSale = response.data;
-        } else {
-          this.notification.error('Thông báo', 'Lỗi khi tải tệp POKH: ' + response.message);
-        }
-      },
-      error: (error) => {
-        this.notification.error('Thông báo', 'Lỗi kết nối khi tải tệp POKH: ' + error);
-      }
-    });
-  }
   loadProducts(): void {
     this.POKHService.loadProducts().subscribe({
       next: (response: any) => {
         if (response.status === 1) {
           this.dataProducts = response.data;
+
+          //Gọi bảng sau khi có dữ liệu để chọn
+          this.initProductDetailTreeList(); 
+          if (this.tb_ProductDetailTreeList) {
+            this.tb_ProductDetailTreeList.setData(this.dataPOKHProduct);
+          }
         } else {
           this.notification.error('Thông báo', 'Lỗi khi tải sản phẩm: ' + response.message);
         }
@@ -665,65 +599,6 @@ export class PokhComponent implements OnInit, AfterViewInit {
   }
   handleError(error: any) {
     this.notification.error('Thông báo', 'Có lỗi xảy ra: ' + error.message);
-  }
-  //#endregion
-  //#region : Hàm xử lý duyệt và hủy duyệt
-  handlePOKHApproval(isApprove: boolean) {
-    if (!this.selectedId) {
-      this.notification.error('Lỗi', 'Vui lòng chọn POKH cần duyệt hoặc hủy duyệt');
-      return;
-    }
-
-    // Kiểm tra trạng thái duyệt hiện tại
-    const selectedPOKH = this.selectedRow;
-    if (!selectedPOKH) {
-      this.notification.error('Lỗi', 'Không tìm thấy thông tin POKH');
-      return;
-    }
-
-    if (isApprove && selectedPOKH.IsApproved) {
-      this.notification.info('Thông báo', 'POKH này đã được duyệt rồi!');
-      return;
-    }
-
-    if (!isApprove && !selectedPOKH.IsApproved) {
-      this.notification.info('Thông báo', 'POKH này chưa được duyệt!');
-      return;
-    }
-
-    const confirmMessage = isApprove ? `Bạn có chắc chắn muốn DUYỆT - POKH ID: ${this.selectedId} ?` : `Bạn có chắc chắn muốn HỦY DUYỆT - POKH ID: ${this.selectedId} ?`;
-
-    this.modal.confirm({
-      nzTitle: 'Xác nhận',
-      nzContent: confirmMessage,
-      nzOkText: 'Đồng ý',
-      nzCancelText: 'Hủy',
-      nzOnOk: () => {
-        const requestBody = {
-          POKH: {
-            ID: this.selectedId,
-            IsApproved: isApprove
-          },
-          pOKHDetails: [],
-          pOKHDetailsMoney: []
-        };
-
-        this.POKHService.handlePOKH(requestBody).subscribe({
-          next: (response) => {
-            if (response.status === 1) {
-              this.notification.success("Thông báo", isApprove ? 'Duyệt POKH thành công' : 'Hủy duyệt POKH thành công');
-              this.selectedId = 0;
-              this.loadPOKH();
-            } else {
-              this.notification.error('Lỗi', 'Có lỗi xảy ra khi xử lý POKH');
-            }
-          },
-          error: (error) => {
-            this.notification.error('Thông báo', 'Error handling POKH: ' + error);
-          }
-        });
-      }
-    });
   }
   //#endregion
   //#region : Hàm xử lý upload files
@@ -1300,56 +1175,6 @@ export class PokhComponent implements OnInit, AfterViewInit {
   //#endregion
   //#region : Các hàm xử lý sự kiện
 
-  onCopy(): void {
-    if (this.selectedId > 0) {
-      this.isCopy = true;
-      this.isEditMode = true;
-      this.openModal();
-    } else {
-      this.notification.info('Thông báo', "Vui lòng chọn một bản ghi cần copy!");
-    }
-  }
-  onDelete(): void {
-    if (!this.selectedRow) {
-      this.notification.info('Thông báo', 'Vui lòng chọn một PO cần xóa!');
-      return;
-    }
-
-    this.modal.confirm({
-      nzTitle: 'Xác nhận xóa',
-      nzContent: 'Bạn có chắc chắn muốn xóa PO này?',
-      nzOkText: 'Đồng ý',
-      nzCancelText: 'Hủy',
-      nzOnOk: () => {
-        const pokhData = {
-          ID: this.selectedRow['ID'],
-          ...this.poFormData,
-          IsDeleted: true
-        };
-
-        this.POKHService.handlePOKH({
-          POKH: pokhData,
-          pOKHDetails: [],
-          pOKHDetailsMoney: []
-        }).subscribe({
-          next: (response) => {
-            if (response.status === 1) {
-              this.notification.success('Thông báo', 'Xóa PO thành công');
-              this.loadPOKH();
-              this.selectedRow = null;
-              this.selectedId = 0;
-            } else {
-              this.notification.error('Thông báo', 'Có lỗi xảy ra khi xóa PO');
-            }
-          },
-          error: (error) => {
-            this.notification.error('Thông báo', 'Có lỗi xảy ra khi xóa PO');
-            console.error(error);
-          }
-        });
-      }
-    });
-  }
   validateForm(): boolean {
     if (this.poFormData.status < 0) {
       this.notification.error('Thông báo', 'Xin hãy chọn trạng thái.');
@@ -1367,7 +1192,6 @@ export class PokhComponent implements OnInit, AfterViewInit {
   }
   toggleResponsibleUsers() {
     this.poFormData.userType = this.isResponsibleUsersEnabled ? 1 : 0;
-    if (!this.isModalOpen) return;
     if (this.isResponsibleUsersEnabled) {
       if (this.selectedId > 0) {
         this.POKHService.loadUserDetail(this.selectedId, 0).subscribe(res => {
@@ -1566,89 +1390,13 @@ export class PokhComponent implements OnInit, AfterViewInit {
       this.tb_POKHDetailFile.setData(this.dataPOKHDetailFile);
     }
   }
-  // deleteFile(index: number): void {
-  //   if (confirm('Bạn có chắc chắn muốn xóa file này?')) {
-  //     this.dataPOKHDetailFile.splice(index, 1);
-  //     if (this.tb_POKHDetailFile) {
-  //       this.tb_POKHDetailFile.setData(this.dataPOKHDetailFile);
-  //     }
-  //   }
-  // }
 
-  searchPOKH() {
-    this.loadPOKH();
-  }
-  // Thêm hàm xử lý khi bấm Thêm mới
-  onAdd(): void {
-    this.isEditMode = false;
-    this.selectedId = 0;
-    this.openModal();
-  }
-  onEdit(): void {
-    if (this.selectedId > 0) {
-      this.isEditMode = true;
-      this.openModal();
-    }
-    else {
-      this.notification.info('Thông báo', "Vui lòng chọn một bản ghi cần sửa!");
-    }
-  }
   //#endregion
   //#region : Các hàm xử lý modal
-  openModalViewPOKH() {
-    this.modalService.open(ViewPokhComponent, {
-      centered: true,
-      windowClass: 'full-screen-modal',
-      backdrop: 'static',
-    });
-  }
-  openWarehouseReleaseRequestModal() {
-    this.modalService.open(WarehouseReleaseRequestComponent, {
-      centered: true,
-      backdrop: 'static',
-      windowClass: 'full-screen-modal',
-    });
-  }
-  openPORequestBuyModal() {
-    if (!this.selectedId) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn POKH trước!');
-      return;
-    }
 
-    const modalRef = this.modalService.open(PoRequestBuyComponent, {
-      centered: true,
-      backdrop: 'static',
-      windowClass: 'full-screen-modal',
-    });
-    modalRef.componentInstance.pokhId = this.selectedId;
-
-    modalRef.result.then(
-      (result) => {
-        if (result) {
-          // Handle successful modal close if needed
-        }
-      },
-      (reason) => {
-        console.log('Modal dismissed');
-      }
-    );
-  }
-  openModal() {
-    this.isModalOpen = true;
-    this.modalRef = this.modalService.open(PokhDetailComponent, {
-      backdrop: 'static',
-      keyboard: false,
-      centered: true,
-      size: "xl"
-    });
-
-    // Truyền dữ liệu sang modal con
-    this.modalRef.componentInstance.isEditMode = this.isEditMode;
-    this.modalRef.componentInstance.selectedId = this.selectedId;
-  }
   closeModal() {
-    if (this.modalRef) {
-      this.modalRef.close();
+    if (this.activeModal) {
+      this.activeModal.close();
     }
     this.isModalOpen = false;
     this.isEditMode = false;
@@ -1667,324 +1415,6 @@ export class PokhComponent implements OnInit, AfterViewInit {
   }
   //#endregion
   //#region : Các hàm vẽ bảng
-  drawPOKHTable(): void {
-    this.tb_POKH = new Tabulator(`#tb_POKH`, {
-      layout: 'fitDataFill',
-      height: '87vh',
-      selectableRows: 1,
-      pagination: true,
-      paginationMode: 'remote',
-      paginationSize: 50,
-      paginationSizeSelector: [10, 30, 50, 100, 300, 500],
-      ajaxURL: this.POKHService.getPOKHAjax(),
-      ajaxParams: this.getPOKHAjaxParams(),
-      ajaxResponse: (url, params, res) => {
-        console.log('total', res.totalPages[0].TotalPage);
-        console.log('data', res.data);
-        return {
-          data: res.data,
-          last_page: res.totalPages[0].TotalPage,
-        };
-      },
-      langs: {
-        vi: {
-          pagination: {
-            first: '<<',
-            last: '>>',
-            prev: '<',
-            next: '>',
-          },
-        },
-      },
-      locale: 'vi',
-      movableColumns: true,
-      resizableRows: true,
-      reactiveData: true,
-      columnDefaults: {
-        headerWordWrap: true,
-        headerVertical: false,
-        headerHozAlign: "center",
-        minWidth: 60,
-        resizable: true
-      },
-      columns: [
-        {
-          title: 'Duyệt', field: 'IsApproved', sorter: 'boolean', width: 80, formatter: (cell) => {
-            const checked = cell.getValue() ? 'checked' : '';
-            return `<div style="text-align: center;">
-            <input type="checkbox" ${checked} disabled style="opacity: 1; pointer-events: none; cursor: default; width: 16px; height: 16px;"/>
-          </div>`;
-          }
-        },
-        { title: 'Trạng thái', field: 'StatusText', sorter: 'string', width: 150 },
-        { title: 'Loại', field: 'MainIndex', sorter: 'string', width: 70 },
-        {
-          title: 'New Account', field: 'NewAccount', sorter: 'boolean', width: 100, formatter: (cell) => {
-            const checked = cell.getValue() ? 'checked' : '';
-            return `<div style="text-align: center;">
-            <input type="checkbox" ${checked} disabled style="opacity: 1; pointer-events: none; cursor: default; width: 16px; height: 16px;"/>
-          </div>`;
-          }
-        },
-        { title: 'Số POKH', field: 'ID', sorter: 'number', width: 100 },
-        { title: 'Mã PO', field: 'POCode', sorter: 'string', width: 150 },
-        { title: 'Khách hàng', field: 'CustomerName', sorter: 'string', width: 200 },
-        { title: 'Người phụ trách', field: 'FullName', sorter: 'string', width: 150 },
-        { title: 'Dự án', field: 'ProjectName', sorter: 'string', width: 200 },
-        { title: 'Ngày nhận PO', field: 'ReceivedDatePO', sorter: 'date', width: 150, },
-        { title: 'Loại tiền', field: 'CurrencyCode', sorter: 'string', width: 80 },
-        { title: 'Tổng tiền Xuất VAT', field: 'TotalMoneyKoVAT', sorter: 'number', width: 150, formatter: 'money' },
-        {
-          title: 'Tổng tiền nhận PO', field: 'TotalMoneyPO', sorter: 'number', width: 150, formatter: "money",
-          formatterParams: {
-            precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          },
-          bottomCalc: "sum",
-          bottomCalcFormatter: "money",
-          bottomCalcFormatterParams: {
-            precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
-        },
-        { title: 'Tiền về', field: 'ReceiveMoney', sorter: 'number', width: 150, formatter: 'money' },
-        { title: 'Tình trạng tiến độ giao hàng', field: 'DeliveryStatusText', sorter: 'string', width: 150 },
-        { title: 'Tình trạng xuất kho', field: 'ExportStatusText', sorter: 'string', width: 150 },
-        { title: 'End User', field: 'EndUser', sorter: 'string', width: 150 },
-        { title: 'Ghi chú', field: 'Note', sorter: 'string', width: 120 },
-        { title: 'Công nợ', field: 'Debt', sorter: 'number', width: 120, formatter: 'money' },
-        { title: 'Hóa đơn', field: 'ImportStatus', sorter: 'string', width: 150 },
-        { title: 'Đặt hàng', field: 'PONumber', sorter: 'string', width: 150 }
-      ]
-    });
-
-    // Thêm sự kiện khi chuyển trang
-    this.tb_POKH.on("pageLoaded", (pageno: number) => {
-      this.filters.pageNumber = pageno;
-      console.log("Trang hiện tại:", pageno);
-    });
-
-    // Thêm sự kiện khi thay đổi kích thước trang
-    this.tb_POKH.on("pageSizeChanged", (size: number) => {
-      this.filters.pageSize = size;
-      console.log("Kích thước trang:", size);
-    });
-
-    this.tb_POKH.on("rowDblClick", (e: UIEvent, row: RowComponent) => {
-      const id = row.getData()['ID'];
-      this.selectedId = id;
-      console.log("selectedId: ", this.selectedId);
-      this.onEdit();
-    });
-    this.tb_POKH.on("rowClick", (e: UIEvent, row: RowComponent) => {
-      const rowData = row.getData();
-      this.selectedId = rowData['ID'];
-      this.selectedRow = rowData;
-      this.loadPOKHProducts(this.selectedId);
-      this.loadPOKHFiles(this.selectedId);
-    });
-  }
-
-  initProductTable(): void {
-    this.tb_POKHProduct = new Tabulator(`#tb_POKHProduct`, {
-      data: this.dataPOKHProduct,
-      dataTree: true,
-      layout: 'fitDataFill',
-      dataTreeStartExpanded: true,
-      pagination: true,
-      paginationSize: 10,
-      height: '55vh',
-      movableColumns: true,
-      resizableRows: true,
-      columns: [
-        { title: 'STT', field: 'STT', sorter: 'number', width: 70, frozen: true },
-        { title: 'Mã Nội Bộ', field: 'ProductNewCode', sorter: 'string', width: 100, frozen: true },
-        { title: 'Mã Sản Phẩm (Cũ)', field: 'ProductCode', sorter: 'string', width: 100 },
-        { title: 'Tên sản phẩm', field: 'ProductName', sorter: 'string', width: 200 },
-        { title: 'Mã theo khách', field: 'GuestCode', sorter: 'string', width: 200 },
-        { title: 'Hãng', field: 'Maker', sorter: 'string', width: 100 },
-        {
-          title: 'Số lượng', field: 'Qty', sorter: 'number', width: 100, formatter: "money",
-          formatterParams: {
-            precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          },
-          bottomCalc: function (values, data, calcParams) {
-            let total = 0;
-            const processRow = (row: any) => {
-              if (row.Qty) {
-                total += Number(row.Qty);
-              }
-              if (row._children) {
-                row._children.forEach(processRow);
-              }
-            };
-            data.forEach(processRow);
-            return total;
-          },
-          bottomCalcFormatter: "money",
-          bottomCalcFormatterParams: {
-            precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
-        },
-        {
-          title: 'SL đã về', field: 'QuantityReturn', sorter: 'number', width: 100, formatter: "money",
-          formatterParams: {
-            precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          },
-          bottomCalc: function (values, data, calcParams) {
-            let total = 0;
-            const processRow = (row: any) => {
-              if (row.QuantityReturn) {
-                total += Number(row.QuantityReturn);
-              }
-              if (row._children) {
-                row._children.forEach(processRow);
-              }
-            };
-            data.forEach(processRow);
-            return total;
-          },
-          bottomCalcFormatter: "money",
-          bottomCalcFormatterParams: {
-            precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
-        },
-        { title: 'SL đã xuất', field: 'QuantityExport', sorter: 'number', width: 100 },
-        { title: 'SL còn lại', field: 'QuantityRemain', sorter: 'number', width: 100 },
-        { title: 'Kích thước phim cắt/Model', field: 'FilmSize', sorter: 'string', width: 150 },
-        { title: 'ĐVT', field: 'Unit', sorter: 'string', width: 100 },
-        {
-          title: 'Đơn giá trước VAT', field: 'UnitPrice', sorter: 'number', width: 200, formatter: "money", formatterParams: {
-            precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          },
-        },
-        {
-          title: 'Tổng tiền trước VAT', field: 'IntoMoney', sorter: 'number', width: 200, formatter: "money",
-          formatterParams: {
-            precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          },
-          bottomCalc: function (values, data, calcParams) {
-            let total = 0;
-            const processRow = (row: any) => {
-              if (row.IntoMoney) {
-                total += Number(row.IntoMoney);
-              }
-              if (row._children) {
-                row._children.forEach(processRow);
-              }
-            };
-            data.forEach(processRow);
-            return total;
-          },
-          bottomCalcFormatter: "money",
-          bottomCalcFormatterParams: {
-            precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
-        },
-        {
-          title: 'VAT (%)', field: 'VAT', sorter: 'number', width: 150, formatter: function (cell) {
-            return cell.getValue() + '%';
-          }
-        },
-        {
-          title: 'Tổng tiền sau VAT', field: 'TotalPriceIncludeVAT', sorter: 'number', width: 200, formatter: "money",
-          formatterParams: {
-            precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          },
-          bottomCalc: function (values, data, calcParams) {
-            let total = 0;
-            const processRow = (row: any) => {
-              if (row.TotalPriceIncludeVAT) {
-                total += Number(row.TotalPriceIncludeVAT);
-              }
-              if (row._children) {
-                row._children.forEach(processRow);
-              }
-            };
-            data.forEach(processRow);
-            return total;
-          },
-          bottomCalcFormatter: "money",
-          bottomCalcFormatterParams: {
-            precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
-        },
-        { title: 'Người nhận', field: 'UserReceiver', sorter: 'string', width: 200 },
-        { title: 'Ngày yêu cầu giao hàng', field: 'DeliveryRequestedDate', sorter: 'string', width: 200, },
-        { title: 'Thanh toán dự kiến', field: 'EstimatedPay', sorter: 'number', width: 200 },
-        { title: 'Ngày hóa đơn', field: 'BillDate', sorter: 'string', width: 200, },
-        { title: 'Số hóa đơn', field: 'BillNumber', sorter: 'string', width: 200 },
-        { title: 'Công nợ', field: 'Debt', sorter: 'number', width: 200 },
-        { title: 'Ngày yêu cầu thanh toán', field: 'PayDate', sorter: 'string', width: 200, },
-        { title: 'Nhóm', field: 'GroupPO', sorter: 'string', width: 100 },
-        { title: 'Ngày giao hàng thực tế', field: 'ActualDeliveryDate', sorter: 'string', width: 200, },
-        { title: 'Ngày tiền về', field: 'RecivedMoneyDate', sorter: 'string', width: 200, },
-      ]
-    });
-  }
-  initFileTable(): void {
-    this.tb_POKHFile = new Tabulator(`#tb_POKHFile`, {
-      data: this.dataPOKHFiles,
-      layout: 'fitDataFill',
-      pagination: true,
-      paginationSize: 5,
-      height: '30vh',
-      movableColumns: true,
-      resizableRows: true,
-      columns: [
-        {
-          title: 'STT',
-          formatter: "rownum",
-          width: '10%',
-          hozAlign: "center",
-          headerSort: false
-        },
-        { title: 'Tên file', field: 'FileName', sorter: 'string', width: '90%' },
-      ]
-    });
-  }
   initFileUploadedTable(): void {
     this.tb_POKHDetailFile = new Tabulator(`#tb_POKHDetailFile`, {
       data: this.dataPOKHDetailFile,
@@ -2427,12 +1857,12 @@ export class PokhComponent implements OnInit, AfterViewInit {
     const poDate = new Date(this.poFormData.poDate || new Date());
 
     // Reset ID của phiếu chính
-    const pokhCopy = { 
-      ...this.poFormData, ID: 0, 
+    const pokhCopy = {
+      ...this.poFormData, ID: 0,
       Year: poDate.getFullYear(),
-      Month: poDate.getMonth() + 1, 
-      ReceivedDatePO : poDate,
-      PartID : this.poFormData.departmentId,
+      Month: poDate.getMonth() + 1,
+      ReceivedDatePO: poDate,
+      PartID: this.poFormData.departmentId,
       NewAccount: this.poFormData.isBigAccount,
       TotalMoneyPO: this.poFormData.totalPO,
       TotalMoneyKoVAT: this.calculateTotalMoneyKoVAT(),
@@ -2450,13 +1880,11 @@ export class PokhComponent implements OnInit, AfterViewInit {
     // Gọi API copy-dto
     this.POKHService.copyFromDTO(dto).subscribe(res => {
       if (res.status === 1) {
-        this.notification.success('Thông báo','Copy thành công!');
+        this.notification.success('Thông báo', 'Copy thành công!');
         // Có thể load lại danh sách hoặc chuyển sang bản ghi mới
       } else {
-        this.notification.error('Thông báo','Copy thất bại: ' + res.message);
+        this.notification.error('Thông báo', 'Copy thất bại: ' + res.message);
       }
     });
   }
-
-
 }

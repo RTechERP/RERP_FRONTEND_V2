@@ -8,7 +8,7 @@ import { NzSpaceModule } from 'ng-zorro-antd/space';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { NzFlexModule, NzWrap } from 'ng-zorro-antd/flex';
 import { NzDrawerModule, NzDrawerPlacement } from 'ng-zorro-antd/drawer';
-import { NzSplitterModule } from 'ng-zorro-antd/splitter';
+import { NzSplitterModule } from 'ng-zorro-antd/splitter'; 
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
@@ -214,7 +214,6 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
         this.notification.error('Lỗi', error);
       }
     });
-    
   }
 
   openModal() {

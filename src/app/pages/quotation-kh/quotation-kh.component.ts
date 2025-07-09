@@ -42,6 +42,8 @@ import { QuotationKhServicesService } from './quotation-kh-services/quotation-kh
 import { QuotationKhDetailComponent } from '../quotation-kh-detail/quotation-kh-detail.component';
 import { QuotationKhDetailServiceService } from '../quotation-kh-detail/quotation-kh-detail-service/quotation-kh-detail-service.service';
 import { CustomerPartService } from '../customer-part/customer-part/customer-part.service';
+import { PokhComponent } from '../pokh/pokh.component';
+import { PokhDetailComponent } from '../pokh-detail/pokh-detail.component';
 
 @Component({
   selector: 'app-quotation-kh',
@@ -82,6 +84,8 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
   private mainTable!: Tabulator;
   private detailTable!: Tabulator;
 
+
+
   constructor(
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
@@ -92,11 +96,12 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
     private quotationKhDetailService: QuotationKhDetailServiceService,
     private customerPartService: CustomerPartService,
   ) { }
+  
   filterUserData: any[] = [];
   filterCustomerData: any[] = [];
   dataDetail: any[] = [];
   selectedId: number = 0;
-  isEditMode: boolean = false;
+  selectedRow: any = null;
 
   filters: any = {
     filterText: "",
@@ -158,7 +163,7 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
     );
   }
 
-  loadCustomer(): void{
+  loadCustomer(): void {
     this.customerPartService.getCustomer().subscribe(
       response => {
         if (response.status === 1) {
@@ -176,7 +181,7 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
 
   searchData(): void {
     if (this.mainTable) {
-      this.mainTable.setData(); 
+      this.mainTable.setData();
     }
   }
 
@@ -208,6 +213,277 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
         status: this.filters.status || -1,
       };
     };
+  }
+
+  handlePOKHApproval(isApprove: boolean) {
+    if (!this.selectedId) {
+      this.notification.error('Lỗi', 'Vui lòng chọn báo giá cần duyệt hoặc hủy duyệt');
+      return;
+    }
+
+    // Kiểm tra trạng thái duyệt hiện tại
+    const SELECTED_ITEM = this.selectedRow
+    if (!SELECTED_ITEM) {
+      this.notification.error('Lỗi', 'Không tìm thấy thông tin báo giá');
+      return;
+    }
+
+    if (isApprove && SELECTED_ITEM.IsApproved) {
+      this.notification.info('Thông báo', 'Báo giá này đã được duyệt rồi!');
+      return;
+    }
+
+    if (!isApprove && !SELECTED_ITEM.IsApproved) {
+      this.notification.info('Thông báo', 'Báo giá này chưa được duyệt!');
+      return;
+    }
+
+    const confirmMessage = isApprove ? `Bạn có chắc chắn muốn DUYỆT - Báo giá ID: ${this.selectedId} ?` : `Bạn có chắc chắn muốn HỦY DUYỆT - Báo giá ID: ${this.selectedId} ?`;
+
+    this.modal.confirm({
+      nzTitle: 'Xác nhận',
+      nzContent: confirmMessage,
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        const requestBody = {
+          quotationKHs: {
+            ID: this.selectedId,
+            IsApproved: isApprove
+          },
+          quotationKHDetails: [],
+        };
+
+        this.quotationKhDetailService.save(requestBody).subscribe({
+          next: (response) => {
+            if (response.status === 1) {
+              this.notification.success("Thông báo", isApprove ? 'Duyệt Báo giá thành công' : 'Hủy duyệt Báo giá thành công');
+              this.selectedId = 0;
+            } else {
+              this.notification.error('Lỗi', 'Có lỗi xảy ra khi xử lý Báo giá');
+            }
+          },
+          error: (error) => {
+            this.notification.error('Thông báo', 'Error handling Báo giá: ' + error);
+          }
+        });
+      }
+    });
+  }
+  onDelete() {
+    if (!this.selectedId) {
+      this.notification.error('Lỗi', 'Vui lòng chọn báo giá cần xóa');
+      return;
+    }
+
+    this.modal.confirm({
+      nzTitle: 'Xác nhận',
+      nzContent: "Bạn có chắc muốn xóa báo giá này không?",
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        const requestBody = {
+          quotationKHs: {
+            ID: this.selectedId,
+            IsDeleted: true
+          },
+          quotationKHDetails: [],
+        };
+
+        this.quotationKhDetailService.save(requestBody).subscribe({
+          next: (response) => {
+            if (response.status === 1) {
+              this.notification.success("Thông báo", "Xóa báo giá thành công!");
+              this.selectedId = 0;
+              this.mainTable.setData(); //Reload table
+            } else {
+              this.notification.error('Lỗi', 'Có lỗi xảy ra khi xử lý Báo giá');
+            }
+          },
+          error: (error) => {
+            this.notification.error('Thông báo', 'Error handling Báo giá: ' + error);
+          }
+        });
+      }
+    });
+  }
+  onEdit() {
+    if (!this.selectedId) {
+      this.notification.error("Lỗi", "Vui lòng chọn bản ghi cần sửa")
+      return;
+    }
+    this.quotationKhServices.getQuotationKHDetail(this.selectedId).subscribe({
+      next: (response) => {
+        if (response.status === 1) {
+          const DETAIL = response.data;
+          const MAINDATA = this.selectedRow;
+          const groupedData = [{
+            MainData: MAINDATA,
+            ID: this.selectedId,
+            items: DETAIL,
+          }];
+          const modalRef = this.modalService.open(QuotationKhDetailComponent, {
+            centered: true,
+            windowClass: 'full-screen-modal',
+            backdrop: 'static'
+          });
+          modalRef.componentInstance.groupedData = groupedData;
+          modalRef.componentInstance.isEditMode = true;
+
+          modalRef.result.then(
+            (result) => {
+              if (result.success && result.reloadData) {
+                this.mainTable.setData();
+              }
+            },
+            (reason) => {
+              console.log('Modal closed');
+            }
+          );
+        } else {
+          this.notification.error('Lỗi', response.message);
+        }
+      },
+      error: (error) => {
+        this.notification.error('Lỗi', error);
+      }
+    });
+  }
+
+  openPOKHModal() {
+    // Tạo một component tạm thời để mở modal addModalContent
+    const modalRef = this.modalService.open(PokhDetailComponent, {
+      centered: true,
+      backdrop: 'static',
+      size: 'xl'
+    });
+
+    modalRef.result.then(
+      (result) => {
+        console.log('POKH Modal closed');
+      },
+      (reason) => {
+        console.log('POKH Modal dismissed');
+      }
+    );
+  }
+  async exportMainTableToExcel() {
+    if (!this.mainTable) {
+      this.notification.error("Lỗi", "Không có dữ liệu để xuất Excel");
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('QUOTATIONKH_List');
+
+    // Get column definitions from the table
+    const columns = this.mainTable.getColumns();
+
+    // Add headers
+    const headerRow = worksheet.addRow(columns.map(col => col.getDefinition().title));
+    headerRow.font = { bold: true };
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFE0E0E0' }
+    };
+
+    // Get current page data
+    const currentPage = Number(this.mainTable.getPage());
+    const pageSize = Number(this.mainTable.getPageSize());
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+
+    // Get all data and slice for current page
+    const allData = this.mainTable.getData();
+    const currentPageData = allData.slice(startIndex, endIndex);
+
+    // Xác định các field cần format
+    const moneyFields = ['TotalPrice', 'ComMoney', 'IntoMoney', 'UnitPrice', 'UnitPriceImport', 'TotalPriceImport', 'GiaNet'];
+    const percentFields = ['Commission'];
+    const dateFields = ['CreateDate', 'QuotationDate'];
+
+    // Process rows
+    currentPageData.forEach(rowData => {
+      const row = columns.map(col => {
+        const field = col.getField();
+        let value = rowData[field];
+        if (moneyFields.includes(field)) {
+          // Format tiền
+          value = value !== undefined && value !== null && value !== '' ? new Intl.NumberFormat('vi-VN', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+          }).format(Number(value)) : '';
+        } else if (percentFields.includes(field)) {
+          // Format phần trăm
+          value = value !== undefined && value !== null && value !== '' ? (Number(value) * 100).toFixed(0) + '%' : '';
+        } else if (dateFields.includes(field)) {
+          // Format ngày
+          value = value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
+        }
+        return value;
+      });
+      worksheet.addRow(row);
+    });
+
+    // Add bottom calculations for money columns
+    const bottomCalcRow = worksheet.addRow(columns.map(col => {
+      const column = col.getDefinition();
+      const field = column.field as string;
+      if (column.bottomCalc) {
+        // Calculate total for current page only
+        let total = 0;
+        currentPageData.forEach(rowData => {
+          const value = rowData[field];
+          if (typeof value === 'number') {
+            total += value;
+          } else if (!isNaN(Number(value))) {
+            total += Number(value);
+          }
+        });
+        // Format tiền nếu là cột tiền
+        if (moneyFields.includes(field) || column.bottomCalcFormatter === "money") {
+          return new Intl.NumberFormat('vi-VN', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+          }).format(total);
+        }
+        // Format phần trăm nếu là cột phần trăm
+        if (percentFields.includes(field)) {
+          return (total * 100).toFixed(0) + '%';
+        }
+        return total;
+      }
+      return '';
+    }));
+
+    // Style the bottom calc row
+    bottomCalcRow.font = { bold: true };
+    bottomCalcRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFE0E0E0' }
+    };
+
+    // Add a label for the total row
+    const totalLabelCell = bottomCalcRow.getCell(1);
+    totalLabelCell.value = 'Tổng cộng';
+    totalLabelCell.font = { bold: true };
+
+    // Auto-fit columns
+    worksheet.columns.forEach((column: any) => {
+      column.width = 15;
+    });
+
+    // Generate Excel file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `QUOTATIONKH_List_Page_${currentPage}_${new Date().toISOString().split('T')[0]}.xlsx`;
+    link.click();
+    window.URL.revokeObjectURL(url);
   }
   initMainTable(): void {
     this.mainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
@@ -308,10 +584,19 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
             symbolAfter: true
           }
         },
-        { title: 'Tiền COM', field: 'ComMoney', sorter: 'string', width: 150 },
         {
-          title: 'COM (%)', field: 'VAT', sorter: 'number', width: 150, formatter: function (cell) {
-            return cell.getValue() + '%';
+          title: 'Tiền COM', field: 'ComMoney', sorter: 'string', width: 150, formatter: "money",
+          formatterParams: {
+            precision: 0,
+            decimal: ".",
+            thousand: ",",
+            symbol: "",
+            symbolAfter: true
+          },
+        },
+        {
+          title: 'COM (%)', field: 'Commission', sorter: 'number', width: 150, formatter: function (cell) {
+            return (cell.getValue() * 100) + '%';
           }
         },
         { title: 'Người phụ trách', field: 'FullName', sorter: 'string', width: 150 },
@@ -322,7 +607,9 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
     });
     this.mainTable.on('rowClick', (e: any, row: RowComponent) => {
       const ID = row.getData()['ID'];
+      const rowData = row.getData();
       this.selectedId = ID;
+      this.selectedRow = rowData
       this.loadQuotationKHDetail(ID);
     });
   }

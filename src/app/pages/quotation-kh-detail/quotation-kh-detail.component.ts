@@ -79,6 +79,9 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
 
   private mainTable!: Tabulator;
 
+  @Input() groupedData: any[] = []; // Dữ liệu từ component cha truyền vào
+  @Input() isEditMode: boolean = false;
+
   constructor(
     public activeModal: NgbActiveModal,
     private modal: NzModalService,
@@ -118,14 +121,168 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
     this.loadCustomer();
     this.loadProducts();
     this.loadProject();
+
+    if (this.isEditMode && this.groupedData.length > 0) {
+      this.handleEditModeData();
+    }
   }
   ngAfterViewInit(): void {
   }
   closeModal() {
     this.activeModal.close();
   }
-  saveAndClose() {
+  handleEditModeData(): void {
+    if (this.groupedData.length === 0) return;
 
+    const firstGroup = this.groupedData[0];
+    const mainData = firstGroup.MainData;
+    const detailItems = firstGroup.items || [];
+
+    // Đổ dữ liệu lên form
+    this.formData = {
+      id: mainData.ID,
+      status: mainData.Status,
+      code: mainData.QuotationCode,
+      version: mainData.Version,
+      poCode: mainData.POCode,
+      totalPrice: mainData.TotalPrice,
+      createDate: mainData.CreateDate ? mainData.CreateDate.substring(0, 10) : new Date().toISOString().split('T')[0],
+      projectId: mainData.ProjectID,
+      userId: mainData.UserID,
+      comPercent: mainData.Commission ? mainData.Commission * 100 : 0,
+      comMoney: mainData.ComMoney,
+      comEnabled: false, // Mặc định tắt, có thể điều chỉnh theo logic nghiệp vụ
+      quotationDate: mainData.QuotationDate ? mainData.QuotationDate.substring(0, 10) : new Date().toISOString().split('T')[0],
+      company: mainData.Company || 'RTC',
+      explanation: mainData.Explanation,
+      dateMinutes: new Date().toISOString().split('T')[0],
+      contactId: mainData.ContactID,
+      employeePhone: '',
+      departmentName: '',
+      customerId: mainData.CustomerID,
+      customerName: mainData.CustomerName,
+      customerContact: mainData.ContactName,
+      customerPhone: mainData.ContactPhone,
+      customerAddress: '',
+      receiver: '',
+      receiverPhone: '',
+      adminWarehouse: null
+    };
+
+    // Load contact đúng của khách hàng và cập nhật lại các trường liên hệ
+    if (mainData.CustomerID) {
+      this.loadContact(mainData.CustomerID);
+      // Đợi contact load xong rồi gán lại các trường liên hệ
+      setTimeout(() => {
+        const contactItem = this.contact.find((c: any) => c.ID === mainData.ContactID);
+        if (contactItem) {
+          this.formData.contactId = contactItem.ID;
+        }
+      }, 300);
+    }
+
+    // Load project data nếu có projectId
+    if (mainData.ProjectID) {
+      // Đợi một chút để đảm bảo danh sách projects đã được load
+      setTimeout(() => {
+        this.onProjectChange(mainData.ProjectID);
+      }, 200);
+    }
+    // Đổ dữ liệu chi tiết lên bảng
+    if (detailItems.length > 0) {
+      const tableData = detailItems.map((item: any, index: number) => ({
+        ID: item.ID,
+        STT: index + 1,
+        IsSelected: false,
+        ProductNewCode: item.ProductNewCode || '',
+        ProductRTCCode: item.ProductID || '',
+        ProductCode: item.ProductCode || '',
+        ProductName: item.ProductName || '',
+        InternalCode: item.InternalCode || '',
+        Maker: item.Maker || '',
+        Unit: item.Unit || '',
+        Qty: Number(item.Qty) || 0,
+        UnitPrice: Number(item.UnitPrice) || 0,
+        IntoMoney: Number(item.IntoMoney) || 0,
+        TypeOfPrice: item.TypeOfPrice || '',
+        UnitPriceImport: Number(item.UnitPriceImport) || 0,
+        TotalPriceImport: Number(item.TotalPriceImport) || 0,
+        GiaNet: Number(item.GiaNet) || 0,
+        Note: item.Note || '',
+        GroupQuota: item.GroupQuota || ''
+      }));
+
+      // Cập nhật dữ liệu cho bảng nếu đã được khởi tạo
+      if (this.mainTable) {
+        this.mainTable.setData(tableData);
+        this.details = tableData;
+        this.calculateFinishTotal();
+      } else {
+        // Lưu dữ liệu để đổ vào bảng sau khi bảng được khởi tạo
+        this.data = tableData;
+        this.details = tableData;
+      }
+    }
+  }
+  saveAndClose() {
+    const QUOTATION_KH = {
+      ID: this.formData.id,
+      QuotationCode: this.formData.code,
+      Version: '',
+      ProjectID: this.formData.projectId,
+      UserID: this.formData.userId,
+      POCode: this.formData.poCode,
+      CustomerID: this.formData.customerId,
+      Explanation: this.formData.explanation,
+      IsApproved: false,
+      TotalPrice: this.formData.totalPrice,
+      CreatedDate: new Date(),
+      QuotationDate: this.formData.quotationDate,
+      Status: this.formData.status,
+      ContactID: this.formData.contactId,
+      Month: new Date().getMonth() + 1,
+      Year: new Date().getFullYear(),
+      UserName: 0,
+      CreateDate: this.formData.createDate,
+      Commission: this.formData.comPercent / 100,
+      ComMoney: this.formData.comMoney,
+      Company: this.formData.company,
+      IsMerge: false
+    };
+
+    const QUOTATION_DETAIL = this.mainTable.getData().map(item => {
+      const product = this.products.find(p => p.ProductNewCode === item.ProductRTCCode);
+      return {
+        ...item,
+        ProductID: product ? product.ID : null,
+        InternalName: item.InternalCode
+      };
+    });
+
+    const PAYLOAD = {
+      quotationKHs: QUOTATION_KH,
+      quotationKHDetails: QUOTATION_DETAIL,
+      DeletedDetailIds: this.deletedQuotationKHDetailIds
+    }
+
+    this.quotationKhDetailService.save(PAYLOAD).subscribe({
+      next: (res) => {
+        if (res.status === 1) {
+          this.notification.success('Thành công', "Lưu dữ liệu thành công")
+          // Đóng modal và trả về kết quả để reload data ở component cha
+          this.activeModal.close({
+            success: true,
+            reloadData: true
+          });
+        }
+        else {
+          this.notification.error('Lỗi', res.message)
+        }
+      },
+      error: (err) => {
+        this.notification.error('Lỗi', err)
+      }
+    })
   }
   onAddCustomer() {
     alert('Thêm khách hàng mới!');
@@ -193,6 +350,7 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
       }
     );
   }
+
   loadCode(customerId: number, createDate: string): void {
     this.quotationKhDetailService.generateCode(customerId, "2025-07-02").subscribe(
       response => {
@@ -241,11 +399,10 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
   }
   onContactChange(contactId: number): void {
     const ITEM = this.contact.find((c: any) => c.ID === contactId);
-    if(ITEM == null || ITEM == undefined) {
+    if (ITEM == null || ITEM == undefined) {
       return;
     }
-    else
-    {
+    else {
       this.formData.customerPhone = ITEM.ContactPhone;
     }
 
@@ -312,12 +469,12 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
     };
     this.mainTable.addRow(newRow);
   }
+  
   initMainTable(): void {
     this.mainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
       data: this.data,
       layout: 'fitDataFill',
       height: '60vh',
-      selectableRows: 1,
       pagination: true,
       paginationSize: 50,
       movableColumns: true,
@@ -356,19 +513,34 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
           title: 'Select', field: 'IsSelected', sorter: 'boolean', width: 80, formatter: (cell) => {
             const checked = cell.getValue() ? 'checked' : '';
             return `<div style="text-align: center;">
-            <input type="checkbox" ${checked} disabled style="opacity: 1; pointer-events: none; cursor: default; width: 16px; height: 16px;"/>
+            <input type="checkbox" ${checked} style="width: 16px; height: 16px; cursor: pointer;"/>
           </div>`;
+          },
+          cellClick: (e, cell) => {
+            if ((e.target as HTMLInputElement).type === 'checkbox') {
+              const currentValue = cell.getValue();
+              cell.setValue(!currentValue);
+            }
           }
         },
         { title: 'Mã nội bộ', field: 'ProductNewCode', width: 200, editor: "input" },
-        { title: 'Mã RTC', field: 'ProductRTCCode', width: 200, editor: "list", visible: false,
-            editorParams: {
-              values: this.products.map(item =>({
-                label: item.ProductCode + ' - ' + item.ProductName,
-                value: item.ProductNewCode,
-                id: item.ID
-              }))
-            }
+        {
+          title: 'Mã RTC',
+          field: 'ProductRTCCode',
+          width: 200,
+          editor: "list",
+          visible: false,
+          editorParams: {
+            values: this.products.map(item => ({
+              label: item.ProductCode + ' - ' + item.ProductName,
+              value: item.ID
+            }))
+          },
+          formatter: (cell) => {
+            const id = cell.getValue();
+            const product = this.products.find(p => p.ID === id);
+            return product ? product.ProductNewCode : id;
+          }
         },
         { title: 'Mã sản phẩm', field: 'ProductCode', width: 150, editor: "input" },
         { title: 'Tên sản phẩm', field: 'ProductName', width: 150, editor: "input" },
@@ -377,7 +549,8 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
         { title: 'Đơn vị', field: 'Unit', width: 120, editor: "input" },
         { title: 'Số lượng', field: 'Qty', width: 120, editor: "number" },
         { title: 'Đơn giá báo trước VAT', field: 'UnitPrice', width: 150, editor: "input", formatter: "money", },
-        { title: 'Thành tiền trước VAT', field: 'IntoMoney', width: 150, editor: "input", formatter: "money",
+        {
+          title: 'Thành tiền trước VAT', field: 'IntoMoney', width: 150, formatter: "money",
           formatterParams: {
             precision: 0,
             decimal: ".",
@@ -393,12 +566,13 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
             thousand: ",",
             symbol: "",
             symbolAfter: true
-          } 
+          }
         },
         { title: 'Loại tiền', field: 'TypeOfPrice', width: 120, editor: "input" },
         { title: 'Đơn giá nhập', field: 'UnitPriceImport', width: 150, editor: "input", formatter: "money", },
         { title: 'Tổng giá nhập', field: 'TotalPriceImport', width: 150, editor: "input", formatter: "money", },
-        { title: 'Giá NET', field: 'GiaNet', width: 120, editor: "input", formatter: "money",
+        {
+          title: 'Giá NET', field: 'GiaNet', width: 120, editor: "input", formatter: "money",
           formatterParams: {
             precision: 0,
             decimal: ".",
@@ -414,7 +588,7 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
             thousand: ",",
             symbol: "",
             symbolAfter: true
-          } 
+          }
         },
         { title: 'Ghi chú', field: 'Note', width: 120, editor: "input" },
         { title: 'Nhóm', field: 'GroupQuota', width: 120, editor: "input" },
@@ -424,7 +598,7 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
     this.mainTable.on("cellEdited", (cell) => {
       if (cell.getColumn().getField() === "ProductRTCCode") {
         const selectedProduct = this.products.find(
-          p => p.ProductNewCode === cell.getValue()
+          p => p.ID === cell.getValue()
         );
         if (selectedProduct) {
           const row = cell.getRow();
@@ -454,12 +628,17 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
       if (columnField === 'Qty' || columnField === 'UnitPrice' || columnField === 'UnitPriceImport') {
         const intoMoney = quantity * unitPrice;
         const totalPriceImport = quantity * unitPriceImport;
-        
+
         row.update({
           IntoMoney: intoMoney,
           TotalPriceImport: totalPriceImport
         });
-        
+
+        this.calculateFinishTotal();
+      }
+
+      // Tính lại tiền COM khi thay đổi Giá NET
+      if (columnField === 'GiaNet') {
         this.calculateFinishTotal();
       }
 
@@ -504,23 +683,23 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
 
   calculateFinishTotal(): void {
     if (!this.mainTable) return;
-    
+
     const allData = this.mainTable.getData();
     let totalIntoMoney = 0;
     let totalGiaNet = 0;
-    
+
     allData.forEach((row: any) => {
       totalIntoMoney += Number(row.IntoMoney) || 0;
       totalGiaNet += Number(row.GiaNet) || 0;
     });
-    
+
     // Cập nhật tổng tiền vào formData
     this.formData.totalPrice = totalIntoMoney;
-    
+
     // Tính toán commission money
     const comPercent = Number(this.formData.comPercent) || 0;
     const comEnabled = this.formData.comEnabled;
-    
+
     if (comEnabled) {
       // Nếu commission được bật, tính dựa trên (total - gianet) * comPercent
       this.formData.comMoney = (totalIntoMoney - totalGiaNet) * (comPercent / 100);
@@ -528,10 +707,10 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
       // Nếu commission tắt, tính dựa trên total * comPercent
       this.formData.comMoney = totalIntoMoney * (comPercent / 100);
     }
-    
+
     // Format commission money để hiển thị
     this.formData.comMoney = Number(this.formData.comMoney.toFixed(0));
-    
+
     console.log('Tổng thành tiền:', totalIntoMoney);
     console.log('Tổng giá NET:', totalGiaNet);
   }

@@ -105,7 +105,7 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit {
   dataField: any;
   dataName: any;
   cellValue: any = '';
-  workContent: any = 'ádsadsadasdasdasda';
+  workContent: any = '';
   //#endregion
 
   //#region Hàm chạy khi mở chương trình
@@ -149,6 +149,7 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit {
   }
 
   getUserTeam() {
+    this.teams = [];
     if (this.departmentId > 0) {
       this.projectService.getUserTeam(this.departmentId).subscribe({
         next: (response: any) => {

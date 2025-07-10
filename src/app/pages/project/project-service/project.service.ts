@@ -562,6 +562,17 @@ export class ProjectService {
   }
   //#endregion
 
+  //#region Timeline hạng mục công việc
+  getProjectWorkItemTimeline(data: any): Observable<any> {
+    return this.http.get<any>(
+      this.apiUrl + `ProjectWorkItemTimeline/get-data`,
+      {
+        params: data,
+      }
+    );
+  }
+  //#endregion
+
   //#region Xuất excel theo group
   async exportExcel(
     table: any,

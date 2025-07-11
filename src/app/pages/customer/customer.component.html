@@ -96,7 +96,6 @@
                 nzSize="small"
                 style="font-size: 0.75rem; font-weight: bold"
                 (click)="openEditModal()"
-                [nzLoading]="isLoading"
               >
                 <nz-icon nzType="edit" /> Sửa
               </button>
@@ -142,7 +141,28 @@
               [nzCollapsible]="true"
               nzResizable="true"
             >
+            <div class="card-body p-0 position-relative">
+              <div *ngIf="isLoading">
+                <nz-spin
+                  [nzSpinning]="isLoading"
+                  nzSimple
+                  [style]="{
+                    position: 'absolute',
+                    top: '0',
+                    left: '0',
+                    width: '100%',
+                    height: '100%',
+                    background: 'rgba(255,255,255,0.4)',
+                    zIndex: '999',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }"
+                ></nz-spin>
+              </div>
               <div #tb_Customer></div>
+            </div>
+              
             </nz-splitter-panel>
             <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" [nzSize]="sizeTbDetail">
               <nz-tabset class="ps-1">

@@ -1,6 +1,6 @@
 import { Component, ElementRef, ViewChild, OnInit, AfterViewInit } from '@angular/core';
 import { NzModalService } from 'ng-zorro-antd/modal';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -22,6 +22,7 @@ import { FormControl } from '@angular/forms';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { DayOffService } from '../day-off-service/day-off.service';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 
 @Component({
@@ -45,6 +46,8 @@ import { DayOffService } from '../day-off-service/day-off.service';
     NzInputNumberModule,
     NzDatePickerModule,
     NzTabsModule,
+    NzSpinModule,
+    NgIf
   ]
 })
 export class SummaryDayOffComponent implements OnInit {
@@ -53,6 +56,7 @@ export class SummaryDayOffComponent implements OnInit {
 
   searchForm!: FormGroup;
   summaryDayOff: any[] = [];
+  isLoading = false;
   constructor(
     private fb: FormBuilder,
     private modal: NzModalService,
@@ -80,6 +84,7 @@ export class SummaryDayOffComponent implements OnInit {
   }
 
   loadSummaryDayOff() {
+    this.isLoading = true;
     const month = this.searchForm.get('month')?.value;
     const year = this.searchForm.get('year')?.value;
     const keyWord = this.searchForm.get('keyWord')?.value;
@@ -88,6 +93,7 @@ export class SummaryDayOffComponent implements OnInit {
       next: (data) => {
         this.summaryDayOff = data.data;
         this.tabulator.setData(this.summaryDayOff);
+        this.isLoading = false;
       },
       error: (error) => {
         this.notification.error('Lỗi', 'Lỗi khi tải  danh sách ')

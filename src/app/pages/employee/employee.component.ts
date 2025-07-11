@@ -35,7 +35,7 @@ import { EmployeeService } from './employee-service/employee.service';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzCheckListModule } from 'ng-zorro-antd/check-list';
 import { NzCheckboxOption } from 'ng-zorro-antd/checkbox';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
 import { DepartmentServiceService } from '../department/department-service/department-service.service';
 import { PositionServiceService } from '../positions/position-service/position-service.service';
 import { PositionContractComponent } from '../positions/position-contract/position-contract.component';
@@ -46,6 +46,7 @@ import { EmployeeLoginManagerComponent } from './employee-login-manager/employee
 import { EmployeeContractComponent } from './employee-contract/employee-contract.component';
 import { EmployeeImportExcelComponent } from "./employee-import-excel/employee-import-excel.component";
 import { EmployeeTeamComponent } from "./employee-team/employee-team.component";
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 
 @Component({
@@ -85,7 +86,9 @@ import { EmployeeTeamComponent } from "./employee-team/employee-team.component";
     EmployeeContractComponent,
     EmployeeLoginManagerComponent,
     EmployeeImportExcelComponent,
-    EmployeeTeamComponent
+    NgIf,
+    NzSpinModule,
+    EmployeeTeamComponent,
 ],
   providers: [
     NzModalService,
@@ -117,6 +120,8 @@ export class EmployeeComponent implements OnInit {
   deleteForm!: FormGroup;
   searchForm!: FormGroup;
   endContractControl = new FormControl(false);
+
+  isLoading = false;
 
   constructor(
     private employeeService : EmployeeService,
@@ -347,9 +352,11 @@ export class EmployeeComponent implements OnInit {
 
   //#region Hàm load dữ liệu từ API
   loadEmployees(): void {
+    this.isLoading = true;
     this.employeeService.getEmployees().subscribe((data) => {
       this.employees = data.data || [];
       this.tabulatorEmployee.setData(this.employees);
+      this.isLoading = false;
     });
   }
   loadDepartments() {

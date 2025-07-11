@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { NzModalService } from 'ng-zorro-antd/modal';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -21,6 +21,8 @@ import { DateTime } from 'luxon';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { FormControl } from '@angular/forms';
 import { EmployeeScheduleWorkComponent } from "./employee-schedule-work/employee-schedule-work.component";
+import { NzSpinModule } from 'ng-zorro-antd/spin';
+
 
 @Component({
   selector: 'app-holiday',
@@ -42,7 +44,9 @@ import { EmployeeScheduleWorkComponent } from "./employee-schedule-work/employee
     NzCheckboxModule,
     NzInputNumberModule,
     NzDatePickerModule,
-    EmployeeScheduleWorkComponent
+    EmployeeScheduleWorkComponent,
+    NzSpinModule,
+    NgIf
 ],
    standalone: true
 })
@@ -53,6 +57,7 @@ export class HolidayComponent implements OnInit {
   searchForm!: FormGroup;
   holidayForm!: FormGroup;
   viewAll = new FormControl(false);
+  isLoading = false;
 
   constructor(
     private fb: FormBuilder,
@@ -162,11 +167,14 @@ export class HolidayComponent implements OnInit {
   loadHolidays() {
     const month = this.searchForm.get('month')?.value;
     const year = this.searchForm.get('year')?.value;
+    this.isLoading = true;
     
     this.holidayService.getHolidays(month, year).subscribe({
       next: (data) => {
+        
         this.holidays = data.data;
         this.initializeTable();
+        this.isLoading = false;
       },
       error: (error) => {
         this.notification.error('Lỗi', 'Không thể tải dữ liệu ngày lễ');

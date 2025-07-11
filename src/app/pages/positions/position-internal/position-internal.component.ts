@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator.min.css';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -13,6 +13,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { PositionServiceService } from '../position-service/position-service.service';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 @Component({
   selector: 'app-position-internal',
@@ -28,7 +29,9 @@ import { PositionServiceService } from '../position-service/position-service.ser
     NzFormModule,
     NzInputModule,
     NzSwitchModule,
-    NzNotificationModule
+    NzNotificationModule,
+    NzSpinModule,
+    NgIf
   ],
   standalone: true
 })
@@ -41,6 +44,7 @@ export class PositionInternalComponent implements OnInit {
   isVisible = false;
   isSubmitting = false;
   positionForm!: FormGroup;
+  isLoading = false;
 
   constructor(
     private positionService: PositionServiceService,
@@ -67,10 +71,12 @@ export class PositionInternalComponent implements OnInit {
   }
 
   loadPositionInternal() {
+    this.isLoading = true;
     this.positionService.getPositionInternal().subscribe({
       next: (data: any) => {
         this.positionInternals = data;
         this.tabulator.setData(this.positionInternals);
+        this.isLoading = false;
       },
       error: (error) => {
         this.notification.error('Lỗi', 'Lỗi khi tải danh sách chức vụ nội bộ: ' + error.message);

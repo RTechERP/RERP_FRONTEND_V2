@@ -1,6 +1,6 @@
 import { Component, ElementRef, ViewChild, OnInit, AfterViewInit } from '@angular/core';
 import { NzModalService } from 'ng-zorro-antd/modal';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -27,6 +27,7 @@ import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { DayOffService } from './day-off-service/day-off.service';
 import { SummaryDayOffComponent } from './summary-day-off/summary-day-off.component';
 import { DeclareDayOffComponent } from './declare-day-off/declare-day-off.component';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 
 @Component({
@@ -52,7 +53,9 @@ import { DeclareDayOffComponent } from './declare-day-off/declare-day-off.compon
     NzTabsModule,
     NzSplitterModule,
     SummaryDayOffComponent,
-    DeclareDayOffComponent
+    DeclareDayOffComponent,
+    NgIf,
+    NzSpinModule
   ]
 })
 export class DayOffComponent implements OnInit, AfterViewInit{
@@ -69,9 +72,9 @@ export class DayOffComponent implements OnInit, AfterViewInit{
   sizeTbDetail: any ='0';  
 
   isEditModal = false;
+  isLoading = false;
 
   selectedDayOff: any = null;
-
 
   constructor(
     private fb: FormBuilder,
@@ -128,8 +131,10 @@ export class DayOffComponent implements OnInit, AfterViewInit{
   }
 
   loadEmployeeOnLeave() {
+    this.isLoading = true;
     this.dayOffService.getEmployeeOnLeave(this.searchForm.value).subscribe({
       next: (data) => {
+        this.isLoading = false;
         this.dayOffList = data.data; 
         this.tabulator.setData(this.dayOffList);
       },
@@ -178,7 +183,7 @@ export class DayOffComponent implements OnInit, AfterViewInit{
     this.tabulator = new Tabulator('#tb_day_off', {
       data: this.dayOffList,
       layout: 'fitColumns',
-      selectableRows: 1,
+      selectableRows: true,
       height: '85vh',
       rowHeader: {
         formatter: "rowSelection", 
@@ -347,7 +352,7 @@ export class DayOffComponent implements OnInit, AfterViewInit{
     }
 
     if (
-      (selectedRows.length > 0 && selectedRows[0].getData()['isApprovedTP'] === true && selectedRows[0].getData()['isApprovedHR'] === true)
+      (selectedRows.length > 0 && selectedRows[0].getData()['IsApprovedTP'] === true && selectedRows[0].getData()['IsApprovedHR'] === true)
     ) {
       this.notification.warning('Cảnh báo', 'Đăng ký nghỉ đã được duyệt. Vui lòng hủy duyệt trước khi sửa!');
       return;
@@ -367,6 +372,10 @@ export class DayOffComponent implements OnInit, AfterViewInit{
     // Đặt validation bắt buộc cho ReasonHREdit khi sửa
     this.dayOffForm.get('ReasonHREdit')?.setValidators([Validators.required]);
     this.dayOffForm.get('ReasonHREdit')?.updateValueAndValidity();
+
+    this.dayOffForm.get('EmployeeID')?.disable();
+    this.dayOffForm.get('ApprovedTP')?.disable();
+
     const modal = new (window as any).bootstrap.Modal(document.getElementById('addDayOffModal'));
     modal.show();
   }
@@ -379,13 +388,12 @@ export class DayOffComponent implements OnInit, AfterViewInit{
     }
 
     if (
-      (selectedRows.length > 0 && selectedRows[0].getData()['isApprovedTP'] === true && selectedRows[0].getData()['isApprovedHR'] === true)
+      (selectedRows.length > 0 && selectedRows[0].getData()['IsApprovedTP'] === true && selectedRows[0].getData()['IsApprovedHR'] === true)
     ) {
       this.notification.warning('Cảnh báo', 'Đăng ký nghỉ đã được duyệt. Vui lòng hủy duyệt trước khi xóa!');
       return;
     }
 
-    const selectedDayOff = selectedRows[0].getData();
     this.modal.confirm({
       nzTitle: "Xác nhận xóa",
       nzContent: `Bạn có chắc chắn muốn xóa ngày nghỉ đã đăng ký này không?`,
@@ -393,18 +401,22 @@ export class DayOffComponent implements OnInit, AfterViewInit{
       nzOkType:'primary',
       nzOkDanger: true,
       nzOnOk: () => {
-        this.dayOffService.saveEmployeeOnLeave({
-          ...selectedDayOff,
-          IsDeleted: true
-        }).subscribe({
-          next: (response) => {
-            this.notification.success('Thành công', 'Xóa ngày nghỉ đã đăng ký thành công');
-            this.loadEmployeeOnLeave();
-          },
-          error: (error) => {
-            this.notification.error('Lỗi', 'Xóa ngày nghỉ đã đăng ký thất bại: ' + error.message);
-          }
-        });
+        for(let row of selectedRows) {
+          let selectedDayOff = row.getData();
+          this.dayOffService.saveEmployeeOnLeave({
+            ...selectedDayOff,
+            IsDeleted: true
+          }).subscribe({
+            next: (response) => {
+              this.notification.success('Thành công', 'Xóa ngày nghỉ đã đăng ký thành công');
+              this.loadEmployeeOnLeave();
+            },
+            error: (error) => {
+              this.notification.error('Lỗi', 'Xóa ngày nghỉ đã đăng ký thất bại: ' + error.message);
+            }
+          });
+        }
+
       },
       nzCancelText: 'Hủy'
     });

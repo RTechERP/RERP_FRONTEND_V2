@@ -1,6 +1,6 @@
 import { Component, ElementRef, ViewChild, OnInit, AfterViewInit } from '@angular/core';
 import { NzModalService } from 'ng-zorro-antd/modal';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -24,6 +24,7 @@ import { saveAs } from 'file-saver';
 import { DepartmentServiceService } from '../../department/department-service/department-service.service';
 import { EmployeeService } from '../../employee/employee-service/employee.service';
 import { FoodOrderService } from '../food-order-service/food-order.service';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 @Component({
   selector: 'app-summary-food-order',
@@ -45,7 +46,9 @@ import { FoodOrderService } from '../food-order-service/food-order.service';
     NzCheckboxModule,
     NzInputNumberModule,
     NzDatePickerModule,
-    NzTabsModule
+    NzTabsModule,
+    NzSpinModule,
+    NgIf
   ]
 })
 export class SummaryFoodOrderComponent implements OnInit, AfterViewInit{
@@ -61,6 +64,8 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit{
   dayOfWeekList: any[] = [];
 
   searchForm!: FormGroup;
+
+  isLoading = false;
 
   @ViewChild('tb_order_food', { static: false })
   tb_orderFoodContainer!: ElementRef;
@@ -144,26 +149,32 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit{
   }
 
   loadFoodOrders() {
+    this.isLoading = true;
     this.foodOrderService.getEmployeeFoodOrderByMonth(this.searchForm.value).subscribe({
       next: (data) => {
         this.foodOrderList = data.data;
         this.initializeOrderTabulator(this.tb_orderFoodContainer.nativeElement);
+        this.isLoading = false;
 
       },
       error: (error) => {
         this.notification.error('Lỗi', 'Lỗi khi tải danh sách đặt cơm: ' + error.message);
+        this.isLoading = false;
       }
     })
   }
 
   loadReportOrders() {
+    this.isLoading = true;
     this.foodOrderService.getReportFoodOrderByMonth(this.searchForm.value).subscribe({
       next: (data) => {
         this.reportOrderList = data.data;
         this.initializeReportTabulator(this.tb_reportFoodContainer.nativeElement);
+        this.isLoading = false;
       },
       error: (error) => {
         this.notification.error('Lỗi', 'Lỗi khi tải danh sách báo cáo cơm ca: ' + error.message);
+        this.isLoading = false;
       }
     })
   }

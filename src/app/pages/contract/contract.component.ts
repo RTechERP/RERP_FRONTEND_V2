@@ -10,6 +10,8 @@ import { FormGroupDirective } from '@angular/forms';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzModalService } from 'ng-zorro-antd/modal';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NgIf } from '@angular/common';
 
 @Component({
   selector: 'app-contract',
@@ -22,7 +24,8 @@ import { NzModalService } from 'ng-zorro-antd/modal';
     ReactiveFormsModule,
     NzFormModule,
     NzInputModule,
-    
+    NzSpinModule,
+    NgIf
   ],
   providers: [NzNotificationService, NzModalService],
   standalone: true
@@ -33,6 +36,7 @@ export class ContractComponent implements OnInit {
   isEditMode: boolean = false;
   contractForm!: FormGroup;
   selectedContract: any = null;
+  isLoading = false;
 
   constructor(
     private contractService: ContractServiceService,
@@ -75,13 +79,16 @@ export class ContractComponent implements OnInit {
   }
 
   loadContracts() {
+    this.isLoading = true;
     this.contractService.getContracts().subscribe({
       next: (data: any) => {
         this.contracts = data.data;
         this.tabulator.setData(this.contracts);
+        this.isLoading = false;
       },
       error: (error) => {
         this.notification.error('Lỗi', 'Không thể tải danh sách hợp đồng: ' + error.message);
+        this.isLoading = false;
       }
     });
   }

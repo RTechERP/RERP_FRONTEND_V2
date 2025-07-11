@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { NzModalService } from 'ng-zorro-antd/modal';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -18,6 +18,7 @@ import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { TeamServiceService } from './team-service/team-service.service';
 // import { EmployeeService } from '../employees/employee-service/employee.service';
 import { DepartmentServiceService } from '../department/department-service/department-service.service';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 @Component({
   selector: 'app-team',
@@ -36,7 +37,9 @@ import { DepartmentServiceService } from '../department/department-service/depar
     NzNotificationModule,
     ReactiveFormsModule,
     NzSplitterModule,
-    FormsModule
+    FormsModule,
+    NgIf,
+    NzSpinModule
   ],
   standalone: true
 })
@@ -61,6 +64,9 @@ export class TeamComponent implements OnInit, AfterViewInit {
   isSubmitting = false;
   teamForm!: FormGroup;
   flattenedTeamList: any[] = [];
+
+  isLoading = false;
+  isLoad = false;
 
   constructor(
     private teamService: TeamServiceService,
@@ -171,6 +177,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
   }
 
   loadTeams() {
+    this.isLoading = true;
     if (this.department) {
       this.teamService.getTeams(this.department).subscribe({
         next: (data: any) => {
@@ -179,12 +186,14 @@ export class TeamComponent implements OnInit, AfterViewInit {
           this.teamList = treeData;
           this.flattenedTeamList = this.flattenTeamTree(treeData);
           this.teamTabulator.setData(this.teamList);
+          this.isLoading = false;
         },
         error: (error) => {
           this.notification.error('Lỗi', 'Lỗi khi tải danh sách team: ' + error.message);
           this.teamList = [];
           this.flattenedTeamList = [];
           this.teamTabulator.setData([]);
+          this.isLoading = false;
         }
       });
     } else {
@@ -195,25 +204,30 @@ export class TeamComponent implements OnInit, AfterViewInit {
           this.teamList = treeData;
           this.flattenedTeamList = this.flattenTeamTree(treeData);
           this.teamTabulator.setData(this.teamList);
+          this.isLoading = false;
         },
         error: (error) => {
           this.notification.error('Lỗi', 'Lỗi khi tải danh sách team: ' + error.message);
           this.teamList = [];
           this.flattenedTeamList = [];
           this.teamTabulator.setData([]);
+          this.isLoading = false;
         }
       });
     }
   }
 
   loadUserTeam(teamId: number, departmentId: number) {
+    this.isLoad = true;
     this.teamService.getUserTeam(teamId, departmentId).subscribe({
       next: (data: any) => {
         this.employeeList = data.data;
         this.employeeTabulator.setData(this.employeeList);
+        this.isLoad = false;
       },
       error: (error) => {
         this.notification.error('Lỗi', 'Lỗi khi tải danh sách nhân viên: ' + error.message);
+        this.isLoad = false;
       }
     });
   }

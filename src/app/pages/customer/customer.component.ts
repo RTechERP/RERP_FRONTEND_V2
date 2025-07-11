@@ -35,6 +35,8 @@ import { saveAs } from 'file-saver';
 import { CustomerSpecializationFormComponent } from './customer-specialization-form/customer-specialization-form.component';
 import { forkJoin } from 'rxjs';
 import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NgIf } from '@angular/common';
 
 
 @Component({
@@ -65,7 +67,9 @@ import { NzFormModule } from 'ng-zorro-antd/form';
     NzNotificationModule,
     NzCheckboxModule,
     NzFormModule,
-    NzSelectModule
+    NzSelectModule,
+    NzSpinModule,
+    NgIf
   ],
   providers: [
     NzModalService,
@@ -476,14 +480,16 @@ export class CustomerComponent implements OnInit, AfterViewInit {
 
   //#region Hàm lấy dữ liệu từ API
   loadCustomers() {
+    this.isLoading = true;
     this.customerService.getCustomers().subscribe({
       next: (data) => {
         console.log(data.data);
         this.customers = Array.isArray(data.data) ? data.data : [data.data];
-        console.log(this.customers);
+        this.isLoading = false;
         this.initializeTabulator(this.tb_customerContainer.nativeElement);
       },
       error: (error) => {
+        this.isLoading = false;
         console.error('Error loading customers:', error);
       }
     });
@@ -723,11 +729,9 @@ export class CustomerComponent implements OnInit, AfterViewInit {
 
   //#region Hàm mở modal sửa và hiển thị dữ liệu lên modal
   openEditModal() {
-    this.isLoading = true;
     const selectedRows = this.tabulator.getSelectedRows();
     if(selectedRows.length === 0) {
       this.notification.warning('Cảnh báo', 'Vui lòng chọn khách hàng cần chỉnh sửa');
-      this.isLoading = false;
       return;
     }
     this.isEditMode = true;
@@ -824,10 +828,8 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       error: (error) => {
         console.error('Error loading customer data:', error);
         this.notification.error('Lỗi', 'Không thể tải dữ liệu khách hàng');
-        this.isLoading = false;
       }
     });
-    this.isLoading = false;
   }
   //#endregion
 

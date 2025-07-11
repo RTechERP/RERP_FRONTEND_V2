@@ -1,6 +1,6 @@
 import { Component, ElementRef, ViewChild, OnInit, AfterViewInit } from '@angular/core';
 import { NzModalService } from 'ng-zorro-antd/modal';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -26,6 +26,7 @@ import { FoodOrderService } from './food-order-service/food-order.service';
 import { EmployeeService } from '../employee/employee-service/employee.service';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { SummaryFoodOrderComponent } from "./summary-food-order/summary-food-order.component";
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 @Component({
   selector: 'app-food-order',
@@ -50,7 +51,9 @@ import { SummaryFoodOrderComponent } from "./summary-food-order/summary-food-ord
     NzTabsModule,
     NzSplitterModule,
     NzRadioModule,
-    SummaryFoodOrderComponent
+    SummaryFoodOrderComponent,
+    NgIf,
+    NzSpinModule
 ],
 })
 export class FoodOrderComponent implements OnInit, AfterViewInit{
@@ -67,6 +70,8 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
 
   selectedFoodOrderHN: any = null;
   selectedFoodOrderĐP: any = null;
+
+  isLoading = false;
 
   @ViewChild('tb_foodOrder_HN', { static: false })
   tb_foodOrderHN!: ElementRef;
@@ -129,6 +134,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
 
   //#region Call API lấy dữ liệu
   loadFoodOrder() {
+    this.isLoading = true;
     this.foodOrderService.getEmployeeFoodOrder(this.searchForm.value).subscribe({
       next: (data) => {
         this.foodOrderList = Array.isArray(data.data) ? data.data : [data.data];
@@ -136,11 +142,8 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
         this.foodOrderĐPList = this.foodOrderList.filter(fo => fo.Location === 2)
         this.foodOrderHNTable(this.tb_foodOrderHN.nativeElement);
         this.foodOrderĐPTable(this.tb_foodOrderĐP.nativeElement);
-
+        this.isLoading =false;
       },
-      error: (error) => {
-        console.error('Error loading customers:', error);
-      }
     });
   }
 

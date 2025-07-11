@@ -1,6 +1,6 @@
 import { Component, ElementRef, ViewChild, OnInit, AfterViewInit } from '@angular/core';
 import { NzModalService } from 'ng-zorro-antd/modal';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -23,7 +23,7 @@ import { FormControl } from '@angular/forms';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { filter } from 'rxjs';
-import { DepartmentServiceService } from '../../department/department-service/department-service.service';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 
 @Component({
@@ -46,7 +46,9 @@ import { DepartmentServiceService } from '../../department/department-service/de
     NzCheckboxModule,
     NzInputNumberModule,
     NzDatePickerModule,
-    NzTabsModule
+    NzTabsModule,
+    NgIf,
+    NzSpinModule
   ],
 })
 export class EmployeeScheduleWorkComponent implements OnInit {
@@ -65,6 +67,7 @@ export class EmployeeScheduleWorkComponent implements OnInit {
   selectedDepartmentId: number = 0;
   filterText: string = '';
 
+  isLoading = false;
 
   constructor(
     private fb: FormBuilder,
@@ -190,11 +193,14 @@ export class EmployeeScheduleWorkComponent implements OnInit {
     const month = this.searchForm.get('month')?.value;
     const year = this.searchForm.get('year')?.value;
     
+    this.isLoading = true;
+    
     this.holidayService.getEmployeeScheduleWork(month, year).subscribe({
       next: (data) => {
         this.scheduleWorks = data.data;
         this.originalScheduleWorks = JSON.parse(JSON.stringify(data.data)); // Lưu trữ dữ liệu gốc
         this.initializeTable();
+        this.isLoading = false;
       },
       error: (error) => {
         this.notification.error('Lỗi', 'Không thể tải dữ liệu lịch làm việc');

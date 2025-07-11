@@ -36,12 +36,50 @@
     <div class="card-body p-0">   
       <nz-splitter>
         <nz-splitter-panel nzDefaultSize="60%" nzMin="20%" nzMax="70%">
-          
-          <div id="team-table"></div>
+          <div class="card-body p-0 position-relative">
+            <div *ngIf="isLoading">
+              <nz-spin
+                [nzSpinning]="isLoading"
+                nzSimple
+                [ngStyle]="{
+                  position: 'absolute',
+                  top: '0',
+                  left: '0',
+                  width: '100%',
+                  height: '100%',
+                  background: 'rgba(255,255,255,0.4)',
+                  zIndex: '999',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }"
+              ></nz-spin>
+            </div>
+            <div id="team-table"></div>           
+          </div>
         </nz-splitter-panel>
         <nz-splitter-panel>
-          
-          <div id="employee-table"></div>
+          <div class="card-body p-0 position-relative">
+            <div *ngIf="isLoad">
+              <nz-spin
+                [nzSpinning]="isLoad"
+                nzSimple
+                [ngStyle]="{
+                  position: 'absolute',
+                  top: '0',
+                  left: '0',
+                  width: '100%',
+                  height: '100%',
+                  background: 'rgba(255,255,255,0.4)',
+                  zIndex: '999',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }"
+              ></nz-spin>
+            </div>
+            <div id="employee-table"></div>
+          </div>
         </nz-splitter-panel>
       </nz-splitter>
     </div>

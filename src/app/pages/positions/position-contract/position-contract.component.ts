@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator.min.css';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -12,6 +12,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { PositionServiceService } from '../position-service/position-service.service';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 @Component({
   selector: 'app-position-contract',
@@ -26,7 +27,9 @@ import { PositionServiceService } from '../position-service/position-service.ser
     NzButtonModule,
     NzFormModule,
     NzInputModule,
-    NzNotificationModule
+    NzNotificationModule,
+    NzSpinModule,
+    NgIf
   ],
   standalone: true
 })
@@ -39,6 +42,7 @@ export class PositionContractComponent implements OnInit {
   isVisible = false;
   isSubmitting = false;
   positionForm!: FormGroup;
+  isLoading = false;
 
   constructor(
     private positionService: PositionServiceService,
@@ -65,10 +69,12 @@ export class PositionContractComponent implements OnInit {
   }
 
   loadPositionContract() {
+    this.isLoading = true;
     this.positionService.getPositionContract().subscribe({
       next: (data: any) => {
         this.positionContracts = data;
         this.tabulator.setData(this.positionContracts);
+        this.isLoading = false;
       },
       error: (error) => {
         this.notification.error('Lỗi', 'Lỗi khi tải danh sách chức vụ theo hợp đồng: ' + error.message);

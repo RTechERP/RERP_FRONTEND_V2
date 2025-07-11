@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { NzModalService } from 'ng-zorro-antd/modal';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -15,6 +15,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { TabulatorFull as Tabulator, RowComponent } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { DepartmentServiceService } from './department-service/department-service.service';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 @Component({
   selector: 'app-department',
@@ -31,7 +32,9 @@ import { DepartmentServiceService } from './department-service/department-servic
     NzFormModule,
     NzInputModule,
     NzNotificationModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    NgIf,
+    NzSpinModule
   ],
   standalone: true
 })
@@ -46,6 +49,8 @@ export class DepartmentComponent implements OnInit {
   departmentForm!: FormGroup;
   employeeList: any[] = [];
   searchText: string = '';
+
+  isLoading = false;
 
   constructor(
     private departmentService: DepartmentServiceService,
@@ -111,6 +116,7 @@ export class DepartmentComponent implements OnInit {
   }
 
   loadDepartments() {
+    this.isLoading = true;
     this.departmentService.getDepartments().subscribe({
       next: (data: any) => {
         this.departments = data.data.map((item: any, index: number) => ({
@@ -118,9 +124,11 @@ export class DepartmentComponent implements OnInit {
           STT: index + 1
         }));
         this.tabulator.setData(this.departments);
+        this.isLoading = false;
       },
       error: (error) => {
         this.notification.error('Lỗi', 'Lỗi khi tải danh sách phòng ban: ' + error.message);
+        this.isLoading = false;
       }
     });
   }

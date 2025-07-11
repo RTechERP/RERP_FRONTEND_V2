@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { NzModalService } from 'ng-zorro-antd/modal';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgIf } from '@angular/common';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -24,6 +24,7 @@ import { EmployeeService } from '../../employee/employee-service/employee.servic
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { DayOffImportExcelComponent } from '../day-off-import-excel/day-off-import-excel.component';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 @Component({
   selector: 'app-declare-day-off',
@@ -45,7 +46,9 @@ import { DayOffImportExcelComponent } from '../day-off-import-excel/day-off-impo
     NzCheckboxModule,
     NzInputNumberModule,
     NzDatePickerModule,
-    DayOffImportExcelComponent
+    DayOffImportExcelComponent,
+    NzSpinModule,
+    NgIf
 ],
 })
 export class DeclareDayOffComponent implements OnInit {
@@ -57,6 +60,7 @@ export class DeclareDayOffComponent implements OnInit {
   declareDayOffForm!: FormGroup;
   selectedDeclare: any = null;
   isEditMode = false;
+  isLoading = false;
 
   constructor(
     private fb: FormBuilder,
@@ -85,10 +89,12 @@ export class DeclareDayOffComponent implements OnInit {
   }
 
   loadDeclareDayOff() {
+    this.isLoading = true;
     this.dayOffService.getEmployeeOnLeaveMaster().subscribe({
       next: (data) => {
         this.declareDayOff = data.data;
         this.tabulator.setData(this.declareDayOff);
+        this.isLoading = false;
       },
       error: (error) => {
         this.notification.error('Lỗi', 'Lỗi khi tải danh sách khai báo ngày phép');

@@ -42,6 +42,15 @@ export class PokhService {
       }
     });
   }
+  
+  loadPOKHKPIDetail(id: number): Observable<any> {
+    return this.http.get<any>(this._url + 'get-pokh-kpi-detail', {
+      params: {
+        id: id.toString()
+      }
+    });
+  }
+
   loadProject(): Observable<any> {
     return this.http.get<any>(this._url + 'get-project');
   }

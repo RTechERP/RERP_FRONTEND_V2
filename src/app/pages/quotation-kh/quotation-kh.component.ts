@@ -215,7 +215,7 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
     };
   }
 
-  handlePOKHApproval(isApprove: boolean) {
+  handleQuotationApproval(isApprove: boolean) {
     if (!this.selectedId) {
       this.notification.error('Lỗi', 'Vui lòng chọn báo giá cần duyệt hoặc hủy duyệt');
       return;
@@ -259,6 +259,7 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
             if (response.status === 1) {
               this.notification.success("Thông báo", isApprove ? 'Duyệt Báo giá thành công' : 'Hủy duyệt Báo giá thành công');
               this.selectedId = 0;
+              this.mainTable.setData(); //Reload table
             } else {
               this.notification.error('Lỗi', 'Có lỗi xảy ra khi xử lý Báo giá');
             }

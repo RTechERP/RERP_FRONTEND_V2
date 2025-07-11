@@ -7,6 +7,7 @@ import { RequestInvoiceComponent } from './pages/request-invoice/request-invoice
 import { ViewPokhComponent } from './pages/view-pokh/view-pokh.component';
 import { HandoverMinutesComponent } from './pages/handover-minutes/handover-minutes.component';
 import { QuotationKhComponent } from './pages/quotation-kh/quotation-kh.component';
+import { PokhKpiComponent } from './pages/pokh-kpi/pokh-kpi.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/welcome', pathMatch: 'full' },
@@ -19,5 +20,6 @@ export const routes: Routes = [
   { path: 'handover-minutes', component: HandoverMinutesComponent},
   { path: 'request-invoice', component: RequestInvoiceComponent},
   { path: 'quotation-kh', component: QuotationKhComponent},
+  { path: 'pokh-kpi', component: PokhKpiComponent}
   
 ];

@@ -141,8 +141,8 @@ export class ProjectComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    // this.drawTbProjects(this.tb_projectsContainer.nativeElement);
-    // this.drawTbProjectTypeLinks(this.tb_projectTypeLinkContainer.nativeElement);
+    this.drawTbProjects(this.tb_projectsContainer.nativeElement);
+    this.drawTbProjectTypeLinks(this.tb_projectTypeLinkContainer.nativeElement);
     this.drawTbProjectWorkReports(
       this.tb_projectWorkReportContainer.nativeElement
     );

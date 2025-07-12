@@ -175,7 +175,7 @@
             >
               <nz-icon nzType="search" />
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small">
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel()" [nzLoading]="isExport">
               <nz-icon nzType="file-excel" nzTheme="fill" />Xuất excel
             </button>
           </div>
@@ -203,7 +203,7 @@
               nz-button
               nzType="text"
               nzSize="small"
-              style="background-color: red"
+              style="background-color: rgb(255, 0, 0)"
             >
               Quá hạn
             </button>

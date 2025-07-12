@@ -88,9 +88,9 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
   employees: any[] = [];
 
   statuses: any[] = [
-    { ID: 0, Name: 'Tất cả' },
-    { ID: 1, Name: 'Chưa hoàn thành' },
-    { ID: 2, Name: 'Hoàn thành' },
+    { ID: -1, Name: 'Tất cả' },
+    { ID: 0, Name: 'Chưa hoàn thành' },
+    { ID: 1, Name: 'Hoàn thành' },
   ];
 
   dateStart: any = DateTime.local().plus({ day: -7 }).toFormat('yyyy-MM-dd');
@@ -99,8 +99,12 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
   departmentId: any;
   teamId: any;
   employeeId: any;
-  statusId: any = 1;
+  statusId: any = 0;
 
+  dataMonth: any[] = [];
+  dataMission: any[] = [];
+
+  isExport: any = false;
   //#endregion
   //#region Chạy khi mở chương trình
   ngOnInit(): void {}
@@ -186,8 +190,10 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
     const response: any = await firstValueFrom(
       this.projectService.getProjectWorkItemTimeline(data)
     );
-    debugger;
-    await this.addColunmTable(response.data.dtAllDate, response.data.dtMonth);
+
+    this.dataMonth = response.data.dtMonth;
+    this.dataMission = response.data.dtAllDate;
+    await this.addColunmTable(this.dataMission, this.dataMonth);
     await this.tb_projectWorkItemTimeline.setData(response.data.dt);
 
     this.isLoadTable = false;
@@ -207,6 +213,7 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
         {
           title: 'THÔNG TIN HẠNG MỤC CÔNG VIỆC',
           headerHozAlign: 'center',
+          frozen: true,
           columns: [
             {
               title: '',
@@ -216,24 +223,26 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
                   field: 'ProjectFullName',
                   width: 150,
                   headerHozAlign: 'center',
+                  formatter: 'textarea',
                 },
                 {
                   title: 'Mã hạng mục',
                   field: 'Code',
-                  width: 200,
+                  width: 120,
                   headerHozAlign: 'center',
-                  formatter: 'textarea',
+                  formatter: this.hideDuplicateFormatter('Code'),
                 },
                 {
                   title: 'Nội dung',
                   field: 'Mission',
                   width: 150,
                   headerHozAlign: 'center',
+                  formatter: 'textarea',
                 },
                 {
                   title: 'Người phụ trách',
                   field: 'FullName',
-                  width: 150,
+                  width: 130,
                   headerHozAlign: 'center',
                 },
                 {
@@ -241,6 +250,7 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
                   field: 'StartDate',
                   width: 150,
                   headerHozAlign: 'center',
+                  hozAlign: 'center',
                   formatter: function (cell, formatterParams, onRendered) {
                     let value = cell.getValue() || '';
                     const dateTime = DateTime.fromISO(value);
@@ -253,14 +263,16 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
                 {
                   title: 'Số ngày',
                   field: 'TotalDay',
-                  width: 150,
+                  width: 80,
                   headerHozAlign: 'center',
+                  hozAlign: 'right',
                 },
                 {
                   title: 'Ngày kết thúc',
                   field: 'EndDate',
                   width: 150,
                   headerHozAlign: 'center',
+                  hozAlign: 'center',
                   formatter: function (cell, formatterParams, onRendered) {
                     let value = cell.getValue() || '';
                     const dateTime = DateTime.fromISO(value);
@@ -279,7 +291,6 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
   }
 
   addColunmTable(dataMisson: any, dataMonth: any) {
-    debugger;
     let column: any[] = [];
     let colunmChild: any[] = [];
     this.tb_projectWorkItemTimeline.addColumn({
@@ -293,14 +304,13 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
         },
       ],
     });
-    debugger
     for (let i = 0; i < dataMonth.length; i++) {
+      colunmChild = [];
       let month = dataMonth[i]['monthDate'];
       let year = dataMonth[i]['yearDate'];
       if (!month || !year) {
         break;
       }
-
       for (let j = 0; j < dataMisson.length; j++) {
         if (dataMisson[j]['AllDates']) {
           let date = DateTime.fromISO(dataMisson[j]['AllDates']);
@@ -331,7 +341,10 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
                 }
               }
 
-              if (actualDateStart && date == actualDateStart) {
+              if (
+                actualDateStart.isValid &&
+                date.hasSame(actualDateStart, 'day')
+              ) {
                 el.style.background = '#32CD32';
                 if (date.weekday == 7) {
                   el.style.background =
@@ -339,7 +352,7 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
                 }
               }
 
-              if (actualDateEnd && date == actualDateEnd) {
+              if (actualDateEnd.isValid && date.hasSame(actualDateEnd, 'day')) {
                 if (actualDateEnd <= de) {
                   el.style.background = '#FFC0CB';
                   if (date.weekday == 7) {
@@ -350,23 +363,24 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
                   el.style.background = '#8B0000';
                   if (date.weekday == 7) {
                     el.style.background =
-                      'linear-gradient(to right, rgba(224,224,224,1), rgba(139, 0, 0, 0.7))';
+                      'linear-gradient(to right, rgba(224,224,224,1), rgba(255, 0, 0, 0.7))';
                   }
                 }
               }
 
-              if (!actualDateStart && !actualDateEnd) {
-                if (DateTime.now() >= de && date == de) {
+              if (!actualDateStart.isValid && !actualDateEnd.isValid) {
+                if (DateTime.now() >= de && date.hasSame(de, 'day')) {
+                  debugger;
                   el.style.background = '#8B0000';
                   if (date.weekday == 7) {
                     el.style.background =
-                      'linear-gradient(to right, rgba(224,224,224,1), rgba(139, 0, 0, 0.7))';
+                      'linear-gradient(to right, rgba(224,224,224,1), rgba(255, 0, 0, 0.7))';
                   }
                 }
               }
             },
           };
-          if (date.month == month) colunmChild.push(col);
+          if (date.month == month && date.year == year) colunmChild.push(col);
         }
       }
 
@@ -376,12 +390,382 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
         headerHozAlign: 'center',
       });
     }
-
     let colunmParend = {
       title: 'THỜI GIAN',
       columns: column,
     };
     this.tb_projectWorkItemTimeline.addColumn(colunmParend);
+  }
+  //#endregion
+
+  //#region ẩn giá trị giống nhau
+  hideDuplicateFormatter(fieldName: string) {
+    return function (cell: any) {
+      let value = cell.getValue();
+      let row = cell.getRow();
+      let table = row.getTable();
+      let index = row.getPosition();
+
+      if (index > 0) {
+        let prevRow = table.getRowFromPosition(index - 1);
+        if (prevRow && prevRow.getData()[fieldName] === value) {
+          return '';
+        }
+      }
+      return value;
+    };
+  }
+  //#endregion
+
+  //#region xuất excel
+  async exportExcel() {
+    const table = this.tb_projectWorkItemTimeline;
+    if (!table) return;
+
+    if (!this.dataMonth || !this.dataMission) return;
+
+    const data = table.getData();
+    const columns = table.getColumns();
+    console.log(columns);
+    if (!data || data.length === 0) {
+      this.notification.error('Thông báo', 'Không có dữ liệu để xuất!');
+      return;
+    }
+    this.isExport = true;
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Timeline');
+    worksheet.eachRow((row) => {
+      row.eachCell((cell) => {
+        cell.font = {
+          name: 'Times New Roman',
+          size: 12,
+        };
+      });
+    });
+    worksheet.mergeCells('A1:G2');
+    worksheet.getCell('A1').value = 'THÔNG TIN HẠNG MỤC CÔNG VIỆC';
+    worksheet.getCell('A1').alignment = {
+      vertical: 'middle',
+      horizontal: 'center',
+    };
+    worksheet.getCell('A1').font = {
+      bold: true,
+    };
+
+    worksheet.getCell('A3').value = 'Dự án';
+    worksheet.getCell('A3').alignment = {
+      vertical: 'middle',
+      horizontal: 'center',
+      wrapText: true,
+    };
+
+    worksheet.getCell('B3').value = 'Mã hạng mục';
+    worksheet.getCell('B3').alignment = {
+      vertical: 'middle',
+      horizontal: 'center',
+    };
+
+    worksheet.getCell('C3').value = 'Nội dung';
+    worksheet.getCell('C3').alignment = {
+      vertical: 'middle',
+      horizontal: 'center',
+      wrapText: true,
+    };
+
+    worksheet.getCell('D3').value = 'Người phụ trách';
+    worksheet.getCell('D3').alignment = {
+      vertical: 'middle',
+      horizontal: 'center',
+    };
+
+    worksheet.getCell('E3').value = 'Ngày bắt đầu';
+    worksheet.getCell('E3').alignment = {
+      vertical: 'middle',
+      horizontal: 'center',
+    };
+
+    worksheet.getCell('F3').value = 'Số ngày';
+    worksheet.getCell('F3').alignment = {
+      vertical: 'middle',
+      horizontal: 'center',
+    };
+
+    worksheet.getCell('G3').value = 'Ngày kết thúc';
+    worksheet.getCell('G3').alignment = {
+      vertical: 'middle',
+      horizontal: 'center',
+    };
+
+    let dtMonth = this.dataMonth;
+    let dtMisson = this.dataMission;
+    let startCol = 9;
+    let endCol = 0;
+    for (let i = 0; i < dtMonth.length; i++) {
+      let month = dtMonth[i]['monthDate'];
+      let year = dtMonth[i]['yearDate'];
+      if (!month) {
+        break;
+      }
+
+      let stt = -1;
+      for (let j = 0; j < dtMisson.length; j++) {
+        if (dtMisson[j]['AllDates']) {
+          let date = DateTime.fromISO(dtMisson[j]['AllDates']);
+          if (date.month == month) {
+            stt++;
+            worksheet.getCell(
+              `${this.getColumnLetter(9 + j)}3`
+            ).value = `${date.day}`;
+            worksheet.getCell(`${this.getColumnLetter(9 + j)}3`).alignment = {
+              vertical: 'middle',
+              horizontal: 'center',
+            };
+          }
+        }
+      }
+      endCol = startCol + stt;
+      worksheet.mergeCells(
+        `${this.getColumnLetter(startCol)}2:${this.getColumnLetter(endCol)}2`
+      );
+
+      worksheet.getCell(
+        `${this.getColumnLetter(startCol + 1)}2`
+      ).value = `Tháng ${month}/${year}`;
+      worksheet.getCell(`${this.getColumnLetter(startCol + 1)}2`).font = {
+        bold: true,
+      };
+      worksheet.getCell(`${this.getColumnLetter(startCol + 1)}2`).alignment = {
+        vertical: 'middle',
+        horizontal: 'center',
+      };
+      startCol = endCol + 1;
+    }
+
+    worksheet.mergeCells(`I1:${this.getColumnLetter(endCol)}1`);
+    worksheet.getCell('I1').value = 'THỜI GIAN';
+    worksheet.getCell('I1').font = {
+      bold: true,
+    };
+
+    // worksheet.spliceColumns(8, 0, []);
+
+    const allDateStringsSet = new Set<string>();
+    await data.forEach((row: any) => {
+      const ds = DateTime.fromISO(row.StartDate);
+      const de = DateTime.fromISO(row.EndDate);
+      for (let d = ds; d <= de; d = d.plus({ days: 1 })) {
+        allDateStringsSet.add(d.toFormat('dd/MM/yyyy'));
+      }
+    });
+    const sortedDateStrings = Array.from(allDateStringsSet).sort();
+    const dateColumns = sortedDateStrings.map((dateStr) => ({
+      title: dateStr,
+      getField: () => dateStr,
+    }));
+
+    const fullColumns = [...columns, ...dateColumns];
+
+    // ====== MÀU ===== //
+    const colorMap: Record<string, string> = {
+      gray: 'FFE0E0E0',
+      lightblue: 'FF87CEFA',
+      red: 'FFFF0000',
+      pink: 'FFFFC0CB',
+      green: 'FF00FF00',
+      argbgrayblue: 'FFD0E7F8',
+      argbgrayred: 'FFF2B6B6',
+      argbgraypink: 'FFF8F5C4',
+      argbgraygreen: 'FFD8F2C4',
+    };
+
+    const isColorCode = (val: string): boolean =>
+      Object.keys(colorMap).includes(val);
+
+    const getColorArgb = (colorName: string): { argb: string } => {
+      return { argb: colorMap[colorName] || 'FFFFFFFF' };
+    };
+
+    // ===== GÁN GIÁ TRỊ MÀU VÀO DÒNG ===== //
+    const lastDateAllowed = sortedDateStrings[endCol];
+    await data.forEach((row: any) => {
+      const ds = DateTime.fromISO(row.StartDate);
+      const de = DateTime.fromISO(row.EndDate);
+      const actualDateStart = DateTime.fromISO(row.ActualDateStart);
+      const actualDateEnd = DateTime.fromISO(row.ActualDateEnd);
+
+      sortedDateStrings.forEach((dateStr, i) => {
+        const keyDate = DateTime.fromFormat(dateStr, 'dd/MM/yyyy');
+
+        // Chủ nhật
+        if (keyDate.weekday === 7) {
+          row[dateStr] = 'gray';
+        }
+
+        // Trong khoảng kế hoạch
+        if (keyDate >= ds && keyDate <= de) {
+          row[dateStr] = 'lightblue';
+          if (keyDate.weekday === 7) row[dateStr] = 'argbgrayblue';
+        }
+
+        // Ngày bắt đầu thực tế
+        if (
+          actualDateStart.isValid &&
+          keyDate.hasSame(actualDateStart, 'day')
+        ) {
+          row[dateStr] = 'green';
+          if (keyDate.weekday === 7) row[dateStr] = 'argbgraygreen';
+        }
+
+        // Ngày kết thúc thực tế
+        if (actualDateEnd.isValid && keyDate.hasSame(actualDateEnd, 'day')) {
+          if (actualDateEnd <= de) {
+            row[dateStr] = 'pink';
+            if (keyDate.weekday === 7) row[dateStr] = 'argbgraypink';
+          } else {
+            row[dateStr] = 'red';
+            if (keyDate.weekday === 7) row[dateStr] = 'argbgrayred';
+          }
+        }
+
+        // Quá hạn không có thực tế
+        if (!actualDateStart.isValid && !actualDateEnd.isValid) {
+          if (DateTime.now() >= de && keyDate.hasSame(de, 'day')) {
+            row[dateStr] = 'red';
+            if (keyDate.weekday === 7) row[dateStr] = 'argbgrayred';
+          }
+        }
+      });
+    });
+
+    await data.forEach((row: any) => {
+      const rowData = fullColumns.map((col: any) => {
+        const field = col.getField?.();
+        let value = row[field];
+        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+          value = new Date(value);
+        }
+        return value;
+      });
+
+      const excelRow = worksheet.addRow(rowData);
+
+      fullColumns.forEach((col: any, colIndex: number) => {
+        if (colIndex > endCol) return;
+
+        const field = col.getField?.();
+        const rawValue = row[field];
+
+        if (typeof rawValue === 'string' && isColorCode(rawValue)) {
+          const cell = excelRow.getCell(colIndex + 1);
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: getColorArgb(rawValue),
+          };
+          cell.alignment = {
+            horizontal: 'center',
+            vertical: 'middle',
+            wrapText: true,
+          };
+          cell.value = '';
+        }
+      });
+    });
+
+    await worksheet.eachRow((row) => {
+      row.eachCell((cell) => {
+        if (Number(cell.col) > endCol) {
+          cell.value = '';
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'none',
+            fgColor: { argb: 'FFFFFFFF' },
+          };
+        }
+
+        if (!cell.alignment) {
+          cell.alignment = {};
+        }
+        cell.alignment = {
+          ...cell.alignment,
+          wrapText: true,
+          vertical: 'middle',
+        };
+      });
+    });
+
+    await worksheet.columns.forEach((column: any, colIndex: number) => {
+      if (colIndex === 0) {
+        column.width = 20;
+        return;
+      }
+
+      let maxLength = 10;
+
+      column.eachCell({ includeEmpty: true }, (cell: any) => {
+        let cellValue = '';
+
+        if (cell.value != null) {
+          if (typeof cell.value === 'object') {
+            if (cell.value.richText) {
+              cellValue = cell.value.richText.map((t: any) => t.text).join('');
+            } else if (cell.value.text) {
+              cellValue = cell.value.text;
+            } else if (cell.value.result) {
+              cellValue = cell.value.result.toString();
+            } else {
+              cellValue = cell.value.toString();
+            }
+          } else {
+            cellValue = cell.value.toString();
+          }
+        }
+
+        const length = cellValue.length;
+        maxLength = Math.max(maxLength, length + 1);
+      });
+
+      column.width = Math.min(maxLength, 20);
+    });
+
+    worksheet.autoFilter = {
+      from: {
+        row: 3,
+        column: 1,
+      },
+      to: {
+        row: 3,
+        column: 7,
+      },
+    };
+
+    // Xuất file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+
+    let ds = DateTime.fromJSDate(new Date(this.dateStart)).toFormat('ddMMyy');
+    let de = DateTime.fromJSDate(new Date(this.dateEnd)).toFormat('ddMMyy');
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = `TimlineCongViec_${ds}_${de}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    await window.URL.revokeObjectURL(link.href);
+    this.isExport = false;
+  }
+
+  getColumnLetter(colIndex: number): string {
+    let letter = '';
+    while (colIndex > 0) {
+      let mod = (colIndex - 1) % 26;
+      letter = String.fromCharCode(65 + mod) + letter;
+      colIndex = Math.floor((colIndex - mod) / 26);
+    }
+    console.log(letter);
+    return letter;
   }
   //#endregion
 }

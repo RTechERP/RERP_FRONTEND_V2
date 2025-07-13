@@ -332,7 +332,7 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
   exportExcel() {
     debugger;
     let date = DateTime.local().toFormat('ddMMyy');
-    this.projectService.exportExcel(
+    this.projectService.exportExcelGroup(
       this.tb_projectItemlate,
       this.tb_projectItemlate.getData(),
       'Hạng mục chậm tiến độ',

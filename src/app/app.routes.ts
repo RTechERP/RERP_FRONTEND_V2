@@ -9,6 +9,7 @@ import { ProjectWorkPropressComponent } from './pages/project/project-work-propr
 import { ProjectWorkTimelineComponent } from './pages/project/project-work-timeline/project-work-timeline.component';
 import { ProjectItemLateComponent } from './pages/project/project-item-late/project-item-late.component';
 import { ProjectWorkItemTimelineComponent } from './pages/project/project-work-item-timeline/project-work-item-timeline.component';
+import { SynthesisOfGeneratedMaterialsComponent } from './pages/project/synthesis-of-generated-materials/synthesis-of-generated-materials.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/welcome', pathMatch: 'full' },
@@ -24,4 +25,5 @@ export const routes: Routes = [
   { path: 'projectSurvey', component: ProjectSurveyComponent }, // Khảo sát dự án
   { path: 'projectItemlate', component: ProjectItemLateComponent }, // Hạng mục công việc chậm tiến độ
   { path: 'projectWorkItemTimeline', component: ProjectWorkItemTimelineComponent }, // Hạng mục công việc chậm tiến độ
+  { path: 'synthesisOfGeneratedMaterials', component: SynthesisOfGeneratedMaterialsComponent }, // Tổng hợp vật tư phát sinh
 ];

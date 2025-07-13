@@ -573,8 +573,19 @@ export class ProjectService {
   }
   //#endregion
 
+  //#region Lấy danh sách vật tư phát sinh
+  getSynthesisOfGeneratedMaterials(data: any): Observable<any> {
+    return this.http.get<any>(
+      this.apiUrl + `SynthesisOfGeneratedMaterials/get-data`,
+      {
+        params: data,
+      }
+    );
+  }
+  //#endregion
+
   //#region Xuất excel theo group
-  async exportExcel(
+  async exportExcelGroup(
     table: any,
     data: any,
     sheetName: string,
@@ -725,6 +736,87 @@ export class ProjectService {
     const link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
     link.download = fileName + `.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(link.href);
+  }
+  //#endregion
+
+  //#region Xuất excel thường
+  async exportExcel(table: any, data: any, sheetName:any, fileName:any) {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet(sheetName);
+
+    const columns = table.getColumns();
+    const headers = columns.map(
+      (col: any) => col.getDefinition().title
+    );
+    worksheet.addRow(headers);
+
+    data.forEach((row: any) => {
+      const rowData = columns.map((col: any) => {
+        const field = col.getField();
+        let value = row[field];
+
+        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+          value = new Date(value);
+        }
+
+        return value;
+      });
+
+      worksheet.addRow(rowData);
+    });
+
+    // Format cột có giá trị là Date
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return; // bỏ qua tiêu đề
+      row.eachCell((cell, colNumber) => {
+        if (cell.value instanceof Date) {
+          cell.numFmt = 'dd/mm/yyyy'; // hoặc 'yyyy-mm-dd'
+        }
+      });
+    });
+
+    // Tự động căn chỉnh độ rộng cột
+    worksheet.columns.forEach((column: any) => {
+      let maxLength = 10;
+      column.eachCell({ includeEmpty: true }, (cell: any) => {
+        const cellValue = cell.value ? cell.value.toString() : '';
+        maxLength = Math.max(maxLength, cellValue.length + 2);
+      });
+      column.width = maxLength;
+    });
+
+    // Thêm bộ lọc cho toàn bộ cột (từ A1 đến cột cuối cùng)
+    worksheet.autoFilter = {
+      from: {
+        row: 1,
+        column: 1,
+      },
+      to: {
+        row: 1,
+        column: columns.length,
+      },
+    };
+
+    // Xuất file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+
+    const formattedDate = new Date()
+      .toISOString()
+      .slice(2, 10)
+      .split('-')
+      .reverse()
+      .join('');
+
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = `${fileName}.xlsx`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

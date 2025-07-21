@@ -19,28 +19,26 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
-// import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
+import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
 import { EnvironmentInjector } from '@angular/core';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DateTime } from 'luxon';
-import { ProjectService } from './project-service/project.service';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NgModel } from '@angular/forms';
-import { ProjectDetailComponent } from './project-detail/project-detail.component';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { ProjectChangeComponent } from './project-change/project-change.component';
-import { ProjectStatusComponent } from './project-status/project-status.component';
 import { Router } from '@angular/router';
-import { ProjectEmployeeComponent } from './project-employee/project-employee.component';
-import { ActivatedRoute } from '@angular/router';
+import { ProjectService } from '../project-service/project.service';
+import { ProjectDetailComponent } from '../project-detail/project-detail.component';
+import { ProjectChangeComponent } from '../project-change/project-change.component';
+import { ProjectStatusComponent } from '../project-status/project-status.component';
+import { ProjectEmployeeComponent } from '../project-employee/project-employee.component';
 import { CommonModule } from '@angular/common';
 @Component({
-  selector: 'app-projects',
-  standalone: true,
+  selector: 'app-project-synthesis-department',
   imports: [
     NzCardModule,
     FormsModule,
@@ -64,11 +62,13 @@ import { CommonModule } from '@angular/common';
     NzModalModule,
     CommonModule,
   ],
-  templateUrl: './project.component.html',
-  styleUrl: './project.component.css',
   encapsulation: ViewEncapsulation.None,
+  templateUrl: './project-synthesis-department.component.html',
+  styleUrl: './project-synthesis-department.component.css',
 })
-export class ProjectComponent implements OnInit, AfterViewInit {
+export class ProjectSynthesisDepartmentComponent
+  implements OnInit, AfterViewInit
+{
   constructor(
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
@@ -76,8 +76,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private modal: NzModalService,
     private modalService: NgbModal,
-    private router: Router,
-    private route: ActivatedRoute
+    private router: Router
   ) {}
 
   //#region Khai báo biến
@@ -87,31 +86,22 @@ export class ProjectComponent implements OnInit, AfterViewInit {
   tb_projectWorkReportContainer!: ElementRef;
   @ViewChild('tb_projectTypeLink', { static: false })
   tb_projectTypeLinkContainer!: ElementRef;
-
-  isHide: any = false;
-
-  sizeSearch: string = '0';
-  sizeTbDetail: any = '0';
-  project: any[] = [];
-  projectTypes: any[] = [];
-  users: any[] = [];
-  pms: any[] = [];
-  businessFields: any[] = [];
-  customers: any[] = [];
-  projecStatuses: any[] = [];
+  @ViewChild('tb_projectCurrentSituation', { static: false })
+  tb_projectCurrentSituationContainer!: ElementRef;
 
   tb_projects: any;
   tb_projectTypeLinks: any;
   tb_projectWorkReports: any;
-  projectTypeIds: number[] = [];
-  projecStatusIds: string[] = [];
-  userId: any;
-  pmId: any;
-  businessFieldId: any;
-  technicalId: any;
-  customerId: any;
-  keyword: string = '';
-  projectId: any = 0;
+  tb_projectCurrentSituation: any;
+
+  isLoadTable: any = false;
+  sizeSearch: string = '0';
+  sizeTbDetail: any = '0';
+
+  project: any[] = [];
+  departments: any[] = [];
+  teams: any[] = [];
+  employees: any[] = [];
 
   dateStart: any = DateTime.local()
     .set({ hour: 0, minute: 0, second: 0, year: 2024, month: 1, day: 1 })
@@ -119,26 +109,16 @@ export class ProjectComponent implements OnInit, AfterViewInit {
   dateEnd: any = DateTime.local()
     .set({ hour: 0, minute: 0, second: 0 })
     .toISO();
+
+  projectId: any;
+  departmentId: any;
+  teamId: any;
+  employeeId: any;
+  keyword: any;
   //#endregion
 
   //#region chạy khi mở chương trình
-  ngOnInit(): void {
-    this.route.paramMap.subscribe((params) => {
-      let id = params.get('id');
-      if (Number(id) == 2) {
-        this.isHide = false;
-        this.projectTypeIds = [2];
-        this.drawTbProjects(this.tb_projectsContainer.nativeElement);
-        this.drawTbProjectTypeLinks(this.tb_projectTypeLinkContainer.nativeElement);
-      } else {
-        this.isHide = true;
-        this.projectTypeIds = [];
-        this.drawTbProjects(this.tb_projectsContainer.nativeElement);
-        this.drawTbProjectTypeLinks(this.tb_projectTypeLinkContainer.nativeElement);
-      }
-      console.log(this.isHide);
-    });
-  }
+  ngOnInit(): void {}
 
   ngAfterViewInit(): void {
     this.drawTbProjects(this.tb_projectsContainer.nativeElement);
@@ -146,13 +126,13 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     this.drawTbProjectWorkReports(
       this.tb_projectWorkReportContainer.nativeElement
     );
+    this.drawTbProjectCurrentSituation(
+      this.tb_projectCurrentSituationContainer.nativeElement
+    );
 
-    this.getUsers();
-    this.getPms();
-    this.getBusinessFields();
-    this.getCustomers();
-    this.getProjectTypes();
-    this.getProjectStatus();
+    this.getDepartment();
+    this.getEmployees();
+    this.getUserTeam();
   }
 
   toggleSearchPanel() {
@@ -162,11 +142,35 @@ export class ProjectComponent implements OnInit, AfterViewInit {
   createdText(text: String) {
     return `<span class="fs-12">${text}</span>`;
   }
+
+  getEmployees() {
+    this.projectService.getProjectEmployee(0).subscribe({
+      next: (response: any) => {
+        this.employees = this.projectService.createdDataGroup(
+          response.data,          'DepartmentName'
+        );
+      },
+      error: (error) => {
+        console.error('Lỗi:', error);
+      },
+    });
+  }
+
+  getDepartment() {
+    this.projectService.getDepartment().subscribe({
+      next: (response: any) => {
+        this.departments = response.data;
+      },
+      error: (error) => {
+        console.error('Lỗi:', error);
+      },
+    });
+  }
   //#endregion
 
   //#region xử lý bảng danh sách dự án
   drawTbProjects(container: HTMLElement) {
-    let contextMenuProject = [
+    const contextMenuProject = [
       {
         label: `<span style="font-size: 0.75rem;"><i class="fas fa-chart-bar"></i> Mức độ ưu tiên cá nhân</span>`,
         menu: [1, 2, 3, 4, 5].map((level) => ({
@@ -176,7 +180,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           },
         })),
       },
-      { 
+      {
         label:
           '<span style="font-size: 0.75rem;"><i class="fas fa-file-excel"></i> Xuất excel</span>',
         action: (e: any, row: any) => {
@@ -221,20 +225,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       },
     ];
 
-    if (!this.isHide) {
-      contextMenuProject = [
-        {
-          label:
-            '<span style="font-size: 0.75rem;"><i class="fas fa-file-excel"></i> Xuất excel</span>',
-          action: (e: any, row: any) => {
-            this.exportExcel();
-          },
-        },
-      ];
-    }
-
     this.tb_projects = new Tabulator(container, {
-      // data:[{ID:1}],
       height: '100%',
       layout: 'fitColumns',
       rowHeader: {
@@ -246,161 +237,73 @@ export class ProjectComponent implements OnInit, AfterViewInit {
         hozAlign: 'center',
         formatter: 'rowSelection',
       },
-
-      pagination: true,
-      paginationMode: 'remote',
-      paginationSize: 100,
-      paginationSizeSelector: [100, 200, 400, 800, 1000],
-      ajaxURL: this.projectService.getAPIProjects(),
-      ajaxParams: this.getProjectAjaxParams(),
-      ajaxResponse: (url, params, res) => {
-        console.log('total', res.totalPage);
-        return {
-          data: res.data,
-          last_page: res.totalPage,
-        };
-      },
       rowContextMenu: contextMenuProject,
-      langs: {
-        vi: {
-          pagination: {
-            first: '<<',
-            last: '>>',
-            prev: '<',
-            next: '>',
-          },
-        },
-      },
       locale: 'vi',
       columns: [
         {
           title: 'Trạng thái',
           field: 'ProjectStatusName',
           hozAlign: 'left',
-          // formatter: function (cell, formatterParams, onRendered) {
-          //   let value = cell.getValue() || 'Kết thúc';
-          //   return value;
-          // },
           headerHozAlign: 'center',
           width: 100,
-        },
-        {
-          title: 'Ngày tạo',
-          field: 'CreatedDate',
-          width: 100,
-          formatter: function (cell, formatterParams, onRendered) {
-            let value = cell.getValue() || '';
-            const dateTime = DateTime.fromISO(value);
-            value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-            return value;
-          },
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-        },
-        {
-          title: 'Ngày cập nhật',
-          field: 'UpdatedDate',
-          width: 100,
-          formatter: function (cell, formatterParams, onRendered) {
-            let value = cell.getValue() || '';
-            const dateTime = DateTime.fromISO(value);
-            value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-            return value;
-          },
-          hozAlign: 'center',
-          headerHozAlign: 'center',
         },
         {
           title: 'Mức độ ưu tiên',
           field: 'PriotityText',
           hozAlign: 'right',
           headerHozAlign: 'center',
-          width: 100,
+          width: 150,
         },
         {
           title: 'Mức độ ưu tiên cá nhân',
           field: 'PersonalPriotity',
           hozAlign: 'right',
           headerHozAlign: 'center',
-          width: 100,
-        },
-        {
-          title: 'Mã dự án',
-          field: 'ProjectCode',
-          hozAlign: 'left',
-          bottomCalc: 'count',
-          headerHozAlign: 'center',
-          width: 100,
+          width: 150,
         },
         {
           title: 'Tên dự án',
           field: 'ProjectName',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          width: 100,
-        },
-        {
-          title: 'End User',
-          field: 'EndUserName',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: 100,
-        },
-        { title: 'PO', field: 'PO', hozAlign: 'center', width: 100 },
-        {
-          title: 'Ngày PO',
-          field: 'PODate',
-          formatter: function (cell, formatterParams, onRendered) {
-            let value = cell.getValue() || '';
-            const dateTime = DateTime.fromISO(value);
-            value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-            return value;
-          },
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-          width: 100,
-        },
-        {
-          title: 'Người phụ trách(sale)',
-          field: 'FullNameSale',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: 100,
-        },
-        {
-          title: 'Người phụ trách(kỹ thuật)',
-          field: 'FullNameTech',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: 100,
-        },
-        {
-          title: 'PM',
-          field: 'FullNamePM',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: 100,
-        },
-        {
-          title: 'Lĩnh vực dự án',
-          field: 'BussinessField',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: 100,
+          formatter: 'textarea',
+          width: 200,
         },
         {
           title: 'Hiện trạng',
           field: 'CurrentState',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          width: 100,
+          formatter: 'textarea',
+          width: 200,
+        },
+        {
+          title: 'Người phụ trách(sale)',
+          field: 'FullNameSale',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+          width: 200,
+        },
+        {
+          title: 'Người phụ trách(kỹ thuật)',
+          field: 'FullNameTech',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+          width: 200,
+        },
+        {
+          title: 'PM',
+          field: 'FullNamePM',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+          width: 150,
         },
         {
           title: 'Khách hàng',
           field: 'CustomerName',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          width: 100,
+          width: 200,
         },
         {
           title: 'Ngày bắt đầu dự kiến',
@@ -455,8 +358,41 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           width: 100,
         },
         {
+          title: 'End User',
+          field: 'EndUserName',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+          width: 100,
+        },
+        {
+          title: 'Ngày tạo',
+          field: 'CreatedDate',
+          width: 100,
+          formatter: function (cell, formatterParams, onRendered) {
+            let value = cell.getValue() || '';
+            const dateTime = DateTime.fromISO(value);
+            value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+            return value;
+          },
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Ngày PO',
+          field: 'PODate',
+          formatter: function (cell, formatterParams, onRendered) {
+            let value = cell.getValue() || '';
+            const dateTime = DateTime.fromISO(value);
+            value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+            return value;
+          },
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+          width: 100,
+        },
+        {
           title: 'Người tạo',
-          field: 'CreatedBy',
+          field: 'Người tạo',
           headerHozAlign: 'center',
           hozAlign: 'left',
           width: 100,
@@ -467,6 +403,19 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           headerHozAlign: 'center',
           hozAlign: 'left',
           width: 100,
+        },
+        {
+          title: 'Ngày cập nhật',
+          field: 'UpdatedDate',
+          width: 100,
+          formatter: function (cell, formatterParams, onRendered) {
+            let value = cell.getValue() || '';
+            const dateTime = DateTime.fromISO(value);
+            value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+            return value;
+          },
+          hozAlign: 'center',
+          headerHozAlign: 'center',
         },
       ],
     });
@@ -485,43 +434,6 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       this.getProjectWorkReports();
       this.getProjectTypeLinks();
     });
-  }
-
-  getProjectAjaxParams() {
-    const projectTypeStr =
-      this.projectTypeIds?.length > 0 ? this.projectTypeIds.join(',') : '';
-
-    const projectStatusStr =
-      this.projecStatusIds?.length > 0 ? this.projecStatusIds.join(',') : '';
-    return {
-      dateTimeS: DateTime.fromJSDate(new Date(this.dateStart))
-        .set({ hour: 0, minute: 0, second: 0 })
-        .toFormat('yyyy-MM-dd HH:mm:ss'),
-      dateTimeE: DateTime.fromJSDate(new Date(this.dateEnd))
-        .set({ hour: 23, minute: 59, second: 59 })
-        .toFormat('yyyy-MM-dd HH:mm:ss'),
-      keyword: this.keyword ?? '',
-      customerID: this.customerId ?? 0,
-      saleID: this.userId ?? 0,
-      projectType: projectTypeStr ?? '',
-      leaderID: this.technicalId ?? 0,
-      userTechID: 0,
-      pmID: this.pmId ?? 0,
-      globalUserID: this.projectService.GlobalEmployeeId,
-      bussinessFieldID: this.businessFieldId ?? 0,
-      projectStatus: projectStatusStr ?? '',
-      isAGV: this.isHide,
-    };
-  }
-  getDay() {
-    console.log(
-      DateTime.fromJSDate(new Date(this.dateStart))
-        .set({ hour: 23, minute: 59, second: 59 })
-        .toFormat('yyyy-MM-dd HH:mm:ss'),
-      DateTime.fromJSDate(this.dateStart)
-        .set({ hour: 23, minute: 59, second: 59 })
-        .toFormat('yyyy-MM-dd HH:mm:ss')
-    );
   }
   //#endregion
 
@@ -731,6 +643,10 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           title: 'Chọn',
           field: 'Selected',
           headerHozAlign: 'center',
+          // formatter: function (cell, formatterParams, onRendered) {
+          //   const checked = cell.getValue() ? 'checked' : '';
+          //   return `<input type='checkbox' ${checked} disable/>`;
+          // },
           formatter: 'tickCross',
         },
         {
@@ -738,12 +654,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           field: 'ProjectTypeName',
           headerHozAlign: 'center',
         },
-        {
-          title: 'Leader',
-          field: 'FullName',
-          headerHozAlign: 'center',
-          visible: this.isHide,
-        },
+        { title: 'Leader', field: 'FullName', headerHozAlign: 'center' },
       ],
     });
   }
@@ -755,92 +666,50 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           this.projectService.setDataTree(response.data, 'ID')
         );
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Lỗi:', error);
       },
     });
   }
   //#endregion
 
+  //#region Xử lý bảng  hiện trạng
+  drawTbProjectCurrentSituation(container: HTMLElement) {
+    this.tb_projectCurrentSituation = new Tabulator(container, {
+      height: '80vh',
+      dataTree: true,
+      dataTreeStartExpanded: true,
+      layout: 'fitDataStretch',
+      locale: 'vi',
+      columns: [
+        {
+          title: 'Người cập nhật',
+          field: 'FullName',
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Ngày cập nhật',
+          field: 'DateSituation',
+          headerHozAlign: 'center',
+          formatter: function (cell, formatterParams, onRendered) {
+            let value = cell.getValue() || '';
+            const dateTime = DateTime.fromISO(value);
+            value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+            return value;
+          },
+        },
+        {
+          title: 'Nội dung',
+          field: 'ContentSituation',
+          headerHozAlign: 'center',
+        },
+      ],
+    });
+  }
+  //#endregion
+
   //#region tìm kiếm
-  getUsers() {
-    this.projectService.getUsers().subscribe({
-      next: (response: any) => {
-        this.users = this.projectService.createdDataGroup(
-          response.data,
-          'DepartmentName'
-        );
-      },
-      error: (error) => {
-        console.error('Lỗi:', error);
-      },
-    });
-  }
-
-  getPms() {
-    this.projectService.getPms().subscribe({
-      next: (response: any) => {
-        this.pms = this.projectService.createdDataGroup(
-          response.data,
-          'DepartmentName'
-        );
-      },
-      error: (error) => {
-        console.error('Lỗi:', error);
-      },
-    });
-  }
-
-  getBusinessFields() {
-    this.projectService.getBusinessFields().subscribe({
-      next: (response: any) => {
-        this.businessFields = response.data;
-      },
-      error: (error) => {
-        console.error('Lỗi:', error);
-      },
-    });
-  }
-
-  getCustomers() {
-    this.projectService.getCustomers().subscribe({
-      next: (response: any) => {
-        this.customers = response.data;
-      },
-      error: (error) => {
-        console.error('Lỗi:', error);
-      },
-    });
-  }
-
-  getProjectTypes() {
-    this.projectService.getProjectTypes().subscribe({
-      next: (response: any) => {
-        this.projectTypes = response.data;
-      },
-      error: (error) => {
-        console.error('Lỗi:', error);
-      },
-    });
-  }
-
-  getProjectStatus() {
-    this.projectService.getProjectStatus().subscribe({
-      next: (response: any) => {
-        this.projecStatuses = response.data;
-      },
-      error: (error) => {
-        console.error('Lỗi:', error);
-      },
-    });
-  }
-
-  searchProjects() {
-    this.tb_projects.setData(
-      this.projectService.getAPIProjects(),
-      this.getProjectAjaxParams()
-    );
-  }
+  searchProjects() {}
 
   setDefautSearch() {
     this.dateStart = DateTime.local()
@@ -850,13 +719,9 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     this.dateEnd = DateTime.local()
       .set({ hour: 0, minute: 0, second: 0 })
       .toISO();
-    this.projectTypeIds = [];
-    this.projecStatusIds = [];
-    this.userId = 0;
-    this.pmId = 0;
-    this.businessFieldId = 0;
-    this.technicalId = 0;
-    this.customerId = 0;
+    this.departmentId = 0;
+    this.teamId = 0;
+    this.employeeId = 0;
     this.keyword = '';
   }
   //#endregion
@@ -1031,7 +896,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
             });
             this.searchProjects();
           },
-          error: (error) => {
+          error: (error: any) => {
             this.notification.error('', this.createdText('Lỗi xóa dự án!'), {
               nzStyle: { fontSize: '0.75rem' },
             });
@@ -1073,7 +938,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           this.searchProjects();
         }
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Lỗi:', error);
       },
     });
@@ -1180,6 +1045,22 @@ export class ProjectComponent implements OnInit, AfterViewInit {
         this.searchProjects();
       }
     });
+  }
+  //#endregion
+
+  //#region Lấy danh dách team theo phòng ban
+  getUserTeam() {
+    this.teams = [];
+    if (this.departmentId > 0) {
+      this.projectService.getUserTeam(this.departmentId).subscribe({
+        next: (response: any) => {
+          this.teams = response.data;
+        },
+        error: (error) => {
+          console.error('Lỗi:', error);
+        },
+      });
+    }
   }
   //#endregion
 }

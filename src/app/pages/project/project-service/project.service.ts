@@ -584,6 +584,17 @@ export class ProjectService {
   }
   //#endregion
 
+   //#region Tổng hợp dự án theo phòng ban
+   getProjectSynthesisDepartment(data: any): Observable<any> {
+    return this.http.get<any>(
+      this.apiUrl + `ProjectSynthesisDepartment/get-data`,
+      {
+        params: data,
+      }
+    );
+  }
+   //#endregion
+
   //#region Xuất excel theo group
   async exportExcelGroup(
     table: any,

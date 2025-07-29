@@ -110,8 +110,8 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
       }
     });
   }
-  loadEmployee(): void {
-    this.PoRequestBuyService.getEmployees().subscribe({
+  loadEmployee(status: number = 0): void {
+    this.PoRequestBuyService.getEmployees(status).subscribe({
       next: (response) => {
         if (response.status === 1) {
           this.dataEmployee = response.data;

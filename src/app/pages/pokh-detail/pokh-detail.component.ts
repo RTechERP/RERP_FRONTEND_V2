@@ -46,6 +46,7 @@ import { WarehouseReleaseRequestComponent } from '../warehouse-release-request/w
 import { FollowProductReturnComponent } from '../follow-product-return/follow-product-return.component';
 import { PoRequestBuyComponent } from '../po-request-buy/po-request-buy.component';
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
+
 @Component({
   selector: 'app-pokh',
   imports: [
@@ -77,6 +78,7 @@ import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
   templateUrl: './pokh-detail.component.html',
   styleUrl: './pokh-detail.component.css',
 })
+
 export class PokhDetailComponent implements OnInit, AfterViewInit {
   @ViewChild('tbProductDetailTreeList', { static: false }) tbProductDetailTreeListElement!: ElementRef;
   @ViewChild('tbDetailUser', { static: false }) tbDetailUserElement!: ElementRef;
@@ -1622,7 +1624,6 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       ]
     });
 
-
     this.tb_ProductDetailTreeList.on("cellEdited", (cell: CellComponent) => {
       if (cell.getColumn().getField() === "ProductNewCode") {
         const selectedProduct = this.dataProducts.find(p => p.ProductNewCode === cell.getValue());
@@ -1647,8 +1648,8 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       this.selectedRow = row;
       console.log("selectedRow", this.selectedRow);
       console.log("_children: ", this.selectedRow.getData()['_children']);
-
     });
+
   }
   initDetailTable(): void {
     this.tb_DetailUser = new Tabulator(this.tbDetailUserElement.nativeElement, {

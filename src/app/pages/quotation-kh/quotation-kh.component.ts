@@ -72,7 +72,6 @@ import { PokhDetailComponent } from '../pokh-detail/pokh-detail.component';
     NzSwitchModule,
     NzCheckboxModule,
     CommonModule,
-
   ],
   templateUrl: './quotation-kh.component.html',
   styleUrl: './quotation-kh.component.css'
@@ -83,8 +82,6 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
 
   private mainTable!: Tabulator;
   private detailTable!: Tabulator;
-
-
 
   constructor(
     private injector: EnvironmentInjector,

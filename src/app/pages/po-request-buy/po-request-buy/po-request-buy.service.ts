@@ -11,8 +11,12 @@ export class PoRequestBuyService {
   saveData(data: any): Observable<any>{
     return this.http.post<any>(this._url + 'save-data', data);
   }
-  getEmployees(): Observable<any>{
-    return this.http.get<any>('https://localhost:7187/api/Employee/getemployees');
+  getEmployees(status: number): Observable<any>{
+    return this.http.get<any>('https://localhost:7187/api/Employee/get-employees', {
+      params: {
+        status: status.toString(),
+      }
+    });
   }
   getDepartments(): Observable<any>{
     return this.http.get<any>('https://localhost:7187/api/Department/get-all');

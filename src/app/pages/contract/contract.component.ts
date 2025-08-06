@@ -178,7 +178,7 @@ export class ContractComponent implements OnInit {
     const selectedContract = selectedRows[0].getData();
     this.modal.confirm({
       nzTitle: "Xác nhận xóa",
-      nzContent: `Bạn có chắc chắn muốn xóa loại hợp đồng này không?`,
+      nzContent: `Bạn có chắc chắn muốn xóa loại hợp đồng ${selectedContract['Name']} không?`,
       nzOkText:"Xóa",
       nzOkType:'primary',
       nzOkDanger: true,

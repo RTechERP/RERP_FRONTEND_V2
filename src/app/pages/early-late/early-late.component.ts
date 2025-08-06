@@ -254,13 +254,13 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
           title: 'Loại', field: 'TypeText', hozAlign:'left',headerHozAlign:'center', width: 150
         },
         {
-          title: 'Lý do', field: 'Reason', hozAlign:'left',headerHozAlign:'center', width: 300
+          title: 'Lý do', field: 'Reason', hozAlign:'left',headerHozAlign:'center', width: 500
         },
         {
-          title: 'Lý do sửa', field: 'ReasonHREdit', hozAlign:'left',headerHozAlign:'center', width: 300
+          title: 'Lý do sửa', field: 'ReasonHREdit', hozAlign:'left',headerHozAlign:'center', width: 500
         },
         {
-          title: 'Lý do không đồng ý duyệt', field: 'ReasonDeciline', hozAlign:'left',headerHozAlign:'center', width: 300
+          title: 'Lý do không đồng ý duyệt', field: 'ReasonDeciline', hozAlign:'left',headerHozAlign:'center', width: 500
         }
       ],
       pagination: true,

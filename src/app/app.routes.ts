@@ -1,8 +1,8 @@
 import { ProjectSurveyComponent } from './pages/project/project-survey/project-survey.component';
 import { Routes } from '@angular/router';
 import { WelcomeComponent } from './pages/welcome/welcome.component';
-import { AppComponent } from './app.component';
 import { ProjectComponent } from './pages/project/project.component';
+
 import { ProjectListWorkReportComponent } from './pages/project/project-list-work-report/project-list-work-report.component';
 import { ProjectWorkCategoryComponent } from './pages/project/project-work-category/project-work-category.component';
 import { ProjectWorkPropressComponent } from './pages/project/project-work-propress/project-work-propress.component';
@@ -12,10 +12,53 @@ import { ProjectWorkItemTimelineComponent } from './pages/project/project-work-i
 import { SynthesisOfGeneratedMaterialsComponent } from './pages/project/synthesis-of-generated-materials/synthesis-of-generated-materials.component';
 import { ProjectSynthesisDepartmentComponent } from './pages/project/project-synthesis-department/project-synthesis-department.component';
 
+import { ProjectPartlistPurchaseRequestComponent } from './pages/project-partlist-purchase-request/project-partlist-purchase-request.component';
+import { LoginComponent } from './auth/login/login.component';
+import { authGuard } from './auth/auth.guard';
+import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
+import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
+import { AppComponent } from './app.component';
+import { MenusComponent } from './pages/menus/menus.component';
+import { HomeLayoutComponent } from './layouts/home-layout/home-layout.component';
+
+
 export const routes: Routes = [
-  { path: '', redirectTo: '/welcome', pathMatch: 'full' },
-  { path: 'app', component: AppComponent },
-  { path: 'welcome', component: WelcomeComponent },
+  {
+    path: '',
+    component: AuthLayoutComponent,
+    children: [
+      { path: 'login', component: LoginComponent },
+      { path: '', redirectTo: 'login', pathMatch: 'full' },
+    ],
+  },
+
+  {
+    path: '',
+    component: MainLayoutComponent,
+    canActivate: [authGuard],
+    children: [
+      {
+        path: 'welcome',
+        component: WelcomeComponent,
+      },
+    ],
+  },
+
+  {
+    path: '',
+    component: MainLayoutComponent, // layout chứa sidebar, topbar, etc.
+    canActivate: [authGuard],
+    children: [
+      { path: 'menu', component: MenusComponent },
+      {
+        path: 'project-partlist-price-request',
+        loadComponent: () =>
+          import(
+            './pages/project-partlist-purchase-request/project-partlist-purchase-request.component'
+          ).then((m) => m.ProjectPartlistPurchaseRequestComponent),
+      },
+    ],
+  },
 
   // Router danh mục dự án
   { path: 'project/:id', component: ProjectComponent }, // 2 là tổng hợp công việc AGV còn lại là dự án
@@ -28,4 +71,5 @@ export const routes: Routes = [
   { path: 'projectWorkItemTimeline', component: ProjectWorkItemTimelineComponent }, // Hạng mục công việc chậm tiến độ
   { path: 'synthesisOfGeneratedMaterials', component: SynthesisOfGeneratedMaterialsComponent }, // Tổng hợp vật tư phát sinh
   { path: 'projectSynthesisDepartment', component: ProjectSynthesisDepartmentComponent }, // Tổng hợp vật tư phát sinh
+
 ];

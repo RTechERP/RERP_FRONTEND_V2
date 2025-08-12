@@ -1,0 +1,24 @@
+.reset {
+  all: revert;
+}
+
+.tabulator {
+  font-size: 0.75rem;
+}
+
+.tabulator-cell {
+  padding: 0px;
+}
+
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+.modal-dialog.modal-dialog-centered.modal-xl {
+  max-width: none !important;
+  width: 90vw !important;
+}
+
+/* .cdk-overlay-pane {
+  width: 10% !important;
+} */

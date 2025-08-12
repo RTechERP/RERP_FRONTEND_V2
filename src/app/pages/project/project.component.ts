@@ -1,4 +1,10 @@
-import { Component, ViewEncapsulation } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  ViewEncapsulation,
+} from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
@@ -69,6 +75,24 @@ import { CommonModule } from '@angular/common';
   encapsulation: ViewEncapsulation.None,
 })
 export class ProjectComponent implements OnInit, AfterViewInit {
+
+  // Khai báo format ngày giờ
+  /**
+   console.log(now.toFormat('yyyy-MM-dd')); // 👉 2025-06-05
+    console.log(now.toFormat('dd/MM/yyyy')); // 👉 05/06/2025
+    console.log(now.toFormat('HH:mm:ss dd-MM-yyyy')); // 👉 14:30:59 05-06-2025
+    console.log(now.toFormat('EEEE, dd LLL yyyy')); // 👉 Thursday, 05 Jun 2025
+   */
+  @Input() value: string = '';
+  @Output() valueChange = new EventEmitter<string>();
+
+  selected = '';
+  options = [
+    { label: 'Mới', value: 'new' },
+    { label: 'Đang xử lý', value: 'processing' },
+    { label: 'Hoàn thành', value: 'done' },
+  ];
+
   constructor(
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
@@ -155,6 +179,13 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     this.getProjectStatus();
   }
 
+
+  onChange(val: string) {
+    this.valueChange.emit(val);
+  }
+
+  // Khai báo các hàm
+
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
   }
@@ -237,6 +268,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       // data:[{ID:1}],
       height: '100%',
       layout: 'fitColumns',
+
       rowHeader: {
         width: 20,
         headerSort: false,
@@ -315,7 +347,19 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           field: 'PriotityText',
           hozAlign: 'right',
           headerHozAlign: 'center',
+
           width: 100,
+
+          editable: true,
+          formatter(cell, formatterParams, onRendered) {
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = `<app-projects></app-projects>`;
+            document.body.appendChild(wrapper);
+
+            // Bạn có thể dùng Angular's ViewContainerRef để inject component động nếu cần nâng cao.
+
+            return wrapper;
+          },
         },
         {
           title: 'Mức độ ưu tiên cá nhân',

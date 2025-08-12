@@ -8,6 +8,7 @@
 
 .ant-splitter-panel{
   position: relative;
+  overflow: hidden;
 }
 
 .tabulator {
@@ -27,5 +28,3 @@
 .ant-tabs-tab-btn {
   font-size: 0.75rem;
 }
-
-

@@ -1,7 +1,7 @@
-<h6 class="mt-1">Phụ cấp công tác</h6>
+<!-- <h6 class="mt-1">Phụ cấp công tác</h6> -->
 <ng-container class="w-100">
   <div class="card h-100 border-0 rounded-0">
-    <div class="card-header bg-white p-2">
+    <div class="card-header bg-white py-2 px-0">
       <div class="d-flex justify-content-between align-items-center">
         <div class="d-flex gap-2">
           <button nz-button nzType="default" nzSize="small" (click)="openAddModal()" style="font-size: 0.75rem; font-weight: bold;">
@@ -40,8 +40,8 @@
   </div>
 </ng-container>
 
-<!-- <nz-modal [(nzVisible)]="isVisible" 
-  [nzTitle]="'Chi tiết phụ cấp công tác 
+<nz-modal [(nzVisible)]="isVisible" 
+  [nzTitle]="'Chi tiết phụ cấp công tác'"
   (nzOnCancel)="handleCancel()" 
   (nzOnOk)="handleOk()"
   [nzOkText]="'Lưu'"
@@ -50,18 +50,25 @@
   <ng-container *nzModalContent>
     <form nz-form [formGroup]="employeeBussinessTypeForm" (ngSubmit)="onSubmit()">
       <nz-form-item>
-        <nz-form-label [nzSpan]="24">Mã chức vụ <sup class="text-danger"> (*)</sup></nz-form-label>
-        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập mã chức vụ">
-          <input nz-input formControlName="Code" placeholder="Nhập mã chức vụ"/>
+        <nz-form-label [nzSpan]="24">Mã loại công tác <sup class="text-danger"> (*)</sup></nz-form-label>
+        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập mã loại công tác">
+          <input nz-input formControlName="TypeCode" placeholder="Nhập mã loại công tác"/>
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item>
-        <nz-form-label [nzSpan]="24">Tên chức vụ <sup class="text-danger"> (*)</sup></nz-form-label>
-        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập tên chức vụ">
-          <input nz-input formControlName="Name" placeholder="Nhập tên chức vụ" />
+        <nz-form-label [nzSpan]="24">Tên loại công tác<sup class="text-danger"> (*)</sup></nz-form-label>
+        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập tên loại công tác">
+          <input nz-input formControlName="TypeName" placeholder="Nhập tên loại công tác" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="24">Phụ cấp<sup class="text-danger"> (*)</sup></nz-form-label>
+        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập phụ cấp">
+          <input nz-input formControlName="Cost" placeholder="Nhập phụ cấp" />
         </nz-form-control>
       </nz-form-item>
     </form>
   </ng-container>
-</nz-modal> -->
+</nz-modal>

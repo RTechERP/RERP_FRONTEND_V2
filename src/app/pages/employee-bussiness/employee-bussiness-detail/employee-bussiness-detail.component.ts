@@ -72,14 +72,25 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit{
     private employeeBussinessService: EmployeeBussinessService
   ) { }
 
+  overNightTypeList = [
+    { value: 0, label: '--Chọn loại--' },
+    { value: 1, label: 'Từ sau 20h' },
+    { value: 2, label: 'Theo loại CT' },
+  ];
+
   ngOnInit() {
     this.initSearchForm();
     this.loadApprover();
     this.loadEmployee();
     this.loadDetailData();
+    this.loadEmployeeBussinessType();
   }
 
   ngAfterViewInit(): void {
+    setTimeout(() => {
+      this.initializeTabulator();
+      this.loadDetailData();
+    }, 100);
   }
 
   loadDetailData() {
@@ -136,10 +147,38 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit{
     })
   }
 
-  onSubmit() {
-    console.log(this.searchForm.value);
+  loadEmployeeBussinessType() {
+    this.employeeBussinessService.getEmployeeTypeBussiness().subscribe({
+      next: (data) => {
+        if(data.data && Array.isArray(data.data)) {
+          this.employeeTypeBussinessList = data.data.map((type: any) => ({
+            value: type.ID,
+            label: `${type.TypeCode} - ${type.TypeName} - ${type.Cost}`,
+            typeData: type
+          }));
+          console.log(this.employeeTypeBussinessList);
+          if(this.tabulator) {
+            this.destroyTabulator();
+            this.initializeTabulator();
+          }
+        } else {
+          this.employeeTypeBussinessList = [];
+        }
+      }, 
+      error: (error) => {
+        this.notification.warning("Lỗi", "Lỗi khi lấy danh sách loại công tác")
+      }
+    })
   }
 
+    private destroyTabulator() {
+    if (this.tabulator) {
+      this.tabulator.destroy();
+      this.tabulator = null as any;
+    }
+  }
+
+  
   private initializeTabulator(): void {
     this.tabulator = new Tabulator('#tb_employee_bussiness_detail', {
       data:this.employeeBussinessDetail, // Initialize with empty array
@@ -167,20 +206,15 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit{
         { title: 'STT', field: 'STT', editor: 'input', hozAlign: 'center', headerHozAlign: 'center', width: 80},
         {
           title: 'Địa điểm',
-          field: 'TimeStart',
+          field: 'Location',
           editor: 'input',
-          editorParams: {
-            elementAttributes: {
-              type: 'datetime-local'
-            }
-          },
           hozAlign: 'center',
           headerHozAlign: 'center',
           width: 200,
         },
         { 
           title: 'Loại',
-          field: 'TypeID', 
+          field: 'TypeBusiness', 
           editor: 'list', 
           editorParams: {
             values: this.employeeTypeBussinessList
@@ -197,31 +231,10 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit{
         },
         {
           title: 'Xuất phát trước 7h15',
-          field: 'EndTime',
-          editor: 'input',
-          editorParams: {
-            elementAttributes: {
-              type: 'datetime-local'
-            }
-          },
+          field: 'WorkEarly',
           hozAlign: 'center',
           headerHozAlign: 'center',
           width: 200,
-        },
-        { 
-          title: 'Phụ cấp ăn tối', 
-          field: 'Location', 
-          editor: 'list',
-          hozAlign: 'left', 
-          headerHozAlign: 'center', 
-          width: 300,
-        },
-        {
-          title: 'Không chấm công tại VP',
-          field: 'Overnight',
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-          width: 80,
           formatter: function (cell) {
             const value = cell.getValue();
             const checked = value === true || value === 'true' || value === 1 || value === '1';
@@ -241,10 +254,50 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit{
             return value === true || value === 'true' || value === 1 || value === '1';
           }
         },
+        { 
+          title: 'Phụ cấp ăn tối', 
+          field: 'OvernightType', 
+          hozAlign: 'left', 
+          headerHozAlign: 'center', 
+          width: 300,
+          editor: 'list',
+          editorParams: {
+            values: this.overNightTypeList
+          },
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            const type = this.overNightTypeList.find((ov: any) => ov.value === value);
+            return type ? type.label : value;
+          }
+        },
+        {
+          title: 'Không chấm công tại VP',
+          field: 'NotChekIn',
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+          width: 80,
+          formatter: function (cell) {
+            const value = cell.getValue();
+            const checked = value === true || value === 'true' || value === 1 || value === '1';
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.checked = checked;
+
+            input.addEventListener('change', () => {
+              cell.setValue(input.checked);
+            });
+
+            return input;
+          },
+          // Ensure the cell's value is always a boolean
+          mutator: function (value) {
+            return value === true || value === 'true' || value === 1 || value === '1';
+          }
+        },
         
-        { title: 'Phương tiện', field: 'Reason', editor: 'input', hozAlign: 'left', headerHozAlign: 'center', width: 500},
+        { title: 'Phương tiện', field: 'VehicleName', editor: 'input', hozAlign: 'left', headerHozAlign: 'center', width: 500},
         { title: 'Lý do sửa', field: 'ReasonHREdit', editor: 'input', hozAlign: 'left', headerHozAlign: 'center',  width: 500},
-        { title: 'Ghi chú', field: 'ReasonHREdit', editor: 'input', hozAlign: 'left', headerHozAlign: 'center',  width: 500},
+        { title: 'Ghi chú', field: 'Note', editor: 'input', hozAlign: 'left', headerHozAlign: 'center',  width: 500},
 
       ]
     });
@@ -300,4 +353,39 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit{
     }
   }
 
+  closeModal() {
+    const modal = document.getElementById('employeeBussinessModal');
+    if(modal) {
+      (window as any).bootstrap.Modal.getInstance(modal).hide();
+    }
+  }
+
+  checkValidate() : boolean {
+      return true;
+  }
+
+  onSubmit() {
+    if(!this.checkValidate()) {
+      return ;
+    }
+
+    const employeeBussiness = this.tabulator.getData() || [];
+    const data = this.searchForm.value;
+
+    const formData = {
+        EmployeeBussinesses: employeeBussiness.map(item => ({
+
+        }))
+    }
+    this.employeeBussinessService.saveEmployeeBussiness(formData).subscribe({
+      next: (response) => {
+        this.employeeBussinessData.emit();
+        this.closeModal();
+        this.notification.success('Thành công', 'Cập nhật đăng ký công tác thành công');
+      },
+      error: (error) => {
+        this.notification.error('Lỗi', 'Cập nhật đăng ký công tác thất bại');
+      }
+    })
+  }
 }

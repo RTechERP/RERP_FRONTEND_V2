@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator.min.css';
+import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { CommonModule, NgIf } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NzModalService } from 'ng-zorro-antd/modal';
@@ -69,7 +69,7 @@ export class EmployeeBussinessTypeComponent implements OnInit {
     this.isLoading = true;
     this.employeeBussinessService.getEmployeeTypeBussiness().subscribe({
       next: (data: any) => {
-        this.employeeBussinessTypes = data;
+        this.employeeBussinessTypes = data.data;
         this.tabulator.setData(this.employeeBussinessTypes);
         this.isLoading = false;
       },
@@ -82,30 +82,24 @@ export class EmployeeBussinessTypeComponent implements OnInit {
   private initializeTable() : void {
     this.tabulator = new Tabulator('#tb_employee_bussiness_type', {
       data: this.employeeBussinessTypes,
-      layout: 'fitDataFill',
+      layout: 'fitColumns',
       selectableRows: true,
       rowHeader: { formatter: "rowSelection", titleFormatter: "rowSelection", headerSort: false, width: 50, frozen: true, headerHozAlign: "center", hozAlign: "center" },
       responsiveLayout: true,
-      height: '80vh',
+      height: '100%',
       columns: [
-        { title: 'Mã loại công tác', field: 'TypeCode', hozAlign: 'right', headerHozAlign: 'center', width: '17vw' },
-        { title: 'Tên loại công tác', field: 'TypeName', hozAlign: 'left', headerHozAlign: 'center', width: '25vw' },
-        { title: 'Phụ cấp', field: 'Cost', hozAlign: 'left', headerHozAlign: 'center', width: '37vw' },
-      ],
-      pagination: true,
-      paginationSize: 100,
-      paginationSizeSelector: [10, 20, 40, 80, 100],
-      langs: {
-        vi: {
-          pagination: {
-            first: '<<',
-            last: '>>',
-            prev: '<',
-            next: '>',
-          },
+        { title: 'Mã loại công tác', field: 'TypeCode', hozAlign: 'left', headerHozAlign: 'center'},
+        { title: 'Tên loại công tác', field: 'TypeName', hozAlign: 'left', headerHozAlign: 'center'},
+        { title: 'Phụ cấp', field: 'Cost', hozAlign: 'right', headerHozAlign: 'center',
+          formatter: function(cell) {
+            const value = cell.getValue();
+            if (typeof value === 'number' && !isNaN(value)) {
+              return value.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
+            }
+            return value || '0 ₫';
+          }
         },
-      },
-      locale: 'vi',
+      ],
     })
   }
 
@@ -178,18 +172,33 @@ export class EmployeeBussinessTypeComponent implements OnInit {
     this.isSubmitting = true;
     const formData = this.employeeBussinessTypeForm.value;
 
-    this.employeeBussinessService.saveEmployeeBussiness(formData).subscribe({
+    this.employeeBussinessService.saveEmployeeTypeBussiness(formData).subscribe({
       next: () => {
-        this.notification.success('Thành công', this.isEditMode ? 'Cập nhật chức vụ theo hợp đồng thành công' : 'Thêm mới chức vụ theo hợp đồng thành công');
+        this.notification.success('Thành công', 'Cập nhật loại phụ cấp công tác thành công');
         this.closeModal();
         this.loadEmployeeBussinessType();
       },
       error: (error) => {
-        this.notification.error('Lỗi', (this.isEditMode ? 'Cập nhật' : 'Thêm mới') + ' chức vụ theo hợp đồng thất bại: ' + error.message);
+        this.notification.error('Lỗi', 'Cập nhật loại phụ cấp công tác thất bại: ' + error.message);
       },
       complete: () => {
         this.isSubmitting = false;
       }
     });
+  }
+
+
+  closeModal() {
+    this.isVisible = false;
+    this.employeeBussinessTypeForm.reset();
+    this.isSubmitting = false;
+  }
+
+  handleCancel() {
+    this.closeModal();
+  }
+
+  handleOk() {
+    this.onSubmit();
   }
 }

@@ -1,5 +1,5 @@
 :host {
-  /* display: flex; */
+  display: flex;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -107,12 +107,12 @@ nz-sider {
 
 ::ng-deep .ant-tabs > .ant-tabs-nav,
 .ant-tabs > div > .ant-tabs-nav {
-  margin: 0 !important;
-  overflow: hidden !important;
+  margin: 0;
+  overflow: hidden;
 }
 
 ::ng-deep .ant-layout-header {
-  height: 40px !important;
+  height: 40px;
 }
 
 ::ng-deep .ant-tabs-card.ant-tabs-top > .ant-tabs-nav .ant-tabs-tab {
@@ -132,8 +132,8 @@ nz-sider {
 
 ::ng-deep .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active,
 .ant-tabs-card > div > .ant-tabs-nav .ant-tabs-tab-active {
-  background-color: #ef4723 !important;
-  padding: 7px 16px !important;
+  background-color: #ef4723;
+  padding: 7px 16px;
   /* color: #fff; */
 }
 
@@ -149,31 +149,19 @@ nz-sider {
   > .ant-tabs-nav
   .ant-tabs-tab
   + .ant-tabs-tab {
-  margin: 0 !important;
+  margin: 0;
 }
 
 ::ng-deep .ant-tabs > .ant-tabs-nav,
 .ant-tabs > div > .ant-tabs-nav {
-  position: static !important;
+  position: static;
 }
 
 ::ng-deep .ant-tabs-tab-remove {
-  color: #fff !important;
+  color: #fff;
 }
 
 ::ng-deep .ant-tabs-card.ant-tabs-small > .ant-tabs-nav .ant-tabs-tab {
-  padding: 8px 16px !important;
-  font-size: 0.75rem !important;
-}
-
-::ng-deep .ant-dropdown-trigger .ant-tabs-nav-more .anticon {
-  color: white !important;
-}
-
-::ng-deep .nz-tabs-dropdown.ant-dropdown .ant-dropdown-menu {
-  background-color: #23458a !important;
-}
-
-::ng-deep .nz-tabs-dropdown.ant-dropdown .ant-dropdown-menu-item:hover {
-  background-color: #ef4723 !important;
+  padding: 8px 16px;
+  font-size: 0.75rem;
 }

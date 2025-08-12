@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { host } from '../../../app.config';
+import { HOST } from '../../../app.config';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -7,10 +7,10 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class MenuService {
-  private apiUrl = host + 'api/menu/';
+  private apiUrl = HOST + 'api/menu/';
   constructor(private http: HttpClient) {}
 
-  getMenus(): Observable<any> {
-    return this.http.get<any>(this.apiUrl + 'menus/0');
+  getMenus(id: number): Observable<any> {
+    return this.http.get<any>(this.apiUrl + `menus/${id}`);
   }
 }

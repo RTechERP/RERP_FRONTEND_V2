@@ -8,6 +8,7 @@ import {
 import { AuthService } from '../auth.service';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { log } from 'ng-zorro-antd/core/logger';
 
 @Component({
   selector: 'app-login',
@@ -35,7 +36,9 @@ export class LoginComponent {
 
     this.authService.login(this.loginForm.value).subscribe({
       next: () => this.router.navigate(['/welcome']),
-      error: (err) => (this.errorMessage = err.message),
+      error: (err) => {
+        this.errorMessage = err.error.message;
+      },
     });
   }
 }

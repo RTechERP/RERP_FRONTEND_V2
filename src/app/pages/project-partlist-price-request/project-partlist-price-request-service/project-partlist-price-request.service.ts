@@ -1,14 +1,14 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, shareReplay } from 'rxjs';
-import { API_URL } from '../../../app.config';
+import { HOST } from '../../../app.config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ProjectPartlistPriceRequestService {
   private http = inject(HttpClient);
-  private baseUrl = `${API_URL}/api/ProjectPartlistPriceRequest`;
+  private baseUrl = `${HOST}/api/ProjectPartlistPriceRequest`;
 
   // Gọi API lấy danh sách price requests
   getAllPartlist(
@@ -38,8 +38,8 @@ export class ProjectPartlistPriceRequestService {
       { params }
     );
   }
-  getAPIPricerequest(){
-    return this.baseUrl+'/getallProjectParListPriceRequest';
+  getAPIPricerequest() {
+    return this.baseUrl + '/getallProjectParListPriceRequest';
   }
   // Gọi API lấy danh sách types
   getTypes(employeeID: number): Observable<any> {
@@ -66,24 +66,22 @@ export class ProjectPartlistPriceRequestService {
   saveData(lstModel: any[]) {
     return this.http.post(`${this.baseUrl}/saveData`, lstModel);
   }
-  getCurrency():Observable<any>{
+  getCurrency(): Observable<any> {
     return this.http.get(`${this.baseUrl}/getCurrency`);
   }
-  getSuplierSale():Observable<any>{
+  getSuplierSale(): Observable<any> {
     return this.http.get(`${this.baseUrl}/getSupplierSale`);
-
   }
-  saveChangedData(data:any[]){
-    return this.http.post(`${this.baseUrl}/saveData`,data);
+  saveChangedData(data: any[]) {
+    return this.http.post(`${this.baseUrl}/saveData`, data);
   }
-downloadFile(payload: {
-  projectId: number;
-  partListId: number;
-  productCode: string;
-}): Observable<Blob> {
-  return this.http.post(`${this.baseUrl}/download`, payload, {
-    responseType: 'blob',
-  });
-}
-
+  downloadFile(payload: {
+    projectId: number;
+    partListId: number;
+    productCode: string;
+  }): Observable<Blob> {
+    return this.http.post(`${this.baseUrl}/download`, payload, {
+      responseType: 'blob',
+    });
+  }
 }

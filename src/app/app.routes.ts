@@ -3,28 +3,50 @@ import { WelcomeComponent } from './pages/welcome/welcome.component';
 import { ProjectComponent } from './pages/project/project.component';
 import { ProjectPartlistPurchaseRequestComponent } from './pages/project-partlist-purchase-request/project-partlist-purchase-request.component';
 import { LoginComponent } from './auth/login/login.component';
+import { authGuard } from './auth/auth.guard';
+import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
+import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
+import { AppComponent } from './app.component';
+import { MenusComponent } from './pages/menus/menus.component';
+import { HomeLayoutComponent } from './layouts/home-layout/home-layout.component';
 
 export const routes: Routes = [
-  { path: 'login', component: LoginComponent },
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  {
+    path: '',
+    component: AuthLayoutComponent,
+    children: [
+      { path: 'login', component: LoginComponent },
+      { path: '', redirectTo: 'login', pathMatch: 'full' },
+    ],
+  },
 
-  // Router danh mục dự án
-  { path: 'welcome', component: WelcomeComponent },
-  { path: 'project', component: ProjectComponent }, // Dự án master
-{
-  path: 'project-partlist-purchase-request',
-  loadComponent: () =>
-    import('./pages/project-partlist-purchase-request/project-partlist-purchase-request.component').then(
-      m => m.ProjectPartlistPurchaseRequestComponent
-    )
-},
-{
-  path: 'project-partlist-price-request',
-  loadComponent: () =>
-    import('./pages/project-partlist-price-request/project-partlist-price-request.component').then(
-      m => m.ProjectPartlistPriceRequestComponent
-    )
-}
+  {
+    path: '',
+    component: MainLayoutComponent,
+    canActivate: [authGuard],
+    children: [
+      {
+        path: 'welcome',
+        component: WelcomeComponent,
+      },
+    ],
+  },
 
+  {
+    path: '',
+    component: MainLayoutComponent, // layout chứa sidebar, topbar, etc.
+    canActivate: [authGuard],
+    children: [
+      { path: 'menu', component: MenusComponent },
+      {
+        path: 'project-partlist-price-request',
+        loadComponent: () =>
+          import(
+            './pages/project-partlist-purchase-request/project-partlist-purchase-request.component'
+          ).then((m) => m.ProjectPartlistPurchaseRequestComponent),
+      },
+    ],
+  },
 
+  { path: '**', redirectTo: 'login' },
 ];

@@ -19,10 +19,10 @@ export class MenusComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.getMenus();
+    this.getMenus(43);
   }
-  getMenus(): void {
-    this.menuService.getMenus().subscribe({
+  getMenus(id: number): void {
+    this.menuService.getMenus(id).subscribe({
       next: (response: any) => {
         this.menus = response.data;
       },

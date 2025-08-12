@@ -13,7 +13,8 @@ import { registerLocaleData } from '@angular/common';
 import vi from '@angular/common/locales/vi';
 import { FormsModule } from '@angular/forms';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { authInterceptor } from './auth/auth.interceptor';
 
 registerLocaleData(vi);
 
@@ -25,11 +26,11 @@ export const appConfig: ApplicationConfig = {
     provideNzI18n(vi_VN),
     importProvidersFrom(FormsModule),
     provideAnimationsAsync(),
-    provideHttpClient(),
+    provideHttpClient(withInterceptors([authInterceptor])),
   ],
 };
 export const APP_LOGIN_NAME = 'admin';
 export const EMPLOYEE_ID = 0;
 export const ISADMIN = true;
-export const USER_NAME='ADMINSW';
+export const USER_NAME = 'ADMINSW';
 export const HOST = 'https://localhost:44365/';

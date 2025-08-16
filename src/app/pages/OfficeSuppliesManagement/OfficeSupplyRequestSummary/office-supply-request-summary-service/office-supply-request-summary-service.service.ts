@@ -16,13 +16,13 @@ export class OfficeSupplyRequestSummaryService {
   }
 
   getdataOfficeSupplyRequestSummary(departmentID: number, year: number, month: number, keyword: string): Observable<any> {
-    return this.httpclient.get<any>(`${this.baseUrl}/get-office-supply-request-summary`,{
-      params: {
-        departmentID: departmentID.toString(),
-        year: year.toString(),
-        month: month.toString(), 
-        keyword: keyword.toString()
-      }
-    });
+    const params: any = {
+      departmentID: departmentID.toString(),
+      year: year.toString(),
+      month: month.toString(), 
+      keyword: keyword.toString()   
+  }
+    return this.httpclient.post<any>(`${this.baseUrl}/get-office-supply-request-summary`,params
+      );
   }
 }

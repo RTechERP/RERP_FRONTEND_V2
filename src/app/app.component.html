@@ -102,6 +102,43 @@
                     </li>
                 </ul>
             </li>
+            <li nz-submenu nzOpen nzTitle="Phòng Sale" nzIcon="unordered-list">
+                <ul>
+                    <li nzIcon="code-sandbox" nz-menu-item nzMatchRouter>
+                        <nz-icon nzType="code-sandbox" nzTheme="outline" />
+                        <a (click)="newTab(['/inventory'])"> Tồn kho</a>
+                    </li>
+                    <li nzIcon="code-sandbox" nz-menu-item nzMatchRouter>
+                        <nz-icon nzType="code-sandbox" nzTheme="outline" />
+                        <a (click)="newTab(['/billexport'])"> Phiếu xuất</a>
+                    </li>
+                    <li nzIcon="code-sandbox" nz-menu-item nzMatchRouter>
+                        <nz-icon nzType="code-sandbox" nzTheme="outline" />
+                        <a (click)="newTab(['/billimport'])"> Phiếu nhập</a>
+                    </li>
+                    
+                    <li nzIcon="code-sandbox" nz-menu-item nzMatchRouter>
+                        <nz-icon nzType="code-sandbox" nzTheme="outline" />
+                        <a (click)="newTab(['/list-product-project'])">Danh sách vật tư theo dự án</a>
+                    </li>
+                    <li nzIcon="code-sandbox" nz-menu-item nzMatchRouter>
+                        <nz-icon nzType="code-sandbox" nzTheme="outline" />
+                        <a (click)="newTab(['/report-import-export'])">Báo cáo nhập xuất</a>
+                    </li>
+                    <li nzIcon="code-sandbox" nz-menu-item nzMatchRouter>
+                        <nz-icon nzType="code-sandbox" nzTheme="outline" />
+                        <a (click)="newTab(['/history-import-export'])">Lịch sử nhập xuất</a>
+                    </li>
+                    <li nzIcon="code-sandbox" nz-menu-item nzMatchRouter>
+                        <nz-icon nzType="code-sandbox" nzTheme="outline" />
+                        <a (click)="newTab(['/history-borrow-sale'])">Lịch sử mượn</a>
+                    </li>
+                    <li nzIcon="code-sandbox" nz-menu-item nzMatchRouter>
+                        <nz-icon nzType="code-sandbox" nzTheme="outline" />
+                        <a (click)="newTab(['/search-product-serial-number'])">Tra cứu SerialNumber</a>
+                    </li>
+                </ul>
+            </li>
         </ul>
     </nz-sider>
     <nz-layout>

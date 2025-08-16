@@ -17,8 +17,8 @@ export class ProductsaleServiceService {
 
   constructor(private httpclient: HttpClient) {}
 
-  getdataProductGroup(): Observable<any> {
-    return this.httpclient.get<any>(`${this.productgroupUrl}?isvisible=false`);
+  getdataProductGroup(warehouseCode:string, isvisible:boolean): Observable<any> {
+    return this.httpclient.get<any>(`${this.productgroupUrl}?isvisible=${isvisible}&warehousecode=${warehouseCode}`);
   }
   getdataProductSalebyID(id: number, keyword: string, checkedAll: boolean): Observable<any> {
     const params: any = {
@@ -29,11 +29,11 @@ export class ProductsaleServiceService {
     
     return this.httpclient.post(`${this.baseUrl}`,  params );
   }
-  getdataProductSalebyIDGroup(id:number){
-    return this.httpclient.get<any>(`${this.baseUrl}/get-product-sale-by-product-group?productgroupID=`+id);
-  }
+  // getdataProductSalebyIDGroup(id:number){
+  //   return this.httpclient.get<any>(`${this.baseUrl}/get-product-sale-by-product-group?productgroupID=`+id);
+  // }
   getdataEmployee(){
-    return this.httpclient.get<any>(`${this.employeeUrl}/get-data-employee`);
+    return this.httpclient.get<any>(`${this.employeeUrl}/?status=0&departmentid=0`);
   }
   getdataWareHouse(){
     return this.httpclient.get<any>(`${this.warehouseUrl}`);
@@ -44,9 +44,9 @@ export class ProductsaleServiceService {
   getdataProductGroupbyID(id:number){
     return this.httpclient.get<any>(`${this.productgroupUrl}/`+id);
   }
-  getdataProductGroupWareHouse(productgroupID:number):Observable<any>{
+  getdataProductGroupWareHouse(productgroupID:number,warehouse:number):Observable<any>{
     const params:any={
-      warehouseID:'0',
+      warehouseID:warehouse || '0',
       productgroupID:productgroupID.toString()||'0'
     };
     return this.httpclient.get(`${this.productgroupwarehouseUrl}`,{ params });

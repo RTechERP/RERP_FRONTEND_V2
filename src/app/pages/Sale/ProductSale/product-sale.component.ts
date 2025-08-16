@@ -6,7 +6,7 @@ import * as bootstrap from 'bootstrap';
 import { CommonModule } from '@angular/common';
 import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator.min.css'; //import Tabulator stylesheet
+import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { RowComponent } from 'tabulator-tables';
 import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -23,6 +23,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { ProductSaleDetailComponent } from './product-sale-detail/product-sale-detail.component';
 import { ProductGroupDetailComponent } from './product-group-detail/product-group-detail.component';
 import { ImportExcelProductSaleComponent } from './import-excel-product-sale/import-excel-product-sale.component';
+import { IS_ADMIN } from '../../../app.config';
 
 interface ProductGroup {
   ID?: number;
@@ -70,6 +71,8 @@ interface ProductSale {
   styleUrl: './product-sale.component.css'
 })
 export class ProductSaleComponent implements OnInit, AfterViewInit {
+  //VP tai dau 
+  wareHouseCode:string="HN";
   //biến liên quan đến dữ liệu và bảng của productSale
   table_productsale: any;
   dataProductSale: any[] = [];
@@ -155,7 +158,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     }
   //#region các hàm lấy dữ liệu và mở mđ ProductGroup 
   getProductGroup() {
-    this.productsaleSV.getdataProductGroup().subscribe({
+    this.productsaleSV.getdataProductGroup(this.wareHouseCode,false).subscribe({
       next: (res) => {
         if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
           this.listProductGroup = res.data;
@@ -216,8 +219,8 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
       }
     });
   }
-  openModalProductGroup(ischeckmode:boolean) {
-    this.isCheckmode=ischeckmode;
+  openModalProductGroup(isEditmode:boolean) {
+    this.isCheckmode=isEditmode;
     console.log('is',this.isCheckmode);
     const modalRef = this.modalService.open(ProductGroupDetailComponent, {
       centered: true,
@@ -556,7 +559,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
   }
 
   getDataProductGroupWareHouse(id: number) {
-    this.productsaleSV.getdataProductGroupWareHouse(id).subscribe({
+    this.productsaleSV.getdataProductGroupWareHouse(id,0).subscribe({
       next: (res) => {
         if (res?.data) {
           this.listPGWareHouse = Array.isArray(res.data) ? res.data : [];
@@ -697,7 +700,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     }
 
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Danh sách dự án');
+    const worksheet = workbook.addWorksheet('Danh sách vật tư');
 
     const columns = table.getColumns();
     // Bỏ qua cột đầu tiên

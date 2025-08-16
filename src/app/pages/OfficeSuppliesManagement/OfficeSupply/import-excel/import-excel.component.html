@@ -2,7 +2,7 @@
       <div class="modal-content">
         <div class="modal-header bg-primary text-uppercase py-2 ">
          <h6 class="modal-title text-white" id="ExcelModalLabel">NHẬP DỮ LIỆU EXCEL</h6>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button type="button" class="btn-close" (click)="closeExcelModal()"></button>
         </div>
         <div class="modal-body">
           <div class="d-flex gap-2 align-items-center p-2">
@@ -44,7 +44,7 @@
               </div>
             </div>
             <div class="modal-footer">
-               <button class="fs-12 btn" nz-button nzDanger  data-bs-dismiss="modal">Đóng</button>
+               <button class="fs-12 btn" nz-button nzDanger  (click)="closeExcelModal()">Đóng</button>
               <button  class="fs-12 btn" nz-button >
                 <a href="/assets/templateForm/MauVPP.xlsx" download="MauVPP.xlsx" style="text-decoration: none; color: inherit;"><nz-icon nzType="download" nzTheme="outline" /> Mẫu</a>
               </button>

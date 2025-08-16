@@ -20,6 +20,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzSpinComponent, NzSpinModule } from 'ng-zorro-antd/spin';
+import { DateTime } from 'luxon';
 
 @Component({
   selector: 'app-dailyreport',
@@ -176,12 +177,7 @@ export class DailyreportComponent implements OnInit, AfterViewInit {
             width:150,
             formatter: (cell) => {
               const value = cell.getValue();
-              if (!value) return '';
-              const date = new Date(value);
-              const day = String(date.getDate()).padStart(2, '0');
-              const month = String(date.getMonth() + 1).padStart(2, '0');
-              const year = date.getFullYear();
-              return `${day}/${month}/${year}`;
+              return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy'):'';
             }
           },
           {
@@ -210,12 +206,7 @@ export class DailyreportComponent implements OnInit, AfterViewInit {
           {title: "Ngày tạo", field: "CreatedDate",hozAlign: "left",
             formatter: (cell) => {
               const value = cell.getValue();
-              if (!value) return '';
-              const date = new Date(value);
-              const day = String(date.getDate()).padStart(2, '0');
-              const month = String(date.getMonth() + 1).padStart(2, '0');
-              const year = date.getFullYear();
-              return `${day}/${month}/${year}`;
+              return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy'):'';
             }
           }
         ]
@@ -296,13 +287,8 @@ export class DailyreportComponent implements OnInit, AfterViewInit {
           {title: "Ngày", field: "DateReport",hozAlign: "left", frozen:true, width:150,
             formatter: (cell) => {
               const value = cell.getValue();
-              if (!value) return '';
-              const date = new Date(value);
-              const day = String(date.getDate()).padStart(2, '0');
-              const month = String(date.getMonth() + 1).padStart(2, '0');
-              const year = date.getFullYear();
-              return `${day}/${month}/${year}`;
-          }},
+              return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy'):'';
+            }},
           {title: "Đầu mục", field: "FilmName",hozAlign: "left", width:200},
           {title: "Nội dung công việc", field: "WorkContent",hozAlign: "left", width:250},
           {title: "ĐVT", field: "UnitName",hozAlign: "left"},
@@ -314,13 +300,8 @@ export class DailyreportComponent implements OnInit, AfterViewInit {
           {title: "Ngày tạo", field: "CreatedDate",hozAlign: "left", 
             formatter: (cell) => {
               const value = cell.getValue();
-              if (!value) return '';
-              const date = new Date(value);
-              const day = String(date.getDate()).padStart(2, '0');
-              const month = String(date.getMonth() + 1).padStart(2, '0');
-              const year = date.getFullYear();
-              return `${day}/${month}/${year}`;
-          }}
+              return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy'):'';
+            }}
         ]
       });
     }
@@ -510,12 +491,7 @@ export class DailyreportComponent implements OnInit, AfterViewInit {
           {title: "Ngày", field: "DateReport",hozAlign: "left", width:150, frozen:true,
             formatter: (cell) => {
               const value = cell.getValue();
-              if (!value) return '';
-              const date = new Date(value);
-              const day = String(date.getDate()).padStart(2, '0');
-              const month = String(date.getMonth() + 1).padStart(2, '0');
-              const year = date.getFullYear();
-              return `${day}/${month}/${year}`;
+              return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy'):'';
             }
           },
           {title: "Lý do muộn", field: "ReasonLate",hozAlign: "left"},
@@ -527,12 +503,7 @@ export class DailyreportComponent implements OnInit, AfterViewInit {
           {title: "Ngày tạo", field: "CreatedDate",hozAlign: "left",
             formatter: (cell) => {
               const value = cell.getValue();
-              if (!value) return '';
-              const date = new Date(value);
-              const day = String(date.getDate()).padStart(2, '0');
-              const month = String(date.getMonth() + 1).padStart(2, '0');
-              const year = date.getFullYear();
-              return `${day}/${month}/${year}`;
+              return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy'):'';
             }
           }
         ]

@@ -3,7 +3,7 @@ import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator.min.css'; //import Tabulator stylesheet
+import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { RowComponent } from 'tabulator-tables';
 import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';

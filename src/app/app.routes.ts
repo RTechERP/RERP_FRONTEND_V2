@@ -8,6 +8,14 @@ import { OfficeSupplyRequestSummaryComponent } from './pages/OfficeSuppliesManag
 import { OfficeSupplyRequestsComponent } from './pages/OfficeSuppliesManagement/OfficeSupplyRequests/office-supply-requests.component';
 import { OfficeSupplyComponent } from './pages/OfficeSuppliesManagement/OfficeSupply/office-supply.component';
 import { ProductSaleComponent } from './pages/Sale/ProductSale/product-sale.component';
+import { BillExportComponent } from './pages/Sale/BillExport/bill-export.component';
+import { ListProductProjectComponent } from './pages/Sale/ListProductProject/list-product-project.component';
+import { ReportImportExportComponent } from './pages/Sale/ReportImportExport/report-import-export.component';
+import { HistoryImportExportComponent } from './pages/Sale/HistoryImportExport/history-import-export.component';
+import { HistoryBorrowSaleComponent } from './pages/Sale/HistoryBorrowSale/history-borrow-sale.component';
+import { SearchProductSerialNumberComponent } from './pages/Sale/SearchProductSerialNumber/search-product-serial-number.component';
+import { InventoryComponent } from './pages/Sale/Inventory/inventory.component';
+import { BillImportComponent } from './pages/Sale/BillImport/bill-import.component';
 export const routes: Routes = [
   { path: '', redirectTo: '/welcome', pathMatch: 'full' },
   { path: 'app', component: AppComponent },
@@ -23,5 +31,13 @@ export const routes: Routes = [
   {path:'officesupplyrequestsummury', component:OfficeSupplyRequestSummaryComponent},
   {path:'officesupplyrequest', component:OfficeSupplyRequestsComponent},
   {path:'officesupply', component:OfficeSupplyComponent},
-  {path:'productsale', component:ProductSaleComponent}
+  {path:'productsale', component:ProductSaleComponent},
+  {path:'billexport', component:BillExportComponent},
+  {path:'list-product-project', component:ListProductProjectComponent},
+  {path:'report-import-export',component: ReportImportExportComponent},
+  {path:'history-import-export', component: HistoryImportExportComponent},
+  {path:'history-borrow-sale', component:HistoryBorrowSaleComponent},
+  {path:'search-product-serial-number',component:SearchProductSerialNumberComponent},
+  {path:'inventory', component:InventoryComponent},
+  {path:"billimport", component:BillImportComponent},
 ];

@@ -2,7 +2,7 @@ import { Component, OnInit, AfterViewInit, ViewChild, Input } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator.min.css'; //import Tabulator stylesheet
+import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { RowComponent } from 'tabulator-tables';
 import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -25,6 +25,7 @@ interface ProductSale {
   ProductCode: string;
   ProductName: string;
   Maker: string;
+  AddressBox:string;
   Unit: string;
   NumberInStoreDauky: number;
   NumberInStoreCuoiKy: number;
@@ -58,6 +59,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
     ProductName: '',
     Maker: '',
     Unit: '',
+    AddressBox:'',
     NumberInStoreDauky: 0,
     NumberInStoreCuoiKy: 0,
     ProductGroupID: 0,
@@ -65,13 +67,18 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
     FirmID: 0,
     Note: ''
   };
+   //list lấy dữ liệu đơn vị productsale
+   listUnitCount: any[] = [];
+
+   //list lấy dữ liệu nhóm kho 
+   listProductGroupcbb: any[] = [];
+   listLocation:any[]=[];
+   listFirm: any[] = [];
+
   @Input() isCheckmode: boolean = false;
-  @Input() listProductGroupcbb: any[] = [];
-  @Input() listUnitCount: any[] = [];
-  @Input() listLocation: any[] = [];
-  listFirm: any[] = [];
   @Input() selectedList: any[] = [];
   @Input() id: number = 0;
+  
 
   constructor(
     private notification: NzNotificationService,
@@ -82,10 +89,37 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
   ) { }
 
   ngOnInit(): void {
-  
+    this.getDataProductGroupcbb();
+    this.getDataUnitCount();
+    this.getDataLocation(0); 
+    this.getDataFirm();
   }
   ngAfterViewInit(): void {
-    this.getDataFirm();
+  
+  }
+  getDataUnitCount() {
+    this.productsaleService.getdataUnitCount().subscribe({
+      next: (res) => {
+        if (res?.data) {
+          this.listUnitCount = Array.isArray(res.data) ? res.data : [];
+          console.log('don vi tinh', this.listUnitCount);
+        }
+      }, error: (err) => {
+        console.error('Lỗi khi lấy dữ liệu', err);
+      }
+    });
+  }
+  getDataProductGroupcbb() {
+    this.productsaleService.getDataProductGroupcbb().subscribe({
+      next: (res) => {
+        if (res?.data) {
+          this.listProductGroupcbb = Array.isArray(res.data) ? res.data : [];
+
+        }
+      }, error: (err) => {
+        console.error('Lỗi khi lấy dữ liệu', err);
+      }
+    });
   }
   getDataFirm(){
     //lấy dữ liệu hãng
@@ -112,7 +146,6 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
   }
   changeProductGroup(){
     const id = this.newProductSale.ProductGroupID;
-    console.log('jhhgđ', id);
     this.productsaleService.getDataLocation(id).subscribe({
       next:(res)=>{
         if (res?.data) {
@@ -128,9 +161,14 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
       this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin!');
       return;
     }
+    const firm = this.listFirm.find((p: any) => p.ID === this.newProductSale.FirmID);
+    const maker = firm ? firm.FirmName : '';  
+    const location = this.listLocation.find((p: any) => p.ID === this.newProductSale.LocationID);
+    const addressbox = location ? location.LocationName : '';
 
     if (this.isCheckmode == true) {
       // Update existing product sale
+    
       const payload = [{
         ProductSale: {
           ID: this.selectedList[0].ID,
@@ -141,7 +179,8 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
           NumberInStoreCuoiKy: this.newProductSale.NumberInStoreCuoiKy,
           ProductGroupID: this.newProductSale.ProductGroupID,
           FirmID: this.newProductSale.FirmID,
-          Maker: this.newProductSale.Maker,
+          Maker: maker,
+          AddressBox:addressbox,
           LocationID: this.newProductSale.LocationID,
           Note: this.newProductSale.Note,
           UpdatedBy: 'admin',
@@ -179,6 +218,8 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
           ProductGroupID: this.newProductSale.ProductGroupID,
           FirmID: this.newProductSale.FirmID,
           LocationID: this.newProductSale.LocationID,
+          Maker: maker,
+          AddressBox:addressbox,
           Note: this.newProductSale.Note,
           CreatedBy: 'admin',
           CreatedDate: new Date(),

@@ -3,7 +3,7 @@ import { Component, OnInit, AfterViewInit, ViewChild, Input } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator.min.css'; //import Tabulator stylesheet
+import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { RowComponent } from 'tabulator-tables';
 import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -32,6 +32,7 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
   @Input() searchText: string = '';
   @Input() id:number=0;
 
+  wareHouseCode:string="HN";
   filePath: string = '';
   excelSheets: string[] = [];
   selectedSheet: string = '';
@@ -41,6 +42,7 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
   listMaker: any[] = [];
   listProductGroup: any[] = [];
   listLocation: any[] = [];
+  
 
   // Biến hiển thị chính trên thanh tiến trình
   displayProgress: number = 0; // % hiển thị trên thanh
@@ -402,7 +404,6 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
             LocationID: this.getLocationIdByName(row.AddressBox),
             FirmID: this.getFirmIdByName(row.Maker), // Đảm bảo FirmID được tìm đúng
             Note: row.Note || '',
-     
             CreatedBy: 'admin',
             CreatedDate: new Date(),
             UpdatedBy: 'admin',
@@ -442,7 +443,7 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
           const product = processedData[index]; // Đây là mảng chứa ProductSale và Inventory
           console.log(`Gửi lưu sản phẩm ${index + 1}/${totalProductsToSave}:`, product);
 
-          // Thêm delay 0,0005 giây trước khi lưu mỗi sản phẩm
+          // Thêm delay 0,0005 trước khi lưu mỗi sản phẩm
           setTimeout(() => {
             this.productsaleService.saveDataProductSale(product).subscribe({
               next: (response) => {
@@ -538,7 +539,7 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
       }
     });
 
-    this.productsaleService.getdataProductGroup().subscribe({
+    this.productsaleService.getdataProductGroup(this.wareHouseCode,false).subscribe({
       next: (res: any) => {
         this.listProductGroup = res.data || [];
       },
@@ -586,41 +587,4 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
   closeExcelModal() {
     this.modalService.dismissAll(true);
   }
-
-//   getAll() {
-//     this.productsaleService.getDataProductSalebyID(this.id).subscribe({
-//       next: (res) => {
-//         console.log('Dữ liệu nhận được:', res);
-//         this.lstVP = res.data.officeSupply;
-        
-//         // Sắp xếp dữ liệu: sản phẩm mới nhất lên đầu, các sản phẩm khác theo thứ tự tăng dần
-//         if (this.lastAddedIdProduct) {
-//           const newItem = this.lstVP.find(item => item.ID === this.lastAddedIdProduct);
-//           if (newItem) {
-//             // Tách sản phẩm mới ra khỏi danh sách
-//             this.lstVP = this.lstVP.filter(item => item.ID !== this.lastAddedIdProduct);
-//             // Sắp xếp các sản phẩm còn lại theo ID tăng dần
-//             this.lstVP.sort((a, b) => a.ID - b.ID);
-//             // Thêm sản phẩm mới vào đầu danh sách
-//             this.lstVP.unshift(newItem);
-//           }
-//         } else {
-//           // Nếu không có sản phẩm mới, sắp xếp tất cả theo ID tăng dần
-//           this.lstVP.sort((a, b) => a.ID - b.ID);
-//         }
-
-//         // Cập nhật lại dataTable và reload bảng
-//         this.dataTable = this.lstVP;
-//         if (this.table) {
-//           this.table.replaceData(this.dataTable);
-//         }
-//       },
-//       error: (err) => {
-//         console.error('Lỗi khi gọi API:', err);
-//         this.lstVP = [];
-//         this.dataTable = [];
-//       },
-//     });
-//   }
-
 }

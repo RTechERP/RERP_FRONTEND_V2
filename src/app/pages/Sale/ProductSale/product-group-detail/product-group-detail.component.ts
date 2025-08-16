@@ -2,7 +2,7 @@ import { Component, OnInit, AfterViewInit, ViewChild, Input } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator.min.css'; //import Tabulator stylesheet
+import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { RowComponent } from 'tabulator-tables';
 import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -47,6 +47,7 @@ interface ProductGroup {
 })
 export class ProductGroupDetailComponent implements OnInit, AfterViewInit {
 
+  @Input() isFromParent: boolean = false; // true nếu mở từ cha và muốn khóa kho
   @Input() newProductGroup: ProductGroup = {
     ProductGroupID: '',
     ProductGroupName: '',
@@ -68,19 +69,25 @@ export class ProductGroupDetailComponent implements OnInit, AfterViewInit {
   ) { }
 
   ngOnInit(): void {
-    this.getdataWH()
+    this.getdataWH();
+    this.getdataEmployee();
+    //truowngf hopj update
     if(this.isCheckmode==true){
       this.productsaleService.getdataProductGroupbyID(this.id).subscribe({
         next: (res) => {
           if (res?.data) {
             const data = Array.isArray(res.data) ? res.data[0] : res.data;
-            this.newProductGroup = {
-              ProductGroupID: data.ProductGroupID,
-              ProductGroupName: data.ProductGroupName,
-              EmployeeID: data.EmployeeID,
-              IsVisible: data.IsVisible,
-              WareHouseID: data.WarehouseID
-            };
+    
+            // Chỉ cập nhật các trường không ảnh hưởng đến dữ liệu từ cha
+            this.newProductGroup.ProductGroupID = data.ProductGroupID;
+            this.newProductGroup.ProductGroupName = data.ProductGroupName;
+            this.newProductGroup.IsVisible = data.IsVisible;
+    
+            // Nếu không truyền từ cha thì mới gán EmployeeID và WarehouseID
+            if (!this.isFromParent) {
+              this.newProductGroup.EmployeeID = data.EmployeeID;
+              this.newProductGroup.WareHouseID = data.WarehouseID;
+            }
           } else {
             this.notification.warning('Thông báo', res.message || 'Không thể lấy thông tin nhóm!');
           }
@@ -91,6 +98,7 @@ export class ProductGroupDetailComponent implements OnInit, AfterViewInit {
         }
       });
     }
+    
     else{
       this.newProductGroup = {
         ProductGroupID: '',
@@ -190,6 +198,18 @@ export class ProductGroupDetailComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         console.error('Lỗi khi lấy dữ liệu', err);
+      }
+    });
+  }
+  getdataEmployee() {
+    this.productsaleService.getdataEmployee().subscribe({
+      next: (res) => {
+        if (res?.data) {
+          this.listEmployee = Array.isArray(res.data) ? res.data : [];
+        }
+      },
+      error: (err) => {
+        console.error('Lỗi khi lấy dữ liệu toàn bộ sản phẩm:', err);
       }
     });
   }

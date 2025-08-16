@@ -43,6 +43,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 })
 export class OfficeSupplyRequestSummaryComponent implements OnInit,AfterViewInit {
   datatable: any[] = [];
+  
   table: Tabulator | undefined;
   dataDeparment: any[] = [];
   searchParams = {
@@ -83,9 +84,7 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit,AfterViewInit
   getDataOfficeSupplyRequestSummary(): void {
     const selectedYear = this.searchParams.month ? this.searchParams.month.getFullYear() : new Date().getFullYear();
     const selectedMonth = this.searchParams.month ? this.searchParams.month.getMonth() + 1 : new Date().getMonth() + 1;
-    
     const departmentId = this.searchParams.departmentId || 0;
-    
     console.log('Search params:', this.searchParams);
     this.officeSupplyRequestSummaryService.getdataOfficeSupplyRequestSummary(
     departmentId,
@@ -97,9 +96,9 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit,AfterViewInit
         this.datatable = res.data;
         console.log('Danh sách VPP:', this.datatable);
         if (this.table) {
-          console.log('Cập nhật dữ liệu bảng');
+        
           this.table.setData(this.datatable).then(() => {
-            console.log('Dữ liệu đã được cập nhật');
+          
           }).catch(error => {
             console.error('Lỗi khi cập nhật dữ liệu:', error);
           });

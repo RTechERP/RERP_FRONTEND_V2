@@ -16,17 +16,11 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { TabulatorFull as Tabulator, CellComponent, ColumnDefinition, RowComponent } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import { ApplicationRef, createComponent, Type } from '@angular/core';
-import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
-import { EnvironmentInjector } from '@angular/core';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
-import { NzUploadBtnComponent } from 'ng-zorro-antd/upload';
-import { NzUploadFile } from 'ng-zorro-antd/upload';
 import { DateTime } from 'luxon';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { TbProductGroupRtcFormComponent } from './tb-product-group-rtc-form/tb-product-group-rtc-form.component';
@@ -59,7 +53,6 @@ import { TbProductRtcImportExcelComponent } from './tb-product-rtc-import-excel/
     NzTableModule,
     NzTabsModule,
     NgbModalModule,
-
   ],
   selector: 'app-tb-product-rtc',
   templateUrl: './tb-product-rtc.component.html',
@@ -82,6 +75,8 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
   warehouseID: number = 0;
   productRTCID: number = 0;
   productGroupNo: string = "";
+  Size: number = 100000;
+  Page: number = 1;
   searchMode: string = 'group';
   modalData: any = [];
   private ngbModal = inject(NgbModal);
@@ -94,7 +89,6 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
   getGroup() {
     this.tbProductRtcService.getProductRTCGroup().subscribe((resppon: any) => {
       this.productGroupData = resppon.data;
-      console.log("Group", this.productGroupData);
     });
   }
   getProduct() {
@@ -104,7 +98,9 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
       checkAll: 1,
       warehouseID: this.warehouseID || 0,
       productRTCID: this.productRTCID || 0,
-      productGroupNo: this.productGroupNo || ""
+      productGroupNo: this.productGroupNo || "",
+      page: this.Page,
+      size: this.Size,
     };
     this.tbProductRtcService.getProductRTC(request).subscribe((response: any) => {
       this.productData = response.products || [];
@@ -131,76 +127,111 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
     this.isSearchVisible = !this.isSearchVisible;
   }
   drawTable() {
-    if (this.productTable) {
-      this.productTable.setData(this.productData)
-    }
-    else {
-      this.productTable = new Tabulator('#dataTableProduct', {
-        data: this.productData,
-        layout: "fitColumns",
-        pagination: true,
-        selectableRows: 5,
-        height: '86vh',
-        movableColumns: true,
-        paginationSize: 30,
-        paginationSizeSelector: [5, 10, 20, 50, 100],
-        reactiveData: true,
-        placeholder: 'Không có dữ liệu',
-        dataTree: true,
-        addRowPos: "bottom",
-        history: true,
-        columns: [
-          { title: "ID", field: "ID", visible: false },
-          { title: "STT", field: "STT", visible: false },
-          { title: "Mã sản phẩm", field: "ProductCode" },
-          { title: "Tên sản phẩm", field: "ProductName" },
-          { title: "Mã nhóm", field: "ProductGroupNo", visible: false },
-          { title: "Tên nhóm", field: "ProductGroupName" },
-          { title: "Mã nhóm RTC", field: "ProductGroupRTCID" , visible: false },
-          { title: "Code RTC", field: "ProductCodeRTC" },
-          { title: "Vị trí", field: "LocationName" },
-          { title: "ID vị trí", field: "ProductLocationID", visible: false },
-          { title: "Hãng", field: "Maker", visible: false },
-          { title: "Serial", field: "Serial" },
-          { title: "Serial Number", field: "SerialNumber" },
-          { title: "Part Number", field: "PartNumber" },
-          { title: "Đơn vị tính", field: "UnitCountName" },
-          { title: "UnitCountID", field: "UnitCountID", visible: false },
-          { title: "Số lượng", field: "Number", visible: false },
-          { title: "SL mượn", field: "NumberBorrowing", visible: false },
-          { title: "SL tồn kho", field: "NumberInStore", visible: false },
-          { title: "SL kiểm kê", field: "SLKiemKe", visible: false },
-          { title: "SL thực tế", field: "InventoryReal", visible: false },
-          { title: "Mượn KH?", field: "BorrowCustomer", formatter: "tickCross" },
-          { title: "Khách mượn", field: "BorrowCustomerText", visible: false },
-          { title: "Đã sử dụng?", field: "StatusProduct", formatter: "tickCross", visible: false },
-          { title: "Ghi chú", field: "Note" },
-          { title: "Người tạo", field: "CreatedBy", visible: false },
-          { title: "Ngày tạo", field: "CreateDate", formatter: "datetime", formatterParams: { outputFormat: "DD/MM/YYYY HH:mm" }, visible: false },
-          { title: "Lens Mount", field: "LensMount", visible: false },
-          { title: "Focal Length", field: "FocalLength", visible: false },
-          { title: "MOD", field: "MOD", visible: false },
-          { title: "Magnification", field: "Magnification", visible: false },
-          { title: "Sensor Size", field: "SensorSize", visible: false },
-          { title: "Sensor Size Max", field: "SensorSizeMax", visible: false },
-          { title: "Resolution", field: "Resolution", visible: false },
-          { title: "Shutter Mode", field: "ShutterMode", visible: false },
-          { title: "Mono/Color", field: "MonoColor", visible: false },
-          { title: "Pixel Size", field: "PixelSize", visible: false },
-          { title: "Lamp Type", field: "LampType", visible: false },
-          { title: "Lamp Power", field: "LampPower", visible: false },
-          { title: "Lamp Wattage", field: "LampWattage", visible: false },
-          { title: "Lamp Color", field: "LampColor", visible: false },
-          { title: "Data Interface", field: "DataInterface", visible: false },
-          { title: "Input Value", field: "InputValue", visible: false },
-          { title: "Output Value", field: "OutputValue", visible: false },
-          { title: "Current Intensity Max", field: "CurrentIntensityMax" , visible: false},
-          { title: "Size", field: "Size", visible: false },
-          { title: "Ảnh vị trí", field: "LocationImg", visible: false },
-          { title: "AddressBox", field: "AddressBox", visible: false }
-        ]
-      });
-    }
+    this.productTable = new Tabulator('#dataTableProduct', {
+      layout: "fitDataStretch",
+      pagination: true,
+      selectableRows: 5,
+      height: '86vh',
+      ajaxURL: this.tbProductRtcService.getProductAjax(),
+      ajaxConfig: "POST",
+      paginationMode: 'remote',
+      columnDefaults: {
+        headerWordWrap: true,
+        headerVertical: false,
+        headerHozAlign: "center",
+        minWidth: 60,
+        resizable: true
+      },
+      movableColumns: true,
+      paginationSize: 30,
+      paginationSizeSelector: [5, 10, 20, 50, 100],
+      reactiveData: true,
+      ajaxRequestFunc: (url, config, params) => {
+        const request = {
+          productGroupID: this.productGroupID || 0,
+          keyWord: this.keyWord || "",
+          checkAll: 1,
+          warehouseID: this.warehouseID || 0,
+          productRTCID: this.productRTCID || 0,
+          productGroupNo: this.productGroupNo || "",
+          page: params.page || 1,
+          size: params.size || 30,
+        };
+        console.log("POST Request:", request);
+        return this.tbProductRtcService.getProductRTC(request).toPromise();
+      },
+      ajaxResponse: (url, params, response) => {
+        return {
+          data: response.products || [],
+          last_page: response.TotalPage?.[0]?.TotalPage || 1
+        };
+      },
+      placeholder: 'Không có dữ liệu',
+      langs: {
+        vi: {
+          pagination: {
+            first: '<<',
+            last: '>>',
+            prev: '<',
+            next: '>',
+          },
+        },
+      },
+      locale: 'vi',
+      dataTree: true,
+      addRowPos: "bottom",
+      history: true,
+      columns: [
+        { title: "ID", field: "ID", visible: false },
+        { title: "STT", field: "STT", visible: false },
+        { title: "Mã sản phẩm", field: "ProductCode" },
+        { title: "Tên sản phẩm", field: "ProductName" },
+        { title: "Mã nhóm", field: "ProductGroupNo", visible: false },
+        { title: "Tên nhóm", field: "ProductGroupName" },
+        { title: "Mã nhóm RTC", field: "ProductGroupRTCID", visible: false },
+        { title: "Code RTC", field: "ProductCodeRTC" },
+        { title: "Vị trí", field: "LocationName" },
+        { title: "ID vị trí", field: "ProductLocationID", visible: false },
+        { title: "Hãng", field: "Maker", visible: false },
+        { title: "Serial", field: "Serial" },
+        { title: "Serial Number", field: "SerialNumber" },
+        { title: "Part Number", field: "PartNumber" },
+        { title: "Đơn vị tính", field: "UnitCountName" },
+        { title: "UnitCountID", field: "UnitCountID", visible: false },
+        { title: "Số lượng", field: "Number", visible: false },
+        { title: "SL mượn", field: "NumberBorrowing", visible: false },
+        { title: "SL tồn kho", field: "NumberInStore", visible: false },
+        { title: "SL kiểm kê", field: "SLKiemKe", visible: false },
+        { title: "SL thực tế", field: "InventoryReal", visible: false },
+        { title: "Mượn KH?", field: "BorrowCustomer", formatter: "tickCross" },
+        { title: "Khách mượn", field: "BorrowCustomerText", visible: false },
+        { title: "Đã sử dụng?", field: "StatusProduct", formatter: "tickCross", visible: false },
+        { title: "Ghi chú", field: "Note" },
+        { title: "Người tạo", field: "CreatedBy", visible: false },
+        { title: "Ngày tạo", field: "CreateDate", formatter: "datetime", formatterParams: { outputFormat: "DD/MM/YYYY HH:mm" }, visible: false },
+        { title: "Lens Mount", field: "LensMount", visible: false },
+        { title: "Focal Length", field: "FocalLength", visible: false },
+        { title: "MOD", field: "MOD", visible: false },
+        { title: "Magnification", field: "Magnification", visible: false },
+        { title: "Sensor Size", field: "SensorSize", visible: false },
+        { title: "Sensor Size Max", field: "SensorSizeMax", visible: false },
+        { title: "Resolution", field: "Resolution", visible: false },
+        { title: "Shutter Mode", field: "ShutterMode", visible: false },
+        { title: "Mono/Color", field: "MonoColor", visible: false },
+        { title: "Pixel Size", field: "PixelSize", visible: false },
+        { title: "Lamp Type", field: "LampType", visible: false },
+        { title: "Lamp Power", field: "LampPower", visible: false },
+        { title: "Lamp Wattage", field: "LampWattage", visible: false },
+        { title: "Lamp Color", field: "LampColor", visible: false },
+        { title: "Data Interface", field: "DataInterface", visible: false },
+        { title: "Input Value", field: "InputValue", visible: false },
+        { title: "Output Value", field: "OutputValue", visible: false },
+        { title: "Current Intensity Max", field: "CurrentIntensityMax", visible: false },
+        { title: "Size", field: "Size", visible: false },
+        { title: "Ảnh vị trí", field: "LocationImg", visible: false },
+        { title: "AddressBox", field: "AddressBox", visible: false }
+      ]
+    });
   }
   onAddProduct() {
     const modalRef = this.ngbModal.open(TbProductGroupRtcFormComponent, {
@@ -302,13 +333,13 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
     });
   }
   openModalImportExcel() {
-      const modalRef = this.ngbModal.open(TbProductRtcImportExcelComponent, {
-        centered: true,
-        backdrop: 'static',
-        keyboard: false,
-     windowClass: 'full-screen-modal',
-      });
-    }
+    const modalRef = this.ngbModal.open(TbProductRtcImportExcelComponent, {
+      centered: true,
+      backdrop: 'static',
+      keyboard: false,
+      windowClass: 'full-screen-modal',
+    });
+  }
   onAddProducRTC() {
     const selectedGroup = this.productGroupID;
     const modalRef = this.ngbModal.open(TbProductRtcFormComponent, {
@@ -355,71 +386,71 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
     );
   }
   async exportToExcelProduct() {
-  if (!this.productTable) return;
+    if (!this.productTable) return;
 
-  const selectedData = [...this.productData];
-  if (!selectedData || selectedData.length === 0) {
-    this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
-    return;
+    const selectedData = [...this.productData];
+    if (!selectedData || selectedData.length === 0) {
+      this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
+      return;
+    }
+
+    const ExcelJS = await import('exceljs');
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Danh sách thiết bị');
+
+    const columns = this.productTable.getColumnDefinitions().filter((col: any) =>
+      col.visible !== false && col.field && col.field.trim() !== ''
+    );
+
+    const headerRow = worksheet.addRow(columns.map(col => col.title || col.field));
+    headerRow.font = { bold: true };
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFE0E0E0' },
+    };
+
+    selectedData.forEach((row: any) => {
+      const rowData = columns.map((col: any) => {
+        const value = row[col.field];
+        switch (col.field) {
+          case 'BorrowCustomer':
+            return value ? 'Có' : 'Không';
+          case 'CreateDate':
+            return value ? new Date(value).toLocaleDateString('vi-VN') : '';
+          default:
+            return value !== null && value !== undefined ? value : '';
+        }
+      });
+      worksheet.addRow(rowData);
+    });
+    worksheet.columns.forEach((col) => {
+      col.width = 20;
+    });
+
+    worksheet.eachRow((row, rowNumber) => {
+      row.eachCell((cell) => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+        };
+        if (rowNumber === 1) {
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        }
+      });
+    });
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `danh-sach-thiet-bi-${new Date().toISOString().split('T')[0]}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
   }
-
-  const ExcelJS = await import('exceljs');
-  const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet('Danh sách thiết bị');
-
-  const columns = this.productTable.getColumnDefinitions().filter((col: any) =>
-    col.visible !== false && col.field && col.field.trim() !== ''
-  );
-
-  const headerRow = worksheet.addRow(columns.map(col => col.title || col.field));
-  headerRow.font = { bold: true };
-  headerRow.fill = {
-    type: 'pattern',
-    pattern: 'solid',
-    fgColor: { argb: 'FFE0E0E0' },
-  };
-
-  selectedData.forEach((row: any) => {
-    const rowData = columns.map((col: any) => {
-      const value = row[col.field];
-      switch (col.field) {
-        case 'BorrowCustomer':
-          return value ? 'Có' : 'Không';
-        case 'CreateDate':
-          return value ? new Date(value).toLocaleDateString('vi-VN') : '';
-        default:
-          return value !== null && value !== undefined ? value : '';
-      }
-    });
-    worksheet.addRow(rowData);
-  });
-  worksheet.columns.forEach((col) => {
-    col.width = 20;
-  });
-
-  worksheet.eachRow((row, rowNumber) => {
-    row.eachCell((cell) => {
-      cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' },
-      };
-      if (rowNumber === 1) {
-        cell.alignment = { horizontal: 'center', vertical: 'middle' };
-      }
-    });
-  });
-  const buffer = await workbook.xlsx.writeBuffer();
-  const blob = new Blob([buffer], {
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `danh-sach-thiet-bi-${new Date().toISOString().split('T')[0]}.xlsx`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(link.href);
-}
 }

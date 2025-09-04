@@ -1,8 +1,8 @@
-import { NzNotificationService } from 'ng-zorro-antd/notification'
 import { Component, OnInit, Input, Output, EventEmitter, inject, AfterViewInit } from '@angular/core';
-import { DateTime } from 'luxon';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -12,15 +12,15 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzModalModule } from 'ng-zorro-antd/modal';
-import { Tabulator } from 'tabulator-tables';
+import { NzFormModule } from 'ng-zorro-antd/form';
 import { TbProductRtcService } from '../tb-product-rtc-service/tb-product-rtc.service';
 
-import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 @Component({
   standalone: true,
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     NzTabsModule,
     NzSelectModule,
     NzGridModule,
@@ -29,6 +29,7 @@ import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
     NzInputModule,
     NzButtonModule,
     NzModalModule,
+    NzFormModule
   ],
   selector: 'app-tb-product-group-rtc-form',
   templateUrl: './tb-product-group-rtc-form.component.html',
@@ -38,51 +39,61 @@ export class TbProductGroupRtcFormComponent implements OnInit, AfterViewInit {
   @Input() dataInput: any;
   @Output() closeModal = new EventEmitter<void>();
   @Output() formSubmitted = new EventEmitter<void>();
-  productGroupData: any[] = [];
-productCode:string="";
-  constructor(private notification: NzNotificationService,
-    private tbProductRtcService: TbProductRtcService
-  ) { }
-  public activeModal = inject(NgbActiveModal);
-  ngOnInit() {
-    console.log(this.dataInput);
-  }
-  ngAfterViewInit(): void {
 
-  }
-  getGroup() {
-    this.tbProductRtcService.getProductRTCGroup().subscribe((resppon: any) => {
-      this.productGroupData = resppon.data;
-      console.log("Group", this.productGroupData);
+  formGroup: FormGroup;
+  public activeModal = inject(NgbActiveModal);
+
+  constructor(
+    private fb: FormBuilder,
+    private notification: NzNotificationService,
+    private tbProductRtcService: TbProductRtcService
+  ) {
+    this.formGroup = this.fb.group({
+      NumberOrder: [null, [Validators.required]],
+      ProductGroupNo: ['', [Validators.required, Validators.maxLength(20)]],
+      ProductGroupName: ['', [Validators.required, Validators.maxLength(100)]]
     });
   }
 
+  ngOnInit() {
+    if (this.dataInput) {
+      this.formGroup.patchValue(this.dataInput);
+    }
+  }
+
+  ngAfterViewInit(): void {}
+
   saveProduct() {
-    if (!this.dataInput.ProductGroupName.trim()) return;
+    if (this.formGroup.invalid) {
+      this.formGroup.markAllAsTouched();
+      return;
+    }
+
+    const formValue = this.formGroup.value;
     const payload = {
       productGroupRTC: {
-        ID: this.dataInput.ID || 0,
-        NumberOrder: this.dataInput.NumberOrder,
-        ProductGroupName: this.dataInput.ProductGroupName,
-        ProductGroupNo: this.dataInput.ProductGroupNo,
-        WarehouseID: this.dataInput.WarehouseID||1,
-        IsDeleted:false
+        ID: this.dataInput?.ID || 0,
+        NumberOrder: formValue.NumberOrder,
+        ProductGroupName: formValue.ProductGroupName,
+        ProductGroupNo: formValue.ProductGroupNo,
+        WarehouseID: this.dataInput?.WarehouseID || 1,
+        IsDeleted: false
       },
       productRTCs: []
     };
-    console.log("payload",payload);
+console.log("Payload", payload);
     this.tbProductRtcService.saveData(payload).subscribe({
       next: () => {
-         this.notification.success('Thành công', 'Sửa nhóm TB thành công');
-        this.getGroup();
+        this.notification.success('Thành công', 'Sửa nhóm TB thành công');
         this.formSubmitted.emit();
         this.activeModal.close(true);
       },
       error: () => {
-        console.error('Lỗi khi lưu đơn vị!');
+        this.notification.error('Lỗi', 'Không thể lưu nhóm TB');
       }
     });
   }
+
   close() {
     this.closeModal.emit();
     this.activeModal.dismiss('cancel');

@@ -55,8 +55,6 @@ import { AssetStatusService } from './ts-asset-status-service/ts-asset-status.se
     NzTableModule,
     NzTabsModule,
     NgbModalModule,
-    TsAssetStatusFormComponent,
-
   ],
   selector: 'app-ts-asset-status',
   templateUrl: './ts-asset-status.component.html',
@@ -80,9 +78,7 @@ export class TsAssetStatusComponent implements OnInit, AfterViewInit {
   getAssetStatus() {
     this.tsAssetService.getStatus().subscribe((resppon: any) => {
       this.assetStatusData = resppon.data;
-      console.log("Type", this.assetStatusData);
       this.drawTable();
-
     });
   }
   private drawTable(): void {
@@ -160,7 +156,6 @@ export class TsAssetStatusComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.dataInput = selecteStatus;
     modalRef.result.then(
       (result) => {
-        console.log('Modal closed with result:', result);
         this.drawTable();
       },
       () => {

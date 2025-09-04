@@ -1,38 +1,53 @@
 <div class="modal-header bg-primary p-2">
-  <h6 class="modal-title text-white" id="unitModalLabel">
-    Nhóm TB
-  </h6>
+  <h6 class="modal-title text-white">Nhóm TB</h6>
   <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
 </div>
+
 <div class="modal-body">
-  <form class="row g-3">
-    <div class="col-md-12">
-      <label for="unitNameInput" class="form-label">Số TB</label>
-      <nz-input-group >
-        <input id="unitNameInput" nz-input name="NumberOrder" [(ngModel)]="this.dataInput.NumberOrder" 
-          placeholder="Nhập STT" />
-      
-      </nz-input-group>
-    </div>
-       <div class="col-md-12">
-      <label for="unitNameInput" class="form-label">Mã TB </label>
-      <nz-input-group >
-        <input id="unitNameInput" nz-input name="ProductGroupNo" [(ngModel)]="this.dataInput.ProductGroupNo"
-          placeholder="Nhập mã TB" />
-      
-      </nz-input-group>
-    </div>
-       <div class="col-md-12">
-      <label for="unitNameInput" class="form-label">Tên TB</label>
-      <nz-input-group >
-        <input id="unitNameInput" nz-input name="ProductGroupName" [(ngModel)]="this.dataInput.ProductGroupName"
-          placeholder="Nhập tên TB" />
-      </nz-input-group>
-    </div>
+  <form [formGroup]="formGroup" class="row g-3">
+
+    <!-- Số TB -->
+    <nz-form-item class="col-md-12">
+      <nz-form-label [nzSpan]="24">Số TB</nz-form-label>
+      <nz-form-control
+        [nzSpan]="24"
+        [nzErrorTip]="formGroup.get('NumberOrder')?.invalid && (formGroup.get('NumberOrder')?.dirty || formGroup.get('NumberOrder')?.touched)
+          ? 'Vui lòng nhập số TB!'
+          : undefined">
+        <input nz-input type="number" placeholder="Nhập STT" formControlName="NumberOrder" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <!-- Mã TB -->
+    <nz-form-item class="col-md-12">
+      <nz-form-label [nzSpan]="24">Mã TB</nz-form-label>
+      <nz-form-control
+        [nzSpan]="24"
+        [nzErrorTip]="
+          formGroup.get('ProductGroupNo')?.hasError('required') && (formGroup.get('ProductGroupNo')?.dirty || formGroup.get('ProductGroupNo')?.touched)
+            ? 'Vui lòng nhập mã TB!'
+            : (formGroup.get('ProductGroupNo')?.hasError('maxlength') ? 'Mã TB tối đa 20 ký tự!' : undefined)">
+        <input nz-input placeholder="Nhập mã TB" formControlName="ProductGroupNo" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <!-- Tên TB -->
+    <nz-form-item class="col-md-12">
+      <nz-form-label [nzSpan]="24">Tên TB</nz-form-label>
+      <nz-form-control
+        [nzSpan]="24"
+        [nzErrorTip]="
+          formGroup.get('ProductGroupName')?.hasError('required') && (formGroup.get('ProductGroupName')?.dirty || formGroup.get('ProductGroupName')?.touched)
+            ? 'Vui lòng nhập tên TB!'
+            : (formGroup.get('ProductGroupName')?.hasError('maxlength') ? 'Tên TB tối đa 100 ký tự!' : undefined)">
+        <input nz-input placeholder="Nhập tên TB" formControlName="ProductGroupName" />
+      </nz-form-control>
+    </nz-form-item>
+
   </form>
 </div>
+
 <div class="modal-footer">
   <button nz-button nzType="default" (click)="close()">Đóng</button>
-  <button nz-button nzType="primary" (click)="saveProduct()">Lưu dữ liệu
-  </button>
+  <button nz-button nzType="primary" (click)="saveProduct()">Lưu dữ liệu</button>
 </div>

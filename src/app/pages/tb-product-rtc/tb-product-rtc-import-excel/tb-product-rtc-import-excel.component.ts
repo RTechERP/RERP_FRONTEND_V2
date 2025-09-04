@@ -8,38 +8,25 @@ import {
   inject,
   AfterViewInit
 } from '@angular/core';
+
 import { TabulatorFull as Tabulator, CellComponent, ColumnDefinition } from 'tabulator-tables';
 import * as ExcelJS from 'exceljs';
 import { DateTime } from 'luxon';
 import { CommonModule } from '@angular/common';
+import { firstValueFrom } from 'rxjs';
 import { FormsModule } from '@angular/forms';
-import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzSelectModule } from 'ng-zorro-antd/select';
-import { NzGridModule } from 'ng-zorro-antd/grid';
-import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzModalModule } from 'ng-zorro-antd/modal';
 import { TsAssetManagementPersonalService } from '../../ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
-import { NzUploadModule } from 'ng-zorro-antd/upload';
-import type { NzUploadFile } from 'ng-zorro-antd/upload';
 import { TbProductRtcService } from '../tb-product-rtc-service/tb-product-rtc.service';
 import { UnitService } from '../../ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
-import { log } from 'ng-zorro-antd/core/logger';
-import { NzFormModule } from 'ng-zorro-antd/form';
 export const SERVER_PATH = `D:\RTC_Sw\RTC\ProductRTC`;
-import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ReactiveFormsModule } from '@angular/forms';
 import { NzProgressModule } from 'ng-zorro-antd/progress';
-import { NzSplitterModule } from 'ng-zorro-antd/splitter';
-function formatDateCell(cell: CellComponent): string {
-  const val = cell.getValue();
-  return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
-}
+import { NzSplitterModule } from 'ng-zorro-antd/splitter';  
+
 function formatDate(value: any): string | null {
   if (!value) return null;
   // Cố gắng parse theo định dạng dd/M/yyyy hoặc dd/MM/yyyy
@@ -77,11 +64,11 @@ export class TbProductRtcImportExcelComponent implements OnInit {
   listMaker: any[] = [];
   listSourceAsset: any[] = [];
   listTypeAsset: any[] = [];
-    unitData: any[] = [];
+  unitData: any[] = [];
   firmData: any[] = [];
-  productData: any[] = [];
+
   locationData: any[] = [];
-    productGroupData: any[] = [];
+  productGroupData: any[] = [];
   // Biến hiển thị chính trên thanh tiến trình
   displayProgress: number = 0; // % hiển thị trên thanh
   displayText: string = '0/0'; // Text hiển thị trên thanh
@@ -91,21 +78,16 @@ export class TbProductRtcImportExcelComponent implements OnInit {
     private modalService: NgbModal,
     private unitService: UnitService,
     private tbProductRtcService: TbProductRtcService,
-    private tsAssetManagementPersonalService: TsAssetManagementPersonalService,
   ) { }
-
   ngOnInit() {
-    this.load();
-   
+    this.loadUnit();
   }
   drawTable() {
     if (!this.tableExcel) {
       this.tableExcel = new Tabulator('#datatableExcel', {
         data: this.dataTableExcel || [],
         layout: 'fitDataFill',
-        height: '650px',
-        pagination: true,
-        paginationSize: 50,
+        height: '680px',
         selectableRows: true,
         movableColumns: true,
         resizableRows: true,
@@ -194,8 +176,8 @@ export class TbProductRtcImportExcelComponent implements OnInit {
       console.log('Phần mở rộng:', fileExtension); // Log để kiểm tra
       if (fileExtension !== 'xlsx' && fileExtension !== 'xls') {
         this.notification.warning('Thông báo', 'Vui lòng chọn tệp Excel (.xlsx hoặc .xls)!');
-        input.value = ''; // Xóa input để có thể chọn lại file
-        this.resetExcelImportState(); // Reset trạng thái khi có lỗi định dạng
+        input.value = '';
+        this.resetExcelImportState();
         return;
       }
       this.filePath = file.name;
@@ -204,7 +186,6 @@ export class TbProductRtcImportExcelComponent implements OnInit {
       this.dataTableExcel = [];
       this.totalRowsAfterFileRead = 0;
       this.processedRowsForSave = 0; // Reset cho giai đoạn lưu
-      // Đặt trạng thái ban đầu cho thanh tiến trình: Đang đọc file
       this.displayProgress = 0;
       this.displayText = 'Đang đọc file...';
       console.log('Progress bar state set to: Đang đọc file...'); // Log trạng thái ban đầu
@@ -213,28 +194,26 @@ export class TbProductRtcImportExcelComponent implements OnInit {
         if (event.lengthComputable) {
           this.displayProgress = Math.round((event.loaded / event.total) * 100);
           this.displayText = `Đang tải file: ${this.displayProgress}%`;
-          // console.log(`Tiến trình đọc file: ${this.displayProgress}%`); // Bỏ comment nếu muốn log chi tiết tiến trình tải
         }
       };
-      let startTime = Date.now(); // Ghi lại thời gian bắt đầu đọc file
+      let startTime = Date.now();
       reader.onload = async (e: any) => {
         const data = e.target.result;
         try {
           const workbook = new ExcelJS.Workbook();
           await workbook.xlsx.load(data);
-          console.log('Workbook đã được tải bởi ExcelJS.'); // Log
+          console.log('Workbook đã được tải bởi ExcelJS.');
           this.excelSheets = workbook.worksheets.map(sheet => sheet.name);
-          console.log('Danh sách sheets tìm thấy:', this.excelSheets); // Log
+          console.log('Danh sách sheets tìm thấy:', this.excelSheets);
           if (this.excelSheets.length > 0) {
             this.selectedSheet = this.excelSheets[0];
-            console.log('Sheet mặc định được chọn:', this.selectedSheet); // Log
+            console.log('Sheet mặc định được chọn:', this.selectedSheet);
             await this.readExcelData(workbook, this.selectedSheet);
             const elapsedTime = Date.now() - startTime;
-            const minDisplayTime = 500; // Thời gian hiển thị tối thiểu cho trạng thái tải (500ms)
+            const minDisplayTime = 500;
             if (elapsedTime < minDisplayTime) {
-              // Nếu quá trình xử lý nhanh hơn thời gian tối thiểu, đợi thêm
               setTimeout(() => {
-                this.displayProgress = 0; // Luôn hiển thị 0% cho trạng thái "0/tổng số dòng"
+                this.displayProgress = 0;
                 if (this.totalRowsAfterFileRead === 0) {
                   this.displayText = 'Không có dữ liệu hợp lệ trong sheet.';
                 } else {
@@ -260,11 +239,11 @@ export class TbProductRtcImportExcelComponent implements OnInit {
         } catch (error) {
           console.error('Lỗi khi đọc tệp Excel trong FileReader.onload:', error); // Log chi tiết lỗi
           this.notification.error('Thông báo', 'Không thể đọc tệp Excel. Vui lòng đảm bảo tệp không bị hỏng và đúng định dạng.');
-          this.resetExcelImportState(); // Reset trạng thái khi có lỗi
+          this.resetExcelImportState();
         }
-        input.value = ''; // Xóa input để có thể chọn lại cùng file
+        input.value = '';
       };
-      reader.readAsArrayBuffer(file); // Bắt đầu đọc file ngay lập tức
+      reader.readAsArrayBuffer(file);
     }
   }
   onSheetChange() {
@@ -280,14 +259,12 @@ export class TbProductRtcImportExcelComponent implements OnInit {
             const workbook = new ExcelJS.Workbook();
             await workbook.xlsx.load(data);
             await this.readExcelData(workbook, this.selectedSheet);
-            // Sau khi thay đổi sheet và đọc dữ liệu, đặt lại thanh tiến trình
             this.displayProgress = 0;
-            // displayText được cập nhật trong readExcelData
             console.log('Dữ liệu đã được đọc lại sau khi thay đổi sheet.'); // Log
           } catch (error) {
             console.error('Lỗi khi đọc tệp Excel khi thay đổi sheet:', error);
             this.notification.error('Thông báo', 'Không thể đọc dữ liệu từ sheet đã chọn!');
-            this.resetExcelImportState(); // Reset trạng thái khi có lỗi
+            this.resetExcelImportState();
           }
         };
         reader.readAsArrayBuffer(file);
@@ -313,102 +290,116 @@ export class TbProductRtcImportExcelComponent implements OnInit {
   closeExcelModal() {
     this.modalService.dismissAll(true);
   }
- async readExcelData(workbook: ExcelJS.Workbook, sheetName: string) {
-  console.log(`Bắt đầu đọc dữ liệu từ sheet: "${sheetName}"`);
-  try {
-    const worksheet = workbook.getWorksheet(sheetName);
-    if (!worksheet) throw new Error(`Sheet "${sheetName}" không tồn tại.`);
+  async readExcelData(workbook: ExcelJS.Workbook, sheetName: string) {
+    console.log(`Bắt đầu đọc dữ liệu từ sheet: "${sheetName}"`);
+    try {
+      const worksheet = workbook.getWorksheet(sheetName);
+      if (!worksheet) throw new Error(`Sheet "${sheetName}" không tồn tại.`);
 
-    const data: any[] = [];
-    let validRecords = 0;
+      const data: any[] = [];
+      let validRecords = 0;
 
-    worksheet.eachRow((row, rowNumber) => {
-      if (rowNumber <= 2) return;
+      worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber <= 2) return;
 
-      const firstCell = row.getCell(1).value;
-      if (!firstCell) return;
+        const firstCell = row.getCell(1).value;
+        if (!firstCell) return;
 
-      const getValue = (col: number) => row.getCell(col).value?.toString()?.trim() || '';
-      const getNumber = (col: number) => parseFloat(getValue(col)) || 0;
-      const getDate = (col: number) => formatDate(getValue(col));
-      const getBool = (col: number) => {
-        const val = getValue(col).toLowerCase();
-        return val === 'true' || val === '1' || val === 'x';
-      };
+        const getValue = (col: number) => row.getCell(col).value?.toString()?.trim() || '';
+        const getNumber = (col: number) => parseFloat(getValue(col)) || 0;
+        const getDate = (col: number) => formatDate(getValue(col));
+        const getBool = (col: number) => {
+          const val = getValue(col).toLowerCase();
+          return val === 'true' || val === '1' || val === 'x';
+        };
 
-      const rowData = {
-        ID: getValue(1),
-        ProductCode: getValue(2),
-        ProductName: getValue(3),
-        ProductGroupName: getValue(4),
-        ProductCodeRTC: getValue(5),
-        LocationName: getValue(6),
-        FirmName: getValue(7),
-        Serial: getValue(8),
-        SerialNumber: getValue(9),
-        PartNumber: getValue(10),
-        UnitName: getValue(11),
-        Number: getNumber(12),
-        NumberInStore: getNumber(13),
-        SLKiemKe: getNumber(14),
-        BorrowCustomer: getBool(15),
-        StatusProduct: getBool(16),
-        Note: getValue(17),
-        CreatedBy: getValue(18),
-        CreateDate: getDate(19),
-        LensMount: getValue(20),
-        FocalLength: getValue(21),
-        MOD: getValue(22),
-        Magnification: getValue(23),
-        SensorSize: getValue(24),
-        SensorSizeMax: getValue(25),
-        Resolution: getValue(26),
-        ShutterMode: getValue(27),
-        MonoColor: getValue(28),
-        PixelSize: getValue(29),
-        LampType: getValue(30),
-        LampPower: getValue(31),
-        LampWattage: getValue(32),
-        LampColor: getValue(33),
-        DataInterface: getValue(34),
-        InputValue: getValue(35),
-        OutputValue: getValue(36),
-        CurrentIntensityMax: getValue(37),
-        Size: getValue(38),
-        LocationImg: getValue(39),
-        AddressBox: getValue(40),
-        WarehouseID: getValue(41),
-        FNo: getValue(42),
-        WD: getValue(43),
-        Status: getValue(44),
-        FirmID: getValue(45),
-        CodeHCM: getValue(46)
-      };
+        const rowData = {
+          ID: getValue(1),
+          ProductCode: getValue(2),
+          ProductName: getValue(3),
+          ProductGroupName: getValue(4),
+          ProductCodeRTC: getValue(5),
+          LocationName: getValue(6),
+          FirmName: getValue(7),
+          Serial: getValue(8),
+          SerialNumber: getValue(9),
+          PartNumber: getValue(10),
+          UnitName: getValue(11),
+          Number: getNumber(12),
+          NumberInStore: getNumber(13),
+          SLKiemKe: getNumber(14),
+          BorrowCustomer: getBool(15),
+          StatusProduct: getBool(16),
+          Note: getValue(17),
+          CreatedBy: getValue(18),
+          CreateDate: getDate(19),
+          LensMount: getValue(20),
+          FocalLength: getValue(21),
+          MOD: getValue(22),
+          Magnification: getValue(23),
+          SensorSize: getValue(24),
+          SensorSizeMax: getValue(25),
+          Resolution: getValue(26),
+          ShutterMode: getValue(27),
+          MonoColor: getValue(28),
+          PixelSize: getValue(29),
+          LampType: getValue(30),
+          LampPower: getValue(31),
+          LampWattage: getValue(32),
+          LampColor: getValue(33),
+          DataInterface: getValue(34),
+          InputValue: getValue(35),
+          OutputValue: getValue(36),
+          CurrentIntensityMax: getValue(37),
+          Size: getValue(38),
+          LocationImg: getValue(39),
+          AddressBox: getValue(40),
+          WarehouseID: getValue(41),
+          FNo: getValue(42),
+          WD: getValue(43),
+          Status: getValue(44),
+          FirmID: getValue(45),
+          CodeHCM: getValue(46)
+        };
 
-      data.push(rowData);
-      validRecords++;
+        data.push(rowData);
+        validRecords++;
+      });
+
+      this.dataTableExcel = data;
+      this.totalRowsAfterFileRead = validRecords;
+      this.displayProgress = 0;
+      this.displayText = validRecords === 0
+        ? 'Không có dữ liệu hợp lệ trong sheet.'
+        : `0/${validRecords} bản ghi`;
+
+      if (this.tableExcel) {
+        this.tableExcel.replaceData(data);
+      } else {
+        this.drawTable(); // drawTable nên đã cấu hình columns theo bảng bạn gửi
+      }
+
+      console.log(`Đã load ${validRecords} bản ghi hợp lệ.`);
+    } catch (error) {
+      console.error('Lỗi khi đọc dữ liệu từ sheet:', error);
+      this.notification.error('Thông báo', 'Không thể đọc dữ liệu từ sheet!');
+      this.resetExcelImportState();
+    }
+  }
+  checkDuplicateFromList(row: any, existingList: any[]): boolean {
+    const normalize = (val: any) => val?.toString().trim().toLowerCase();
+
+    const code = normalize(row.ProductCode);
+
+    const isDuplicate = existingList.some((item: any) => {
+      return (
+        (normalize(item.ProductCode) === code)
+
+      );
     });
 
-    this.dataTableExcel = data;
-    this.totalRowsAfterFileRead = validRecords;
-    this.displayProgress = 0;
-    this.displayText = validRecords === 0
-      ? 'Không có dữ liệu hợp lệ trong sheet.'
-      : `0/${validRecords} bản ghi`;
-
-    if (this.tableExcel) {
-      this.tableExcel.replaceData(data);
-    } else {
-      this.drawTable(); // drawTable nên đã cấu hình columns theo bảng bạn gửi
-    }
-
-    console.log(`Đã load ${validRecords} bản ghi hợp lệ.`);
-  } catch (error) {
-    console.error('Lỗi khi đọc dữ liệu từ sheet:', error);
-    this.notification.error('Thông báo', 'Không thể đọc dữ liệu từ sheet!');
-    this.resetExcelImportState();
+    return isDuplicate;
   }
-}
 
   async saveExcelData() {
     if (!this.dataTableExcel || this.dataTableExcel.length === 0) {
@@ -416,14 +407,27 @@ export class TbProductRtcImportExcelComponent implements OnInit {
       return;
     }
 
-    const validDataToSave = this.dataTableExcel.filter(row => {
-      return row.ProductCode && row.ProductName;
-    });
-
+    const validDataToSave = this.dataTableExcel.filter(row => row.ProductCode && row.ProductName);
     if (validDataToSave.length === 0) {
       this.notification.warning('Thông báo', 'Không có dữ liệu thiết bị hợp lệ để lưu!');
       this.displayProgress = 0;
       this.displayText = `0/${this.totalRowsAfterFileRead} bản ghi`;
+      return;
+    }
+
+    let existingList: any[] = [];
+    try {
+      const res: any = await firstValueFrom(this.tbProductRtcService.getProductRTC({
+        keyWord: ' ',
+        checkAll: 1,
+        productGroupID: 0,
+        warehouseID: 0,
+        productRTCID: 0,
+        productGroupNo: ''
+      }));
+      existingList = res?.products || [];
+    } catch (err) {
+      this.notification.error('Lỗi', 'Không thể lấy danh sách thiết bị để kiểm tra trùng');
       return;
     }
 
@@ -435,13 +439,38 @@ export class TbProductRtcImportExcelComponent implements OnInit {
     let successCount = 0;
     let errorCount = 0;
     let completedRequests = 0;
+    const errorRows: any[] = [];
 
     const saveOneByOne = (index: number) => {
       if (index >= totalToSave) {
+        if (errorCount > 0) {
+          this.dataTableExcel = errorRows;
+          this.tableExcel.replaceData(errorRows);
+        }
         this.showSaveSummary(successCount, errorCount, totalToSave);
         return;
       }
+
       const row = validDataToSave[index];
+
+      const isDuplicate = existingList.some((item) =>
+        item.ProductCode?.trim().toLowerCase() === row.ProductCode?.trim().toLowerCase());
+      if (isDuplicate) {
+        const productCode = row.ProductCode || '[Không có mã]';
+        this.notification.warning('Trùng mã', `Thiết bị với mã '${productCode}' đã tồn tại!`);
+
+        errorCount++;
+        errorRows.push(row); // giữ lại bản ghi lỗi
+
+        completedRequests++;
+        this.processedRowsForSave = completedRequests;
+        this.displayProgress = Math.round((completedRequests / totalToSave) * 100);
+        this.displayText = `Đang lưu: ${completedRequests}/${totalToSave} bản ghi`;
+
+        saveOneByOne(index + 1);
+        return;
+      }
+
 
       const productData = {
         productRTCs: [{
@@ -450,12 +479,12 @@ export class TbProductRtcImportExcelComponent implements OnInit {
           ProductCode: row.ProductCode || '',
           ProductName: row.ProductName || '',
           UnitCountID: this.getUnitIdByName(row.UnitName) || 0,
-          Number:  0,
-          Maker:row.FirmName || '',
+          Number: 0,
+          Maker: row.FirmName || '',
           AddressBox: row.AddressBox || '',
-           Note: row.Note || '',
+          Note: row.Note || '',
           StatusProduct: row.StatusProduct === true || row.StatusProduct === '1' ? true : false,
-           CreateDate: formatDate(row.CreateDate),
+          CreateDate: formatDate(row.CreateDate),
           NumberInStore: +row.NumberInStore || 0,
           Serial: row.Serial || '',
           SerialNumber: row.SerialNumber || '',
@@ -465,7 +494,7 @@ export class TbProductRtcImportExcelComponent implements OnInit {
           ProductCodeRTC: row.ProductCodeRTC || '',
           BorrowCustomer: row.BorrowCustomer === true || row.BorrowCustomer === '1' ? true : false,
           SLKiemKe: +row.SLKiemKe || 0,
-          ProductLocationID: this.getLocationIdByName(row.LocationName) || 0 ,
+          ProductLocationID: this.getLocationIdByName(row.LocationName) || 0,
           WarehouseID: +row.WarehouseID || 0,
           Resolution: row.Resolution || '',
           MonoColor: row.MonoColor || '',
@@ -493,7 +522,7 @@ export class TbProductRtcImportExcelComponent implements OnInit {
           CodeHCM: row.CodeHCM || ''
         }]
       };
-console.log(`Lưu thiết bị ${index + 1}:`, productData); 
+      console.log(`Lưu thiết bị ${index + 1}:`, productData);
       setTimeout(() => {
         this.tbProductRtcService.saveData(productData).subscribe({
           next: (res: any) => {
@@ -510,6 +539,7 @@ console.log(`Lưu thiết bị ${index + 1}:`, productData);
             saveOneByOne(index + 1);
           },
           error: (err) => {
+            this.notification.error('Lỗi', `Không thể lưu thiết bị: ${row.ProductCode}`);
             errorCount++;
             console.error(`Lỗi API khi lưu thiết bị ${index + 1}:`, err);
             completedRequests++;
@@ -525,54 +555,126 @@ console.log(`Lưu thiết bị ${index + 1}:`, productData);
     saveOneByOne(0);
   }
   showSaveSummary(successCount: number, errorCount: number, totalProducts: number) {
-    console.log('--- Hiển thị tóm tắt kết quả lưu ---');
-    console.log(`Tổng sản phẩm: ${totalProducts}, Thành công: ${successCount}, Thất bại: ${errorCount}`);
-
     if (errorCount === 0) {
       this.notification.success('Thông báo', `Đã lưu ${successCount} sản phẩm thành công`);
+      this.closeExcelModal(); // Chỉ đóng khi thành công hoàn toàn
     } else if (successCount === 0) {
       this.notification.error('Thông báo', `Lưu thất bại ${errorCount}/${totalProducts} sản phẩm`);
     } else {
-      this.notification.warning('Thông báo', `Đã lưu ${successCount} sản phẩm thành công, ${errorCount} sản phẩm thất bại`);
+      this.notification.warning('Thông báo', `Đã lưu ${successCount} sản phẩm, ${errorCount} sản phẩm thất bại`);
     }
-    this.closeExcelModal();
   }
-  private load()
-  {
-      this.unitService.getUnit().subscribe((res: any) => {
+
+  private loadUnit() {
+    this.unitService.getUnit().subscribe((res: any) => {
       this.unitData = res.data;
       console.log("unit:", this.unitData);
     });
-      this.tbProductRtcService.getFirm().subscribe((response: any) => {
+    this.tbProductRtcService.getFirm().subscribe((response: any) => {
       this.firmData = response.data;
       console.log("Firm:", this.firmData);
     });
-      this.tbProductRtcService.getLocation( 1).subscribe((response: any) => {
+    this.tbProductRtcService.getLocation(1).subscribe((response: any) => {
       this.locationData = response.data.location;
       console.log("Location", this.locationData);
     });
-        this.tbProductRtcService.getProductRTCGroup().subscribe((resppon: any) => {
+    this.tbProductRtcService.getProductRTCGroup().subscribe((resppon: any) => {
       this.productGroupData = resppon.data;
       console.log("Group", this.productGroupData);
     });
   }
-private getUnitIdByName(unitName: string): number {
-  const unit = this.unitData.find(u => u.UnitName === unitName);
-  return unit ? unit.ID : 0;
-}
+  private getUnitIdByName(unitName: string): number {
+    const unit = this.unitData.find(u => u.UnitName === unitName);
+    return unit ? unit.ID : 0;
+  }
 
-private getFirmIdByName(firmName: string): number {
-  const firm = this.firmData.find(f => f.FirmName === firmName);
-  return firm ? firm.ID : 0;
-}
+  private getFirmIdByName(firmName: string): number {
+    const firm = this.firmData.find(f => f.FirmName === firmName);
+    return firm ? firm.ID : 0;
+  }
 
-private getLocationIdByName(locationName: string): number {
-  const location = this.locationData.find(l => l.LocationName === locationName);
-  return location ? location.ID : 0;
-}
-private getProductGroupIdByName(ProductGroupName: string): number {
-  const group = this.productGroupData.find(g => g.ProductGroupName === ProductGroupName);
-  return group ? group.ID : 0;
-}
+  private getLocationIdByName(locationName: string): number {
+    const location = this.locationData.find(l => l.LocationName === locationName);
+    return location ? location.ID : 0;
+  }
+  private getProductGroupIdByName(ProductGroupName: string): number {
+    const group = this.productGroupData.find(g => g.ProductGroupName === ProductGroupName);
+    return group ? group.ID : 0;
+  }
+async exportToExcelProduct() {
+  if (!this.tableExcel) return;
 
+  const selectedData = [...this.dataTableExcel];
+  if (!selectedData || selectedData.length === 0) {
+    this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
+    return;
+  }
+
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Danh sách thiết bị');
+
+  const columns: ColumnDefinition[] = this.tableExcel
+    .getColumnDefinitions()
+    .filter((col: ColumnDefinition) =>
+      col.visible !== false && col.field && col.field.trim() !== ''
+    );
+
+  // Header
+  const headerRow = worksheet.addRow(columns.map(col => col.title || col.field));
+  headerRow.font = { bold: true };
+  headerRow.fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FFE0E0E0' },
+  };
+
+  // Data rows
+  selectedData.forEach((row: any) => {
+    const rowData = columns.map((col: ColumnDefinition) => {
+      const value = row[col.field as string]; // Cast để tránh lỗi
+      switch (col.field) {
+        case 'BorrowCustomer':
+          return value ? 'Có' : 'Không';
+        case 'CreateDate':
+          return value ? new Date(value).toLocaleDateString('vi-VN') : '';
+        default:
+          return value !== null && value !== undefined ? value : '';
+      }
+    });
+    worksheet.addRow(rowData);
+  });
+
+  // Column width
+  worksheet.columns.forEach(col => {
+    col.width = 20;
+  });
+
+  // Border + alignment
+  worksheet.eachRow((row, rowNumber) => {
+    row.eachCell(cell => {
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' },
+      };
+      if (rowNumber === 1) {
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      }
+    });
+  });
+
+  // Tạo và tải file
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `danh-sach-thiet-bi-loi-${new Date().toISOString().split('T')[0]}.xlsx`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
+}
 }

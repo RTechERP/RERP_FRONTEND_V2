@@ -79,14 +79,20 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
   locationData: any[] = [];
   ngAfterViewInit(): void {
   }
-  ngOnInit() {    
+  ngOnInit() {
     this.initForm();
-    this.patchFormData(this.dataInput);
-    console.log("jfdiqhfhqweifhqifhi", this.dataInput.ID),
+  if (!this.dataInput) {
+    this.dataInput = {}; 
+  }
+    if (this.dataInput) {
+      // Chế độ sửa
+      this.patchFormData(this.dataInput);
       this.dataInput.BorrowCustomer = this.dataInput.BorrowCustomer ?? false;
-    this.dataInput.CreateDate = this.formatDateForInput(this.dataInput.CreateDate);
-    console.log("Data input nhận được ", this.dataInput);
-    console.log("feaughfueagufhgeahfg", this.dataInput.ProductGroupRTCID);
+      this.dataInput.CreateDate = this.formatDateForInput(this.dataInput.CreateDate);
+    } else {
+      // Chế độ thêm mới
+      this.formDeviceInfo.reset();
+    }
     this.getProduct();
     this.getunit();
     this.getProductCode();
@@ -94,6 +100,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
     this.getFirm();
     this.getLocation();
   }
+
   getProduct() {
     const request = {
       productGroupID: 0,
@@ -147,7 +154,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       Size: [''],
       ProductGroupRTCID: [null, Validators.required],
       ProductLocationID: [null, Validators.required],
-    NumberInStore: [{ value: null, disabled: true }],
+      NumberInStore: [{ value: null, disabled: true }],
       LocationImg: ['']
     });
   }
@@ -169,25 +176,31 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       console.log("unit:", this.unitData);
     });
   }
-  getGroup() {
-    this.tbProductRtcService.getProductRTCGroup().subscribe((resppon: any) => {
-      this.productGroupData = resppon.data;
+ getGroup() {
+  this.tbProductRtcService.getProductRTCGroup().subscribe((resppon: any) => {
+    this.productGroupData = resppon.data;
 
-      setTimeout(() => {
-        const incomingID = +this.dataInput.ProductGroupRTCID;
-        const matched = this.productGroupData.find(x => x.ID === incomingID);
-        if (matched) {
-          this.dataInput.ProductGroupRTCID = matched.ID;
-        }
-      });
+    // Bảo vệ khi dataInput là null hoặc thiếu ProductGroupRTCID
+    const incomingID = +this.dataInput?.ProductGroupRTCID;
+    if (!incomingID) return;
+
+    setTimeout(() => {
+      const matched = this.productGroupData.find(x => x.ID === incomingID);
+      if (matched) {
+        this.dataInput.ProductGroupRTCID = matched.ID;
+      }
     });
-  }
-  getLocation() {
-    this.tbProductRtcService.getLocation(this.dataInput.WarehouseID || 1).subscribe((response: any) => {
-      this.locationData = response.data.location;
-      console.log("Location", this.locationData);
-    })
-  }
+  });
+}
+getLocation() {
+  const warehouseID = this.dataInput?.WarehouseID ?? 1;
+
+  this.tbProductRtcService.getLocation(warehouseID).subscribe((response: any) => {
+    this.locationData = response.data.location;
+    console.log("Location", this.locationData);
+  });
+}
+
   getFirm() {
     this.tbProductRtcService.getFirm().subscribe((response: any) => {
       this.firmData = response.data;
@@ -198,21 +211,29 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
     this.closeModal.emit();
     this.activeModal.dismiss('cancel');
   }
-  handleBeforeUpload = (file: NzUploadFile): boolean => {
-    const rawFile = file as any as File;
-    this.fileToUpload = rawFile;
+ handleBeforeUpload = (file: NzUploadFile): boolean => {
+  const rawFile = file as any as File;
+  this.fileToUpload = rawFile;
 
-    this.imageFileName = file.name;
+  this.imageFileName = file.name;
+
+  // Check null before set property
+  if (this.dataInput) {
     this.dataInput.LocationImg = file.name;
-
-    const reader = new FileReader();
-    reader.onload = (e: any) => {
-      this.previewImageUrl = e.target.result;
-    };
-    reader.readAsDataURL(rawFile);
-
+  } else {
+    this.notification.error('Lỗi', 'Dữ liệu chưa được khởi tạo. Không thể upload ảnh.');
     return false;
+  }
+
+  const reader = new FileReader();
+  reader.onload = (e: any) => {
+    this.previewImageUrl = e.target.result;
   };
+  reader.readAsDataURL(rawFile);
+
+  return false;
+};
+  
   validateField(fieldName: string) {
     const value = this.dataInput[fieldName];
     if (!value || value.toString().trim() === '') {
@@ -225,94 +246,163 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       console.log("Code", this.productCode);
     });
   }
+  checkDuplicateProduct(
+    productCode: string,
+    serialNumber: string,
+    serial: string,
+    partNumber: string,
+    currentProductID: number
+  ): Promise<boolean> {
+    const request = {
+      keyWord: " ",  // lấy tất cả
+      checkAll: 1,
+      productGroupID: 0,
+      warehouseID: 0,
+      productRTCID: 0,
+      productGroupNo: ''
+    };
+
+    return new Promise((resolve) => {
+      this.tbProductRtcService.getProductRTC(request).subscribe((response: any) => {
+        const list = response.products || [];
+        const isDuplicateCode = list.some(
+          (item: any) =>
+            item.ProductCode?.trim().toLowerCase() === productCode?.trim().toLowerCase() &&
+            item.ID !== currentProductID
+        );
+        const isDuplicateSerialNumber = list.some(
+          (item: any) =>
+            item.SerialNumber?.trim().toLowerCase() === serialNumber?.trim().toLowerCase() &&
+            item.ID !== currentProductID
+        );
+        const isDuplicateSerial = list.some(
+          (item: any) =>
+            item.Serial?.trim().toLowerCase() === serial?.trim().toLowerCase() &&
+            item.ID !== currentProductID
+        );
+
+        const isDuplicatePartNumber = list.some(
+          (item: any) =>
+            item.PartNumber?.trim().toLowerCase() === partNumber?.trim().toLowerCase() &&
+            item.ID !== currentProductID
+        );
+        // Hiển thị cảnh báo và set lỗi vào form
+        if (isDuplicateCode) {
+          this.notification.warning('Lỗi', `${productCode} đã tồn tại, không thể lưu`);
+          this.formDeviceInfo.get('ProductCode')?.setErrors({ duplicate: true });
+        }
+        if (isDuplicateSerialNumber) {
+          this.notification.warning('Lỗi', `${serialNumber} đã tồn tại (SerialNumber), không thể lưu`);
+          this.formDeviceInfo.get('SerialNumber')?.setErrors({ duplicate: true });
+        }
+        if (isDuplicateSerial) {
+          this.notification.warning('Lỗi', `${serial} đã tồn tại (Serial), không thể lưu`);
+          this.formDeviceInfo.get('Serial')?.setErrors({ duplicate: true });
+        }
+        if (isDuplicatePartNumber) {
+          this.notification.warning('Lỗi', `${partNumber} đã tồn tại (PartNumber), không thể lưu`);
+          this.formDeviceInfo.get('PartNumber')?.setErrors({ duplicate: true });
+        }
+        resolve(
+          isDuplicateCode ||
+          isDuplicateSerialNumber ||
+          isDuplicateSerial ||
+          isDuplicatePartNumber
+        );
+      }, _ => resolve(false));
+    });
+  }
+
+
+
 
   clearModal() {
-  this.dataInput = {
-    ID: 0,
-    ProductGroupRTCID: null,
-    ProductCode: '',
-    ProductName: '',
-    Maker: '',
-    UnitCountID: null,
-    Note: '',
-    Serial: '',
-    SerialNumber: '',
-    PartNumber: '',
-    LocationImg: '',
-    BorrowCustomer: '',
-    ProductLocationID: '',
-    Resolution: '',
-    MonoColor: '',
-    SensorSize: '',
-    DataInterface: '',
-    LensMount: '',
-    ShutterMode: '',
-    PixelSize: '',
-    SensorSizeMax: '',
-    MOD: '',
-    FNo: '',
-    WD: '',
-    LampType: '',
-    LampColor: '',
-    LampPower: '',
-    LampWattage: '',
-    Magnification: '',
-    FocalLength: '',
-    FirmID: null,
-    InputValue: '',
-    OutputValue: '',
-    CurrentIntensityMax: '',
-    Size: '',
-    CodeHCM: ''
-  };
-  this.formDeviceInfo.reset({
-    ProductGroupRTCID: null,
-    ProductCode: '',
-    ProductName: '',
-    PartNumber: '',
-    SerialNumber: '',
-    Serial: '',
-    SLKiemKe: '',
-    FirmID: null,
-    UnitCountID: null,
-    CreateDate: null,
-    CodeHCM: '',
-    BorrowCustomer: '',
-    Note: '',
-    Resolution: '',
-    MonoColor: '',
-    SensorSize: '',
-    DataInterface: '',
-    LensMount: '',
-    ShutterMode: '',
-    PixelSize: '',
-    SensorSizeMax: '',
-    MOD: '',
-    FNo: '',
-    WD: '',
-    LampType: '',
-    LampColor: '',
-    LampPower: '',
-    LampWattage: '',
-    Magnification: '',
-    FocalLength: '',
-    InputValue: '',
-    OutputValue: '',
-    CurrentIntensityMax: '',
-    Size: '',
-    ProductLocationID: null,
-    NumberInStore: null,
-    LocationImg: ''
-  });
-  this.formDeviceInfo.get('NumberInStore')?.disable();
-  this.formDeviceInfo.get('SLKiemKe')?.disable();
-  this.fileToUpload = null;
-  this.imageFileName = null;
-  this.previewImageUrl = null;
-  this.productCode = '';
-}
+    this.dataInput = {
+      ID: 0,
+      ProductGroupRTCID: null,
+      ProductCode: '',
+      ProductName: '',
+      Maker: '',
+      UnitCountID: null,
+      Note: '',
+      Serial: '',
+      SerialNumber: '',
+      PartNumber: '',
+      LocationImg: '',
+      BorrowCustomer: '',
+      ProductLocationID: '',
+      Resolution: '',
+      MonoColor: '',
+      SensorSize: '',
+      DataInterface: '',
+      LensMount: '',
+      ShutterMode: '',
+      PixelSize: '',
+      SensorSizeMax: '',
+      MOD: '',
+      FNo: '',
+      WD: '',
+      LampType: '',
+      LampColor: '',
+      LampPower: '',
+      LampWattage: '',
+      Magnification: '',
+      FocalLength: '',
+      FirmID: null,
+      InputValue: '',
+      OutputValue: '',
+      CurrentIntensityMax: '',
+      Size: '',
+      CodeHCM: ''
+    };
+    this.formDeviceInfo.reset({
+      ProductGroupRTCID: null,
+      ProductCode: '',
+      ProductName: '',
+      PartNumber: '',
+      SerialNumber: '',
+      Serial: '',
+      SLKiemKe: '',
+      FirmID: null,
+      UnitCountID: null,
+      CreateDate: null,
+      CodeHCM: '',
+      BorrowCustomer: '',
+      Note: '',
+      Resolution: '',
+      MonoColor: '',
+      SensorSize: '',
+      DataInterface: '',
+      LensMount: '',
+      ShutterMode: '',
+      PixelSize: '',
+      SensorSizeMax: '',
+      MOD: '',
+      FNo: '',
+      WD: '',
+      LampType: '',
+      LampColor: '',
+      LampPower: '',
+      LampWattage: '',
+      Magnification: '',
+      FocalLength: '',
+      InputValue: '',
+      OutputValue: '',
+      CurrentIntensityMax: '',
+      Size: '',
+      ProductLocationID: null,
+      NumberInStore: null,
+      LocationImg: ''
+    });
+    this.formDeviceInfo.get('NumberInStore')?.disable();
+    this.formDeviceInfo.get('SLKiemKe')?.disable();
+    this.fileToUpload = null;
+    this.imageFileName = null;
+    this.previewImageUrl = null;
+    this.productCode = '';
+  }
 
-  saveData() {
+  async saveData() {
     if (this.formDeviceInfo.invalid) {
       Object.values(this.formDeviceInfo.controls).forEach(control => {
         if (control.invalid) {
@@ -322,6 +412,11 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       });
       this.notification.warning('Cảnh báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
+    }
+    const formValue = this.formDeviceInfo.value;
+    const isDuplicate = await this.checkDuplicateProduct(formValue.ProductCode, formValue.SerialNumber, formValue.Serial, formValue.PartNumber,  0);
+    if (isDuplicate) {
+      return; // Ngừng lưu nếu bị trùng mã
     }
     if (this.fileToUpload) {
       this.tbProductRtcService.uploadImage(this.fileToUpload).subscribe({

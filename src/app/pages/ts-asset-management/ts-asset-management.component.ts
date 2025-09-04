@@ -27,7 +27,6 @@ import { EnvironmentInjector } from '@angular/core';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { TsAssetLiquidationComponent } from './ts-asset-liquidation/ts-asset-liquidation.component';
 import { DateTime } from 'luxon';
-declare var bootstrap: any;
 import * as ExcelJS from 'exceljs';
 import { TsAssetManagementPersonalService } from '../ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
 import { updateCSS } from 'ng-zorro-antd/core/util';
@@ -43,6 +42,7 @@ import { TsAssetManagementImportExcelComponent } from './ts-asset-management-imp
 import { TsAssetProposeLiquidationFormComponent } from './ts-asset-propose-liquidation-form/ts-asset-propose-liquidation-form.component';
 import { TsAssetRepairFormComponent } from './ts-asset-repair-form/ts-asset-repair-form.component';
 import { TsAssetReuseFormComponent } from './ts-asset-reuse-form/ts-asset-reuse-form.component';
+
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
@@ -132,7 +132,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       department: departmentString
     };
     this.assetManagementService.getAsset(request).subscribe({
-      next: (response: any) => {
+      next: (response) => {
         this.assetData = response.data?.assets || [];
         console.log(this.assetData);
         this.drawTable();

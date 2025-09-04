@@ -28,5 +28,9 @@ export class TsAssetTransferService {
       responseType: 'blob'
     });
   }
-
+  exportBillImportTechnical(request: any): Observable<Blob> {
+    return this.http.post(`${this.url}export-bill-import-technical`, request, {
+      responseType: 'blob'
+    });
+  }
 }

@@ -34,5 +34,7 @@ export class TbProductRtcService {
   formData.append('file', file);
   return this.http.post<any>(`${this.url}upload`, formData);
 }
-
+getProductAjax():string {
+  return `${this.url}get-productRTC`; 
+}
 }

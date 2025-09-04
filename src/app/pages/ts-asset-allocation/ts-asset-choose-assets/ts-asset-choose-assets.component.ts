@@ -252,7 +252,6 @@ export class TsAssetChooseAssetsComponent implements OnInit, AfterViewInit {
       this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một tài sản.');
       return;
     }
-
     const newRows = selectedRows.map(row => ({
       AssetManagementID: row.ID,
       TSAssetID: row.TSAssetID,

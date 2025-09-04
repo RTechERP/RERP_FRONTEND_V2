@@ -1,0 +1,98 @@
+<ng-container >
+  <nz-splitter style="height: 100%; ">
+    <nz-splitter-panel *ngIf="isSearchVisible" [nzSize]="'20%'" [nzResizable]="false">
+      <div class="card h-100 border-0 rounded-0">
+        <!-- Header -->
+        <div class="card-header bg-white p-1">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="m-0 ms-2">Tìm kiếm</h6>
+            <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+              (click)="toggleSearchPanel()">
+              <nz-icon nzType="close" nzTheme="outline"></nz-icon>
+            </button>
+          </div>
+        </div>
+        <!-- Body -->
+        <div class="card-body">
+          <form nz-form nzLayout="vertical">
+            <!-- Từ ngày -->
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-date-picker class="w-100" nzSize="small" [(ngModel)]="dateStart" name="dateStart"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+            <!-- Đến ngày -->
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-date-picker class="w-100" nzSize="small" [(ngModel)]="dateEnd" name="dateEnd"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item>
+              <nz-form-label [nzSpan]="24">Trạng thái duyệt</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select class="w-100" [(ngModel)]="selectedApproval" name="isApprovedStatus" nzAllowClear
+                  nzSize="small">
+                  <nz-option *ngFor="let item of statusData" [nzValue]="item.ID" [nzLabel]="item.Name"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <!-- Từ khóa -->
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <input nz-input placeholder="Nhập từ khóa" nzSize="small" [(ngModel)]="filterText" name="filterText" />
+              </nz-form-control>
+            </nz-form-item>
+          </form>
+        </div>
+        <!-- Footer -->
+        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end flex-wrap">
+          <button nz-button nzType="default" nzSize="small" >Đặt lại</button>
+        <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">Tìm kiếm</button>
+        </div>
+      </div>
+    </nz-splitter-panel>
+    <nz-splitter-panel [nzSize]="isSearchVisible ? '80%' : '100%'">
+      <div class="card  border-0 rounded-0">
+        <div class="card-header  bg-white p-1">
+          <div class="d-flex h-40  gap-1">
+            <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
+              <nz-icon nzType="search" />
+            </button>
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openModalImportExcel()">
+              <nz-icon nzType="plus" /> Thêm
+            </button>
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onEditBillImportTechnical()">
+              <nz-icon nzType="edit" nzTheme="fill" />Sửa
+            </button>
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onDeleteBillImportTechnical()">
+              <nz-icon nzType="delete" nzTheme="fill" />Xóa
+            </button>
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onApprove()" >
+              <nz-icon nzType="check" nzTheme="outline"></nz-icon> Duyệt
+            </button>
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onUnApprove()">
+              <nz-icon nzType="close" nzTheme="outline"></nz-icon> Hủy duyệt
+            </button>
+
+       
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportBillImportTechnicalExcel()" >
+              <nz-icon nzType="file-excel" nzTheme="outline" /> Xuất Phiếu
+            </button>
+          </div>
+        </div>
+
+        <nz-splitter style="height: 86vh;">
+          <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
+            <div id="dataTableBillImportTechnical" style="height: 100%;"></div>
+          </nz-splitter-panel>
+          <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" [nzSize]="sizeTbDetail">
+            <div id="databledetailta" style="height: 100%; "></div>
+          </nz-splitter-panel>
+        </nz-splitter>
+      </div>
+    </nz-splitter-panel>
+  </nz-splitter>
+</ng-container>

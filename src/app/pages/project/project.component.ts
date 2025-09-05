@@ -75,7 +75,6 @@ import { CommonModule } from '@angular/common';
   encapsulation: ViewEncapsulation.None,
 })
 export class ProjectComponent implements OnInit, AfterViewInit {
-
   // Khai báo format ngày giờ
   /**
    console.log(now.toFormat('yyyy-MM-dd')); // 👉 2025-06-05
@@ -152,15 +151,19 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       if (Number(id) == 2) {
         this.isHide = false;
         this.projectTypeIds = [2];
-        this.drawTbProjects(this.tb_projectsContainer.nativeElement);
-        this.drawTbProjectTypeLinks(this.tb_projectTypeLinkContainer.nativeElement);
+        // this.drawTbProjects(this.tb_projectsContainer.nativeElement);
+        // this.drawTbProjectTypeLinks(
+        //   this.tb_projectTypeLinkContainer.nativeElement
+        // );
       } else {
         this.isHide = true;
         this.projectTypeIds = [];
-        this.drawTbProjects(this.tb_projectsContainer.nativeElement);
-        this.drawTbProjectTypeLinks(this.tb_projectTypeLinkContainer.nativeElement);
+        // this.drawTbProjects(this.tb_projectsContainer.nativeElement);
+        // this.drawTbProjectTypeLinks(
+        //   this.tb_projectTypeLinkContainer.nativeElement
+        // );
       }
-      console.log(this.isHide);
+      //   console.log(this.isHide);
     });
   }
 
@@ -178,7 +181,6 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     this.getProjectTypes();
     this.getProjectStatus();
   }
-
 
   onChange(val: string) {
     this.valueChange.emit(val);
@@ -207,7 +209,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           },
         })),
       },
-      { 
+      {
         label:
           '<span style="font-size: 0.75rem;"><i class="fas fa-file-excel"></i> Xuất excel</span>',
         action: (e: any, row: any) => {
@@ -653,6 +655,8 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           field: 'Mission',
           headerHozAlign: 'center',
           width: 100,
+          editor: true,
+          formatter: 'textarea',
         },
         {
           title: 'Người giao việc',

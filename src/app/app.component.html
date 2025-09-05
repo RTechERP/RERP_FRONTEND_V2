@@ -1,227 +1,147 @@
 <nz-layout class="app-layout">
+    <nz-sider class="menu-sidebar" nzCollapsible nzWidth="256px" nzBreakpoint="md" [(nzCollapsed)]="isCollapsed"
+        [nzTrigger]="null" nzTheme="light">
+        <div class="sidebar-logo" nzTheme="light">
+            <a href="/welcome">
+                <img src="assets\logo-RTC-2023-1200-banchuan.png" alt="logo" />
+                <!-- <h1>RTC</h1> -->
+            </a>
+        </div>
+        <ul nz-menu nzTheme="light" nzMode="inline" [nzInlineCollapsed]="false">
 
-  <nz-sider
-    class="menu-sidebar"
-    nzCollapsible
-    nzWidth="256px"
-    nzBreakpoint="md"
-    [(nzCollapsed)]="isCollapsed"
-    [nzTrigger]="null"
-  >
-    <div class="sidebar-logo">
-      <a href="/welcome">
-        <img src="https://ng.ant.design/assets/img/logo.svg" alt="logo" />
-        <h1>RTC</h1>
-      </a>
-    </div>
-    <ul
-      nz-menu
-      nzTheme="dark"
-      nzMode="inline"
-      [nzInlineCollapsed]="isCollapsed"
-    >
-      <li nz-submenu nzOpen nzTitle="Dashboard" nzIcon="dashboard">
-        <ul>
-          <li nz-menu-item nzMatchRouter>
-            <a (click)="newTab(['/welcome'])">Welcome</a>
-          </li>
-          <li nz-menu-item nzMatchRouter>
-            <a (click)="newTab(['/project/0'])">Dự án</a>
-          </li>
-          <li nz-menu-item nzMatchRouter>
-            <a (click)="newTab(['/projectWorkCategory'])">Hạng mục dự án</a>
-          </li>
-          <li nz-menu-item nzMatchRouter>
-            <a (click)="newTab(['/projectWorkPropress/0'])"
-              >Tiến độ công việc</a
-            >
-          </li>
-          <li nz-menu-item nzMatchRouter>
-            <a (click)="newTab(['/projectWorkTimeline'])">Timeline công việc</a>
-          </li>
-          <li nz-menu-item nzMatchRouter>
-            <a (click)="newTab(['/projectSurvey'])">Khảo sát dự án</a>
-          </li>
-          <li nz-menu-item nzMatchRouter>
-            <a (click)="newTab(['/projectItemlate'])"
-              >Hạng mục công việc chậm tiến độ</a
-            >
-          </li>
-          <li nz-menu-item nzMatchRouter>
-            <a (click)="newTab(['/project/2'])">Tổng hợp dự án AGV</a>
-          </li>
-          <li nz-menu-item nzMatchRouter>
-            <a (click)="newTab(['/projectWorkItemTimeline'])"
-              >Timeline hạng mục công việc</a
-            >
-          </li>
-          <li nz-menu-item nzMatchRouter>
-            <a (click)="newTab(['/synthesisOfGeneratedMaterials'])"
-              >Tổng hợp vật tư phát sinh</a
-            >
-          </li>
-          <li nz-menu-item nzMatchRouter>
-            <a (click)="newTab(['/projectSynthesisDepartment'])"
-              >Tổng hợp dự án phòng ban</a
-            >
-          </li>
-          <!-- <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/welcome'])">Workplace</a>
-                    </li>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/welcome'])">Welcome</a>
-                    </li>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/employees'])">Monitor</a>
-                    </li>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/welcome'])">Workplace</a>
-                    </li>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/welcome'])">Welcome</a>
-                    </li>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/employees'])">Monitor</a>
-                    </li>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/welcome'])">Workplace</a>
-                    </li>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/welcome'])">Welcome</a>
-                    </li>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/employees'])">Monitor</a>
-                    </li>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/welcome'])">Workplace</a>
-                    </li>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/welcome'])">Welcome</a>
-                    </li>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/employees'])">Monitor</a>
-                    </li>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/welcome'])">Workplace</a>
-                    </li>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/welcome'])">Welcome</a>
-                    </li>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/employees'])">Monitor</a>
-                    </li>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/welcome'])">Workplace</a>
+            <li nz-submenu nzOpen nzTitle="DỰ ÁN" nzIcon="dashboard">
+                <ul>
+                    <!-- <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/welcome'],'Yêu cầu báo giá')">Welcome</a>
                     </li> -->
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/project/0'],'Dự án')">Dự án</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/projectWorkCategory'],'Hạng mục dự án')">Hạng mục dự án</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/projectWorkPropress/0'],'Tiến độ công việc')">Tiến độ công việc</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/projectWorkTimeline'],'Timeline công việc')">Timeline công việc</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/projectSurvey'],'Khảo sát dự án')">Khảo sát dự án</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/projectItemlate'],'Hạng mục công việc chậm tiến độ')">Hạng mục công việc
+                            chậm tiến độ</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/project/2'],'Tổng hợp dự án AGV')">Tổng hợp dự án AGV</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/projectWorkItemTimeline'],'Timeline hạng mục công việc')">Timeline hạng
+                            mục công việc</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/synthesisOfGeneratedMaterials'],'Tổng hợp vật tư phát sinh')">Tổng hợp vật
+                            tư phát sinh</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/projectSynthesisDepartment'],'Tổng hợp dự án phòng ban')">Tổng hợp dự án
+                            phòng ban</a>
+                    </li>
+
+                </ul>
+            </li>
+
+            <li nz-submenu nzOpen nzTitle="{{menu.MenuName}}" nzIcon="dashboard">
+                <ul>
+                    <!-- <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['project-partlist-price-request'],'Yêu cầu báo giá')">Yêu cầu báo giá</a>
+                    </li> -->
+                    <!-- @for (item of menu.MenuChilds; track item.ID) {
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab([item.Link],item.MenuName)">{{item.MenuName}}</a>
+                    </li>
+                    } -->
+                </ul>
+            </li>
         </ul>
-      </li>
-      <li nz-submenu nzOpen nzTitle="Form" nzIcon="form">
-        <ul>
-          <li nz-menu-item nzMatchRouter>
-            <a>Basic Form</a>
-          </li>
-        </ul>
-      </li>
-    </ul>
-  </nz-sider>
-  <nz-layout>
-    <!-- <nz-header>
+    </nz-sider>
+    <nz-layout>
+        <nz-header>
             <div class="app-header">
+
                 <span class="header-trigger" (click)="isCollapsed = !isCollapsed">
-                    <nz-icon class="trigger" [nzType]="isCollapsed ? 'menu-unfold' : 'menu-fold'" />
+                    <nz-icon class="trigger text-light" [nzType]="isCollapsed ? 'menu-unfold' : 'menu-fold'" />
                 </span>
-                <nz-tabset nzLinkRouter (nzClose)="closeTab($event)" nzType="editable-card" nzHideAdd
-                    [(nzSelectedIndex)]="selectedIndex">
-                    @for (tab of dynamicTabs; track tab.title) {
-                    <nz-tab nzClosable>
-                        <a *nzTabLink nz-tab-link [routerLink]="tab.routerLink" [queryParams]="tab.queryParams ?? {}"
-                            queryParamsHandling="merge">
-                            {{ tab.title }}
-                        </a>
-                    </nz-tab>
-                    }
-                </nz-tabset>
+                <div style="width: 100%; max-width: 100%; overflow: auto">
+                    <nz-tabset nzLinkRouter (nzClose)="closeTab($event)" nzType="editable-card" nzHideAdd
+                        [(nzSelectedIndex)]="selectedIndex" [nzSize]="'small'">
+                        @for (tab of dynamicTabs; track tab.title) {
+                        <nz-tab nzClosable>
+                            <a *nzTabLink nz-tab-link [routerLink]="tab.routerLink"
+                                [queryParams]="tab.queryParams ?? {}" queryParamsHandling="merge" class="text-light">
+                                {{ tab.title }}
+                            </a>
+                        </nz-tab>
+                        }
+                    </nz-tabset>
+                </div>
+                <div class="header-trigger">
+                    <button nz-button nz-dropdown [nzDropdownMenu]="appmenu" nzPlacement="bottomRight" nzType="text"
+                        class=" text-light">
+                        <nz-icon nzType="appstore" nzTheme="outline" />
+                    </button>
+                    <button nz-button nz-dropdown [nzDropdownMenu]="notifications" nzPlacement="bottomRight"
+                        nzType="text" class=" text-light">
+                        <nz-icon nzType="bell" />
+                    </button>
+                    <button nz-button nz-dropdown [nzDropdownMenu]="profile" nzPlacement="bottomRight" nzShape="circle"
+                        class="ms-2">
+                        <nz-icon nzType="user" />
+                    </button>
+                    <nz-dropdown-menu #appmenu="nzDropdownMenu">
+                        <div nz-menu nzSpan="24">
+                            <div nz-row>
+                                <div nz-col nzSpan="12">col-12</div>
+                                <div nz-col nzSpan="12">col-12</div>
+                            </div>
+                            <div nz-row>
+                                <div nz-col nzSpan="8">col-8</div>
+                                <div nz-col nzSpan="8">col-8</div>
+                                <div nz-col nzSpan="8">col-8</div>
+                            </div>
+                            <div nz-row>
+                                <div nz-col nzSpan="6">col-6</div>
+                                <div nz-col nzSpan="6">col-6</div>
+                                <div nz-col nzSpan="6">col-6</div>
+                                <div nz-col nzSpan="6">col-6</div>
+                            </div>
+                        </div>
+                    </nz-dropdown-menu>
+                    <nz-dropdown-menu #notifications="nzDropdownMenu">
+                        <ul nz-menu>
+                            <li nz-menu-item>menu1 1st menu item</li>
+                            <li nz-menu-item>menu1 2nd menu item</li>
 
+                            <li nz-menu-item>menu1 3rd menu item</li>
+                        </ul>
+                    </nz-dropdown-menu>
+                    <nz-dropdown-menu #profile="nzDropdownMenu">
+                        <ul nz-menu>
+                            <li nz-menu-item>menu2 1st menu item</li>
+                            <li nz-menu-item>menu2 2nd menu item</li>
+                            <li nz-menu-divider></li>
+                            <li nz-menu-item onclick="logout()"><nz-icon nzType="logout" nzTheme="outline" nzDanger />
+                                Đăng xuất
+                            </li>
+                        </ul>
+                    </nz-dropdown-menu>
+                </div>
             </div>
-        </nz-header> -->
-
-    <nz-header>
-      <div class="app-header">
-        <span class="header-trigger" (click)="isCollapsed = !isCollapsed">
-          <nz-icon
-            class="trigger"
-            [nzType]="isCollapsed ? 'menu-unfold' : 'menu-fold'"
-          />
-        </span>
-        <div style="width: 100%; max-width: 100%; overflow: auto">
-          <nz-tabset
-            nzLinkRouter
-            (nzClose)="closeTab($event)"
-            nzType="editable-card"
-            nzHideAdd
-            [(nzSelectedIndex)]="selectedIndex"
-            [nzSize]="'small'"
-          >
-            @for (tab of dynamicTabs; track tab.title) {
-            <nz-tab nzClosable>
-              <a
-                *nzTabLink
-                nz-tab-link
-                [routerLink]="tab.routerLink"
-                [queryParams]="tab.queryParams ?? {}"
-                queryParamsHandling="merge"
-                class="text-light"
-              >
-                {{ tab.title }}
-              </a>
-            </nz-tab>
-            }
-          </nz-tabset>
-        </div>
-        <div class="header-trigger">
-          <button
-            nz-button
-            nz-dropdown
-            [nzDropdownMenu]="menu1"
-            nzPlacement="bottomRight"
-            nzType="text"
-          >
-            <nz-icon nzType="bell" />
-          </button>
-          <button
-            nz-button
-            nz-dropdown
-            [nzDropdownMenu]="menu2"
-            nzPlacement="bottomRight"
-            nzShape="circle"
-            class="ms-2"
-          >
-            <nz-icon nzType="user" />
-          </button>
-          <!-- <span>user</span> -->
-
-          <nz-dropdown-menu #menu1="nzDropdownMenu">
-            <ul nz-menu>
-              <li nz-menu-item>menu1 1st menu item</li>
-              <li nz-menu-item>menu1 2nd menu item</li>
-              <li nz-menu-item>menu1 3rd menu item</li>
-            </ul>
-          </nz-dropdown-menu>
-          <nz-dropdown-menu #menu2="nzDropdownMenu">
-            <ul nz-menu>
-              <li nz-menu-item>menu2 1st menu item</li>
-              <li nz-menu-item>menu2 2nd menu item</li>
-              <li nz-menu-item>menu2 3rd menu item</li>
-            </ul>
-          </nz-dropdown-menu>
-        </div>
-      </div>
-    </nz-header>
-    <nz-content class="m-0 px-2 py-0">
-      <router-outlet></router-outlet>
-    </nz-content>
-    <nz-footer class="p-2 text-uppercase">
-      &copy; 2025, made by rtc technology việt nam</nz-footer
-    >
-  </nz-layout>
+        </nz-header>
+        <nz-content class="">
+            <router-outlet></router-outlet>
+        </nz-content>
+        <nz-footer class="p-2 text-uppercase"> &copy; 2025, made by rtc technology việt nam</nz-footer>
+    </nz-layout>
 </nz-layout>

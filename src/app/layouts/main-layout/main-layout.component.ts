@@ -11,6 +11,7 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MenuService } from '../../pages/menus/menu-service/menu.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzDestroyService } from 'ng-zorro-antd/core/services';
 
 @Component({
   selector: 'app-main-layout',

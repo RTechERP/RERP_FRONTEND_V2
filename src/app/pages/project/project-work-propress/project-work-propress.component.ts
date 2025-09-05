@@ -107,24 +107,26 @@ export class ProjectWorkPropressComponent implements OnInit, AfterViewInit {
   }
 
   getProject() {
-    this.projectService.getProjectModal().subscribe({
-      next: (response: any) => {
-        let selectedYear = DateTime.fromJSDate(this.year).year;
-        console.log(selectedYear);
-        this.projects = response.data.filter((project: any) => {
-          let createdDate = DateTime.fromISO(project.CreatedDate);
-          return (
-            createdDate.isValid &&
-            Number(createdDate.year) === Number(selectedYear)
-          );
-        });
-        console.log(this.projects);
-      },
-      error: (error) => {
-        console.error('Lỗi:', error);
-      },
-    });
-  }
+  this.projectService.getProjectModal().subscribe({
+    next: (response: any) => {
+      let selectedYear = DateTime.fromJSDate(this.year).year;
+      this.projects = response.data.filter((project: any) => {
+        let createdDate = DateTime.fromISO(project.CreatedDate);
+        return (
+          createdDate.isValid &&
+          Number(createdDate.year) === Number(selectedYear)
+        );
+      });
+      console.log(this.projects);
+    },
+    error: (error: any) => {
+      const msg = error.message || 'Lỗi không xác định';
+      this.notification.error('Thông báo', msg);
+      console.error('Lỗi:', error.error);
+    },
+  });
+}
+
 
   async getWorkPropress() {
     this.isLoadTable = true;

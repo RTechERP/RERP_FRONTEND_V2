@@ -23,6 +23,7 @@
     "@popperjs/core": "^2.11.8",
     "bootstrap": "^5.3.6",
     "exceljs": "^4.4.0",
+    "file-saver": "^2.0.5",
     "font-awesome": "^4.7.0",
     "luxon": "^3.6.1",
     "ng-zorro-antd": "^19.3.1",

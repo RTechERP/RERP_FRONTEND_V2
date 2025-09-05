@@ -138,8 +138,10 @@ export class ProjectPriorityDetailComponent implements OnInit {
         this.tb_projectPriority.setData(data);
         this.caculatorPriority();
       },
-      error: (error) => {
-        console.error('Lỗi:', error);
+      error: (error: any) => {
+        const msg = error.message || 'Lỗi không xác định';
+        this.notification.error('Thông báo', msg);
+        console.error('Lỗi:', error.error);
       },
     });
   }

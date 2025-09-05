@@ -72,14 +72,16 @@ export class ProjectChangeComponent implements OnInit {
           this.activeModal.dismiss(true);
         }
       },
-      error: (error) => {
-        console.error('Lỗi:', error);
+      error: (error: any) => {
+        const msg = error.message || 'Lỗi không xác định';
+        this.notification.error('Thông báo', msg);
+        console.error('Lỗi:', error.error);
       },
     });
   }
 
   saveChangeProject() {
-    debugger
+    debugger;
     if (this.projectIdOld <= 0 || !this.projectIdOld) {
       this.notification.error('', 'Vui lòng chọn từ dự án!', {
         nzStyle: { fontSize: '0.75rem' },
@@ -115,8 +117,10 @@ export class ProjectChangeComponent implements OnInit {
             this.activeModal.dismiss(true);
           }
         },
-        error: (error) => {
-          console.error('Lỗi:', error);
+        error: (error: any) => {
+          const msg = error.message || 'Lỗi không xác định';
+          this.notification.error('Thông báo', msg);
+          console.error('Lỗi:', error.error);
         },
       });
   }

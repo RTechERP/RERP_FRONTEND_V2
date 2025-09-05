@@ -192,8 +192,10 @@ export class ProjectStatusComponent implements OnInit {
         }));
         this.tb_projectStatus.setData(response.data);
       },
-      error: (error) => {
-        console.error('Lỗi:', error);
+      error: (error: any) => {
+        const msg = error.message || 'Lỗi không xác định';
+        this.notification.error('Thông báo', msg);
+        console.error('Lỗi:', error.error);
       },
     });
   }
@@ -258,8 +260,10 @@ export class ProjectStatusComponent implements OnInit {
           this.activeModal.dismiss(true);
         }
       },
-      error: (error) => {
-        console.error('Lỗi:', error);
+      error: (error: any) => {
+        const msg = error.message || 'Lỗi không xác định';
+        this.notification.error('Thông báo', msg);
+        console.error('Lỗi:', error.error);
       },
     });
   }

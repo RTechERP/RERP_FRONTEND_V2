@@ -20,7 +20,17 @@ import { MainLayoutComponent } from './layouts/main-layout/main-layout.component
 import { AppComponent } from './app.component';
 import { MenusComponent } from './pages/menus/menus.component';
 import { HomeLayoutComponent } from './layouts/home-layout/home-layout.component';
-
+import { TsAssetManagementPersonalComponent } from './pages/ts-asset-management-personal/ts-asset-management-personal.component';
+import { TsAssetAllocationPersonalComponent } from './pages/ts-asset-allocation-personal/ts-asset-allocation-personal.component';
+import { TsAssetRecoveryPersonalComponent } from './pages/ts-asset-recovery-personal/ts-asset-recovery-personal.component';
+import { TsAssetUnitcountComponent } from './pages/ts-asset-unitcount/ts-asset-unitcount.component';
+import { TsAssetTypeComponent } from './pages/ts-asset-type/ts-asset-type.component';
+import { TsAssetStatusComponent } from './pages/ts-asset-status/ts-asset-status.component';
+import { TsAssetSourceComponent } from './pages/ts-asset-source/ts-asset-source.component';
+import { TsAssetManagementComponent } from './pages/ts-asset-management/ts-asset-management.component';
+import { TsAssetAllocationComponent } from './pages/ts-asset-allocation/ts-asset-allocation.component';
+import { TsAssetRecoveryComponent } from './pages/ts-asset-recovery/ts-asset-recovery.component';
+import { TsAssetTransferComponent } from './pages/ts-asset-transfer/ts-asset-transfer.component';
 export const routes: Routes = [
   {
     path: '',

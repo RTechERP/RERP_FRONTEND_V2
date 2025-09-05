@@ -1,0 +1,25 @@
+<div class="d-flex align-items-center mb-3" style="width: 100%;">
+  <div class="card border-1 rounded-0 w-100" style="max-width: 100%;">
+    <div class="card-header bg-white p-2">
+      <div class="d-flex align-items-center gap-2">
+        <!-- Hàng filter -->
+        <input nz-input placeholder="Nhập từ khóa tìm kiếm..." [(ngModel)]="serialNumber"
+          (ngModelChange)="onSearchChange()" style="width: 250px" />
+        <button nz-button nzType="primary" nzSize="small" (click)="getSearchProductTechSerial()">
+          <nz-icon nzType="search"></nz-icon>
+          Tìm kiếm
+        </button>
+
+      </div>
+    </div>
+
+    <nz-splitter style="height: 86vh;">
+      <nz-splitter-panel>
+        <div id="exportTable" style="height: 100%;"></div>
+      </nz-splitter-panel>
+      <nz-splitter-panel>
+        <div id="importTable" style="height: 100%;"></div>
+      </nz-splitter-panel>
+    </nz-splitter>
+  </div>
+</div>

@@ -4,7 +4,6 @@ import {
   importProvidersFrom,
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
-
 import { routes } from './app.routes';
 import { icons } from './icons-provider';
 import { provideNzIcons } from 'ng-zorro-antd/icon';

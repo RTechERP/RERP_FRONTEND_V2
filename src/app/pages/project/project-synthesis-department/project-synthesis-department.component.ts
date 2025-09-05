@@ -147,11 +147,14 @@ export class ProjectSynthesisDepartmentComponent
     this.projectService.getProjectEmployee(0).subscribe({
       next: (response: any) => {
         this.employees = this.projectService.createdDataGroup(
-          response.data,          'DepartmentName'
+          response.data,
+          'DepartmentName'
         );
       },
-      error: (error) => {
-        console.error('Lỗi:', error);
+      error: (error: any) => {
+        const msg = error.message || 'Lỗi không xác định';
+        this.notification.error('Thông báo', msg);
+        console.error('Lỗi:', error.error);
       },
     });
   }
@@ -161,8 +164,10 @@ export class ProjectSynthesisDepartmentComponent
       next: (response: any) => {
         this.departments = response.data;
       },
-      error: (error) => {
-        console.error('Lỗi:', error);
+      error: (error: any) => {
+        const msg = error.message || 'Lỗi không xác định';
+        this.notification.error('Thông báo', msg);
+        console.error('Lỗi:', error.error);
       },
     });
   }

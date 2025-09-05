@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { API_ORIGIN } from '../../../app.config';
+import { HOST } from '../../../app.config';
 @Injectable({
   providedIn: 'root'
 })
 export class TbProductRtcService {
-  private url = `${API_ORIGIN}api/ProductRTC/`;
-  private urlFirm = `${API_ORIGIN}api/Firm`;
+  private url = `${HOST}api/ProductRTC/`;
+  private urlFirm = `${HOST}api/Firm`;
   constructor(private http: HttpClient) { }
 
   getProductRTC(request: any) {

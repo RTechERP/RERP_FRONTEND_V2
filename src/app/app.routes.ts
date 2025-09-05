@@ -21,7 +21,6 @@ import { AppComponent } from './app.component';
 import { MenusComponent } from './pages/menus/menus.component';
 import { HomeLayoutComponent } from './layouts/home-layout/home-layout.component';
 
-
 export const routes: Routes = [
   {
     path: '',
@@ -57,19 +56,32 @@ export const routes: Routes = [
             './pages/project-partlist-purchase-request/project-partlist-purchase-request.component'
           ).then((m) => m.ProjectPartlistPurchaseRequestComponent),
       },
+      // Router danh mục dự án
+      { path: 'project/:id', component: ProjectComponent }, // 2 là tổng hợp công việc AGV còn lại là dự án
+      {
+        path: 'projectListWork/:id',
+        component: ProjectListWorkReportComponent,
+      }, // Dự án master
+      { path: 'projectWorkCategory', component: ProjectWorkCategoryComponent }, // Hạng mục dự án
+      {
+        path: 'projectWorkPropress/:id',
+        component: ProjectWorkPropressComponent,
+      }, // Tiến độ công việc
+      { path: 'projectWorkTimeline', component: ProjectWorkTimelineComponent }, // TimeLine công việc
+      { path: 'projectSurvey', component: ProjectSurveyComponent }, // Khảo sát dự án
+      { path: 'projectItemlate', component: ProjectItemLateComponent }, // Hạng mục công việc chậm tiến độ
+      {
+        path: 'projectWorkItemTimeline',
+        component: ProjectWorkItemTimelineComponent,
+      }, // Hạng mục công việc chậm tiến độ
+      {
+        path: 'synthesisOfGeneratedMaterials',
+        component: SynthesisOfGeneratedMaterialsComponent,
+      }, // Tổng hợp vật tư phát sinh
+      {
+        path: 'projectSynthesisDepartment',
+        component: ProjectSynthesisDepartmentComponent,
+      }, // Tổng hợp vật tư phát sinh
     ],
   },
-
-  // Router danh mục dự án
-  { path: 'project/:id', component: ProjectComponent }, // 2 là tổng hợp công việc AGV còn lại là dự án
-  { path: 'projectListWork/:id', component: ProjectListWorkReportComponent }, // Dự án master
-  { path: 'projectWorkCategory', component: ProjectWorkCategoryComponent }, // Hạng mục dự án
-  { path: 'projectWorkPropress/:id', component: ProjectWorkPropressComponent }, // Tiến độ công việc
-  { path: 'projectWorkTimeline', component: ProjectWorkTimelineComponent }, // TimeLine công việc
-  { path: 'projectSurvey', component: ProjectSurveyComponent }, // Khảo sát dự án
-  { path: 'projectItemlate', component: ProjectItemLateComponent }, // Hạng mục công việc chậm tiến độ
-  { path: 'projectWorkItemTimeline', component: ProjectWorkItemTimelineComponent }, // Hạng mục công việc chậm tiến độ
-  { path: 'synthesisOfGeneratedMaterials', component: SynthesisOfGeneratedMaterialsComponent }, // Tổng hợp vật tư phát sinh
-  { path: 'projectSynthesisDepartment', component: ProjectSynthesisDepartmentComponent }, // Tổng hợp vật tư phát sinh
-
 ];

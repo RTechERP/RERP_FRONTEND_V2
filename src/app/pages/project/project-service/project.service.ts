@@ -4,11 +4,12 @@ import { Observable } from 'rxjs';
 import { HttpParams } from '@angular/common/http';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
+import { HOST } from '../../../app.config';
 @Injectable({
   providedIn: 'root',
 })
 export class ProjectService {
-  private apiUrl = 'https://localhost:44365/api/';
+  private apiUrl = HOST + 'api/';
 
   constructor(
     private http: HttpClient,
@@ -584,8 +585,8 @@ export class ProjectService {
   }
   //#endregion
 
-   //#region Tổng hợp dự án theo phòng ban
-   getProjectSynthesisDepartment(data: any): Observable<any> {
+  //#region Tổng hợp dự án theo phòng ban
+  getProjectSynthesisDepartment(data: any): Observable<any> {
     return this.http.get<any>(
       this.apiUrl + `ProjectSynthesisDepartment/get-data`,
       {
@@ -593,7 +594,7 @@ export class ProjectService {
       }
     );
   }
-   //#endregion
+  //#endregion
 
   //#region Xuất excel theo group
   async exportExcelGroup(
@@ -755,14 +756,12 @@ export class ProjectService {
   //#endregion
 
   //#region Xuất excel thường
-  async exportExcel(table: any, data: any, sheetName:any, fileName:any) {
+  async exportExcel(table: any, data: any, sheetName: any, fileName: any) {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet(sheetName);
 
     const columns = table.getColumns();
-    const headers = columns.map(
-      (col: any) => col.getDefinition().title
-    );
+    const headers = columns.map((col: any) => col.getDefinition().title);
     worksheet.addRow(headers);
 
     data.forEach((row: any) => {

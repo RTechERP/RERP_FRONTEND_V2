@@ -102,7 +102,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     private router: Router,
     private route: ActivatedRoute
   ) {}
-
+//Ga
   //#region Khai báo biến
   @ViewChild('tb_projects', { static: false })
   tb_projectsContainer!: ElementRef;

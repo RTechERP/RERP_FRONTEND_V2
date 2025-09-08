@@ -14,7 +14,15 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 
 @Component({
   selector: 'app-project-form-priority-detail',
-  imports: [FormsModule, NzSelectModule, NzInputModule, NzModalModule, NzButtonModule, NzGridModule, NzInputNumberModule],
+  imports: [
+    FormsModule,
+    NzSelectModule,
+    NzInputModule,
+    NzModalModule,
+    NzButtonModule,
+    NzGridModule,
+    NzInputNumberModule,
+  ],
   templateUrl: './project-form-priority-detail.component.html',
   styleUrl: './project-form-priority-detail.component.css',
 })
@@ -53,7 +61,7 @@ export class ProjectFormPriorityDetailComponent implements OnInit {
       next: (response: any) => {
         this.prioritys = response.data;
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -73,7 +81,7 @@ export class ProjectFormPriorityDetailComponent implements OnInit {
           this.rate = dt.Rate;
         }
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -139,7 +147,7 @@ export class ProjectFormPriorityDetailComponent implements OnInit {
       .checkProjectPriority(this.priorityId, this.priorityCode)
       .subscribe({
         next: (response: any) => {
-          debugger;
+            
           if (response.data == false) {
             const dataSave = {
               ID: this.priorityId,

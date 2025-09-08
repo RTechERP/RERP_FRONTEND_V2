@@ -72,7 +72,7 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {}
 
   ngAfterViewInit(): void {
-    debugger;
+      
     this.getProjectModal();
     this.route.paramMap.subscribe((params) => {
       const idParam = params.get('id');
@@ -246,7 +246,7 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         this.projects = response.data;
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -255,7 +255,7 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
   }
 
   setTotalDay() {
-    debugger;
+      
     const totalDateEl = document.getElementById('totalDate');
     if (totalDateEl) {
       totalDateEl.textContent = `Tổng số ngày ${this.totalTime ?? 0}`;

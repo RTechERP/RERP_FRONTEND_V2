@@ -178,12 +178,12 @@ export class ProjectStatusComponent implements OnInit {
   }
 
   getProjectStatusParam() {
-    debugger;
+      
     return { projectId: this.projectId };
   }
 
   loadData() {
-    debugger;
+      
     this.projectService.getProjectStatusById(this.projectId).subscribe({
       next: (response: any) => {
         response.data = response.data.map((item: any) => ({
@@ -192,7 +192,7 @@ export class ProjectStatusComponent implements OnInit {
         }));
         this.tb_projectStatus.setData(response.data);
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -241,7 +241,7 @@ export class ProjectStatusComponent implements OnInit {
         data.push(newRow);
       }
     });
-    debugger;
+      
     const hasSelectedRow = data.some((row) => row.Selected === true);
 
     if (!hasSelectedRow) {
@@ -260,7 +260,7 @@ export class ProjectStatusComponent implements OnInit {
           this.activeModal.dismiss(true);
         }
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);

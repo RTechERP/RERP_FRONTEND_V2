@@ -131,7 +131,7 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit {
           'DepartmentName'
         );
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -144,7 +144,7 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         this.departments = response.data;
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);

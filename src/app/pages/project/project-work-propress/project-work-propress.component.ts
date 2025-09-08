@@ -696,7 +696,7 @@ export class ProjectWorkPropressComponent implements OnInit, AfterViewInit {
 
         // Xuất dòng ra Excel
         const rowData = columns.map((col: any) => {
-          debugger;
+            
           const field = col.getField?.();
           let value = row[field];
           if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {

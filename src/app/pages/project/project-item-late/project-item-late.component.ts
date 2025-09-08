@@ -121,7 +121,7 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         this.projects = response.data;
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -137,7 +137,7 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
           'DepartmentName'
         );
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -150,7 +150,7 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         this.departments = response.data;
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -307,7 +307,7 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
   //#region Load dữ liệu hạng mục công việc chậm
   getProjectItemLate() {
     this.isLoadTable = true;
-    debugger;
+      
     let data = {
       userId: this.employeeId ? this.employeeId : 0,
       projectId: this.projectId ? this.projectId : 0,
@@ -336,7 +336,7 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
   //#endregion
   //#region Xuất excel khảo sát dự án
   exportExcel() {
-    debugger;
+      
     let date = DateTime.local().toFormat('ddMMyy');
     this.projectService.exportExcelGroup(
       this.tb_projectItemlate,
@@ -347,6 +347,4 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
     );
   }
   //#endregion
-
-
 }

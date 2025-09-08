@@ -40,7 +40,7 @@ export class ProjectPriorityDetailComponent implements OnInit {
 
   //#region Xử lý bẳng chi tiết ưu tiên
   drawTbProjectPriority() {
-    debugger;
+      
     if (this.tb_projectPriority) this.tb_projectPriority.destroy();
     this.tb_projectPriority = new Tabulator(`#tb_projectPriority`, {
       height: '66vh',
@@ -128,17 +128,17 @@ export class ProjectPriorityDetailComponent implements OnInit {
   getProjectPriorityModal() {
     this.projectService.getProjectPriorityModal(this.projectId).subscribe({
       next: (response: any) => {
-        debugger;
-        const test = response.data.map((item: any) => ({
+          
+        const test = response.data.prjPriority.map((item: any) => ({
           ...item,
-          Selected: response.checks.includes(item.ID) ? true : false,
+          Selected: response.data.checks.includes(item.ID) ? true : false,
         }));
 
         let data = this.projectService.setDataTree(test, 'ID');
         this.tb_projectPriority.setData(data);
         this.caculatorPriority();
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -186,7 +186,7 @@ export class ProjectPriorityDetailComponent implements OnInit {
 
   caculatorPriority() {
     let totalPriority = 0;
-    debugger;
+      
     const allData = this.projectService.getSelectedRowsRecursive(
       this.tb_projectPriority.getData()
     );

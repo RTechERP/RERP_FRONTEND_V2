@@ -41,7 +41,7 @@ export class ProjectStatusDetailComponent implements OnInit {
           this.maxStt = 0;
         }
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -56,7 +56,7 @@ export class ProjectStatusDetailComponent implements OnInit {
       });
       return;
     }
-    debugger;
+      
     const checkStatus = this.projectStatus.find(
       (item: any) => item.StatusName == this.statusName
     );

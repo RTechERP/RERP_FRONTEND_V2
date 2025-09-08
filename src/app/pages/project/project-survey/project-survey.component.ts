@@ -146,7 +146,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
         );
         console.log(response.data);
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -159,7 +159,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
       next: (response: any) => {
         this.projects = response.data;
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -956,7 +956,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
           });
         }
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);

@@ -110,7 +110,7 @@ export class ProjectSynthesisDepartmentComponent
     .set({ hour: 0, minute: 0, second: 0 })
     .toISO();
 
-  projectId: any;
+  projectId: any|null=null;
   departmentId: any;
   teamId: any;
   employeeId: any;
@@ -147,10 +147,11 @@ export class ProjectSynthesisDepartmentComponent
     this.projectService.getProjectEmployee(0).subscribe({
       next: (response: any) => {
         this.employees = this.projectService.createdDataGroup(
-          response.data,          'DepartmentName'
+          response.data,
+          'DepartmentName'
         );
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -163,7 +164,7 @@ export class ProjectSynthesisDepartmentComponent
       next: (response: any) => {
         this.departments = response.data;
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -451,6 +452,9 @@ export class ProjectSynthesisDepartmentComponent
       ajaxParams: { id: this.projectId },
       ajaxResponse: (url, params, res) => {
         return res.data;
+        console.log(res);
+        console.log(url);
+        console.log(params);
       },
       locale: 'vi',
       rowFormatter: function (row) {

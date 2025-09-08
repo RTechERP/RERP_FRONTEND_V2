@@ -137,7 +137,7 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
           'DepartmentName'
         );
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -150,7 +150,7 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         this.departments = response.data;
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -374,7 +374,7 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
 
               if (!actualDateStart.isValid && !actualDateEnd.isValid) {
                 if (DateTime.now() >= de && date.hasSame(de, 'day')) {
-                  debugger;
+                    
                   el.style.background = '#8B0000';
                   if (date.weekday == 7) {
                     el.style.background =

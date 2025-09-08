@@ -111,9 +111,11 @@ export class SynthesisOfGeneratedMaterialsComponent
       next: (response: any) => {
         this.projects = response.data;
       },
-      error: (error) => {
-        console.error('Lỗi:', error);
-      },
+      error: (error: any) => {
+            const msg = error.message || 'Lỗi không xác định';
+            this.notification.error('Thông báo', msg);
+            console.error('Lỗi:', error.error);
+          },
     });
   }
 
@@ -276,7 +278,7 @@ export class SynthesisOfGeneratedMaterialsComponent
   //#region load dũ liệu bảng
   async getDataProjectSurvey() {
     this.isLoadTable = true;
-    debugger;
+      
     let pageSize = this.tb_synthesisOfGeneratedMaterials.getPageSize();
     let data = {
       pageNumber: 1,

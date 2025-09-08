@@ -210,7 +210,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         this.pms = response.data;
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -223,7 +223,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         this.firmBases = response.data;
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -236,7 +236,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         this.projectTypeBases = response.data;
       },
-         error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -269,11 +269,11 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
           this.projectTypeId =
             response.data.TypeProject <= 0 ? 1 : response.data.TypeProject;
         },
-         error: (error: any) => {
-        const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
-        console.error('Lỗi:', error.error);
-      },
+        error: (error: any) => {
+          const msg = error.message || 'Lỗi không xác định';
+          this.notification.error('Thông báo', msg);
+          console.error('Lỗi:', error.error);
+        },
       });
     }
   }
@@ -336,11 +336,11 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
                 .toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
             : null;
         },
-          error: (error: any) => {
-        const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
-        console.error('Lỗi:', error.error);
-      },
+        error: (error: any) => {
+          const msg = error.message || 'Lỗi không xác định';
+          this.notification.error('Thông báo', msg);
+          console.error('Lỗi:', error.error);
+        },
       });
     }
   }
@@ -377,11 +377,11 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
               this.endUserId = this.customerId;
             }
           },
-            error: (error: any) => {
-        const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
-        console.error('Lỗi:', error.error);
-      },
+          error: (error: any) => {
+            const msg = error.message || 'Lỗi không xác định';
+            this.notification.error('Thông báo', msg);
+            console.error('Lỗi:', error.error);
+          },
         });
     }
   }
@@ -431,7 +431,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         this.projects = response.data;
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -444,7 +444,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         this.projectStatus = response.data;
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -462,11 +462,11 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
         next: (response: any) => {
           this.situlator = response.data;
         },
-          error: (error: any) => {
-        const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
-        console.error('Lỗi:', error.error);
-      },
+        error: (error: any) => {
+          const msg = error.message || 'Lỗi không xác định';
+          this.notification.error('Thông báo', msg);
+          console.error('Lỗi:', error.error);
+        },
       });
   }
 
@@ -477,7 +477,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
         this.getProjectTypeLinksDetail();
         this.createLabelsFromData();
       },
-       error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -497,11 +497,11 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
             }
           }
         },
-          error: (error: any) => {
-        const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
-        console.error('Lỗi:', error.error);
-      },
+        error: (error: any) => {
+          const msg = error.message || 'Lỗi không xác định';
+          this.notification.error('Thông báo', msg);
+          console.error('Lỗi:', error.error);
+        },
       });
     }
   }
@@ -744,7 +744,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
           this.activeModal.dismiss(true);
         }
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -804,7 +804,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
           this.getProjectTypeLinksDetail();
         }
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);

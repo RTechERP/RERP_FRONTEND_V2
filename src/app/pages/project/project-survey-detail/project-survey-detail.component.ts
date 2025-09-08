@@ -169,7 +169,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
         this.projects = response.data;
         this.getDataByProjectId();
       },
-      error: (response:any) => {
+      error: (response: any) => {
         console.error('Lỗi:', response.error);
       },
     });
@@ -180,7 +180,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         this.customers = response.data;
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -193,7 +193,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         this.statuses = response.data;
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -210,7 +210,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
         );
         console.log(response.data);
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -232,7 +232,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
         );
         this.tb_projectSurveyDetail.setData(data);
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -513,7 +513,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
         this.getTbDetail();
         this.createLabelsFromData();
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -573,7 +573,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
       };
       this.projectService.getDetail(data).subscribe({
         next: (response: any) => {
-          debugger;
+            
           let data = response.data;
           if (data) {
             this.leaderId = data.ApprovedUrgentID;
@@ -648,7 +648,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
 
   //#region Lưu thông tin khảo sát dự án
   save(): void {
-    debugger;
+      
     if (this.validateForm.valid) {
       let dateNow = DateTime.local();
       let ds = DateTime.fromJSDate(new Date(this.dateStart));
@@ -846,7 +846,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
           this.activeModal.dismiss(true);
         }
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -867,7 +867,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
 
     //   return;
     // }
-    debugger;
+      
     let prjTypeLinks = this.projectService
       .getSelectedRowsRecursive(this.tb_projectSurveyDetail.getData())
       .filter((row) => row.selectRow === true);
@@ -898,5 +898,4 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
     }
   }
   //#endregion
-
 }

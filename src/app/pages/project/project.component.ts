@@ -1,4 +1,10 @@
-import { Component, ViewEncapsulation } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  ViewEncapsulation,
+} from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
@@ -69,6 +75,23 @@ import { CommonModule } from '@angular/common';
   encapsulation: ViewEncapsulation.None,
 })
 export class ProjectComponent implements OnInit, AfterViewInit {
+  // Khai báo format ngày giờ
+  /**
+   console.log(now.toFormat('yyyy-MM-dd')); // 👉 2025-06-05
+    console.log(now.toFormat('dd/MM/yyyy')); // 👉 05/06/2025
+    console.log(now.toFormat('HH:mm:ss dd-MM-yyyy')); // 👉 14:30:59 05-06-2025
+    console.log(now.toFormat('EEEE, dd LLL yyyy')); // 👉 Thursday, 05 Jun 2025
+   */
+  @Input() value: string = '';
+  @Output() valueChange = new EventEmitter<string>();
+
+  selected = '';
+  options = [
+    { label: 'Mới', value: 'new' },
+    { label: 'Đang xử lý', value: 'processing' },
+    { label: 'Hoàn thành', value: 'done' },
+  ];
+
   constructor(
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
@@ -79,7 +102,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     private router: Router,
     private route: ActivatedRoute
   ) {}
-//Ga
+
   //#region Khai báo biến
   @ViewChild('tb_projects', { static: false })
   tb_projectsContainer!: ElementRef;
@@ -128,15 +151,19 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       if (Number(id) == 2) {
         this.isHide = false;
         this.projectTypeIds = [2];
-        this.drawTbProjects(this.tb_projectsContainer.nativeElement);
-        this.drawTbProjectTypeLinks(this.tb_projectTypeLinkContainer.nativeElement);
+        // this.drawTbProjects(this.tb_projectsContainer.nativeElement);
+        // this.drawTbProjectTypeLinks(
+        //   this.tb_projectTypeLinkContainer.nativeElement
+        // );
       } else {
         this.isHide = true;
         this.projectTypeIds = [];
-        this.drawTbProjects(this.tb_projectsContainer.nativeElement);
-        this.drawTbProjectTypeLinks(this.tb_projectTypeLinkContainer.nativeElement);
+        // this.drawTbProjects(this.tb_projectsContainer.nativeElement);
+        // this.drawTbProjectTypeLinks(
+        //   this.tb_projectTypeLinkContainer.nativeElement
+        // );
       }
-      console.log(this.isHide);
+      //   console.log(this.isHide);
     });
   }
 
@@ -154,6 +181,12 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     this.getProjectTypes();
     this.getProjectStatus();
   }
+
+  onChange(val: string) {
+    this.valueChange.emit(val);
+  }
+
+  // Khai báo các hàm
 
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
@@ -176,7 +209,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           },
         })),
       },
-      { 
+      {
         label:
           '<span style="font-size: 0.75rem;"><i class="fas fa-file-excel"></i> Xuất excel</span>',
         action: (e: any, row: any) => {
@@ -237,6 +270,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       // data:[{ID:1}],
       height: '100%',
       layout: 'fitColumns',
+
       rowHeader: {
         width: 20,
         headerSort: false,
@@ -254,10 +288,10 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       ajaxURL: this.projectService.getAPIProjects(),
       ajaxParams: this.getProjectAjaxParams(),
       ajaxResponse: (url, params, res) => {
-        console.log('total', res.totalPage);
+   
         return {
-          data: res.data,
-          last_page: res.totalPage,
+          data: res.data.project,
+          last_page:  res.data.totalPage,
         };
       },
       rowContextMenu: contextMenuProject,
@@ -315,7 +349,19 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           field: 'PriotityText',
           hozAlign: 'right',
           headerHozAlign: 'center',
+
           width: 100,
+
+          editable: true,
+          formatter(cell, formatterParams, onRendered) {
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = `<app-projects></app-projects>`;
+            document.body.appendChild(wrapper);
+
+            // Bạn có thể dùng Angular's ViewContainerRef để inject component động nếu cần nâng cao.
+
+            return wrapper;
+          },
         },
         {
           title: 'Mức độ ưu tiên cá nhân',
@@ -609,6 +655,8 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           field: 'Mission',
           headerHozAlign: 'center',
           width: 100,
+          editor: true,
+          formatter: 'textarea',
         },
         {
           title: 'Người giao việc',
@@ -755,11 +803,11 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           this.projectService.setDataTree(response.data, 'ID')
         );
       },
-        error: (error: any) => {
-        const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
-        console.error('Lỗi:', error.error);
-      },
+      error: (error: any) => {
+            const msg = error.message || 'Lỗi không xác định';
+            this.notification.error('Thông báo', msg);
+            console.error('Lỗi:', error.error);
+          },
     });
   }
   //#endregion
@@ -773,11 +821,11 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           'DepartmentName'
         );
       },
-        error: (error: any) => {
-        const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
-        console.error('Lỗi:', error.error);
-      },
+      error: (error: any) => {
+            const msg = error.message || 'Lỗi không xác định';
+            this.notification.error('Thông báo', msg);
+            console.error('Lỗi:', error.error);
+          },
     });
   }
 
@@ -789,11 +837,11 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           'DepartmentName'
         );
       },
-        error: (error: any) => {
-        const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
-        console.error('Lỗi:', error.error);
-      },
+      error: (error: any) => {
+            const msg = error.message || 'Lỗi không xác định';
+            this.notification.error('Thông báo', msg);
+            console.error('Lỗi:', error.error);
+          },
     });
   }
 
@@ -802,11 +850,11 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         this.businessFields = response.data;
       },
-        error: (error: any) => {
-        const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
-        console.error('Lỗi:', error.error);
-      },
+      error: (error: any) => {
+            const msg = error.message || 'Lỗi không xác định';
+            this.notification.error('Thông báo', msg);
+            console.error('Lỗi:', error.error);
+          },
     });
   }
 
@@ -815,11 +863,11 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         this.customers = response.data;
       },
-        error: (error: any) => {
-        const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
-        console.error('Lỗi:', error.error);
-      },
+      error: (error: any) => {
+            const msg = error.message || 'Lỗi không xác định';
+            this.notification.error('Thông báo', msg);
+            console.error('Lỗi:', error.error);
+          },
     });
   }
 
@@ -828,11 +876,11 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         this.projectTypes = response.data;
       },
-        error: (error: any) => {
-        const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
-        console.error('Lỗi:', error.error);
-      },
+      error: (error: any) => {
+            const msg = error.message || 'Lỗi không xác định';
+            this.notification.error('Thông báo', msg);
+            console.error('Lỗi:', error.error);
+          },
     });
   }
 
@@ -841,11 +889,11 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         this.projecStatuses = response.data;
       },
-        error: (error: any) => {
-        const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
-        console.error('Lỗi:', error.error);
-      },
+      error: (error: any) => {
+            const msg = error.message || 'Lỗi không xác định';
+            this.notification.error('Thông báo', msg);
+            console.error('Lỗi:', error.error);
+          },
     });
   }
 
@@ -1087,11 +1135,11 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           this.searchProjects();
         }
       },
-        error: (error: any) => {
-        const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
-        console.error('Lỗi:', error.error);
-      },
+      error: (error: any) => {
+            const msg = error.message || 'Lỗi không xác định';
+            this.notification.error('Thông báo', msg);
+            console.error('Lỗi:', error.error);
+          },
     });
   }
   //#endregion

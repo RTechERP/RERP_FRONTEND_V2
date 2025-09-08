@@ -69,8 +69,8 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
   tb_employeeSuggestContainer!: ElementRef;
 
   dataChange: any = false;
-  projectIdNew:any;
-  projectIdOld:any;
+  projectIdNew: any;
+  projectIdOld: any;
   projects: any[] = [];
   projectId: any = 0;
   employees: any[] = [];
@@ -113,7 +113,6 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
     this.getProjectEmployee();
     // this.getEmployeeMain();
     // this.getEmployeeSuggest();
-
   }
   //#endregion
 
@@ -123,7 +122,7 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         this.projects = response.data;
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -150,7 +149,7 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
         this.tb_employeeSuggest.setData(response.data);
         console.log(response.data);
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -177,7 +176,7 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
         console.log('emmm1', this.employees);
         console.log('emmm2', this.dictEmployee);
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -200,7 +199,7 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
           }
         });
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);
@@ -229,7 +228,6 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
         },
       });
     } else {
-
       this.getEmployeeMain();
       this.getEmployeeSuggest();
       this.listIds = [];
@@ -629,7 +627,7 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
 
   //#region Lưu thông tin người tham gia
   saveProjectUser() {
-    debugger;
+      
     let dataEmployeeMain = this.tb_employeeMain
       .getData()
       .filter((row: any) => row['IsDeleted'] != true);
@@ -637,7 +635,7 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
     let employeeMainIds = dataEmployeeMain.map((row: any) => row.EmployeeID);
     if (dataEmployeeMain.length > 0) {
       for (let item of dataEmployeeMain) {
-        debugger;
+          
         let employeeId = item.EmployeeID;
         let projectTypeId = item.ProjectTypeID;
         let stt = item.Rownumber;
@@ -698,7 +696,7 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
           this.search();
         }
       },
-        error: (error: any) => {
+      error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
         this.notification.error('Thông báo', msg);
         console.error('Lỗi:', error.error);

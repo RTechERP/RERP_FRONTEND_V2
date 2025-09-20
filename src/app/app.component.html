@@ -43,16 +43,146 @@
             <li nz-submenu nzOpen nzTitle="Tài sản cá nhân" nzIcon="form">
                 <ul>
                     <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/assetmanagemnetpersonal'])">Quản lí tài sản cá nhân</a>
+                        <a (click)="newTab(['/Assetmanagemnetpersonal'])">Quản lí tài sản cá nhân</a>
                     </li>
                     <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/assetallocationpersonal'])">Cấp phát tài sản cá nhân</a>
+                        <a (click)="newTab(['/Assetallocationpersonal'])">Cấp phát tài sản cá nhân</a>
                     </li>
                     <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/assetRecoveryPersonal'])">Thu hồi tài sản cá nhân </a>
+                        <a (click)="newTab(['/AssetRecoveryPersonal'])">Thu hồi tài sản cá nhân </a>
                     </li>
                 </ul>
             </li>
+
+            <li nz-submenu nzOpen nzTitle="Kho " nzIcon="form">
+                <ul>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/TbProductRtc'])">Kho DEMO</a>
+                    </li>
+
+                </ul>
+            </li>
+            <li nz-submenu nzOpen nzTitle="Test WEB " nzIcon="form">
+                <ul>
+                     <li nz-menu-item nzMatchRouter>
+            <a (click)="newTab(['/project/0'])">Dự án</a>
+          </li>
+          <li nz-menu-item nzMatchRouter>
+            <a (click)="newTab(['/projectWorkCategory'])">Hạng mục dự án</a>
+          </li>
+            <li nz-menu-item nzMatchRouter>
+            <a (click)="newTab(['/ProjectComponent'])">Dự án2</a>
+          </li>
+          <li nz-menu-item nzMatchRouter>
+            <a (click)="newTab(['/projectWorkPropress'])"
+              >Tiến độ công việc</a
+            >
+          </li>
+          <li nz-menu-item nzMatchRouter>
+            <a (click)="newTab(['/projectWorkTimeline'])">Timeline công việc</a>
+          </li>
+          <li nz-menu-item nzMatchRouter>
+            <a (click)="newTab(['/projectSurvey'])">Khảo sát dự án</a>
+          </li>
+          <li nz-menu-item nzMatchRouter>
+            <a (click)="newTab(['/projectItemlate'])"
+              >Hạng mục công việc chậm tiến độ</a
+            >
+          </li>
+
+                </ul>
+            </li>
+            <li nz-submenu nzOpen nzTitle="Quản lí film" nzIcon="form">
+                <ul>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/FilmManagement'])">Film</a>
+                    </li>
+
+                </ul>
+            </li>
+            <li nz-submenu nzOpen nzTitle="Phòng kĩ thuật " nzIcon="form">
+                <ul>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/BillImportTechnical'])">Phiếu nhập</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/BillExportTechnicalComponent'])">Phiếu xuất</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/ProductExportAndBorrowComponent'])">Danh sách thiết bị không dùng</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/SearchProductTechSerialComponent'])">Tra cứu serial number</a>
+                    </li>
+
+
+                </ul>
+            </li>
+            <li nz-submenu nzOpen nzTitle="Dự án" nzIcon="form">
+                <ul>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/ProjectItem'])">Hạng mục công việc</a>
+                    </li>
+
+
+
+                </ul>
+            </li>
+            <li nz-submenu nzOpen nzTitle="Tồn kho Demo " nzIcon="form">
+                <ul>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/InventoryDemoComponent'])">Tồn kho Demo</a>
+                    </li>
+
+
+                </ul>
+            </li>
+            <li nz-submenu nzOpen nzTitle="Lịch sử nhập xuất " nzIcon="form">
+                <ul>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/ProductReportNewComponent'])">Lịch sử nhập xuất </a>
+                    </li>
+
+
+                </ul>
+            </li>
+            <li nz-submenu nzOpen nzTitle="DỰ ÁN" nzIcon="dashboard">
+                <ul>
+                      <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/project/0'])">Dự án</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/projectWorkCategory'])">Hạng mục dự án</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/projectWorkPropress/0'])">Tiến độ công việc</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/projectWorkTimeline'])">Timeline công việc</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/projectSurvey'])">Khảo sát dự án</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/projectItemlate'])">Hạng mục công việc chậm tiến độ</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/project/2'])">Tổng hợp dự án AGV</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/projectWorkItemTimeline'])">Timeline hạng mục công việc</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/synthesisOfGeneratedMaterials'])">Tổng hợp vật tư phát sinh</a>
+                    </li>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/projectSynthesisDepartment'])">Tổng hợp dự án phòng ban</a>
+                    </li>
+
+                </ul>
+            </li>
+         
+
         </ul>
     </nz-sider>
     <nz-layout>
@@ -125,6 +255,6 @@
             <router-outlet></router-outlet>
 
         </nz-content>
-        <nz-footer class="p-2 text-uppercase"> &copy; 2025, made by rtc technology việt nam</nz-footer>
+
     </nz-layout>
 </nz-layout>

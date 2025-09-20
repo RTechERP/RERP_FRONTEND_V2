@@ -197,7 +197,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         layout: "fitDataFill",
         pagination: true,
         selectableRows: 1,
-        height: '83vh',
+        height: '88vh',
         movableColumns: true,
         paginationSize: 30,
         paginationSizeSelector: [5, 10, 20, 50, 100],

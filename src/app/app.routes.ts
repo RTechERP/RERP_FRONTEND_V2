@@ -1,7 +1,18 @@
+
 import { Routes } from '@angular/router';
 import { SearchProductTechSerialComponent } from './pages/TB/Technical/search-product-tech-serial/search-product-tech-serial.component';
 import { WelcomeComponent } from './pages/welcome/welcome.component';
+
+
+import { ProjectPartlistPurchaseRequestComponent } from './pages/project-partlist-purchase-request/project-partlist-purchase-request.component';
+import { LoginComponent } from './auth/login/login.component';
+import { authGuard } from './auth/auth.guard';
+import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
+import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
 import { AppComponent } from './app.component';
+import { MenusComponent } from './pages/menus/menus.component';
+import { HomeLayoutComponent } from './layouts/home-layout/home-layout.component';
+
 import { TsAssetManagementPersonalComponent } from './pages/ts-asset-management-personal/ts-asset-management-personal.component';
 import { TsAssetAllocationPersonalComponent } from './pages/ts-asset-allocation-personal/ts-asset-allocation-personal.component';
 import { TsAssetRecoveryPersonalComponent } from './pages/ts-asset-recovery-personal/ts-asset-recovery-personal.component';
@@ -33,48 +44,55 @@ import { SynthesisOfGeneratedMaterialsComponent } from './pages/project/synthesi
 import { ProjectSynthesisDepartmentComponent } from './pages/project/project-synthesis-department/project-synthesis-department.component';
 import { ProjectWorkPropressComponent } from './pages/project/project-work-propress/project-work-propress.component';
 export const routes: Routes = [
-  { path: '', redirectTo: '/welcome', pathMatch: 'full' },
-  { path: 'app', component: AppComponent },
-  { path: 'welcome', component: WelcomeComponent },
-  { path: 'Assetmanagemnetpersonal', component: TsAssetManagementPersonalComponent },
-  { path: 'Assetallocationpersonal', component: TsAssetAllocationPersonalComponent },
-  { path: 'AssetRecoveryPersonal', component: TsAssetRecoveryPersonalComponent },
-  { path: 'AssetsUnit', component: TsAssetUnitcountComponent },
-  { path: 'AssetsType', component: TsAssetTypeComponent },
-  { path: 'AssetsStatus', component: TsAssetStatusComponent },
-  { path: 'AssetSource', component: TsAssetSourceComponent },
-  { path: 'AssetsManagemnet', component: TsAssetManagementComponent },
-  { path: 'AssetsAllocation', component: TsAssetAllocationComponent },
-  { path: 'AssetsRecovery', component: TsAssetRecoveryComponent },
-  { path: 'AssetsTransfer', component: TsAssetTransferComponent },
-  { path: 'TbProductRtc', component: TbProductRtcComponent },
-  { path: 'Product', component: ProductComponent },
-  { path: 'BillImportTechnical', component: BillImportTechnicalComponent },
-  { path: 'BillExportTechnicalComponent', component: BillExportTechnicalComponent },
-  { path: 'InventoryDemoComponent', component: InventoryDemoComponent },
-  { path: 'ProductReportNewComponent', component: ProductReportNewComponent },
-  { path: 'ProductExportAndBorrowComponent', component: ProductExportAndBorrowComponent },
-  { path: 'SearchProductTechSerialComponent', component: SearchProductTechSerialComponent },
-  { path: 'ProjectItem', component: ProjectItemComponent },
-  { path: 'FilmManagement', component: FilmManagementComponent },
-  { path: 'projectWorkTimeline', component: ProjectWorkTimelineComponent }, // TimeLine công việc
-  { path: 'projectSurvey', component: ProjectSurveyComponent }, // Khảo sát dự án
-  { path: 'projectItemlate', component: ProjectItemLateComponent }, // Hạng mục công việc chậm tiến độ
   {
-    path: 'projectListWork/:id',
-    component: ProjectListWorkReportComponent,
+    path: '',
+    component: AuthLayoutComponent,
+    children: [
+      { path: 'login', component: LoginComponent },
+      { path: '', redirectTo: 'login', pathMatch: 'full' },
+    ],
   },
-  { path: 'project/:id', component: ProjectComponent },
+
   {
-    path: 'projectListWork/:id',
-    component: ProjectListWorkReportComponent,
+    path: '',
+    component: MainLayoutComponent,
+    canActivate: [authGuard],
+    children: [
+      {
+        path: 'welcome',
+        component: WelcomeComponent,
+      },
+    ],
   },
-  { path: 'projectWorkCategory', component: ProjectWorkCategoryComponent }, // Hạng mục dự án
+
   {
-    path: 'projectWorkPropress/:id',
-    component: ProjectWorkPropressComponent,
-  },
-   {
+    path: '',
+    component: MainLayoutComponent, // layout chứa sidebar, topbar, etc.
+    canActivate: [authGuard],
+    children: [
+      { path: 'menu', component: MenusComponent },
+      {
+        path: 'project-partlist-price-request',
+        loadComponent: () =>
+          import(
+            './pages/project-partlist-purchase-request/project-partlist-purchase-request.component'
+          ).then((m) => m.ProjectPartlistPurchaseRequestComponent),
+      },
+      // Router danh mục dự án
+      { path: 'project/:id', component: ProjectComponent }, // 2 là tổng hợp công việc AGV còn lại là dự án
+      {
+        path: 'projectListWork/:id',
+        component: ProjectListWorkReportComponent,
+      }, // Dự án master
+      { path: 'projectWorkCategory', component: ProjectWorkCategoryComponent }, // Hạng mục dự án
+      {
+        path: 'projectWorkPropress/:id',
+        component: ProjectWorkPropressComponent,
+      }, // Tiến độ công việc
+      { path: 'projectWorkTimeline', component: ProjectWorkTimelineComponent }, // TimeLine công việc
+      { path: 'projectSurvey', component: ProjectSurveyComponent }, // Khảo sát dự án
+      { path: 'projectItemlate', component: ProjectItemLateComponent }, // Hạng mục công việc chậm tiến độ
+      {
         path: 'projectWorkItemTimeline',
         component: ProjectWorkItemTimelineComponent,
       }, // Hạng mục công việc chậm tiến độ
@@ -85,5 +103,7 @@ export const routes: Routes = [
       {
         path: 'projectSynthesisDepartment',
         component: ProjectSynthesisDepartmentComponent,
-      },
+      }, // Tổng hợp vật tư phát sinh
+    ],
+  },
 ];

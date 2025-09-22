@@ -45,4 +45,25 @@ import { NzAvatarModule } from 'ng-zorro-antd/avatar';
   standalone: true,
   template: `<router-outlet></router-outlet>`,
 })
-export class AppComponent {}
+export class AppComponent {
+  notifItems = [
+    {
+      icon: 'mail',
+      text: 'Mã KhoCC về hàng',
+      time: '10:15 AM',
+      group: 'today',
+    },
+    {
+      icon: 'calendar',
+      text: 'Mã KhoCC về hàng',
+      time: '10:15 AM',
+      group: 'today',
+    },
+    {
+      icon: 'alert',
+      text: 'Mã KhoCC về hàng',
+      time: '10:15 AM',
+      group: 'today',
+    },
+  ];
+}

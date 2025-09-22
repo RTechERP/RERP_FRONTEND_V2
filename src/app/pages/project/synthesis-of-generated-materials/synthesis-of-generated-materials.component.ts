@@ -201,7 +201,7 @@ export class SynthesisOfGeneratedMaterialsComponent
           headerHozAlign: 'center',
           hozAlign: 'right',
           formatter: 'money',
-          bottomCalc: 'sum', 
+          bottomCalc: 'sum',
           bottomCalcFormatter: 'money',
         },
         {
@@ -211,7 +211,7 @@ export class SynthesisOfGeneratedMaterialsComponent
           headerHozAlign: 'center',
           hozAlign: 'right',
           formatter: 'money',
-          bottomCalc: 'sum', 
+          bottomCalc: 'sum',
           bottomCalcFormatter: 'money',
         },
         {
@@ -221,7 +221,7 @@ export class SynthesisOfGeneratedMaterialsComponent
           headerHozAlign: 'center',
           hozAlign: 'right',
           formatter: 'money',
-          bottomCalc: 'sum', 
+          bottomCalc: 'sum',
           bottomCalcFormatter: 'money',
         },
         {
@@ -231,7 +231,7 @@ export class SynthesisOfGeneratedMaterialsComponent
           headerHozAlign: 'center',
           hozAlign: 'right',
           formatter: 'money',
-          bottomCalc: 'sum', 
+          bottomCalc: 'sum',
           bottomCalcFormatter: 'money',
         },
         {
@@ -276,7 +276,7 @@ export class SynthesisOfGeneratedMaterialsComponent
   //#region load dũ liệu bảng
   async getDataProjectSurvey() {
     this.isLoadTable = true;
-    debugger;
+
     let pageSize = this.tb_synthesisOfGeneratedMaterials.getPageSize();
     let data = {
       pageNumber: 1,
@@ -305,18 +305,21 @@ export class SynthesisOfGeneratedMaterialsComponent
   //#endregion
 
   //#region Xuất excel
-  exportExcel(){
+  exportExcel() {
     let table = this.tb_synthesisOfGeneratedMaterials;
     if (!table) return;
 
-    let datatable =  this.tb_synthesisOfGeneratedMaterials.getData();
+    let datatable = this.tb_synthesisOfGeneratedMaterials.getData();
     if (!datatable || datatable.length === 0) {
-      this.notification.error(
-        'Thông báo','Không có dữ liệu để xuất excel!'
-      );
+      this.notification.error('Thông báo', 'Không có dữ liệu để xuất excel!');
       return;
     }
-    this.projectService.exportExcel(table,datatable,'Báo cáo vật tư phát sinh', 'BaoCaoVatTuPhatSinh' )
+    this.projectService.exportExcel(
+      table,
+      datatable,
+      'Báo cáo vật tư phát sinh',
+      'BaoCaoVatTuPhatSinh'
+    );
   }
   //#endregion
 }

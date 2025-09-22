@@ -10,7 +10,7 @@
 </div> -->
 
 
-<div class="wrapper">
+<!-- <div class="wrapper">
     <span class="bg-animate"></span>
     <span class="bg-animate2"></span>
     <div class="form-box login">
@@ -61,8 +61,64 @@
         </form>
     </div>
     <div class="info-text register">
-        <!-- <h2>Chào mừng bạn</h2> -->
-        <img src="./assets/logo-RTC-2023-1200-red-white.png" alt="">
+        <h2>Chào mừng bạn</h2> -->
+<!-- <img src="./assets/logo-RTC-2023-1200-red-white.png" alt="">
     </div>
 
+</div> -->
+<!-- [ auth-signin ] start -->
+<div class="auth-wrapper">
+    <div class="auth-content container">
+        <div class="card">
+            <div class="row align-items-center">
+                <div class="col-md-6 d-none d-md-block">
+                  <!-- <img src="../assets/images/scada-iot-rtc.jpg" alt="" class="img-fluid">--> 
+                <img src="https://khodohoa.vn/wp-content/uploads/2019/09/43087481675_3969d2e92c_o.jpg" alt=""
+                        class="img-fluid">
+                          <!--    <img src="https://rtc.edu.vn/iot-giai-phap-tu-dong-hoa/" alt="" class="img-fluid"> -->
+                </div>
+                <div class="col-md-6">
+                    <div class="card-body">
+                        <img src="../assets/images/logo-RTC-2023-1200-banchuan.png" alt="" class="img-fluid mb-4"
+                            style="width: 40%;">
+                        <h4 class="mb-4 f-w-400">ĐĂNG NHẬP</h4>
+
+                        <form action="" [formGroup]="loginForm" (ngSubmit)="onLogin()">
+                            <div class="input-group mb-3">
+                                <span class="input-group-text">
+                                    <img src="assets/icon/user.png" alt="user" style="width:18px; height:18px;">
+                                </span>
+                                <input type="text" class="form-control" formControlName="loginname"
+                                    placeholder="Tên đăng nhập" required>
+                            </div>
+
+                            <div class="input-group mb-4">
+                                <span class="input-group-text">
+                                    <img src="assets/icon/password.png" alt="password" style="width:18px; height:18px;">
+                                </span>
+                                <input type="password" class="form-control" formControlName="passwordhash"
+                                    placeholder="Mật khẩu" required>
+                            </div>
+
+                            <div class="form-group text-left mt-2 mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input custom-checkbox" type="checkbox"
+                                        id="checkbox-fill-a1" checked>
+                                    <label class="form-check-label" for="checkbox-fill-a1">
+                                        Nhớ mật khẩu
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- <button class="btn btn-primary mb-4">ĐĂNG NHẬP</button> -->
+                            <button type="submit" class="btn btn-primary mb-2">ĐĂNG NHẬP</button>
+                            <p class=" text-danger" *ngIf="errorMessage">{{errorMessage}}</p>
+
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
 </div>

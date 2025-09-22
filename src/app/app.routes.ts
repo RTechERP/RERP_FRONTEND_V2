@@ -53,6 +53,7 @@ export const routes: Routes = [
     component: MainLayoutComponent, // layout chứa sidebar, topbar, etc.
     canActivate: [authGuard],
     children: [
+      { path: 'welcome', component: WelcomeComponent },
       { path: 'menu', component: MenusComponent },
       {
         path: 'project-partlist-price-request',

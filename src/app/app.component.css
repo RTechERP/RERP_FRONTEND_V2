@@ -205,6 +205,7 @@ nz-sider {
   border-radius: 3px;
 }
 
+  
 .app-launcher a {
   display: flex;
   flex-direction: column;
@@ -214,13 +215,14 @@ nz-sider {
   font-size: 14px;
  padding: 10px;          
   border-radius: 8px;  
-   transition: background 0.2s ease;  
+   transition: background 0.2s ease;    box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
 }
 
 .app-launcher a img {
   width: 42px;
   height: 42px;
   margin-bottom: 6px;
+  
 }
 .app-launcher a:hover {
   background: #e8f0fe;        /* màu nền khi hover */
@@ -245,7 +247,7 @@ nz-sider {
   justify-content: space-between;
   align-items: center;
 }
-.notif-count {
+.notif-count {  
   font-size: 12px;
   color: #999;
 }
@@ -255,7 +257,8 @@ nz-sider {
   gap: 8px;
   padding: 10px 12px;
   cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+    border:1px solid #b9b9b9;
+
 }
 .notif-item:hover {
   background: #f5f5f5;

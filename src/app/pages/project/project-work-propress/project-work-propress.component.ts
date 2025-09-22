@@ -107,26 +107,25 @@ export class ProjectWorkPropressComponent implements OnInit, AfterViewInit {
   }
 
   getProject() {
-  this.projectService.getProjectModal().subscribe({
-    next: (response: any) => {
-      let selectedYear = DateTime.fromJSDate(this.year).year;
-      this.projects = response.data.filter((project: any) => {
-        let createdDate = DateTime.fromISO(project.CreatedDate);
-        return (
-          createdDate.isValid &&
-          Number(createdDate.year) === Number(selectedYear)
-        );
-      });
-      console.log(this.projects);
-    },
-    error: (error: any) => {
-      const msg = error.message || 'Lỗi không xác định';
-      this.notification.error('Thông báo', msg);
-      console.error('Lỗi:', error.error);
-    },
-  });
-}
-
+    this.projectService.getProjectModal().subscribe({
+      next: (response: any) => {
+        let selectedYear = DateTime.fromJSDate(this.year).year;
+        this.projects = response.data.filter((project: any) => {
+          let createdDate = DateTime.fromISO(project.CreatedDate);
+          return (
+            createdDate.isValid &&
+            Number(createdDate.year) === Number(selectedYear)
+          );
+        });
+        console.log(this.projects);
+      },
+      error: (error: any) => {
+        const msg = error.message || 'Lỗi không xác định';
+        this.notification.error('Thông báo', msg);
+        console.error('Lỗi:', error.error);
+      },
+    });
+  }
 
   async getWorkPropress() {
     this.isLoadTable = true;
@@ -696,7 +695,6 @@ export class ProjectWorkPropressComponent implements OnInit, AfterViewInit {
 
         // Xuất dòng ra Excel
         const rowData = columns.map((col: any) => {
-          debugger;
           const field = col.getField?.();
           let value = row[field];
           if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {

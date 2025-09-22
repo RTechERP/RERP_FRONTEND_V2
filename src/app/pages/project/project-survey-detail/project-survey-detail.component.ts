@@ -573,7 +573,6 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
       };
       this.projectService.getDetail(data).subscribe({
         next: (response: any) => {
-          debugger;
           let data = response.data;
           if (data) {
             this.leaderId = data.ApprovedUrgentID;
@@ -648,7 +647,6 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
 
   //#region Lưu thông tin khảo sát dự án
   save(): void {
-    debugger;
     if (this.validateForm.valid) {
       let dateNow = DateTime.local();
       let ds = DateTime.fromJSDate(new Date(this.dateStart));
@@ -867,7 +865,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
 
     //   return;
     // }
-    debugger;
+
     let prjTypeLinks = this.projectService
       .getSelectedRowsRecursive(this.tb_projectSurveyDetail.getData())
       .filter((row) => row.selectRow === true);

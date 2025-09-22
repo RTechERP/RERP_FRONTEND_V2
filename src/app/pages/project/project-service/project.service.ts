@@ -51,7 +51,7 @@ export class ProjectService {
   // Danh sách loại dự án ProjectTypeLink
   getProjectTypeLinks(id: number): Observable<any> {
     return this.http.get<any>(
-      this.urlProject + `get-project-type-link?id=${id}`
+      this.urlProject + `get-project-type-links?id=${id}`
     );
   }
   // Load Hạng mục công việc
@@ -130,7 +130,7 @@ export class ProjectService {
   ): Observable<any> {
     return this.http.get<any>(
       this.urlProject +
-        `get-project-code-modal?projectId=${projectId}&shortName=${shortName}&projectType=${projectType}`
+        `get-project-code-modal?projectId=${projectId}&customerShortName=${shortName}&projectType=${projectType}`
     );
   }
   // lấy leader
@@ -324,7 +324,6 @@ export class ProjectService {
   }
 
   getEmployeeMain(projectId: number, isDeleted: number): Observable<any> {
-    debugger;
     return this.http.get<any>(
       this.urlProject +
         `get-employee-main?projectId=${projectId}&isDeleted=${isDeleted}`

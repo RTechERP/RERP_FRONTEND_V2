@@ -147,7 +147,6 @@ export class ProjectFormPriorityDetailComponent implements OnInit {
       .checkProjectPriority(this.priorityId, this.priorityCode)
       .subscribe({
         next: (response: any) => {
-          debugger;
           if (response.data == false) {
             const dataSave = {
               ID: this.priorityId,

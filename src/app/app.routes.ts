@@ -43,14 +43,9 @@ export const routes: Routes = [
 
   {
     path: '',
-    component: MainLayoutComponent,
-    canActivate: [authGuard],
-    children: [
-      {
-        path: 'welcome',
-        component: WelcomeComponent,
-      },
-    ],
+    component: HomeLayoutComponent,
+    canActivate: [],
+    children: [{ path: 'home', component: HomeLayoutComponent }],
   },
 
   {

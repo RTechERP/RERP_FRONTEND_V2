@@ -31,6 +31,7 @@ import { TsAssetManagementComponent } from './pages/ts-asset-management/ts-asset
 import { TsAssetAllocationComponent } from './pages/ts-asset-allocation/ts-asset-allocation.component';
 import { TsAssetRecoveryComponent } from './pages/ts-asset-recovery/ts-asset-recovery.component';
 import { TsAssetTransferComponent } from './pages/ts-asset-transfer/ts-asset-transfer.component';
+import { CustomerComponent } from './pages/customer/customer.component';
 export const routes: Routes = [
   {
     path: '',
@@ -88,6 +89,13 @@ export const routes: Routes = [
         path: 'projectSynthesisDepartment',
         component: ProjectSynthesisDepartmentComponent,
       }, // Tổng hợp vật tư phát sinh
+
+      //#region CRM
+      {
+        path: 'customer', //DANH SÁCH KHÁCH HÀNG
+        component: CustomerComponent,
+      },
+      //#endregion
     ],
   },
 ];

@@ -52,18 +52,27 @@
                 </ul>
             </li>
 
-            <li nz-submenu nzOpen nzTitle="{{menu.MenuName}}" nzIcon="dashboard">
+
+            <li nz-submenu nzOpen nzTitle="CRM" nzIcon="dashboard">
                 <ul>
-                    <!-- <li nz-menu-item nzMatchRouter>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/customer'],'Khách hàng')">Khách hàng</a>
+                    </li>
+                </ul>
+            </li>
+
+            <!-- <li nz-submenu nzOpen nzTitle="{{menu.MenuName}}" nzIcon="dashboard">
+                <ul>
+                    <li nz-menu-item nzMatchRouter>
                         <a (click)="newTab(['project-partlist-price-request'],'Yêu cầu báo giá')">Yêu cầu báo giá</a>
-                    </li> -->
-                    <!-- @for (item of menu.MenuChilds; track item.ID) {
+                    </li>
+                    @for (item of menu.MenuChilds; track item.ID) {
                     <li nz-menu-item nzMatchRouter>
                         <a (click)="newTab([item.Link],item.MenuName)">{{item.MenuName}}</a>
                     </li>
-                    } -->
+                    }
                 </ul>
-            </li>
+            </li> -->
         </ul>
     </nz-sider>
     <nz-layout>
@@ -195,6 +204,6 @@
         <nz-content class="">
             <router-outlet></router-outlet>
         </nz-content>
-        <nz-footer class="p-2 text-uppercase"> &copy; 2025, made by rtc technology việt nam</nz-footer>
+        <!-- <nz-footer class="p-2 text-uppercase"> &copy; 2025, made by rtc technology việt nam</nz-footer> -->
     </nz-layout>
 </nz-layout>

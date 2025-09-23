@@ -19,7 +19,7 @@ import { log } from 'ng-zorro-antd/core/logger';
 export class LoginComponent {
   loginForm: FormGroup;
   errorMessage = '';
-
+submitted = false;
   constructor(
     private formBuilder: FormBuilder,
     private authService: AuthService,
@@ -31,16 +31,17 @@ export class LoginComponent {
     });
   }
 
-  onLogin(): void {
-    if (this.loginForm.invalid) return;
+onLogin(): void {
+  this.submitted = true;
+  if (this.loginForm.invalid) return;
 
-    this.authService.login(this.loginForm.value).subscribe({
-      next: () => this.router.navigate(['/welcome']),
-      error: (err) => {
-        this.errorMessage = err.error.message;
-      },
-    });
-  }
+  this.authService.login(this.loginForm.value).subscribe({
+    next: () => this.router.navigate(['/welcome']),
+    error: (err) => {
+      this.errorMessage = err.error.message;
+    },
+  });
+}
 }
 
 // import { CommonModule } from '@angular/common';

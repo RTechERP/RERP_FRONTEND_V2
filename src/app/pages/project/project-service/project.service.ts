@@ -4,12 +4,12 @@ import { Observable } from 'rxjs';
 import { HttpParams } from '@angular/common/http';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
-import { API_ORIGIN } from '../../../app.config';
+import { HOST } from '../../../app.config';
 @Injectable({
   providedIn: 'root',
 })
 export class ProjectService {
-  private apiUrl = API_ORIGIN + 'api/';
+  private apiUrl = HOST + 'api/';
 
   private urlProject = this.apiUrl + 'project/';
   private urlProjectWorkPropress = this.apiUrl + 'projectworkpropress/';
@@ -130,7 +130,7 @@ export class ProjectService {
   ): Observable<any> {
     return this.http.get<any>(
       this.urlProject +
-        `get-project-code-modal?projectId=${projectId}&customerShortName=${shortName}&projectType=${projectType}`
+        `get-project-code-modal?projectId=${projectId}&shortName=${shortName}&projectType=${projectType}`
     );
   }
   // lấy leader
@@ -165,7 +165,7 @@ export class ProjectService {
   checkProjectCode(projectId: number, projectCode: string): Observable<any> {
     return this.http.get<any>(
       this.urlProject +
-        `check-project-code?id=${projectId}&projectCode=${projectCode}`
+        `check-project-code?projectId=${projectId}&projectCode=${projectCode}`
     );
   }
 
@@ -324,7 +324,7 @@ export class ProjectService {
   }
 
   getEmployeeMain(projectId: number, isDeleted: number): Observable<any> {
-      
+    debugger;
     return this.http.get<any>(
       this.urlProject +
         `get-employee-main?projectId=${projectId}&isDeleted=${isDeleted}`

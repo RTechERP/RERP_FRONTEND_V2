@@ -803,11 +803,9 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           this.projectService.setDataTree(response.data, 'ID')
         );
       },
-      error: (error: any) => {
-            const msg = error.message || 'Lỗi không xác định';
-            this.notification.error('Thông báo', msg);
-            console.error('Lỗi:', error.error);
-          },
+      error: (error) => {
+        console.error('Lỗi:', error);
+      },
     });
   }
   //#endregion
@@ -821,11 +819,9 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           'DepartmentName'
         );
       },
-      error: (error: any) => {
-            const msg = error.message || 'Lỗi không xác định';
-            this.notification.error('Thông báo', msg);
-            console.error('Lỗi:', error.error);
-          },
+      error: (error) => {
+        console.error('Lỗi:', error);
+      },
     });
   }
 
@@ -837,11 +833,9 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           'DepartmentName'
         );
       },
-      error: (error: any) => {
-            const msg = error.message || 'Lỗi không xác định';
-            this.notification.error('Thông báo', msg);
-            console.error('Lỗi:', error.error);
-          },
+      error: (error) => {
+        console.error('Lỗi:', error);
+      },
     });
   }
 
@@ -850,11 +844,9 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         this.businessFields = response.data;
       },
-      error: (error: any) => {
-            const msg = error.message || 'Lỗi không xác định';
-            this.notification.error('Thông báo', msg);
-            console.error('Lỗi:', error.error);
-          },
+      error: (error) => {
+        console.error('Lỗi:', error);
+      },
     });
   }
 
@@ -863,11 +855,9 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         this.customers = response.data;
       },
-      error: (error: any) => {
-            const msg = error.message || 'Lỗi không xác định';
-            this.notification.error('Thông báo', msg);
-            console.error('Lỗi:', error.error);
-          },
+      error: (error) => {
+        console.error('Lỗi:', error);
+      },
     });
   }
 
@@ -876,11 +866,9 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         this.projectTypes = response.data;
       },
-      error: (error: any) => {
-            const msg = error.message || 'Lỗi không xác định';
-            this.notification.error('Thông báo', msg);
-            console.error('Lỗi:', error.error);
-          },
+      error: (error) => {
+        console.error('Lỗi:', error);
+      },
     });
   }
 
@@ -889,11 +877,9 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         this.projecStatuses = response.data;
       },
-      error: (error: any) => {
-            const msg = error.message || 'Lỗi không xác định';
-            this.notification.error('Thông báo', msg);
-            console.error('Lỗi:', error.error);
-          },
+      error: (error) => {
+        console.error('Lỗi:', error);
+      },
     });
   }
 
@@ -1135,11 +1121,9 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           this.searchProjects();
         }
       },
-      error: (error: any) => {
-            const msg = error.message || 'Lỗi không xác định';
-            this.notification.error('Thông báo', msg);
-            console.error('Lỗi:', error.error);
-          },
+      error: (error) => {
+        console.error('Lỗi:', error);
+      },
     });
   }
   //#endregion

@@ -324,7 +324,7 @@ export class ProjectService {
   }
 
   getEmployeeMain(projectId: number, isDeleted: number): Observable<any> {
-    debugger;
+      
     return this.http.get<any>(
       this.urlProject +
         `get-employee-main?projectId=${projectId}&isDeleted=${isDeleted}`
@@ -421,7 +421,7 @@ export class ProjectService {
 
   getUserTeam(departmentId: number): Observable<any> {
     return this.http.get<any>(
-      this.urlProjectWorkTimeline + `get-user-team?departmentId=${departmentId}`
+      this.urlProjectWorkTimeline + `get-user-team/${departmentId}`
     );
   }
 

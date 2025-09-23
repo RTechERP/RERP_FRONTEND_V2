@@ -178,12 +178,10 @@ export class ProjectStatusComponent implements OnInit {
   }
 
   getProjectStatusParam() {
-      
     return { projectId: this.projectId };
   }
 
   loadData() {
-      
     this.projectService.getProjectStatusById(this.projectId).subscribe({
       next: (response: any) => {
         response.data = response.data.map((item: any) => ({
@@ -241,7 +239,7 @@ export class ProjectStatusComponent implements OnInit {
         data.push(newRow);
       }
     });
-      
+
     const hasSelectedRow = data.some((row) => row.Selected === true);
 
     if (!hasSelectedRow) {

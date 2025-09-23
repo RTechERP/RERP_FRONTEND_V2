@@ -5,10 +5,11 @@ import {
   Validators,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { AuthService } from '../auth.service';
+
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { log } from 'ng-zorro-antd/core/logger';
+import { AuthService } from '../auth.service';
 
 @Component({
   selector: 'app-login',

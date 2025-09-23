@@ -56,7 +56,7 @@ export class ProjectStatusDetailComponent implements OnInit {
       });
       return;
     }
-      
+
     const checkStatus = this.projectStatus.find(
       (item: any) => item.StatusName == this.statusName
     );

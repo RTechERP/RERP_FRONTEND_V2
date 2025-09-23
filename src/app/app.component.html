@@ -2,16 +2,28 @@
     <nz-sider class="menu-sidebar" nzCollapsible nzWidth="256px" nzBreakpoint="md" [(nzCollapsed)]="isCollapsed"
         [nzTrigger]="null" nzTheme="light">
         <div class="sidebar-logo" nzTheme="light">
-            <a href="/welcome">
-                <img src="assets/images/logo-RTC-2023-1200-banchuan.png" alt="logo" />
+            <a href="/home">
+                <img src="assets\images\logo-RTC-2023-1200-banchuan.png" alt="logo" />
                 <!-- <h1>RTC</h1> -->
             </a>
         </div>
         <ul nz-menu nzTheme="light" nzMode="inline" [nzInlineCollapsed]="false">
+        <li nz-submenu nzOpen [nzTitle]="titleTpl">
+  <ng-template #titleTpl>
+    <span style="display:inline-flex;align-items:center;gap:8px">
+      <img src="/assets/icon/layers.png" alt="icon" style="width:16px;height:16px" />
+      <span>DỰ ÁN</span>
+    </span>
+  </ng-template>
 
+  <ul>
+    <li nz-menu-item>Item 1</li>
+    <li nz-menu-item>Item 2</li>
+  </ul>
+</li>
             <li nz-submenu nzOpen nzTitle="DỰ ÁN" nzIcon="dashboard">
                 <ul>
-        
+
                     <li nz-menu-item nzMatchRouter>
                         <a (click)="newTab(['/project/0'],'Dự án')">Dự án</a>
                     </li>
@@ -50,18 +62,27 @@
                 </ul>
             </li>
 
-            <li nz-submenu nzOpen nzTitle="{{menu.MenuName}}" nzIcon="dashboard">
+
+            <li nz-submenu nzOpen nzTitle="CRM" nzIcon="dashboard">
                 <ul>
-                    <!-- <li nz-menu-item nzMatchRouter>
+                    <li nz-menu-item nzMatchRouter>
+                        <a (click)="newTab(['/customer'],'Khách hàng')">Khách hàng</a>
+                    </li>
+                </ul>
+            </li>
+
+            <!-- <li nz-submenu nzOpen nzTitle="{{menu.MenuName}}" nzIcon="dashboard">
+                <ul>
+                    <li nz-menu-item nzMatchRouter>
                         <a (click)="newTab(['project-partlist-price-request'],'Yêu cầu báo giá')">Yêu cầu báo giá</a>
-                    </li> -->
-                    <!-- @for (item of menu.MenuChilds; track item.ID) {
+                    </li>
+                    @for (item of menu.MenuChilds; track item.ID) {
                     <li nz-menu-item nzMatchRouter>
                         <a (click)="newTab([item.Link],item.MenuName)">{{item.MenuName}}</a>
                     </li>
-                    } -->
+                    }
                 </ul>
-            </li>
+            </li> -->
         </ul>
     </nz-sider>
     <nz-layout>
@@ -86,12 +107,12 @@
                 </div>
                 <div class="header-trigger">
                     <button nz-button nz-dropdown [nzDropdownMenu]="appmenu" nzPlacement="bottomRight" nzType="text"
-                        class="text-light">
-                        <nz-icon nzType="appstore" nzTheme="outline"></nz-icon>
+                        class=" text-light">
+                        <nz-icon nzType="appstore" nzTheme="outline" />
                     </button>
                     <nz-dropdown-menu #appmenu="nzDropdownMenu">
                         <div class="app-launcher">
-                            <div class="app-launcher-inner"> 
+                            <div class="app-launcher-inner">
 
                                 <a (click)="newTab(['/project/2'],'Tổng hợp dự án AGV')"><img
                                         src="assets/icon/order-food.png"><span>Đặt cơm</span></a>
@@ -143,40 +164,9 @@
 
                     </nz-dropdown-menu>
                     <button nz-button nz-dropdown [nzDropdownMenu]="notifications" nzPlacement="bottomRight"
-                        nzType="text" class="text-light">
+                        nzType="text" class=" text-light">
                         <nz-icon nzType="bell" />
                     </button>
-
-                    <nz-dropdown-menu #notifications="nzDropdownMenu">
-                        <div class="notif-dropdown">
-                            <div class="notif-header">
-                                <strong>Thông báo</strong>
-                                <span class="notif-count">3 mới</span>
-                            </div>
-
-                            <div class="notif-item">
-                                <i nz-icon nzType="mail" nzTheme="outline"></i>
-                                <span class="notif-text">Mã KhoCC về hàng</span>
-                                <span class="notif-time">10:15 AM</span>
-                            </div>
-
-                            <div class="notif-item">
-                                <i nz-icon nzType="calendar" nzTheme="twotone"></i>
-                                <span class="notif-text">Mã KhoCC về hàng</span>
-                               <span class="notif-time">10:15 AM</span>
-                            </div>
-
-                            <div class="notif-item">
-                                <i nz-icon nzType="alert" nzTheme="fill"></i>
-                                <span class="notif-text">Mã KhoCC về hàng</span>
-                               <span class="notif-time">10:15 AM</span>
-                            </div>
-
-                            <div class="notif-footer">Xem tất cả</div>
-                        </div>
-                    </nz-dropdown-menu>
-
-
                     <button nz-button nz-dropdown [nzDropdownMenu]="profile" nzPlacement="bottomRight" nzShape="circle"
                         class="ms-2">
                         <nz-icon nzType="user" />
@@ -200,7 +190,14 @@
                             </div>
                         </div>
                     </nz-dropdown-menu>
+                    <nz-dropdown-menu #notifications="nzDropdownMenu">
+                        <ul nz-menu>
+                            <li nz-menu-item>menu1 1st menu item</li>
+                            <li nz-menu-item>menu1 2nd menu item</li>
 
+                            <li nz-menu-item>menu1 3rd menu item</li>
+                        </ul>
+                    </nz-dropdown-menu>
                     <nz-dropdown-menu #profile="nzDropdownMenu">
                         <ul nz-menu>
                             <li nz-menu-item>menu2 1st menu item</li>
@@ -217,6 +214,6 @@
         <nz-content class="">
             <router-outlet></router-outlet>
         </nz-content>
-
+        <!-- <nz-footer class="p-2 text-uppercase"> &copy; 2025, made by rtc technology việt nam</nz-footer> -->
     </nz-layout>
 </nz-layout>

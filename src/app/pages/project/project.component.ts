@@ -102,7 +102,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     private router: Router,
     private route: ActivatedRoute
   ) {}
-
+  //Ga
   //#region Khai báo biến
   @ViewChild('tb_projects', { static: false })
   tb_projectsContainer!: ElementRef;
@@ -288,10 +288,10 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       ajaxURL: this.projectService.getAPIProjects(),
       ajaxParams: this.getProjectAjaxParams(),
       ajaxResponse: (url, params, res) => {
-   
+        console.log('total', res.totalPage);
         return {
           data: res.data.project,
-          last_page:  res.data.totalPage,
+          last_page: res.data.totalPage,
         };
       },
       rowContextMenu: contextMenuProject,

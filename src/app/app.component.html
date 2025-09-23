@@ -61,6 +61,44 @@
                 </ul>
             </li>
 
+            <li nz-submenu nzOpen nzTitle="KHO" nzIcon="dashboard">
+                <ul>
+
+                    <li nz-submenu nzTitle="HÀ NỘI">
+                        <ul>
+                            <li nz-submenu nzTitle="SALE">
+                                <ul>
+                                    <li nz-menu-item nzMatchRouter>
+                                        <a (click)="newTab(['/product-demo'],'TỒN KHO')">Tồn kho</a>
+                                    </li>
+                                    <li nz-menu-item>Phiếu nhập</li>
+                                    <li nz-menu-item>Phiếu xuất</li>
+                                    <li nz-menu-item>Lịch sử nhập xuất</li>
+                                    <li nz-menu-item>Lịch sử mượn</li>
+                                    <li nz-menu-item>Báo cáo nhập xuất</li>
+                                    <li nz-menu-item>Danh sách sản phẩm dự án</li>
+                                    <li nz-menu-item>Tra cứu SerialNumber</li>
+                                </ul>
+                            </li>
+                            <li nz-submenu nzTitle="DEMO">
+
+                            </li>
+                        </ul>
+                    </li>
+
+
+                    <li nz-submenu nzTitle="CÀI ĐẶT">
+                        <ul>
+                            <li nz-menu-item nzMatchRouter>
+                                <a (click)="newTab(['/product-demo'],'Danh mục sản phẩm')">Danh mục sản phẩm</a>
+                            </li>
+                            <li nz-menu-item>Option 8</li>
+                        </ul>
+                    </li>
+
+                </ul>
+            </li>
+
             <!-- <li nz-submenu nzOpen nzTitle="{{menu.MenuName}}" nzIcon="dashboard">
                 <ul>
                     <li nz-menu-item nzMatchRouter>

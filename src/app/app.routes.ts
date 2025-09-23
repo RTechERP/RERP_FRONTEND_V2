@@ -32,6 +32,8 @@ import { TsAssetAllocationComponent } from './pages/ts-asset-allocation/ts-asset
 import { TsAssetRecoveryComponent } from './pages/ts-asset-recovery/ts-asset-recovery.component';
 import { TsAssetTransferComponent } from './pages/ts-asset-transfer/ts-asset-transfer.component';
 import { CustomerComponent } from './pages/customer/customer.component';
+import { ProductComponent } from './pages/product/product.component';
+import { TbProductRtcComponent } from './pages/tb-product-rtc/tb-product-rtc.component';
 export const routes: Routes = [
   {
     path: '',
@@ -94,6 +96,13 @@ export const routes: Routes = [
       {
         path: 'customer', //DANH SÁCH KHÁCH HÀNG
         component: CustomerComponent,
+      },
+      //#endregion
+
+      //#region KHO
+      {
+        path: 'product-demo', //DANH SÁCH SẢN PHẨM DEMO
+        component: TbProductRtcComponent,
       },
       //#endregion
     ],

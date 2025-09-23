@@ -35,11 +35,9 @@ export class ProjectChangeComponent implements OnInit {
       next: (response: any) => {
         this.projects = response.data;
       },
-      error: (error: any) => {
-            const msg = error.message || 'Lỗi không xác định';
-            this.notification.error('Thông báo', msg);
-            console.error('Lỗi:', error.error);
-          },
+      error: (error) => {
+        console.error('Lỗi:', error);
+      },
     });
   }
 
@@ -83,7 +81,6 @@ export class ProjectChangeComponent implements OnInit {
   }
 
   saveChangeProject() {
-    debugger;
     if (this.projectIdOld <= 0 || !this.projectIdOld) {
       this.notification.error('', 'Vui lòng chọn từ dự án!', {
         nzStyle: { fontSize: '0.75rem' },

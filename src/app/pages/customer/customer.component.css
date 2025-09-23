@@ -1,0 +1,63 @@
+.tabulator {
+    font-size: 0.75rem;
+  }
+  
+  .fs-12 {
+    font-size: 0.75rem;
+  }
+
+  .btn {
+    font-size: 0.75rem;
+  }
+
+  .reset {
+    all: revert;
+}
+
+.modal-body {
+  padding-top: 0 !important;
+}
+
+.ant-form-item-label {
+  padding: 0px !important;
+}
+
+/* Hoặc target cụ thể hơn */
+nz-form-label .ant-form-item-label {
+  padding: 0px !important;
+}
+
+.ant-modal-footer .ant-btn:first-child {    
+  border-color: red;
+  color: red;
+}
+
+.ant-modal-footer .ant-btn:first-child:hover{    
+  background: red;
+  color: white;
+}
+
+.cdk-overlay-container {
+  z-index: 9999 !important;
+}
+/* đặt trong styles.scss (toàn cục) hoặc dùng :host ::ng-deep trong component */
+
+
+
+::ng-deep .custom-customer-modal .ant-modal-header {
+  background: #1677ff;   /* nền xanh */
+  color: #fff;           /* chữ trắng */
+}
+
+::ng-deep .custom-customer-modal .ant-modal-title {
+  color: #fff;           /* chắc chắn chữ trắng */
+}
+#customerSpecializationModal .modal-header {
+  padding: 0.4rem 0.75rem; /* mặc định là ~0.5rem 1rem */
+  min-height: 40px;        /* giảm chiều cao tối thiểu */
+}
+
+#customerSpecializationModal .modal-title {
+  font-size: 0.9rem;       /* chữ nhỏ hơn nếu muốn */
+  line-height: 1.4;        /* giảm chiều cao dòng */
+}

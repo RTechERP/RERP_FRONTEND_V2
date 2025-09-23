@@ -110,7 +110,7 @@ export class ProjectSynthesisDepartmentComponent
     .set({ hour: 0, minute: 0, second: 0 })
     .toISO();
 
-  projectId: any|null=null;
+  projectId: any;
   departmentId: any;
   teamId: any;
   employeeId: any;
@@ -452,9 +452,6 @@ export class ProjectSynthesisDepartmentComponent
       ajaxParams: { id: this.projectId },
       ajaxResponse: (url, params, res) => {
         return res.data;
-        console.log(res);
-        console.log(url);
-        console.log(params);
       },
       locale: 'vi',
       rowFormatter: function (row) {

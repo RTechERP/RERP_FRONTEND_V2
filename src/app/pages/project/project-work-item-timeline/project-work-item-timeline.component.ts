@@ -374,7 +374,6 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
 
               if (!actualDateStart.isValid && !actualDateEnd.isValid) {
                 if (DateTime.now() >= de && date.hasSame(de, 'day')) {
-                    
                   el.style.background = '#8B0000';
                   if (date.weekday == 7) {
                     el.style.background =

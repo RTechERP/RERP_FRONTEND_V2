@@ -2,3 +2,121 @@
 .cdk-overlay-container {
   z-index: 9999 !important;
 }
+
+.custom-customer-modal .ant-modal-header {
+  height: 44px;                 /* chiều cao cố định, mỏng hơn mặc định */
+  padding: 0 16px !important;   /* bỏ padding dọc */
+  background: #1677ff;
+  color: #fff;
+  display: flex;
+  align-items: center;          /* căn giữa dọc cho title */
+}
+
+.custom-customer-modal .ant-modal-title {
+  color: #fff;
+  font-size: 16px;
+  line-height: 44px;            /* khớp chiều cao header */
+}
+
+.custom-customer-modal .ant-modal-close {
+  top: 0 !important;
+  right: 12px !important;
+  width: 44px;
+  height: 44px;                 /* = chiều cao header */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.custom-customer-modal .ant-modal-close .anticon,
+.custom-customer-modal .ant-modal-close .ant-modal-close-x {
+  font-size: 18px;
+}
+
+/* button.ant-btn.btn-add{
+  background-color:#00c010 !important;
+  border-color:#00c010 !important;
+  color:#000 !important;
+}
+button.ant-btn.btn-add:hover{
+  background-color:#02921a !important;
+  border-color:#02921a !important;
+  color:#000 !important;
+}
+
+button.ant-btn.btn-edit{
+  background-color:#ffc107 !important;
+  border-color:#ffc107 !important;
+  color:#000 !important;
+}
+button.ant-btn.btn-edit:hover{
+  background-color:#e0a800 !important;
+  border-color:#e0a800 !important;
+  color:#000 !important;
+}
+
+button.ant-btn.btn-delete{
+  background-color:#dc3545 !important;
+  border-color:#dc3545 !important;
+  color:#fff !important;
+}
+button.ant-btn.btn-delete:hover{
+  background-color:#b02a37 !important;
+  border-color:#b02a37 !important;
+  color:#fff !important;
+}
+button.ant-btn.btn-edit, 
+button.ant-btn.btn-add,                                       
+button.ant-btn.btn-delete{
+
+  display:flex; align-items:center; justify-content:center;                                   
+}
+ */
+
+  .btn-add {
+  background-color: #28a745!important;
+color: #fff!important;
+  border: none!important;
+}
+.btn-add:hover {
+  background-color: #218838!important;
+ color: #fff!important;
+}
+.btn-edit {
+  background-color: #5a25f8!important;
+  color: #fff!important;
+  border: none!important;
+}
+.btn-edit:hover {
+   background-color: #5600f6!important;
+color: #fff!important;
+}
+
+.btn-delete {
+  background-color: #dc3545!important; 
+color: #fff!important;
+  border: none;
+}
+.btn-delete:hover {
+  background-color: #b02a37; 
+ color: #fff;
+}
+  /* cap nhat */
+  /* Đảm bảo thanh tiến trình luôn hiển thị văn bản bên trong */
+  
+  
+  
+  button[nz-button] {
+  display: inline-flex;      
+  align-items: center;      
+  justify-content: center;   
+  gap: 4px;                  
+  line-height: 1;             
+}
+
+button[nz-button] img {
+  width: 16px;
+  height: 16px;                                                                               
+  display: block;         
+}

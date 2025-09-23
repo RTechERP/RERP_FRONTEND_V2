@@ -9,7 +9,7 @@ import {
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
-import { AppNotifycationDropdownComponent } from './pages/app-notifycation-dropdown/app-notifycation-dropdown.component';
+
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { WelcomeComponent } from './pages/welcome/welcome.component';
@@ -24,7 +24,6 @@ import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 
 @Component({
-  
   selector: 'app-root',
   imports: [
     // RouterLink,
@@ -39,7 +38,6 @@ import { NzAvatarModule } from 'ng-zorro-antd/avatar';
     // NzAvatarModule,
     // BrowserModule,
     ReactiveFormsModule,
-    AppNotifycationDropdownComponent,
     // HttpClient,
   ],
   //   templateUrl: './app.component.html',
@@ -47,14 +45,25 @@ import { NzAvatarModule } from 'ng-zorro-antd/avatar';
   standalone: true,
   template: `<router-outlet></router-outlet>`,
 })
-
 export class AppComponent {
-   
-  
- notifItems = [
-  { icon: 'mail', text: 'Mã KhoCC về hàng', time: '10:15 AM', group: 'today' },
-  { icon: 'calendar', text: 'Mã KhoCC về hàng', time: '10:15 AM', group: 'today' },
-  { icon: 'alert', text: 'Mã KhoCC về hàng', time: '10:15 AM', group: 'today' }
-];
-
+  notifItems = [
+    {
+      icon: 'mail',
+      text: 'Mã KhoCC về hàng',
+      time: '10:15 AM',
+      group: 'today',
+    },
+    {
+      icon: 'calendar',
+      text: 'Mã KhoCC về hàng',
+      time: '10:15 AM',
+      group: 'today',
+    },
+    {
+      icon: 'alert',
+      text: 'Mã KhoCC về hàng',
+      time: '10:15 AM',
+      group: 'today',
+    },
+  ];
 }

@@ -627,7 +627,6 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
 
   //#region Lưu thông tin người tham gia
   saveProjectUser() {
-      
     let dataEmployeeMain = this.tb_employeeMain
       .getData()
       .filter((row: any) => row['IsDeleted'] != true);
@@ -635,7 +634,6 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
     let employeeMainIds = dataEmployeeMain.map((row: any) => row.EmployeeID);
     if (dataEmployeeMain.length > 0) {
       for (let item of dataEmployeeMain) {
-          
         let employeeId = item.EmployeeID;
         let projectTypeId = item.ProjectTypeID;
         let stt = item.Rownumber;

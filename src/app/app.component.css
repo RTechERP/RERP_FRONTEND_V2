@@ -162,7 +162,6 @@ nz-sider {
 }
 
 ::ng-deep .ant-tabs-card.ant-tabs-small > .ant-tabs-nav .ant-tabs-tab {
-
   padding: 8px 16px !important;
   font-size: 0.75rem !important;
 }
@@ -177,15 +176,14 @@ nz-sider {
 
 ::ng-deep .nz-tabs-dropdown.ant-dropdown .ant-dropdown-menu-item:hover {
   background-color: #ef4723 !important;
-
 }
 .app-launcher {
   width: 360px;
   background: #f9fafa;
-  border:1px solid #ffffff;   /* viền 2px màu xanh */
-  border-radius: 2px; 
-  overflow: hidden;       /* cắt nội dung lòi ra ngoài */
-   box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+  border: 1px solid #ffffff; /* viền 2px màu xanh */
+  border-radius: 2px;
+  overflow: hidden; /* cắt nội dung lòi ra ngoài */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .app-launcher-inner {
@@ -194,18 +192,17 @@ nz-sider {
   gap: 12px;
   padding: 12px;
   max-height: 330px;
-  overflow-y: auto;       /* chỉ lớp con scroll */
+  overflow-y: auto; /* chỉ lớp con scroll */
 }
 
 .app-launcher-inner::-webkit-scrollbar {
   width: 6px;
 }
 .app-launcher-inner::-webkit-scrollbar-thumb {
-  background: rgba(0,0,0,0.2);
+  background: rgba(0, 0, 0, 0.2);
   border-radius: 3px;
 }
 
-  
 .app-launcher a {
   display: flex;
   flex-direction: column;
@@ -213,31 +210,30 @@ nz-sider {
   text-decoration: none;
   color: #464646;
   font-size: 14px;
- padding: 10px;          
-  border-radius: 8px;  
-   transition: background 0.2s ease;    box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+  padding: 10px;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .app-launcher a img {
   width: 42px;
   height: 42px;
   margin-bottom: 6px;
-  
 }
 .app-launcher a:hover {
-  background: #e8f0fe;        /* màu nền khi hover */
-  color: #1a73e8;           
-
+  background: #e8f0fe; /* màu nền khi hover */
+  color: #1a73e8;
 }
 .app-launcher a:hover img {
-  transform: scale(1.08);          /* icon phóng nhẹ */
+  transform: scale(1.08); /* icon phóng nhẹ */
 }
 .notif-dropdown {
   min-width: 423px;
   max-height: 570px;
   overflow-y: auto;
   background: #fff;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 .notif-header {
   padding: 12px;
@@ -247,7 +243,7 @@ nz-sider {
   justify-content: space-between;
   align-items: center;
 }
-.notif-count {  
+.notif-count {
   font-size: 12px;
   color: #999;
 }
@@ -257,8 +253,7 @@ nz-sider {
   gap: 8px;
   padding: 10px 12px;
   cursor: pointer;
-    border:1px solid #b9b9b9;
-
+  border: 1px solid #b9b9b9;
 }
 .notif-item:hover {
   background: #f5f5f5;
@@ -278,14 +273,13 @@ nz-sider {
 .notif-item img {
   width: 42px;
   height: 42px;
-  
 }
 .notif-text {
-  flex: 1;              /* text chiếm phần còn lại */
+  flex: 1; /* text chiếm phần còn lại */
   font-size: 14px;
 }
 .notif-time {
   font-size: 12px;
   color: #999;
-  white-space: nowrap;  /* không xuống dòng */
+  white-space: nowrap; /* không xuống dòng */
 }

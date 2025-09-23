@@ -83,7 +83,7 @@ export class ProjectChangeComponent implements OnInit {
   }
 
   saveChangeProject() {
-      
+    debugger;
     if (this.projectIdOld <= 0 || !this.projectIdOld) {
       this.notification.error('', 'Vui lòng chọn từ dự án!', {
         nzStyle: { fontSize: '0.75rem' },

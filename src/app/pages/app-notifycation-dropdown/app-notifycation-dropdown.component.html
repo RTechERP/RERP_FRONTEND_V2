@@ -1,0 +1,41 @@
+<span nz-dropdown [nzDropdownMenu]="menu" nzPlacement="bottomRight">
+  <ng-content select="[trigger]"></ng-content>
+</span>
+
+<nz-dropdown-menu #menu="nzDropdownMenu">
+  <div class="notif-dropdown">
+    <div class="notif-header">
+      <strong>{{ title }}</strong>
+      <span class="notif-count" *ngIf="count>0">{{ count }} mới</span>
+    </div>
+
+    <ng-container *ngIf="today.length">
+      <div class="notif-section">Today</div>
+      <div class="notif-item" *ngFor="let n of today" (click)="onPick(n)">
+   
+        <span class="notif-text" [title]="n.text">{{ n.text }}</span>
+        <span class="notif-time">{{ n.time }}</span>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="yesterday.length">
+      <div class="notif-section">Yesterday</div>
+      <div class="notif-item" *ngFor="let n of yesterday" (click)="onPick(n)">
+     
+        <span class="notif-text" [title]="n.text">{{ n.text }}</span>
+        <span class="notif-time">{{ n.time }}</span>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="other.length">
+      <div class="notif-section">Earlier</div>
+      <div class="notif-item" *ngFor="let n of other" (click)="onPick(n)">
+      
+        <span class="notif-text" [title]="n.text">{{ n.text }}</span>
+        <span class="notif-time">{{ n.time }}</span>
+      </div>
+    </ng-container>
+
+    <div class="notif-footer">Xem tất cả</div>
+  </div>
+</nz-dropdown-menu>

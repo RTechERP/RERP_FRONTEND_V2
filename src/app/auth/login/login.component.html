@@ -83,38 +83,49 @@
                             style="width: 40%;">
                         <h4 class="mb-4 f-w-400">ĐĂNG NHẬP</h4>
 
-                        <form action="" [formGroup]="loginForm" (ngSubmit)="onLogin()">
-                            <div class="input-group mb-3">
-                                <span class="input-group-text">
-                                    <img src="assets/icon/user.png" alt="user" style="width:18px; height:18px;">
-                                </span>
-                                <input type="text" class="form-control" formControlName="loginname"
-                                    placeholder="Tên đăng nhập" required>
-                            </div>
+                  <form [formGroup]="loginForm" (ngSubmit)="onLogin()" novalidate>
+  <!-- Tên đăng nhập -->
+  <div class="input-group mb-3">
+    <span class="input-group-text">
+      <img src="assets/icon/user.png" alt="user" style="width:18px; height:18px;">
+    </span>
+    <input type="text"
+           class="form-control"
+           formControlName="loginname"
+           placeholder="Tên đăng nhập"
+           [ngClass]="{'is-invalid': submitted && loginForm.get('loginname')?.invalid}" />
+    <div *ngIf="submitted && loginForm.get('loginname')?.errors?.['required']"
+         class="invalid-feedback">
+      Vui lòng nhập tên đăng nhập
+    </div>
+  </div>
 
-                            <div class="input-group mb-4">
-                                <span class="input-group-text">
-                                    <img src="assets/icon/password.png" alt="password" style="width:18px; height:18px;">
-                                </span>
-                                <input type="password" class="form-control" formControlName="passwordhash"
-                                    placeholder="Mật khẩu" required>
-                            </div>
+  <!-- Mật khẩu -->
+  <div class="input-group mb-3">
+    <span class="input-group-text">
+      <img src="assets/icon/password.png" alt="password" style="width:18px; height:18px;">
+    </span>
+    <input type="password"
+           class="form-control"
+           formControlName="passwordhash"
+           placeholder="Mật khẩu"
+           [ngClass]="{'is-invalid': submitted && loginForm.get('passwordhash')?.invalid}" />
+    <div *ngIf="submitted && loginForm.get('passwordhash')?.errors?.['required']"
+         class="invalid-feedback">
+      Vui lòng nhập mật khẩu
+    </div>
+  </div>
 
-                            <div class="form-group text-left mt-2 mb-4">
-                                <div class="form-check">
-                                    <input class="form-check-input custom-checkbox" type="checkbox"
-                                        id="checkbox-fill-a1" checked>
-                                    <label class="form-check-label" for="checkbox-fill-a1">
-                                        Nhớ mật khẩu
-                                    </label>
-                                </div>
-                            </div>
+  <div class="form-check text-left mt-2 mb-4">
+    <input class="form-check-input" type="checkbox" id="rememberMe">
+    <label class="form-check-label" for="rememberMe">Nhớ mật khẩu</label>
+  </div>
 
-                            <!-- <button class="btn btn-primary mb-4">ĐĂNG NHẬP</button> -->
-                            <button type="submit" class="btn btn-primary mb-2">ĐĂNG NHẬP</button>
-                            <p class=" text-danger" *ngIf="errorMessage">{{errorMessage}}</p>
+  <button type="submit" class="btn btn-primary mb-2">ĐĂNG NHẬP</button>
+  <p class="text-danger" *ngIf="errorMessage">{{ errorMessage }}</p>
+</form>
 
-                        </form>
+
                     </div>
                 </div>
 

@@ -81,13 +81,14 @@ export class TbProductRtcImportExcelComponent implements OnInit {
   ) { }
   ngOnInit() {
     this.loadUnit();
+ 
   }
   drawTable() {
     if (!this.tableExcel) {
       this.tableExcel = new Tabulator('#datatableExcel', {
         data: this.dataTableExcel || [],
         layout: 'fitDataFill',
-        height: '680px',
+        height: '65vh',
         selectableRows: true,
         movableColumns: true,
         resizableRows: true,
@@ -210,7 +211,7 @@ export class TbProductRtcImportExcelComponent implements OnInit {
             console.log('Sheet mặc định được chọn:', this.selectedSheet);
             await this.readExcelData(workbook, this.selectedSheet);
             const elapsedTime = Date.now() - startTime;
-            const minDisplayTime = 500;
+            const minDisplayTime = 100;
             if (elapsedTime < minDisplayTime) {
               setTimeout(() => {
                 this.displayProgress = 0;

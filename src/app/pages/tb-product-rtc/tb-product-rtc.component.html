@@ -1,5 +1,5 @@
 <ng-container class="w-100">
-  <nz-splitter style="height: 90vh; ">
+  <nz-splitter style="height: 94vh; ">
     <nz-splitter-panel *ngIf="isSearchVisible" [nzSize]="'20%'" [nzResizable]="false">
       <div class="card h-100 border-0 rounded-0">
         <!-- Header -->
@@ -62,43 +62,55 @@
             <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
               <nz-icon nzType="search" />
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onAddProduct()">
-              <nz-icon nzType="plus" /> Tạo nhóm TB
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onEditGroup()">
-              <nz-icon nzType="edit" nzTheme="fill" />Sửa nhóm TB
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onDeleteProductGroup()">
-              <nz-icon nzType="delete" nzTheme="fill" />Xóa nhóm TB
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small"(click)="onAddProducRTC()" >
-             <nz-icon nzType="plus" />Tạo thiết bị
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small"(click)="onEditProduct()">
-             <nz-icon nzType="edit" nzTheme="fill" />Sửa thiết bị
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onDeleteProduct()">
-              <nz-icon nzType="delete" nzTheme="fill" />Xóa thiết bị
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small">
-             <nz-icon nzType="qrcode" nzTheme="outline" />Thêm QRCode
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openModalImportExcel()">
-            <nz-icon nzType="file-excel" nzTheme="outline" />Nhập Excel
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportToExcelProduct()">
-             <nz-icon nzType="file-excel" nzTheme="outline" />Xuất Excel
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small">
-             <nz-icon nzType="appstore-add" nzTheme="outline" />  Yêu cầu mua hàng
-            </button>
+            
+              
+              <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add" (click)="onAddGroupProduct()">
+                <img src="assets/icon/add-white-btn.png" alt="Thêm mới " />Tạo nhóm TB
+              </button>
+              <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="onEditGroup()">
+                <img src="assets/icon/edit-white-btn.png" alt="Sửa nhóm TB"
+                 />Sửa nhóm TB
+              </button>
+             <button nz-button nzType="default" nzSize="small" class="btn-delete" (click)="onDeleteProductGroup()">
+                <img src="assets/icon/delete-white-btn.png" alt="Xóa nhóm TB"/>Xóa nhóm TB
+              </button>
+              
+              <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add" (click)="onAddProducRTC()">
+                <img src="assets/icon/add-white-btn.png" alt="Thêm mới " />Tạo thiết bị
+              </button>
+              <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="onEditProduct()">
+                <img src="assets/icon/edit-white-btn.png" alt="Sửa thiết bị"
+                 />Sửa thiết bị
+              </button>
+             <button nz-button nzType="default" nzSize="small" class="btn-delete" (click)="onDeleteProduct()">
+                <img src="assets/icon/delete-white-btn.png" alt="Xóa thiết bị"/>Xóa thiết bị
+              </button>
+          
+         
+           <button nz-button nzType="default" nzSize="small" class="me-1" >
+                <img src="assets/icon/qr.png" alt="Thêm QRCode"
+                  style="width:16px; height:16px; object-fit:contain" />Thêm QRCode
+              </button>
+             <button nz-button nzType="default" nzSize="small" class="me-1" (click)="openModalImportExcel()">
+                <img src="assets/icon/file-import.png" alt="Nhập Excel"
+                  style="width:16px; height:16px; object-fit:contain" />Nhập Excel
+              </button>
+                  <button nz-button nzType="default" nzSize="small" class="me-1" (click)="exportToExcelProduct()">
+                <img src="assets/icon/excel.png" alt="Xuất Excel"
+                  style="width:16px; height:16px; object-fit:contain" />Xuất Excel
+              </button>
+           <button nz-button nzType="default" nzSize="small" class="me-1" >
+                <img src="assets/icon/purchase.png" alt="Yêu cầu mua hàng"
+                  style="width:16px; height:16px; object-fit:contain" />Yêu cầu mua hàng
+              </button>
+           
 
 
 
           </div>
         </div>
 
-        <nz-splitter style="height: 88vh;">
+        <nz-splitter style="height: 90vh;">
           <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
             <div id="dataTableProduct" style="height: 100%;"></div>
           </nz-splitter-panel>

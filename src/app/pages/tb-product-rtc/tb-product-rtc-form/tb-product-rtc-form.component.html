@@ -16,9 +16,13 @@
               <nz-row [nzGutter]="16">
                 <nz-col [nzSpan]="12">
                   <nz-form-item>
-                    <nz-form-label>Mã nhóm<span style="color: red">(*)</span></nz-form-label>
+                     <nz-form-label class="fs-12 d-flex align-items-center">
+                      Mã nhóm <span class="text-danger ps-1 me-1"> (*) </span>
+                      <button nz-button nzSize="small" class="fs-12 button button-succes me-2" (click)="onAddGroupProduct()" title="Mã nhóm"><nz-icon
+                          nzType="plus" /> </button>
+                    </nz-form-label>
                     <nz-form-control [nzErrorTip]="'Chọn nhóm'">
-                      <nz-input-group required [nzAddOnAfter]="makerIconButton" nzSearch nzSize="default" class="w-100">
+                      <nz-input-group required nzSearch nzSize="default" class="w-100">
                         <nz-select nzSize="default" formControlName="ProductGroupRTCID" name="ProductGroupRTCID"
                           nzPlaceHolder="Chọn nhóm" class="fs-12 w-100" required nzShowSearch nzAllowClear>
                           <nz-option *ngFor="let item of productGroupData" [nzValue]="item.ID"
@@ -26,19 +30,19 @@
                           </nz-option>
                         </nz-select>
                       </nz-input-group>
-                      <ng-template #makerIconButton>
-                        <button nz-button nzType="default" nzSize="default" nzSearch>
-                          <nz-icon nzType="plus" nzTheme="outline"></nz-icon>
-                        </button>
-                      </ng-template>
+                  late>
                     </nz-form-control>
                   </nz-form-item>
                 </nz-col>
                 <nz-col [nzSpan]="12">
                   <nz-form-item>
-                    <nz-form-label>Vị trí<span style="color: red">(*)</span></nz-form-label>
+                  <nz-form-label class="fs-12 d-flex align-items-center">
+                      Vị trí <span class="text-danger ps-1 me-1"> (*) </span>
+                      <button nz-button nzSize="small" class="fs-12 button button-succes me-2" title="Hãng"><nz-icon
+                          nzType="plus" /> </button>
+                    </nz-form-label>
                     <nz-form-control [nzSpan]="24" nzErrorTip="Chọn vị trí">
-                      <nz-input-group required [nzAddOnAfter]="makerIconButton" nzSearch nzSize="default" class="w-100">
+                      <nz-input-group required nzSearch nzSize="default" class="w-100">
                         <nz-select nzSize="default" formControlName="ProductLocationID" name="ProductLocationID"
                           nzPlaceHolder="Chọn vị trí" class="fs-12 w-100" required nzShowSearch nzAllowClear>
                           <nz-option *ngFor="let item of locationData" [nzValue]="item.ID"
@@ -46,11 +50,7 @@
                           </nz-option>
                         </nz-select>
                       </nz-input-group>
-                      <ng-template #makerIconButton>
-                        <button nz-button nzType="default" nzSize="default" nzSearch>
-                          <nz-icon nzType="plus" nzTheme="outline"></nz-icon>
-                        </button>
-                      </ng-template>
+                    
                     </nz-form-control>
                   </nz-form-item>
                 </nz-col>
@@ -124,9 +124,13 @@
                 <nz-col [nzSpan]="12">
                   <nz-form-item>
 
-                    <nz-form-label class="fs-12">Hãng<span style="color: red">(*)</span></nz-form-label>
+                    <nz-form-label class="fs-12 d-flex align-items-center">
+                      Hãng <span class="text-danger ps-1 me-1"> (*) </span>
+                      <button nz-button nzSize="small" class="fs-12 button button-succes me-2" title="Hãng"><nz-icon
+                          nzType="plus" /> </button>
+                    </nz-form-label>
                     <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn hãng">
-                      <nz-input-group required [nzAddOnAfter]="makerIconButton" nzSearch nzSize="default" class="w-100">
+                      <nz-input-group required nzSearch nzSize="default" class="w-100">
                         <nz-select nzSize="default" formControlName="FirmID" name="FirmID" nzPlaceHolder="Chọn hãng"
                           class="fs-12 w-100" required nzShowSearch nzAllowClear>
                           <nz-option *ngFor="let item of firmData" [nzValue]="item.ID"
@@ -134,11 +138,11 @@
                           </nz-option>
                         </nz-select>
                       </nz-input-group>
-                      <ng-template #makerIconButton>
-                        <button nz-button nzType="default" nzSize="default" nzSearch>
+                      <!-- <ng-template #makerIconButton>
+                        <button nz-button nzType="default" nzSize="default" (click)="onAddGroupProduct()" nzSearch>
                           <nz-icon nzType="plus" nzTheme="outline"></nz-icon>
                         </button>
-                      </ng-template>
+                      </ng-template> -->
                     </nz-form-control>
 
                   </nz-form-item>
@@ -156,9 +160,13 @@
               <nz-row [nzGutter]="16">
                 <nz-col [nzSpan]="8">
                   <nz-form-item>
-                    <nz-form-label>Đơn vị tính<span style="color: red">(*)</span></nz-form-label>
+                  <nz-form-label class="fs-12 d-flex align-items-center">
+                      Đơn vị tính<span class="text-danger ps-1 me-1"> (*) </span>
+                      <button nz-button nzSize="small" class="fs-12 button button-succes me-2" title="Hãng"><nz-icon
+                          nzType="plus" /> </button>
+                    </nz-form-label>
                     <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng đơn vị tính">
-                      <nz-input-group required [nzAddOnAfter]="makerIconButton" nzSearch nzSize="default" class="w-100">
+                      <nz-input-group required nzSearch nzSize="default" class="w-100">
                         <nz-select nzSize="default" formControlName="UnitCountID" name="Maker"
                           nzPlaceHolder="Chọn đơn vị tính" class="fs-12 w-100" required nzShowSearch nzAllowClear>
                           <nz-option *ngFor="let item of unitData" [nzValue]="item.ID"
@@ -166,11 +174,7 @@
                           </nz-option>
                         </nz-select>
                       </nz-input-group>
-                      <ng-template #makerIconButton>
-                        <button nz-button nzType="default" nzSize="default" nzSearch>
-                          <nz-icon nzType="plus" nzTheme="outline"></nz-icon>
-                        </button>
-                      </ng-template>
+                     
                     </nz-form-control>
                   </nz-form-item>
                 </nz-col>
@@ -196,26 +200,14 @@
               </nz-row>
 
 
-              <nz-row [nzGutter]="16">
-                <nz-col [nzSpan]="24">
-                  <nz-form-item>
-                    <nz-form-label required>Ghi chú<span style="color: red">(*)</span> </nz-form-label>
-                    <nz-form-control [nzErrorTip]="'Không được để trống ghi chú'">
-                      <textarea nz-input nzSize="default" rows="3" formControlName="Note" name="Note"
-                        style="height: 109px;">
-    </textarea>
-                    </nz-form-control>
-                  </nz-form-item>
 
-                </nz-col>
-              </nz-row>
 
 
             </nz-col>
 
             <!-- Cột ảnh 8 span -->
             <nz-col [nzSpan]="8">
-              <nz-form-item>
+              <nz-form-item class="mb-3">
                 <nz-form-label>Ảnh</nz-form-label>
                 <nz-form-control>
                   <div style="display: flex; gap: 8px; align-items: center;">
@@ -247,6 +239,18 @@
 
             </nz-col>
 
+          </nz-row>
+          <nz-row [nzGutter]="24">
+            <nz-col [nzSpan]="24">
+              <nz-form-item>
+                <nz-form-label required>Ghi chú<span style="color: red">(*)</span> </nz-form-label>
+                <nz-form-control [nzErrorTip]="'Không được để trống ghi chú'">
+                  <textarea nz-input nzSize="default" rows="3" formControlName="Note" name="Note"
+                    style="height: 109px;">
+                     </textarea>
+                </nz-form-control>
+              </nz-form-item>
+            </nz-col>
           </nz-row>
         </form>
       </nz-tab>
@@ -416,6 +420,6 @@
 </div>
 
 <div class="modal-footer">
-  <button nz-button nzType="default" (click)="close()">Đóng</button>
+  <button nz-button nzType="default"  nzDanger (click)="close()">Đóng</button>
   <button nz-button nzType="primary" (click)="saveData()">Lưu dữ liệu</button>
 </div>

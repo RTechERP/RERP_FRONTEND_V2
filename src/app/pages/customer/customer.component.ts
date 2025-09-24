@@ -65,6 +65,7 @@ import { NgIf } from '@angular/common';
     NzSpaceModule,
     NzLayoutModule,
     NzFlexModule,
+    
     NzDrawerModule,
     NzSplitterModule,
     NzGridModule,
@@ -435,12 +436,11 @@ export class CustomerComponent implements OnInit, AfterViewInit {
 
   //#region Hàm bảng Tabulator nhập liên hệ khi tạo khách hàng
   private initializeTabulatorContactsCreate(): void {
-    this.tabulatorContactsCreate = new Tabulator(
-      '#customerContact-table-create',
+    this.tabulatorContactsCreate = new Tabulator('#customerContact-table-create',
       {
         data: this.customerContactsCreate, // Initialize with empty array
         layout: 'fitDataStretch',
-        responsiveLayout: true,
+        //responsiveLayout: true,
         height: '25vh',
         columns: [
           {

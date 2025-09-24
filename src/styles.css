@@ -79,6 +79,18 @@ button.ant-btn.btn-delete{
 color: #fff!important;
   border: none!important;
 }
+.btn-add img {
+  width: 16px;
+  height: 16px;
+}
+.btn-edit img {
+  width: 16px;
+  height: 16px;
+}
+.btn-delete img {
+  width: 16px;
+  height: 16px;
+}
 .btn-add:hover {
   background-color: #218838!important;
  color: #fff!important;
@@ -112,7 +124,9 @@ color: #fff!important;
   align-items: center;      
   justify-content: center;   
   gap: 4px;                  
-  line-height: 1;             
+  line-height: 1;
+  font-size: 12px;         
+      
 }
 
 button[nz-button] img {
@@ -120,3 +134,19 @@ button[nz-button] img {
   height: 16px;                                                                               
   display: block;         
 }
+/* Cho phép ô co giãn chiều cao theo hàng
+.tabulator .tabulator-row {
+  display: flex;          /* bắt row thành flex container */
+  /* align-items: stretch;   /* các cell stretch hết chiều cao */
+  /* height: auto !important;
+}
+
+.tabulator .tabulator-cell {
+  white-space: normal !important;
+  word-break: break-word;
+  line-height: 1.4;
+  height: auto !important;
+  display: flex;          /* để text tự bọc trong flex item */
+  /* align-items: center;    /* căn giữa text theo chiều dọc */
+  /* border-right: 1px solid #dddddd; /* kẻ vạch phân cách */
+/* }  */

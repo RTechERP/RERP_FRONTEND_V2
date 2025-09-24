@@ -131,7 +131,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
       layout: "fitDataStretch",
       pagination: true,
       selectableRows: 5,
-      height: '86vh',
+      height: '90vh',
       ajaxURL: this.tbProductRtcService.getProductAjax(),
       ajaxConfig: "POST",
       paginationMode: 'remote',
@@ -233,7 +233,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
       ]
     });
   }
-  onAddProduct() {
+  onAddGroupProduct() {
     const modalRef = this.ngbModal.open(TbProductGroupRtcFormComponent, {
       size: 'xl',
       backdrop: 'static',
@@ -334,10 +334,10 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
   }
   openModalImportExcel() {
     const modalRef = this.ngbModal.open(TbProductRtcImportExcelComponent, {
-      centered: true,
+       size: 'xl',
       backdrop: 'static',
       keyboard: false,
-      windowClass: 'full-screen-modal',
+      centered: true,
     });
   }
   onAddProducRTC() {

@@ -11,7 +11,7 @@ import { ProjectItemLateComponent } from './pages/project/project-item-late/proj
 import { ProjectWorkItemTimelineComponent } from './pages/project/project-work-item-timeline/project-work-item-timeline.component';
 import { SynthesisOfGeneratedMaterialsComponent } from './pages/project/synthesis-of-generated-materials/synthesis-of-generated-materials.component';
 import { ProjectSynthesisDepartmentComponent } from './pages/project/project-synthesis-department/project-synthesis-department.component';
-
+import { TbProductRtcComponent } from './pages/tb-product-rtc/tb-product-rtc.component';
 import { ProjectPartlistPurchaseRequestComponent } from './pages/project-partlist-purchase-request/project-partlist-purchase-request.component';
 import { LoginComponent } from './auth/login/login.component';
 import { authGuard } from './auth/auth.guard';
@@ -94,6 +94,10 @@ export const routes: Routes = [
       {
         path: 'customer', //DANH SÁCH KHÁCH HÀNG
         component: CustomerComponent,
+      },
+       {
+        path: 'productRTC', //DANH SÁCH KHÁCH HÀNG
+        component: TbProductRtcComponent,
       },
       //#endregion
     ],

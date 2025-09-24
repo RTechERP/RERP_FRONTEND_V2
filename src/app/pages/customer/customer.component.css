@@ -18,6 +18,7 @@
   padding-top: 0 !important;
 }
 
+  
 .ant-form-item-label {
   padding: 0px !important;
 }
@@ -60,4 +61,15 @@ nz-form-label .ant-form-item-label {
 #customerSpecializationModal .modal-title {
   font-size: 0.9rem;       /* chữ nhỏ hơn nếu muốn */
   line-height: 1.4;        /* giảm chiều cao dòng */
+}
+.tabulator .tabulator-header .tabulator-col .tabulator-col-title {
+  display: flex;
+  align-items: center;   /* căn giữa theo chiều dọc */
+  justify-content: center; /* căn giữa ngang */
+  height: 100%;
+  line-height: normal;
+  white-space: nowrap;   /* tránh xuống dòng */
+}
+.tabulator .tabulator-header .tabulator-col {
+  min-height: 30px; /* cao hơn mặc định */
 }

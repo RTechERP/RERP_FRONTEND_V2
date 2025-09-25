@@ -1,4 +1,4 @@
-import { NzNotificationService } from 'ng-zorro-antd/notification'
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import {
   Component,
   OnInit,
@@ -6,7 +6,7 @@ import {
   Output,
   EventEmitter,
   inject,
-  AfterViewInit
+  AfterViewInit,
 } from '@angular/core';
 import { DateTime } from 'luxon';
 import { CommonModule } from '@angular/common';
@@ -40,7 +40,6 @@ import { TbProductGroupRtcFormComponent } from '../tb-product-group-rtc-form/tb-
   templateUrl: './tb-product-rtc-form.component.html',
   styleUrls: ['./tb-product-rtc-form.component.css'],
   imports: [
-
     NzCheckboxModule,
     ReactiveFormsModule,
     NzFormModule,
@@ -55,7 +54,7 @@ import { TbProductGroupRtcFormComponent } from '../tb-product-group-rtc-form/tb-
     NzInputModule,
     NzButtonModule,
     NzModalModule,
-  ]
+  ],
 })
 export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
   @Input() dataInput: any;
@@ -70,27 +69,30 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
   imageFileName: string | null = null;
   productGroupData: any[] = [];
   isSubmitted = false;
-  productCode: string = "";
-  constructor(private unitService: UnitService,
+  productCode: string = '';
+  constructor(
+    private unitService: UnitService,
     private notification: NzNotificationService,
-    private tbProductRtcService: TbProductRtcService) { }
+    private tbProductRtcService: TbProductRtcService
+  ) {}
   unitData: any[] = [];
   firmData: any[] = [];
   productData: any[] = [];
   locationData: any[] = [];
-    modalData: any = [];
-  ngAfterViewInit(): void {
-  }
+  modalData: any = [];
+  ngAfterViewInit(): void {}
   ngOnInit() {
     this.initForm();
-  if (!this.dataInput) {
-    this.dataInput = {}; 
-  }
+    if (!this.dataInput) {
+      this.dataInput = {};
+    }
     if (this.dataInput) {
       // Chế độ sửa
       this.patchFormData(this.dataInput);
       this.dataInput.BorrowCustomer = this.dataInput.BorrowCustomer ?? false;
-      this.dataInput.CreateDate = this.formatDateForInput(this.dataInput.CreateDate);
+      this.dataInput.CreateDate = this.formatDateForInput(
+        this.dataInput.CreateDate
+      );
     } else {
       // Chế độ thêm mới
       this.formDeviceInfo.reset();
@@ -106,21 +108,21 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
   getProduct() {
     const request = {
       productGroupID: 0,
-      keyWord: "",
+      keyWord: '',
       checkAll: 1,
       warehouseID: 0,
       productRTCID: 0,
-      productGroupNo: ""
+      productGroupNo: '',
     };
-    this.tbProductRtcService.getProductRTC(request).subscribe((response: any) => {
-      this.productData = response.products || [];
-      console.log("product", this.productData)
-
-    });
+    this.tbProductRtcService
+      .getProductRTC(request)
+      .subscribe((response: any) => {
+        this.productData = response.products || [];
+        console.log('product', this.productData);
+      });
   }
   initForm() {
     this.formDeviceInfo = new FormBuilder().group({
-
       ProductName: ['', Validators.required],
       PartNumber: ['', Validators.required],
       ProductCode: ['', Validators.required],
@@ -157,7 +159,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       ProductGroupRTCID: [null, Validators.required],
       ProductLocationID: [null, Validators.required],
       NumberInStore: [{ value: null, disabled: true }],
-      LocationImg: ['']
+      LocationImg: [''],
     });
   }
 
@@ -165,7 +167,9 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
     if (!data) return;
     this.formDeviceInfo.patchValue({
       ...data,
-      CreateDate: data.CreateDate ? DateTime.fromISO(data.CreateDate).toJSDate() : null
+      CreateDate: data.CreateDate
+        ? DateTime.fromISO(data.CreateDate).toJSDate()
+        : null,
     });
   }
   formatDateForInput(dateString: string): string {
@@ -175,67 +179,72 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
   getunit() {
     this.unitService.getUnit().subscribe((res: any) => {
       this.unitData = res.data;
-      console.log("unit:", this.unitData);
+      console.log('unit:', this.unitData);
     });
   }
- getGroup() {
-  this.tbProductRtcService.getProductRTCGroup().subscribe((resppon: any) => {
-    this.productGroupData = resppon.data;
+  getGroup() {
+    this.tbProductRtcService.getProductRTCGroup().subscribe((resppon: any) => {
+      this.productGroupData = resppon.data;
 
-    // Bảo vệ khi dataInput là null hoặc thiếu ProductGroupRTCID
-    const incomingID = +this.dataInput?.ProductGroupRTCID;
-    if (!incomingID) return;
+      // Bảo vệ khi dataInput là null hoặc thiếu ProductGroupRTCID
+      const incomingID = +this.dataInput?.ProductGroupRTCID;
+      if (!incomingID) return;
 
-    setTimeout(() => {
-      const matched = this.productGroupData.find(x => x.ID === incomingID);
-      if (matched) {
-        this.dataInput.ProductGroupRTCID = matched.ID;
-      }
+      setTimeout(() => {
+        const matched = this.productGroupData.find((x) => x.ID === incomingID);
+        if (matched) {
+          this.dataInput.ProductGroupRTCID = matched.ID;
+        }
+      });
     });
-  });
-}
-getLocation() {
-  const warehouseID = this.dataInput?.WarehouseID ?? 1;
+  }
+  getLocation() {
+    const warehouseID = this.dataInput?.WarehouseID ?? 1;
 
-  this.tbProductRtcService.getLocation(warehouseID).subscribe((response: any) => {
-    this.locationData = response.data.location;
-    console.log("Location", this.locationData);
-  });
-}
+    this.tbProductRtcService
+      .getLocation(warehouseID)
+      .subscribe((response: any) => {
+        this.locationData = response.data.location;
+        console.log('Location', this.locationData);
+      });
+  }
 
   getFirm() {
     this.tbProductRtcService.getFirm().subscribe((response: any) => {
       this.firmData = response.data;
-      console.log("Firm:", this.firmData);
-    })
+      console.log('Firm:', this.firmData);
+    });
   }
   close() {
     this.closeModal.emit();
     this.activeModal.dismiss('cancel');
   }
- handleBeforeUpload = (file: NzUploadFile): boolean => {
-  const rawFile = file as any as File;
-  this.fileToUpload = rawFile;
+  handleBeforeUpload = (file: NzUploadFile): boolean => {
+    const rawFile = file as any as File;
+    this.fileToUpload = rawFile;
 
-  this.imageFileName = file.name;
+    this.imageFileName = file.name;
 
-  // Check null before set property
-  if (this.dataInput) {
-    this.dataInput.LocationImg = file.name;
-  } else {
-    this.notification.error('Lỗi', 'Dữ liệu chưa được khởi tạo. Không thể upload ảnh.');
+    // Check null before set property
+    if (this.dataInput) {
+      this.dataInput.LocationImg = file.name;
+    } else {
+      this.notification.error(
+        'Lỗi',
+        'Dữ liệu chưa được khởi tạo. Không thể upload ảnh.'
+      );
+      return false;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.previewImageUrl = e.target.result;
+    };
+    reader.readAsDataURL(rawFile);
+
     return false;
-  }
-
-  const reader = new FileReader();
-  reader.onload = (e: any) => {
-    this.previewImageUrl = e.target.result;
   };
-  reader.readAsDataURL(rawFile);
 
-  return false;
-};
-  
   validateField(fieldName: string) {
     const value = this.dataInput[fieldName];
     if (!value || value.toString().trim() === '') {
@@ -245,7 +254,7 @@ getLocation() {
   getProductCode() {
     this.tbProductRtcService.getProductRTCCode().subscribe((resppon: any) => {
       this.productCode = resppon.data;
-      console.log("Code", this.productCode);
+      console.log('Code', this.productCode);
     });
   }
   checkDuplicateProduct(
@@ -256,67 +265,87 @@ getLocation() {
     currentProductID: number
   ): Promise<boolean> {
     const request = {
-      keyWord: " ",  // lấy tất cả
+      keyWord: ' ', // lấy tất cả
       checkAll: 1,
       productGroupID: 0,
       warehouseID: 0,
       productRTCID: 0,
-      productGroupNo: ''
+      productGroupNo: '',
     };
 
     return new Promise((resolve) => {
-      this.tbProductRtcService.getProductRTC(request).subscribe((response: any) => {
-        const list = response.products || [];
-        const isDuplicateCode = list.some(
-          (item: any) =>
-            item.ProductCode?.trim().toLowerCase() === productCode?.trim().toLowerCase() &&
-            item.ID !== currentProductID
-        );
-        const isDuplicateSerialNumber = list.some(
-          (item: any) =>
-            item.SerialNumber?.trim().toLowerCase() === serialNumber?.trim().toLowerCase() &&
-            item.ID !== currentProductID
-        );
-        const isDuplicateSerial = list.some(
-          (item: any) =>
-            item.Serial?.trim().toLowerCase() === serial?.trim().toLowerCase() &&
-            item.ID !== currentProductID
-        );
+      this.tbProductRtcService.getProductRTC(request).subscribe(
+        (response: any) => {
+          const list = response.products || [];
+          const isDuplicateCode = list.some(
+            (item: any) =>
+              item.ProductCode?.trim().toLowerCase() ===
+                productCode?.trim().toLowerCase() &&
+              item.ID !== currentProductID
+          );
+          const isDuplicateSerialNumber = list.some(
+            (item: any) =>
+              item.SerialNumber?.trim().toLowerCase() ===
+                serialNumber?.trim().toLowerCase() &&
+              item.ID !== currentProductID
+          );
+          const isDuplicateSerial = list.some(
+            (item: any) =>
+              item.Serial?.trim().toLowerCase() ===
+                serial?.trim().toLowerCase() && item.ID !== currentProductID
+          );
 
-        const isDuplicatePartNumber = list.some(
-          (item: any) =>
-            item.PartNumber?.trim().toLowerCase() === partNumber?.trim().toLowerCase() &&
-            item.ID !== currentProductID
-        );
-        // Hiển thị cảnh báo và set lỗi vào form
-        if (isDuplicateCode) {
-          this.notification.warning('Lỗi', `${productCode} đã tồn tại, không thể lưu`);
-          this.formDeviceInfo.get('ProductCode')?.setErrors({ duplicate: true });
-        }
-        if (isDuplicateSerialNumber) {
-          this.notification.warning('Lỗi', `${serialNumber} đã tồn tại (SerialNumber), không thể lưu`);
-          this.formDeviceInfo.get('SerialNumber')?.setErrors({ duplicate: true });
-        }
-        if (isDuplicateSerial) {
-          this.notification.warning('Lỗi', `${serial} đã tồn tại (Serial), không thể lưu`);
-          this.formDeviceInfo.get('Serial')?.setErrors({ duplicate: true });
-        }
-        if (isDuplicatePartNumber) {
-          this.notification.warning('Lỗi', `${partNumber} đã tồn tại (PartNumber), không thể lưu`);
-          this.formDeviceInfo.get('PartNumber')?.setErrors({ duplicate: true });
-        }
-        resolve(
-          isDuplicateCode ||
-          isDuplicateSerialNumber ||
-          isDuplicateSerial ||
-          isDuplicatePartNumber
-        );
-      }, _ => resolve(false));
+          const isDuplicatePartNumber = list.some(
+            (item: any) =>
+              item.PartNumber?.trim().toLowerCase() ===
+                partNumber?.trim().toLowerCase() && item.ID !== currentProductID
+          );
+          // Hiển thị cảnh báo và set lỗi vào form
+          if (isDuplicateCode) {
+            this.notification.warning(
+              'Lỗi',
+              `${productCode} đã tồn tại, không thể lưu`
+            );
+            this.formDeviceInfo
+              .get('ProductCode')
+              ?.setErrors({ duplicate: true });
+          }
+          if (isDuplicateSerialNumber) {
+            this.notification.warning(
+              'Lỗi',
+              `${serialNumber} đã tồn tại (SerialNumber), không thể lưu`
+            );
+            this.formDeviceInfo
+              .get('SerialNumber')
+              ?.setErrors({ duplicate: true });
+          }
+          if (isDuplicateSerial) {
+            this.notification.warning(
+              'Lỗi',
+              `${serial} đã tồn tại (Serial), không thể lưu`
+            );
+            this.formDeviceInfo.get('Serial')?.setErrors({ duplicate: true });
+          }
+          if (isDuplicatePartNumber) {
+            this.notification.warning(
+              'Lỗi',
+              `${partNumber} đã tồn tại (PartNumber), không thể lưu`
+            );
+            this.formDeviceInfo
+              .get('PartNumber')
+              ?.setErrors({ duplicate: true });
+          }
+          resolve(
+            isDuplicateCode ||
+              isDuplicateSerialNumber ||
+              isDuplicateSerial ||
+              isDuplicatePartNumber
+          );
+        },
+        (_) => resolve(false)
+      );
     });
   }
-
-
-
 
   clearModal() {
     this.dataInput = {
@@ -355,7 +384,7 @@ getLocation() {
       OutputValue: '',
       CurrentIntensityMax: '',
       Size: '',
-      CodeHCM: ''
+      CodeHCM: '',
     };
     this.formDeviceInfo.reset({
       ProductGroupRTCID: null,
@@ -394,7 +423,7 @@ getLocation() {
       Size: '',
       ProductLocationID: null,
       NumberInStore: null,
-      LocationImg: ''
+      LocationImg: '',
     });
     this.formDeviceInfo.get('NumberInStore')?.disable();
     this.formDeviceInfo.get('SLKiemKe')?.disable();
@@ -406,17 +435,26 @@ getLocation() {
 
   async saveData() {
     if (this.formDeviceInfo.invalid) {
-      Object.values(this.formDeviceInfo.controls).forEach(control => {
+      Object.values(this.formDeviceInfo.controls).forEach((control) => {
         if (control.invalid) {
           control.markAsTouched();
           control.updateValueAndValidity({ onlySelf: true });
         }
       });
-      this.notification.warning('Cảnh báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
+      this.notification.warning(
+        'Cảnh báo',
+        'Vui lòng điền đầy đủ thông tin bắt buộc'
+      );
       return;
     }
     const formValue = this.formDeviceInfo.value;
-    const isDuplicate = await this.checkDuplicateProduct(formValue.ProductCode, formValue.SerialNumber, formValue.Serial, formValue.PartNumber,  0);
+    const isDuplicate = await this.checkDuplicateProduct(
+      formValue.ProductCode,
+      formValue.SerialNumber,
+      formValue.Serial,
+      formValue.PartNumber,
+      0
+    );
     if (isDuplicate) {
       return; // Ngừng lưu nếu bị trùng mã
     }
@@ -430,19 +468,22 @@ getLocation() {
             // Sau khi upload ảnh xong => save dữ liệu
             this.saveProductData();
           } else {
-            this.notification.error('Lỗi', res.Message || 'Upload ảnh thất bại!');
+            this.notification.error(
+              'Lỗi',
+              res.Message || 'Upload ảnh thất bại!'
+            );
           }
         },
         error: (err) => {
           this.notification.error('Lỗi', 'Upload ảnh thất bại: ' + err.message);
-        }
+        },
       });
     } else {
       this.saveProductData();
     }
   }
   onFirmChange(selectedFirmID: number): void {
-    const selectedFirm = this.firmData.find(f => f.ID === selectedFirmID);
+    const selectedFirm = this.firmData.find((f) => f.ID === selectedFirmID);
     this.dataInput.Maker = selectedFirm ? selectedFirm.FirmName : null;
   }
   saveProductData() {
@@ -458,7 +499,7 @@ getLocation() {
           Maker: this.dataInput.Maker || '', // không có trong form => dùng tạm hoặc bổ sung nếu cần
           UnitCountID: formValue.UnitCountID,
           Number: 0,
-          AddressBox: "", // không có trong form
+          AddressBox: '', // không có trong form
           Note: formValue.Note,
           StatusProduct: false,
           Serial: formValue.Serial,
@@ -469,7 +510,7 @@ getLocation() {
           BorrowCustomer: formValue.BorrowCustomer,
           ProductLocationID: formValue.ProductLocationID,
           NumberInStore: formValue.NumberInStore || 0,
-          WarehouseID: 1,
+          WarehouseID: 0,
           Resolution: formValue.Resolution,
           SensorSize: formValue.SensorSize,
           DataInterface: formValue.DataInterface,
@@ -494,42 +535,48 @@ getLocation() {
           Status: 0,
           Size: formValue.Size,
           CodeHCM: formValue.CodeHCM,
-          CreateDate: formValue.CreateDate
-        }
-      ]
+          CreateDate: formValue.CreateDate,
+        },
+      ],
     };
-    console.log("Payload", payload);
+    console.log('Payload', payload);
     this.tbProductRtcService.saveData(payload).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success('Thành công', res.message || 'Lưu dữ liệu thành công!');
+          this.notification.success(
+            'Thành công',
+            res.message || 'Lưu dữ liệu thành công!'
+          );
           this.getProduct();
           this.close();
           this.formSubmitted.emit(); // reload danh sách
         } else {
-          this.notification.error('Lỗi', res.message || 'Lưu dữ liệu thất bại!');
+          this.notification.error(
+            'Lỗi',
+            res.message || 'Lưu dữ liệu thất bại!'
+          );
         }
       },
       error: (err) => {
         this.notification.error('Lỗi', 'Không thể lưu dữ liệu: ' + err.message);
-      }
+      },
     });
   }
-    onAddGroupProduct() {
-      const modalRef = this.ngbModal.open(TbProductGroupRtcFormComponent, {
-        size: 'xl',
-        backdrop: 'static',
-        keyboard: false,
-        centered: true,
-      });
-      modalRef.componentInstance.dataInput = this.modalData;
-      modalRef.result.then(
-        (result) => {
-          this.getGroup();
-        },
-        (dismissed) => {
-          console.log('Modal dismissed');
-        }
-      );
-    }
+  onAddGroupProduct() {
+    const modalRef = this.ngbModal.open(TbProductGroupRtcFormComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+    });
+    modalRef.componentInstance.dataInput = this.modalData;
+    modalRef.result.then(
+      (result) => {
+        this.getGroup();
+      },
+      (dismissed) => {
+        console.log('Modal dismissed');
+      }
+    );
+  }
 }

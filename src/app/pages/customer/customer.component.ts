@@ -152,11 +152,11 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       CustomerCode: ['', Validators.required],
       CustomerShortName: ['', Validators.required],
       TaxCode: [''],
-      CustomerType: [''],
+      CustomerType: [0],
       BigAccount: [false],
       CustomerName: ['', Validators.required],
       Address: ['', Validators.required],
-      BusinessFieldID: [null],
+      BusinessFieldID: [0],
       CustomerSpecializationID: [null, Validators.required],
       ProductDetails: [''],
       Debt: [''],
@@ -212,7 +212,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       data: this.customers,
       selectableRows: 1,
       layout: 'fitDataFill',
-      height: '90vh',
+      height: '89vh',
       columns: [
         {
           title: 'Mã khách hàng',
@@ -321,9 +321,10 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       paginationSizeSelector: [10, 20, 50, 100],
     });
 
-    this.tabulator.on('rowSelectionChanged', (data: any) => {
-      console.log(data);
-      const customerId = data[0].ID;
+    this.tabulator.on('rowClick', (evt, row: RowComponent) => {
+      console.log(row.getData());
+      const data = row.getData();
+      const customerId = data['ID'];
       this.loadCustomerContacts(customerId);
       this.loadCustomerEmployeeSale(customerId);
       this.loadCustomerAddress(customerId);
@@ -1309,7 +1310,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        console.error('Error loading employees:', error);
+        // console.error('Error loading employees:', error);
         this.notification.error(
           'Lỗi',
           'Lỗi khi tải danh sách nhân viên: ' + error.message

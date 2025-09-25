@@ -89,11 +89,12 @@ export class MainLayoutComponent implements OnInit {
       next: (response: any) => {
         if (response.status == 1) {
           this.menu = response.data;
-          console.log(this.menu);
+          //   console.log(this.menu);
         }
       },
       error: (err) => {
-        this.notification.error('Thông báo', err.error.message);
+        // console.log(err);
+        // this.notification.error('Thông báo', err.error.message);
       },
     });
   }

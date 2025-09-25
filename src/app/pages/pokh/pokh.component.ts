@@ -1012,6 +1012,8 @@ export class PokhComponent implements OnInit, AfterViewInit {
         headerVertical: false,
         headerHozAlign: "center",
         minWidth: 60,
+        hozAlign: "left",
+        vertAlign: 'middle',
         resizable: true
       },
       columns: [

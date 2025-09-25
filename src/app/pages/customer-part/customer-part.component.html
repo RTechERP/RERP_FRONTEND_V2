@@ -1,0 +1,28 @@
+<!-- Modal -->
+<div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">THÔNG TIN BỘ PHẬN KHÁCH HÀNG</h6>
+    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+</div>
+            
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Khách hàng</label>
+                    <nz-select nzShowSearch name="projectId" nzPlaceHolder="Chọn dự án" nzAllowClear nzSize="default"
+                        class="w-100" [(ngModel)]="selectedCustomer">
+                        <nz-option *ngFor="let customer of customers" [nzValue]="customer"
+                          [nzLabel]="customer.CustomerName"></nz-option>
+                      </nz-select>
+                </div>
+                
+                <div class="mb-3">
+                    <button nz-button nzType="primary" nzSize="default" (click)="addNewRow()">
+                        <nz-icon nzType="plus"></nz-icon> Thêm
+                    </button>
+                    <div #CustomerPartTable></div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button nz-button nzType="primary" nzSize="default" (click)="saveCustomerParts()">Lưu</button>
+                <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
+            </div>

@@ -48,6 +48,62 @@
                         <a (click)="newTab(['/projectSynthesisDepartment'],'Tổng hợp dự án phòng ban')">Tổng hợp dự án
                             phòng ban</a>
                     </li>
+                    <li nz-submenu nzOpen nzTitle="Phòng Sale" nzIcon="area-chart">
+                        <ul>
+                            <li nz-submenu nzOpen nzTitle="POKH" nzIcon="area-chart">
+                                <ul>
+                                    <li nz-menu-item nzMatchRouter>
+                                        <a (click)="newTab(['/pokh'],'PO KHÁCH HÀNG')">PO KHÁCH HÀNG</a>
+                                    </li>
+                                    <li nz-menu-item nzMatchRouter>
+                                        <a (click)="newTab(['/quotation-kh'],'BÁO GIÁ KHÁCH HÀNG')">BÁO GIÁ KHÁCH HÀNG</a>
+                                    </li>
+                                    <li nz-menu-item nzMatchRouter>
+                                        <a (click)="newTab(['/pokh-kpi'],'Xuất PO Khách hàng chi tiết')">Xuất PO Khách hàng chi tiết</a>
+                                    </li>
+                                    <li nz-menu-item nzMatchRouter>
+                                        <a (click)="newTab(['/handover-minutes'],'Biên bản giao hàng')">Biên bản giao hàng</a>
+                                    </li>
+                                    <li nz-menu-item nzMatchRouter>
+                                        <a (click)="newTab(['/request-invoice'],'Yêu cầu xuất hóa đơn')">Yêu cầu xuất hóa đơn</a>
+                                    </li>
+                                    <li nz-menu-item nzMatchRouter>
+                                        <a (click)="newTab(['/pokh-history'],'Lịch sử POKH')">Lịch sử POKH</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <ul>
+                            <li nz-submenu nzOpen nzTitle="Tính giá" nzIcon="area-chart">
+                                <ul>
+                                    <li nz-menu-item nzMatchRouter>
+                                        <a (click)="newTab(['/trade-price'],'TÍNH GIÁ THƯƠNG MẠI')">TÍNH GIÁ THƯƠNG MẠI</a>
+                                    </li>
+                                    <li nz-menu-item nzMatchRouter>
+                                        <a (click)="newTab(['/quotation-sale'],'BÁO GIÁ THƯƠNG MẠI')">BÁO GIÁ THƯƠNG MẠI</a>
+                                    </li>
+                                    <li nz-menu-item nzMatchRouter>
+                                        <!-- <a (click)="newTab([''])">TÍNH GIÁ MÁY</a> -->
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <ul>
+                            <li nz-submenu nzOpen nzTitle="Vision Base" nzIcon="area-chart">
+                                <ul>
+                                    <li nz-menu-item nzMatchRouter>
+                                        <a (click)="newTab(['/plan-week'],'KẾ HOẠCH TUẦN')">KẾ HOẠCH TUẦN</a>
+                                    </li>
+                                    <li nz-menu-item nzMatchRouter>
+                                        <!-- <a (click)="newTab([''])">FOLLOW DỰ ÁN</a> -->
+                                    </li>
+                                    <li nz-menu-item nzMatchRouter>
+                                        <a (click)="newTab(['/customer'],'KHÁCH HÀNG')">KHÁCH HÀNG</a>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
 
                 </ul>
             </li>

@@ -130,7 +130,7 @@ export class ProjectService {
   ): Observable<any> {
     return this.http.get<any>(
       this.urlProject +
-        `get-project-code-modal?projectId=${projectId}&customerShortName=${shortName}&projectType=${projectType}`
+        `get-project-code-modal?projectId=${projectId}&shortName=${shortName}&projectType=${projectType}`
     );
   }
   // lấy leader

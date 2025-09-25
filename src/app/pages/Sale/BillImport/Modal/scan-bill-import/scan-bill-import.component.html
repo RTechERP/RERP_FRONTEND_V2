@@ -1,0 +1,53 @@
+<div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0">
+    <h6 class="modal-title text-white">Tổng hợp chi tiết phiếu xuất</h6>
+    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+  </div>
+  <div class="modal-body p-1 flex-grow-1 overflow-hidden">
+    <div class="d-flex gap-2 p-2 border-bottom">
+        <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="IsApprovedAll(true)" >
+            <nz-icon nzType="check" nzTheme="outline" style="color: green;" /> Nhận tất cả chứng từ
+        </button>
+        <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="IsApprovedAll(false)" >
+            <nz-icon nzType="close" nzTheme="outline" style="color: red;" /> Hủy tất cả chứng từ
+        </button>
+    </div>   
+      <div class="tab-content">
+        <div class="d-flex gap-2 p-2 border-bottom">
+            <form nz-form nzLayout="inline" class="d-flex flex-wrap gap-2 align-items-end">           
+                <nz-form-item style=" margin-bottom: 0;">
+                  <nz-form-control>
+                  <input type="text" nzSize="small"  [(ngModel)]="searchParams.keyword" name="keyword" nz-input class="fs-12" style="font-style: italic; width: 200px;" placeholder="Tìm kiếm" />
+                
+                </nz-form-control>
+                <nz-form-control>
+                <button nz-button nzType="primary" nzSize="small" (click)="loadBillImportQR()">
+                  <nz-icon nzType="search"></nz-icon>        
+                </button>
+              </nz-form-control>
+                </nz-form-item>      
+                <nz-form-item style=" margin-bottom: 0;">
+                    <nz-form-control>
+                      <button class="fs-12 btn w-100" nz-button nzType="default" nzSize="small"(click)="deleteData()">
+                        <nz-icon nzType="delete" nzTheme="fill" /> Xóa dữ liệu 
+                      </button>
+                    </nz-form-control>
+                  </nz-form-item>
+              </form>
+              
+            </div>
+        <div class="card-body p-0" >
+            <nz-splitter nzLayout="vertical">
+                <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" >
+                    <div id="table_billImportQR" style="height: 40vh;"></div>
+                </nz-splitter-panel>
+                <!-- table productGroupWareHouse -->
+                <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
+                    <div id="table_billImportdetailQR" style="height: 20vh;"></div>
+                </nz-splitter-panel>
+            </nz-splitter>
+        </div>
+      </div>     
+  </div>
+  <div class="modal-footer flex-shrink-0">
+    <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
+  </div>

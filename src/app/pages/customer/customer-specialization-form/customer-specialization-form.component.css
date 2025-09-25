@@ -1,0 +1,35 @@
+.modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.modal-backdrop.show {
+  opacity: 1;
+}
+
+.modal {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-dialog {
+  position: relative;
+  z-index: 1050;
+}
+
+.tabulator {
+  font-size: 0.75rem;
+}
+
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+.btn {
+  height: 2.5vh;
+  font-size: 0.75rem;
+  border-radius: 0%;
+}
+.modal-header {
+  padding: 0.5rem;
+}

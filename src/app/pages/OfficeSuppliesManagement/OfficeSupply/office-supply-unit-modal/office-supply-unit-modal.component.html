@@ -1,0 +1,27 @@
+
+  <div class="modal-content">
+    <div class="modal-header bg-primary text-uppercase">
+      <h6 class="modal-title text-white" id="addUnitModalLabel">Danh sách đơn vị tính</h6>
+      <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+      <form class="needs-validation" novalidate>
+        <div class="d-flex gap-2 align-items-center p-2">
+            <nz-form-control>
+          <nz-input-group  nzSearch [nzAddOnAfter]="IconButton" nzSize="default">
+          <input nz-input type="text"[(ngModel)]="selectedItem.Name" name="unitName" placeholder="Nhập đơn vị tính">
+            </nz-input-group>
+            </nz-form-control>
+            <ng-template #IconButton>
+          <button nzSearch nz-button (click)="saveSelectedItem()">
+            <nz-icon nzType="edit" nzTheme="fill" />  
+          
+          </button>
+        </ng-template>
+        </div>
+        <div class="card-body p-2">
+          <div id="datatable2"></div>
+        </div>
+      </form>
+    </div>
+  </div>

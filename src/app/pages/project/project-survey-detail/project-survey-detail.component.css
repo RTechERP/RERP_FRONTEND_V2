@@ -1,0 +1,26 @@
+.reset {
+  all: revert;
+  padding: 0.5rem;
+}
+
+.tabulator {
+  font-size: 0.75rem;
+  border: 1px solid;
+}
+
+.tabulator-cell {
+  padding: 0px;
+}
+
+.fs-12 {
+  font-size: 0.75rem !important;
+}
+
+.modal-dialog.modal-dialog-centered.modal-xl {
+  max-width: none !important;
+  width: 80vw !important;
+}
+
+.tabulator-editing textarea {
+  border: none;
+}

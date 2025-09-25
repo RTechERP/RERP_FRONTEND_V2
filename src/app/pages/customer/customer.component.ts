@@ -64,6 +64,7 @@ import { NgIf } from '@angular/common';
     NzSpaceModule,
     NzLayoutModule,
     NzFlexModule,
+
     NzDrawerModule,
     NzSplitterModule,
     NzGridModule,
@@ -439,7 +440,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       {
         data: this.customerContactsCreate, // Initialize with empty array
         layout: 'fitDataStretch',
-        responsiveLayout: true,
+        //responsiveLayout: true,
         height: '25vh',
         columns: [
           {

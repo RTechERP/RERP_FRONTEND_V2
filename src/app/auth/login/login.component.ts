@@ -20,7 +20,7 @@ import { AuthService } from '../auth.service';
 export class LoginComponent {
   loginForm: FormGroup;
   errorMessage = '';
-
+  submitted = false;
   constructor(
     private formBuilder: FormBuilder,
     private authService: AuthService,
@@ -33,6 +33,7 @@ export class LoginComponent {
   }
 
   onLogin(): void {
+    this.submitted = true;
     if (this.loginForm.invalid) return;
 
     this.authService.login(this.loginForm.value).subscribe({

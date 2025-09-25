@@ -33,6 +33,7 @@ export const SERVER_PATH = `D:\RTC_Sw\RTC\ProductRTC`;
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
+import { TbProductGroupRtcFormComponent } from '../tb-product-group-rtc-form/tb-product-group-rtc-form.component';
 @Component({
   standalone: true,
   selector: 'app-tb-product-rtc-form',
@@ -77,6 +78,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
   firmData: any[] = [];
   productData: any[] = [];
   locationData: any[] = [];
+    modalData: any = [];
   ngAfterViewInit(): void {
   }
   ngOnInit() {
@@ -513,4 +515,21 @@ getLocation() {
       }
     });
   }
+    onAddGroupProduct() {
+      const modalRef = this.ngbModal.open(TbProductGroupRtcFormComponent, {
+        size: 'xl',
+        backdrop: 'static',
+        keyboard: false,
+        centered: true,
+      });
+      modalRef.componentInstance.dataInput = this.modalData;
+      modalRef.result.then(
+        (result) => {
+          this.getGroup();
+        },
+        (dismissed) => {
+          console.log('Modal dismissed');
+        }
+      );
+    }
 }

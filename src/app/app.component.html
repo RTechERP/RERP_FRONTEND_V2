@@ -8,12 +8,22 @@
             </a>
         </div>
         <ul nz-menu nzTheme="light" nzMode="inline" [nzInlineCollapsed]="false">
+            <li nz-submenu nzOpen [nzTitle]="titleTpl">
+                <ng-template #titleTpl>
+                    <span style="display:inline-flex;align-items:center;gap:8px">
+                        <img src="/assets/icon/layers.png" alt="icon" style="width:16px;height:16px" />
+                        <span>DỰ ÁN</span>
+                    </span>
+                </ng-template>
 
+                <ul>
+                    <li nz-menu-item>Item 1</li>
+                    <li nz-menu-item>Item 2</li>
+                </ul>
+            </li>
             <li nz-submenu nzOpen nzTitle="DỰ ÁN" nzIcon="dashboard">
                 <ul>
-                    <!-- <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(['/welcome'],'Yêu cầu báo giá')">Welcome</a>
-                    </li> -->
+
                     <li nz-menu-item nzMatchRouter>
                         <a (click)="newTab(['/project/0'],'Dự án')">Dự án</a>
                     </li>
@@ -114,7 +124,7 @@
                     }
                 </ul>
             </li> -->
-
+            <<<<<<< HEAD=======>>>>>>> XuanLuong
         </ul>
     </nz-sider>
     <nz-layout>

@@ -60,7 +60,6 @@
                     </li>
                 </ul>
             </li>
-
             <li nz-submenu nzOpen nzTitle="KHO" nzIcon="dashboard">
                 <ul>
 
@@ -90,9 +89,13 @@
                     <li nz-submenu nzTitle="CÀI ĐẶT">
                         <ul>
                             <li nz-menu-item nzMatchRouter>
-                                <a (click)="newTab(['/product-demo'],'Danh mục sản phẩm')">Danh mục sản phẩm</a>
+                                <a (click)="newTab(['/product-demo'],'Danh mục sản phẩm demo')">Danh mục sản phẩm
+                                    demo</a>
                             </li>
-                            <li nz-menu-item>Option 8</li>
+                            <li nz-menu-item>
+                                <a (click)="newTab(['/product-sale'],'Danh mục sản phẩm sale')">Danh mục sản phẩm
+                                    sale</a>
+                            </li>
                         </ul>
                     </li>
 
@@ -111,6 +114,7 @@
                     }
                 </ul>
             </li> -->
+
         </ul>
     </nz-sider>
     <nz-layout>

@@ -1,0 +1,46 @@
+<div class="modal-dialog-scrollable">
+    <div class="modal-header bg-primary text-uppercase py-2">
+        <h6 class="modal-title text-white" id="addProductModalLabel">Thêm vị trí</h6>
+        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        <form nz-form class=" g-3 needs-validation was-validated">
+            <div class="row">
+                <div class="col-md-12 pb-3">
+                    <nz-form-label class="fs-12">Kho</nz-form-label>
+                    <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn loại kho">
+                        <nz-input-group nzSearch nzSize="default" class="w-100">
+                            <nz-select [(ngModel)]="newLocation.ProductGroupID" name="ProductGroupID" nzPlaceHolder="Chọn kho"
+                                class="fs-12" required nzShowSearch nzAllowClear>
+                                <nz-option *ngFor="let type of listProductGroupcbb" [nzValue]="type.ID" [nzLabel]="type.ProductGroupName">
+                                </nz-option>
+                            </nz-select>
+                        </nz-input-group>
+                    </nz-form-control>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12 pb-3">
+                    <nz-form-label class="fs-12">Mã vị trí</nz-form-label>
+                    <nz-form-control>
+                        <input nz-input [(ngModel)]="newLocation.LocationCode" name="LocationCode"class="fs-12 w-100"
+                            nzSize="default" nzPlaceHolder="Nhập mã vị trí" />
+                    </nz-form-control>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12 pb-3">
+                    <nz-form-label class="fs-12">Tên vị trí</nz-form-label>
+                    <nz-form-control>
+                        <input nz-input [(ngModel)]="newLocation.LocationName" name="LocationName" class="fs-12 w-100"
+                            nzSize="default" nzPlaceHolder="Nhập tên vị trí" />
+                    </nz-form-control>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
+        <button class="fs-12 btn" nz-button nzType="primary" (click)="addNewLocation()">Lưu</button>
+    </div>
+</div>

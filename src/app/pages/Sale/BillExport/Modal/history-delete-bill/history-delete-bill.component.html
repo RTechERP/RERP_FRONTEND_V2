@@ -1,0 +1,20 @@
+
+      <div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0" >
+        <h6 class="modal-title text-white">Lịch sử nhận chứng từ{{this.message}}</h6>
+        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-1">
+        <div class="px-2 h-100 overflow-y-auto">
+          <div class="tab-content">
+            <div class="card-body" >
+              <div id="table_HistoryDeleteBill">
+              </div>
+            </div>
+          </div>
+          
+        </div>
+       
+      </div>
+      <div class="modal-footer flex-shrink-0">
+        <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
+      </div>

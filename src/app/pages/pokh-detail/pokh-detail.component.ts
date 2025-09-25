@@ -362,7 +362,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           this.dataProducts = response.data;
 
           //Gọi bảng sau khi có dữ liệu để chọn
-          this.initProductDetailTreeList(); 
+          this.initProductDetailTreeList();
           if (this.tb_ProductDetailTreeList) {
             this.tb_ProductDetailTreeList.setData(this.dataPOKHProduct);
           }
@@ -1113,6 +1113,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       ids.push(rowData.ID);
     }
 
+    
     if (rowData._children && rowData._children.length > 0) {
       rowData._children.forEach((child: any) => {
         const childRow = {

@@ -77,6 +77,21 @@
                         </ul>
                     </li>
                 </ul>
+                <ul>
+                    <li nz-submenu nzOpen nzTitle="Vision Base" nzIcon="area-chart">
+                        <ul>
+                            <li nz-menu-item nzMatchRouter>
+                                <a (click)="newTab(['/plan-week'])">KẾ HOẠCH TUẦN</a>
+                            </li>
+                            <li nz-menu-item nzMatchRouter>
+                                <a (click)="newTab([''])">FOLLOW DỰ ÁN</a>
+                            </li>
+                            <li nz-menu-item nzMatchRouter>
+                                <a (click)="newTab(['/customer'])">KHÁCH HÀNG</a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
             </li>
         </ul>
     </nz-sider>

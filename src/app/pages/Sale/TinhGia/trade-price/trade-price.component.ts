@@ -91,6 +91,7 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
   mainData: any[] = [];
   selectedId: number = 0;
   selectedRow: any = null;
+  selectedRows: any[] = [];
 
   filters: any = {
     employeeId: 0,
@@ -103,6 +104,7 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
   constructor(
     private notification: NzNotificationService,
     private modalService: NgbModal,
+    private modal: NzModalService,
     private RIDService: RequestInvoiceDetailService,
     private customerPartService: CustomerPartService,
     private tradePriceService: TradePriceService,
@@ -111,6 +113,8 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
     this.loadEmployee(),
       this.loadProject(),
       this.loadCustomer()
+
+
   }
   ngAfterViewInit(): void {
     this.initMainTable();
@@ -203,7 +207,7 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
       }
     });
   }
-
+  //#region Xử lý sự kiện
   openModal() {
     const modalRef = this.modalService.open(TradePriceDetailComponent, {
       centered: true,
@@ -215,6 +219,7 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
     modalRef.result.then(
       (result) => {
         if (result.success && result.reloadData) {
+          this.loadTradePrice(this.filters.employeeId, this.filters.saleAdminId, this.filters.projectId, this.filters.customerId, this.filters.keyword)
         }
       },
       (reason) => {
@@ -223,10 +228,296 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
     );
   }
   onEdit() {
+    if (!this.selectedId) {
+      this.notification.error("Lỗi", "Vui lòng chọn bản ghi cần sửa")
+      return;
+    }
 
+    this.tradePriceService.getTradePriceDetail(this.selectedId).subscribe({
+      next: (response) => {
+        if (response.status === 1) {
+          const DetailDATA = response.data;
+          const MainData = this.mainData.find(item => item.ID === this.selectedId);
+          const groupedData = [{
+            MainData: MainData,
+            ID: this.selectedId,
+            items: DetailDATA,
+          }];
+          const modalRef = this.modalService.open(TradePriceDetailComponent, {
+            centered: true,
+            windowClass: 'full-screen-modal',
+            backdrop: 'static'
+          });
+          modalRef.componentInstance.groupedData = groupedData;
+          modalRef.componentInstance.isEditMode = true;
+          modalRef.result.then(
+            (result) => {
+              if (result.success && result.reloadData) {
+                this.loadTradePrice(this.filters.employeeId, this.filters.saleAdminId, this.filters.projectId, this.filters.customerId, this.filters.keyword)
+              }
+            },
+            (reason) => {
+              console.log('Modal closed');
+            }
+          );
+        } else {
+          this.notification.error('Lỗi', response.message);
+        }
+      },
+      error: (error) => {
+        this.notification.error('Lỗi', error);
+      }
+    });
   }
   onDelete() {
+    if (!this.selectedId) {
+      this.notification.error("Thông báo!", "Vui lòng chọn yêu cầu cần xóa!");
+      return;
+    }
+    this.modal.confirm({
+      nzTitle: 'Bạn có chắc chắn muốn xóa?',
+      nzContent: 'Hành động này không thể hoàn tác.',
+      nzOkText: 'Xóa',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        const DATA = {
+          ID: this.selectedId,
+          IsDeleted: true
+        }
 
+        this.tradePriceService.saveData({
+          tradePrices: DATA,
+          tradePriceDetails: [],
+          deletedTradePriceDetails: []
+        }).subscribe({
+          next: (response) => {
+            if (response.status === 1) {
+              this.notification.success('Thành công', 'Xóa dữ liệu thành công');
+              this.loadTradePrice(this.filters.employeeId, this.filters.saleAdminId, this.filters.projectId, this.filters.customerId, this.filters.keyword)
+            } else {
+              this.notification.error('Lỗi', response.message || 'Xóa dữ liệu thất bại!');
+            }
+          },
+          error: (err) => {
+            this.notification.error('Lỗi', 'Không thể xóa dữ liệu!');
+          }
+        });
+      }
+    })
+  }
+  onSaleApprovedAndRequest(isApprove: number) {
+    if (this.selectedRows.length < 1) {
+      this.notification.error('Thông báo!', 'Vui lòng chọn ít nhất 1 dự án cần thay đổi trạng thái!');
+      return;
+    }
+
+    const actionText = isApprove === 1 ? 'CHỐT' : isApprove === 2 ? 'HỦY CHỐT' : 'YÊU CẦU DUYỆT';
+    const confirmMessage = `Bạn có chắc muốn ${actionText} cho ${this.selectedRows.length} dự án đã chọn?`;
+
+    this.modal.confirm({
+      nzTitle: 'Xác nhận thay đổi trạng thái',
+      nzContent: confirmMessage,
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        const requests = this.selectedRows.map((row: any) => {
+          if (isApprove === 1 && row.IsApprovedSale === 1) {
+            return of({ row, status: 'skipped', reason: 'Dự án đã được chốt' });
+          }
+          if (isApprove === 2 && row.IsApprovedSale === 2) {
+            return of({ row, status: 'skipped', reason: 'Dự án đã được HỦY chốt' });
+          }
+          if (isApprove === 3) {
+            if (row.IsApprovedSale === 3) {
+              return of({ row, status: 'skipped', reason: 'Dự án đã được yêu cầu duyệt' });
+            }
+            if (row.IsApprovedSale === 0 || row.IsApprovedSale === 2) {
+              return of({ row, status: 'skipped', reason: 'Dự án chưa được chốt nên không thể yêu cầu duyệt' });
+            }
+          }
+          if(row.IsApprovedSale === 3 && (isApprove === 2 || isApprove === 1))
+          {
+            return of({ row, status: 'skipped', reason: 'Dự án đã được yêu cầu duyệt, không thể thay đổi trạng thái' });
+          }
+
+          const DATA = { ID: row.ID, IsApprovedSale: isApprove };
+          return this.tradePriceService
+            .saveData({ tradePrices: DATA, tradePriceDetails: [], deletedTradePriceDetails: [] })
+            .pipe(
+              map((response: any) => ({ row, status: response.status === 1 ? 'success' : 'failed', message: response.message })),
+              catchError(() => of({ row, status: 'failed', message: 'Không thể cập nhật dữ liệu!' }))
+            );
+        });
+
+        forkJoin(requests).subscribe((results: any[]) => {
+          const success = results.filter(r => r.status === 'success');
+          const skipped = results.filter(r => r.status === 'skipped');
+          const failed = results.filter(r => r.status === 'failed');
+
+          if (success.length > 0) {
+            this.notification.success('Thành công', `Cập nhật thành công ${success.length} dự án.`);
+          }
+          if (skipped.length > 0) {
+            const skippedDetails = skipped
+              .map((r: any) => `${r.row?.ProjectCode || r.row?.ID}: ${r.reason}`)
+              .join('; ');
+            this.notification.error('Lỗi', `Bỏ qua ${skipped.length} dự án lí do: ${skippedDetails}`);
+          }
+          if (failed.length > 0) {
+            const failedDetails = failed
+              .map((r: any) => `${r.row?.ProjectCode || r.row?.ID}: ${r.message || 'Không thể cập nhật dữ liệu!'}`)
+              .join('; ');
+            this.notification.error('Lỗi', `Cập nhật thất bại ${failed.length} dự án lí do: ${failedDetails}`);
+          }
+
+          this.loadTradePrice(this.filters.employeeId, this.filters.saleAdminId, this.filters.projectId, this.filters.customerId, this.filters.keyword
+          );
+        });
+      }
+    });
+  }
+  onLeaderApproved(isApprove: number) {
+    if (this.selectedRows.length < 1) {
+      this.notification.error('Thông báo!', 'Vui lòng chọn ít nhất 1 dự án cần thay đổi trạng thái!');
+      return;
+    }
+
+    const actionText = isApprove === 1 ? 'DUYỆT' : isApprove === 2 ? 'HỦY DUYỆT' : 'YÊU CẦU BGĐ DUYỆT';
+    const confirmMessage = `Bạn có chắc muốn ${actionText} cho ${this.selectedRows.length} dự án đã chọn?`;
+
+    this.modal.confirm({
+      nzTitle: 'Xác nhận thay đổi trạng thái',
+      nzContent: confirmMessage,
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        const requests = this.selectedRows.map((row: any) => {
+          if ((isApprove === 1 || isApprove === 2) && row.IsApprovedLeader === 3 && (row.IsApprovedBGD === 0 || row.IsApprovedBGD === 1)) {
+            return of({ row, status: 'skipped', reason: 'Dự án đang chờ BGĐ duyệt, không thể thay đổi trạng thái' });
+          }
+          if (isApprove === 1 && row.IsApprovedLeader === 1) {
+            return of({ row, status: 'skipped', reason: 'Dự án đã được duyệt rồi' });
+          }
+          if (isApprove === 2 && row.IsApprovedLeader === 2) {
+            return of({ row, status: 'skipped', reason: 'Dự án đã được hủy duyệt rồi' });
+          }
+          if (isApprove === 3) {
+            if (row.IsApprovedLeader === 3) {
+              return of({ row, status: 'skipped', reason: 'Dự án đã được yêu cầu duyệt' });
+            }
+          }
+          let valueIsApprovedBGD = 0;
+          const DATA = { ID: row.ID, IsApprovedLeader: isApprove , IsApprovedBGD: valueIsApprovedBGD };
+
+          if ((isApprove === 1 || isApprove === 2) && row.IsApprovedBGD != 1)
+          {
+            DATA.IsApprovedBGD = isApprove;
+          }
+          else if(isApprove === 3)
+          {
+            DATA.IsApprovedBGD = 0
+          }
+
+          return this.tradePriceService
+            .saveData({ tradePrices: DATA, tradePriceDetails: [], deletedTradePriceDetails: [] })
+            .pipe(
+              map((response: any) => ({ row, status: response.status === 1 ? 'success' : 'failed', message: response.message })),
+              catchError(() => of({ row, status: 'failed', message: 'Không thể cập nhật dữ liệu!' }))
+            );
+        });
+
+        forkJoin(requests).subscribe((results: any[]) => {
+          const success = results.filter(r => r.status === 'success');
+          const skipped = results.filter(r => r.status === 'skipped');
+          const failed = results.filter(r => r.status === 'failed');
+
+          if (success.length > 0) {
+            this.notification.success('Thành công', `Cập nhật thành công ${success.length} dự án.`);
+          }
+          if (skipped.length > 0) {
+            const skippedDetails = skipped
+              .map((r: any) => `${r.row?.ProjectCode || r.row?.ID}: ${r.reason}`)
+              .join('; ');
+            this.notification.error('Lỗi', `Bỏ qua ${skipped.length} dự án lí do: ${skippedDetails}`);
+          }
+          if (failed.length > 0) {
+            const failedDetails = failed
+              .map((r: any) => `${r.row?.ProjectCode || r.row?.ID}: ${r.message || 'Không thể cập nhật dữ liệu!'}`)
+              .join('; ');
+            this.notification.error('Lỗi', `Cập nhật thất bại ${failed.length} dự án lí do: ${failedDetails}`);
+          }
+
+          this.loadTradePrice(this.filters.employeeId, this.filters.saleAdminId, this.filters.projectId, this.filters.customerId, this.filters.keyword
+          );
+        });
+      }
+    });
+  }
+  onBGDApproved(isApprove: number) {
+    if (this.selectedRows.length < 1) {
+      this.notification.error('Thông báo!', 'Vui lòng chọn ít nhất 1 dự án cần thay đổi trạng thái!');
+      return;
+    }
+
+    const actionText = isApprove === 1 ? 'DUYỆT' : 'HỦY DUYỆT';
+    const confirmMessage = `Bạn có chắc muốn ${actionText} cho ${this.selectedRows.length} dự án đã chọn?`;
+
+    this.modal.confirm({
+      nzTitle: 'Xác nhận thay đổi trạng thái',
+      nzContent: confirmMessage,
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        const requests = this.selectedRows.map((row: any) => {
+          if ((isApprove === 1 || isApprove === 2) && row.IsApprovedBGD === 3 && row.IsApprovedBGD === 0) {
+            return of({ row, status: 'skipped', reason: 'Dự án đang chờ BGĐ duyệt, không thể thay đổi trạng thái' });
+          }
+          if (isApprove === 1 && row.IsApprovedBGD === 1) {
+            return of({ row, status: 'skipped', reason: 'Dự án đã được duyệt rồi' });
+          }
+          if (isApprove === 2 && row.IsApprovedBGD === 2) {
+            return of({ row, status: 'skipped', reason: 'Dự án đã được hủy duyệt rồi' });
+          }
+
+          let valueIsApprovedLeader = 3;
+          const DATA = { ID: row.ID, IsApprovedBGD: isApprove, IsApprovedLeader: valueIsApprovedLeader };
+
+          if ((isApprove === 2 || isApprove === 1) && row.IsApprovedLeader != 3 ){ DATA.IsApprovedLeader = isApprove; }
+          
+          return this.tradePriceService
+            .saveData({ tradePrices: DATA, tradePriceDetails: [], deletedTradePriceDetails: [] })
+            .pipe(
+              map((response: any) => ({ row, status: response.status === 1 ? 'success' : 'failed', message: response.message })),
+              catchError(() => of({ row, status: 'failed', message: 'Không thể cập nhật dữ liệu!' }))
+            );
+        });
+
+        forkJoin(requests).subscribe((results: any[]) => {
+          const success = results.filter(r => r.status === 'success');
+          const skipped = results.filter(r => r.status === 'skipped');
+          const failed = results.filter(r => r.status === 'failed');
+
+          if (success.length > 0) {
+            this.notification.success('Thành công', `Cập nhật thành công ${success.length} dự án.`);
+          }
+          if (skipped.length > 0) {
+            const skippedDetails = skipped
+              .map((r: any) => `${r.row?.ProjectCode || r.row?.ID}: ${r.reason}`)
+              .join('; ');
+            this.notification.error('Lỗi', `Bỏ qua ${skipped.length} dự án lí do: ${skippedDetails}`);
+          }
+          if (failed.length > 0) {
+            const failedDetails = failed
+              .map((r: any) => `${r.row?.ProjectCode || r.row?.ID}: ${r.message || 'Không thể cập nhật dữ liệu!'}`)
+              .join('; ');
+            this.notification.error('Lỗi', `Cập nhật thất bại ${failed.length} dự án lí do: ${failedDetails}`);
+          }
+
+          this.loadTradePrice(this.filters.employeeId, this.filters.saleAdminId, this.filters.projectId, this.filters.customerId, this.filters.keyword
+          );
+        });
+      }
+    });
   }
   searchData(): void {
     this.loadTradePrice(this.filters.employeeId, this.filters.saleAdminId, this.filters.projectId, this.filters.customerId, this.filters.keyword)
@@ -257,12 +548,13 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
 
     return treeData;
   }
+  //#endregion
   initMainTable(): void {
     this.tb_MainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
       data: this.mainData,
       layout: 'fitDataFill',
       height: '100%',
-      selectableRows: 1,
+      selectableRows: true,
       pagination: true,
       paginationSize: 50,
       movableColumns: true,
@@ -288,23 +580,20 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
         },
       },
       columns: [
-        { title: 'Báo giá', field: 'ProjectID', sorter: 'string', width: 100 },
-        { title: 'Trạng thái Sale', field: 'approvedSale', sorter: 'string', width: 100 },
         {
-          title: 'Leader duyệt', field: 'approvedLeader', sorter: 'boolean', width: 80, formatter: (cell) => {
+          title: 'Báo giá', field: 'IsQuotation', sorter: 'boolean', width: 80, formatter: (cell) => {
             const checked = cell.getValue() ? 'checked' : '';
             return `<div style="text-align: center;">
             <input type="checkbox" ${checked} disabled style="opacity: 1; pointer-events: none; cursor: default; width: 16px; height: 16px;"/>
           </div>`;
           }
         },
+        { title: 'Trạng thái Sale', field: 'approvedSale', sorter: 'string', width: 150 },
         {
-          title: 'BGD duyệt', field: 'approvedBGD', sorter: 'boolean', width: 80, formatter: (cell) => {
-            const checked = cell.getValue() ? 'checked' : '';
-            return `<div style="text-align: center;">
-            <input type="checkbox" ${checked} disabled style="opacity: 1; pointer-events: none; cursor: default; width: 16px; height: 16px;"/>
-          </div>`;
-          }
+          title: 'Leader duyệt', field: 'approvedLeader', sorter: 'boolean', width: 150
+        },
+        {
+          title: 'BGD duyệt', field: 'approvedBGD', sorter: 'boolean', width: 100
         },
         { title: 'Mã dự án', field: 'ProjectCode', sorter: 'string', width: 100 },
         { title: 'Tên dự án', field: 'ProjectName', sorter: 'string', width: 150 },
@@ -330,7 +619,6 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
       this.selectedRow = rowData;
       console.log("Dữ liệu dòng đã chọn", this.selectedRow)
       this.loadTradePriceDetail(ID);
-      // Sau khi load xong data chi tiết, cập nhật lại title cột lợi nhuận
       setTimeout(() => {
         if (this.tb_Detail) {
           const columns = this.tb_Detail.getColumnDefinitions();
@@ -346,6 +634,11 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
         }
       }, 0);
     });
+
+    this.tb_MainTable.on('rowSelectionChanged', (data: any[], rows: RowComponent[]) => {
+      this.selectedRows = (data || []).map((item: any) => item)
+      console.log('Danh sách ID đã chọn:', this.selectedRows);
+    });
   }
   initDetailTable(): void {
     this.tb_Detail = new Tabulator(this.tb_DetailTableElement.nativeElement, {
@@ -355,6 +648,8 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
       movableColumns: true,
       resizableRows: true,
       reactiveData: true,
+      dataTree: true,
+      dataTreeStartExpanded: true,
       columns: [
         {
           title: "Tổng CM/Set",

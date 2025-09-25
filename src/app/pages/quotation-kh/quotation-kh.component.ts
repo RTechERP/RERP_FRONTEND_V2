@@ -76,7 +76,8 @@ import { PokhDetailComponent } from '../pokh-detail/pokh-detail.component';
   templateUrl: './quotation-kh.component.html',
   styleUrl: './quotation-kh.component.css'
 })
-export class QuotationKhComponent implements OnInit, AfterViewInit {
+export class 
+QuotationKhComponent implements OnInit, AfterViewInit {
   @ViewChild('tb_MainTable', { static: false }) tb_MainTableElement!: ElementRef;
   @ViewChild('tb_Detail', { static: false }) tb_DetailTableElement!: ElementRef;
 

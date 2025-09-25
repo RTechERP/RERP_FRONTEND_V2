@@ -13,6 +13,8 @@ import { PokhHistoryComponent } from './pages/pokh-history/pokh-history.componen
 import { TradePriceComponent } from './pages/Sale/TinhGia/trade-price/trade-price.component';
 import { QuotationSaleComponent } from './pages/Sale/TinhGia/quotation-sale/quotation-sale.component';
 import { ProjectMachinePriceComponent } from './pages/Sale/TinhGia/project-machine-price/project-machine-price.component';
+import { PlanWeekComponent } from './pages/VisionBase/plan-week/plan-week.component';
+import { CustomerComponent } from './pages/VisionBase/customer/customer.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/welcome', pathMatch: 'full' },
@@ -30,4 +32,6 @@ export const routes: Routes = [
   { path: 'trade-price', component: TradePriceComponent},
   { path: 'quotation-sale', component: QuotationSaleComponent},
   { path: 'project-machine-price', component: ProjectMachinePriceComponent},
+  { path: 'plan-week', component: PlanWeekComponent},
+  { path: 'customer', component: CustomerComponent}
 ];

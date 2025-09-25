@@ -183,7 +183,6 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
 
     // Load project data nếu có projectId
     if (mainData.ProjectID) {
-      // Đợi một chút để đảm bảo danh sách projects đã được load
       setTimeout(() => {
         this.onProjectChange(mainData.ProjectID);
       }, 200);

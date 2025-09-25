@@ -262,14 +262,14 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
         }).subscribe({
           next: (response) => {
             if (response.status === 1) {
-              this.notification.success('Thành công', 'Lưu dữ liệu thành công');
+              this.notification.success('Thành công', 'Xóa dữ liệu thành công');
               this.loadMainData(this.filters.startDate, this.filters.endDate, this.filters.filterText)
             } else {
-              this.notification.error('Lỗi', response.message || 'Lưu dữ liệu thất bại!');
+              this.notification.error('Lỗi', response.message || 'Xóa dữ liệu thất bại!');
             }
           },
           error: (err) => {
-            this.notification.error('Lỗi', 'Không thể lưu dữ liệu!');
+            this.notification.error('Lỗi', 'Không thể xóa dữ liệu!');
           }
         });
       }

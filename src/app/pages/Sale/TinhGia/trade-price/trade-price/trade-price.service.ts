@@ -11,7 +11,7 @@ export class TradePriceService {
   private _url = API_URL + 'api/TradePrice/';
   constructor(private http: HttpClient) { }
   getTradePrice(employeeId: number, saleAdminId: number, projectId: number, customerId: number, keyword: string): Observable<any> {
-    return this.http.get<any>(this._url,{
+    return this.http.get<any>(this._url, {
       params: {
         employeeId: employeeId.toString(),
         saleAdminId: saleAdminId.toString(),
@@ -21,6 +21,7 @@ export class TradePriceService {
       }
     });
   }
+  
   getTradePriceDetail(id: number): Observable<any> {
     return this.http.get<any>(this._url + 'get-details', {
       params: {
@@ -28,14 +29,18 @@ export class TradePriceService {
       }
     });
   }
-  getEmployees(status: number): Observable<any>{
+  getEmployees(status: number): Observable<any> {
     return this.http.get<any>('https://localhost:7187/api/Employee/get-employees', {
       params: {
         status: status.toString(),
       }
     });
   }
-  getUnitCount(): Observable<any>{
+  getUnitCount(): Observable<any> {
     return this.http.get<any>(this._url + 'get-unitcount');
+  }
+
+  saveData(payload: any): Observable<any> {
+    return this.http.post<any>(this._url + "save-data", payload)
   }
 }

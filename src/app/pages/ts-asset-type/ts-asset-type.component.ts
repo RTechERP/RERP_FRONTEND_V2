@@ -2,7 +2,15 @@ import { inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
-import { AfterViewInit, Component, OnInit, ViewEncapsulation, ViewChild, ElementRef, Input } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  OnInit,
+  ViewEncapsulation,
+  ViewChild,
+  ElementRef,
+  Input,
+} from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -18,10 +26,15 @@ import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
-import { TabulatorFull as Tabulator, CellComponent, ColumnDefinition, RowComponent } from 'tabulator-tables';
+import {
+  TabulatorFull as Tabulator,
+  CellComponent,
+  ColumnDefinition,
+  RowComponent,
+} from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
-import { NzNotificationService } from 'ng-zorro-antd/notification'
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TypeAssetsService } from './ts-asset-type-service/ts-asset-type.service';
 import { TyAssetTypeFormComponent } from './ts-asset-type-form/ts-asset-type-form.component';
 
@@ -51,8 +64,8 @@ import { TyAssetTypeFormComponent } from './ts-asset-type-form/ts-asset-type-for
     NzTableModule,
     NzTabsModule,
     NgbModalModule,
-    TyAssetTypeFormComponent
-  ]
+    // TyAssetTypeFormComponent
+  ],
 })
 export class TsAssetTypeComponent implements OnInit, AfterViewInit {
   private ngbModal = inject(NgbModal);
@@ -60,19 +73,19 @@ export class TsAssetTypeComponent implements OnInit, AfterViewInit {
   typeAssetData: any[] = [];
   typeAssetTable: Tabulator | null = null;
   selecteType: any = {};
-  constructor(private typeAssetService: TypeAssetsService,
-    private notification: NzNotificationService,
-  ) { }
+  constructor(
+    private typeAssetService: TypeAssetsService,
+    private notification: NzNotificationService
+  ) {}
 
-  ngOnInit() {
-  }
+  ngOnInit() {}
   ngAfterViewInit(): void {
     this.getTypeAsset();
   }
   getTypeAsset() {
     this.typeAssetService.getTypeAssets().subscribe((resppon: any) => {
       this.typeAssetData = resppon.data;
-      console.log("Type", this.typeAssetData);
+      console.log('Type', this.typeAssetData);
       this.drawTable();
     });
   }
@@ -82,7 +95,7 @@ export class TsAssetTypeComponent implements OnInit, AfterViewInit {
     } else {
       this.typeAssetTable = new Tabulator('#dataTypeAsset', {
         data: this.typeAssetData,
-        layout: "fitDataStretch",
+        layout: 'fitDataStretch',
         pagination: true,
         selectableRows: 1,
         height: '83vh',
@@ -92,31 +105,50 @@ export class TsAssetTypeComponent implements OnInit, AfterViewInit {
         reactiveData: true,
         placeholder: 'Không có dữ liệu',
         dataTree: true,
-        addRowPos: "bottom",
+        addRowPos: 'bottom',
         history: true,
         columns: [
-          { title: 'ID', field: 'ID', headerHozAlign: 'center', width: 90 , visible:false},
-          { title: 'STT', formatter: 'rownum', hozAlign: 'center', width: 100, headerHozAlign: 'center' },
-          { title: 'Mã loại tài sản', field: 'AssetCode', headerHozAlign: 'center' },
-          { title: 'Tên loại tài sản', field: 'AssetType', headerHozAlign: 'center' },
+          {
+            title: 'ID',
+            field: 'ID',
+            headerHozAlign: 'center',
+            width: 90,
+            visible: false,
+          },
+          {
+            title: 'STT',
+            formatter: 'rownum',
+            hozAlign: 'center',
+            width: 100,
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Mã loại tài sản',
+            field: 'AssetCode',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Tên loại tài sản',
+            field: 'AssetType',
+            headerHozAlign: 'center',
+          },
         ],
         rowClick: (e: MouseEvent, row: RowComponent) => {
-          this.typeAssetTable!.getSelectedRows().forEach(r => r.deselect());
+          this.typeAssetTable!.getSelectedRows().forEach((r) => r.deselect());
           row.select();
           this.selecteType = row.getData();
-          console.log("Select ", this.selecteType);
+          console.log('Select ', this.selecteType);
         },
       } as any);
     }
   }
   onAddTypeAsset() {
-    const modalRef = this.ngbModal.open(TyAssetTypeFormComponent
-      , {
-        size: 'lg',
-        backdrop: 'static',
-        keyboard: false,
-        centered: true
-      });
+    const modalRef = this.ngbModal.open(TyAssetTypeFormComponent, {
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+    });
     modalRef.componentInstance.dataInput = this.modalData;
     modalRef.result.then(
       (result) => {
@@ -131,7 +163,10 @@ export class TsAssetTypeComponent implements OnInit, AfterViewInit {
   onEditTypeAsset(): void {
     const selected = this.typeAssetTable?.getSelectedData();
     if (!selected || selected.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một loại tài sản để sửa!');
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn một loại tài sản để sửa!'
+      );
       return;
     }
     const selecteType = { ...selected[0] };
@@ -139,7 +174,7 @@ export class TsAssetTypeComponent implements OnInit, AfterViewInit {
       size: 'lg',
       backdrop: 'static',
       keyboard: false,
-      centered: true
+      centered: true,
     });
     modalRef.componentInstance.dataInput = selecteType;
     modalRef.result.then(
@@ -152,31 +187,33 @@ export class TsAssetTypeComponent implements OnInit, AfterViewInit {
       }
     );
   }
-  onDeleteTypeAsset()
-  {
-     const selected = this.typeAssetTable?.getSelectedData();
+  onDeleteTypeAsset() {
+    const selected = this.typeAssetTable?.getSelectedData();
     if (!selected || selected.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn loại tài sản để xóa!');
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn loại tài sản để xóa!'
+      );
       return;
     }
-     const payloadTypeAsset = {
+    const payloadTypeAsset = {
       ID: selected[0].ID,
-      IsDeleted: true
-    }
+      IsDeleted: true,
+    };
     console.log(payloadTypeAsset);
     this.typeAssetService.SaveData(payloadTypeAsset).subscribe({
-          next: (res) => {
+      next: (res) => {
         if (res.status === 1) {
-          this.notification.success("Thông báo", "Thành công");
-         setTimeout(() => this.getTypeAsset(), 100);
+          this.notification.success('Thông báo', 'Thành công');
+          setTimeout(() => this.getTypeAsset(), 100);
         } else {
-          this.notification.warning("Thông báo", "Thất bại");
+          this.notification.warning('Thông báo', 'Thất bại');
         }
       },
       error: (err) => {
         console.error(err);
-        this.notification.warning("Thông báo", "Lỗi kết nối");
-      }
+        this.notification.warning('Thông báo', 'Lỗi kết nối');
+      },
     });
   }
 }

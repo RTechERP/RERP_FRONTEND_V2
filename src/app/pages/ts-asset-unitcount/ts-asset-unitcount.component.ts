@@ -2,7 +2,15 @@ import { inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
-import { AfterViewInit, Component, OnInit, ViewEncapsulation, ViewChild, ElementRef, Input } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  OnInit,
+  ViewEncapsulation,
+  ViewChild,
+  ElementRef,
+  Input,
+} from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -19,13 +27,18 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
-import { TabulatorFull as Tabulator, CellComponent, ColumnDefinition, RowComponent } from 'tabulator-tables';
+import {
+  TabulatorFull as Tabulator,
+  CellComponent,
+  ColumnDefinition,
+  RowComponent,
+} from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 declare var bootstrap: any;
 import { TsAssetUnitFormComponent } from './ts-asset-unit-form/ts-asset-unit-form.component';
 import { UnitService } from './ts-asset-unit-service/ts-asset-unit.service';
-import { NzNotificationService } from 'ng-zorro-antd/notification'
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 @Component({
   standalone: true,
   selector: 'app-ts-asset-unitcount',
@@ -51,20 +64,21 @@ import { NzNotificationService } from 'ng-zorro-antd/notification'
     NzTableModule,
     NzTabsModule,
     NgbModalModule,
-    TsAssetUnitFormComponent
-  ]
+    // TsAssetUnitFormComponent
+  ],
 })
-export class TsAssetUnitcountComponent implements OnInit,AfterViewInit {
+export class TsAssetUnitcountComponent implements OnInit, AfterViewInit {
   private ngbModal = inject(NgbModal);
   modalData: any = [];
   unitData: any[] = [];
   unitTbData: any[] = [];
   selectedUnit: any = {};
   unitTable: Tabulator | null = null;
-  constructor(private unitService: UnitService,
-    private notification: NzNotificationService,
-  ) { }
-  ngOnInit() { }
+  constructor(
+    private unitService: UnitService,
+    private notification: NzNotificationService
+  ) {}
+  ngOnInit() {}
   ngAfterViewInit(): void {
     this.getunit();
   }
@@ -80,7 +94,7 @@ export class TsAssetUnitcountComponent implements OnInit,AfterViewInit {
     } else {
       this.unitTable = new Tabulator('#datatableunit', {
         data: this.unitData,
-        layout: "fitDataStretch",
+        layout: 'fitDataStretch',
         pagination: true,
         selectableRows: 1,
         height: '83vh',
@@ -90,7 +104,7 @@ export class TsAssetUnitcountComponent implements OnInit,AfterViewInit {
         reactiveData: true,
         placeholder: 'Không có dữ liệu',
         dataTree: true,
-        addRowPos: "bottom",
+        addRowPos: 'bottom',
         history: true,
         columns: [
           {
@@ -100,14 +114,20 @@ export class TsAssetUnitcountComponent implements OnInit,AfterViewInit {
             headerSort: false,
             width: 50,
             headerHozAlign: 'center',
-            cssClass: 'custom-checkbox-cell'
+            cssClass: 'custom-checkbox-cell',
           },
-          { title: 'STT', formatter: 'rownum', hozAlign: 'center', width: 100, headerHozAlign: 'center' },
+          {
+            title: 'STT',
+            formatter: 'rownum',
+            hozAlign: 'center',
+            width: 100,
+            headerHozAlign: 'center',
+          },
 
           { title: 'Tên đơn vị', field: 'UnitName', headerHozAlign: 'center' },
         ],
         rowClick: (e: MouseEvent, row: RowComponent) => {
-          this.unitTable!.getSelectedRows().forEach(r => r.deselect());
+          this.unitTable!.getSelectedRows().forEach((r) => r.deselect());
           row.select();
           this.selectedUnit = row.getData();
         },
@@ -119,7 +139,7 @@ export class TsAssetUnitcountComponent implements OnInit,AfterViewInit {
       size: 'lg',
       backdrop: 'static',
       keyboard: false,
-      centered: true
+      centered: true,
     });
     modalRef.componentInstance.dataInput = this.modalData;
     modalRef.result.then(
@@ -135,7 +155,10 @@ export class TsAssetUnitcountComponent implements OnInit,AfterViewInit {
   onEditUnit(): void {
     const selected = this.unitTable?.getSelectedData();
     if (!selected || selected.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một đơn vị để sửa!');
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn một đơn vị để sửa!'
+      );
       return;
     }
     const selectedUnit = { ...selected[0] };
@@ -143,7 +166,7 @@ export class TsAssetUnitcountComponent implements OnInit,AfterViewInit {
       size: 'lg',
       backdrop: 'static',
       keyboard: false,
-      centered: true
+      centered: true,
     });
     modalRef.componentInstance.dataInput = selectedUnit;
     modalRef.result.then(
@@ -159,27 +182,30 @@ export class TsAssetUnitcountComponent implements OnInit,AfterViewInit {
   onDeleteUnit() {
     const selected = this.unitTable?.getSelectedData();
     if (!selected || selected.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một đơn vị để xóa!');
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn một đơn vị để xóa!'
+      );
       return;
     }
     const payloadUnit = {
       ID: selected[0].ID,
-      IsDeleted: true
-    }
+      IsDeleted: true,
+    };
     console.log(payloadUnit);
     this.unitService.SaveData([payloadUnit]).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success("Thông báo", "Thành công");
-         setTimeout(() => this.getunit(), 100);
+          this.notification.success('Thông báo', 'Thành công');
+          setTimeout(() => this.getunit(), 100);
         } else {
-          this.notification.warning("Thông báo", "Thất bại");
+          this.notification.warning('Thông báo', 'Thất bại');
         }
       },
       error: (err) => {
         console.error(err);
-        this.notification.warning("Thông báo", "Lỗi kết nối");
-      }
+        this.notification.warning('Thông báo', 'Lỗi kết nối');
+      },
     });
   }
 }

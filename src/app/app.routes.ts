@@ -34,6 +34,7 @@ import { TsAssetTransferComponent } from './pages/ts-asset-transfer/ts-asset-tra
 import { CustomerComponent } from './pages/customer/customer.component';
 import { ProductComponent } from './pages/product/product.component';
 import { TbProductRtcComponent } from './pages/tb-product-rtc/tb-product-rtc.component';
+import { ProductSaleComponent } from './pages/Sale/ProductSale/product-sale.component';
 export const routes: Routes = [
   {
     path: '',
@@ -103,6 +104,11 @@ export const routes: Routes = [
       {
         path: 'product-demo', //DANH SÁCH SẢN PHẨM DEMO
         component: TbProductRtcComponent,
+      },
+
+      {
+        path: 'product-sale', //DANH SÁCH SẢN PHẨM SALE
+        component: ProductSaleComponent,
       },
       //#endregion
     ],

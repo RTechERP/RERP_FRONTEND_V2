@@ -34,3 +34,4 @@ export const ISADMIN = true;
 export const USER_NAME = 'ADMINSW';
 export const HOST = 'https://localhost:44365/';
 // export const HOST = 'http://10.20.29.65:8088/rerpapi/';
+export const DEPARTMENTID = 6;

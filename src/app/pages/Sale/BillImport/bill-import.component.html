@@ -1,0 +1,159 @@
+<ng-container class="w-100">
+    <nz-splitter>
+        <nz-splitter-panel [nzSize]="sizeSearch" [nzCollapsible]="true">
+            <div class="card h-100 border-0 rounded-0">
+              <div class="card-header bg-white p-1">
+                <div class="d-flex justify-content-between align-items-center">
+                  <h6 class="m-0 ms-2">Tìm kiếm</h6>
+                  <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+                    (click)="toggleSearchPanel()">
+                    <nz-icon nzType="close" nzTheme="outline" />
+                  </button>
+                </div>
+              </div>
+              <div class="card-body">
+                <form nz-form nzLayout="vertical">
+                  <!-- Date range -->
+                  <nz-form-item>
+                    <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                      <nz-date-picker [nzFormat]="dateFormat" class="w-100" nzSize="small" [(ngModel)]="searchParams.dateStart" name="dateStart" [nzDisabled]="checked" >
+              
+                      </nz-date-picker>
+                    
+                    </nz-form-control>
+                  </nz-form-item>
+                  <nz-form-item class="mt-2">
+                    <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <nz-date-picker [nzFormat]="dateFormat" class="w-100" nzSize="small" [(ngModel)]="searchParams.dateEnd" name="dateEnd" [nzDisabled]="checked"></nz-date-picker>
+                    </nz-form-control>
+                  </nz-form-item>
+                  <!-- cbb kho -->
+                  <nz-form-item class="mt-2">
+                    <nz-form-label class="fs-12" [nzSpan]="24">Lọc kho</nz-form-label>
+                    <nz-form-control [nzSpan]="24" >
+                      <nz-select
+                      [(ngModel)]="selectedKhoTypes"
+                      (ngModelChange)="onKhoTypeChange($event)"
+                      [nzMode]="'multiple'"
+                      [nzPlaceHolder]="'Chọn nhóm kho'"
+                      [nzMaxTagCount]="3"   
+                      style="width: 100%"
+                      name="selectedKhoTypes"
+                    >
+                      <nz-option
+                        *ngFor="let item of dataProductGroup"
+                        [nzLabel]="item.ProductGroupName"
+                        [nzValue]="item.ID"
+                      ></nz-option>
+                    </nz-select>
+                      <ng-template  #tagPlaceHolder let-selectedList>và {{ selectedList.length }} kho được chọn</ng-template>
+                    </nz-form-control>
+                  </nz-form-item>
+                  <nz-form-item class="mt-2">
+                    <nz-form-label class="fs-12" [nzSpan]="24">Lọc phiếu</nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                      <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small"
+                         [(ngModel)]="searchParams.status" name="status">
+                        <nz-option *ngFor="let item of cbbStatus" [nzValue]="item.ID" [nzLabel]="item.Name">
+                          <div class="d-flex align-items-center">
+                            <span class="me-2">{{ item.ID }}</span>
+                            <span>{{ item.Name }}</span>
+                          </div>
+                        </nz-option>
+                      </nz-select>
+                    </nz-form-control>
+                  </nz-form-item>   
+                  <nz-form-item class="mt-2">
+                    <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <input class="w-100" nz-input placeholder="Nhập từ khóa" [(ngModel)]="searchParams.keyword" name="keyword" nzSize="small" />
+                    </nz-form-control>
+                  </nz-form-item>
+                  <nz-form-item class="mt-2">
+                    <label nz-checkbox [(ngModel)]="checked" name="checked" (ngModelChange)="onCheckboxChange()">Tìm kiếm tất cả</label>
+                  </nz-form-item>           
+                </form>
+              </div>
+              <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+                <button nz-button nzType="default" nzSize="small" (click)="resetform()">Đặt lại</button>
+                <button nz-button nzType="primary" nzSize="small" (click)="searchData()">Tìm kiếm</button>
+              </div>
+            </div>
+          </nz-splitter-panel>
+      
+        <nz-splitter-panel nzDefaultSize="100%">
+            <div class="card h-100 border-0 rounded-0">
+                <div class="card-header bg-white p-1" style="overflow-x: auto;">
+                    <div class="d-flex gap-1">
+                        <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
+                            <nz-icon nzType="search" /> 
+                        </button>
+                        <button class="fs-12 btn" nz-button nzType="default" nzSize="small"  (click)=" openModalBillImportDetail(false)" >
+                            <nz-icon nzType="plus" nzTheme="outline" /> Thêm
+                        </button>
+                        <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)=" openModalBillImportDetail(true)" >
+                            <nz-icon nzType="edit" nzTheme="fill" /> Sửa
+                        </button>
+                        <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="deleteBillImport()" >
+                            <nz-icon nzType="delete" nzTheme="fill" /> Xóa
+                        </button>
+                        |
+                        <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="IsApproved(true)" >
+                            <nz-icon nzType="check" nzTheme="outline" style="color: green;" /> Nhận chứng từ
+                        </button>
+                        <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="IsApproved(false)" >
+                            <nz-icon nzType="close" nzTheme="outline" style="color: red;" /> Hủy chứng từ
+                        </button>
+                        <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="onExportExcel()" >
+                            <nz-icon nzType="to-top" nzTheme="outline" /> Xuất Excel
+                        </button>  
+                        <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
+                          <nz-icon nzType="to-top" nzTheme="outline" /> Xuất hàng
+                      </button>                              
+                        <button class="fs-12 btn" nz-button nzType="default" nzSize="small">
+                            <nz-icon nzType="file-excel" nzTheme="outline" /> Excel KT
+                        </button>
+                        <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="exportExcel()" >
+                          <nz-icon nzType="file-excel" nzTheme="outline" /> Xuất danh sách
+                      </button>
+                        <button class="fs-12 btn" nz-button nzType="default" nzSize="small">
+                            <nz-icon nzType="file-add" nzTheme="outline" /> Thêm file
+                        </button>
+                        <button class="fs-12 btn" nz-button nzType="default" nzSize="small">
+                            <nz-icon nzType="close-square" nzTheme="outline" /> Xóa file
+                        </button>
+                        <button class="fs-12 btn" nz-button nzType="default" nzSize="small">
+                            <nz-icon nzType="folder-open" nzTheme="outline" /> Cây thư mục
+                        </button>
+                        <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)=" openModalBillDocumentImport()" >
+                            <nz-icon nzType="file-protect" nzTheme="outline" /> Hồ sơ chứng từ
+                        </button>
+                        <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="openModalScanBill()" >
+                            <nz-icon nzType="scan" nzTheme="outline" /> QR Code Phiếu
+                        </button>
+                        <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)=" openModalBillImportSynthetic()">
+                            <nz-icon nzType="appstore" nzTheme="outline" /> Tổng hợp
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <nz-splitter>
+                        <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
+                            <div id="table_billImport"></div>
+                        </nz-splitter-panel>
+                        <!-- table productGroupWareHouse -->
+                        <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
+                            <div id="table_billimportdetail"></div>
+                        </nz-splitter-panel>
+                    </nz-splitter>
+                </div>
+            </div>
+        </nz-splitter-panel>
+    </nz-splitter>
+</ng-container>
+
+
+
+<!-- modal thêm productsale -->

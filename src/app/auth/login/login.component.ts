@@ -32,15 +32,19 @@ export class LoginComponent {
     });
   }
 
-  onLogin(): void {
-    if (this.loginForm.invalid) return;
+  // onLogin(): void {
+  //   if (this.loginForm.invalid) return;
 
-    this.authService.login(this.loginForm.value).subscribe({
-      next: () => this.router.navigate(['/home']),
-      error: (err) => {
-        this.errorMessage = err.error.message;
-      },
-    });
+  //   this.authService.login(this.loginForm.value).subscribe({
+  //     next: () => this.router.navigate(['/home']),
+  //     error: (err) => {
+  //       this.errorMessage = err.error.message;
+  //     },
+  //   });
+  // }
+
+  onLogin(): void {
+    this.router.navigate(['/welcome']);
   }
 }
 

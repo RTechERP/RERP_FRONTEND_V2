@@ -68,7 +68,7 @@ export const routes: Routes = [
   {
     path: '',
     component: MainLayoutComponent, // layout chứa sidebar, topbar, etc.
-    canActivate: [authGuard],
+    // canActivate: [authGuard],
     children: [
       { path: 'welcome', component: WelcomeComponent },
       { path: 'menu', component: MenusComponent },

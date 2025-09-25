@@ -40,7 +40,7 @@ export class CustomerServiceService {
   }
 
   getEmployees(): Observable<any> {
-    return this.http.get<any>(this._url + 'Employee');
+    return this.http.get<any>(this._url + 'Employee/employees');
   }
   filterCustomer(
     teamId: number,

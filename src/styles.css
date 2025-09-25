@@ -69,3 +69,61 @@
   width: 450px !important;
 }
   
+.btn-add {
+  background-color: #28a745!important;
+color: #fff!important;
+  border: none!important;
+}
+.btn-add img {
+  width: 16px;
+  height: 16px;
+}
+.btn-edit img {
+  width: 16px;
+  height: 16px;
+}
+.btn-delete img {
+  width: 16px;
+  height: 16px;
+}
+.btn-add:hover {
+  background-color: #218838!important;
+ color: #fff!important;
+}
+.btn-edit {
+  background-color: #5a25f8!important;
+  color: #fff!important;
+  border: none!important;
+}
+.btn-edit:hover {
+   background-color: #5600f6!important;
+color: #fff!important;
+}
+
+.btn-delete {
+  background-color: #dc3545!important; 
+color: #fff!important;
+  border: none;
+}
+.btn-delete:hover {
+  background-color: #b02a37; 
+ color: #fff;
+}
+  /* cap nhat */
+  /* Đảm bảo thanh tiến trình luôn hiển thị văn bản bên trong */
+  
+button[nz-button] {
+  display: inline-flex;      
+  align-items: center;      
+  justify-content: center;   
+  gap: 4px;                  
+  line-height: 1;
+  font-size: 12px;         
+      
+}
+
+button[nz-button] img {
+  width: 16px;
+  height: 16px;                                                                               
+  display: block;         
+}

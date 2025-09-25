@@ -519,6 +519,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     this.table_productsale = new Tabulator('#table_productsale', {
       data: this.dataProductSale,
       ...DEFAULT_TABLE_CONFIG,
+      layout: "fitDataStretch",
       selectableRows: 5,
       columns: [
         {
@@ -534,55 +535,47 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
         {
           title: 'Tên nhóm',
           field: 'ProductGroupName',
-          hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'Mã Sản phẩm',
           field: 'ProductCode',
-          hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'Mã nội bộ',
           field: 'ProductNewCode',
-          hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'Tên Sản phẩm',
           field: 'ProductName',
-          hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'Hãng',
           field: 'Maker',
-          hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'ĐVT',
           field: 'Unit',
-          hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'Vị trí',
           field: 'LocationName',
-          hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'Chi tiết nhập',
           field: 'Detail',
-          hozAlign: 'left',
+          width: 400,
           headerHozAlign: 'center',
         },
         {
           title: 'Ghi chú',
           field: 'Note',
-          hozAlign: 'left',
           headerHozAlign: 'center',
         },
       ],

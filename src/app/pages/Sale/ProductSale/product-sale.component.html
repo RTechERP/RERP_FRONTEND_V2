@@ -16,7 +16,7 @@
               <img src="assets/icon/delete-white-btn.png" alt="Xóa nhóm TB" />Xóa nhóm TB
             </button>
 
-            <span class="mx-2" style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
+            <span class="mx-2 divider"></span>
 
             <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add" (click)="openModalForNewProductSale()">
               <img src="assets/icon/add-white-btn.png" alt="Thêm thiết bị" />Tạo thiết bị
@@ -28,7 +28,7 @@
               <img src="assets/icon/delete-white-btn.png" alt="Xóa thiết bị" />Xóa thiết bị
             </button>
 
-            <span class="mx-2" style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
+            <span class="mx-2 divider"></span>
 
             <button nz-button nzType="default" nzSize="small" (click)="openModalImportExcel()">
               <img src="/assets/icon/import-excel.png" alt="Nhập Excel" class="me-1" />Nhập
@@ -58,7 +58,7 @@
                   <div id="table_productgroup"></div>
                 </nz-splitter-panel>
                 <!-- table productGroupWareHouse -->
-                <nz-splitter-panel>
+                <nz-splitter-panel nzDefaultSize="30%" [nzCollapsible]="true" nzResizable="true">
                   <div id="table_pgwarehouse"></div>
                 </nz-splitter-panel>
               </nz-splitter>

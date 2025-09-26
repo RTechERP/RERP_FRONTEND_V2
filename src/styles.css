@@ -2,6 +2,12 @@
 .cdk-overlay-container {
   z-index: 9999 !important;
 }
+* {
+  margin: 0;
+  padding: 0;
+
+  font-family: "Be Vietnam Pro", sans-serif;
+}
 
 .custom-customer-modal .ant-modal-header {
   height: 44px;                 /* chiều cao cố định, mỏng hơn mặc định */
@@ -134,11 +140,11 @@ button[nz-button] img {
   height: 16px;                                                                               
   display: block;         
 }
-/* Cho phép ô co giãn chiều cao theo hàng
-.tabulator .tabulator-row {
-  display: flex;          /* bắt row thành flex container */
-  /* align-items: stretch;   /* các cell stretch hết chiều cao */
-  /* height: auto !important;
+
+/* .tabulator .tabulator-row {
+  display: flex;         
+  align-items: stretch;   
+  height: auto !important;
 }
 
 .tabulator .tabulator-cell {
@@ -146,7 +152,7 @@ button[nz-button] img {
   word-break: break-word;
   line-height: 1.4;
   height: auto !important;
-  display: flex;          /* để text tự bọc trong flex item */
-  /* align-items: center;    /* căn giữa text theo chiều dọc */
-  /* border-right: 1px solid #dddddd; /* kẻ vạch phân cách */
-/* }  */
+  display: flex;        
+  align-items: center;  
+   border-right: 1px solid #dddddd; 
+ }   */

@@ -456,12 +456,14 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
       ...DEFAULT_TABLE_CONFIG,
       data: this.dataProducGroup,
       height: '100%',
+      pagination: false,
+      selectableRows: 1,
       rowFormatter: function (row) {
         const data = row.getData();
-        console.log('dd', data); // Kiểm tra dữ liệu của từng dòng
+        const el = row.getElement();
+        el.classList.remove('row-inactive');
         if (data['IsVisible'] === false) {
-          row.getElement().style.backgroundColor = '#990011FF';
-          row.getElement().style.color = '#D9D9D9';
+          el.classList.add('row-inactive');
         }
       },
 
@@ -496,6 +498,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     this.table_pgwarehouse = new Tabulator('#table_pgwarehouse', {
       ...DEFAULT_TABLE_CONFIG,
       data: this.dataPGWareHouse || [],
+      pagination: false,
       height: '100%',
       columns: [
         {
@@ -520,7 +523,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
       data: this.dataProductSale,
       ...DEFAULT_TABLE_CONFIG,
       layout: "fitDataStretch",
-      selectableRows: 5,
+      // selectableRows: true,
       columns: [
         {
           title: '',

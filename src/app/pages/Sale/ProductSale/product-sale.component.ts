@@ -30,6 +30,7 @@ import { ProductSaleDetailComponent } from './product-sale-detail/product-sale-d
 import { ProductGroupDetailComponent } from './product-group-detail/product-group-detail.component';
 import { ImportExcelProductSaleComponent } from './import-excel-product-sale/import-excel-product-sale.component';
 import { ISADMIN } from '../../../app.config';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 
 interface ProductGroup {
   ID?: number;
@@ -452,16 +453,9 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
   //#region  Vẽ 3 bảng
   drawTable_ProductGroup() {
     this.table = new Tabulator('#table_productgroup', {
+      ...DEFAULT_TABLE_CONFIG,
       data: this.dataProducGroup,
-      layout: 'fitDataFill',
       height: '100%',
-      pagination: true,
-      paginationSize: 15,
-      selectableRows: 1,
-
-      movableColumns: true,
-      resizableRows: true,
-      reactiveData: true,
       rowFormatter: function (row) {
         const data = row.getData();
         console.log('dd', data); // Kiểm tra dữ liệu của từng dòng
@@ -478,7 +472,6 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
           hozAlign: 'left',
           headerHozAlign: 'center',
           width: '50%',
-          headerFilter: true,
         },
         {
           title: 'Tên nhóm',
@@ -486,7 +479,6 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
           hozAlign: 'left',
           headerHozAlign: 'center',
           width: '50%',
-          headerFilter: true,
         },
       ],
     });
@@ -502,14 +494,9 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
   }
   drawTable_PGWareHouse() {
     this.table_pgwarehouse = new Tabulator('#table_pgwarehouse', {
+      ...DEFAULT_TABLE_CONFIG,
       data: this.dataPGWareHouse || [],
-      layout: 'fitDataFill',
       height: '100%',
-      pagination: true,
-      paginationSize: 15,
-      movableColumns: true,
-      resizableRows: true,
-      reactiveData: true,
       columns: [
         {
           title: 'Kho',
@@ -531,13 +518,8 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
   drawTable_ProductSale() {
     this.table_productsale = new Tabulator('#table_productsale', {
       data: this.dataProductSale,
-      layout: 'fitDataFill',
-      height: '100%',
-      pagination: true,
-      paginationSize: 18,
-      movableColumns: true,
-      resizableRows: true,
-      reactiveData: true,
+      ...DEFAULT_TABLE_CONFIG,
+      layout: "fitDataStretch",
       selectableRows: 5,
       columns: [
         {
@@ -553,55 +535,47 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
         {
           title: 'Tên nhóm',
           field: 'ProductGroupName',
-          hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'Mã Sản phẩm',
           field: 'ProductCode',
-          hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'Mã nội bộ',
           field: 'ProductNewCode',
-          hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'Tên Sản phẩm',
           field: 'ProductName',
-          hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'Hãng',
           field: 'Maker',
-          hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'ĐVT',
           field: 'Unit',
-          hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'Vị trí',
           field: 'LocationName',
-          hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'Chi tiết nhập',
           field: 'Detail',
-          hozAlign: 'left',
+          width: 400,
           headerHozAlign: 'center',
         },
         {
           title: 'Ghi chú',
           field: 'Note',
-          hozAlign: 'left',
           headerHozAlign: 'center',
         },
       ],

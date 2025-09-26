@@ -2,6 +2,19 @@ import { ProjectSurveyComponent } from './pages/project/project-survey/project-s
 import { Routes } from '@angular/router';
 import { WelcomeComponent } from './pages/welcome/welcome.component';
 import { ProjectComponent } from './pages/project/project.component';
+import { PokhComponent } from './pages/pokh/pokh.component';
+import { RequestInvoiceComponent } from './pages/request-invoice/request-invoice.component';
+import { ViewPokhComponent } from './pages/view-pokh/view-pokh.component';
+import { HandoverMinutesComponent } from './pages/handover-minutes/handover-minutes.component';
+import { QuotationKhComponent } from './pages/quotation-kh/quotation-kh.component';
+import { PokhKpiComponent } from './pages/pokh-kpi/pokh-kpi.component';
+
+import { PokhHistoryComponent } from './pages/pokh-history/pokh-history.component';
+import { TradePriceComponent } from './pages/Sale/TinhGia/trade-price/trade-price.component';
+import { QuotationSaleComponent } from './pages/Sale/TinhGia/quotation-sale/quotation-sale.component';
+import { ProjectMachinePriceComponent } from './pages/Sale/TinhGia/project-machine-price/project-machine-price.component';
+import { PlanWeekComponent } from './pages/VisionBase/plan-week/plan-week.component';
+import { CustomerComponent } from './pages/VisionBase/customer/customer.component';
 
 import { ProjectListWorkReportComponent } from './pages/project/project-list-work-report/project-list-work-report.component';
 import { ProjectWorkCategoryComponent } from './pages/project/project-work-category/project-work-category.component';
@@ -30,7 +43,7 @@ import { TsAssetManagementComponent } from './pages/ts-asset-management/ts-asset
 import { TsAssetAllocationComponent } from './pages/ts-asset-allocation/ts-asset-allocation.component';
 import { TsAssetRecoveryComponent } from './pages/ts-asset-recovery/ts-asset-recovery.component';
 import { TsAssetTransferComponent } from './pages/ts-asset-transfer/ts-asset-transfer.component';
-import { CustomerComponent } from './pages/customer/customer.component';
+// import { CustomerComponent } from './pages/customer/customer.component';
 import { ProductComponent } from './pages/product/product.component';
 import { TbProductRtcComponent } from './pages/tb-product-rtc/tb-product-rtc.component';
 import { ProductSaleComponent } from './pages/Sale/ProductSale/product-sale.component';
@@ -54,7 +67,7 @@ export const routes: Routes = [
   {
     path: '',
     component: MainLayoutComponent, // layout chứa sidebar, topbar, etc.
-    canActivate: [authGuard],
+    // canActivate: [authGuard],
     children: [
       { path: 'welcome', component: WelcomeComponent },
       { path: 'menu', component: MenusComponent },
@@ -109,6 +122,18 @@ export const routes: Routes = [
         path: 'product-sale', //DANH SÁCH SẢN PHẨM SALE
         component: ProductSaleComponent,
       },
+      { path: 'project', component: ProjectComponent }, // NTA Bổ sung path 25/09/25  
+      { path: 'pokh', component: PokhComponent},
+      { path: 'handover-minutes', component: HandoverMinutesComponent},
+      { path: 'request-invoice', component: RequestInvoiceComponent},
+      { path: 'quotation-kh', component: QuotationKhComponent},
+      { path: 'pokh-kpi', component: PokhKpiComponent},
+      { path: 'pokh-history', component: PokhHistoryComponent},
+      { path: 'trade-price', component: TradePriceComponent},
+      { path: 'quotation-sale', component: QuotationSaleComponent},
+      { path: 'project-machine-price', component: ProjectMachinePriceComponent},
+      { path: 'plan-week', component: PlanWeekComponent},
+      { path: 'customer', component: CustomerComponent} // NTA Bổ sung path 25/09/25  END
       //#endregion
     ],
   },

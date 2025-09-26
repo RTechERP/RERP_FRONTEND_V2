@@ -97,4 +97,9 @@
   
   
   /* Optional: Đảm bảo vùng chứa progress bar có đủ không gian và nền rõ ràng */
-  
+
+  .card-header.action-bar {
+    background-color: #e9eef7 !important;
+    padding: 6px;
+    border-radius: 4px;
+  }

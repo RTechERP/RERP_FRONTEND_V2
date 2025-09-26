@@ -12,11 +12,16 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MenuService } from '../../pages/menus/menu-service/menu.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzDestroyService } from 'ng-zorro-antd/core/services';
-
+import { NzBadgeModule } from 'ng-zorro-antd/badge';
+import { NgComponentOutlet } from '@angular/common';
+import { NotifyItem } from '../../pages/app-notifycation-dropdown/app-notifycation-dropdown.component';
+import { AppNotifycationDropdownComponent } from '../../pages/app-notifycation-dropdown/app-notifycation-dropdown.component';
+import { AppUserDropdownComponent } from '../../pages/app/app-user-dropdown/app-user-dropdown.component';
 @Component({
   selector: 'app-main-layout',
   imports: [
     RouterLink,
+    NzBadgeModule,
     RouterOutlet,
     NzIconModule,
     NzLayoutModule,
@@ -25,6 +30,10 @@ import { NzDestroyService } from 'ng-zorro-antd/core/services';
     NzTabsModule,
     NzDropDownModule,
     ReactiveFormsModule,
+    NgComponentOutlet,
+    CommonModule,
+    AppNotifycationDropdownComponent,
+    AppUserDropdownComponent
   ],
   templateUrl: '../../app.component.html',
   styleUrl: '../../app.component.css',
@@ -36,8 +45,8 @@ export class MainLayoutComponent implements OnInit {
     private router: Router,
     private menuService: MenuService,
     private notification: NzNotificationService
-  ) {}
-
+  ) { }
+  notificationComponent = AppNotifycationDropdownComponent;
   //#region Khai báo biến
   isCollapsed = true;
   selectedIndex = 0;
@@ -50,6 +59,44 @@ export class MainLayoutComponent implements OnInit {
 
   menu: any = {};
   //#endregion
+  notifItems: NotifyItem[] = [
+    { id: 1, title: 'Phiếu xe #A123 đã duyệt', detail: 'Xe VP Hà Nội', time: '09:12', group: 'today', icon: 'car' },
+    { id: 2, title: 'Bàn giao TS BM-09 hoàn tất', detail: 'Phòng IT • BB556', time: '08:55', group: 'today', icon: 'file-done' },
+    { id: 3, title: 'Đơn cấp phát #CP-778 tạo mới', detail: 'Kho TB • 5 mục', time: '16:40', group: 'yesterday', icon: 'plus-square' },
+    { id: 1, title: 'Phiếu xe #A123 đã duyệt', detail: 'Xe VP Hà Nội', time: '09:12', group: 'today', icon: 'car' },
+     { id: 1, title: 'Phiếu xe #A123 đã duyệt', detail: 'Xe VP Hà Nội', time: '09:12', group: 'today', icon: 'car' },
+    { id: 2, title: 'Bàn giao TS BM-09 hoàn tất', detail: 'Phòng IT • BB556', time: '08:55', group: 'today', icon: 'file-done' },
+    { id: 3, title: 'Đơn cấp phát #CP-778 tạo mới', detail: 'Kho TB • 5 mục', time: '16:40', group: 'yesterday', icon: 'plus-square' },
+    { id: 1, title: 'Phiếu xe #A123 đã duyệt', detail: 'Xe VP Hà Nội', time: '09:12', group: 'today', icon: 'car' },
+     { id: 1, title: 'Phiếu xe #A123 đã duyệt', detail: 'Xe VP Hà Nội', time: '09:12', group: 'today', icon: 'car' },
+    { id: 2, title: 'Bàn giao TS BM-09 hoàn tất', detail: 'Phòng IT • BB556', time: '08:55', group: 'today', icon: 'file-done' },
+    { id: 3, title: 'Đơn cấp phát #CP-778 tạo mới', detail: 'Kho TB • 5 mục', time: '16:40', group: 'yesterday', icon: 'plus-square' },
+    { id: 1, title: 'Phiếu xe #A123 đã duyệt', detail: 'Xe VP Hà Nội', time: '09:12', group: 'today', icon: 'car' },
+     { id: 1, title: 'Phiếu xe #A123 đã duyệt', detail: 'Xe VP Hà Nội', time: '09:12', group: 'today', icon: 'car' },
+    { id: 2, title: 'Bàn giao TS BM-09 hoàn tất', detail: 'Phòng IT • BB556', time: '08:55', group: 'today', icon: 'file-done' },
+    { id: 3, title: 'Đơn cấp phát #CP-778 tạo mới', detail: 'Kho TB • 5 mục', time: '16:40', group: 'yesterday', icon: 'plus-square' },
+    { id: 1, title: 'Phiếu xe #A123 đã duyệt', detail: 'Xe VP Hà Nội', time: '09:12', group: 'today', icon: 'car' },
+     { id: 1, title: 'Phiếu xe #A123 đã duyệt', detail: 'Xe VP Hà Nội', time: '09:12', group: 'today', icon: 'car' },
+    { id: 2, title: 'Bàn giao TS BM-09 hoàn tất', detail: 'Phòng IT • BB556', time: '08:55', group: 'today', icon: 'file-done' },
+    { id: 3, title: 'Đơn cấp phát #CP-778 tạo mới', detail: 'Kho TB • 5 mục', time: '16:40', group: 'yesterday', icon: 'plus-square' },
+    { id: 1, title: 'Phiếu xe #A123 đã duyệt', detail: 'Xe VP Hà Nội', time: '09:12', group: 'today', icon: 'car' },
+     { id: 1, title: 'Phiếu xe #A123 đã duyệt', detail: 'Xe VP Hà Nội', time: '09:12', group: 'today', icon: 'car' },
+    { id: 2, title: 'Bàn giao TS BM-09 hoàn tất', detail: 'Phòng IT • BB556', time: '08:55', group: 'today', icon: 'file-done' },
+    { id: 3, title: 'Đơn cấp phát #CP-778 tạo mới', detail: 'Kho TB • 5 mục', time: '16:40', group: 'yesterday', icon: 'plus-square' },
+    { id: 1, title: 'Phiếu xe #A123 đã duyệt', detail: 'Xe VP Hà Nội', time: '09:12', group: 'today', icon: 'car' },
+     { id: 1, title: 'Phiếu xe #A123 đã duyệt', detail: 'Xe VP Hà Nội', time: '09:12', group: 'today', icon: 'car' },
+    { id: 2, title: 'Bàn giao TS BM-09 hoàn tất', detail: 'Phòng IT • BB556', time: '08:55', group: 'today', icon: 'file-done' },
+    { id: 3, title: 'Đơn cấp phát #CP-778 tạo mới', detail: 'Kho TB • 5 mục', time: '16:40', group: 'yesterday', icon: 'plus-square' },
+    { id: 1, title: 'Phiếu xe #A123 đã duyệt', detail: 'Xe VP Hà Nội', time: '09:12', group: 'today', icon: 'car' },
+     { id: 1, title: 'Phiếu xe #A123 đã duyệt', detail: 'Xe VP Hà Nội', time: '09:12', group: 'today', icon: 'car' },
+    { id: 2, title: 'Bàn giao TS BM-09 hoàn tất', detail: 'Phòng IT • BB556', time: '08:55', group: 'today', icon: 'file-done' },
+    { id: 3, title: 'Đơn cấp phát #CP-778 tạo mới', detail: 'Kho TB • 5 mục', time: '16:40', group: 'yesterday', icon: 'plus-square' },
+    { id: 1, title: 'Phiếu xe #A123 đã duyệt', detail: 'Xe VP Hà Nội', time: '09:12', group: 'today', icon: 'car' },
+    
+    { id: 2, title: 'Bàn giao TS BM-09 hoàn tất', detail: 'Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556', time: '08:55', group: 'today', icon: 'file-done' },
+  ];
+
+
 
   ngOnInit(): void {
     this.getMenus(43);
@@ -100,5 +147,9 @@ export class MainLayoutComponent implements OnInit {
 
   logout() {
     this.auth.logout();
+  }
+  onPick(n: NotifyItem) {
+    console.log('picked:', n);
+    // TODO: điều hướng/đánh dấu đã đọc...
   }
 }

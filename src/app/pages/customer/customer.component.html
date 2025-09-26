@@ -18,8 +18,8 @@
               <nz-form-control [nzSpan]="24">
                 <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="default" nzPlaceHolder="Chọn Team"
                   [nzOptions]="searchTeamList" formControlName="team">
-                </nz-select> 
-                
+                </nz-select>
+
               </nz-form-control>
             </nz-form-item>
             <nz-form-item class="mt-2">
@@ -68,12 +68,14 @@
                 <img src="assets/icon/delete-white-btn.png" alt="Xóa"
                   style="width:16px; height:16px; object-fit:contain" />Xóa
               </button>
-            
-                 <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openCustomerSpecializationForm()">
-                <img src="/assets/icon/competence.png" alt="Xuất Excel" class="me-1" style="width:16px; height:16px;" />Ngành nghề
+
+              <button class="fs-12" nz-button nzType="default" nzSize="small"
+                (click)="openCustomerSpecializationForm()">
+                <img src="/assets/icon/competence.png" alt="Xuất Excel" class="me-1"
+                  style="width:16px; height:16px;" />Ngành nghề
               </button>
               <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportToExcel()">
-                <img src="/assets/icon/excel.png" alt="Xuất Excel" class="me-1" style="width:16px; height:16px;" />Xuất
+                <img src="/assets/icon/excel.png" alt="Xuất Excel" class="me-1" />Xuất
                 excel
               </button>
             </div>
@@ -232,7 +234,7 @@
         <nz-col [nzSpan]="6">
           <nz-form-item>
             <nz-form-label nzSpan="24">Sản phẩm đã bán</nz-form-label>
-            <nz-form-control> 
+            <nz-form-control>
               <nz-select formControlName="BusinessFieldID" nzPlaceHolder="Chọn sản phẩm" class="fs-12 w-100" nzSpan="24"
                 style="width: 18vw;" [nzOptions]="businessFieldList" nzAllowClear>
               </nz-select>
@@ -246,8 +248,8 @@
           <nz-form-item>
             <nz-form-label nzSpan="24">Ngành nghề <sup class="text-danger">(*)</sup></nz-form-label>
             <nz-form-control nzErrorTip="Vui lòng chọn ngành nghề">
-              <nz-select formControlName="CustomerSpecializationID" nzPlaceHolder="Chọn ngành nghề"  class="fs-12 w-100" nzShowSearch
-                nzSpan="24" style="width: 28vw;" [nzOptions]="majorList" nzAllowClear>
+              <nz-select formControlName="CustomerSpecializationID" nzPlaceHolder="Chọn ngành nghề" class="fs-12 w-100"
+                nzShowSearch nzSpan="24" style="width: 28vw;" [nzOptions]="majorList" nzAllowClear>
 
               </nz-select>
             </nz-form-control>

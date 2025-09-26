@@ -29,7 +29,7 @@ import { TbProductRtcService } from '../tb-product-rtc-service/tb-product-rtc.se
 import { UnitService } from '../../ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
 import { log } from 'ng-zorro-antd/core/logger';
 import { NzFormModule } from 'ng-zorro-antd/form';
-export const SERVER_PATH = `D:\RTC_Sw\RTC\ProductRTC`;
+export const SERVER_PATH = `D:/RTC_Sw/RTC/ProductRTC/`;
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -69,6 +69,8 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
   previewImageUrl: string | null = null;
   imageFileName: string | null = null;
   productGroupData: any[] = [];
+  CreateDate=new Date()
+  LocationImg: string = "";
   isSubmitted = false;
   productCode: string = "";
   constructor(private unitService: UnitService,
@@ -120,7 +122,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
   }
   initForm() {
     this.formDeviceInfo = new FormBuilder().group({
-
+   ProductGroupRTCID: [null, Validators.required],
       ProductName: ['', Validators.required],
       PartNumber: ['', Validators.required],
       ProductCode: ['', Validators.required],
@@ -129,8 +131,9 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       SLKiemKe: ['', Validators.required],
       FirmID: [null, Validators.required],
       UnitCountID: [null, Validators.required],
-      CreateDate: [null, Validators.required],
+      CreateDate: [this.CreateDate, Validators.required],
       CodeHCM: [''],
+      
       BorrowCustomer: [false],
       Note: ['', Validators.required],
       Resolution: [''],
@@ -154,10 +157,11 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       OutputValue: [''],
       CurrentIntensityMax: [''],
       Size: [''],
-      ProductGroupRTCID: [null, Validators.required],
+   
       ProductLocationID: [null, Validators.required],
       NumberInStore: [{ value: null, disabled: true }],
-      LocationImg: ['']
+    LocationImg: [null],
+        IsBorrowCustomer: [false],
     });
   }
 
@@ -221,7 +225,8 @@ getLocation() {
 
   // Check null before set property
   if (this.dataInput) {
-    this.dataInput.LocationImg = file.name;
+   // this.dataInput.LocationImg = file.name;
+    this.formDeviceInfo.get('LocationImg')?.setValue(file.name); // bind vào form
   } else {
     this.notification.error('Lỗi', 'Dữ liệu chưa được khởi tạo. Không thể upload ảnh.');
     return false;
@@ -426,7 +431,7 @@ getLocation() {
           if (res.status === 1) {
             this.imageFileName = res.FileName;
             this.previewImageUrl = `${SERVER_PATH}${res.FileName}`;
-            this.dataInput.LocationImg = res.FileName;
+            this.formDeviceInfo.get('LocationImg')?.setValue(res.FileName); // bind vào form
             // Sau khi upload ảnh xong => save dữ liệu
             this.saveProductData();
           } else {
@@ -464,7 +469,7 @@ getLocation() {
           Serial: formValue.Serial,
           SerialNumber: formValue.SerialNumber,
           PartNumber: formValue.PartNumber,
-          LocationImg: formValue.LocationImg,
+          LocationImg:`${SERVER_PATH}${formValue.FileName}`,
           ProductCodeRTC: this.productCode,
           BorrowCustomer: formValue.BorrowCustomer,
           ProductLocationID: formValue.ProductLocationID,
@@ -517,7 +522,7 @@ getLocation() {
   }
     onAddGroupProduct() {
       const modalRef = this.ngbModal.open(TbProductGroupRtcFormComponent, {
-        size: 'xl',
+        size: 'md',
         backdrop: 'static',
         keyboard: false,
         centered: true,

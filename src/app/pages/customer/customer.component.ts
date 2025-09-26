@@ -322,9 +322,10 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       paginationSizeSelector: [10, 20, 50, 100],
     });
 
-    this.tabulator.on('rowSelectionChanged', (data: any) => {
-      console.log(data);
-      const customerId = data[0].ID;
+    this.tabulator.on('rowClick', (evt,row:RowComponent) => {
+      console.log(row.getData());
+      const data = row.getData();
+      const customerId = data['ID'];
       this.loadCustomerContacts(customerId);
       this.loadCustomerEmployeeSale(customerId);
       this.loadCustomerAddress(customerId);

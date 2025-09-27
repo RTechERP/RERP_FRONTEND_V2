@@ -500,7 +500,6 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
       data: this.dataPGWareHouse || [],
       pagination: false,
       height: '100%',
-      pagination: false,
       columns: [
         {
           title: 'Kho',

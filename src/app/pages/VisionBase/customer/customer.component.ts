@@ -60,6 +60,7 @@ import { group } from '@angular/animations';
 import { ViewPokhService } from '../../view-pokh/view-pokh/view-pokh.service';
 import { CustomerDetailComponent } from '../customer-detail/customer-detail.component';
 import { CustomerMajorComponent } from '../customer-major/customer-major/customer-major.component';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 @Component({
   selector: 'app-customer',
   imports: [
@@ -327,44 +328,45 @@ export class CustomerComponent implements OnInit, AfterViewInit {
 
   initMainTable(): void {
     this.tb_MainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
-      layout: 'fitDataFill',
-      height: '90%',
-      selectableRows: 1,
-      pagination: true,
-      paginationSize: 100,
-      paginationMode: 'remote',
-      paginationSizeSelector: [10, 30, 50, 100, 200, 300, 500],
+      ...DEFAULT_TABLE_CONFIG,
+      //   layout: 'fitDataFill',
+      //   height: '90%',
+      //   selectableRows: 1,
+      //   pagination: true,
+      //   paginationSize: 100,
+      //   paginationMode: 'remote',
+      //   paginationSizeSelector: [10, 30, 50, 100, 200, 300, 500],
       ajaxURL: this.customerService.getMainDataAjax(),
       ajaxParams: this.getMainDataAjaxParams(),
       ajaxResponse: (url, params, res) => {
-        console.log(res.data.data);
-        console.log(res.data.data1.TotalPage);
+        // console.log(res.data.data);
+        // console.log(res.data.data1.TotalPage);
         return {
           data: res.data.data,
           last_page: res.data.data1.TotalPage,
         };
       },
-      langs: {
-        vi: {
-          pagination: {
-            first: '<<',
-            last: '>>',
-            prev: '<',
-            next: '>',
-          },
-        },
-      },
-      locale: 'vi',
-      movableColumns: true,
-      resizableRows: true,
-      reactiveData: true,
-      columnDefaults: {
-        headerWordWrap: true,
-        headerVertical: false,
-        headerHozAlign: 'center',
-        minWidth: 60,
-        resizable: true,
-      },
+      //   langs: {
+      //     vi: {
+      //       pagination: {
+      //         first: '<<',
+      //         last: '>>',
+      //         prev: '<',
+      //         next: '>',
+      //       },
+      //     },
+      //   },
+      //   locale: 'vi',
+      //   movableColumns: true,
+      //   resizableRows: true,
+      //   reactiveData: true,
+      //   columnDefaults: {
+      //     headerWordWrap: true,
+      //     headerVertical: false,
+      //     headerHozAlign: 'center',
+      //     minWidth: 60,
+      //     resizable: true,
+      //   },
       columns: [
         { title: 'ID', field: 'ID', visible: false },
         { title: 'Mã khách', field: 'CustomerCode', frozen: true },
@@ -387,8 +389,8 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       this.selectedRow = rowData;
       this.selectedId = rowData['ID'];
       this.getContactAndAddress(this.selectedId);
-      this.sizeTbSaleTable = null;
-      this.sizeTbDetail = null;
+      this.sizeTbSaleTable = '200';
+      this.sizeTbDetail = '240';
     });
   }
 
@@ -397,21 +399,22 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       this.tb_ContactTableElement.nativeElement,
       {
         data: this.customerContactData,
-        layout: 'fitColumns',
-        height: '100%',
-        selectableRows: 1,
-        pagination: true,
-        paginationSize: 100,
-        movableColumns: true,
-        resizableRows: true,
-        reactiveData: true,
-        columnDefaults: {
-          headerWordWrap: true,
-          headerVertical: false,
-          headerHozAlign: 'center',
-          minWidth: 60,
-          resizable: true,
-        },
+        ...DEFAULT_TABLE_CONFIG,
+        // layout: 'fitColumns',
+        height: '90%',
+        // selectableRows: 1,
+        pagination: false,
+        // paginationSize: 100,
+        // movableColumns: true,
+        // resizableRows: true,
+        // reactiveData: true,
+        // columnDefaults: {
+        //   headerWordWrap: true,
+        //   headerVertical: false,
+        //   headerHozAlign: 'center',
+        //   minWidth: 60,
+        //   resizable: true,
+        // },
         columns: [
           { title: 'ID', field: 'ID', visible: false },
           { title: 'Tên liên hệ', field: 'ContactName' },
@@ -430,21 +433,22 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       this.tb_AddressTableElement.nativeElement,
       {
         data: this.addressStockData,
-        layout: 'fitDataFill',
-        height: '100%',
-        selectableRows: 1,
-        pagination: true,
-        paginationSize: 100,
-        movableColumns: true,
-        resizableRows: true,
-        reactiveData: true,
-        columnDefaults: {
-          headerWordWrap: true,
-          headerVertical: false,
-          headerHozAlign: 'center',
-          minWidth: 60,
-          resizable: true,
-        },
+        ...DEFAULT_TABLE_CONFIG,
+        // layout: 'fitDataFill',
+        height: '90%',
+        // selectableRows: 1,
+        pagination: false,
+        // paginationSize: 100,
+        // movableColumns: true,
+        // resizableRows: true,
+        // reactiveData: true,
+        // columnDefaults: {
+        //   headerWordWrap: true,
+        //   headerVertical: false,
+        //   headerHozAlign: 'center',
+        //   minWidth: 60,
+        //   resizable: true,
+        // },
         columns: [
           { title: 'ID', field: 'ID', width: '100%', visible: false },
           { title: 'Địa chỉ giao hàng', field: 'Address', width: '100%' },
@@ -456,21 +460,22 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   initCustomerSaleTable(): void {
     this.tb_SaleTable = new Tabulator(this.tb_SaleTableElement.nativeElement, {
       data: this.employeeSaleData,
-      layout: 'fitDataFill',
-      height: '100%',
-      selectableRows: 1,
-      pagination: true,
-      paginationSize: 100,
-      movableColumns: true,
-      resizableRows: true,
-      reactiveData: true,
-      columnDefaults: {
-        headerWordWrap: true,
-        headerVertical: false,
-        headerHozAlign: 'center',
-        minWidth: 60,
-        resizable: true,
-      },
+      ...DEFAULT_TABLE_CONFIG,
+      //   layout: 'fitDataFill',
+      height: '90%',
+      //   selectableRows: 1,
+      pagination: false,
+      //   paginationSize: 100,
+      //   movableColumns: true,
+      //   resizableRows: true,
+      //   reactiveData: true,
+      //   columnDefaults: {
+      //     headerWordWrap: true,
+      //     headerVertical: false,
+      //     headerHozAlign: 'center',
+      //     minWidth: 60,
+      //     resizable: true,
+      //   },
       columns: [
         { title: 'ID', field: 'ID', width: '100%', visible: false },
         { title: 'Nhân viên Sale', field: 'FullName', width: '100%' },

@@ -1,4 +1,12 @@
-import { Component, ViewEncapsulation, ViewChild, TemplateRef, ElementRef, Input, IterableDiffers } from '@angular/core';
+import {
+  Component,
+  ViewEncapsulation,
+  ViewChild,
+  TemplateRef,
+  ElementRef,
+  Input,
+  IterableDiffers,
+} from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
@@ -13,16 +21,24 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzUploadModule, NzUploadFile, NzUploadXHRArgs } from 'ng-zorro-antd/upload';
+import {
+  NzUploadModule,
+  NzUploadFile,
+  NzUploadXHRArgs,
+} from 'ng-zorro-antd/upload';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
-import { TabulatorFull as Tabulator, RowComponent, CellComponent } from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import 'bootstrap-icons/font/bootstrap-icons.css';
+import {
+  TabulatorFull as Tabulator,
+  RowComponent,
+  CellComponent,
+} from 'tabulator-tables';
+// import 'tabulator-tables/dist/css/tabulator_simple.min.css';
+// import 'bootstrap-icons/font/bootstrap-icons.css';
 import { OnInit, AfterViewInit } from '@angular/core';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
@@ -71,35 +87,41 @@ import { CustomerMajorComponent } from '../customer-major/customer-major/custome
     NzSwitchModule,
     NzCheckboxModule,
     CommonModule,
-    NzTreeSelectModule
+    NzTreeSelectModule,
   ],
   templateUrl: './customer.component.html',
-  styleUrl: './customer.component.css'
+  styleUrl: './customer.component.css',
 })
-export class CustomerComponent implements OnInit, AfterViewInit{
-  @ViewChild('tb_MainTable', {static: false}) tb_MainTableElement!: ElementRef;
-  @ViewChild('tb_ContactTable', {static: false}) tb_ContactTableElement!: ElementRef;
-  @ViewChild('tb_AddressTable', {static: false}) tb_AddressTableElement!: ElementRef;
-  @ViewChild('tb_SaleTable', {static: false}) tb_SaleTableElement!: ElementRef;  
+export class CustomerComponent implements OnInit, AfterViewInit {
+  @ViewChild('tb_MainTable', { static: false })
+  tb_MainTableElement!: ElementRef;
+  @ViewChild('tb_ContactTable', { static: false })
+  tb_ContactTableElement!: ElementRef;
+  @ViewChild('tb_AddressTable', { static: false })
+  tb_AddressTableElement!: ElementRef;
+  @ViewChild('tb_SaleTable', { static: false })
+  tb_SaleTableElement!: ElementRef;
+
+  sizeTbDetail: any = '0';
+  sizeTbSaleTable: any = '0';
 
   private tb_MainTable!: Tabulator;
   private tb_ContactTable!: Tabulator;
   private tb_AddressTable!: Tabulator;
-  private tb_SaleTable!: Tabulator
+  private tb_SaleTable!: Tabulator;
 
   sizeSearch: string = '0';
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
   }
 
-
   constructor(
     private notification: NzNotificationService,
     private modalService: NgbModal,
     private modal: NzModalService,
     private customerService: CustomerServiceService,
-    private viewPokhService: ViewPokhService,
-  ){}
+    private viewPokhService: ViewPokhService
+  ) {}
 
   customerContactData: any[] = [];
   addressStockData: any[] = [];
@@ -113,14 +135,13 @@ export class CustomerComponent implements OnInit, AfterViewInit{
   filters: any = {
     teamId: 0,
     userId: 0,
-    keyword: ""
+    keyword: '',
   };
 
   ngOnInit(): void {
     this.getEmployeeData();
     this.getTeamData();
   }
-
 
   ngAfterViewInit(): void {
     this.initAddressTable();
@@ -130,55 +151,66 @@ export class CustomerComponent implements OnInit, AfterViewInit{
   }
 
   searchData(): void {
-    if(this.tb_MainTable)
-    {
+    if (this.tb_MainTable) {
       this.tb_MainTable.setData(null, true);
     }
   }
 
-  getTeamData(): void{
+  getTeamData(): void {
     this.viewPokhService.loadGroupSale().subscribe({
       next: (response) => {
         if (response.status === 1) {
           this.filterTeamData = response.data;
         } else {
-          this.notification.error('Thông báo', 'Lỗi khi tải tệp POKH: ' + response.message);
+          this.notification.error(
+            'Thông báo',
+            'Lỗi khi tải tệp POKH: ' + response.message
+          );
         }
       },
       error: (error) => {
-        this.notification.error('Thông báo', 'Lỗi kết nối khi tải tệp POKH: ' + error);
-      }
+        this.notification.error(
+          'Thông báo',
+          'Lỗi kết nối khi tải tệp POKH: ' + error
+        );
+      },
     });
   }
 
-  getEmployeeData(): void{
+  getEmployeeData(): void {
     this.customerService.getEmployees(0).subscribe({
       next: (response) => {
         if (response.status === 1) {
           this.filterSaleUserData = response.data;
         } else {
-          this.notification.error('Thông báo', 'Lỗi khi tải tệp POKH: ' + response.message);
+          this.notification.error(
+            'Thông báo',
+            'Lỗi khi tải tệp POKH: ' + response.message
+          );
         }
       },
       error: (error) => {
-        this.notification.error('Thông báo', 'Lỗi kết nối khi tải tệp POKH: ' + error);
-      }
+        this.notification.error(
+          'Thông báo',
+          'Lỗi kết nối khi tải tệp POKH: ' + error
+        );
+      },
     });
   }
 
-  getMainDataAjaxParams(): any{
+  getMainDataAjaxParams(): any {
     return (params: any) => {
-      console.log("Params từ Tabulator:", params);
+      console.log('Params từ Tabulator:', params);
 
       return {
-        filterText: this.filters.keyword || "",
+        filterText: this.filters.keyword || '',
         groupId: this.filters.teamId || 0,
         employeeId: this.filters.userId || 0,
       };
     };
   }
 
-  getContactAndAddress(customerId: number): void{
+  getContactAndAddress(customerId: number): void {
     this.customerService.getContactAndAddress(customerId).subscribe({
       next: (response) => {
         if (response.status === 1) {
@@ -189,31 +221,35 @@ export class CustomerComponent implements OnInit, AfterViewInit{
           this.tb_AddressTable.setData(this.addressStockData);
           this.tb_SaleTable.setData(this.employeeSaleData);
         } else {
-          this.notification.error('Thông báo', 'Lỗi khi tải dữ liệu: ' + response.message);
+          this.notification.error(
+            'Thông báo',
+            'Lỗi khi tải dữ liệu: ' + response.message
+          );
         }
       },
       error: (error) => {
-        this.notification.error('Thông báo', 'Lỗi kết nối khi tải dữ liệu: ' + error);
-      }
+        this.notification.error(
+          'Thông báo',
+          'Lỗi kết nối khi tải dữ liệu: ' + error
+        );
+      },
     });
   }
 
-  openModal()
-  {
+  openModal() {
     const modalRef = this.modalService.open(CustomerDetailComponent, {
       centered: true,
       backdrop: 'static',
       windowClass: 'full-screen-modal',
-    })
-    modalRef.componentInstance.isEditMode = this.isEditMode
-    modalRef.componentInstance.EditID = this.selectedId
+    });
+    modalRef.componentInstance.isEditMode = this.isEditMode;
+    modalRef.componentInstance.EditID = this.selectedId;
     modalRef.result.then(
       (result) => {
-        if(result.success && result.reloadData) {
+        if (result.success && result.reloadData) {
           this.selectedRow = [];
           this.selectedId = 0;
-          if(this.tb_MainTable)
-          {
+          if (this.tb_MainTable) {
             this.tb_MainTable.setData(null, true);
           }
         }
@@ -221,7 +257,7 @@ export class CustomerComponent implements OnInit, AfterViewInit{
       (reason) => {
         console.log('Modal closed');
       }
-    )
+    );
   }
 
   openMajorModal() {
@@ -229,14 +265,13 @@ export class CustomerComponent implements OnInit, AfterViewInit{
       centered: true,
       backdrop: 'static',
       size: 'xl',
-    })
+    });
     modalRef.result.then(
-      (result) => {
-      },
+      (result) => {},
       (reason) => {
         console.log('Modal closed');
       }
-    )
+    );
   }
 
   onDelete() {
@@ -251,47 +286,49 @@ export class CustomerComponent implements OnInit, AfterViewInit{
             ID: this.selectedId ?? 0,
             IsDeleted: true,
             CustomerName: '',
-            CustomerCode: ''
+            CustomerCode: '',
           },
           CustomerContacts: [],
           AddressStocks: [],
           CustomerEmployees: [],
           BusinessFieldID: 0,
         };
-    
+
         this.customerService.save(payload).subscribe({
           next: (res: any) => {
             if (res?.status === 1) {
               this.notification.success('Thông báo', 'Xóa thành công');
-    
             } else {
-              this.notification.error('Lỗi', res?.message || 'Không thể xóa dữ liệu');
+              this.notification.error(
+                'Lỗi',
+                res?.message || 'Không thể xóa dữ liệu'
+              );
             }
           },
           error: (err: any) => {
-            this.notification.error('Lỗi', err?.message || 'Không thể xóa dữ liệu');
-          }
-        })
-      }
+            this.notification.error(
+              'Lỗi',
+              err?.message || 'Không thể xóa dữ liệu'
+            );
+          },
+        });
+      },
     });
-
   }
 
   onEdit(): void {
-    if(this.selectedId > 0)
-    {
+    if (this.selectedId > 0) {
       this.isEditMode = true;
       this.openModal();
-    }
-    else{
-      this.notification.info('Thông báo','Vui lòng chọn 1 bản ghi cần sửa!');
+    } else {
+      this.notification.info('Thông báo', 'Vui lòng chọn 1 bản ghi cần sửa!');
     }
   }
-  
+
   initMainTable(): void {
     this.tb_MainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
       layout: 'fitDataFill',
-      height: '100%',
+      height: '90%',
       selectableRows: 1,
       pagination: true,
       paginationSize: 100,
@@ -301,7 +338,7 @@ export class CustomerComponent implements OnInit, AfterViewInit{
       ajaxParams: this.getMainDataAjaxParams(),
       ajaxResponse: (url, params, res) => {
         console.log(res.data.data);
-        console.log(res.data.data1.TotalPage)
+        console.log(res.data.data1.TotalPage);
         return {
           data: res.data.data,
           last_page: res.data.data1.TotalPage,
@@ -324,91 +361,99 @@ export class CustomerComponent implements OnInit, AfterViewInit{
       columnDefaults: {
         headerWordWrap: true,
         headerVertical: false,
-        headerHozAlign: "center",
+        headerHozAlign: 'center',
         minWidth: 60,
-        resizable: true
+        resizable: true,
       },
       columns: [
-        { title: 'ID', field: 'ID', visible: false},
-        { title: 'Mã khách', field: 'CustomerCode', frozen: true},
-        { title: 'Tên kí hiệu', field: 'CustomerShortName', frozen: true},
-        { title: 'Tên khách', field: 'CustomerName', frozen: true},
-        { title: 'Địa chỉ', field: 'Address'},
-        { title: 'Mã số thuế', field: 'TaxCode'},
-        { title: 'Loại hình', field: 'TypeName'},
-        { title: 'Lưu ý giao hàng', field: 'NoteDelivery'},
-        { title: 'Lưu ý chứng từ', field: 'NoteVoucher'},
-        { title: 'Đầu mối gửi check chứng từ', field: 'CheckVoucher'},
-        { title: 'Đầu mối gửi chứng từ bản cứng', field: 'HardCopyVoucher'},
-        { title: 'Ngày chốt công nợ', field: 'ClosingDateDebt'},
-        { title: 'Công nợ', field: 'Debt'},
-        { title: 'Địa chỉ giao hàng', field: 'AdressStock'},
-      ]
+        { title: 'ID', field: 'ID', visible: false },
+        { title: 'Mã khách', field: 'CustomerCode', frozen: true },
+        { title: 'Tên kí hiệu', field: 'CustomerShortName', frozen: true },
+        { title: 'Tên khách', field: 'CustomerName', frozen: true },
+        { title: 'Địa chỉ', field: 'Address' },
+        { title: 'Mã số thuế', field: 'TaxCode' },
+        { title: 'Loại hình', field: 'TypeName' },
+        { title: 'Lưu ý giao hàng', field: 'NoteDelivery' },
+        { title: 'Lưu ý chứng từ', field: 'NoteVoucher' },
+        { title: 'Đầu mối gửi check chứng từ', field: 'CheckVoucher' },
+        { title: 'Đầu mối gửi chứng từ bản cứng', field: 'HardCopyVoucher' },
+        { title: 'Ngày chốt công nợ', field: 'ClosingDateDebt' },
+        { title: 'Công nợ', field: 'Debt' },
+        { title: 'Địa chỉ giao hàng', field: 'AdressStock' },
+      ],
     });
     this.tb_MainTable.on('rowClick', (e: any, row: RowComponent) => {
       const rowData = row.getData();
       this.selectedRow = rowData;
-      this.selectedId = rowData["ID"];
+      this.selectedId = rowData['ID'];
       this.getContactAndAddress(this.selectedId);
+      this.sizeTbSaleTable = null;
+      this.sizeTbDetail = null;
     });
   }
 
   initContactTable(): void {
-    this.tb_ContactTable = new Tabulator(this.tb_ContactTableElement.nativeElement, {
-      data: this.customerContactData,
-      layout: 'fitColumns',
-      height: '100%',
-      selectableRows: 1,
-      pagination: true,
-      paginationSize: 100,
-      movableColumns: true,
-      resizableRows: true,
-      reactiveData: true,
-      columnDefaults: {
-        headerWordWrap: true,
-        headerVertical: false,
-        headerHozAlign: "center",
-        minWidth: 60,
-        resizable: true
-      },
-      columns: [
-        { title: 'ID', field: 'ID', visible: false},
-        { title: 'Tên liên hệ', field: 'ContactName', },
-        { title: 'Bộ phận', field: 'CustomerPart', },
-        { title: 'Chức vụ', field: 'CustomerPosition',},
-        { title: 'Team', field: 'CustomerTeam',},
-        { title: 'ContactEmail', field: 'ContactEmail', visible: false },
-        { title: 'ContactPhone', field: 'ContactPhone', visible: false},
-      ]
-    });
+    this.tb_ContactTable = new Tabulator(
+      this.tb_ContactTableElement.nativeElement,
+      {
+        data: this.customerContactData,
+        layout: 'fitColumns',
+        height: '100%',
+        selectableRows: 1,
+        pagination: true,
+        paginationSize: 100,
+        movableColumns: true,
+        resizableRows: true,
+        reactiveData: true,
+        columnDefaults: {
+          headerWordWrap: true,
+          headerVertical: false,
+          headerHozAlign: 'center',
+          minWidth: 60,
+          resizable: true,
+        },
+        columns: [
+          { title: 'ID', field: 'ID', visible: false },
+          { title: 'Tên liên hệ', field: 'ContactName' },
+          { title: 'Bộ phận', field: 'CustomerPart' },
+          { title: 'Chức vụ', field: 'CustomerPosition' },
+          { title: 'Team', field: 'CustomerTeam' },
+          { title: 'ContactEmail', field: 'ContactEmail', visible: false },
+          { title: 'ContactPhone', field: 'ContactPhone', visible: false },
+        ],
+      }
+    );
   }
 
   initAddressTable(): void {
-    this.tb_AddressTable = new Tabulator(this.tb_AddressTableElement.nativeElement, {
-      data: this.addressStockData,
-      layout: 'fitDataFill',
-      height: '100%',
-      selectableRows: 1,
-      pagination: true,
-      paginationSize: 100,
-      movableColumns: true,
-      resizableRows: true,
-      reactiveData: true,
-      columnDefaults: {
-        headerWordWrap: true,
-        headerVertical: false,
-        headerHozAlign: "center",
-        minWidth: 60,
-        resizable: true
-      },
-      columns: [
-        { title: 'ID', field: 'ID', width: "100%", visible: false},
-        { title: 'Địa chỉ giao hàng', field: 'Address', width: "100%"},
-      ]
-    });
+    this.tb_AddressTable = new Tabulator(
+      this.tb_AddressTableElement.nativeElement,
+      {
+        data: this.addressStockData,
+        layout: 'fitDataFill',
+        height: '100%',
+        selectableRows: 1,
+        pagination: true,
+        paginationSize: 100,
+        movableColumns: true,
+        resizableRows: true,
+        reactiveData: true,
+        columnDefaults: {
+          headerWordWrap: true,
+          headerVertical: false,
+          headerHozAlign: 'center',
+          minWidth: 60,
+          resizable: true,
+        },
+        columns: [
+          { title: 'ID', field: 'ID', width: '100%', visible: false },
+          { title: 'Địa chỉ giao hàng', field: 'Address', width: '100%' },
+        ],
+      }
+    );
   }
 
-  initCustomerSaleTable(): void{
+  initCustomerSaleTable(): void {
     this.tb_SaleTable = new Tabulator(this.tb_SaleTableElement.nativeElement, {
       data: this.employeeSaleData,
       layout: 'fitDataFill',
@@ -422,15 +467,14 @@ export class CustomerComponent implements OnInit, AfterViewInit{
       columnDefaults: {
         headerWordWrap: true,
         headerVertical: false,
-        headerHozAlign: "center",
+        headerHozAlign: 'center',
         minWidth: 60,
-        resizable: true
+        resizable: true,
       },
       columns: [
-        { title: 'ID', field: 'ID', width: "100%", visible: false},
-        { title: 'Nhân viên Sale', field: 'FullName', width: "100%"},
-      ]
+        { title: 'ID', field: 'ID', width: '100%', visible: false },
+        { title: 'Nhân viên Sale', field: 'FullName', width: '100%' },
+      ],
     });
   }
-
 }

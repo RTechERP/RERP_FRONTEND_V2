@@ -2,23 +2,26 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { DateTime } from 'luxon';
-import { API_URL } from '../../../../app.config';
+import { HOST } from '../../../../app.config';
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ListProductProjectService {
+  constructor(private http: HttpClient) {}
 
-  constructor(private http: HttpClient) { }
-
-  getData(projectCode: string, projectID:number, warehousecode:string): Observable<any> {
-    const params: any ={
+  getData(
+    projectCode: string,
+    projectID: number,
+    warehousecode: string
+  ): Observable<any> {
+    const params: any = {
       projectId: projectID,
       projectCode: projectCode,
-      WarehouseCode:warehousecode,
+      WarehouseCode: warehousecode,
     };
-    return this.http.post(API_URL + `api/BillExport/get-product-project`, params)
+    return this.http.post(HOST + `api/BillExport/get-product-project`, params);
   }
-  getProject():Observable<any>{
-    return this.http.get(API_URL + `api/BillExport/get-all-project`);
+  getProject(): Observable<any> {
+    return this.http.get(HOST + `api/BillExport/get-all-project`);
   }
 }

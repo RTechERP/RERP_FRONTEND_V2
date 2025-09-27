@@ -1,4 +1,12 @@
-import { Component, ViewEncapsulation, ViewChild, TemplateRef, ElementRef, Input, IterableDiffers } from '@angular/core';
+import {
+  Component,
+  ViewEncapsulation,
+  ViewChild,
+  TemplateRef,
+  ElementRef,
+  Input,
+  IterableDiffers,
+} from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
@@ -13,16 +21,24 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzUploadModule, NzUploadFile, NzUploadXHRArgs } from 'ng-zorro-antd/upload';
+import {
+  NzUploadModule,
+  NzUploadFile,
+  NzUploadXHRArgs,
+} from 'ng-zorro-antd/upload';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
-import { TabulatorFull as Tabulator, RowComponent, CellComponent } from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import 'bootstrap-icons/font/bootstrap-icons.css';
+import {
+  TabulatorFull as Tabulator,
+  RowComponent,
+  CellComponent,
+} from 'tabulator-tables';
+// import 'tabulator-tables/dist/css/tabulator_simple.min.css';
+// import 'bootstrap-icons/font/bootstrap-icons.css';
 import { OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
@@ -73,11 +89,9 @@ import { CustomerMajorService } from '../customer-major-service/customer-major.s
     ReactiveFormsModule,
   ],
   templateUrl: './customer-major-detail.component.html',
-  styleUrl: './customer-major-detail.component.css'
+  styleUrl: './customer-major-detail.component.css',
 })
 export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
-
-  
   @Input() EditID!: number;
   @Input() isEditMode!: boolean;
 
@@ -95,29 +109,23 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
     private appRef: ApplicationRef,
     private customerService: CustomerServiceService,
     private customerMajorService: CustomerMajorService
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     this.loadCustomerSpecialization();
-
   }
 
-  ngAfterViewInit(): void {
-    
-  }
+  ngAfterViewInit(): void {}
 
   loadCustomerSpecialization(): void {
     this.customerService.getCustomerSpecialization().subscribe({
       next: (response) => {
         if (response.status === 1) {
-          if(this.isEditMode)
-          {
+          if (this.isEditMode) {
             this.loadDetail(this.EditID);
-          }
-          else
-          {
+          } else {
             this.majorData = response.data;
-            this.STT = this.majorData.length + 1
+            this.STT = this.majorData.length + 1;
           }
         } else {
           this.notification.error('Lỗi', response.message);
@@ -125,7 +133,7 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
       },
       error: (error) => {
         this.notification.error('Lỗi', error);
-      }
+      },
     });
   }
 
@@ -133,42 +141,44 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
     this.customerMajorService.getDetail(id).subscribe({
       next: (response) => {
         if (response.status === 1) {
-          this.STT = response.data.STT
-          this.Code = response.data.Code
-          this.Name = response.data.Name
+          this.STT = response.data.STT;
+          this.Code = response.data.Code;
+          this.Name = response.data.Name;
         } else {
           this.notification.error('Lỗi', response.message);
         }
       },
       error: (error) => {
         this.notification.error('Lỗi', error);
-      }
+      },
     });
   }
 
-  
   closeModal() {
-    this.activeModal.close({success: false, reloadData: false});
+    this.activeModal.close({ success: false, reloadData: false });
   }
-  
+
   save() {
     const model = {
       STT: this.STT,
       Code: this.Code,
-      Name: this.Name
-    }
+      Name: this.Name,
+    };
     this.customerMajorService.save(model).subscribe({
       next: (res: any) => {
         if (res?.status === 1) {
           this.notification.success('Thông báo', 'Lưu thành công');
           this.activeModal.close({ success: true, reloadData: true });
         } else {
-          this.notification.error('Lỗi', res?.message || 'Không thể lưu dữ liệu');
+          this.notification.error(
+            'Lỗi',
+            res?.message || 'Không thể lưu dữ liệu'
+          );
         }
       },
       error: (err: any) => {
         this.notification.error('Lỗi', err?.message || 'Không thể lưu dữ liệu');
-      }
-    })
+      },
+    });
   }
 }

@@ -2,15 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { DateTime } from 'luxon';
-import { API_URL } from '../../../../app.config';
+import { HOST } from '../../../../app.config';
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
-export class ReportImportExportService  {
+export class ReportImportExportService {
+  constructor(private http: HttpClient) {}
 
-  constructor(private http: HttpClient) { }
-
-  
   getReportImportExport(
     startDate: DateTime,
     endDate: DateTime,
@@ -23,16 +21,21 @@ export class ReportImportExportService  {
       EndDate: endDate?.toISO() || new Date().toISOString(),
       WareHouseCode: warehouseCode,
       Group: group,
-      Find: find
+      Find: find,
     };
 
-    return this.http.post(API_URL +`api/reportimportexportsale`, body);
+    return this.http.post(HOST + `api/reportimportexportsale`, body);
   }
-  getWarehouse():Observable<any>{
-    return this.http.get(API_URL + `api/warehouse`);
+  getWarehouse(): Observable<any> {
+    return this.http.get(HOST + `api/warehouse`);
   }
-  getHistoryImportExport(productID:number, wareHouseCode:string):Observable<any>{
-    return this.http.get(API_URL + `api/reportimportexportsale/history?productsaleID=${productID}&warehouseCode=${wareHouseCode}`);
+  getHistoryImportExport(
+    productID: number,
+    wareHouseCode: string
+  ): Observable<any> {
+    return this.http.get(
+      HOST +
+        `api/reportimportexportsale/history?productsaleID=${productID}&warehouseCode=${wareHouseCode}`
+    );
   }
 }
-

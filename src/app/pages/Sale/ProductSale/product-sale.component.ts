@@ -456,9 +456,10 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
       ...DEFAULT_TABLE_CONFIG,
       data: this.dataProducGroup,
       height: '100%',
+      pagination: false,
       rowFormatter: function (row) {
         const data = row.getData();
-        console.log('dd', data); // Kiểm tra dữ liệu của từng dòng
+        // console.log('dd', data); // Kiểm tra dữ liệu của từng dòng
         if (data['IsVisible'] === false) {
           row.getElement().style.backgroundColor = '#990011FF';
           row.getElement().style.color = '#D9D9D9';
@@ -487,7 +488,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
       const rowData = row.getData();
       this.dataDelete = rowData;
       this.id = rowData['ID'];
-      console.log('Selected ID:', this.id);
+      //   console.log('Selected ID:', this.id);
       this.getDataProductSaleByIDgroup(this.id);
       this.getDataProductGroupWareHouse(this.id);
     });
@@ -497,6 +498,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
       ...DEFAULT_TABLE_CONFIG,
       data: this.dataPGWareHouse || [],
       height: '100%',
+      pagination: false,
       columns: [
         {
           title: 'Kho',
@@ -519,7 +521,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     this.table_productsale = new Tabulator('#table_productsale', {
       data: this.dataProductSale,
       ...DEFAULT_TABLE_CONFIG,
-      layout: "fitDataStretch",
+      layout: 'fitDataStretch',
       selectableRows: 5,
       columns: [
         {

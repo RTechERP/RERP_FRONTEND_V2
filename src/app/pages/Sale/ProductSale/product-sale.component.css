@@ -99,7 +99,25 @@
   /* Optional: Đảm bảo vùng chứa progress bar có đủ không gian và nền rõ ràng */
 
   .card-header.action-bar {
-    background-color: #e9eef7 !important;
+    background-color: #ecedf0 !important;
     padding: 6px;
     border-radius: 4px;
   }
+
+  .tabulator-row.row-inactive {
+    background-color: #990011FF !important;
+    color: #D9D9D9 !important;
+  }
+
+
+  .tabulator-row.tabulator-selected {
+    background-color: var(--tabulator-selected-bg, #CCE5FF) !important;
+    color: var(--tabulator-selected-fg, #000) !important;
+  }
+
+  .tabulator-row.tabulator-selected.row-inactive {
+    background-color: var(--tabulator-selected-bg, #CCE5FF) !important;
+    color: var(--tabulator-selected-fg, #000) !important;
+  }
+
+

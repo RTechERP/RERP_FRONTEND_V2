@@ -1,17 +1,17 @@
 /* You can add global styles to this file, and also import other style files */
 .cdk-overlay-container {
-    z-index: 1060 !important;
-  }
-  .full-screen-modal .modal-dialog {
-    max-width: 100vw;
-    height: 100vh;
-    margin: 0;
-  }
-  
-  .full-screen-modal .modal-content {
-    height: 100%;
-    border-radius: 0;
-  }
+  z-index: 1060 !important;
+}
+.full-screen-modal .modal-dialog {
+  max-width: 100vw;
+  height: 100vh;
+  margin: 0;
+}
+
+.full-screen-modal .modal-content {
+  height: 100%;
+  border-radius: 0;
+}
 
 /* Giới hạn độ dài dropdown list của Tabulator - CSS Global */
 .tabulator-edit-list {
@@ -96,6 +96,8 @@ button.ant-btn.btn-delete{
   background-color: #28a745 !important;
   color: #fff !important;
   border: none !important;
+}
+
 .tabulator-edit-list .tabulator-edit-list-item {
   max-width: 400px !important;
   min-width: 200px !important;
@@ -114,7 +116,9 @@ button.ant-btn.btn-delete{
   width: 350px !important;
 }
 
-.tabulator-cell[data-column="POCode"] .tabulator-edit-list .tabulator-edit-list-item {
+.tabulator-cell[data-column="POCode"]
+  .tabulator-edit-list
+  .tabulator-edit-list-item {
   max-width: 350px !important;
   min-width: 150px !important;
   width: 350px !important;
@@ -126,7 +130,9 @@ button.ant-btn.btn-delete{
   width: 380px !important;
 }
 
-.tabulator-cell[data-column="ProductStatus"] .tabulator-edit-list .tabulator-edit-list-item {
+.tabulator-cell[data-column="ProductStatus"]
+  .tabulator-edit-list
+  .tabulator-edit-list-item {
   max-width: 380px !important;
   min-width: 200px !important;
   width: 380px !important;
@@ -138,16 +144,18 @@ button.ant-btn.btn-delete{
   width: 450px !important;
 }
 
-.tabulator-cell[data-column="DeliveryStatus"] .tabulator-edit-list .tabulator-edit-list-item {
+.tabulator-cell[data-column="DeliveryStatus"]
+  .tabulator-edit-list
+  .tabulator-edit-list-item {
   max-width: 450px !important;
   min-width: 250px !important;
   width: 450px !important;
 }
-  
+
 .btn-add {
-  background-color: #28a745!important;
-color: #fff!important;
-  border: none!important;
+  background-color: #28a745 !important;
+  color: #fff !important;
+  border: none !important;
 }
 .btn-add img {
   width: 16px;
@@ -201,19 +209,3 @@ button[nz-button] img {
   height: 16px;
   display: block;
 }
-/* Cho phép ô co giãn chiều cao theo hàng
-.tabulator .tabulator-row {
-  display: flex;          /* bắt row thành flex container */
-/* align-items: stretch;   /* các cell stretch hết chiều cao */
-/* height: auto !important;
-}
-
-.tabulator .tabulator-cell {
-  white-space: normal !important;
-  word-break: break-word;
-  line-height: 1.4;
-  height: auto !important;
-  display: flex;          /* để text tự bọc trong flex item */
-/* align-items: center;    /* căn giữa text theo chiều dọc */
-/* border-right: 1px solid #dddddd; /* kẻ vạch phân cách */
-/* }  */

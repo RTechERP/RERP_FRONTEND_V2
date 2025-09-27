@@ -1,53 +1,60 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { API_URL } from '../../../../app.config';
+import { HOST } from '../../../../app.config';
 import { end } from '@popperjs/core';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class CustomerServiceService {
+  private _url = HOST + 'api/Customer/';
+  constructor(private http: HttpClient) {}
 
-  private _url = API_URL + 'api/Customer/';
-  constructor(private http: HttpClient) { }
-
-  getMainData(pageNumber: number, pageSize: number, filterText: string, employeeId: number, groupId: number)
-  {
-    return this.http.get<any>(this._url + 'get-customer' , {
+  getMainData(
+    pageNumber: number,
+    pageSize: number,
+    filterText: string,
+    employeeId: number,
+    groupId: number
+  ) {
+    return this.http.get<any>(this._url + 'get-customer', {
       params: {
         pageNumber: pageNumber.toString(),
         pageSize: pageSize.toString(),
         filterText: filterText.toString(),
         employeeId: employeeId.toString(),
         groupId: groupId.toString(),
-      }
-    })
-  }
-  getEmployees(status: number): Observable<any> {
-    return this.http.get<any>('https://localhost:7187/api/Employee/get-employees', {
-      params: {
-        status: status.toString(),
-      }
+      },
     });
   }
+  getEmployees(status: number): Observable<any> {
+    return this.http.get<any>(
+      'https://localhost:7187/api/Employee/get-employees',
+      {
+        params: {
+          status: status.toString(),
+        },
+      }
+    );
+  }
 
-  getMainDataAjax(): string{
+  getMainDataAjax(): string {
     return this._url + 'get-customer';
   }
 
   getContactAndAddress(customerId: number): Observable<any> {
     return this.http.get<any>(this._url + 'get-details', {
       params: {
-        customerId: customerId
-      }
-    })
+        customerId: customerId,
+      },
+    });
   }
 
   getCustomerSpecialization(): Observable<any> {
     return this.http.get<any>(this._url + 'get-customer-specialization');
   }
-  
+
   getBusinessField(): Observable<any> {
     return this.http.get<any>(this._url + 'get-business-field');
   }
@@ -61,12 +68,10 @@ export class CustomerServiceService {
   }
 
   getDetail(id: number): Observable<any> {
-    return this.http.get<any>(this._url + 'get-detail',
-      {
-        params: {
-          id: id
-        }
-      }
-    );
+    return this.http.get<any>(this._url + 'get-detail', {
+      params: {
+        id: id,
+      },
+    });
   }
 }

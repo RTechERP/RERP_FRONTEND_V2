@@ -1,4 +1,12 @@
-import { Component, ViewEncapsulation, ViewChild, TemplateRef, ElementRef, Input, IterableDiffers } from '@angular/core';
+import {
+  Component,
+  ViewEncapsulation,
+  ViewChild,
+  TemplateRef,
+  ElementRef,
+  Input,
+  IterableDiffers,
+} from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
@@ -13,16 +21,24 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzUploadModule, NzUploadFile, NzUploadXHRArgs } from 'ng-zorro-antd/upload';
+import {
+  NzUploadModule,
+  NzUploadFile,
+  NzUploadXHRArgs,
+} from 'ng-zorro-antd/upload';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
-import { TabulatorFull as Tabulator, RowComponent, CellComponent } from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import 'bootstrap-icons/font/bootstrap-icons.css';
+import {
+  TabulatorFull as Tabulator,
+  RowComponent,
+  CellComponent,
+} from 'tabulator-tables';
+// import 'tabulator-tables/dist/css/tabulator_simple.min.css';
+// import 'bootstrap-icons/font/bootstrap-icons.css';
 import { OnInit, AfterViewInit } from '@angular/core';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
@@ -72,10 +88,11 @@ import { RequestInvoiceDetailService } from '../request-invoice-detail/request-i
     CommonModule,
   ],
   templateUrl: './quotation-kh-detail.component.html',
-  styleUrl: './quotation-kh-detail.component.css'
+  styleUrl: './quotation-kh-detail.component.css',
 })
 export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
-  @ViewChild('tb_MainTable', { static: false }) tb_MainTableElement!: ElementRef;
+  @ViewChild('tb_MainTable', { static: false })
+  tb_MainTableElement!: ElementRef;
 
   private mainTable!: Tabulator;
 
@@ -90,7 +107,7 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
     private customerPartService: CustomerPartService,
     private pokhService: PokhService,
     private RIDService: RequestInvoiceDetailService
-  ) { }
+  ) {}
 
   formData: any = this.getDefaultFormData();
   data: any[] = [];
@@ -106,9 +123,9 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
   showRTCCode: boolean = false;
 
   companyOptions = [
-    { value: "RTC", label: 'RTC' },
-    { value: "MVI", label: 'MVI' },
-    { value: "APR", label: 'APR' },
+    { value: 'RTC', label: 'RTC' },
+    { value: 'MVI', label: 'MVI' },
+    { value: 'APR', label: 'APR' },
   ];
   statusOptions = [
     { value: 0, label: 'Chờ phản hồi' },
@@ -126,8 +143,7 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
       this.handleEditModeData();
     }
   }
-  ngAfterViewInit(): void {
-  }
+  ngAfterViewInit(): void {}
   closeModal() {
     this.activeModal.close();
   }
@@ -146,13 +162,17 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
       version: mainData.Version,
       poCode: mainData.POCode,
       totalPrice: mainData.TotalPrice,
-      createDate: mainData.CreateDate ? mainData.CreateDate.substring(0, 10) : new Date().toISOString().split('T')[0],
+      createDate: mainData.CreateDate
+        ? mainData.CreateDate.substring(0, 10)
+        : new Date().toISOString().split('T')[0],
       projectId: mainData.ProjectID,
       userId: mainData.UserID,
       comPercent: mainData.Commission ? mainData.Commission * 100 : 0,
       comMoney: mainData.ComMoney,
       comEnabled: false, // Mặc định tắt, có thể điều chỉnh theo logic nghiệp vụ
-      quotationDate: mainData.QuotationDate ? mainData.QuotationDate.substring(0, 10) : new Date().toISOString().split('T')[0],
+      quotationDate: mainData.QuotationDate
+        ? mainData.QuotationDate.substring(0, 10)
+        : new Date().toISOString().split('T')[0],
       company: mainData.Company || 'RTC',
       explanation: mainData.Explanation,
       dateMinutes: new Date().toISOString().split('T')[0],
@@ -166,7 +186,7 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
       customerAddress: '',
       receiver: '',
       receiverPhone: '',
-      adminWarehouse: null
+      adminWarehouse: null,
     };
 
     // Load contact đúng của khách hàng và cập nhật lại các trường liên hệ
@@ -174,7 +194,9 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
       this.loadContact(mainData.CustomerID);
       // Đợi contact load xong rồi gán lại các trường liên hệ
       setTimeout(() => {
-        const contactItem = this.contact.find((c: any) => c.ID === mainData.ContactID);
+        const contactItem = this.contact.find(
+          (c: any) => c.ID === mainData.ContactID
+        );
         if (contactItem) {
           this.formData.contactId = contactItem.ID;
         }
@@ -208,7 +230,7 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
         TotalPriceImport: Number(item.TotalPriceImport) || 0,
         GiaNet: Number(item.GiaNet) || 0,
         Note: item.Note || '',
-        GroupQuota: item.GroupQuota || ''
+        GroupQuota: item.GroupQuota || '',
       }));
 
       // Cập nhật dữ liệu cho bảng nếu đã được khởi tạo
@@ -246,42 +268,43 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
       Commission: this.formData.comPercent / 100,
       ComMoney: this.formData.comMoney,
       Company: this.formData.company,
-      IsMerge: false
+      IsMerge: false,
     };
 
-    const QUOTATION_DETAIL = this.mainTable.getData().map(item => {
-      const product = this.products.find(p => p.ProductNewCode === item.ProductRTCCode);
+    const QUOTATION_DETAIL = this.mainTable.getData().map((item) => {
+      const product = this.products.find(
+        (p) => p.ProductNewCode === item.ProductRTCCode
+      );
       return {
         ...item,
         ProductID: product ? product.ID : null,
-        InternalName: item.InternalCode
+        InternalName: item.InternalCode,
       };
     });
 
     const PAYLOAD = {
       quotationKHs: QUOTATION_KH,
       quotationKHDetails: QUOTATION_DETAIL,
-      DeletedDetailIds: this.deletedQuotationKHDetailIds
-    }
+      DeletedDetailIds: this.deletedQuotationKHDetailIds,
+    };
 
     this.quotationKhDetailService.save(PAYLOAD).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success('Thành công', "Lưu dữ liệu thành công")
+          this.notification.success('Thành công', 'Lưu dữ liệu thành công');
           // Đóng modal và trả về kết quả để reload data ở component cha
           this.activeModal.close({
             success: true,
-            reloadData: true
+            reloadData: true,
           });
-        }
-        else {
-          this.notification.error('Lỗi', res.message)
+        } else {
+          this.notification.error('Lỗi', res.message);
         }
       },
       error: (err) => {
-        this.notification.error('Lỗi', err)
-      }
-    })
+        this.notification.error('Lỗi', err);
+      },
+    });
   }
   onAddCustomer() {
     alert('Thêm khách hàng mới!');
@@ -292,29 +315,34 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
   //#region Các hàm load dữ liệu
   loadUsers(): void {
     this.quotationKhDetailService.getUser().subscribe(
-      response => {
+      (response) => {
         if (response.status === 1) {
           this.Users = response.data;
-
         } else {
-          this.notification.error('Lỗi khi tải dữ liệu User:', response.message);
+          this.notification.error(
+            'Lỗi khi tải dữ liệu User:',
+            response.message
+          );
         }
       },
-      error => {
+      (error) => {
         this.notification.error('Lỗi kết nối khi tải User:', error);
       }
     );
   }
   loadCustomer(): void {
     this.customerPartService.getCustomer().subscribe(
-      response => {
+      (response) => {
         if (response.status === 1) {
           this.customers = response.data;
         } else {
-          this.notification.error('Lỗi khi tải dữ liệu Customer:', response.message);
+          this.notification.error(
+            'Lỗi khi tải dữ liệu Customer:',
+            response.message
+          );
         }
       },
-      error => {
+      (error) => {
         this.notification.error('Lỗi kết nối khi tải Customer:', error);
       }
     );
@@ -322,14 +350,17 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
 
   loadProject(): void {
     this.pokhService.loadProject().subscribe(
-      response => {
+      (response) => {
         if (response.status === 1) {
           this.projects = response.data;
         } else {
-          this.notification.error('Lỗi khi tải dữ liệu projects:', response.message);
+          this.notification.error(
+            'Lỗi khi tải dữ liệu projects:',
+            response.message
+          );
         }
       },
-      error => {
+      (error) => {
         this.notification.error('Lỗi kết nối khi tải projects:', error);
       }
     );
@@ -337,52 +368,62 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
 
   loadContact(id: number): void {
     this.quotationKhDetailService.getCustomerContact(id).subscribe(
-      response => {
+      (response) => {
         if (response.status === 1) {
           this.contact = response.data;
         } else {
-          this.notification.error('Lỗi khi tải dữ liệu contact:', response.message);
+          this.notification.error(
+            'Lỗi khi tải dữ liệu contact:',
+            response.message
+          );
         }
       },
-      error => {
+      (error) => {
         this.notification.error('Lỗi kết nối khi tải contact:', error);
       }
     );
   }
 
   loadCode(customerId: number, createDate: string): void {
-    this.quotationKhDetailService.generateCode(customerId, "2025-07-02").subscribe(
-      response => {
-        if (response.status === 1) {
-          this.formData.code = response.data;
-        } else {
-          this.notification.error('Lỗi khi tải dữ liệu contact:', response.message);
+    this.quotationKhDetailService
+      .generateCode(customerId, '2025-07-02')
+      .subscribe(
+        (response) => {
+          if (response.status === 1) {
+            this.formData.code = response.data;
+          } else {
+            this.notification.error(
+              'Lỗi khi tải dữ liệu contact:',
+              response.message
+            );
+          }
+        },
+        (error) => {
+          this.notification.error('Lỗi kết nối khi tải contact:', error);
         }
-      },
-      error => {
-        this.notification.error('Lỗi kết nối khi tải contact:', error);
-      }
-    );
+      );
   }
   loadProducts(): void {
     this.RIDService.loadProductSale().subscribe(
-      response => {
+      (response) => {
         if (response.status === 1) {
           this.products = response.data;
           this.initMainTable();
-
         } else {
-          this.notification.error('Lỗi khi tải dữ liệu products:', response.message);
+          this.notification.error(
+            'Lỗi khi tải dữ liệu products:',
+            response.message
+          );
         }
       },
-      error => {
+      (error) => {
         this.notification.error('Lỗi kết nối khi tải products:', error);
       }
     );
   }
   //#endregion
   onCustomerChange(customerId: number, contactId?: number): void {
-    this.selectedCustomer = this.customers.find(c => c.ID === customerId);
+    this.selectedCustomer = this.customers.find((c) => c.ID === customerId);
     this.formData.customerId = customerId;
     this.loadCode(customerId, this.formData.createDate);
     this.loadContact(customerId);
@@ -400,11 +441,9 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
     const ITEM = this.contact.find((c: any) => c.ID === contactId);
     if (ITEM == null || ITEM == undefined) {
       return;
-    }
-    else {
+    } else {
       this.formData.customerPhone = ITEM.ContactPhone;
     }
-
   }
   getDefaultFormData(): any {
     return {
@@ -431,7 +470,7 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
       customerAddress: '',
       receiver: '',
       receiverPhone: '',
-      adminWarehouse: null
+      adminWarehouse: null,
     };
   }
   formatCurrency = (value: number): string => {
@@ -439,13 +478,13 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
       style: 'currency',
       currency: 'VND',
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0
+      maximumFractionDigits: 0,
     }).format(value);
-  }
+  };
 
   parseCurrency = (value: string): number => {
     return Number(value.replace(/[^0-9-]/g, ''));
-  }
+  };
   addNewRow(): void {
     const newRow = {
       STT: this.details.length + 1,
@@ -464,11 +503,11 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
       TotalPriceImport: 0,
       GiaNet: 0,
       Note: '',
-      GroupQuota: ''
+      GroupQuota: '',
     };
     this.mainTable.addRow(newRow);
   }
-  
+
   initMainTable(): void {
     this.mainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
       data: this.data,
@@ -481,11 +520,13 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
       reactiveData: true,
       columns: [
         {
-          title: '', field: 'actions', formatter: (cell) => {
+          title: '',
+          field: 'actions',
+          formatter: (cell) => {
             return `<i class="bi bi-trash3 text-danger delete-btn" style="font-size:15px; cursor: pointer;"></i>`;
           },
           width: 20,
-          hozAlign: "center",
+          hozAlign: 'center',
           cellClick: (e, cell) => {
             if ((e.target as HTMLElement).classList.contains('delete-btn')) {
               this.modal.confirm({
@@ -502,14 +543,18 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
                   }
                   row.delete();
                   this.details = this.mainTable.getData();
-                }
+                },
               });
             }
-          }
+          },
         },
-        { title: 'STT', field: 'STT', width: 60, editor: "input" },
+        { title: 'STT', field: 'STT', width: 60, editor: 'input' },
         {
-          title: 'Select', field: 'IsSelected', sorter: 'boolean', width: 80, formatter: (cell) => {
+          title: 'Select',
+          field: 'IsSelected',
+          sorter: 'boolean',
+          width: 80,
+          formatter: (cell) => {
             const checked = cell.getValue() ? 'checked' : '';
             return `<div style="text-align: center;">
             <input type="checkbox" ${checked} style="width: 16px; height: 16px; cursor: pointer;"/>
@@ -520,84 +565,134 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
               const currentValue = cell.getValue();
               cell.setValue(!currentValue);
             }
-          }
+          },
         },
-        { title: 'Mã nội bộ', field: 'ProductNewCode', width: 200, editor: "input" },
+        {
+          title: 'Mã nội bộ',
+          field: 'ProductNewCode',
+          width: 200,
+          editor: 'input',
+        },
         {
           title: 'Mã RTC',
           field: 'ProductRTCCode',
           width: 200,
-          editor: "list",
+          editor: 'list',
           visible: false,
           editorParams: {
-            values: this.products.map(item => ({
+            values: this.products.map((item) => ({
               label: item.ProductCode + ' - ' + item.ProductName,
-              value: item.ID
-            }))
+              value: item.ID,
+            })),
           },
           formatter: (cell) => {
             const id = cell.getValue();
-            const product = this.products.find(p => p.ID === id);
+            const product = this.products.find((p) => p.ID === id);
             return product ? product.ProductNewCode : id;
-          }
+          },
         },
-        { title: 'Mã sản phẩm', field: 'ProductCode', width: 150, editor: "input" },
-        { title: 'Tên sản phẩm', field: 'ProductName', width: 150, editor: "input" },
-        { title: 'Mã báo khách', field: 'InternalCode', width: 150, editor: "input" },
-        { title: 'Hãng', field: 'Maker', width: 120, editor: "input" },
-        { title: 'Đơn vị', field: 'Unit', width: 120, editor: "input" },
-        { title: 'Số lượng', field: 'Qty', width: 120, editor: "number" },
-        { title: 'Đơn giá báo trước VAT', field: 'UnitPrice', width: 150, editor: "input", formatter: "money", },
         {
-          title: 'Thành tiền trước VAT', field: 'IntoMoney', width: 150, formatter: "money",
+          title: 'Mã sản phẩm',
+          field: 'ProductCode',
+          width: 150,
+          editor: 'input',
+        },
+        {
+          title: 'Tên sản phẩm',
+          field: 'ProductName',
+          width: 150,
+          editor: 'input',
+        },
+        {
+          title: 'Mã báo khách',
+          field: 'InternalCode',
+          width: 150,
+          editor: 'input',
+        },
+        { title: 'Hãng', field: 'Maker', width: 120, editor: 'input' },
+        { title: 'Đơn vị', field: 'Unit', width: 120, editor: 'input' },
+        { title: 'Số lượng', field: 'Qty', width: 120, editor: 'number' },
+        {
+          title: 'Đơn giá báo trước VAT',
+          field: 'UnitPrice',
+          width: 150,
+          editor: 'input',
+          formatter: 'money',
+        },
+        {
+          title: 'Thành tiền trước VAT',
+          field: 'IntoMoney',
+          width: 150,
+          formatter: 'money',
           formatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
           },
-          bottomCalc: "sum",
-          bottomCalcFormatter: "money",
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
           bottomCalcFormatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
-        { title: 'Loại tiền', field: 'TypeOfPrice', width: 120, editor: "input" },
-        { title: 'Đơn giá nhập', field: 'UnitPriceImport', width: 150, editor: "input", formatter: "money", },
-        { title: 'Tổng giá nhập', field: 'TotalPriceImport', width: 150, editor: "input", formatter: "money", },
         {
-          title: 'Giá NET', field: 'GiaNet', width: 120, editor: "input", formatter: "money",
+          title: 'Loại tiền',
+          field: 'TypeOfPrice',
+          width: 120,
+          editor: 'input',
+        },
+        {
+          title: 'Đơn giá nhập',
+          field: 'UnitPriceImport',
+          width: 150,
+          editor: 'input',
+          formatter: 'money',
+        },
+        {
+          title: 'Tổng giá nhập',
+          field: 'TotalPriceImport',
+          width: 150,
+          editor: 'input',
+          formatter: 'money',
+        },
+        {
+          title: 'Giá NET',
+          field: 'GiaNet',
+          width: 120,
+          editor: 'input',
+          formatter: 'money',
           formatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
           },
-          bottomCalc: "sum",
-          bottomCalcFormatter: "money",
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
           bottomCalcFormatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
-        { title: 'Ghi chú', field: 'Note', width: 120, editor: "input" },
-        { title: 'Nhóm', field: 'GroupQuota', width: 120, editor: "input" },
-      ]
-    })
+        { title: 'Ghi chú', field: 'Note', width: 120, editor: 'input' },
+        { title: 'Nhóm', field: 'GroupQuota', width: 120, editor: 'input' },
+      ],
+    });
     // Thêm sự kiện cellEdited để auto-fill các trường khi chọn Mã RTC
-    this.mainTable.on("cellEdited", (cell) => {
-      if (cell.getColumn().getField() === "ProductRTCCode") {
+    this.mainTable.on('cellEdited', (cell) => {
+      if (cell.getColumn().getField() === 'ProductRTCCode') {
         const selectedProduct = this.products.find(
-          p => p.ID === cell.getValue()
+          (p) => p.ID === cell.getValue()
         );
         if (selectedProduct) {
           const row = cell.getRow();
@@ -605,7 +700,7 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
             ProductNewCode: selectedProduct.ProductCode,
             ProductName: selectedProduct.ProductName,
             Unit: selectedProduct.Unit,
-            Maker: selectedProduct.Maker
+            Maker: selectedProduct.Maker,
           });
         }
       }
@@ -624,13 +719,17 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
 
     try {
       // Tính toán khi thay đổi Qty, UnitPrice hoặc UnitPriceImport
-      if (columnField === 'Qty' || columnField === 'UnitPrice' || columnField === 'UnitPriceImport') {
+      if (
+        columnField === 'Qty' ||
+        columnField === 'UnitPrice' ||
+        columnField === 'UnitPriceImport'
+      ) {
         const intoMoney = quantity * unitPrice;
         const totalPriceImport = quantity * unitPriceImport;
 
         row.update({
           IntoMoney: intoMoney,
-          TotalPriceImport: totalPriceImport
+          TotalPriceImport: totalPriceImport,
         });
 
         this.calculateFinishTotal();
@@ -643,14 +742,16 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
 
       // Xử lý khi thay đổi ProductNewCode
       if (columnField === 'ProductNewCode') {
-        const selectedProduct = this.products.find(p => p.ProductNewCode === cell.getValue());
+        const selectedProduct = this.products.find(
+          (p) => p.ProductNewCode === cell.getValue()
+        );
         if (selectedProduct) {
           row.update({
             ProductRTCCode: selectedProduct.ID,
             ProductName: selectedProduct.ProductName,
             ProductCode: selectedProduct.ProductCode,
             Maker: selectedProduct.Maker,
-            Unit: selectedProduct.Unit
+            Unit: selectedProduct.Unit,
           });
         }
       }
@@ -701,7 +802,8 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
 
     if (comEnabled) {
       // Nếu commission được bật, tính dựa trên (total - gianet) * comPercent
-      this.formData.comMoney = (totalIntoMoney - totalGiaNet) * (comPercent / 100);
+      this.formData.comMoney =
+        (totalIntoMoney - totalGiaNet) * (comPercent / 100);
     } else {
       // Nếu commission tắt, tính dựa trên total * comPercent
       this.formData.comMoney = totalIntoMoney * (comPercent / 100);
@@ -713,5 +815,4 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
     console.log('Tổng thành tiền:', totalIntoMoney);
     console.log('Tổng giá NET:', totalGiaNet);
   }
-
 }

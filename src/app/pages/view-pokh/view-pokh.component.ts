@@ -1,4 +1,11 @@
-import { Component, ViewEncapsulation, ViewChild, TemplateRef, ElementRef, Input } from '@angular/core';
+import {
+  Component,
+  ViewEncapsulation,
+  ViewChild,
+  TemplateRef,
+  ElementRef,
+  Input,
+} from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
@@ -13,16 +20,25 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzUploadModule, NzUploadFile, NzUploadXHRArgs } from 'ng-zorro-antd/upload';
+import {
+  NzUploadModule,
+  NzUploadFile,
+  NzUploadXHRArgs,
+} from 'ng-zorro-antd/upload';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzFormModule } from 'ng-zorro-antd/form';
-import { TabulatorFull as Tabulator, RowComponent, CellComponent, CellComponent as TabulatorCell } from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import 'bootstrap-icons/font/bootstrap-icons.css';
+import {
+  TabulatorFull as Tabulator,
+  RowComponent,
+  CellComponent,
+  CellComponent as TabulatorCell,
+} from 'tabulator-tables';
+// import 'tabulator-tables/dist/css/tabulator_simple.min.css';
+// import 'bootstrap-icons/font/bootstrap-icons.css';
 import { OnInit, AfterViewInit } from '@angular/core';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
@@ -64,10 +80,10 @@ interface GroupedData {
     NzFormModule,
     NzDatePickerModule,
     NzInputModule,
-    NzInputNumberModule
+    NzInputNumberModule,
   ],
   templateUrl: './view-pokh.component.html',
-  styleUrl: './view-pokh.component.css'
+  styleUrl: './view-pokh.component.css',
 })
 export class ViewPokhComponent implements OnInit, AfterViewInit {
   @ViewChild('ViewPOKH', { static: false }) viewPOKHTableElement!: ElementRef;
@@ -83,7 +99,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
 
   public groups: any[] = [];
   public customers: any[] = [];
-  public users: any[] = []; 
+  public users: any[] = [];
   public statuses: any[] = [];
   public colors: any[] = [];
   public EmployeeTeamSale: any[] = [];
@@ -99,7 +115,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
     employeeTeamSaleId: 0,
     startDate: new Date(),
     endDate: new Date(),
-    keyword: ""
+    keyword: '',
   };
 
   constructor(
@@ -108,9 +124,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
     private HandoverMinutesDetailService: HandoverMinutesDetailService,
     private modalService: NgbModal,
     private notification: NzNotificationService
-  ) { }
-
-
+  ) {}
 
   ngOnInit(): void {
     const endDate = new Date();
@@ -135,21 +149,25 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
         const target = e.target as HTMLInputElement;
         if (target.classList.contains('group-checkbox')) {
           const groupValue = target.getAttribute('data-group');
-          const rows = this.viewPOKH.getRows().filter(row => row.getData()["PONumber"] === groupValue);
+          const rows = this.viewPOKH
+            .getRows()
+            .filter((row) => row.getData()['PONumber'] === groupValue);
 
           if (target.checked) {
-            rows.forEach(row => {
+            rows.forEach((row) => {
               row.select();
               const rowData = row.getData();
-              if (!this.selectedRows.some(r => r["ID"] === rowData["ID"])) {
+              if (!this.selectedRows.some((r) => r['ID'] === rowData['ID'])) {
                 this.selectedRows.push(rowData);
               }
             });
           } else {
-            rows.forEach(row => {
+            rows.forEach((row) => {
               row.deselect();
               const rowData = row.getData();
-              this.selectedRows = this.selectedRows.filter(r => r["ID"] !== rowData["ID"]);
+              this.selectedRows = this.selectedRows.filter(
+                (r) => r['ID'] !== rowData['ID']
+              );
             });
           }
           console.log('Selected Rows:', this.selectedRows);
@@ -158,7 +176,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
     });
 
     // Xử lý sự kiện chỉnh sửa cell
-    this.viewPOKH.on("cellEdited", (cell: TabulatorCell) => {
+    this.viewPOKH.on('cellEdited', (cell: TabulatorCell) => {
       if (this.isRecallCellValueChanged) return;
 
       try {
@@ -168,19 +186,23 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
         const row = cell.getRow();
         const rowData = row.getData();
 
-        this.modifiedRows.add(rowData["ID"]);
+        this.modifiedRows.add(rowData['ID']);
 
-        if (column === 'BillNumber' || column === 'BillDate' || column === 'DeliveryRequestedDate') {
+        if (
+          column === 'BillNumber' ||
+          column === 'BillDate' ||
+          column === 'DeliveryRequestedDate'
+        ) {
           const newValue = cell.getValue();
           if (newValue === null) return;
 
           const selectedRows = this.viewPOKH.getSelectedRows();
           if (selectedRows.length > 0) {
-            selectedRows.forEach(selectedRow => {
+            selectedRows.forEach((selectedRow) => {
               if (selectedRow !== row) {
                 selectedRow.update({ [column]: newValue });
                 const selectedRowData = selectedRow.getData();
-                this.modifiedRows.add(selectedRowData["ID"]);
+                this.modifiedRows.add(selectedRowData['ID']);
               }
             });
           }
@@ -191,7 +213,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
     });
 
     // Thêm event listener cho việc chọn toàn bộ (header checkbox)
-    this.viewPOKH.on("rowSelectionChanged", (data, rows) => {
+    this.viewPOKH.on('rowSelectionChanged', (data, rows) => {
       // Cập nhật selectedRows khi có thay đổi selection từ header checkbox
       this.selectedRows = data;
       console.log('Selection changed - Selected Rows:', this.selectedRows);
@@ -200,61 +222,74 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
   //#region Hàm xử lý modal
   openHandoverMinutesModal() {
     if (this.selectedRows.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất 1 dòng để xem biên bản giao hàng');
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn ít nhất 1 dòng để xem biên bản giao hàng'
+      );
       return;
     }
 
     // Lọc các dòng có QuantityPending > 0
-    const validRows = this.selectedRows.filter(row => row.QuantityPending > 0);
+    const validRows = this.selectedRows.filter(
+      (row) => row.QuantityPending > 0
+    );
     if (validRows.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dòng nào có số lượng chờ giao!');
+      this.notification.warning(
+        'Thông báo',
+        'Không có dòng nào có số lượng chờ giao!'
+      );
       return;
     }
 
     // Nhóm dữ liệu theo CustomerID và EID
-    const groupedData = validRows.reduce<Record<string, GroupedData>>((acc, row) => {
-      const key = `${row.CustomerID}_${row.EID}`;
-      if (!acc[key]) {
-        acc[key] = {
+    const groupedData = validRows.reduce<Record<string, GroupedData>>(
+      (acc, row) => {
+        const key = `${row.CustomerID}_${row.EID}`;
+        if (!acc[key]) {
+          acc[key] = {
+            CustomerName: row.CustomerName,
+            EFullName: row.EFullName,
+            Items: [],
+          };
+        }
+        acc[key].Items.push({
+          POKHDetailID: row.ID,
+          STT: acc[key].Items.length + 1,
+          Maker: row.Maker,
+          CustomerID: row.CustomerID,
+          Quantity: row.QuantityPending,
+          ProductName: row.ProductName,
+          ProductCode: row.ProductCode,
           CustomerName: row.CustomerName,
-          EFullName: row.EFullName,
-          Items: []
-        };
-      }
-      acc[key].Items.push({
-        POKHDetailID: row.ID,
-        STT: acc[key].Items.length + 1,
-        Maker: row.Maker,
-        CustomerID: row.CustomerID,
-        Quantity: row.QuantityPending,
-        ProductName: row.ProductName,
-        ProductCode: row.ProductCode,
-        CustomerName: row.CustomerName,
-        POCode: row.POCode,
-        FullName: row.EFullName,
-        Unit: row.Unit,
-        ProductStatus: row.ProductStatus,
-        Guarantee: row.Guarantee,
-        DeliveryStatus: row.DeliveryStatus,
-        EID: row.EID,
-        QuantityPending: row.QuantityPending
-      });
-      return acc;
-    }, {});
+          POCode: row.POCode,
+          FullName: row.EFullName,
+          Unit: row.Unit,
+          ProductStatus: row.ProductStatus,
+          Guarantee: row.Guarantee,
+          DeliveryStatus: row.DeliveryStatus,
+          EID: row.EID,
+          QuantityPending: row.QuantityPending,
+        });
+        return acc;
+      },
+      {}
+    );
 
     // Chuyển đổi object thành array để dễ xử lý
-    const groupedArray = Object.entries(groupedData).map(([key, group]: [string, GroupedData]) => ({
-      key,
-      customerName: group.CustomerName,
-      employeeName: group.EFullName,
-      items: group.Items
-    }));
+    const groupedArray = Object.entries(groupedData).map(
+      ([key, group]: [string, GroupedData]) => ({
+        key,
+        customerName: group.CustomerName,
+        employeeName: group.EFullName,
+        items: group.Items,
+      })
+    );
 
     // Mở 1 modal duy nhất với tất cả các tab
     const modalRef = this.modalService.open(HandoverMinutesDetailComponent, {
       size: 'xl',
       backdrop: 'static',
-      keyboard: false
+      keyboard: false,
     });
 
     // Truyền dữ liệu vào modal
@@ -262,61 +297,80 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.isMultipleGroups = groupedArray.length > 1;
 
     // Xử lý kết quả khi modal đóng
-    modalRef.result.then((result) => {
-      if (result && result.reloadTable) {
-        // Load lại dữ liệu
-        this.loadData();
-      }
-    }).catch((reason) => {
-      console.log('Modal dismissed:', reason);
-    });
+    modalRef.result
+      .then((result) => {
+        if (result && result.reloadTable) {
+          // Load lại dữ liệu
+          this.loadData();
+        }
+      })
+      .catch((reason) => {
+        console.log('Modal dismissed:', reason);
+      });
   }
   openRequestInvoiceDetailModal() {
     if (this.selectedRows.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất 1 dòng mở yêu cầu xuất hóa đơn');
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn ít nhất 1 dòng mở yêu cầu xuất hóa đơn'
+      );
       return;
     }
 
     // Nhóm dữ liệu theo CustomerID
-    const groupedData = this.selectedRows.reduce<Record<string, any[]>>((acc, row) => {
-      const customerID = row.CustomerID;
-      const key = `${customerID}`;
+    const groupedData = this.selectedRows.reduce<Record<string, any[]>>(
+      (acc, row) => {
+        const customerID = row.CustomerID;
+        const key = `${customerID}`;
 
-      if (!acc[key]) {
-        acc[key] = [];
-      }
+        if (!acc[key]) {
+          acc[key] = [];
+        }
 
-      acc[key].push({
-        POKHDetailID: row.ID,
-        STT: acc[key].length + 1,
-        ProductSaleID: row.ProductID,
-        CustomerID: row.CustomerID,
-        Quantity: row.Qty,
-        ProductName: row.ProductName,
-        ProductCode: row.ProductCode,
-        CustomerName: this.customers.find(x=>x.ID == customerID)?.CustomerName,
-        ProductNewCode: row.ProductNewCode,
-        ProjectCode: row.ProjectCode,
-        ProjectID: row.ProjectID,
-        ProjectName: row.ProjectName,
-        POCode: row.POCode,
-        Address: row.Address,
-        Unit: row.Unit,
-        InvoiceDate: null,
-        InvoiceNumber: null
-      });
+        acc[key].push({
+          POKHDetailID: row.ID,
+          STT: acc[key].length + 1,
+          ProductSaleID: row.ProductID,
+          CustomerID: row.CustomerID,
+          Quantity: row.Qty,
+          ProductName: row.ProductName,
+          ProductCode: row.ProductCode,
+          CustomerName: this.customers.find((x) => x.ID == customerID)
+            ?.CustomerName,
+          ProductNewCode: row.ProductNewCode,
+          ProjectCode: row.ProjectCode,
+          ProjectID: row.ProjectID,
+          ProjectName: row.ProjectName,
+          POCode: row.POCode,
+          Address: row.Address,
+          Unit: row.Unit,
+          InvoiceDate: null,
+          InvoiceNumber: null,
+        });
 
-      return acc;
-    }, {});
+        return acc;
+      },
+      {}
+    );
 
     if (Object.keys(groupedData).length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu hợp lệ để tạo yêu cầu xuất hóa đơn');
+      this.notification.warning(
+        'Thông báo',
+        'Không có dữ liệu hợp lệ để tạo yêu cầu xuất hóa đơn'
+      );
       return;
     }
 
     // Hiển thị thông báo nếu có nhiều khách hàng
     if (Object.keys(groupedData).length > 1) {
-      this.notification.info('Thông báo', `Bạn chọn sản phẩm từ ${Object.keys(groupedData).length} khách hàng. Phần mềm sẽ tự động tạo ${Object.keys(groupedData).length} hóa đơn xuất.`);
+      this.notification.info(
+        'Thông báo',
+        `Bạn chọn sản phẩm từ ${
+          Object.keys(groupedData).length
+        } khách hàng. Phần mềm sẽ tự động tạo ${
+          Object.keys(groupedData).length
+        } hóa đơn xuất.`
+      );
     }
 
     // Chuyển đổi object thành array để dễ xử lý
@@ -324,7 +378,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
       key,
       customerID: parseInt(key),
       customerName: data[0]?.CustomerName || 'Khách hàng',
-      data: data
+      data: data,
     }));
 
     // Mở modal tuần tự
@@ -337,11 +391,11 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
     }
 
     const currentGroup = groupedArray[index];
-    
+
     const modalRef = this.modalService.open(RequestInvoiceDetailComponent, {
       size: 'xl',
       backdrop: 'static',
-      keyboard: false
+      keyboard: false,
     });
 
     // Truyền dữ liệu vào modal
@@ -351,18 +405,20 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.isFromPOKH = true;
 
     // Xử lý kết quả khi modal đóng
-    modalRef.result.then((result) => {
-      if (result && result.reloadTable) {
-        // Load lại dữ liệu
-        this.loadData();
-      }
-      // Mở modal tiếp theo
-      this.openModalSequentially(groupedArray, index + 1);
-    }).catch((reason) => {
-      console.log('Modal dismissed:', reason);
-      // Mở modal tiếp theo ngay cả khi modal hiện tại bị đóng
-      this.openModalSequentially(groupedArray, index + 1);
-    });
+    modalRef.result
+      .then((result) => {
+        if (result && result.reloadTable) {
+          // Load lại dữ liệu
+          this.loadData();
+        }
+        // Mở modal tiếp theo
+        this.openModalSequentially(groupedArray, index + 1);
+      })
+      .catch((reason) => {
+        console.log('Modal dismissed:', reason);
+        // Mở modal tiếp theo ngay cả khi modal hiện tại bị đóng
+        this.openModalSequentially(groupedArray, index + 1);
+      });
   }
   closeModal(): void {
     this.activeModal.close();
@@ -379,19 +435,20 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
       poType: this.filters.poType || 0,
       status: this.filters.status || 0,
       customerId: this.filters.customerId || 0,
-      keyword: this.filters.keyword || ""
+      keyword: this.filters.keyword || '',
     };
 
-    this.viewPokhService.loadViewPOKH(
-      startDate,
-      endDate,
-      params.employeeTeamSaleId,
-      params.userId,
-      params.poType,
-      params.status,
-      params.customerId,
-      params.keyword
-    )
+    this.viewPokhService
+      .loadViewPOKH(
+        startDate,
+        endDate,
+        params.employeeTeamSaleId,
+        params.userId,
+        params.poType,
+        params.status,
+        params.customerId,
+        params.keyword
+      )
       .subscribe((response) => {
         this.data = response.data;
         if (this.viewPOKH) {
@@ -401,70 +458,73 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
   }
   loadEmployeeTeamSale(): void {
     this.viewPokhService.loadEmployeeTeamSale().subscribe(
-      response => {
+      (response) => {
         if (response.status === 1) {
           this.EmployeeTeamSale = response.data;
         } else {
-          this.notification.error('Lỗi khi tải EmployeeTeamSale:', response.message);
+          this.notification.error(
+            'Lỗi khi tải EmployeeTeamSale:',
+            response.message
+          );
         }
       },
-      error => {
+      (error) => {
         this.notification.error('Lỗi kết nối khi tải EmployeeTeamSale:', error);
       }
     );
   }
   loadMainIndex(): void {
     this.viewPokhService.loadMainIndex().subscribe(
-      response => {
+      (response) => {
         if (response.status === 1) {
           this.statuses = response.data;
         } else {
           this.notification.error('Lỗi khi tải Status:', response.message);
         }
       },
-      error => {
+      (error) => {
         this.notification.error('Lỗi kết nối khi tải Status:', error);
       }
     );
   }
   loadGroupSale(): void {
     this.viewPokhService.loadGroupSale().subscribe(
-      response => {
+      (response) => {
         if (response.status === 1) {
           this.groups = response.data;
         } else {
           this.notification.error('Lỗi khi tải GroupSale:', response.message);
         }
       },
-      error => {
+      (error) => {
         this.notification.error('Lỗi kết nối khi tải GroupSale:', error);
       }
     );
   }
   loadCustomer(): void {
     this.viewPokhService.loadCustomer().subscribe(
-      response => {
+      (response) => {
         if (response.status === 1) {
           this.customers = response.data;
         } else {
           this.notification.error('Lỗi khi tải Customer:', response.message);
         }
       },
-      error => {
+      (error) => {
         this.notification.error('Lỗi kết nối khi tải Customer:', error);
       }
     );
   }
   loadUser(): void {
     this.viewPokhService.loadUser().subscribe(
-      response => {
+      (response) => {
         if (response.status === 1) {
           this.users = response.data;
         } else {
           this.notification.error('Lỗi khi tải users:', response.message);
         }
       },
-      error => {
+      (error) => {
         this.notification.error('Lỗi kết nối khi tải users:', error);
       }
     );
@@ -481,37 +541,37 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
     const allData = this.viewPOKH.getData();
 
     // Lọc những dòng đã chỉnh sửa
-    const modifiedData = allData.filter(row => this.modifiedRows.has(row.ID));
+    const modifiedData = allData.filter((row) => this.modifiedRows.has(row.ID));
 
     // Tạo một Set để lưu các ID đã được cập nhật
-    const updatedrowID = new Set(modifiedData.map(row => row.ID));
+    const updatedrowID = new Set(modifiedData.map((row) => row.ID));
 
     // Tìm tất cả các dòng có cùng ID với các dòng đã chỉnh sửa
-    const allRelatedRows = allData.filter(row => updatedrowID.has(row.ID));
+    const allRelatedRows = allData.filter((row) => updatedrowID.has(row.ID));
 
     // Cập nhật dữ liệu cho tất cả các dòng liên quan
-    const finalData = allRelatedRows.map(row => {
+    const finalData = allRelatedRows.map((row) => {
       // Tìm dòng đã chỉnh sửa có cùng ID
-      const modifiedRow = modifiedData.find(mr => mr.ID === row.ID);
+      const modifiedRow = modifiedData.find((mr) => mr.ID === row.ID);
       if (modifiedRow) {
         return {
           ...row,
           BillNumber: modifiedRow.BillNumber,
           BillDate: modifiedRow.BillDate,
           DeliveryRequestedDate: modifiedRow.DeliveryRequestedDate,
-          UpdatedDate: new Date()
+          UpdatedDate: new Date(),
         };
       }
       return row;
     });
 
     this.viewPokhService.saveData(finalData).subscribe(
-      response => {
-        this.notification.success('Lưu thành công:', "Lưu thành công!");
+      (response) => {
+        this.notification.success('Lưu thành công:', 'Lưu thành công!');
         this.modifiedRows.clear();
         this.loadData();
       },
-      error => {
+      (error) => {
         this.notification.error('Lỗi khi lưu:', error);
       }
     );
@@ -525,10 +585,10 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
       movableColumns: true,
       pagination: true,
       paginationSize: 50,
-      height: "90vh",
+      height: '90vh',
       resizableRows: true,
       reactiveData: true,
-      groupBy: "PONumber",
+      groupBy: 'PONumber',
       selectableRows: true,
       selectableRange: true,
       groupHeader: (value, count, data, group) => {
@@ -539,10 +599,10 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
       },
       columns: [
         {
-          title: "",
-          formatter: "rowSelection",
-          titleFormatter: "rowSelection",
-          hozAlign: "center",
+          title: '',
+          formatter: 'rowSelection',
+          titleFormatter: 'rowSelection',
+          hozAlign: 'center',
           headerSort: false,
           frozen: true,
           width: 40,
@@ -557,30 +617,51 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
             if (isCurrentlySelected) {
               // Nếu đang được chọn -> bỏ chọn
               row.deselect();
-              this.selectedRows = this.selectedRows.filter(r => r["ID"] !== rowData["ID"]);
+              this.selectedRows = this.selectedRows.filter(
+                (r) => r['ID'] !== rowData['ID']
+              );
             } else {
               // Nếu chưa được chọn -> chọn
               row.select();
-              if (!this.selectedRows.some(r => r["ID"] === rowData["ID"])) {
+              if (!this.selectedRows.some((r) => r['ID'] === rowData['ID'])) {
                 this.selectedRows.push(rowData);
               }
             }
             console.log('Selected Rows:', this.selectedRows);
-          }
+          },
         },
-        { title: 'ID', field: 'ID', sorter: 'number', width: 100, frozen: true, visible: false },
-        { title: 'Mã dự án', field: 'ProjectCode', sorter: 'string', width: 120, frozen: true },
-        { title: 'Số POKH', field: 'PONumber', sorter: 'string', width: 70, frozen: true },
         {
-          title: 'Trạng thái', 
-          field: 'StatusText', 
-          sorter: 'string', 
+          title: 'ID',
+          field: 'ID',
+          sorter: 'number',
+          width: 100,
+          frozen: true,
+          visible: false,
+        },
+        {
+          title: 'Mã dự án',
+          field: 'ProjectCode',
+          sorter: 'string',
+          width: 120,
+          frozen: true,
+        },
+        {
+          title: 'Số POKH',
+          field: 'PONumber',
+          sorter: 'string',
+          width: 70,
+          frozen: true,
+        },
+        {
+          title: 'Trạng thái',
+          field: 'StatusText',
+          sorter: 'string',
           width: 150,
           formatter: (cell) => {
             const value = cell.getValue();
             let bgColor = '';
-            
-            switch(value) {
+
+            switch (value) {
               case 'Chưa giao , chưa thanh toán':
                 bgColor = '#F2F5A9'; // Vàng nhạt
                 break;
@@ -596,10 +677,10 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
               default:
                 bgColor = '#FFFFFF'; // Trắng
             }
-            
+
             cell.getElement().style.backgroundColor = bgColor;
             return value || '';
-          }
+          },
         },
         {
           title: 'Ngày PO',
@@ -610,21 +691,65 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
             return date ? new Date(date).toLocaleDateString('vi-VN') : '';
           },
           width: 100,
-
         },
-        { title: 'Sale phụ trách', field: 'FullName', sorter: 'string', width: 150 },
+        {
+          title: 'Sale phụ trách',
+          field: 'FullName',
+          sorter: 'string',
+          width: 150,
+        },
         { title: 'Hãng', field: 'Maker', sorter: 'string', width: 100 },
-        { title: 'Mã nội bộ', field: 'ProductNewCode', sorter: 'string', width: 120 },
-        { title: 'Mã theo khách', field: 'GuestCode', sorter: 'string', width: 120 },
+        {
+          title: 'Mã nội bộ',
+          field: 'ProductNewCode',
+          sorter: 'string',
+          width: 120,
+        },
+        {
+          title: 'Mã theo khách',
+          field: 'GuestCode',
+          sorter: 'string',
+          width: 120,
+        },
         { title: 'SL PO', field: 'Qty', sorter: 'number', width: 80 },
-        { title: 'SL đã giao', field: 'QuantityDelived', sorter: 'number', width: 120 },
-        { title: 'SL Pending', field: 'QuantityPending', sorter: 'number', width: 120 },
+        {
+          title: 'SL đã giao',
+          field: 'QuantityDelived',
+          sorter: 'number',
+          width: 120,
+        },
+        {
+          title: 'SL Pending',
+          field: 'QuantityPending',
+          sorter: 'number',
+          width: 120,
+        },
         { title: 'ĐVT', field: 'Unit', sorter: 'string', width: 80 },
-        { title: 'Đơn giá NET', field: 'NetUnitPrice', sorter: 'number', width: 120 },
-        { title: 'Đơn giá (chưa VAT)', field: 'UnitPrice', sorter: 'number', width: 120 },
-        { title: 'Tổng giá (chưa VAT)', field: 'IntoMoney', sorter: 'number', width: 120 },
+        {
+          title: 'Đơn giá NET',
+          field: 'NetUnitPrice',
+          sorter: 'number',
+          width: 120,
+        },
+        {
+          title: 'Đơn giá (chưa VAT)',
+          field: 'UnitPrice',
+          sorter: 'number',
+          width: 120,
+        },
+        {
+          title: 'Tổng giá (chưa VAT)',
+          field: 'IntoMoney',
+          sorter: 'number',
+          width: 120,
+        },
         { title: 'VAT(%)', field: 'VAT', sorter: 'number', width: 80 },
-        { title: 'Tổng tiền (gồm VAT)', field: 'TotalPriceIncludeVAT', sorter: 'number', width: 150 },
+        {
+          title: 'Tổng tiền (gồm VAT)',
+          field: 'TotalPriceIncludeVAT',
+          sorter: 'number',
+          width: 150,
+        },
         {
           title: 'Ngày dự kiến giao hàng',
           field: 'DeliveryRequestedDate',
@@ -634,9 +759,14 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
             return date ? new Date(date).toLocaleDateString('vi-VN') : '';
           },
           width: 100,
-          editor: "date"
+          editor: 'date',
         },
-        { title: 'Ngày giao hàng thực tế', field: 'DateMinutes', sorter: 'string', width: 120 },
+        {
+          title: 'Ngày giao hàng thực tế',
+          field: 'DateMinutes',
+          sorter: 'string',
+          width: 120,
+        },
         {
           title: 'Ngày thanh toán dự kiến',
           field: 'PayDate',
@@ -645,7 +775,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
             const date = cell.getValue();
             return date ? new Date(date).toLocaleDateString('vi-VN') : '';
           },
-          width: 100
+          width: 100,
         },
         {
           title: 'Ngày tiền về',
@@ -655,10 +785,21 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
             const date = cell.getValue();
             return date ? new Date(date).toLocaleDateString('vi-VN') : '';
           },
-          width: 100
+          width: 100,
         },
-        { title: 'Công ty', field: 'CompanyName', sorter: 'string', width: 150 },
-        { title: 'Số hóa đơn', field: 'BillNumber', sorter: 'string', width: 120, editor: "input" },
+        {
+          title: 'Công ty',
+          field: 'CompanyName',
+          sorter: 'string',
+          width: 150,
+        },
+        {
+          title: 'Số hóa đơn',
+          field: 'BillNumber',
+          sorter: 'string',
+          width: 120,
+          editor: 'input',
+        },
         {
           title: 'Ngày hóa đơn',
           field: 'BillDate',
@@ -668,7 +809,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
             return date ? new Date(date).toLocaleDateString('vi-VN') : '';
           },
           width: 100,
-          editor: "date"
+          editor: 'date',
         },
         {
           title: 'Ngày đặt hàng',
@@ -678,7 +819,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
             const date = cell.getValue();
             return date ? new Date(date).toLocaleDateString('vi-VN') : '';
           },
-          width: 100
+          width: 100,
         },
         {
           title: 'Ngày hàng về',
@@ -688,10 +829,20 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
             const date = cell.getValue();
             return date ? new Date(date).toLocaleDateString('vi-VN') : '';
           },
-          width: 100
+          width: 100,
         },
-        { title: 'Nhà cung cấp', field: 'SupplierName', sorter: 'string', width: 150 },
-        { title: 'Đầu vào (số hóa đơn/số tờ khai)', field: 'SomeBill', sorter: 'string', width: 120 },
+        {
+          title: 'Nhà cung cấp',
+          field: 'SupplierName',
+          sorter: 'string',
+          width: 150,
+        },
+        {
+          title: 'Đầu vào (số hóa đơn/số tờ khai)',
+          field: 'SomeBill',
+          sorter: 'string',
+          width: 120,
+        },
         {
           title: 'Ngày dự kiến hàng về',
           field: 'ExpectedDate',
@@ -700,7 +851,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
             const date = cell.getValue();
             return date ? new Date(date).toLocaleDateString('vi-VN') : '';
           },
-          width: 100
+          width: 100,
         },
         { title: 'PNK', field: 'BillImportCode', sorter: 'string', width: 120 },
         // { title: 'POKHID', field: 'POKHID', sorter: 'number', width: 100 },
@@ -711,9 +862,8 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
         // { title: 'ProductCode', field: 'ProductCode', sorter: 'string', width: 120 },
         // { title: 'ProductName', field: 'ProductName', sorter: 'string', width: 200 },
         // { title: 'Trạng thái', field: 'StatusText', sorter: 'string', width: 150 },
-      ]
+      ],
     });
   }
   //#endregion
-
 }

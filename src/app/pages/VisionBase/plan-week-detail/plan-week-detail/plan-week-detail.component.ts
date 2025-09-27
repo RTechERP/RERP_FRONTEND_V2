@@ -1,4 +1,13 @@
-import { Component, ViewEncapsulation, ViewChild, TemplateRef, ElementRef, Input, IterableDiffers, viewChild } from '@angular/core';
+import {
+  Component,
+  ViewEncapsulation,
+  ViewChild,
+  TemplateRef,
+  ElementRef,
+  Input,
+  IterableDiffers,
+  viewChild,
+} from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
@@ -13,16 +22,24 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzUploadModule, NzUploadFile, NzUploadXHRArgs } from 'ng-zorro-antd/upload';
+import {
+  NzUploadModule,
+  NzUploadFile,
+  NzUploadXHRArgs,
+} from 'ng-zorro-antd/upload';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
-import { TabulatorFull as Tabulator, RowComponent, CellComponent } from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import 'bootstrap-icons/font/bootstrap-icons.css';
+import {
+  TabulatorFull as Tabulator,
+  RowComponent,
+  CellComponent,
+} from 'tabulator-tables';
+// import 'tabulator-tables/dist/css/tabulator_simple.min.css';
+// import 'bootstrap-icons/font/bootstrap-icons.css';
 import { OnInit, AfterViewInit } from '@angular/core';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
@@ -68,24 +85,25 @@ import { PlanWeekService } from '../../plan-week/plan-week-services/plan-week.se
     NzSwitchModule,
     NzCheckboxModule,
     CommonModule,
-    NzTreeSelectModule
+    NzTreeSelectModule,
   ],
   templateUrl: './plan-week-detail.component.html',
-  styleUrl: './plan-week-detail.component.css'
+  styleUrl: './plan-week-detail.component.css',
 })
-export class PlanWeekDetailComponent implements OnInit, AfterViewInit{
+export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
   @Input() UserID!: number;
   @Input() isEditMode!: boolean;
 
-  @ViewChild('tb_MainTable', {static: false}) tb_MainTableElement!: ElementRef;
+  @ViewChild('tb_MainTable', { static: false })
+  tb_MainTableElement!: ElementRef;
 
   private tb_MainTable!: Tabulator;
 
   filters: any = {
     startDate: new Date(),
     endDate: new Date(),
-    userId: 0 //Cần truyền ID người dùng hiện tại vào để thêm mới kế hoạch tuần theo đúng user đó
-  }
+    userId: 0, //Cần truyền ID người dùng hiện tại vào để thêm mới kế hoạch tuần theo đúng user đó
+  };
   filterUserData: any[] = [];
   mainData: any[] = [];
 
@@ -93,28 +111,27 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit{
     public activeModal: NgbActiveModal,
     private planWeekService: PlanWeekService,
     private modal: NzModalService,
-    private notification: NzNotificationService,
-  ){}
+    private notification: NzNotificationService
+  ) {}
 
   ngOnInit(): void {
     const today = new Date();
-  
-    const day = today.getDay(); 
-    const diffToMonday = (day === 0 ? -6 : 1 - day); 
+
+    const day = today.getDay();
+    const diffToMonday = day === 0 ? -6 : 1 - day;
     const monday = new Date(today);
     monday.setDate(today.getDate() + diffToMonday);
-  
+
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
 
-    monday.setHours(0,0,0);
-    sunday.setHours(23,59,59);
+    monday.setHours(0, 0, 0);
+    sunday.setHours(23, 59, 59);
 
     this.filters.startDate = monday;
     this.filters.endDate = sunday;
     this.loadUser();
-    console.log("UserID nhận được từ component cha", this.UserID);
-
+    console.log('UserID nhận được từ component cha', this.UserID);
   }
 
   ngAfterViewInit(): void {
@@ -125,21 +142,36 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit{
     this.activeModal.close();
   }
 
-
   increaseWeek(): void {
     if (this.filters.startDate && this.filters.endDate) {
-      this.filters.startDate = new Date(this.filters.startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
-      this.filters.endDate = new Date(this.filters.endDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+      this.filters.startDate = new Date(
+        this.filters.startDate.getTime() + 7 * 24 * 60 * 60 * 1000
+      );
+      this.filters.endDate = new Date(
+        this.filters.endDate.getTime() + 7 * 24 * 60 * 60 * 1000
+      );
     }
-    this.loadMainData(this.filters.startDate, this.filters.endDate, this.filters.userId);
+    this.loadMainData(
+      this.filters.startDate,
+      this.filters.endDate,
+      this.filters.userId
+    );
   }
 
   decreaseWeek(): void {
     if (this.filters.startDate && this.filters.endDate) {
-      this.filters.startDate = new Date(this.filters.startDate.getTime() - 7 * 24 * 60 * 60 * 1000);
-      this.filters.endDate = new Date(this.filters.endDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+      this.filters.startDate = new Date(
+        this.filters.startDate.getTime() - 7 * 24 * 60 * 60 * 1000
+      );
+      this.filters.endDate = new Date(
+        this.filters.endDate.getTime() - 7 * 24 * 60 * 60 * 1000
+      );
     }
-    this.loadMainData(this.filters.startDate, this.filters.endDate, this.filters.userId);
+    this.loadMainData(
+      this.filters.startDate,
+      this.filters.endDate,
+      this.filters.userId
+    );
   }
 
   loadUser() {
@@ -148,21 +180,20 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit{
         if (response.status === 1) {
           this.filterUserData = response.data;
 
-          if(this.isEditMode === true) {
+          if (this.isEditMode === true) {
             this.filters.userId = this.UserID;
-            let user = this.filterUserData.find(x=> x.UserID == this.UserID)
-            console.log("User:", user)
+            let user = this.filterUserData.find((x) => x.UserID == this.UserID);
+            console.log('User:', user);
             this.loadMainData(
               this.filters.startDate,
               this.filters.endDate,
-              this.filters.userId,
+              this.filters.userId
             );
-          }
-          else {
+          } else {
             this.loadMainData(
               this.filters.startDate,
               this.filters.endDate,
-              this.filters.userId,
+              this.filters.userId
             );
           }
         } else {
@@ -171,12 +202,11 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit{
       },
       error: (error) => {
         this.notification.error('Lỗi', error);
-      }
+      },
     });
   }
-  
-  loadMainData(startDate: Date, endDate: Date, userId: number)
-  {
+
+  loadMainData(startDate: Date, endDate: Date, userId: number) {
     this.planWeekService.getData(startDate, endDate, 0, userId, 0).subscribe({
       next: (response) => {
         if (response.status === 1) {
@@ -191,29 +221,31 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit{
       },
       error: (error) => {
         this.notification.error('Lỗi', error);
-      }
+      },
     });
   }
 
-  saveAndClose()
-  {
+  saveAndClose() {
     const DATA = this.tb_MainTable.getData().map((row: any) => ({
       ...row,
-      UserID: row?.UserID || this.filters.userId || this.UserID || 0
+      UserID: row?.UserID || this.filters.userId || this.UserID || 0,
     }));
     this.planWeekService.save(DATA).subscribe({
       next: (response) => {
-        if(response.status === 1){
-          this.notification.success('Thông báo', "Lưu thành công");
+        if (response.status === 1) {
+          this.notification.success('Thông báo', 'Lưu thành công');
           this.UserID = 0;
           this.isEditMode = false;
-          this.activeModal.close({success: true, reloadData: true});
+          this.activeModal.close({ success: true, reloadData: true });
         }
       },
       error: (error: any) => {
-        this.notification.error('Lỗi', 'Không thể lưu dữ liệu: ' + error.message);
-      }
-    })
+        this.notification.error(
+          'Lỗi',
+          'Không thể lưu dữ liệu: ' + error.message
+        );
+      },
+    });
   }
 
   initMainTable(): void {
@@ -230,32 +262,32 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit{
       columnDefaults: {
         headerWordWrap: true,
         headerVertical: false,
-        headerHozAlign: "center",
+        headerHozAlign: 'center',
         minWidth: 60,
-        resizable: true
+        resizable: true,
       },
       autoColumnsDefinitions: (definitions: any[] = []) => {
         const cols = definitions.map((def: any) => {
           if (def.field === 'ID') {
-            return { ...def, visible: false }; 
+            return { ...def, visible: false };
           }
           if (def.field === 'UserID') {
-            return { ...def, visible: false};
+            return { ...def, visible: false };
           }
           if (def.field === 'DatePlan') {
-            return { 
-              ...def, 
-              title: 'Ngày', 
+            return {
+              ...def,
+              title: 'Ngày',
               formatter: (cell: any) => {
                 const value = cell.getValue();
-                if (!value) return "";
+                if (!value) return '';
                 const date = new Date(value);
                 const dd = String(date.getDate()).padStart(2, '0');
                 const mm = String(date.getMonth() + 1).padStart(2, '0');
                 const yyyy = date.getFullYear();
                 return `${dd}/${mm}/${yyyy}`;
               },
-              width: 100
+              width: 100,
             };
           }
           if (def.field === 'ContentPlan') {
@@ -266,11 +298,11 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit{
           }
           return def;
         });
-      
+
         cols.unshift({
-          title: "",
-          field: "actions",
-          hozAlign: "center",
+          title: '',
+          field: 'actions',
+          hozAlign: 'center',
           width: 50,
           formatter: (cell: any) => {
             return `<i class="bi bi-trash3 text-danger delete-btn" style="font-size:15px; cursor: pointer;"></i>`;
@@ -285,17 +317,17 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit{
                 nzOnOk: () => {
                   const row = cell.getRow();
                   row.update({
-                    ContentPlan: "",
-                    Result: ""
-                  })
-                }
+                    ContentPlan: '',
+                    Result: '',
+                  });
+                },
               });
             }
-          }
+          },
         });
-      
+
         return cols;
-      }
+      },
     });
   }
 }

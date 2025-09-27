@@ -1,15 +1,22 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { API_URL } from '../../../app.config';
+import { HOST } from '../../../app.config';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class FollowProductReturnService {
-  private _url = API_URL + 'api/FollowProductReturn/';
-  constructor(private http: HttpClient) { }
-  loadData(startDate: Date, endDate: Date, keywords: string, customerId: number, userId: number, groupSaleId: number): Observable<any> {
+  private _url = HOST + 'api/FollowProductReturn/';
+  constructor(private http: HttpClient) {}
+  loadData(
+    startDate: Date,
+    endDate: Date,
+    keywords: string,
+    customerId: number,
+    userId: number,
+    groupSaleId: number
+  ): Observable<any> {
     return this.http.get<any>(this._url + 'get-data', {
       params: {
         keywords: keywords,
@@ -17,8 +24,8 @@ export class FollowProductReturnService {
         userId: userId,
         groupSaleId: groupSaleId,
         dateStart: startDate.toISOString(),
-        dateEnd: endDate.toISOString()
-      }
+        dateEnd: endDate.toISOString(),
+      },
     });
   }
   loadUser(): Observable<any> {

@@ -1,4 +1,12 @@
-import { Component, ViewEncapsulation, ViewChild, TemplateRef, ElementRef, Input, IterableDiffers } from '@angular/core';
+import {
+  Component,
+  ViewEncapsulation,
+  ViewChild,
+  TemplateRef,
+  ElementRef,
+  Input,
+  IterableDiffers,
+} from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
@@ -13,16 +21,24 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzUploadModule, NzUploadFile, NzUploadXHRArgs } from 'ng-zorro-antd/upload';
+import {
+  NzUploadModule,
+  NzUploadFile,
+  NzUploadXHRArgs,
+} from 'ng-zorro-antd/upload';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
-import { TabulatorFull as Tabulator, RowComponent, CellComponent } from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import 'bootstrap-icons/font/bootstrap-icons.css';
+import {
+  TabulatorFull as Tabulator,
+  RowComponent,
+  CellComponent,
+} from 'tabulator-tables';
+// import 'tabulator-tables/dist/css/tabulator_simple.min.css';
+// import 'bootstrap-icons/font/bootstrap-icons.css';
 import { OnInit, AfterViewInit } from '@angular/core';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
@@ -73,7 +89,7 @@ import { pl_PL } from 'ng-zorro-antd/i18n';
     CommonModule,
   ],
   templateUrl: './trade-price-detail.component.html',
-  styleUrl: './trade-price-detail.component.css'
+  styleUrl: './trade-price-detail.component.css',
 })
 export class TradePriceDetailComponent implements OnInit, AfterViewInit {
   @ViewChild('tb_Detail', { static: false }) tb_DetailTableElement!: ElementRef;
@@ -116,7 +132,7 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
     private RIDService: RequestInvoiceDetailService,
     private pokhService: PokhService,
     private modal: NzModalService
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     this.loadAllData();
@@ -124,9 +140,7 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
     }
   }
 
-  ngAfterViewInit(): void {
-
-  }
+  ngAfterViewInit(): void {}
 
   closeModal(): void {
     this.deletedTradePriceDetailIds = [];
@@ -150,20 +164,24 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
         this.cboProductSale = results.productSale.data;
         this.cboUnitCount = results.unitCount.data;
         this.cboCurrency = results.currency.data;
-        console.log("cboCurrency", this.cboCurrency)
+        console.log('cboCurrency', this.cboCurrency);
 
         this.initDetailTable();
         //xử lí editmode
-        if (this.isEditMode && this.groupedData && this.groupedData.length > 0) {
+        if (
+          this.isEditMode &&
+          this.groupedData &&
+          this.groupedData.length > 0
+        ) {
           this.handleEditModeData();
         }
       },
       error: (error) => {
         this.notification.error('Lỗi', error);
-      }
+      },
     });
   }
-  
+
   handleEditModeData(): void {
     if (!this.groupedData || this.groupedData.length === 0) return;
 
@@ -171,19 +189,32 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
     const main = group.MainData || {};
 
     this.selectedId = group.ID ?? main.ID ?? this.selectedId ?? 0;
-    this.formData.customerId = main.CustomerID ?? main.CustomerId ?? this.formData.customerId ?? null;
-    this.formData.customerName = main.CustomerName ?? this.formData.customerName ?? '';
-    this.formData.adminSaleId = main.SaleAdminID ?? main.SaleAdminId ?? this.formData.adminSaleId ?? null;
-    this.formData.saleId = main.EmployeeID ?? main.EmployeeId ?? this.formData.saleId ?? null;
-    this.formData.projectId = main.ProjectID ?? main.ProjectId ?? this.formData.projectId ?? null;
-    this.formData.projectName = main.ProjectName ?? this.formData.projectName ?? '';
-    this.formData.rateCOM = main.RateCOM ?? main.COM ?? this.formData.rateCOM ?? 0;
-    this.formData.UnitPriceDelivery = main.UnitPriceDelivery ?? this.formData.UnitPriceDelivery ?? 0;
-    this.formData.QuantityDelivery = main.QuantityDelivery ?? this.formData.QuantityDelivery ?? 0;
-    this.formData.groupTotalPrice = main.GroupTotalPrice ?? this.formData.groupTotalPrice ?? false;
-    this.formData.rtcVisionCheckbox = main.IsRTCVision ?? this.formData.rtcVisionCheckbox ?? false;
-    this.formData.quantityRTCVision = main.QuantityRTCVision ?? this.formData.quantityRTCVision ?? 0;
-    this.formData.unitPriceRTCVision = main.UnitPriceRTCVision ?? this.formData.unitPriceRTCVision ?? 0;
+    this.formData.customerId =
+      main.CustomerID ?? main.CustomerId ?? this.formData.customerId ?? null;
+    this.formData.customerName =
+      main.CustomerName ?? this.formData.customerName ?? '';
+    this.formData.adminSaleId =
+      main.SaleAdminID ?? main.SaleAdminId ?? this.formData.adminSaleId ?? null;
+    this.formData.saleId =
+      main.EmployeeID ?? main.EmployeeId ?? this.formData.saleId ?? null;
+    this.formData.projectId =
+      main.ProjectID ?? main.ProjectId ?? this.formData.projectId ?? null;
+    this.formData.projectName =
+      main.ProjectName ?? this.formData.projectName ?? '';
+    this.formData.rateCOM =
+      main.RateCOM ?? main.COM ?? this.formData.rateCOM ?? 0;
+    this.formData.UnitPriceDelivery =
+      main.UnitPriceDelivery ?? this.formData.UnitPriceDelivery ?? 0;
+    this.formData.QuantityDelivery =
+      main.QuantityDelivery ?? this.formData.QuantityDelivery ?? 0;
+    this.formData.groupTotalPrice =
+      main.GroupTotalPrice ?? this.formData.groupTotalPrice ?? false;
+    this.formData.rtcVisionCheckbox =
+      main.IsRTCVision ?? this.formData.rtcVisionCheckbox ?? false;
+    this.formData.quantityRTCVision =
+      main.QuantityRTCVision ?? this.formData.quantityRTCVision ?? 0;
+    this.formData.unitPriceRTCVision =
+      main.UnitPriceRTCVision ?? this.formData.unitPriceRTCVision ?? 0;
     this.radioValue = main.CurrencyType ?? this.radioValue ?? false;
 
     // Cập nhật details: API trả về mảng phẳng dùng ParentID -> chuyển sang tree với _children
@@ -266,7 +297,9 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
 
   //#region Event Handlers
   onCustomerChange(id: number): void {
-    const selectedCustomer = this.formCustomerData.find(customer => customer.ID === id);
+    const selectedCustomer = this.formCustomerData.find(
+      (customer) => customer.ID === id
+    );
     if (selectedCustomer) {
       this.formData.customerName = selectedCustomer.CustomerName;
     } else {
@@ -275,7 +308,9 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
   }
 
   onProjectChange(id: number): void {
-    const selectedProject = this.formProjectData.find(project => project.ID === id);
+    const selectedProject = this.formProjectData.find(
+      (project) => project.ID === id
+    );
     if (selectedProject) {
       this.formData.projectName = selectedProject.ProjectName;
     } else {
@@ -293,7 +328,8 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
 
   onRtcVisionCheckboxChange(value: boolean): void {
     this.formData.rtcVisionCheckbox = value;
-    this.formData.unitPriceRTCVision = this.formData.rtcVisionCheckbox == true ? 15000000 : 0;
+    this.formData.unitPriceRTCVision =
+      this.formData.rtcVisionCheckbox == true ? 15000000 : 0;
     if (this.tb_Detail) {
       this.calculatorTotalImport();
       this.calculatorBankCharge();
@@ -341,14 +377,14 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
       IsQuotation: 0, // Mặc định là 0 khi thêm mới, và được báo giá khi bấm nút báo giá bên ngoài màn chính
       UnitPriceDelivery: this.formData.UnitPriceDelivery || 0,
       QuantityDelivery: this.formData.QuantityDelivery || 0,
-      IsDeleted: false
+      IsDeleted: false,
     };
 
     const PAYLOAD = {
       tradePrices: TRADE_PRICE,
       tradePriceDetails: DETAIL_DATA,
-      deletedTradePriceDetails: this.deletedTradePriceDetailIds
-    }
+      deletedTradePriceDetails: this.deletedTradePriceDetailIds,
+    };
 
     console.log('TradePrice object:', TRADE_PRICE);
     console.log('Detail data:', DETAIL_DATA);
@@ -360,8 +396,11 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
         this.activeModal.close({ success: true, reloadData: true });
       },
       error: (error: any) => {
-        this.notification.error('Lỗi', 'Không thể lưu dữ liệu: ' + error.message);
-      }
+        this.notification.error(
+          'Lỗi',
+          'Không thể lưu dữ liệu: ' + error.message
+        );
+      },
     });
   }
   //#endregion
@@ -373,7 +412,10 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
     if (!parent) {
       // Dòng cha
       // Lấy index của dòng cha trong tất cả các dòng cha
-      const allParentRows = row.getTable().getRows().filter((r: any) => !r.getTreeParent());
+      const allParentRows = row
+        .getTable()
+        .getRows()
+        .filter((r: any) => !r.getTreeParent());
       const parentIndex = allParentRows.findIndex((r: any) => r === row);
       return (parentIndex + 1).toString();
     } else {
@@ -382,7 +424,10 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
       const childRows = parentRow.getTreeChildren();
       const childIndex = childRows.findIndex((r: any) => r === row);
       // Lấy số thứ tự cha
-      const allParentRows = row.getTable().getRows().filter((r: any) => !r.getTreeParent());
+      const allParentRows = row
+        .getTable()
+        .getRows()
+        .filter((r: any) => !r.getTreeParent());
       const parentIndex = allParentRows.findIndex((r: any) => r === parentRow);
       return `${parentIndex + 1}.${childIndex + 1}`;
     }
@@ -398,14 +443,19 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
       rows.forEach((rowComp: any) => {
         const rowData = rowComp.getData();
         if (rowData && rowData.CurrencyCode) {
-          const selectedCurrency = this.cboCurrency.find(p => p.Code === rowData.CurrencyCode);
+          const selectedCurrency = this.cboCurrency.find(
+            (p) => p.Code === rowData.CurrencyCode
+          );
           if (selectedCurrency) {
             let newRate = 0;
             if (this.radioValue === false) {
               // Chính ngạch
               newRate = selectedCurrency.CurrencyRateOfficialQuota;
               if (selectedCurrency.DateExpriedOfficialQuota < nowIso) {
-                this.notification.error("Lỗi", `Tỷ giá chính ngạch của ${selectedCurrency.Code} đã hết hạn`);
+                this.notification.error(
+                  'Lỗi',
+                  `Tỷ giá chính ngạch của ${selectedCurrency.Code} đã hết hạn`
+                );
                 hasError = true;
                 newRate = 0;
               }
@@ -413,7 +463,10 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
               // Tiểu ngạch
               newRate = selectedCurrency.CurrencyRateUnofficialQuota;
               if (selectedCurrency.DateExpriedUnofficialQuota < nowIso) {
-                this.notification.error("Lỗi", `Tỷ giá tiểu ngạch của ${selectedCurrency.Code} đã hết hạn`);
+                this.notification.error(
+                  'Lỗi',
+                  `Tỷ giá tiểu ngạch của ${selectedCurrency.Code} đã hết hạn`
+                );
                 hasError = true;
                 newRate = 0;
               }
@@ -421,7 +474,7 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
 
             rowComp.update({
               CurrencyRate: newRate,
-              CurrencyID: selectedCurrency ? selectedCurrency.ID : 0
+              CurrencyID: selectedCurrency ? selectedCurrency.ID : 0,
             });
 
             this.calculator(rowComp.getData());
@@ -436,7 +489,9 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
     };
 
     const allRows = this.tb_Detail.getRows();
-    const topLevelRows = allRows.filter((r: any) => !r.getTreeParent || !r.getTreeParent());
+    const topLevelRows = allRows.filter(
+      (r: any) => !r.getTreeParent || !r.getTreeParent()
+    );
     processRowsRecursively(topLevelRows);
 
     if (!hasError) {
@@ -452,9 +507,9 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
       style: 'currency',
       currency: 'VND',
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0
+      maximumFractionDigits: 0,
     }).format(value);
-  }
+  };
 
   // Hàm tạo form data mặc định
   getDefaultFormData(): any {
@@ -502,31 +557,46 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
     const customFees = this.toDecimal(row.CustomFees); // Phí khai HQ
     const totalPriceLabor = this.toDecimal(row.TotalPriceLabor); // Giá báo nhân công
 
-    const totalImport = quantity * unitPriceImportEXW; // Tổng giá nhập 
+    const totalImport = quantity * unitPriceImportEXW; // Tổng giá nhập
     const unitImportPriceVND = unitPriceImportEXW * currencyRate; // Đơn giá nhập chưa chi phí (VND)
     const totalImportPriceVND = unitImportPriceVND * quantity; // Tổng giá nhập chưa Chi phí(VND)
-    const protectiveTariffPerPcs = protectiveTariff * (unitImportPriceVND + feeShipPcs); // Thuế nhập khẩu /1pcs(VND)
+    const protectiveTariffPerPcs =
+      protectiveTariff * (unitImportPriceVND + feeShipPcs); // Thuế nhập khẩu /1pcs(VND)
     const totalProtectiveTariff = protectiveTariff * quantity; // Tổng thuế nhập khẩu
-    const totalImportPriceIncludeFees = this.toDecimal(row.TotalImportPriceIncludeFees); // Tổng giá nhập chưa VAT
-    const unitPriceIncludeFees = totalImportPriceVND !== 0 ? totalImportPriceIncludeFees / totalImportPriceVND * unitImportPriceVND : 0; // Đơn giá về kho
+    const totalImportPriceIncludeFees = this.toDecimal(
+      row.TotalImportPriceIncludeFees
+    ); // Tổng giá nhập chưa VAT
+    const unitPriceIncludeFees =
+      totalImportPriceVND !== 0
+        ? (totalImportPriceIncludeFees / totalImportPriceVND) *
+          unitImportPriceVND
+        : 0; // Đơn giá về kho
 
     let unitPriceExpectCustomer = this.toDecimal(row.UnitPriceExpectCustomer); // Đơn giá dự kiến báo khách
     const margin = this.toDecimal(row.Margin); // Margin
 
     if (margin > 0) {
-      unitPriceExpectCustomer = Math.round((margin * unitPriceIncludeFees) * 10) / 10;
-    }
-    else if (unitPriceExpectCustomer > 0) {
-      const calculatedMargin = unitPriceIncludeFees === 0 ? 0 : unitPriceExpectCustomer / unitPriceIncludeFees;
+      unitPriceExpectCustomer =
+        Math.round(margin * unitPriceIncludeFees * 10) / 10;
+    } else if (unitPriceExpectCustomer > 0) {
+      const calculatedMargin =
+        unitPriceIncludeFees === 0
+          ? 0
+          : unitPriceExpectCustomer / unitPriceIncludeFees;
       row.Margin = calculatedMargin;
     }
 
     const cmSet = (rateCOM * unitPriceExpectCustomer) / 100; // CM/set
     const totalPriceExpectCustomer = unitPriceExpectCustomer * quantity; // Tổng đơn hàng
     const profit = totalPriceExpectCustomer - totalImportPriceIncludeFees; // Lợi nhuận
-    const profitPercent = totalPriceExpectCustomer !== 0 ? (profit / totalPriceExpectCustomer) * 100 : 0; // Tỷ lệ lợi nhuận
-    const totalPriceRTCVision = (unitPriceRTCVision + (unitPriceRTCVision * rateCOM)) * quantityRTCVision; // Giá báo RTC Vision Software
-    const totalPrice = totalPriceExpectCustomer + totalPriceLabor + totalPriceRTCVision; // Tổng giá trị đầu ra đơn hàng
+    const profitPercent =
+      totalPriceExpectCustomer !== 0
+        ? (profit / totalPriceExpectCustomer) * 100
+        : 0; // Tỷ lệ lợi nhuận
+    const totalPriceRTCVision =
+      (unitPriceRTCVision + unitPriceRTCVision * rateCOM) * quantityRTCVision; // Giá báo RTC Vision Software
+    const totalPrice =
+      totalPriceExpectCustomer + totalPriceLabor + totalPriceRTCVision; // Tổng giá trị đầu ra đơn hàng
 
     //Điền dữ liệu vào bảng
     row.TotalImportPriceUSD = totalImport;
@@ -551,7 +621,7 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
   // Tính toán tất cả dữ liệu
   calculateAll(): void {
     const data = this.tb_Detail.getData();
-    data.forEach(row => {
+    data.forEach((row) => {
       this.calculator(row);
     });
     this.tb_Detail.replaceData(data);
@@ -561,38 +631,50 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
   onCellEdited(cell: any): void {
     const row = cell.getRow().getData();
     this.calculator(row);
-    if (cell.getColumn().getField() === "CurrencyCode") {
-      const selectedCurrency = this.cboCurrency.find(p => p.Code === cell.getValue());
+    if (cell.getColumn().getField() === 'CurrencyCode') {
+      const selectedCurrency = this.cboCurrency.find(
+        (p) => p.Code === cell.getValue()
+      );
       let dateNow = new Date();
-      console.log("Dữ liệu của Currency đã nhận: ", selectedCurrency)
+      console.log('Dữ liệu của Currency đã nhận: ', selectedCurrency);
 
       if (this.radioValue === false) {
         this.currencyRate = selectedCurrency.CurrencyRateOfficialQuota;
         if (selectedCurrency.DateExpriedOfficialQuota < dateNow.toISOString()) {
-          this.notification.error("Lỗi", `Tỷ giá chính ngạch của ${selectedCurrency.Code} đã hết hạn`)
+          this.notification.error(
+            'Lỗi',
+            `Tỷ giá chính ngạch của ${selectedCurrency.Code} đã hết hạn`
+          );
           this.currencyRate = 0;
         }
       } else {
         this.currencyRate = selectedCurrency.CurrencyRateUnofficialQuota;
-        if (selectedCurrency.DateExpriedUnofficialQuota < dateNow.toISOString()) {
-          this.notification.error("Lỗi", `Tỷ giá tiểu ngạch của ${selectedCurrency.Code} đã hết hạn`)
+        if (
+          selectedCurrency.DateExpriedUnofficialQuota < dateNow.toISOString()
+        ) {
+          this.notification.error(
+            'Lỗi',
+            `Tỷ giá tiểu ngạch của ${selectedCurrency.Code} đã hết hạn`
+          );
           this.currencyRate = 0;
         }
       }
       const row = cell.getRow();
       row.update({
         CurrencyRate: this.currencyRate,
-        CurrencyID: selectedCurrency ? selectedCurrency.ID : 0
-      })
+        CurrencyID: selectedCurrency ? selectedCurrency.ID : 0,
+      });
 
       // Tính toán lại chỉ dòng đã thay đổi loại tiền
       this.calculator(row.getData());
     }
-    if (cell.getColumn().getField() === "ProductCode") {
-      const selectedProductCode = this.cboProductSale.find(p => p.ProductCode === cell.getValue());
+    if (cell.getColumn().getField() === 'ProductCode') {
+      const selectedProductCode = this.cboProductSale.find(
+        (p) => p.ProductCode === cell.getValue()
+      );
       const rowComp = cell.getRow();
       rowComp.update({
-        ProductID: selectedProductCode ? selectedProductCode.ID : 0
+        ProductID: selectedProductCode ? selectedProductCode.ID : 0,
       });
     }
 
@@ -625,7 +707,8 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
     accumulateTotals(allRows);
 
     // Tính phí ngân hàng cho toàn bộ bảng
-    const bankCharge = unitPriceDelivery * quantityDelivery + (0.002 * sumTotalImportPriceVND);
+    const bankCharge =
+      unitPriceDelivery * quantityDelivery + 0.002 * sumTotalImportPriceVND;
 
     // Gán bankCharge cho tất cả các dòng (bao gồm cả dòng con)
     const assignBankCharge = (rows: any[]) => {
@@ -643,7 +726,6 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
 
   calculatorTotalImport(): void {
     if (this.formData.groupTotalPrice === true) {
-
       let totalImportPriceVND = 0;
       let bankCharge = 0;
       let totalProtectiveTariff = 0;
@@ -658,7 +740,9 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
           const rowData = row.getData();
           totalImportPriceVND += this.toDecimal(rowData.TotalImportPriceVND);
           bankCharge = this.toDecimal(rowData.BankCharge);
-          totalProtectiveTariff += this.toDecimal(rowData.TotalProtectiveTariff);
+          totalProtectiveTariff += this.toDecimal(
+            rowData.TotalProtectiveTariff
+          );
           ortherFees += this.toDecimal(rowData.OrtherFees);
           customFees += this.toDecimal(rowData.CustomFees);
 
@@ -671,12 +755,19 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
 
       calculateTotalsRecursively(allRows);
 
-      const totalImportPriceIncludeFees = totalImportPriceVND + bankCharge + totalProtectiveTariff + ortherFees + customFees;
+      const totalImportPriceIncludeFees =
+        totalImportPriceVND +
+        bankCharge +
+        totalProtectiveTariff +
+        ortherFees +
+        customFees;
 
       // Hàm đệ quy để cập nhật giá trị cho tất cả các dòng (cha và con)
       const updateRowsRecursively = (rows: any[]) => {
         rows.forEach((row: any) => {
-          row.update({ TotalImportPriceIncludeFees: totalImportPriceIncludeFees });
+          row.update({
+            TotalImportPriceIncludeFees: totalImportPriceIncludeFees,
+          });
 
           const childRows = row.getTreeChildren();
           if (childRows && childRows.length > 0) {
@@ -686,7 +777,6 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
       };
 
       updateRowsRecursively(allRows);
-
     } else {
       // Nếu checkbox không được chọn, tính riêng cho từng dòng
       const allRows = this.tb_Detail.getRows();
@@ -695,15 +785,26 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
       const calculateAndUpdateRowsRecursively = (rows: any[]) => {
         rows.forEach((row: any) => {
           const rowData = row.getData();
-          const totalImportPriceVND = this.toDecimal(rowData.TotalImportPriceVND);
+          const totalImportPriceVND = this.toDecimal(
+            rowData.TotalImportPriceVND
+          );
           const bankCharge = this.toDecimal(rowData.BankCharge);
-          const totalProtectiveTariff = this.toDecimal(rowData.TotalProtectiveTariff);
+          const totalProtectiveTariff = this.toDecimal(
+            rowData.TotalProtectiveTariff
+          );
           const ortherFees = this.toDecimal(rowData.OrtherFees);
           const customFees = this.toDecimal(rowData.CustomFees);
 
-          const totalImportPriceIncludeFees = totalImportPriceVND + bankCharge + totalProtectiveTariff + ortherFees + customFees;
+          const totalImportPriceIncludeFees =
+            totalImportPriceVND +
+            bankCharge +
+            totalProtectiveTariff +
+            ortherFees +
+            customFees;
 
-          row.update({ TotalImportPriceIncludeFees: totalImportPriceIncludeFees });
+          row.update({
+            TotalImportPriceIncludeFees: totalImportPriceIncludeFees,
+          });
 
           // Nếu có dòng con, xử lý tiếp cho dòng con
           const childRows = row.getTreeChildren();
@@ -744,21 +845,36 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
     };
 
     const totalImportPriceVND = sumField(allRows, 'TotalImportPriceVND');
-    const totalPriceExpectCustomer = sumField(allRows, 'TotalPriceExpectCustomer');
-    const totalImportPriceIncludeFees = sumField(allRows, 'TotalImportPriceIncludeFees');
+    const totalPriceExpectCustomer = sumField(
+      allRows,
+      'TotalPriceExpectCustomer'
+    );
+    const totalImportPriceIncludeFees = sumField(
+      allRows,
+      'TotalImportPriceIncludeFees'
+    );
     const totalCMPerSetSummary = sumField(allRows, 'CMPerSet');
 
-    this.summaryEXW = totalImportPriceVND > 0 ? (totalPriceExpectCustomer / totalImportPriceVND) : 0;
+    this.summaryEXW =
+      totalImportPriceVND > 0
+        ? totalPriceExpectCustomer / totalImportPriceVND
+        : 0;
 
-    this.summaryMargin = totalImportPriceIncludeFees > 0
-      ? (totalPriceExpectCustomer - (totalCMPerSetSummary / totalImportPriceIncludeFees))
-      : 0;
+    this.summaryMargin =
+      totalImportPriceIncludeFees > 0
+        ? totalPriceExpectCustomer -
+          totalCMPerSetSummary / totalImportPriceIncludeFees
+        : 0;
 
-    this.summaryTotalProfit = totalPriceExpectCustomer - totalCMPerSetSummary - totalImportPriceIncludeFees;
+    this.summaryTotalProfit =
+      totalPriceExpectCustomer -
+      totalCMPerSetSummary -
+      totalImportPriceIncludeFees;
 
-    this.summaryTotalProfitRate = totalPriceExpectCustomer > 0
-      ? (this.summaryTotalProfit / totalPriceExpectCustomer)
-      : 0;
+    this.summaryTotalProfitRate =
+      totalPriceExpectCustomer > 0
+        ? this.summaryTotalProfit / totalPriceExpectCustomer
+        : 0;
 
     const rateComInput = this.toDecimal(this.formData.rateCOM);
     const rateComAsRatio = rateComInput > 1 ? rateComInput / 100 : rateComInput;
@@ -767,18 +883,26 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
     setTimeout(() => {
       if (this.tb_Detail) {
         const columns = this.tb_Detail.getColumnDefinitions();
-        columns[1].title = `Tổng CM/Set = ${this.formatMoney(this.summaryTotalCMPerSet)}`;
+        columns[1].title = `Tổng CM/Set = ${this.formatMoney(
+          this.summaryTotalCMPerSet
+        )}`;
         columns[2].title = `EXW = ${this.formatMoney(this.summaryEXW)}`;
         columns[3].title = `Margin = ${this.formatMoney(this.summaryMargin)}`;
-        columns[4].title = `Lợi nhuận = ${this.formatMoney(this.summaryTotalProfit)}`;
-        columns[5].title = `Tỷ lệ lợi nhuận = ${this.formatMoney(this.summaryTotalProfitRate)}`;
+        columns[4].title = `Lợi nhuận = ${this.formatMoney(
+          this.summaryTotalProfit
+        )}`;
+        columns[5].title = `Tỷ lệ lợi nhuận = ${this.formatMoney(
+          this.summaryTotalProfitRate
+        )}`;
         this.tb_Detail.setColumns(columns);
       }
-    })
+    });
   }
   formatMoney(value: any): string {
     if (value === null || value === undefined || isNaN(value)) return '';
-    return new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(Number(value));
+    return new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(
+      Number(value)
+    );
   }
   //#endregion
 
@@ -824,7 +948,7 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
       TotalPriceRTCVision: 0,
       TotalPrice: 0,
       UnitPricePerCOM: 0,
-      _children: []
+      _children: [],
     };
 
     if (this.tb_Detail) {
@@ -839,7 +963,10 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
 
   addChildRow(): void {
     if (!this.selectedRow) {
-      this.notification.warning('Thông báo', "Vui lòng chọn một sản phẩm trước khi thêm sản phẩm con!");
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn một sản phẩm trước khi thêm sản phẩm con!'
+      );
       return;
     }
 
@@ -849,7 +976,10 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
 
     // Nếu row được chọn đã có parent (tức là nó là row con), thì không cho phép thêm con
     if (parentRow) {
-      this.notification.warning('Thông báo', "Chỉ có thể thêm sản phẩm con cho sản phẩm cha (cấp 1). Sản phẩm con không thể có sản phẩm con!");
+      this.notification.warning(
+        'Thông báo',
+        'Chỉ có thể thêm sản phẩm con cho sản phẩm cha (cấp 1). Sản phẩm con không thể có sản phẩm con!'
+      );
       return;
     }
 
@@ -893,7 +1023,7 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
       TotalPriceRTCVision: 0,
       TotalPrice: 0,
       UnitPricePerCOM: 0,
-      _children: []
+      _children: [],
     };
     this.selectedRow.addTreeChild(childRow);
     this.selectedRow.treeExpand();
@@ -911,11 +1041,10 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
       ids.push(rowData.ID);
     }
 
-
     if (rowData._children && rowData._children.length > 0) {
       rowData._children.forEach((child: any) => {
         const childRow = {
-          getData: () => child
+          getData: () => child,
         };
         ids.push(...this.getAllRowIds(childRow));
       });
@@ -925,22 +1054,28 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
   }
 
   private deleteRowAndChildren(row: any): void {
-    const children = row && typeof row.getTreeChildren === 'function' ? row.getTreeChildren() : [];
+    const children =
+      row && typeof row.getTreeChildren === 'function'
+        ? row.getTreeChildren()
+        : [];
     if (children && children.length > 0) {
       children.forEach((child: any) => this.deleteRowAndChildren(child));
     }
     row.delete();
   }
 
-  // Chuyển dữ liệu tree sang dạng phẳng 
+  // Chuyển dữ liệu tree sang dạng phẳng
   private flattenFromData(treeData: any[]): any[] {
     const flat: any[] = [];
 
     const walk = (nodes: any[], parentId: number | null = null) => {
       nodes.forEach((node) => {
         const { _children, ParentId, ParentID, ...rest } = node || {};
-        const currentParent = (ParentID !== undefined ? ParentID : ParentId);
-        const normalizedParentId = (currentParent !== undefined && currentParent !== null) ? currentParent : parentId;
+        const currentParent = ParentID !== undefined ? ParentID : ParentId;
+        const normalizedParentId =
+          currentParent !== undefined && currentParent !== null
+            ? currentParent
+            : parentId;
         const normalized = { ...rest, ParentID: normalizedParentId ?? null };
         flat.push(normalized);
         if (_children && Array.isArray(_children) && _children.length > 0) {
@@ -965,7 +1100,9 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
       });
     };
     const allRows = this.tb_Detail.getRows();
-    const topRows = allRows.filter((r: any) => !r.getTreeParent || !r.getTreeParent());
+    const topRows = allRows.filter(
+      (r: any) => !r.getTreeParent || !r.getTreeParent()
+    );
     this.tb_Detail.blockRedraw();
     try {
       assign(topRows, null);
@@ -978,9 +1115,9 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
     this.tb_Detail = new Tabulator(this.tb_DetailTableElement.nativeElement, {
       data: this.dataDetail,
       layout: 'fitDataFill',
-      height: "64vh",
+      height: '64vh',
       movableColumns: true,
-      dataTreeChildField: "_children",
+      dataTreeChildField: '_children',
       resizableRows: true,
       dataTree: true,
       dataTreeStartExpanded: true,
@@ -988,17 +1125,20 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
       columnDefaults: {
         headerWordWrap: true,
         headerVertical: false,
-        headerHozAlign: "center",
+        headerHozAlign: 'center',
         minWidth: 60,
-        resizable: true
+        resizable: true,
       },
       columns: [
         {
-          title: '', field: 'actions', frozen: true, formatter: (cell) => {
+          title: '',
+          field: 'actions',
+          frozen: true,
+          formatter: (cell) => {
             return `<i class="bi bi-trash3 text-danger delete-btn" style="font-size:15px; cursor: pointer;"></i>`;
           },
           width: 100,
-          hozAlign: "center",
+          hozAlign: 'center',
           cellClick: (e, cell) => {
             e.stopPropagation();
             e.preventDefault();
@@ -1024,39 +1164,43 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
                   this.calculatorTotalImport();
                   this.calculateAll();
                   this.calculateTotal();
-                }
+                },
               });
             }
-          }
+          },
         },
         {
-          title: "Tổng CM/Set",
+          title: 'Tổng CM/Set',
           frozen: true,
           columns: [
             {
-              title: "STT",
-              field: "STT",
+              title: 'STT',
+              field: 'STT',
               width: 70,
-              hozAlign: "center",
+              hozAlign: 'center',
               resizable: true,
-              formatter: (cell) => this.getRowNumber(cell)
+              formatter: (cell) => this.getRowNumber(cell),
             },
             {
-              title: "Cụm", field: "Maker", width: 70, hozAlign: "center", resizable: true, editor: "input"
+              title: 'Cụm',
+              field: 'Maker',
+              width: 70,
+              hozAlign: 'center',
+              resizable: true,
+              editor: 'input',
             },
             {
-              title: "Tên sản phẩm",
-              field: "ProductName",
+              title: 'Tên sản phẩm',
+              field: 'ProductName',
               width: 150,
               resizable: true,
               variableHeight: true,
-              editor: "input",
-
+              editor: 'input',
             },
-          ]
+          ],
         },
         {
-          title: "EXW",
+          title: 'EXW',
           columns: [
             {
               title: 'ID cột chọn mã gốc',
@@ -1069,17 +1213,17 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
               field: 'ProductCode',
               sorter: 'string',
               width: 120,
-              editor: "list",
+              editor: 'list',
               tooltip: true,
               frozen: true,
               editorParams: {
-                values: this.cboProductSale.map(product => {
-                  const shortLabel = `${product.ProductNewCode} ${product.ProductCode}`
+                values: this.cboProductSale.map((product) => {
+                  const shortLabel = `${product.ProductNewCode} ${product.ProductCode}`;
                   return {
                     label: shortLabel,
                     value: product.ProductCode,
-                    id: product.ID
-                  }
+                    id: product.ID,
+                  };
                 }),
                 autocomplete: true,
                 listOnEmpty: true,
@@ -1090,35 +1234,48 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
               field: 'ProductCodeOrigin',
               sorter: 'string',
               width: 120,
-              editor: "input",
+              editor: 'input',
               tooltip: true,
             },
-          ]
+          ],
         },
         {
-          title: "Margin",
+          title: 'Margin',
           columns: [
-            { title: "Mã báo khách", field: "ProductCodeCustomer", width: 150, hozAlign: "center", resizable: true, editor: "input" },
             {
-              title: "Số lượng", field: "Quantity", width: 100, hozAlign: "center", resizable: true, editor: "number", formatter: "money",
+              title: 'Mã báo khách',
+              field: 'ProductCodeCustomer',
+              width: 150,
+              hozAlign: 'center',
+              resizable: true,
+              editor: 'input',
+            },
+            {
+              title: 'Số lượng',
+              field: 'Quantity',
+              width: 100,
+              hozAlign: 'center',
+              resizable: true,
+              editor: 'number',
+              formatter: 'money',
               formatterParams: {
                 precision: 0,
-                decimal: ".",
-                thousand: ",",
-                symbol: "",
-                symbolAfter: true
+                decimal: '.',
+                thousand: ',',
+                symbol: '',
+                symbolAfter: true,
               },
-              bottomCalc: "sum",
-              bottomCalcFormatter: "money",
+              bottomCalc: 'sum',
+              bottomCalcFormatter: 'money',
               bottomCalcFormatterParams: {
                 precision: 0,
-                decimal: ".",
-                thousand: ",",
-                symbol: "",
-                symbolAfter: true
-              }
+                decimal: '.',
+                thousand: ',',
+                symbol: '',
+                symbolAfter: true,
+              },
             },
-          ]
+          ],
         },
         {
           title: `Lợi nhuận`,
@@ -1128,46 +1285,52 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
               title: 'ĐVT',
               field: 'UnitCountID',
               width: 120,
-              editor: "list",
+              editor: 'list',
               editorParams: {
-                values: this.cboUnitCount.map(product => {
+                values: this.cboUnitCount.map((product) => {
                   return {
                     label: product.UnitName,
                     value: product.ID,
-                  }
+                  };
                 }),
                 autocomplete: true,
                 listOnEmpty: true,
               },
               formatter: (cell) => {
                 const id = cell.getValue();
-                const found = this.cboUnitCount.find(u => u.ID === id);
+                const found = this.cboUnitCount.find((u) => u.ID === id);
                 return found ? found.UnitName : '';
-              }
+              },
             },
             {
-              title: "Đơn giá nhập EXW", field: "UnitImportPriceUSD", width: 150, hozAlign: "center", resizable: true, editor: "number", formatter: "money",
+              title: 'Đơn giá nhập EXW',
+              field: 'UnitImportPriceUSD',
+              width: 150,
+              hozAlign: 'center',
+              resizable: true,
+              editor: 'number',
+              formatter: 'money',
               formatterParams: {
                 precision: 0,
-                decimal: ".",
-                thousand: ",",
-                symbol: "",
-                symbolAfter: true
+                decimal: '.',
+                thousand: ',',
+                symbol: '',
+                symbolAfter: true,
               },
-              bottomCalc: "sum",
-              bottomCalcFormatter: "money",
+              bottomCalc: 'sum',
+              bottomCalcFormatter: 'money',
               bottomCalcFormatterParams: {
                 precision: 0,
-                decimal: ".",
-                thousand: ",",
-                symbol: "",
-                symbolAfter: true
-              }
+                decimal: '.',
+                thousand: ',',
+                symbol: '',
+                symbolAfter: true,
+              },
             },
-          ]
+          ],
         },
         {
-          title: "Tỷ lệ lợi nhuận",
+          title: 'Tỷ lệ lợi nhuận',
           columns: [
             {
               title: 'ID Loại tiền',
@@ -1179,432 +1342,548 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
               title: 'Loại tiền',
               field: 'CurrencyCode',
               width: 120,
-              editor: "list",
+              editor: 'list',
               editorParams: {
-                values: this.cboCurrency.map(item => {
-                  const shortLabel = `${item.Code} - ${item.NameVietNamese}`
+                values: this.cboCurrency.map((item) => {
+                  const shortLabel = `${item.Code} - ${item.NameVietNamese}`;
                   return {
                     label: shortLabel,
                     value: item.Code,
-                    id: item.ID
-                  }
+                    id: item.ID,
+                  };
                 }),
                 autocomplete: true,
                 listOnEmpty: true,
               },
             },
-            { title: "Tỷ giá", field: "CurrencyRate", width: 150, hozAlign: "center", resizable: true },
-          ]
+            {
+              title: 'Tỷ giá',
+              field: 'CurrencyRate',
+              width: 150,
+              hozAlign: 'center',
+              resizable: true,
+            },
+          ],
         },
         {
-          title: 'Tổng giá nhập', field: 'TotalImportPriceUSD', sorter: 'string', width: 150, formatter: "money",
+          title: 'Tổng giá nhập',
+          field: 'TotalImportPriceUSD',
+          sorter: 'string',
+          width: 150,
+          formatter: 'money',
           formatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
           },
-          bottomCalc: "sum",
-          bottomCalcFormatter: "money",
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
           bottomCalcFormatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         {
-          title: 'Đơn giá nhập chưa chi phí (VND)', field: 'UnitImportPriceVND', sorter: 'string', width: 150, formatter: "money",
+          title: 'Đơn giá nhập chưa chi phí (VND)',
+          field: 'UnitImportPriceVND',
+          sorter: 'string',
+          width: 150,
+          formatter: 'money',
           formatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
           },
-          bottomCalc: "sum",
-          bottomCalcFormatter: "money",
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
           bottomCalcFormatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         {
-          title: 'Tổng giá nhập chưa chi phí (VND)', field: 'TotalImportPriceVND', sorter: 'string', width: 150, formatter: "money",
+          title: 'Tổng giá nhập chưa chi phí (VND)',
+          field: 'TotalImportPriceVND',
+          sorter: 'string',
+          width: 150,
+          formatter: 'money',
           formatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
           },
-          bottomCalc: "sum",
-          bottomCalcFormatter: "money",
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
           bottomCalcFormatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         {
-          title: 'Phí ngân hàng (VND)', field: 'BankCharge', sorter: 'string', width: 150, formatter: "money",
+          title: 'Phí ngân hàng (VND)',
+          field: 'BankCharge',
+          sorter: 'string',
+          width: 150,
+          formatter: 'money',
           formatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
           },
-          bottomCalc: "sum",
-          bottomCalcFormatter: "money",
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
           bottomCalcFormatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         {
-          title: 'Thuế nhập khẩu (%)', field: 'ProtectiveTariff', sorter: 'string', width: 150, editor: "number", formatter: "money",
+          title: 'Thuế nhập khẩu (%)',
+          field: 'ProtectiveTariff',
+          sorter: 'string',
+          width: 150,
+          editor: 'number',
+          formatter: 'money',
           formatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
           },
-          bottomCalc: "sum",
-          bottomCalcFormatter: "money",
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
           bottomCalcFormatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         {
-          title: 'Phí vận chuyển / 1pcs', field: 'FeeShipPcs', sorter: 'string', width: 150, editor: "number", formatter: "money",
+          title: 'Phí vận chuyển / 1pcs',
+          field: 'FeeShipPcs',
+          sorter: 'string',
+          width: 150,
+          editor: 'number',
+          formatter: 'money',
           formatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
           },
-          bottomCalc: "sum",
-          bottomCalcFormatter: "money",
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
           bottomCalcFormatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         {
-          title: 'Thuế nhập khẩu/1pcs (VND)', field: 'ProtectiveTariffPerPcs', sorter: 'string', width: 150, formatter: "money",
+          title: 'Thuế nhập khẩu/1pcs (VND)',
+          field: 'ProtectiveTariffPerPcs',
+          sorter: 'string',
+          width: 150,
+          formatter: 'money',
           formatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
           },
-          bottomCalc: "sum",
-          bottomCalcFormatter: "money",
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
           bottomCalcFormatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         {
-          title: 'Tổng thuế nhập khẩu (VND)', field: 'TotalProtectiveTariff', sorter: 'string', width: 150, formatter: "money",
+          title: 'Tổng thuế nhập khẩu (VND)',
+          field: 'TotalProtectiveTariff',
+          sorter: 'string',
+          width: 150,
+          formatter: 'money',
           formatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
           },
-          bottomCalc: "sum",
-          bottomCalcFormatter: "money",
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
           bottomCalcFormatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         {
-          title: 'Phí vận chuyển, HCHQ, CO, MSDV, vv (VND)', field: 'OrtherFees', sorter: 'string', width: 150, editor: "number", formatter: "money",
+          title: 'Phí vận chuyển, HCHQ, CO, MSDV, vv (VND)',
+          field: 'OrtherFees',
+          sorter: 'string',
+          width: 150,
+          editor: 'number',
+          formatter: 'money',
           formatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
           },
-          bottomCalc: "sum",
-          bottomCalcFormatter: "money",
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
           bottomCalcFormatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         {
-          title: 'Phí khai HQ (VND)', field: 'CustomFees', sorter: 'string', width: 150, editor: "number", formatter: "money",
+          title: 'Phí khai HQ (VND)',
+          field: 'CustomFees',
+          sorter: 'string',
+          width: 150,
+          editor: 'number',
+          formatter: 'money',
           formatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
           },
-          bottomCalc: "sum",
-          bottomCalcFormatter: "money",
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
           bottomCalcFormatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         {
-          title: 'Tổng giá nhập chưa VAT (VND)', field: 'TotalImportPriceIncludeFees', sorter: 'string', width: 150, editor: "number", formatter: "money",
+          title: 'Tổng giá nhập chưa VAT (VND)',
+          field: 'TotalImportPriceIncludeFees',
+          sorter: 'string',
+          width: 150,
+          editor: 'number',
+          formatter: 'money',
           formatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
           },
-          bottomCalc: "sum",
-          bottomCalcFormatter: "money",
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
           bottomCalcFormatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         {
-          title: 'Đơn giá về kho (Bao gồm chi phí)', field: 'UnitPriceIncludeFees', sorter: 'string', width: 150, formatter: "money",
+          title: 'Đơn giá về kho (Bao gồm chi phí)',
+          field: 'UnitPriceIncludeFees',
+          sorter: 'string',
+          width: 150,
+          formatter: 'money',
           formatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
           },
-          bottomCalc: "sum",
-          bottomCalcFormatter: "money",
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
           bottomCalcFormatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         {
-          title: 'CM/Set', field: 'CMPerSet', sorter: 'string', width: 150, formatter: "money",
+          title: 'CM/Set',
+          field: 'CMPerSet',
+          sorter: 'string',
+          width: 150,
+          formatter: 'money',
           formatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
           },
-          bottomCalc: "sum",
-          bottomCalcFormatter: "money",
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
           bottomCalcFormatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
-        },
-        { title: 'Margin', field: 'Margin', sorter: 'string', width: 150, editor: "number" },
-        {
-          title: 'Đơn giá dự kiến báo khách', field: 'UnitPriceExpectCustomer', sorter: 'string', width: 150, editor: "number", formatter: "money",
-          formatterParams: {
-            precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
           },
-          bottomCalc: "sum",
-          bottomCalcFormatter: "money",
-          bottomCalcFormatterParams: {
-            precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
         },
         {
-          title: 'Tổng đơn hàng', field: 'TotalPriceExpectCustomer', sorter: 'string', width: 150, formatter: "money",
-          formatterParams: {
-            precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          },
-          bottomCalc: "sum",
-          bottomCalcFormatter: "money",
-          bottomCalcFormatterParams: {
-            precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
+          title: 'Margin',
+          field: 'Margin',
+          sorter: 'string',
+          width: 150,
+          editor: 'number',
         },
         {
-          title: 'Lợi nhuận', field: 'Profit', sorter: 'string', width: 150, formatter: "money",
+          title: 'Đơn giá dự kiến báo khách',
+          field: 'UnitPriceExpectCustomer',
+          sorter: 'string',
+          width: 150,
+          editor: 'number',
+          formatter: 'money',
           formatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
           },
-          bottomCalc: "sum",
-          bottomCalcFormatter: "money",
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
           bottomCalcFormatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         {
-          title: 'Tỷ lệ lợi nhuận', field: 'ProfitPercent', sorter: 'string', width: 150, formatter: "money",
+          title: 'Tổng đơn hàng',
+          field: 'TotalPriceExpectCustomer',
+          sorter: 'string',
+          width: 150,
+          formatter: 'money',
           formatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
           },
-          bottomCalc: "sum",
-          bottomCalcFormatter: "money",
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
           bottomCalcFormatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
-        },
-        { title: 'Leadtime', field: 'LeadTime', sorter: 'string', width: 150, editor: 'input' },
-        {
-          title: 'Giá báo nhân công', field: 'TotalPriceLabor', sorter: 'string', width: 150, editor: "number", formatter: "money",
-          formatterParams: {
-            precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
           },
-          bottomCalc: "sum",
-          bottomCalcFormatter: "money",
-          bottomCalcFormatterParams: {
-            precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
         },
         {
-          title: 'Giá báo RTC Vision Software', field: 'TotalPriceRTCVision', sorter: 'string', width: 150, formatter: "money",
+          title: 'Lợi nhuận',
+          field: 'Profit',
+          sorter: 'string',
+          width: 150,
+          formatter: 'money',
           formatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
           },
-          bottomCalc: "sum",
-          bottomCalcFormatter: "money",
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
           bottomCalcFormatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         {
-          title: 'Tổng giá trị đầu ra đơn hàng', field: 'TotalPrice', sorter: 'string', width: 150, formatter: "money",
+          title: 'Tỷ lệ lợi nhuận',
+          field: 'ProfitPercent',
+          sorter: 'string',
+          width: 150,
+          formatter: 'money',
           formatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
           },
-          bottomCalc: "sum",
-          bottomCalcFormatter: "money",
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
           bottomCalcFormatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         {
-          title: 'Đơn giá/Máy (Bao gồm nhân công và COM', field: 'UnitPricePerCOM', sorter: 'string', width: 150, formatter: "money", editor: "number",
+          title: 'Leadtime',
+          field: 'LeadTime',
+          sorter: 'string',
+          width: 150,
+          editor: 'input',
+        },
+        {
+          title: 'Giá báo nhân công',
+          field: 'TotalPriceLabor',
+          sorter: 'string',
+          width: 150,
+          editor: 'number',
+          formatter: 'money',
           formatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
           },
-          bottomCalc: "sum",
-          bottomCalcFormatter: "money",
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
           bottomCalcFormatterParams: {
             precision: 0,
-            decimal: ".",
-            thousand: ",",
-            symbol: "",
-            symbolAfter: true
-          }
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
-        { title: 'Ghi chú', field: 'Note', sorter: 'string', width: 150, editor: "input" },
-      ]
+        {
+          title: 'Giá báo RTC Vision Software',
+          field: 'TotalPriceRTCVision',
+          sorter: 'string',
+          width: 150,
+          formatter: 'money',
+          formatterParams: {
+            precision: 0,
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
+          bottomCalcFormatterParams: {
+            precision: 0,
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
+        },
+        {
+          title: 'Tổng giá trị đầu ra đơn hàng',
+          field: 'TotalPrice',
+          sorter: 'string',
+          width: 150,
+          formatter: 'money',
+          formatterParams: {
+            precision: 0,
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
+          bottomCalcFormatterParams: {
+            precision: 0,
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
+        },
+        {
+          title: 'Đơn giá/Máy (Bao gồm nhân công và COM',
+          field: 'UnitPricePerCOM',
+          sorter: 'string',
+          width: 150,
+          formatter: 'money',
+          editor: 'number',
+          formatterParams: {
+            precision: 0,
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
+          bottomCalcFormatterParams: {
+            precision: 0,
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
+        },
+        {
+          title: 'Ghi chú',
+          field: 'Note',
+          sorter: 'string',
+          width: 150,
+          editor: 'input',
+        },
+      ],
     });
 
-    this.tb_Detail.on("rowClick", (e: any, row: RowComponent) => {
+    this.tb_Detail.on('rowClick', (e: any, row: RowComponent) => {
       this.selectedRow = row;
-      console.log("selectedRow", this.selectedRow);
-      console.log("_children: ", this.selectedRow.getData()['_children']);
+      console.log('selectedRow', this.selectedRow);
+      console.log('_children: ', this.selectedRow.getData()['_children']);
     });
 
     // Add event handlers after table initialization

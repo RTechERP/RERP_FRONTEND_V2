@@ -2,23 +2,22 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { DateTime } from 'luxon';
-import { API_URL } from '../../../../app.config';
+import { HOST } from '../../../../app.config';
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class HistoryImportExportService {
-
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
   getHistoryImportExport(
     status: number,
     dateStart: DateTime,
     dateEnd: DateTime,
     filterText: string,
-    checkedAll: boolean, 
-    pageNumber:number,
-    pageSize:number,
-    warehousecode:string,
+    checkedAll: boolean,
+    pageNumber: number,
+    pageSize: number,
+    warehousecode: string
   ): Observable<any> {
     const params: any = {
       Status: status,
@@ -30,7 +29,7 @@ export class HistoryImportExportService {
       WarehouseCode: warehousecode.trim(),
       checkedAll: checkedAll,
     };
-  
-    return this.http.post(API_URL + `api/historyImportExport`, params);
+
+    return this.http.post(HOST + `api/historyImportExport`, params);
   }
 }

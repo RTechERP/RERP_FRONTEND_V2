@@ -1,4 +1,13 @@
-import { Component, ViewEncapsulation, ViewChild, TemplateRef, ElementRef, Input, OnInit, AfterViewInit } from '@angular/core';
+import {
+  Component,
+  ViewEncapsulation,
+  ViewChild,
+  TemplateRef,
+  ElementRef,
+  Input,
+  OnInit,
+  AfterViewInit,
+} from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
@@ -13,15 +22,23 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzUploadModule, NzUploadFile, NzUploadXHRArgs } from 'ng-zorro-antd/upload';
+import {
+  NzUploadModule,
+  NzUploadFile,
+  NzUploadXHRArgs,
+} from 'ng-zorro-antd/upload';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
-import { TabulatorFull as Tabulator, RowComponent, CellComponent } from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import 'bootstrap-icons/font/bootstrap-icons.css';
+import {
+  TabulatorFull as Tabulator,
+  RowComponent,
+  CellComponent,
+} from 'tabulator-tables';
+// import 'tabulator-tables/dist/css/tabulator_simple.min.css';
+// import 'bootstrap-icons/font/bootstrap-icons.css';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
 import { EnvironmentInjector } from '@angular/core';
@@ -69,13 +86,15 @@ import { RequestInvoiceDetailService } from './request-invoice-detail-service/re
     NzSwitchModule,
     NzTabsModule,
     NzDropDownModule,
-    NzFormModule
+    NzFormModule,
   ],
-  standalone: true
+  standalone: true,
 })
 export class RequestInvoiceDetailComponent implements OnInit {
-  @ViewChild('tb_InvoiceFile', { static: false }) tb_InvoiceFileElement!: ElementRef;
-  @ViewChild('tb_DataTable', { static: false }) tb_DataTableElement!: ElementRef;
+  @ViewChild('tb_InvoiceFile', { static: false })
+  tb_InvoiceFileElement!: ElementRef;
+  @ViewChild('tb_DataTable', { static: false })
+  tb_DataTableElement!: ElementRef;
 
   // Input properties để nhận dữ liệu từ parent component
   @Input() selectedRowsData: any[] = [];
@@ -111,7 +130,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
     { value: 1, label: 'RTC' },
     { value: 2, label: 'APR' },
     { value: 3, label: 'MVI' },
-    { value: 4, label: 'Yonko' }
+    { value: 4, label: 'Yonko' },
   ];
 
   constructor(
@@ -122,8 +141,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
     private viewPokhService: ViewPokhService,
     private RIDService: RequestInvoiceDetailService,
     private modal: NzModalService
-
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     this.formData = this.getDefaultFormData();
@@ -151,7 +169,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
         this.updateDataTable();
       }, 100);
     }
-    
+
     // Cập nhật dữ liệu bảng nếu ở chế độ edit
     if (this.isEditMode && this.groupedData.length > 0) {
       setTimeout(() => {
@@ -166,10 +184,10 @@ export class RequestInvoiceDetailComponent implements OnInit {
   //#region Load dữ liệu từ API
   loadCustomer(): void {
     this.viewPokhService.loadCustomer().subscribe(
-      response => {
+      (response) => {
         if (response.status === 1) {
           this.customers = response.data;
-          
+
           // Xử lý dữ liệu từ POKH sau khi customers đã được load
           if (this.isFromPOKH && this.selectedRowsData.length > 0) {
             this.handlePOKHData();
@@ -178,28 +196,28 @@ export class RequestInvoiceDetailComponent implements OnInit {
           console.error('Lỗi khi tải Customer:', response.message);
         }
       },
-      error => {
+      (error) => {
         console.error('Lỗi kết nối khi tải Customer:', error);
       }
     );
   }
   loadProject(): void {
     this.RIDService.loadProject().subscribe(
-      response => {
+      (response) => {
         if (response.status === 1) {
           this.projects = response.data;
         } else {
           console.error('Lỗi khi tải Project:', response.message);
         }
       },
-      error => {
+      (error) => {
         console.error('Lỗi kết nối khi tải Project:', error);
       }
     );
   }
   loadProductSale(): void {
     this.RIDService.loadProductSale().subscribe(
-      response => {
+      (response) => {
         if (response.status === 1) {
           this.products = response.data;
           this.initDataTable();
@@ -207,35 +225,35 @@ export class RequestInvoiceDetailComponent implements OnInit {
           console.error('Lỗi khi tải Product:', response.message);
         }
       },
-      error => {
+      (error) => {
         console.error('Lỗi kết nối khi tải Product:', error);
       }
     );
   }
   loadEmployee(): void {
     this.RIDService.loadEmployee().subscribe(
-      response => {
+      (response) => {
         if (response.status === 1) {
           this.employees = response.data;
         } else {
           console.error('Lỗi khi tải Employees:', response.message);
         }
       },
-      error => {
+      (error) => {
         console.error('Lỗi kết nối khi tải Employees:', error);
       }
     );
   }
   generateBillNumber(requestInvoiceId: number): void {
     this.RIDService.generateBillNumber(requestInvoiceId).subscribe(
-      response => {
+      (response) => {
         if (response.status === 1) {
           this.formData.Code = response.data;
         } else {
           console.error('Lỗi khi tạo số phiếu:', response.message);
         }
       },
-      error => {
+      (error) => {
         console.error('Lỗi kết nối khi tạo số phiếu', error);
       }
     );
@@ -243,16 +261,14 @@ export class RequestInvoiceDetailComponent implements OnInit {
   //#endregion
 
   onCustomerChange(customerId: number): void {
-    const customer = this.customers.find(c => c.ID === customerId);
+    const customer = this.customers.find((c) => c.ID === customerId);
     if (customer) {
       this.formData.customerCode = customer.Code;
       this.formData.address = customer.Address;
     }
   }
 
-
   saveAndClose(): void {
-    
     const requestInvoices = {
       ID: this.selectedId || 0,
       Code: this.formData.Code,
@@ -264,7 +280,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
       Note: this.formData.note,
     };
 
-    const requestInvoiceDetails = this.tb_DataTable.getData().map(item => ({
+    const requestInvoiceDetails = this.tb_DataTable.getData().map((item) => ({
       ...item,
       ProductSaleID: item.ProductSaleID === '' ? null : item.ProductSaleID,
       ProjectID: item.ProjectID === '' ? null : item.ProjectID,
@@ -281,18 +297,20 @@ export class RequestInvoiceDetailComponent implements OnInit {
         if (response.status === 1) {
           this.handleSuccess(response);
         } else {
-          this.notification.error('Lỗi', response.message || 'Lưu dữ liệu thất bại!');
+          this.notification.error(
+            'Lỗi',
+            response.message || 'Lưu dữ liệu thất bại!'
+          );
         }
       },
       error: (err) => {
         this.notification.error('Lỗi', 'Không thể lưu dữ liệu!');
-      }
+      },
     });
   }
-  handleSuccess(response: any){
+  handleSuccess(response: any) {
     const ID = response.data.id;
-    if(this.files.length > 0 )
-    {
+    if (this.files.length > 0) {
       this.uploadFiles(ID);
     }
     this.notification.success('Thành công', 'Lưu dữ liệu thành công');
@@ -300,7 +318,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
     this.activeModal.close({
       success: true,
       reloadData: true,
-      data: response.data
+      data: response.data,
     });
   }
   uploadFiles(RIID: number) {
@@ -315,38 +333,39 @@ export class RequestInvoiceDetailComponent implements OnInit {
 
     // Xử lý upload files mới
     if (this.files.length > 0) {
-      this.RIDService.uploadFiles(formData, RIID)
-        .subscribe({
-          next: (response) => {
-            console.log('Upload files thành công');
-          },
-          error: (error) => {
-            this.notification.error('Thông báo', 'Lỗi upload files: ' + error);
-          }
-        });
+      this.RIDService.uploadFiles(formData, RIID).subscribe({
+        next: (response) => {
+          console.log('Upload files thành công');
+        },
+        error: (error) => {
+          this.notification.error('Thông báo', 'Lỗi upload files: ' + error);
+        },
+      });
     }
 
     // Xử lý xóa files
     if (this.deletedFileIds.length > 0) {
-      this.RIDService.deleteFiles(this.deletedFileIds)
-        .subscribe({
-          next: (response) => {
-            this.deletedFileIds = [];
-          },
-          error: (error) => {
-            this.notification.error('Lỗi xóa files:', error);
-          }
-        });
+      this.RIDService.deleteFiles(this.deletedFileIds).subscribe({
+        next: (response) => {
+          this.deletedFileIds = [];
+        },
+        error: (error) => {
+          this.notification.error('Lỗi xóa files:', error);
+        },
+      });
     }
   }
   onFileSelected(event: any) {
     const files = event.target.files;
     if (files && files.length > 0) {
       const MAX_FILE_SIZE = 50 * 1024 * 1024;
-      Array.from(files).forEach(file => {
+      Array.from(files).forEach((file) => {
         const fileObj = file as File;
         if (fileObj.size > MAX_FILE_SIZE) {
-          this.notification.error('Thông báo', `File ${fileObj.name} vượt quá giới hạn dung lượng cho phép (50MB)`);
+          this.notification.error(
+            'Thông báo',
+            `File ${fileObj.name} vượt quá giới hạn dung lượng cho phép (50MB)`
+          );
           return;
         }
         this.addFileToTable(fileObj);
@@ -370,7 +389,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
       fileSize: this.formatFileSize(file.size),
       fileType: this.getFileType(file.name),
       uploadDate: new Date().toLocaleDateString('vi-VN'),
-      file: file  
+      file: file,
     };
     this.files = [...this.files, newFile];
     if (this.tb_InvoiceFile) {
@@ -391,53 +410,61 @@ export class RequestInvoiceDetailComponent implements OnInit {
       exportDate: new Date().toISOString().split('T')[0],
       taxCompanyId: null,
       status: null,
-      note: ''
+      note: '',
     };
   }
   //#region Các hàm vẽ bảng
   initInvoiceFile(): void {
-    this.tb_InvoiceFile = new Tabulator(this.tb_InvoiceFileElement.nativeElement, {
-      data: this.files,
-      layout: 'fitDataFill',
-      movableColumns: true,
-      pagination: true,
-      height: "21vh",
-      paginationSize: 5,
-      columns: [
-        {
-          title: '',
-          field: 'actions',
-          formatter: (cell) => {
-            return `<i class="bi bi-trash3 text-danger delete-btn" style="font-size:15px; cursor: pointer;"></i>`;
+    this.tb_InvoiceFile = new Tabulator(
+      this.tb_InvoiceFileElement.nativeElement,
+      {
+        data: this.files,
+        layout: 'fitDataFill',
+        movableColumns: true,
+        pagination: true,
+        height: '21vh',
+        paginationSize: 5,
+        columns: [
+          {
+            title: '',
+            field: 'actions',
+            formatter: (cell) => {
+              return `<i class="bi bi-trash3 text-danger delete-btn" style="font-size:15px; cursor: pointer;"></i>`;
+            },
+            width: '10%',
+            hozAlign: 'center',
+            cellClick: (e, cell) => {
+              if ((e.target as HTMLElement).classList.contains('delete-btn')) {
+                this.modal.confirm({
+                  nzTitle: 'Xác nhận xóa',
+                  nzContent: 'Bạn có chắc chắn muốn xóa file này?',
+                  nzOkText: 'Đồng ý',
+                  nzCancelText: 'Hủy',
+                  nzOnOk: () => {
+                    const row = cell.getRow();
+                    const rowData = row.getData();
+
+                    // thêm id của file đã xóa vào mảng deletedFileIds
+                    if (rowData['ID']) {
+                      this.deletedFileIds.push(rowData['ID']);
+                    }
+
+                    row.delete();
+                    this.files = this.tb_InvoiceFile.getData();
+                  },
+                });
+              }
+            },
           },
-          width: "10%",
-          hozAlign: "center",
-          cellClick: (e, cell) => {
-            if ((e.target as HTMLElement).classList.contains('delete-btn')) {
-              this.modal.confirm({
-                nzTitle: 'Xác nhận xóa',
-                nzContent: 'Bạn có chắc chắn muốn xóa file này?',
-                nzOkText: 'Đồng ý',
-                nzCancelText: 'Hủy',
-                nzOnOk: () => {
-                  const row = cell.getRow();
-                  const rowData = row.getData();
-
-                  // thêm id của file đã xóa vào mảng deletedFileIds
-                  if (rowData['ID']) {
-                    this.deletedFileIds.push(rowData['ID']);
-                  }
-
-                  row.delete();
-                  this.files = this.tb_InvoiceFile.getData();
-                }
-              });
-            }
-          }
-        },
-        { title: 'Tên file', field: 'fileName', sorter: 'string', width: "70%" },
-      ]
-    })
+          {
+            title: 'Tên file',
+            field: 'fileName',
+            sorter: 'string',
+            width: '70%',
+          },
+        ],
+      }
+    );
   }
   initDataTable(): void {
     this.tb_DataTable = new Tabulator(this.tb_DataTableElement.nativeElement, {
@@ -445,19 +472,21 @@ export class RequestInvoiceDetailComponent implements OnInit {
       layout: 'fitDataFill',
       movableColumns: true,
       pagination: true,
-      height: "40vh",
+      height: '40vh',
       paginationSize: 20,
       columnDefaults: {
         headerWordWrap: true,
-        headerVertical: false
+        headerVertical: false,
       },
       columns: [
         {
-          title: '', field: 'actions', formatter: (cell) => {
+          title: '',
+          field: 'actions',
+          formatter: (cell) => {
             return `<i class="bi bi-trash3 text-danger delete-btn" style="font-size:15px; cursor: pointer;"></i>`;
           },
           width: '5%',
-          hozAlign: "center",
+          hozAlign: 'center',
           cellClick: (e, cell) => {
             if ((e.target as HTMLElement).classList.contains('delete-btn')) {
               this.modal.confirm({
@@ -475,65 +504,128 @@ export class RequestInvoiceDetailComponent implements OnInit {
 
                   row.delete();
                   this.details = this.tb_DataTable.getData();
-                }
+                },
               });
             }
-          }
+          },
         },
-        { title: 'STT', field: 'STT', sorter: 'number', width: "5%", hozAlign: "center" },
-        { title: 'Mã nội bộ', field: 'ProductNewCode', sorter: 'string', width: "12%" },
         {
-          title: 'Mã sản phẩm', field: 'ProductSaleID', sorter: 'string', width: "12%", editor: "list", editorParams: {
+          title: 'STT',
+          field: 'STT',
+          sorter: 'number',
+          width: '5%',
+          hozAlign: 'center',
+        },
+        {
+          title: 'Mã nội bộ',
+          field: 'ProductNewCode',
+          sorter: 'string',
+          width: '12%',
+        },
+        {
+          title: 'Mã sản phẩm',
+          field: 'ProductSaleID',
+          sorter: 'string',
+          width: '12%',
+          editor: 'list',
+          editorParams: {
             values: this.products.map((product) => ({
               label: product.ProductCode,
-              value: product.ID
-            }))
-          }, formatter: (cell) => {
+              value: product.ID,
+            })),
+          },
+          formatter: (cell) => {
             const value = cell.getValue();
-            const product = this.products.find(p => p.ID === value);
+            const product = this.products.find((p) => p.ID === value);
             return product ? product.ProductCode : value;
           },
           cellEdited: (cell: CellComponent) => {
             this.onProductSaleIDChanged(cell);
-          }
+          },
         },
-        { title: 'Mã sản phẩm theo dự án', field: 'ProductByProject', sorter: 'string', width: "12%"},
-        { title: 'Tên sản phẩm', field: 'ProductName', sorter: 'string', width: "20%" },
-        { title: 'ĐVT', field: 'Unit', sorter: 'string', width: "8%" },
-        { title: 'Số lượng', field: 'Quantity', sorter: 'number', width: "8%", hozAlign: "right", editor: "number" },
-        { title: 'Mã dự án', field: 'ProjectCode', sorter: 'string', width: "12%" },
         {
-          title: 'Dự án', field: 'ProjectID', sorter: 'string', width: "15%", editor: "list", editorParams: {
+          title: 'Mã sản phẩm theo dự án',
+          field: 'ProductByProject',
+          sorter: 'string',
+          width: '12%',
+        },
+        {
+          title: 'Tên sản phẩm',
+          field: 'ProductName',
+          sorter: 'string',
+          width: '20%',
+        },
+        { title: 'ĐVT', field: 'Unit', sorter: 'string', width: '8%' },
+        {
+          title: 'Số lượng',
+          field: 'Quantity',
+          sorter: 'number',
+          width: '8%',
+          hozAlign: 'right',
+          editor: 'number',
+        },
+        {
+          title: 'Mã dự án',
+          field: 'ProjectCode',
+          sorter: 'string',
+          width: '12%',
+        },
+        {
+          title: 'Dự án',
+          field: 'ProjectID',
+          sorter: 'string',
+          width: '15%',
+          editor: 'list',
+          editorParams: {
             values: this.projects.map((project) => ({
               label: project.ProjectName,
-              value: project.ID
-            }))
-          }, formatter: (cell) => {
+              value: project.ID,
+            })),
+          },
+          formatter: (cell) => {
             const value = cell.getValue();
-            const project = this.projects.find(p => p.ID === value);
+            const project = this.projects.find((p) => p.ID === value);
             return project ? project.ProjectName : value;
           },
           cellEdited: (cell: CellComponent) => {
             this.onProjectChanged(cell);
-          }
+          },
         },
         // { title: 'Số PO', field: 'POCode', sorter: 'string', width: "8%" },
-        { title: 'Ghi chú', field: 'Note', sorter: 'string', width: "10%", editor: "input" },
-        { title: 'Thông số kỹ thuật', field: 'Specifications', sorter: 'string', width: "10%", editor: "input" },
-        { title: 'Số hóa đơn', field: 'InvoiceNumber', sorter: 'string', width: "10%", editor: "input" },
+        {
+          title: 'Ghi chú',
+          field: 'Note',
+          sorter: 'string',
+          width: '10%',
+          editor: 'input',
+        },
+        {
+          title: 'Thông số kỹ thuật',
+          field: 'Specifications',
+          sorter: 'string',
+          width: '10%',
+          editor: 'input',
+        },
+        {
+          title: 'Số hóa đơn',
+          field: 'InvoiceNumber',
+          sorter: 'string',
+          width: '10%',
+          editor: 'input',
+        },
         {
           title: 'Ngày hóa đơn',
           field: 'InvoiceDate',
           sorter: 'date',
-          width: "10%",
-          editor: "date",
+          width: '10%',
+          editor: 'date',
           formatter: (cell) => {
             const date = cell.getValue();
             return date ? new Date(date).toLocaleDateString('vi-VN') : '';
-          }
+          },
         },
-      ]
-    })
+      ],
+    });
   }
   //#endregion
 
@@ -543,11 +635,12 @@ export class RequestInvoiceDetailComponent implements OnInit {
       const firstRow = this.selectedRowsData[0];
 
       // Tìm thông tin khách hàng từ danh sách customers
-      const customer = this.customers.find(c => c.ID === this.customerID);
+      const customer = this.customers.find((c) => c.ID === this.customerID);
 
       // Cập nhật form data
       this.formData.customerId = this.customerID;
-      this.formData.customerCode = customer?.CustomerName || firstRow.CustomerName || '';
+      this.formData.customerCode =
+        customer?.CustomerName || firstRow.CustomerName || '';
       this.formData.address = customer?.Address || firstRow.Address || '';
 
       // Cập nhật products array để hiển thị trong bảng
@@ -557,7 +650,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
         Note: row.Note || '',
         Specifications: row.Specifications || '',
         InvoiceNumber: row.InvoiceNumber || '',
-        InvoiceDate: row.InvoiceDate || null
+        InvoiceDate: row.InvoiceDate || null,
       }));
     }
   }
@@ -567,7 +660,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
     console.log('Handling edit mode data:', this.groupedData);
     if (this.groupedData.length > 0) {
       const data = this.groupedData[0];
-      
+
       // Cập nhật form data từ MainData
       if (data.MainData) {
         this.formData.Code = data.MainData.Code || '';
@@ -583,8 +676,10 @@ export class RequestInvoiceDetailComponent implements OnInit {
           this.formData.requestDate = `${year}-${month}-${day}`;
         } else {
           this.formData.requestDate = new Date().toISOString().split('T')[0];
-        }        
-        this.formData.exportDate = data.MainData.ExportDate ? new Date(data.MainData.ExportDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+        }
+        this.formData.exportDate = data.MainData.ExportDate
+          ? new Date(data.MainData.ExportDate).toISOString().split('T')[0]
+          : new Date().toISOString().split('T')[0];
         this.formData.taxCompanyId = data.MainData.TaxCompanyID || null;
         this.formData.status = data.MainData.Status || null;
         this.formData.note = data.MainData.Note || '';
@@ -609,7 +704,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
           Note: item.Note || '',
           Specifications: item.Specifications || '',
           InvoiceNumber: item.InvoiceNumber || '',
-          InvoiceDate: item.InvoiceDate || null
+          InvoiceDate: item.InvoiceDate || null,
         }));
       }
 
@@ -620,8 +715,10 @@ export class RequestInvoiceDetailComponent implements OnInit {
           fileName: file.FileName || file.fileName,
           fileSize: file.FileSize ? this.formatFileSize(file.FileSize) : '',
           fileType: file.FileName ? this.getFileType(file.FileName) : '',
-          uploadDate: file.UploadDate ? new Date(file.UploadDate).toLocaleDateString('vi-VN') : new Date().toLocaleDateString('vi-VN'),
-          ServerPath: file.ServerPath || ''
+          uploadDate: file.UploadDate
+            ? new Date(file.UploadDate).toLocaleDateString('vi-VN')
+            : new Date().toLocaleDateString('vi-VN'),
+          ServerPath: file.ServerPath || '',
         }));
         console.log('Updated files:', this.files);
       }
@@ -651,7 +748,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
       Note: '',
       Specifications: '',
       InvoiceNumber: '',
-      InvoiceDate: null
+      InvoiceDate: null,
     };
     this.details = [...this.details, newProduct];
     // Cập nhật lại STT cho tất cả sản phẩm
@@ -666,7 +763,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
     const row = cell.getRow();
     const rowData = row.getData();
     const newValue = cell.getValue();
-    const product = this.products.find(p => p.ID === newValue);
+    const product = this.products.find((p) => p.ID === newValue);
 
     if (product) {
       rowData['ProductNewCode'] = product.ProductCode;
@@ -681,7 +778,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
     const row = cell.getRow();
     const rowData = row.getData();
     const newValue = cell.getValue();
-    const project = this.projects.find(p => p.ID === newValue);
+    const project = this.projects.find((p) => p.ID === newValue);
 
     if (project) {
       rowData['ProjectCode'] = project.ProjectCode;

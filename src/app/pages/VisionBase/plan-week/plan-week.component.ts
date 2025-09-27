@@ -1,4 +1,12 @@
-import { Component, ViewEncapsulation, ViewChild, TemplateRef, ElementRef, Input, IterableDiffers } from '@angular/core';
+import {
+  Component,
+  ViewEncapsulation,
+  ViewChild,
+  TemplateRef,
+  ElementRef,
+  Input,
+  IterableDiffers,
+} from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
@@ -13,16 +21,24 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzUploadModule, NzUploadFile, NzUploadXHRArgs } from 'ng-zorro-antd/upload';
+import {
+  NzUploadModule,
+  NzUploadFile,
+  NzUploadXHRArgs,
+} from 'ng-zorro-antd/upload';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
-import { TabulatorFull as Tabulator, RowComponent, CellComponent } from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import 'bootstrap-icons/font/bootstrap-icons.css';
+import {
+  TabulatorFull as Tabulator,
+  RowComponent,
+  CellComponent,
+} from 'tabulator-tables';
+// import 'tabulator-tables/dist/css/tabulator_simple.min.css';
+// import 'bootstrap-icons/font/bootstrap-icons.css';
 import { OnInit, AfterViewInit } from '@angular/core';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
@@ -70,13 +86,14 @@ import { PlanWeekDetailComponent } from '../plan-week-detail/plan-week-detail/pl
     NzSwitchModule,
     NzCheckboxModule,
     CommonModule,
-    NzTreeSelectModule
+    NzTreeSelectModule,
   ],
   templateUrl: './plan-week.component.html',
-  styleUrl: './plan-week.component.css'
+  styleUrl: './plan-week.component.css',
 })
-export class PlanWeekComponent implements OnInit, AfterViewInit{
-  @ViewChild('tb_MainTable', { static: false }) tb_MainTableElement!: ElementRef;
+export class PlanWeekComponent implements OnInit, AfterViewInit {
+  @ViewChild('tb_MainTable', { static: false })
+  tb_MainTableElement!: ElementRef;
 
   private tb_MainTable!: Tabulator;
 
@@ -101,31 +118,30 @@ export class PlanWeekComponent implements OnInit, AfterViewInit{
   filterUserData: any[] = [];
   mainData: any[] = [];
 
-
   constructor(
     private notification: NzNotificationService,
     private modalService: NgbModal,
     private modal: NzModalService,
-    private planWeekService: PlanWeekService,
-  ){}
+    private planWeekService: PlanWeekService
+  ) {}
 
   ngOnInit(): void {
     const today = new Date();
-  
-    const day = today.getDay(); 
-    const diffToMonday = (day === 0 ? -6 : 1 - day); 
+
+    const day = today.getDay();
+    const diffToMonday = day === 0 ? -6 : 1 - day;
     const monday = new Date(today);
     monday.setDate(today.getDate() + diffToMonday);
-  
+
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
-  
-    monday.setHours(0,0,0);
-    sunday.setHours(23,59,59);
+
+    monday.setHours(0, 0, 0);
+    sunday.setHours(23, 59, 59);
 
     this.filters.startDate = monday;
     this.filters.endDate = sunday;
-  
+
     this.loadDepartment();
     this.loadTeam();
     this.loadUser();
@@ -137,61 +153,90 @@ export class PlanWeekComponent implements OnInit, AfterViewInit{
       this.filters.teamId
     );
   }
-  
+
   ngAfterViewInit(): void {
     this.initMainTable();
   }
   searchData(): void {
-    this.loadMainData(this.filters.startDate, this.filters.endDate, this.filters.departmentId, this.filters.userId, this.filters.teamId );
+    this.loadMainData(
+      this.filters.startDate,
+      this.filters.endDate,
+      this.filters.departmentId,
+      this.filters.userId,
+      this.filters.teamId
+    );
   }
 
   increaseWeek(): void {
     if (this.filters.startDate && this.filters.endDate) {
-      this.filters.startDate = new Date(this.filters.startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
-      this.filters.endDate = new Date(this.filters.endDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+      this.filters.startDate = new Date(
+        this.filters.startDate.getTime() + 7 * 24 * 60 * 60 * 1000
+      );
+      this.filters.endDate = new Date(
+        this.filters.endDate.getTime() + 7 * 24 * 60 * 60 * 1000
+      );
     }
-    this.loadMainData(this.filters.startDate, this.filters.endDate, this.filters.departmentId, this.filters.userId, this.filters.teamId );
+    this.loadMainData(
+      this.filters.startDate,
+      this.filters.endDate,
+      this.filters.departmentId,
+      this.filters.userId,
+      this.filters.teamId
+    );
   }
 
   decreaseWeek(): void {
     if (this.filters.startDate && this.filters.endDate) {
-      this.filters.startDate = new Date(this.filters.startDate.getTime() - 7 * 24 * 60 * 60 * 1000);
-      this.filters.endDate = new Date(this.filters.endDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+      this.filters.startDate = new Date(
+        this.filters.startDate.getTime() - 7 * 24 * 60 * 60 * 1000
+      );
+      this.filters.endDate = new Date(
+        this.filters.endDate.getTime() - 7 * 24 * 60 * 60 * 1000
+      );
     }
-    this.loadMainData(this.filters.startDate, this.filters.endDate, this.filters.departmentId, this.filters.userId, this.filters.teamId );
+    this.loadMainData(
+      this.filters.startDate,
+      this.filters.endDate,
+      this.filters.departmentId,
+      this.filters.userId,
+      this.filters.teamId
+    );
   }
 
-  openPlanWeekDetailModal()
-  {
+  openPlanWeekDetailModal() {
     const modalRef = this.modalService.open(PlanWeekDetailComponent, {
       centered: true,
       backdrop: 'static',
-      size: 'xl'
-    })
-    modalRef.componentInstance.isEditMode = this.isEditMode
-    modalRef.componentInstance.UserID = this.selectedId
+      size: 'xl',
+    });
+    modalRef.componentInstance.isEditMode = this.isEditMode;
+    modalRef.componentInstance.UserID = this.selectedId;
     modalRef.result.then(
       (result) => {
-        if(result.success && result.reloadData) {
+        if (result.success && result.reloadData) {
           this.selectedRow = [];
           this.selectedId = 0;
-          this.loadMainData(this.filters.startDate, this.filters.endDate, this.filters.departmentId, this.filters.userId, this.filters.teamId );
+          this.loadMainData(
+            this.filters.startDate,
+            this.filters.endDate,
+            this.filters.departmentId,
+            this.filters.userId,
+            this.filters.teamId
+          );
         }
       },
       (reason) => {
         console.log('Modal closed');
       }
-    )
+    );
   }
-  
+
   onEdit(): void {
-    if(this.selectedId > 0)
-    {
+    if (this.selectedId > 0) {
       this.isEditMode = true;
       this.openPlanWeekDetailModal();
-    }
-    else{
-      this.notification.info('Thông báo','Vui lòng chọn 1 bản ghi cần sửa!');
+    } else {
+      this.notification.info('Thông báo', 'Vui lòng chọn 1 bản ghi cần sửa!');
     }
   }
 
@@ -206,7 +251,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit{
       },
       error: (error) => {
         this.notification.error('Lỗi', error);
-      }
+      },
     });
   }
 
@@ -221,7 +266,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit{
       },
       error: (error) => {
         this.notification.error('Lỗi', error);
-      }
+      },
     });
   }
 
@@ -229,51 +274,58 @@ export class PlanWeekComponent implements OnInit, AfterViewInit{
     this.planWeekService.getEmployees(0).subscribe({
       next: (response) => {
         if (response.status === 1) {
-          this.filterUserData = response.data
+          this.filterUserData = response.data;
         } else {
           this.notification.error('Lỗi', response.message);
         }
       },
       error: (error) => {
         this.notification.error('Lỗi', error);
-      }
+      },
     });
   }
 
-  loadMainData(startDate: Date, endDate: Date, departmentId: number, userId: number, groupSaleId: number)
-  {
-    this.planWeekService.getData(startDate, endDate, departmentId, userId,groupSaleId).subscribe({
-      next: (response) => {
-        if (response.status === 1) {
-          this.mainData = response.data.data;
-          if (this.tb_MainTable) {
-            this.tb_MainTable.setColumns([]);
-            this.tb_MainTable.setData(this.mainData);
+  loadMainData(
+    startDate: Date,
+    endDate: Date,
+    departmentId: number,
+    userId: number,
+    groupSaleId: number
+  ) {
+    this.planWeekService
+      .getData(startDate, endDate, departmentId, userId, groupSaleId)
+      .subscribe({
+        next: (response) => {
+          if (response.status === 1) {
+            this.mainData = response.data.data;
+            if (this.tb_MainTable) {
+              this.tb_MainTable.setColumns([]);
+              this.tb_MainTable.setData(this.mainData);
+            }
+          } else {
+            this.notification.error('Lỗi', response.message);
           }
-        } else {
-          this.notification.error('Lỗi', response.message);
-        }
-      },
-      error: (error) => {
-        this.notification.error('Lỗi', error);
-      }
-    });
+        },
+        error: (error) => {
+          this.notification.error('Lỗi', error);
+        },
+      });
   }
 
   private transformFlatDataToTreeData(flatData: any[]): any[] {
     const map = new Map<number, any>();
     const roots: any[] = [];
-  
-    flatData.forEach(item => {
+
+    flatData.forEach((item) => {
       map.set(item.ID, {
         title: `${item.FullName} - ${item.GroupSalesName}`,
         key: item.ID.toString(),
         children: [],
-        isLeaf: true
+        isLeaf: true,
       });
     });
-  
-    flatData.forEach(item => {
+
+    flatData.forEach((item) => {
       const node = map.get(item.ID);
       if (item.ParentID && map.has(item.ParentID)) {
         const parentNode = map.get(item.ParentID);
@@ -283,13 +335,13 @@ export class PlanWeekComponent implements OnInit, AfterViewInit{
         roots.push(node);
       }
     });
-  
+
     return roots;
   }
 
-  onDelete(){
+  onDelete() {
     if (!this.selectedId || this.selectedId <= 0) {
-      this.notification.error('Thông báo','Vui lòng chọn bản ghi cần xóa');
+      this.notification.error('Thông báo', 'Vui lòng chọn bản ghi cần xóa');
       return;
     }
     this.modal.confirm({
@@ -298,37 +350,67 @@ export class PlanWeekComponent implements OnInit, AfterViewInit{
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
-        this.planWeekService.getData(this.filters.startDate, this.filters.endDate, 0, this.selectedId, 0)
-        .subscribe({
-          next: (res) => {
-            if (res.status !== 1) { this.notification.error('Lỗi', res.message || 'Không lấy được dữ liệu'); return; }
-            const rows = (res.data?.data1 || []).map((r: any) => ({
-              ...r,
-              UserID: r?.UserID || this.selectedId,
-              ContentPlan: '',
-              Result: ''
-            }));
-            this.planWeekService.save(rows).subscribe({
-              next: (sv) => {
-                if (sv.status === 1) {
-                  this.notification.success('Thông báo','Xóa thành công');
-                  this.loadMainData(this.filters.startDate, this.filters.endDate, this.filters.departmentId, this.filters.userId, this.filters.teamId );
-                } else {
-                  this.notification.error('Lỗi', sv.message || 'Không thể lưu');
-                }
-              },
-              error: (err) => this.notification.error('Lỗi', 'Không thể lưu: ' + err.message)
-            });
-          },
-          error: (err) => this.notification.error('Lỗi', 'Không lấy được dữ liệu: ' + err.message)
-        });
-      }
+        this.planWeekService
+          .getData(
+            this.filters.startDate,
+            this.filters.endDate,
+            0,
+            this.selectedId,
+            0
+          )
+          .subscribe({
+            next: (res) => {
+              if (res.status !== 1) {
+                this.notification.error(
+                  'Lỗi',
+                  res.message || 'Không lấy được dữ liệu'
+                );
+                return;
+              }
+              const rows = (res.data?.data1 || []).map((r: any) => ({
+                ...r,
+                UserID: r?.UserID || this.selectedId,
+                ContentPlan: '',
+                Result: '',
+              }));
+              this.planWeekService.save(rows).subscribe({
+                next: (sv) => {
+                  if (sv.status === 1) {
+                    this.notification.success('Thông báo', 'Xóa thành công');
+                    this.loadMainData(
+                      this.filters.startDate,
+                      this.filters.endDate,
+                      this.filters.departmentId,
+                      this.filters.userId,
+                      this.filters.teamId
+                    );
+                  } else {
+                    this.notification.error(
+                      'Lỗi',
+                      sv.message || 'Không thể lưu'
+                    );
+                  }
+                },
+                error: (err) =>
+                  this.notification.error(
+                    'Lỗi',
+                    'Không thể lưu: ' + err.message
+                  ),
+              });
+            },
+            error: (err) =>
+              this.notification.error(
+                'Lỗi',
+                'Không lấy được dữ liệu: ' + err.message
+              ),
+          });
+      },
     });
   }
 
   async exportMainTableToExcel() {
     if (!this.tb_MainTable) {
-      this.notification.error("Lỗi", "Không có dữ liệu để xuất Excel");
+      this.notification.error('Lỗi', 'Không có dữ liệu để xuất Excel');
       return;
     }
 
@@ -337,18 +419,20 @@ export class PlanWeekComponent implements OnInit, AfterViewInit{
 
     const columns = this.tb_MainTable.getColumns();
 
-    const headerRow = worksheet.addRow(columns.map(col => col.getDefinition().title));
+    const headerRow = worksheet.addRow(
+      columns.map((col) => col.getDefinition().title)
+    );
     headerRow.font = { bold: true };
     headerRow.fill = {
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: 'FFE0E0E0' }
+      fgColor: { argb: 'FFE0E0E0' },
     };
 
     const allData = this.tb_MainTable.getData();
 
-    allData.forEach(rowData => {
-      const row = columns.map(col => {
+    allData.forEach((rowData) => {
+      const row = columns.map((col) => {
         const field = col.getField();
         const value = rowData[field];
 
@@ -365,7 +449,9 @@ export class PlanWeekComponent implements OnInit, AfterViewInit{
 
     // Generate Excel file
     const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -373,7 +459,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit{
     link.click();
     window.URL.revokeObjectURL(url);
   }
-  
+
   initMainTable(): void {
     this.tb_MainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
       layout: 'fitColumns',
@@ -388,32 +474,31 @@ export class PlanWeekComponent implements OnInit, AfterViewInit{
       columnDefaults: {
         headerWordWrap: true,
         headerVertical: false,
-        headerHozAlign: "center",
+        headerHozAlign: 'center',
         minWidth: 60,
-        resizable: true
+        resizable: true,
       },
-      autoColumnsDefinitions: (definitions: any[] = []) => definitions.map((def: any) => {
-        if (def.field === 'ParentID') {
-          return { ...def, visible: false }; 
-        }
-        if(def.field === 'UserID') {
-          return { ...def, visible: false};
-        }
-        if(def.field === 'FullName')
-        {
-          return { ...def, title: 'Họ tên'}
-        }
-        if(def.field === 'Code')
-        {
-          return { ...def, title: 'Mã nhân viên', width: 100 }
-        }
-        return def;
-      })
+      autoColumnsDefinitions: (definitions: any[] = []) =>
+        definitions.map((def: any) => {
+          if (def.field === 'ParentID') {
+            return { ...def, visible: false };
+          }
+          if (def.field === 'UserID') {
+            return { ...def, visible: false };
+          }
+          if (def.field === 'FullName') {
+            return { ...def, title: 'Họ tên' };
+          }
+          if (def.field === 'Code') {
+            return { ...def, title: 'Mã nhân viên', width: 100 };
+          }
+          return def;
+        }),
     });
     this.tb_MainTable.on('rowClick', (e: any, row: RowComponent) => {
       const rowData = row.getData();
       this.selectedRow = rowData;
-      this.selectedId = rowData["UserID"];
+      this.selectedId = rowData['UserID'];
     });
   }
 }

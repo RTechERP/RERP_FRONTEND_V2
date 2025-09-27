@@ -1,34 +1,36 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { API_URL } from '../../../app.config';
+import { HOST } from '../../../app.config';
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class RequestInvoiceDetailService {
+  private _url = HOST + 'api/RequestInvoiceDetail/';
+  constructor(private http: HttpClient) {}
 
-  private _url = API_URL + 'api/RequestInvoiceDetail/'
-  constructor(private http: HttpClient) { }
-
-  loadEmployee(): Observable<any>{
+  loadEmployee(): Observable<any> {
     return this.http.get<any>(this._url + 'get-employee');
   }
-  loadProductSale(): Observable<any>{
+  loadProductSale(): Observable<any> {
     return this.http.get<any>(this._url + 'get-productsale');
   }
-  loadProject(): Observable<any>{
+  loadProject(): Observable<any> {
     return this.http.get<any>(this._url + 'get-project');
   }
-  generateBillNumber(id: number): Observable<any>{
-    return this.http.post<any>(this._url + "generate-bill-number", id);
+  generateBillNumber(id: number): Observable<any> {
+    return this.http.post<any>(this._url + 'generate-bill-number', id);
   }
-  saveData(data: any): Observable<any>{
-    return this.http.post<any>(this._url + "save-data", data);
+  saveData(data: any): Observable<any> {
+    return this.http.post<any>(this._url + 'save-data', data);
   }
   deleteFiles(fileIds: number[]): Observable<any> {
     return this.http.post<any>(this._url + 'delete-file', fileIds);
   }
   uploadFiles(formData: FormData, RIID: number): Observable<any> {
-    return this.http.post<any>(`${this._url}upload?RequestInvoiceID=${RIID}`, formData);
+    return this.http.post<any>(
+      `${this._url}upload?RequestInvoiceID=${RIID}`,
+      formData
+    );
   }
 }

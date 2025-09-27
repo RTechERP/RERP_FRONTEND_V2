@@ -1,4 +1,12 @@
-import { Component, ViewEncapsulation, ViewChild, TemplateRef, ElementRef, Input, IterableDiffers } from '@angular/core';
+import {
+  Component,
+  ViewEncapsulation,
+  ViewChild,
+  TemplateRef,
+  ElementRef,
+  Input,
+  IterableDiffers,
+} from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
@@ -13,16 +21,24 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzUploadModule, NzUploadFile, NzUploadXHRArgs } from 'ng-zorro-antd/upload';
+import {
+  NzUploadModule,
+  NzUploadFile,
+  NzUploadXHRArgs,
+} from 'ng-zorro-antd/upload';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
-import { TabulatorFull as Tabulator, RowComponent, CellComponent } from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import 'bootstrap-icons/font/bootstrap-icons.css';
+import {
+  TabulatorFull as Tabulator,
+  RowComponent,
+  CellComponent,
+} from 'tabulator-tables';
+// import 'tabulator-tables/dist/css/tabulator_simple.min.css';
+// import 'bootstrap-icons/font/bootstrap-icons.css';
 import { OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
@@ -39,7 +55,6 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { SelectControlComponent } from '../../select-control/select-control.component';
-
 
 import { CustomerServiceService } from '../customer/customer-service/customer-service.service';
 import { CustomerMajorDetailComponent } from '../customer-major/customer-major-detail/customer-major-detail.component';
@@ -72,22 +87,24 @@ import { CustomerMajorDetailComponent } from '../customer-major/customer-major-d
     NzCheckboxModule,
     CommonModule,
     NzTreeSelectModule,
-
   ],
   templateUrl: './customer-detail.component.html',
-  styleUrl: './customer-detail.component.css'
+  styleUrl: './customer-detail.component.css',
 })
 export class CustomerDetailComponent implements OnInit, AfterViewInit {
   @Input() EditID!: number;
   @Input() isEditMode!: boolean;
 
-  @ViewChild('tb_DataTable', { static: false }) tb_DataTableElement!: ElementRef;
-  @ViewChild('tb_AddressTable', { static: false }) tb_AddressTableElement!: ElementRef;
-  @ViewChild('tb_SaleTable', { static: false }) tb_SaleTableElement!: ElementRef;
+  @ViewChild('tb_DataTable', { static: false })
+  tb_DataTableElement!: ElementRef;
+  @ViewChild('tb_AddressTable', { static: false })
+  tb_AddressTableElement!: ElementRef;
+  @ViewChild('tb_SaleTable', { static: false })
+  tb_SaleTableElement!: ElementRef;
 
   private tb_DataTable!: Tabulator;
   private tb_AddressTable!: Tabulator;
-  private tb_SaleTable!: Tabulator
+  private tb_SaleTable!: Tabulator;
 
   data: any[] = [];
   addressStockTableData: any[] = [];
@@ -116,16 +133,16 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
     checkVoucher: '',
     noteDelivery: '',
     closingDateDebt: new Date(),
-  }
+  };
 
   customerTypeData: any[] = [
-    { value: 0, customerType: 'Chưa chọn loại hình'},
+    { value: 0, customerType: 'Chưa chọn loại hình' },
     { value: 1, customerType: 'SI' },
     { value: 2, customerType: 'Thương mại' },
     { value: 3, customerType: 'Sản xuất' },
     { value: 4, customerType: 'Chế tạo máy' },
-    { value: 5, customerType: 'Cá nhân' }
-  ]
+    { value: 5, customerType: 'Cá nhân' },
+  ];
 
   constructor(
     private notification: NzNotificationService,
@@ -134,8 +151,8 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
     private customerService: CustomerServiceService,
     public activeModal: NgbActiveModal,
     private injector: EnvironmentInjector,
-    private appRef: ApplicationRef,
-  ) { }
+    private appRef: ApplicationRef
+  ) {}
 
   ngOnInit(): void {
     this.loadBusinessField();
@@ -152,30 +169,31 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
     this.initAddressTable();
     this.initSaleTable();
   }
-  
+
   openCustomerMajorDetail(): void {
     const modalRef = this.modalService.open(CustomerMajorDetailComponent, {
       centered: true,
       backdrop: 'static',
-      size: 'm'
-    })
+      size: 'm',
+    });
     modalRef.result.then(
       (result) => {
-        if(result.success && result.reloadData) {
-
+        if (result.success && result.reloadData) {
         }
       },
       (reason) => {
         console.log('Modal closed');
       }
-    )
+    );
   }
-  
-  loadDetailEditMode(id: number){
+
+  loadDetailEditMode(id: number) {
     this.customerService.getDetail(id).subscribe({
       next: (response) => {
         if (response.status === 1) {
-          let province = this.provincesData.find(x => x.Code == response.data.provinceCode)
+          let province = this.provincesData.find(
+            (x) => x.Code == response.data.provinceCode
+          );
           this.formData = {
             fullName: response.data.model.CustomerName,
             address: response.data.model.Address,
@@ -194,14 +212,16 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
             productDetails: response.data.model.ProductDetails,
             checkVoucher: response.data.model.CheckVoucher,
             noteDelivery: response.data.model.NoteDelivery,
-            closingDateDebt: response.data.model.ClosingDateDebt ? response.data.model.ClosingDateDebt.substring(0, 10) : new Date().toISOString().split('T')[0],
-          }
+            closingDateDebt: response.data.model.ClosingDateDebt
+              ? response.data.model.ClosingDateDebt.substring(0, 10)
+              : new Date().toISOString().split('T')[0],
+          };
           this.addressStockTableData = response.data.addressStock;
           this.tb_AddressTable.replaceData(this.addressStockTableData);
           this.data = response.data.customerContact;
           this.tb_DataTable.replaceData(this.data);
           this.customerSaleTableData = response.data.customerEmployeeWithName;
-          
+
           this.tb_SaleTable.replaceData(this.customerSaleTableData);
         } else {
           this.notification.error('Lỗi', response.message);
@@ -209,10 +229,10 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       },
       error: (error) => {
         this.notification.error('Lỗi', error);
-      }
+      },
     });
   }
-  
+
   closeModal() {
     this.activeModal.close();
   }
@@ -250,7 +270,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
 
       container.appendChild((componentRef.hostView as any).rootNodes[0]);
       appRef.attachView(componentRef.hostView);
-      onRendered(() => { });
+      onRendered(() => {});
 
       return container;
     };
@@ -267,7 +287,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       },
       error: (error) => {
         this.notification.error('Lỗi', error);
-      }
+      },
     });
   }
 
@@ -277,7 +297,12 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
         const employeeData = res.data;
         if (Array.isArray(employeeData)) {
           this.cboEmployeeDataTable = employeeData
-            .filter((employee) => employee.ID !== null && employee.ID !== undefined && employee.ID !== 0)
+            .filter(
+              (employee) =>
+                employee.ID !== null &&
+                employee.ID !== undefined &&
+                employee.ID !== 0
+            )
             .map((employee) => ({
               label: employee.FullName,
               value: employee.ID,
@@ -288,7 +313,10 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       },
       error: (err: any) => {
         console.error(err);
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy danh sách nhân viên');
+        this.notification.error(
+          'Thông báo',
+          'Có lỗi xảy ra khi lấy danh sách nhân viên'
+        );
         this.cboEmployeeDataTable = [];
       },
     });
@@ -305,7 +333,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       },
       error: (error) => {
         this.notification.error('Lỗi', error);
-      }
+      },
     });
   }
 
@@ -320,13 +348,15 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       },
       error: (error) => {
         this.notification.error('Lỗi', error);
-      }
+      },
     });
   }
 
   onProvinceChange(provinceName: string): void {
     if (provinceName) {
-      const selectedProvince = this.provincesData.find(province => province.Name === provinceName);
+      const selectedProvince = this.provincesData.find(
+        (province) => province.Name === provinceName
+      );
       if (selectedProvince && selectedProvince.Code) {
         this.formData.provinceCode = selectedProvince.Code;
       }
@@ -343,7 +373,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       CustomerPosition: '',
       CustomerTeam: '',
       ContactPhone: '',
-      ContactEmail: ''
+      ContactEmail: '',
     };
 
     // this.data.push(newRow);
@@ -353,7 +383,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
   addNewAddressRow(): void {
     const newRow = {
       ID: null,
-      Address: ''
+      Address: '',
     };
     this.tb_AddressTable.addRow(newRow);
   }
@@ -361,14 +391,16 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
   addNewSaleRow(): void {
     const newRow = {
       ID: null,
-      FullName: ''
+      FullName: '',
     };
     this.tb_SaleTable.addRow(newRow);
   }
 
   saveAndClose() {
     const contactRows = this.tb_DataTable ? this.tb_DataTable.getData() : [];
-    const addressRows = this.tb_AddressTable ? this.tb_AddressTable.getData() : [];
+    const addressRows = this.tb_AddressTable
+      ? this.tb_AddressTable.getData()
+      : [];
     const saleRows = this.tb_SaleTable ? this.tb_SaleTable.getData() : [];
 
     const customerContacts = (contactRows || []).map((r: any) => ({
@@ -378,23 +410,24 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       CustomerPosition: r?.CustomerPosition ?? '',
       CustomerTeam: r?.CustomerTeam ?? '',
       ContactPhone: r?.ContactPhone ?? '',
-      ContactEmail: r?.ContactEmail ?? ''
+      ContactEmail: r?.ContactEmail ?? '',
     }));
 
     const addressStocks = (addressRows || []).map((r: any) => ({
       ID: r?.ID ?? 0,
-      Address: r?.Address ?? ''
+      Address: r?.Address ?? '',
     }));
 
     const customerEmployees = (saleRows || []).map((r: any) => ({
       ID: r?.ID ?? 0,
-      EmployeeID: r?.EmployeeID ?? null
+      EmployeeID: r?.EmployeeID ?? null,
     }));
 
     const customer = {
       ID: this.EditID ?? 0,
       Province: this.formData.province ?? '',
-      CustomerCode: this.formData.provinceCode + "-" + this.formData.customerCode,
+      CustomerCode:
+        this.formData.provinceCode + '-' + this.formData.customerCode,
       CustomerName: this.formData.fullName ?? '',
       CustomerShortName: this.formData.customerShortName ?? '',
       TaxCode: this.formData.taxCode ?? '',
@@ -410,7 +443,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       IsDeleted: false,
       ClosingDateDebt: this.formData.closingDateDebt ?? null,
       FullName: this.formData.fullName ?? '',
-      CustomerSpecializationID: this.formData.majorId ?? 0
+      CustomerSpecializationID: this.formData.majorId ?? 0,
     } as any;
 
     const payload = {
@@ -418,7 +451,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       CustomerContacts: customerContacts,
       AddressStocks: addressStocks,
       CustomerEmployees: customerEmployees,
-      BusinessFieldID: this.formData.businessField
+      BusinessFieldID: this.formData.businessField,
     };
 
     this.customerService.save(payload).subscribe({
@@ -427,13 +460,16 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
           this.notification.success('Thông báo', 'Lưu thành công');
           this.activeModal.close({ success: true, reloadData: true });
         } else {
-          this.notification.error('Lỗi', res?.message || 'Không thể lưu dữ liệu');
+          this.notification.error(
+            'Lỗi',
+            res?.message || 'Không thể lưu dữ liệu'
+          );
         }
       },
       error: (err: any) => {
         this.notification.error('Lỗi', err?.message || 'Không thể lưu dữ liệu');
-      }
-    })
+      },
+    });
   }
 
   initDataTable(): void {
@@ -450,20 +486,24 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       columnDefaults: {
         headerWordWrap: true,
         headerVertical: false,
-        headerHozAlign: "center",
+        headerHozAlign: 'center',
         minWidth: 60,
-        resizable: true
+        resizable: true,
       },
       columns: [
         {
-          title: "",
-          field: "addRow",
-          hozAlign: "center",
+          title: '',
+          field: 'addRow',
+          hozAlign: 'center',
           width: 40,
           headerSort: false,
-          titleFormatter: () => `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
-          headerClick: () => { this.addNewRow(); },
-          formatter: () => `<i class="fas fa-times text-danger cursor-pointer delete-btn" title="Xóa dòng"></i>`,
+          titleFormatter: () =>
+            `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
+          headerClick: () => {
+            this.addNewRow();
+          },
+          formatter: () =>
+            `<i class="fas fa-times text-danger cursor-pointer delete-btn" title="Xóa dòng"></i>`,
           // cellClick: (e, cell) => {
           //   if ((e.target as HTMLElement).classList.contains('fas')) {
           //     this.modal.confirm({
@@ -490,60 +530,67 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
         { title: 'Team', field: 'CustomerTeam', editor: true },
         { title: 'SĐT', field: 'ContactPhone', editor: true },
         { title: 'Email', field: 'ContactEmail', editor: true },
-      ]
+      ],
     });
   }
   initAddressTable(): void {
-    this.tb_AddressTable = new Tabulator(this.tb_AddressTableElement.nativeElement, {
-      data: this.addressStockTableData,
-      layout: 'fitColumns',
-      height: '100%',
-      selectableRows: 1,
-      pagination: true,
-      paginationSize: 100,
-      movableColumns: true,
-      resizableRows: true,
-      reactiveData: true,
-      columnDefaults: {
-        headerWordWrap: true,
-        headerVertical: false,
-        headerHozAlign: "center",
-        minWidth: 60,
-        resizable: true
-      },
-      columns: [
-        {
-          title: "",
-          field: "addRow",
-          hozAlign: "center",
-          width: 40,
-          headerSort: false,
-          titleFormatter: () => `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
-          headerClick: () => { this.addNewAddressRow(); },
-          formatter: () => `<i class="fas fa-times text-danger cursor-pointer delete-btn" title="Xóa dòng"></i>`,
-          // cellClick: (e, cell) => {
-          //   if ((e.target as HTMLElement).classList.contains('fas')) {
-          //     this.modal.confirm({
-          //       nzTitle: 'Xác nhận xóa',
-          //       nzContent: 'Bạn có chắc chắn muốn xóa không?',
-          //       nzOkText: 'Đồng ý',
-          //       nzCancelText: 'Hủy',
-          //       nzOnOk: () => {
-          //         const row = cell.getRow();
-          //         const rowData = row.getData();
-          //         if (rowData['ID']) {
-          //           this.deletedDetailIds.push(rowData['ID']);
-          //         }
-          //         row.delete();
-          //       }
-          //     });
-          //   }
-          // }
+    this.tb_AddressTable = new Tabulator(
+      this.tb_AddressTableElement.nativeElement,
+      {
+        data: this.addressStockTableData,
+        layout: 'fitColumns',
+        height: '100%',
+        selectableRows: 1,
+        pagination: true,
+        paginationSize: 100,
+        movableColumns: true,
+        resizableRows: true,
+        reactiveData: true,
+        columnDefaults: {
+          headerWordWrap: true,
+          headerVertical: false,
+          headerHozAlign: 'center',
+          minWidth: 60,
+          resizable: true,
         },
-        { title: 'ID', field: 'ID', visible: false },
-        { title: 'Địa chỉ giao hàng', field: 'Address', editor: true },
-      ]
-    });
+        columns: [
+          {
+            title: '',
+            field: 'addRow',
+            hozAlign: 'center',
+            width: 40,
+            headerSort: false,
+            titleFormatter: () =>
+              `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
+            headerClick: () => {
+              this.addNewAddressRow();
+            },
+            formatter: () =>
+              `<i class="fas fa-times text-danger cursor-pointer delete-btn" title="Xóa dòng"></i>`,
+            // cellClick: (e, cell) => {
+            //   if ((e.target as HTMLElement).classList.contains('fas')) {
+            //     this.modal.confirm({
+            //       nzTitle: 'Xác nhận xóa',
+            //       nzContent: 'Bạn có chắc chắn muốn xóa không?',
+            //       nzOkText: 'Đồng ý',
+            //       nzCancelText: 'Hủy',
+            //       nzOnOk: () => {
+            //         const row = cell.getRow();
+            //         const rowData = row.getData();
+            //         if (rowData['ID']) {
+            //           this.deletedDetailIds.push(rowData['ID']);
+            //         }
+            //         row.delete();
+            //       }
+            //     });
+            //   }
+            // }
+          },
+          { title: 'ID', field: 'ID', visible: false },
+          { title: 'Địa chỉ giao hàng', field: 'Address', editor: true },
+        ],
+      }
+    );
   }
   initSaleTable(): void {
     this.tb_SaleTable = new Tabulator(this.tb_SaleTableElement.nativeElement, {
@@ -559,20 +606,24 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       columnDefaults: {
         headerWordWrap: true,
         headerVertical: false,
-        headerHozAlign: "center",
+        headerHozAlign: 'center',
         minWidth: 60,
-        resizable: true
+        resizable: true,
       },
       columns: [
         {
-          title: "",
-          field: "addRow",
-          hozAlign: "center",
+          title: '',
+          field: 'addRow',
+          hozAlign: 'center',
           width: 40,
           headerSort: false,
-          titleFormatter: () => `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
-          headerClick: () => { this.addNewSaleRow(); },
-          formatter: () => `<i class="fas fa-times text-danger cursor-pointer delete-btn" title="Xóa dòng"></i>`,
+          titleFormatter: () =>
+            `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
+          headerClick: () => {
+            this.addNewSaleRow();
+          },
+          formatter: () =>
+            `<i class="fas fa-times text-danger cursor-pointer delete-btn" title="Xóa dòng"></i>`,
           // cellClick: (e, cell) => {
           //   if ((e.target as HTMLElement).classList.contains('fas')) {
           //     this.modal.confirm({
@@ -598,32 +649,42 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
           field: 'FullName',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          editor: this.createdControl(SelectControlComponent, this.injector, this.appRef, () => this.cboEmployeeDataTable, {
-            valueField: 'value',
-            labelField: 'label',
-          }),
+          editor: this.createdControl(
+            SelectControlComponent,
+            this.injector,
+            this.appRef,
+            () => this.cboEmployeeDataTable,
+            {
+              valueField: 'value',
+              labelField: 'label',
+            }
+          ),
           formatter: (cell) => {
             const val = cell.getValue();
             if (!val) {
               return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted"></p> <i class="fas fa-angle-down"></i></div>';
             }
-            const employee = this.cboEmployeeDataTable.find((p: any) => p.value === val);
+            const employee = this.cboEmployeeDataTable.find(
+              (p: any) => p.value === val
+            );
             const employeeName = employee ? employee.label : val;
             return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${employeeName}</p> <i class="fas fa-angle-down"></i></div>`;
           },
           cellEdited: (cell) => {
             const row = cell.getRow();
             const newValue = cell.getValue();
-            const selectedEmployee = this.cboEmployeeDataTable.find((p: any) => p.value === newValue);
-            console.log("dât", selectedEmployee)
+            const selectedEmployee = this.cboEmployeeDataTable.find(
+              (p: any) => p.value === newValue
+            );
+            console.log('dât', selectedEmployee);
             if (selectedEmployee) {
               row.update({
-                EmployeeID: selectedEmployee.value
+                EmployeeID: selectedEmployee.value,
               });
             }
           },
         },
-      ]
+      ],
     });
   }
 }

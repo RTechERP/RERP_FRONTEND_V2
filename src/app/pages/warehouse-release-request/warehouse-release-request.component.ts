@@ -1,4 +1,12 @@
-import { Component, ViewEncapsulation, ViewChild, TemplateRef, ElementRef, Input, viewChild } from '@angular/core';
+import {
+  Component,
+  ViewEncapsulation,
+  ViewChild,
+  TemplateRef,
+  ElementRef,
+  Input,
+  viewChild,
+} from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
@@ -13,16 +21,24 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzUploadModule, NzUploadFile, NzUploadXHRArgs } from 'ng-zorro-antd/upload';
+import {
+  NzUploadModule,
+  NzUploadFile,
+  NzUploadXHRArgs,
+} from 'ng-zorro-antd/upload';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { TabulatorFull as Tabulator, RowComponent, CellComponent } from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import 'bootstrap-icons/font/bootstrap-icons.css';
+import {
+  TabulatorFull as Tabulator,
+  RowComponent,
+  CellComponent,
+} from 'tabulator-tables';
+// import 'tabulator-tables/dist/css/tabulator_simple.min.css';
+// import 'bootstrap-icons/font/bootstrap-icons.css';
 import { OnInit, AfterViewInit } from '@angular/core';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
@@ -113,13 +129,14 @@ interface BillExport {
     NzTabsModule,
     NzDropDownModule,
     NzIconModule,
-    NzSpinModule
+    NzSpinModule,
   ],
   templateUrl: './warehouse-release-request.component.html',
-  styleUrl: './warehouse-release-request.component.css'
+  styleUrl: './warehouse-release-request.component.css',
 })
 export class WarehouseReleaseRequestComponent implements OnInit {
-  @ViewChild('tb_WarehouseRelease', { static: false }) tableElement!: ElementRef;
+  @ViewChild('tb_WarehouseRelease', { static: false })
+  tableElement!: ElementRef;
 
   private table!: Tabulator;
   isLoading: boolean = false;
@@ -137,11 +154,15 @@ export class WarehouseReleaseRequestComponent implements OnInit {
   selectedProject: any;
   selectedProductGroup: any;
   keyword: string = '';
-  
 
   // Grid configuration
   columnDefs = [
-    { field: 'IsSelected', headerName: 'Chọn', checkboxSelection: true, width: 80 },
+    {
+      field: 'IsSelected',
+      headerName: 'Chọn',
+      checkboxSelection: true,
+      width: 80,
+    },
     { field: 'PONumber', headerName: 'Số PO', width: 120 },
     { field: 'StatusText', headerName: 'Trạng thái', width: 120 },
     { field: 'CustomerName', headerName: 'Khách hàng', width: 250 },
@@ -152,12 +173,17 @@ export class WarehouseReleaseRequestComponent implements OnInit {
     { field: 'ProductName', headerName: 'Tên sản phẩm', width: 200 },
     { field: 'ProductGroupName', headerName: 'Loại kho', width: 150 },
     { field: 'Unit', headerName: 'ĐVT', width: 80 },
-    { field: 'Qty', headerName: 'Số lượng PO', width: 120, type: 'numericColumn' },
-    { 
-      title: 'SL yêu cầu xuất', 
-      field: 'QuantityRequestExport', 
-      width: 150, 
-      hozAlign: 'center', 
+    {
+      field: 'Qty',
+      headerName: 'Số lượng PO',
+      width: 120,
+      type: 'numericColumn',
+    },
+    {
+      title: 'SL yêu cầu xuất',
+      field: 'QuantityRequestExport',
+      width: 150,
+      hozAlign: 'center',
       editor: 'input',
       cellEdited: (cell: CellComponent) => {
         const value = parseFloat(cell.getValue()) || 0;
@@ -168,27 +194,40 @@ export class WarehouseReleaseRequestComponent implements OnInit {
         cell.setValue(Number(value));
 
         if (!Number.isInteger(value)) {
-          this.notification.warning('Thông báo','Vui lòng nhập số nguyên');
+          this.notification.warning('Thông báo', 'Vui lòng nhập số nguyên');
           cell.setValue(0);
           return;
         }
 
         if (value > quantityRemain) {
-          this.notification.error('Lỗi','Số lượng yêu cầu xuất không được lớn hơn số lượng còn lại');
+          this.notification.error(
+            'Lỗi',
+            'Số lượng yêu cầu xuất không được lớn hơn số lượng còn lại'
+          );
           cell.setValue(0);
           return;
         }
-      }
+      },
     },
-    { field: 'QuantityExport', headerName: 'SL đã xuất', width: 120, type: 'numericColumn' },
-    { field: 'QuantityRemain', headerName: 'SL còn lại', width: 120, type: 'numericColumn' },
-    { field: 'UserReceiver', headerName: 'Người nhận', width: 180 }
+    {
+      field: 'QuantityExport',
+      headerName: 'SL đã xuất',
+      width: 120,
+      type: 'numericColumn',
+    },
+    {
+      field: 'QuantityRemain',
+      headerName: 'SL còn lại',
+      width: 120,
+      type: 'numericColumn',
+    },
+    { field: 'UserReceiver', headerName: 'Người nhận', width: 180 },
   ];
 
   defaultColDef = {
     sortable: true,
     filter: true,
-    resizable: true
+    resizable: true,
   };
 
   constructor(
@@ -198,7 +237,7 @@ export class WarehouseReleaseRequestComponent implements OnInit {
     private CustomerPartService: CustomerPartService,
     private RequestInvoiceDetailService: RequestInvoiceDetailService,
     private modalService: NgbModal
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     this.loadWarehouse();
@@ -208,80 +247,96 @@ export class WarehouseReleaseRequestComponent implements OnInit {
     this.loadPOKHExportRequest(1, 0, 0, 0, '');
   }
 
-  ngAfterViewInit(): void {
-  }
+  ngAfterViewInit(): void {}
 
   //#region Các hàm load dữ liệu từ api
   loadWarehouse(): void {
     this.WRRService.loadWarehouse().subscribe(
-      response => {
+      (response) => {
         if (response.status === 1) {
           this.warehouses = response.data;
         } else {
           this.notification.error('Lỗi khi tải kho:', response.message);
         }
       },
-      error => {
+      (error) => {
         this.notification.error('Lỗi kết nối khi tải kho:', error);
       }
     );
   }
   loadProductGroup(): void {
     this.WRRService.loadProductGroup().subscribe(
-      response => {
+      (response) => {
         if (response.status === 1) {
           this.productGroups = response.data;
         } else {
-          this.notification.error('Lỗi khi tải nhóm sản phẩm:', response.message);
+          this.notification.error(
+            'Lỗi khi tải nhóm sản phẩm:',
+            response.message
+          );
         }
       },
-      error => {
+      (error) => {
         this.notification.error('Lỗi kết nối khi tải nhóm sản phẩm:', error);
       }
     );
   }
   loadCustomer(): void {
     this.CustomerPartService.getCustomer().subscribe(
-      response => {
+      (response) => {
         if (response.status === 1) {
           this.customers = response.data;
         } else {
           this.notification.error('Lỗi khi tải khách hàng:', response.message);
         }
       },
-      error => {
+      (error) => {
         this.notification.error('Lỗi kết nối khi tải khách hàng:', error);
       }
     );
   }
   loadProject(): void {
     this.RequestInvoiceDetailService.loadProject().subscribe(
-      response => {
+      (response) => {
         if (response.status === 1) {
           this.projects = response.data;
-          
         } else {
           this.notification.error('Lỗi khi tải dự án:', response.message);
         }
       },
-      error => {
+      (error) => {
         this.notification.error('Lỗi kết nối khi tải dự án:', error);
       }
     );
   }
-  loadPOKHExportRequest(warehouseId: number, customerId: number, projectId: number, productGroupId: number, keyword: string): void {
+  loadPOKHExportRequest(
+    warehouseId: number,
+    customerId: number,
+    projectId: number,
+    productGroupId: number,
+    keyword: string
+  ): void {
     this.isLoading = true;
-    this.WRRService.loadPOKHExportRequest(warehouseId, customerId, projectId, productGroupId, keyword).subscribe(
-      response => {
+    this.WRRService.loadPOKHExportRequest(
+      warehouseId,
+      customerId,
+      projectId,
+      productGroupId,
+      keyword
+    ).subscribe(
+      (response) => {
         if (response.status === 1) {
           this.gridData = response.data;
           this.initWarehouseReleaseTable();
         } else {
-          this.notification.error('Lỗi khi tải dữ liệu bảng:', response.message);
+          this.notification.error(
+            'Lỗi khi tải dữ liệu bảng:',
+            response.message
+          );
         }
         this.isLoading = false;
       },
-      error => {
+      (error) => {
         this.notification.error('Lỗi kết nối khi tải dữ liệu bảng:', error);
         this.isLoading = false;
       }
@@ -291,16 +346,23 @@ export class WarehouseReleaseRequestComponent implements OnInit {
   onWarehouseSelect(warehouse: any): void {
     // Lấy các dòng đã chọn từ bảng
     const selectedRows = this.table.getSelectedRows();
-    
+
     if (selectedRows.length <= 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn sản phẩm muốn Yêu cầu xuất kho!');
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn sản phẩm muốn Yêu cầu xuất kho!'
+      );
       return;
     }
 
     // Hiển thị dialog xác nhận
-    if (confirm(`Bạn có chắc muốn yêu cầu xuất kho danh sách sản phẩm đã chọn từ [${warehouse.WarehouseName}] không?`)) {
+    if (
+      confirm(
+        `Bạn có chắc muốn yêu cầu xuất kho danh sách sản phẩm đã chọn từ [${warehouse.WarehouseName}] không?`
+      )
+    ) {
       // Chuẩn bị dữ liệu chi tiết
-      const details: BillExportDetail[] = selectedRows.map(row => {
+      const details: BillExportDetail[] = selectedRows.map((row) => {
         const data = row.getData();
         return {
           ProductID: data['ProductID'],
@@ -330,24 +392,29 @@ export class WarehouseReleaseRequestComponent implements OnInit {
           TotalInventory: data['TotalInventory'],
           UnitPricePurchase: data['UnitPricePurchase'],
           BillCode: data['BillCode'],
-          UnitPricePOKH: data['UnitPricePOKH']
+          UnitPricePOKH: data['UnitPricePOKH'],
         };
       });
 
       // Kiểm tra xem có nhiều khách hàng hoặc loại kho khác nhau không
-      const distinctValues = [...new Set(details.map(d => `${d.CustomerID}-${d.KhoTypeID}`))];
-      
+      const distinctValues = [
+        ...new Set(details.map((d) => `${d.CustomerID}-${d.KhoTypeID}`)),
+      ];
+
       if (distinctValues.length > 1) {
-        this.notification.info('Thông báo', 
-          `Bạn chọn sản phẩm từ ${distinctValues.length} Khách hàng hoặc Loại kho.\nNên phần mềm sẽ tự động tạo ${distinctValues.length} phiếu xuất.`);
+        this.notification.info(
+          'Thông báo',
+          `Bạn chọn sản phẩm từ ${distinctValues.length} Khách hàng hoặc Loại kho.\nNên phần mềm sẽ tự động tạo ${distinctValues.length} phiếu xuất.`
+        );
       }
 
       // Tạo dữ liệu master cho từng nhóm khách hàng/kho
-      this.billExports = distinctValues.map(value => {
+      this.billExports = distinctValues.map((value) => {
         const [customerID, khoTypeID] = value.split('-');
-        const groupDetails = details.filter(d => 
-          d.CustomerID.toString() === customerID && 
-          d.KhoTypeID.toString() === khoTypeID
+        const groupDetails = details.filter(
+          (d) =>
+            d.CustomerID.toString() === customerID &&
+            d.KhoTypeID.toString() === khoTypeID
         );
 
         return {
@@ -359,7 +426,7 @@ export class WarehouseReleaseRequestComponent implements OnInit {
           Status: 6,
           RequestDate: new Date(),
           WarehouseCode: warehouse.WarehouseCode,
-          Details: groupDetails
+          Details: groupDetails,
         };
       });
 
@@ -395,17 +462,26 @@ export class WarehouseReleaseRequestComponent implements OnInit {
 
   onSearch() {
     this.isLoading = true;
-    this.WRRService.loadPOKHExportRequest(1, this.selectedCustomer, this.selectedProject, this.selectedProductGroup, this.keyword).subscribe(
-      response => {
+    this.WRRService.loadPOKHExportRequest(
+      1,
+      this.selectedCustomer,
+      this.selectedProject,
+      this.selectedProductGroup,
+      this.keyword
+    ).subscribe(
+      (response) => {
         if (response.status === 1) {
           let data = response.data;
           this.table.setData(data);
         } else {
-          this.notification.error('Lỗi khi tải dữ liệu bảng:', response.message);
+          this.notification.error(
+            'Lỗi khi tải dữ liệu bảng:',
+            response.message
+          );
         }
         this.isLoading = false;
       },
-      error => {
+      (error) => {
         this.notification.error('Lỗi kết nối khi tải dữ liệu bảng:', error);
         this.isLoading = false;
       }
@@ -421,7 +497,6 @@ export class WarehouseReleaseRequestComponent implements OnInit {
   closeModal(): void {
     this.activeModal.dismiss('close');
   }
-
 
   onCustomerSelect(customer: any): void {
     this.selectedCustomer = customer.CustomerID;
@@ -447,26 +522,83 @@ export class WarehouseReleaseRequestComponent implements OnInit {
       pagination: true,
       paginationSize: 100,
       columns: [
-        { title: 'Chọn', field: 'IsSelected', width: 10, hozAlign: 'center',formatter: "rowSelection",
-          titleFormatter: "rowSelection", frozen: true,  },
-        { title: 'Trạng thái', field: 'StatusText', width: 120, hozAlign: 'center', frozen: true },
-        { title: 'Số PO', field: 'PONumber', width: 100, hozAlign: 'center', frozen: true },
-        { title: 'Khách hàng', field: 'CustomerName', width: 120, hozAlign: 'center', frozen: true },
-        { title: 'Dự án', field: 'ProjectName', width: 100, hozAlign: 'center', frozen: true },
-        { title: 'Mã sản phẩm', field: 'ProductCode', width: 150, hozAlign: 'center', frozen: true },
-        { title: 'Mã nội bộ', field: 'ProductNewCode', width: 150, hozAlign: 'center' },
-        { title: 'Mã theo khách', field: 'ProductCode', width: 150, hozAlign: 'center' },
-        { title: 'Tên sản phẩm', field: 'ProductName', width: 150, hozAlign: 'center' },
-        { title: 'Loại kho', field: 'ProductGroupName', width: 100, hozAlign: 'center' },
+        {
+          title: 'Chọn',
+          field: 'IsSelected',
+          width: 10,
+          hozAlign: 'center',
+          formatter: 'rowSelection',
+          titleFormatter: 'rowSelection',
+          frozen: true,
+        },
+        {
+          title: 'Trạng thái',
+          field: 'StatusText',
+          width: 120,
+          hozAlign: 'center',
+          frozen: true,
+        },
+        {
+          title: 'Số PO',
+          field: 'PONumber',
+          width: 100,
+          hozAlign: 'center',
+          frozen: true,
+        },
+        {
+          title: 'Khách hàng',
+          field: 'CustomerName',
+          width: 120,
+          hozAlign: 'center',
+          frozen: true,
+        },
+        {
+          title: 'Dự án',
+          field: 'ProjectName',
+          width: 100,
+          hozAlign: 'center',
+          frozen: true,
+        },
+        {
+          title: 'Mã sản phẩm',
+          field: 'ProductCode',
+          width: 150,
+          hozAlign: 'center',
+          frozen: true,
+        },
+        {
+          title: 'Mã nội bộ',
+          field: 'ProductNewCode',
+          width: 150,
+          hozAlign: 'center',
+        },
+        {
+          title: 'Mã theo khách',
+          field: 'ProductCode',
+          width: 150,
+          hozAlign: 'center',
+        },
+        {
+          title: 'Tên sản phẩm',
+          field: 'ProductName',
+          width: 150,
+          hozAlign: 'center',
+        },
+        {
+          title: 'Loại kho',
+          field: 'ProductGroupName',
+          width: 100,
+          hozAlign: 'center',
+        },
         { title: 'ĐVT', field: 'Unit', width: 100, hozAlign: 'center' },
         { title: 'Số lượng PO', field: 'Qty', width: 100, hozAlign: 'center' },
-        { 
-          title: 'SL yêu cầu xuất', 
-          field: 'QuantityRequestExport', 
-          width: 150, 
-          hozAlign: 'center', 
+        {
+          title: 'SL yêu cầu xuất',
+          field: 'QuantityRequestExport',
+          width: 150,
+          hozAlign: 'center',
           editor: 'input',
-          validator: "integer",
+          validator: 'integer',
           cellEdited: (cell: CellComponent) => {
             const value = parseFloat(cell.getValue()) || 0;
             const rowData = cell.getRow().getData();
@@ -476,23 +608,41 @@ export class WarehouseReleaseRequestComponent implements OnInit {
             cell.setValue(Number(value));
 
             if (!Number.isInteger(value)) {
-              this.notification.warning('Thông báo','Vui lòng nhập số nguyên');
+              this.notification.warning('Thông báo', 'Vui lòng nhập số nguyên');
               cell.setValue(0);
               return;
             }
 
             if (value > quantityRemain) {
-              this.notification.error('Lỗi','Số lượng yêu cầu xuất không được lớn hơn số lượng còn lại');
+              this.notification.error(
+                'Lỗi',
+                'Số lượng yêu cầu xuất không được lớn hơn số lượng còn lại'
+              );
               cell.setValue(0);
               return;
             }
-          }
+          },
         },
-        { title: 'SL đã xuất', field: 'QuantityExport', width: 150, hozAlign: 'center' },
-        { title: 'SL còn lại', field: 'QuantityRemain', width: 100, hozAlign: 'center' },
-        { title: 'Người nhận', field: 'UserReceiver', width: 150, hozAlign: 'center' },
-      ]
-    })
+        {
+          title: 'SL đã xuất',
+          field: 'QuantityExport',
+          width: 150,
+          hozAlign: 'center',
+        },
+        {
+          title: 'SL còn lại',
+          field: 'QuantityRemain',
+          width: 100,
+          hozAlign: 'center',
+        },
+        {
+          title: 'Người nhận',
+          field: 'UserReceiver',
+          width: 150,
+          hozAlign: 'center',
+        },
+      ],
+    });
   }
   //#endregion
 }

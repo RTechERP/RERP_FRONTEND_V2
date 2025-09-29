@@ -469,7 +469,8 @@ getLocation() {
           Serial: formValue.Serial,
           SerialNumber: formValue.SerialNumber,
           PartNumber: formValue.PartNumber,
-          LocationImg:`${SERVER_PATH}${formValue.FileName}`,
+          LocationImg:`${SERVER_PATH}${formValue.LocationImg}`,
+         // LocationImg: formValue.LocationImg || '',
           ProductCodeRTC: this.productCode,
           BorrowCustomer: formValue.BorrowCustomer,
           ProductLocationID: formValue.ProductLocationID,
@@ -485,6 +486,7 @@ getLocation() {
           MOD: formValue.MOD,
           FNo: formValue.FNo,
           WD: formValue.WD,
+          SLKiemKe: formValue.SLKiemKe || 0,
           LampType: formValue.LampType,
           LampColor: formValue.LampColor,
           LampPower: formValue.LampPower,
@@ -505,20 +507,18 @@ getLocation() {
     };
     console.log("Payload", payload);
     this.tbProductRtcService.saveData(payload).subscribe({
-      next: (res) => {
-        if (res.status === 1) {
-          this.notification.success('Thành công', res.message || 'Lưu dữ liệu thành công!');
-          this.getProduct();
-          this.close();
-          this.formSubmitted.emit(); // reload danh sách
-        } else {
-          this.notification.error('Lỗi', res.message || 'Lưu dữ liệu thất bại!');
-        }
-      },
-      error: (err) => {
-        this.notification.error('Lỗi', 'Không thể lưu dữ liệu: ' + err.message);
+    next: (res) => {
+      if (res.status === 1) {
+        this.notification.success('Thành công', res.message || 'Lưu dữ liệu thành công');
+        this.activeModal.close({ refresh: true });
+      } else {
+        this.notification.error('Lỗi', res.message || 'Lưu dữ liệu thất bại');
       }
-    });
+    },
+    error: (err) => {
+      this.notification.error('Lỗi', 'Không thể lưu dữ liệu: ' + err.message);
+    }
+  });
   }
     onAddGroupProduct() {
       const modalRef = this.ngbModal.open(TbProductGroupRtcFormComponent, {

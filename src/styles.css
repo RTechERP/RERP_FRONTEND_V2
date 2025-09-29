@@ -20,6 +20,12 @@
   width: 400px !important;
   box-sizing: border-box !important;
 }
+* {
+  margin: 0;
+  padding: 0;
+
+  font-family: "Be Vietnam Pro", sans-serif;
+}
 
 .custom-customer-modal .ant-modal-header {
   height: 44px; /* chiều cao cố định, mỏng hơn mặc định */
@@ -210,23 +216,18 @@ button[nz-button] img {
   display: block;
 }
 
-.card-body {
-  margin-top: 10px !important;
+/* .tabulator .tabulator-row {
+  display: flex;         
+  align-items: stretch;   
+  height: auto !important;
 }
 
-.divider {
-  display: inline-block;
-  height: 20px;
-  border-left: 1px solid #7a7a7a;
-  align-self: center;
-}
-.tabulator-paginator label {
-  display: none !important;
-}
-.ant-splitter-bar-dragger {
-  background-color: #6b6b6b;
-}
-.tabulator .tabulator-header .tabulator-col {
-  justify-content: center !important;
-  align-items: center !important;
-}
+.tabulator .tabulator-cell {
+  white-space: normal !important;
+  word-break: break-word;
+  line-height: 1.4;
+  height: auto !important;
+  display: flex;        
+  align-items: center;  
+   border-right: 1px solid #dddddd; 
+ }   */

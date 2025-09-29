@@ -301,7 +301,7 @@ export class TbProductRtcImportExcelComponent implements OnInit {
       let validRecords = 0;
 
       worksheet.eachRow((row, rowNumber) => {
-        if (rowNumber <= 2) return;
+        if (rowNumber <= 1) return;
 
         const firstCell = row.getCell(1).value;
         if (!firstCell) return;

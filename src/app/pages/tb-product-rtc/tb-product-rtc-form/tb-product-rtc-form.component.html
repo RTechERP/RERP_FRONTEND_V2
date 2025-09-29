@@ -19,9 +19,9 @@
                                     <nz-form-item>
                                         <nz-form-label class="fs-12 d-flex align-items-center">
                                             Mã nhóm <span class="text-danger ps-1 me-1"> (*) </span>
-                                            <button nz-button nzSize="small" class="fs-12 button button-succes me-2"
-                                                (click)="onAddGroupProduct()" title="Mã nhóm"><nz-icon nzType="plus" />
-                                            </button>
+                                            <button nz-button nzType="text" nzSize="small"
+                                                class="fs-12 button button-succes me-2" (click)="onAddGroupProduct()"
+                                                title="Thêm nhóm"><nz-icon nzType="plus" /> </button>
                                         </nz-form-label>
                                         <nz-form-control [nzErrorTip]="'Chọn nhóm'">
                                             <nz-input-group required nzSearch nzSize="default" class="w-100">
@@ -41,8 +41,9 @@
                                     <nz-form-item>
                                         <nz-form-label class="fs-12 d-flex align-items-center">
                                             Vị trí <span class="text-danger ps-1 me-1"> (*) </span>
-                                            <button nz-button nzSize="small" class="fs-12 button button-succes me-2"
-                                                title="Hãng"><nz-icon nzType="plus" /> </button>
+                                            <button nz-button nzType="text" nzSize="small"
+                                                class="fs-12 button button-succes me-2" title="Thêm vị trí mới"><nz-icon
+                                                    nzType="plus" /> </button>
                                         </nz-form-label>
                                         <nz-form-control [nzSpan]="24" nzErrorTip="Chọn vị trí">
                                             <nz-input-group required nzSearch nzSize="default" class="w-100">
@@ -82,137 +83,189 @@
                                     </nz-form-item>
                                 </nz-col>
                             </nz-row>
+                            <nz-form-item>
+                                <nz-form-label required>Tên thiết bị<span class="text-danger ps-1 me-1">
+                                        (*)</span></nz-form-label>
+                                <nz-form-control [nzErrorTip]="'Vui lòng nhập tên thiết bị'">
+                                    <input nz-input formControlName="ProductName" name="ProductName" />
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                        <nz-col [nzSpan]="12">
+                            <nz-form-item>
+                                <nz-form-label required>Part Number<span class="text-danger ps-1 me-1"> (*)
+                                    </span></nz-form-label>
+                                <nz-form-control [nzErrorTip]="'Không được để trống Part Number'">
+                                    <input nz-input nzSize="default" formControlName="PartNumber" name="PartNumber" />
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                    </nz-row>
 
-                            <!-- Hàng 3 -->
-                            <nz-row [nzGutter]="16">
-                                <nz-col [nzSpan]="12">
-                                    <nz-form-item>
-                                        <nz-form-label required>Mã thiết bị<span
-                                                style="color: red">(*)</span></nz-form-label>
-                                        <nz-form-control [nzValidateStatus]="formDeviceInfo.get('ProductCode')!"
-                                            [nzErrorTip]="'Không được để trống mã thiết bị'">
-                                            <input nz-input formControlName="ProductCode" />
-                                            <div class="nz-form-explain-holder"></div>
-                                        </nz-form-control>
-                                    </nz-form-item>
-                                </nz-col>
+                    <!-- Hàng 3 -->
+                    <nz-row [nzGutter]="16">
+                        <nz-col [nzSpan]="12">
+                            <nz-form-item>
+                                <nz-form-label required>Mã thiết bị<span style="color: red">(*)</span></nz-form-label>
+                                <nz-form-control [nzValidateStatus]="formDeviceInfo.get('ProductCode')!"
+                                    [nzErrorTip]="'Không được để trống mã thiết bị'">
+                                    <input nz-input formControlName="ProductCode" />
+                                    <div class="nz-form-explain-holder"></div>
+                                </nz-form-control>
+                            </nz-form-item>
+                        </nz-col>
+                        <!-- Hàng 3 -->
+                        <nz-row [nzGutter]="16">
+                            <nz-col [nzSpan]="12">
+                                <nz-form-item>
+                                    <nz-form-label required>Mã thiết bị<span class="text-danger ps-1 me-1"> (*)
+                                        </span></nz-form-label>
+                                    <nz-form-control [nzValidateStatus]="formDeviceInfo.get('ProductCode')!"
+                                        [nzErrorTip]="'Không được để trống mã thiết bị'">
+                                        <input nz-input formControlName="ProductCode" />
+                                        <div class="nz-form-explain-holder"></div>
+                                    </nz-form-control>
+                                </nz-form-item>
+                            </nz-col>
 
-                                <nz-col [nzSpan]="12">
-                                    <nz-form-item>
-                                        <nz-form-label required>Serial<span
-                                                style="color: red">(*)</span></nz-form-label>
-                                        <nz-form-control [nzValidateStatus]="formDeviceInfo.get('SerialNumber')!"
-                                            [nzErrorTip]="'Không được để trống Serial'">
-                                            <input nz-input nzSize="default" formControlName="SerialNumber" />
-                                        </nz-form-control>
-                                    </nz-form-item>
-                                </nz-col>
-                            </nz-row>
-                            <nz-row [nzGutter]="16">
-                                <nz-col [nzSpan]="12">
-                                    <nz-form-item>
-                                        <nz-form-label required>Code<span style="color: red">(*)</span></nz-form-label>
-                                        <nz-form-control [nzErrorTip]=" 'Không được để trống Code              '">
-                                            <input nz-input nzSize="default" formControlName="Serial" name="Serial" />
-                                        </nz-form-control>
-                                    </nz-form-item>
-                                </nz-col>
+                            <nz-col [nzSpan]="12">
+                                <nz-form-item>
+                                    <nz-form-label required>Serial<span style="color: red">(*)</span></nz-form-label>
+                                    <nz-form-control [nzValidateStatus]="formDeviceInfo.get('SerialNumber')!"
+                                        [nzErrorTip]="'Không được để trống Serial'">
+                                        <input nz-input nzSize="default" formControlName="SerialNumber" />
+                                    </nz-form-control>
+                                </nz-form-item>
+                            </nz-col>
+                        </nz-row>
+                        <nz-row [nzGutter]="16">
+                            <nz-col [nzSpan]="12">
+                                <nz-form-item>
+                                    <nz-form-label required>Code<span style="color: red">(*)</span></nz-form-label>
+                                    <nz-form-control [nzErrorTip]=" 'Không được để trống Code              '">
+                                        <input nz-input nzSize="default" formControlName="Serial" name="Serial" />
+                                    </nz-form-control>
+                                </nz-form-item>
+                            </nz-col>
+                            <nz-col [nzSpan]="12">
+                                <nz-form-item>
+                                    <nz-form-label required>Serial<span class="text-danger ps-1 me-1"> (*)
+                                        </span></nz-form-label>
+                                    <nz-form-control [nzValidateStatus]="formDeviceInfo.get('SerialNumber')!"
+                                        [nzErrorTip]="'Không được để trống Serial'">
+                                        <input nz-input nzSize="default" formControlName="SerialNumber" />
+                                    </nz-form-control>
+                                </nz-form-item>
+                            </nz-col>
+                        </nz-row>
+                        <nz-row [nzGutter]="16">
+                            <nz-col [nzSpan]="12">
+                                <nz-form-item>
+                                    <nz-form-label required>Code <span class="text-danger ps-1 me-1"> (*)
+                                        </span></nz-form-label>
+                                    <nz-form-control [nzErrorTip]=" 'Không được để trống Code              '">
+                                        <input nz-input nzSize="default" formControlName="Serial" name="Serial" />
+                                    </nz-form-control>
+                                </nz-form-item>
+                            </nz-col>
 
-                                <nz-col [nzSpan]="12">
-                                    <nz-form-item>
-                                        <nz-form-label>SL kiểm kê<span style="color: red">(*)</span></nz-form-label>
-                                        <nz-form-control>
+                            <nz-col [nzSpan]="12">
+                                <nz-form-item>
+                                    <nz-form-label>SL kiểm kê<span class="text-danger ps-1 me-1"> (*)
+                                        </span></nz-form-label>
+                                    <nz-form-control>
 
 
-                                            <input nz-input nzSize="default" formControlName="SLKiemKe"
-                                                name="SLKiemKe" />
-                                        </nz-form-control>
-                                    </nz-form-item>
-                                </nz-col>
-                            </nz-row>
-                            <nz-row [nzGutter]="16">
-                                <nz-col [nzSpan]="12">
-                                    <nz-form-item>
+                                        <input nz-input nzSize="default" formControlName="SLKiemKe" name="SLKiemKe" />
+                                    </nz-form-control>
+                                </nz-form-item>
+                            </nz-col>
+                        </nz-row>
+                        <nz-row [nzGutter]="16">
+                            <nz-col [nzSpan]="12">
+                                <nz-form-item>
 
-                                        <nz-form-label class="fs-12 d-flex align-items-center">
-                                            Hãng <span class="text-danger ps-1 me-1"> (*) </span>
-                                            <button nz-button nzSize="small" class="fs-12 button button-succes me-2"
-                                                title="Hãng"><nz-icon nzType="plus" /> </button>
-                                        </nz-form-label>
-                                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn hãng">
-                                            <nz-input-group required nzSearch nzSize="default" class="w-100">
-                                                <nz-select nzSize="default" formControlName="FirmID" name="FirmID"
-                                                    nzPlaceHolder="Chọn hãng" class="fs-12 w-100" required nzShowSearch
-                                                    nzAllowClear>
-                                                    <nz-option *ngFor="let item of firmData" [nzValue]="item.ID"
-                                                        [nzLabel]="item.FirmCode + ' - ' + item.FirmName">
-                                                    </nz-option>
-                                                </nz-select>
-                                            </nz-input-group>
-                                            <!-- <ng-template #makerIconButton>
+                                    <nz-form-label class="fs-12 d-flex align-items-center">
+                                        Hãng <span class="text-danger ps-1 me-1"> (*) </span>
+                                        <button nz-button nzType="text" nzSize="small"
+                                            class="fs-12 button button-succes me-2" title="Thêm hãng mới"><nz-icon
+                                                nzType="plus" /> </button>
+                                    </nz-form-label>
+                                    <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn hãng">
+                                        <nz-input-group required nzSearch nzSize="default" class="w-100">
+                                            <nz-select nzSize="default" formControlName="FirmID" name="FirmID"
+                                                nzPlaceHolder="Chọn hãng" class="fs-12 w-100" required nzShowSearch
+                                                nzAllowClear>
+                                                <nz-option *ngFor="let item of firmData" [nzValue]="item.ID"
+                                                    [nzLabel]="item.FirmCode + ' - ' + item.FirmName">
+                                                </nz-option>
+                                            </nz-select>
+                                        </nz-input-group>
+                                        <!-- <ng-template #makerIconButton>
                         <button nz-button nzType="default" nzSize="default" (click)="onAddGroupProduct()" nzSearch>
                           <nz-icon nzType="plus" nzTheme="outline"></nz-icon>
                         </button>
                       </ng-template> -->
-                                        </nz-form-control>
+                                    </nz-form-control>
 
-                                    </nz-form-item>
-                                </nz-col>
-                                <nz-col [nzSpan]="12">
-                                    <nz-form-item>
-                                        <nz-form-label>SL Tồn kho</nz-form-label>
-                                        <nz-form-control>
-                                            <input nz-input nzSize="default" formControlName="NumberInStore"
-                                                name="NumberInStore" />
-                                        </nz-form-control>
-                                    </nz-form-item>
-                                </nz-col>
-                            </nz-row>
+                                </nz-form-item>
+                            </nz-col>
+                            <nz-col [nzSpan]="12">
+                                <nz-form-item>
+                                    <nz-form-label>SL Tồn kho</nz-form-label>
+                                    <nz-form-control>
+                                        <input nz-input nzSize="default" formControlName="NumberInStore"
+                                            name="NumberInStore" />
+                                    </nz-form-control>
+                                </nz-form-item>
+                            </nz-col>
+                        </nz-row>
 
-                            <nz-row [nzGutter]="16">
-                                <nz-col [nzSpan]="8">
-                                    <nz-form-item>
-                                        <nz-form-label class="fs-12 d-flex align-items-center">
-                                            Đơn vị tính<span class="text-danger ps-1 me-1"> (*) </span>
-                                            <button nz-button nzSize="small" class="fs-12 button button-succes me-2"
-                                                title="Hãng"><nz-icon nzType="plus" /> </button>
-                                        </nz-form-label>
-                                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng đơn vị tính">
-                                            <nz-input-group required nzSearch nzSize="default" class="w-100">
-                                                <nz-select nzSize="default" formControlName="UnitCountID" name="Maker"
-                                                    nzPlaceHolder="Chọn đơn vị tính" class="fs-12 w-100" required
-                                                    nzShowSearch nzAllowClear>
-                                                    <nz-option *ngFor="let item of unitData" [nzValue]="item.ID"
-                                                        [nzLabel]="item.ID + ' - ' + item.UnitName">
-                                                    </nz-option>
-                                                </nz-select>
-                                            </nz-input-group>
+                        <nz-row [nzGutter]="16">
+                            <nz-col [nzSpan]="8">
+                                <nz-form-item>
+                                    <nz-form-label class="fs-12 d-flex align-items-center">
+                                        Đơn vị tính<span class="text-danger ps-1 me-1"> (*) </span>
+                                        <button nz-button nzType="text" nzSize="small"
+                                            class="fs-12 button button-succes me-2" title="Thêm đơn vị tính"><nz-icon
+                                                nzType="plus" /> </button>
+                                    </nz-form-label>
+                                    <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng đơn vị tính">
+                                        <nz-input-group required nzSearch nzSize="default" class="w-100">
+                                            <nz-select nzSize="default" formControlName="UnitCountID" name="Maker"
+                                                nzPlaceHolder="Chọn đơn vị tính" class="fs-12 w-100" required
+                                                nzShowSearch nzAllowClear>
+                                                <nz-option *ngFor="let item of unitData" [nzValue]="item.ID"
+                                                    [nzLabel]="item.ID + ' - ' + item.UnitName">
+                                                </nz-option>
+                                            </nz-select>
+                                        </nz-input-group>
 
-                                        </nz-form-control>
-                                    </nz-form-item>
-                                </nz-col>
-                                <nz-col [nzSpan]="8">
-                                    <nz-form-item>
-                                        <nz-form-label required>Ngày nhập<span
-                                                style="color: red">(*)</span></nz-form-label>
-                                        <nz-form-control [nzErrorTip]="'Vui lòng chọn ngày nhập'">
-                                            <nz-date-picker formControlName="CreateDate" name="ImportDate"
-                                                nzFormat="dd/MM/yyyy" nzSize="default" style="width: 100%;">
-                                            </nz-date-picker>
-                                        </nz-form-control>
-                                    </nz-form-item>
-                                </nz-col>
+                                    </nz-form-control>
+                                </nz-form-item>
+                            </nz-col>
+                            <nz-col [nzSpan]="8">
+                                <nz-form-item>
+                                    <nz-form-label required>Ngày nhập<span class="text-danger ps-1 me-1"> (*)
+                                        </span></nz-form-label>
+                                    <nz-form-control [nzErrorTip]="'Vui lòng chọn ngày nhập'">
+                                        <nz-date-picker formControlName="CreateDate" [(ngModel)]="CreateDate"
+                                            name="ImportDate" nzFormat="dd/MM/yyyy" nzSize="default"
+                                            style="width: 100%;">
+                                        </nz-date-picker>
+                                    </nz-form-control>
+                                </nz-form-item>
+                            </nz-col>
 
-                                <nz-col [nzSpan]="8">
-                                    <nz-form-item>
-                                        <nz-form-label>Mã kho HCM</nz-form-label>
-                                        <nz-form-control>
-                                            <input nz-input nzSize="default" formControlName="CodeHCM"
-                                                name="AddressBox" />
-                                        </nz-form-control>
-                                    </nz-form-item>
-                                </nz-col>
-                            </nz-row>
+                            <nz-col [nzSpan]="8">
+                                <nz-form-item>
+                                    <nz-form-label>Mã kho HCM</nz-form-label>
+                                    <nz-form-control>
+                                        <input nz-input nzSize="default" formControlName="CodeHCM" name="AddressBox" />
+                                    </nz-form-control>
+                                </nz-form-item>
+                            </nz-col>
+                        </nz-row>
 
 
 
@@ -222,7 +275,20 @@
                         <!-- Cột ảnh 8 span -->
                         <nz-col [nzSpan]="8">
                             <nz-form-item class="mb-3">
-                                <nz-form-label>Ảnh</nz-form-label>
+                                <nz-row style="width: 100%" class="align-items-center">
+                                    <!-- Cột chữ Ảnh -->
+                                    <nz-col [nzSpan]="4" class="d-flex align-items-center mb-2">
+                                        <span>Ảnh</span>
+                                    </nz-col>
+
+                                    <!-- Cột checkbox, đẩy về cuối -->
+                                    <nz-col [nzSpan]="20" class="d-flex align-items-center justify-content-end mb-2">
+                                        <label nz-checkbox formControlName="IsBorrowCustomer">
+                                            Đồ mượn khách hàng
+                                        </label>
+                                    </nz-col>
+                                </nz-row>
+
                                 <nz-form-control>
                                     <div style="display: flex; gap: 8px; align-items: center;">
                                         <nz-upload [nzShowUploadList]="false" [nzBeforeUpload]="handleBeforeUpload"
@@ -234,30 +300,24 @@
                                         <input nz-input type="text" placeholder="Đường dẫn ảnh"
                                             formControlName="LocationImg" name="ImagePath" readonly style="flex: 1;" />
                                     </div>
-                                    <div
-                                        style="width: 100%; height: 350px; border: 1px solid #d9d9d9; margin-top: 10px; display: flex; align-items: center; justify-content: center; background-color: #f5f5f5;">
+
+                                    <div style="width: 100%; height: 350px; border: 1px solid #d9d9d9; margin-top: 10px;
+                  display: flex; align-items: center; justify-content: center; background-color: #f5f5f5;">
                                         <img *ngIf="previewImageUrl" [src]="previewImageUrl" alt="Ảnh sản phẩm"
                                             style="max-width: 100%; max-height: 100%; object-fit: cover;" />
                                         <span *ngIf="!previewImageUrl" style="color: #999;">Chưa có ảnh</span>
                                     </div>
                                 </nz-form-control>
                             </nz-form-item>
-                            <nz-form-item>
-                                <nz-form-control>
-                                    <label nz-checkbox formControlName="BorrowCustomer">
-                                        Đồ mượn khách hàng
-                                    </label>
-                                </nz-form-control>
-                            </nz-form-item>
-
-
                         </nz-col>
+
 
                     </nz-row>
                     <nz-row [nzGutter]="24">
                         <nz-col [nzSpan]="24">
                             <nz-form-item>
-                                <nz-form-label required>Ghi chú<span style="color: red">(*)</span> </nz-form-label>
+                                <nz-form-label required>Ghi chú<span class="text-danger ps-1 me-1"> (*) </span>
+                                </nz-form-label>
                                 <nz-form-control [nzErrorTip]="'Không được để trống ghi chú'">
                                     <textarea nz-input nzSize="default" rows="3" formControlName="Note" name="Note"
                                         style="height: 109px;">

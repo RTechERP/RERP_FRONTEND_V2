@@ -134,7 +134,10 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
   onSearchModeChange(mode: string): void {
     this.searchMode = mode;
     if (mode === 'all') {
-      this.productGroupID = 0;
+      this.checkAll = 1;
+    }
+    if (mode === 'group') {
+      this.checkAll = 0;
     }
     this.getProduct();
   }
@@ -143,9 +146,9 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
   }
   drawTable() {
     this.productTable = new Tabulator('#dataTableProduct', {
-      layout: 'fitDataStretch',
+      layout: 'fitDataFill',
       pagination: true,
-      selectableRows: 5,
+      selectableRows: 1,
       height: '90vh',
       ajaxURL: this.tbProductRtcService.getProductAjax(),
       ajaxConfig: 'POST',
@@ -158,7 +161,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
         resizable: true,
       },
       movableColumns: true,
-      paginationSize: 30,
+      paginationSize: 50,
       paginationSizeSelector: [5, 10, 20, 50, 100],
       reactiveData: true,
       ajaxRequestFunc: (url, config, params) => {
@@ -170,7 +173,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
           productRTCID: this.productRTCID || 0,
           productGroupNo: this.productGroupNo || '',
           page: params.page || 1,
-          size: params.size || 30,
+          size: params.size || 50,
         };
         console.log('POST Request:', request);
         return this.tbProductRtcService.getProductRTC(request).toPromise();
@@ -199,26 +202,38 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
       columns: [
         { title: 'ID', field: 'ID', visible: false },
         { title: 'STT', field: 'STT', visible: false },
-        { title: 'Mã sản phẩm', field: 'ProductCode' },
-        { title: 'Tên sản phẩm', field: 'ProductName' },
-        { title: 'Mã nhóm', field: 'ProductGroupNo', visible: false },
-        { title: 'Tên nhóm', field: 'ProductGroupName' },
+        {
+          title: 'Mã sản phẩm',
+          field: 'ProductCode',
+          bottomCalc: 'count',
+          bottomCalcFormatter: (cell) => {
+            return `<div style="text-align:center;">${cell.getValue()}</div>`;
+          },
+        },
+        { title: 'Tên sản phẩm', field: 'ProductName', minWidth: 120 },
+        { title: 'Mã nhóm', field: 'ProductGroupNo', minWidth: 120 },
+        { title: 'Tên nhóm', field: 'ProductGroupName', minWidth: 120 },
         { title: 'Mã nhóm RTC', field: 'ProductGroupRTCID', visible: false },
-        { title: 'Code RTC', field: 'ProductCodeRTC' },
-        { title: 'Vị trí', field: 'LocationName' },
+        { title: 'Code RTC', field: 'ProductCodeRTC', minWidth: 120 },
+        { title: 'Vị trí', field: 'LocationName', minWidth: 200 },
         { title: 'ID vị trí', field: 'ProductLocationID', visible: false },
         { title: 'Hãng', field: 'Maker', visible: false },
-        { title: 'Serial', field: 'Serial' },
-        { title: 'Serial Number', field: 'SerialNumber' },
-        { title: 'Part Number', field: 'PartNumber' },
-        { title: 'Đơn vị tính', field: 'UnitCountName' },
+        { title: 'Serial', field: 'Serial', minWidth: 120 },
+        { title: 'Serial Number', field: 'SerialNumber', minWidth: 120 },
+        { title: 'Part Number', field: 'PartNumber', minWidth: 120 },
+        { title: 'Đơn vị tính', field: 'UnitCountName', minWidth: 120 },
         { title: 'UnitCountID', field: 'UnitCountID', visible: false },
         { title: 'Số lượng', field: 'Number', visible: false },
         { title: 'SL mượn', field: 'NumberBorrowing', visible: false },
         { title: 'SL tồn kho', field: 'NumberInStore', visible: false },
         { title: 'SL kiểm kê', field: 'SLKiemKe', visible: false },
         { title: 'SL thực tế', field: 'InventoryReal', visible: false },
-        { title: 'Mượn KH?', field: 'BorrowCustomer', formatter: 'tickCross' },
+        {
+          title: 'BorrowCustomer',
+          field: 'BorrowCustomer',
+          formatter: 'tickCross',
+          hozAlign: 'center',
+        },
         { title: 'Khách mượn', field: 'BorrowCustomerText', visible: false },
         {
           title: 'Đã sử dụng?',
@@ -226,7 +241,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
           formatter: 'tickCross',
           visible: false,
         },
-        { title: 'Ghi chú', field: 'Note' },
+        { title: 'Ghi chú', field: 'Note', minWidth: 450 },
         { title: 'Người tạo', field: 'CreatedBy', visible: false },
         {
           title: 'Ngày tạo',
@@ -265,7 +280,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
   }
   onAddGroupProduct() {
     const modalRef = this.ngbModal.open(TbProductGroupRtcFormComponent, {
-      size: 'xl',
+      size: 'md',
       backdrop: 'static',
       keyboard: false,
       centered: true,
@@ -368,7 +383,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
     };
     this.tbProductRtcService.saveData(payload).subscribe({
       next: () => {
-        this.notification.success('Thành công', 'Xóa thiết bịws thành công!');
+        this.notification.success('Thành công', 'Xóa thiết bị thành công!');
         this.getProduct();
         this.drawTable();
       },
@@ -386,13 +401,19 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
     });
   }
   onAddProducRTC() {
-    const selectedGroup = this.productGroupID;
+    // nếu productGroupID là 0, undefined, null => gán null
+    const selectedGroup =
+      this.productGroupID && this.productGroupID > 0
+        ? this.productGroupID
+        : null;
+
     const modalRef = this.ngbModal.open(TbProductRtcFormComponent, {
       size: 'xl',
       backdrop: 'static',
       keyboard: false,
       centered: true,
     });
+
     modalRef.componentInstance.dataInput = {
       ...this.modalData,
       ProductGroupRTCID: selectedGroup,
@@ -402,11 +423,10 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
       (result) => {
         this.getProduct();
       },
-      (dismissed) => {
-        console.log('Modal dismissed');
-      }
+      () => console.log('Modal dismissed')
     );
   }
+
   onEditProduct() {
     const selected = this.productTable?.getSelectedData();
     if (!selected || selected.length === 0) {

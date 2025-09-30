@@ -511,7 +511,8 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
           Serial: formValue.Serial,
           SerialNumber: formValue.SerialNumber,
           PartNumber: formValue.PartNumber,
-          LocationImg: `${SERVER_PATH}${formValue.FileName}`,
+          LocationImg: `${SERVER_PATH}${formValue.LocationImg}`,
+          // LocationImg: formValue.LocationImg || '',
           ProductCodeRTC: this.productCode,
           BorrowCustomer: formValue.BorrowCustomer,
           ProductLocationID: formValue.ProductLocationID,
@@ -527,6 +528,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
           MOD: formValue.MOD,
           FNo: formValue.FNo,
           WD: formValue.WD,
+          SLKiemKe: formValue.SLKiemKe || 0,
           LampType: formValue.LampType,
           LampColor: formValue.LampColor,
           LampPower: formValue.LampPower,
@@ -551,16 +553,11 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
         if (res.status === 1) {
           this.notification.success(
             'Thành công',
-            res.message || 'Lưu dữ liệu thành công!'
+            res.message || 'Lưu dữ liệu thành công'
           );
-          this.getProduct();
-          this.close();
-          this.formSubmitted.emit(); // reload danh sách
+          this.activeModal.close({ refresh: true });
         } else {
-          this.notification.error(
-            'Lỗi',
-            res.message || 'Lưu dữ liệu thất bại!'
-          );
+          this.notification.error('Lỗi', res.message || 'Lưu dữ liệu thất bại');
         }
       },
       error: (err) => {

@@ -2,7 +2,7 @@ import { TabulatorFull as Tabulator, Options } from 'tabulator-tables';
 
 export const DEFAULT_TABLE_CONFIG: Options = {
   layout: 'fitDataFill',
-  height: '85vh',
+  height: '88vh',
   pagination: true,
   paginationSize: 50,
   paginationSizeSelector: [10, 30, 50, 100, 300, 500],

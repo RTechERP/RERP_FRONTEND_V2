@@ -544,6 +544,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
           title: 'Mã Sản phẩm',
           field: 'ProductCode',
           headerHozAlign: 'center',
+          formatter: 'textarea',
         },
         {
           title: 'Mã nội bộ',
@@ -554,11 +555,13 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
           title: 'Tên Sản phẩm',
           field: 'ProductName',
           headerHozAlign: 'center',
+          formatter: 'textarea',
         },
         {
           title: 'Hãng',
           field: 'Maker',
           headerHozAlign: 'center',
+          formatter: 'textarea',
         },
         {
           title: 'ĐVT',
@@ -569,17 +572,20 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
           title: 'Vị trí',
           field: 'LocationName',
           headerHozAlign: 'center',
+          formatter: 'textarea',
         },
         {
           title: 'Chi tiết nhập',
           field: 'Detail',
           width: 400,
           headerHozAlign: 'center',
+          formatter: 'textarea',
         },
         {
           title: 'Ghi chú',
           field: 'Note',
           headerHozAlign: 'center',
+          formatter: 'textarea',
         },
       ],
     });

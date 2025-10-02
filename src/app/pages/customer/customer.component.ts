@@ -48,6 +48,7 @@ import { forkJoin } from 'rxjs';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NgIf } from '@angular/common';
+import { DEFAULT_TABLE_CONFIG } from '../../tabulator-default.config';
 
 @Component({
   selector: 'app-customer',
@@ -209,10 +210,11 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   //#region Hàm khởi tạo bảng Khách hàng
   private initializeTabulator(container: HTMLElement): void {
     this.tabulator = new Tabulator(container, {
+      ...DEFAULT_TABLE_CONFIG,
       data: this.customers,
-      selectableRows: 1,
-      layout: 'fitDataFill',
-      height: '89vh',
+      //   selectableRows: 1,
+      //   layout: 'fitDataFill',
+      //   height: '89vh',
       columns: [
         {
           title: 'Mã khách hàng',
@@ -231,12 +233,14 @@ export class CustomerComponent implements OnInit, AfterViewInit {
           field: 'CustomerName',
           hozAlign: 'left',
           headerHozAlign: 'center',
+          formatter: 'textarea',
         },
         {
           title: 'Địa chỉ',
           field: 'Address',
           hozAlign: 'left',
           headerHozAlign: 'center',
+          formatter: 'textarea',
         },
         {
           title: 'Mã số thuế',
@@ -274,6 +278,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
           field: 'NoteDelivery',
           hozAlign: 'left',
           headerHozAlign: 'center',
+          formatter: 'textarea',
         },
         {
           title: 'Lưu ý chứng từ',
@@ -314,11 +319,12 @@ export class CustomerComponent implements OnInit, AfterViewInit {
           field: 'AddressStock',
           hozAlign: 'left',
           headerHozAlign: 'center',
+          formatter: 'textarea',
         },
       ],
-      pagination: true,
-      paginationSize: 100,
-      paginationSizeSelector: [10, 20, 50, 100],
+      //   pagination: true,
+      //   paginationSize: 100,
+      //   paginationSizeSelector: [10, 20, 50, 100],
     });
 
     this.tabulator.on('rowClick', (evt, row: RowComponent) => {
@@ -650,7 +656,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
     this.isLoading = true;
     this.customerService.getCustomers().subscribe({
       next: (data) => {
-        console.log(data.data);
+        console.log('loadCustomers:', data.data);
         this.customers = Array.isArray(data.data) ? data.data : [data.data];
         this.isLoading = false;
         this.initializeTabulator(this.tb_customerContainer.nativeElement);
@@ -1408,6 +1414,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       )
       .subscribe({
         next: (data: any) => {
+          console.log('onSearch', data.data);
           this.customers = Array.isArray(data.data) ? data.data : [data.data];
           if (this.tb_customerContainer) {
             this.initializeTabulator(this.tb_customerContainer.nativeElement);

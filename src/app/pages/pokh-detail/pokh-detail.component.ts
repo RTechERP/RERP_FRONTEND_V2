@@ -397,10 +397,10 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        this.notification.error(
-          'Thông báo',
-          'Lỗi kết nối khi tải tệp POKH: ' + error
-        );
+        // this.notification.error(
+        //   'Thông báo',
+        //   'Lỗi kết nối khi tải tệp POKH: ' + error
+        // );
       },
     });
   }

@@ -47,7 +47,7 @@ export class LoginComponent {
           console.error('Invalid token', error);
         }
         console.log('token login:', this.token);
-        this.router.navigate(['/welcome']);
+        this.router.navigate(['/home']);
       },
       error: (err) => {
         this.errorMessage = err.error.message;

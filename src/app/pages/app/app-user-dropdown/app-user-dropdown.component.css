@@ -57,12 +57,22 @@
     font-size: 13px;
     padding: 8px 12px;
 }
-.user-icon{
-  width: 20px;
-  height: 20px;
 
-   
+.user-icon {
+    width: 20px;
+    height: 20px;
+
+
     line-height: 1;
     color: #ff4d4f;
     cursor: pointer;
 }
+
+.menu-item-flex-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 8px;
+}
+

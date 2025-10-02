@@ -245,10 +245,12 @@ button[nz-button] img {
 .tabulator-paginator label {
   display: none !important;
 }
-.ant-splitter-bar-dragger {
+/* .ant-splitter-bar-dragger {
   background-color: #6b6b6b;
-}
+} */
 .tabulator .tabulator-header .tabulator-col {
   justify-content: center !important;
   align-items: center !important;
+  background: rgb(190, 190, 190) !important;
+  color: black;
 }

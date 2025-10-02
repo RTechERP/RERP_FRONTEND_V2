@@ -43,6 +43,7 @@ declare var bootstrap: any;
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TbProductRtcService } from './tb-product-rtc-service/tb-product-rtc.service';
 import { TbProductRtcImportExcelComponent } from './tb-product-rtc-import-excel/tb-product-rtc-import-excel.component';
+import { DEFAULT_TABLE_CONFIG } from '../../tabulator-default.config';
 @Component({
   standalone: true,
   imports: [
@@ -146,24 +147,25 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
   }
   drawTable() {
     this.productTable = new Tabulator('#dataTableProduct', {
-      layout: 'fitDataFill',
-      pagination: true,
-      selectableRows: 1,
-      height: '90vh',
+      ...DEFAULT_TABLE_CONFIG,
+      //   layout: 'fitDataFill',
+      //   pagination: true,
+      //   selectableRows: 1,
+      //   height: '90vh',
       ajaxURL: this.tbProductRtcService.getProductAjax(),
       ajaxConfig: 'POST',
-      paginationMode: 'remote',
-      columnDefaults: {
-        headerWordWrap: true,
-        headerVertical: false,
-        headerHozAlign: 'center',
-        minWidth: 60,
-        resizable: true,
-      },
-      movableColumns: true,
-      paginationSize: 50,
-      paginationSizeSelector: [5, 10, 20, 50, 100],
-      reactiveData: true,
+      //   paginationMode: 'remote',
+      //   columnDefaults: {
+      //     headerWordWrap: true,
+      //     headerVertical: false,
+      //     headerHozAlign: 'center',
+      //     minWidth: 60,
+      //     resizable: true,
+      //   },
+      //   movableColumns: true,
+      //   paginationSize: 50,
+      //   paginationSizeSelector: [5, 10, 20, 50, 100],
+      //   reactiveData: true,
       ajaxRequestFunc: (url, config, params) => {
         const request = {
           productGroupID: this.productGroupID || 0,
@@ -175,7 +177,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
           page: params.page || 1,
           size: params.size || 50,
         };
-        console.log('POST Request:', request);
+        // console.log('POST Request:', request);
         return this.tbProductRtcService.getProductRTC(request).toPromise();
       },
       ajaxResponse: (url, params, response) => {
@@ -184,21 +186,21 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
           last_page: response.data.TotalPage?.[0]?.TotalPage || 1,
         };
       },
-      placeholder: 'Không có dữ liệu',
-      langs: {
-        vi: {
-          pagination: {
-            first: '<<',
-            last: '>>',
-            prev: '<',
-            next: '>',
-          },
-        },
-      },
-      locale: 'vi',
-      dataTree: true,
-      addRowPos: 'bottom',
-      history: true,
+      //   placeholder: 'Không có dữ liệu',
+      //   langs: {
+      //     vi: {
+      //       pagination: {
+      //         first: '<<',
+      //         last: '>>',
+      //         prev: '<',
+      //         next: '>',
+      //       },
+      //     },
+      //   },
+      //   locale: 'vi',
+      //   dataTree: true,
+      //   addRowPos: 'bottom',
+      //   history: true,
       columns: [
         { title: 'ID', field: 'ID', visible: false, frozen: true },
         { title: 'STT', field: 'STT', visible: false, frozen: true },
@@ -264,7 +266,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
 
         { title: 'Khách mượn', field: 'BorrowCustomerText', visible: false },
         {
-          title: 'Đã sử dụng?',
+          title: 'Đã sử dụng',
           field: 'StatusProduct',
           formatter: 'tickCross',
           visible: false,
@@ -306,7 +308,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
         this.getGroup();
       },
       (dismissed) => {
-        console.log('Modal dismissed');
+        // console.log('Modal dismissed');
       }
     );
   }

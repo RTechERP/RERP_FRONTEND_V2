@@ -170,10 +170,10 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        this.notification.error(
-          'Thông báo',
-          'Lỗi kết nối khi tải tệp POKH: ' + error
-        );
+        // this.notification.error(
+        //   'Thông báo',
+        //   'Lỗi kết nối khi tải tệp POKH: ' + error
+        // );
       },
     });
   }
@@ -191,17 +191,17 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        this.notification.error(
-          'Thông báo',
-          'Lỗi kết nối khi tải tệp POKH: ' + error
-        );
+        // this.notification.error(
+        //   'Thông báo',
+        //   'Lỗi kết nối khi tải tệp POKH: ' + error
+        // );
       },
     });
   }
 
   getMainDataAjaxParams(): any {
     return (params: any) => {
-      console.log('Params từ Tabulator:', params);
+      //   console.log('Params từ Tabulator:', params);
 
       return {
         filterText: this.filters.keyword || '',

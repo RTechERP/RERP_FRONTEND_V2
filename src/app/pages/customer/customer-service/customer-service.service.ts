@@ -55,7 +55,7 @@ export class CustomerServiceService {
         employeeId +
         '&filterText=' +
         keyword +
-        '&pageNumber=1&pageSize=10000'
+        '&page=1&size=10000'
     );
   }
 

@@ -218,6 +218,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
           field: 'ProductName',
           minWidth: 120,
           frozen: true,
+          formatter: 'textarea',
         },
         { title: 'Vị trí (Hộp)', field: 'LocationName', minWidth: 200 },
         { title: 'Hãng', field: 'Maker' },
@@ -229,7 +230,12 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
           minWidth: 120,
           visible: false,
         },
-        { title: 'Tên nhóm', field: 'ProductGroupName', minWidth: 120 },
+        {
+          title: 'Tên nhóm',
+          field: 'ProductGroupName',
+          minWidth: 120,
+          formatter: 'textarea',
+        },
         { title: 'Mã kế toán', field: 'ProductCodeRTC' },
         {
           title: 'Ngày tạo',
@@ -271,7 +277,13 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
           formatter: 'tickCross',
           visible: false,
         },
-        { title: 'Ghi chú', field: 'Note', minWidth: 450, visible: false },
+        {
+          title: 'Ghi chú',
+          field: 'Note',
+          minWidth: 450,
+          visible: false,
+          formatter: 'textarea',
+        },
 
         { title: 'Lens Mount', field: 'LensMount', visible: false },
         { title: 'Focal Length', field: 'FocalLength', visible: false },

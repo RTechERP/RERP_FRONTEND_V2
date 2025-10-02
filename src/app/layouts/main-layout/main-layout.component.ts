@@ -20,8 +20,10 @@ import { AppNotifycationDropdownComponent } from '../../pages/app-notifycation-d
 import { AppUserDropdownComponent } from '../../pages/app/app-user-dropdown/app-user-dropdown.component';
 import { Title } from '@angular/platform-browser';
 import { ProjectComponent } from '../../pages/project/project.component';
-import { CustomerComponent } from '../../pages/customer/customer.component';
+// import { CustomerComponent } from '../../pages/customer/customer.component';
 import { TbProductRtcComponent } from '../../pages/tb-product-rtc/tb-product-rtc.component';
+import { CustomerComponent } from '../../pages/VisionBase/customer/customer.component';
+import { ProductSaleComponent } from '../../pages/Sale/ProductSale/product-sale.component';
 type TabItem = {
   title: string;
   comp: Type<any>;
@@ -100,36 +102,36 @@ export class MainLayoutComponent implements OnInit {
       key: 'crm',
       title: 'Khách hàng',
       isOpen: true,
-      icon: 'assets/icon/layers.png',
+      icon: 'assets/images/icons8-overview-20.png',
       comp: CustomerComponent,
     },
-    {
-      kind: 'leaf',
-      key: 'sales',
-      title: 'Bán hàng',
-      isOpen: true,
-      icon: 'assets/icon/layers.png',
-      comp: CustomerComponent,
-    },
+    // {
+    //   kind: 'leaf',
+    //   key: 'sales',
+    //   title: 'Bán hàng',
+    //   isOpen: true,
+    //   icon: 'assets/icon/layers.png',
+    //   comp: CustomerComponent,
+    // },
     {
       kind: 'group',
       key: 'product',
-      title: 'ProductRTC',
+      title: 'KHO',
       isOpen: true,
-      icon: 'assets/icon/layers.png',
+      icon: 'assets/images/icons8-warehouse-modula-20.png',
       children: [
         {
           kind: 'leaf',
           key: 'product1',
-          title: 'Product 1',
+          title: 'SẢN PHẨM KHO SALE',
           isOpen: true,
-          comp: TbProductRtcComponent,
-          icon: 'assets/icon/layers.png',
+          comp: ProductSaleComponent,
+          //   icon: 'assets/icon/layers.png',
         },
         {
           kind: 'leaf',
           key: 'product2',
-          title: 'Product 2',
+          title: 'SẢN PHẨM KHO DEMO',
           isOpen: true,
           comp: TbProductRtcComponent /* không icon */,
         },

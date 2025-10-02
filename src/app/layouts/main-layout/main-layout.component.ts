@@ -14,9 +14,43 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzDestroyService } from 'ng-zorro-antd/core/services';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NgComponentOutlet } from '@angular/common';
+import { Type, Injector } from '@angular/core';
 import { NotifyItem } from '../../pages/app-notifycation-dropdown/app-notifycation-dropdown.component';
 import { AppNotifycationDropdownComponent } from '../../pages/app-notifycation-dropdown/app-notifycation-dropdown.component';
 import { AppUserDropdownComponent } from '../../pages/app/app-user-dropdown/app-user-dropdown.component';
+import { Title } from '@angular/platform-browser';
+import { ProjectComponent } from '../../pages/project/project.component';
+import { CustomerComponent } from '../../pages/customer/customer.component';
+import { TbProductRtcComponent } from '../../pages/tb-product-rtc/tb-product-rtc.component';
+type TabItem = {
+  title: string;
+  comp: Type<any>;
+  injector?: Injector;
+};
+type BaseItem = {
+  key: string;
+  title: string;
+  isOpen: boolean;
+  icon?: string | null; // tùy chọn
+};
+
+type LeafItem = BaseItem & {
+  kind: 'leaf';
+  comp: Type<any>;
+};
+
+type GroupItem = BaseItem & {
+  kind: 'group';
+  children: LeafItem[];
+};
+
+type MenuItem = LeafItem | GroupItem;
+
+const COMPONENT_REGISTRY: Record<string, Type<any>> = {
+  customer: CustomerComponent,
+  productRTC: TbProductRtcComponent,
+  project: ProjectComponent,
+};
 @Component({
   selector: 'app-main-layout',
   imports: [
@@ -30,16 +64,22 @@ import { AppUserDropdownComponent } from '../../pages/app/app-user-dropdown/app-
     NzTabsModule,
     NzDropDownModule,
     ReactiveFormsModule,
-    // NgComponentOutlet,
     CommonModule,
     AppNotifycationDropdownComponent,
     AppUserDropdownComponent,
+    NgComponentOutlet,
+    CustomerComponent,
+    TbProductRtcComponent,
+    ProjectComponent,
   ],
   templateUrl: '../../app.component.html',
   styleUrl: '../../app.component.css',
   standalone: true,
 })
 export class MainLayoutComponent implements OnInit {
+  CustomerComponent = CustomerComponent;
+  ProductRtcComponent = TbProductRtcComponent;
+  ProjectComponent = ProjectComponent;
   constructor(
     private auth: AuthService,
     private router: Router,
@@ -49,13 +89,62 @@ export class MainLayoutComponent implements OnInit {
   notificationComponent = AppNotifycationDropdownComponent;
   //#region Khai báo biến
   isCollapsed = true;
+  isDatcom = false;
   selectedIndex = 0;
-  dynamicTabs: Array<{
-    title: string;
-    content: string;
-    queryParams?: Params;
-    routerLink: string[];
-  }> = [];
+
+  isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
+  isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
+  menus: MenuItem[] = [
+    {
+      kind: 'leaf',
+      key: 'crm',
+      title: 'Khách hàng',
+      isOpen: true,
+      icon: 'assets/icon/layers.png',
+      comp: CustomerComponent,
+    },
+    {
+      kind: 'leaf',
+      key: 'sales',
+      title: 'Bán hàng',
+      isOpen: true,
+      icon: 'assets/icon/layers.png',
+      comp: CustomerComponent,
+    },
+    {
+      kind: 'group',
+      key: 'product',
+      title: 'ProductRTC',
+      isOpen: true,
+      icon: 'assets/icon/layers.png',
+      children: [
+        {
+          kind: 'leaf',
+          key: 'product1',
+          title: 'Product 1',
+          isOpen: true,
+          comp: TbProductRtcComponent,
+          icon: 'assets/icon/layers.png',
+        },
+        {
+          kind: 'leaf',
+          key: 'product2',
+          title: 'Product 2',
+          isOpen: true,
+          comp: TbProductRtcComponent /* không icon */,
+        },
+      ],
+    },
+    {
+      kind: 'leaf',
+      key: 'project',
+      title: 'DỰ ÁN',
+      isOpen: false,
+      icon: null,
+      comp: ProjectComponent,
+    },
+  ];
+  dynamicTabs: TabItem[] = [];
 
   menu: any = {};
   //#endregion
@@ -93,231 +182,6 @@ export class MainLayoutComponent implements OnInit {
       icon: 'car',
     },
     {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 2,
-      title: 'Bàn giao TS BM-09 hoàn tất',
-      detail: 'Phòng IT • BB556',
-      time: '08:55',
-      group: 'today',
-      icon: 'file-done',
-    },
-    {
-      id: 3,
-      title: 'Đơn cấp phát #CP-778 tạo mới',
-      detail: 'Kho TB • 5 mục',
-      time: '16:40',
-      group: 'yesterday',
-      icon: 'plus-square',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 2,
-      title: 'Bàn giao TS BM-09 hoàn tất',
-      detail: 'Phòng IT • BB556',
-      time: '08:55',
-      group: 'today',
-      icon: 'file-done',
-    },
-    {
-      id: 3,
-      title: 'Đơn cấp phát #CP-778 tạo mới',
-      detail: 'Kho TB • 5 mục',
-      time: '16:40',
-      group: 'yesterday',
-      icon: 'plus-square',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 2,
-      title: 'Bàn giao TS BM-09 hoàn tất',
-      detail: 'Phòng IT • BB556',
-      time: '08:55',
-      group: 'today',
-      icon: 'file-done',
-    },
-    {
-      id: 3,
-      title: 'Đơn cấp phát #CP-778 tạo mới',
-      detail: 'Kho TB • 5 mục',
-      time: '16:40',
-      group: 'yesterday',
-      icon: 'plus-square',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 2,
-      title: 'Bàn giao TS BM-09 hoàn tất',
-      detail: 'Phòng IT • BB556',
-      time: '08:55',
-      group: 'today',
-      icon: 'file-done',
-    },
-    {
-      id: 3,
-      title: 'Đơn cấp phát #CP-778 tạo mới',
-      detail: 'Kho TB • 5 mục',
-      time: '16:40',
-      group: 'yesterday',
-      icon: 'plus-square',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 2,
-      title: 'Bàn giao TS BM-09 hoàn tất',
-      detail: 'Phòng IT • BB556',
-      time: '08:55',
-      group: 'today',
-      icon: 'file-done',
-    },
-    {
-      id: 3,
-      title: 'Đơn cấp phát #CP-778 tạo mới',
-      detail: 'Kho TB • 5 mục',
-      time: '16:40',
-      group: 'yesterday',
-      icon: 'plus-square',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 2,
-      title: 'Bàn giao TS BM-09 hoàn tất',
-      detail: 'Phòng IT • BB556',
-      time: '08:55',
-      group: 'today',
-      icon: 'file-done',
-    },
-    {
-      id: 3,
-      title: 'Đơn cấp phát #CP-778 tạo mới',
-      detail: 'Kho TB • 5 mục',
-      time: '16:40',
-      group: 'yesterday',
-      icon: 'plus-square',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 2,
-      title: 'Bàn giao TS BM-09 hoàn tất',
-      detail: 'Phòng IT • BB556',
-      time: '08:55',
-      group: 'today',
-      icon: 'file-done',
-    },
-    {
-      id: 3,
-      title: 'Đơn cấp phát #CP-778 tạo mới',
-      detail: 'Kho TB • 5 mục',
-      time: '16:40',
-      group: 'yesterday',
-      icon: 'plus-square',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-
-    {
       id: 2,
       title: 'Bàn giao TS BM-09 hoàn tất',
       detail:
@@ -327,40 +191,26 @@ export class MainLayoutComponent implements OnInit {
       icon: 'file-done',
     },
   ];
-
   ngOnInit(): void {
     this.getMenus(43);
   }
 
-  newTab(routerLink: string[], title: string): void {
-    const { length } = this.dynamicTabs;
-    const newTabId = length + 1;
-    // const title = `NewTab${newTabId}`;
-    this.dynamicTabs = [
-      ...this.dynamicTabs,
-      {
-        title,
-        content: title,
-        routerLink: routerLink,
-        queryParams: {
-          tab: newTabId,
-        },
-      },
-    ];
-
-    setTimeout(() => {
-      this.selectedIndex = this.dynamicTabs.length - 1;
-    });
-  }
-
-  closeTab({ index }: { index: number }): void {
-    this.dynamicTabs.splice(index, 1);
-
-    if (this.dynamicTabs.length === 0) {
-      this.router.navigate(['/welcome']);
+  newTab(comp: Type<any>, title: string, injector?: Injector) {
+    const idx = this.dynamicTabs.findIndex((t) => t.title === title);
+    if (idx >= 0) {
+      this.selectedIndex = idx;
+      return;
     }
+
+    this.dynamicTabs = [...this.dynamicTabs, { title, comp, injector }];
+    setTimeout(() => (this.selectedIndex = this.dynamicTabs.length - 1));
   }
 
+  closeTab({ index }: { index: number }) {
+    this.dynamicTabs.splice(index, 1);
+    if (this.selectedIndex >= this.dynamicTabs.length)
+      this.selectedIndex = this.dynamicTabs.length - 1;
+  }
   getMenus(id: number): void {
     this.menuService.getMenus(id).subscribe({
       next: (response: any) => {
@@ -382,5 +232,13 @@ export class MainLayoutComponent implements OnInit {
   onPick(n: NotifyItem) {
     console.log('picked:', n);
     // TODO: điều hướng/đánh dấu đã đọc...
+  }
+  toggleMenu(key: string) {
+    const m = this.menus.find((x) => x.key === key);
+    if (m) m.isOpen = !m.isOpen;
+  }
+  isMenuOpen(key: string): boolean {
+    const m = this.menus.find((x) => x.key === key);
+    return !!m && !!m.isOpen;
   }
 }

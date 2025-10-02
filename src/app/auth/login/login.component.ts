@@ -10,7 +10,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { log } from 'ng-zorro-antd/core/logger';
 import { AuthService } from '../auth.service';
-
+import { jwtDecode } from 'jwt-decode';
 @Component({
   selector: 'app-login',
   imports: [ReactiveFormsModule, CommonModule],
@@ -21,6 +21,7 @@ export class LoginComponent {
   loginForm: FormGroup;
   errorMessage = '';
   submitted = false;
+  token: any;
   constructor(
     private formBuilder: FormBuilder,
     private authService: AuthService,
@@ -37,10 +38,19 @@ export class LoginComponent {
     if (this.loginForm.invalid) return;
 
     this.authService.login(this.loginForm.value).subscribe({
-      next: () => this.router.navigate(['/home']),
+      next: (res) => {
+        this.token = this.authService.getToken();
+        try {
+          const decoded: any = jwtDecode(this.token);
+          console.log('decoded token:', decoded);
+        } catch (error) {
+          console.error('Invalid token', error);
+        }
+        console.log('token login:', this.token);
+        this.router.navigate(['/welcome']);
+      },
       error: (err) => {
         this.errorMessage = err.error.message;
-        console.log(err);
       },
     });
   }

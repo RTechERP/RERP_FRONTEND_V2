@@ -18,7 +18,7 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import {
   AppNotifycationDropdownComponent,
   NotifyItem,
-} from '../../pages/app-notifycation-dropdown/app-notifycation-dropdown.component';
+} from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
@@ -41,7 +41,7 @@ import { NzSpaceModule } from 'ng-zorro-antd/space';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
-import { AppUserDropdownComponent } from '../../pages/app/app-user-dropdown/app-user-dropdown.component';
+import { AppUserDropdownComponent } from '../../pages/old/app/app-user-dropdown/app-user-dropdown.component';
 
 interface dynamicApps {
   MenuName: string;

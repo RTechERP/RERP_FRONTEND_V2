@@ -27,6 +27,8 @@
     "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
     "font-awesome": "^4.7.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.3",
     "jwt-decode": "^4.0.0",
     "luxon": "^3.6.1",
     "ng-zorro-antd": "^19.3.1",

@@ -1,52 +1,55 @@
-import { ProjectSurveyComponent } from './pages/project/project-survey/project-survey.component';
+import { ProjectSurveyComponent } from './pages/old/project/project-survey/project-survey.component';
 import { Routes } from '@angular/router';
-import { WelcomeComponent } from './pages/welcome/welcome.component';
-import { ProjectComponent } from './pages/project/project.component';
-import { PokhComponent } from './pages/pokh/pokh.component';
-import { RequestInvoiceComponent } from './pages/request-invoice/request-invoice.component';
-import { ViewPokhComponent } from './pages/view-pokh/view-pokh.component';
-import { HandoverMinutesComponent } from './pages/handover-minutes/handover-minutes.component';
-import { QuotationKhComponent } from './pages/quotation-kh/quotation-kh.component';
-import { PokhKpiComponent } from './pages/pokh-kpi/pokh-kpi.component';
+import { WelcomeComponent } from './pages/old/welcome/welcome.component';
+import { ProjectComponent } from './pages/old/project/project.component';
+import { PokhComponent } from './pages/old/pokh/pokh.component';
+import { RequestInvoiceComponent } from './pages/old/request-invoice/request-invoice.component';
+import { ViewPokhComponent } from './pages/old/view-pokh/view-pokh.component';
+// import { HandoverMinutesComponent } from './pages/old/pages/handover-minutes/handover-minutes.component';
+import { QuotationKhComponent } from './pages/old/quotation-kh/quotation-kh.component';
+import { PokhKpiComponent } from './pages/old/pokh-kpi/pokh-kpi.component';
 
-import { PokhHistoryComponent } from './pages/pokh-history/pokh-history.component';
-import { TradePriceComponent } from './pages/Sale/TinhGia/trade-price/trade-price.component';
-import { QuotationSaleComponent } from './pages/Sale/TinhGia/quotation-sale/quotation-sale.component';
-import { ProjectMachinePriceComponent } from './pages/Sale/TinhGia/project-machine-price/project-machine-price.component';
-import { PlanWeekComponent } from './pages/VisionBase/plan-week/plan-week.component';
-import { CustomerComponent } from './pages/VisionBase/customer/customer.component';
+import { PokhHistoryComponent } from './pages/old/pokh-history/pokh-history.component';
+import { TradePriceComponent } from './pages/old/Sale/TinhGia/trade-price/trade-price.component';
+import { QuotationSaleComponent } from './pages/old/Sale/TinhGia/quotation-sale/quotation-sale.component';
+import { ProjectMachinePriceComponent } from './pages/old/Sale/TinhGia/project-machine-price/project-machine-price.component';
+import { PlanWeekComponent } from './pages/old/VisionBase/plan-week/plan-week.component';
+import { CustomerComponent } from './pages/old/VisionBase/customer/customer.component';
 
-import { ProjectListWorkReportComponent } from './pages/project/project-list-work-report/project-list-work-report.component';
-import { ProjectWorkCategoryComponent } from './pages/project/project-work-category/project-work-category.component';
-import { ProjectWorkPropressComponent } from './pages/project/project-work-propress/project-work-propress.component';
-import { ProjectWorkTimelineComponent } from './pages/project/project-work-timeline/project-work-timeline.component';
-import { ProjectItemLateComponent } from './pages/project/project-item-late/project-item-late.component';
-import { ProjectWorkItemTimelineComponent } from './pages/project/project-work-item-timeline/project-work-item-timeline.component';
-import { SynthesisOfGeneratedMaterialsComponent } from './pages/project/synthesis-of-generated-materials/synthesis-of-generated-materials.component';
-import { ProjectSynthesisDepartmentComponent } from './pages/project/project-synthesis-department/project-synthesis-department.component';
-import { ProjectPartlistPurchaseRequestComponent } from './pages/project-partlist-purchase-request/project-partlist-purchase-request.component';
+import { ProjectListWorkReportComponent } from './pages/old/project/project-list-work-report/project-list-work-report.component';
+import { ProjectWorkCategoryComponent } from './pages/old/project/project-work-category/project-work-category.component';
+import { ProjectWorkPropressComponent } from './pages/old/project/project-work-propress/project-work-propress.component';
+import { ProjectWorkTimelineComponent } from './pages/old/project/project-work-timeline/project-work-timeline.component';
+import { ProjectItemLateComponent } from './pages/old/project/project-item-late/project-item-late.component';
+import { ProjectWorkItemTimelineComponent } from './pages/old/project/project-work-item-timeline/project-work-item-timeline.component';
+import { SynthesisOfGeneratedMaterialsComponent } from './pages/old/project/synthesis-of-generated-materials/synthesis-of-generated-materials.component';
+import { ProjectSynthesisDepartmentComponent } from './pages/old/project/project-synthesis-department/project-synthesis-department.component';
+import { ProjectPartlistPurchaseRequestComponent } from './pages/old/project-partlist-purchase-request/project-partlist-purchase-request.component';
 import { LoginComponent } from './auth/login/login.component';
 import { authGuard } from './auth/auth.guard';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
 import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
 import { AppComponent } from './app.component';
-import { MenusComponent } from './pages/menus/menus.component';
+import { MenusComponent } from './pages/old/menus/menus.component';
 import { HomeLayoutComponent } from './layouts/home-layout/home-layout.component';
-import { TsAssetManagementPersonalComponent } from './pages/ts-asset-management-personal/ts-asset-management-personal.component';
-import { TsAssetAllocationPersonalComponent } from './pages/ts-asset-allocation-personal/ts-asset-allocation-personal.component';
-import { TsAssetRecoveryPersonalComponent } from './pages/ts-asset-recovery-personal/ts-asset-recovery-personal.component';
-import { TsAssetUnitcountComponent } from './pages/ts-asset-unitcount/ts-asset-unitcount.component';
-import { TsAssetTypeComponent } from './pages/ts-asset-type/ts-asset-type.component';
-import { TsAssetStatusComponent } from './pages/ts-asset-status/ts-asset-status.component';
-import { TsAssetSourceComponent } from './pages/ts-asset-source/ts-asset-source.component';
-import { TsAssetManagementComponent } from './pages/ts-asset-management/ts-asset-management.component';
-import { TsAssetAllocationComponent } from './pages/ts-asset-allocation/ts-asset-allocation.component';
-import { TsAssetRecoveryComponent } from './pages/ts-asset-recovery/ts-asset-recovery.component';
-import { TsAssetTransferComponent } from './pages/ts-asset-transfer/ts-asset-transfer.component';
+import { TsAssetManagementPersonalComponent } from './pages/old/ts-asset-management-personal/ts-asset-management-personal.component';
+import { TsAssetAllocationPersonalComponent } from './pages/old/ts-asset-allocation-personal/ts-asset-allocation-personal.component';
+import { TsAssetRecoveryPersonalComponent } from './pages/old/ts-asset-recovery-personal/ts-asset-recovery-personal.component';
+import { TsAssetUnitcountComponent } from './pages/old/ts-asset-unitcount/ts-asset-unitcount.component';
+import { TsAssetTypeComponent } from './pages/old/ts-asset-type/ts-asset-type.component';
+import { TsAssetStatusComponent } from './pages/old/ts-asset-status/ts-asset-status.component';
+import { TsAssetSourceComponent } from './pages/old/ts-asset-source/ts-asset-source.component';
+import { TsAssetManagementComponent } from './pages/old/ts-asset-management/ts-asset-management.component';
+import { TsAssetAllocationComponent } from './pages/old/ts-asset-allocation/ts-asset-allocation.component';
+import { TsAssetRecoveryComponent } from './pages/old/ts-asset-recovery/ts-asset-recovery.component';
+import { TsAssetTransferComponent } from './pages/old/ts-asset-transfer/ts-asset-transfer.component';
 // import { CustomerComponent } from './pages/customer/customer.component';
-import { ProductComponent } from './pages/product/product.component';
-import { TbProductRtcComponent } from './pages/tb-product-rtc/tb-product-rtc.component';
-import { ProductSaleComponent } from './pages/Sale/ProductSale/product-sale.component';
+import { ProductComponent } from './pages/old/product/product.component';
+import { TbProductRtcComponent } from './pages/old/tb-product-rtc/tb-product-rtc.component';
+import { ProductSaleComponent } from './pages/old/Sale/ProductSale/product-sale.component';
+import { HrmComponent } from './pages/hrm/hrm.component';
+import { HrhiringRequestComponent } from './pages/hrm/hrhiring-request/hrhiring-request.component';
+import { HandoverMinutesComponent } from './pages/old/handover-minutes/handover-minutes.component';
 export const routes: Routes = [
   {
     path: '',
@@ -75,7 +78,7 @@ export const routes: Routes = [
         path: 'project-partlist-price-request',
         loadComponent: () =>
           import(
-            './pages/project-partlist-purchase-request/project-partlist-purchase-request.component'
+            './pages/old/project-partlist-purchase-request/project-partlist-purchase-request.component'
           ).then((m) => m.ProjectPartlistPurchaseRequestComponent),
       },
       // Router danh mục dự án
@@ -122,19 +125,35 @@ export const routes: Routes = [
         path: 'product-sale', //DANH SÁCH SẢN PHẨM SALE
         component: ProductSaleComponent,
       },
-      { path: 'project', component: ProjectComponent }, // NTA Bổ sung path 25/09/25  
-      { path: 'pokh', component: PokhComponent},
-      { path: 'handover-minutes', component: HandoverMinutesComponent},
-      { path: 'request-invoice', component: RequestInvoiceComponent},
-      { path: 'quotation-kh', component: QuotationKhComponent},
-      { path: 'pokh-kpi', component: PokhKpiComponent},
-      { path: 'pokh-history', component: PokhHistoryComponent},
-      { path: 'trade-price', component: TradePriceComponent},
-      { path: 'quotation-sale', component: QuotationSaleComponent},
-      { path: 'project-machine-price', component: ProjectMachinePriceComponent},
-      { path: 'plan-week', component: PlanWeekComponent},
-      { path: 'customer', component: CustomerComponent} // NTA Bổ sung path 25/09/25  END
+
       //#endregion
+      {
+        path: 'hrm', //DANH SÁCH SẢN PHẨM SALE
+        component: HrmComponent,
+      },
+      {
+        path: 'hrhiring', //DANH SÁCH SẢN PHẨM SALE
+        component: HrhiringRequestComponent,
+      },
+
+      //#region HRM
+
+      //#endregion
+      { path: 'project', component: ProjectComponent }, // NTA Bổ sung path 25/09/25
+      { path: 'pokh', component: PokhComponent },
+      { path: 'handover-minutes', component: HandoverMinutesComponent },
+      { path: 'request-invoice', component: RequestInvoiceComponent },
+      { path: 'quotation-kh', component: QuotationKhComponent },
+      { path: 'pokh-kpi', component: PokhKpiComponent },
+      { path: 'pokh-history', component: PokhHistoryComponent },
+      { path: 'trade-price', component: TradePriceComponent },
+      { path: 'quotation-sale', component: QuotationSaleComponent },
+      {
+        path: 'project-machine-price',
+        component: ProjectMachinePriceComponent,
+      },
+      { path: 'plan-week', component: PlanWeekComponent },
+      { path: 'customer', component: CustomerComponent }, // NTA Bổ sung path 25/09/25  END
     ],
   },
 ];

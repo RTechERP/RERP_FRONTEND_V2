@@ -254,3 +254,7 @@ button[nz-button] img {
   background: rgb(190, 190, 190) !important;
   color: black;
 }
+
+.ant-splitter {
+  height: 93vh !important;
+}

@@ -131,7 +131,6 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
     this.GetCurrency();
     this.GetSupplierSale();
     this.LoadProjectTypes();
-    this.LoadPriceRequests();
     this.GetallProject();
     this.GetAllPOKH();
   }
@@ -259,7 +258,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           return {
             ID: data['ID'],
             IsDeleted: true,
-            UpdatedBy: USER_NAME,
+            UpdatedBy: LOGIN_NAME,
             UpdatedDate: new Date().toISOString(),
           };
         });
@@ -422,31 +421,26 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       console.log('POKH:', this.dtPOKH);
     });
   }
+
   private LoadPriceRequests(): void {
-    const table = this.tables.get(this.activeTabId);
-    if (table) {
-      // Đặt lại trang về 1
-      table.setPage(1);
-      // Tải lại dữ liệu với tham số AJAX hiện tại
-      table.setData();
+    const activeTable = this.tables.get(this.activeTabId);
+    if (activeTable) {
+      activeTable.setData();
     }
   }
 
   public ApplyFilters(): void {
     console.log(this.filters.poKHID);
-    const table = this.tables.get(this.activeTabId);
-    if (table) {
-      // Đặt lại trang về 1 khi áp dụng bộ lọc mới
-      table.setPage(1);
-      // Cập nhật tham số AJAX và tải lại dữ liệu
+    // Reload tất cả các table đã được tạo
+    this.tables.forEach((table) => {
       table.setData();
-    }
+    });
   }
 
   public ResetFilters(): void {
     this.filters = {
-      dateStart: DateTime.local(2025, 1, 1).toFormat('yyyy/MM/dd'),
-      dateEnd: DateTime.local().toFormat('yyyy/MM/dd'),
+      dateStart: DateTime.local(2025, 1, 1).toJSDate(),
+      dateEnd: DateTime.local().toJSDate(),
       statusRequest: 1,
       projectId: 0,
       keyword: '',
@@ -456,13 +450,10 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       isCommercialProd: -1,
     };
 
-    const table = this.tables.get(this.activeTabId);
-    if (table) {
-      // Đặt lại trang về 1 khi đặt lại bộ lọc
-      table.setPage(1);
-      // Cập nhật tham số AJAX và tải lại dữ liệu
+    // Reload tất cả các table
+    this.tables.forEach((table) => {
       table.setData();
-    }
+    });
   }
 
   public SelectProjectType(typeId: number): void {
@@ -474,13 +465,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       this.CreateTableForType(typeId);
     }
 
-    const table = this.tables.get(typeId);
-    if (table) {
-      // Đặt lại trang về 1 khi chuyển loại dự án
-      table.setPage(1);
-      // Cập nhật tham số AJAX và tải lại dữ liệu
-      table.setData();
-    }
+    // Table sẽ tự động load dữ liệu qua AJAX
   }
   private CreateTableForType(typeId: number): void {
     const tableId = `datatable-${typeId}`;
@@ -490,8 +475,60 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       console.error(`Table container not found: ${tableId}`);
       return;
     }
-    const table = new Tabulator(`#${tableId}`, this.GetTableConfig());
+
+    const table = new Tabulator(
+      `#${tableId}`,
+      this.GetTableConfigForType(typeId)
+    );
     this.tables.set(typeId, table);
+  }
+
+  // Tạo cấu hình table riêng cho từng type
+  private GetTableConfigForType(typeId: number): any {
+    const baseConfig = this.GetTableConfig();
+
+    // Override ajaxParams để truyền đúng tham số cho từng type
+    baseConfig.ajaxParams = () => {
+      const dateStart =
+        typeof this.filters.dateStart === 'string'
+          ? this.filters.dateStart
+          : DateTime.fromJSDate(this.filters.dateStart).toFormat('yyyy/MM/dd');
+
+      const dateEnd =
+        typeof this.filters.dateEnd === 'string'
+          ? this.filters.dateEnd
+          : DateTime.fromJSDate(this.filters.dateEnd).toFormat('yyyy/MM/dd');
+
+      let projectTypeID = typeId;
+      let isCommercialProduct = -1;
+      let poKHID = this.filters.poKHID;
+
+      // Xử lý logic cho các tab đặc biệt
+      if (typeId === -1) {
+        // Tab "Sản phẩm thương mại"
+        projectTypeID = -1;
+        isCommercialProduct = 1;
+        poKHID = 0;
+      } else if (typeId === -2) {
+        // Tab "HCNS"
+        projectTypeID = 0;
+        isCommercialProduct = -1;
+      }
+
+      return {
+        dateStart: dateStart,
+        dateEnd: dateEnd,
+        statusRequest: this.filters.statusRequest - 1,
+        projectId: this.filters.projectId,
+        keyword: this.filters.keyword || '',
+        isDeleted: this.filters.isDeleted,
+        projectTypeID: projectTypeID,
+        poKHID: poKHID,
+        isCommercialProduct: isCommercialProduct,
+      };
+    };
+
+    return baseConfig;
   }
 
   private UpdateActiveTable(): void {
@@ -590,7 +627,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       'TotalDayLeadTime',
       'TotalPriceExchange',
     ];
-    if (!ISADMIN) {
+    if (!IS_ADMIN) {
       validFields.push('QuoteEmployeeID');
       validFields.push('UpdatedBy');
     }
@@ -656,7 +693,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
 
       // Sử dụng định dạng ISO chuẩn cho UpdatedDate
       filteredItem.UpdatedDate = DateTime.local().toISO();
-      filteredItem.UpdatedBy = !ISADMIN ? USER_NAME : '';
+      filteredItem.UpdatedBy = !IS_ADMIN ? LOGIN_NAME : '';
       return filteredItem;
     });
 
@@ -859,9 +896,9 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       // Cập nhật dữ liệu
       Object.assign(rowData, {
         StatusRequest: status,
-        UpdatedBy: USER_NAME,
+        UpdatedBy: LOGIN_NAME,
         UpdatedDate: new Date(),
-        QuoteEmployeeID: !ISADMIN ? EMPLOYEE_ID : rowData['QuoteEmployeeID'],
+        QuoteEmployeeID: !IS_ADMIN ? EMPLOYEE_ID : rowData['QuoteEmployeeID'],
         DatePriceQuote:
           status === 2
             ? new Date()
@@ -916,7 +953,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
             ID: Number(rowData['ID']),
             IsCheckPrice: isCheckPrice,
             QuoteEmployeeID: isCheckPrice ? EMPLOYEE_ID : 0,
-            UpdatedBy: USER_NAME,
+            UpdatedBy: LOGIN_NAME,
             UpdatedDate: DateTime.local().toJSDate(),
           };
         });
@@ -1554,9 +1591,15 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   private GetTableConfig(): any {
     return {
       // data: this.dtprojectPartlistPriceRequest,
-      layout: 'fitColumns',
-      height: '80vh',
+      layout: 'fitDataFill',
+      height: 700,
+      maxheight: '80vh',
       virtualDom: true,
+      virtualDomBuffer: 300, // Thêm buffer để giảm lag
+
+      // Cải thiện performance
+      renderVertical: 'virtual',
+      renderHorizontal: 'virtual',
       rowHeader: {
         headerSort: false,
         resizable: false,
@@ -1595,15 +1638,6 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
             : DateTime.fromJSDate(filters.dateEnd).toFormat('yyyy/MM/dd');
 
         return {
-          dateStart: dateStart,
-          dateEnd: dateEnd,
-          statusRequest: statusRequest,
-          projectId: filters.projectId,
-          keyword: filters.keyword,
-          isDeleted: filters.isDeleted,
-          projectTypeID: filters.projectTypeID,
-          poKHID: poKHID,
-          isCommercialProduct: isCommercialProduct,
           page: 1,
           size: 25,
         };

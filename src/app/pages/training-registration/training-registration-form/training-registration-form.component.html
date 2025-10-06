@@ -1,0 +1,203 @@
+<div class="modal-header bg-primary p-2"><h6 class="modal-title text-white m-0">CHI TIẾT ĐĂNG KÝ</h6>
+  <button
+    type="button"
+    class="btn-close btn-close-white"
+    (click)="closeModal()"
+    aria-label="Close"
+  ></button>
+</div>
+<div class="training-form-container">
+  <!-- Form thông tin chính -->
+  <form nz-form nzLayout="vertical">
+    <!-- Chia thành 3 cột -->
+    <div nz-row [nzGutter]="16">
+      <!-- Cột 1 -->
+      <div nz-col [nzSpan]="8">
+        <!-- Nhân viên -->
+        <nz-form-item class="compact-form-item">
+          <nz-form-label nzRequired>Nhân viên</nz-form-label>
+          <nz-form-control nzErrorTip="Vui lòng chọn nhân viên!">
+            <nz-select
+              [(ngModel)]="formData.EmployeeID"
+              name="employeeID"
+              nzShowSearch
+              nzAllowClear
+              nzPlaceHolder="Chọn nhân viên"
+              nzSize="small"
+            >
+              <nz-option
+                *ngFor="let employee of lstEmployees"
+                [nzValue]="employee.ID"
+                [nzLabel]="employee.Code + ' - ' + employee.FullName"
+              ></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Mục đích đào tạo -->
+        <nz-form-item class="compact-form-item">
+          <nz-form-label nzRequired>Mục đích đào tạo</nz-form-label>
+          <nz-form-control>
+              <input nz-input [(ngModel)]="formData.Purpose" name="purpose" placeholder="Nhập mục đích đào tạo" nzSize="small"/>
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Loại đào tạo -->
+        <nz-form-item class="compact-form-item">
+          <nz-form-label nzRequired>Loại đào tạo</nz-form-label>
+          <nz-form-control nzErrorTip="Vui lòng chọn loại đào tạo!">
+            <nz-select
+              [(ngModel)]="formData.TrainingType"
+              name="trainingTypeID"
+              nzShowSearch
+              nzAllowClear
+              nzPlaceHolder="Chọn loại đào tạo"
+              nzSize="small"
+            >
+              <nz-option
+                *ngFor="let type of trainingTypes"
+                [nzValue]="type.ID"
+                [nzLabel]="type.Name"
+              ></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <!-- Cột 2 -->
+      <div nz-col [nzSpan]="8">
+        <!-- Số lượng buổi/khóa -->
+        <nz-form-item class="compact-form-item">
+          <nz-form-label nzRequired>Số lượng buổi/khóa</nz-form-label>
+          <nz-form-control>
+            <nz-input-number
+              [(ngModel)]="formData.SessionsPerCourse"
+              name="sessionsPerCourse"
+              [nzMin]="1"
+              [nzStep]="1"
+              [nzPlaceHolder]="'Nhập số lượng buổi'"
+              nzSize="small"
+              style="width: 100%"
+            ></nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Số phút/buổi -->
+        <nz-form-item class="compact-form-item">
+          <nz-form-label nzRequired>Số phút/buổi</nz-form-label>
+          <nz-form-control>
+            <nz-input-number
+              [(ngModel)]="formData.SessionDuration"
+              name="sessionDuration"
+              [nzMin]="1"
+              [nzStep]="15"
+              [nzPlaceHolder]="'Nhập số phút mỗi buổi'"
+              nzSize="small"
+              style="width: 100%"
+            ></nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Ngày bắt đầu -->
+        <nz-form-item class="compact-form-item">
+          <nz-form-label nzRequired>Ngày bắt đầu</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker
+              [(ngModel)]="formData.DateStart"
+              name="startDate"
+              nzFormat="dd/MM/yyyy"
+              nzPlaceHolder="Chọn ngày bắt đầu"
+              nzSize="small"
+              style="width: 100%"
+            ></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <!-- Cột 3 -->
+      <div nz-col [nzSpan]="8">
+        <!-- Ngày kết thúc -->
+        <nz-form-item class="compact-form-item">
+          <nz-form-label nzRequired>Ngày kết thúc</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker
+              [(ngModel)]="formData.DateEnd"
+              name="endDate"
+              nzFormat="dd/MM/yyyy"
+              nzPlaceHolder="Chọn ngày kết thúc"
+              nzSize="small"
+              style="width: 100%"
+            ></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Đánh giá mức độ hoàn thành -->
+        <nz-form-item class="compact-form-item">
+          <nz-form-label>Đánh giá mức độ hoàn thành</nz-form-label>
+          <nz-form-control>
+            <nz-select
+              [(ngModel)]="formData.CompletionAssessment"
+              name="completionAssessment"
+              nzAllowClear
+              nzPlaceHolder="Chọn mức độ hoàn thành"
+              nzSize="small"
+            >
+              <nz-option nzValue="Xuất sắc" nzLabel="Xuất sắc"></nz-option>
+              <nz-option nzValue="Tốt" nzLabel="Tốt"></nz-option>
+              <nz-option nzValue="Khá" nzLabel="Khá"></nz-option>
+              <nz-option nzValue="Trung bình" nzLabel="Trung bình"></nz-option>
+              <nz-option nzValue="Yếu" nzLabel="Yếu"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Cấp chứng chỉ -->
+        <nz-form-item class="compact-form-item">
+          <nz-form-control>
+            <label nz-checkbox [(ngModel)]="formData.IsCertification" name="isCertification">Cấp chứng chỉ</label>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+  </form>
+
+  <!-- Phần bảng chi tiết và file ở dưới -->
+  <div class="tables-section">
+    <div nz-row [nzGutter]="16">
+      <!-- Cột trái - Bảng chi tiết -->
+      <div nz-col [nzSpan]="12">
+        <div class="detail-container">
+          <h6>Hạng mục đăng ký</h6>
+          <div #detailTable class="detail-table"></div>
+        </div>
+      </div>
+      
+      <!-- Cột phải - Bảng file -->
+      <div nz-col [nzSpan]="12">
+        <div class="file-container">
+          <h6>Tài liệu đính kèm</h6>
+          <div class="file-upload-section mb-2">
+            <nz-upload
+              [(nzFileList)]="fileList"
+              [nzBeforeUpload]="beforeUpload"
+              [nzMultiple]="true"
+              [nzShowUploadList]="false"
+            >
+              <button nz-button nzSize="small">
+                <i nz-icon nzType="upload"></i>
+                Thêm file
+              </button>
+            </nz-upload>
+          </div>
+          <div #fileTable class="file-table"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<div class="modal-footer p-2">
+  <button nz-button nzType="default" (click)="closeModal()">Hủy</button>
+  <button nz-button nzType="primary" (click)="uploadFilesAndSaveData()">
+    Lưu dữ liệu
+  </button>
+</div>

@@ -1,0 +1,112 @@
+.training-form-container {
+  padding: 16px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+nz-form-item {
+  margin-bottom: 16px;
+}
+
+.compact-form-item {
+  margin-bottom: 8px !important;
+}
+
+.compact-form-item .ant-form-item-label {
+  padding-bottom: 2px;
+}
+
+.ant-upload-list-item {
+  margin-top: 8px;
+}
+
+.tables-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* Styles cho layout 3 cột */
+.three-column-layout {
+  display: flex;
+  gap: 16px;
+}
+
+.three-column-layout > div {
+  flex: 1;
+}
+
+/* Styles cho container chi tiết và file */
+.detail-container,
+.file-container {
+  height: 100%;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.detail-container h6,
+.file-container h6 {
+  margin-bottom: 12px;
+  font-weight: 600;
+  color: #262626;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 8px;
+}
+
+/* Styles cho bảng file */
+.file-table {
+  height: calc(60vh - 80px);
+}
+
+.file-upload-section {
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* Responsive cho mobile */
+@media (max-width: 768px) {
+  .three-column-layout {
+    flex-direction: column;
+  }
+  
+  .detail-container,
+  .file-container {
+    margin-bottom: 16px;
+  }
+  
+  .file-table {
+    height: 40vh;
+  }
+}
+
+/* Styles cho tabulator tables */
+.detail-table,
+.file-table {
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+}
+
+/* Custom button styles */
+.btn-sm {
+  padding: 2px 8px;
+  font-size: 12px;
+  border-radius: 3px;
+}
+
+.btn-danger {
+  background-color: #ff4d4f;
+  border-color: #ff4d4f;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #ff7875;
+  border-color: #ff7875;
+}

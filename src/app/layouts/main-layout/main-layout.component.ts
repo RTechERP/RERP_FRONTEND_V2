@@ -9,21 +9,22 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { ReactiveFormsModule } from '@angular/forms';
-import { MenuService } from '../../pages/menus/menu-service/menu.service';
+import { MenuService } from '../../pages/old/menus/menu-service/menu.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzDestroyService } from 'ng-zorro-antd/core/services';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NgComponentOutlet } from '@angular/common';
 import { Type, Injector } from '@angular/core';
-import { NotifyItem } from '../../pages/app-notifycation-dropdown/app-notifycation-dropdown.component';
-import { AppNotifycationDropdownComponent } from '../../pages/app-notifycation-dropdown/app-notifycation-dropdown.component';
-import { AppUserDropdownComponent } from '../../pages/app/app-user-dropdown/app-user-dropdown.component';
+import { NotifyItem } from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
+import { AppNotifycationDropdownComponent } from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
+import { AppUserDropdownComponent } from '../../pages/old/app/app-user-dropdown/app-user-dropdown.component';
 import { Title } from '@angular/platform-browser';
-import { ProjectComponent } from '../../pages/project/project.component';
+import { ProjectComponent } from '../../pages/old/project/project.component';
 // import { CustomerComponent } from '../../pages/customer/customer.component';
-import { TbProductRtcComponent } from '../../pages/tb-product-rtc/tb-product-rtc.component';
-import { CustomerComponent } from '../../pages/VisionBase/customer/customer.component';
-import { ProductSaleComponent } from '../../pages/Sale/ProductSale/product-sale.component';
+import { TbProductRtcComponent } from '../../pages/old/tb-product-rtc/tb-product-rtc.component';
+import { CustomerComponent } from '../../pages/old/VisionBase/customer/customer.component';
+import { ProductSaleComponent } from '../../pages/old/Sale/ProductSale/product-sale.component';
+import { HrhiringRequestComponent } from '../../pages/hrm/hrhiring-request/hrhiring-request.component';
 type TabItem = {
   title: string;
   comp: Type<any>;
@@ -144,6 +145,30 @@ export class MainLayoutComponent implements OnInit {
       isOpen: false,
       icon: null,
       comp: ProjectComponent,
+    },
+    {
+      kind: 'group',
+      key: 'hrm',
+      title: 'HRM',
+      isOpen: true,
+      icon: 'assets/images/icons8-warehouse-modula-20.png',
+      children: [
+        {
+          kind: 'leaf',
+          key: 'hrhiring',
+          title: 'TUYỂN DỤNG',
+          isOpen: true,
+          comp: HrhiringRequestComponent,
+          //   icon: 'assets/icon/layers.png',
+        },
+        // {
+        //   kind: 'leaf',
+        //   key: 'product2',
+        //   title: 'SẢN PHẨM KHO DEMO',
+        //   isOpen: true,
+        //   comp: TbProductRtcComponent /* không icon */,
+        // },
+      ],
     },
   ];
   dynamicTabs: TabItem[] = [];

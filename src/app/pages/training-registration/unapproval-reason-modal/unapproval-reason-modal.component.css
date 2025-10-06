@@ -1,0 +1,19 @@
+/* Thêm các style tùy chỉnh nếu cần */
+.modal-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.modal-footer {
+  background-color: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+}
+
+.modal-title {
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+textarea {
+  resize: none;
+}

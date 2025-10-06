@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, ViewEncapsulation } from '@angular/core';
+import { CommonModule } from '@angular/common'; // Thêm import này
 import { DateTime } from 'luxon';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
@@ -36,6 +37,7 @@ import { ProjectPartlistPurchaseRequestService } from './service/project-partlis
   selector: 'app-project-partlist-purchase-request',
   standalone: true,
   imports: [
+    CommonModule, // Thêm import này
     NzCardModule,
     FormsModule,
     NzButtonModule,
@@ -65,6 +67,20 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit {
   table: any; // To hold the Tabulator instance
   sizeSearch: string = '0';
   PurchaseRequetsService = inject(ProjectPartlistPurchaseRequestService);
+
+  // Cache dữ liệu cho từng tab (dựa trên logic backend)
+  cachedData: { [key: string]: any[] } = {
+    purchaseRequests: [], // ProductRTCID == null || ProductRTCID <= 0
+    dataRTC: [], // ProductRTCID > 0 && TicketType == 0
+    techBought: [], // IsTechBought == true
+    productRTCBorrow: [], // TicketType == 1 && (IsApprovedTBP==0 || ApprovedTBP == employeeID)
+  };
+  dtproject: any[] = [];
+  dtPOKH: any[] = [];
+  currentDataType: string = 'purchaseRequests';
+  isDataLoaded: boolean = false;
+  isLoading: boolean = false;
+
   constructor() {}
 
   ngOnInit() {
@@ -123,8 +139,17 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
   }
   private DrawTable() {
+    // Tạo element trước khi khởi tạo Tabulator
+    const tableElement = document.getElementById('table');
+    if (!tableElement) {
+      console.error('Table element not found');
+      setTimeout(() => this.DrawTable(), 100); // Thử lại sau 100ms nếu không tìm thấy element
+      return;
+    }
+
+    // Khởi tạo Tabulator với cấu hình client-side pagination
     this.table = new Tabulator('#table', {
-      layout: 'fitDataStretch', // Fit columns to width of table
+      layout: 'fitDataStretch',
       rowHeader: {
         headerSort: false,
         resizable: false,
@@ -173,381 +198,570 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit {
       responsiveLayout: 'hide',
       paginationMode: 'remote',
       pagination: true,
+      paginationMode: 'local', // Sử dụng client-side pagination
       paginationSize: 25,
-      paginationSizeSelector: [10, 25, 50, 100],
+      paginationSizeSelector: [10, 25, 50, 100, true], // true = hiển thị tất cả
       paginationInitialPage: 1,
 
       columns: [
         { title: 'ID', field: 'id', sorter: 'number' },
         {
           title: 'Dự án',
-          field: 'projectName',
+          field: 'ProjectFullName',
           sorter: 'string',
         },
         { title: 'TT', field: 'tt', sorter: 'number' },
         {
           title: 'Mã sản phẩm',
-          field: 'productCode',
+          field: 'ProductCode',
           sorter: 'string',
+          width: 150,
+          headerHozAlign: 'center',
         },
         {
           title: 'Tên sản phẩm',
-          field: 'productName',
+          field: 'ProductName',
           sorter: 'string',
-        },
-        {
-          title: 'Trạng thái',
-          field: 'status',
-          sorter: 'string',
-        },
-        {
-          title: 'Người yêu cầu',
-          field: 'requester',
-          sorter: 'string',
-        },
-        {
-          title: 'Ngày yêu cầu',
-          field: 'requestDate',
-          sorter: 'date',
-          formatter: 'datetime',
-          formatterParams: { outputFormat: 'dd/MM/yyyy' },
-        },
-        {
-          title: 'Deadline',
-          field: 'deadline',
-          sorter: 'date',
-          formatter: 'datetime',
-          formatterParams: { outputFormat: 'dd/MM/yyyy' },
-        },
-        {
-          title: 'Số lượng',
-          field: 'quantity',
-          sorter: 'number',
-        },
-        {
-          title: 'Đơn giá',
-          field: 'unitPrice',
-          sorter: 'number',
-          formatter: 'money',
-          formatterParams: { thousand: ',', precision: 2 },
-        },
-        {
-          title: 'Thành tiền chưa VAT',
-          field: 'totalExclVAT',
-          sorter: 'number',
-          formatter: 'money',
-          formatterParams: { thousand: ',', precision: 2 },
-        },
-        {
-          title: 'Ngày đặt hàng',
-          field: 'orderDate',
-          sorter: 'date',
-          formatter: 'datetime',
-          formatterParams: { outputFormat: 'dd/MM/yyyy' },
-        },
-        {
-          title: 'Ngày về dự kiến',
-          field: 'expectedArrivalDate',
-          sorter: 'date',
-          formatter: 'datetime',
-          formatterParams: { outputFormat: 'dd/MM/yyyy' },
-        },
-        {
-          title: 'Ngày về thực tế',
-          field: 'actualArrivalDate',
-          sorter: 'date',
-          formatter: 'datetime',
-          formatterParams: { outputFormat: 'dd/MM/yyyy' },
-        },
-        {
-          title: 'Ngày nhận',
-          field: 'receiveDate',
-          sorter: 'date',
-          formatter: 'datetime',
-          formatterParams: { outputFormat: 'dd/MM/yyyy' },
-        },
-        {
-          title: 'Ghi chú',
-          field: 'notes',
-          sorter: 'string',
-        },
-        {
-          title: 'Nhà cung cấp',
-          field: 'supplier',
-          sorter: 'string',
-        },
-        {
-          title: 'Project Part List ID',
-          field: 'projectPartListId',
-          sorter: 'number',
-        },
-        {
-          title: 'Status Request',
-          field: 'statusRequest',
-          sorter: 'string',
-        },
-        {
-          title: 'Loại tiền',
-          field: 'currencyType',
-          sorter: 'string',
-        },
-        {
-          title: 'TBP duyệt',
-          field: 'tbpApproval',
-          sorter: 'string',
-        },
-        {
-          title: 'BGD duyệt',
-          field: 'bgdApproval',
-          sorter: 'string',
-        },
-        {
-          title: 'Trưởng bộ phận',
-          field: 'departmentHead',
-          sorter: 'string',
-        },
-        {
-          title: 'BGĐ',
-          field: 'boardOfDirectors',
-          sorter: 'string',
-        },
-        {
-          title: 'Ngày TBP duyệt',
-          field: 'tbpApprovalDate',
-          sorter: 'date',
-          formatter: 'datetime',
-          formatterParams: { outputFormat: 'dd/MM/yyyy' },
-        },
-        {
-          title: 'Loại kho',
-          field: 'warehouseType',
-          sorter: 'string',
-        },
-        {
-          title: 'Product RTCID',
-          field: 'productRtcid',
-          sorter: 'string',
-        },
-        {
-          title: 'Đơn vị',
-          field: 'unit',
-          sorter: 'string',
-        },
-        {
-          title: 'Mã nội bộ',
-          field: 'internalCode',
-          sorter: 'string',
-        },
-        {
-          title: 'Hàng nhập khẩu',
-          field: 'isImported',
-          sorter: 'string',
-        },
-        {
-          title: 'Giá lịch sử',
-          field: 'historicalPrice',
-          sorter: 'number',
-          formatter: 'money',
-          formatterParams: { thousand: ',', precision: 2 },
-        },
-        {
-          title: 'Tỷ giá',
-          field: 'exchangeRate',
-          sorter: 'number',
-          formatter: 'money',
-          formatterParams: { thousand: ',', precision: 2 },
-        },
-        {
-          title: 'Thành tiền quy đổi (VND)',
-          field: 'convertedTotalVND',
-          sorter: 'number',
-          formatter: 'money',
-          formatterParams: { thousand: ',', precision: 2 },
-        },
-        {
-          title: 'Lead Time',
-          field: 'leadTime',
-          sorter: 'number',
-        },
-        {
-          title: 'Đơn giá xuất xưởng',
-          field: 'factoryPrice',
-          sorter: 'number',
-          formatter: 'money',
-          formatterParams: { thousand: ',', precision: 2 },
-        },
-        {
-          title: 'Giá nhập khẩu',
-          field: 'importPrice',
-          sorter: 'number',
-          formatter: 'money',
-          formatterParams: { thousand: ',', precision: 2 },
-        },
-        {
-          title: 'Tổng tiền nhập khẩu',
-          field: 'totalImportCost',
-          sorter: 'number',
-          formatter: 'money',
-          formatterParams: { thousand: ',', precision: 2 },
-        },
-        {
-          title: 'Yêu cầu duyệt mua',
-          field: 'purchaseApprovalRequest',
-          sorter: 'string',
+          width: 180,
+          headerHozAlign: 'center',
+          formatter: 'textarea',
+          formatterParams: {
+            maxHeight: 100,
+          },
+          cssClass: 'content-cell',
         },
         {
           title: 'Hãng',
-          field: 'brand',
+          field: 'Manufacturer',
           sorter: 'string',
+          width: 180,
+          headerHozAlign: 'center',
         },
         {
-          title: 'Lý do huỷ',
-          field: 'cancelReason',
-          sorter: 'string',
-        },
-        {
-          title: 'Project ID',
-          field: 'projectId',
+          title: 'Số lượng',
+          field: 'Quantity',
           sorter: 'number',
+          width: 100,
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Mã nội bộ',
+          field: 'ProductNewCode',
+          sorter: 'string',
+          width: 150,
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Đơn vị',
+          field: 'UnitName',
+          sorter: 'string',
+          width: 100,
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Loại kho',
+          field: 'ProductGroupID',
+          sorter: 'string',
+          width: 150,
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Trạng thái',
+          field: 'StatusRequestText',
+          sorter: 'string',
+          width: 120,
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Người yêu cầu',
+          field: 'FullName',
+          sorter: 'string',
+          width: 150,
+          headerHozAlign: 'center',
         },
         {
           title: 'NV mua',
-          field: 'buyer',
+          field: 'UpdatedName',
           sorter: 'string',
+          width: 150,
+          headerHozAlign: 'center',
         },
         {
-          title: '% VAT',
-          field: 'vatPercentage',
-          sorter: 'number',
+          title: 'Ngày yêu cầu',
+          field: 'DateRequest',
+          sorter: 'date',
+          formatter: 'datetime',
+          formatterParams: { outputFormat: 'dd/MM/yyyy' },
+          width: 150,
+          headerHozAlign: 'center',
         },
         {
-          title: 'Thành tiền có VAT',
-          field: 'totalInclVAT',
+          title: 'Deadline',
+          field: 'DateReturnExpected',
+          sorter: 'date',
+          formatter: 'datetime',
+          formatterParams: { outputFormat: 'dd/MM/yyyy' },
+          width: 150,
+          headerHozAlign: 'center',
+          hozAlign: 'center',
+        },
+        {
+          title: 'Loại tiền',
+          field: 'UnitMoney',
+          width: 100,
+          headerHozAlign: 'center',
+          visible: false,
+        },
+        {
+          title: 'Loại tiền',
+          field: 'CurrencyID',
+          width: 100,
+          headerHozAlign: 'center',
+        },
+
+        {
+          title: 'Tỷ giá',
+          field: 'CurrencyRate',
           sorter: 'number',
           formatter: 'money',
           formatterParams: { thousand: ',', precision: 2 },
+          width: 100,
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Đơn giá bán (Sale Admin up)',
+          field: 'UnitPricePOKH',
+          sorter: 'number',
+          formatter: 'money',
+          formatterParams: { thousand: ',', precision: 2 },
+          width: 100,
+          headerWordWrap: true,
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Đơn giá',
+          field: 'UnitPrice',
+          sorter: 'number',
+          formatter: 'money',
+          formatterParams: { thousand: ',', precision: 2 },
+          width: 100,
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Giá lịch sử',
+          field: 'HistoryPrice',
+          sorter: 'number',
+          formatter: 'money',
+          formatterParams: { thousand: ',', precision: 2 },
+          width: 100,
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Thành tiền lịch sử',
+          field: 'TotalPriceHistory',
+          sorter: 'number',
+          formatter: 'money',
+          formatterParams: { thousand: ',', precision: 2 },
+          headerWordWrap: true,
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Thành tiền chưa VAT',
+          field: 'TotalPrice',
+          sorter: 'number',
+          formatter: 'money',
+          formatterParams: { thousand: ',', precision: 2 },
+          width: 100,
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Thành tiền quy đổi (VND)',
+          field: 'TotalPriceExchange',
+          sorter: 'number',
+          formatter: 'money',
+          formatterParams: { thousand: ',', precision: 2 },
+          width: 100,
+          headerWordWrap: true,
+          headerHozAlign: 'center',
+        },
+        {
+          title: '% VAT',
+          field: 'VAT',
+          sorter: 'number',
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Thành tiền có VAT',
+          field: 'TotaMoneyVAT',
+          sorter: 'number',
+          formatter: 'money',
+          formatterParams: { thousand: ',', precision: 2 },
+          width: 100,
+          headerWordWrap: true,
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Nhà cung cấp',
+          field: 'NameNCC',
+          sorter: 'string',
+          width: 150,
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Lead Time',
+          field: 'LeadTime',
+          sorter: 'number',
+          width: 100,
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Ghi chú',
+          field: 'Note',
+          sorter: 'string',
+          width: 200,
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Ghi chú KT',
+          field: 'NotePartlist',
+          sorter: 'string',
+          width: 250,
+          headerHozAlign: 'center',
+          formatter: 'textarea',
+          formatterParams: {
+            maxHeight: 100,
+          },
+          // cssClass: "content-cell"
+        },
+        {
+          title: 'Thông số kỹ thuật',
+          field: 'Model',
+          sorter: 'string',
+          width: 150,
+          headerWordWrap: true,
+          headerHozAlign: 'center',
+          formatter: 'textarea',
+          formatterParams: {
+            maxHeight: 100,
+          },
+          cssClass: 'content-cell',
+        },
+        {
+          title: 'Lý do huỷ',
+          field: 'ReasonCancel',
+          sorter: 'string',
+          width: 200,
+          headerHozAlign: 'center',
+          formatter: 'textarea',
+          formatterParams: {
+            maxHeight: 100,
+          },
+          cssClass: 'content-cell',
+        },
+        {
+          title: 'Ngày đặt hàng',
+          field: 'RequestDate',
+          sorter: 'date',
+          formatter: 'datetime',
+          formatterParams: { outputFormat: 'dd/MM/yyyy' },
+          width: 150,
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Ngày về dự kiến',
+          field: 'DeadlineDelivery',
+          sorter: 'date',
+          formatter: 'datetime',
+          formatterParams: { outputFormat: 'dd/MM/yyyy' },
+          width: 150,
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Ngày về thực tế',
+          field: 'DateReturnActual',
+          sorter: 'date',
+          formatter: 'datetime',
+          formatterParams: { outputFormat: 'dd/MM/yyyy' },
+          width: 150,
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Ngày nhận',
+          field: 'DateReceive',
+          sorter: 'date',
+          formatter: 'datetime',
+          formatterParams: { outputFormat: 'dd/MM/yyyy' },
+          width: 150,
+          headerHozAlign: 'center',
+        },
+
+        {
+          title: 'Hàng nhập khẩu',
+          field: 'IsImport',
+          width: 100,
+          formatter: function (cell: any) {
+            const value = cell.getValue();
+            const checked =
+              value === true ||
+              value === 'true' ||
+              value === 1 ||
+              value === '1';
+            return `<input type="checkbox" ${
+              checked ? 'checked' : ''
+            } disabled />`;
+          },
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Đơn giá xuất xưởng',
+          field: 'UnitFactoryExportPrice',
+          sorter: 'number',
+          formatter: 'money',
+          formatterParams: { thousand: ',', precision: 2 },
+          width: 100,
+          headerWordWrap: true,
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Project Part List ID',
+          field: 'ProjectPartListID',
+          sorter: 'number',
+          visible: false,
+          width: 100,
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Status Request',
+          field: 'StatusRequest',
+          visible: false,
+          width: 100,
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Nhà cung cấp',
+          field: 'SupplierSaleID',
+          width: 180,
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'TBP duyệt',
+          field: 'IsApprovedTBP',
+          hozAlign: 'center',
+          formatter: function (cell: any) {
+            const value = cell.getValue();
+            const checked =
+              value === true ||
+              value === 'true' ||
+              value === 1 ||
+              value === '1';
+            return `<input type="checkbox" ${
+              checked ? 'checked' : ''
+            } disabled />`;
+          },
+          width: 100,
+          headerHozAlign: 'center',
+        },
+
+        {
+          title: 'Trưởng bộ phận',
+          field: 'ApprovedTBPName',
+          sorter: 'string',
+          width: 150,
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'BGĐ',
+          field: 'ApprovedBGD',
+          width: 150,
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Ngày TBP duyệt',
+          field: 'DateApprovedTBP',
+          sorter: 'date',
+          formatter: 'datetime',
+          formatterParams: { outputFormat: 'dd/MM/yyyy' },
+          width: 150,
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Ngày BGĐ duyệt',
+          field: 'DateApprovedBGD',
+          sorter: 'date',
+          formatter: 'datetime',
+          formatterParams: { outputFormat: 'dd/MM/yyyy' },
+          width: 150,
+          headerHozAlign: 'center',
+        },
+
+        {
+          title: 'Product Sale ID',
+          field: 'ProductSaleID',
+          sorter: 'string',
+          visible: false,
+          width: 100,
+          headerHozAlign: 'center',
+        },
+
+        {
+          title: 'Giá nhập khẩu',
+          field: 'UnitImportPrice',
+          sorter: 'number',
+          formatter: 'money',
+          formatterParams: { thousand: ',', precision: 2 },
+          width: 100,
+          headerWordWrap: true,
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Tổng tiền nhập khẩu',
+          field: 'TotalImportPrice',
+          sorter: 'number',
+          formatter: 'money',
+          formatterParams: { thousand: ',', precision: 2 },
+          width: 100,
+          headerWordWrap: true,
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Đơn mua hàng',
+          field: 'BillCode',
+          sorter: 'string',
+          width: 130,
+          headerHozAlign: 'center',
+        },
+
+        {
+          title: 'Project ID',
+          field: 'ProjectID',
+          sorter: 'number',
+          headerHozAlign: 'center',
         },
         {
           title: 'PONCCID',
           field: 'PONCCID',
           sorter: 'string',
+          headerHozAlign: 'center',
         },
-        {
-          title: 'Đơn mua hàng',
-          field: 'purchaseOrder',
-          sorter: 'string',
-        },
-        {
-          title: 'Đơn giá bán (Sale Admin up)',
-          field: 'salePrice',
-          sorter: 'number',
-          formatter: 'money',
-          formatterParams: { thousand: ',', precision: 2 },
-        },
+
         {
           title: 'Khách hàng',
-          field: 'customer',
+          field: 'CustomerName',
           sorter: 'string',
+          width: 180,
+          headerHozAlign: 'center',
         },
         {
           title: 'Is Commercial Product',
-          field: 'isCommercialProduct',
-          sorter: 'string',
+          field: 'IsCommercialProduct',
+          visible: false,
+          headerHozAlign: 'center',
         },
         {
           title: 'Huỷ yêu cầu',
-          field: 'cancelRequest',
-          sorter: 'string',
+          field: 'IsDeleted',
+          visible: false,
+          headerHozAlign: 'center',
         },
-        {
-          title: 'Thông số kỹ thuật',
-          field: 'technicalSpecs',
-          sorter: 'string',
-        },
+
         {
           title: 'Job Requirement ID',
-          field: 'jobRequirementId',
-          sorter: 'string',
+          field: 'JobRequirementID',
+          headerHozAlign: 'center',
         },
         {
           title: 'Customer ID',
-          field: 'customerId',
+          field: 'CustomerID',
           sorter: 'string',
+          headerHozAlign: 'center',
         },
         {
           title: 'Danh mục',
-          field: 'category',
+          field: 'ProjectTypeName',
           sorter: 'string',
+          headerHozAlign: 'center',
         },
         {
-          title: 'PO Number',
+          title: 'PONumber',
           field: 'poNumber',
-          sorter: 'string',
+          visible: false,
+          headerHozAlign: 'center',
         },
         {
           title: 'Mã theo khách',
-          field: 'customerCode',
+          field: 'GuestCode',
           sorter: 'string',
+          width: 140,
+          headerHozAlign: 'center',
         },
         {
           title: 'Mã dự án',
-          field: 'projectCode',
+          field: 'ProjectCode',
           sorter: 'string',
+          width: 140,
+          headerHozAlign: 'center',
         },
         {
           title: 'Mã POKH',
-          field: 'poKhCode',
+          field: 'POKHCode',
           sorter: 'string',
+          width: 150,
+          headerHozAlign: 'center',
         },
         {
           title: 'Trạng thái đặt hàng',
-          field: 'orderStatus',
+          field: 'StatusPOKHText',
           sorter: 'string',
+          width: 150,
+          headerWordWrap: true,
+          headerHozAlign: 'center',
         },
         {
           title: 'Mã đặc biệt',
-          field: 'specialCode',
+          field: 'SpecialCode',
           sorter: 'string',
+          width: 150,
+          headerWordWrap: true,
+          headerHozAlign: 'center',
         },
-        {
-          title: 'Thành tiền lịch sử',
-          field: 'historicalTotal',
-          sorter: 'number',
-          formatter: 'money',
-          formatterParams: { thousand: ',', precision: 2 },
-        },
+
         {
           title: 'Inventory Project ID',
-          field: 'inventoryProjectId',
-          sorter: 'string',
+          field: 'InventoryProjectID',
+          visible: false,
+          headerHozAlign: 'center',
+        },
+
+        // {
+        //   title: 'Approved TBP',
+        //   field: 'approvedTbp',
+        //   sorter: 'string',
+        // },
+        // {
+        //   title: 'Ngày dự kiến trả',
+        //   field: 'expectedReturnDate',
+        //   sorter: 'date',
+        //   formatter: 'datetime',
+        //   formatterParams: { outputFormat: 'dd/MM/yyyy' },
+        // },
+        {
+          title: '',
+          field: 'DateReturnEstimated',
+          visible: false,
+          headerHozAlign: 'center',
         },
         {
-          title: 'Ghi chú KT',
-          field: 'technicalNotes',
-          sorter: 'string',
-        },
-        {
-          title: 'Approved TBP',
-          field: 'approvedTbp',
-          sorter: 'string',
-        },
-        {
-          title: 'Ngày dự kiến trả',
-          field: 'expectedReturnDate',
-          sorter: 'date',
-          formatter: 'datetime',
-          formatterParams: { outputFormat: 'dd/MM/yyyy' },
-        },
-        {
-          title: 'Loại phiếu',
-          field: 'ticketType',
-          sorter: 'string',
+          title: '',
+          field: 'IsStock',
+          visible: false,
+          headerHozAlign: 'center',
         },
       ],
       // Placeholder for data; replace with actual data source (e.g., API call)
       data: [],
       initialSort: [
-        { column: 'id', dir: 'asc' }, // Initial sort by ID
+        { column: 'ID', dir: 'asc' }, // Initial sort by ID
       ],
     });
   }

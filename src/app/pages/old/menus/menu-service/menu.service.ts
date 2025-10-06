@@ -8,6 +8,7 @@ import { Observable } from 'rxjs';
 })
 export class MenuService {
   private apiUrl = HOST + 'api/menu/';
+  private apiUrl = HOST + 'api/menu/';
   constructor(private http: HttpClient) {}
 
   getMenus(id: number): Observable<any> {

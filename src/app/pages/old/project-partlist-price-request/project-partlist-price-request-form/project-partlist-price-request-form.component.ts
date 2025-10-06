@@ -34,7 +34,7 @@ import {
 } from 'ng-zorro-antd/notification';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 declare var bootstrap: any;
-import { CommonModule } from '@angular/common'; 
+import { CommonModule } from '@angular/common';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NSelectComponent } from '../../n-select/n-select.component';
 
@@ -42,13 +42,12 @@ import { NSelectComponent } from '../../n-select/n-select.component';
 @Component({
   standalone: true,
   imports: [
-    FormsModule, 
+    FormsModule,
     CommonModule,
-    ReactiveFormsModule, 
-    NzSelectModule, 
+    ReactiveFormsModule,
+    NzSelectModule,
     NzFormModule,
     NzModalModule,
-    NSelectComponent
   ],
   selector: 'app-project-partlist-price-request-form',
   templateUrl: './project-partlist-price-request-form.component.html',
@@ -61,9 +60,9 @@ export class ProjectPartlistPriceRequestFormComponent
   private priceRequestService = inject(ProjectPartlistPriceRequestService);
   private notification = inject(NzNotificationService);
   private modal = inject(NzModalService);
-  public activeModal = inject(NgbActiveModal);
   injector = inject(EnvironmentInjector);
   appRef = inject(ApplicationRef);
+  public activeModal = inject(NgbActiveModal);
 
   @Input() dataInput: any; // Nhận dữ liệu từ component cha
   @Output() closeModal = new EventEmitter<void>();
@@ -94,13 +93,13 @@ export class ProjectPartlistPriceRequestFormComponent
     this.getAllUser();
     this.getProductSale();
     console.log('datainput', this.dataInput);
-    
+
     // Sửa điều kiện kiểm tra
     if (!this.dataInput || this.dataInput.length === 0) {
       this.tableData = [];
       return;
     }
-    
+
     // Khi có dữ liệu, bind vào form và table
     this.requester = Number(this.dataInput[0]['EmployeeID']);
     console.log('abd', this.requester);
@@ -110,12 +109,12 @@ export class ProjectPartlistPriceRequestFormComponent
     this.tableData = this.dataInput;
   }
   getAllUser() {
-    this.requesterLoading = true; // Set loading to true when starting API call
+    this.requesterLoading = true;
     this.priceRequestService.getEmployee().subscribe({
       next: (response) => {
         this.users = response.data.dtEmployee;
         this.createLabels("lbusers",this.users, 'ID', 'FullName');
-        this.requesterLoading = false; // Set loading to false when API call completes
+        this.requesterLoading = false; 
         console.log(this.users);
       },
       error: (err) => {
@@ -128,7 +127,7 @@ export class ProjectPartlistPriceRequestFormComponent
   // labelu: { [key: number]: string } = {};
   // createLableu(data: any[], keyField: string = 'ID', valueField: string = 'FullName') {
   //   this.labelu = {};
-  
+
   //   data.forEach((item) => {
   //     // Nếu chưa có key, thêm vào labels
   //     if (!this.labelu[item[keyField]]) {
@@ -136,11 +135,11 @@ export class ProjectPartlistPriceRequestFormComponent
   //     }
   //   });
   //   console.log('labels:', this.labeln);
-    
+
   // }
   // createLables(data: any[], keyField: string = 'ID', valueField: string = 'ProductNewCode') {
   //   this.labeln = {};
-  
+
   //   data.forEach((item) => {
   //     // Nếu chưa có key, thêm vào labels
   //     if (!this.labeln[item[keyField]]) {
@@ -148,41 +147,41 @@ export class ProjectPartlistPriceRequestFormComponent
   //     }
   //   });
   //   console.log('labels:', this.labeln);
-    
+
   // }
   // Thay thế các object label riêng lẻ bằng một Map chung
   private labelMaps: Map<string, { [key: number]: string }> = new Map();
-  
+
   // Hàm tạo label chung
   createLabels(
-    labelName: string, 
-    data: any[], 
-    keyField: string = 'ID', 
+    labelName: string,
+    data: any[],
+    keyField: string = 'ID',
     valueField: string = 'Name'
   ): { [key: number]: string } {
     // Tạo object labels mới
     const labels: { [key: number]: string } = {};
-    
+
     data.forEach((item) => {
       // Nếu chưa có key, thêm vào labels
       if (!labels[item[keyField]]) {
         labels[item[keyField]] = item[valueField];
       }
     });
-    
+
     // Lưu vào Map với tên label
     this.labelMaps.set(labelName, labels);
-    
+
     console.log(`Labels ${labelName}:`, labels);
-    
+
     return labels;
   }
-  
+
   // Hàm lấy label theo tên
   getLabels(labelName: string): { [key: number]: string } {
     return this.labelMaps.get(labelName) || {};
   }
-  
+
   // Hàm lấy giá trị label theo key
   getLabelValue(labelName: string, key: number): string {
     const labels = this.labelMaps.get(labelName);
@@ -203,9 +202,7 @@ export class ProjectPartlistPriceRequestFormComponent
     });
   }
   ngAfterViewInit(): void {
-
   }
-
   createdControl1(
     component: Type<any>,
     injector: EnvironmentInjector,
@@ -227,7 +224,7 @@ export class ProjectPartlistPriceRequestFormComponent
       // Các tham số truyền vào component
       componentRef.instance.dataSource = data;
       componentRef.instance.value = cellValue;
-      
+
       // Nếu component là NSelectComponent, truyền thêm các trường tùy chỉnh
       if (component === NSelectComponent) {
         componentRef.instance.displayField = displayField;
@@ -257,20 +254,20 @@ export class ProjectPartlistPriceRequestFormComponent
   // Alternative approach - handle both Event and string types
   requesterSearchChange(searchValue: string | Event): void {
     let searchText: string;
-    
+
     if (typeof searchValue === 'string') {
       searchText = searchValue;
     } else {
       // If it's an Event object, extract the value from the target
       searchText = (searchValue.target as HTMLInputElement)?.value || '';
     }
-    
+
     if (searchText) {
       this.requesterLoading = true;
       this.priceRequestService.getEmployee().subscribe({
         next: (response) => {
-          this.users = response.data.dtEmployee.filter((user: any) => 
-          user.ID === Number(searchText) 
+          this.users = response.data.dtEmployee.filter((user: any) =>
+          user.ID === Number(searchText)
           );
           this.requesterLoading = false;
         },
@@ -284,7 +281,6 @@ export class ProjectPartlistPriceRequestFormComponent
       this.getAllUser();
     }
   }
-  
    private drawTable(): void {
     this.table = new Tabulator(this.tableDiv.nativeElement, {
           data: this.tableData,
@@ -537,7 +533,6 @@ export class ProjectPartlistPriceRequestFormComponent
       this.notification.warning('Thông báo', 'Vui lòng chọn Người yêu cầu!');
       return false;
     }
-
     const rows = this.table.getRows();
     if (rows.length <= 0) {
       this.notification.warning('Thông báo', 'Vui lòng tạo ít nhất một yêu cầu!');
@@ -629,12 +624,12 @@ export class ProjectPartlistPriceRequestFormComponent
         IsDeleted: false // Explicitly set for new records
       };
     });
-    
+
     // Clear lstSave and add updated data
     this.lstSave = [...updatedData];
-    
+
     console.log('Data being sent to server:', this.lstSave); // Debug log
-    
+
     this.priceRequestService.saveData(this.lstSave).subscribe({
       next: (response) => {
         console.log('Server response:', response); // Debug log
@@ -645,12 +640,12 @@ export class ProjectPartlistPriceRequestFormComponent
       error: (e) => {
         console.error('Full error object:', e);
         console.error('Error details:', e.error);
-        
+
         let errorMessage = 'Lưu dữ liệu thất bại!';
         if (e.error && e.error.message) {
           errorMessage += ` Chi tiết: ${e.error.message}`;
         }
-        
+
         this.notification.error('Lỗi', errorMessage);
       },
     });

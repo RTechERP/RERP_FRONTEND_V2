@@ -221,8 +221,8 @@ export class DailyreportComponent implements OnInit, AfterViewInit {
     this.dailyreportService.getDailyReportFilmAndDriver(dateStart, dateEnd, this.searchParams.keyword, this.searchParams.employeeId).subscribe({
       next: (res) => {
         console.log('Báo cáo cắt phim:', res);
-        if(res?.dataFilm){
-          this.dataTable2 = Array.isArray(res.dataFilm) ? res.dataFilm : [res.dataFilm];
+        if(res?.data.dataFilm){
+          this.dataTable2 = Array.isArray(res.data.dataFilm) ? res.data.dataFilm : [res.data.dataFilm];
           if(this.table2) {
             this.table2.replaceData(this.dataTable2);
           }
@@ -233,8 +233,8 @@ export class DailyreportComponent implements OnInit, AfterViewInit {
           }
         }
         
-        if(res?.dataDriver){
-          this.dataTable3 = Array.isArray(res.dataDriver) ? res.dataDriver : [res.dataDriver];
+        if(res?.data.dataDriver){
+          this.dataTable3 = Array.isArray(res.data.dataDriver) ? res.data.dataDriver : [res.data.dataDriver];
           if(this.table3) {
             this.table3.replaceData(this.dataTable3);
           }
@@ -580,8 +580,8 @@ export class DailyreportComponent implements OnInit, AfterViewInit {
         this.dailyreportService.getDailyReportFilmAndDriver(dateStart, dateEnd, this.searchParams.keyword, this.searchParams.employeeId).subscribe({
           next: (res) => {
             console.log('Báo cáo cắt phim:', res);
-            if(res?.dataFilm){
-              this.dataTable2 = Array.isArray(res.dataFilm) ? res.dataFilm : [res.dataFilm];
+            if(res?.data.dataFilm){
+              this.dataTable2 = Array.isArray(res.data.dataFilm) ? res.data.dataFilm : [res.data.dataFilm];
               if(this.table2) {
                 this.table2.clearData();
                 this.table2.setData(this.dataTable2);
@@ -610,8 +610,8 @@ export class DailyreportComponent implements OnInit, AfterViewInit {
         this.dailyreportService.getDailyReportFilmAndDriver(dateStart, dateEnd, this.searchParams.keyword, this.searchParams.employeeId).subscribe({
           next: (res) => {
             console.log('Báo cáo lái xe:', res);
-            if(res?.dataDriver){
-              this.dataTable3 = Array.isArray(res.dataDriver) ? res.dataDriver : [res.dataDriver];
+            if(res?.data.dataDriver){
+              this.dataTable3 = Array.isArray(res.data.dataDriver) ? res.data.dataDriver : [res.data.dataDriver];
               if(this.table3) {
                 this.table3.clearData();
                 this.table3.setData(this.dataTable3);

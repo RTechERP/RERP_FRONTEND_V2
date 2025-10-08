@@ -22,6 +22,7 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzI18nModule } from 'ng-zorro-antd/i18n';
 import { ReportImportExportService } from '../report-import-export-service/report-import-export.service';
 import { BillExportDetailComponent } from '../../BillExport/Modal/bill-export-detail/bill-export-detail.component';
+import { BillImportDetailComponent } from '../../BillImport/Modal/bill-import-detail/bill-import-detail.component';
 
 @Component({
   selector: 'app-history-modal',
@@ -57,6 +58,7 @@ export class ImportExportModalComponent implements OnInit, AfterViewInit {
   ) { }
 
   ExportID:number=0;
+  ImportID:number=0;
   table_Import:any;
   dataImport:any[]=[];
 
@@ -150,6 +152,27 @@ export class ImportExportModalComponent implements OnInit, AfterViewInit {
       },
     );
   }
+  openModalBillImportDetail(ischeckmode: boolean) {
+    const modalRef = this.modalService.open(BillImportDetailComponent, {
+      centered: true,
+      // windowClass: 'full-screen-modal',
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false
+    });
+
+    // modalRef.componentInstance.newBillExport = this.newBillExport;
+    modalRef.componentInstance.isCheckmode = ischeckmode;
+    modalRef.componentInstance.id = this.ImportID;
+
+    modalRef.result.catch(
+      (result) => {
+        if (result == true) {
+          this.ImportID= 0;
+        }
+      },
+    );
+  }
   drawTable_Import() {
     // if (this.table_Import) {
     //   this.table_Import.replaceData(this.dataImport);
@@ -179,6 +202,13 @@ export class ImportExportModalComponent implements OnInit, AfterViewInit {
         { title: 'Số lượng', field: 'Qty', hozAlign: 'right', headerHozAlign: 'center', formatter: 'money', formatterParams: { precision: 2 } },
         { title: 'Dự án', field: 'Project', hozAlign: 'left', headerHozAlign: 'center' },
       ]
+    });
+    this.table_Import.on("rowDblClick", (e: MouseEvent, row: any) => {
+      const rowData = row.getData(); 
+      this.ImportID = rowData['ID'];
+      this.zone.run(() => {
+        this.openModalBillImportDetail(true);
+      });
     });
   }
 

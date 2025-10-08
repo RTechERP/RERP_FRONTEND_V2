@@ -31,6 +31,7 @@ import { HistoryDeleteBillComponent } from './Modal/history-delete-bill/history-
 import { BillExportSyntheticComponent } from './Modal/bill-export-synthetic/bill-export-synthetic.component';
 import { ScanBillComponent } from './Modal/scan-bill/scan-bill.component';
 import { BillDocumentExportComponent } from './Modal/bill-document-export/bill-document-export.component';
+import { ActivatedRoute } from '@angular/router';
 interface BillExport {
   Id?: number;
   TypeBill: boolean;
@@ -77,6 +78,7 @@ interface BillExport {
 })
 
 export class BillExportComponent implements OnInit, AfterViewInit {
+  wareHouseCode: string = "HN";
   dataProductGroup: any[] = [];
   data: any[] = []
   sizeSearch: string = '0';
@@ -90,6 +92,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
   isCheckmode: boolean = false;
   id: number = 0;
   selectBillExport: any[] = [];
+  billExportID : number =0;
   newBillExport: BillExport = {
     TypeBill: false,
     Code: '',
@@ -136,8 +139,15 @@ export class BillExportComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private modal: NzModalService,
     private modalService: NgbModal,
+    private route: ActivatedRoute // hỡ trợ router
   ) { }
   ngOnInit(): void {
+    // Đọc wareHouseCode từ query params
+   // Đọc wareHouseCode từ query params
+   this.route.queryParams.subscribe(params => {
+    this.wareHouseCode = params['wareHouseCode'] || '';
+    console.log('wareHouseCode in BillExportComponent:', this.wareHouseCode);
+  });
     this.getProductGroup();
   }
   ngAfterViewInit(): void { 
@@ -206,6 +216,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
       next: (res) => {
         if (res.status === 1) {
           this.dataTableBillExport = res.data;
+          this.billExportID = this.dataTableBillExport[0].ID;
           if (this.table_billExport) {
             this.table_billExport.replaceData(this.dataTableBillExport);
           } else {
@@ -231,7 +242,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
   }
   searchData() {
     this.loadDataBillExport();
-    console.log("searchparams", this.searchParams);
+    this.getBillExportDetail(this.id);
   }
   onCheckboxChange() {
     this.loadDataBillExport();
@@ -317,12 +328,12 @@ export class BillExportComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.newBillExport = this.newBillExport;
     modalRef.componentInstance.isCheckmode = this.isCheckmode;
     modalRef.componentInstance.id = this.id;
+    modalRef.componentInstance.wareHouseCode = this.wareHouseCode;
 
     modalRef.result.catch(
       (result) => {
         if (result == true) {
-          this.id = 0;
-          this.loadDataBillExport();
+          this.searchData();
         }
       },
     );
@@ -341,29 +352,41 @@ export class BillExportComponent implements OnInit, AfterViewInit {
     });
   }
   deleteBillExport() {
-    if (!this.selectBillExport) {
-      this.notification.info("Thông báo", "Vui lòng chọn 1 phiếu để xóa!");
+    if (!this.data || this.data.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn 1 phiếu muốn xóa!');
       return;
     }
+    const selected = this.data[0];
+    if (selected?.IsApproved === true) {
+      this.notification.warning('Thông báo', 'Phiếu đã được duyệt không thể xóa!');
+      return;
+    }
+
+    const payload = {
+      billExport: {
+        ID: selected.ID || 0,
+        IsDeleted: true,
+      }
+    };
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: 'Bạn có chắc chắn muốn xóa phiếu không?',
+      nzContent: `Bạn có chắc chắn muốn xóa phiếu "${selected?.Code || ''}" không?`,
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
-        this.billExportService.deleteBillExport(this.selectBillExport).subscribe({
+        this.billExportService.saveBillExport(payload).subscribe({
           next: (res) => {
             if (res.status === 1) {
-              this.notification.success('Thông báo', res.message || 'Đã xóa thành công!');
+              this.notification.success('Thông báo', 'Xóa thành công!');
+              this.selectBillExport = []; // Xóa dữ liệu phiếu xuất được chọn
               this.loadDataBillExport();
-              this.getBillExportDetail(this.id);
+              this.getBillExportDetail(this.billExportID);
             } else {
-              this.notification.warning('Thông báo', res.message || 'Không thể xóa phiếu!');
+              this.notification.warning('Thông báo', 'Xóa thất bại!');
             }
           },
-          error: (err) => {
-            this.notification.error('Thông báo', 'Có lỗi xảy ra khi xóa!');
-            console.error(err);
+          error: (err: any) => {
+            this.notification.error('Thông báo', 'Có lỗi xảy ra khi xóa dữ liệu!');
           }
         });
       }

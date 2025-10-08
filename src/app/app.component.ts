@@ -70,6 +70,9 @@ export class AppComponent {
 
     // console.log(this.selectedIndex);
   }
+  // newTab(path: string[], queryParams?: any) {
+  //   this.router.navigate(path, { queryParams });
+  // }
 
   closeTab({ index }: { index: number }): void {
     this.dynamicTabs.splice(index, 1);

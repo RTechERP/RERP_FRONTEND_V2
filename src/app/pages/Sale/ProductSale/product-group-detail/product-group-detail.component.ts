@@ -136,7 +136,6 @@ export class ProductGroupDetailComponent implements OnInit, AfterViewInit {
           UpdatedDate: new Date()
         }
       };
-
       this.productsaleService.savedataProductGroup(payload).subscribe({
         next: (res) => {
           if (res.status === 1) {

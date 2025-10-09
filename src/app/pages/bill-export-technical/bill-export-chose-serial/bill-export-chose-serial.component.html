@@ -1,0 +1,13 @@
+ <div class="modal-header bg-primary p-2">
+    <h6 class="modal-title text-white" id="assetModalLabel">Nhập serial</h6>
+    <button type="button" class="btn-close" aria-label="Close" (click)="cancel()"></button>
+  </div>
+
+<div class="modal-body">
+  <div #serialTable1></div>
+</div>
+
+<div class="modal-footer">
+  <button class="btn btn-secondary" (click)="cancel()">Huỷ</button>
+  <button class="btn btn-primary" (click)="save()">Lưu</button>
+</div>

@@ -10,7 +10,7 @@ export class MenuService {
   private apiUrl = HOST + 'api/menu/';
   constructor(private http: HttpClient) {}
 
-  getMenus(): Observable<any> {
-    return this.http.get<any>(this.apiUrl + 'menus/0');
+  getMenus(id: number): Observable<any> {
+    return this.http.get<any>(this.apiUrl + `menus/${id}`);
   }
 }

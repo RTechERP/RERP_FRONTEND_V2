@@ -42,9 +42,9 @@ import {
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzModalModule } from 'ng-zorro-antd/modal';
-import { LOGIN_NAME } from '../../../app.config';
+import { APP_LOGIN_NAME } from '../../../app.config';
 import { EMPLOYEE_ID } from '../../../app.config';
-import { IS_ADMIN } from '../../../app.config';
+import { ISADMIN } from '../../../app.config';
 import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
 import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';

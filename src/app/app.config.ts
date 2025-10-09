@@ -38,4 +38,4 @@ export const HOST = 'https://localhost:44365/';
 export const DEPARTMENTID = 6;
 export const IS_ADMIN = true;
 export const LOGIN_NAME = 'ADMINSW';
-export const SERVER_PATH = 'C:/RTC/UPLOADFILE/TrainingRegistration/';
+export const SERVER_PATH = 'D:/LeTheAnh/RTC/UPLOADFILE/TrainingRegistration/';

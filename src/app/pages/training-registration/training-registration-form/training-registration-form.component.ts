@@ -30,7 +30,7 @@ import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
 import { EnvironmentInjector } from '@angular/core';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
-import { NSelectComponent } from '../../n-select/n-select.component';
+// import { NSelectComponent } from '../../n-select/n-select.component';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css'; // Import Tabulator stylesheet
 import { CommonModule } from '@angular/common';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -86,7 +86,9 @@ import { SERVER_PATH } from '../../../app.config';
     NzInputNumberModule,
   ],
 })
-export class TrainingRegistrationFormComponent implements OnInit, AfterViewInit {
+export class TrainingRegistrationFormComponent
+  implements OnInit, AfterViewInit
+{
   @ViewChild('detailTable', { static: false }) tbDetailElement!: ElementRef;
   @ViewChild('fileTable', { static: false }) tbFileElement!: ElementRef;
   @Input() dataInput: any;
@@ -123,16 +125,15 @@ export class TrainingRegistrationFormComponent implements OnInit, AfterViewInit 
     private notification: NzNotificationService,
     public activeModal: NgbActiveModal
   ) {}
-ngAfterViewInit(): void {
-  this.loadDetail();
-  this.loadFileTable();
-  if (this.dataInput) {
-    setTimeout(() => {
-      this.loadTrainingRegistration();
-    }, 0);
+  ngAfterViewInit(): void {
+    this.loadDetail();
+    this.loadFileTable();
+    if (this.dataInput) {
+      setTimeout(() => {
+        this.loadTrainingRegistration();
+      }, 0);
+    }
   }
-
-}
   ngOnInit() {
     this.loadEmployees();
   }
@@ -148,7 +149,7 @@ ngAfterViewInit(): void {
       originFile: file,
       FileName: '',
       ServerPath: '',
-      OriginName: file.name
+      OriginName: file.name,
     };
     this.fileList = [...this.fileList, newFile];
     this.updateFileTable();
@@ -187,38 +188,40 @@ ngAfterViewInit(): void {
     };
     // Xử lý file đính kèm nếu có
     if (this.dataInput.LstFile && this.dataInput.LstFile.length > 0) {
-      this.fileList = this.dataInput.LstFile.map((file: any, index: number) => ({
-        uid: `existing-${index}`,
-        name: file.OriginName || file.FileName,
-        size: file.Size || 0,
-        type: file.Type || 'unknown',
-        status: 'done',
-        url: file.ServerPath,
-        FileName: file.FileName,
-        ServerPath: file.ServerPath,
-        OriginName: file.OriginName || file.FileName,
-        ID: file.ID,
-        response: {
+      this.fileList = this.dataInput.LstFile.map(
+        (file: any, index: number) => ({
+          uid: `existing-${index}`,
+          name: file.OriginName || file.FileName,
+          size: file.Size || 0,
+          type: file.Type || 'unknown',
+          status: 'done',
+          url: file.ServerPath,
           FileName: file.FileName,
-          ServerPath: file.ServerPath
-        }
-      }));
+          ServerPath: file.ServerPath,
+          OriginName: file.OriginName || file.FileName,
+          ID: file.ID,
+          response: {
+            FileName: file.FileName,
+            ServerPath: file.ServerPath,
+          },
+        })
+      );
       this.updateFileTable();
     }
-  if (this.table) {
-    this.table.setData(this.dataInput.LstDetail || []);
-    console.log('Đã gán dữ liệu cho table:', this.table.getData());
-  } else {
-    console.warn('Table chưa khởi tạo');
+    if (this.table) {
+      this.table.setData(this.dataInput.LstDetail || []);
+      console.log('Đã gán dữ liệu cho table:', this.table.getData());
+    } else {
+      console.warn('Table chưa khởi tạo');
+    }
   }
-
-  }
-
 
   // Phương thức xử lý upload file và lưu dữ liệu
   uploadFilesAndSaveData() {
     // Lọc ra các file mới cần upload
-    const newFiles = this.fileList.filter(file => file.status === 'new' && !file.isDeleted && !file.IsDeleted);
+    const newFiles = this.fileList.filter(
+      (file) => file.status === 'new' && !file.isDeleted && !file.IsDeleted
+    );
 
     // Nếu không có file mới cần upload
     if (newFiles.length === 0) {
@@ -237,7 +240,9 @@ ngAfterViewInit(): void {
 
           if (response.status === 1) {
             // Cập nhật thông tin file trong fileList
-            const fileIndex = this.fileList.findIndex(f => f.uid === file.uid);
+            const fileIndex = this.fileList.findIndex(
+              (f) => f.uid === file.uid
+            );
             if (fileIndex !== -1) {
               this.fileList[fileIndex] = {
                 ...this.fileList[fileIndex],
@@ -245,12 +250,15 @@ ngAfterViewInit(): void {
                 FileName: response.FileName,
                 ServerPath: SERVER_PATH + response.FileName,
                 OriginName: file.name,
-                ID: 0 // File mới sẽ có ID = 0
+                ID: 0, // File mới sẽ có ID = 0
               };
             }
             this.updateFileTable();
           } else {
-            this.notification.error('Thông báo', response.Message || 'Upload file thất bại');
+            this.notification.error(
+              'Thông báo',
+              response.Message || 'Upload file thất bại'
+            );
           }
 
           // Kiểm tra nếu đã upload hết các file
@@ -260,7 +268,10 @@ ngAfterViewInit(): void {
         },
         error: (error) => {
           uploadedCount++;
-          this.notification.error('Thông báo', 'Upload file thất bại: ' + error.message);
+          this.notification.error(
+            'Thông báo',
+            'Upload file thất bại: ' + error.message
+          );
 
           if (uploadedCount === newFiles.length) {
             this.saveDataToServer();
@@ -285,16 +296,16 @@ ngAfterViewInit(): void {
       TrainingRegistrationCategoryID: item.CategoryID,
       DescriptionDetail: item.Explaination || '',
       Note: item.Note || '',
-      IsDeleted: false
+      IsDeleted: false,
     }));
 
     // Chuẩn bị danh sách file
-    const fileData = this.fileList.map(file => ({
+    const fileData = this.fileList.map((file) => ({
       ID: file.ID || 0,
       FileName: file.FileName || file.name,
       OriginName: file.OriginName || file.name,
       ServerPath: file.ServerPath || '',
-      IsDeleted: file.isDeleted || file.IsDeleted || false
+      IsDeleted: file.isDeleted || file.IsDeleted || false,
     }));
 
     // Chuẩn bị dữ liệu để gửi lên server
@@ -305,7 +316,7 @@ ngAfterViewInit(): void {
       DateEnd: formatDate(this.formData.DateEnd),
       CompletionAssessment: '',
       LstFile: fileData,
-      LstDetail: detailData
+      LstDetail: detailData,
     };
 
     this.trainingRegistrationService.saveData(trainingData).subscribe({
@@ -328,7 +339,8 @@ ngAfterViewInit(): void {
         console.error('Lỗi khi lưu dữ liệu:', error);
         this.notification.error(
           'Thông báo',
-          'Lưu thông tin đăng ký đào tạo thất bại: ' + (error.error?.message || error.message)
+          'Lưu thông tin đăng ký đào tạo thất bại: ' +
+            (error.error?.message || error.message)
         );
       },
     });
@@ -345,7 +357,7 @@ ngAfterViewInit(): void {
       SessionDuration: null, // Số phút/buổi
       DateStart: null, // Ngày bắt đầu
       DateEnd: null, // Ngày kết thúc
-      CompletionAssessment: null // Đánh giá mức độ hoàn thành
+      CompletionAssessment: null, // Đánh giá mức độ hoàn thành
     };
     this.fileList = [];
     this.updateFileTable();
@@ -355,31 +367,63 @@ ngAfterViewInit(): void {
   closeModal() {
     this.activeModal.dismiss('Cross click');
   }
-  loadDetail(){
+  loadDetail() {
     this.table = new Tabulator(this.tbDetailElement.nativeElement, {
       height: '40vh',
       layout: 'fitDataStretch',
       columns: [
-        { title: 'STT', field: 'STT', width: 70, hozAlign: 'center',headerHozAlign:'center' },
-        { title: 'ID', field: 'ID', width: 70, hozAlign: 'center', visible:false },
-        { title: 'Mã hạng mục', field: 'CategoryCode', width: 150, hozAlign: 'left',headerHozAlign:'center' },
-        { title: 'CategoryID', field: 'CategoryID', width: 150, hozAlign: 'left', visible: false,headerHozAlign:'center' },
+        {
+          title: 'STT',
+          field: 'STT',
+          width: 70,
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'ID',
+          field: 'ID',
+          width: 70,
+          hozAlign: 'center',
+          visible: false,
+        },
+        {
+          title: 'Mã hạng mục',
+          field: 'CategoryCode',
+          width: 150,
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'CategoryID',
+          field: 'CategoryID',
+          width: 150,
+          hozAlign: 'left',
+          visible: false,
+          headerHozAlign: 'center',
+        },
         {
           title: 'Hạng mục',
           field: 'CategoryName',
           width: 150,
           hozAlign: 'left',
-          headerHozAlign:'center'
+          headerHozAlign: 'center',
         },
         {
           title: 'Diễn giải',
           field: 'Explaination',
           width: 200,
           hozAlign: 'left',
-          editor:'input',
-          headerHozAlign:'center'
+          editor: 'input',
+          headerHozAlign: 'center',
         },
-        { title: 'Ghi chú', field: 'Note', width: 200,editor:'input', hozAlign: 'left',headerHozAlign:'center' },
+        {
+          title: 'Ghi chú',
+          field: 'Note',
+          width: 200,
+          editor: 'input',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+        },
       ],
     });
   }
@@ -401,7 +445,7 @@ ngAfterViewInit(): void {
             const rowData = cell.getRow().getData();
             this.removeFile(rowData);
           },
-          headerHozAlign:'center'
+          headerHozAlign: 'center',
         },
         {
           title: 'ID',
@@ -409,21 +453,21 @@ ngAfterViewInit(): void {
           width: 70,
           hozAlign: 'center',
           visible: false,
-          headerHozAlign:'center'
+          headerHozAlign: 'center',
         },
         {
           title: 'Tên file',
           field: 'FileName',
           width: 200,
           hozAlign: 'left',
-          headerHozAlign:'center'
+          headerHozAlign: 'center',
         },
         {
           title: 'Đường dẫn Server',
           field: 'ServerPath',
           width: 300,
           hozAlign: 'left',
-          headerHozAlign:'center',
+          headerHozAlign: 'center',
           formatter: function (cell: any) {
             const url = cell.getValue();
             if (url) {
@@ -436,7 +480,7 @@ ngAfterViewInit(): void {
           title: 'Tên file gốc',
           field: 'OriginName',
           width: 200,
-          headerHozAlign:'center',
+          headerHozAlign: 'center',
           hozAlign: 'left',
         },
       ],
@@ -446,14 +490,16 @@ ngAfterViewInit(): void {
   updateFileTable() {
     if (this.fileTable) {
       // Lọc ra những file chưa bị xóa
-      const activeFiles = this.fileList.filter((file: any) => !file.isDeleted && !file.IsDeleted);
+      const activeFiles = this.fileList.filter(
+        (file: any) => !file.isDeleted && !file.IsDeleted
+      );
 
       const fileData = activeFiles.map((file: any, index: number) => ({
         ID: file.ID || index + 1,
         FileName: file.name || file.FileName,
         ServerPath: file.ServerPath || SERVER_PATH,
         OriginName: file.name || file.OriginName,
-        file: file
+        file: file,
       }));
       this.fileTable.setData(fileData);
     }
@@ -461,7 +507,9 @@ ngAfterViewInit(): void {
 
   removeFile(rowData: any) {
     // Tìm file trong fileList dựa trên uid của file gốc
-    const fileIndex = this.fileList.findIndex((file: any) => file === rowData.file);
+    const fileIndex = this.fileList.findIndex(
+      (file: any) => file === rowData.file
+    );
 
     if (fileIndex !== -1) {
       const file = this.fileList[fileIndex];
@@ -470,7 +518,7 @@ ngAfterViewInit(): void {
       if (file.ID) {
         this.deletedFileIds.push({
           ID: file.ID,
-          IsDeleted: true
+          IsDeleted: true,
         });
       }
       this.fileList[fileIndex].IsDeleted = true;

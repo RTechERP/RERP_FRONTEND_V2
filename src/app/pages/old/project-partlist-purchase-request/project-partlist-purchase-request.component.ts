@@ -32,6 +32,8 @@ import { EMPLOYEE_ID } from '../../../app.config';
 import { ISADMIN } from '../../../app.config';
 import * as ExcelJS from 'exceljs';
 import { ProjectPartlistPurchaseRequestService } from './service/project-partlist-purchase-request.service';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 @Component({
   selector: 'app-project-partlist-purchase-request',
@@ -57,9 +59,10 @@ import { ProjectPartlistPurchaseRequestService } from './service/project-partlis
     NzTabsModule,
     NzDropDownModule,
     NzModalModule,
+    NzSpinModule,
   ],
-  templateUrl: './project-partlist-purchase-request.component.html',
-  styleUrls: ['./project-partlist-purchase-request.component.css'],
+  templateUrl: '././project-partlist-purchase-request.component.html',
+  styleUrls: ['././project-partlist-purchase-request.component.css'],
   encapsulation: ViewEncapsulation.None,
 })
 export class ProjectPartlistPurchaseRequestComponent implements OnInit {
@@ -149,7 +152,8 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit {
 
     // Khởi tạo Tabulator với cấu hình client-side pagination
     this.table = new Tabulator('#table', {
-      layout: 'fitDataStretch',
+      ...DEFAULT_TABLE_CONFIG,
+      //   layout: 'fitDataStretch',
       rowHeader: {
         headerSort: false,
         resizable: false,
@@ -187,7 +191,7 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit {
           size: 25,
         };
       },
-      height: '60vh',
+      //   height: '60vh',
       ajaxConfig: {
         method: 'GET',
         headers: {
@@ -195,13 +199,13 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit {
         },
       },
 
-      responsiveLayout: 'hide',
-      paginationMode: 'remote',
-      pagination: true,
-      paginationMode: 'local', // Sử dụng client-side pagination
-      paginationSize: 25,
-      paginationSizeSelector: [10, 25, 50, 100, true], // true = hiển thị tất cả
-      paginationInitialPage: 1,
+      //   responsiveLayout: 'hide',
+      //   paginationMode: 'remote',
+      //   pagination: true,
+      //   paginationMode: 'local', // Sử dụng client-side pagination
+      //   paginationSize: 25,
+      //   paginationSizeSelector: [10, 25, 50, 100, true], // true = hiển thị tất cả
+      //   paginationInitialPage: 1,
 
       columns: [
         { title: 'ID', field: 'id', sorter: 'number' },

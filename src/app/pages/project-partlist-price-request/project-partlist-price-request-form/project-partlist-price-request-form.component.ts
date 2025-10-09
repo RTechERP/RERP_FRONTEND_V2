@@ -114,7 +114,7 @@ export class ProjectPartlistPriceRequestFormComponent
       next: (response) => {
         this.users = response.data.dtEmployee;
         this.createLabels("lbusers",this.users, 'ID', 'FullName');
-        this.requesterLoading = false; 
+        this.requesterLoading = false;
         console.log(this.users);
       },
       error: (err) => {
@@ -123,32 +123,6 @@ export class ProjectPartlistPriceRequestFormComponent
       },
     });
   }
-  // labeln: { [key: number]: string } = {};
-  // labelu: { [key: number]: string } = {};
-  // createLableu(data: any[], keyField: string = 'ID', valueField: string = 'FullName') {
-  //   this.labelu = {};
-
-  //   data.forEach((item) => {
-  //     // Nếu chưa có key, thêm vào labels
-  //     if (!this.labelu[item[keyField]]) {
-  //       this.labelu[item[keyField]] = item[valueField];
-  //     }
-  //   });
-  //   console.log('labels:', this.labeln);
-
-  // }
-  // createLables(data: any[], keyField: string = 'ID', valueField: string = 'ProductNewCode') {
-  //   this.labeln = {};
-
-  //   data.forEach((item) => {
-  //     // Nếu chưa có key, thêm vào labels
-  //     if (!this.labeln[item[keyField]]) {
-  //       this.labeln[item[keyField]] = item[valueField];
-  //     }
-  //   });
-  //   console.log('labels:', this.labeln);
-
-  // }
   // Thay thế các object label riêng lẻ bằng một Map chung
   private labelMaps: Map<string, { [key: number]: string }> = new Map();
 
@@ -440,28 +414,19 @@ export class ProjectPartlistPriceRequestFormComponent
               headerHozAlign: 'center',
               hozAlign: 'left',
             },
-            // {
-            //   title: 'User',
-            //   headerSort: false,
-            //   field: 'Note',
-            //   headerHozAlign: 'center',
-            //   hozAlign: 'left',
-            //   editor: this.createdControl1(
-            //     NSelectComponent,
-            //     this.injector,
-            //     this.appRef,
-            //     this.users,
-            //     'FullName',
-            //     'FullName',
-            //     'ID'
-            //   ),
-            //   formatter: (cell:any) => {
-            //     const val = cell.getValue();
-            //     return (
-            //       `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${val ? this.getLabelValue("lbusers",val) : 'Chọn người dùng'}</p> <i class="fas fa-angle-down"></i> <div>`
-            //     );
-            //   },
-            // },
+            {
+              title: 'User',
+              headerSort: false,
+              field: 'UserID',
+              headerHozAlign: 'center',
+              hozAlign: 'left',
+              editor:'list',
+              formatter:(cell:CellComponent) => {
+                let value = cell.getValue();
+                let users = this.users.find(user => user.ID === value);
+                return users ? users.FullName : 'Chọn người dùng';
+              }
+            }
           ],
           height: '30vh',
           headerSort: false,

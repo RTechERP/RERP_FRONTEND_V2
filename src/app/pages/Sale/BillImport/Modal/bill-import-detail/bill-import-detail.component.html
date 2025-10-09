@@ -1,0 +1,159 @@
+<div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0">
+    <h6 class="modal-title text-white">Chi tiết phiếu nhập</h6>
+    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+  </div>
+  <div class="modal-body p-2 flex-grow-1 overflow-visible" style="overflow-y: unset;">
+    <div class="d-flex gap-2 pb-2 border-bottom">
+      <button class="fs-12 btn" nz-button nzType="default" nzSize="small" title="Thêm sản phẩm" (click)="openModalNewProduct()">
+        <nz-icon nzType="file-text"></nz-icon> Thêm sản phẩm
+      </button>
+      <button class="fs-12 btn" nz-button nzType="default" nzSize="small" title="Thêm dự án">
+        <nz-icon nzType="exception"></nz-icon> Thêm dự án
+      </button>
+      <button class="fs-12 btn" nz-button nzType="default" nzSize="small" title="Chọn PO">
+        <nz-icon nzType="file-excel"></nz-icon> Chọn PO
+      </button>
+    </div>
+
+    <form nz-form [nzLayout]="'horizontal'" class="mt-2">
+      <!-- Dòng 1: 4 ô -->
+      <div class="row gx-2">
+        <div class="col-md-3">
+          <nz-form-item>
+            <nz-form-label [nzSpan]="8" class="fs-12">Số phiếu</nz-form-label>
+            <nz-form-control [nzSpan]="16">
+              <input nz-input [(ngModel)]="newBillImport.BillImportCode" name="BillImportCode" readonly />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+    
+        <div class="col-md-3">
+          <nz-form-item>
+            <nz-form-label [nzSpan]="8" class="fs-12">Trạng thái</nz-form-label>
+            <nz-form-control [nzSpan]="16">
+              <nz-select [(ngModel)]="newBillImport.BillTypeNew" name="BillTypeNew" nzShowSearch nzAllowClear nzPlaceHolder="Chọn trạng thái" (ngModelChange)="changeStatus()">
+                <nz-option *ngFor="let id of cbbStatus" [nzValue]="id.ID" [nzLabel]="id.Name"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+    
+        <div class="col-md-3">
+          <nz-form-item>
+            <nz-form-label [nzSpan]="8" class="fs-12">Người nhập</nz-form-label>
+            <nz-form-control [nzSpan]="16">
+              <nz-select [(ngModel)]="newBillImport.ReciverID" name="ReciverID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn người nhập">
+                <nz-option *ngFor="let id of dataCbbReciver" [nzValue]="id.ID" [nzLabel]="id.FullName"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+    
+        <div class="col-md-3">
+          <nz-form-item>
+            <nz-form-label [nzSpan]="8" class="fs-12">Kho</nz-form-label>
+            <nz-form-control [nzSpan]="16">
+              <input nz-input [(ngModel)]="WarehouseName" name="WarehouseName" disabled />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+    
+      <!-- Dòng 2: 3 ô -->
+      <div class="row gx-2 mt-2">
+        <div class="col-md-4">
+          <nz-form-item>
+            <nz-form-label [nzSpan]="8" class="fs-12">Nhà cung cấp</nz-form-label>
+            <nz-form-control [nzSpan]="16">
+              <nz-select [(ngModel)]="newBillImport.SupplierID" name="SupplierID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhà cung cấp"
+                (ngModelChange)="changeSuplierSale()">
+                <nz-option *ngFor="let id of dataCbbSupplier" [nzValue]="id.ID" [nzLabel]="id.NameNCC"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+    
+        <div class="col-md-4">
+          <nz-form-item>
+            <nz-form-label [nzSpan]="8" class="fs-12">Người giao</nz-form-label>
+            <nz-form-control [nzSpan]="16">
+              <nz-select [(ngModel)]="newBillImport.DeliverID" name="DeliverID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn người giao">
+                <nz-option *ngFor="let id of dataCbbDeliver" [nzValue]="id.ID" [nzLabel]="id.FullName"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+    
+        <div class="col-md-4">
+          <nz-form-item>
+            <nz-form-label [nzSpan]="8" class="fs-12">Ngày nhập</nz-form-label>
+            <nz-form-control [nzSpan]="16">
+              <nz-date-picker 
+              [(ngModel)]="newBillImport.CreatDate"
+               name="CreateDate" 
+               [nzFormat]="dateFormat" 
+               class="w-100"
+               [nzDisabled]="newBillImport.BillTypeNew === 4 ? true : false"
+               ></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+    
+      <!-- Dòng 3: 3 ô -->
+      <div class="row gx-2 mt-2">
+        <div class="col-md-4">
+          <nz-form-item>
+            <nz-form-label [nzSpan]="8" class="fs-12">Loại kho</nz-form-label>
+            <nz-form-control [nzSpan]="16">
+              <nz-select [(ngModel)]="newBillImport.KhoTypeID" name="KhoTypeID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại kho"
+                (ngModelChange)="changeProductGroup(newBillImport.KhoTypeID)">
+                <nz-option *ngFor="let id of dataCbbProductGroup" [nzValue]="id.ID" [nzLabel]="id.ProductGroupName"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+    
+        <div class="col-md-4">
+          <nz-form-item>
+            <nz-form-label [nzSpan]="8" class="fs-12">Điều khoản TT</nz-form-label>
+            <nz-form-control [nzSpan]="16">
+              <nz-select [(ngModel)]="newBillImport.RulePayID" name="RulePayID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn điều khoản thanh toán">
+                <nz-option *ngFor="let id of dataCbbRulePay" [nzValue]="id.ID" [nzLabel]="id.Note"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+    
+        <div class="col-md-4">
+          <nz-form-item>
+            <nz-form-label [nzSpan]="8" class="fs-12">Ngày y/c nhập</nz-form-label>
+            <nz-form-control [nzSpan]="16">
+              <nz-date-picker [(ngModel)]="newBillImport.DateRequest" name="CreateDate" [nzFormat]="dateFormat" class="w-100" [nzDisabled]="newBillImport.BillTypeNew === 4 ? false : true"></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+    </form>
+    
+      
+
+      <nz-tabset nzSize="small" (nzSelectedIndexChange)="onTabChange($event)">
+        <nz-tab  nzTitle="Danh sách sản phẩm">
+          <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải..." style="height: 100%; flex-grow: 1;">
+            <div id="table_BillImportDetails"></div>
+          </nz-spin>  
+         
+        </nz-tab>
+        <nz-tab nzTitle="Hồ sơ đi kèm">
+            <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải..." style="height: 100%; flex-grow: 1;">
+          <div id="table_DocumnetImport"></div>
+          </nz-spin>
+        </nz-tab>
+      </nz-tabset>
+  </div>
+
+  <div class="modal-footer flex-shrink-0">
+    <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
+    <button class="fs-12 btn" nz-button nzType="primary" (click)="saveDataBillImport()">Lưu</button>
+  </div>

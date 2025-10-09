@@ -26,7 +26,7 @@ import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 @Component({
   selector: 'app-root',
   imports: [
-    RouterLink,
+    // RouterLink,
     RouterOutlet,
     NzIconModule,
     NzLayoutModule,
@@ -40,83 +40,30 @@ import { NzAvatarModule } from 'ng-zorro-antd/avatar';
     ReactiveFormsModule,
     // HttpClient,
   ],
-  templateUrl: './app.component.html',
+  //   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
   standalone: true,
+  template: `<router-outlet></router-outlet>`,
 })
-export class AppComponent implements OnInit {
-  constructor(
-    private router: Router,
-    private menuService: MenuService,
-    private notification: NzNotificationService
-  ) {}
-
-  //#region Khai báo biến
-  isCollapsed = true;
-  selectedIndex = 0;
-  dynamicTabs: Array<{
-    title: string;
-    content: string;
-    queryParams?: Params;
-    routerLink: string[];
-  }> = [];
-
-  menus: any[] = [];
-  //#endregion
-
-  ngOnInit(): void {
-    this.getMenus();
-  }
-
-  newTab(routerLink: string[]): void {
-    const { length } = this.dynamicTabs;
-    const newTabId = length + 1;
-    const title = `NewTab${newTabId}`;
-    this.dynamicTabs = [
-      ...this.dynamicTabs,
-      {
-        title,
-        content: title,
-        routerLink: routerLink,
-        queryParams: {
-          tab: newTabId,
-        },
-      },
-    ];
-
-    setTimeout(() => {
-      this.selectedIndex = this.dynamicTabs.length - 1;
-    });
-  }
-
-  closeTab({ index }: { index: number }): void {
-    this.dynamicTabs.splice(index, 1);
-
-    if (this.dynamicTabs.length === 0) {
-      this.router.navigate(['/welcome']);
-    }
-  }
-
-  getMenus(): void {
-    let date = new Date(
-      new Date().getFullYear(),
-      new Date().getMonth(),
-      new Date().getDate(),
-      15,
-      0,
-      0,
-      0
-    );
-    this.menuService.getMenus().subscribe({
-      next: (response: any) => {
-        if (response.status == 1) {
-          this.menus = response.data;
-          console.log(this.menus);
-        }
-      },
-      error: (err) => {
-        this.notification.error('Thông báo', err.error.status);
-      },
-    });
-  }
+export class AppComponent {
+  notifItems = [
+    {
+      icon: 'mail',
+      text: 'Mã KhoCC về hàng',
+      time: '10:15 AM',
+      group: 'today',
+    },
+    {
+      icon: 'calendar',
+      text: 'Mã KhoCC về hàng',
+      time: '10:15 AM',
+      group: 'today',
+    },
+    {
+      icon: 'alert',
+      text: 'Mã KhoCC về hàng',
+      time: '10:15 AM',
+      group: 'today',
+    },
+  ];
 }

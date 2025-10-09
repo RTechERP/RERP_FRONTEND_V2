@@ -1,27 +1,30 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Host, Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { HOST } from '../../../app.config';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ProjectPartlistPurchaseRequestService {
-  private apiUrl = `${HOST}/api/ProjectPartlistPurchaseRequest`;
-
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
+  private baseUrl = `${HOST}/api/ProjectPartlistPurchaseRequest`;
+  constructor() {}
+  getAPIUrl() {
+    return this.baseUrl + '/getall';
+  }
 
   getAllData(filters: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/getall`, filters);
+    return this.http.post(`${this.baseUrl}/getall`, filters);
   }
 
   getProjects(): Observable<any> {
     // Implement API call to get projects
-    return this.http.get(`api/Project/get-all`);
+    return this.http.get(`${HOST}api/Project/get-all`);
   }
 
   getPOKH(): Observable<any> {
     // Implement API call to get POKH
-    return this.http.get(`api/POKH/get-all`);
+    return this.http.get(`{HOST}api/POKH/get-all`);
   }
 }

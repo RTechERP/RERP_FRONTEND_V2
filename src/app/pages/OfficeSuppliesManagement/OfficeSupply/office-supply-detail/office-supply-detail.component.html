@@ -1,0 +1,98 @@
+<div class="modal-dialog-scrollable">
+  <div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white" id="addProductModalLabel">Chi tiết sản phẩm</h6>
+    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+  </div>
+  <div class="modal-body">
+    <form nz-form class="g-3 needs-validation was-validated">
+      <div class="row">
+        <div class="col-md-6 pb-3">
+          <nz-form-label class="fs-12">Mã RTC </nz-form-label>
+          <nz-form-control>
+            <input nz-input [(ngModel)]="newProduct.CodeRTC" name="CodeRTC" [disabled]="true" />
+          </nz-form-control>
+        </div>
+        <div class="col-md-6 pb-3">
+          <nz-form-label class="fs-12">Mã NCC<sup style="color: red;"> (*)</sup> </nz-form-label>
+          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập Mã NCC">
+            <input nz-input placeholder="Nhập mã NCCC" required [(ngModel)]="newProduct.CodeNCC" name="CodeNCC" />
+          </nz-form-control>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-12 pb-3">
+          <nz-form-label class="fs-12">Tên RTC</nz-form-label>
+          <nz-form-control>
+            <input nz-input placeholder="Nhập tên RTC" required [(ngModel)]="newProduct.NameRTC" name="NamRTC" />
+          </nz-form-control>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-12 pb-3">
+          <nz-form-label class="fs-12">Tên NCC<sup style="color: red;"> (*)</sup> </nz-form-label>
+          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập tên nhà cung cấp">
+            <input nz-input [(ngModel)]="newProduct.NameNCC" name="NameNCC" placeholder="Nhập tên NCC" required />
+          </nz-form-control>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 pb-3">
+          <nz-form-label class="fs-12">Đơn vị tính<sup style="color: red;"> (*)</sup></nz-form-label>
+          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn đơn vị tính">
+            <nz-input-group nzSearch [nzAddOnAfter]="suffixIconButton" nzSize="default" class="w-100">
+              <nz-select [(ngModel)]="newProduct.SupplyUnitID" name="SupplyUnitID" nzPlaceHolder="Chọn đơn vị"
+                class="fs-12 w-100" required nzShowSearch nzAllowClear>
+                <nz-option *ngFor="let unit of listUnit" [nzValue]="unit.ID" [nzLabel]="unit.Name"></nz-option>
+              </nz-select>
+            </nz-input-group>
+            <ng-template #suffixIconButton>
+              <button nz-button nzType="default" nzSize="default" nzSearch (click)="addNewUnit()">
+                <nz-icon nzType="plus" nzTheme="outline" />
+              </button>
+            </ng-template>
+          </nz-form-control>
+        </div>
+
+        <div class="col-md-6">
+          <nz-form-label for="Price" class="fs-12">Giá sản phẩm <sup style="color: red;"> (*)</sup></nz-form-label>
+          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập giá sản phẩm">
+            <nz-input-number [style.width.%]="100" [(ngModel)]="newProduct.Price" placeholder="Nhập giá" name="Price"
+              required>
+              <span nzInputAddonAfter>VND</span>
+            </nz-input-number>
+          </nz-form-control>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6">
+          <nz-form-label for="Price" class="fs-12">Định mức</nz-form-label>
+          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập định mức">
+            <nz-input-number [style.width.%]="100" [(ngModel)]="newProduct.RequestLimit" placeholder="" name="RequestLimit"
+              required>
+            </nz-input-number>
+          </nz-form-control>
+        </div>
+        <div class="col-md-6">
+          <nz-form-label class="fs-12">Chọn loại sản phẩm<sup style="color: red;"> (*)</sup> </nz-form-label>
+          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn loại sản phẩm">
+            <nz-input-group nzSearch nzSize="default" class="w-100">
+              <nz-select [(ngModel)]="newProduct.Type" name="Type" nzPlaceHolder="Chọn loại sản phẩm" class="fs-12"
+                required nzShowSearch nzAllowClear>
+                <nz-option *ngFor="let type of typeOptions" [nzValue]="type.id" [nzLabel]="type.name">
+                </nz-option>
+              </nz-select>
+            </nz-input-group>
+          </nz-form-control>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
+    <button class="fs-12 btn" nz-button nzType="primary" (click)="isCheckmode ? update() : add()">Lưu</button>
+  </div>
+</div>

@@ -1,4 +1,16 @@
-import { Component, inject, OnInit, EventEmitter, Output, Injector, EnvironmentInjector, ApplicationRef, Type, ViewEncapsulation, createComponent } from '@angular/core';
+import {
+  Component,
+  inject,
+  OnInit,
+  EventEmitter,
+  Output,
+  Injector,
+  EnvironmentInjector,
+  ApplicationRef,
+  Type,
+  ViewEncapsulation,
+  createComponent,
+} from '@angular/core';
 import { ProjectPartlistPriceRequestService } from './project-partlist-price-request-service/project-partlist-price-request.service';
 import { ProjectPartlistPriceRequestFormComponent } from './project-partlist-price-request-form/project-partlist-price-request-form.component';
 import {
@@ -43,9 +55,6 @@ import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
-
-
-
 @Component({
   selector: 'app-project-partlist-price-request',
   templateUrl: './project-partlist-price-request.component.html',
@@ -61,7 +70,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
     NzButtonModule,
     NzIconModule,
     NzDropDownModule,
-    NzModalModule ,
+    NzModalModule,
     NzSplitterModule,
     NzGridModule,
     NzDatePickerModule,
@@ -75,6 +84,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
     NzSpaceModule,
     NzLayoutModule,
     NzCardModule,
+    NSelectComponent,
   ],
 })
 export class ProjectPartlistPriceRequestComponent implements OnInit {
@@ -107,8 +117,8 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
 
   ngOnInit() {
     this.filters = {
-      dateStart: DateTime.local(2025, 1, 1).toJSDate(),  // Lưu dạng Date
-      dateEnd: DateTime.local(2025, 5, 30).toJSDate(),  // Lưu dạng Date
+      dateStart: DateTime.local(2025, 1, 1).toJSDate(), // Lưu dạng Date
+      dateEnd: DateTime.local(2025, 5, 30).toJSDate(), // Lưu dạng Date
       statusRequest: 1,
       projectId: 0,
       keyword: '',
@@ -130,14 +140,17 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   }
   OnAddClick() {
     this.modalData = [];
-    const modalRef = this.ngbModal.open(ProjectPartlistPriceRequestFormComponent, {
-      size: 'xl',
-      backdrop: 'static',
-      keyboard: false
-    });
-    
+    const modalRef = this.ngbModal.open(
+      ProjectPartlistPriceRequestFormComponent,
+      {
+        size: 'xl',
+        backdrop: 'static',
+        keyboard: false,
+      }
+    );
+
     modalRef.componentInstance.dataInput = this.modalData;
-    
+
     modalRef.result.then(
       (result) => {
         // Modal đóng với kết quả
@@ -192,14 +205,17 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       STT: index + 1,
     }));
 
-    const modalRef = this.ngbModal.open(ProjectPartlistPriceRequestFormComponent, {
-      size: 'xl',
-      backdrop: 'static',
-      keyboard: false
-    });
-    
+    const modalRef = this.ngbModal.open(
+      ProjectPartlistPriceRequestFormComponent,
+      {
+        size: 'xl',
+        backdrop: 'static',
+        keyboard: false,
+      }
+    );
+
     modalRef.componentInstance.dataInput = processedRows;
-    
+
     modalRef.result.then(
       (result) => {
         // Modal đóng với kết quả
@@ -211,7 +227,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       }
     );
   }
-  
+
   OnDeleteClick() {
     const table = this.tables.get(this.activeTabId);
     if (!table) return;
@@ -273,7 +289,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       // Các tham số truyền vào component
       componentRef.instance.dataSource = data;
       componentRef.instance.value = cellValue;
-      
+
       // Nếu component là NSelectComponent, truyền thêm các trường tùy chỉnh
       if (component === NSelectComponent) {
         componentRef.instance.displayField = displayField;
@@ -303,9 +319,9 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   createdControl(
     component: Type<any>,
     injector: EnvironmentInjector,
-    appRef: ApplicationRef,
+    appRef: ApplicationRef
   ) {
-    return (cell: any, onRendered: any, success: any, cancel: any) =>{
+    return (cell: any, onRendered: any, success: any, cancel: any) => {
       const container = document.createElement('div');
       const componentRef = createComponent(component, {
         environmentInjector: injector,
@@ -334,9 +350,9 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   createdControl2(
     component: Type<any>,
     injector: EnvironmentInjector,
-    appRef: ApplicationRef,
+    appRef: ApplicationRef
   ) {
-    return (cell: any, onRendered: any, success: any, cancel: any) =>{
+    return (cell: any, onRendered: any, success: any, cancel: any) => {
       const container = document.createElement('div');
       const componentRef = createComponent(component, {
         environmentInjector: injector,
@@ -398,7 +414,6 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       this.createLabelsFromData();
       console.log('dtcurrentcy: ', this.dtcurrency);
     });
-
   }
   private GetAllPOKH() {
     this.PriceRequetsService.getPOKH().subscribe((response) => {
@@ -461,55 +476,8 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       console.error(`Table container not found: ${tableId}`);
       return;
     }
-    
-    const table = new Tabulator(`#${tableId}`, this.GetTableConfigForType(typeId));
+    const table = new Tabulator(`#${tableId}`, this.GetTableConfig());
     this.tables.set(typeId, table);
-  }
-
-  // Tạo cấu hình table riêng cho từng type
-  private GetTableConfigForType(typeId: number): any {
-    const baseConfig = this.GetTableConfig();
-    
-    // Override ajaxParams để truyền đúng tham số cho từng type
-    baseConfig.ajaxParams = () => {
-      const dateStart = typeof this.filters.dateStart === 'string' 
-        ? this.filters.dateStart 
-        : DateTime.fromJSDate(this.filters.dateStart).toFormat('yyyy/MM/dd');
-        
-      const dateEnd = typeof this.filters.dateEnd === 'string' 
-        ? this.filters.dateEnd 
-        : DateTime.fromJSDate(this.filters.dateEnd).toFormat('yyyy/MM/dd');
-
-      let projectTypeID = typeId;
-      let isCommercialProduct = -1;
-      let poKHID = this.filters.poKHID;
-
-      // Xử lý logic cho các tab đặc biệt
-      if (typeId === -1) {
-        // Tab "Sản phẩm thương mại"
-        projectTypeID = -1;
-        isCommercialProduct = 1;
-        poKHID = 0;
-      } else if (typeId === -2) {
-        // Tab "HCNS" 
-        projectTypeID = 0;
-        isCommercialProduct = -1;
-      }
-
-      return {
-        dateStart: dateStart,
-        dateEnd: dateEnd,
-        statusRequest: this.filters.statusRequest - 1,
-        projectId: this.filters.projectId,
-        keyword: this.filters.keyword || '',
-        isDeleted: this.filters.isDeleted,
-        projectTypeID: projectTypeID,
-        poKHID: poKHID,
-        isCommercialProduct: isCommercialProduct
-      };
-    };
-
-    return baseConfig;
   }
 
   private UpdateActiveTable(): void {
@@ -612,10 +580,16 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       validFields.push('QuoteEmployeeID');
       validFields.push('UpdatedBy');
     }
-    
+
     // Danh sách các trường ngày tháng cần xử lý đặc biệt
-    const dateFields = ['Deadline', 'DateExpected', 'DateRequest', 'DatePriceQuote', 'LeadTime'];
-    
+    const dateFields = [
+      'Deadline',
+      'DateExpected',
+      'DateRequest',
+      'DatePriceQuote',
+      'LeadTime',
+    ];
+
     const filteredData = changedData.map((item) => {
       const filteredItem: any = {};
       validFields.forEach((key) => {
@@ -635,7 +609,12 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
                   filteredItem[key] = dt.toISO();
                 } else {
                   // Thử các định dạng khác
-                  const formats = ['DD/MM/YYYY', 'yyyy/MM/dd', 'dd/MM/yyyy', 'yyyy-MM-dd'];
+                  const formats = [
+                    'DD/MM/YYYY',
+                    'yyyy/MM/dd',
+                    'dd/MM/yyyy',
+                    'yyyy-MM-dd',
+                  ];
                   for (const format of formats) {
                     const dt = DateTime.fromFormat(item[key], format);
                     if (dt.isValid) {
@@ -645,7 +624,10 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
                   }
                 }
               } catch (e) {
-                console.error(`Không thể chuyển đổi ngày tháng: ${item[key]}`, e);
+                console.error(
+                  `Không thể chuyển đổi ngày tháng: ${item[key]}`,
+                  e
+                );
                 // Giữ nguyên giá trị nếu không thể chuyển đổi
                 filteredItem[key] = item[key];
               }
@@ -657,7 +639,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           }
         }
       });
-      
+
       // Sử dụng định dạng ISO chuẩn cho UpdatedDate
       filteredItem.UpdatedDate = DateTime.local().toISO();
       filteredItem.UpdatedBy = !IS_ADMIN ? LOGIN_NAME : '';
@@ -673,7 +655,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
     if (!days || isNaN(days)) {
       return date; // Trả về ngày gốc nếu days không hợp lệ
     }
-    
+
     let count = 0;
     let result = new Date(date.getTime());
 
@@ -1531,16 +1513,20 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   }
   labels: { [key: number]: string } = {};
   labeln: { [key: number]: string } = {};
-createLables(data: any[], keyField: string = 'ID', valueField: string = 'Code') {
-  this.labeln = {};
+  createLables(
+    data: any[],
+    keyField: string = 'ID',
+    valueField: string = 'Code'
+  ) {
+    this.labeln = {};
 
-  data.forEach((item) => {
-    // Nếu chưa có key, thêm vào labels
-    if (!this.labeln[item[keyField]]) {
-      this.labeln[item[keyField]] = item[valueField];
-    }
-  });
-}
+    data.forEach((item) => {
+      // Nếu chưa có key, thêm vào labels
+      if (!this.labeln[item[keyField]]) {
+        this.labeln[item[keyField]] = item[valueField];
+      }
+    });
+  }
   createLabelsFromData() {
     this.labels = {};
 
@@ -1558,11 +1544,6 @@ createLables(data: any[], keyField: string = 'ID', valueField: string = 'Code') 
       height: 700,
       maxheight: '80vh',
       virtualDom: true,
-    virtualDomBuffer: 300, // Thêm buffer để giảm lag
-    
-    // Cải thiện performance
-    renderVertical: 'virtual',
-    renderHorizontal: 'virtual',
       rowHeader: {
         headerSort: false,
         resizable: false,
@@ -1577,6 +1558,29 @@ createLables(data: any[], keyField: string = 'ID', valueField: string = 'Code') 
       },
       ajaxURL: this.PriceRequetsService.getAPIPricerequest(),
       ajaxParams: () => {
+        const filters = this.filters;
+
+        // Sửa statusRequest = -1 nếu không muốn lọc, hoặc truyền đúng
+        let statusRequest = filters.statusRequest - 1;
+        if (statusRequest < 0) statusRequest = 0;
+
+        // Xử lý projectTypeID và isCommercialProduct logic giống như ở backend
+        let isCommercialProduct =
+          filters.projectTypeID === -1 ? 1 : filters.isCommercialProd;
+        let poKHID = filters.projectTypeID >= 0 ? 0 : filters.poKHID;
+
+        // Kiểm tra nếu dateStart và dateEnd là chuỗi thì sử dụng trực tiếp
+        // nếu là Date thì chuyển đổi
+        const dateStart =
+          typeof filters.dateStart === 'string'
+            ? filters.dateStart
+            : DateTime.fromJSDate(filters.dateStart).toFormat('yyyy/MM/dd');
+
+        const dateEnd =
+          typeof filters.dateEnd === 'string'
+            ? filters.dateEnd
+            : DateTime.fromJSDate(filters.dateEnd).toFormat('yyyy/MM/dd');
+
         return {
           page: 1,
           size: 25,
@@ -1651,7 +1655,13 @@ createLables(data: any[], keyField: string = 'ID', valueField: string = 'Code') 
           headerHozAlign: 'center',
           frozen: true,
         },
-        { title: 'TT', field: 'TT', headerHozAlign: 'center', frozen: true, width: 100 },
+        {
+          title: 'TT',
+          field: 'TT',
+          headerHozAlign: 'center',
+          frozen: true,
+          width: 100,
+        },
         {
           title: 'Check giá',
           field: 'IsCheckPrice',
@@ -1665,7 +1675,7 @@ createLables(data: any[], keyField: string = 'ID', valueField: string = 'Code') 
               : '<i style="color:red;" class="fa fa-times"></i>';
           },
           frozen: true,
-          width: 100
+          width: 100,
         },
         // {
         //   title: ' ',
@@ -1695,7 +1705,7 @@ createLables(data: any[], keyField: string = 'ID', valueField: string = 'Code') 
           headerHozAlign: 'center',
           frozen: true,
           hozAlign: 'left',
-          width:100,
+          width: 100,
         },
         {
           title: 'Hãng',
@@ -1731,52 +1741,64 @@ createLables(data: any[], keyField: string = 'ID', valueField: string = 'Code') 
           field: 'FullName',
           headerHozAlign: 'center',
           hozAlign: 'left',
-          width: 150
+          width: 150,
         },
         {
           title: 'Sale phụ trách',
           field: 'FullNameSale',
           headerHozAlign: 'center',
           hozAlign: 'left',
-          width: 100
+          width: 100,
         },
         {
           title: 'NV báo giá',
           field: 'QuoteEmployee',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          width: 150
+          width: 150,
         },
         {
           title: 'Ngày yêu cầu',
           field: 'DateRequest',
           headerHozAlign: 'center',
-          formatter: function (cell:any, formatterParams:any[], onRendered:any) {
+          formatter: function (
+            cell: any,
+            formatterParams: any[],
+            onRendered: any
+          ) {
             let value = cell.getValue() || '';
             const dateTime = DateTime.fromISO(value);
             value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
             return value;
           },
           hozAlign: 'center',
-          width: 100
+          width: 100,
         },
         {
           title: 'Deadline',
           field: 'Deadline',
           headerHozAlign: 'center',
-          formatter: function (cell:any, formatterParams:any[], onRendered:any) {
+          formatter: function (
+            cell: any,
+            formatterParams: any[],
+            onRendered: any
+          ) {
             let value = cell.getValue() || '';
             const dateTime = DateTime.fromISO(value);
             value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
             return value;
           },
           hozAlign: 'center',
-          width: 100
+          width: 100,
         },
         {
           title: 'Ngày báo giá',
           field: 'DatePriceQuote',
-          formatter: function (cell:any, formatterParams:any[], onRendered:any) {
+          formatter: function (
+            cell: any,
+            formatterParams: any[],
+            onRendered: any
+          ) {
             let value = cell.getValue() || '';
             const dateTime = DateTime.fromISO(value);
             value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
@@ -1784,7 +1806,7 @@ createLables(data: any[], keyField: string = 'ID', valueField: string = 'Code') 
           },
           headerHozAlign: 'center',
           hozAlign: 'center',
-          width: 100
+          width: 100,
         },
         // {
         //   title: 'Loại tiền',
@@ -1813,18 +1835,25 @@ createLables(data: any[], keyField: string = 'ID', valueField: string = 'Code') 
           editor: this.createdControl(
             SelectEditorComponent,
             this.injector,
-            this.appRef),
-          formatter: (cell:any) => {
-              const val = cell.getValue();
-              
-              return (
-                `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${val ? this.labels[val] : 'Chọn loại tiền'}</p> <i class="fas fa-angle-down"></i> <div>`
-              );
+            this.appRef
+          ),
+          formatter: (cell: any) => {
+            const val = cell.getValue();
+
+            return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${
+              val ? this.labels[val] : 'Chọn loại tiền'
+            }</p> <i class="fas fa-angle-down"></i> <div>`;
           },
           cellEdited: (cell: any) => this.OnCurrencyChanged(cell),
-          width: 100
+          width: 100,
         },
-        { title: 'Tỷ giá', field: 'CurrencyRate', headerHozAlign: 'center',width: '10vw',  hozAlign: 'right', },
+        {
+          title: 'Tỷ giá',
+          field: 'CurrencyRate',
+          headerHozAlign: 'center',
+          width: '10vw',
+          hozAlign: 'right',
+        },
         {
           title: 'Đơn giá',
           field: 'UnitPrice',
@@ -1836,7 +1865,7 @@ createLables(data: any[], keyField: string = 'ID', valueField: string = 'Code') 
             precision: 0, // không có số lẻ
           },
           cellEdited: (cell: any) => this.HandleCellEdited(cell),
-          width: 100
+          width: 100,
         },
         {
           title: 'Giá lịch sử',
@@ -1848,7 +1877,7 @@ createLables(data: any[], keyField: string = 'ID', valueField: string = 'Code') 
             thousand: ',',
             precision: 0, // không có số lẻ
           },
-          width: 100
+          width: 100,
         },
         {
           title: 'Thành tiền chưa VAT',
@@ -1858,12 +1887,11 @@ createLables(data: any[], keyField: string = 'ID', valueField: string = 'Code') 
           width: 100,
           formatterParams: {
             thousand: ',',
-            precision: 0, 
-
+            precision: 0,
           },
           bottomCalc: 'sum',
           bottomCalcFormatter: 'money',
-          
+
           bottomCalcFormatterParams: {
             thousand: ',',
             precision: 0,
@@ -1874,7 +1902,7 @@ createLables(data: any[], keyField: string = 'ID', valueField: string = 'Code') 
           field: 'TotalPriceExchange',
           headerHozAlign: 'center',
           hozAlign: 'right',
-          width: 100
+          width: 100,
         },
         {
           title: '% VAT',
@@ -1929,22 +1957,22 @@ createLables(data: any[], keyField: string = 'ID', valueField: string = 'Code') 
         //   field: 'SupplierSaleID',
         //   headerHozAlign: 'center',
         //   hozAlign: 'left',
-          // editor: this.createdControl1(
-          //   NSelectComponent,
-          //   this.injector,
-          //   this.appRef,
-          //   this.dtSupplierSale,
-          //   'NameNCC',
-          //   'NameNCC',
-          //   'ID'
-          // ),
-          // formatter: (cell:any) => {
-          //   const val = cell.getValue();
-          //   const supplier = this.dtSupplierSale.find(s => s.ID === val);
-          //   return (
-          //     `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${supplier ? supplier.NameNCC : 'Chọn nhà cung cấp'}</p> <i class="fas fa-angle-down"></i> <div>`
-          //   );
-          // },
+        // editor: this.createdControl1(
+        //   NSelectComponent,
+        //   this.injector,
+        //   this.appRef,
+        //   this.dtSupplierSale,
+        //   'NameNCC',
+        //   'NameNCC',
+        //   'ID'
+        // ),
+        // formatter: (cell:any) => {
+        //   const val = cell.getValue();
+        //   const supplier = this.dtSupplierSale.find(s => s.ID === val);
+        //   return (
+        //     `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${supplier ? supplier.NameNCC : 'Chọn nhà cung cấp'}</p> <i class="fas fa-angle-down"></i> <div>`
+        //   );
+        // },
         //   width:100 ,
         //   cellEdited: (cell: any) => this.OnSupplierSaleChanged(cell),
         // },
@@ -1959,12 +1987,12 @@ createLables(data: any[], keyField: string = 'ID', valueField: string = 'Code') 
             this.injector,
             this.appRef
           ),
-          formatter: (cell:any) => {
+          formatter: (cell: any) => {
             const val = cell.getValue();
-            const supplier = this.dtSupplierSale.find(s => s.ID === val);
-            return (
-              `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${supplier ? supplier.NameNCC : 'Chọn nhà cung cấp'}</p> <i class="fas fa-angle-down"></i> <div>`
-            );
+            const supplier = this.dtSupplierSale.find((s) => s.ID === val);
+            return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${
+              supplier ? supplier.NameNCC : 'Chọn nhà cung cấp'
+            }</p> <i class="fas fa-angle-down"></i> <div>`;
           },
           cellEdited: (cell: any) => this.OnSupplierSaleChanged(cell),
         },
@@ -1976,42 +2004,46 @@ createLables(data: any[], keyField: string = 'ID', valueField: string = 'Code') 
           bottomCalc: 'sum',
           editor: 'input',
           cellEdited: (cell: any) => this.HandleCellEdited(cell),
-          width: 100
+          width: 100,
         },
         {
           title: 'Ngày dự kiến hàng về',
           field: 'DateExpected',
           headerHozAlign: 'center',
           hozAlign: 'center',
-          formatter: function (cell:any, formatterParams:any[], onRendered:any) {
+          formatter: function (
+            cell: any,
+            formatterParams: any[],
+            onRendered: any
+          ) {
             let value = cell.getValue() || '';
             const dateTime = DateTime.fromISO(value);
             value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
             return value;
           },
 
-          width: 100
+          width: 100,
         },
-        { 
-          title: 'Ghi chú', 
-          field: 'Note', 
+        {
+          title: 'Ghi chú',
+          field: 'Note',
           headerHozAlign: 'center',
-          width: 100, 
-          hozAlign: 'left', },
+          width: 100,
+          hozAlign: 'left',
+        },
         {
           title: 'Ghi chú KT',
           field: 'NotePartlist',
           width: 200,
           headerHozAlign: 'center',
           hozAlign: 'left',
-          
         },
         {
           title: 'Thông số kỹ thuật',
           field: 'Model',
           headerHozAlign: 'center',
           hozAlign: 'left',
-          width: 100
+          width: 100,
         },
         {
           title: 'Đơn giá xuất xưởng',
@@ -2021,8 +2053,8 @@ createLables(data: any[], keyField: string = 'ID', valueField: string = 'Code') 
           formatterParams: {
             thousand: ',',
             precision: 0, // không có số lẻ
-            
-          },width: 100,
+          },
+          width: 100,
           hozAlign: 'right',
         },
         {
@@ -2070,7 +2102,11 @@ createLables(data: any[], keyField: string = 'ID', valueField: string = 'Code') 
           hozAlign: 'center',
           width: 100,
           headerHozAlign: 'center',
-          formatter: function (cell:any, formatterParams:any[], onRendered:any) {
+          formatter: function (
+            cell: any,
+            formatterParams: any[],
+            onRendered: any
+          ) {
             let value = cell.getValue() || '';
             const dateTime = DateTime.fromISO(value);
             value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';

@@ -1,0 +1,106 @@
+<div class="modal-header bg-primary p-2">
+  <h6 class="modal-title text-white" id="assetModalLabel">Báo cáo nhập NCC kho DEMO</h6>
+  <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+</div>
+
+<form nz-form nzLayout="horizontal" class="fs-7 mt-3 tab-content-equal-height">
+<nz-row [nzGutter]="24" class=" ms-2 ">
+
+    <!-- Từ ngày -->
+    <nz-col [nzSpan]="4" class="me-2 md-2 ">
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6" required>
+          Từ ngày <span style="color: red">(*)</span>
+        </nz-form-label>
+        <nz-form-control [nzSpan]="18">
+          <nz-date-picker
+          nzSize="small"
+            [(ngModel)]="dateStart"
+            name="dateStart"
+            [nzFormat]="'dd/MM/yyyy'"
+            style="width: 100%;">
+          </nz-date-picker>
+        </nz-form-control>
+      </nz-form-item>
+    </nz-col>
+
+    <!-- Đến ngày -->
+    <nz-col [nzSpan]="4">
+      <nz-form-item>
+        <nz-form-label required>
+          Đến ngày <span style="color: red">(*)</span>
+        </nz-form-label>
+        <nz-form-control>
+          <nz-date-picker
+          nzSize="small"
+            [(ngModel)]="dateEnd"
+            name="dateEnd"
+            [nzFormat]="'dd/MM/yyyy'"
+            style="width: 100%;">
+          </nz-date-picker>
+        </nz-form-control>
+      </nz-form-item>
+    </nz-col>
+
+    <!-- Lọc NCC -->
+  <nz-col [nzSpan]="4">
+  <nz-form-item>
+  
+              <nz-form-label class="fs-12">Chọn NCC</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select class="w-100 fs-12" nzSize="small" nzShowSearch nzAllowClear
+                  nzPlaceHolder="Chọn nhà cung cấp..." [(ngModel)]="SupplierDemoID"
+                  (ngModelChange)="onSearch()" name="SupplierDemoID">
+                  <nz-option *ngFor="let emp of nccList" [nzLabel]="emp.CodeNCC + ' - ' + emp.NameNCC"
+                    [nzValue]="emp.ID"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+</nz-col>
+
+   <!-- Lọc NCC -->
+    <nz-col [nzSpan]="4">
+      <nz-form-item>
+        <nz-form-label>Từ khóa</nz-form-label>
+        <nz-form-control>
+          <input
+          nzSize="small"
+            nz-input
+            [(ngModel)]="FilterText"
+            name="filterText"
+            placeholder="Nhập tên nhà cung cấp..." />
+        </nz-form-control>
+      </nz-form-item>
+    </nz-col>
+
+  <!-- Nút Tìm kiếm -->
+<nz-col [nzSpan]="1.5" class="me-2">
+  <nz-form-item>
+    <nz-form-control>
+      <button class="fs-12" nz-button nzType="primary" nzSize="small" (click)="onSearch()" nzGhost>
+       <nz-icon nzType="search" nzTheme="outline" /> Tìm kiếm
+      </button>
+    </nz-form-control>
+  </nz-form-item>
+</nz-col>
+
+<!-- Nút Xuất Excel -->
+<nz-col [nzSpan]="2">
+  <nz-form-item>
+    <nz-form-control>
+      <button nz-button nzType="primary" nzSize="small" nzGhost>
+        <i nz-icon nzType="file-excel" nzTheme="twotone"></i> Xuất Excel
+      </button>
+    </nz-form-control>
+  </nz-form-item>
+</nz-col>
+
+  </nz-row>
+
+  <!-- Bảng dữ liệu -->
+  <div >
+    <div id="dataTableProductInventoryDemo" style="height: 720px;"></div>
+  </div>
+  
+
+</form>

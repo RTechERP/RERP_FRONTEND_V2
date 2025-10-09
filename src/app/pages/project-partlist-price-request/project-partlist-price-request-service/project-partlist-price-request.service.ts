@@ -43,7 +43,7 @@ export class ProjectPartlistPriceRequestService {
     );
   }
   getAPIPricerequest() {
-    return this.baseUrl + '/get-all-project-parList-price-request';
+    return this.baseUrl + '/getallProjectParListPriceRequest';
   }
   // Gọi API lấy danh sách types
   getTypes(employeeID: number): Observable<any> {
@@ -71,13 +71,13 @@ export class ProjectPartlistPriceRequestService {
     return this.http.post(`${this.baseUrl}/save-data`, lstModel);
   }
   getCurrency(): Observable<any> {
-    return this.http.get(`${this.baseUrl}/get-currency`);
+    return this.http.get(`${this.baseUrl}/getCurrency`);
   }
   getSuplierSale(): Observable<any> {
-    return this.http.get(`${this.baseUrl}/get-supplier-sale`);
+    return this.http.get(`${this.baseUrl}/getSupplierSale`);
   }
   saveChangedData(data: any[]) {
-    return this.http.post(`${this.baseUrl}/save-Data`, data);
+    return this.http.post(`${this.baseUrl}/saveData`, data);
   }
   downloadFile(payload: {
     projectId: number;

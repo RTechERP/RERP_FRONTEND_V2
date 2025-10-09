@@ -8,21 +8,26 @@ import { Observable, tap } from 'rxjs';
 })
 export class AuthService {
   private apiUrl = HOST + 'api/home/login';
+  private tokenkey = 'token';
   constructor(private http: HttpClient) {}
 
   login(credentials: { loginname: string; password: string }): Observable<any> {
     return this.http.post(this.apiUrl, credentials).pipe(
       tap((response: any) => {
-        localStorage.setItem('token', response.access_token);
+        localStorage.setItem(this.tokenkey, response.access_token);
       })
     );
   }
 
+  getToken(): string | null {
+    return localStorage.getItem(this.tokenkey);
+  }
+
   logout() {
-    localStorage.removeItem('token');
+    localStorage.removeItem(this.tokenkey);
   }
 
   isLoggedIn(): boolean {
-    return !!localStorage.getItem('token');
+    return !!localStorage.getItem(this.tokenkey);
   }
 }

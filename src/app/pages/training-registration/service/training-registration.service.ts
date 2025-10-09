@@ -22,7 +22,7 @@ export class TrainingRegistrationService {
     return this.http.post<any>(`${this.apiUrl}/TrainingRegistration/upload`, formData);
   }
   getEmployee():Observable<any>{
-    return this.http.get<any>(`${this.apiUrl}/Employee/get-employees`);
+    return this.http.get<any>(`${this.apiUrl}/Employee/employees`);
   }
   saveData(data: any): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/TrainingRegistration/save-data`, data);

@@ -25,6 +25,7 @@ import { TbProductRtcComponent } from '../../pages/old/tb-product-rtc/tb-product
 import { CustomerComponent } from '../../pages/old/VisionBase/customer/customer.component';
 import { ProductSaleComponent } from '../../pages/old/Sale/ProductSale/product-sale.component';
 import { HrhiringRequestComponent } from '../../pages/hrm/hrhiring-request/hrhiring-request.component';
+import { TrainingRegistrationComponent } from '../../pages/training-registration/training-registration.component';
 type TabItem = {
   title: string;
   comp: Type<any>;
@@ -159,6 +160,30 @@ export class MainLayoutComponent implements OnInit {
           title: 'TUYỂN DỤNG',
           isOpen: true,
           comp: HrhiringRequestComponent,
+          //   icon: 'assets/icon/layers.png',
+        },
+        // {
+        //   kind: 'leaf',
+        //   key: 'product2',
+        //   title: 'SẢN PHẨM KHO DEMO',
+        //   isOpen: true,
+        //   comp: TbProductRtcComponent /* không icon */,
+        // },
+      ],
+    },
+    {
+      kind: 'group',
+      key: 'cate',
+      title: 'DANH MỤC CHUNG',
+      isOpen: true,
+      icon: 'assets/images/icons8-warehouse-modula-20.png',
+      children: [
+        {
+          kind: 'leaf',
+          key: 'training-registration',
+          title: 'ĐÀO TẠO',
+          isOpen: true,
+          comp: TrainingRegistrationComponent,
           //   icon: 'assets/icon/layers.png',
         },
         // {

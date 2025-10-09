@@ -50,6 +50,8 @@ import { ProductSaleComponent } from './pages/old/Sale/ProductSale/product-sale.
 import { HrmComponent } from './pages/hrm/hrm.component';
 import { HrhiringRequestComponent } from './pages/hrm/hrhiring-request/hrhiring-request.component';
 import { HandoverMinutesComponent } from './pages/old/handover-minutes/handover-minutes.component';
+import { GeneralCategoryComponent } from './pages/general-category/general-category.component';
+import { TrainingRegistrationComponent } from './pages/training-registration/training-registration.component';
 export const routes: Routes = [
   {
     path: '',
@@ -127,17 +129,27 @@ export const routes: Routes = [
       },
 
       //#endregion
+
+      //#region HRM
       {
-        path: 'hrm', //DANH SÁCH SẢN PHẨM SALE
+        path: 'hrm', //phân hệ nhân sự
         component: HrmComponent,
       },
       {
-        path: 'hrhiring', //DANH SÁCH SẢN PHẨM SALE
+        path: 'hrhiring', //tuyển dụng
         component: HrhiringRequestComponent,
       },
+      //#endregion
 
-      //#region HRM
-
+      //#region DANH MỤC CHUNG
+      {
+        path: 'category',
+        component: GeneralCategoryComponent,
+      },
+      {
+        path: 'training-registration', //Đăng ký đào tạo
+        component: TrainingRegistrationComponent,
+      },
       //#endregion
       { path: 'project', component: ProjectComponent }, // NTA Bổ sung path 25/09/25
       { path: 'pokh', component: PokhComponent },

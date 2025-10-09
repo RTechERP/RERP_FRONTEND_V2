@@ -11,6 +11,7 @@
               nzSize="small"
               nzType="default"
               nzDanger
+              aria-label="Đóng"
               (click)="ToggleSearchPanel()"
             >
               <nz-icon nzType="close" nzTheme="outline" />
@@ -26,6 +27,7 @@
                   [(ngModel)]="filters.dateStart"
                   class="w-100"
                   nzSize="small"
+                  [ngModelOptions]="{ standalone: true }"
                 ></nz-date-picker>
               </nz-form-control>
             </nz-form-item>
@@ -38,6 +40,7 @@
                   [(ngModel)]="filters.dateEnd"
                   class="w-100"
                   nzSize="small"
+                  [ngModelOptions]="{ standalone: true }"
                 ></nz-date-picker>
               </nz-form-control>
             </nz-form-item>
@@ -54,6 +57,7 @@
                   nzSize="small"
                   name="statusRequest"
                   nzPlaceHolder="trạng thái"
+                  [ngModelOptions]="{ standalone: true }"
                 >
                   <nz-option [nzValue]="1" nzLabel="Tất cả"></nz-option>
                   <nz-option
@@ -79,34 +83,11 @@
                   nzAllowClear
                   nzSize="small"
                   nzPlaceHolder="Chọn dự án"
+                  [ngModelOptions]="{ standalone: true }"
                 >
                   <nz-option
                     *ngFor="let item of dtproject"
                     [nzLabel]="item.ProjectCode + '--' + item.ProjectName"
-                    [nzValue]="item.ID"
-                  ></nz-option>
-                </nz-select>
-
-                <input 
-                  nz-input 
-                  placeholder="Nhập từ khóa" 
-                  nzSize="small" 
-                  [(ngModel)]="filters.Keyword"
-                  name="keyword"
-                />
-
-                <nz-select
-                  class="w-100"
-                  [nzMaxTagCount]="4"
-                  nzMode="multiple"
-                  nzPlaceHolder="Chọn lĩnh vực dự án"
-                  nzSize="small"
-                  [(ngModel)]="filters.poKHID"
-                  name="poKHID"
-                >
-                  <nz-option
-                    *ngFor="let item of dtPOKH"
-                    [nzLabel]="item.POCode"
                     [nzValue]="item.ID"
                   ></nz-option>
                 </nz-select>
@@ -115,7 +96,12 @@
             <nz-form-item class="mt-2">
               <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <input nz-input placeholder="Nhập từ khóa" nzSize="small" />
+                <input
+                  nz-input
+                  placeholder="Nhập từ khóa"
+                  name="keyword"
+                  nzSize="small"
+                />
               </nz-form-control>
             </nz-form-item>
             <nz-form-item class="mt-2">
@@ -128,6 +114,7 @@
                   nzPlaceHolder="Chọn lĩnh vực dự án"
                   nzSize="small"
                   [(ngModel)]="filters.poKHID"
+                  [ngModelOptions]="{ standalone: true }"
                 >
                   <nz-option
                     *ngFor="let item of dtPOKH"
@@ -146,6 +133,7 @@
             nzSize="small"
             (click)="ResetFilters()"
           >
+            <span nz-icon nzType="reload"></span>
             Đặt lại
           </button>
           <button
@@ -154,6 +142,7 @@
             nzSize="small"
             (click)="ApplyFilters()"
           >
+            <span nz-icon nzType="search"></span>
             Tìm kiếm
           </button>
         </div>
@@ -161,79 +150,173 @@
     </nz-splitter-panel>
     <nz-splitter-panel nzDefaultSize="100%">
       <div class="card h-100 border-0 rounded-0">
-        <div class="card-header bg-white p-1" style="overflow-x: auto;">
+        <div class="card-header bg-white p-1">
           <div class="d-flex gap-1">
             <button
               nz-button
               nzType="default"
               nzSize="small"
+              aria-label="Đóng"
               (click)="ToggleSearchPanel()"
             >
               <nz-icon nzType="search" />
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small">
-              <nz-icon nzType="plus" /> Check đặt hàng
+            <button
+              class="bar-button fs-12"
+              nz-button
+              nzType="default"
+              nzSize="small"
+              (click)="onCheckOrder(true)"
+            >
+              <span nz-icon nzType="check"></span> Check đặt hàng
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small">
-              <nz-icon nzType="edit" nzTheme="fill" />Hủy check đặt hàng
+            <button
+              class="bar-button fs-12"
+              nz-button
+              nzType="default"
+              nzSize="small"
+              (click)="onCheckOrder(false)"
+            >
+              <span nz-icon nzType="close"></span>Hủy check đặt hàng
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small">
-              <nz-icon nzType="save" nzTheme="fill" />Lưu dữ liệu
+            <button
+              class="bar-button fs-12"
+              nz-button
+              nzType="default"
+              nzSize="small"
+              (click)="onSaveData()"
+            >
+              <span nz-icon nzType="save"></span>Lưu
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small">
-              <nz-icon nzType="schedule" nzTheme="fill" />Sửa
+            <button
+              class="bar-button fs-12"
+              nz-button
+              nzType="default"
+              nzSize="small"
+              (click)="onEdit()"
+            >
+              <span nz-icon nzType="edit"></span>Sửa
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small">
-              <nz-icon nzType="dollar-circle" nzTheme="fill" />Hủy yêu cầu
+            <button
+              class="bar-button fs-12"
+              nz-button
+              nzType="default"
+              nzSize="small"
+              (click)="onCancelRequest()"
+            >
+              <span nz-icon nzType="close"></span>Hủy yêu cầu
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small">
-              <nz-icon nzType="delete-column" nzTheme="outline" />Thêm NCC
+            <button
+              class="bar-button fs-12"
+              nz-button
+              nzType="default"
+              nzSize="small"
+              (click)="onAddSupplier()"
+            >
+              <span nz-icon nzType="plus"></span>Thêm NCC
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small">
-              <nz-icon nzType="check-square" nzTheme="fill" />Y/c duyệt mua
+            <button
+              class="bar-button fs-12"
+              nz-button
+              nzType="default"
+              nzSize="small"
+              (click)="onRequestApproved(true)"
+            >
+              <span nz-icon nzType="check-circle"></span>Y/c duyệt mua
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small">
-              <nz-icon nzType="close-square" nzTheme="fill" />Hủy y/c duyệt mua
+            <button
+              class="bar-button fs-12"
+              nz-button
+              nzType="default"
+              nzSize="small"
+              (click)="onRequestApproved(false)"
+            >
+              <span nz-icon nzType="close-circle"></span>Hủy y/c duyệt mua
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small">
-              <nz-icon nzType="delete-column" nzTheme="outline" />Hoàn thành
+            <button
+              class="bar-button fs-12"
+              nz-button
+              nzType="default"
+              nzSize="small"
+              (click)="onCompleteRequestBuy(7)"
+            >
+              <span nz-icon nzType="check"></span>Hoàn thành
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small">
-              <nz-icon nzType="file-zip" nzTheme="fill" />Hủy Hoàn thành
+            <button
+              class="bar-button fs-12"
+              nz-button
+              nzType="default"
+              nzSize="small"
+              (click)="onCompleteRequestBuy(1)"
+            >
+              <span nz-icon nzType="close"></span>Hủy Hoàn thành
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small">
-              <nz-icon nzType="file-zip" nzTheme="fill" />BGĐ duyệt
+            <button
+              class="bar-button fs-12"
+              nz-button
+              nzType="default"
+              nzSize="small"
+              (click)="onBGDApprove()"
+            >
+              <span nz-icon nzType="check-circle"></span>BGĐ duyệt
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small">
-              <nz-icon nzType="file-zip" nzTheme="fill" />Hủy BGĐ duyệt
+            <button
+              class="bar-button fs-12"
+              nz-button
+              nzType="default"
+              nzSize="small"
+              (click)="onBGDUnapprove()"
+            >
+              <span nz-icon nzType="close-circle"></span>BGĐ hủy duyệt
+            </button>
+            <button
+              class="bar-button fs-12"
+              nz-button
+              nzType="default"
+              nzSize="small"
+              (click)="onTBPApprove()"
+            >
+              <span nz-icon nzType="check-circle"></span>TBP duyệt
+            </button>
+            <button
+              class="bar-button fs-12"
+              nz-button
+              nzType="default"
+              nzSize="small"
+              (click)="onTBPUnapprove()"
+            >
+              <span nz-icon nzType="close-circle"></span>TBP hủy duyệt
             </button>
 
-            <button class="fs-12" nz-button nzType="default" nzSize="small">
-              <nz-icon nzType="plus-circle" nzTheme="fill" />Thêm nhà cung cấp
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small">
-                <nz-icon nzType="plus-circle" nzTheme="fill" />TBP duyệt
-              </button>
-              <button class="fs-12" nz-button nzType="default" nzSize="small">
-                <nz-icon nzType="plus-circle" nzTheme="fill" />TBP hủy duyệt
-              </button>
             <div class="btn-group fs-12">
-              <button nz-button nz-dropdown [nzDropdownMenu]="menu" class="p-0 fs-12 h-auto">
-                <nz-icon nzType="file-excel" nzTheme="fill" class="mx-2" />Xuất excel
+              <button
+                nz-button
+                nz-dropdown
+                [nzDropdownMenu]="menu"
+                class="p-0 fs-12 h-auto"
+              >
+                <nz-icon nzType="file-excel" nzTheme="fill" class="mx-2" />Xuất
+                excel
                 <i nz-icon nzType="down"></i>
               </button>
               <nz-dropdown-menu #menu="nzDropdownMenu" class="p-0 m-0">
-                <ul nz-menu >
+                <ul nz-menu>
                   <li nz-menu-item class="fs-12">
-                    <i nz-icon nzType="check" nzTheme="outline" class="me-2"></i>Theo dòng đã
-                    chọn
+                    <i nz-icon nzType="check" nzTheme="outline" class="me-2"></i
+                    >Theo dòng đã chọn
                   </li>
                   <li nz-menu-item class="fs-12">
-                    <i nz-icon nzType="file" nzTheme="outline" class="me-2"></i>Trang hiện
-                    tại
+                    <i nz-icon nzType="file" nzTheme="outline" class="me-2"></i
+                    >Trang hiện tại
                   </li>
                   <li nz-menu-item class="fs-12">
-                    <i nz-icon nzType="global" nzTheme="outline" class="me-2"></i>Tất cả
+                    <i
+                      nz-icon
+                      nzType="global"
+                      nzTheme="outline"
+                      class="me-2"
+                    ></i
+                    >Tất cả
                   </li>
                 </ul>
               </nz-dropdown-menu>
@@ -242,37 +325,22 @@
         </div>
         <div class="card-body p-0">
           <nz-splitter>
-            <nz-splitter-panel nzSize="" [nzCollapsible]="true" nzResizable="true">
+            <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
               <div class="custom-tabs-container">
-                <ul class="nav nav-tabs">
-                  <li class="nav-item" *ngFor="let tab of [
-                    { id: 1, name: 'Yêu cầu mua dự án' },
-                    { id: 2, name: 'Kỹ thuật đã mua' },
-                    { id: 3, name: 'Yêu cầu mua hàng demo' },
-                    { id: 4, name: 'Yêu cầu mượn hàng demo' },
-                    { id: 5, name: 'Thương mại' }
-                  ]">
-                    <a class="nav-link" [class.active]="activeTabId === tab.id"
-                       (click)="SelectProjectType(tab.id)">
-                      {{ tab.name }}
-                    </a>
-                  </li>
-                </ul>
-
-                <!-- Tab content với một bảng duy nhất -->
-                <div class="tab-content p-0" id="customTabContent">
-                  <div class="p-1">
-                    <div *ngIf="isLoading" class="text-center p-3">
-                      <nz-spin nzSimple></nz-spin>
-                      <p class="mt-2">Đang tải dữ liệu...</p>
+                <nz-tabset
+                  [(nzSelectedIndex)]="activeTabIndex"
+                  [nzDestroyInactiveTabPane]="false"
+                >
+                  <nz-tab *ngFor="let tab of tabs" [nzTitle]="tab.name">
+                    <div class="p-1 position-relative">
+                      <div
+                        #tabulatorContainer
+                        id="table-{{ tab.id }}"
+                        class="tabulator-container container-fluid p-0"
+                      ></div>
                     </div>
-                    <div
-                      id="table"
-                      class="tabulator-container container-fluid p-0"
-                      [style.display]="isLoading ? 'none' : 'block'"
-                    ></div>
-                  </div>
-                </div>
+                  </nz-tab>
+                </nz-tabset>
               </div>
             </nz-splitter-panel>
           </nz-splitter>

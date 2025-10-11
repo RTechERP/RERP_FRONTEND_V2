@@ -6,10 +6,17 @@ import {
   ElementRef,
   AfterViewInit,
   Input,
-  input,
+  inject,
 } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule } from '@angular/forms';
+import {
+  ReactiveFormsModule,
+  FormGroup,
+  FormBuilder,
+  Validators,
+  NonNullableFormBuilder,
+} from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
@@ -19,7 +26,10 @@ import { NzFlexModule, NzWrap } from 'ng-zorro-antd/flex';
 import { NzDrawerModule, NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzGridModule } from 'ng-zorro-antd/grid';
-import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import {
+  NzDatePickerModule,
+  NzRangePickerComponent,
+} from 'ng-zorro-antd/date-picker';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -62,6 +72,7 @@ import { SERVER_PATH } from '../../../app.config';
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     NzFormModule,
     NzSelectModule,
     NzButtonModule,
@@ -71,6 +82,7 @@ import { SERVER_PATH } from '../../../app.config';
     NzSplitterModule,
     NzGridModule,
     NzDatePickerModule,
+    NzRangePickerComponent,
     NzAutocompleteModule,
     NzInputModule,
     NzTableModule,
@@ -94,19 +106,62 @@ export class TrainingRegistrationFormComponent
   @Input() dataInput: any;
   table: any;
   fileTable: any;
-  // tbDetail:any
-  // Form data
-  formData: any = {
-    EmployeeID: null,
-    Purpose: null,
-    TrainingType: null,
-    IsCertification: false,
-    SessionsPerCourse: null, // Số lượng buổi/khóa
-    SessionDuration: null, // Số phút/buổi
-    DateStart: null, // Ngày bắt đầu
-    DateEnd: null, // Ngày kết thúc
-    CompletionAssessment: null, // Đánh giá mức độ hoàn thành
-  };
+
+  // Reactive form
+  private fb = inject(NonNullableFormBuilder);
+  validateForm = this.fb.group({
+    formLayout: this.fb.control<'horizontal' | 'vertical' | 'inline'>(
+      'vertical'
+    ),
+    EmployeeID: this.fb.control(null, [Validators.required]),
+    Purpose: this.fb.control('', [Validators.required]),
+    TrainingType: this.fb.control(null, [Validators.required]),
+    IsCertification: this.fb.control(false),
+    SessionsPerCourse: this.fb.control(null, [
+      Validators.required,
+      Validators.min(1),
+    ]),
+    SessionDuration: this.fb.control(null, [
+      Validators.required,
+      Validators.min(15),
+    ]),
+    TrainingRange: this.fb.control<any[]>([], [Validators.required]),
+    CompletionAssessment: this.fb.control(''),
+  });
+
+  // For backward compatibility
+  get formData(): any {
+    return {
+      ID: this.dataInput?.ID,
+      EmployeeID: this.validateForm.get('EmployeeID')?.value,
+      Purpose: this.validateForm.get('Purpose')?.value,
+      TrainingType: this.validateForm.get('TrainingType')?.value,
+      IsCertification: this.validateForm.get('IsCertification')?.value,
+      SessionsPerCourse: this.validateForm.get('SessionsPerCourse')?.value,
+      SessionDuration: this.validateForm.get('SessionDuration')?.value,
+      DateStart: this.validateForm.get('TrainingRange')?.value?.[0],
+      DateEnd: this.validateForm.get('TrainingRange')?.value?.[1],
+      TrainingRange: this.validateForm.get('TrainingRange')?.value,
+      CompletionAssessment: this.validateForm.get('CompletionAssessment')
+        ?.value,
+    };
+  }
+
+  set formData(value: any) {
+    if (value) {
+      this.validateForm.patchValue({
+        EmployeeID: value.EmployeeID,
+        Purpose: value.Purpose,
+        TrainingType: value.TrainingType,
+        IsCertification: value.IsCertification,
+        SessionsPerCourse: value.SessionsPerCourse,
+        SessionDuration: value.SessionDuration,
+        TrainingRange: value.TrainingRange || [value.DateStart, value.DateEnd],
+        CompletionAssessment: value.CompletionAssessment,
+      });
+    }
+  }
+
   lstEmployees: any[] = [];
 
   // Danh sách loại đào tạo
@@ -174,18 +229,22 @@ export class TrainingRegistrationFormComponent
   }
 
   loadTrainingRegistration() {
-    this.formData = {
-      ID: this.dataInput.ID, // Giữ lại ID để cập nhật
+    if (!this.dataInput) return;
+
+    this.validateForm.patchValue({
       EmployeeID: this.dataInput.EmployeeID,
       Purpose: this.dataInput.Purpose,
       TrainingType: this.dataInput.TrainingType,
       IsCertification: this.dataInput.IsCertification,
       SessionsPerCourse: this.dataInput.SessionsPerCourse,
       SessionDuration: this.dataInput.SessionDuration,
-      DateStart: new Date(this.dataInput.DateStart),
-      DateEnd: new Date(this.dataInput.DateEnd),
+      TrainingRange: [
+        new Date(this.dataInput.DateStart ?? new Date()),
+        new Date(this.dataInput.DateEnd ?? new Date()),
+      ],
       CompletionAssessment: this.dataInput.CompletionAssessment || '',
-    };
+    });
+
     // Xử lý file đính kèm nếu có
     if (this.dataInput.LstFile && this.dataInput.LstFile.length > 0) {
       this.fileList = this.dataInput.LstFile.map(
@@ -208,6 +267,7 @@ export class TrainingRegistrationFormComponent
       );
       this.updateFileTable();
     }
+
     if (this.table) {
       this.table.setData(this.dataInput.LstDetail || []);
       console.log('Đã gán dữ liệu cho table:', this.table.getData());
@@ -218,6 +278,21 @@ export class TrainingRegistrationFormComponent
 
   // Phương thức xử lý upload file và lưu dữ liệu
   uploadFilesAndSaveData() {
+    // Validate form trước khi lưu
+    if (this.validateForm.invalid) {
+      Object.values(this.validateForm.controls).forEach((control) => {
+        if (control.invalid) {
+          control.markAsDirty();
+          control.updateValueAndValidity({ onlySelf: true });
+        }
+      });
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng điền đầy đủ thông tin bắt buộc!'
+      );
+      return;
+    }
+
     // Lọc ra các file mới cần upload
     const newFiles = this.fileList.filter(
       (file) => file.status === 'new' && !file.isDeleted && !file.IsDeleted
@@ -250,7 +325,7 @@ export class TrainingRegistrationFormComponent
                 FileName: response.FileName,
                 ServerPath: SERVER_PATH + response.FileName,
                 OriginName: file.name,
-                ID: 0, // File mới sẽ có ID = 0
+                ID: 0,
               };
             }
             this.updateFileTable();
@@ -289,10 +364,13 @@ export class TrainingRegistrationFormComponent
         : null;
     };
 
+    const formValues = this.validateForm.value;
+    const trainingRange = formValues.TrainingRange || [];
+
     // Chuẩn bị dữ liệu chi tiết
     const detailData = this.table.getData().map((item: any) => ({
       ID: item.ID || 0,
-      TrainingRegistrationID: this.formData.ID || 0,
+      TrainingRegistrationID: this.dataInput?.ID || 0,
       TrainingRegistrationCategoryID: item.CategoryID,
       DescriptionDetail: item.Explaination || '',
       Note: item.Note || '',
@@ -310,11 +388,17 @@ export class TrainingRegistrationFormComponent
 
     // Chuẩn bị dữ liệu để gửi lên server
     const trainingData = {
-      ...this.formData,
+      ID: this.dataInput?.ID || 0,
+      EmployeeID: formValues.EmployeeID,
+      Purpose: formValues.Purpose,
+      TrainingType: formValues.TrainingType,
+      IsCertification: formValues.IsCertification,
+      SessionsPerCourse: formValues.SessionsPerCourse,
+      SessionDuration: formValues.SessionDuration,
       DateRegister: formatDate(new Date()),
-      DateStart: formatDate(this.formData.DateStart),
-      DateEnd: formatDate(this.formData.DateEnd),
-      CompletionAssessment: '',
+      DateStart: formatDate(trainingRange[0]),
+      DateEnd: formatDate(trainingRange[1]),
+      CompletionAssessment: formValues.CompletionAssessment || '',
       LstFile: fileData,
       LstDetail: detailData,
     };
@@ -346,19 +430,33 @@ export class TrainingRegistrationFormComponent
     });
   }
 
+  // Submit form
+  submitForm(): void {
+    if (this.validateForm.valid) {
+      this.uploadFilesAndSaveData();
+    } else {
+      Object.values(this.validateForm.controls).forEach((control) => {
+        if (control.invalid) {
+          control.markAsDirty();
+          control.updateValueAndValidity({ onlySelf: true });
+        }
+      });
+    }
+  }
+
   // Reset form
   resetForm() {
-    this.formData = {
+    this.validateForm.reset({
+      formLayout: 'vertical',
       EmployeeID: null,
-      Purpose: null,
+      Purpose: '',
       TrainingType: null,
       IsCertification: false,
-      SessionsPerCourse: null, // Số lượng buổi/khóa
-      SessionDuration: null, // Số phút/buổi
-      DateStart: null, // Ngày bắt đầu
-      DateEnd: null, // Ngày kết thúc
-      CompletionAssessment: null, // Đánh giá mức độ hoàn thành
-    };
+      SessionsPerCourse: null,
+      SessionDuration: null,
+      TrainingRange: [],
+      CompletionAssessment: '',
+    });
     this.fileList = [];
     this.updateFileTable();
   }
@@ -367,6 +465,7 @@ export class TrainingRegistrationFormComponent
   closeModal() {
     this.activeModal.dismiss('Cross click');
   }
+
   loadDetail() {
     this.table = new Tabulator(this.tbDetailElement.nativeElement, {
       height: '40vh',
@@ -434,7 +533,7 @@ export class TrainingRegistrationFormComponent
       layout: 'fitDataStretch',
       columns: [
         {
-          title: 'Xóa',
+          title: '',
           field: 'actions',
           width: 80,
           hozAlign: 'center',
@@ -526,5 +625,9 @@ export class TrainingRegistrationFormComponent
       // Cập nhật bảng file để ẩn file đã xóa
       this.updateFileTable();
     }
+  }
+
+  get isHorizontal(): boolean {
+    return this.validateForm.controls.formLayout.value === 'horizontal';
   }
 }

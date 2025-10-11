@@ -15,6 +15,7 @@ nz-form-item {
 
 .compact-form-item {
   margin-bottom: 8px !important;
+  overflow: auto;
 }
 
 .compact-form-item .ant-form-item-label {
@@ -75,12 +76,12 @@ nz-form-item {
   .three-column-layout {
     flex-direction: column;
   }
-  
+
   .detail-container,
   .file-container {
     margin-bottom: 16px;
   }
-  
+
   .file-table {
     height: 40vh;
   }
@@ -109,4 +110,16 @@ nz-form-item {
 .btn-danger:hover {
   background-color: #ff7875;
   border-color: #ff7875;
+}
+
+.ant-picker-dropdown {
+  z-index: 1050 !important; /* cao hơn modal backdrop */
+}
+
+.ant-picker-panel-container {
+  min-width: 300px !important;
+}
+
+.ant-picker-range {
+  width: 100% !important;
 }

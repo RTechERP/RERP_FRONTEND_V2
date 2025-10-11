@@ -35,6 +35,7 @@ import { CustomerComponent } from './pages/customer/customer.component';
 import { ProductComponent } from './pages/product/product.component';
 import { TbProductRtcComponent } from './pages/tb-product-rtc/tb-product-rtc.component';
 import { ProductSaleComponent } from './pages/Sale/ProductSale/product-sale.component';
+import { TrainingRegistrationComponent } from './pages/training-registration/training-registration.component';
 export const routes: Routes = [
   {
     path: '',
@@ -113,4 +114,11 @@ export const routes: Routes = [
       //#endregion
     ],
   },
+    {
+        path: 'training-registration',
+        loadComponent: () =>
+          import(
+            './pages/training-registration/training-registration.component'
+          ).then((m) => m.TrainingRegistrationComponent),
+      },
 ];

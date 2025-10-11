@@ -13,7 +13,6 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
   standalone: true,
   imports: [
     RouterLink,
-    RouterOutlet,
     NzIconModule,
     NzLayoutModule,
     NzMenuModule,

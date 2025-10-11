@@ -41,6 +41,7 @@ import { ProjectService } from '../project-service/project.service';
 import { CommonModule } from '@angular/common';
 import { ProjectSurveyDetailComponent } from '../project-survey-detail/project-survey-detail.component';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 
 @Component({
   selector: 'app-project-survey',
@@ -253,9 +254,12 @@ export class ProjectSurveyComponent implements AfterViewInit {
     ];
 
     this.tb_projectSurvey = new Tabulator(container, {
-      height: '100%',
-      layout: 'fitColumns',
-      locale: 'vi',
+      //   height: '100%',
+      //   layout: 'fitColumns',
+      //   locale: 'vi',
+
+      ...DEFAULT_TABLE_CONFIG,
+      pagination: false,
       groupBy: 'ProjectCode',
       groupHeader: function (value, count, data, group) {
         return `Mã dự án: ${value}`;
@@ -266,46 +270,46 @@ export class ProjectSurveyComponent implements AfterViewInit {
           title: 'THÔNG TIN YÊU CẦU KHẢO SÁT',
           headerHozAlign: 'center',
           columns: [
-            {
-              title: 'Chọn',
-              titleFormatter: () => `<input type="checkbox" />`,
-              field: 'Selected',
-              formatter: function (cell, formatterParams, onRendered) {
-                const checked = cell.getValue() ? 'checked' : '';
-                return `<input type='checkbox' ${checked} />`;
-              },
-              headerClick: (e, column) => {
-                // Toggle trạng thái (nếu cần)
-                const isChecked = (e.target as HTMLInputElement).checked;
+            // {
+            //   title: 'Chọn',
+            //   titleFormatter: () => `<input type="checkbox" />`,
+            //   field: 'Selected',
+            //   formatter: function (cell, formatterParams, onRendered) {
+            //     const checked = cell.getValue() ? 'checked' : '';
+            //     return `<input type='checkbox' ${checked} />`;
+            //   },
+            //   headerClick: (e, column) => {
+            //     // Toggle trạng thái (nếu cần)
+            //     const isChecked = (e.target as HTMLInputElement).checked;
 
-                // Cập nhật toàn bộ giá trị cột 'Selected'
-                column
-                  .getTable()
-                  .getRows()
-                  .forEach((row) => {
-                    row.update({ Selected: isChecked });
-                  });
-              },
-              cellClick: (e, cell) => {
-                const newValue = !cell.getValue();
-                const row = cell.getRow();
+            //     // Cập nhật toàn bộ giá trị cột 'Selected'
+            //     column
+            //       .getTable()
+            //       .getRows()
+            //       .forEach((row) => {
+            //         row.update({ Selected: isChecked });
+            //       });
+            //   },
+            //   cellClick: (e, cell) => {
+            //     const newValue = !cell.getValue();
+            //     const row = cell.getRow();
 
-                if (row.getTreeChildren && row.getTreeChildren().length > 0) {
-                  const children = row.getTreeChildren();
+            //     if (row.getTreeChildren && row.getTreeChildren().length > 0) {
+            //       const children = row.getTreeChildren();
 
-                  children.forEach((childRow) => {
-                    const childData = childRow.getData();
-                    childRow.update({ Selected: newValue });
-                  });
-                }
-                cell.setValue(newValue);
-              },
-              hozAlign: 'center',
-              headerHozAlign: 'center',
-              headerSort: false,
-              width: '5px',
-              frozen: true,
-            },
+            //       children.forEach((childRow) => {
+            //         const childData = childRow.getData();
+            //         childRow.update({ Selected: newValue });
+            //       });
+            //     }
+            //     cell.setValue(newValue);
+            //   },
+            //   hozAlign: 'center',
+            //   headerHozAlign: 'center',
+            //   headerSort: false,
+            //   width: '5px',
+            //   frozen: true,
+            // },
             {
               title: 'Khảo sát gấp',
               field: 'IsUrgent',

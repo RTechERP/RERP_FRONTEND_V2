@@ -2,7 +2,7 @@
     <nz-sider class="menu-sidebar" nzCollapsible nzWidth="256px" nzBreakpoint="md" [(nzCollapsed)]="isCollapsed"
         [nzTrigger]="null" nzTheme="light">
         <div class="sidebar-logo" nzTheme="light">
-            <a href="/home">
+            <a routerLink="/home">
                 <img src="assets\images\logo-RTC-2023-1200-banchuan.png" alt="logo" />
                 <!-- <h1>RTC</h1> -->
             </a>
@@ -74,7 +74,7 @@
                     </ng-template>
 
                     <ul>
-                        <li nz-menu-item *ngFor="let c of (m.children || [])" nzMatchRouter>
+                        <li nz-menu-item *ngFor="let c of (m.children || [])" nzMatchRouter class="ps-4">
                             <a (click)="newTab(c.comp, c.title)">
                                 <span class="icon-slot icon-14">
                                     <img *ngIf="c.icon" [src]="c.icon" class="menu-icon-sm" />
@@ -159,13 +159,25 @@
                     <nz-dropdown-menu #appmenu="nzDropdownMenu">
                         <div class="app-launcher">
                             <div class="app-launcher-inner">
-                                <a (click)="toggleMenu('crm')" [class.active]="isMenuOpen('project')">
-                                    <img src="assets/images/icons8-overview-20.png" />
+                                <a (click)="toggleMenu('crm')" [class.active]="isMenuOpen('crm')">
+                                    <img src="assets/icon/menu_crm_64.png" />
                                     <span>CRM</span>
                                 </a>
-                                <a (click)="toggleMenu('product')" [class.active]="isMenuOpen('project')">
-                                    <img src="assets/images/icons8-warehouse-modula-20.png" />
+                                <a (click)="toggleMenu('warehouse')" [class.active]="isMenuOpen('warehouse')">
+                                    <img src="assets/icon/menu_warehouse_64.png" />
                                     <span>KHO</span>
+                                </a>
+                                <a (click)="toggleMenu('hrm')" [class.active]="isMenuOpen('hrm')">
+                                    <img src="assets/icon/menu_hrm_64.png" />
+                                    <span>HRM</span>
+                                </a>
+                                <a (click)="toggleMenu('categories')" [class.active]="isMenuOpen('categories')">
+                                    <img src="assets/icon/menu_categories_64.png" />
+                                    <span>DANH MỤC CHUNG</span>
+                                </a>
+                                <a (click)="toggleMenu('project')" [class.active]="isMenuOpen('project')">
+                                    <img src="assets/icon/menu_project_64.png" />
+                                    <span>DỰ ÁN</span>
                                 </a>
                             </div>
                         </div>

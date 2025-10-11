@@ -8,7 +8,7 @@
 .panel .panel-title {
   font-size: 20px;
   font-weight: 700;
-  margin-bottom: 20px;
+  /* margin-bottom: 20px; */
   text-transform: uppercase;
 }
 
@@ -345,6 +345,7 @@
   position: relative;
   margin-top: 20px;
 }
+
 /* Responsive carousel styling */
 @media (max-width: 576px) {
   ::ng-deep .ant-carousel .ant-carousel-content {
@@ -639,4 +640,24 @@ nz-carousel {
     height: 50px !important;
     font-size: 10px;
   }
+}
+
+.custom-date-cell {
+  padding: 6px;
+  text-align: center;
+}
+
+.custom-date-cell span {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  border-radius: 50%;
+}
+
+/* Chỉ tô màu Chủ nhật thuộc tháng hiện tại */
+.custom-date-cell span.sunday {
+  background: #ffecec;
+  color: #d93025;
+  font-weight: 600;
 }

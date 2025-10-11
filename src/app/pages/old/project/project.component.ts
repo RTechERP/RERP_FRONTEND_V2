@@ -44,6 +44,7 @@ import { Router } from '@angular/router';
 import { ProjectEmployeeComponent } from './project-employee/project-employee.component';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 @Component({
   selector: 'app-projects',
   standalone: true,
@@ -268,55 +269,48 @@ export class ProjectComponent implements OnInit, AfterViewInit {
 
     this.tb_projects = new Tabulator(container, {
       // data:[{ID:1}],
-      height: '100%',
-      layout: 'fitColumns',
+      //   height: '100%',
+      //   layout: 'fitColumns',
 
-      rowHeader: {
-        width: 20,
-        headerSort: false,
-        resizable: false,
-        frozen: true,
-        headerHozAlign: 'center',
-        hozAlign: 'center',
-        formatter: 'rowSelection',
-      },
+      ...DEFAULT_TABLE_CONFIG,
 
-      pagination: true,
-      paginationMode: 'remote',
-      paginationSize: 100,
-      paginationSizeSelector: [100, 200, 400, 800, 1000],
+      //   pagination: true,
+      //   paginationMode: 'remote',
+      //   paginationSize: 100,
+      //   paginationSizeSelector: [100, 200, 400, 800, 1000],
       ajaxURL: this.projectService.getAPIProjects(),
       ajaxParams: this.getProjectAjaxParams(),
       ajaxResponse: (url, params, res) => {
-        console.log('total', res.totalPage);
+        // console.log('total', res.totalPage);
         return {
           data: res.data.project,
           last_page: res.data.totalPage,
         };
       },
       rowContextMenu: contextMenuProject,
-      langs: {
-        vi: {
-          pagination: {
-            first: '<<',
-            last: '>>',
-            prev: '<',
-            next: '>',
-          },
-        },
-      },
-      locale: 'vi',
+      //   langs: {
+      //     vi: {
+      //       pagination: {
+      //         first: '<<',
+      //         last: '>>',
+      //         prev: '<',
+      //         next: '>',
+      //       },
+      //     },
+      //   },
+      //   locale: 'vi',
       columns: [
         {
           title: 'Trạng thái',
           field: 'ProjectStatusName',
-          hozAlign: 'left',
+          //   hozAlign: 'left',
           // formatter: function (cell, formatterParams, onRendered) {
           //   let value = cell.getValue() || 'Kết thúc';
           //   return value;
           // },
-          headerHozAlign: 'center',
+          //   headerHozAlign: 'center',
           width: 100,
+          formatter: 'textarea',
         },
         {
           title: 'Ngày tạo',
@@ -329,7 +323,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
             return value;
           },
           hozAlign: 'center',
-          headerHozAlign: 'center',
+          //   headerHozAlign: 'center',
         },
         {
           title: 'Ngày cập nhật',
@@ -342,55 +336,65 @@ export class ProjectComponent implements OnInit, AfterViewInit {
             return value;
           },
           hozAlign: 'center',
-          headerHozAlign: 'center',
+          //   headerHozAlign: 'center',
         },
+
         {
+          //create column group
           title: 'Mức độ ưu tiên',
-          field: 'PriotityText',
-          hozAlign: 'right',
-          headerHozAlign: 'center',
+          columns: [
+            {
+              title: 'Dự án',
+              field: 'PriotityText',
+              hozAlign: 'right',
+              //   headerHozAlign: 'center',
 
-          width: 100,
+              width: 70,
 
-          editable: true,
-          formatter(cell, formatterParams, onRendered) {
-            const wrapper = document.createElement('div');
-            wrapper.innerHTML = `<app-projects></app-projects>`;
-            document.body.appendChild(wrapper);
+              //   editable: true,
+              formatter(cell, formatterParams, onRendered) {
+                const wrapper = document.createElement('div');
+                wrapper.innerHTML = `<app-projects></app-projects>`;
+                document.body.appendChild(wrapper);
 
-            // Bạn có thể dùng Angular's ViewContainerRef để inject component động nếu cần nâng cao.
+                // Bạn có thể dùng Angular's ViewContainerRef để inject component động nếu cần nâng cao.
 
-            return wrapper;
-          },
+                return wrapper;
+              },
+            },
+            {
+              title: 'Cá nhân',
+              field: 'PersonalPriotity',
+              hozAlign: 'right',
+              //   headerHozAlign: 'center',
+              width: 90,
+            },
+          ],
         },
-        {
-          title: 'Mức độ ưu tiên cá nhân',
-          field: 'PersonalPriotity',
-          hozAlign: 'right',
-          headerHozAlign: 'center',
-          width: 100,
-        },
+
         {
           title: 'Mã dự án',
           field: 'ProjectCode',
-          hozAlign: 'left',
+          //   hozAlign: 'left',
           bottomCalc: 'count',
-          headerHozAlign: 'center',
-          width: 100,
+          //   headerHozAlign: 'center',
+          width: 150,
         },
         {
           title: 'Tên dự án',
           field: 'ProjectName',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: 100,
+          //   hozAlign: 'left',
+          //   headerHozAlign: 'center',
+          width: 200,
+          formatter: 'textarea',
         },
         {
           title: 'End User',
           field: 'EndUserName',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: 100,
+          //   hozAlign: 'left',
+          //   headerHozAlign: 'center',
+          width: 200,
+          formatter: 'textarea',
         },
         { title: 'PO', field: 'PO', hozAlign: 'center', width: 100 },
         {
@@ -403,115 +407,136 @@ export class ProjectComponent implements OnInit, AfterViewInit {
             return value;
           },
           hozAlign: 'center',
-          headerHozAlign: 'center',
+          //   headerHozAlign: 'center',
           width: 100,
         },
         {
           title: 'Người phụ trách(sale)',
           field: 'FullNameSale',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: 100,
+          //   hozAlign: 'left',
+          //   headerHozAlign: 'center',
+          width: 150,
+          formatter: 'textarea',
         },
         {
           title: 'Người phụ trách(kỹ thuật)',
           field: 'FullNameTech',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: 100,
+          //   hozAlign: 'left',
+          //   headerHozAlign: 'center',
+          width: 150,
+          formatter: 'textarea',
         },
         {
           title: 'PM',
           field: 'FullNamePM',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: 100,
+          //   hozAlign: 'left',
+          //   headerHozAlign: 'center',
+          width: 150,
+          formatter: 'textarea',
         },
         {
           title: 'Lĩnh vực dự án',
           field: 'BussinessField',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: 100,
+          //   hozAlign: 'left',
+          //   headerHozAlign: 'center',
+          width: 150,
+          formatter: 'textarea',
         },
         {
           title: 'Hiện trạng',
           field: 'CurrentState',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: 100,
+          //   hozAlign: 'left',
+          //   headerHozAlign: 'center',
+          width: 200,
+          formatter: 'textarea',
         },
         {
           title: 'Khách hàng',
           field: 'CustomerName',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: 100,
+          //   hozAlign: 'left',
+          //   headerHozAlign: 'center',
+          width: 200,
+          formatter: 'textarea',
         },
+
         {
-          title: 'Ngày bắt đầu dự kiến',
-          field: 'PlanDateStart',
-          formatter: function (cell, formatterParams, onRendered) {
-            let value = cell.getValue() || '';
-            const dateTime = DateTime.fromISO(value);
-            value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-            return value;
-          },
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-          width: 100,
+          //create column group
+          title: 'Dự kiến',
+          columns: [
+            {
+              title: 'Ngày bắt đầu',
+              field: 'PlanDateStart',
+              formatter: function (cell, formatterParams, onRendered) {
+                let value = cell.getValue() || '';
+                const dateTime = DateTime.fromISO(value);
+                value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+                return value;
+              },
+              hozAlign: 'center',
+              //   headerHozAlign: 'center',
+              width: 120,
+            },
+            {
+              title: 'Ngày kết thúc',
+              field: 'PlanDateEnd',
+              formatter: function (cell, formatterParams, onRendered) {
+                let value = cell.getValue() || '';
+                const dateTime = DateTime.fromISO(value);
+                value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+                return value;
+              },
+              hozAlign: 'center',
+              //   headerHozAlign: 'center',
+              width: 120,
+            },
+          ],
         },
+
         {
-          title: 'Ngày kết thúc dự kiến',
-          field: 'PlanDateEnd',
-          formatter: function (cell, formatterParams, onRendered) {
-            let value = cell.getValue() || '';
-            const dateTime = DateTime.fromISO(value);
-            value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-            return value;
-          },
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-          width: 100,
+          //create column group
+          title: 'Thực tế',
+          columns: [
+            {
+              title: 'Ngày bắt đầu',
+              field: 'ActualDateStart',
+              formatter: function (cell, formatterParams, onRendered) {
+                let value = cell.getValue() || '';
+                const dateTime = DateTime.fromISO(value);
+                value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+                return value;
+              },
+              hozAlign: 'center',
+              //   headerHozAlign: 'center',
+              width: 120,
+            },
+            {
+              title: 'Ngày kết thúc',
+              field: 'ActualDateEnd',
+              formatter: function (cell, formatterParams, onRendered) {
+                let value = cell.getValue() || '';
+                const dateTime = DateTime.fromISO(value);
+                value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+                return value;
+              },
+              hozAlign: 'center',
+              //   headerHozAlign: 'center',
+              width: 120,
+            },
+          ],
         },
-        {
-          title: 'Ngày bắt đầu thực tế',
-          field: 'ActualDateStart',
-          formatter: function (cell, formatterParams, onRendered) {
-            let value = cell.getValue() || '';
-            const dateTime = DateTime.fromISO(value);
-            value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-            return value;
-          },
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-          width: 100,
-        },
-        {
-          title: 'Ngày kết thúc thực tế',
-          field: 'ActualDateEnd',
-          formatter: function (cell, formatterParams, onRendered) {
-            let value = cell.getValue() || '';
-            const dateTime = DateTime.fromISO(value);
-            value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-            return value;
-          },
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-          width: 100,
-        },
+
         {
           title: 'Người tạo',
           field: 'CreatedBy',
-          headerHozAlign: 'center',
-          hozAlign: 'left',
+          //   headerHozAlign: 'center',
+          //   hozAlign: 'left',
           width: 100,
         },
         {
           title: 'Người sửa',
           field: 'UpdatedBy',
-          headerHozAlign: 'center',
-          hozAlign: 'left',
+          //   headerHozAlign: 'center',
+          //   hozAlign: 'left',
           width: 100,
         },
       ],
@@ -523,8 +548,8 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     });
 
     this.tb_projects.on('rowClick', (e: any, row: any) => {
-      this.tb_projects.deselectRow();
-      row.select();
+      //   this.tb_projects.deselectRow();
+      //   row.select();
       this.sizeTbDetail = null;
       var rowData = row.getData();
       this.projectId = rowData['ID'];
@@ -574,9 +599,20 @@ export class ProjectComponent implements OnInit, AfterViewInit {
   //#region xử lý bảng danh sách hạng mục công việc
   drawTbProjectWorkReports(container: HTMLElement) {
     this.tb_projectWorkReports = new Tabulator(container, {
+      // ...DEFAULT_TABLE_CONFIG,
+      columnDefaults: {
+        headerWordWrap: true,
+        headerVertical: false,
+        headerHozAlign: 'center',
+        minWidth: 60,
+        hozAlign: 'left',
+        vertAlign: 'middle',
+        resizable: true,
+      },
+
       height: '78vh',
       selectableRows: 1,
-      layout: 'fitColumns',
+      layout: 'fitDataFill',
       ajaxURL: this.projectService.getProjectItems(),
       ajaxParams: { id: this.projectId },
       ajaxResponse: (url, params, res) => {
@@ -587,7 +623,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
         let data = row.getData();
 
         let itemLate = parseInt(data['ItemLateActual']);
-        console.log('item', itemLate);
+        // console.log('item', itemLate);
         let totalDayExpridSoon = parseInt(data['TotalDayExpridSoon']);
         let dateEndActual = DateTime.fromISO(data['ActualEndDate']).isValid
           ? DateTime.fromISO(data['ActualEndDate']).toFormat('dd/MM/yyy')
@@ -608,151 +644,167 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           title: 'STT',
           field: 'STT',
           hozAlign: 'center',
-          headerHozAlign: 'center',
-          width: 100,
+          width: 50,
         },
-        { title: 'Mã', field: 'Code', headerHozAlign: 'center', width: 100 },
+        {
+          title: 'Mã',
+          field: 'Code',
+          hozAlign: 'left',
+          width: 120,
+          bottomCalc: 'count',
+        },
         {
           title: 'Trạng thái',
           field: 'StatusText',
-          hozAlign: 'center',
           formatter: function (cell, formatterParams, onRendered) {
             let value = cell.getValue() || '';
             return value;
           },
-          headerHozAlign: 'center',
           width: 100,
         },
         {
           title: 'Kiểu hạng mục',
           field: 'ProjectTypeName',
-          hozAlign: 'center',
           formatter: function (cell, formatterParams, onRendered) {
             let value = cell.getValue() || '';
             return value;
           },
-          headerHozAlign: 'center',
-          width: 100,
+          width: 150,
         },
         {
           title: 'Người phụ trách',
           field: 'FullName',
-          formatter: function (cell, formatterParams, onRendered) {
-            let value = cell.getValue() || '';
-            return value;
-          },
-          headerHozAlign: 'center',
-          width: 100,
+          //   formatter: function (cell, formatterParams, onRendered) {
+          //     let value = cell.getValue() || '';
+          //     return value;
+          //   },
+          width: 150,
+          formatter: 'textarea',
         },
         {
           title: '%',
           field: 'PercentItem',
-          headerHozAlign: 'center',
-          width: 100,
+          hozAlign: 'right',
+          width: 50,
         },
         {
           title: 'Công việc',
           field: 'Mission',
-          headerHozAlign: 'center',
-          width: 100,
-          editor: true,
+          //   headerHozAlign: 'center',
+          width: 300,
+          //   editor: true,
           formatter: 'textarea',
         },
         {
           title: 'Người giao việc',
           field: 'EmployeeRequest',
-          headerHozAlign: 'center',
-          width: 100,
+          //   headerHozAlign: 'center',
+          width: 150,
+          formatter: 'textarea',
         },
         {
-          title: 'Ngày bắt đầu dự kiến',
-          field: 'PlanStartDate',
-          formatter: function (cell, formatterParams, onRendered) {
-            let value = cell.getValue() || '';
-            const dateTime = DateTime.fromISO(value);
-            value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-            return value;
-          },
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-          width: 100,
+          //create column group
+          title: 'Dự kiến',
+          columns: [
+            {
+              title: 'Ngày bắt đầu',
+              field: 'PlanStartDate',
+              formatter: function (cell, formatterParams, onRendered) {
+                let value = cell.getValue() || '';
+                const dateTime = DateTime.fromISO(value);
+                value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+                return value;
+              },
+              hozAlign: 'center',
+              //   headerHozAlign: 'center',
+              width: 120,
+            },
+            {
+              title: 'Số ngày',
+              field: 'TotalDayPlan',
+              hozAlign: 'right',
+              //   headerHozAlign: 'center',
+              width: 80,
+            },
+            {
+              title: 'Ngày kết thúc',
+              field: 'PlanEndDate',
+              formatter: function (cell, formatterParams, onRendered) {
+                let value = cell.getValue() || '';
+                const dateTime = DateTime.fromISO(value);
+                value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+                return value;
+              },
+              hozAlign: 'center',
+              //   headerHozAlign: 'center',
+              width: 120,
+            },
+          ],
         },
+
         {
-          title: 'Tổng số ngày',
-          field: 'TotalDayPlan',
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-          width: 100,
+          title: 'Thực tế',
+          columns: [
+            {
+              title: 'Ngày bắt đầu',
+              field: 'ActualStartDate',
+              formatter: function (cell, formatterParams, onRendered) {
+                let value = cell.getValue() || '';
+                const dateTime = DateTime.fromISO(value);
+                value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+                return value;
+              },
+              hozAlign: 'center',
+              //   headerHozAlign: 'center',
+              width: 120,
+            },
+            {
+              title: 'Ngày kết thúc',
+              field: 'ActualEndDate',
+              formatter: function (cell, formatterParams, onRendered) {
+                let value = cell.getValue() || '';
+                const dateTime = DateTime.fromISO(value);
+                value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
+                return value;
+              },
+              hozAlign: 'center',
+              //   headerHozAlign: 'center',
+              width: 120,
+            },
+            {
+              title: '%',
+              field: 'PercentageActual',
+              hozAlign: 'right',
+              //   formatter: function (cell, formatterParams, onRendered) {
+              //     let value = cell.getValue() || '';
+              //     return value;
+              //   },
+              width: 50,
+            },
+          ],
         },
-        {
-          title: 'Ngày kết thúc dự kiến',
-          field: 'PlanEndDate',
-          formatter: function (cell, formatterParams, onRendered) {
-            let value = cell.getValue() || '';
-            const dateTime = DateTime.fromISO(value);
-            value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-            return value;
-          },
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-          width: 100,
-        },
-        {
-          title: 'Ngày bắt đầu thực tế',
-          field: 'ActualStartDate',
-          formatter: function (cell, formatterParams, onRendered) {
-            let value = cell.getValue() || '';
-            const dateTime = DateTime.fromISO(value);
-            value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-            return value;
-          },
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-          width: 100,
-        },
-        {
-          title: 'Ngày kết thúc thực tế',
-          field: 'ActualEndDate',
-          formatter: function (cell, formatterParams, onRendered) {
-            let value = cell.getValue() || '';
-            const dateTime = DateTime.fromISO(value);
-            value = dateTime.isValid ? dateTime.toFormat('dd/MM/yyyy') : '';
-            return value;
-          },
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-          width: 100,
-        },
+
         {
           title: 'Ghi chú',
           field: 'Note',
-          formatter: function (cell, formatterParams, onRendered) {
-            let value = cell.getValue() || '';
-            return value;
-          },
+          //   formatter: function (cell, formatterParams, onRendered) {
+          //     let value = cell.getValue() || '';
+          //     return value;
+          //   },
           headerHozAlign: 'center',
-          width: 100,
+          width: 300,
+          formatter: 'textarea',
         },
         {
           title: 'Người tham gia',
           field: 'ProjectEmployeeName',
-          formatter: function (cell, formatterParams, onRendered) {
-            let value = cell.getValue() || '';
-            return value;
-          },
+          //   formatter: function (cell, formatterParams, onRendered) {
+          //     let value = cell.getValue() || '';
+          //     return value;
+          //   },
           headerHozAlign: 'center',
-          width: 100,
-        },
-        {
-          title: '% Thực tế',
-          field: 'PercentageActual',
-          hozAlign: 'center',
-          formatter: function (cell, formatterParams, onRendered) {
-            let value = cell.getValue() || '';
-            return value;
-          },
-          headerHozAlign: 'center',
-          width: 100,
+          width: 300,
+          formatter: 'textarea',
         },
       ],
       initialSort: [{ column: 'ID', dir: 'asc' }],
@@ -769,6 +821,15 @@ export class ProjectComponent implements OnInit, AfterViewInit {
   //#region xử lý bảng kiểu dự án
   drawTbProjectTypeLinks(container: HTMLElement) {
     this.tb_projectTypeLinks = new Tabulator(container, {
+      columnDefaults: {
+        headerWordWrap: true,
+        headerVertical: false,
+        headerHozAlign: 'center',
+        minWidth: 60,
+        hozAlign: 'left',
+        vertAlign: 'middle',
+        resizable: true,
+      },
       height: '80vh',
       dataTree: true,
       dataTreeStartExpanded: true,
@@ -784,7 +845,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
         {
           title: 'Kiểu dự án',
           field: 'ProjectTypeName',
-          headerHozAlign: 'center',
+          //   headerHozAlign: 'center',
         },
         {
           title: 'Leader',

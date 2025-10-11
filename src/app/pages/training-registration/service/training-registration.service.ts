@@ -27,7 +27,7 @@ export class TrainingRegistrationService {
     );
   }
   getEmployee(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/Employee/employees`);
+    return this.http.get<any>(`${this.apiUrl}/Employee/get-all`);
   }
   saveData(data: any): Observable<any> {
     return this.http.post<any>(

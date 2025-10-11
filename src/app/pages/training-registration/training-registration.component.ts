@@ -48,6 +48,7 @@ import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { UnapprovalReasonModalComponent } from './unapproval-reason-modal/unapproval-reason-modal.component';
+import { DEFAULT_TABLE_CONFIG } from '../../tabulator-default.config';
 
 @Component({
   selector: 'app-training-registration',
@@ -102,7 +103,7 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     this.filter = {
       // dateStart: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-      dateStart:new Date(2025,0,1),
+      dateStart: new Date(2025, 0, 1),
       dateEnd: new Date(),
       departmentID: 0,
       trainingCategoryID: 0,
@@ -115,21 +116,19 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
     // if(selectedrow||selectedrow.length<=0){
     //   this.notification.info('Thông báo', 'Vui lòng chọn ít nhất một dòng trước khi mở form')
     // }
-        let data: any = {
-          LstDetail: [],
-          LstFile: [],
-          ID: 0,
-          STT: 0,};
-     this.trainingRegistrationService
-      .getDetail(999999)
-      .subscribe((response) => {
-        if (response) {
-          console.log('data', response);
-          data.LstDetail = response.data;
-          };
-          console.log(this.dataDetail);
-        }
-      );
+    let data: any = {
+      LstDetail: [],
+      LstFile: [],
+      ID: 0,
+      STT: 0,
+    };
+    this.trainingRegistrationService.getDetail(999999).subscribe((response) => {
+      if (response) {
+        console.log('data', response);
+        data.LstDetail = response.data;
+      }
+      console.log(this.dataDetail);
+    });
 
     this.openTrainingFormModal(data);
   }
@@ -138,7 +137,7 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
 
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.info(
-         'Thông báo',
+        'Thông báo',
         'Vui lòng chọn ít nhất một dòng trước khi mở form'
       );
     } else {
@@ -258,9 +257,12 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
       URL.revokeObjectURL(fileUrl);
     });
   }
-  approvedTrainingRegistration(status: number, flowID:number ) {
+  approvedTrainingRegistration(status: number, flowID: number) {
     if (this.selectedRowData == null) {
-      this.notification.info('Thông báo', 'Vui lòng chọn ít nhất một dòng trước khi duyệt');
+      this.notification.info(
+        'Thông báo',
+        'Vui lòng chọn ít nhất một dòng trước khi duyệt'
+      );
       return;
     }
 
@@ -269,70 +271,97 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
       const modalRef = this.modalService.open(UnapprovalReasonModalComponent, {
         backdrop: 'static',
         keyboard: false,
-        centered: true
+        centered: true,
       });
 
       // Truyền dữ liệu vào modal
-      modalRef.componentInstance.trainingRegistrationID = this.trainingRegistrationID;
+      modalRef.componentInstance.trainingRegistrationID =
+        this.trainingRegistrationID;
 
       // Xử lý kết quả trả về từ modal
       modalRef.result.then(
         (result) => {
           if (result) {
             // Lấy dữ liệu phê duyệt hiện tại
-            this.trainingRegistrationService.getTrainingRegistrationApproved(this.trainingRegistrationID).subscribe(
-              (response: any) => {
-                if (response && response.data) {
-                  const approvedData = response.data;
+            this.trainingRegistrationService
+              .getTrainingRegistrationApproved(this.trainingRegistrationID)
+              .subscribe(
+                (response: any) => {
+                  if (response && response.data) {
+                    const approvedData = response.data;
 
-                  // Sắp xếp dữ liệu theo STT để đảm bảo thứ tự duyệt đúng
-                  approvedData.sort((a: any, b: any) => a.STT - b.STT);
+                    // Sắp xếp dữ liệu theo STT để đảm bảo thứ tự duyệt đúng
+                    approvedData.sort((a: any, b: any) => a.STT - b.STT);
 
-                  // Tìm bước duyệt hiện tại (bước đầu tiên chưa được duyệt)
-                  const currentStepIndex = approvedData.findIndex((item: any) => item.StatusApproved === 0 || item.StatusApproved === null);
+                    // Tìm bước duyệt hiện tại (bước đầu tiên chưa được duyệt)
+                    const currentStepIndex = approvedData.findIndex(
+                      (item: any) =>
+                        item.StatusApproved === 0 ||
+                        item.StatusApproved === null
+                    );
 
-                  if (currentStepIndex === -1) {
-                    this.notification.warning('Thông báo', 'Tất cả các bước đã được duyệt');
-                    return;
-                  }
-
-                  // Kiểm tra các bước trước đã được duyệt chưa
-                  for (let i = 0; i < currentStepIndex; i++) {
-                    if (!approvedData[i]['EmployeeApprovedActualID'] || approvedData[i]['StatusApproved'] <= 0) {
-                      this.notification.warning('Thông báo', `Bước ${approvedData[i].FlowName} chưa được duyệt hoặc chưa có người duyệt thực tế`);
+                    if (currentStepIndex === -1) {
+                      this.notification.warning(
+                        'Thông báo',
+                        'Tất cả các bước đã được duyệt'
+                      );
                       return;
                     }
-                  }
 
-                  // Tiến hành hủy duyệt với lý do từ modal
-                  const approvalData = {
-                    trainingRegistrationID: this.trainingRegistrationID,
-                    employeeApprovedID: Number(EMPLOYEE_ID),
-                    employeeApprovedActualID: EMPLOYEE_ID,
-                    statusApproved: status,
-                    note: result.note ? `  ${result.note}` : '',
-                    UnapprovedReason: result.unapprovalReason || ''
-                  };
-
-                  this.trainingRegistrationService.approveTrainingRegistration(approvalData).subscribe(
-                    (response: any) => {
-                      if (response.status === 1) {
-                        this.notification.success('Thành công', response.message);
-                        this.getTrainingRegistrationApproved();
-                      } else {
-                        this.notification.error('Thất bại', response.message);
+                    // Kiểm tra các bước trước đã được duyệt chưa
+                    for (let i = 0; i < currentStepIndex; i++) {
+                      if (
+                        !approvedData[i]['EmployeeApprovedActualID'] ||
+                        approvedData[i]['StatusApproved'] <= 0
+                      ) {
+                        this.notification.warning(
+                          'Thông báo',
+                          `Bước ${approvedData[i].FlowName} chưa được duyệt hoặc chưa có người duyệt thực tế`
+                        );
+                        return;
                       }
-                    },
-                    (error) => {
-                      this.notification.error('Lỗi', error.error.message);
                     }
+
+                    // Tiến hành hủy duyệt với lý do từ modal
+                    const approvalData = {
+                      trainingRegistrationID: this.trainingRegistrationID,
+                      employeeApprovedID: Number(EMPLOYEE_ID),
+                      employeeApprovedActualID: EMPLOYEE_ID,
+                      statusApproved: status,
+                      note: result.note ? `  ${result.note}` : '',
+                      UnapprovedReason: result.unapprovalReason || '',
+                    };
+
+                    this.trainingRegistrationService
+                      .approveTrainingRegistration(approvalData)
+                      .subscribe(
+                        (response: any) => {
+                          if (response.status === 1) {
+                            this.notification.success(
+                              'Thành công',
+                              response.message
+                            );
+                            this.getTrainingRegistrationApproved();
+                          } else {
+                            this.notification.error(
+                              'Thất bại',
+                              response.message
+                            );
+                          }
+                        },
+                        (error) => {
+                          this.notification.error('Lỗi', error.error.message);
+                        }
+                      );
+                  }
+                },
+                (error) => {
+                  this.notification.error(
+                    'Lỗi',
+                    'Không thể kiểm tra trạng thái phê duyệt: ' + error.message
                   );
                 }
-              },
-              (error) => {
-                this.notification.error('Lỗi', 'Không thể kiểm tra trạng thái phê duyệt: ' + error.message);
-              }
-            );
+              );
           }
         },
         (reason) => {
@@ -342,58 +371,77 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
       );
     } else {
       // Lấy dữ liệu phê duyệt hiện tại
-      this.trainingRegistrationService.getTrainingRegistrationApproved(this.trainingRegistrationID).subscribe(
-        (response: any) => {
-          if (response && response.data) {
-            const approvedData = response.data;
+      this.trainingRegistrationService
+        .getTrainingRegistrationApproved(this.trainingRegistrationID)
+        .subscribe(
+          (response: any) => {
+            if (response && response.data) {
+              const approvedData = response.data;
 
-            // Sắp xếp dữ liệu theo STT để đảm bảo thứ tự duyệt đúng
-            approvedData.sort((a: any, b: any) => a.STT - b.STT);
+              // Sắp xếp dữ liệu theo STT để đảm bảo thứ tự duyệt đúng
+              approvedData.sort((a: any, b: any) => a.STT - b.STT);
 
-            // Tìm bước duyệt hiện tại (bước đầu tiên chưa được duyệt)
-            const currentStepIndex = approvedData.findIndex((item: any) => item.StatusApproved === 0 || item.StatusApproved === null);
+              // Tìm bước duyệt hiện tại (bước đầu tiên chưa được duyệt)
+              const currentStepIndex = approvedData.findIndex(
+                (item: any) =>
+                  item.StatusApproved === 0 || item.StatusApproved === null
+              );
 
-            if (currentStepIndex === -1) {
-              this.notification.warning('Thông báo', 'Tất cả các bước đã được duyệt');
-              return;
-            }
-
-            // Kiểm tra các bước trước đã được duyệt chưa
-            for (let i = 0; i < currentStepIndex; i++) {
-              if (!approvedData[i]['EmployeeApprovedActualID'] || approvedData[i]['StatusApproved'] <= 0) {
-                this.notification.warning('Thông báo', `Bước ${approvedData[i].FlowName} chưa được duyệt hoặc chưa có người duyệt thực tế`);
+              if (currentStepIndex === -1) {
+                this.notification.warning(
+                  'Thông báo',
+                  'Tất cả các bước đã được duyệt'
+                );
                 return;
               }
-            }
 
-            // Tiến hành duyệt nếu đủ điều kiện
-            const approvalData = {
-              trainingRegistrationID: this.trainingRegistrationID,
-              employeeApprovedID: Number(EMPLOYEE_ID),
-              employeeApprovedActualID: EMPLOYEE_ID,
-              statusApproved: status,
-              note: ''
-            };
-
-            this.trainingRegistrationService.approveTrainingRegistration(approvalData).subscribe(
-              (response: any) => {
-                if (response.status === 1) {
-                  this.notification.success('Thành công', response.message);
-                  this.getTrainingRegistrationApproved();
-                } else {
-                  this.notification.error('Thất bại', response.message);
+              // Kiểm tra các bước trước đã được duyệt chưa
+              for (let i = 0; i < currentStepIndex; i++) {
+                if (
+                  !approvedData[i]['EmployeeApprovedActualID'] ||
+                  approvedData[i]['StatusApproved'] <= 0
+                ) {
+                  this.notification.warning(
+                    'Thông báo',
+                    `Bước ${approvedData[i].FlowName} chưa được duyệt hoặc chưa có người duyệt thực tế`
+                  );
+                  return;
                 }
-              },
-              (error) => {
-                this.notification.error('Lỗi', error.error.message);
               }
+
+              // Tiến hành duyệt nếu đủ điều kiện
+              const approvalData = {
+                trainingRegistrationID: this.trainingRegistrationID,
+                employeeApprovedID: Number(EMPLOYEE_ID),
+                employeeApprovedActualID: EMPLOYEE_ID,
+                statusApproved: status,
+                note: '',
+              };
+
+              this.trainingRegistrationService
+                .approveTrainingRegistration(approvalData)
+                .subscribe(
+                  (response: any) => {
+                    if (response.status === 1) {
+                      this.notification.success('Thành công', response.message);
+                      this.getTrainingRegistrationApproved();
+                    } else {
+                      this.notification.error('Thất bại', response.message);
+                    }
+                  },
+                  (error) => {
+                    this.notification.error('Lỗi', error.error.message);
+                  }
+                );
+            }
+          },
+          (error) => {
+            this.notification.error(
+              'Lỗi',
+              'Không thể kiểm tra trạng thái phê duyệt: ' + error.message
             );
           }
-        },
-        (error) => {
-          this.notification.error('Lỗi', 'Không thể kiểm tra trạng thái phê duyệt: ' + error.message);
-        }
-      );
+        );
     }
   }
   getDetail() {
@@ -445,7 +493,6 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
         // Refresh danh sách hoặc xử lý sau khi lưu
       },
       (reason) => {
-
         console.log('Modal dismissed with:', reason);
         // Xử lý khi modal bị hủy
       }
@@ -454,13 +501,14 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
   private DrawTable() {
     // Khởi tạo Tabulator với cấu hình client-side pagination
     this.table = new Tabulator(this.tableElement.nativeElement, {
-      layout: 'fitDataStretch',
-      height: '88vh',
-      pagination: true,
-      paginationMode: 'local', // Sử dụng client-side pagination
-      paginationSize: 25,
-      paginationSizeSelector: [10, 25, 50, 100, true], // true = hiển thị tất cả
-      paginationInitialPage: 1,
+      ...DEFAULT_TABLE_CONFIG,
+      //   layout: 'fitDataStretch',
+      //   height: '88vh',
+      //   pagination: true,
+      //   paginationMode: 'local', // Sử dụng client-side pagination
+      //   paginationSize: 25,
+      //   paginationSizeSelector: [10, 25, 50, 100, true], // true = hiển thị tất cả
+      //   paginationInitialPage: 1,
       columns: [
         {
           title: 'ID',
@@ -635,13 +683,14 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
     this.tableApproved = new Tabulator(
       this.tableApprovedElement.nativeElement,
       {
-        height: '82.8vh',
-        layout: 'fitDataStretch',
-        pagination: true,
-        paginationMode: 'local', // Sử dụng client-side pagination
-        paginationSize: 25,
-        paginationSizeSelector: [10, 25, 50, 100, true], // true = hiển thị tất cả
-        paginationInitialPage: 1,
+        ...DEFAULT_TABLE_CONFIG,
+        // height: '82.8vh',
+        // layout: 'fitDataStretch',
+        // pagination: true,
+        // paginationMode: 'local', // Sử dụng client-side pagination
+        // paginationSize: 25,
+        // paginationSizeSelector: [10, 25, 50, 100, true], // true = hiển thị tất cả
+        // paginationInitialPage: 1,
         columns: [
           {
             title: 'Flow ID',
@@ -732,7 +781,13 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
       layout: 'fitDataStretch',
       columns: [
         { title: 'STT', field: 'STT', width: 70, hozAlign: 'center' },
-        { title: 'ID', field: 'ID', width: 70, hozAlign: 'center', visible: false },
+        {
+          title: 'ID',
+          field: 'ID',
+          width: 70,
+          hozAlign: 'center',
+          visible: false,
+        },
         {
           title: 'Hạng mục',
           field: 'CategoryName',

@@ -251,10 +251,27 @@ button[nz-button] img {
 .tabulator .tabulator-header .tabulator-col {
   justify-content: center !important;
   align-items: center !important;
-  background: rgb(190, 190, 190) !important;
+  /* background: rgb(190, 190, 190) !important; */
   color: black;
 }
 
 .ant-splitter {
   height: 93vh !important;
+}
+
+.tabulator {
+  border: 1px solid #ddd;
+}
+
+.ant-collapse-content > .ant-collapse-content-box {
+  padding: 0 !important;
+}
+
+.ant-collapse > .ant-collapse-item > .ant-collapse-header {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.ant-carousel .slick-dots {
+  display: none !important;
 }

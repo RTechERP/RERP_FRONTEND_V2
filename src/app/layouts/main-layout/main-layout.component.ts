@@ -26,6 +26,12 @@ import { CustomerComponent } from '../../pages/old/VisionBase/customer/customer.
 import { ProductSaleComponent } from '../../pages/old/Sale/ProductSale/product-sale.component';
 import { HrhiringRequestComponent } from '../../pages/hrm/hrhiring-request/hrhiring-request.component';
 import { TrainingRegistrationComponent } from '../../pages/training-registration/training-registration.component';
+import { ProjectWorkPropressComponent } from '../../pages/old/project/project-work-propress/project-work-propress.component';
+import { ProjectWorkTimelineComponent } from '../../pages/old/project/project-work-timeline/project-work-timeline.component';
+import { ProjectSurveyComponent } from '../../pages/old/project/project-survey/project-survey.component';
+import { ProjectItemLateComponent } from '../../pages/old/project/project-item-late/project-item-late.component';
+import { ProjectWorkItemTimelineComponent } from '../../pages/old/project/project-work-item-timeline/project-work-item-timeline.component';
+import { SynthesisOfGeneratedMaterialsComponent } from '../../pages/old/project/synthesis-of-generated-materials/synthesis-of-generated-materials.component';
 type TabItem = {
   title: string;
   comp: Type<any>;
@@ -99,32 +105,36 @@ export class MainLayoutComponent implements OnInit {
   isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
   isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
   menus: MenuItem[] = [
-    {
-      kind: 'leaf',
-      key: 'crm',
-      title: 'Khách hàng',
-      isOpen: true,
-      icon: 'assets/images/icons8-overview-20.png',
-      comp: CustomerComponent,
-    },
-    // {
-    //   kind: 'leaf',
-    //   key: 'sales',
-    //   title: 'Bán hàng',
-    //   isOpen: true,
-    //   icon: 'assets/icon/layers.png',
-    //   comp: CustomerComponent,
-    // },
+    //#region menu CRM
     {
       kind: 'group',
-      key: 'product',
-      title: 'KHO',
+      key: 'crm',
+      title: 'CRM',
       isOpen: true,
-      icon: 'assets/images/icons8-warehouse-modula-20.png',
+      icon: 'assets/icon/menu_crm_24.png',
       children: [
         {
           kind: 'leaf',
-          key: 'product1',
+          key: 'CustomerComponent',
+          title: 'Khách hàng',
+          isOpen: true,
+          //   icon: 'assets/images/icons8-overview-20.png',
+          comp: CustomerComponent,
+        },
+      ],
+    },
+
+    //#region menu KHO
+    {
+      kind: 'group',
+      key: 'warehouse',
+      title: 'KHO',
+      isOpen: true,
+      icon: 'assets/icon/menu_warehouse_24.png',
+      children: [
+        {
+          kind: 'leaf',
+          key: 'ProductSaleComponent',
           title: 'SẢN PHẨM KHO SALE',
           isOpen: true,
           comp: ProductSaleComponent,
@@ -132,69 +142,116 @@ export class MainLayoutComponent implements OnInit {
         },
         {
           kind: 'leaf',
-          key: 'product2',
+          key: 'TbProductRtcComponent',
           title: 'SẢN PHẨM KHO DEMO',
           isOpen: true,
           comp: TbProductRtcComponent /* không icon */,
         },
       ],
     },
-    {
-      kind: 'leaf',
-      key: 'project',
-      title: 'DỰ ÁN',
-      isOpen: false,
-      icon: null,
-      comp: ProjectComponent,
-    },
+    //#endregion
+
+    //#region menu Nhân sự
     {
       kind: 'group',
       key: 'hrm',
       title: 'HRM',
       isOpen: true,
-      icon: 'assets/images/icons8-warehouse-modula-20.png',
+      icon: 'assets/icon/menu_hrm_24.png',
       children: [
         {
           kind: 'leaf',
-          key: 'hrhiring',
+          key: 'HrhiringRequestComponent',
           title: 'TUYỂN DỤNG',
           isOpen: true,
           comp: HrhiringRequestComponent,
           //   icon: 'assets/icon/layers.png',
         },
-        // {
-        //   kind: 'leaf',
-        //   key: 'product2',
-        //   title: 'SẢN PHẨM KHO DEMO',
-        //   isOpen: true,
-        //   comp: TbProductRtcComponent /* không icon */,
-        // },
       ],
     },
+    //#endregion
+
+    //#region menu DANH MỤC DUNG
     {
       kind: 'group',
-      key: 'cate',
+      key: 'categories',
       title: 'DANH MỤC CHUNG',
       isOpen: true,
-      icon: 'assets/images/icons8-warehouse-modula-20.png',
+      icon: 'assets/icon/menu_categories_24.png',
       children: [
         {
           kind: 'leaf',
-          key: 'training-registration',
+          key: 'TrainingRegistrationComponent',
           title: 'ĐÀO TẠO',
           isOpen: true,
           comp: TrainingRegistrationComponent,
           //   icon: 'assets/icon/layers.png',
         },
-        // {
-        //   kind: 'leaf',
-        //   key: 'product2',
-        //   title: 'SẢN PHẨM KHO DEMO',
-        //   isOpen: true,
-        //   comp: TbProductRtcComponent /* không icon */,
-        // },
       ],
     },
+
+    //#endregion
+
+    //#region menu dự án
+    {
+      kind: 'group',
+      key: 'project',
+      title: 'DỰ ÁN',
+      isOpen: true,
+      icon: 'assets/icon/menu_project_24.png',
+      children: [
+        {
+          kind: 'leaf',
+          key: 'ProjectComponent',
+          title: 'Danh sách dự án',
+          isOpen: true,
+          comp: ProjectComponent,
+        },
+        {
+          kind: 'leaf',
+          key: 'ProjectWorkPropressComponent',
+          title: 'Tiến độ công việc',
+          isOpen: true,
+          comp: ProjectWorkPropressComponent,
+        },
+        {
+          kind: 'leaf',
+          key: 'ProjectWorkTimelineComponent',
+          title: 'Timeline công việc',
+          isOpen: true,
+          comp: ProjectWorkTimelineComponent,
+        },
+        {
+          kind: 'leaf',
+          key: 'ProjectSurveyComponent',
+          title: 'Khảo sát dự án',
+          isOpen: true,
+          comp: ProjectSurveyComponent,
+        },
+        {
+          kind: 'leaf',
+          key: 'ProjectItemLateComponent',
+          title: 'Hạng mục công việc chậm tiến độ',
+          isOpen: true,
+          comp: ProjectItemLateComponent,
+        },
+        {
+          kind: 'leaf',
+          key: 'ProjectWorkItemTimelineComponent',
+          title: 'Timeline hạng mục công việc',
+          isOpen: true,
+          comp: ProjectWorkItemTimelineComponent,
+        },
+        {
+          kind: 'leaf',
+          key: 'SynthesisOfGeneratedMaterialsComponent',
+          title: 'Báo cáo vật tư phát sinh',
+          isOpen: true,
+          comp: SynthesisOfGeneratedMaterialsComponent,
+        },
+      ],
+    },
+    //#endregion
   ];
   dynamicTabs: TabItem[] = [];
 

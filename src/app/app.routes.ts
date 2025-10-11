@@ -52,6 +52,8 @@ import { HrhiringRequestComponent } from './pages/hrm/hrhiring-request/hrhiring-
 import { HandoverMinutesComponent } from './pages/old/handover-minutes/handover-minutes.component';
 import { GeneralCategoryComponent } from './pages/general-category/general-category.component';
 import { TrainingRegistrationComponent } from './pages/training-registration/training-registration.component';
+import { CrmComponent } from './pages/crm/crm.component';
+import { WarehouseComponent } from './pages/warehouse/warehouse.component';
 export const routes: Routes = [
   {
     path: '',
@@ -112,12 +114,20 @@ export const routes: Routes = [
 
       //#region CRM
       {
+        path: 'crm',
+        component: CrmComponent,
+      },
+      {
         path: 'customer', //DANH SÁCH KHÁCH HÀNG
         component: CustomerComponent,
       },
       //#endregion
 
       //#region KHO
+      {
+        path: 'warehouse',
+        component: WarehouseComponent,
+      },
       {
         path: 'product-demo', //DANH SÁCH SẢN PHẨM DEMO
         component: TbProductRtcComponent,

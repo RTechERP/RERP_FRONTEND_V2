@@ -41,6 +41,7 @@ import { Router } from '@angular/router';
 import { ProjectService } from '../project-service/project.service';
 import { Title } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 
 @Component({
   selector: 'app-project-item-late',
@@ -170,14 +171,17 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
   //#region Xử lý bảng hạng mục chậm tiến độ
   drawTbProjectItemlate(container: HTMLElement) {
     this.tb_projectItemlate = new Tabulator(container, {
-      height: '100%',
-      layout: 'fitColumns',
+      //   height: '100%',
+      //   layout: 'fitColumns',
+
+      ...DEFAULT_TABLE_CONFIG,
+      pagination: false,
       groupBy: 'ProjectCode',
       groupHeader: function (value) {
         return value ? `Mã dự án ${value}` : `Chưa có mã dự án`;
       },
-      columnCalcs: 'table',
-      locale: 'vi',
+      //   columnCalcs: 'table',
+      //   locale: 'vi',
       columns: [
         {
           title: 'Mã công việc',

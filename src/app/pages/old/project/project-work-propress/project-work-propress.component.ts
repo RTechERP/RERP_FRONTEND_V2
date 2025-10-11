@@ -35,6 +35,7 @@ import { Router } from '@angular/router';
 import { ProjectService } from '../project-service/project.service';
 import { Title } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 
 @Component({
   selector: 'app-project-work-propress',
@@ -161,9 +162,9 @@ export class ProjectWorkPropressComponent implements OnInit, AfterViewInit {
 
         const columns = this.tb_projectWorkPropress.getColumnDefinitions();
 
-        columns[0].columns[1].title = this.projectName; // projectName
-        columns[0].columns[1].columns[0].title = this.custumerCode; // custumerCode
-        columns[0].columns[1].columns[0].columns[0].title = this.timeLine; // timeLine
+        columns[1].columns[1].title = this.projectName; // projectName
+        columns[1].columns[1].columns[0].title = this.custumerCode; // custumerCode
+        columns[1].columns[1].columns[0].columns[0].title = this.timeLine; // timeLine
 
         this.tb_projectWorkPropress.setColumns(columns); // Áp lại cột
 
@@ -320,8 +321,10 @@ export class ProjectWorkPropressComponent implements OnInit, AfterViewInit {
   //#region Xử lý bảng tiến độ công việc
   drawTbProjectWorkPropress(container: HTMLElement) {
     this.tb_projectWorkPropress = new Tabulator(container, {
-      height: '100%',
-      layout: 'fitColumns',
+      ...DEFAULT_TABLE_CONFIG,
+      pagination: false,
+      //   height: '100%',
+      //   layout: 'fitColumns',
       // ajaxURL: this.projectService.getProjectItems(),
       // ajaxParams: { id: this.projectId },
       // ajaxResponse: (url, params, res) => {
@@ -354,21 +357,21 @@ export class ProjectWorkPropressComponent implements OnInit, AfterViewInit {
                           title: 'Stt',
                           field: 'STT',
                           width: 80,
-                          headerHozAlign: 'center',
+                          hozAlign: 'center',
                           formatter: this.hideDuplicateFormatter('STT'),
                         },
                         {
                           title: 'Nội dung',
                           field: 'Mission',
                           width: 200,
-                          headerHozAlign: 'center',
+                          //   headerHozAlign: 'center',
                           formatter: 'textarea',
                         },
                         {
                           title: 'Người phụ trách',
                           field: 'FullName',
                           width: 150,
-                          headerHozAlign: 'center',
+                          //   headerHozAlign: 'center',
                         },
                       ],
                     },

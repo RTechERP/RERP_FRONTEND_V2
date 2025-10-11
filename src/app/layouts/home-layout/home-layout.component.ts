@@ -1,7 +1,9 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  ElementRef,
   HostListener,
   OnInit,
   ViewChild,
@@ -42,6 +44,10 @@ import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { AppUserDropdownComponent } from '../../pages/old/app/app-user-dropdown/app-user-dropdown.component';
+import { Tabulator } from 'tabulator-tables';
+import { NzCollapseModule } from 'ng-zorro-antd/collapse';
+import { NzListModule } from 'ng-zorro-antd/list';
+import { NzCalendarMode, NzCalendarModule } from 'ng-zorro-antd/calendar';
 
 interface dynamicApps {
   MenuName: string;
@@ -117,6 +123,9 @@ interface WorkStatus {
     NzCarouselModule,
     AppNotifycationDropdownComponent,
     AppUserDropdownComponent,
+    NzCollapseModule,
+    NzListModule,
+    NzCalendarModule,
   ],
   templateUrl: './home-layout.component.html',
   styleUrl: './home-layout.component.css',
@@ -135,33 +144,32 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
   effect = 'effect';
 
   // Dữ liệu lịch làm việc tháng
-  currentMonth = 'Sept 2025';
-  calendarDays: number[] = [];
-  currentDay = 13;
+  // currentMonth = 'Sept 2025';
+  //   calendarDays: number[] = [];
+  //   currentDay = new Date().getDate();
 
   //   logout() {}
 
-  // Dữ liệu danh sách nghỉ
-  leaveItems: LeaveItem[] = [
-    {
-      employee: 'Nguyễn Văn A',
-      leaveDate: '05/09',
-      reason: 'Họp dự án',
-      status: 'approved',
-    },
-    {
-      employee: 'Trần Thị B',
-      leaveDate: '07-08/09',
-      reason: 'Nghỉ bệnh',
-      status: 'pending',
-    },
-    {
-      employee: 'Lê Văn C',
-      leaveDate: '10/09',
-      reason: 'Từ chối',
-      status: 'rejected',
-    },
-  ];
+  // Dữ liệu danh sách nghỉ và WFH
+  employeeOnleaves: any = [];
+  employeeWfhs: any = [];
+  today = new Date();
+  totalEmployeeOnleave = 0;
+  totalEmployeeWfh = 0;
+
+  //   date = new Date();
+  mode: NzCalendarMode = 'month';
+
+  isSunday(date: Date): boolean {
+    return date.getDay() === 0;
+  }
+
+  isCurrentMonth(date: Date): boolean {
+    return (
+      date.getMonth() === this.today.getMonth() &&
+      date.getFullYear() === this.today.getFullYear()
+    );
+  }
 
   // Dữ liệu hiệu suất công việc theo phòng ban
   departmentPerformance: DepartmentPerformance[] = [
@@ -190,22 +198,23 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.setResponsivePageSize();
     this.getMenuParents();
-    this.generateCalendarDays();
+    // this.generateCalendarDays();
+    this.getEmployeeOnleaveAndWFH();
   }
 
-  private generateCalendarDays(): void {
-    // Tạo dữ liệu lịch cho tháng 9/2025
-    // Tháng 9/2025 bắt đầu từ thứ 2 (T2)
-    this.calendarDays = [];
+  //   private generateCalendarDays(): void {
+  //     // Tạo dữ liệu lịch cho tháng 9/2025
+  //     // Tháng 9/2025 bắt đầu từ thứ 2 (T2)
+  //     this.calendarDays = [];
 
-    // Thêm các ngày trống cho tuần đầu (nếu cần)
-    // Tháng 9/2025 bắt đầu từ thứ 2, nên không cần ngày trống
+  //     // Thêm các ngày trống cho tuần đầu (nếu cần)
+  //     // Tháng 9/2025 bắt đầu từ thứ 2, nên không cần ngày trống
 
-    // Thêm các ngày trong tháng
-    for (let i = 1; i <= 30; i++) {
-      this.calendarDays.push(i);
-    }
-  }
+  //     // Thêm các ngày trong tháng
+  //     for (let i = 1; i <= 30; i++) {
+  //       this.calendarDays.push(i);
+  //     }
+  //   }
 
   ngAfterViewInit(): void {}
 
@@ -239,264 +248,6 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
       group: 'today',
       icon: 'car',
     },
-    {
-      id: 2,
-      title: 'Bàn giao TS BM-09 hoàn tất',
-      detail: 'Phòng IT • BB556',
-      time: '08:55',
-      group: 'today',
-      icon: 'file-done',
-    },
-    {
-      id: 3,
-      title: 'Đơn cấp phát #CP-778 tạo mới',
-      detail: 'Kho TB • 5 mục',
-      time: '16:40',
-      group: 'yesterday',
-      icon: 'plus-square',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 2,
-      title: 'Bàn giao TS BM-09 hoàn tất',
-      detail: 'Phòng IT • BB556',
-      time: '08:55',
-      group: 'today',
-      icon: 'file-done',
-    },
-    {
-      id: 3,
-      title: 'Đơn cấp phát #CP-778 tạo mới',
-      detail: 'Kho TB • 5 mục',
-      time: '16:40',
-      group: 'yesterday',
-      icon: 'plus-square',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 2,
-      title: 'Bàn giao TS BM-09 hoàn tất',
-      detail: 'Phòng IT • BB556',
-      time: '08:55',
-      group: 'today',
-      icon: 'file-done',
-    },
-    {
-      id: 3,
-      title: 'Đơn cấp phát #CP-778 tạo mới',
-      detail: 'Kho TB • 5 mục',
-      time: '16:40',
-      group: 'yesterday',
-      icon: 'plus-square',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 2,
-      title: 'Bàn giao TS BM-09 hoàn tất',
-      detail: 'Phòng IT • BB556',
-      time: '08:55',
-      group: 'today',
-      icon: 'file-done',
-    },
-    {
-      id: 3,
-      title: 'Đơn cấp phát #CP-778 tạo mới',
-      detail: 'Kho TB • 5 mục',
-      time: '16:40',
-      group: 'yesterday',
-      icon: 'plus-square',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 2,
-      title: 'Bàn giao TS BM-09 hoàn tất',
-      detail: 'Phòng IT • BB556',
-      time: '08:55',
-      group: 'today',
-      icon: 'file-done',
-    },
-    {
-      id: 3,
-      title: 'Đơn cấp phát #CP-778 tạo mới',
-      detail: 'Kho TB • 5 mục',
-      time: '16:40',
-      group: 'yesterday',
-      icon: 'plus-square',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 2,
-      title: 'Bàn giao TS BM-09 hoàn tất',
-      detail: 'Phòng IT • BB556',
-      time: '08:55',
-      group: 'today',
-      icon: 'file-done',
-    },
-    {
-      id: 3,
-      title: 'Đơn cấp phát #CP-778 tạo mới',
-      detail: 'Kho TB • 5 mục',
-      time: '16:40',
-      group: 'yesterday',
-      icon: 'plus-square',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 2,
-      title: 'Bàn giao TS BM-09 hoàn tất',
-      detail: 'Phòng IT • BB556',
-      time: '08:55',
-      group: 'today',
-      icon: 'file-done',
-    },
-    {
-      id: 3,
-      title: 'Đơn cấp phát #CP-778 tạo mới',
-      detail: 'Kho TB • 5 mục',
-      time: '16:40',
-      group: 'yesterday',
-      icon: 'plus-square',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 2,
-      title: 'Bàn giao TS BM-09 hoàn tất',
-      detail: 'Phòng IT • BB556',
-      time: '08:55',
-      group: 'today',
-      icon: 'file-done',
-    },
-    {
-      id: 3,
-      title: 'Đơn cấp phát #CP-778 tạo mới',
-      detail: 'Kho TB • 5 mục',
-      time: '16:40',
-      group: 'yesterday',
-      icon: 'plus-square',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-
-    {
-      id: 2,
-      title: 'Bàn giao TS BM-09 hoàn tất',
-      detail:
-        'Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556Phòng IT • BB556',
-      time: '08:55',
-      group: 'today',
-      icon: 'file-done',
-    },
   ];
 
   getMenuParents(): void {
@@ -510,6 +261,28 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
       this.dynamicApps = [...this.allApps];
       this.cdr.markForCheck?.();
     });
+  }
+
+  getEmployeeOnleaveAndWFH(): void {
+    this.homepageService.getEmployeeOnleaveAndWFH().subscribe(
+      (response: any) => {
+        console.log('getEmployeeOnleaveAndWFH: ', response);
+        this.employeeOnleaves = response.data.employeeOnleaves || [];
+        this.employeeWfhs = response.data.employeeWfhs || [];
+
+        this.totalEmployeeOnleave = this.employeeOnleaves.reduce(
+          (sum: any, dept: any) => sum + dept.Employees.length,
+          0
+        );
+        this.totalEmployeeWfh = this.employeeWfhs.reduce(
+          (sum: any, dept: any) => sum + dept.Employees.length,
+          0
+        );
+      },
+      (error: any) => {
+        this.notification.error('Thông báo', error.error.message);
+      }
+    );
   }
 
   // Carousel state
@@ -632,18 +405,18 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
     }
   }
 
-  isCurrentDay(day: number): boolean {
-    return day === this.currentDay;
-  }
+  //   isCurrentDay(day: number): boolean {
+  //     return day === this.currentDay;
+  //   }
 
-  isWeekend(day: number, index: number): boolean {
-    // Tháng 9/2025 bắt đầu từ thứ 2 (T2)
-    // T2=0, T3=1, T4=2, T5=3, T7=4, CN=5
-    // Cuối tuần là T7 (index 4) và CN (index 5)
-    return index % 6 === 4 || index % 6 === 5;
-  }
+  //   isWeekend(day: number, index: number): boolean {
+  //     // Tháng 9/2025 bắt đầu từ thứ 2 (T2)
+  //     // T2=0, T3=1, T4=2, T5=3, T7=4, CN=5
+  //     // Cuối tuần là T7 (index 4) và CN (index 5)
+  //     return index % 6 === 4 || index % 6 === 5;
+  //   }
 
-  getWeekDays(): string[] {
-    return ['T2', 'T3', 'T4', 'T5', 'T7', 'CN'];
-  }
+  //   getWeekDays(): string[] {
+  //     return ['T2', 'T3', 'T4', 'T5', 'T7', 'CN'];
+  //   }
 }

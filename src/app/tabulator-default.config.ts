@@ -30,4 +30,18 @@ export const DEFAULT_TABLE_CONFIG: Options = {
     vertAlign: 'middle',
     resizable: true,
   },
+
+  rowHeader: {
+    width: 20,
+    headerSort: false,
+    resizable: false,
+    frozen: true,
+    headerHozAlign: 'center',
+    hozAlign: 'center',
+    formatter: 'rowSelection',
+    titleFormatter: 'rowSelection',
+    cellClick: function (e, cell) {
+      cell.getRow().toggleSelect();
+    },
+  },
 };

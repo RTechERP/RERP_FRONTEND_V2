@@ -35,6 +35,7 @@ import { Router } from '@angular/router';
 import { ProjectService } from '../project-service/project.service';
 import { Title } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 
 @Component({
   selector: 'app-synthesis-of-generated-materials',
@@ -131,23 +132,25 @@ export class SynthesisOfGeneratedMaterialsComponent
   //#region Xử lý bảng tổng hợp vật tư
   drawTbSynthesisOfGeneratedMaterials(container: HTMLElement) {
     this.tb_synthesisOfGeneratedMaterials = new Tabulator(container, {
-      height: '100%',
-      layout: 'fitColumns',
-      pagination: true,
-      paginationMode: 'local',
-      paginationSize: 100,
-      paginationSizeSelector: [100, 200, 400, 800, 1000],
-      langs: {
-        vi: {
-          pagination: {
-            first: '<<',
-            last: '>>',
-            prev: '<',
-            next: '>',
-          },
-        },
-      },
-      locale: 'vi',
+      ...DEFAULT_TABLE_CONFIG,
+      pagination: false,
+      //   height: '100%',
+      //   layout: 'fitColumns',
+      //   pagination: true,
+      //   paginationMode: 'local',
+      //   paginationSize: 100,
+      //   paginationSizeSelector: [100, 200, 400, 800, 1000],
+      //   langs: {
+      //     vi: {
+      //       pagination: {
+      //         first: '<<',
+      //         last: '>>',
+      //         prev: '<',
+      //         next: '>',
+      //       },
+      //     },
+      //   },
+      //   locale: 'vi',
       columns: [
         {
           title: 'TT',
@@ -167,6 +170,7 @@ export class SynthesisOfGeneratedMaterialsComponent
           field: 'ProductCode',
           width: 150,
           headerHozAlign: 'center',
+          formatter: 'textarea',
         },
         {
           title: 'Mã nội bộ',

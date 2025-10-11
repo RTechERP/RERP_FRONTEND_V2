@@ -35,6 +35,7 @@ import { Router } from '@angular/router';
 import { ProjectService } from '../project-service/project.service';
 import { Title } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 
 @Component({
   selector: 'app-project-work-item-timeline',
@@ -207,12 +208,14 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
   //#region Xử lý bảng tiến độ hạng mục công việc
   drawTbProjectWorkItemTimeline(container: HTMLElement) {
     this.tb_projectWorkItemTimeline = new Tabulator(container, {
-      height: '100%',
-      layout: 'fitColumns',
+      ...DEFAULT_TABLE_CONFIG,
+      pagination: false,
+      //   height: '100%',
+      //   layout: 'fitColumns',
       groupHeader: function (value, count, data, group) {
         return value;
       },
-      locale: 'vi',
+      //   locale: 'vi',
       columns: [
         {
           title: 'THÔNG TIN HẠNG MỤC CÔNG VIỆC',

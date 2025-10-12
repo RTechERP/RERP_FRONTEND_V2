@@ -220,7 +220,7 @@
         <div class="card-body p-0">
           <nz-splitter>
             <nz-splitter-panel
-              nzSize=""
+              [nzSize]="showDetailPanel ? '60%' : '100%'"
               [nzCollapsible]="true"
               nzResizable="true"
             >
@@ -228,6 +228,7 @@
             </nz-splitter-panel>
             <nz-splitter-panel
               #detailPanel
+              [nzSize]="showDetailPanel ? '40%' : 0"
               [nzCollapsible]="true"
               nzResizable="true"
             >

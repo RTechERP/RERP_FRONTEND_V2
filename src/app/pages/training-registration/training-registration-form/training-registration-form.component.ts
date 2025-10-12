@@ -235,9 +235,9 @@ export class TrainingRegistrationFormComponent
       EmployeeID: this.dataInput.EmployeeID,
       Purpose: this.dataInput.Purpose,
       TrainingType: this.dataInput.TrainingType,
-      IsCertification: this.dataInput.IsCertification,
-      SessionsPerCourse: this.dataInput.SessionsPerCourse,
-      SessionDuration: this.dataInput.SessionDuration,
+      IsCertification: this.dataInput.IsCertification || false,
+      SessionsPerCourse: this.dataInput.SessionsPerCourse || null,
+      SessionDuration: this.dataInput.SessionDuration || null,
       TrainingRange: [
         new Date(this.dataInput.DateStart ?? new Date()),
         new Date(this.dataInput.DateEnd ?? new Date()),
@@ -304,56 +304,54 @@ export class TrainingRegistrationFormComponent
       return;
     }
 
-    // Đếm số file đã upload
-    let uploadedCount = 0;
+    // Sử dụng API upload multiple files để upload tất cả file cùng lúc
+    const filesToUpload = newFiles.map((file) => file.originFile);
 
-    // Xử lý từng file mới
-    newFiles.forEach((file: any) => {
-      this.trainingRegistrationService.uploadFile(file.originFile).subscribe({
+    this.trainingRegistrationService
+      .uploadMultipleFiles(filesToUpload)
+      .subscribe({
         next: (response) => {
-          uploadedCount++;
-
-          if (response.status === 1) {
-            // Cập nhật thông tin file trong fileList
-            const fileIndex = this.fileList.findIndex(
-              (f) => f.uid === file.uid
-            );
-            if (fileIndex !== -1) {
-              this.fileList[fileIndex] = {
-                ...this.fileList[fileIndex],
-                status: 'done',
-                FileName: response.FileName,
-                ServerPath: SERVER_PATH + response.FileName,
-                OriginName: file.name,
-                ID: 0,
-              };
-            }
+          if (response.status === 1 && response.data) {
+            // Cập nhật thông tin file trong fileList với kết quả từ server
+            response.data.forEach((uploadedFile: any, index: number) => {
+              const fileIndex = this.fileList.findIndex(
+                (f) => f.uid === newFiles[index].uid
+              );
+              if (fileIndex !== -1) {
+                this.fileList[fileIndex] = {
+                  ...this.fileList[fileIndex],
+                  status: 'done',
+                  FileName: uploadedFile.fileName,
+                  ServerPath: uploadedFile.filePath,
+                  OriginName: uploadedFile.originalName,
+                  ID: 0,
+                };
+              }
+            });
             this.updateFileTable();
+            this.notification.success(
+              'Thông báo',
+              `Đã upload thành công ${response.data.length} file`
+            );
           } else {
             this.notification.error(
               'Thông báo',
-              response.Message || 'Upload file thất bại'
+              response.message || 'Upload file thất bại'
             );
           }
 
-          // Kiểm tra nếu đã upload hết các file
-          if (uploadedCount === newFiles.length) {
-            this.saveDataToServer();
-          }
+          // Lưu dữ liệu sau khi upload
+          this.saveDataToServer();
         },
         error: (error) => {
-          uploadedCount++;
           this.notification.error(
             'Thông báo',
-            'Upload file thất bại: ' + error.message
+            'Upload file thất bại: ' + (error.error?.message || error.message)
           );
-
-          if (uploadedCount === newFiles.length) {
-            this.saveDataToServer();
-          }
+          // Vẫn tiếp tục lưu dữ liệu ngay cả khi upload thất bại
+          this.saveDataToServer();
         },
       });
-    });
   }
 
   // Phương thức lưu dữ liệu sau khi upload file
@@ -471,13 +469,7 @@ export class TrainingRegistrationFormComponent
       height: '40vh',
       layout: 'fitDataStretch',
       columns: [
-        {
-          title: 'STT',
-          field: 'STT',
-          width: 70,
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-        },
+        { title: 'STT', field: 'STT', width: 70, hozAlign: 'center' },
         {
           title: 'ID',
           field: 'ID',
@@ -489,8 +481,7 @@ export class TrainingRegistrationFormComponent
           title: 'Mã hạng mục',
           field: 'CategoryCode',
           width: 150,
-          hozAlign: 'left',
-          headerHozAlign: 'center',
+          visible: false,
         },
         {
           title: 'CategoryID',
@@ -498,31 +489,20 @@ export class TrainingRegistrationFormComponent
           width: 150,
           hozAlign: 'left',
           visible: false,
-          headerHozAlign: 'center',
         },
         {
           title: 'Hạng mục',
           field: 'CategoryName',
           width: 150,
-          hozAlign: 'left',
-          headerHozAlign: 'center',
+          formatter: 'textarea',
         },
         {
           title: 'Diễn giải',
           field: 'Explaination',
           width: 200,
-          hozAlign: 'left',
-          editor: 'input',
-          headerHozAlign: 'center',
+          editor: 'textarea',
         },
-        {
-          title: 'Ghi chú',
-          field: 'Note',
-          width: 200,
-          editor: 'input',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-        },
+        { title: 'Ghi chú', field: 'Note', width: 200, editor: 'textarea' },
       ],
     });
   }
@@ -535,7 +515,7 @@ export class TrainingRegistrationFormComponent
         {
           title: '',
           field: 'actions',
-          width: 80,
+          width: 50,
           hozAlign: 'center',
           formatter: () => {
             return '<i class="fas fa-trash-alt" style="color: #ff4d4f; cursor: pointer; font-size: 16px;"></i>';
@@ -558,8 +538,7 @@ export class TrainingRegistrationFormComponent
           title: 'Tên file',
           field: 'FileName',
           width: 200,
-          hozAlign: 'left',
-          headerHozAlign: 'center',
+          formatter: 'textarea',
         },
         {
           title: 'Đường dẫn Server',
@@ -567,6 +546,7 @@ export class TrainingRegistrationFormComponent
           width: 300,
           hozAlign: 'left',
           headerHozAlign: 'center',
+          visible: false,
           formatter: function (cell: any) {
             const url = cell.getValue();
             if (url) {
@@ -579,6 +559,7 @@ export class TrainingRegistrationFormComponent
           title: 'Tên file gốc',
           field: 'OriginName',
           width: 200,
+          visible: false,
           headerHozAlign: 'center',
           hozAlign: 'left',
         },

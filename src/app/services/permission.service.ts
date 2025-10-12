@@ -1,0 +1,106 @@
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class PermissionService {
+  private permissionsSubject = new BehaviorSubject<string[]>([]);
+  public permissions$ = this.permissionsSubject.asObservable();
+
+  constructor() {
+    this.loadPermissionsFromToken();
+  }
+
+  /**
+   * Decode JWT token và lấy permissions
+   */
+  private loadPermissionsFromToken(): void {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = this.decodeJWT(token);
+        const permissions = payload.permissions || payload.PERMISSIONS || [];
+        
+        // Nếu permissions là string (cách nhau bởi dấu phẩy), chuyển thành array
+        if (typeof permissions === 'string') {
+          this.setPermissions(permissions.split(',').map(p => p.trim()));
+        } else if (Array.isArray(permissions)) {
+          this.setPermissions(permissions);
+        }
+      } catch (error) {
+        console.error('Error decoding token:', error);
+        this.setPermissions([]);
+      }
+    }
+  }
+
+  /**
+   * Decode JWT token
+   */
+  private decodeJWT(token: string): any {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
+    } catch (error) {
+      throw new Error('Invalid token format');
+    }
+  }
+
+  /**
+   * Set permissions và notify subscribers
+   */
+  setPermissions(permissions: string[]): void {
+    this.permissionsSubject.next(permissions);
+  }
+
+  /**
+   * Get current permissions
+   */
+  getPermissions(): string[] {
+    return this.permissionsSubject.value;
+  }
+
+  /**
+   * Kiểm tra user có permission không
+   */
+  hasPermission(permission: string): boolean {
+    const permissions = this.getPermissions();
+    return permissions.includes(permission);
+  }
+
+  /**
+   * Kiểm tra user có ít nhất một trong các permissions
+   */
+  hasAnyPermission(permissions: string[]): boolean {
+    return permissions.some(permission => this.hasPermission(permission));
+  }
+
+  /**
+   * Kiểm tra user có tất cả permissions
+   */
+  hasAllPermissions(permissions: string[]): boolean {
+    return permissions.every(permission => this.hasPermission(permission));
+  }
+
+  /**
+   * Refresh permissions từ token mới
+   */
+  refreshPermissions(): void {
+    this.loadPermissionsFromToken();
+  }
+
+  /**
+   * Clear permissions (khi logout)
+   */
+  clearPermissions(): void {
+    this.setPermissions([]);
+  }
+}

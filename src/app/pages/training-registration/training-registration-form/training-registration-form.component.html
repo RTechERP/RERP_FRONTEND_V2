@@ -120,8 +120,7 @@
         <nz-form-label>Đánh giá mức độ hoàn thành</nz-form-label>
         <nz-form-control>
           <nz-select
-            [(ngModel)]="formData.CompletionAssessment"
-            name="completionAssessment"
+            formControlName="CompletionAssessment"
             nzAllowClear
             nzPlaceHolder="Chọn mức độ hoàn thành"
             nzSize="default"
@@ -139,10 +138,9 @@
       <div nz-col [nzSpan]="4">
     <nz-form-item class="compact-form-item" style="margin-top: 22px;">
       <nz-form-control>
-        <label
+        <label style="margin-top: 1.5vh;"
           nz-checkbox
-          [(ngModel)]="formData.IsCertification"
-          name="isCertification"
+          formControlName="IsCertification"
         >
           Cấp chứng chỉ
         </label>
@@ -157,7 +155,7 @@
   <div class="tables-section">
     <div nz-row [nzGutter]="16">
       <!-- Cột trái - Bảng chi tiết -->
-      <div nz-col [nzSpan]="12">
+      <div nz-col [nzSpan]="16">
         <div class="detail-container">
           <h6>Hạng mục đăng ký</h6>
           <div #detailTable class="detail-table"></div>
@@ -165,7 +163,7 @@
       </div>
 
       <!-- Cột phải - Bảng file -->
-      <div nz-col [nzSpan]="12">
+      <div nz-col [nzSpan]="8">
         <div class="file-container">
           <div class="file-upload-section mb-2">
             <nz-upload

@@ -18,16 +18,24 @@ export class TrainingRegistrationService {
     );
   }
   // Thêm phương thức upload file
+  // Cập nhật phương thức upload file để sử dụng API generic từ HomeController
   uploadFile(file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post<any>(
-      `${this.apiUrl}/TrainingRegistration/upload`,
-      formData
-    );
+    formData.append('key', 'TrainingRegistration');
+    return this.http.post<any>(`${this.apiUrl}/Home/upload`, formData);
+  }
+
+  uploadMultipleFiles(files: File[]): Observable<any> {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+    formData.append('key', 'TrainingRegistration');
+    return this.http.post<any>(`${this.apiUrl}/Home/upload-multiple`, formData);
   }
   getEmployee(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/Employee/get-all`);
+    return this.http.get<any>(`${this.apiUrl}/Employee/get-employees`);
   }
   saveData(data: any): Observable<any> {
     return this.http.post<any>(

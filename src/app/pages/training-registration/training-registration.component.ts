@@ -41,14 +41,14 @@ import {
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzModalModule } from 'ng-zorro-antd/modal';
-import { APP_LOGIN_NAME } from '../../app.config';
-import { EMPLOYEE_ID } from '../../app.config';
-import { ISADMIN } from '../../app.config';
 import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { UnapprovalReasonModalComponent } from './unapproval-reason-modal/unapproval-reason-modal.component';
-import { DEFAULT_TABLE_CONFIG } from '../../tabulator-default.config';
+import { AppUserService } from '../../services/app-user.service';
+import { PermissionService } from '../../services/permission.service';
+import { HasPermissionDirective } from '../../directives/has-permission.directive';
+import { DisablePermissionDirective } from '../../directives/disable-permission.directive';
 
 @Component({
   selector: 'app-training-registration',
@@ -77,6 +77,8 @@ import { DEFAULT_TABLE_CONFIG } from '../../tabulator-default.config';
     NzSpaceModule,
     NzLayoutModule,
     NzCardModule,
+    HasPermissionDirective,
+    DisablePermissionDirective, // Thêm directive mới
   ],
 })
 export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
@@ -93,13 +95,19 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
   selectedRowData: any = null;
   showDetailPanel: boolean = false;
   dataDetail: any = [];
+  currentUser: any;
   constructor(
     private trainingRegistrationService: TrainingRegistrationService,
     private modalService: NgbModal,
-    private notification: NzNotificationService
+    private notification: NzNotificationService,
+    private appUserService: AppUserService,
+    private permissionService: PermissionService
   ) {}
   filter: any;
   trainingRegistrationID: number = 0;
+  canCreate = false;
+  canEdit = false;
+  canDelete = false;
   ngOnInit() {
     this.filter = {
       // dateStart: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
@@ -108,7 +116,30 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
       departmentID: 0,
       trainingCategoryID: 0,
     };
+    this.currentUser = this.appUserService.currentUser;
+    console.log(this.currentUser);
+    this.canCreate = this.permissionService.hasPermission(
+      'Training_Registration_CRUD'
+    );
+    this.canEdit = this.permissionService.hasPermission(
+      'Training_Registration_CRUD'
+    );
+    this.canDelete = this.permissionService.hasPermission(
+      'Training_Registration_CRUD'
+    );
 
+    // Subscribe to permission changes
+    this.permissionService.permissions$.subscribe((permissions) => {
+      this.canCreate = this.permissionService.hasPermission(
+        'Training_Registration_CRUD'
+      );
+      this.canEdit = this.permissionService.hasPermission(
+        'Training_Registration_CRUD'
+      );
+      this.canDelete = this.permissionService.hasPermission(
+        'Training_Registration_CRUD'
+      );
+    });
     this.getData();
   }
   onAddClick() {
@@ -166,32 +197,33 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
   }
   ngAfterViewInit() {
     this.DrawTable();
-    this.drawDetailTable();
-    this.drawTrainingFilesTable();
-    this.drawApprovedTable();
+    // Không khởi tạo bảng detail ở đây để tránh lỗi khi panel đang bị thu gọn
+    // this.drawDetailTable();
+    // this.drawTrainingFilesTable();
+    // this.drawApprovedTable();
   }
-  getTrainingRegistrationFile() {
-    this.trainingRegistrationService
-      .getTrainingRegistrationFile(this.trainingRegistrationID)
-      .subscribe((response: any) => {
-        if (response) {
-          console.log('res', response);
-          this.tableFiles.setData(response.data);
-          console.log(this.tableFiles.getData());
-        }
-      });
-  }
-  getTrainingRegistrationApproved() {
-    this.trainingRegistrationService
-      .getTrainingRegistrationApproved(this.trainingRegistrationID)
-      .subscribe((response: any) => {
-        if (response) {
-          console.log('res', response);
-          this.tableApproved.setData(response.data);
-          console.log(this.tableApproved.getData());
-        }
-      });
-  }
+  // getTrainingRegistrationFile() {
+  //   this.trainingRegistrationService
+  //     .getTrainingRegistrationFile(this.trainingRegistrationID)
+  //     .subscribe((response: any) => {
+  //       if (response) {
+  //         console.log('res', response);
+  //         this.tableFiles.setData(response.data);
+  //         console.log(this.tableFiles.getData());
+  //       }
+  //     });
+  // }
+  // getTrainingRegistrationApproved() {
+  //   this.trainingRegistrationService
+  //     .getTrainingRegistrationApproved(this.trainingRegistrationID)
+  //     .subscribe((response: any) => {
+  //       if (response) {
+  //         console.log('res', response);
+  //         this.tableApproved.setData(response.data);
+  //         console.log(this.tableApproved.getData());
+  //       }
+  //     });
+  // }
   exportToExcel() {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Training Registration Data');
@@ -325,8 +357,8 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
                     // Tiến hành hủy duyệt với lý do từ modal
                     const approvalData = {
                       trainingRegistrationID: this.trainingRegistrationID,
-                      employeeApprovedID: Number(EMPLOYEE_ID),
-                      employeeApprovedActualID: EMPLOYEE_ID,
+                      employeeApprovedID: this.currentUser.EmployeeID,
+                      employeeApprovedActualID: this.currentUser.EmployeeID,
                       statusApproved: status,
                       note: result.note ? `  ${result.note}` : '',
                       UnapprovedReason: result.unapprovalReason || '',
@@ -412,8 +444,8 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
               // Tiến hành duyệt nếu đủ điều kiện
               const approvalData = {
                 trainingRegistrationID: this.trainingRegistrationID,
-                employeeApprovedID: Number(EMPLOYEE_ID),
-                employeeApprovedActualID: EMPLOYEE_ID,
+                employeeApprovedID: this.currentUser.EmployeeID,
+                employeeApprovedActualID: this.currentUser.EmployeeID,
                 statusApproved: status,
                 note: '',
               };
@@ -449,11 +481,30 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
       .getDetail(this.trainingRegistrationID)
       .subscribe((response) => {
         if (response) {
-          console.log('res', response);
-
           this.dataDetail = response.data;
-          this.tableDetails.setData(this.dataDetail);
-          console.log(this.dataDetail);
+          if (this.tableDetails) {
+            this.tableDetails.setData(this.dataDetail);
+          }
+        }
+      });
+  }
+
+  getTrainingRegistrationFile() {
+    this.trainingRegistrationService
+      .getTrainingRegistrationFile(this.trainingRegistrationID)
+      .subscribe((response) => {
+        if (response && this.tableFiles) {
+          this.tableFiles.setData(response.data);
+        }
+      });
+  }
+
+  getTrainingRegistrationApproved() {
+    this.trainingRegistrationService
+      .getTrainingRegistrationApproved(this.trainingRegistrationID)
+      .subscribe((response) => {
+        if (response && this.tableApproved) {
+          this.tableApproved.setData(response.data);
         }
       });
   }
@@ -497,6 +548,17 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
         // Xử lý khi modal bị hủy
       }
     );
+  }
+  private initializeDetailTables() {
+    if (!this.tableDetails && this.tableDetailElement?.nativeElement) {
+      this.drawDetailTable();
+    }
+    if (!this.tableApproved && this.tableApprovedElement?.nativeElement) {
+      this.drawApprovedTable();
+    }
+    if (!this.tableFiles && this.tableFilesElement?.nativeElement) {
+      this.drawTrainingFilesTable();
+    }
   }
   private DrawTable() {
     // Khởi tạo Tabulator với cấu hình client-side pagination
@@ -655,14 +717,18 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
       initialSort: [{ column: 'ID', dir: 'asc' }],
     });
     this.table.on('rowSelectionChanged', (data: any, rows: any) => {
-      if (rows.length > 0) {
-        // Có dòng được chọn
-        this.selectedRowData = rows[0].getData();
+      if (data.length > 0) {
+        this.selectedRowData = data[0];
         this.trainingRegistrationID = this.selectedRowData['ID'];
-        this.getDetail();
-        this.getTrainingRegistrationFile();
-        this.getTrainingRegistrationApproved();
         this.showDetailPanel = true;
+
+        // Đảm bảo panel đã mở, sau đó khởi tạo các bảng detail
+        setTimeout(() => {
+          this.initializeDetailTables();
+          this.getDetail();
+          this.getTrainingRegistrationFile();
+          this.getTrainingRegistrationApproved();
+        }, 0);
         console.log('Selected row:', this.selectedRowData);
       } else {
         // Không có dòng nào được chọn

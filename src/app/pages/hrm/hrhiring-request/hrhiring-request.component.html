@@ -85,58 +85,125 @@
                     <div class="card h-100 border-0 rounded-0">
                         <div class="card-header bg-white p-1">
                             <div class="d-flex gap-1">
-                                <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
+                                <button nz-button nzType="default" nzSize="small" title="Tìm kiếm"
+                                    (click)="toggleSearchPanel()">
                                     <nz-icon nzType="search" />
                                 </button>
 
                                 <!-- Thêm nút toggle detail -->
                                 <button nz-button nzType="default" nzSize="small" (click)="toggleDetailPanel()"
                                     [title]="showDetail ? 'Ẩn chi tiết' : 'Hiện chi tiết'">
-                                    <nz-icon [nzType]="showDetail ? 'eye-invisible' : 'eye'" />
-                                    {{ showDetail ? 'Ẩn' : 'Hiện' }}
+                                    <img src="assets/icon/action_info_16.png" />
+                                    {{ showDetail ? 'Ẩn chi tiết' : 'Xem chi tiết' }}
                                 </button>
 
-                                <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="add()">
-                                    <nz-icon nzType="plus" /> Thêm
+                                <button class="btn-add" nz-button nzType="default" nzSize="small" (click)="add()">
+                                    <!-- <nz-icon nzType="plus" /> Thêm -->
+                                    <img src="assets/icon/action_add_item_16.png" />Thêm mới
                                 </button>
-                                <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="edit()">
-                                    <nz-icon nzType="edit" nzTheme="fill" /> Sửa
+                                <button class="btn-edit" nz-button nzType="default" nzSize="small" (click)="edit()">
+                                    <img src="assets/icon/action_edit_item_16.png" />Sửa
                                 </button>
-                                <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="deleteReq()">
-                                    <nz-icon nzType="delete" nzTheme="fill" /> Xóa
+                                <button class="btn-delete" nz-button nzType="default" nzSize="small"
+                                    (click)="deleteReq()" disabled>
+                                    <img src="assets/icon/action_delete_item_16.png" />Xóa
                                 </button>
-                                <button class="fs-12" nz-button nzType="default" nzSize="small"
+                                <!-- <button class="fs-12" nz-button nzType="default" nzSize="small"
                                     [disabled]="!canApproveHCNS" (click)="approvedHCNS()">
                                     <nz-icon nzType="user-check" nzTheme="outline" /> HCNS Duyệt
-                                </button>
+                                </button> -->
 
-                                <button class="fs-12" nz-button nzType="default" nzSize="small"
+                                <!-- TBP xác nhận -->
+                                <div class="btn-group">
+                                    <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
+                                        [nzDropdownMenu]="menuTBP">
+                                        <img src="assets/icon/action_confirm_tbp_16.png" />TBP xác nhận
+                                        <i nz-icon nzType="down"></i>
+                                    </button>
+
+                                    <nz-dropdown-menu #menuTBP="nzDropdownMenu">
+                                        <ul nz-menu>
+                                            <li nz-menu-item (click)="approvedTBPNew(1,1)" [nzDisabled]="canApproveTBP">
+                                                <img src="assets/icon/action_approved_16.png" />TBP duyệt
+                                            </li>
+                                            <li nz-menu-item (click)="approvedTBPNew(2,1)" [nzDisabled]="canApproveTBP">
+                                                <img src="assets/icon/action_unapproved_16.png" />TBP hủy duyệt
+                                            </li>
+
+                                        </ul>
+                                    </nz-dropdown-menu>
+                                </div>
+
+                                <!-- [HR xác nhận] -->
+                                <div class="btn-group">
+                                    <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
+                                        [nzDropdownMenu]="menuHR">
+                                        <img src="assets/icon/action_confirm_hr_16.png" />HR xác nhận
+                                        <i nz-icon nzType="down"></i>
+                                    </button>
+
+                                    <nz-dropdown-menu #menuHR="nzDropdownMenu">
+                                        <ul nz-menu>
+                                            <li nz-menu-item (click)="approvedTBPNew(1,2)" [nzDisabled]="canCancelHCNS">
+                                                <img src="assets/icon/action_approved_16.png" />HR duyệt
+                                            </li>
+                                            <li nz-menu-item (click)="approvedTBPNew(2,2)" [nzDisabled]="canCancelHCNS">
+                                                <img src="assets/icon/action_unapproved_16.png" />HR hủy duyệt
+                                            </li>
+
+                                        </ul>
+                                    </nz-dropdown-menu>
+                                </div>
+
+                                <!-- BGĐ xác nhận -->
+                                <div class="btn-group">
+                                    <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
+                                        [nzDropdownMenu]="menuBGD" disabled>
+                                        <img src="assets/icon/action_confirm_bgd_16.png" />BGĐ xác nhận
+                                        <i nz-icon nzType="down"></i>
+                                    </button>
+
+                                    <nz-dropdown-menu #menuBGD="nzDropdownMenu">
+                                        <ul nz-menu>
+                                            <li nz-menu-item (click)="approvedTBPNew(1,3)" read="!canApproveBGD">
+                                                <img src="assets/icon/action_approved_16.png" />BGĐ duyệt
+                                            </li>
+                                            <li nz-menu-item (click)="approvedTBPNew(2,3)"
+                                                [nzDisabled]="!canApproveBGD">
+                                                <img src="assets/icon/action_unapproved_16.png" />BGĐ hủy
+                                                duyệt
+                                            </li>
+
+                                        </ul>
+                                    </nz-dropdown-menu>
+                                </div>
+
+                                <!-- <button class="fs-12" nz-button nzType="default" nzSize="small"
                                     [disabled]="!canApproveTBP" (click)="approvedTBP()">
                                     <nz-icon nzType="check-circle" nzTheme="outline" /> TBP Duyệt
-                                </button>
+                                </button> -->
 
-                                <button class="fs-12" nz-button nzType="default" nzSize="small"
+                                <!-- <button class="fs-12" nz-button nzType="default" nzSize="small"
                                     [disabled]="!canApproveBGD" (click)="approvedBGD()">
                                     <nz-icon nzType="crown" nzTheme="outline" /> BGĐ Duyệt
-                                </button>
-                                <button class="fs-12" nz-button nzType="default" nzSize="small"
+                                </button> -->
+                                <!-- <button class="fs-12" nz-button nzType="default" nzSize="small"
                                     [disabled]="!canCancelHCNS" (click)="cancelApprovedHCNS()">
                                     <nz-icon nzType="user-delete" nzTheme="outline" /> HCNS Hủy
-                                </button>
+                                </button> -->
 
-                                <button class="fs-12" nz-button nzType="default" nzSize="small"
+                                <!-- <button class="fs-12" nz-button nzType="default" nzSize="small"
                                     [disabled]="!canCancelTBP" (click)="cancelApprovedTBP()">
                                     <nz-icon nzType="minus-circle" nzTheme="outline" /> TBP Hủy
-                                </button>
+                                </button> -->
 
-                                <button class="fs-12" nz-button nzType="default" nzSize="small"
+                                <!-- <button class="fs-12" nz-button nzType="default" nzSize="small"
                                     [disabled]="!canCancelBGD" (click)="cancelApprovedBGD()">
                                     <nz-icon nzType="stop" nzTheme="outline" /> BGĐ Hủy
-                                </button>
+                                </button> -->
 
-                                <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="viewForm()"
-                                    title="Xem phiếu tuyển dụng">
-                                    <nz-icon nzType="eye" nzTheme="outline" /> Xem phiếu
+                                <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="viewForm()">
+                                    <img src="assets/icon/action_print_16.png" /> In phiếu
                                 </button>
                             </div>
                         </div>

@@ -22,6 +22,7 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import Swal from 'sweetalert2';
 
 // Tabulator
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -36,6 +37,7 @@ import { HrhiringRequestService } from './hrhiring-request-service/hrhiring-requ
 import { HrhiringRequestDetailComponent } from './hrhiring-request-detail/hrhiring-request-detail.component';
 import { PdfGeneratorService } from './hrhiring-request-service/pdf-generator.service';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 
 @Component({
   selector: 'app-hrhiring-request',
@@ -53,6 +55,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
     NzSplitterModule,
     NzModalModule,
     NzTagModule,
+    NzDropDownModule,
   ],
   templateUrl: './hrhiring-request.component.html',
   styleUrls: ['./hrhiring-request.component.css'],
@@ -326,59 +329,56 @@ export class HrhiringRequestComponent
         title: 'Giới tính',
         field: 'Gender',
         width: 90,
-        headerHozAlign: 'center',
-        hozAlign: 'left',
+        formatter: 'textarea',
       },
       {
         title: 'Trình độ học vấn',
         field: 'EducationLevel',
-        width: 180,
-        headerHozAlign: 'center',
-        hozAlign: 'left',
+        width: 200,
+        formatter: 'textarea',
       },
       {
         title: 'Lương cơ bản',
         field: 'SalaryMin',
         width: 160,
-        headerHozAlign: 'center',
-        hozAlign: 'center',
         formatter: (cell: any) =>
           this.formatSalaryRange(cell.getRow().getData()),
       },
       {
         title: 'Địa điểm làm việc',
         field: 'WorkAddress',
-        width: 180,
-        headerHozAlign: 'center',
-        hozAlign: 'left',
+        width: 200,
+        formatter: 'textarea',
       },
       {
         title: 'Kinh nghiệm làm việc',
         field: 'Experience',
-        width: 220,
-        headerHozAlign: 'center',
-        hozAlign: 'left',
+        width: 200,
+        formatter: 'textarea',
       },
       {
         title: 'YC chuyên môn',
         field: 'ProfessionalRequirement',
-        width: 220,
-        headerHozAlign: 'center',
-        hozAlign: 'left',
+        width: 200,
+        formatter: 'textarea',
       },
       {
         title: 'Mô tả công việc',
         field: 'JobDescription',
-        width: 220,
-        headerHozAlign: 'center',
-        hozAlign: 'left',
+        width: 200,
+        formatter: 'textarea',
       },
       {
         title: 'Ghi chú',
         field: 'Note',
         width: 200,
-        headerHozAlign: 'center',
-        hozAlign: 'left',
+        formatter: 'textarea',
+      },
+      {
+        title: 'Tình trạng',
+        field: 'ApprovalStatus',
+        width: 200,
+        formatter: 'textarea',
       },
     ];
   }
@@ -617,13 +617,13 @@ export class HrhiringRequestComponent
       return;
     }
 
-    if (!this.canApproveTBP) {
-      this.notification.warning(
-        'Thông báo',
-        'Không thể duyệt TBP cho yêu cầu này! Vui lòng kiểm tra HCNS đã duyệt chưa.'
-      );
-      return;
-    }
+    // if (!this.canApproveTBP) {
+    //   this.notification.warning(
+    //     'Thông báo',
+    //     'Không thể duyệt TBP cho yêu cầu này! Vui lòng kiểm tra HCNS đã duyệt chưa.'
+    //   );
+    //   return;
+    // }
 
     this.nzModal.confirm({
       nzTitle: 'Xác nhận duyệt TBP',
@@ -943,7 +943,7 @@ export class HrhiringRequestComponent
       v === null || v === undefined
         ? ''
         : Number(v).toLocaleString('vi-VN', { minimumFractionDigits: 0 });
-    if (min && max) return `${fmt(min)}-${fmt(max)}`;
+    if (min && max) return `${fmt(min)} - ${fmt(max)}`;
     if (min && !max) return `${fmt(min)}+`;
     if (!min && max) return `<=${fmt(max)}`;
     return '';
@@ -1271,4 +1271,99 @@ export class HrhiringRequestComponent
   }
 
   // ... rest of existing methods remain unchanged ...
+  //#region DUYỆT YÊU CẦU
+  async approvedTBPNew(isApprove: number, step: number) {
+    var dataSelected = this.tb_HRHIRING.getSelectedData().map((row) => row.ID);
+    // console.log('dataSelected:', dataSelected);
+
+    if (isApprove == 1) {
+      Swal.fire({
+        title: 'Xác nhận duyệt?',
+        text: `Bạn có chắc muốn duyệt ${dataSelected.length} đã chọn không?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745 ',
+        cancelButtonColor: '#dc3545 ',
+        confirmButtonText: 'Duyệt',
+        cancelButtonText: 'Hủy',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.handleApproved(dataSelected, step, isApprove, '');
+        }
+      });
+    } else {
+      const { value: reasonUnApprove }: { value?: string } = await Swal.fire({
+        input: 'textarea',
+        inputLabel: 'Lý do hủy',
+        inputPlaceholder: 'Nhập lý do hủy duyệt...',
+        inputAttributes: {
+          'aria-label': 'Vui lòng nhập Lý do hủy',
+        },
+        showCancelButton: true,
+        confirmButtonColor: '#28a745 ',
+        cancelButtonColor: '#dc3545 ',
+        confirmButtonText: 'Hủy duyệt',
+        cancelButtonText: 'Hủy',
+      });
+      if (reasonUnApprove) {
+        this.handleApproved(dataSelected, step, isApprove, reasonUnApprove);
+      }
+    }
+  }
+
+  handleApproved(
+    dataSelected: any,
+    step: number,
+    isApprove: number,
+    reasonUnApprove: string
+  ) {
+    let approveds = [];
+    for (let i = 0; i < dataSelected.length; i++) {
+      let approved = {
+        HRHiringRequestID: dataSelected[i],
+        Step: step,
+        IsApprove: isApprove,
+        ReasonUnApprove: reasonUnApprove,
+        Note: '',
+      };
+
+      approveds.push(approved);
+    }
+    if (step == 1) {
+      this.service.approvedTBP(approveds).subscribe({
+        next: (response: any) => {
+          console.log(response);
+          this.notification.success('Thành công', response.message);
+        },
+        error: (err) => {
+          console.log(err);
+          this.notification.error('Lỗi', err.error.message);
+        },
+      });
+    } else if (step == 2) {
+      this.service.approvedHR(approveds).subscribe({
+        next: (response: any) => {
+          console.log(response);
+          this.notification.success('Thành công', response.message);
+        },
+        error: (err) => {
+          console.log(err);
+          console.log('err.status:', err.status),
+            this.notification.error('Lỗi', err.error.message);
+        },
+      });
+    } else {
+      this.service.approvedBGD(approveds).subscribe({
+        next: (response: any) => {
+          console.log(response);
+          this.notification.success('Thành công', response.message);
+        },
+        error: (err) => {
+          console.log(err);
+          this.notification.error('Lỗi', err.error.message);
+        },
+      });
+    }
+  }
+  //#endregion
 }

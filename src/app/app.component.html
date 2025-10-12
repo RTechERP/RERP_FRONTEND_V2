@@ -69,7 +69,7 @@
                             <span class="icon-slot icon-20">
                                 <img *ngIf="m.icon" [src]="m.icon" class="menu-icon" />
                             </span>
-                            <span>{{ m.title }}</span>
+                            <span>{{ m.title.toUpperCase() }}</span>
                         </span>
                     </ng-template>
 
@@ -79,7 +79,9 @@
                                 <span class="icon-slot icon-14">
                                     <img *ngIf="c.icon" [src]="c.icon" class="menu-icon-sm" />
                                 </span>
-                                <span class="menu-label">{{ c.title }}</span>
+                                <span class="menu-label">
+                                    {{ c.title.charAt(0).toUpperCase() + c.title.slice(1).toLowerCase()}}
+                                </span>
                             </a>
                         </li>
                     </ul>
@@ -90,7 +92,9 @@
                         <span class="icon-slot icon-20">
                             <img *ngIf="m.icon" [src]="m.icon" class="menu-icon" />
                         </span>
-                        <span class="menu-label">{{ m.title }}</span>
+                        <span class="menu-label">
+                            {{ m.title.charAt(0).toUpperCase() + m.title.slice(1).toLowerCase()}}
+                        </span>
                     </a>
                 </li>
 

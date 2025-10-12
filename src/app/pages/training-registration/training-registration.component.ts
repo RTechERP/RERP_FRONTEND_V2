@@ -41,14 +41,15 @@ import {
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzModalModule } from 'ng-zorro-antd/modal';
-import { APP_LOGIN_NAME } from '../../app.config';
-import { EMPLOYEE_ID } from '../../app.config';
-import { ISADMIN } from '../../app.config';
 import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { UnapprovalReasonModalComponent } from './unapproval-reason-modal/unapproval-reason-modal.component';
 import { AppUserService } from '../../services/app-user.service';
+import { PermissionService } from '../../services/permission.service';
+import { HasPermissionDirective } from '../../directives/has-permission.directive';
+import { DisablePermissionDirective } from '../../directives/disable-permission.directive';
+
 @Component({
   selector: 'app-training-registration',
   templateUrl: './training-registration.component.html',
@@ -76,6 +77,8 @@ import { AppUserService } from '../../services/app-user.service';
     NzSpaceModule,
     NzLayoutModule,
     NzCardModule,
+    HasPermissionDirective,
+    DisablePermissionDirective, // Thêm directive mới
   ],
 })
 export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
@@ -92,26 +95,39 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
   selectedRowData: any = null;
   showDetailPanel: boolean = false;
   dataDetail: any = [];
-  currentUser:any;
+  currentUser: any;
   constructor(
     private trainingRegistrationService: TrainingRegistrationService,
     private modalService: NgbModal,
     private notification: NzNotificationService,
-    private appUserService: AppUserService
-  ) {}
+    private appUserService: AppUserService,
+    private permissionService: PermissionService
+  ) { }
   filter: any;
   trainingRegistrationID: number = 0;
+  canCreate = false;
+  canEdit = false;
+  canDelete = false;
   ngOnInit() {
     this.filter = {
       // dateStart: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-      dateStart:new Date(2025,0,1),
+      dateStart: new Date(2025, 0, 1),
       dateEnd: new Date(),
       departmentID: 0,
       trainingCategoryID: 0,
     };
     this.currentUser = this.appUserService.currentUser;
     console.log(this.currentUser);
+    this.canCreate = this.permissionService.hasPermission('Training_Registration_CRUD');
+    this.canEdit = this.permissionService.hasPermission('Training_Registration_CRUD');
+    this.canDelete = this.permissionService.hasPermission('Training_Registration_CRUD');
 
+    // Subscribe to permission changes
+    this.permissionService.permissions$.subscribe(permissions => {
+      this.canCreate = this.permissionService.hasPermission('Training_Registration_CRUD');
+      this.canEdit = this.permissionService.hasPermission('Training_Registration_CRUD');
+      this.canDelete = this.permissionService.hasPermission('Training_Registration_CRUD');
+    });
     this.getData();
   }
   onAddClick() {
@@ -119,20 +135,21 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
     // if(selectedrow||selectedrow.length<=0){
     //   this.notification.info('Thông báo', 'Vui lòng chọn ít nhất một dòng trước khi mở form')
     // }
-        let data: any = {
-          LstDetail: [],
-          LstFile: [],
-          ID: 0,
-          STT: 0,};
-     this.trainingRegistrationService
+    let data: any = {
+      LstDetail: [],
+      LstFile: [],
+      ID: 0,
+      STT: 0,
+    };
+    this.trainingRegistrationService
       .getDetail(999999)
       .subscribe((response) => {
         if (response) {
           console.log('data', response);
           data.LstDetail = response.data;
-          };
-          console.log(this.dataDetail);
-        }
+        };
+        console.log(this.dataDetail);
+      }
       );
 
     this.openTrainingFormModal(data);
@@ -142,7 +159,7 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
 
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.info(
-         'Thông báo',
+        'Thông báo',
         'Vui lòng chọn ít nhất một dòng trước khi mở form'
       );
     } else {
@@ -263,7 +280,7 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
       URL.revokeObjectURL(fileUrl);
     });
   }
-  approvedTrainingRegistration(status: number, flowID:number ) {
+  approvedTrainingRegistration(status: number, flowID: number) {
     if (this.selectedRowData == null) {
       this.notification.info('Thông báo', 'Vui lòng chọn ít nhất một dòng trước khi duyệt');
       return;
@@ -312,8 +329,8 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
                   // Tiến hành hủy duyệt với lý do từ modal
                   const approvalData = {
                     trainingRegistrationID: this.trainingRegistrationID,
-                    employeeApprovedID: Number(EMPLOYEE_ID),
-                    employeeApprovedActualID: EMPLOYEE_ID,
+                    employeeApprovedID: this.currentUser.EmployeeID,
+                    employeeApprovedActualID: this.currentUser.EmployeeID,
                     statusApproved: status,
                     note: result.note ? `  ${result.note}` : '',
                     UnapprovedReason: result.unapprovalReason || ''
@@ -374,8 +391,8 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
             // Tiến hành duyệt nếu đủ điều kiện
             const approvalData = {
               trainingRegistrationID: this.trainingRegistrationID,
-              employeeApprovedID: Number(EMPLOYEE_ID),
-              employeeApprovedActualID: EMPLOYEE_ID,
+              employeeApprovedID: this.currentUser.EmployeeID,
+              employeeApprovedActualID: this.currentUser.EmployeeID,
               statusApproved: status,
               note: ''
             };
@@ -475,7 +492,7 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
       }
     );
   }
-    private initializeDetailTables() {
+  private initializeDetailTables() {
     if (!this.tableDetails && this.tableDetailElement?.nativeElement) {
       this.drawDetailTable();
     }
@@ -526,9 +543,8 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
               value === 'true' ||
               value === 1 ||
               value === '1';
-            return `<input type="checkbox" ${
-              checked ? 'checked' : ''
-            } disabled />`;
+            return `<input type="checkbox" ${checked ? 'checked' : ''
+              } disabled />`;
           },
         },
 
@@ -810,13 +826,12 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
             const url = cell.getValue();
             return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
           },
-          visible: false,
         },
         {
           title: 'Tên file gốc',
           field: 'OriginName',
           width: 200,
-          visible: false,
+          hozAlign: 'left',
         },
       ],
     });

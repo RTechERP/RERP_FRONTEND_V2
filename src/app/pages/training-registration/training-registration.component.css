@@ -22,3 +22,22 @@
     font-size: 0.75rem;
   }
   
+  /* Style cho elements bị disable bởi permission */
+  .permission-disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+  }
+  
+  /* Hover effect cho disabled elements */
+  .permission-disabled:hover {
+    opacity: 0.5 !important;
+  }
+  
+  /* Style riêng cho button disabled */
+  button.permission-disabled {
+    background-color: #f5f5f5 !important;
+    border-color: #d9d9d9 !important;
+    color: rgba(0, 0, 0, 0.25) !important;
+  }
+  

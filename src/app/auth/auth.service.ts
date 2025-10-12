@@ -4,6 +4,7 @@ import { Observable, of } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { UserService } from '../services/user.service';
+import { PermissionService } from '../services/permission.service';
 import { environment } from '../../environments/environment';
 import {HOST} from '../app.config';
 
@@ -13,15 +14,21 @@ import {HOST} from '../app.config';
 export class AuthService {
   private apiUrl = HOST + 'api/home/';
   private tokenkey = 'token';
-  constructor(private http: HttpClient, private userService: UserService) {}
+  
+  constructor(
+    private http: HttpClient, 
+    private userService: UserService,
+    private permissionService: PermissionService
+  ) {}
 
   login(credentials: { loginname: string; password: string }): Observable<any> {
-
     return this.http.post(this.apiUrl + 'login', credentials).pipe(
       tap((response: any) => {
-
         if (response && response.access_token) {
           localStorage.setItem(this.tokenkey, response.access_token);
+          
+          // Refresh permissions từ token mới
+          this.permissionService.refreshPermissions();
 
           // Gọi getCurrentUser ngay sau khi login thành công
           this.getCurrentUser().subscribe({
@@ -80,6 +87,7 @@ export class AuthService {
 
   logout() {
     localStorage.removeItem(this.tokenkey);
+    this.permissionService.clearPermissions();
   }
 
   isLoggedIn(): boolean {

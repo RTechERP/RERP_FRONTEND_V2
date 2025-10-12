@@ -546,4 +546,19 @@ export class HrhiringRequestService {
 
     return '';
   }
+
+  //#region Duyệt yêu cầu
+  approvedTBP(data: any[]): Observable<any> {
+    console.log(this.apiUrl + 'approved-tbp', data);
+    return this.http.post<any>(this.apiUrl + 'approved-tbp', data);
+  }
+
+  approvedHR(data: any): Observable<any> {
+    return this.http.post<any>(this.apiUrl + 'approved-hr', data);
+  }
+
+  approvedBGD(data: any): Observable<any> {
+    return this.http.post<any>(this.apiUrl + 'approved-bgd', data);
+  }
+  //#endregion
 }

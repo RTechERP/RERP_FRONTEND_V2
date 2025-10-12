@@ -193,28 +193,7 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
     // this.drawTrainingFilesTable();
     // this.drawApprovedTable();
   }
-  // getTrainingRegistrationFile() {
-  //   this.trainingRegistrationService
-  //     .getTrainingRegistrationFile(this.trainingRegistrationID)
-  //     .subscribe((response: any) => {
-  //       if (response) {
-  //         console.log('res', response);
-  //         this.tableFiles.setData(response.data);
-  //         console.log(this.tableFiles.getData());
-  //       }
-  //     });
-  // }
-  // getTrainingRegistrationApproved() {
-  //   this.trainingRegistrationService
-  //     .getTrainingRegistrationApproved(this.trainingRegistrationID)
-  //     .subscribe((response: any) => {
-  //       if (response) {
-  //         console.log('res', response);
-  //         this.tableApproved.setData(response.data);
-  //         console.log(this.tableApproved.getData());
-  //       }
-  //     });
-  // }
+
   exportToExcel() {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Training Registration Data');
@@ -286,6 +265,8 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
       return;
     }
 
+      this.trainingRegistrationID = this.selectedRowData['ID'];
+            console.log("id:",this.trainingRegistrationID);
     // Nếu là hủy duyệt, hiển thị modal nhập lý do
     if (status === 2) {
       const modalRef = this.modalService.open(UnapprovalReasonModalComponent, {
@@ -293,6 +274,7 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
         keyboard: false,
         centered: true
       });
+
 
       // Truyền dữ liệu vào modal
       modalRef.componentInstance.trainingRegistrationID = this.trainingRegistrationID;
@@ -333,9 +315,9 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
                     employeeApprovedActualID: this.currentUser.EmployeeID,
                     statusApproved: status,
                     note: result.note ? `  ${result.note}` : '',
-                    UnapprovedReason: result.unapprovalReason || ''
+                    UnapprovedReason: result.unapprovalReason || '',
+                    trainingRegistrationApprovedFlowID: flowID
                   };
-
                   this.trainingRegistrationService.approveTrainingRegistration(approvalData).subscribe(
                     (response: any) => {
                       if (response.status === 1) {
@@ -368,6 +350,7 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
         (response: any) => {
           if (response && response.data) {
             const approvedData = response.data;
+            console.log("data:", approvedData);
 
             // Sắp xếp dữ liệu theo STT để đảm bảo thứ tự duyệt đúng
             approvedData.sort((a: any, b: any) => a.STT - b.STT);
@@ -394,6 +377,7 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
               employeeApprovedID: this.currentUser.EmployeeID,
               employeeApprovedActualID: this.currentUser.EmployeeID,
               statusApproved: status,
+              trainingRegistrationApprovedFlowID: flowID,
               note: ''
             };
 

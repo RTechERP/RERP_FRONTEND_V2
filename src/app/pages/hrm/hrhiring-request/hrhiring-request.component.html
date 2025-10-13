@@ -91,11 +91,7 @@
                                 </button>
 
                                 <!-- Thêm nút toggle detail -->
-                                <button nz-button nzType="default" nzSize="small" (click)="toggleDetailPanel()"
-                                    [title]="showDetail ? 'Ẩn chi tiết' : 'Hiện chi tiết'">
-                                    <img src="assets/icon/action_info_16.png" />
-                                    {{ showDetail ? 'Ẩn chi tiết' : 'Xem chi tiết' }}
-                                </button>
+
 
                                 <button class="btn-add" nz-button nzType="default" nzSize="small" (click)="add()">
                                     <!-- <nz-icon nzType="plus" /> Thêm -->
@@ -105,7 +101,7 @@
                                     <img src="assets/icon/action_edit_item_16.png" />Sửa
                                 </button>
                                 <button class="btn-delete" nz-button nzType="default" nzSize="small"
-                                    (click)="deleteReq()" disabled>
+                                    (click)="deleteReq()">
                                     <img src="assets/icon/action_delete_item_16.png" />Xóa
                                 </button>
                                 <!-- <button class="fs-12" nz-button nzType="default" nzSize="small"
@@ -116,17 +112,17 @@
                                 <!-- TBP xác nhận -->
                                 <div class="btn-group">
                                     <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
-                                        [nzDropdownMenu]="menuTBP">
+                                        [nzDropdownMenu]="menuTBP" disablePermission="N57">
                                         <img src="assets/icon/action_confirm_tbp_16.png" />TBP xác nhận
                                         <i nz-icon nzType="down"></i>
                                     </button>
 
                                     <nz-dropdown-menu #menuTBP="nzDropdownMenu">
                                         <ul nz-menu>
-                                            <li nz-menu-item (click)="approvedTBPNew(1,1)" [nzDisabled]="canApproveTBP">
+                                            <li nz-menu-item (click)="approvedTBPNew(1,1)">
                                                 <img src="assets/icon/action_approved_16.png" />TBP duyệt
                                             </li>
-                                            <li nz-menu-item (click)="approvedTBPNew(2,1)" [nzDisabled]="canApproveTBP">
+                                            <li nz-menu-item (click)="approvedTBPNew(2,1)">
                                                 <img src="assets/icon/action_unapproved_16.png" />TBP hủy duyệt
                                             </li>
 
@@ -137,17 +133,17 @@
                                 <!-- [HR xác nhận] -->
                                 <div class="btn-group">
                                     <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
-                                        [nzDropdownMenu]="menuHR">
+                                        [nzDropdownMenu]="menuHR" disablePermission="N56">
                                         <img src="assets/icon/action_confirm_hr_16.png" />HR xác nhận
                                         <i nz-icon nzType="down"></i>
                                     </button>
 
                                     <nz-dropdown-menu #menuHR="nzDropdownMenu">
                                         <ul nz-menu>
-                                            <li nz-menu-item (click)="approvedTBPNew(1,2)" [nzDisabled]="canCancelHCNS">
+                                            <li nz-menu-item (click)="approvedTBPNew(1,2)">
                                                 <img src="assets/icon/action_approved_16.png" />HR duyệt
                                             </li>
-                                            <li nz-menu-item (click)="approvedTBPNew(2,2)" [nzDisabled]="canCancelHCNS">
+                                            <li nz-menu-item (click)="approvedTBPNew(2,2)">
                                                 <img src="assets/icon/action_unapproved_16.png" />HR hủy duyệt
                                             </li>
 
@@ -158,18 +154,17 @@
                                 <!-- BGĐ xác nhận -->
                                 <div class="btn-group">
                                     <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
-                                        [nzDropdownMenu]="menuBGD" disabled>
+                                        [nzDropdownMenu]="menuBGD" disablePermission="N58">
                                         <img src="assets/icon/action_confirm_bgd_16.png" />BGĐ xác nhận
                                         <i nz-icon nzType="down"></i>
                                     </button>
 
                                     <nz-dropdown-menu #menuBGD="nzDropdownMenu">
                                         <ul nz-menu>
-                                            <li nz-menu-item (click)="approvedTBPNew(1,3)" read="!canApproveBGD">
+                                            <li nz-menu-item (click)="approvedTBPNew(1,3)">
                                                 <img src="assets/icon/action_approved_16.png" />BGĐ duyệt
                                             </li>
-                                            <li nz-menu-item (click)="approvedTBPNew(2,3)"
-                                                [nzDisabled]="!canApproveBGD">
+                                            <li nz-menu-item (click)="approvedTBPNew(2,3)">
                                                 <img src="assets/icon/action_unapproved_16.png" />BGĐ hủy
                                                 duyệt
                                             </li>
@@ -201,7 +196,11 @@
                                     [disabled]="!canCancelBGD" (click)="cancelApprovedBGD()">
                                     <nz-icon nzType="stop" nzTheme="outline" /> BGĐ Hủy
                                 </button> -->
-
+                                <button nz-button nzType="default" nzSize="small" (click)="toggleDetailPanel()"
+                                    [title]="showDetail ? 'Ẩn chi tiết' : 'Hiện chi tiết'">
+                                    <img src="assets/icon/action_info_16.png" />
+                                    {{ showDetail ? 'Ẩn chi tiết' : 'Xem chi tiết' }}
+                                </button>
                                 <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="viewForm()">
                                     <img src="assets/icon/action_print_16.png" /> In phiếu
                                 </button>

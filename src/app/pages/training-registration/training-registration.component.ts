@@ -49,6 +49,7 @@ import { AppUserService } from '../../services/app-user.service';
 import { PermissionService } from '../../services/permission.service';
 import { HasPermissionDirective } from '../../directives/has-permission.directive';
 import { DisablePermissionDirective } from '../../directives/disable-permission.directive';
+import { DEFAULT_TABLE_CONFIG } from '../../tabulator-default.config';
 
 @Component({
   selector: 'app-training-registration',
@@ -118,28 +119,28 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
     };
     this.currentUser = this.appUserService.currentUser;
     console.log(this.currentUser);
-    this.canCreate = this.permissionService.hasPermission(
-      'Training_Registration_CRUD'
-    );
-    this.canEdit = this.permissionService.hasPermission(
-      'Training_Registration_CRUD'
-    );
-    this.canDelete = this.permissionService.hasPermission(
-      'Training_Registration_CRUD'
-    );
+    // this.canCreate = this.permissionService.hasPermission(
+    //   'Training_Registration_CRUD'
+    // );
+    // this.canEdit = this.permissionService.hasPermission(
+    //   'Training_Registration_CRUD'
+    // );
+    // this.canDelete = this.permissionService.hasPermission(
+    //   'Training_Registration_CRUD'
+    // );
 
     // Subscribe to permission changes
-    this.permissionService.permissions$.subscribe((permissions) => {
-      this.canCreate = this.permissionService.hasPermission(
-        'Training_Registration_CRUD'
-      );
-      this.canEdit = this.permissionService.hasPermission(
-        'Training_Registration_CRUD'
-      );
-      this.canDelete = this.permissionService.hasPermission(
-        'Training_Registration_CRUD'
-      );
-    });
+    // this.permissionService.permissions$.subscribe((permissions) => {
+    //   this.canCreate = this.permissionService.hasPermission(
+    //     'Training_Registration_CRUD'
+    //   );
+    //   this.canEdit = this.permissionService.hasPermission(
+    //     'Training_Registration_CRUD'
+    //   );
+    //   this.canDelete = this.permissionService.hasPermission(
+    //     'Training_Registration_CRUD'
+    //   );
+    // });
     this.getData();
   }
   onAddClick() {

@@ -38,6 +38,8 @@ import { HrhiringRequestDetailComponent } from './hrhiring-request-detail/hrhiri
 import { PdfGeneratorService } from './hrhiring-request-service/pdf-generator.service';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { DisablePermissionDirective } from '../../../directives/disable-permission.directive';
 
 @Component({
   selector: 'app-hrhiring-request',
@@ -56,6 +58,8 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
     NzModalModule,
     NzTagModule,
     NzDropDownModule,
+    HasPermissionDirective,
+    DisablePermissionDirective, // Thêm directive mới
   ],
   templateUrl: './hrhiring-request.component.html',
   styleUrls: ['./hrhiring-request.component.css'],

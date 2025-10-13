@@ -10,13 +10,7 @@ import {
 } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule } from '@angular/forms';
-import {
-  ReactiveFormsModule,
-  FormGroup,
-  FormBuilder,
-  Validators,
-  NonNullableFormBuilder,
-} from '@angular/forms';
+import { ReactiveFormsModule, FormGroup, FormBuilder, Validators, NonNullableFormBuilder } from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
@@ -26,10 +20,7 @@ import { NzFlexModule, NzWrap } from 'ng-zorro-antd/flex';
 import { NzDrawerModule, NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzGridModule } from 'ng-zorro-antd/grid';
-import {
-  NzDatePickerModule,
-  NzRangePickerComponent,
-} from 'ng-zorro-antd/date-picker';
+import { NzDatePickerModule, NzRangePickerComponent } from 'ng-zorro-antd/date-picker';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -59,6 +50,7 @@ import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { SERVER_PATH } from '../../../app.config';
+import { AppUserService } from '../../../services/app-user.service';
 
 @Component({
   selector: 'app-training-registration-form',
@@ -95,33 +87,23 @@ import { SERVER_PATH } from '../../../app.config';
     NzInputNumberModule,
   ],
 })
-export class TrainingRegistrationFormComponent
-  implements OnInit, AfterViewInit
-{
+export class TrainingRegistrationFormComponent implements OnInit, AfterViewInit {
   @ViewChild('detailTable', { static: false }) tbDetailElement!: ElementRef;
   @ViewChild('fileTable', { static: false }) tbFileElement!: ElementRef;
   @Input() dataInput: any;
   table: any;
   fileTable: any;
-
+  private appUserService = inject(AppUserService);
   // Reactive form
   private fb = inject(NonNullableFormBuilder);
   validateForm = this.fb.group({
-    formLayout: this.fb.control<'horizontal' | 'vertical' | 'inline'>(
-      'vertical'
-    ),
+    formLayout: this.fb.control<'horizontal' | 'vertical' | 'inline'>('vertical'),
     EmployeeID: this.fb.control(null, [Validators.required]),
     Purpose: this.fb.control('', [Validators.required]),
     TrainingType: this.fb.control(null, [Validators.required]),
     IsCertification: this.fb.control(false),
-    SessionsPerCourse: this.fb.control(null, [
-      Validators.required,
-      Validators.min(1),
-    ]),
-    SessionDuration: this.fb.control(null, [
-      Validators.required,
-      Validators.min(15),
-    ]),
+    SessionsPerCourse: this.fb.control(null, [Validators.required, Validators.min(1)]),
+    SessionDuration: this.fb.control(null, [Validators.required, Validators.min(15)]),
     TrainingRange: this.fb.control<any[]>([], [Validators.required]),
     CompletionAssessment: this.fb.control(''),
   });
@@ -139,8 +121,7 @@ export class TrainingRegistrationFormComponent
       DateStart: this.validateForm.get('TrainingRange')?.value?.[0],
       DateEnd: this.validateForm.get('TrainingRange')?.value?.[1],
       TrainingRange: this.validateForm.get('TrainingRange')?.value,
-      CompletionAssessment: this.validateForm.get('CompletionAssessment')
-        ?.value,
+      CompletionAssessment: this.validateForm.get('CompletionAssessment')?.value,
     };
   }
 
@@ -203,7 +184,7 @@ export class TrainingRegistrationFormComponent
       originFile: file,
       FileName: '',
       ServerPath: '',
-      OriginName: file.name,
+      OriginName: file.name
     };
     this.fileList = [...this.fileList, newFile];
     this.updateFileTable();
@@ -239,31 +220,29 @@ export class TrainingRegistrationFormComponent
       SessionDuration: this.dataInput.SessionDuration || null,
       TrainingRange: [
         new Date(this.dataInput.DateStart ?? new Date()),
-        new Date(this.dataInput.DateEnd ?? new Date()),
+        new Date(this.dataInput.DateEnd ?? new Date())
       ],
       CompletionAssessment: this.dataInput.CompletionAssessment || '',
     });
 
     // Xử lý file đính kèm nếu có
     if (this.dataInput.LstFile && this.dataInput.LstFile.length > 0) {
-      this.fileList = this.dataInput.LstFile.map(
-        (file: any, index: number) => ({
-          uid: `existing-${index}`,
-          name: file.OriginName || file.FileName,
-          size: file.Size || 0,
-          type: file.Type || 'unknown',
-          status: 'done',
-          url: file.ServerPath,
+      this.fileList = this.dataInput.LstFile.map((file: any, index: number) => ({
+        uid: `existing-${index}`,
+        name: file.OriginName || file.FileName,
+        size: file.Size || 0,
+        type: file.Type || 'unknown',
+        status: 'done',
+        url: file.ServerPath,
+        FileName: file.FileName,
+        ServerPath: file.ServerPath,
+        OriginName: file.OriginName || file.FileName,
+        ID: file.ID,
+        response: {
           FileName: file.FileName,
-          ServerPath: file.ServerPath,
-          OriginName: file.OriginName || file.FileName,
-          ID: file.ID,
-          response: {
-            FileName: file.FileName,
-            ServerPath: file.ServerPath,
-          },
-        })
-      );
+          ServerPath: file.ServerPath
+        }
+      }));
       this.updateFileTable();
     }
 
@@ -285,100 +264,18 @@ export class TrainingRegistrationFormComponent
           control.updateValueAndValidity({ onlySelf: true });
         }
       });
-      this.notification.warning(
-        'Thông báo',
-        'Vui lòng điền đầy đủ thông tin bắt buộc!'
-      );
+      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin bắt buộc!');
       return;
     }
-
-    // Lọc ra các file mới cần upload
-    const newFiles = this.fileList.filter(
-      (file) => file.status === 'new' && !file.isDeleted && !file.IsDeleted
-    );
-
-    // Nếu không có file mới cần upload
-    if (newFiles.length === 0) {
-      this.saveDataToServer();
-      return;
-    }
-
-    // Sử dụng API upload multiple files để upload tất cả file cùng lúc
-    const filesToUpload = newFiles.map((file) => file.originFile);
-
-    // Tạo subPath: "Đăng ký đào tạo/năm/department(theo employeeid)"
-    const formValues = this.validateForm.value;
-    const employeeId = formValues.EmployeeID;
-    const emp = this.lstEmployees.find((e) => e.ID === employeeId);
-    const year = new Date().getFullYear().toString();
-    const departmentName = (emp?.DepartmentName || 'Khác').toString();
-
-    // Chuẩn hóa từng segment để tránh ký tự không hợp lệ
-    const sanitize = (s: string) =>
-      s.replace(/[<>:"/\\|?*\u0000-\u001F]/g, '').trim();
-    const subPath = [
-      sanitize('Đăng ký đào tạo'),
-      sanitize(year),
-      sanitize(departmentName),
-    ].join('/');
-
-    this.trainingRegistrationService
-      .uploadMultipleFiles(filesToUpload, subPath)
-      .subscribe({
-        next: (response) => {
-          if (response.status === 1 && response.data) {
-            // Cập nhật thông tin file trong fileList với kết quả từ server
-            response.data.forEach((uploadedFile: any, index: number) => {
-              const fileIndex = this.fileList.findIndex(
-                (f) => f.uid === newFiles[index].uid
-              );
-              if (fileIndex !== -1) {
-                this.fileList[fileIndex] = {
-                  ...this.fileList[fileIndex],
-                  status: 'done',
-                  FileName: uploadedFile.fileName,
-                  ServerPath: uploadedFile.filePath,
-                  OriginName: uploadedFile.originalName,
-                  ID: 0,
-                };
-              }
-            });
-            this.updateFileTable();
-            this.notification.success(
-              'Thông báo',
-              `Đã upload thành công ${response.data.length} file`
-            );
-            // Lưu dữ liệu sau khi upload THÀNH CÔNG
-            this.saveDataToServer();
-          } else {
-            this.notification.error(
-              'Thông báo',
-              response.message || 'Upload file thất bại'
-            );
-          }
-        },
-        error: (error) => {
-          this.notification.error(
-            'Thông báo',
-            'Upload file thất bại: ' + (error.error?.message || error.message)
-          );
-          // KHÔNG lưu dữ liệu khi upload thất bại
-        },
-      });
-  }
-
-  // Phương thức lưu dữ liệu sau khi upload file
-  saveDataToServer() {
+  
+    // Bước 1: Lưu master trước (không kèm file) để lấy ID/Code
     const formatDate = (date: any) => {
-      return date
-        ? DateTime.fromJSDate(new Date(date)).toFormat('yyyy-MM-dd')
-        : null;
+      return date ? DateTime.fromJSDate(new Date(date)).toFormat('yyyy-MM-dd') : null;
     };
-
     const formValues = this.validateForm.value;
     const trainingRange = formValues.TrainingRange || [];
-
-    // Chuẩn bị dữ liệu chi tiết
+  
+    // Chuẩn bị dữ liệu chi tiết cho lần lưu master
     const detailData = this.table.getData().map((item: any) => ({
       ID: item.ID || 0,
       TrainingRegistrationID: this.dataInput?.ID || 0,
@@ -387,8 +284,136 @@ export class TrainingRegistrationFormComponent
       Note: item.Note || '',
       IsDeleted: false,
     }));
+  
+    const trainingDataMaster = {
+      ID: this.dataInput?.ID || 0,
+      EmployeeID: formValues.EmployeeID,
+      Purpose: formValues.Purpose,
+      TrainingType: formValues.TrainingType,
+      IsCertification: formValues.IsCertification,
+      SessionsPerCourse: formValues.SessionsPerCourse,
+      SessionDuration: formValues.SessionDuration,
+      DateRegister: formatDate(new Date()),
+      DateStart: formatDate(trainingRange[0]),
+      DateEnd: formatDate(trainingRange[1]),
+      CompletionAssessment: formValues.CompletionAssessment || '',
+      LstFile: [],           // Lưu master trước, KHÔNG kèm file
+      LstDetail: detailData, // Lưu chi tiết ngay trong lần đầu
+    };
+  
+    this.trainingRegistrationService.saveData(trainingDataMaster).subscribe({
+      next: (res) => {
+        if (res.status === 1 && res.data) {
+          // Cập nhật lại dataInput với ID/Code trả về
+          this.dataInput = { ...(this.dataInput || {}), ID: res.data.ID, Code: res.data.Code };
+  
+          // Bước 2: Upload file (nếu có)
+          const newFiles = this.fileList.filter(
+            (file) => file.status === 'new' && !file.isDeleted && !file.IsDeleted
+          );
+  
+          if (newFiles.length === 0) {
+            // Không có file mới => hoàn tất sau khi lưu master
+            this.notification.success('Thông báo', 'Đã lưu thông tin đăng ký đào tạo');
+            this.resetForm();
+            this.activeModal.close('success');
+            return;
+          }
+  
+          const filesToUpload = newFiles.map((file) => file.originFile);
+  
+          // Tạo subPath: Đăng ký đào tạo/year/department/Code
+          const employeeId = formValues.EmployeeID;
+          const emp = this.lstEmployees.find((e) => e.ID === employeeId);
+          const year = new Date().getFullYear().toString();
+          const departmentName = (emp?.DepartmentName || 'Khác').toString();
+          const code = (res.data.Code || '').toString();
+  
+          const sanitize = (s: string) => s.replace(/[<>:"/\\|?*\u0000-\u001F]/g, '').trim();
+          const subPath = [
+            sanitize('Đăng ký đào tạo'),
+            sanitize(year),
+            sanitize(departmentName),
+            sanitize(code),
+          ].join('/');
+  
+          this.trainingRegistrationService.uploadMultipleFiles(filesToUpload, subPath).subscribe({
+            next: (uploadRes) => {
+              if (uploadRes.status === 1 && uploadRes.data) {
+                // Cập nhật fileList với kết quả upload
+                uploadRes.data.forEach((uploadedFile: any, index: number) => {
+                  const fileIndex = this.fileList.findIndex((f) => f.uid === newFiles[index].uid);
+                  if (fileIndex !== -1) {
+                    this.fileList[fileIndex] = {
+                      ...this.fileList[fileIndex],
+                      status: 'done',
+                      FileName: uploadedFile.fileName,
+                      ServerPath: uploadedFile.filePath,
+                      OriginName: uploadedFile.originalName,
+                      ID: 0,
+                    };
+                  }
+                });
+                this.updateFileTable();
+                this.notification.success(
+                  'Thông báo',
+                  `Đã upload thành công ${uploadRes.data.length} file`
+                );
+  
+                // Bước 3: Cập nhật lại master chỉ với danh sách file (tránh lưu chi tiết lần 2)
+                this.saveDataToServer(true);
+              } else {
+                this.notification.error(
+                  'Thông báo',
+                  uploadRes.message || 'Upload file thất bại'
+                );
+              }
+            },
+            error: (err) => {
+              console.error('Lỗi upload:', err);
+              this.notification.error(
+                'Thông báo',
+                'Upload file thất bại: ' + (err.error?.message || err.message)
+              );
+            }
+          });
+        } else {
+          this.notification.error('Thông báo', res.message || 'Lưu thông tin đăng ký đào tạo thất bại');
+        }
+      },
+      error: (error) => {
+        console.error('Lỗi khi lưu master:', error);
+        this.notification.error(
+          'Thông báo',
+          'Lưu thông tin đăng ký đào tạo thất bại: ' + (error.error?.message || error.message)
+        );
+      },
+    });
+  }
 
-    // Chuẩn bị danh sách file
+  // Phương thức lưu dữ liệu sau khi upload file
+  // Trong class TrainingRegistrationFormComponent
+  saveDataToServer(skipDetails: boolean = false) {
+    const formatDate = (date: any) => {
+      return date ? DateTime.fromJSDate(new Date(date)).toFormat('yyyy-MM-dd') : null;
+    };
+  
+    const formValues = this.validateForm.value;
+    const trainingRange = formValues.TrainingRange || [];
+  
+    // Chuẩn bị dữ liệu chi tiết (có thể bỏ qua ở lần 2)
+    const detailData = skipDetails
+      ? []
+      : this.table.getData().map((item: any) => ({
+          ID: item.ID || 0,
+          TrainingRegistrationID: this.dataInput?.ID || 0,
+          TrainingRegistrationCategoryID: item.CategoryID,
+          DescriptionDetail: item.Explaination || '',
+          Note: item.Note || '',
+          IsDeleted: false,
+        }));
+  
+    // Chuẩn bị danh sách file (lần 2 sau khi upload)
     const fileData = this.fileList.map((file) => ({
       ID: file.ID || 0,
       FileName: file.FileName || file.name,
@@ -396,8 +421,7 @@ export class TrainingRegistrationFormComponent
       ServerPath: file.ServerPath || '',
       IsDeleted: file.isDeleted || file.IsDeleted || false,
     }));
-
-    // Chuẩn bị dữ liệu để gửi lên server
+  
     const trainingData = {
       ID: this.dataInput?.ID || 0,
       EmployeeID: formValues.EmployeeID,
@@ -413,14 +437,11 @@ export class TrainingRegistrationFormComponent
       LstFile: fileData,
       LstDetail: detailData,
     };
-
+  
     this.trainingRegistrationService.saveData(trainingData).subscribe({
       next: (response) => {
         if (response.status === 1) {
-          this.notification.success(
-            'Thông báo',
-            'Đã lưu thông tin đăng ký đào tạo'
-          );
+          this.notification.success('Thông báo', 'Đã lưu thông tin đăng ký đào tạo');
           this.resetForm();
           this.activeModal.close('success');
         } else {
@@ -446,7 +467,7 @@ export class TrainingRegistrationFormComponent
     if (this.validateForm.valid) {
       this.uploadFilesAndSaveData();
     } else {
-      Object.values(this.validateForm.controls).forEach((control) => {
+      Object.values(this.validateForm.controls).forEach(control => {
         if (control.invalid) {
           control.markAsDirty();
           control.updateValueAndValidity({ onlySelf: true });
@@ -477,60 +498,28 @@ export class TrainingRegistrationFormComponent
     this.activeModal.dismiss('Cross click');
   }
 
-  loadDetail() {
+  loadDetail(){
     this.table = new Tabulator(this.tbDetailElement.nativeElement, {
       height: '40vh',
       layout: 'fitDataStretch',
       columns: [
         { title: 'STT', field: 'STT', width: 50, hozAlign: 'center' },
-        {
-          title: 'ID',
-          field: 'ID',
-          width: 70,
-          hozAlign: 'center',
-          visible: false,
-        },
-        {
-          title: 'Mã hạng mục',
-          field: 'CategoryCode',
-          width: 150,
-          visible: false,
-        },
-        {
-          title: 'CategoryID',
-          field: 'CategoryID',
-          width: 150,
-          hozAlign: 'left',
-          visible: false,
-        },
+        { title: 'ID', field: 'ID', width: 70, hozAlign: 'center', visible:false },
+        { title: 'Mã hạng mục', field: 'CategoryCode', width: 150, visible:false },
+        { title: 'CategoryID', field: 'CategoryID', width: 150, hozAlign: 'left', visible: false, },
         {
           title: 'Hạng mục',
           field: 'CategoryName',
           width: 150,
-          formatter: 'textarea',
+          formatter:'textarea',
         },
         {
           title: 'Diễn giải',
           field: 'Explaination',
           width: 200,
-          editor: 'textarea',
-          formatter: (cell) => {
-            const el = cell.getElement();
-            el.style.whiteSpace = 'pre-wrap';
-            return cell.getValue();
-          },
+          editor:'textarea',
         },
-        {
-          title: 'Ghi chú',
-          field: 'Note',
-          width: 200,
-          editor: 'textarea',
-          formatter: (cell) => {
-            const el = cell.getElement();
-            el.style.whiteSpace = 'pre-wrap';
-            return cell.getValue();
-          },
-        },
+        { title: 'Ghi chú', field: 'Note', width: 200,editor:'textarea'},
       ],
     });
   }
@@ -552,7 +541,7 @@ export class TrainingRegistrationFormComponent
             const rowData = cell.getRow().getData();
             this.removeFile(rowData);
           },
-          headerHozAlign: 'center',
+          headerHozAlign:'center'
         },
         {
           title: 'ID',
@@ -560,20 +549,20 @@ export class TrainingRegistrationFormComponent
           width: 70,
           hozAlign: 'center',
           visible: false,
-          headerHozAlign: 'center',
+          headerHozAlign:'center'
         },
         {
           title: 'Tên file',
           field: 'FileName',
           width: 200,
-          formatter: 'textarea',
+          formatter:'textarea',
         },
         {
           title: 'Đường dẫn Server',
           field: 'ServerPath',
           width: 300,
           hozAlign: 'left',
-          headerHozAlign: 'center',
+          headerHozAlign:'center',
           visible: false,
           formatter: function (cell: any) {
             const url = cell.getValue();
@@ -588,7 +577,7 @@ export class TrainingRegistrationFormComponent
           field: 'OriginName',
           width: 200,
           visible: false,
-          headerHozAlign: 'center',
+          headerHozAlign:'center',
           hozAlign: 'left',
         },
       ],
@@ -598,16 +587,14 @@ export class TrainingRegistrationFormComponent
   updateFileTable() {
     if (this.fileTable) {
       // Lọc ra những file chưa bị xóa
-      const activeFiles = this.fileList.filter(
-        (file: any) => !file.isDeleted && !file.IsDeleted
-      );
+      const activeFiles = this.fileList.filter((file: any) => !file.isDeleted && !file.IsDeleted);
 
       const fileData = activeFiles.map((file: any, index: number) => ({
         ID: file.ID || index + 1,
         FileName: file.name || file.FileName,
         ServerPath: file.ServerPath || SERVER_PATH,
         OriginName: file.name || file.OriginName,
-        file: file,
+        file: file
       }));
       this.fileTable.setData(fileData);
     }
@@ -615,9 +602,7 @@ export class TrainingRegistrationFormComponent
 
   removeFile(rowData: any) {
     // Tìm file trong fileList dựa trên uid của file gốc
-    const fileIndex = this.fileList.findIndex(
-      (file: any) => file === rowData.file
-    );
+    const fileIndex = this.fileList.findIndex((file: any) => file === rowData.file);
 
     if (fileIndex !== -1) {
       const file = this.fileList[fileIndex];
@@ -626,7 +611,7 @@ export class TrainingRegistrationFormComponent
       if (file.ID) {
         this.deletedFileIds.push({
           ID: file.ID,
-          IsDeleted: true,
+          IsDeleted: true
         });
       }
       this.fileList[fileIndex].IsDeleted = true;

@@ -24,12 +24,15 @@ export class TrainingRegistrationService {
     return this.http.post<any>(`${this.apiUrl}/Home/upload`, formData);
   }
 
-  uploadMultipleFiles(files: File[]): Observable<any> {
+  uploadMultipleFiles(files: File[], subPath?: string): Observable<any> {
     const formData = new FormData();
     files.forEach(file => {
       formData.append('files', file);
     });
     formData.append('key', 'TrainingRegistration');
+    if (subPath && subPath.trim()) {
+      formData.append('subPath', subPath.trim());
+    }
     return this.http.post<any>(`${this.apiUrl}/Home/upload-multiple`, formData);
   }
   getEmployee():Observable<any>{

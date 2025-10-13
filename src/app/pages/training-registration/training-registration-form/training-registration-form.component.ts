@@ -51,9 +51,6 @@ import {
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzModalModule } from 'ng-zorro-antd/modal';
-import { APP_LOGIN_NAME } from '../../../app.config';
-import { EMPLOYEE_ID } from '../../../app.config';
-import { ISADMIN } from '../../../app.config';
 import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
 import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
@@ -307,8 +304,24 @@ export class TrainingRegistrationFormComponent
     // Sử dụng API upload multiple files để upload tất cả file cùng lúc
     const filesToUpload = newFiles.map((file) => file.originFile);
 
+    // Tạo subPath: "Đăng ký đào tạo/năm/department(theo employeeid)"
+    const formValues = this.validateForm.value;
+    const employeeId = formValues.EmployeeID;
+    const emp = this.lstEmployees.find((e) => e.ID === employeeId);
+    const year = new Date().getFullYear().toString();
+    const departmentName = (emp?.DepartmentName || 'Khác').toString();
+
+    // Chuẩn hóa từng segment để tránh ký tự không hợp lệ
+    const sanitize = (s: string) =>
+      s.replace(/[<>:"/\\|?*\u0000-\u001F]/g, '').trim();
+    const subPath = [
+      sanitize('Đăng ký đào tạo'),
+      sanitize(year),
+      sanitize(departmentName),
+    ].join('/');
+
     this.trainingRegistrationService
-      .uploadMultipleFiles(filesToUpload)
+      .uploadMultipleFiles(filesToUpload, subPath)
       .subscribe({
         next: (response) => {
           if (response.status === 1 && response.data) {
@@ -333,23 +346,21 @@ export class TrainingRegistrationFormComponent
               'Thông báo',
               `Đã upload thành công ${response.data.length} file`
             );
+            // Lưu dữ liệu sau khi upload THÀNH CÔNG
+            this.saveDataToServer();
           } else {
             this.notification.error(
               'Thông báo',
               response.message || 'Upload file thất bại'
             );
           }
-
-          // Lưu dữ liệu sau khi upload
-          this.saveDataToServer();
         },
         error: (error) => {
           this.notification.error(
             'Thông báo',
             'Upload file thất bại: ' + (error.error?.message || error.message)
           );
-          // Vẫn tiếp tục lưu dữ liệu ngay cả khi upload thất bại
-          this.saveDataToServer();
+          // KHÔNG lưu dữ liệu khi upload thất bại
         },
       });
   }
@@ -469,7 +480,7 @@ export class TrainingRegistrationFormComponent
       height: '40vh',
       layout: 'fitDataStretch',
       columns: [
-        { title: 'STT', field: 'STT', width: 70, hozAlign: 'center' },
+        { title: 'STT', field: 'STT', width: 50, hozAlign: 'center' },
         {
           title: 'ID',
           field: 'ID',
@@ -501,8 +512,23 @@ export class TrainingRegistrationFormComponent
           field: 'Explaination',
           width: 200,
           editor: 'textarea',
+          formatter: (cell) => {
+            const el = cell.getElement();
+            el.style.whiteSpace = 'pre-wrap';
+            return cell.getValue();
+          },
         },
-        { title: 'Ghi chú', field: 'Note', width: 200, editor: 'textarea' },
+        {
+          title: 'Ghi chú',
+          field: 'Note',
+          width: 200,
+          editor: 'textarea',
+          formatter: (cell) => {
+            const el = cell.getElement();
+            el.style.whiteSpace = 'pre-wrap';
+            return cell.getValue();
+          },
+        },
       ],
     });
   }

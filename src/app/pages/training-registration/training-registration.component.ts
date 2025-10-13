@@ -49,6 +49,7 @@ import { AppUserService } from '../../services/app-user.service';
 import { PermissionService } from '../../services/permission.service';
 import { HasPermissionDirective } from '../../directives/has-permission.directive';
 import { DisablePermissionDirective } from '../../directives/disable-permission.directive';
+import { log } from 'ng-zorro-antd/core/logger';
 
 @Component({
   selector: 'app-training-registration',
@@ -111,6 +112,7 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
   isEditLocked: boolean = false;
   private baseCanEdit = false;
   private baseCanDelete = false;
+  public isEditAllowedByRole: boolean = false;
   ngOnInit() {
     this.filter = {
       // dateStart: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
@@ -168,10 +170,10 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
         'Vui lòng chọn ít nhất một dòng trước khi mở form'
       );
     } else {
-     if (this.isEditLocked) {
-        this.notification.warning('Thông báo', 'Phiếu đã được duyệt, không thể sửa/xóa.');
-        return;
-      }
+if (this.isEditLocked && !this.isEditAllowedByRole) {
+            this.notification.warning('Thông báo', 'Biểu mẫu đã qua bước duyệt, không thể sửa.');
+            return;
+        }
       const selectedData = selectedRows[0].getData(); // nếu chỉ chọn 1 dòng, lấy dòng đầu tiên
       const dataOutput = {
         ...selectedData,
@@ -182,7 +184,20 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
       this.openTrainingFormModal(dataOutput);
     }
   }
+ private updateRoleEditPermission() {
+        // Chỉ cho phép sửa khi người hiện tại là người tạo của bản ghi
+        const isOwner = this.selectedRowData.EmployeeID === this.currentUser.EmployeeID;
 
+        this.isEditAllowedByRole = isOwner;
+        console.log('isOwner', isOwner);
+
+
+        // canEdit chỉ true khi có quyền hệ thống và là chủ sở hữu
+        this.canEdit = this.baseCanEdit && isOwner;
+
+        // Nếu muốn xóa cũng chỉ cho chủ sở hữu:
+        this.canDelete = this.baseCanDelete && isOwner;
+    }
   resetFilter() {
     this.filter = {
       dateStart: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
@@ -452,12 +467,55 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
         }
         const approvedData = response?.data || [];
         // Khóa sửa khi có bất kỳ bước có FlowID > 2 đã duyệt (StatusApproved = 1)
+
         this.isEditLocked = approvedData.some((x: any) => x.FlowID > 2 && x.StatusApproved === 1);
+        console.log("iseditlocked",this.isEditLocked);
 
         this.canEdit = this.baseCanEdit && !this.isEditLocked;
         this.canDelete = this.baseCanDelete && !this.isEditLocked;
+        this.updateRoleEditPermission();
       });
   }
+  onDeleteClick() {
+        if (!this.selectedRowData || !this.selectedRowData.ID) {
+            this.notification.warning('Thông báo', 'Vui lòng chọn bản ghi để xóa.');
+            return;
+        }
+        if (this.isEditLocked && !this.isEditAllowedByRole) {
+            this.notification.warning('Thông báo', 'Biểu mẫu đã qua bước duyệt, không thể xóa.');
+            return;
+        }const payload = {
+        ...this.selectedRowData,
+        IsDeleted: true,
+        LstFile: [], // theo yêu cầu mẫu
+        LstDetail: (this.tableDetails?.getData() || []).map((d: any) => ({
+          ID: d.ID,
+          TrainingRegistrationID: d.TrainingRegistrationID,
+          TrainingRegistrationCategoryID: d.TrainingRegistrationCategoryID || d.CategoryID,
+          DescriptionDetail: d.DescriptionDetail ?? d.Explaination ?? '',
+          Note: d.Note ?? '',
+          IsDeleted: false,
+          CreatedBy: d.CreatedBy ?? null,
+          CreatedDate: d.CreatedDate ?? null,
+          UpdatedBy: d.UpdatedBy ?? null,
+          UpdatedDate: d.UpdatedDate ?? null
+        }))
+      };
+        this.trainingRegistrationService.saveData(payload).subscribe({
+            next: (res) => {
+                if (res.status === 1) {
+                    this.notification.success('Thông báo', 'Đã xóa đăng ký đào tạo.');
+                    // Refresh lại dữ liệu
+                    this.getData();
+                } else {
+                    this.notification.error('Thông báo', res.message || 'Xóa thất bại.');
+                }
+            },
+            error: (err) => {
+                this.notification.error('Thông báo', 'Xóa thất bại: ' + (err.error?.message || err.message));
+            },
+        });
+    }
   private getData() {
     const param = {
       dateStart: this.filter.dateStart.toISOString(),
@@ -683,6 +741,7 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
           this.getTrainingRegistrationFile();
           this.getTrainingRegistrationApproved();
         }, 0);
+        this.updateRoleEditPermission()
         console.log('Selected row:', this.selectedRowData);
       } else {
         // Không có dòng nào được chọn

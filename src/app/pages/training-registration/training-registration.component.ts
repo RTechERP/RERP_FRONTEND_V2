@@ -839,6 +839,7 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
             const url = cell.getValue();
             return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
           },
+          visible: false,
         },
         {
           title: 'Tên file gốc',

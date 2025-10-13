@@ -1,6 +1,6 @@
 export const environment = {
-  production: false,
+  production: true,
   apiKey:
     "RTC%$#tEch~`'3keYRTC%$#tEch~`'3keYRTC%$#tEch~`'3keYRTC%$#tEch~`'3keYRTC%$#tEch~`'3keY",
-  host: 'https://localhost:44365/',
+  host: 'http://10.20.29.65:8088/rerpapi/',
 };

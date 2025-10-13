@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { HOST } from '../../../../../app.config';
+// import { HOST } from '../../../../../app.config';
 import { DateTime } from 'luxon';
+import { environment } from '../../../../../../environments/environment';
 @Injectable({
   providedIn: 'root',
 })
@@ -10,7 +11,7 @@ export class InventoryService {
   constructor(private httpclient: HttpClient) {}
   getPGWH(id: number, wareHouseCode: string): Observable<any> {
     return this.httpclient.get(
-      HOST +
+      environment.host +
         `api/inventory/get-productgroup-warehouse?productGroupID=${id}&warehouseCode=${wareHouseCode}`
     );
   }
@@ -28,13 +29,16 @@ export class InventoryService {
       IsStock: IsStock,
       productGroupID: productGroupID.toString(),
     };
-    return this.httpclient.post(HOST + `api/inventory/get-inventory`, params);
+    return this.httpclient.post(
+      environment.host + `api/inventory/get-inventory`,
+      params
+    );
   }
   getInventoryByID(id: number): Observable<any> {
-    return this.httpclient.get<any>(HOST + `api/inventory/${id}`);
+    return this.httpclient.get<any>(environment.host + `api/inventory/${id}`);
   }
   getSupplierSale(): Observable<any> {
-    return this.httpclient.get<any>(HOST + `api/suppliersale`);
+    return this.httpclient.get<any>(environment.host + `api/suppliersale`);
   }
   getInventoryBorrowNCC(
     dateStart: DateTime,
@@ -55,7 +59,7 @@ export class InventoryService {
       WarehouseID: warehouseID.toString(),
     };
     return this.httpclient.post<any>(
-      HOST + `api/inventory/get-inventory-borrow-ncc`,
+      environment.host + `api/inventory/get-inventory-borrow-ncc`,
       params
     );
   }

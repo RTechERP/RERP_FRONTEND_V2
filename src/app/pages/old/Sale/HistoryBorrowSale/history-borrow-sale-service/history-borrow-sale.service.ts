@@ -2,14 +2,15 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { DateTime } from 'luxon';
-import { HOST } from '../../../../../app.config';
+import { environment } from '../../../../../../environments/environment';
+// import { HOST } from '../../../../../app.config';
 @Injectable({
   providedIn: 'root',
 })
 export class HistoryBorrowSaleService {
   constructor(private http: HttpClient) {}
   getCbbEmployee(): Observable<any> {
-    return this.http.get(HOST + `api/employee/get-all`);
+    return this.http.get(environment.host + `api/employee/get-all`);
   }
   getHistoryBorrowSale(
     status: number,
@@ -32,11 +33,12 @@ export class HistoryBorrowSaleService {
       ProductGroupID: productGroupID,
     };
 
-    return this.http.post(HOST + `api/historyborrowsale`, params);
+    return this.http.post(environment.host + `api/historyborrowsale`, params);
   }
   approvedReturned(data: number[], approved: boolean): Observable<any> {
     return this.http.post(
-      HOST + `api/historyborrowsale/approved-returned?isapproved=${approved}`,
+      environment.host +
+        `api/historyborrowsale/approved-returned?isapproved=${approved}`,
       data
     );
   }

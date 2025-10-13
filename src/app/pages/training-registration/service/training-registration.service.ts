@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { HOST } from '../../../app.config';
+import { environment } from '../../../../environments/environment';
+// import { HOST } from '../../../app.config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TrainingRegistrationService {
-  apiUrl: string = HOST + 'api';
+  apiUrl: string = environment.host + 'api';
   constructor(private http: HttpClient) {}
   getAll(param: any): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/trainingregistration`, param);

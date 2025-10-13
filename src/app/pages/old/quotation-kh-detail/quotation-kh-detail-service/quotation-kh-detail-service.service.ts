@@ -1,14 +1,15 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { HOST } from '../../../../app.config';
+// import { HOST } from '../../../../app.config';
 import { DateTime } from 'luxon';
+import { environment } from '../../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class QuotationKhDetailServiceService {
-  private _url = HOST + 'api/QuotationKHDetail/';
+  private _url = environment.host + 'api/QuotationKHDetail/';
   constructor(private http: HttpClient) {}
   getUser(): Observable<any> {
     return this.http.get<any>(this._url + 'get-users');

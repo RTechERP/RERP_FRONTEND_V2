@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { DateTime } from 'luxon';
-import { HOST } from '../../../../../app.config';
+import { environment } from '../../../../../../environments/environment';
+// import { HOST } from '../../../../../app.config';
 @Injectable({
   providedIn: 'root',
 })
@@ -24,17 +25,20 @@ export class ReportImportExportService {
       Find: find,
     };
 
-    return this.http.post(HOST + `api/reportimportexportsale`, body);
+    return this.http.post(
+      environment.host + `api/reportimportexportsale`,
+      body
+    );
   }
   getWarehouse(): Observable<any> {
-    return this.http.get(HOST + `api/warehouse`);
+    return this.http.get(environment.host + `api/warehouse`);
   }
   getHistoryImportExport(
     productID: number,
     wareHouseCode: string
   ): Observable<any> {
     return this.http.get(
-      HOST +
+      environment.host +
         `api/reportimportexportsale/history?productsaleID=${productID}&warehouseCode=${wareHouseCode}`
     );
   }

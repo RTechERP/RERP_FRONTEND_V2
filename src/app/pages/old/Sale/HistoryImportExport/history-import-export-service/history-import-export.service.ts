@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { DateTime } from 'luxon';
-import { HOST } from '../../../../../app.config';
+import { environment } from '../../../../../../environments/environment';
+// import { HOST } from '../../../../../app.config';
 @Injectable({
   providedIn: 'root',
 })
@@ -30,6 +31,6 @@ export class HistoryImportExportService {
       checkedAll: checkedAll,
     };
 
-    return this.http.post(HOST + `api/historyImportExport`, params);
+    return this.http.post(environment.host + `api/historyImportExport`, params);
   }
 }

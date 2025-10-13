@@ -6,13 +6,13 @@ import { Router } from '@angular/router';
 import { UserService } from '../services/user.service';
 import { PermissionService } from '../services/permission.service';
 import { environment } from '../../environments/environment';
-import { HOST } from '../app.config';
+// import { HOST } from '../app.config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = HOST + 'api/home/';
+  private apiUrl = environment.host + 'api/home/';
   private tokenkey = 'token';
 
   constructor(

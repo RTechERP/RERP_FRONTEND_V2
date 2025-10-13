@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { DateTime } from 'luxon';
-import { HOST } from '../../../../../app.config';
+import { environment } from '../../../../../../environments/environment';
+// import { HOST } from '../../../../../app.config';
 @Injectable({
   providedIn: 'root',
 })
@@ -15,7 +16,7 @@ export class BillExportService {
       deparmentID: deparmentID.toString(),
     };
 
-    return this.http.get(HOST + `api/BillExport`, params);
+    return this.http.get(environment.host + `api/BillExport`, params);
   }
   getBillExport(
     khoType: any,
@@ -40,25 +41,30 @@ export class BillExportService {
       checkedAll: checkedAll,
     };
 
-    return this.http.post(HOST + `api/BillExport`, params);
+    return this.http.post(environment.host + `api/BillExport`, params);
   }
   getBillExportDetail(billID: number): Observable<any> {
-    return this.http.get(HOST + `api/BillExportDetail/BillExportID/${billID}`);
+    return this.http.get(
+      environment.host + `api/BillExportDetail/BillExportID/${billID}`
+    );
   }
   approved(data: any, approved: boolean): Observable<any> {
     return this.http.post(
-      HOST + `api/BillExport/approved?isapproved=${approved}`,
+      environment.host + `api/BillExport/approved?isapproved=${approved}`,
       data
     );
   }
   shippedOut(data: any) {
-    return this.http.post(HOST + `api/BillExport/shipped-out`, data);
+    return this.http.post(
+      environment.host + `api/BillExport/shipped-out`,
+      data
+    );
   }
   getCbbUser() {
-    return this.http.get(HOST + `api/users/cbb-user`);
+    return this.http.get(environment.host + `api/users/cbb-user`);
   }
   getCbbSender() {
-    return this.http.get(HOST + `api/users/cbb-sender`);
+    return this.http.get(environment.host + `api/users/cbb-sender`);
   }
   getCbbCustomer() {
     const params: any = {
@@ -68,50 +74,60 @@ export class BillExportService {
       pageNumber: '1',
       pageSize: '10000',
     };
-    return this.http.get(HOST + `api/customer`, { params });
+    return this.http.get(environment.host + `api/customer`, { params });
   }
   getCbbAddressStock(id: number) {
     const params: any = { customerID: id };
-    return this.http.get(HOST + `api/addressstock/get-by-customerid`, params);
+    return this.http.get(
+      environment.host + `api/addressstock/get-by-customerid`,
+      params
+    );
   }
   getCbbSupplierSale() {
-    return this.http.get(HOST + `api/suppliersale`);
+    return this.http.get(environment.host + `api/suppliersale`);
   }
   getCustomerByID(id: number) {
-    return this.http.get(HOST + `api/customer/${id}`);
+    return this.http.get(environment.host + `api/customer/${id}`);
   }
   getCbbProductGroup() {
-    return this.http.get<any>(HOST + `api/ProductGroup?isvisible=false`);
+    return this.http.get<any>(
+      environment.host + `api/ProductGroup?isvisible=false`
+    );
   }
   getNewCodeBillExport(billType: number) {
     return this.http.get<any>(
-      HOST + `api/billexport/get-bill-code?billTypeId=${billType}`
+      environment.host + `api/billexport/get-bill-code?billTypeId=${billType}`
     );
   }
   getOptionProject() {
-    return this.http.get<any>(HOST + `api/billexport/get-all-project`);
+    return this.http.get<any>(
+      environment.host + `api/billexport/get-all-project`
+    );
   }
   saveBillExport(data: any) {
-    return this.http.post<any>(HOST + `api/billexport/save-data`, data);
+    return this.http.post<any>(
+      environment.host + `api/billexport/save-data`,
+      data
+    );
   }
   deleteBillExport(data: any) {
     return this.http.post<any>(
-      HOST + `api/billexport/delete-bill-export`,
+      environment.host + `api/billexport/delete-bill-export`,
       data
     );
   }
   getBillExportByID(id: number) {
-    return this.http.get<any>(HOST + `api/billexport/${id}`);
+    return this.http.get<any>(environment.host + `api/billexport/${id}`);
   }
   getHistoryDeleteBill(data: any) {
     return this.http.post<any>(
-      HOST + `api/billexport/history-delete-bill`,
+      environment.host + `api/billexport/history-delete-bill`,
       data
     );
   }
   getHistoryDeleteBillByID(id: number) {
     return this.http.get<any>(
-      HOST + `api/billexport/history-delete-bill/${id}`
+      environment.host + `api/billexport/history-delete-bill/${id}`
     );
   }
   getHistoryDeleteBillByBillType(
@@ -125,15 +141,17 @@ export class BillExportService {
       billImportID: billimportID,
     };
     return this.http.post<any>(
-      HOST + `api/historydeletebill/get-by-billtype`,
+      environment.host + `api/historydeletebill/get-by-billtype`,
       params
     );
   }
   getOptionProduct(id: number) {
-    return this.http.get<any>(HOST + `api/billexport/get-product?id=${id}`);
+    return this.http.get<any>(
+      environment.host + `api/billexport/get-product?id=${id}`
+    );
   }
   export(id: number, type: number): Observable<Blob> {
-    const url = `${HOST}api/billexport/export-excel?id=${id}&type=${type}`;
+    const url = `${environment.host}api/billexport/export-excel?id=${id}&type=${type}`;
     return this.http.get(url, {
       responseType: 'blob',
     });
@@ -141,7 +159,8 @@ export class BillExportService {
 
   getBillExportQR(warehouseID: number, code: string) {
     return this.http.get<any>(
-      HOST + `api/billexport/scan?code=${code}&warehouseId=${warehouseID}`
+      environment.host +
+        `api/billexport/scan?code=${code}&warehouseId=${warehouseID}`
     );
   }
   getBillExportSynthetic(
@@ -170,21 +189,24 @@ export class BillExportService {
     };
 
     return this.http.post(
-      HOST + `api/BillExport/bill-export-synthetic`,
+      environment.host + `api/BillExport/bill-export-synthetic`,
       params
     );
   }
   getBillDocumentExport(billID: number) {
     return this.http.get<any>(
-      HOST + `api/billdocumentexport/get-by-billid/${billID}`
+      environment.host + `api/billdocumentexport/get-by-billid/${billID}`
     );
   }
   getBillDocumentExportLog(bdeID: number) {
     return this.http.get<any>(
-      HOST + `api/billdocumentexportlog/get-by-bdeid/${bdeID}`
+      environment.host + `api/billdocumentexportlog/get-by-bdeid/${bdeID}`
     );
   }
   saveDataBillDocumentExport(data: any) {
-    return this.http.post<any>(HOST + `api/billdocumentexport/save-data`, data);
+    return this.http.post<any>(
+      environment.host + `api/billdocumentexport/save-data`,
+      data
+    );
   }
 }

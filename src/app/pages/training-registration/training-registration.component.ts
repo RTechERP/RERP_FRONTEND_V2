@@ -109,6 +109,9 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
   canCreate = false;
   canEdit = false;
   canDelete = false;
+  isEditLocked: boolean = false;
+  private baseCanEdit = false;
+  private baseCanDelete = false;
   ngOnInit() {
     this.filter = {
       // dateStart: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
@@ -119,28 +122,28 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
     };
     this.currentUser = this.appUserService.currentUser;
     console.log(this.currentUser);
-    // this.canCreate = this.permissionService.hasPermission(
-    //   'Training_Registration_CRUD'
-    // );
-    // this.canEdit = this.permissionService.hasPermission(
-    //   'Training_Registration_CRUD'
-    // );
-    // this.canDelete = this.permissionService.hasPermission(
-    //   'Training_Registration_CRUD'
-    // );
-
+    this.canCreate = this.permissionService.hasPermission(
+      'Training_Registration_CRUD'
+    );
+    this.canEdit = this.permissionService.hasPermission(
+      'Training_Registration_CRUD'
+    );
+    this.canDelete = this.permissionService.hasPermission(
+      'Training_Registration_CRUD'
+    );
     // Subscribe to permission changes
-    // this.permissionService.permissions$.subscribe((permissions) => {
-    //   this.canCreate = this.permissionService.hasPermission(
-    //     'Training_Registration_CRUD'
-    //   );
-    //   this.canEdit = this.permissionService.hasPermission(
-    //     'Training_Registration_CRUD'
-    //   );
-    //   this.canDelete = this.permissionService.hasPermission(
-    //     'Training_Registration_CRUD'
-    //   );
-    // });
+    this.baseCanEdit = this.canEdit;
+    this.baseCanDelete = this.canDelete;
+    this.permissionService.permissions$.subscribe((permissions) => {
+      this.baseCanEdit = this.permissionService.hasPermission(
+        'Training_Registration_CRUD'
+      );
+      this.baseCanDelete = this.permissionService.hasPermission(
+        'Training_Registration_CRUD'
+      );
+      this.canEdit = this.baseCanEdit && !this.isEditLocked;
+      this.canDelete = this.baseCanDelete && !this.isEditLocked;
+    });
     this.getData();
   }
   onAddClick() {
@@ -173,6 +176,13 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
         'Vui lòng chọn ít nhất một dòng trước khi mở form'
       );
     } else {
+      if (this.isEditLocked) {
+        this.notification.warning(
+          'Thông báo',
+          'Phiếu đã được duyệt, không thể sửa/xóa.'
+        );
+        return;
+      }
       const selectedData = selectedRows[0].getData(); // nếu chỉ chọn 1 dòng, lấy dòng đầu tiên
       const dataOutput = {
         ...selectedData,
@@ -483,6 +493,15 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
       });
   }
 
+  // getTrainingRegistrationApproved() {
+  //   this.trainingRegistrationService
+  //     .getTrainingRegistrationApproved(this.trainingRegistrationID)
+  //     .subscribe((response) => {
+  //       if (response && this.tableApproved) {
+  //         this.tableApproved.setData(response.data);
+  //       }
+  //     });
+  // }
   getTrainingRegistrationApproved() {
     this.trainingRegistrationService
       .getTrainingRegistrationApproved(this.trainingRegistrationID)
@@ -490,6 +509,14 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
         if (response && this.tableApproved) {
           this.tableApproved.setData(response.data);
         }
+        const approvedData = response?.data || [];
+        // Khóa sửa khi có bất kỳ bước có FlowID > 2 đã duyệt (StatusApproved = 1)
+        this.isEditLocked = approvedData.some(
+          (x: any) => x.FlowID > 2 && x.StatusApproved === 1
+        );
+
+        this.canEdit = this.baseCanEdit && !this.isEditLocked;
+        this.canDelete = this.baseCanDelete && !this.isEditLocked;
       });
   }
   private getData() {
@@ -570,6 +597,11 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
           width: 100,
           headerHozAlign: 'center',
           hozAlign: 'center',
+        },
+        {
+          title: 'Mã phiếu',
+          field: 'TrainingCode',
+          width: 150,
         },
         {
           title: 'Cấp chứng chỉ',

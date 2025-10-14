@@ -70,11 +70,11 @@
                             <img src="assets/icon/action_add_item_16.png" /> Thêm
                         </button>
                         <button class="btn-edit" nz-button nzType="default" (click)="onEditClick()" nzSize="small"
-                            [disabled]="isEditLocked || !canEdit">
+                            [disabled]="( !isEditAllowedByRole)">
                             <img src="assets/icon/action_edit_item_16.png" />Sửa
                         </button>
                         <button class="btn-delete" nz-button nzType="default" nzSize="small"
-                            [disabled]="isEditLocked || !canDelete">
+                            [disabled]="( !isEditAllowedByRole)">
                             <img src="assets/icon/action_delete_item_16.png" />Xóa
                         </button>
                         <!-- Trưởng bộ phận -->

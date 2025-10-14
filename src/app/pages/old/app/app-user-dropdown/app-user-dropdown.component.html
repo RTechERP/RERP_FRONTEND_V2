@@ -1,0 +1,36 @@
+<span nz-dropdown [nzDropdownMenu]="menu" nzPlacement="bottomRight">
+    <ng-content select="[trigger]"></ng-content>
+</span>
+
+<nz-dropdown-menu #menu="nzDropdownMenu">
+    <div class="user-dropdown">
+        <div class="user-dropdown-header">
+            <img src="assets/icon/user.png" alt="avatar" class="avatar" />
+            <div class="user-info">
+                <div class="user-name">{{ employeeCode }} - {{ fullName }}</div>
+                <div class="user-role">{{ positionName }}</div>
+            </div>
+            <button nz-button nzType="text" class="logout-btn" (click)="onLogout()">
+                <i nz-icon nzType="poweroff" nzTheme="outline"></i>
+            </button>
+        </div>
+
+        <ul nz-menu>
+            <li nz-menu-item><img src="assets/icon/user-infomation.png" class="user-icon me-2" />Thông tin cá nhân</li>
+            <li nz-menu-item> <img src="assets/icon/padlock.png" class="user-icon me-2" />Đổi mật khẩu</li>
+            <li nz-menu-divider></li>
+            <li nz-menu-item>
+                <div class="menu-item-flex-row">
+                    <div class="label">
+                        <img src="assets/icon/mail.png" class="user-icon me-2" />
+                        <span>Nhận thông báo email</span>
+                    </div>
+                    <nz-switch></nz-switch>
+                </div>
+            </li>
+            <li nz-menu-divider></li>
+            <li nz-menu-item> <img src="assets/icon/power.png" class="user-icon me-2" (click)="onLogout()" />Đăng xuất
+            </li>
+        </ul>
+    </div>
+</nz-dropdown-menu>

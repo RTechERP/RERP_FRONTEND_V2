@@ -1,6 +1,515 @@
-<nav>
-    <a routerLink="/welcome">Yêu cầu báo giá</a> |
-    <a routerLink="/app/menu">menu</a> |
-    <a href="#" (click)="logout()">Logout</a>
-</nav>
 <!-- <router-outlet></router-outlet> -->
+
+<div class="homepage-container w-100 px-3 px-md-4 py-3 py-md-4 pb-5 pb-md-4">
+    <div class="home-topbar d-flex align-items-center gap-2 gap-md-3 mb-3 mb-md-4">
+        <div class="d-flex align-items-center gap-2">
+            <div class="brand-logo c-img">
+                <img src="assets/images/RTC_image.png" alt="RTC-logo" />
+            </div>
+        </div>
+
+        <div class="flex-grow-1"></div>
+
+        <form class="search-wrap d-none d-sm-flex align-items-center" (ngSubmit)="searchData()">
+            <nz-input-group [nzSuffix]="suffixSearch" class="w-100 py-2">
+                <input nz-input placeholder="Tìm kiếm..." [(ngModel)]="keyword" (keyup.enter)="searchData()"
+                    name="searchKeyword" />
+            </nz-input-group>
+            <ng-template #suffixSearch>
+                <nz-icon nzType="search" (click)="searchData()"></nz-icon>
+            </ng-template>
+        </form>
+        <div class="d-flex align-items-center gap-2">
+            <app-app-notifycation-dropdown [items]="notifItems" (itemClick)="onPick($event)">
+                <button nz-button nzType="text" class="text-light fs-7" trigger>
+                    <nz-badge [nzOverflowCount]="9" [nzCount]="notifItems.length + 67" class="fs-7">
+                        <!-- <nz-icon nzType="bell" style="font-size: 30px" /> -->
+                        <img src="assets/icon/notification_home.png">
+                    </nz-badge>
+                </button>
+            </app-app-notifycation-dropdown>
+            <!-- <button nz-button nz-dropdown [nzDropdownMenu]="appmenu" nzPlacement="bottomRight" nzType="text"
+                class="text-light">
+                <nz-icon nzType="appstore" nzTheme="outline" style="color: black; font-size: 30px" />
+            </button> -->
+            <!-- <nz-dropdown-menu #appmenu="nzDropdownMenu">
+                <div class="app-launcher">
+                    <div class="app-launcher-inner">
+                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')"><img
+                                src="asset/image/icon/order-food.png" /><span>Đặt cơm</span></a>
+                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
+                            <span>Đặt xe</span></a>
+                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')"><img
+                                src="asset/image/icon/order-food.png" /><span>Đặt cơm</span></a>
+                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
+                            <span>Đặt xe</span></a>
+                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')"><img
+                                src="asset/images/icon/order-food.png" /><span>Đặt cơm</span></a>
+                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
+                            <span>Đặt xe</span></a>
+                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')"><img
+                                src="asset/image/icon/order-food.png" /><span>Đặt cơm</span></a>
+                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
+                            <span>Đặt xe</span></a>
+                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')"><img
+                                src="asset/image/icon/order-food.png" /><span>Đặt cơm</span></a>
+                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
+                            <span>Đặt xe</span></a>
+                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')"><img
+                                src="asset/image/icon/order-food.png" /><span>Đặt cơm</span></a>
+                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
+                            <span>Đặt xe</span></a>
+                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')"><img
+                                src="asset/image/icon/order-food.png" /><span>Đặt cơm</span></a>
+                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
+                            <span>Đặt xe</span></a>
+                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')"><img
+                                src="asset/image/icon/order-food.png" /><span>Đặt cơm</span></a>
+                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
+                            <span>Đặt xe</span></a>
+                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')"><img
+                                src="asset/image/icon/order-food.png" /><span>Đặt cơm</span></a>
+                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
+                            <span>Đặt xe</span></a>
+                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')"><img
+                                src="assets/icon/order-food.png" /><span>Đặt cơm</span></a>
+                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
+                            <span>Đặt xe</span></a>
+                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')"><img
+                                src="asset/image/icon/order-food.png" /><span>Đặt cơm</span></a>
+                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
+                            <span>Đặt xe</span></a>
+                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')"><img
+                                src="asset/image/icon/order-food.png" /><span>Đặt cơm</span></a>
+                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
+                            <span>Đặt xe</span></a>
+                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')"><img
+                                src="asset/image/icon/order-food.png" /><span>Đặt cơm</span></a>
+                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
+                            <span>Đặt xe</span></a>
+                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')">
+                            <img src="asset/image/icon/order-food.png" /><span>Đặt cơm</span></a>
+                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
+                            <span>Đặt xe</span></a>
+
+                        
+                    </div>
+                </div>
+            </nz-dropdown-menu> -->
+            <!-- </button> -->
+            <div>
+                <app-app-user-dropdown>
+                    <button nz-button nzType="text" trigger>
+                        <!-- <img src="assets/icon/user.png" style="width: 30px; height: 30px; border-radius: 50%" /> -->
+                        <img src="assets/icon/user.png">
+                    </button>
+                </app-app-user-dropdown>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 g-md-4">
+        <!-- Left column -->
+        <div class="col-12 col-lg-6">
+            <div class="row g-3 g-md-4">
+                <!-- 2 phần tử đầu -->
+                <div class="col-12 col-md-6">
+                    <div class="panel white-card h-100">
+                        <h6 class="panel-title">THÔNG BÁO QUAN TRỌNG</h6>
+                        <div class="panel-body">
+                            <div class="placeholder-row">
+                                <nz-icon nzType="notification" nzTheme="outline" style="margin-right: 5px" />Tổ chức lễ
+                                trung thu co CBNV
+                            </div>
+                            <div class="placeholder-row">
+                                <nz-icon nzType="notification" nzTheme="outline" style="margin-right: 5px" />Tổ chức lễ
+                                trung thu co CBNV
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="panel white-card">
+
+
+                        <div class="card">
+                            <nz-calendar [nzFullscreen]="false" [(ngModel)]="today" [nzCustomHeader]="customHeader">
+                            </nz-calendar>
+
+                            <!-- Template custom cho từng ô ngày -->
+                            <ng-template #dateCell let-date>
+                                <div class="custom-date-cell"
+                                    [ngClass]="{sunday: isSunday(date) && isCurrentMonth(date)}">
+                                    {{ date.getDate() }}
+                                </div>
+                            </ng-template>
+
+                        </div>
+
+                        <ng-template #customHeader>
+                            <div style="padding: 8px">
+                                <h6>Tháng {{ today | date:'MM' }} - {{ today | date:'yyyy' }}</h6>
+                            </div>
+                        </ng-template>
+
+
+                        <!-- <h6 class="panel-title"> Tháng {{ today | date:'MM' }} - {{ today | date:'yyyy' }}</h6>
+                        <div class="panel-body calendar-container">
+
+                           
+                            <div class="calendar-header d-flex justify-content-between mb-2">
+                                <div *ngFor="let day of getWeekDays()"
+                                    class="calendar-day-header text-center fw-bold text-muted">
+                                    {{ day }}
+                                </div>
+                            </div>
+
+                            <div class="calendar-grid">
+                                <div *ngFor="let day of calendarDays; let i = index" class="calendar-day"
+                                    [class.current-day]="isCurrentDay(day)" [class.weekend]="isWeekend(day, i)">
+                                    {{ day }}
+                                </div>
+                            </div>
+                        </div> -->
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 mt-4">
+                    <div class="panel white-card">
+                        <h6 class="panel-title">NGHỈ PHÉP ({{totalEmployeeOnleave}}) - {{ today | date:'dd/MM/yyyy' }}
+                        </h6>
+                        <div class="panel-body" style="height: 38vh; overflow: auto;">
+                            <nz-collapse>
+                                @for (panel of employeeOnleaves; track panel) {
+                                <nz-collapse-panel class="fw-bold"
+                                    [nzHeader]="panel.DepartmentName + ' (' + panel.Employees.length + ')'"
+                                    [nzActive]="true">
+
+                                    <nz-list nzSize="small" class="fw-normal ">
+                                        @for (item of panel.Employees; track item;let i = $index) {
+                                        <nz-list-item>{{i + 1}}. {{ item.EmployeeLeave
+                                            }}{{item.TimeOnLeaveText}}</nz-list-item>
+                                        }
+                                    </nz-list>
+                                </nz-collapse-panel>
+                                }
+                            </nz-collapse>
+
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="col-12 col-md-6 mt-4">
+                    <div class="panel white-card">
+                        <h6 class="panel-title">WFH ({{totalEmployeeWfh}})- {{ today | date:'dd/MM/yyyy' }}</h6>
+                        <div class="panel-body" style="height: 38vh; overflow: auto;">
+                            <nz-collapse>
+                                @for (panel of employeeWfhs; track panel) {
+                                <nz-collapse-panel class="fw-bold"
+                                    [nzHeader]="panel.DepartmentName + ' (' + panel.Employees.length + ')'"
+                                    [nzActive]="true">
+
+                                    <nz-list nzSize="small" class="fw-normal">
+                                        @for (item of panel.Employees; track item;let i = $index) {
+                                        <nz-list-item>{{i + 1}}. {{ item.EmployeeName
+                                            }}{{item.TimeWFHText}}{{item.IsApprovedBGDText}}</nz-list-item>
+
+                                        }
+                                    </nz-list>
+                                </nz-collapse-panel>
+                                }
+                            </nz-collapse>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- 2 phần tử sau chiếm hết hàng -->
+                <!-- <div class="col-12">
+                    <div class="panel white-card">
+                        <h6 class="panel-title">Danh sách nghỉ</h6>
+                        <div class="panel-body leave-list-container">
+                            <!-- Legend -->
+                <!-- <div class="leave-legend d-flex gap-3 mb-3">
+                                <div class="d-flex align-items-center gap-1">
+                                    <div class="legend-dot" style="background-color: #28a745"></div>
+                                    <small>Đã duyệt</small>
+                                </div>
+                                <div class="d-flex align-items-center gap-1">
+                                    <div class="legend-dot" style="background-color: #ffc107"></div>
+                                    <small>Chờ duyệt</small>
+                                </div>
+                                <div class="d-flex align-items-center gap-1">
+                                    <div class="legend-dot" style="background-color: #dc3545"></div>
+                                    <small>Từ chối</small>
+                                </div>
+                            </div> -->
+
+                <!-- Table -->
+                <!-- <div class="table-responsive">
+                                <div #tblEmployeeOnleaves> </div> -->
+                <!-- <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Nhân viên</th>
+                                            <th>Ngày nghỉ</th>
+                                            <th>Lý do</th>
+                                            <th>Trạng thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr *ngFor="let item of employeeOnleaves">
+                                            <td>{{ item.employee }}</td>
+                                            <td>{{ item.leaveDate }}</td>
+                                            <td>{{ item.reason }}</td>
+                                            <td>
+                                                <span class="badge"
+                                                    [style.background-color]="getStatusColor(item.status)"
+                                                    [class]="getStatusClass(item.status)">
+                                                    {{ getStatusText(item.status) }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table> -->
+                <!-- </div>
+                        </div>
+                    </div>
+                </div> -->
+                <!-- <div class="col-12">
+                    <div class="panel white-card">
+                        <h6 class="panel-title">HIỆU SUẤT CÔNG VIỆC</h6>
+                        <div class="panel-body performance-container"> -->
+                <!-- Tỉ lệ công việc hoàn thành theo phòng ban -->
+                <!-- <div class="mb-4">
+                                <h6 class="fw-bold mb-3">
+                                    Tỉ lệ công việc hoàn thành theo phòng ban
+                                </h6>
+                                <div *ngFor="let dept of departmentPerformance" class="mb-2">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="fw-medium">{{ dept.department }}</span>
+                                        <span class="fw-bold">{{ dept.completionRate }}%</span>
+                                    </div>
+                                    <div class="progress" style="height: 8px">
+                                        <div class="progress-bar" role="progressbar"
+                                            [style.width.%]="dept.completionRate" style="background-color: #0ea5e9">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div> -->
+
+                <!-- Phân bố trạng thái công việc -->
+                <!-- <div>
+                                <h6 class="fw-bold mb-3">Phân bố trạng thái công việc</h6>
+                                <div class="d-flex justify-content-center">
+                                    <div class="work-status-chart position-relative"
+                                        style="width: 120px; height: 120px"> -->
+                <!-- Donut chart placeholder - có thể thay bằng chart library thực tế -->
+                <!-- <div
+                                            class="chart-placeholder d-flex align-items-center justify-content-center h-100">
+                                            <div class="text-center">
+                                                <div class="chart-circle" style="
+                            width: 100px;
+                            height: 100px;
+                            border-radius: 50%;
+                            background: conic-gradient(
+                              #87ceeb 0deg 90deg,
+                              #4169e1 90deg 306deg,
+                              #dc143c 306deg 360deg
+                            );
+                            position: relative;
+                          ">
+                                                    <div class="chart-inner" style="
+                              position: absolute;
+                              top: 50%;
+                              left: 50%;
+                              transform: translate(-50%, -50%);
+                              width: 60px;
+                              height: 60px;
+                              background: white;
+                              border-radius: 50%;
+                              display: flex;
+                              align-items: center;
+                              justify-content: center;
+                            ">
+                                                        <small class="fw-bold">80%</small>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-2">
+                                                    <div *ngFor="let status of workStatusDistribution"
+                                                        class="d-flex align-items-center justify-content-center gap-1 mb-1">
+                                                        <div class="status-dot" [style.background-color]="status.color">
+                                                        </div>
+                                                        <small>{{ status.percentage }}%
+                                                            {{ status.status }}</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div> -->
+                <!-- </div>
+                    </div>
+                </div> -->
+            </div>
+        </div>
+
+        <!-- Right column -->
+        <div class="col-12 col-lg-6 d-flex flex-column">
+            <div class="panel apps-panel flex-grow-1">
+                <h6 class="panel-title">Danh sách các module</h6>
+                <nz-carousel #carousel [nzEffect]="effect" [nzAutoPlay]="false" [nzDots]="shouldShowPagination"
+                    [nzDotPosition]="'bottom'" (nzAfterChange)="onCarouselChange($event)" nzCarouselContent>
+                    @for (chunk of chunkedApplications; track $index) {
+                    <div nz-carousel-content>
+                        <div class="row g-3 g-md-4">
+                            <div class="col-6 col-sm-4 col-md-3 col-lg-3 col-xl-2">
+                                <div class="card border-0 app-card" routerLink="/crm" style="cursor: pointer"
+                                    role="button" tabindex="0">
+                                    <div
+                                        class="card-body d-flex flex-column align-items-center justify-content-center text-center">
+                                        <div class="img-content d-flex align-items-center justify-content-center mb-1"
+                                            [style.width.px]="100" [style.height.px]="80" [style.color]=""
+                                            style="font-weight: 700; font-size: 18px">
+                                            <ng-container *ngIf="true">
+                                                <img [src]="'assets/icon/menu_crm_64.png'" alt="icon" />
+                                            </ng-container>
+                                            <ng-template #initialIcon>
+                                                CRM
+                                            </ng-template>
+                                        </div>
+                                        <h6 class="card-title mb-0 fw-medium text-dark"
+                                            style="font-size: 0.875rem; line-height: 1.2">
+                                            CRM
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-6 col-sm-4 col-md-3 col-lg-3 col-xl-2">
+                                <div class="card border-0 app-card" routerLink="/warehouse" style="cursor: pointer"
+                                    role="button" tabindex="0">
+                                    <div
+                                        class="card-body d-flex flex-column align-items-center justify-content-center text-center">
+                                        <div class="img-content d-flex align-items-center justify-content-center mb-1"
+                                            [style.width.px]="100" [style.height.px]="80" [style.color]=""
+                                            style="font-weight: 700; font-size: 18px">
+                                            <ng-container *ngIf="true">
+                                                <img [src]="'assets/icon/menu_warehouse_64.png'" alt="icon" />
+                                            </ng-container>
+                                            <ng-template #initialIcon>
+                                                KHO
+                                            </ng-template>
+                                        </div>
+                                        <h6 class="card-title mb-0 fw-medium text-dark"
+                                            style="font-size: 0.875rem; line-height: 1.2">
+                                            KHO
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-sm-4 col-md-3 col-lg-3 col-xl-2">
+                                <div class="card border-0 app-card" routerLink="/hrm" style="cursor: pointer"
+                                    role="button" tabindex="0">
+                                    <div
+                                        class="card-body d-flex flex-column align-items-center justify-content-center text-center">
+                                        <div class="img-content d-flex align-items-center justify-content-center mb-1"
+                                            [style.width.px]="100" [style.height.px]="80" [style.color]=""
+                                            style="font-weight: 700; font-size: 18px">
+                                            <ng-container *ngIf="true">
+                                                <img [src]="'assets/icon/menu_hrm_64.png'" alt="icon"
+                                                    class="tile-icon-img" />
+                                            </ng-container>
+                                            <ng-template #initialIcon>
+                                                HRM
+                                            </ng-template>
+                                        </div>
+                                        <h6 class="card-title mb-0 fw-medium text-dark"
+                                            style="font-size: 0.875rem; line-height: 1.2">
+                                            HRM
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-sm-4 col-md-3 col-lg-3 col-xl-2">
+                                <div class="card border-0 app-card" routerLink="/category" style="cursor: pointer"
+                                    role="button" tabindex="0">
+                                    <div
+                                        class="card-body d-flex flex-column align-items-center justify-content-center text-center">
+                                        <div class="img-content d-flex align-items-center justify-content-center mb-1"
+                                            [style.width.px]="100" [style.height.px]="80" [style.color]=""
+                                            style="font-weight: 700; font-size: 18px">
+                                            <ng-container *ngIf="true">
+                                                <img [src]="'assets/icon/menu_categories_64.png'" alt="icon"
+                                                    class="tile-icon-img" />
+                                            </ng-container>
+                                            <ng-template #initialIcon>
+                                                DANH MỤC CHUNG
+                                            </ng-template>
+                                        </div>
+                                        <h6 class="card-title mb-0 fw-medium text-dark"
+                                            style="font-size: 0.875rem; line-height: 1.2">
+                                            DANH MỤC CHUNG
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-sm-4 col-md-3 col-lg-3 col-xl-2">
+                                <div class="card border-0 app-card" routerLink="/project" style="cursor: pointer"
+                                    role="button" tabindex="0">
+                                    <div
+                                        class="card-body d-flex flex-column align-items-center justify-content-center text-center">
+                                        <div class="img-content d-flex align-items-center justify-content-center mb-1"
+                                            [style.width.px]="100" [style.height.px]="80" [style.color]=""
+                                            style="font-weight: 700; font-size: 18px">
+                                            <ng-container *ngIf="true">
+                                                <img [src]="'assets/icon/menu_project_64.png'" alt="icon"
+                                                    class="tile-icon-img" />
+                                            </ng-container>
+                                            <ng-template #initialIcon>
+                                                DỰ ÁN
+                                            </ng-template>
+                                        </div>
+                                        <h6 class="card-title mb-0 fw-medium text-dark"
+                                            style="font-size: 0.875rem; line-height: 1.2">
+                                            DỰ ÁN
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- @for (app of chunk; track $index) {
+                            <div class="col-6 col-sm-4 col-md-3 col-lg-3 col-xl-2">
+                                <div class="card border-0 app-card" [routerLink]="app.link ? ['/' + app.link] : null"
+                                    style="cursor: pointer" role="button" tabindex="0">
+                                    <div
+                                        class="card-body d-flex flex-column align-items-center justify-content-center text-center">
+                                        <div class="img-content d-flex align-items-center justify-content-center mb-1"
+                                            [style.width.px]="100" [style.height.px]="80" [style.color]="app.color"
+                                            style="font-weight: 700; font-size: 18px">
+                                            <ng-container *ngIf="app.image; else initialIcon">
+                                                <img [src]="'assets/images/' + app.image" alt="icon"
+                                                    class="tile-icon-img" />
+                                            </ng-container>
+                                            <ng-template #initialIcon>
+                                                {{ app.title.charAt(0) }}
+                                            </ng-template>
+                                        </div>
+                                        <h6 class="card-title mb-0 fw-medium text-dark"
+                                            style="font-size: 0.875rem; line-height: 1.2">
+                                            {{ app.title }}
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+                            } -->
+                        </div>
+                    </div>
+                    }
+                </nz-carousel>
+            </div>
+        </div>
+    </div>
+</div>

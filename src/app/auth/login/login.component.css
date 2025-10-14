@@ -230,7 +230,7 @@ body {
   justify-content: center;
   align-items: center;
   /* background: #f4f6f9;    */
-  background: linear-gradient(135deg, #d8edff 0%, #bbecff 100%);
+  background: linear-gradient(135deg, #bbd6e9 0%, #bdcdd8 100%);
 }
 .auth-wrapper .col-md-6 img {
   width: 96%;

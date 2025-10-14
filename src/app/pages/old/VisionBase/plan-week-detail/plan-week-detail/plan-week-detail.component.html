@@ -1,0 +1,62 @@
+<!-- quotation-kh-detail.component.html -->
+<div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">KẾ HOẠCH TUẦN</h6>
+    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+  </div>
+  
+  <div class="modal-body p-1">
+    <form>
+      <div class="container-fluid">
+        <div class="row g-2 align-items-end">
+  
+          <div class="col-auto">
+            <button nz-button nzType="default" nzSize="default" (click)="decreaseWeek()" class="flex-1">
+                <nz-icon nzType="minus"></nz-icon>
+            </button>
+          </div>
+  
+          <div class="col-md-4">
+            <label class="mb-0 fs-12">Từ ngày</label>
+            <nz-date-picker name="startDate" class="w-100" nzSize="default"
+                            [(ngModel)]="filters.startDate" [nzDisabled]="true">
+            </nz-date-picker>
+          </div>
+  
+          <div class="col-md-4">
+            <label class="mb-0 fs-12">Đến ngày</label>
+            <nz-date-picker name="endDate" class="w-100" nzSize="default"
+                            [(ngModel)]="filters.endDate" [nzDisabled]="true">
+            </nz-date-picker>
+          </div>
+  
+          <div class="col-auto">
+            <button nz-button nzType="default" nzSize="default" (click)="increaseWeek()" class="flex-1">
+                <nz-icon nzType="plus"></nz-icon>
+            </button>
+          </div>
+          
+          <div class="col-md-3">
+            <label class="mb-0 fs-12">Họ tên</label>
+            <nz-select [nzDisabled]="true" nzShowSearch nzAllowClear nzSize="default" class="w-100"
+                       [(ngModel)]="filters.userId" name="userId">
+              <nz-option *ngFor="let item of filterUserData"
+                         [nzValue]="item.UserID"
+                         [nzLabel]="item.Code + '-' + item.FullName">
+              </nz-option>
+            </nz-select>
+          </div>
+        </div>
+  
+        <!-- Bảng sản phẩm chi tiết -->
+        <div class="row mt-3">
+          <div #tb_MainTable id="tb_MainTable"></div>
+        </div>
+      </div>
+    </form>
+  
+    <div class="modal-footer py-1">
+      <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
+      <button nz-button nzType="primary" nzSize="default" (click)="saveAndClose()">Lưu</button>
+    </div>
+  </div>
+  

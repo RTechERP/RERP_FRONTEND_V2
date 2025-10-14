@@ -17,12 +17,11 @@ import { jwtDecode } from 'jwt-decode';
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
-
 export class LoginComponent {
   loginForm: FormGroup;
   errorMessage = '';
-submitted = false;
-token:any;
+  submitted = false;
+  token: any;
   constructor(
     private formBuilder: FormBuilder,
     private authService: AuthService,
@@ -34,27 +33,27 @@ token:any;
     });
   }
 
-onLogin(): void {
-  this.submitted = true;
-  if (this.loginForm.invalid) return;
+  onLogin(): void {
+    this.submitted = true;
+    if (this.loginForm.invalid) return;
 
-  this.authService.login(this.loginForm.value).subscribe({
-    next: (res) => {
-      this.token=this.authService.getToken();
-      try {
-    const decoded: any = jwtDecode  (this.token);
-    console.log("decoded token:", decoded);
-  } catch (error) {
-    console.error("Invalid token", error);
+    this.authService.login(this.loginForm.value).subscribe({
+      next: (res) => {
+        this.token = this.authService.getToken();
+        try {
+          const decoded: any = jwtDecode(this.token);
+          console.log('decoded token:', decoded);
+        } catch (error) {
+          console.error('Invalid token', error);
+        }
+        console.log('token login:', this.token);
+        this.router.navigate(['/home']);
+      },
+      error: (err) => {
+        this.errorMessage = err.error.message;
+      },
+    });
   }
-      console.log("token login:",this.token);
-      this.router.navigate(['/welcome']);
-    },
-    error: (err) => {
-      this.errorMessage = err.error.message;
-    },
-  });
-}
 }
 
 // import { CommonModule } from '@angular/common';

@@ -1,0 +1,143 @@
+<!-- handover-minutes.component.html -->
+<div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">BIÊN BẢN GIAO HÀNG</h6>
+    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body">
+    <!-- Nội dung tab hiện tại -->
+    <div class="tab-content">
+        <form>
+            <div class="row g-1">
+                <!-- Column 1: Customer Info -->
+                <div class="col-md-4">
+                    <div class="row g-1">
+                        <div class="col-md-6 mt-1">
+                            <label class="mb-0 fs-12">Khách hàng</label>
+                            <nz-select nzShowSearch name="customerId" nzPlaceHolder="Chọn khách hàng" nzAllowClear
+                                nzSize="default" class="w-100" [(ngModel)]="formData.customerId"
+                                (ngModelChange)="onCustomerChange($event)">
+                                <nz-option *ngFor="let customer of formCustomerData" [nzValue]="customer.ID"
+                                    [nzLabel]="customer.CustomerCode + ' - ' + customer.CustomerName"></nz-option>
+                            </nz-select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="mb-0 fs-12">Tên khách hàng</label>
+                            <input class="form-control form-control-sm fs-12" [(ngModel)]="formData.customerName"
+                                name="customerName" disabled>
+                        </div>
+                        <div class="col-md-6 mt-1">
+                            <label class="mb-0 fs-12">Admin Sale</label>
+                            <nz-select nzShowSearch name="adminSaleId" nzPlaceHolder="Chọn admin sale" nzAllowClear
+                                nzSize="default" class="w-100" [(ngModel)]="formData.adminSaleId">
+                                <nz-option *ngFor="let item of formAdminSaleAndEmployeesData" [nzValue]="item.ID"
+                                    [nzLabel]="item.Code + ' - ' + item.FullName"></nz-option>
+                            </nz-select>
+                        </div>
+                        <div class="col-md-6 mt-1">
+                            <label class="mb-0 fs-12">Sale phụ trách</label>
+                            <nz-select nzShowSearch name="saleId" nzPlaceHolder="Chọn sale phụ trách" nzAllowClear
+                                nzSize="default" class="w-100" [(ngModel)]="formData.saleId">
+                                <nz-option *ngFor="let item of formAdminSaleAndEmployeesData" [nzValue]="item.ID"
+                                    [nzLabel]="item.Code + ' - ' + item.FullName"></nz-option>
+                            </nz-select>
+                        </div>
+                        <div class="col-md-2 mt-1 d-flex justify-content-center align-items-center">
+                            <label nz-checkbox [(ngModel)]="formData.rtcVisionCheckbox" name="rtcVisionCheckbox"
+                                (ngModelChange)="onRtcVisionCheckboxChange($event)">
+                                RTC Vision
+                            </label>
+                        </div>
+                        <div class="col-md-5 mt-1">
+                            <label class="mb-0 fs-12">Số lượng RTC Vision</label>
+                            <input type="number" class="form-control form-control-sm fs-12"
+                                [(ngModel)]="formData.quantityRTCVision" name="quantityRTCVision"
+                                (ngModelChange)="calculateAll()" [disabled]="!formData.rtcVisionCheckbox">
+                        </div>
+                        <div class="col-md-5 mt-1">
+                            <label class="mb-0 fs-12">Đơn giá RTC Vision</label>
+                            <nz-input-number [(ngModel)]="formData.unitPriceRTCVision" [nzFormatter]="formatCurrency" nzReadOnly="true"
+                                name="unitPriceRTCVision" (ngModelChange)="calculateAll()"
+                                class="form-control form-control-sm fs-12 w-100"> 
+                            </nz-input-number>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column 2: Employee Info -->
+                <div class="col-md-4">
+                    <div class="row g-1">
+                        <div class="col-md-12">
+                            <label class="mb-0 fs-12">Dự án</label>
+                            <nz-select nzShowSearch name="projectId" nzPlaceHolder="Chọn dự án" nzAllowClear
+                                nzSize="default" class="w-100" [(ngModel)]="formData.projectId"
+                                (ngModelChange)="onProjectChange($event)">
+                                <nz-option *ngFor="let item of formProjectData" [nzValue]="item.ID"
+                                    [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"></nz-option>
+                            </nz-select>
+                        </div>
+                        <div class="col-md-12 mt-1">
+                            <label class="mb-0 fs-12">Tỷ lệ COM</label>
+                            <input type="number" class="form-control form-control-sm fs-12"
+                                [(ngModel)]="formData.rateCOM" name="rateCOM" (ngModelChange)="calculateAll()">
+                        </div>
+                        <div class="col-md-12 mt-1">
+                            <label class="mb-0 fs-12">Đơn giá / lần giao</label>
+                            <input type="number" class="form-control form-control-sm fs-12"
+                                [(ngModel)]="formData.UnitPriceDelivery" name="UnitPriceDelivery"
+                                (ngModelChange)="calculatorBankCharge()">
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Column 3: Handover Info -->
+                <div class="col-md-4">
+                    <div class="row g-1">
+                        <div class="col-md-12">
+                            <label class="mb-0 fs-12">Tên dự án</label>
+                            <input class="form-control form-control-sm fs-12" [(ngModel)]="formData.projectName"
+                                name="projectName" disabled>
+                        </div>
+                        <div class="col-md-12 mt-1">
+                            <label class="mb-0 fs-12">Chọn ngạch</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <nz-radio-group [(ngModel)]="radioValue" name="radioValue" nzButtonStyle="solid"
+                                    class="fs-12" (ngModelChange)="onRadioValueChange($event)">
+                                    <label nz-radio-button [nzValue]="false" aria-selected="true">Chính ngạch</label>
+                                    <label nz-radio-button [nzValue]="true">Tiểu ngạch</label>
+                                </nz-radio-group>
+                                <label nz-checkbox [(ngModel)]="formData.groupTotalPrice" name="groupTotalPriceCheckbox"
+                                    class="ms-3" (ngModelChange)="onGroupTotalPriceChange($event)">
+                                    Gộp tổng giá nhập chưa VAT
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-12 mt-1">
+                            <label class="mb-0 fs-12">Số lần giao hàng</label>
+                            <input type="text" class="form-control form-control-sm fs-12"
+                                [(ngModel)]="formData.QuantityDelivery" name="QuantityDelivery"
+                                (ngModelChange)="calculatorBankCharge()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button nz-button nzType="primary" style="margin-top: 10px;" nzSize="small" class="me-2"
+                (click)="addNewRow()">
+                <nz-icon nzType="plus"></nz-icon> Thêm cụm
+            </button>
+            <button nz-button nzType="primary" style="margin-top: 10px;" nzSize="small" class="me-2"
+                (click)="addChildRow()">
+                <nz-icon nzType="plus"></nz-icon> Thêm item
+            </button>
+
+            <div class="mt-2">
+                <div #tb_Detail id="tb_Detail"></div>
+            </div>
+        </form>
+
+        <div class="modal-footer py-1">
+            <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
+            <button nz-button nzType="primary" nzSize="default" (click)="saveData()">Lưu</button>
+        </div>
+    </div>

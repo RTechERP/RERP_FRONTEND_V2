@@ -1,0 +1,169 @@
+<div class="modal-header bg-primary text-uppercase py-2">
+  <h6 class="modal-title text-white">KHÁCH HÀNG CHI TIẾT</h6>
+  <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body p-1">
+  <form>
+    <div class="container-fluid">
+      <div class="row mt-1 g-2 align-items-end">
+        <div class="col-md-6">
+          <div class="row">
+            <div class="col-md-3">
+              <label class="mb-0 fs-12">Tỉnh <span style="color: red">*</span></label>
+              <nz-select nzShowSearch nzAllowClear nzSize="default" class="w-100" [(ngModel)]="formData.province"
+                name="province" (ngModelChange)="onProvinceChange($event)">
+                <nz-option *ngFor="let item of provincesData" [nzValue]="item.Name" [nzLabel]="item.Name + ' - ' + item.Code">
+                </nz-option>
+              </nz-select>
+            </div>
+            <div class="col-md-2">
+              <label class="mb-0 fs-12">Mã khách <span style="color: red">*</span></label>
+              <input nz-input type="text" [(ngModel)]="formData.provinceCode" name="provinceCode" disabled="true">
+            </div>
+            <div class="col-md-1">
+              <label class="mb-0 fs-12 invisible">-</label>
+              <input nz-input type="text" placeholder="-" style="text-align: center;" readonly="true">
+            </div>
+            <div class="col-md-2">
+              <label class="mb-0 fs-12 invisible">Mã khách</label>
+              <input nz-input type="text" [(ngModel)]="formData.customerCode" name="customerCode" >
+            </div>
+            <div class="col-md-4">
+              <label class="mb-0 fs-12 ">Ký hiệu <span style="color: red">*</span></label>
+              <input nz-input type="text" [(ngModel)]="formData.customerShortName" name="customerShortName">
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="row">
+              <div class="col-md-4">
+                <label class="mb-0 fs-12 ">Mã số thuế</label>
+                <input nz-input type="text" [(ngModel)]="formData.taxCode" name="taxCode">
+              </div>
+              <div class="col-md-6">
+                <label class="mb-0 fs-12">Loại hình</label>
+                <nz-select nzShowSearch nzAllowClear nzPlaceHolder="--Chọn loại hình--" nzSize="default" class="w-100"
+                  [(ngModel)]="formData.customerType" name="customerType">
+                  <nz-option *ngFor="let item of customerTypeData" [nzValue]="item.value" [nzLabel]="item.customerType">
+                  </nz-option>
+                </nz-select>
+              </div>
+              <div class="col-md-2">
+                <label class="mb-0 fs-12 invisible">Big Account</label>
+                <label class="mb-0 fs-12" nz-checkbox [(ngModel)]="formData.isBigAccount" name="isBigAccount">Big Account</label>
+              </div>
+            </div>
+        </div>
+      </div>
+
+      <div class="row g-2 mt-1 align-items-end">
+        <div class="col-md-6">
+          <label class="mb-0 fs-12">Tên khách hàng <span style="color: red">*</span></label>
+          <input nz-input class="w-100" nzSize="default" [(ngModel)]="formData.fullName" name="fullName"
+            placeholder="Nhập tên khách hàng">
+        </div>
+
+        <div class="col-md-6 d-flex align-items-end">
+          <div class="flex-grow-1">
+            <label class="mb-0 fs-12">Sản phẩm đã bán</label>
+            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="--Chọn sản phẩm đã bán--" nzSize="default" class="w-100"
+              [(ngModel)]="formData.businessField" name="businessField">
+              <nz-option *ngFor="let item of businessFieldData" [nzValue]="item.ID" [nzLabel]="item.Name + ' - ' + item.Note" ></nz-option>
+            </nz-select>
+          </div>
+          <div>
+            <label class="mb-0 fs-12 invisible">Button</label>
+            <button nz-button nzType="primary" nzSize="default">
+              <nz-icon nzType="plus"></nz-icon>
+            </button>
+          </div>
+        </div>        
+      </div>
+
+      <div class="row g-2 align-items-end">
+        <div class="col-md-6">
+          <label class="mb-0 fs-12">Địa chỉ <span style="color: red">*</span></label>
+          <input nz-input class="w-100" nzSize="default" [(ngModel)]="formData.address" name="address"
+            placeholder="Nhập địa chỉ">
+        </div>
+
+        <div class="col-md-3">
+          <label class="mb-0 fs-12">Công nợ</label>
+          <input nz-input class="w-100" nzSize="default" [(ngModel)]="formData.debt" name="debt"
+            placeholder="Nhập công nợ">
+        </div>
+        <div class="col-md-3">
+          <label class="mb-0 fs-12">Lưu ý chứng từ</label>
+          <input nz-input class="w-100" nzSize="default" [(ngModel)]="formData.noteVoucher" name="noteVoucher"
+            placeholder="Nhập lưu ý chứng từ">
+        </div>
+      </div>
+      <div class="row g-2 align-items-end">
+        <div class="col-md-6 d-flex align-items-end">
+          <div class="flex-grow-1">
+            <label class="mb-0 fs-12">Ngành nghề <span style="color: red">*</span></label>
+            <nz-select nzShowSearch nzAllowClear nzPlaceHolder="--Chọn ngành nghề--" nzSize="default" class="w-100"
+              [(ngModel)]="formData.majorId" name="majorId">
+              <nz-option *ngFor="let item of majorData" [nzValue]="item.ID" [nzLabel]="item.Name">
+              </nz-option>
+            </nz-select>
+          </div>
+          <div>
+            <label class="mb-0 fs-12 invisible">Button</label>
+            <button nz-button nzType="primary" nzSize="default" (click)="openCustomerMajorDetail()">
+              <nz-icon nzType="plus"></nz-icon>
+            </button>
+          </div>
+        </div>        
+        <div class="col-md-6">
+          <label class="mb-0 fs-12">Đầu mối gửi chứng từ bản cứng</label>
+          <input nz-input class="w-100" nzSize="default" [(ngModel)]="formData.hardCopyVoucher" name="hardCopyVoucher">
+        </div>
+      </div>
+      <div class="row g-2 align-items-end">
+        <div class="col-md-6">
+          <label class="mb-0 fs-12">SP chi tiết</label>
+          <input nz-input class="w-100" nzSize="default" [(ngModel)]="formData.productDetails" name="productDetails">
+        </div>
+        <div class="col-md-6">
+          <label class="mb-0 fs-12">Đầu mối gửi check chứng từ</label>
+          <input nz-input class="w-100" nzSize="default" [(ngModel)]="formData.checkVoucher" name="checkVoucher">
+        </div>
+      </div>
+      <div class="row g-2 align-items-end">
+        <div class="col-md-6">
+          <label class="mb-0 fs-12">Lưu ý giao</label>
+          <input nz-input class="w-100" nzSize="default" [(ngModel)]="formData.noteDelivery" name="noteDelivery">
+        </div>
+        <div class="col-md-6">
+          <label class="mb-0 fs-12">Ngày chốt công nợ</label>
+          <nz-date-picker name="closingDateDebt" class="w-100" nzSize="default"
+          nzFormat="dd/MM/yyyy"
+          [(ngModel)]="formData.closingDateDebt"></nz-date-picker>
+        </div>
+      </div>
+
+      <!-- Bảng sản phẩm chi tiết -->
+      <div class="row mt-3">
+        <nz-splitter style="height: 50vh;">
+          <nz-splitter-panel [nzCollapsible]="true" nzDefaultSize="60%">
+            <div #tb_DataTable id="tb_DataTable"></div>
+          </nz-splitter-panel>
+          <nz-splitter-panel [nzCollapsible]="{ start: true }" nzDefaultSize="20%">
+            <div #tb_AddressTable id="tb_AddressTable"></div>
+          </nz-splitter-panel>
+          <nz-splitter-panel nzDefaultSize="20%">
+            <div #tb_SaleTable id="tb_SaleTable"></div>
+          </nz-splitter-panel>
+        </nz-splitter>
+      </div>
+    </div>
+  </form>
+
+  <div class="modal-footer py-1">
+    <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
+    <button nz-button nzType="primary" nzSize="default" (click)="saveAndClose()">Lưu</button>
+  </div>
+</div>

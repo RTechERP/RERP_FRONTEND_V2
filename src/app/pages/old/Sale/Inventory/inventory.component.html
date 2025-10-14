@@ -1,0 +1,64 @@
+<ng-container class="w-100">
+    <nz-splitter>
+      <nz-splitter-panel nzDefaultSize="100%">
+        <div class="card h-100 border-0 rounded-0">
+          <div class="card-header bg-white p-1">
+            <div class="d-flex gap-1">
+              <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="openModalProductGroup()">
+                <nz-icon nzType="edit" nzTheme="fill" /> Sửa nhóm TB
+              </button>
+              <!-- <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="updateProductSale()">
+                <nz-icon nzType="edit" nzTheme="fill" /> Sửa thiết bị
+              </button> -->
+              <!-- <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="openModalImportExcel()">
+                <nz-icon nzType="file-excel" nzTheme="outline" /> Nhập stock excel
+              </button> -->
+              <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
+                <nz-icon nzType="file-excel" nzTheme="outline" /> Xuất tồn kho
+              </button>
+              <button class="fs-12 btn" nz-button nzType="default" nzSize="small" >
+                <nz-icon nzType="file-excel" nzTheme="outline" /> Nhập kho
+              </button>
+              <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="openModalInventoryBorrowNCC()" >
+                <nz-icon nzType="file-excel" nzTheme="outline" /> Báo cáo NCC
+              </button>
+              <button class="fs-12 btn" nz-button nzType="default" nzSize="small">
+                <nz-icon nzType="file-excel" nzTheme="outline" /> Yêu cầu mượn
+              </button>
+              <div style="display: flex; width: 40%;" class="ms-auto">      
+                <label nz-checkbox [(ngModel)]="searchParam.checkedStock" name="checkedStock"  (nzCheckedChange)="getAllProductSale()">Stock</label>
+                <label nz-checkbox [(ngModel)]="searchParam.checkedAll" name="checkedAll"  (nzCheckedChange)="getAllProductSale()">Tất cả</label>
+                <input type="text" nzSize="small" width="100px"  [(ngModel)]="searchParam.Find" name="Find" nz-input class="fs-12" style="font-style: italic; flex: 1;" placeholder="Tìm kiếm" />
+                <button nz-button nzType="primary" nzSize="small" (click)="getdataFind()">
+                  <nz-icon nzType="search"></nz-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="card-body p-0">
+            <nz-splitter>
+              <nz-splitter-panel>
+                <nz-splitter nzLayout="vertical">
+                    <!-- table productGroup -->
+                  <nz-splitter-panel nzSize="70%">
+                    <div id="table_productgroup"></div>
+                  </nz-splitter-panel>
+                  <!-- table productGroupWareHouse -->
+                  <nz-splitter-panel>
+                    <div id="table_pgwarehouse"></div>
+                  </nz-splitter-panel>
+                </nz-splitter>
+              </nz-splitter-panel>
+              <nz-splitter-panel [nzCollapsible]="true" nzSize="70%">
+                <div id="table_inventory"></div>
+              </nz-splitter-panel>
+            </nz-splitter>
+          </div>
+        </div>
+      </nz-splitter-panel>
+    </nz-splitter>
+  </ng-container>
+
+
+
+<!-- modal thêm productsale -->

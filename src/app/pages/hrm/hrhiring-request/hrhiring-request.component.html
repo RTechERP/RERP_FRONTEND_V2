@@ -91,7 +91,7 @@
                                 </button>
 
                                 <!-- Thêm nút toggle detail -->
-                                
+
 
                                 <button class="btn-add" nz-button nzType="default" nzSize="small" (click)="add()">
                                     <!-- <nz-icon nzType="plus" /> Thêm -->
@@ -150,7 +150,25 @@
                                         </ul>
                                     </nz-dropdown-menu>
                                 </div>
+                                <div class="btn-group">
+                                    <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
+                                        [nzDropdownMenu]="menuHR">
+                                        <img src="assets/icon/action_confirm_hr_16.png" />TBP HR xác nhận
+                                        <i nz-icon nzType="down"></i>
+                                    </button>
 
+                                    <nz-dropdown-menu #menuHR="nzDropdownMenu">
+                                        <ul nz-menu>
+                                            <li nz-menu-item (click)="approvedTBPNew(1,3)" [nzDisabled]="canCancelHCNS">
+                                                <img src="assets/icon/action_approved_16.png" />TBP HR duyệt
+                                            </li>
+                                            <li nz-menu-item (click)="approvedTBPNew(2,3)" [nzDisabled]="canCancelHCNS">
+                                                <img src="assets/icon/action_unapproved_16.png" />TBP HR hủy duyệt
+                                            </li>
+
+                                        </ul>
+                                    </nz-dropdown-menu>
+                                </div>
                                 <!-- BGĐ xác nhận -->
                                 <div class="btn-group">
                                     <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
@@ -161,10 +179,10 @@
 
                                     <nz-dropdown-menu #menuBGD="nzDropdownMenu">
                                         <ul nz-menu>
-                                            <li nz-menu-item (click)="approvedTBPNew(1,3)" read="!canApproveBGD">
+                                            <li nz-menu-item (click)="approvedTBPNew(1,4)" read="!canApproveBGD">
                                                 <img src="assets/icon/action_approved_16.png" />BGĐ duyệt
                                             </li>
-                                            <li nz-menu-item (click)="approvedTBPNew(2,3)"
+                                            <li nz-menu-item (click)="approvedTBPNew(2,4)"
                                                 [nzDisabled]="!canApproveBGD">
                                                 <img src="assets/icon/action_unapproved_16.png" />BGĐ hủy
                                                 duyệt
@@ -197,7 +215,7 @@
                                     [disabled]="!canCancelBGD" (click)="cancelApprovedBGD()">
                                     <nz-icon nzType="stop" nzTheme="outline" /> BGĐ Hủy
                                 </button> -->
-<button nz-button nzType="default" nzSize="small" (click)="toggleDetailPanel()"
+                                <button nz-button nzType="default" nzSize="small" (click)="toggleDetailPanel()"
                                     [title]="showDetail ? 'Ẩn chi tiết' : 'Hiện chi tiết'">
                                     <img src="assets/icon/action_info_16.png" />
                                     {{ showDetail ? 'Ẩn chi tiết' : 'Xem chi tiết' }}
@@ -238,7 +256,7 @@
                 <div class="card-header bg-white p-2 border-bottom">
                     <div class="d-flex justify-content-between align-items-center">
                         <h6 class="m-0 fw-bold">
-                           Chi tiết phiếu yêu cầu tuyển dụng
+                            Chi tiết phiếu yêu cầu tuyển dụng
                         </h6>
                         <div class="d-flex gap-1">
                             <button nz-button nzType="primary" nzSize="small" [disabled]="!selectedHRHIRING"
@@ -392,7 +410,7 @@
 
                                     <!-- Individual statuses -->
                                     <div class="row g-2">
-                                         <div class="col-3">
+                                        <div class="col-3">
                                             <label>TBP:</label>
                                             <div class="detail-value">
                                                 <span class="badge"
@@ -442,7 +460,8 @@
                                                 date:'dd/MM/yyyy ' }} ({{ getApproverName('TBP') }})</div>
                                             <div *ngIf="getApprovalDate('HCNS')">HCNS: {{ getApprovalDate('HCNS') |
                                                 date:'dd/MM/yyyy ' }} ({{ getApproverName('HCNS') }})</div>
-                                            <div *ngIf="getApprovalDate('TBPHCNS')">TBP HR: {{ getApprovalDate('TBPHCNS')
+                                            <div *ngIf="getApprovalDate('TBPHCNS')">TBP HR: {{
+                                                getApprovalDate('TBPHCNS')
                                                 |
                                                 date:'dd/MM/yyyy ' }} ({{ getApproverName('TBPHCNS') }})</div>
                                             <div *ngIf="getApprovalDate('BGD')">BGĐ: {{ getApprovalDate('BGD') |

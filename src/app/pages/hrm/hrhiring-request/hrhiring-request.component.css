@@ -28,3 +28,14 @@
   font-size: 0.75rem;
 }
 
+:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-tab-btn {
+ 
+  opacity: 1 !important;
+}
+:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #1677ff !important;
+  font-weight: 600;
+}
+:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-ink-bar {
+  background: #1677ff !important;
+}

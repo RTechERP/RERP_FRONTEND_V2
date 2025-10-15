@@ -23,7 +23,7 @@ import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import Swal from 'sweetalert2';
-
+import { NzTabsModule } from 'ng-zorro-antd/tabs';
 // Tabulator
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
@@ -58,8 +58,12 @@ import { DisablePermissionDirective } from '../../../directives/disable-permissi
     NzModalModule,
     NzTagModule,
     NzDropDownModule,
+<<<<<<< HEAD
     HasPermissionDirective,
     DisablePermissionDirective, // Thêm directive mới
+=======
+    NzTabsModule
+>>>>>>> XuanLuong
   ],
   templateUrl: './hrhiring-request.component.html',
   styleUrls: ['./hrhiring-request.component.css'],
@@ -68,6 +72,21 @@ export class HrhiringRequestComponent
   implements OnInit, AfterViewInit, OnDestroy
 {
   @ViewChild('tb_HRHIRING', { static: false }) tb_HRHIRINGRef!: ElementRef;
+@ViewChild('tb_approvals', { static: false }) tbApprovalsRef!: ElementRef;
+private tbApprovals!: Tabulator;
+
+private normBool(v:any){ return v===true||v===1||v==='1'||v==='true'; }
+fmtDate(v:any){
+  if(!v) return '';
+  const d = new Date(v);
+  return isNaN(d as any) ? '' : d.toLocaleDateString('vi-VN');
+}
+private statusText(a:any){ return this.normBool(a.IsApprove) ? 'Đã duyệt' : (a.DateApprove ? 'Đã hủy' : 'Chờ duyệt'); }
+private statusBadge(a:any){
+  const t=this.statusText(a);
+  const c=t==='Đã duyệt'?'#16a34a':t==='Đã hủy'?'#dc2626':'#d97706';
+  return `<span class="badge" style="background:${c};color:#fff">${t}</span>`;
+}
 
   tb_HRHIRING!: Tabulator;
   selectedHRHIRING: any = null;
@@ -117,12 +136,14 @@ export class HrhiringRequestComponent
         this.drawTable(this.tb_HRHIRINGRef.nativeElement);
       }
     }, 100);
+    
   }
 
   ngOnDestroy(): void {
     if (this.tb_HRHIRING) {
       this.tb_HRHIRING.destroy();
     }
+    this.tbApprovals?.destroy();
   }
 
   loadHrHiringRequestData(): void {
@@ -973,41 +994,59 @@ export class HrhiringRequestComponent
     return 'Thỏa thuận';
   }
 
-  public getApprovalStatusText(type: string): string {
-    if (!this.selectedHRHIRING) return 'Chờ duyệt';
+ public getApprovalStatusText(type: 'TBP'|'TBPHCNS'|'HCNS'|'BGD'): string {
+  if (!this.approvalStatus?.approvals) return 'Chờ duyệt';
 
-    const row = this.selectedHRHIRING;
-    switch (type) {
-      case 'HCNS':
-        return row.HCNSApproved ? 'Đã duyệt' : 'Chờ duyệt';
-      case 'TBP':
-        if (!row.HCNSApproved) return 'Chờ HCNS';
-        return row.TBPApproved ? 'Đã duyệt' : 'Chờ duyệt';
-      case 'BGD':
-        if (!row.TBPApproved) return 'Chờ TBP';
-        return row.BGDApproved ? 'Đã duyệt' : 'Chờ duyệt';
-      default:
-        return 'Chờ duyệt';
-    }
+  const stepMap = { TBP: 1, HCNS: 2,TBPHCNS:3, BGD: 4 };
+  const a = this.approvalStatus.approvals.find((x: any) => x.Step === stepMap[type]);
+  if (!a) return 'Chờ duyệt';
+  if (a.DateApprove && a.IsApprove) return 'Đã duyệt';
+  if (a.DateApprove && !a.IsApprove) return 'Đã hủy';
+  return 'Chờ duyệt';
+}
+
+  public getApprovalStatusColor(type: 'TBP'|'TBPHCNS'|'HCNS'|'BGD'): string {
+  const status = this.getApprovalStatusText(type);
+  if (status === 'Đã duyệt') return 'green';
+  if (status === 'Đã hủy')   return 'red';
+  return 'orange'; // Chờ duyệt
+}
+
+// 3) Tổng quan: suy từ từng step thay vì selectedHRHIRING
+public getOverallApprovalStatus(): string {
+  if (!this.approvalStatus?.approvals) return 'Chưa bắt đầu';
+
+  const s = this.approvalStatus.approvals as Array<any>;
+  const byStep = (n: number) => s.find(x => x.Step === n);
+
+  const tbp = byStep(1);  // TBP
+  const hr  = byStep(2);  // HCNS
+  const bgd = byStep(3);  // BGĐ
+
+  // Nếu có bất kỳ step bị hủy
+  if ((tbp?.DateApprove && tbp.IsApprove === false) ||
+      (hr?.DateApprove  && hr.IsApprove  === false) ||
+      (bgd?.DateApprove && bgd.IsApprove === false)) {
+    return 'Bị từ chối';
   }
 
-  public getApprovalStatusColor(type: string): string {
-    const status = this.getApprovalStatusText(type);
-    if (status.includes('Đã duyệt')) return 'green';
-    if (status.includes('Chờ')) return 'orange';
-    return 'default';
-  }
+  if (bgd?.DateApprove && bgd.IsApprove) return 'Hoàn tất';
+  if (hr?.DateApprove  && hr.IsApprove)  return 'Chờ BGĐ duyệt';
+  if (tbp?.DateApprove && tbp.IsApprove) return 'Chờ HR duyệt';
+  return 'Chờ TBP duyệt';
+}
+public getApproverName(type: 'TBP'|'TBPHCNS'|'HCNS'|'BGD'): string {
+  const stepMap = { TBP: 1, HCNS: 2,TBPHCNS:3, BGD: 4 };
+  const a = this.approvalStatus?.approvals?.find((x:any) => x.Step === stepMap[type]);
+  return a?.ApproverFullName || '';
+}
+public getApprovalDate(type: 'TBP'|'TBPHCNS'|'HCNS'|'BGD'): string | null {
+  if (!this.approvalStatus?.approvals) return null;
 
-  public getOverallApprovalStatus(): string {
-    if (!this.selectedHRHIRING) return 'Chưa bắt đầu';
-
-    const row = this.selectedHRHIRING;
-    if (row.BGDApproved) return 'Hoàn tất';
-    if (row.TBPApproved) return 'Chờ BGĐ duyệt';
-    if (row.HCNSApproved) return 'Chờ TBP duyệt';
-    return 'Chờ HCNS duyệt';
-  }
-
+  const stepMap = { TBP: 1, HCNS: 2,TBPHCNS:3, BGD: 4 };
+  const a = this.approvalStatus.approvals.find((x: any) => x.Step === stepMap[type]);
+  return a?.DateApprove || null;
+}
   public getOverallApprovalStatusColor(): string {
     const status = this.getOverallApprovalStatus();
     if (status === 'Hoàn tất') return 'green';
@@ -1035,7 +1074,12 @@ export class HrhiringRequestComponent
       // Load additional detail data if needed
       this.loadDetailData(this.selectedHRHIRING.ID);
     });
-
+this.tb_HRHIRING.on('rowClick', (_e: any, row: any) => {
+  this.selectedHRHIRING = row.getData();
+  this.loadApprovalStatus(this.selectedHRHIRING.ID);
+  this.loadDetailData(this.selectedHRHIRING.ID);
+  this.showDetail = true; // 
+});
     this.tb_HRHIRING.on('rowSelectionChanged', (data: any) => {
       this.selectedHRHIRING = data.length ? data[0] : null;
       if (this.selectedHRHIRING) {
@@ -1045,6 +1089,7 @@ export class HrhiringRequestComponent
         this.resetApprovalStatus();
       }
     });
+    
 
     this.tb_HRHIRING.on('tableBuilt', () => {
       this.isTableReady = true;
@@ -1098,9 +1143,10 @@ export class HrhiringRequestComponent
           this.canCancelHCNS = response.data.canCancelHCNS || false;
           this.canCancelTBP = response.data.canCancelTBP || false;
           this.canCancelBGD = response.data.canCancelBGD || false;
-
+  this.renderApprovals();
           console.log('Approval status loaded:', this.approvalStatus);
         }
+      
       },
       error: (error) => {
         console.error('Error loading approval status:', error);
@@ -1290,7 +1336,7 @@ export class HrhiringRequestComponent
         cancelButtonColor: '#dc3545 ',
         confirmButtonText: 'Duyệt',
         cancelButtonText: 'Hủy',
-      }).then((result) => {
+      }).then((result: any) => {
         if (result.isConfirmed) {
           this.handleApproved(dataSelected, step, isApprove, '');
         }
@@ -1369,5 +1415,40 @@ export class HrhiringRequestComponent
       });
     }
   }
+  
+private buildApprovalsTable(): void {
+  if (!this.tbApprovalsRef || this.tbApprovals) return;
+  this.tbApprovals = new Tabulator(this.tbApprovalsRef.nativeElement, {
+    ...DEFAULT_TABLE_CONFIG,
+    layout: 'fitDataStretch',
+      rowHeader: false,       
+  selectable: false,  
+    index: 'Step',
+    columns: [
+      { title:'Bước', field:'Step', width:80, hozAlign:'center' },
+      { title:'Tên bước', field:'StepName', width:180 },
+         { title:'Trạng thái', field:'_Status', width:120, formatter:(c:any)=>this.statusBadge(c.getRow().getData()) , hozAlign:'center' },
+      { title:'Ngày duyệt', field:'DateApprove', width:160, formatter:(c:any)=>this.fmtDate(c.getValue()) , hozAlign:'center' },
+      { title:'Người duyệt', field:'ApproverFullName', width:180 },
+    
+      { title:'Lý do hủy', field:'ReasonUnApprove', formatter:'textarea', width:220 },
+      { title:'Ghi chú', field:'Note', formatter:'textarea', width:200 },
+    ],
+  } as any);
+}
+
+private renderApprovals(): void {
+  if (!this.approvalStatus?.approvals) return;
+  this.buildApprovalsTable();
+  const rows = this.approvalStatus.approvals.map((a:any)=>({ ...a, _Status: this.statusText(a) }));
+  this.tbApprovals.replaceData(rows);
+  setTimeout(()=>this.tbApprovals.redraw(true), 30);
+}
+onTabChange(i: number) {
+  if (i === 1) {
+    // tab “Thông tin duyệt”
+    setTimeout(() => this.renderApprovals(), 0);
+  }
+}
   //#endregion
 }

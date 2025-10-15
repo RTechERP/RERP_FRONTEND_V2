@@ -91,11 +91,7 @@
                                 </button>
 
                                 <!-- Thêm nút toggle detail -->
-                                <button nz-button nzType="default" nzSize="small" (click)="toggleDetailPanel()"
-                                    [title]="showDetail ? 'Ẩn chi tiết' : 'Hiện chi tiết'">
-                                    <img src="assets/icon/action_info_16.png" />
-                                    {{ showDetail ? 'Ẩn chi tiết' : 'Xem chi tiết' }}
-                                </button>
+                                
 
                                 <button class="btn-add" nz-button nzType="default" nzSize="small" (click)="add()">
                                     <!-- <nz-icon nzType="plus" /> Thêm -->
@@ -201,7 +197,11 @@
                                     [disabled]="!canCancelBGD" (click)="cancelApprovedBGD()">
                                     <nz-icon nzType="stop" nzTheme="outline" /> BGĐ Hủy
                                 </button> -->
-
+<button nz-button nzType="default" nzSize="small" (click)="toggleDetailPanel()"
+                                    [title]="showDetail ? 'Ẩn chi tiết' : 'Hiện chi tiết'">
+                                    <img src="assets/icon/action_info_16.png" />
+                                    {{ showDetail ? 'Ẩn chi tiết' : 'Xem chi tiết' }}
+                                </button>
                                 <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="viewForm()">
                                     <img src="assets/icon/action_print_16.png" /> In phiếu
                                 </button>
@@ -238,8 +238,7 @@
                 <div class="card-header bg-white p-2 border-bottom">
                     <div class="d-flex justify-content-between align-items-center">
                         <h6 class="m-0 fw-bold">
-                            {{ selectedHRHIRING ? 'Vị trí: ' + selectedHRHIRING.EmployeeChucVuHDName : 'Chi tiết yêu
-                            cầu tuyển dụng' }}
+                           Chi tiết phiếu yêu cầu tuyển dụng
                         </h6>
                         <div class="d-flex gap-1">
                             <button nz-button nzType="primary" nzSize="small" [disabled]="!selectedHRHIRING"

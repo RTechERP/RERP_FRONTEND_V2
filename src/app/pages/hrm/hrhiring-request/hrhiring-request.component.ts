@@ -1067,7 +1067,12 @@ public getApprovalDate(type: 'TBP'|'TBPHCNS'|'HCNS'|'BGD'): string | null {
       // Load additional detail data if needed
       this.loadDetailData(this.selectedHRHIRING.ID);
     });
-
+this.tb_HRHIRING.on('rowClick', (_e: any, row: any) => {
+  this.selectedHRHIRING = row.getData();
+  this.loadApprovalStatus(this.selectedHRHIRING.ID);
+  this.loadDetailData(this.selectedHRHIRING.ID);
+  this.showDetail = true; // 
+});
     this.tb_HRHIRING.on('rowSelectionChanged', (data: any) => {
       this.selectedHRHIRING = data.length ? data[0] : null;
       if (this.selectedHRHIRING) {
@@ -1077,6 +1082,7 @@ public getApprovalDate(type: 'TBP'|'TBPHCNS'|'HCNS'|'BGD'): string | null {
         this.resetApprovalStatus();
       }
     });
+    
 
     this.tb_HRHIRING.on('tableBuilt', () => {
       this.isTableReady = true;

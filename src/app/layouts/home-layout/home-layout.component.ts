@@ -43,11 +43,12 @@ import { NzSpaceModule } from 'ng-zorro-antd/space';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
-import { AppUserDropdownComponent } from '../../pages/old/app/app-user-dropdown/app-user-dropdown.component';
+// import { AppUserDropdownComponent } from '/pages/old/app/app-user-dropdown/app-user-dropdown.component';
 import { Tabulator } from 'tabulator-tables';
 import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { NzListModule } from 'ng-zorro-antd/list';
 import { NzCalendarMode, NzCalendarModule } from 'ng-zorro-antd/calendar';
+import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
 
 interface dynamicApps {
   MenuName: string;

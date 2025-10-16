@@ -91,11 +91,6 @@
                                 </button>
 
                                 <!-- Thêm nút toggle detail -->
-<<<<<<< HEAD
-
-=======
-                                
->>>>>>> XuanLuong
 
                                 <button class="btn-add" nz-button nzType="default" nzSize="small" (click)="add()">
                                     <!-- <nz-icon nzType="plus" /> Thêm -->
@@ -200,11 +195,7 @@
                                     [disabled]="!canCancelBGD" (click)="cancelApprovedBGD()">
                                     <nz-icon nzType="stop" nzTheme="outline" /> BGĐ Hủy
                                 </button> -->
-<<<<<<< HEAD
                                 <button nz-button nzType="default" nzSize="small" (click)="toggleDetailPanel()"
-=======
-<button nz-button nzType="default" nzSize="small" (click)="toggleDetailPanel()"
->>>>>>> XuanLuong
                                     [title]="showDetail ? 'Ẩn chi tiết' : 'Hiện chi tiết'">
                                     <img src="assets/icon/action_info_16.png" />
                                     {{ showDetail ? 'Ẩn chi tiết' : 'Xem chi tiết' }}
@@ -245,7 +236,7 @@
                 <div class="card-header bg-white p-2 border-bottom">
                     <div class="d-flex justify-content-between align-items-center">
                         <h6 class="m-0 fw-bold">
-                           Chi tiết phiếu yêu cầu tuyển dụng
+                            Chi tiết phiếu yêu cầu tuyển dụng
                         </h6>
                         <div class="d-flex gap-1">
                             <button nz-button nzType="primary" nzSize="small" [disabled]="!selectedHRHIRING"
@@ -399,7 +390,7 @@
 
                                     <!-- Individual statuses -->
                                     <div class="row g-2">
-                                         <div class="col-3">
+                                        <div class="col-3">
                                             <label>TBP:</label>
                                             <div class="detail-value">
                                                 <span class="badge"
@@ -449,7 +440,8 @@
                                                 date:'dd/MM/yyyy ' }} ({{ getApproverName('TBP') }})</div>
                                             <div *ngIf="getApprovalDate('HCNS')">HCNS: {{ getApprovalDate('HCNS') |
                                                 date:'dd/MM/yyyy ' }} ({{ getApproverName('HCNS') }})</div>
-                                            <div *ngIf="getApprovalDate('TBPHCNS')">TBP HR: {{ getApprovalDate('TBPHCNS')
+                                            <div *ngIf="getApprovalDate('TBPHCNS')">TBP HR: {{
+                                                getApprovalDate('TBPHCNS')
                                                 |
                                                 date:'dd/MM/yyyy ' }} ({{ getApproverName('TBPHCNS') }})</div>
                                             <div *ngIf="getApprovalDate('BGD')">BGĐ: {{ getApprovalDate('BGD') |

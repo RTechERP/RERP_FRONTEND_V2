@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit, ViewChild, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule,FormGroup, Validators, FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { RowComponent } from 'tabulator-tables';
@@ -47,7 +47,7 @@ interface ProductGroup {
 })
 export class ProductGroupDetailComponent implements OnInit, AfterViewInit {
 
-  @Input() isFromParent: boolean = false; // true nếu mở từ cha và muốn khóa kho
+  @Input() isFromParent: boolean = false; 
   @Input() newProductGroup: ProductGroup = {
     ProductGroupID: '',
     ProductGroupName: '',
@@ -60,13 +60,22 @@ export class ProductGroupDetailComponent implements OnInit, AfterViewInit {
   @Input() listEmployee: any[] = [];
   @Input() id: number = 0;
 
+  formGroup: FormGroup;
+
   constructor(
     private notification: NzNotificationService,
     private fb: FormBuilder,
     public activeModal: NgbActiveModal,
     private modalService: NgbModal,
     private productsaleService: ProductsaleServiceService
-  ) { }
+  ) { 
+    this.formGroup = this.fb.group({
+      WareHouseID: [null, [Validators.required]],
+      ProductGroupID: ['', [Validators.required, Validators.maxLength(20)]],
+      ProductGroupName: ['', [Validators.required, Validators.maxLength(100)]],
+      EmployeeID: [null, [Validators.required]]
+    });
+  }
 
   ngOnInit(): void {
     this.getdataWH();
@@ -88,6 +97,14 @@ export class ProductGroupDetailComponent implements OnInit, AfterViewInit {
               this.newProductGroup.EmployeeID = data.EmployeeID;
               this.newProductGroup.WareHouseID = data.WarehouseID;
             }
+
+            // Patch form values to reflect current data for reactive controls
+            this.formGroup.patchValue({
+              WareHouseID: this.newProductGroup.WareHouseID || null,
+              ProductGroupID: this.newProductGroup.ProductGroupID || '',
+              ProductGroupName: this.newProductGroup.ProductGroupName || '',
+              EmployeeID: this.newProductGroup.EmployeeID || null
+            });
           } else {
             this.notification.warning('Thông báo', res.message || 'Không thể lấy thông tin nhóm!');
           }
@@ -107,6 +124,14 @@ export class ProductGroupDetailComponent implements OnInit, AfterViewInit {
         IsVisible: false,
         WareHouseID: 0
       };
+
+      // Initialize form defaults
+      this.formGroup.reset({
+        WareHouseID: null,
+        ProductGroupID: '',
+        ProductGroupName: '',
+        EmployeeID: null
+      });
     }
   }
 
@@ -115,23 +140,31 @@ export class ProductGroupDetailComponent implements OnInit, AfterViewInit {
   }
   
   saveDataProductGroup() {
-    if (!this.newProductGroup.ProductGroupID || !this.newProductGroup.ProductGroupName || !this.newProductGroup.EmployeeID || !this.newProductGroup.WareHouseID) {
-      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin!');
+    if (this.formGroup.invalid) {
+      this.formGroup.markAllAsTouched();
       return;
     }
+
+    const formValue = this.formGroup.value as {
+      WareHouseID: number | null;
+      ProductGroupID: string;
+      ProductGroupName: string;
+      EmployeeID: number | null;
+    };
+
     if (this.isCheckmode == true) {
       // Update existing product group
       const payload = {
         Productgroup: {
           ID: this.id,
-          ProductGroupID: this.newProductGroup.ProductGroupID,
-          ProductGroupName: this.newProductGroup.ProductGroupName,
-          EmployeeID: this.newProductGroup.EmployeeID,
+          ProductGroupID: formValue.ProductGroupID,
+          ProductGroupName: formValue.ProductGroupName,
+          EmployeeID: formValue.EmployeeID ?? 0,
 
         },
         ProductgroupWarehouse: {
-          WarehouseID: this.newProductGroup.WareHouseID,
-          EmployeeID: this.newProductGroup.EmployeeID,
+          WarehouseID: formValue.WareHouseID ?? 0,
+          EmployeeID: formValue.EmployeeID ?? 0,
           UpdatedBy: 'admin',
           UpdatedDate: new Date()
         }
@@ -155,14 +188,14 @@ export class ProductGroupDetailComponent implements OnInit, AfterViewInit {
       // Add new product group
       const payload = {
         Productgroup: {
-          ProductGroupID: this.newProductGroup.ProductGroupID,
-          ProductGroupName: this.newProductGroup.ProductGroupName,
-          EmployeeID: this.newProductGroup.EmployeeID,
+          ProductGroupID: formValue.ProductGroupID,
+          ProductGroupName: formValue.ProductGroupName,
+          EmployeeID: formValue.EmployeeID ?? 0,
           IsVisible: true
         },
         ProductgroupWarehouse: {
-          WarehouseID: this.newProductGroup.WareHouseID,
-          EmployeeID: this.newProductGroup.EmployeeID,
+          WarehouseID: formValue.WareHouseID ?? 0,
+          EmployeeID: formValue.EmployeeID ?? 0,
           CreatedBy: 'admin',
           CreatedDate: new Date(),
           UpdatedBy: 'admin',

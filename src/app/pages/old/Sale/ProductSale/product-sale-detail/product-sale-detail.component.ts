@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit, ViewChild, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { RowComponent } from 'tabulator-tables';
@@ -33,6 +33,22 @@ interface ProductSale {
   LocationID: number;
   FirmID: number;
   Note: string;
+}
+
+// Custom validator để kiểm tra ký tự tiếng Việt
+function noVietnameseValidator(control: AbstractControl): ValidationErrors | null {
+  if (!control.value) {
+    return null; // Không validate nếu giá trị rỗng
+  }
+  
+  // Regex để kiểm tra ký tự tiếng Việt
+  const vietnameseRegex = /[àáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵÀÁẢÃẠÂẦẤẨẪẬĂẰẮẲẴẶÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴđĐ]/i;
+  
+  if (vietnameseRegex.test(control.value)) {
+    return { vietnameseChars: true };
+  }
+  
+  return null;
 }
 @Component({
   selector: 'app-product-sale-detail',
@@ -92,7 +108,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
     this.formGroup = this.fb.group({
       ProductGroupID: [null, [Validators.required]],
       Unit: ['', [Validators.required]],
-      ProductCode: ['',[Validators.required]],
+      ProductCode: ['',[Validators.required, noVietnameseValidator]],
       ProductName: ['', [Validators.required]],
       NumberInStoreDauky: [{value: 0, disabled: true}],
       NumberInStoreCuoiKy: [{value: 0, disabled: true}],
@@ -268,7 +284,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
       this.productsaleService.saveDataProductSale(payload).subscribe({
         next: (res) => {
           if (res.status === 1) {
-            this.notification.success('Thông báo', 'Thêm mới thành công!');
+            this.notification.success('Thông báo',  'Thêm mới thành công!');
             this.closeModal();
           } else {
             this.notification.warning('Thông báo', res.message || 'Không thể thêm sản phẩm!');
@@ -283,6 +299,20 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
   }
   closeModal() {
     this.activeModal.dismiss(true);
+  }
+
+  // Hàm để lấy error message cho ProductCode
+  getProductCodeError(): string | undefined {
+    const control = this.formGroup.get('ProductCode');
+    if (control?.invalid && (control?.dirty || control?.touched)) {
+      if (control.errors?.['required']) {
+        return 'Vui lòng nhập mã thiết bị!';
+      }
+      if (control.errors?.['vietnameseChars']) {
+        return 'Mã thiết bị không được chứa ký tự tiếng Việt!';
+      }
+    }
+    return undefined;
   }
 
   //hàm gọi modal firm

@@ -1,0 +1,44 @@
+<div class="modal-dialog-scrollable">
+  <div class="modal-header bg-primary align-items-center ps-2">
+    <h6 class="text-light text-uppercase m-0" style="padding: 0, 5rem">
+      Chi tiết ưu tiên dự án
+    </h6>
+  </div>
+
+  <div class="modal-body pt-0 pb-0 p-2 pb-2 w-100">
+    <nz-row [nzGutter]="12">
+      <nz-col [nzSpan]="24">
+        <nz-form-item class="pt-1">
+          <nz-form-label class="fs-12 d-flex align-items-center">
+            STT <span class="text-danger ps-1">(*)</span>
+          </nz-form-label>
+          <input name="keyword" nz-input [(ngModel)]="maxStt" disabled/>
+        </nz-form-item>
+      </nz-col>
+      <nz-col [nzSpan]="24">
+        <nz-form-item class="pt-1">
+          <nz-form-label class="fs-12 d-flex align-items-center">
+            Trạng thái <span class="text-danger ps-1">(*)</span>
+          </nz-form-label>
+          <input name="keyword" nz-input [(ngModel)]="statusName" placeholder="Nhập trạng thái..."/>
+        </nz-form-item>
+      </nz-col>
+    </nz-row>
+  </div>
+
+  <div class="modal-footer br p-1 d-flex align-items-center">
+    <div class="d-flex align-items-center flex-wrap gap-1">
+      <button
+        nz-button
+        nzType="default"
+        nzDanger
+        (click)="activeModal.dismiss()"
+      >
+        Đóng
+      </button>
+      <button nz-button nzType="primary" (click)="saveProjectStatus()">
+        Lưu
+      </button>
+    </div>
+  </div>
+</div>

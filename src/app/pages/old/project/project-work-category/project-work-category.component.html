@@ -1,0 +1,62 @@
+<ng-container class="w-100">
+  <nz-splitter>
+    <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-1">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="m-0 ms-2">Tìm kiếm</h6>
+            <button
+              class="border-0 me-2"
+              nz-button
+              nzSize="small"
+              nzType="default"
+              nzDanger
+              (click)="toggleSearchPanel()"
+            >
+              <nz-icon nzType="close" nzTheme="outline" />
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <form nz-form nzLayout="vertical"></form>
+        </div>
+        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+          <button nz-button nzType="default" nzSize="small">Đặt lại</button>
+          <button nz-button nzType="primary" nzSize="small">Tìm kiếm</button>
+        </div>
+      </div>
+    </nz-splitter-panel>
+    <nz-splitter-panel nzDefaultSize="100%">
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-1">
+          <div class="d-flex gap-1">
+            <button
+              nz-button
+              nzType="default"
+              nzSize="small"
+              (click)="toggleSearchPanel()"
+            >
+              <nz-icon nzType="search" />
+            </button>
+            <button class="fs-12" nz-button nzType="default" nzSize="small">
+              <nz-icon nzType="plus" /> Thêm
+            </button>
+            <button class="fs-12" nz-button nzType="default" nzSize="small">
+              <nz-icon nzType="edit" nzTheme="fill" />Sửa
+            </button>
+            <button
+              class="fs-12"
+              nz-button
+              nzType="default"
+              nzSize="small"
+              (click)="toggleSearchPanel()"
+            >
+              <nz-icon nzType="delete" nzTheme="fill" />Xóa
+            </button>
+          </div>
+        </div>
+        <div class="card-body p-0"></div>
+      </div>
+    </nz-splitter-panel>
+  </nz-splitter>
+</ng-container>

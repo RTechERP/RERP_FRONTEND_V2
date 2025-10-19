@@ -1,0 +1,52 @@
+:host ::ng-deep .ant-select-selection-item {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 500px;
+}
+
+:host ::ng-deep .ant-select-dropdown {
+  max-width: 300px !important;
+}
+
+:host ::ng-deep .ant-select-item-option-content {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 280px;
+}
+/* dropdown text scroll */
+::ng-deep .ant-select-dropdown {
+  max-width: 300px !important;
+}
+::ng-deep .ant-select-dropdown .ant-select-item {
+  white-space: nowrap !important;
+  overflow: visible !important;
+}
+::ng-deep .ant-select-dropdown .ant-select-item-option-content {
+  white-space: nowrap !important;
+  overflow-x: auto !important;
+  text-overflow: initial !important;
+  max-width: none !important;
+}
+::ng-deep .ant-select-dropdown .ant-select-item-option-content::-webkit-scrollbar {
+  height: 4px;
+}
+::ng-deep .ant-select-dropdown .ant-select-item-option-content::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 2px;
+}
+
+/* Make the select and button look like a single input group */
+.d-flex.align-items-center > button {
+  margin-left: -1px;
+  border-top-left-radius: 0 !important;
+  border-bottom-left-radius: 0 !important;
+  height: 32px; /* Default height for form-control-sm, adjust if needed */
+
+}
+.d-flex.align-items-center > nz-select, 
+.d-flex.align-items-center > .w-100 {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}

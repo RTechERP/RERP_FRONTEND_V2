@@ -1,8 +1,18 @@
 :host {
-  display: flex;
+  /* display: flex; */
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Bôi màu cho tab thêm ngon hehehe */
+::ng-deep .ant-tabs .ant-tabs-tab .ant-tabs-tab-btn {
+  color: #c6c6c6;
+}
+
+::ng-deep .ant-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #f3f3f3;
+
 }
 
 .app-layout {
@@ -30,23 +40,27 @@
 }
 
 .trigger:hover {
-  color: #1890ff;
+  color: #23458a;
 }
 
 .sidebar-logo {
   position: relative;
   height: 64px;
-  padding-left: 24px;
+  /* padding-left: 24px; */
   overflow: hidden;
   line-height: 64px;
-  background: #001529;
+  /* background: #001529; */
   transition: all 0.3s;
+
+  /* display: flex;
+  justify-content: center;
+  align-items: center; */
 }
 
 .sidebar-logo img {
   display: inline-block;
-  height: 32px;
-  width: 32px;
+  /* height: 32px; */
+  width: 50%;
   vertical-align: middle;
 }
 
@@ -70,12 +84,12 @@ nz-header {
   position: relative;
   height: 40px;
   padding: 0;
-  background: #47536d;
+  background: #23458a;
   box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
 }
 
 nz-content {
-  margin: 24px;
+  margin: 0.5rem;
 }
 
 .inner-content {
@@ -101,59 +115,286 @@ nz-sider {
   left: 0;
 }
 
-::ng-deep .ant-tabs > .ant-tabs-nav,
-.ant-tabs > div > .ant-tabs-nav {
-  margin: 0;
-  overflow: hidden;
+::ng-deep .ant-tabs>.ant-tabs-nav,
+.ant-tabs>div>.ant-tabs-nav {
+  margin: 0 !important;
+  overflow: hidden !important;
 }
 
 ::ng-deep .ant-layout-header {
-  height: 40px;
+  height: 40px !important;
 }
 
-::ng-deep .ant-tabs-card.ant-tabs-top > .ant-tabs-nav .ant-tabs-tab {
+::ng-deep .ant-tabs-card.ant-tabs-top>.ant-tabs-nav .ant-tabs-tab {
   border: unset;
   border-radius: unset;
+  font-size: 0.75rem;
 }
 
-::ng-deep
-  .ant-tabs-card.ant-tabs-top
-  > .ant-tabs-nav
-  .ant-tabs-tab:not(.ant-tabs-tab-active) {
+::ng-deep .ant-tabs-card.ant-tabs-top>.ant-tabs-nav .ant-tabs-tab:not(.ant-tabs-tab-active) {
   border: unset;
   border-radius: unset;
   background-color: transparent;
 }
 
-::ng-deep .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active,
-.ant-tabs-card > div > .ant-tabs-nav .ant-tabs-tab-active {
-  background-color: #c5463f;
+::ng-deep .ant-tabs-card>.ant-tabs-nav .ant-tabs-tab-active,
+.ant-tabs-card>div>.ant-tabs-nav .ant-tabs-tab-active {
+  background-color: #ef4723 !important;
+  padding: 7px 16px !important;
+  /* color: #fff; */
 }
 
-::ng-deep
-  .ant-tabs-card.ant-tabs-top
-  > .ant-tabs-nav
-  .ant-tabs-tab
-  + .ant-tabs-tab,
-.ant-tabs-card.ant-tabs-bottom > .ant-tabs-nav .ant-tabs-tab + .ant-tabs-tab,
-.ant-tabs-card.ant-tabs-top > div > .ant-tabs-nav .ant-tabs-tab + .ant-tabs-tab,
-.ant-tabs-card.ant-tabs-bottom
-  > div
-  > .ant-tabs-nav
-  .ant-tabs-tab
-  + .ant-tabs-tab {
-  margin: 0;
+::ng-deep .ant-tabs-card.ant-tabs-top>.ant-tabs-nav .ant-tabs-tab+.ant-tabs-tab,
+.ant-tabs-card.ant-tabs-bottom>.ant-tabs-nav .ant-tabs-tab+.ant-tabs-tab,
+.ant-tabs-card.ant-tabs-top>div>.ant-tabs-nav .ant-tabs-tab+.ant-tabs-tab,
+.ant-tabs-card.ant-tabs-bottom>div>.ant-tabs-nav .ant-tabs-tab+.ant-tabs-tab {
+  margin: 0 !important;
 }
 
-::ng-deep .ant-tabs > .ant-tabs-nav,
-.ant-tabs > div > .ant-tabs-nav {
-  position: static;
+::ng-deep .ant-tabs>.ant-tabs-nav,
+.ant-tabs>div>.ant-tabs-nav {
+  position: static !important;
 }
 
 ::ng-deep .ant-tabs-tab-remove {
-  color: #fff;
+  color: #fff !important;
 }
 
-::ng-deep .ant-tabs-card.ant-tabs-small > .ant-tabs-nav .ant-tabs-tab {
-  padding: 8px 16px;
+::ng-deep .ant-tabs-card.ant-tabs-small>.ant-tabs-nav .ant-tabs-tab {
+  padding: 8px 16px !important;
+  font-size: 0.75rem !important;
+}
+
+::ng-deep .ant-dropdown-trigger .ant-tabs-nav-more .anticon {
+  color: white !important;
+}
+
+::ng-deep .nz-tabs-dropdown.ant-dropdown .ant-dropdown-menu {
+  background-color: #23458a !important;
+}
+
+::ng-deep .nz-tabs-dropdown.ant-dropdown .ant-dropdown-menu-item:hover {
+  background-color: #ef4723 !important;
+}
+
+.app-launcher {
+  width: 360px;
+  background: #ffffff;
+  border: 1px solid #ffffff;
+  /* viền 2px màu xanh */
+  border-radius: 2px;
+  overflow: hidden;
+  /* cắt nội dung lòi ra ngoài */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.app-launcher-inner {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 12px;
+  max-height: 330px;
+  overflow-y: auto;
+  /* chỉ lớp con scroll */
+}
+
+.app-launcher-inner::-webkit-scrollbar {
+  width: 6px;
+}
+
+.app-launcher-inner::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.app-launcher a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: #464646;
+  font-size: 14px;
+  padding: 10px;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.app-launcher a img {
+  width: 42px;
+  height: 42px;
+  margin-bottom: 6px;
+}
+
+.app-launcher a:hover {
+  background: #e8f0fe;
+  /* màu nền khi hover */
+  color: #1a73e8;
+}
+
+.app-launcher a:hover img {
+  transform: scale(1.08);
+  /* icon phóng nhẹ */
+}
+
+.app-launcher-inner a.active {
+  background: #e6f4ff;
+}
+
+.notif-dropdown {
+  min-width: 423px;
+  max-height: 570px;
+  overflow-y: auto;
+  background: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.notif-header {
+  padding: 12px;
+  font-size: 16px;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notif-count {
+  font-size: 12px;
+  color: #999;
+}
+
+.notif-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  border: 1px solid #b9b9b9;
+}
+
+.notif-item:hover {
+  background: #f5f5f5;
+}
+
+.notif-footer {
+  padding: 10px;
+  text-align: center;
+  font-size: 13px;
+  color: #1890ff;
+  border-top: 1px solid #f0f0f0;
+  cursor: pointer;
+}
+
+.notif-footer:hover {
+  background: #f0f0f0;
+}
+
+.notif-item img {
+  width: 42px;
+  height: 42px;
+}
+
+.notif-text {
+  flex: 1;
+  /* text chiếm phần còn lại */
+  font-size: 14px;
+}
+
+.notif-time {
+  font-size: 12px;
+  color: #999;
+  white-space: nowrap;
+  /* không xuống dòng */
+}
+
+:host ::ng-deep .ant-badge-count {
+  font-size: 8px;
+  /* chữ nhỏ hơn */
+  min-width: 14px;
+  /* thu hẹp nền tròn */
+  height: 14px;
+  /* thu hẹp chiều cao */
+  line-height: 14px;
+  /* căn giữa số */
+  padding: 0 3px;
+  /* giảm padding */
+}
+
+.bell-icon:hover {
+  animation: ring 0.5s ease-in-out infinite;
+}
+
+.user-icon {
+  width: 24px;
+  height: 24px;
+}
+
+@keyframes ring {
+  0% {
+    transform: rotate(0);
+  }
+
+  25% {
+    transform: rotate(15deg);
+  }
+
+  50% {
+    transform: rotate(-15deg);
+  }
+
+  75% {
+    transform: rotate(10deg);
+  }
+
+  100% {
+    transform: rotate(0);
+  }
+}
+.menu-title,
+.menu-item-flex {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Ô chứa icon, luôn chiếm chỗ */
+.icon-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+  flex: 0 0 auto;
+}
+
+.icon-20 {
+  width: 20px;
+  height: 20px;
+}
+
+.icon-14 {
+  width: 14px;
+  height: 14px;
+}
+
+/* Ảnh icon thật */
+.menu-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.menu-icon-sm {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+}
+
+/* Nhãn */
+.menu-label {
+  white-space: nowrap;
+}
+
+/* Bỏ margin cũ để không lệch khi không có ảnh */
+.menu-icon,
+.menu-icon-sm {
+  margin-right: 0;
 }

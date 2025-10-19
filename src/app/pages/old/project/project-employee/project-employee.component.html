@@ -1,0 +1,118 @@
+<div class="modal-dialog-scrollable">
+  <div class="modal-header bg-primary align-items-center ps-2">
+    <h6 class="text-light text-uppercase m-0" style="padding: 0, 5rem">
+      Người tham gia dự án
+    </h6>
+  </div>
+
+  <div class="modal-body p-2 pt-0" style="min-height: 70vh">
+    <div class="d-flex align-items-center justify-content-sm-between py-2">
+      <div class="d-flex align-items-center gap-2">
+        <nz-form-item class="m-0">
+          <nz-form-label class="fs-12"> Dự án </nz-form-label>
+          <nz-select
+            name="customerId"
+            style="width: 40vh"
+            nzShowSearch
+            nzPlaceHolder="Chọn dự án"
+            [(ngModel)]="projectId"
+            (ngModelChange)="search()"
+          >
+            <!-- Nội dung option của bạn ở đây -->
+            @for (item of projects; track $index) {
+            <nz-option
+              nzCustomContent="true"
+              [nzLabel]="item.ProjectCode"
+              [nzValue]="item.ID"
+              >{{ item.ProjectCode + " - " + item.ProjectName }}</nz-option
+            >
+            }
+          </nz-select>
+        </nz-form-item>
+        <nz-form-item class="m-0">
+          <nz-form-label class="fs-12"> Trạng thái </nz-form-label>
+          <nz-select
+            name="customerId"
+            style="width: 16vh"
+            nzShowSearch
+            nzAllowClear
+            nzPlaceHolder="Chọn trạng thái"
+            [(ngModel)]="statusId"
+            (ngModelChange)="search()"
+          >
+            <!-- Nội dung option của bạn ở đây -->
+            @for (item of statuses; track $index) {
+            <nz-option
+              nzCustomContent="true"
+              [nzLabel]="item.statusText"
+              [nzValue]="item.ID"
+              >{{ item.statusText }}</nz-option
+            >
+            }
+          </nz-select>
+        </nz-form-item>
+        <nz-form-item class="m-0">
+          <button nz-button nzSize="small" nzType="primary" (click)="search()">
+            Tìm kiếm
+          </button>
+        </nz-form-item>
+      </div>
+      <div>
+        <nz-form-item class="m-0">
+          <button
+            class="fs-12 text-white"
+            nz-button
+            nzType="text"
+            style="background-color: red"
+          >
+            Đã xóa
+          </button>
+        </nz-form-item>
+      </div>
+    </div>
+
+    <nz-row>
+      <nz-col [nzSpan]="24">
+        <nz-splitter style="min-height: 70vh" class="border">
+          <nz-splitter-panel nzDefaultSize="30%">
+            <div class="border-0" #tb_employeeSuggest></div>
+          </nz-splitter-panel>
+          <nz-splitter-panel nzSize="4%" nzResizable="false">
+            <div class="h-100 d-flex align-items-center justify-content-center">
+              <button
+                nz-button
+                nzType="primary"
+                title="Chuyển người tham gia"
+                (click)="changeEmployee()"
+              >
+                >>
+              </button>
+            </div>
+          </nz-splitter-panel>
+          <nz-splitter-panel nzDefaultSize="66%">
+            <div #tb_employeeMain></div>
+          </nz-splitter-panel>
+        </nz-splitter>
+      </nz-col>
+    </nz-row>
+    <!-- <div class="border border-primary">
+      <div class="" id="tb_projectPriority"></div>
+    </div> -->
+  </div>
+
+  <div class="modal-footer bg-whitesmoke br p-1 d-flex align-items-center">
+    <div class="d-flex align-items-center flex-wrap gap-1">
+      <button
+        nz-button
+        nzType="default"
+        nzDanger
+        (click)="activeModal.dismiss()"
+      >
+        Đóng
+      </button>
+      <button nz-button nzType="primary" (click)="saveProjectUser()">
+        Lưu
+      </button>
+    </div>
+  </div>
+</div>

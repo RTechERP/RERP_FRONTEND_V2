@@ -1,0 +1,207 @@
+<div class="modal-header bg-primary p-2">
+  <h6 class="modal-title text-white" id="assetModalLabel">QUẢN LÝ TÀI SẢN</h6>
+  <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+</div>
+
+<div class="modal-body">
+  <form nz-form nzLayout="vertical" class="fs-7 mt-2 me-2">
+    <nz-row [nzGutter]="24">
+      <!-- Label row -->
+      <nz-col [nzSpan]="8">
+        <nz-form-label>Mã tài sản</nz-form-label>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <nz-form-label>Mã NCC </nz-form-label>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <nz-form-label>STT </nz-form-label>
+      </nz-col>
+    </nz-row>
+    <nz-row [nzGutter]="24" class="mb-3 me-1">
+      <!-- Input row -->
+      <nz-col [nzSpan]="8">
+        <nz-form-control>
+          <input nz-input type="text" [(ngModel)]="dataInput.TSAssetCode" name="AssetCode" disabled />
+        </nz-form-control>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <nz-form-control>
+          <input nz-input type="text" [(ngModel)]="dataInput.TSCodeNCC" name="TSCodeNCC" />
+        </nz-form-control>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <nz-form-control>
+          <input nz-input type="text" name="STT" [(ngModel)]="dataInput.STT" disabled />
+        </nz-form-control>
+      </nz-col>
+    </nz-row>
+    <nz-row [nzGutter]="24">
+      <nz-col [nzSpan]="12">
+        <nz-form-label>Chọn nhân viên</nz-form-label>
+      </nz-col>
+      <nz-col [nzSpan]="12">
+        <nz-form-label>Phòng ban </nz-form-label>
+      </nz-col>
+    </nz-row>
+    <nz-row [nzGutter]="24" class="mb-3 me-1">
+      <nz-col [nzSpan]="12">
+        <nz-form-control>
+          <nz-select class="w-100 fs-12" nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên..."
+            [(ngModel)]="dataInput.EmployeeID" name="employeeID" (ngModelChange)="onEmployeeChange($event)">
+            <nz-option *ngFor="let emp of emPloyeeLists" [nzLabel]="emp.Code + ' - ' + emp.FullName"
+              [nzValue]="emp.ID"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-col>
+      <nz-col [nzSpan]="12">
+        <nz-form-control>
+          <input nz-input type="text" [(ngModel)]="dataInput.Name" name="DepartmentName" disabled />
+        </nz-form-control>
+      </nz-col>
+    </nz-row>
+    <nz-row [nzGutter]="24">
+      <nz-col [nzSpan]="8">
+        <nz-form-label>Loại tài sản <span class="text-danger">(*)</span></nz-form-label>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <nz-form-label>Đơn vị tính <span class="text-danger">(*)</span></nz-form-label>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <nz-form-label>Nguồn gốc <span class="text-danger">(*)</span></nz-form-label>
+      </nz-col>
+    </nz-row>
+    <nz-row [nzGutter]="24" class="mb-3 me-1">
+      <nz-col [nzSpan]="8">
+        <nz-form-control>
+          <nz-select class="w-100 fs-12" nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại tài sản"
+            [(ngModel)]="dataInput.TSAssetID" name="AssetType">
+            <nz-option *ngFor="let type of typeData" [nzLabel]="type.AssetCode+ ' - ' + type.AssetType"
+              [nzValue]="type.ID"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <nz-form-control>
+         <nz-select class="w-100 fs-12" nzShowSearch nzAllowClear nzPlaceHolder="Chọn đơn vị tinh"
+            [(ngModel)]="dataInput.UnitID" name="AssetUnit">
+            <nz-option *ngFor="let unit of unitData" [nzLabel]="unit.UnitCode+ ' - ' + unit.UnitName"
+              [nzValue]="unit.ID"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <nz-form-control>
+           <nz-select class="w-100 fs-12" nzShowSearch nzAllowClear nzPlaceHolder="Chọn nguồn gốc"
+            [(ngModel)]="dataInput.SourceID" name="AssetSource">
+            <nz-option *ngFor="let s of sourceData" [nzLabel]="s.SourceCode+ ' - ' + s.SourceName"
+              [nzValue]="s.ID"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-col>
+    </nz-row>
+    <nz-row [nzGutter]="24">
+      <nz-col [nzSpan]="12">
+        <nz-form-label>Tên tài sản</nz-form-label>
+      </nz-col>
+
+      <nz-col [nzSpan]="12">
+        <nz-form-label>Số Seri </nz-form-label>
+      </nz-col>
+    </nz-row>
+    <nz-row [nzGutter]="24" class="mb-3 me-1">
+      <nz-col [nzSpan]="12">
+        <nz-form-control>
+          <input nz-input type="text" [(ngModel)]="dataInput.TSAssetName" name="AssetName" />
+        </nz-form-control>
+      </nz-col>
+      <nz-col [nzSpan]="12">
+        <nz-form-control>
+          <input nz-input type="text" [(ngModel)]="dataInput.Seri" name="Seri" />
+        </nz-form-control>
+      </nz-col>
+
+    </nz-row>
+    <nz-row [nzGutter]="24">
+      <nz-col [nzSpan]="24">
+        <nz-form-label>Mô tả chi tiết</nz-form-label>
+      </nz-col>
+    </nz-row>
+    <nz-row [nzGutter]="24" class="mb-3 me-1">
+      <nz-col [nzSpan]="24">
+        <nz-form-control>
+          <textarea nz-input name="SpecificationsAsset" [(ngModel)]="dataInput.SpecificationsAsset" rows="3"
+            placeholder="Mô tả chi tiết tài sản" style="width: 100%">
+      </textarea>
+        </nz-form-control>
+      </nz-col>
+    </nz-row>
+    <nz-row [nzGutter]="24">
+      <nz-col [nzSpan]="8">
+        <nz-form-label>Ngày mua</nz-form-label>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <nz-form-label>Thời gian bảo hành(tháng) </nz-form-label>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <nz-form-label>Hiệu lực từ </nz-form-label>
+      </nz-col>
+    </nz-row>
+    <nz-row [nzGutter]="24" class="mb-3 me-1">
+      <nz-col [nzSpan]="8">
+        <nz-form-control>
+          <input nz-input type="date" [(ngModel)]="dataInput.DateBuy" name="DateBuy" />
+        </nz-form-control>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <nz-form-control>
+          <input nz-input type="text" [(ngModel)]="dataInput.Insurance" name="Warranty" />
+        </nz-form-control>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <nz-form-control>
+          <input nz-input type="date" [(ngModel)]="dataInput.DateEffect" name="DateEffect" />
+        </nz-form-control>
+      </nz-col>
+    </nz-row>
+    <nz-row [nzGutter]="24">
+      <nz-col [nzSpan]="24">
+        <nz-form-label>Ghi chú</nz-form-label>
+      </nz-col>
+    </nz-row>
+    <nz-row [nzGutter]="24" class="mb-3 me-1">
+      <nz-col [nzSpan]="24">
+        <nz-form-control>
+          <textarea nz-input name="Note" [(ngModel)]="dataInput.Note" rows="3" placeholder="Mô tả chi tiết tài sản"
+            style="width: 100%">
+      </textarea>
+        </nz-form-control>
+      </nz-col>
+    </nz-row>
+    <nz-row [nzGutter]="24" class="mb-3 me-1">
+      <nz-col [nzSpan]="8">
+        <nz-form-control>
+          <input type="checkbox" [(ngModel)]="dataInput.IsAllocation" class="form-check-input me-2" id="isAllocationCheck" name="isAllocation" />
+          <label nz-checkbox name="isAllocation">Cấp phát</label>
+        </nz-form-control>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <nz-form-control>
+          <input type="checkbox" [(ngModel)]="dataInput.WindowActiveStatus" class="form-check-input me-2" id="isAllocationCheck" name="isAllocation" />
+          <label nz-checkbox name="WindowActiveStatus">Active Windows</label>
+        </nz-form-control>
+      </nz-col>
+      <nz-col [nzSpan]="8">
+        <nz-form-control>
+          <input type="checkbox" [(ngModel)]="dataInput.OfficeActiveStatus" class="form-check-input me-2" id="isAllocationCheck" name="isAllocation" />
+          <label nz-checkbox name="OfficeActiveStatus">Active Office</label>
+        </nz-form-control>
+      </nz-col>
+    </nz-row>
+
+  </form>
+</div>
+
+<div class="modal-footer">
+  <button nz-button nzType="default" (click)="close()">Đóng</button>
+  <button nz-button nzType="primary" (click)="saveAsset()">Lưu</button>
+</div>

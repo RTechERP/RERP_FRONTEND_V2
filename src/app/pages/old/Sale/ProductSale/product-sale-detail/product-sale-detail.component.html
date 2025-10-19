@@ -63,10 +63,8 @@
         </div>
         <div class="row">
           <div class="col-md-6 pb-3">
-            <nz-form-label class="fs-12">Mã sản phẩm <span class="text-danger ps-1 me-1"> (*) </span></nz-form-label>
-            <nz-form-control [nzErrorTip]="formGroup.get('ProductCode')?.invalid && (formGroup.get('ProductCode')?.dirty || formGroup.get('ProductCode')?.touched)
-            ? 'Vui lòng nhập mã thiết bị!'
-            : undefined">
+            <nz-form-label class="fs-12">Mã thiết bị <span class="text-danger ps-1 me-1"> (*) </span></nz-form-label>
+            <nz-form-control [nzErrorTip]="getProductCodeError()">
                 <input nz-input formControlName="ProductCode" />
             </nz-form-control>
           </div>

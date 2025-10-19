@@ -776,6 +776,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
       Note: '',
     };
     this.openModalProductSale();
+    
   }
 
   openModalImportExcel() {

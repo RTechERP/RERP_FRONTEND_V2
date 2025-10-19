@@ -1,0 +1,121 @@
+<div class="modal-dialog-scrollable">
+  <div class="modal-header bg-primary align-items-center ps-2">
+    <h6 class="text-light text-uppercase m-0" style="padding: 0, 5rem">
+      Chi tiết ưu tiên dự án
+    </h6>
+  </div>
+
+  <div class="modal-body pt-0 pb-0 p-2 pb-2 w-100">
+    <nz-row [nzGutter]="12">
+      <nz-col [nzSpan]="12">
+        <nz-form-item class="pt-1">
+          <nz-form-label class="fs-12 d-flex align-items-center">
+            Mã ưu tiên <span class="text-danger ps-1">(*)</span>
+          </nz-form-label>
+          <input
+            name="keyword"
+            nz-input
+            [(ngModel)]="priorityCode"
+            placeholder="Mã ưu tiên"
+          />
+        </nz-form-item>
+      </nz-col>
+      <nz-col [nzSpan]="12">
+        <nz-form-item class="pt-1">
+          <nz-form-label class="fs-12 d-flex align-items-center">
+            Loại ưu tiên <span class="text-danger ps-1">(*)</span>
+          </nz-form-label>
+          <nz-select
+            name="firmBaseId"
+            [(ngModel)]="priority"
+            class="w-100"
+            nzShowSearch
+            nzAllowClear
+            nzPlaceHolder="Chọn hãng"
+          >
+            <!-- Nội dung option của bạn ở đây -->
+            @for (item of prioritys; track $index) {
+            <nz-option
+              nzCustomContent="true"
+              [nzLabel]="item.ProjectCheckpoint"
+              [nzValue]="item.ID"
+              >{{ item.ProjectCheckpoint }}</nz-option
+            >
+            }
+          </nz-select>
+        </nz-form-item>
+      </nz-col>
+      <nz-col [nzSpan]="12">
+        <nz-form-item class="pt-1">
+          <nz-form-label class="fs-12 d-flex align-items-center">
+            Trọng số <span class="text-danger ps-1">(*)</span>
+          </nz-form-label>
+          <nz-input-number
+            class="w-100"
+            [(ngModel)]="rate"
+            nzMin="0"
+            nzMax="1"
+            nzStep="0.01"
+            name="keyword"
+            [nzKeyboard]="'false'"
+          />
+        </nz-form-item>
+      </nz-col>
+      <nz-col [nzSpan]="12">
+        <nz-form-item class="pt-1">
+          <nz-form-label class="fs-12 d-flex align-items-center">
+            Điểm <span class="text-danger ps-1">(*)</span>
+          </nz-form-label>
+          <nz-select
+            name="firmBaseId"
+            [(ngModel)]="point"
+            class="w-100"
+            nzShowSearch
+            nzAllowClear
+            nzPlaceHolder="Chọn điểm"
+          >
+            <!-- Nội dung option của bạn ở đây -->
+            @for (item of points; track $index) {
+            <nz-option
+              nzCustomContent="true"
+              [nzLabel]="item.point"
+              [nzValue]="item.ID"
+              >{{ item.point }}</nz-option
+            >
+            }
+          </nz-select>
+        </nz-form-item>
+      </nz-col>
+      <nz-col [nzSpan]="24">
+        <nz-form-item class="pt-1">
+          <nz-form-label class="fs-12 d-flex align-items-center">
+            CheckPoint <span class="text-danger ps-1">(*)</span>
+          </nz-form-label>
+          <textarea
+            [(ngModel)]="projectCheckpoint"
+            name="note"
+            rows="5"
+            nz-input
+            placeholder="CheckPoint..."
+          ></textarea>
+        </nz-form-item>
+      </nz-col>
+    </nz-row>
+  </div>
+
+  <div class="modal-footer br p-1 d-flex align-items-center">
+    <div class="d-flex align-items-center flex-wrap gap-1">
+      <button
+        nz-button
+        nzType="default"
+        nzDanger
+        (click)="activeModal.dismiss()"
+      >
+        Đóng
+      </button>
+      <button nz-button nzType="primary" (click)="saveProjectPriority()">
+        Lưu
+      </button>
+    </div>
+  </div>
+</div>

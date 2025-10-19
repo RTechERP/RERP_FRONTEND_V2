@@ -1,0 +1,251 @@
+<div class="d-flex justify-content-between">
+  <div class="d-flex align-items-center justify-content-start gap-2">
+    <button
+      nz-button
+      nzType="default"
+      nzSize="small"
+      style="font-size: 0.75rem; font-weight: bold"
+      (click)="openAddModal()"
+    >
+      <nz-icon nzType="plus" /> Thêm
+    </button>
+    <button
+      nz-button
+      nzType="default"
+      nzSize="small"
+      style="font-size: 0.75rem; font-weight: bold"
+      (click)="openEditModal()"
+    >
+      <nz-icon nzType="edit" /> Sửa
+    </button>
+    <button
+      nz-button
+      nzType="default"
+      nzSize="small"
+      style="font-size: 0.75rem; font-weight: bold"
+      (click)="openDeleteModal()"
+    >
+      <nz-icon nzType="delete" /> Xóa
+    </button>
+    <button
+      nz-button
+      nzType="default"
+      nzSize="small"
+      style="font-size: 0.75rem; font-weight: bold"
+      (click)="loadCustomerSpecialization()"
+    >
+      <nz-icon nzType="undo" /> Refresh
+    </button>
+  </div>
+  <div class="search d-flex align-items-center gap-2 mb-2">
+    <input
+      type="text"
+      class="form-control fs-12"
+      placeholder="Tìm kiếm"
+      style="width: 20vw"
+      [(ngModel)]="searchKeyword"
+      (keyup.enter)="onSearch()"
+    />
+    <button
+      type="button"
+      class="btn btn-outline-secondary rounded-1 px-3 d-flex align-items-center gap-2 py-2"
+      title="Tìm kiếm"
+      (click)="onSearch()"
+    >
+      <i class="fas fa-search"></i>
+    </button>
+    <button
+      type="button"
+      class="btn btn-outline-secondary rounded-1 px-3 d-flex align-items-center gap-2 py-2"
+      title="Đặt lại"
+      (click)="resetSearch()"
+    >
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+</div>
+
+<div class="col-xl-12">
+  <div id="customerSpecialization-table"></div>
+</div>
+
+<!-- Modal Thêm/Sửa ngành nghề -->
+<div
+  class="modal fade"
+  id="addSpecializationModal"
+  tabindex="-1"
+  aria-labelledby="addSpecializationModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered fs-12">
+    <div class="modal-content">
+      <div class="modal-header bg-primary">
+        <h6 class="modal-title text-uppercase text-white" id="addSpecializationModalLabel">
+          {{ isEditMode ? "Sửa ngành nghề" : "Thêm ngành nghề mới" }}
+        </h6>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form
+          #specializationForm="ngForm"
+          (ngSubmit)="onSubmit(specializationForm)"
+        >
+          <div class="mb-3">
+            <label for="stt" class="form-label"
+              >Số thứ tự <span class="text-danger">*</span></label
+            >
+            <input
+              type="number"
+              class="form-control"
+              id="stt"
+              name="stt"
+              [(ngModel)]="specialization.STT"
+              required
+              #stt="ngModel"
+              [readonly]="true"
+            />
+          </div>
+          <div class="mb-3">
+            <label for="code" class="form-label"
+              >Mã ngành nghề <span class="text-danger">*</span></label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="code"
+              name="code"
+              [(ngModel)]="specialization.Code"
+              required
+              #code="ngModel"
+            />
+            <!-- <div class="text-danger" *ngIf="code.invalid && (code.dirty || code.touched)">
+                            Vui lòng nhập mã ngành nghề
+                        </div> -->
+          </div>
+          <div class="mb-3">
+            <label for="name" class="form-label"
+              >Tên ngành nghề <span class="text-danger">*</span></label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="name"
+              name="name"
+              [(ngModel)]="specialization.Name"
+              required
+              #name="ngModel"
+            />
+            <!-- <div class="text-danger" *ngIf="name.invalid && (name.dirty || name.touched)">
+                            Vui lòng nhập tên ngành nghề
+                        </div> -->
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-outline-danger"
+          data-bs-dismiss="modal"
+          style="height: 3vh; border: 1px solid"
+        >
+          Đóng
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="onSubmit(specializationForm)"
+          style="height: 3vh"
+        >
+          Lưu
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Thông báo -->
+<div
+  class="modal fade"
+  id="notificationModal"
+  tabindex="-1"
+  aria-labelledby="notificationModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fs-12" id="notificationModalLabel">
+          {{ isSuccess ? "Thành công" : "Thông báo" }}
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body fs-12">
+        {{ toastMessage }}
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-primary"
+          data-bs-dismiss="modal"
+          style="height: 3vh"
+        >
+          Đóng
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Xác nhận xóa -->
+<!-- <div
+  class="modal fade"
+  id="deleteConfirmModal"
+  tabindex="-1"
+  aria-labelledby="deleteConfirmModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title" id="deleteConfirmModalLabel">Xác nhận xóa</h6>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body fs-12">
+        Bạn có chắc chắn muốn xóa ngành nghề này không?
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          data-bs-dismiss="modal"
+          style="height: 3vh"
+        >
+          Hủy
+        </button>
+        <button
+          type="button"
+          class="btn btn-danger"
+          (click)="deleteSpecialization()"
+          style="height: 3vh"
+        >
+          Xóa
+        </button>
+      </div>
+    </div>
+  </div>
+</div> -->

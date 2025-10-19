@@ -1,0 +1,123 @@
+<div class="modal-content" style="height: 99vh; display: flex; flex-direction: column;">
+  <div class="modal-header bg-primary p-2">
+    <h6 class="modal-title text-white" id="assetModalLabel">Báo cáo nhập NCC kho DEMO</h6>
+    <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+  </div>
+
+  <form nz-form nzLayout="horizontal" class="fs-7 mt-3 tab-content-equal-height">
+    <nz-row [nzGutter]="24">
+      <!-- Mã sản phẩm-->
+      <nz-col [nzSpan]="8" class="me-2 md-2">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="6" required>
+            Mã sản phẩm <span style="color: red">(*)</span>
+          </nz-form-label>
+          <nz-form-control [nzSpan]="18">
+            <input nz-input type="text" name="ProductCode" [(ngModel)]="ProductCode" [readonly]="true"
+              style="width: 100%;" />
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <!-- Tồn kho đầu kì -->
+      <nz-col [nzSpan]="5">
+        <nz-form-item>
+          <nz-form-label required>
+            Tồn kho đầu kì <span style="color: red">(*)</span>
+          </nz-form-label>
+          <nz-form-control [nzSpan]="18">
+            <input nz-input type="number" name="NumberBegin" [(ngModel)]="NumberBegin" [readonly]="true"
+              style="width: 100%;" />
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+      <!-- Lọc NCC -->
+      <nz-col [nzSpan]="5">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="6">Nhập<span style="color: red">(*)</span></nz-form-label>
+          <nz-form-control [nzSpan]="18">
+            <input nz-input type="number" name="NumberImport" [(ngModel)]="NumberImport" [readonly]="true"
+              style="width: 100%;" />
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <!-- Lọc NCC -->
+      <nz-col [nzSpan]="5">
+        <nz-form-item>
+          <nz-form-label  [nzSpan]="8">SL đang mượn</nz-form-label>
+          <nz-form-control [nzSpan]="16">
+            <input nz-input type="number" name="NumberBorrowing" [(ngModel)]="NumberBorrowing" [readonly]="true"
+              style="width: 100%;" />
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+    </nz-row>
+
+    <nz-row [nzGutter]="24">
+      <!-- Từ ngày -->
+      <nz-col [nzSpan]="8" class="me-2 md-2">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="6" required>
+            Tên sản phẩm <span style="color: red">(*)</span>
+          </nz-form-label>
+          <nz-form-control [nzSpan]="18">
+            <input nz-input type="text" name="ProductName" [(ngModel)]="ProductName" [readonly]="true"
+              style="width: 100%;" />
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <!-- Đến ngày -->
+      <nz-col [nzSpan]="5">
+        <nz-form-item>
+          <nz-form-label required>
+            Tồn kho cuối kì <span style="color: red">(*)</span>
+          </nz-form-label>
+          <nz-form-control [nzSpan]="18">
+            <input nz-input type="number" name="InventoryLatest" [(ngModel)]="InventoryLatest" [readonly]="true"
+              style="width: 100%;" />
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+      <!-- Lọc NCC -->
+      <nz-col [nzSpan]="5">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="6">Xuất<span style="color: red">(*)</span></nz-form-label>
+          <nz-form-control [nzSpan]="18">
+            <input nz-input type="number" name="NumberExport" [(ngModel)]="NumberExport" [readonly]="true"
+              style="width: 100%;" />
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <!-- Lọc NCC -->
+      <nz-col [nzSpan]="5">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="8">SL thực tế</nz-form-label>
+          <nz-form-control [nzSpan]="16">
+            <input nz-input type="number" name="InventoryReal" [(ngModel)]="InventoryReal" [readonly]="true"
+              style="width: 100%;" />
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+    </nz-row>
+  </form>
+  <nz-splitter style="height: 80vh;">
+    <nz-splitter-panel nzResizable="true">
+      <div id="tbBorrow"></div>
+    </nz-splitter-panel>
+    <nz-splitter-panel nzResizable="true">
+      <nz-splitter nzLayout="vertical" style="height: 100%;">
+        <nz-splitter-panel nzResizable="true">
+          <div id="tbExport"></div>
+        </nz-splitter-panel>
+        <nz-splitter-panel nzResizable="true">
+          <nz-form-label>SL đang mượn</nz-form-label>
+          <div style="height: 100%; display: flex; flex-direction: column;">
+            <div id="tbImport"></div>
+          </div>
+        </nz-splitter-panel>
+      </nz-splitter>
+    </nz-splitter-panel>
+  </nz-splitter>

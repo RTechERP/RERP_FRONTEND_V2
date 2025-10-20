@@ -71,7 +71,7 @@ export class VehicleRepairComponent implements OnInit, AfterViewInit {
   TypeID: number = 0;
   FilterText: string = '';
   VehicleID: number = 0;
-  selectedRow: any = '';
+selectedRow: any = null;
   sizeTbDetail: any = '0';
   isSearchVisible: boolean = false;
   private debounceTimer: any;
@@ -141,10 +141,27 @@ export class VehicleRepairComponent implements OnInit, AfterViewInit {
       console.log('employeeList', this.employeeList);
     });
   }
+private openPreviewByRow(d: any) {
+  const full = d?.FilePath || d?.FullPath || '';
+  if (!full) {
+    this.notification.warning('Thông báo', 'Không có FilePath');
+    return;
+  }
+  const url = this.VehicleRepairService.buildPreviewUrl(full);
+  window.open(url, '_blank');
+}
+  
   drawTable() {
     this.vehicleRepairTable = new Tabulator('#vehicleRepair', {
       ...DEFAULT_TABLE_CONFIG,
-       
+       selectableRows: 1,                   // cần có
+
+      rowContextMenu: [
+      {
+        label: '🖼️ Preview file',
+        action: (_e, row) => this.openPreviewByRow(row.getData()),
+      }
+    ],
       ajaxURL: this.VehicleRepairService.getVehicleRepairAjax(),
       ajaxConfig: 'POST',
       ajaxRequestFunc: (url, config, params) => {
@@ -175,7 +192,16 @@ export class VehicleRepairComponent implements OnInit, AfterViewInit {
         { title: 'Tên xe', field: 'VehicleName', minWidth: 200, hozAlign: 'left', frozen: true },
         { title: 'Biển số xe', field: 'LicensePlate', minWidth: 200, hozAlign: 'left', frozen: true },
         { title: 'Lý do sửa chữa', field: 'Reason', minWidth: 200, hozAlign: 'left' },
-
+  {
+        title: 'File',
+        field: 'FileName',
+        minWidth: 180,
+        formatter: (cell) => {
+          const name = cell.getValue() || 'Preview';
+          return `<a href="javascript:void(0)" class="preview-link">${name}</a>`;
+        },
+        cellClick: (_e, cell) => this.openPreviewByRow(cell.getRow().getData()),
+      },
         { title: 'Loại sửa chữa', field: 'RepairTypeName', minWidth: 150, hozAlign: 'left' },
         { title: 'Tên lái xe', field: 'DriverName', minWidth: 150, hozAlign: 'left' },
         { title: 'Người sửa chữa', field: 'EmployeeRepairName', minWidth: 150, hozAlign: 'left' },
@@ -225,6 +251,7 @@ export class VehicleRepairComponent implements OnInit, AfterViewInit {
       this.selectedRow = row.getData();
       this.editVehicleRepair();
     });
+
   }
   searchData(): void {
     this.vehicleRepairTable?.setData();
@@ -303,33 +330,51 @@ export class VehicleRepairComponent implements OnInit, AfterViewInit {
       }
     });
   }
-  editVehicleRepair() {
-    // const selectedRow = this.vehicleRepairTable?.getSelectedData()?.[0];
-    // if (!selectedRow) {
-    //   this.notification.warning('Cảnh báo', 'Chọn 1 dòng để sửa');
-    //   return;
-    // }
-      if (this.selectedRow == null) {
-      const selected = this.vehicleRepairTable?.getSelectedData();
-      if (!selected || selected.length === 0) {
-        this.notification.warning('Thông báo', 'Vui lòng chọn một dòng  để sửa!');
-        return;
-      }
-      this.selectedRow = { ...selected[0] };
-    }
-    const modalRef = this.ngbModal.open(VehicleRepairComponentFormComponent, {
-      size: 'xl',
-      backdrop: 'static',
-      keyboard: false,
-      centered: true
-    });
-    modalRef.componentInstance.dataInput = this.selectedRow;
+  // editVehicleRepair() {
+  //   // const selectedRow = this.vehicleRepairTable?.getSelectedData()?.[0];
+  //   // if (!selectedRow) {
+  //   //   this.notification.warning('Cảnh báo', 'Chọn 1 dòng để sửa');
+  //   //   return;
+  //   // }
+  //     if (this.selectedRow == null) {
+  //     const selected = this.vehicleRepairTable?.getSelectedData();
+  //     if (!selected || selected.length === 0) {
+  //       this.notification.warning('Thông báo', 'Vui lòng chọn một dòng  để sửa!');
+  //       return;
+  //     }
+  //     this.selectedRow = { ...selected[0] };
+  //   }
+  //   const modalRef = this.ngbModal.open(VehicleRepairComponentFormComponent, {
+  //     size: 'xl',
+  //     backdrop: 'static',
+  //     keyboard: false,
+  //     centered: true
+  //   });
+  //   modalRef.componentInstance.dataInput = this.selectedRow;
 
-    modalRef.result.then(
-      () => this.vehicleRepairTable?.setData(),
-      () => { }
-    );
+  //   modalRef.result.then(
+  //     () => this.vehicleRepairTable?.setData(),
+  //     () => { }
+  //   );
+  // }
+  editVehicleRepair() {
+  const selected = this.vehicleRepairTable?.getSelectedData() || [];
+  if (!selected.length) {
+    this.notification.warning('Thông báo', 'Vui lòng chọn một dòng để sửa!');
+    return;
   }
+  const rowData = { ...selected[0] };
+
+  const modalRef = this.ngbModal.open(VehicleRepairComponentFormComponent, {
+    size: 'xl', backdrop: 'static', keyboard: false, centered: true
+  });
+  modalRef.componentInstance.dataInput = rowData;
+
+  modalRef.result.then(
+    () => this.vehicleRepairTable?.setData(),
+    () => {}
+  );
+}
   async exportToExcelProduct() {
     if (!this.vehicleRepairTable) return;
     const selectedData = this.vehicleRepairTable?.getData();

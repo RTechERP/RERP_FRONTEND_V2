@@ -17,8 +17,10 @@ import { NzFlexModule } from 'ng-zorro-antd/flex';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { NzNotificationService } from 'ng-zorro-antd/notification'
 import { DateTime } from 'luxon';
+import { NzUploadModule } from 'ng-zorro-antd/upload';
 import type { Editor } from 'tabulator-tables';
 import { NzModalService } from 'ng-zorro-antd/modal';
+export const SERVER_PATH = `D:/RTC_Sw/RTC/ProductRTC/`;
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { VehicleRepairService } from '../vehicle-repair-service/vehicle-repair.service';
 import { VehicleManagementService } from '../../vehicle-management/vehicle-management.service';
@@ -26,6 +28,8 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { filter, distinctUntilChanged } from 'rxjs/operators';
 import { VehicleRepairTypeFormComponent } from '../vehicle-repair-type/vehicle-repair-type-form/vehicle-repair-type-form.component';
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { TbProductRtcService } from '../../../old/tb-product-rtc/tb-product-rtc-service/tb-product-rtc.service';
+import { NzUploadFile } from 'ng-zorro-antd/upload';
 export function phoneVNValidator(): ValidatorFn {
   const regex = /^(0|\+84)(\d{9})$/; // bắt đầu bằng 0 hoặc +84 và theo sau 9 số
   return (control: AbstractControl): ValidationErrors | null => {
@@ -55,6 +59,7 @@ export function phoneVNValidator(): ValidatorFn {
     NzFormModule,
     FormsModule,
     ReactiveFormsModule,
+    NzUploadModule
   ],
   templateUrl: './vehicle-repair-component-form.component.html',
   styleUrl: './vehicle-repair-component-form.component.css'
@@ -66,7 +71,8 @@ export class VehicleRepairComponentFormComponent implements OnInit {
     private modal: NzModalService,
     private modalService: NgbModal,
     private vehicleRepairService: VehicleRepairService,
-    private vehicleManagementService: VehicleManagementService
+    private vehicleManagementService: VehicleManagementService,
+    private tbProductRtcService: TbProductRtcService
   ) {
     this.formGroup = this.fb.group({
 
@@ -84,6 +90,8 @@ export class VehicleRepairComponentFormComponent implements OnInit {
       Reason: ['', [Validators.required, Validators.maxLength(500)]],
       CostRepairEstimate: ['', [Validators.required]],
       CostRepairActual: ['', [Validators.required]],
+      FileName: [''],
+      FilePath: [''],
       EmployeeID: ['', [Validators.required]],
       Note: ['', [Validators.required, Validators.maxLength(500)]],
       IsDeleted: [false],
@@ -91,7 +99,7 @@ export class VehicleRepairComponentFormComponent implements OnInit {
       ContactPhone: ['', [
         Validators.required,
         phoneVNValidator(),
-        Validators.maxLength(12) 
+        Validators.maxLength(12)
       ]],
     });
   }
@@ -99,11 +107,15 @@ export class VehicleRepairComponentFormComponent implements OnInit {
   @Input() dataInput: any;
   @Output() closeModal = new EventEmitter<void>();
   @Output() formSubmitted = new EventEmitter<void>();
-      private ngbModal = inject(NgbModal);
+  private ngbModal = inject(NgbModal);
+  fileToUpload: File | null = null;
   public activeModal = inject(NgbActiveModal);
+  previewImageUrl: string | null = null;
+  imageFileName: string | null = null;
   employeeList: any[] = [];
   vehicleList: any[] = [];
   TypeList: any[] = [];
+  fathSever: string = 'D:/RTC_Sw/RTC/VehicleRepair/';// thay bằng đường dẫn sever
   private syncEmployeeFields(id?: number) {
     if (!id) return;
     const emp = this.employeeList.find(x => x.ID === id);
@@ -242,22 +254,66 @@ export class VehicleRepairComponentFormComponent implements OnInit {
     this.closeModal.emit();
     this.activeModal.dismiss('cancel');
   }
+  fileList: NzUploadFile[] = [];
+  previewFileUrl: string | null = null;
+  previewMime = '';
+
+  selectedFile: File | null = null;
+  beforeUpload = (file: NzUploadFile): boolean => {
+    const raw = file as any as File;
+    if (raw) {
+      const url = URL.createObjectURL(raw);
+      (file as any).url = url;
+      (file as any).objectURL = url;
+      this.selectedFile = raw;
+
+    }
+    this.fileList = [file];
+    this.formGroup.patchValue({ FileName: file.name });
+    this.formGroup.get('FileName')?.markAsDirty();
+    return false;
+  };
+
+  onRemove = (f: NzUploadFile): boolean => {
+    const url = (f as any).objectURL;
+    if (url) URL.revokeObjectURL(url);
+    this.fileList = [];
+    this.selectedFile = null;            // reset để tránh dùng nhầm
+    this.formGroup.patchValue({ FileName: '' });
+    return true;
+  };
+
+  handlePreview(file: NzUploadFile) {
+    const url = (file as any).objectURL || file.url || file.thumbUrl;
+    if (url) window.open(url, '_blank');
+  }
+
+
+  openPreview() {
+    if (!this.previewFileUrl) return;
+
+    window.open(this.previewFileUrl, '_blank');
+  }
   save() {
     this.trimAllStringControls();
+
     if (this.formGroup.invalid) {
-      Object.values(this.formGroup.controls).forEach((control) => {
-        if (control.invalid) {
-          control.markAsTouched();
-          control.updateValueAndValidity({ onlySelf: true });
-        }
+      Object.values(this.formGroup.controls).forEach(c => {
+        c.markAsTouched(); c.updateValueAndValidity({ onlySelf: true });
       });
-      this.notification.warning(
-        'Cảnh báo',
-        'Vui lòng điền đầy đủ thông tin bắt buộc'
-      );
+      this.notification.warning('Cảnh báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
     }
+
+    if (!this.selectedFile) {
+      this.notification.warning('Cảnh báo', 'Chưa chọn file hóa đơn');
+      return;
+    }
+
     const formValue = this.formGroup.value;
+    const fileName = formValue.FileName || this.selectedFile.name;
+    const filePath = `${this.fathSever}${fileName}`; // đồng bộ với nơi upload
+
     const payload = {
       vehicleRepair: {
         ID: this.dataInput?.ID ?? 0,
@@ -274,40 +330,61 @@ export class VehicleRepairComponentFormComponent implements OnInit {
         IsDeleted: formValue.IsDeleted || false,
         RepairGarageName: formValue.RepairGarageName,
         ContactPhone: formValue.ContactPhone,
-      },
-
-    }
-    console.log('payload', payload);
-    this.vehicleRepairService.saveData(payload).subscribe({
-      next: (res) => {
-        if(res.status==1)
-        {
-             this.notification.success('Thành công', 'Lưu thông tin sửa chữa xe thành công');
-        }
-        this.formSubmitted.emit();
-        this.activeModal.close('save');
-      },
-      error: (res) => {
-        this.notification.error('Lỗi', res.message);
-        console.error('Lỗi khi lưu thông tin sửa chữa xe:', res);
+        FileName: fileName,
+        FilePath: filePath
       }
-    });
-  }
-   addType() {
-      const modalRef = this.ngbModal.open(VehicleRepairTypeFormComponent, {
-        size: 'md',
-        backdrop: 'static',
-        keyboard: false,
-        centered: true,
-      });
-      modalRef.componentInstance.dataInput = null;
-      modalRef.result.then(
-        (result) => {
-          this.getRepairType();
+    };
+
+    this.tbProductRtcService
+      .uploadImage(this.selectedFile, this.fathSever) 
+      .subscribe({
+        next: (response: any) => {
+
+          if (response?.status && response.status !== 1) {
+            this.notification.error('Lỗi upload', response?.message || 'Upload thất bại');
+            return;
+          }
+
+          this.vehicleRepairService.saveData(payload).subscribe({
+            next: (response: any) => {
+              if (response?.status == 1) {
+                this.notification.success('Thành công', 'Lưu thông tin sửa chữa xe thành công');
+                this.formSubmitted.emit();
+                this.activeModal.close('save');
+              } else {
+                this.notification.error('Lỗi', response?.message || 'Lưu thất bại');
+              }
+            },
+            error: (err) => {
+              const msg = err?.error?.message || err?.message || err?.statusText || 'Lỗi khi lưu thông tin';
+              this.notification.error('Lỗi', msg);
+              console.error('Lỗi khi lưu:', err);
+            }
+          });
         },
-        (dismissed) => {
-          // console.log('Modal dismissed');
+        error: (err) => {
+          const msg = err?.error?.message || err?.message || err?.statusText || 'Không upload được file';
+          this.notification.error('Lỗi upload', msg);
+          console.error('Lỗi upload:', err);
         }
-      );
-    }
+      });
+  }
+  addType() {
+    const modalRef = this.ngbModal.open(VehicleRepairTypeFormComponent, {
+      size: 'md',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+    });
+    modalRef.componentInstance.dataInput = null;
+    modalRef.result.then(
+      (result) => {
+        this.getRepairType();
+      },
+      (dismissed) => {
+        // console.log('Modal dismissed');
+      }
+    );
+  }
+
 } 

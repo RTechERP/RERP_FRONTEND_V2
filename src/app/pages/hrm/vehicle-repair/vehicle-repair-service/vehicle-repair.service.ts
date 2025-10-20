@@ -25,4 +25,10 @@ export class VehicleRepairService {
     saveData(payload: any): Observable<any> {
     return this.http.post(`${this.url + `save-data`}`, payload);
   }
+
+private urlPreview = `${HOST}api/ProductRTC/preveiw?full=`;
+buildPreviewUrl(fullPath: string) {
+  return this.urlPreview + encodeURIComponent(fullPath);
+}
+
 }

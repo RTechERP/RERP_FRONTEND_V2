@@ -200,6 +200,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
   }
 
   saveDataProductSale(){
+    this.trimAllStringControls();
     if (this.formGroup.invalid) {
       this.formGroup.markAllAsTouched();
       this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin bắt buộc!');
@@ -346,6 +347,13 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
         }
       },
     );
+  }
+  private trimAllStringControls() {
+    Object.keys(this.formGroup.controls).forEach(k => {
+      const c = this.formGroup.get(k);
+      const v = c?.value;
+      if (typeof v === 'string') c!.setValue(v.trim(), { emitEvent: false });
+    });
   }
    // hàm gọi modal unitcount
    openModalUnitCountDetail(){

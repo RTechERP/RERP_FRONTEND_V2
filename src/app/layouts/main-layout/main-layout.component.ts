@@ -32,6 +32,9 @@ import { ProjectSurveyComponent } from '../../pages/old/project/project-survey/p
 import { ProjectItemLateComponent } from '../../pages/old/project/project-item-late/project-item-late.component';
 import { ProjectWorkItemTimelineComponent } from '../../pages/old/project/project-work-item-timeline/project-work-item-timeline.component';
 import { SynthesisOfGeneratedMaterialsComponent } from '../../pages/old/project/synthesis-of-generated-materials/synthesis-of-generated-materials.component';
+import { VehicleManagementComponent } from '../../pages/hrm/vehicle-management/vehicle-management.component';
+import { VehicleRepairComponent } from '../../pages/hrm/vehicle-repair/vehicle-repair.component';
+import { VehicleRepairTypeComponent } from '../../pages/hrm/vehicle-repair/vehicle-repair-type/vehicle-repair-type.component';
 type TabItem = {
   title: string;
   comp: Type<any>;
@@ -123,7 +126,6 @@ export class MainLayoutComponent implements OnInit {
         },
       ],
     },
-
     //#region menu KHO
     {
       kind: 'group',
@@ -165,6 +167,30 @@ export class MainLayoutComponent implements OnInit {
           title: 'TUYỂN DỤNG',
           isOpen: true,
           comp: HrhiringRequestComponent,
+          //   icon: 'assets/icon/layers.png',
+        },
+          {
+          kind: 'leaf',
+          key: 'VehicleManagementComponent',
+          title: 'Danh sách xe',
+          isOpen: true,
+          comp: VehicleManagementComponent,
+          //   icon: 'assets/icon/layers.png',
+        },
+             {
+          kind: 'leaf',
+          key: 'VehicleRepairComponent',
+          title: 'Danh sách xe sửa chữa',
+          isOpen: true,
+          comp: VehicleRepairComponent,
+          //   icon: 'assets/icon/layers.png',
+        },
+         {
+          kind: 'leaf',
+          key: 'VehicleRepairComponent',
+          title: 'Danh sách loại sửa chữa',
+          isOpen: true,
+          comp: VehicleRepairTypeComponent,
           //   icon: 'assets/icon/layers.png',
         },
       ],

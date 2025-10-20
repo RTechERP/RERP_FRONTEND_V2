@@ -988,6 +988,9 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       size: 'xl',
       backdrop: 'static',
       keyboard: false,
+      // centered: true,
+      // backdrop: 'static',
+      // windowClass: 'full-screen-modal',
     });
 
     modalRef.componentInstance.projectId = status == 0 ? 0 : selectedIDs[0];

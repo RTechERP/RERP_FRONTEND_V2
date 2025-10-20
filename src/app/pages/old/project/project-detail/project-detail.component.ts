@@ -20,12 +20,14 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzFormModule } from 'ng-zorro-antd/form';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { ViewContainerRef } from '@angular/core';
 import { SelectLeaderComponent } from '../project-control/select-leader.component';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 
 import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
@@ -39,12 +41,14 @@ import { SelectProjectEmployeeGroupComponent } from '../project-control/select-p
     NzTabsModule,
     NzSelectModule,
     FormsModule,
+    ReactiveFormsModule,
     NzGridModule,
     NzDatePickerModule,
     NzIconModule,
     NzInputModule,
     NzButtonModule,
     NzModalModule,
+    NzFormModule,
   ],
   templateUrl: './project-detail.component.html',
   styleUrl: './project-detail.component.css',
@@ -116,6 +120,9 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   currentTab: any = 0;
 
   dictLeader: { [key: number]: string } = {};
+  
+  // Form validation
+  formGroup: FormGroup;
   //#endregion
 
   constructor(
@@ -125,11 +132,57 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
-    private modalService: NgbModal
-  ) {}
+    private modalService: NgbModal,
+    private fb: FormBuilder
+  ) {
+    this.formGroup = this.fb.group({
+      customerId: [null, [Validators.required]],
+      projectName: ['', [Validators.required]],
+      userSaleId: [null, [Validators.required]],
+      userTechId: [null, [Validators.required]],
+      pmId: [null, [Validators.required]],
+      endUserId: [null, [Validators.required]],
+      expectedPlanDate: [null, [Validators.required]],
+      expectedQuotationDate: [null, [Validators.required]],
+      priority: ['', [Validators.required]],
+      projectTypeId: [1, [Validators.required]]
+    });
+  }
 
   //#region Chạy khi mở chương trình
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    // Đồng bộ dữ liệu từ form controls với các biến
+    this.formGroup.get('customerId')?.valueChanges.subscribe(value => {
+      this.customerId = value;
+    });
+    this.formGroup.get('projectName')?.valueChanges.subscribe(value => {
+      this.projectName = value;
+    });
+    this.formGroup.get('userSaleId')?.valueChanges.subscribe(value => {
+      this.userSaleId = value;
+    });
+    this.formGroup.get('userTechId')?.valueChanges.subscribe(value => {
+      this.userTechId = value;
+    });
+    this.formGroup.get('pmId')?.valueChanges.subscribe(value => {
+      this.pmId = value;
+    });
+    this.formGroup.get('endUserId')?.valueChanges.subscribe(value => {
+      this.endUserId = value;
+    });
+    this.formGroup.get('expectedPlanDate')?.valueChanges.subscribe(value => {
+      this.expectedPlanDate = value;
+    });
+    this.formGroup.get('expectedQuotationDate')?.valueChanges.subscribe(value => {
+      this.expectedQuotationDate = value;
+    });
+    this.formGroup.get('priority')?.valueChanges.subscribe(value => {
+      this.priority = value;
+    });
+    this.formGroup.get('projectTypeId')?.valueChanges.subscribe(value => {
+      this.projectTypeId = value;
+    });
+  }
 
   ngAfterViewInit(): void {
     this.drawTbProjectTypeLinks(
@@ -255,6 +308,14 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
           this.customerId = response.data.CustomerID;
           this.userSaleId = response.data.UserID;
           this.userTechId = response.data.UserTechnicalID;
+          
+          // Cập nhật form values
+          this.formGroup.patchValue({
+            customerId: response.data.CustomerID,
+            projectName: response.data.ProjectName,
+            userSaleId: response.data.UserID,
+            userTechId: response.data.UserTechnicalID
+          });
           this.createDate = DateTime.fromISO(response.data.CreatedDate)
             .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
             .toUTC()
@@ -268,6 +329,14 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
           this.priority = response.data.Priotity;
           this.projectTypeId =
             response.data.TypeProject <= 0 ? 1 : response.data.TypeProject;
+            
+          // Cập nhật thêm form values
+          this.formGroup.patchValue({
+            pmId: response.data.ProjectManager,
+            endUserId: response.data.EndUser,
+            priority: response.data.Priotity,
+            projectTypeId: response.data.TypeProject <= 0 ? 1 : response.data.TypeProject
+          });
         },
         error: (error: any) => {
           const msg = error.message || 'Lỗi không xác định';
@@ -298,6 +367,12 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
                 .toUTC()
                 .toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
             : null;
+            
+          // Cập nhật form values cho ngày
+          this.formGroup.patchValue({
+            expectedPlanDate: this.expectedPlanDate,
+            expectedQuotationDate: this.expectedQuotationDate
+          });
           this.expectedPODate = res.data.ExpectedPODate
             ? DateTime.fromISO(res.data.ExpectedPODate)
                 .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
@@ -512,6 +587,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   }
 
   saveDataProject() {
+    // Kiểm tra mã dự án nếu đang edit
     if (this.projectId > 0) {
       this.projectService
         .checkProjectCode(this.projectId, this.projectCode)
@@ -545,6 +621,8 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     const allData = this.tb_projectTypeLinks.getData();
     const projectTypeLinks =
       this.projectService.getSelectedRowsRecursive(allData);
+    
+    // Kiểm tra mã dự án
     if (!this.projectCode) {
       this.notification.error('', 'Vui lòng nhập mã dự án', {
         nzStyle: { fontSize: '0.75rem' },
@@ -554,75 +632,9 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
 
     console.log('prjtypelink', projectTypeLinks);
 
-    if (!this.projectName) {
-      this.notification.error('', 'Vui lòng nhập tên dự án!', {
-        nzStyle: { fontSize: '0.75rem' },
-      });
-      return;
-    }
-
-    if (!this.customerId) {
-      this.notification.error('', 'Vui lòng khách hàng!', {
-        nzStyle: { fontSize: '0.75rem' },
-      });
-      return;
-    }
-
-    if (!this.userSaleId) {
-      this.notification.error('', 'Vui lòng chọn Người phụ trách(Sale)!', {
-        nzStyle: { fontSize: '0.75rem' },
-      });
-      return;
-    }
-
-    if (!this.userTechId) {
-      this.notification.error(
-        '',
-        'Vui lòng chọn Người phụ trách (Technical)!',
-        {
-          nzStyle: { fontSize: '0.75rem' },
-        }
-      );
-      return;
-    }
-
-    if (!this.pmId) {
-      this.notification.error('', 'Vui lòng chọn PM!', {
-        nzStyle: { fontSize: '0.75rem' },
-      });
-      return;
-    }
-
-    if (!this.endUserId) {
-      this.notification.error('', 'Vui lòng chọn End User!', {
-        nzStyle: { fontSize: '0.75rem' },
-      });
-      return;
-    }
-
-    if (!this.expectedPlanDate) {
-      this.notification.error('', 'Vui lòng nhập Ngày gửi phương án!', {
-        nzStyle: { fontSize: '0.75rem' },
-      });
-      return;
-    }
-
-    if (!this.expectedQuotationDate) {
-      this.notification.error('', 'Vui lòng nhập Ngày gửi báo giá!', {
-        nzStyle: { fontSize: '0.75rem' },
-      });
-      return;
-    }
-
+    // Kiểm tra kiểu dự án
     if (projectTypeLinks.length == 0 && this.projectTypeId <= 1) {
       this.notification.error('', 'Vui lòng chọn kiểu dự án!', {
-        nzStyle: { fontSize: '0.75rem' },
-      });
-      return;
-    }
-
-    if (!this.priority) {
-      this.notification.error('', 'Vui lòng nhập Mức ưu tiên!', {
         nzStyle: { fontSize: '0.75rem' },
       });
       return;
@@ -760,7 +772,10 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
 
   saveData() {
     if (this.currentTab == 0) {
-      console.log(1);
+      // Validate form trước khi lưu
+      if (!this.validateForm()) {
+        return;
+      }
       this.saveDataProject();
     } else if (this.currentTab == 1) {
       console.log(2);
@@ -1047,6 +1062,61 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
         }
       },
     );
+  }
+  //#endregion
+
+  //#region Validation methods
+  private trimAllStringControls() {
+    Object.keys(this.formGroup.controls).forEach(k => {
+      const c = this.formGroup.get(k);
+      const v = c?.value;
+      if (typeof v === 'string') c!.setValue(v.trim(), { emitEvent: false });
+    });
+  }
+
+  // Method để lấy error message cho các trường
+  getFieldError(fieldName: string): string | undefined {
+    const control = this.formGroup.get(fieldName);
+    if (control?.invalid && (control?.dirty || control?.touched)) {
+      if (control.errors?.['required']) {
+        switch (fieldName) {
+          case 'customerId':
+            return 'Vui lòng chọn khách hàng!';
+          case 'projectName':
+            return 'Vui lòng nhập tên dự án!';
+          case 'userSaleId':
+            return 'Vui lòng chọn người phụ trách (Sale)!';
+          case 'userTechId':
+            return 'Vui lòng chọn người phụ trách (Technical)!';
+          case 'pmId':
+            return 'Vui lòng chọn PM!';
+          case 'endUserId':
+            return 'Vui lòng chọn End User!';
+          case 'expectedPlanDate':
+            return 'Vui lòng chọn ngày gửi phương án!';
+          case 'expectedQuotationDate':
+            return 'Vui lòng chọn ngày gửi báo giá!';
+          case 'priority':
+            return 'Vui lòng nhập mức ưu tiên!';
+          case 'projectTypeId':
+            return 'Vui lòng chọn kiểu dự án!';
+          default:
+            return 'Trường này là bắt buộc!';
+        }
+      }
+    }
+    return undefined;
+  }
+
+  // Method để validate form
+  validateForm(): boolean {
+    this.trimAllStringControls();
+    if (this.formGroup.invalid) {
+      this.formGroup.markAllAsTouched();
+      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin bắt buộc!');
+      return false;
+    }
+    return true;
   }
   //#endregion
 }

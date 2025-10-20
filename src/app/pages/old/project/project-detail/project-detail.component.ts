@@ -1038,13 +1038,14 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       keyboard: false,
     });
 
-    modalRef.result.then(
+    debugger
+    modalRef.result.catch(
       (result) => {
         if (result == true) {
           this.getProjectStatus();
+          this.getStatuses();
         }
       },
-      (reason) => {}
     );
   }
   //#endregion

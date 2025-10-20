@@ -280,13 +280,16 @@ export class VehicleRepairComponentFormComponent implements OnInit {
     console.log('payload', payload);
     this.vehicleRepairService.saveData(payload).subscribe({
       next: (res) => {
-        this.notification.success('Thành công', 'Lưu thông tin sửa chữa xe thành công');
+        if(res.status==1)
+        {
+             this.notification.success('Thành công', 'Lưu thông tin sửa chữa xe thành công');
+        }
         this.formSubmitted.emit();
         this.activeModal.close('save');
       },
-      error: (err) => {
-        this.notification.error('Lỗi', 'Lưu thông tin sửa chữa xe thất bại');
-        console.error('Lỗi khi lưu thông tin sửa chữa xe:', err);
+      error: (res) => {
+        this.notification.error('Lỗi', res.message);
+        console.error('Lỗi khi lưu thông tin sửa chữa xe:', res);
       }
     });
   }

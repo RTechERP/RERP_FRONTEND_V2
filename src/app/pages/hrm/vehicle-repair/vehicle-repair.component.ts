@@ -288,12 +288,16 @@ export class VehicleRepairComponent implements OnInit, AfterViewInit {
         console.log(payload);
         this.VehicleRepairService.saveData(payload).subscribe({
           next: (res) => {
+            if(res.status=1)
+            {
             this.notification.success('Thành công', 'Xóa lịch sử sửa chữa thành công!');
+
+            }
             this.vehicleRepairTable?.setData();
             this.drawTable();
           },
           error: (res) => {
-            this.notification.warning('Lỗi', 'Lỗi kết nối máy chủ!');
+            this.notification.warning('Lỗi', res.message);
           }
         });
       }

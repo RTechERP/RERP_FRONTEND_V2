@@ -74,52 +74,79 @@ export const routes: Routes = [
   {
     path: '',
     component: MainLayoutComponent, // layout chứa sidebar, topbar, etc.
-    // canActivate: [authGuard],
+    canActivate: [authGuard],
     children: [
-      { path: 'app', component: WelcomeComponent },
-      { path: 'menu', component: MenusComponent },
-      {
-        path: 'project-partlist-price-request',
-        loadComponent: () =>
-          import(
-            './pages/old/project-partlist-purchase-request/project-partlist-purchase-request.component'
-          ).then((m) => m.ProjectPartlistPurchaseRequestComponent),
-      },
+      { path: 'app', component: WelcomeComponent, canActivate: [authGuard] },
+      { path: 'menu', component: MenusComponent, canActivate: [authGuard] },
+      //   {
+      //     path: 'project-partlist-price-request',
+      //     loadComponent: () =>
+      //       import(
+      //         './pages/old/project-partlist-purchase-request/project-partlist-purchase-request.component'
+      //       ).then((m) => m.ProjectPartlistPurchaseRequestComponent),
+      //   },
       // Router danh mục dự án
-      { path: 'project/:id', component: ProjectComponent }, // 2 là tổng hợp công việc AGV còn lại là dự án
+      {
+        path: 'project/:id',
+        component: ProjectComponent,
+        canActivate: [authGuard],
+      }, // 2 là tổng hợp công việc AGV còn lại là dự án
       {
         path: 'projectListWork/:id',
         component: ProjectListWorkReportComponent,
+        canActivate: [authGuard],
       }, // Dự án master
-      { path: 'projectWorkCategory', component: ProjectWorkCategoryComponent }, // Hạng mục dự án
+      {
+        path: 'projectWorkCategory',
+        component: ProjectWorkCategoryComponent,
+        canActivate: [authGuard],
+      }, // Hạng mục dự án
       {
         path: 'projectWorkPropress/:id',
         component: ProjectWorkPropressComponent,
+        canActivate: [authGuard],
       }, // Tiến độ công việc
-      { path: 'projectWorkTimeline', component: ProjectWorkTimelineComponent }, // TimeLine công việc
-      { path: 'projectSurvey', component: ProjectSurveyComponent }, // Khảo sát dự án
-      { path: 'projectItemlate', component: ProjectItemLateComponent }, // Hạng mục công việc chậm tiến độ
+      {
+        path: 'projectWorkTimeline',
+        component: ProjectWorkTimelineComponent,
+        canActivate: [authGuard],
+      }, // TimeLine công việc
+      {
+        path: 'projectSurvey',
+        component: ProjectSurveyComponent,
+        canActivate: [authGuard],
+      }, // Khảo sát dự án
+      {
+        path: 'projectItemlate',
+        component: ProjectItemLateComponent,
+        canActivate: [authGuard],
+      }, // Hạng mục công việc chậm tiến độ
       {
         path: 'projectWorkItemTimeline',
         component: ProjectWorkItemTimelineComponent,
+        canActivate: [authGuard],
       }, // Hạng mục công việc chậm tiến độ
       {
         path: 'synthesisOfGeneratedMaterials',
         component: SynthesisOfGeneratedMaterialsComponent,
+        canActivate: [authGuard],
       }, // Tổng hợp vật tư phát sinh
       {
         path: 'projectSynthesisDepartment',
         component: ProjectSynthesisDepartmentComponent,
+        canActivate: [authGuard],
       }, // Tổng hợp vật tư phát sinh
 
       //#region CRM
       {
         path: 'crm',
         component: CrmComponent,
+        canActivate: [authGuard],
       },
       {
         path: 'customer', //DANH SÁCH KHÁCH HÀNG
         component: CustomerComponent,
+        canActivate: [authGuard],
       },
       //#endregion
 
@@ -127,15 +154,18 @@ export const routes: Routes = [
       {
         path: 'warehouse',
         component: WarehouseComponent,
+        canActivate: [authGuard],
       },
       {
         path: 'product-demo', //DANH SÁCH SẢN PHẨM DEMO
         component: TbProductRtcComponent,
+        canActivate: [authGuard],
       },
 
       {
         path: 'product-sale', //DANH SÁCH SẢN PHẨM SALE
         component: ProductSaleComponent,
+        canActivate: [authGuard],
       },
 
       //#endregion
@@ -144,10 +174,12 @@ export const routes: Routes = [
       {
         path: 'hrm', //phân hệ nhân sự
         component: HrmComponent,
+        canActivate: [authGuard],
       },
       {
         path: 'hrhiring', //tuyển dụng
         component: HrhiringRequestComponent,
+        canActivate: [authGuard],
       },
       //#endregion
 
@@ -155,27 +187,70 @@ export const routes: Routes = [
       {
         path: 'category',
         component: GeneralCategoryComponent,
+        canActivate: [authGuard],
       },
       {
         path: 'training-registration', //Đăng ký đào tạo
         component: TrainingRegistrationComponent,
+        canActivate: [authGuard],
       },
       //#endregion
-      { path: 'project', component: ProjectComponent }, // NTA Bổ sung path 25/09/25
-      { path: 'pokh', component: PokhComponent },
-      { path: 'handover-minutes', component: HandoverMinutesComponent },
-      { path: 'request-invoice', component: RequestInvoiceComponent },
-      { path: 'quotation-kh', component: QuotationKhComponent },
-      { path: 'pokh-kpi', component: PokhKpiComponent },
-      { path: 'pokh-history', component: PokhHistoryComponent },
-      { path: 'trade-price', component: TradePriceComponent },
-      { path: 'quotation-sale', component: QuotationSaleComponent },
+      {
+        path: 'project',
+        component: ProjectComponent,
+        canActivate: [authGuard],
+      }, // NTA Bổ sung path 25/09/25
+      { path: 'pokh', component: PokhComponent, canActivate: [authGuard] },
+      {
+        path: 'handover-minutes',
+        component: HandoverMinutesComponent,
+        canActivate: [authGuard],
+      },
+      {
+        path: 'request-invoice',
+        component: RequestInvoiceComponent,
+        canActivate: [authGuard],
+      },
+      {
+        path: 'quotation-kh',
+        component: QuotationKhComponent,
+        canActivate: [authGuard],
+      },
+      {
+        path: 'pokh-kpi',
+        component: PokhKpiComponent,
+        canActivate: [authGuard],
+      },
+      {
+        path: 'pokh-history',
+        component: PokhHistoryComponent,
+        canActivate: [authGuard],
+      },
+      {
+        path: 'trade-price',
+        component: TradePriceComponent,
+        canActivate: [authGuard],
+      },
+      {
+        path: 'quotation-sale',
+        component: QuotationSaleComponent,
+        canActivate: [authGuard],
+      },
       {
         path: 'project-machine-price',
         component: ProjectMachinePriceComponent,
+        canActivate: [authGuard],
       },
-      { path: 'plan-week', component: PlanWeekComponent },
-      { path: 'customer', component: CustomerComponent }, // NTA Bổ sung path 25/09/25  END
+      {
+        path: 'plan-week',
+        component: PlanWeekComponent,
+        canActivate: [authGuard],
+      },
+      {
+        path: 'customer',
+        component: CustomerComponent,
+        canActivate: [authGuard],
+      }, // NTA Bổ sung path 25/09/25  END
     ],
   },
 ];

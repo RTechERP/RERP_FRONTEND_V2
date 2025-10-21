@@ -13,7 +13,9 @@
                     <nz-col [nzSpan]="24">
                         <nz-form-item class="col-md-12">
                             <nz-form-label [nzSpan]="24">Chọn loại tài sản<span class="text-danger ps-1 me-1"> (*)
-                                </span>
+                                </span> <button nz-button nzSize="small" class="fs-12 button button-succes me-2"
+                                        title="Thêm loại sửa chữa" (click)="addType()"><nz-icon nzType="plus" />
+                                    </button>
                             </nz-form-label>
                             <nz-form-control [nzErrorTip]="'Chọn loại tài sản'">
                                 <nz-input-group required nzSearch nzSize="default" class="w-100">

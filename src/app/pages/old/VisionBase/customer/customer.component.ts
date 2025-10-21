@@ -60,7 +60,7 @@ import { group } from '@angular/animations';
 import { ViewPokhService } from '../../view-pokh/view-pokh/view-pokh.service';
 import { CustomerDetailComponent } from '../customer-detail/customer-detail.component';
 import { CustomerMajorComponent } from '../customer-major/customer-major/customer-major.component';
-import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { DEFAULT_TABLE_CONFIG, DEFAULT_TABLE_CONFIG_NOT_PAGINATIONMODE_REMOTE } from '../../../../tabulator-default.config';
 @Component({
   selector: 'app-customer',
   imports: [
@@ -204,6 +204,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       //   console.log('Params từ Tabulator:', params);
 
       return {
+       
         filterText: this.filters.keyword || '',
         groupId: this.filters.teamId || 0,
         employeeId: this.filters.userId || 0,
@@ -337,14 +338,30 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       //   paginationMode: 'remote',
       //   paginationSizeSelector: [10, 30, 50, 100, 200, 300, 500],
       ajaxURL: this.customerService.getMainDataAjax(),
+      //ajaxConfig: 'POST',
       ajaxParams: this.getMainDataAjaxParams(),
+      ajaxRequestFunc: (url, config, params) => {
+        const request = {
+          filterText: this.filters.keyword || '',
+          groupId: this.filters.teamId || 0,
+          employeeId: this.filters.userId || 0,
+          page: params.page || 1,
+          size: params.size || 50,
+        };
+        return this.customerService.getMainData2(request).toPromise();
+      },
+
       ajaxResponse: (url, params, res) => {
         // console.log(res.data.data);
         // console.log(res.data.data1.TotalPage);
+        
         return {
           data: res.data.data,
-          last_page: res.data.data1.TotalPage,
+          last_page: res.data.data1[0].TotalPage,
+          // data: res?.data?.data?.data ?? [],
+           //last_page: res?.data?.data?.data1?.[0]?.TotalPage ?? 1,
         };
+       
       },
       //   langs: {
       //     vi: {

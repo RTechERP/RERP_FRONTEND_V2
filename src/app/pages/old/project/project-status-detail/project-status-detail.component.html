@@ -3,6 +3,7 @@
     <h6 class="text-light text-uppercase m-0" style="padding: 0, 5rem">
       Chi tiết ưu tiên dự án
     </h6>
+    <button type="button" class="btn-close" (click)="activeModal.dismiss(true)" aria-label="Close"></button>
   </div>
 
   <div class="modal-body pt-0 pb-0 p-2 pb-2 w-100">
@@ -32,7 +33,7 @@
         nz-button
         nzType="default"
         nzDanger
-        (click)="activeModal.dismiss()"
+        (click)="activeModal.dismiss(true)"
       >
         Đóng
       </button>

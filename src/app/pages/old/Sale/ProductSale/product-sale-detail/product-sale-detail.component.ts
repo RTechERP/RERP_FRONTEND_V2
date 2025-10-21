@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit, ViewChild, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { RowComponent } from 'tabulator-tables';
@@ -33,6 +33,22 @@ interface ProductSale {
   LocationID: number;
   FirmID: number;
   Note: string;
+}
+
+// Custom validator để kiểm tra ký tự tiếng Việt
+function noVietnameseValidator(control: AbstractControl): ValidationErrors | null {
+  if (!control.value) {
+    return null; // Không validate nếu giá trị rỗng
+  }
+  
+  // Regex để kiểm tra ký tự tiếng Việt
+  const vietnameseRegex = /[àáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵÀÁẢÃẠÂẦẤẨẪẬĂẰẮẲẴẶÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴđĐ]/i;
+  
+  if (vietnameseRegex.test(control.value)) {
+    return { vietnameseChars: true };
+  }
+  
+  return null;
 }
 @Component({
   selector: 'app-product-sale-detail',
@@ -78,6 +94,8 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
   @Input() isCheckmode: boolean = false;
   @Input() selectedList: any[] = [];
   @Input() id: number = 0;
+
+  formGroup: FormGroup;
   
 
   constructor(
@@ -86,13 +104,38 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
     public activeModal: NgbActiveModal,
     private modalService: NgbModal,
     private productsaleService: ProductsaleServiceService,
-  ) { }
+  ) { 
+    this.formGroup = this.fb.group({
+      ProductGroupID: [null, [Validators.required]],
+      Unit: ['', [Validators.required]],
+      ProductCode: ['',[Validators.required, noVietnameseValidator]],
+      ProductName: ['', [Validators.required]],
+      NumberInStoreDauky: [{value: 0, disabled: true}],
+      NumberInStoreCuoiKy: [{value: 0, disabled: true}],
+      LocationID: [null, [Validators.required]],
+      Maker: ['', [Validators.required]],
+      Note: ['']
+    });
+  }
 
   ngOnInit(): void {
     this.getDataProductGroupcbb();
     this.getDataUnitCount();
     this.getDataLocation(0); 
     this.getDataFirm();
+    
+    // Patch form values from input data
+    this.formGroup.patchValue({
+      ProductGroupID: this.newProductSale.ProductGroupID || null,
+      Unit: this.newProductSale.Unit || '',
+      ProductCode: this.newProductSale.ProductCode || '',
+      ProductName: this.newProductSale.ProductName || '',
+      NumberInStoreDauky: this.newProductSale.NumberInStoreDauky || 0,
+      NumberInStoreCuoiKy: this.newProductSale.NumberInStoreCuoiKy || 0,
+      LocationID: this.newProductSale.LocationID || null,
+      Maker: this.newProductSale.Maker || '',
+      Note: this.newProductSale.Note || ''
+    });
   }
   ngAfterViewInit(): void {
   
@@ -145,7 +188,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
       } });
   }
   changeProductGroup(){
-    const id = this.newProductSale.ProductGroupID;
+    const id = this.formGroup.get('ProductGroupID')?.value;
     this.productsaleService.getDataLocation(id).subscribe({
       next:(res)=>{
         if (res?.data) {
@@ -157,13 +200,20 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
   }
 
   saveDataProductSale(){
-    if (!this.newProductSale.ProductGroupID || !this.newProductSale.ProductName || !this.newProductSale.FirmID || !this.newProductSale.LocationID) {
-      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin!');
+    this.trimAllStringControls();
+    if (this.formGroup.invalid) {
+      this.formGroup.markAllAsTouched();
+      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin bắt buộc!');
       return;
     }
-    const firm = this.listFirm.find((p: any) => p.ID === this.newProductSale.FirmID);
-    const maker = firm ? firm.FirmName : '';  
-    const location = this.listLocation.find((p: any) => p.ID === this.newProductSale.LocationID);
+
+    const formValue = this.formGroup.getRawValue(); // Sử dụng getRawValue() để lấy cả disabled controls
+    
+    // Tìm FirmID dựa trên Maker được chọn
+    const selectedFirm = this.listFirm.find((f: any) => f.FirmName === formValue.Maker);
+    const firmId = selectedFirm ? selectedFirm.ID : 0;
+    
+    const location = this.listLocation.find((p: any) => p.ID === formValue.LocationID);
     const addressbox = location ? location.LocationName : '';
 
     if (this.isCheckmode == true) {
@@ -171,23 +221,24 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
     
       const payload = [{
         ProductSale: {
-          ID: this.selectedList[0].ID,
-          ProductCode: this.newProductSale.ProductCode,
-          ProductName: this.newProductSale.ProductName,
-          Unit: this.newProductSale.Unit,
-          NumberInStoreDauky: this.newProductSale.NumberInStoreDauky,
-          NumberInStoreCuoiKy: this.newProductSale.NumberInStoreCuoiKy,
-          ProductGroupID: this.newProductSale.ProductGroupID,
-          FirmID: this.newProductSale.FirmID,
-          Maker: maker,
-          AddressBox:addressbox,
-          LocationID: this.newProductSale.LocationID,
-          Note: this.newProductSale.Note,
+          //ID: this.selectedList[0].ID,
+          ID: this.id,
+          ProductCode: formValue.ProductCode,
+          ProductName: formValue.ProductName,
+          Unit: formValue.Unit,
+          NumberInStoreDauky: formValue.NumberInStoreDauky,
+          NumberInStoreCuoiKy: formValue.NumberInStoreCuoiKy,
+          ProductGroupID: formValue.ProductGroupID,
+          FirmID: firmId,
+          Maker: formValue.Maker,
+          AddressBox: addressbox,
+          LocationID: formValue.LocationID,
+          Note: formValue.Note,
           UpdatedBy: 'admin',
           UpdatedDate: new Date()
         },
         Inventory: {
-          Note: this.newProductSale.Note,
+          Note: formValue.Note,
         }
       }];
 
@@ -210,31 +261,31 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
       // Add new product sale
       const payload = [{
         ProductSale: {
-          ProductCode: this.newProductSale.ProductCode,
-          ProductName: this.newProductSale.ProductName,
-          Unit: this.newProductSale.Unit,
-          NumberInStoreDauky: this.newProductSale.NumberInStoreDauky,
-          NumberInStoreCuoiKy: this.newProductSale.NumberInStoreCuoiKy,
-          ProductGroupID: this.newProductSale.ProductGroupID,
-          FirmID: this.newProductSale.FirmID,
-          LocationID: this.newProductSale.LocationID,
-          Maker: maker,
-          AddressBox:addressbox,
-          Note: this.newProductSale.Note,
+          ProductCode: formValue.ProductCode,
+          ProductName: formValue.ProductName,
+          Unit: formValue.Unit,
+          NumberInStoreDauky: formValue.NumberInStoreDauky,
+          NumberInStoreCuoiKy: formValue.NumberInStoreCuoiKy,
+          ProductGroupID: formValue.ProductGroupID,
+          FirmID: firmId,
+          LocationID: formValue.LocationID,
+          Maker: formValue.Maker,
+          AddressBox: addressbox,
+          Note: formValue.Note,
           CreatedBy: 'admin',
           CreatedDate: new Date(),
           UpdatedBy: 'admin',
           UpdatedDate: new Date()
         },
         Inventory: {
-          Note: this.newProductSale.Note,
+          Note: formValue.Note,
         }
       }];
     console.log("payload",payload);
       this.productsaleService.saveDataProductSale(payload).subscribe({
         next: (res) => {
           if (res.status === 1) {
-            this.notification.success('Thông báo', 'Thêm mới thành công!');
+            this.notification.success('Thông báo',  'Thêm mới thành công!');
             this.closeModal();
           } else {
             this.notification.warning('Thông báo', res.message || 'Không thể thêm sản phẩm!');
@@ -249,6 +300,20 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
   }
   closeModal() {
     this.activeModal.dismiss(true);
+  }
+
+  // Hàm để lấy error message cho ProductCode
+  getProductCodeError(): string | undefined {
+    const control = this.formGroup.get('ProductCode');
+    if (control?.invalid && (control?.dirty || control?.touched)) {
+      if (control.errors?.['required']) {
+        return 'Vui lòng nhập mã thiết bị!';
+      }
+      if (control.errors?.['vietnameseChars']) {
+        return 'Mã thiết bị không được chứa ký tự tiếng Việt!';
+      }
+    }
+    return undefined;
   }
 
   //hàm gọi modal firm
@@ -282,6 +347,13 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
         }
       },
     );
+  }
+  private trimAllStringControls() {
+    Object.keys(this.formGroup.controls).forEach(k => {
+      const c = this.formGroup.get(k);
+      const v = c?.value;
+      if (typeof v === 'string') c!.setValue(v.trim(), { emitEvent: false });
+    });
   }
    // hàm gọi modal unitcount
    openModalUnitCountDetail(){

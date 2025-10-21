@@ -30,7 +30,7 @@ import { ProductSaleDetailComponent } from './product-sale-detail/product-sale-d
 import { ProductGroupDetailComponent } from './product-group-detail/product-group-detail.component';
 import { ImportExcelProductSaleComponent } from './import-excel-product-sale/import-excel-product-sale.component';
 import { ISADMIN } from '../../../../app.config';
-import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { DEFAULT_TABLE_CONFIG, DEFAULT_TABLE_CONFIG_NOT_PAGINATIONMODE_REMOTE } from '../../../../tabulator-default.config';
 
 interface ProductGroup {
   ID?: number;
@@ -177,7 +177,19 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
               this.getDataProductGroupWareHouse(this.id);
             }
             if (this.table) {
-              this.table.setData(this.dataProducGroup);
+              this.table.setData(this.dataProducGroup).then(() => {
+              // Lấy tất cả các hàng, đáng tin cậy hơn getRowFromPosition(0) ngay lập tức
+               const allRows = this.table.getRows();        
+               const firstRow = allRows.length > 0 ? allRows[0] : null;
+                if (firstRow) {
+                  firstRow.select();
+                  const rowData = firstRow.getData();
+                  this.dataDelete = rowData;
+                  this.id = rowData["ID"];
+                  this.getDataProductSaleByIDgroup(this.id);
+                  this.getDataProductGroupWareHouse(this.id);
+                }
+              });
             } else {
               this.drawTable_ProductGroup();
             }
@@ -349,8 +361,8 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
       );
       return;
     } else {
-      const id = ids[0];
-      this.productsaleSV.getDataProductSalebyID(id).subscribe({
+      this.id = ids[0];
+      this.productsaleSV.getDataProductSalebyID(this.id).subscribe({
         next: (res) => {
           if (res?.data) {
             const data = Array.isArray(res.data) ? res.data[0] : res.data;
@@ -473,14 +485,14 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
           field: 'ProductGroupID',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          width: '50%',
+          width: '30%',
         },
         {
           title: 'Tên nhóm',
           field: 'ProductGroupName',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          width: '50%',
+          width: '70%',
         },
       ],
     });
@@ -506,14 +518,14 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
           field: 'WarehouseCode',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          width: '50%',
+          width: '30%',
         },
         {
           title: 'NV phụ trách',
           field: 'FullName',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          width: '50%',
+          width: '60%',
         },
       ],
     });
@@ -521,20 +533,10 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
   drawTable_ProductSale() {
     this.table_productsale = new Tabulator('#table_productsale', {
       data: this.dataProductSale,
-      ...DEFAULT_TABLE_CONFIG,
+      ...DEFAULT_TABLE_CONFIG_NOT_PAGINATIONMODE_REMOTE,
       layout: 'fitDataStretch',
       // selectableRows: true,
       columns: [
-        {
-          title: '',
-          formatter: 'rowSelection',
-          titleFormatter: 'rowSelection',
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-          headerSort: false,
-          width: 40,
-          frozen: true,
-        },
         {
           title: 'Tên nhóm',
           field: 'ProductGroupName',
@@ -594,8 +596,9 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
       (e: MouseEvent, row: RowComponent) => {
         const rowData = row.getData();
         this.selectedList = [rowData]; // Make it an array with single item
-        const id = rowData['ID'];
-        this.productsaleSV.getDataProductSalebyID(id).subscribe({
+        this.id = rowData['ID'];
+        this.isCheckmode = true;
+        this.productsaleSV.getDataProductSalebyID(this.id).subscribe({
           next: (res) => {
             if (res?.data) {
               const data = Array.isArray(res.data) ? res.data[0] : res.data;
@@ -667,7 +670,16 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
           if (!this.table_pgwarehouse) {
             this.drawTable_PGWareHouse();
           } else {
-            this.table_pgwarehouse.setData(this.dataPGWareHouse);
+            this.table_pgwarehouse.setData(this.dataPGWareHouse).then(() => {
+              // Lấy tất cả các hàng, đáng tin cậy hơn getRowFromPosition(0) ngay lập tức
+               const allRows = this.table_pgwarehouse.getRows();        
+               const firstRow = allRows.length > 0 ? allRows[0] : null;
+                if (firstRow) {
+                  firstRow.select();
+                  const rowData = firstRow.getData();
+                  this.dataDelete = rowData;
+                }
+              });
           }
         }
       },
@@ -764,6 +776,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
       Note: '',
     };
     this.openModalProductSale();
+    
   }
 
   openModalImportExcel() {

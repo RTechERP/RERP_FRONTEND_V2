@@ -1,0 +1,110 @@
+<div class="modal-header bg-primary p-2">
+    <h6 class="modal-title text-white">TÀI SẢN CÁ NHÂN</h6>
+    <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+</div>
+
+<div class="modal-body">
+    <form [formGroup]="formGroup" class="row g-3 ">
+        <nz-row [nzGutter]="5">
+            <nz-col [nzSpan]="12">
+
+
+                <nz-row [nzGutter]="24">
+                    <nz-col [nzSpan]="24">
+                        <nz-form-item class="col-md-12">
+                            <nz-form-label [nzSpan]="24">Chọn loại tài sản<span class="text-danger ps-1 me-1"> (*)
+                                </span>
+                            </nz-form-label>
+                            <nz-form-control [nzErrorTip]="'Chọn loại tài sản'">
+                                <nz-input-group required nzSearch nzSize="default" class="w-100">
+                                    <nz-select nzSize="default" formControlName="TSTypeAssetPersonalID"
+                                        name="TSTypeAssetPersonalID" nzPlaceHolder="Chọn loại tài sản"
+                                        class="fs-12 w-100" required nzShowSearch nzAllowClear>
+                                        <nz-option *ngFor="let item of assetType" [nzValue]="item.ID"
+                                            [nzLabel]="item.Code + ' - ' + item.Name">
+                                        </nz-option>
+                                    </nz-select>
+                                </nz-input-group>
+
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+                </nz-row>
+                <nz-row [nzGutter]="24">
+                    <nz-col [nzSpan]="24">
+                        <nz-form-item class="col-md-12">
+                            <nz-form-label [nzSpan]="24">Số lượng trong kho<span class="text-danger ps-1 me-1"> (*)
+                                </span>
+                            </nz-form-label>
+                            <nz-form-control [nzSpan]="24"[nzErrorTip]="'Nhập số lượng trong kho'">
+                                <input nz-input type="number" formControlName="Quantity" />
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+                </nz-row>
+
+            </nz-col>
+            <nz-col [nzSpan]="12">
+
+                <nz-row [nzGutter]="24">
+                    <nz-col [nzSpan]="24">
+                        <nz-form-item class="col-md-12">
+                            <nz-form-label [nzSpan]="24">Chọn đơn vị tính<span class="text-danger ps-1 me-1"> (*)
+                                </span>
+                            </nz-form-label>
+                            <nz-form-control [nzSpan]="24" [nzErrorTip]="'Chọn đơn vị tính'">
+                                <nz-input-group required nzSearch nzSize="default" class="w-100" >
+                                    <nz-select nzSize="default" formControlName="UnitCountID" name="UnitCountID"
+                                        nzPlaceHolder="Chọn đơn vị tính" class="fs-12 w-100" required nzShowSearch
+                                        nzAllowClear>
+                                        <nz-option *ngFor="let item of unitData" [nzValue]="item.ID"
+                                            [nzLabel]="item.UnitCode + ' - ' + item.UnitName">
+                                        </nz-option>
+                                    </nz-select>
+                                </nz-input-group>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+                </nz-row>
+                <nz-row [nzGutter]="24">
+                    <nz-col [nzSpan]="24">
+                        <nz-form-item class="col-md-12">
+                            <nz-form-label [nzSpan]="24">Ngày mua<span class="text-danger ps-1 me-1"> (*)
+                                </span></nz-form-label>
+                            <nz-form-control [nzSpan]="24"[nzErrorTip]="'Chọn ngày mua'">
+                                <div style="width: 100%;">
+                                    <nz-date-picker formControlName="DateBuy" [nzFormat]="'dd/MM/yyyy'"
+                                        style="width: 100%;"></nz-date-picker>
+                                </div>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+
+                </nz-row>
+
+
+            </nz-col>
+        </nz-row>
+        <nz-row [nzGutter]="24">
+            <nz-col [nzSpan]="24">
+                <nz-row [nzGutter]="24">
+
+                    <nz-col [nzSpan]="24">
+                        <nz-form-item class="col-md-12">
+                            <nz-form-label [nzSpan]="24">Ghi chú
+                            </nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <textarea nz-input placeholder="Nhập ghi chú" formControlName="Note"></textarea>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </nz-col>
+                </nz-row>
+
+            </nz-col>
+        </nz-row>
+    </form>
+</div>
+<div class="modal-footer">
+    <button nz-button nzType="default" nzDanger (click)="close()">Đóng</button>
+    <button nz-button nzType="primary" (click)="save()">Lưu dữ liệu</button>
+</div>

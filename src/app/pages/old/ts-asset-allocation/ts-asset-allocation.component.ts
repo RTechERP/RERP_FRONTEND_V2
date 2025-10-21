@@ -119,7 +119,12 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
   }
 
   getListEmployee() {
-    this.TsAssetManagementPersonalService.getListEmployee().subscribe((respon: any) => {
+    const request = {
+      status: 0,
+      departmentid: 0,
+      keyword: ''
+    };
+    this.TsAssetManagementPersonalService.getEmployee(request).subscribe((respon: any) => {
       this.emPloyeeLists = respon.employees;
       console.log(this.emPloyeeLists);
     });

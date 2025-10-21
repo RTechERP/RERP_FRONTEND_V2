@@ -25,6 +25,7 @@ import { TsAssetAllocationPersonalService } from '../ts-asset-allocation-persona
 import { CommonModule } from '@angular/common';
 import { TsAssetManagementPersonalService } from '../ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
 import { TsAssetRecoveryPersonalService } from './ts-asset-recovery-personal-service/ts-asset-recovery-personal.service';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 @Component({
   standalone: true,
   imports: [
@@ -55,7 +56,7 @@ import { TsAssetRecoveryPersonalService } from './ts-asset-recovery-personal-ser
 export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
   @ViewChild('addRecoveryModal') modalElement!: ElementRef;
   constructor(
-    private assetAllocationService: TsAssetAllocationPersonalService,
+    private tsAssetAllocationPersonalService: TsAssetAllocationPersonalService,
     private tsAssetRecoveryPersonalService: TsAssetRecoveryPersonalService,
     private notification: NzNotificationService,
     private assetManagementPersonalService: TsAssetManagementPersonalService,
@@ -91,11 +92,20 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
   selectedDepartmentRecoveryName: string = '';
   selectedPositionRecoveryName: String = '';
   editingID: number = 0;
+  Size: number = 100000;
+  Page: number = 1;
+  DateStart: Date = new Date(2024, 0, 1);   // 2000-01-01
+  DateEnd: Date = new Date(2026, 0, 1);   // 2099-01-01
+  EmployeeRecoveryID: number = 0;
+  EmployeeReturnID: number = 0;
+  TypeID: number = 0;
+  FilterText: string = '';
+  VehicleID: number = 0;
   ngOnInit() {
     this.generateTSAssetCode();
   }
   ngAfterViewInit(): void {
-    this.getAssetRecoveryPersonals();
+    //  this.getAssetRecoveryPersonals();
     this.drawTbRecoveryPersonal();
     this.drawRecoveryDetail();
     this.getListEmployee();
@@ -104,14 +114,20 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
     this.drawTbAssetManagementModal();
   }
   getListEmployee() {
-    this.assetManagementPersonalService.getListEmployee().subscribe((respon: any) => {
-      this.emPloyeeLists = respon.employees;
+    const request = {
+      status: 0,
+      departmentid: 0,
+      keyword: ''
+    };
+    this.assetManagementPersonalService.getEmployee(request).subscribe((respon: any) => {
+      this.emPloyeeLists = respon.data;
       this.employeeID = null;
       this.selectedEmployee = null;
     });
   }
+
   getAssetManagementPersonal() {
-    this.assetAllocationService.getAssetManagementPersonal().subscribe((respon: any) => {
+    this.tsAssetAllocationPersonalService.getAssetManagementPersonal().subscribe((respon: any) => {
       this.assetPersonals = respon.tSAssetManagmentPersonal;
       if (this.tbAssetPersonModal) {
         this.tbAssetPersonModal.setData(this.assetPersonals);
@@ -121,7 +137,7 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
   getAssetRecoveryPersonals() {
     const request = {
       dateStart: this.dateStart || '2020-01-01',
-      dateEnd: this.dateEnd || '2025-12-31',
+      dateEnd: this.dateEnd || '2028-12-31',
       employeeRecoveryID: this.employeeRecoveryID || 0,
       employeeReturnID: this.employeeReturnID || 0,
       status: this.status || -1,
@@ -135,15 +151,37 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
       this.tbAssetRecoveryPersonal?.setData(respon.assetsrecoveryPersonal);
     })
   }
+  private toIsoStart(d: Date) { const t = new Date(d); t.setHours(0, 0, 0, 0); return t.toISOString(); }
+  private toIsoEnd(d: Date) { const t = new Date(d); t.setHours(23, 59, 59, 999); return t.toISOString(); }
+
   drawTbRecoveryPersonal() {
     this.tbAssetRecoveryPersonal = new Tabulator('#dataTbRecovery',
       {
-        layout: 'fitDataStretch',
-        height: '83vh',
-        pagination: true,
-        paginationSize: 17,
-        paginationSizeSelector: [5, 10, 20, 50, 100],
-        selectableRows: 1,
+        ...DEFAULT_TABLE_CONFIG,
+        
+        ajaxURL: this.tsAssetRecoveryPersonalService.getAssetRecoveryAjax(),
+        ajaxConfig: 'POST',
+        ajaxRequestFunc: (url, config, params) => {
+          const request = {
+            DateStart: this.toIsoStart(this.DateStart),   // "2023-12-31T17:00:00.000Z"
+            DateEnd: this.toIsoEnd(this.DateEnd),       // "2026-01-01T16:59:59.999Z"
+            EmployeeReturnID: this.EmployeeReturnID ?? 0,
+            EmployeeRecoveryID: this.EmployeeRecoveryID ?? 0,
+            Status: 0,
+            FilterText: this.FilterText ?? '',
+            PageSize: params?.size || 50,
+            PageNumber: params?.page || 1,
+          };
+          console.log("Request..,", request);
+          return this.tsAssetRecoveryPersonalService.getAssetRecoveryPersonal(request).toPromise();
+        },
+        ajaxResponse: (url, params, response) => {
+          console.log('response', response);
+          return {
+            data: response.data.dataList || [],
+            last_page: response.data.TotalPage?.[0]?.TotalPage || 1,
+          };
+        },
         columns: [
           { title: 'ID', field: 'ID', hozAlign: 'center', headerHozAlign: 'center', visible: false },
           { title: 'EmployeeReturnID', field: 'EmployeeReturnID', hozAlign: 'center', headerHozAlign: 'center', visible: false },
@@ -175,49 +213,34 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
           {
             title: 'Ngày duyệt cá nhân',
             field: 'DateApprovedPersonalProperty',
-            formatter: (cell: any) => DateTime.fromISO(cell.getValue()).toFormat('dd/MM/yyyy'),
+
             hozAlign: 'center',
             headerHozAlign: 'center'
           },
           {
             title: 'Ngày duyệt HR',
             field: 'DateApprovedHR',
-            formatter: (cell: any) => DateTime.fromISO(cell.getValue()).toFormat('dd/MM/yyyy'),
+
             hozAlign: 'center',
             headerHozAlign: 'center'
           },
           {
             title: 'Ngày thu hồi',
             field: 'DateRecovery',
-            formatter: (cell: any) => DateTime.fromISO(cell.getValue()).toFormat('dd/MM/yyyy'),
+
             hozAlign: 'center',
             headerHozAlign: 'center'
           },
           { title: 'Thu hồi từ', field: 'EmployeeReturnName', hozAlign: 'left', headerHozAlign: 'center' },
           { title: 'Người thu hồi', field: 'EmployeeRecoveryName', hozAlign: 'left', headerHozAlign: 'center' },
-          { title: 'Người tạo', field: 'CreatedBy', hozAlign: 'left', headerHozAlign: 'center' },
-          {
-            title: 'Ngày tạo',
-            field: 'CreatedDate',
-            formatter: (cell: any) => DateTime.fromISO(cell.getValue()).toFormat('dd/MM/yyyy HH:mm'),
-            hozAlign: 'center',
-            headerHozAlign: 'center'
-          },
-          { title: 'Người cập nhật', field: 'UpdatedBy', hozAlign: 'left', headerHozAlign: 'center' },
-          {
-            title: 'Ngày cập nhật',
-            field: 'UpdateDate',
-            formatter: (cell: any) => DateTime.fromISO(cell.getValue()).toFormat('dd/MM/yyyy HH:mm'),
-            hozAlign: 'center',
-            headerHozAlign: 'center'
-          },
+
           { title: 'Ghi chú', field: 'Note', hozAlign: 'left', headerHozAlign: 'center' },
         ]
       });
     this.tbAssetRecoveryPersonal.on('rowClick', (evt, row: RowComponent) => {
       const rowData = row.getData();
       const id = rowData['ID'];
-      this.tsAssetRecoveryPersonalService.getAssetRecoveryDetail(id, 0).subscribe(res => {
+      this.tsAssetRecoveryPersonalService.getAssetRecoveryDetail(id).subscribe(res => {
         const details = Array.isArray(res.data.assetsRecoveryDetail)
           ? res.data.assetsRecoveryDetail
           : [];
@@ -273,7 +296,8 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
         CreatedBy: 'AdminSW',
         UpdateDate: today.toISOString().split('T')[0],
         UpdateBy: 'AdminSW',
-        IsDeleted: false
+        IsDeleted: false,
+        IsAllocation: asset.IsAllocation
       };
     });
     // Tạo đối tượng payload
@@ -296,7 +320,7 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
       tSRecoveryAssetPersonalDetails: recoveryDetails
     };
     // Gửi dữ liệu lên API
-    this.assetAllocationService.saveAssetAllocationPerson(payload).subscribe({
+    this.tsAssetAllocationPersonalService.saveAssetAllocationPerson(payload).subscribe({
       next: (res) => {
         if (res.status === 1) {
           this.notification.success("Thông báo", "Lưu thành công");
@@ -311,6 +335,19 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
         this.notification.warning("Thông báo", "Lỗi kết nối máy chủ");
       }
     });
+  }
+   searchData(): void {
+    this.tbAssetRecoveryPersonal?.setData();
+  }
+  resetFilters(): void {
+    const now = DateTime.now();
+    this.EmployeeRecoveryID = 0;
+    this.EmployeeReturnID = 0;
+   
+    this.FilterText = '';
+    this.DateStart = now.startOf('month').toJSDate();
+    this.DateEnd = now.endOf('month').toJSDate();
+    this.searchData();
   }
   closeModal() {
     const modalEl = document.getElementById('addRecoveryModal');
@@ -331,22 +368,19 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
       this.tbAssetPersonModal.setData([]);
     }
   }
+generateTSAssetCode(date?: string): void {
+  const d = date || this.recoveryDate || new Date().toISOString().split('T')[0];
+  this.recoveryDate = d;
 
-  generateTSAssetCode(): void {
-    if (!this.recoveryDate) {
-      const today = new Date();
-      this.recoveryDate = today.toISOString().split('T')[0];
-      return;
-    }
-    this.assetAllocationService.getTSCNCode(this.recoveryDate).subscribe({
-      next: (response) => {
-        this.TSTHcode = response.data;
-      },
-      error: (error) => {
-        console.error('Lỗi khi lấy mã cấp phát:', error);
-      }
-    });
-  }
+  this.tsAssetRecoveryPersonalService.getTSTHCode(d).subscribe({
+    next: (res) => {
+      this.TSTHcode = res.data,
+    console.log("TSTHcode",this.TSTHcode);
+
+    },
+    error: (e) => console.error('getTSCNCode error:', e)
+  });
+}
   onEmployeeRecoverySelect(employeeID: number) {
     const employee = this.emPloyeeLists.find(e => e.ID === employeeID);
     if (!employee) {
@@ -365,7 +399,7 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
     this.selectedDepartmentReturnName = employee.DepartmentName;
     this.selectedPositionReturnName = employee.ChucVuHD;
     this.employeeReturnID = employeeID;
-    this.getRecoveryByemployee();
+
   }
   openEditModal() {
     const selectedRecovery = this.tbAssetRecoveryPersonal?.getSelectedData()?.[0];
@@ -413,7 +447,7 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
           movableColumns: true,
           reactiveData: true,
           columns: [
-            { title: 'ID', field: 'ID', hozAlign: 'center', width: 60, visible: false },
+            { title: 'ID', field: 'ID', hozAlign: 'center', width: 60 },
             { title: 'TSRecoveryAssetPersonalID', field: 'TSRecoveryAssetPersonalID', hozAlign: 'center', width: 60, visible: false },
 
             {
@@ -458,7 +492,7 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
     }
   }
   getRecoveryByemployee() {
-    this.tsAssetRecoveryPersonalService.getAssetRecoveryDetail(0, this.selectedEmployeeReturnID)
+    this.tsAssetRecoveryPersonalService.getAssetRecoveryDetail(0)
       .subscribe((res: any) => {
         this.assetPersonals = res.data.assetsRecoveryDetail;
         console.log('du lieu thu hoi', this.assetPersonals);
@@ -478,7 +512,7 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
         paginationSizeSelector: [5, 10, 20, 50, 100],
         reactiveData: true,
         columns: [
-          { title: 'ID', field: 'ID', hozAlign: 'center', width: 60, visible:false },
+          { title: 'ID', field: 'ID', hozAlign: 'center', width: 60, visible: false },
           {
 
             title: 'STT',
@@ -588,7 +622,7 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
         updatePayload = { tSRecoveryAssetPersonal: { id, isDeleted: true } };
         break;
     }
-    this.assetAllocationService.saveAssetAllocationPerson(updatePayload).subscribe({
+    this.tsAssetAllocationPersonalService.saveAssetAllocationPerson(updatePayload).subscribe({
       next: (res) => {
         if (res.status === 1) {
           this.notification.success("Thông báo", "Thành công");
@@ -627,11 +661,13 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
   onFilterChange(): void {
     this.getAssetRecoveryPersonals();
   }
-  openModalRecovery() {
-    const modalEl = document.getElementById('addRecoveryModal');
-    if (modalEl) {
-      const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-      modal.show();
-    }
-  }
+ openModalRecovery() {
+  this.editingID = 0;
+  this.TSTHcode = '';                        // reset code cũ
+  const today = new Date().toISOString().split('T')[0];
+  this.generateTSAssetCode(today);           // ép gọi API với ngày hôm nay
+
+  const el = document.getElementById('addRecoveryModal');
+  if (el) bootstrap.Modal.getOrCreateInstance(el).show();
+}
 }

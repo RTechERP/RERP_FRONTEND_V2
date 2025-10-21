@@ -89,7 +89,12 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
   }
   // lấy danh sách nhân viên
   getListEmployee() {
-    this.assetManagementPersonalService.getListEmployee().subscribe((respon: any) => {
+    const request = {
+      status: 0,
+      departmentid: 0,
+      keyword: ''
+    };
+    this.assetManagementPersonalService.getEmployee(request).subscribe((respon: any) => {
       this.emPloyeeLists = respon.employees;
       if (this.dataInput?.EmployeeID) {
         this.onEmployeeChange(this.dataInput.EmployeeID);

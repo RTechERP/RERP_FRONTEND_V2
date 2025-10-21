@@ -61,37 +61,39 @@
             <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
               <nz-icon nzType="search" />
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openModalAllocation()">
-              <nz-icon nzType="plus" /> Thêm
+
+            <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add" (click)="openModalAllocation()">
+              <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " />Thêm
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openEditModalAllocation()">
-              <nz-icon nzType="edit" nzTheme="fill" />Sửa
+            <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="openEditModalAllocation()">
+              <img src="assets/icon/action_edit_item_16.png" alt="Sửa nhóm TB" />Sửa
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="updateApprove('Delete')">
-              <nz-icon nzType="delete" nzTheme="fill" />Xóa
+            <button nz-button nzType="default" nzSize="small" class="btn-delete " (click)="updateApprove('Delete')">
+              <img src="assets/icon/action_delete_item_16.png" alt="Xóa nhóm TB" />Xóa
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="updateApprove('PERSONAL_APPROVE')">
-              <nz-icon nzType="check" nzTheme="outline"></nz-icon> Cá nhân duyệt
+     
+            <button nz-button nzType="default" nzSize="small" (click)="updateApprove('PERSONAL_APPROVE')">
+              <img src="assets/icon/action_approved_16.png" />Cá nhân duyệt
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="updateApprove('PERSONAL_CANCEL')">
-              <nz-icon nzType="close" nzTheme="outline"></nz-icon> Cá nhân hủy duyệt
+              <button nz-button nzType="default" nzSize="small" (click)="updateApprove('PERSONAL_CANCEL')">
+                 <img src="assets/icon/action_unapproved_16.png" />Cá nhân hủy  duyệt
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="updateApprove('HR_APPROVE')">
-              <nz-icon nzType="check" nzTheme="outline"></nz-icon> HR duyệt
+              <button nz-button nzType="default" nzSize="small"  (click)="updateApprove('HR_APPROVE')">
+              <img src="assets/icon/action_approved_16.png" />HR duyệt
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="updateApprove('HR_CANCEL')">
-              <nz-icon nzType="close" nzTheme="outline"></nz-icon> HR hủy duyệt
+              <button nz-button nzType="default" nzSize="small"  (click)="updateApprove('HR_CANCEL')">
+                <img src="assets/icon/action_unapproved_16.png" />HR hủy duyệt
             </button>
           </div>
         </div>
-          <nz-splitter style="height: 86vh;">
-            <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" >
-              <div id="dataTbAllocation" style="height: 100%;"></div>
-            </nz-splitter-panel>
-            <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" [nzSize]="sizeTbDetail">
-              <div id="dataTbAllocationDetail" style="height: 100%; "></div>
-            </nz-splitter-panel>
-          </nz-splitter>
+        <nz-splitter style="height: 86vh;">
+          <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
+            <div id="dataTbAllocation" style="height: 100%;"></div>
+          </nz-splitter-panel>
+          <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" [nzSize]="sizeTbDetail">
+            <div id="dataTbAllocationDetail" style="height: 100%; "></div>
+          </nz-splitter-panel>
+        </nz-splitter>
       </div>
     </nz-splitter-panel>
   </nz-splitter>

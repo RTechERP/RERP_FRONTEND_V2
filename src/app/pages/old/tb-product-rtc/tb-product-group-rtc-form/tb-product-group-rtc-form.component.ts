@@ -81,12 +81,24 @@ export class TbProductGroupRtcFormComponent implements OnInit, AfterViewInit {
       },
       productRTCs: []
     };
-console.log("Payload", payload);
+    console.log("Payload", payload);
     this.tbProductRtcService.saveData(payload).subscribe({
-      next: () => {
-        this.notification.success('Thành công', 'Sửa nhóm TB thành công');
-        this.formSubmitted.emit();
-        this.activeModal.close(true);
+      next: (res) => {
+        if (res.status === 1) 
+          {
+            if(payload.productGroupRTC.ID <=0)
+              {
+                this.notification.success('Thành công', 'Thêm mới thành công!');
+              }else
+              {
+                this.notification.success('Thành công', 'Cập nhật thành công!');
+              }
+              this.formSubmitted.emit();
+              this.activeModal.close(true);
+         }else 
+         {
+          this.notification.warning('Thông báo', res.message || 'Không thể cập nhật sản phẩm!');
+         }
       },
       error: () => {
         this.notification.error('Lỗi', 'Không thể lưu nhóm TB');

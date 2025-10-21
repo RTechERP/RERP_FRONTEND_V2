@@ -66,18 +66,32 @@ export class FactoryVisitRegistrationService {
       code: string;
       FullName: string;
       departmentName: string | null;
+      email: string;
+      phone: string;
+      position: string;
     }>
   > {
-    return this.http.get<any>(`${this.baseUrl}/employee-list`).pipe(
-      map((res) =>
-        (res?.data ?? []).map((e: any) => ({
-          id: e.ID,
-          code: e.Code ?? '',
-          FullName: e.FullName ?? '',
-          departmentName: e.DepartmentName ?? null,
-        }))
-      )
-    );
+    // API mới: /employee-list?status=0&departmentId=0&id=0
+    return this.http
+      .get<any>(`${this.baseUrl}/employee-list`, {
+        params: { status: 0, departmentId: 0, id: 0 } as any,
+      })
+      .pipe(
+        map((res) =>
+          (res?.data ?? []).map((e: any) => ({
+            id: e.ID,
+            code: e.Code ?? '',
+            FullName: e.FullName ?? '',
+            departmentName: e.DepartmentName ?? null,
+            // Ưu tiên email công ty, fallback email cá nhân/Email chung
+            email: e.EmailCongTy ?? e.EmailCaNhan ?? e.Email ?? '',
+            // Theo yêu cầu: dùng SDTCaNhan
+            phone: e.SDTCaNhan ?? 'chưa có số điện thoại',
+            // Theo yêu cầu: dùng ChucVuHD
+            position: e.ChucVuHD ?? 'chưa có chức vụ',
+          }))
+        )
+      );
   }
 
   // Email addresses for notifications

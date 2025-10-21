@@ -175,7 +175,7 @@ export class MainLayoutComponent implements OnInit {
         {
           kind: 'leaf',
           key: 'TsAssetAllocationPersonalComponent',
-          title: 'Tài sản các nhân',
+          title: 'Tài sản cá nhân',
           isOpen: true,
           comp: TsAssetAllocationPersonalComponent,
           //   icon: 'assets/icon/layers.png',

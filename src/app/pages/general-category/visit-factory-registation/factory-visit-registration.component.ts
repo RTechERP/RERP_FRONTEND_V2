@@ -6,6 +6,7 @@ import {
   ElementRef,
   ViewEncapsulation,
   inject,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -33,6 +34,10 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { AppUserService } from '../../../services/app-user.service';
 import { IUser } from '../../../models/user.interface';
 import { DisablePermissionDirective } from '../../../directives/disable-permission.directive';
+import { Calendar } from '@fullcalendar/core';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin from '@fullcalendar/interaction';
 
 @Component({
   selector: 'app-factory-visit-registration',
@@ -123,6 +128,7 @@ export class FactoryVisitRegistrationComponent
   selectedRegistration: any = null;
   selectedParticipant: any = null;
   selectedDetailIds: number[] = [];
+  calendar!: Calendar;
 
   private extractNumericId(obj: any): number | null {
     if (!obj) return null;
@@ -167,7 +173,8 @@ export class FactoryVisitRegistrationComponent
     private factoryVisitService: FactoryVisitRegistrationService,
     private notification: NzNotificationService,
     private modal: NzModalService,
-    private userService: AppUserService
+    private userService: AppUserService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -179,7 +186,9 @@ export class FactoryVisitRegistrationComponent
   }
 
   ngAfterViewInit(): void {
-    this.initTables();
+    // this.initTables();
+    this.initCalendar();
+    this.initDetailTable();
   }
 
   sizeSearch: string = '0';
@@ -608,13 +617,26 @@ export class FactoryVisitRegistrationComponent
     this.registrationDetails[index].fullName = found
       ? found.FullName || ''
       : '';
-    // auto-fill company, phone, email if available; default company RTC
+    // auto-fill theo API mới
     this.registrationDetails[index].company = 'RTC';
     if (found) {
-      if ((found as any).Phone)
-        this.registrationDetails[index].phoneNumber = (found as any).Phone;
-      if ((found as any).Email)
-        this.registrationDetails[index].email = (found as any).Email;
+      if (found.phone)
+        this.registrationDetails[index].phoneNumber = found.phone;
+      if (found.email) this.registrationDetails[index].email = found.email;
+      if (found.position)
+        this.registrationDetails[index].position = found.position;
+      // Debug: log giá trị chọn và dữ liệu điền
+      // Lưu ý: chỉ dùng cho kiểm tra, có thể xóa sau khi ổn định
+      console.log('Selected employee', found);
+      console.log('Autofilled ->', {
+        fullName: this.registrationDetails[index].fullName,
+        phoneNumber: this.registrationDetails[index].phoneNumber,
+        email: this.registrationDetails[index].email,
+        position: this.registrationDetails[index].position,
+      });
+      // Force UI update in case deep changes aren't detected
+      this.registrationDetails[index] = { ...this.registrationDetails[index] };
+      this.cdr.detectChanges();
     }
   }
 
@@ -1022,6 +1044,7 @@ export class FactoryVisitRegistrationComponent
   }
 
   private getEmployeeDisplayNameById(id: number | null | undefined): string {
+    console.log('id:', id);
     if (!id && id !== 0) return '';
     const found = this.employees.find((e) => e.id === id);
     if (found) {
@@ -1048,9 +1071,11 @@ export class FactoryVisitRegistrationComponent
     const dataForTable = this.mapRegistrationsWithEmployeeNames(
       this.registrations || []
     );
-    if (this.registrationTable) {
-      this.registrationTable.setData(dataForTable);
-    }
+
+    this.updateCalendarEvents(dataForTable);
+    // if (this.registrationTable) {
+    //   this.registrationTable.setData(dataForTable);
+    // }
   }
 
   private getGuestTypeNameById(id: string | number | null | undefined): string {
@@ -1104,5 +1129,153 @@ export class FactoryVisitRegistrationComponent
     const hh = pad(value.getHours());
     const mi = pad(value.getMinutes());
     this.registrationForm.endTime = `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+  }
+
+  private initCalendar(): void {
+    const el = this.registrationTableRef?.nativeElement;
+    if (!el) return;
+    this.calendar = new Calendar(el, {
+      plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
+      initialView: 'timeGridWeek',
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'timeGridWeek,dayGridDay',
+      },
+      locale: 'vi',
+      height: 500,
+      slotMinTime: '08:00:00',
+      slotMaxTime: '18:00:00',
+      slotDuration: '00:30:00',
+      slotLabelInterval: '01:00:00',
+      slotLabelFormat: {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: false,
+      },
+      allDaySlot: false,
+      dayMaxEvents: false,
+      eventClick: (info) => {
+        const id = Number(info.event.id);
+        const found = (this.registrations || []).find(
+          (r) => Number(r.id) === id
+        );
+        if (found) this.selectRegistration(found);
+      },
+    });
+    this.calendar.render();
+    this.updateCalendarEvents();
+  }
+
+  private initDetailTable(): void {
+    this.detailTable = new Tabulator(this.detailTableRef.nativeElement, {
+      data: [],
+      layout: 'fitColumns',
+      height: 900,
+      selectable: true,
+      columns: [
+        {
+          title: '',
+          formatter: 'rowSelection',
+          titleFormatter: 'rowSelection',
+          hozAlign: 'center',
+          headerSort: false,
+          width: 40,
+        },
+        { title: 'ID', field: 'ID', width: 70, visible: false },
+        { title: 'Họ và tên', field: 'fullName', width: 180 },
+        { title: 'Công ty/đơn vị', field: 'company', width: 180 },
+        { title: 'Chức vụ', field: 'position', width: 140 },
+        { title: 'Số điện thoại', field: 'phoneNumber', width: 140 },
+        { title: 'Email', field: 'email', width: 200 },
+      ],
+    } as any);
+
+    this.detailTable.on('rowClick', (e: any, row: any) => {
+      this.selectedParticipant = row.getData();
+    });
+
+    this.detailTable.on('rowSelectionChanged', (data: any[]) => {
+      if (Array.isArray(data) && data.length > 0) {
+        this.selectedParticipant = data[0];
+        this.selectedDetailIds = data
+          .map((d: any) => this.extractNumericId(d))
+          .filter((id: any) => id !== null) as number[];
+      } else {
+        this.selectedParticipant = null;
+        this.selectedDetailIds = [];
+      }
+    });
+
+    this.detailTable.on('rowSelected', (row: any) => {
+      const id = this.extractNumericId(row?.getData?.());
+
+      if (id !== null && !this.selectedDetailIds.includes(id)) {
+        this.selectedDetailIds = [...this.selectedDetailIds, id];
+      }
+    });
+    this.detailTable.on('rowDeselected', (row: any) => {
+      const id = this.extractNumericId(row?.getData?.());
+
+      if (id !== null) {
+        this.selectedDetailIds = this.selectedDetailIds.filter((x) => x !== id);
+      }
+    });
+  }
+
+  private updateCalendarEvents(mapped?: any[]): void {
+    // console.log('mapped:', mapped);
+    if (!this.calendar) return;
+    const list =
+      mapped ??
+      this.mapRegistrationsWithEmployeeNames(this.registrations || []);
+
+    // console.log(list);
+    const events = (list || []).map((item) => {
+      // Màu sắc theo trạng thái duyệt
+      let backgroundColor = '#e74c3c'; // Chưa duyệt: đỏ
+      let borderColor = '#c0392b';
+
+      if (item.informationReceived) {
+        backgroundColor = '#27ae60'; // Đã duyệt: xanh lá
+        borderColor = '#229954';
+      }
+      //   console.log('updateCalendarEvents:', item);
+      return {
+        id: String(item.id),
+        title:
+          item.guestCompany +
+          '<br>' +
+          item.registeringEmployeeName +
+          '<br>' +
+          item.purpose,
+        // ${ || ''}\n
+        // ${ || ''}`,
+
+        start: item.startTime || item.registrationDate,
+        end: item.endTime || item.startTime,
+        backgroundColor: backgroundColor,
+        borderColor: borderColor,
+        textColor: '#ffffff',
+        extendedProps: { raw: item },
+        // eventDidMount(info: any) {
+        //   info.el.innerHTML = info.event.title;
+        // },
+      };
+    });
+    this.calendar.removeAllEvents();
+    this.calendar.addEventSource(events);
+  }
+
+  closeDetailPanel(): void {
+    this.selectedRegistration = null;
+    this.selectedParticipant = null;
+    this.selectedDetailIds = [];
+    // Force calendar to resize after panel closes
+    setTimeout(() => {
+      if (this.calendar) {
+        this.calendar.render();
+      }
+    }, 100);
   }
 }

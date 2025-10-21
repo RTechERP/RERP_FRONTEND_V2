@@ -671,14 +671,14 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
             this.drawTable_PGWareHouse();
           } else {
             this.table_pgwarehouse.setData(this.dataPGWareHouse).then(() => {
-              // Lấy tất cả các hàng, đáng tin cậy hơn getRowFromPosition(0) ngay lập tức
-               const allRows = this.table_pgwarehouse.getRows();        
-               const firstRow = allRows.length > 0 ? allRows[0] : null;
-                if (firstRow) {
-                  firstRow.select();
-                  const rowData = firstRow.getData();
-                  this.dataDelete = rowData;
-                }
+              // // Lấy tất cả các hàng, đáng tin cậy hơn getRowFromPosition(0) ngay lập tức
+              //  const allRows = this.table_pgwarehouse.getRows();        
+              //  const firstRow = allRows.length > 0 ? allRows[0] : null;
+              //   if (firstRow) {
+              //     firstRow.select();
+              //     const rowData = firstRow.getData();
+              //     this.dataDelete = rowData;
+              //   }
               });
           }
         }

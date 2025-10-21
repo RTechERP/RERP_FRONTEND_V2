@@ -34,6 +34,7 @@ import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/sign
 import { EnvironmentInjector } from '@angular/core';
 import { ProjectStatusDetailComponent } from '../project-status-detail/project-status-detail.component';
 import { SelectProjectEmployeeGroupComponent } from '../project-control/select-project-employee-group';
+import { CustomerDetailComponent } from '../../VisionBase/customer-detail/customer-detail.component';
 
 @Component({
   selector: 'app-project-detail',
@@ -137,15 +138,33 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   ) {
     this.formGroup = this.fb.group({
       customerId: [null, [Validators.required]],
+      projectCode: [{value: '', disabled: true}, [Validators.required]],
+      createdDate: [DateTime.local().set({ hour: 0, minute: 0, second: 0 }).toISO()],
       projectName: ['', [Validators.required]],
       userSaleId: [null, [Validators.required]],
       userTechId: [null, [Validators.required]],
+      projectStatusId: [null],
       pmId: [null, [Validators.required]],
       endUserId: [null, [Validators.required]],
+      firmBaseId: [null],
+      prjTypeBaseId: [null],
       expectedPlanDate: [null, [Validators.required]],
       expectedQuotationDate: [null, [Validators.required]],
-      priority: ['', [Validators.required]],
-      projectTypeId: [1, [Validators.required]]
+      expectedPODate: [null],
+      expectedProjectEndDate: [null],
+      realityPlanDate: [null],
+      realityQuotationDate: [null],
+      realityPODate: [null],
+      realityProjectEndDate: [null],
+      projectContactName: [''],
+      priority: [{value: '', disabled: true}, [Validators.required]],
+      projectTypeId: [1, [Validators.required]],
+      note: [''],
+      currentState: [''],
+      projectIdleader: [null, [Validators.required]],
+      projectStatusIdDetail: [null, [Validators.required]],
+      situlatorDetail: [''],
+      dateChangeStatus: [null]
     });
   }
 
@@ -422,11 +441,18 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
 
   getProjectCode() {
     if (this.customers.length < 0) return;
+    
+    // Lấy giá trị từ form controls
+    const customerId = this.formGroup.get('customerId')?.value;
+    const projectTypeId = this.formGroup.get('projectTypeId')?.value;
+    
+    if (!customerId) return;
+    
     const customer = (this.customers as any[]).find(
-      (x) => x.ID === this.customerId
+      (x) => x.ID === customerId
     );
 
-    if (customer.CustomerShortName == '') {
+    if (!customer || customer.CustomerShortName == '') {
       this.notification.error(
         '',
         'Khách hàng đang không có tên kí hiệu. Xin vui lòng thêm thông tin tên kí hiệu!',
@@ -435,6 +461,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
         }
       );
       this.projectCode = '';
+      this.formGroup.patchValue({ projectCode: '' });
       return;
     }
 
@@ -443,13 +470,16 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
         .getProjectCodeModal(
           this.projectId,
           customer.CustomerShortName,
-          this.projectTypeId
+          projectTypeId || 1
         )
         .subscribe({
           next: (response: any) => {
             this.projectCode = response.data;
-            if (!this.endUserId) {
-              this.endUserId = this.customerId;
+            this.formGroup.patchValue({ projectCode: response.data });
+            
+            const endUserId = this.formGroup.get('endUserId')?.value;
+            if (!endUserId) {
+              this.formGroup.patchValue({ endUserId: customerId });
             }
           },
           error: (error: any) => {
@@ -462,7 +492,8 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   }
 
   getDayChange() {
-    if (this.projectStatusId == this.oldStatusId || this.projectId <= 0) return;
+    const projectStatusId = this.formGroup.get('projectStatusId')?.value;
+    if (projectStatusId == this.oldStatusId || this.projectId <= 0) return;
 
     const modalRef = this.modal.create({
       nzContent: this.dateChangeStatusContainer,
@@ -472,7 +503,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
           type: 'default',
           nzDanger: true,
           onClick: () => {
-            this.projectStatusId = this.oldStatusId;
+            this.formGroup.patchValue({ projectStatusId: this.oldStatusId });
             this.dateChangeStatus = null;
             modalRef.close();
           },
@@ -765,7 +796,8 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   }
 
   loadAll() {
-    this.loadProject(this.projectIdleader);
+    const projectIdleader = this.formGroup.get('projectIdleader')?.value;
+    this.loadProject(projectIdleader);
     this.getProjectTypeLinksDetail();
     this.getProjectCurrentSituation();
   }
@@ -784,16 +816,8 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   }
 
   saveProjectTypeLink() {
-    if (this.projectIdleader <= 0) {
-      this.notification.error('', 'Vui lòng chọn dự án!', {
-        nzStyle: { fontSize: '0.75rem' },
-      });
-      return;
-    }
-    if (this.projectStatusIdDetail <= 0) {
-      this.notification.error('', 'Vui lòng chọn trạng thái dự án!', {
-        nzStyle: { fontSize: '0.75rem' },
-      });
+    // Validate form trước khi lưu
+    if (!this.validateLeaderForm()) {
       return;
     }
 
@@ -801,12 +825,17 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       this.tb_projectTypeLinksDetail.getData()
     );
 
+    // Lấy giá trị từ form controls
+    const projectIdleader = this.formGroup.get('projectIdleader')?.value;
+    const projectStatusIdDetail = this.formGroup.get('projectStatusIdDetail')?.value;
+    const situlatorDetail = this.formGroup.get('situlatorDetail')?.value;
+
     const dataSave = {
-      ProjectID: this.projectIdleader,
-      ProjectStatus: this.projectStatusIdDetail,
+      ProjectID: projectIdleader,
+      ProjectStatus: projectStatusIdDetail,
       GlobalEmployeeId: this.projectService.GlobalEmployeeId,
       prjTypeLinks: prjTypeLinks,
-      Situlator: this.situlator ?? '',
+      Situlator: situlatorDetail ?? '',
     };
 
     this.projectService.saveProjectTypeLink(dataSave).subscribe({
@@ -1038,7 +1067,8 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
 
     modalRef.result.catch((reason: any) => {
       if (reason !== undefined) {
-        this.priority = reason.priority;
+        this.formGroup.get('priority')?.setValue(reason.priority);
+        
         this.listPriorities = reason.listPriorities;
       }
     });
@@ -1052,8 +1082,6 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
       keyboard: false,
     });
-
-    debugger
     modalRef.result.catch(
       (result) => {
         if (result == true) {
@@ -1100,6 +1128,10 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
             return 'Vui lòng nhập mức ưu tiên!';
           case 'projectTypeId':
             return 'Vui lòng chọn kiểu dự án!';
+          case 'projectIdleader':
+            return 'Vui lòng chọn dự án!';
+          case 'projectStatusIdDetail':
+            return 'Vui lòng chọn trạng thái dự án!';
           default:
             return 'Trường này là bắt buộc!';
         }
@@ -1110,13 +1142,67 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
 
   // Method để validate form
   validateForm(): boolean {
-    this.trimAllStringControls();
-    if (this.formGroup.invalid) {
+     this.trimAllStringControls();
+     const requiredFields = [
+      'customerId',
+      'projectName',
+      'projectCode',
+      'pmId',
+      'userSaleId',
+      'priority',
+      'userTechId',
+      'endUserId',
+      'expectedPlanDate',
+      'expectedQuotationDate',
+      'projectTypeId',
+    ];
+    const invalidFields = requiredFields.filter(key => {
+      const control = this.formGroup.get(key);
+      return !control || control.invalid || control.value === '' || control.value == null;
+    });
+    if (invalidFields.length > 0) 
+      {
       this.formGroup.markAllAsTouched();
-      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin bắt buộc!');
       return false;
-    }
-    return true;
+      }  
+     return true ; 
   }
-  //#endregion
+
+ 
+  validateLeaderForm(): boolean {
+    this.trimAllStringControls();
+    const projectIdleader = this.formGroup.get('projectIdleader');
+    const projectStatusIdDetail = this.formGroup.get('projectStatusIdDetail'); 
+    let isValid = true;
+    if (!projectIdleader?.value || projectIdleader?.value <= 0) {
+      projectIdleader?.markAsTouched();
+      isValid = false;
+    }
+    if (!projectStatusIdDetail?.value || projectStatusIdDetail?.value <= 0) {
+      projectStatusIdDetail?.markAsTouched();
+      isValid = false;
+    }
+    if (!isValid) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn dự án và trạng thái!');
+    }
+    
+    return isValid;
+  }
+  openAddCustomer(){
+    console.log("Bình")
+    const modalRef = this.modalService.open(CustomerDetailComponent, {
+      centered: true,
+      backdrop: 'static',
+      windowClass: 'full-screen-modal',
+    });
+    modalRef.componentInstance.isEditMode = false;
+    modalRef.result.catch(
+      (result) => {
+        if (result == true) {
+          this.getProjectStatus();
+          this.getStatuses();
+        }
+      },
+    );
+  } 
 }

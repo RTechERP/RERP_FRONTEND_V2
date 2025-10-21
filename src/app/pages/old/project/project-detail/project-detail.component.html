@@ -5,48 +5,49 @@
         </h6>
         <button type="button" class="btn-close" (click)="activeModal.dismiss()" aria-label="Close"></button>
     </div>
-
     <div class="modal-body pt-0 pb-0 p-2 w-100" style="width: 800px; min-height: 60vh">
         <nz-tabset class="p-0" (nzSelectedIndexChange)="onChangeIndexTab($event)">
             <nz-tab nzTitle="Chi tiết dự án">
+                <div style="max-height: 60vh; overflow-y: auto; padding-right: 4px;">
                 <form nz-form [formGroup]="formGroup" class="g-3 needs-validation was-validated">
                 <div nz-row [nzGutter]="12" class="pb-2">
-                    <div nz-col [nzSpan]="12">
-
+                    <div nz-col [nzSpan]="12">            
                         <div nz-row>
                             <div nz-col [nzSpan]="24">
                               <nz-form-item class="pt-2">
-                                <nz-form-label class="fs-12">
-                                  <div class="d-flex align-items-center">
-                                    <span>Khách hàng <span class="text-danger ps-1">*</span></span>
-                                    <button
-                                      nz-button
-                                      nzSize="small"
-                                      class="fs-12 ms-2 button button-succes"
-                                      title="Thêm khách hàng"
-                                    >
-                                      <nz-icon nzType="plus" />
-                                    </button>
-                                    <button
-                                      nz-button
-                                      nzSize="small"
-                                      class="fs-12 ms-2 button button-succes"
-                                      title="Sửa dự án"
-                                    >
-                                      <nz-icon nzType="edit" />
-                                    </button>
-                                  </div>
+                                <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
+                                    <div class="d-flex ">
+                                          Khách hàng <span class="text-danger ps-1">*</span>
+                                          <button
+                                            class="p-0 m-0 fs-12 px-1 h-auto"
+                                            nz-button
+                                            nzSize="small"
+                                            title="Thêm khách hàng" 
+                                            nzType="text"
+                                            (click)="openAddCustomer()"
+                                          >
+                                          <i class="fas fa-plus"></i>
+                                          </button>
+                                          <!-- <button
+                                            nz-button
+                                            nzSize="small"
+                                            class="fs-12 ms-2 button button-succes"
+                                            title="Sửa dự án"
+                                          >
+                                            <nz-icon nzType="edit" />
+                                          </button> -->
+                                        </div>
                                 </nz-form-label>
-                          
                                 <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('customerId')">
                                   <nz-select
                                     formControlName="customerId"
-                                    [(ngModel)]="customerId"
                                     class="w-100"
                                     nzShowSearch
                                     nzAllowClear
                                     nzPlaceHolder="Chọn khách hàng"
+                                    (selectionChange)="getProjectCode()"
                                     (ngModelChange)="getProjectCode()"
+                                    [(ngModel)]="customerId"
                                   >
                                     @for (item of customers; track $index) {
                                     <nz-option
@@ -62,58 +63,56 @@
                               </nz-form-item>
                             </div>
                           </div>
-                          ✅ Giải thích
-                          nz-for
 
-                        <div nz-row [nzGutter]="12">
+                        <div nz-row [nzGutter]="12" style="margin-top: -13px;">
                             <div nz-col [nzSpan]="12">
-                                <nz-form-item class="pt-1">
-                                    <nz-form-label class="fs-12 d-flex align-items-center">
-                                        Mã dự án <span class="text-danger ps-1">(*)</span>
+                                <nz-form-item >
+                                    <nz-form-label class="fs-12 d-flex align-items-center"  [nzSpan]="24">
+                                        Mã dự án <span class="text-danger ps-1">*</span>
                                     </nz-form-label>
                                     <nz-form-control [nzSpan]="24">
-                                        <input name="projectCode" [(ngModel)]="projectCode" class="w-100" nz-input
-                                            disabled />
+                                        <input formControlName="projectCode" class="w-100" nz-input
+                                             />
                                     </nz-form-control>
                                 </nz-form-item>
                             </div>
                             <div nz-col [nzSpan]="12">
-                                <nz-form-item class="pt-1">
-                                    <nz-form-label class="fs-12 d-flex align-items-center">
+                                <nz-form-item>
+                                    <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
                                         Ngày tạo
                                     </nz-form-label>
                                     <nz-form-control [nzSpan]="24">
-                                        <nz-date-picker name="createdDate" [(ngModel)]="createDate" class="w-100"
-                                            nzFormat="dd/MM/yyyy" nzAllowClear="false"></nz-date-picker>
+                                        <nz-date-picker formControlName="createdDate" class="w-100"
+                                            nzFormat="dd/MM/yyyy" [nzAllowClear]="false"></nz-date-picker>
                                     </nz-form-control>
                                 </nz-form-item>
                             </div>
                         </div>
 
-                        <div nz-row>
+                        <div nz-row style="margin-top: -13px;">
                             <div nz-col [nzSpan]="24">
-                                <nz-form-item class="pt-1">
-                                    <nz-form-label class="fs-12">
-                                        Tên dự án <span class="text-danger">(*)</span>
+                                <nz-form-item>
+                                    <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
+                                        Tên dự án <span class="text-danger ps-1">*</span>
                                     </nz-form-label>
                                     <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('projectName')">
-                                        <input formControlName="projectName" [(ngModel)]="projectName" class="w-100" nz-input
+                                        <input formControlName="projectName" class="w-100" nz-input
                                             placeholder="Tên dự án" />
                                     </nz-form-control>
                                 </nz-form-item>
                             </div>
                         </div>
 
-                        <div nz-row nzGutter="12">
-                            <div nz-col [nzSpan]="24">
-                                <nz-form-item class="pt-1">
-                                    <nz-form-label class="fs-12">
-                                        Người phụ trách (Sale)
-                                        <span class="text-danger">(*)</span>
+                        <div nz-row nzGutter="12" style="margin-top: -13px;"> 
+                            <div nz-col [nzSpan]="12">
+                                <nz-form-item>
+                                    <nz-form-label class="fs-12" [nzSpan]="24">
+                                        Sale
+                                        <span class="text-danger ps-1">*</span>
                                     </nz-form-label>
                                     <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('userSaleId')">
-                                        <nz-select formControlName="userSaleId" [(ngModel)]="userSaleId" class="w-100" nzShowSearch
-                                            nzAllowClear nzPlaceHolder="Chọn sale">
+                                        <nz-select formControlName="userSaleId" class="w-100" nzShowSearch
+                                            nzAllowClear nzPlaceHolder="Chọn người phụ trách sale">
                                             @for (parent of users; track $index) {
                                             <nz-option-group [nzLabel]="parent.label">
                                                 @for (child of parent.options; track $index) {
@@ -128,17 +127,15 @@
                                     </nz-form-control>
                                 </nz-form-item>
                             </div>
-                            </div>
-                            <div nz-row nzGutter="12">
-                            <div nz-col [nzSpan]="24">
-                                <nz-form-item class="pt-1">
-                                    <nz-form-label class="fs-12">
-                                        Người phụ trách (Technical)
-                                        <span class="text-danger">(*)</span>
+                            <div nz-col [nzSpan]="12">
+                                <nz-form-item>
+                                    <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
+                                       Technical
+                                        <span class="text-danger ps-1">*</span>
                                     </nz-form-label>
                                     <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('userTechId')">
-                                        <nz-select formControlName="userTechId" [(ngModel)]="userTechId" class="w-100" nzShowSearch
-                                            nzAllowClear nzPlaceHolder="Chọn technical">
+                                        <nz-select formControlName="userTechId" class="w-100" nzShowSearch
+                                            nzAllowClear nzPlaceHolder="Chọn người phụ trách technical">
                                             <!-- Nội dung option của bạn ở đây -->
                                             @for (parent of users; track $index) {
                                             <nz-option-group [nzLabel]="parent.label">
@@ -154,12 +151,12 @@
                                     </nz-form-control>
                                 </nz-form-item>
                             </div>
-                            </div>
+                        </div>
                         
-                        <div nz-row nzGutter="12">
+                        <div nz-row nzGutter="12" style="margin-top: -13px;">
                             <div nz-col [nzSpan]="12">
                                 <nz-form-item class="">
-                                    <nz-form-label class="fs-12 d-flex align-items-center">
+                                    <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
                                         Trạng thái
                                         <button class="p-0 m-0 fs-12 px-1 h-auto" nz-button nzType="text" nzSize="small"
                                             title="Thêm trạng thái" (click)="openAddProjectStatusModal()">
@@ -167,8 +164,9 @@
                                         </button>
                                     </nz-form-label>
                                     <nz-form-control [nzSpan]="24">
-                                        <nz-select name="techId" class="w-100" nzShowSearch nzAllowClear
-                                            nzPlaceHolder="Chọn trạng thái" [(ngModel)]="projectStatusId"
+                                        <nz-select formControlName="projectStatusId" class="w-100" nzShowSearch nzAllowClear
+                                            nzPlaceHolder="Chọn trạng thái"
+                                            (selectionChange)="getDayChange()">
                                             (ngModelChange)="getDayChange()">
                                             <!-- Nội dung option của bạn ở đây -->
                                             @for (item of statuses; track $index) {
@@ -180,13 +178,12 @@
                                 </nz-form-item>
                             </div>
                             <div nz-col [nzSpan]="12">
-                                <nz-form-item class="pt-1">
-                                    <nz-form-label class="fs-12">
-                                        Pm
-                                        <span class="text-danger">(*)</span>
+                                <nz-form-item >
+                                    <nz-form-label class="fs-12"  [nzSpan]="24">
+                                        Pm <span class="text-danger ps-1">*</span>
                                     </nz-form-label>
                                     <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('pmId')">
-                                        <nz-select formControlName="pmId" [(ngModel)]="pmId" class="w-100" nzShowSearch
+                                        <nz-select formControlName="pmId" class="w-100" nzShowSearch
                                             nzAllowClear nzPlaceHolder="Chọn pm">
                                             <!-- Nội dung option của bạn ở đây -->
                                             @for (parent of users; track $index) {
@@ -204,16 +201,16 @@
                                 </nz-form-item>
                             </div>
                         </div>
-                        <div nz-row>
-                            <div nz-col [nzSpan]="24">
-                                <nz-form-item class="pt-1">
-                                    <nz-form-label class="fs-12">
-                                        End User
-                                        <span class="text-danger">(*)</span>
+                        <div nz-row >
+                            <div nz-col [nzSpan]="24" style="margin-top: -13px;">
+                                <nz-form-item>
+                                    <nz-form-label class="fs-12" [nzSpan]="24">
+                                        End User <span class="text-danger ps-1">*</span>
                                     </nz-form-label>
                                     <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('endUserId')">
-                                        <nz-select formControlName="endUserId" [(ngModel)]="endUserId" name="endUserId" class="w-100" nzShowSearch
+                                        <nz-select formControlName="endUserId" class="w-100" nzShowSearch
                                             nzAllowClear nzPlaceHolder="Chọn người dùng cuối"
+                                            (selectionChange)="getProjectCode()">
                                             (change)="getProjectCode()">
                                             <!-- Nội dung option của bạn ở đây -->
                                             @for (item of customers; track $index) {
@@ -227,18 +224,21 @@
                                 </nz-form-item>
                             </div>
                         </div>
-                        <div nz-row nzGutter="12">
+                        <div nz-row nzGutter="12" style="margin-top: -13px;">
                             <div nz-col [nzSpan]="12">
-                                <nz-form-item class="pt-1">
-                                    <nz-form-label class="fs-12 d-flex align-items-center">
+                                <nz-form-item>
+                                    <nz-form-label class="fs-12 d-flex align-items-center"  [nzSpan]="24" >
                                         Hãng
-                                        <button class="p-0 m-0 fs-12 px-1 h-auto" nz-button nzType="text" nzSize="small"
+                                        <button class="p-0 m-0 px-1 fs-12 h-auto" 
+                                        nz-button 
+                                        nzType="text" 
+                                        nzSize="small"
                                             title="Thêm hãng">
                                             <i class="fas fa-plus"></i>
                                         </button>
                                     </nz-form-label>
                                     <nz-form-control [nzSpan]="24">
-                                        <nz-select name="firmBaseId" [(ngModel)]="firmBaseId" class="w-100" nzShowSearch
+                                        <nz-select formControlName="firmBaseId" class="w-100" nzShowSearch
                                             nzAllowClear nzPlaceHolder="Chọn hãng">
                                             <!-- Nội dung option của bạn ở đây -->
                                             @for (item of firmBases; track $index) {
@@ -250,8 +250,8 @@
                                 </nz-form-item>
                             </div>
                             <div nz-col [nzSpan]="12">
-                                <nz-form-item class="pt-1">
-                                    <nz-form-label class="fs-12 d-flex align-items-center">
+                                <nz-form-item>
+                                    <nz-form-label class="fs-12 d-flex align-items-center"  [nzSpan]="24">
                                         Loại
                                         <button class="p-0 m-0 fs-12 px-1 h-auto" nz-button nzType="text" nzSize="small"
                                             title="Thêm loại">
@@ -259,7 +259,7 @@
                                         </button>
                                     </nz-form-label>
                                     <nz-form-control [nzSpan]="24">
-                                        <nz-select name="prjTypeBaseId" [(ngModel)]="prjTypeBaseId" class="w-100"
+                                        <nz-select formControlName="prjTypeBaseId" class="w-100"
                                             nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại">
                                             <!-- Nội dung option của bạn ở đây -->
                                             @for (item of projectTypeBases; track $index) {
@@ -273,7 +273,7 @@
                         </div>
                         <div nz-row>
                             <div nz-col [nzSpan]="24">
-                                <div nz-row class="p-2 w-100 px-0">
+                                <div nz-row class="w-100 px-0">
                                     <div class="bg-danger">
                                         <div #tb_projectTypeLinks></div>
                                     </div>
@@ -284,42 +284,38 @@
 
                     <!-- Cột bên phải -->
                     <div nz-col [nzSpan]="12">
-                        <div nz-row class="pt-2">
+                        <div nz-row class="pt-1">
                             <div nz-col [nzSpan]="24">
                                 <fieldset class="reset m-0">
                                     <legend class="reset fs-12">Dự kiến</legend>
                                     <div nz-row nzGutter="12">
                                         <div nz-col [nzSpan]="12">
                                             <nz-form-item>
-                                                <nz-form-label class="fs-12" [nzSpan]="24">Ngày gửi dự án
-                                                    <span class="text-danger">(*)</span></nz-form-label>
+                                                <nz-form-label class="fs-12" [nzSpan]="24">Ngày gửi dự án <span class="text-danger ps-1"> *</span></nz-form-label>
                                                 <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('expectedPlanDate')">
-                                                    <nz-date-picker formControlName="expectedPlanDate" name="expectedPlanDate"
-                                                        [(ngModel)]="expectedPlanDate" class="w-100"
-                                                        nzFormat="dd/MM/yyyy" nzAllowClear="false"></nz-date-picker>
+                                                    <nz-date-picker formControlName="expectedPlanDate" class="w-100"
+                                                        nzFormat="dd/MM/yyyy" [nzAllowClear]="false"></nz-date-picker>
                                                 </nz-form-control>
                                             </nz-form-item>
                                         </div>
                                         <div nz-col [nzSpan]="12">
                                             <nz-form-item>
-                                                <nz-form-label class="fs-12" [nzSpan]="24">Ngày gửi báo giá
-                                                    <span class="text-danger">(*)</span></nz-form-label>
+                                                <nz-form-label class="fs-12" [nzSpan]="24">Ngày gửi báo giá <span class="text-danger ps-1"> *</span></nz-form-label>
                                                 <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('expectedQuotationDate')">
-                                                    <nz-date-picker formControlName="expectedQuotationDate" name="expectedQuotationDate"
-                                                        [(ngModel)]="expectedQuotationDate" class="w-100"
-                                                        nzFormat="dd/MM/yyyy" nzAllowClear="false"></nz-date-picker>
+                                                    <nz-date-picker formControlName="expectedQuotationDate" class="w-100"
+                                                        nzFormat="dd/MM/yyyy" [nzAllowClear]="false"></nz-date-picker>
                                                 </nz-form-control>
                                             </nz-form-item>
                                         </div>
                                     </div>
-                                    <div nz-row nzGutter="12" class="pt-1">
+                                    <div nz-row nzGutter="12" style="margin-top: -13px;">
                                         <div nz-col [nzSpan]="12">
                                             <nz-form-item>
                                                 <nz-form-label class="fs-12" [nzSpan]="24">Ngày PO</nz-form-label>
                                                 <nz-form-control [nzSpan]="24">
-                                                    <nz-date-picker name="expectedPODate" [(ngModel)]="expectedPODate"
+                                                    <nz-date-picker formControlName="expectedPODate"
                                                         class="w-100" nzFormat="dd/MM/yyyy"
-                                                        nzAllowClear="false"></nz-date-picker>
+                                                        [nzAllowClear]="false"></nz-date-picker>
                                                 </nz-form-control>
                                             </nz-form-item>
                                         </div>
@@ -327,9 +323,8 @@
                                             <nz-form-item>
                                                 <nz-form-label class="fs-12" [nzSpan]="24">Ngày kết thúc</nz-form-label>
                                                 <nz-form-control [nzSpan]="24">
-                                                    <nz-date-picker name="expectedProjectEndDate"
-                                                        [(ngModel)]="expectedProjectEndDate" class="w-100"
-                                                        nzFormat="dd/MM/yyyy" nzAllowClear="false"></nz-date-picker>
+                                                    <nz-date-picker formControlName="expectedProjectEndDate" class="w-100"
+                                                        nzFormat="dd/MM/yyyy" [nzAllowClear]="false"></nz-date-picker>
                                                 </nz-form-control>
                                             </nz-form-item>
                                         </div>
@@ -347,9 +342,9 @@
                                                 <nz-form-label class="fs-12" [nzSpan]="24">Ngày gửi phương
                                                     án</nz-form-label>
                                                 <nz-form-control [nzSpan]="24">
-                                                    <nz-date-picker name="realityPlanDate" [(ngModel)]="realityPlanDate"
+                                                    <nz-date-picker formControlName="realityPlanDate"
                                                         class="w-100" nzFormat="dd/MM/yyyy"
-                                                        nzAllowClear="false"></nz-date-picker>
+                                                        [nzAllowClear]="false"></nz-date-picker>
                                                 </nz-form-control>
                                             </nz-form-item>
                                         </div>
@@ -358,21 +353,20 @@
                                                 <nz-form-label class="fs-12" [nzSpan]="24">Ngày gửi báo
                                                     giá</nz-form-label>
                                                 <nz-form-control [nzSpan]="24">
-                                                    <nz-date-picker name="realityQuotationDate"
-                                                        [(ngModel)]="realityQuotationDate" class="w-100"
-                                                        nzFormat="dd/MM/yyyy" nzAllowClear="false"></nz-date-picker>
+                                                    <nz-date-picker formControlName="realityQuotationDate" class="w-100"
+                                                        nzFormat="dd/MM/yyyy" [nzAllowClear]="false"></nz-date-picker>
                                                 </nz-form-control>
                                             </nz-form-item>
                                         </div>
                                     </div>
-                                    <div nz-row nzGutter="12" class="pt-1">
+                                    <div nz-row nzGutter="12" style="margin-top: -13px;">
                                         <div nz-col [nzSpan]="12">
                                             <nz-form-item>
                                                 <nz-form-label class="fs-12" [nzSpan]="24">Ngày PO</nz-form-label>
                                                 <nz-form-control [nzSpan]="24">
-                                                    <nz-date-picker name="realityPODate" [(ngModel)]="realityPODate"
+                                                    <nz-date-picker formControlName="realityPODate"
                                                         class="w-100" nzFormat="dd/MM/yyyy"
-                                                        nzAllowClear="false"></nz-date-picker>
+                                                        [nzAllowClear]="false"></nz-date-picker>
                                                 </nz-form-control>
                                             </nz-form-item>
                                         </div>
@@ -380,9 +374,8 @@
                                             <nz-form-item>
                                                 <nz-form-label class="fs-12" [nzSpan]="24">Ngày kết thúc</nz-form-label>
                                                 <nz-form-control [nzSpan]="24">
-                                                    <nz-date-picker name="realityProjectEndDate"
-                                                        [(ngModel)]="realityProjectEndDate" class="w-100"
-                                                        nzFormat="dd/MM/yyyy" nzAllowClear="false"></nz-date-picker>
+                                                    <nz-date-picker formControlName="realityProjectEndDate" class="w-100"
+                                                        nzFormat="dd/MM/yyyy" [nzAllowClear]="false"></nz-date-picker>
                                                 </nz-form-control>
                                             </nz-form-item>
                                         </div>
@@ -392,41 +385,43 @@
                         </div>
                         <div nz-row>
                             <div nz-col [nzSpan]="24">
-                                <nz-form-item class="pt-1">
-                                    <nz-form-label class="fs-12">
+                                <nz-form-item class="pt-2">
+                                    <nz-form-label class="fs-12" [nzSpan]="24">
                                         Người phụ trách PIC
                                     </nz-form-label>
                                     <nz-form-control [nzSpan]="24">
-                                        <input name="projectContactName" [(ngModel)]="projectContactName" class="w-100"
+                                        <input formControlName="projectContactName" class="w-100"
                                             nz-input placeholder="Người phụ trách PIC" />
                                     </nz-form-control>
                                 </nz-form-item>
                             </div>
                         </div>
-                        <div nz-row [nzGutter]="12">
+                        <div nz-row [nzGutter]="12" style="margin-top: -13px;">
                             <div nz-col [nzSpan]="12">
                                 <nz-form-item class="pt-1">
-                                    <nz-form-label class="fs-12">
-                                        Mức ưu tiên <span class="text-danger">(*)</span>
+                                    <nz-form-label class="fs-12" [nzSpan]="24">
+                                        Mức ưu tiên <span class="text-danger">*</span>
                                         <button class="p-0 m-0 fs-12 px-1 h-auto" nz-button nzType="text" nzSize="small"
                                             title="Thêm độ ưu tiên" (click)="openProjectPriorityDetail()">
                                             <i class="fas fa-plus"></i>
                                         </button>
                                     </nz-form-label>
                                     <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('priority')">
-                                        <input formControlName="priority" name="priority" [(ngModel)]="priority" class="w-100" nz-input
-                                            placeholder="Mức ưu tiên" [disabled]="true" />
+                                        <input formControlName="priority" class="w-100" nz-input
+                                            placeholder="Mức ưu tiên" />
                                     </nz-form-control>
                                 </nz-form-item>
                             </div>
                             <div nz-col [nzSpan]="12">
                                 <nz-form-item class="pt-1">
-                                    <nz-form-label class="fs-12"> Kiểu dự án <span
-                                            class="text-danger ps-1">(*)</span></nz-form-label>
+                                    <nz-form-label class="fs-12" [nzSpan]="24"> Kiểu dự án <span
+                                            class="text-danger ps-1">*</span></nz-form-label>
                                     <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('projectTypeId')">
-                                        <nz-select formControlName="projectTypeId" name="typeId" class="w-100" nzShowSearch nzAllowClear
-                                            nzPlaceHolder="Chọn kiểu dự án" [(ngModel)]="projectTypeId"
-                                            (ngModelChange)="getProjectCode()">
+                                        <nz-select formControlName="projectTypeId" class="w-100" nzShowSearch nzAllowClear
+                                            nzPlaceHolder="Chọn kiểu dự án"
+                                            (selectionChange)="getProjectCode()"
+                                            (ngModelChange)="getProjectCode()"
+                                            >
                                             <nz-option [nzValue]="1" nzLabel="Dự án"></nz-option>
                                             <nz-option [nzValue]="2" nzLabel="Thương mại"></nz-option>
                                             <nz-option [nzValue]="3" nzLabel="Phim"></nz-option>
@@ -436,24 +431,24 @@
                             </div>
                         </div>
 
-                        <div nz-row>
+                        <div nz-row style="margin-top: -13px;">
                             <div nz-col [nzSpan]="24">
-                                <nz-form-item class="pt-1">
-                                    <nz-form-label class="fs-12"> Mô tả dự án </nz-form-label>
+                                <nz-form-item class="pt-1" >
+                                    <nz-form-label class="fs-12" [nzSpan]="24"> Mô tả dự án </nz-form-label>
                                     <nz-form-control [nzSpan]="24">
-                                        <textarea [(ngModel)]="note" name="note" rows="4" nz-input
+                                        <textarea formControlName="note" rows="4" nz-input
                                             placeholder="Nhập mô tả dự án"></textarea>
                                     </nz-form-control>
                                 </nz-form-item>
                             </div>
                         </div>
 
-                        <div nz-row>
+                        <div nz-row style="margin-top: -13px;">
                             <div nz-col [nzSpan]="24">
                                 <nz-form-item class="pt-1">
-                                    <nz-form-label class="fs-12"> Hiện trạng </nz-form-label>
+                                    <nz-form-label class="fs-12" [nzSpan]="24"> Hiện trạng </nz-form-label>
                                     <nz-form-control [nzSpan]="24">
-                                        <textarea [(ngModel)]="currentState" name="currentState" rows="4" nz-input
+                                        <textarea formControlName="currentState" rows="4" nz-input
                                             placeholder="Nhập hiện trạng"></textarea>
                                     </nz-form-control>
                                 </nz-form-item>
@@ -462,17 +457,20 @@
                     </div>
                 </div>
                 </form>
+                </div>
             </nz-tab>
             <nz-tab nzTitle="Cập nhật leader">
-                <div nz-row [nzGutter]="12" class="pt-1 pb-1 w-100 m-0">
+                <form nz-form [formGroup]="formGroup" class="g-3 needs-validation was-validated">
+                <div  nz-row [nzGutter]="12" class="pt-1 pb-1 w-100 m-0">
                     <div nz-col [nzSpan]="12" class="ps-0">
                         <nz-form-item>
-                            <nz-form-label class="fs-12 d-flex align-items-center">
-                                Dự án <span class="text-danger ps-1">(*)</span>
+                            <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
+                                Dự án <span class="text-danger ps-1">*</span>
                             </nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <nz-select name="customerId" class="w-100" nzShowSearch nzAllowClear
-                                    nzPlaceHolder="Chọn dự án" [(ngModel)]="projectIdleader"
+                            <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('projectIdleader')">
+                                <nz-select formControlName="projectIdleader" class="w-100" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn dự án"
+                                    (selectionChange)="loadAll()"
                                     (ngModelChange)="loadAll()">
                                     <!-- Nội dung option của bạn ở đây -->
                                     @for (item of projects; track $index) {
@@ -487,12 +485,12 @@
                     </div>
                     <div nz-col [nzSpan]="12" class="pe-0">
                         <nz-form-item>
-                            <nz-form-label class="fs-12 d-flex align-items-center">
-                                Trạng thái <span class="text-danger ps-1">(*)</span>
+                            <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
+                                Trạng thái <span class="text-danger ps-1">*</span>
                             </nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <nz-select name="projectStatusIdDetai" class="w-100" nzShowSearch nzAllowClear
-                                    nzPlaceHolder="Chọn trạng thái" [(ngModel)]="projectStatusIdDetail">
+                            <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('projectStatusIdDetail')">
+                                <nz-select formControlName="projectStatusIdDetail" class="w-100" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn trạng thái">
                                     <!-- Nội dung option của bạn ở đây -->
                                     <!-- Nội dung option của bạn ở đây -->
                                     @for (item of statuses; track $index) {
@@ -503,23 +501,24 @@
                             </nz-form-control>
                         </nz-form-item>
                     </div>
-                    <div nz-col [nzSpan]="24" class="p-0">
+                    <div nz-col [nzSpan]="24" class="p-0" style="margin-top: -13px;">
                         <div nz-row class="w-100">
                             <nz-form-item class="pt-1 w-100">
-                                <nz-form-label class="fs-12"> Hiện trạng </nz-form-label>
+                                <nz-form-label class="fs-12" [nzSpan]="24"> Hiện trạng </nz-form-label>
                                 <nz-form-control [nzSpan]="24">
-                                    <textarea [(ngModel)]="situlatorDetail" name="situlatorDetail" rows="4" nz-input
+                                    <textarea formControlName="situlatorDetail" rows="4" nz-input
                                         placeholder="Nhập hiện trạng"></textarea>
                                 </nz-form-control>
                             </nz-form-item>
                         </div>
                     </div>
-                    <div nz-col [nzSpan]="24" class="p-0">
+                    <div nz-col [nzSpan]="24" class="p-0"  style="margin-top: -13px;">
                         <div nz-row class="py-2">
                             <div #tb_projectTypeLinksDetail></div>
                         </div>
                     </div>
                 </div>
+                </form>
             </nz-tab>
         </nz-tabset>
     </div>
@@ -533,7 +532,7 @@
 </div>
 
 <ng-template #dateChangeStatus>
-    <nz-form-label class="">Ngày thay đổi <span class="text-danger">(*)</span></nz-form-label>
-    <nz-date-picker name="dateChangeStatus" class="w-100" nzFormat="dd/MM/yyyy" [(ngModel)]="dateChangeStatus"
-        (ngModelChange)="onDateChange($event)" nzSize="default" nzAllowClear="false"></nz-date-picker>
+    <nz-form-label class="">Ngày thay đổi <span class="text-danger">*</span></nz-form-label>
+    <nz-date-picker formControlName="dateChangeStatus" class="w-100" nzFormat="dd/MM/yyyy"
+        (ngModelChange)="onDateChange($event)" nzSize="default" [nzAllowClear]="false"></nz-date-picker>
 </ng-template>

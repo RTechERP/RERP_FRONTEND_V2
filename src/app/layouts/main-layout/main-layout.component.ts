@@ -127,7 +127,6 @@ export class MainLayoutComponent implements OnInit {
         },
       ],
     },
-
     //#region menu KHO
     {
       kind: 'group',

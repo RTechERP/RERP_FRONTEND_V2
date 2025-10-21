@@ -19,7 +19,14 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { TsAssetManagementPersonalService } from './ts-asset-management-personal-service/ts-asset-management-personal.service';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
+import { inject } from '@angular/core';
 import { DateTime } from 'luxon';
+import { TsAssetAllocationPersonalService } from '../ts-asset-allocation-personal/ts-asset-allocation-personal-service/ts-asset-allocation-personal.service';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { NzModalService } from 'ng-zorro-antd/modal';
+import { TsAssetManagementPersonalFormComponent } from './ts-asset-management-personal-form/ts-asset-management-personal-form.component';
 @Component({
   selector: 'app-ts-asset-management-personal',
   standalone: true,
@@ -47,8 +54,13 @@ import { DateTime } from 'luxon';
 })
 export class TsAssetManagementPersonalComponent implements OnInit, AfterViewInit {
   assetManagemnetPersonalData: any[] = [];
+   private ngbModal = inject(NgbModal);
   tableAssetManagementPersonal: Tabulator | null = null;
-  constructor(private tsAssetmanagementPersonal: TsAssetManagementPersonalService) { }
+  constructor(private tsAssetmanagementPersonal: TsAssetManagementPersonalService,
+      private notification: NzNotificationService,
+       private nzModal: NzModalService,      
+       private tsAssetAllocationPersonalService: TsAssetAllocationPersonalService,
+  ) { }
   ngOnInit() {
     this.getAssetManagementPersonal();
   }
@@ -67,31 +79,100 @@ export class TsAssetManagementPersonalComponent implements OnInit, AfterViewInit
   drawTableAssetManagementPersonal(): void {
     this.tableAssetManagementPersonal = new Tabulator('#dataTableAssetManagementPersonal',
       {
-        layout: 'fitDataStretch',
-        height: '87vh',
-        pagination: true,
-        selectableRows: 1,
+...DEFAULT_TABLE_CONFIG,
+paginationMode:"local",
         columns: [
           { title: 'STT', field: 'STT', hozAlign: 'right', width: 70, headerHozAlign: 'center' },
           { title: 'ID', field: 'ID', hozAlign: 'right', width: 70, headerHozAlign: 'center' , visible:false},
-          { title: 'UnitCountID', field: 'UnitCountID', headerHozAlign: 'center', hozAlign: 'right' },
-          { title: 'TSTypeAssetPersonalID', field: 'TSTypeAssetPersonalID', headerHozAlign: 'center', hozAlign: 'right' },
+                    { title: 'Mã tài sản', field: 'Code', headerHozAlign: 'center'},
+                          { title: 'Tên tài sản', field: 'Name', headerHozAlign: 'center'},
+
+          { title: 'Đơn vị tính', field: 'UnitName', headerHozAlign: 'center'},
           { title: 'Số lượng trong kho', field: 'RemainingQuantity', headerHozAlign: 'center', hozAlign: 'right' },
-          {
-            title: 'Ngày nhập',
-            field: 'CreatedDate',
-            hozAlign:'center',
-            formatter: function (cell) {
-              const value = cell.getValue();
-              if (!value) return '';
-              const dt = DateTime.fromISO(value);
-              return dt.isValid ? dt.toFormat('dd/MM/yyyy') : '';
-            }
-          },
-           { title: 'Note', field: 'Note', hozAlign: 'left' }
+     {
+  title: 'Ngày mua',
+  field: 'DateBuy',
+  hozAlign: 'left',
+  formatter: (cell) => {
+    const value = cell.getValue();
+    if (!value) return '';
+    const date = DateTime.fromISO(value);
+    return date.isValid ? date.toFormat('dd/MM/yyyy') : '';
+  }
+},
+           { title: 'Note', field: 'Note', hozAlign: 'left', width:300 }
         ]
       });
   }
 
+addAssetPersonal() {
+    const modalRef = this.ngbModal.open(TsAssetManagementPersonalFormComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+    });
+    //     modalRef.componentInstance.dataInput =null;
+    modalRef.result.then(
+      (result) => {
+        this.getAssetManagementPersonal();
+      },
+      (dismissed) => {
+        console.log('Modal dismissed');
+      }
+    );
+  }
+  editAssetPersonal() {
+  const selected = this.tableAssetManagementPersonal?.getSelectedData() || [];
+  if (!selected.length) {
+    this.notification.warning('Thông báo', 'Vui lòng chọn một dòng để sửa!');
+    return;
+  }
+  const rowData = { ...selected[0] };
 
+  const modalRef = this.ngbModal.open(TsAssetManagementPersonalFormComponent, {
+    size: 'xl', backdrop: 'static', keyboard: false, centered: true
+  });
+
+
+  modalRef.componentInstance.dataInput = rowData;
+
+  modalRef.result.then(
+    () => this.getAssetManagementPersonal(),
+    () => {}
+  );
 }
+deleteAssetPersonal() {
+    const selected = this.tableAssetManagementPersonal?.getSelectedData() || [];
+    if (selected.length !== 1) {
+      this.notification.warning('Thông báo', 'Chọn đúng một dòng để xóa');
+      return;
+    }
+    const { ID, Code } = selected[0];
+
+    this.nzModal.confirm({
+      nzTitle: 'Xác nhận xóa',
+      nzContent: `Bạn chắc chắn muốn xóa tài sản ${Code ?? ''}?`,
+      nzOkText: 'Xóa',
+      nzOkDanger: true,
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+
+        const payload = { tSAssetManagementPersonal: { id: ID, isDeleted: true } };
+        return this.tsAssetAllocationPersonalService
+          .saveAssetAllocationPerson(payload)   
+          .toPromise()
+          .then((res: any) => {
+            if (res?.status === 1) {
+              this.notification.success('Thành công', 'Đã xóa');
+              this.getAssetManagementPersonal();
+            } else {
+              this.notification.error('Lỗi', res?.message || 'Xóa thất bại');
+            }
+          })
+          .catch(() => this.notification.error('Lỗi', 'Không gọi được API'));
+      },
+    });
+  }
+}
+

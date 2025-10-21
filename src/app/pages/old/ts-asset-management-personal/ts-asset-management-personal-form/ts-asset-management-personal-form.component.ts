@@ -32,6 +32,7 @@ import { TsAssetAllocationPersonalService } from '../../ts-asset-allocation-pers
 import { AssetAllocationService } from '../../ts-asset-allocation/ts-asset-allocation-service/ts-asset-allocation.service';
 import { TsAssetManagementPersonalService } from '../ts-asset-management-personal-service/ts-asset-management-personal.service';
 import { UnitService } from '../../ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
+import { TsAssetManagementPersonalTypeFormComponent } from '../ts-asset-management-personal-type/ts-asset-management-personal-type-form/ts-asset-management-personal-type-form.component';
 @Component({
   standalone: true,
 
@@ -162,6 +163,23 @@ export class TsAssetManagementPersonalFormComponent implements OnInit {
       }
     });
   }
+   addType() {
+      const modalRef = this.ngbModal.open(TsAssetManagementPersonalTypeFormComponent, {
+        size: 'md',
+        backdrop: 'static',
+        keyboard: false,
+        centered: true,
+      });
+      modalRef.componentInstance.dataInput = null;
+      modalRef.result.then(
+        (result) => {
+          this.getAssetType();
+        },
+        (dismissed) => {
+          // console.log('Modal dismissed');
+        }
+      );
+    }
   close() {
     this.closeModal.emit();
     this.activeModal.dismiss('cancel');

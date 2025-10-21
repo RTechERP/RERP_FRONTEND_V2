@@ -33,6 +33,9 @@ import { ProjectItemLateComponent } from '../../pages/old/project/project-item-l
 import { ProjectWorkItemTimelineComponent } from '../../pages/old/project/project-work-item-timeline/project-work-item-timeline.component';
 import { SynthesisOfGeneratedMaterialsComponent } from '../../pages/old/project/synthesis-of-generated-materials/synthesis-of-generated-materials.component';
 import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
+
+import { FactoryVisitRegistrationComponent } from '../../pages/general-category/visit-factory-registation/factory-visit-registration.component';
+import { TsAssetAllocationPersonalComponent } from '../../pages/old/ts-asset-allocation-personal/ts-asset-allocation-personal.component';
 type TabItem = {
   title: string;
   comp: Type<any>;
@@ -168,6 +171,15 @@ export class MainLayoutComponent implements OnInit {
           comp: HrhiringRequestComponent,
           //   icon: 'assets/icon/layers.png',
         },
+
+        {
+          kind: 'leaf',
+          key: 'TsAssetAllocationPersonalComponent',
+          title: 'Tài sản các nhân',
+          isOpen: true,
+          comp: TsAssetAllocationPersonalComponent,
+          //   icon: 'assets/icon/layers.png',
+        },
       ],
     },
     //#endregion
@@ -186,6 +198,14 @@ export class MainLayoutComponent implements OnInit {
           title: 'ĐÀO TẠO',
           isOpen: true,
           comp: TrainingRegistrationComponent,
+          //   icon: 'assets/icon/layers.png',
+        },
+        {
+          kind: 'leaf',
+          key: 'FactoryVisitRegistrationComponent',
+          title: 'THĂM NHÀ MÁY',
+          isOpen: true,
+          comp: FactoryVisitRegistrationComponent,
           //   icon: 'assets/icon/layers.png',
         },
       ],

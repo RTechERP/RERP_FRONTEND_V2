@@ -389,7 +389,7 @@ export class HrhiringRequestComponent
       {
         title: 'YC chuyên môn',
         field: 'ProfessionalRequirement',
-        width: 200,
+        width: 500,
         formatter: 'textarea',
       },
       {

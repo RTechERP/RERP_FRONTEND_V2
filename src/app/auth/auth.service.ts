@@ -27,13 +27,11 @@ export class AuthService {
         if (response && response.access_token) {
           localStorage.setItem(this.tokenkey, response.access_token);
 
-          // Refresh permissions từ token mới
-          this.permissionService.refreshPermissions();
-
           // Gọi getCurrentUser ngay sau khi login thành công
           this.getCurrentUser().subscribe({
             next: (userResponse) => {
               console.log('getCurrentUser success after login:', userResponse);
+              this.permissionService.refreshPermissions();
             },
             error: (error) => {
               console.error('getCurrentUser error after login:', error);
@@ -87,7 +85,9 @@ export class AuthService {
   logout() {
     localStorage.removeItem(this.tokenkey);
     sessionStorage.clear();
+
     this.permissionService.clearPermissions();
+    this.permissionService.refreshPermissions();
   }
 
   isLoggedIn(): boolean {

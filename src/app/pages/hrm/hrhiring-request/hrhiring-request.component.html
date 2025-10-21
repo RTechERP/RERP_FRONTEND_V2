@@ -119,56 +119,51 @@
                                     <nz-dropdown-menu #menuTBP="nzDropdownMenu">
                                         <ul nz-menu>
                                             <li nz-menu-item (click)="approvedTBPNew(1,1)">
-                                                <img src="assets/icon/action_approved_16.png" />TBP duyệt
+                                                <img src="assets/icon/action_approved_16.png" />
+                                                <span class="ms-1">TBP duyệt</span>
                                             </li>
                                             <li nz-menu-item (click)="approvedTBPNew(2,1)">
-                                                <img src="assets/icon/action_unapproved_16.png" />TBP hủy duyệt
+                                                <img src="assets/icon/action_unapproved_16.png" />
+                                                <span class="ms-1">TBP hủy duyệt</span>
                                             </li>
 
                                         </ul>
+
                                     </nz-dropdown-menu>
                                 </div>
 
                                 <!-- [HR xác nhận] -->
                                 <div class="btn-group">
                                     <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
-                                        [nzDropdownMenu]="menuHR" disablePermission="N56">
-                                        <img src="assets/icon/action_confirm_hr_16.png" />Nhân viên HR xác nhận
+                                        [nzDropdownMenu]="menuHR" disablePermission="N56,N59">
+                                        <img src="assets/icon/action_confirm_hr_16.png" />HR xác nhận
                                         <i nz-icon nzType="down"></i>
                                     </button>
 
                                     <nz-dropdown-menu #menuHR="nzDropdownMenu">
                                         <ul nz-menu>
-                                            <li nz-menu-item (click)="approvedTBPNew(1,2)">
-                                                <img src="assets/icon/action_approved_16.png" />HR duyệt
+                                            <li nz-menu-item (click)="approvedTBPNew(1,2)" disablePermission="N59">
+                                                <img src="assets/icon/action_approved_16.png" />
+                                                <span class="ms-1">HR duyệt</span>
                                             </li>
-                                            <li nz-menu-item (click)="approvedTBPNew(2,2)">
-                                                <img src="assets/icon/action_unapproved_16.png" />HR hủy duyệt
+                                            <li nz-menu-item (click)="approvedTBPNew(2,2)" disablePermission="N59">
+                                                <img src="assets/icon/action_unapproved_16.png" />
+                                                <span class="ms-1">HR hủy duyệt</span>
                                             </li>
-
-                                        </ul>
-                                    </nz-dropdown-menu>
-                                </div>
-                                <div class="btn-group">
-                                    <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
-                                        [nzDropdownMenu]="menuTBPHR">
-                                        <img src="assets/icon/action_confirm_hr_16.png" />Trường phòng HR xác nhận
-                                        <i nz-icon nzType="down"></i>
-                                    </button>
-
-                                    <nz-dropdown-menu #menuTBPHR="nzDropdownMenu">
-                                        <ul nz-menu>
-                                            <li nz-menu-item (click)="approvedTBPNew(1,3)">
-                                                <img src="assets/icon/action_approved_16.png" />Trường phòng HR duyệt
+                                            <li nz-menu-divider></li>
+                                            <li nz-menu-item (click)="approvedTBPNew(1,3)" disablePermission="N56">
+                                                <img src="assets/icon/action_approved_16.png" />
+                                                <span class="ms-1">Trường phòng HR duyệt</span>
                                             </li>
-                                            <li nz-menu-item (click)="approvedTBPNew(2,3)">
-                                                <img src="assets/icon/action_unapproved_16.png" />Trường phòng HR hủy
+                                            <li nz-menu-item (click)="approvedTBPNew(2,3)" disablePermission="N56">
+                                                <img src="assets/icon/action_unapproved_16.png" />
+                                                <span class="ms-1">Trường phòng HR hủy</span>
                                                 duyệt
                                             </li>
-
                                         </ul>
                                     </nz-dropdown-menu>
                                 </div>
+
                                 <!-- BGĐ xác nhận -->
                                 <div class="btn-group">
                                     <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
@@ -180,11 +175,12 @@
                                     <nz-dropdown-menu #menuBGD="nzDropdownMenu">
                                         <ul nz-menu>
                                             <li nz-menu-item (click)="approvedTBPNew(1,3)">
-                                                <img src="assets/icon/action_approved_16.png" />BGĐ duyệt
+                                                <img src="assets/icon/action_approved_16.png" />
+                                                <span class="ms-1">BGĐ duyệt</span>
                                             </li>
                                             <li nz-menu-item (click)="approvedTBPNew(2,3)">
-                                                <img src="assets/icon/action_unapproved_16.png" />BGĐ hủy
-                                                duyệt
+                                                <img src="assets/icon/action_unapproved_16.png" />
+                                                <span class="ms-1">BGĐ hủy duyệt</span>
                                             </li>
 
                                         </ul>

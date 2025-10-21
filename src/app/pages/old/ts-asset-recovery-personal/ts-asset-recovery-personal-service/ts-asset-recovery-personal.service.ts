@@ -14,9 +14,12 @@ export class TsAssetRecoveryPersonalService {
       request
     );
   }
+  getAssetRecoveryAjax(): string {
+    return `${this.url}get-asset-recovery-personal`;
+  }
   getAssetRecoveryDetail(
-    TSAssetRecoveryPersonID: number,
-    employeeID: number
+    TSAssetRecoveryPersonID: number
+   
   ): Observable<any> {
     const params = new HttpParams()
       .set(
@@ -24,8 +27,8 @@ export class TsAssetRecoveryPersonalService {
         TSAssetRecoveryPersonID !== null
           ? TSAssetRecoveryPersonID.toString()
           : ''
-      )
-      .set('EmployeeID', employeeID !== null ? employeeID.toString() : '');
+      );
+   
     return this.httpclient.get<any>(
       `${this.url + `get-asset-recovery-personal-detail`}`,
       { params }

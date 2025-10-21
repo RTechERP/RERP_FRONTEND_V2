@@ -7,13 +7,17 @@ import { HOST } from '../../../../app.config';
 })
 export class TsAssetManagementPersonalService {
   urlGetAssetManagementPersonal = `${HOST}api/AssetManagementPersonal/get-all-asset-management-personal`;
-  urlGetEmployee = `${HOST}api/Employee/getemployees`;
+  urlGetAssetType   = `${HOST}api/assetmanagementpersonal/get-type-asset-personal`;
+  urlEmployee = `${HOST}api/employee/`;
   constructor(private http: HttpClient) {}
   getAssetsManagementPersonal(): Observable<any> {
     const url = `${this.urlGetAssetManagementPersonal}`;
     return this.http.get<any>(url);
   }
-  getListEmployee(): Observable<any> {
-    return this.http.get<any>(this.urlGetEmployee);
+  getEmployee(request:any): Observable<any> {
+    return this.http.get<any>(`${this.urlEmployee}`,request);
   }
+getAssetType(): Observable<any> {
+  return this.http.get<any>(`${this.urlGetAssetType}`);
+}
 }

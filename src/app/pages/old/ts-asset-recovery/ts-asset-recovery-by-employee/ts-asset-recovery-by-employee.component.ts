@@ -65,7 +65,7 @@ export class TsAssetRecoveryByEmployeeComponent implements OnInit, AfterViewInit
           width: 60
         },
         { title: 'STT', field: 'STT', hozAlign: 'center', width: 70 },
-        { title: 'ID', field: 'ID', hozAlign: 'center', width: 70, visible: false },
+        { title: 'ID', field: 'ID', hozAlign: 'center', width: 70},
         { title: 'Mã NCC', field: 'TSCodeNCC' },
         { title: 'Tên tài sản', field: 'TSAssetName' },
 

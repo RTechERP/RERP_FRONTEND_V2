@@ -24,6 +24,7 @@ declare var bootstrap: any;
 import { CommonModule } from '@angular/common';
 import { TsAssetManagementPersonalService } from '../ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification'
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 @Component({
   standalone: true,
   imports: [
@@ -122,12 +123,19 @@ export class TsAssetAllocationPersonalComponent implements OnInit, AfterViewInit
     })
   }
   getListEmployee() {
-    this.assetManagemnetService.getListEmployee().subscribe((respon: any) => {
-      this.emPloyeeLists = respon.employees;
+       const request = {
+      status: 0,
+      departmentid: 0,
+      keyword: ''
+    };
+    this.assetManagemnetService.getEmployee(request).subscribe((respon: any) => {
+      this.emPloyeeLists = respon.data;
+      console.log("đwdwdwd",this.emPloyeeLists);
       this.employeeID = null;
       this.selectedEmployee = null;
     });
   }
+ 
   onDateChange(newDate: Date): void {
     this.allocationDate = newDate.toISOString().slice(0, 10);
     this.generateTSAssetCode();
@@ -161,28 +169,25 @@ export class TsAssetAllocationPersonalComponent implements OnInit, AfterViewInit
   drawTbAssetAllocation() {
     this.tbAssetAllocationPersonal = new Tabulator('#dataTbAllocation',
       {
-        layout: 'fitDataStretch',
-        height: '83vh',
-        pagination: true,
-        paginationSize: 20,
-        paginationSizeSelector: [5, 10, 20, 50, 100],
-        selectableRows: 1,
-        columns: [
-          {
-            title: '',
-            field: '',
-            formatter: 'rowSelection',
-            titleFormatter: 'rowSelection',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
+      ...DEFAULT_TABLE_CONFIG,
+        paginationMode: 'local',
 
-            headerSort: false,
-            width: 60,
-            cssClass: 'checkbox-center'
-          },
+        columns: [
+          // {
+          //   title: '',
+          //   field: '',
+          //   formatter: 'rowSelection',
+          //   titleFormatter: 'rowSelection',
+          //   hozAlign: 'center',
+          //   headerHozAlign: 'center',
+
+          //   headerSort: false,
+          //   width: 60,
+          //   cssClass: 'checkbox-center'
+          // },
           { title: 'ID', field: 'ID', hozAlign: 'center', headerHozAlign: 'center', visible: false },
           { title: 'STT', field: 'STT', hozAlign: 'center', headerHozAlign: 'center' },
-          { title: 'Code', field: 'Code', hozAlign: 'center', headerHozAlign: 'center', width: 200 },
+          { title: 'Mã biên bản', field: 'Code', hozAlign: 'center', headerHozAlign: 'center', width: 200 },
           {
             title: 'Cá Nhân Duyệt',
             field: 'IsApprovedPersonalProperty',
@@ -218,7 +223,7 @@ export class TsAssetAllocationPersonalComponent implements OnInit, AfterViewInit
       this.assetAllocationService.getAssetAllocationDetail(id, 0).subscribe(res => {
         const details = Array.isArray(res.data.assetsAllocationPersonalDetail)
           ? res.data.assetsAllocationPersonalDetail
-          : [];
+          : []; 
         this.assetAllocationDetailData = details;
         console.log("djhqaokjhdfihqfihqa", details);
 
@@ -238,10 +243,8 @@ export class TsAssetAllocationPersonalComponent implements OnInit, AfterViewInit
       } else {
         this.tbAssetAllocationDetail = new Tabulator('#dataTbAllocationDetail', {
           data: this.assetAllocationDetailData,
-          layout: "fitDataStretch",
-          paginationSize: 5,
-          height: "83vh",
-          movableColumns: true,
+       ...DEFAULT_TABLE_CONFIG,
+       paginationMode:"local",
           reactiveData: true,
           columns: [
             {
@@ -329,7 +332,8 @@ export class TsAssetAllocationPersonalComponent implements OnInit, AfterViewInit
             title: 'TSAssetManagementPersonalID',
             field: 'TSAssetManagementPersonalID',
             hozAlign: 'center',
-            width: 60
+            width: 60,
+            visible:false
           },
           {
             title: 'STT',
@@ -423,6 +427,7 @@ export class TsAssetAllocationPersonalComponent implements OnInit, AfterViewInit
       this.tbAssetPersonModal.deselectRow?.();
       this.tbAssetPersonModal.setData([]);
     }
+
   }
   validateAllocationForm(): boolean {
     let isValid = true;
@@ -435,11 +440,7 @@ export class TsAssetAllocationPersonalComponent implements OnInit, AfterViewInit
       isValid = false;
     }
     const noteElement = document.getElementsByName('note')[0] as HTMLTextAreaElement;
-    const noteValue = noteElement?.value?.trim();
-    if (!noteValue) {
-      this.notification.warning('Thông báo', 'Vui lòng nhập ghi chú!');
-      isValid = false;
-    }
+   
     return isValid;
   }
   saveAllocationPersonal() {

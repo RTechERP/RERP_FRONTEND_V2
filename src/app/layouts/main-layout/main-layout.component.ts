@@ -41,6 +41,7 @@ import { TsAssetManagementPersonalTypeComponent } from '../../pages/old/ts-asset
 import { TsAssetRecoveryPersonalComponent } from '../../pages/old/ts-asset-recovery-personal/ts-asset-recovery-personal.component';
 import { VehicleRepairComponent } from '../../pages/hrm/vehicle-repair/vehicle-repair.component';
 import { VehicleRepairTypeComponent } from '../../pages/hrm/vehicle-repair/vehicle-repair-type/vehicle-repair-type.component';
+import { DepartmentComponent } from '../../pages/old/department/department.component';
 type TabItem = {
   title: string;
   comp: Type<any>;
@@ -222,6 +223,15 @@ export class MainLayoutComponent implements OnInit {
           title: 'Danh sách loại sửa chữa',
           isOpen: true,
           comp: VehicleRepairTypeComponent,
+          //   icon: 'assets/icon/layers.png',
+        },
+
+        {
+          kind: 'leaf',
+          key: 'DepartmentComponent',
+          title: 'Phòng ban',
+          isOpen: true,
+          comp: DepartmentComponent,
           //   icon: 'assets/icon/layers.png',
         },
       ],

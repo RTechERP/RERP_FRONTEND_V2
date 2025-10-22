@@ -79,11 +79,9 @@ export class TsAssetManagementPersonalComponent
   getAssetManagementPersonal() {
     this.tsAssetmanagementPersonal
       .getAssetsManagementPersonal()
-      .subscribe((data: any) => {
-        this.assetManagemnetPersonalData = data.tSAssetManagmentPersonal;
-        this.tableAssetManagementPersonal?.setData(
-          data.tSAssetManagmentPersonal
-        );
+      .subscribe((response: any) => {
+        this.assetManagemnetPersonalData = response.data;
+        this.tableAssetManagementPersonal?.setData(response.data);
         console.log('Data:', this.assetManagemnetPersonalData);
       });
   }
@@ -93,6 +91,7 @@ export class TsAssetManagementPersonalComponent
       {
         ...DEFAULT_TABLE_CONFIG,
         paginationMode: 'local',
+        layout: 'fitDataStretch',
         columns: [
           {
             title: 'STT',

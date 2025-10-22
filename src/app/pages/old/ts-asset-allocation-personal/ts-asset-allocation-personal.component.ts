@@ -99,6 +99,7 @@ export class TsAssetAllocationPersonalComponent
   //Chọn nhân viên
   selectedEmployee: any = null;
   editingID: number = 0;
+  employeeGroups: Array<{ department: string; items: any[] }> = [];
   constructor(
     private assetAllocationService: TsAssetAllocationPersonalService,
     private assetManagemnetService: TsAssetManagementPersonalService,
@@ -130,11 +131,11 @@ export class TsAssetAllocationPersonalComponent
     this.assetAllocationService
       .getAssetAllocationPersonal(request)
       .subscribe((respon: any) => {
-        this.assetAllocationPersonalData = respon.assetAllocationPersonal;
+        this.assetAllocationPersonalData = respon.data;
         console.log(this.assetAllocationPersonalData);
         this.maxSTT = respon.MaxSTT;
         console.log(this.maxSTT);
-        this.tbAssetAllocationPersonal?.setData(respon.assetAllocationPersonal);
+        this.tbAssetAllocationPersonal?.setData(respon.data);
       });
   }
   getListEmployee() {
@@ -147,12 +148,24 @@ export class TsAssetAllocationPersonalComponent
       .getEmployee(request)
       .subscribe((respon: any) => {
         this.emPloyeeLists = respon.data;
+        this.buildEmployeeGroups();
         console.log('đwdwdwd', this.emPloyeeLists);
         this.employeeID = null;
         this.selectedEmployee = null;
       });
   }
-
+  private buildEmployeeGroups(): void {
+    const map = new Map<string, any[]>();
+    for (const e of this.emPloyeeLists || []) {
+      const k = e.DepartmentName || 'Khác';
+      if (!map.has(k)) map.set(k, []);
+      map.get(k)!.push(e);
+    }
+    this.employeeGroups = Array.from(map, ([department, items]) => ({
+      department,
+      items,
+    }));
+  }
   onDateChange(newDate: Date): void {
     this.allocationDate = newDate.toISOString().slice(0, 10);
     this.generateTSAssetCode();
@@ -165,7 +178,7 @@ export class TsAssetAllocationPersonalComponent
     this.assetAllocationService
       .getAssetManagementPersonal()
       .subscribe((respon: any) => {
-        this.assetPersonals = respon.tSAssetManagmentPersonal;
+        this.assetPersonals = respon.data;
         if (this.tbAssetPersonModal) {
           this.tbAssetPersonModal.setData(this.assetPersonals);
         }
@@ -190,7 +203,7 @@ export class TsAssetAllocationPersonalComponent
     this.tbAssetAllocationPersonal = new Tabulator('#dataTbAllocation', {
       ...DEFAULT_TABLE_CONFIG,
       paginationMode: 'local',
-
+      layout: 'fitDataStretch',
       columns: [
         // {
         //   title: '',
@@ -236,7 +249,7 @@ export class TsAssetAllocationPersonalComponent
               value === '1';
             return `<input type="checkbox" ${
               checked ? 'checked' : ''
-            } disabled/>`;
+            } onclick="return false;" />`;
           },
           hozAlign: 'center',
           headerHozAlign: 'center',
@@ -253,7 +266,7 @@ export class TsAssetAllocationPersonalComponent
               value === '1';
             return `<input type="checkbox" ${
               checked ? 'checked' : ''
-            } disabled />`;
+            } onclick="return false;" />`;
           },
           hozAlign: 'center',
           headerHozAlign: 'center',
@@ -293,9 +306,8 @@ export class TsAssetAllocationPersonalComponent
       this.assetAllocationService
         .getAssetAllocationDetail(id, 0)
         .subscribe((res) => {
-          const details = Array.isArray(res.data.assetsAllocationPersonalDetail)
-            ? res.data.assetsAllocationPersonalDetail
-            : [];
+          const details = res.data;
+
           this.assetAllocationDetailData = details;
           console.log('djhqaokjhdfihqfihqa', details);
 
@@ -307,6 +319,14 @@ export class TsAssetAllocationPersonalComponent
       (e: UIEvent, row: RowComponent) => {
         this.selectedRow = row.getData();
         this.sizeTbDetail = null;
+      }
+    );
+    this.tbAssetAllocationPersonal.on(
+      'rowDblClick',
+      (_e: UIEvent, row: RowComponent) => {
+        const data = row.getData();
+        row.select();
+        this.openEditModalAllocation(data);
       }
     );
   }
@@ -506,10 +526,15 @@ export class TsAssetAllocationPersonalComponent
         {
           title: 'Số lượng',
           field: 'StandardAmount',
-          hozAlign: 'center',
+          hozAlign: 'right',
           headerHozAlign: 'center',
         },
-        { title: 'Ghi chú', field: 'Note', headerHozAlign: 'center' },
+        {
+          title: 'Ghi chú',
+          field: 'Note',
+          headerHozAlign: 'center',
+          editor: 'input',
+        },
       ],
     });
 
@@ -571,8 +596,9 @@ export class TsAssetAllocationPersonalComponent
   private resetAllocationFlags(data: any[]) {
     return (data || []).map((x) => ({ ...x, IsAllocation: false }));
   }
-  openEditModalAllocation() {
-    const selected = this.tbAssetAllocationPersonal?.getSelectedData()?.[0];
+  openEditModalAllocation(rowData?: any) {
+    const selected =
+      rowData ?? this.tbAssetAllocationPersonal?.getSelectedData()?.[0];
     if (!selected) {
       this.notification.warning(
         'Thông báo',
@@ -580,7 +606,7 @@ export class TsAssetAllocationPersonalComponent
       );
       return;
     }
-
+    this.formNote = selected.Note;
     this.editingID = selected.ID;
     this.TSCNcode = selected.Code;
     this.allocationDate = DateTime.fromISO(selected.DateAllocation).toFormat(
@@ -590,17 +616,15 @@ export class TsAssetAllocationPersonalComponent
     this.selectedEmployee =
       this.emPloyeeLists.find((e) => e.ID === selected.EmployeeID) || null;
 
-    // nạp chi tiết cấp phát vào bảng modal khi SỬA
     this.assetAllocationService
       .getAssetAllocationDetail(selected.ID, 0)
       .subscribe((res) => {
-        const details = Array.isArray(res.data.assetsAllocationPersonalDetail)
-          ? res.data.assetsAllocationPersonalDetail
-          : [];
+        const details = res.data;
         this.assetAllocationDetailData = details;
         this.tbAssetPersonModal?.setData(this.assetAllocationDetailData);
+
         const el = document.getElementById('addAllocationModal');
-        if (el) new bootstrap.Modal(el).show();
+        if (el) bootstrap.Modal.getOrCreateInstance(el).show();
       });
   }
   closeModal() {
@@ -658,7 +682,7 @@ export class TsAssetAllocationPersonalComponent
     const payload = {
       tSAllocationAssetPersonal: {
         ID: this.editingID || 0,
-        STT: this.maxSTT + 1,
+
         Code: allocationCode,
         DateAllocation: this.allocationDate,
         EmployeeID: this.employeeID,

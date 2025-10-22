@@ -197,7 +197,7 @@ layout:"fitDataStretch",
           // },
           { title: 'ID', field: 'ID', hozAlign: 'center', headerHozAlign: 'center', visible: false },
           { title: 'STT', field: 'STT', hozAlign: 'center', headerHozAlign: 'center' },
-          { title: 'Mã biên bản', field: 'Code', hozAlign: 'center', headerHozAlign: 'center', width: 200 },
+          { title: 'Mã biên bản', field: 'Code', hozAlign: 'center', headerHozAlign: 'center', width: 200,bottomCalc: 'count' },
           {
             title: 'Cá Nhân Duyệt',
             field: 'IsApprovedPersonalProperty',
@@ -292,10 +292,10 @@ layout:"fitDataStretch",
               hozAlign: 'center',
               width: 120,
               formatter: function (cell: any) {
-                const value = cell.getValue();
-                const checked = value === true || value === 'true' || value === 1 || value === '1';
-                return `<input type="checkbox" ${checked ? 'checked' : ''} disabled />`;
-              }
+  const value = cell.getValue();
+  const checked = value === true || value === 'true' || value === 1 || value === '1';
+  return `<input type="checkbox" ${checked ? 'checked' : ''} onclick="return false;" />`;
+}
               , headerHozAlign: 'center'
             },
             {

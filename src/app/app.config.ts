@@ -7,13 +7,14 @@ import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { icons } from './icons-provider';
 import { provideNzIcons } from 'ng-zorro-antd/icon';
-import { vi_VN, provideNzI18n } from 'ng-zorro-antd/i18n';
+import { vi_VN, provideNzI18n, NZ_I18N } from 'ng-zorro-antd/i18n';
 import { registerLocaleData } from '@angular/common';
 import vi from '@angular/common/locales/vi';
 import { FormsModule } from '@angular/forms';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './auth/auth.interceptor';
+import { NzCalendarModule } from 'ng-zorro-antd/calendar';
 
 registerLocaleData(vi);
 
@@ -26,6 +27,8 @@ export const appConfig: ApplicationConfig = {
     importProvidersFrom(FormsModule),
     provideAnimationsAsync(),
     provideHttpClient(withInterceptors([authInterceptor])),
+    importProvidersFrom(NzCalendarModule),
+    { provide: NZ_I18N, useValue: vi_VN },
   ],
 };
 export const APP_LOGIN_NAME = 'admin';

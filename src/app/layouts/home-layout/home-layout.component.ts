@@ -49,6 +49,7 @@ import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { NzListModule } from 'ng-zorro-antd/list';
 import { NzCalendarMode, NzCalendarModule } from 'ng-zorro-antd/calendar';
 import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
+import { HolidayServiceService } from '../../pages/old/holiday/holiday-service/holiday-service.service';
 
 interface dynamicApps {
   MenuName: string;
@@ -161,16 +162,17 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
   //   date = new Date();
   mode: NzCalendarMode = 'month';
 
-  isSunday(date: Date): boolean {
-    return date.getDay() === 0;
-  }
+  //   isSunday(date: Date): boolean {
+  //     // console.log(date, date.getDay());
+  //     return date.getDay() === 0;
+  //   }
 
-  isCurrentMonth(date: Date): boolean {
-    return (
-      date.getMonth() === this.today.getMonth() &&
-      date.getFullYear() === this.today.getFullYear()
-    );
-  }
+  //   isCurrentMonth(date: Date): boolean {
+  //     return (
+  //       date.getMonth() === this.today.getMonth() &&
+  //       date.getFullYear() === this.today.getFullYear()
+  //     );
+  //   }
 
   // Dữ liệu hiệu suất công việc theo phòng ban
   departmentPerformance: DepartmentPerformance[] = [
@@ -188,12 +190,45 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
     { status: 'Trễ hạn', percentage: 16, color: '#DC143C' },
   ];
 
+  holidays: any[] = [];
+  scheduleWorkSaturdays: any[] = [];
+
+  isHoliday(date: Date): boolean {
+    let isHoliday = this.holidays.some(
+      (x) =>
+        x.HolidayYear === date.getFullYear() &&
+        x.HolidayMonth === date.getMonth() + 1 &&
+        x.HolidayDay === date.getDate()
+    );
+
+    let isSaturday = this.scheduleWorkSaturdays.some(
+      (x) =>
+        x.WorkYear === date.getFullYear() &&
+        x.WorkMonth === date.getMonth() + 1 &&
+        x.WorkDay === date.getDate()
+    );
+    // console.log(isHoliday);
+    return isHoliday;
+  }
+
+  isSaturday(date: Date): boolean {
+    let isSaturday = this.scheduleWorkSaturdays.some(
+      (x) =>
+        x.WorkYear === date.getFullYear() &&
+        x.WorkMonth === date.getMonth() + 1 &&
+        x.WorkDay === date.getDate()
+    );
+    // console.log(isHoliday);
+    return isSaturday;
+  }
+
   constructor(
     private notification: NzNotificationService,
     private homepageService: HomeLayoutService,
     private modalService: NgbModal,
     private modal: NzModalService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private holidayService: HolidayServiceService
   ) {}
 
   ngOnInit(): void {
@@ -201,6 +236,7 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
     this.getMenuParents();
     // this.generateCalendarDays();
     this.getEmployeeOnleaveAndWFH();
+    this.getHoliday();
   }
 
   //   private generateCalendarDays(): void {
@@ -406,18 +442,20 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
     }
   }
 
-  //   isCurrentDay(day: number): boolean {
-  //     return day === this.currentDay;
-  //   }
+  //GET DANH SÁCH NGÀY NGHỈ TRONG THÁNG
+  getHoliday(): void {
+    this.holidayService
+      .getHolidays(this.today.getMonth() + 1, this.today.getFullYear())
+      .subscribe({
+        next: (response: any) => {
+          this.holidays = response.data.holidays;
+          this.scheduleWorkSaturdays = response.data.scheduleWorkSaturdays;
 
-  //   isWeekend(day: number, index: number): boolean {
-  //     // Tháng 9/2025 bắt đầu từ thứ 2 (T2)
-  //     // T2=0, T3=1, T4=2, T5=3, T7=4, CN=5
-  //     // Cuối tuần là T7 (index 4) và CN (index 5)
-  //     return index % 6 === 4 || index % 6 === 5;
-  //   }
-
-  //   getWeekDays(): string[] {
-  //     return ['T2', 'T3', 'T4', 'T5', 'T7', 'CN'];
-  //   }
+          console.log(response);
+        },
+        error: (err: any) => {
+          this.notification.error('Lỗi', err.error.message);
+        },
+      });
+  }
 }

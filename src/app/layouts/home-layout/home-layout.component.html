@@ -134,13 +134,14 @@
 
 
                         <div class="card">
-                            <nz-calendar [nzFullscreen]="false" [(ngModel)]="today" [nzCustomHeader]="customHeader">
+                            <nz-calendar [nzFullscreen]="false" [(ngModel)]="today" [nzCustomHeader]="customHeader"
+                                [nzDateFullCell]="dateCell">
                             </nz-calendar>
 
                             <!-- Template custom cho từng ô ngày -->
                             <ng-template #dateCell let-date>
                                 <div class="custom-date-cell"
-                                    [ngClass]="{sunday: isSunday(date) && isCurrentMonth(date)}">
+                                    [ngClass]="{holiday: isHoliday(date) || isSaturday(date)}">
                                     {{ date.getDate() }}
                                 </div>
                             </ng-template>
@@ -148,8 +149,11 @@
                         </div>
 
                         <ng-template #customHeader>
-                            <div style="padding: 8px">
-                                <h6>Tháng {{ today | date:'MM' }} - {{ today | date:'yyyy' }}</h6>
+                            <div class="d-flex justify-content-between align-items-center p-1">
+                                <h6 class="m-0">Tháng {{ today | date:'MM' }} - {{ today | date:'yyyy' }}</h6>
+                                <div class="d-flex justify-content-center">
+                                    <span class="bg-danger text-light p-1">Ngày nghỉ</span>
+                                </div>
                             </div>
                         </ng-template>
 

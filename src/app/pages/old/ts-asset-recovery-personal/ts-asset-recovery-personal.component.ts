@@ -479,9 +479,9 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
           movableColumns: true,
           reactiveData: true,
           columns: [
-            { title: 'ID', field: 'ID', hozAlign: 'center', width: 60 },
+            { title: 'ID', field: 'ID', hozAlign: 'center', width: 60, visible:false },
 
-            { title: 'TSAssetManagementPersonalID', field: 'TSAssetManagementPersonalID', hozAlign: 'center', width: 60 },
+            { title: 'TSAssetManagementPersonalID', field: 'TSAssetManagementPersonalID', hozAlign: 'center', width: 60, visible:false  },
             { title: 'TSRecoveryAssetPersonalID', field: 'TSRecoveryAssetPersonalID', hozAlign: 'center', width: 60, visible: false },
 
             {

@@ -1,4 +1,12 @@
-import { AfterViewInit, Component, OnInit, ViewEncapsulation, ViewChild, ElementRef, Input } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  OnInit,
+  ViewEncapsulation,
+  ViewChild,
+  ElementRef,
+  Input,
+} from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
@@ -15,7 +23,12 @@ import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
-import { TabulatorFull as Tabulator, CellComponent, ColumnDefinition, RowComponent } from 'tabulator-tables';
+import {
+  TabulatorFull as Tabulator,
+  CellComponent,
+  ColumnDefinition,
+  RowComponent,
+} from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { TsAssetAllocationPersonalService } from './ts-asset-allocation-personal-service/ts-asset-allocation-personal.service';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
@@ -23,7 +36,7 @@ import { DateTime } from 'luxon';
 declare var bootstrap: any;
 import { CommonModule } from '@angular/common';
 import { TsAssetManagementPersonalService } from '../ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
-import { NzNotificationService } from 'ng-zorro-antd/notification'
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 @Component({
   standalone: true,
@@ -46,15 +59,15 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
     NzSelectModule,
     NzTableModule,
     NzTabsModule,
-
   ],
 
   selector: 'app-ts-asset-allocation-personal',
   templateUrl: './ts-asset-allocation-personal.component.html',
-  styleUrls: ['./ts-asset-allocation-personal.component.css']
+  styleUrls: ['./ts-asset-allocation-personal.component.css'],
 })
-export class TsAssetAllocationPersonalComponent implements OnInit, AfterViewInit {
-
+export class TsAssetAllocationPersonalComponent
+  implements OnInit, AfterViewInit
+{
   @ViewChild('addAllocationModal') modalElement!: ElementRef;
   isSearchVisible: boolean = false;
   //Request truyền vào store
@@ -73,9 +86,9 @@ export class TsAssetAllocationPersonalComponent implements OnInit, AfterViewInit
   assetAllocationDetailData: any[] = [];
   //Lấy danh sách nhân viên
   emPloyeeLists: any[] = [];
-  allocationDate: string = "";
-  TSCNcode: string = "";
-  selectedRow: any = "";
+  allocationDate: string = '';
+  TSCNcode: string = '';
+  selectedRow: any = '';
   sizeTbDetail: any = '0';
   //Max STT
   maxSTT: number = 0;
@@ -89,8 +102,8 @@ export class TsAssetAllocationPersonalComponent implements OnInit, AfterViewInit
   constructor(
     private assetAllocationService: TsAssetAllocationPersonalService,
     private assetManagemnetService: TsAssetManagementPersonalService,
-    private notification: NzNotificationService,
-  ) { }
+    private notification: NzNotificationService
+  ) {}
   ngOnInit() {
     this.getAssetAllocationPersonals();
     this.getListEmployee();
@@ -112,44 +125,51 @@ export class TsAssetAllocationPersonalComponent implements OnInit, AfterViewInit
       status: this.status || -1,
       filterText: this.filterText || '',
       pageSize: 10000,
-      pageNumber: 1
-    }
-    this.assetAllocationService.getAssetAllocationPersonal(request).subscribe((respon: any) => {
-      this.assetAllocationPersonalData = respon.assetAllocationPersonal;
-      console.log(this.assetAllocationPersonalData);
-      this.maxSTT = respon.MaxSTT;
-      console.log(this.maxSTT);
-      this.tbAssetAllocationPersonal?.setData(respon.assetAllocationPersonal);
-    })
+      pageNumber: 1,
+    };
+    this.assetAllocationService
+      .getAssetAllocationPersonal(request)
+      .subscribe((respon: any) => {
+        this.assetAllocationPersonalData = respon.assetAllocationPersonal;
+        console.log(this.assetAllocationPersonalData);
+        this.maxSTT = respon.MaxSTT;
+        console.log(this.maxSTT);
+        this.tbAssetAllocationPersonal?.setData(respon.assetAllocationPersonal);
+      });
   }
   getListEmployee() {
-       const request = {
+    const request = {
       status: 0,
       departmentid: 0,
-      keyword: ''
+      keyword: '',
     };
-    this.assetManagemnetService.getEmployee(request).subscribe((respon: any) => {
-      this.emPloyeeLists = respon.data;
-      console.log("đwdwdwd",this.emPloyeeLists);
-      this.employeeID = null;
-      this.selectedEmployee = null;
-    });
+    this.assetManagemnetService
+      .getEmployee(request)
+      .subscribe((respon: any) => {
+        this.emPloyeeLists = respon.data;
+        console.log('đwdwdwd', this.emPloyeeLists);
+        this.employeeID = null;
+        this.selectedEmployee = null;
+      });
   }
- 
+
   onDateChange(newDate: Date): void {
     this.allocationDate = newDate.toISOString().slice(0, 10);
     this.generateTSAssetCode();
   }
   onEmployeeChange(employeeID: number): void {
-    this.selectedEmployee = this.emPloyeeLists.find(emp => emp.ID === employeeID) || null;
+    this.selectedEmployee =
+      this.emPloyeeLists.find((emp) => emp.ID === employeeID) || null;
   }
   getAssetManagementPersonal() {
-    this.assetAllocationService.getAssetManagementPersonal().subscribe((respon: any) => {
-      this.assetPersonals = respon.tSAssetManagmentPersonal;
-      if (this.tbAssetPersonModal) {
-        this.tbAssetPersonModal.setData(this.assetPersonals);
-      }
-    })
+    this.assetAllocationService
+      .getAssetManagementPersonal()
+      .subscribe((respon: any) => {
+        this.assetPersonals = respon.tSAssetManagmentPersonal;
+        if (this.tbAssetPersonModal) {
+          this.tbAssetPersonModal.setData(this.assetPersonals);
+        }
+      });
   }
   generateTSAssetCode(): void {
     if (!this.allocationDate) {
@@ -163,218 +183,343 @@ export class TsAssetAllocationPersonalComponent implements OnInit, AfterViewInit
       },
       error: (error) => {
         console.error('Lỗi khi lấy mã cấp phát:', error);
-      }
+      },
     });
   }
   drawTbAssetAllocation() {
-    this.tbAssetAllocationPersonal = new Tabulator('#dataTbAllocation',
-      {
+    this.tbAssetAllocationPersonal = new Tabulator('#dataTbAllocation', {
       ...DEFAULT_TABLE_CONFIG,
-        paginationMode: 'local',
+      paginationMode: 'local',
 
-        columns: [
-          // {
-          //   title: '',
-          //   field: '',
-          //   formatter: 'rowSelection',
-          //   titleFormatter: 'rowSelection',
-          //   hozAlign: 'center',
-          //   headerHozAlign: 'center',
+      columns: [
+        // {
+        //   title: '',
+        //   field: '',
+        //   formatter: 'rowSelection',
+        //   titleFormatter: 'rowSelection',
+        //   hozAlign: 'center',
+        //   headerHozAlign: 'center',
 
-          //   headerSort: false,
-          //   width: 60,
-          //   cssClass: 'checkbox-center'
-          // },
-          { title: 'ID', field: 'ID', hozAlign: 'center', headerHozAlign: 'center', visible: false },
-          { title: 'STT', field: 'STT', hozAlign: 'center', headerHozAlign: 'center' },
-          { title: 'Mã biên bản', field: 'Code', hozAlign: 'center', headerHozAlign: 'center', width: 200 },
-          {
-            title: 'Cá Nhân Duyệt',
-            field: 'IsApprovedPersonalProperty',
-            formatter: function (cell: any) {
-              const value = cell.getValue();
-              const checked = value === true || value === 'true' || value === 1 || value === '1';
-              return `<input type="checkbox" ${checked ? 'checked' : ''} disabled/>`;
-            },
-            hozAlign: 'center',
-            headerHozAlign: 'center'
+        //   headerSort: false,
+        //   width: 60,
+        //   cssClass: 'checkbox-center'
+        // },
+        {
+          title: 'ID',
+          field: 'ID',
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+          visible: false,
+        },
+        {
+          title: 'STT',
+          field: 'STT',
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Mã biên bản',
+          field: 'Code',
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+          width: 200,
+        },
+        {
+          title: 'Cá Nhân Duyệt',
+          field: 'IsApprovedPersonalProperty',
+          formatter: function (cell: any) {
+            const value = cell.getValue();
+            const checked =
+              value === true ||
+              value === 'true' ||
+              value === 1 ||
+              value === '1';
+            return `<input type="checkbox" ${
+              checked ? 'checked' : ''
+            } disabled/>`;
           },
-          {
-            title: 'HR Duyệt', field: 'IsApproveHR',
-            formatter: function (cell: any) {
-              const value = cell.getValue();
-              const checked = value === true || value === 'true' || value === 1 || value === '1';
-              return `<input type="checkbox" ${checked ? 'checked' : ''} disabled />`;
-            },
-            hozAlign: 'center', headerHozAlign: 'center'
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'HR Duyệt',
+          field: 'IsApproveHR',
+          formatter: function (cell: any) {
+            const value = cell.getValue();
+            const checked =
+              value === true ||
+              value === 'true' ||
+              value === 1 ||
+              value === '1';
+            return `<input type="checkbox" ${
+              checked ? 'checked' : ''
+            } disabled />`;
           },
-          {
-            title: 'Ngày cấp phát', field: 'DateAllocation', hozAlign: 'center', headerHozAlign: 'center',
-            formatter: cell => DateTime.fromISO(cell.getValue()).toFormat('dd/MM/yyyy')
-          },
-          { title: 'Cấp phát cho', field: 'EmployeeName', hozAlign: 'left', headerHozAlign: 'center' },
-          { title: 'Phòng ban', field: 'Department', hozAlign: 'left', headerHozAlign: 'center' },
-        ]
-      });
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Ngày cấp phát',
+          field: 'DateAllocation',
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+          formatter: (cell) =>
+            DateTime.fromISO(cell.getValue()).toFormat('dd/MM/yyyy'),
+        },
+        {
+          title: 'Cấp phát cho',
+          field: 'EmployeeName',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Phòng ban',
+          field: 'Department',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Ghi chú',
+          field: 'Note',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+        },
+      ],
+    });
     this.tbAssetAllocationPersonal.on('rowClick', (evt, row: RowComponent) => {
       const rowData = row.getData();
       const id = rowData['ID'];
       console.log('ID', id);
-      this.assetAllocationService.getAssetAllocationDetail(id, 0).subscribe(res => {
-        const details = Array.isArray(res.data.assetsAllocationPersonalDetail)
-          ? res.data.assetsAllocationPersonalDetail
-          : []; 
-        this.assetAllocationDetailData = details;
-        console.log("djhqaokjhdfihqfihqa", details);
+      this.assetAllocationService
+        .getAssetAllocationDetail(id, 0)
+        .subscribe((res) => {
+          const details = Array.isArray(res.data.assetsAllocationPersonalDetail)
+            ? res.data.assetsAllocationPersonalDetail
+            : [];
+          this.assetAllocationDetailData = details;
+          console.log('djhqaokjhdfihqfihqa', details);
 
-        this.drawAllocationDetail();
-      });
-
+          this.drawAllocationDetail();
+        });
     });
-    this.tbAssetAllocationPersonal.on('rowClick', (e: UIEvent, row: RowComponent) => {
-      this.selectedRow = row.getData();
-      this.sizeTbDetail = null;
-    })
+    this.tbAssetAllocationPersonal.on(
+      'rowClick',
+      (e: UIEvent, row: RowComponent) => {
+        this.selectedRow = row.getData();
+        this.sizeTbDetail = null;
+      }
+    );
   }
   drawAllocationDetail() {
     {
       if (this.tbAssetAllocationDetail) {
         this.tbAssetAllocationDetail.setData(this.assetAllocationDetailData);
       } else {
-        this.tbAssetAllocationDetail = new Tabulator('#dataTbAllocationDetail', {
-          data: this.assetAllocationDetailData,
-       ...DEFAULT_TABLE_CONFIG,
-       paginationMode:"local",
-          reactiveData: true,
-          columns: [
-            {
-              title: 'TSAssetManagementPersonalID',
-              field: 'TSAssetManagementPersonalID',
-              hozAlign: 'center',
-              width: 60,
-              visible: false
-            },
-            {
-              title: 'ID',
-              field: 'ID',
-              hozAlign: 'center',
-              width: 60,
-              visible: false
-            },
-            {
-              title: 'STT',
-              hozAlign: 'center',
-              width: 60,
-              headerHozAlign: 'center',
-              formatter: 'rownum',
-              headerSort: false
-            }
-            ,
-            {
-              title: 'Cấp phát',
-              field: 'IsAllocation',
-              hozAlign: 'center',
-              width: 120,
-              formatter: function (cell: any) {
-                const value = cell.getValue();
-                const checked = value === true || value === 'true' || value === 1 || value === '1';
-                return `<input type="checkbox" ${checked ? 'checked' : ''} disabled />`;
-              }
-              , headerHozAlign: 'center'
-            },
-            {
-              title: 'Tên tài sản',
-              field: 'Name',
-              hozAlign: 'left',
-              formatter: cell => cell.getValue()?.toString() || '',
-              headerHozAlign: 'center'
-            },
-            {
-              title: 'Số lượng ',
-              field: 'StandardAmount',
-              hozAlign: 'center',
-              formatter: cell => cell.getValue()?.toString() || '',
-              headerHozAlign: 'center'
-            },
-            {
-              title: 'Ghi chú',
-              field: 'Note'
-              , headerHozAlign: 'center'
-            }
-          ]
-        });
+        this.tbAssetAllocationDetail = new Tabulator(
+          '#dataTbAllocationDetail',
+          {
+            data: this.assetAllocationDetailData,
+            ...DEFAULT_TABLE_CONFIG,
+            paginationMode: 'local',
+            reactiveData: true,
+            columns: [
+              {
+                title: 'TSAssetManagementPersonalID',
+                field: 'TSAssetManagementPersonalID',
+                hozAlign: 'center',
+                width: 60,
+                visible: false,
+              },
+              {
+                title: 'ID',
+                field: 'ID',
+                hozAlign: 'center',
+                width: 60,
+                visible: false,
+              },
+              {
+                title: 'STT',
+                hozAlign: 'center',
+                width: 60,
+                headerHozAlign: 'center',
+                formatter: 'rownum',
+                headerSort: false,
+              },
+              {
+                title: 'Cấp phát',
+                field: 'IsAllocation',
+                hozAlign: 'center',
+                width: 120,
+                formatter: function (cell: any) {
+                  const value = cell.getValue();
+                  const checked =
+                    value === true ||
+                    value === 'true' ||
+                    value === 1 ||
+                    value === '1';
+                  return `<input type="checkbox" ${
+                    checked ? 'checked' : ''
+                  } disabled />`;
+                },
+                headerHozAlign: 'center',
+              },
+              {
+                title: 'Tên tài sản',
+                field: 'Name',
+                hozAlign: 'left',
+                formatter: (cell) => cell.getValue()?.toString() || '',
+                headerHozAlign: 'center',
+              },
+              {
+                title: 'Số lượng ',
+                field: 'StandardAmount',
+                hozAlign: 'center',
+                formatter: (cell) => cell.getValue()?.toString() || '',
+                headerHozAlign: 'center',
+              },
+              {
+                title: 'Ghi chú',
+                field: 'Note',
+                headerHozAlign: 'center',
+              },
+            ],
+          }
+        );
       }
     }
   }
   toggleSearchPanel(): void {
     this.isSearchVisible = !this.isSearchVisible;
   }
+  // drawTbAssetManagementModal() {
+  //   if (this.tbAssetPersonModal) {
+  //     this.tbAssetPersonModal.setData(this.assetAllocationDetailData);
+  //   } else {
+  //     this.tbAssetPersonModal = new Tabulator('#dataTbAssetManagement', {
+  //       data: this.assetAllocationDetailData,
+  //       layout: "fitDataStretch",
+  //       paginationSize: 5,
+  //       selectableRows: true,
+  //       movableColumns: true,
+  //       reactiveData: true,
+  //       columns: [
+  //         {
+  //           title: 'ID',
+  //           field: 'ID',
+  //           hozAlign: 'center',
+  //           width: 60,
+  //           visible: false
+  //         },
+  //         {
+  //           title: 'TSAssetManagementPersonalID',
+  //           field: 'TSAssetManagementPersonalID',
+  //           hozAlign: 'center',
+  //           width: 60,
+  //           visible:false
+  //         },
+  //         {
+  //           title: 'STT',
+  //           hozAlign: 'center',
+  //           width: 60,
+  //           headerHozAlign: 'center',
+  //           formatter: 'rownum',
+  //           headerSort: false
+  //         }
+  //         ,
+  //         {
+  //           title: 'Cấp phát',
+  //           field: 'IsAllocation',
+  //           hozAlign: 'center',
+  //           width: 120,
+  //           headerHozAlign: 'center',
+  //           formatter: function (cell: any) {
+  //             const value = cell.getValue();
+  //             const checked = value === true || value === 'true' || value === 1 || value === '1';
+  //             return `<input type="checkbox" ${checked ? 'checked' : ''} />`;
+  //           },
+  //           cellClick: function (e, cell) {
+  //             const currentValue = cell.getValue();
+  //             const newValue = !(
+  //               currentValue === true || currentValue === 'true' || currentValue === 1 || currentValue === '1'
+  //             );
+  //             cell.setValue(newValue);
+  //             console.log("Cập nhật giá trị:", newValue);
+  //           }
+  //         },
+  //         { title: 'Tên tài sản', field: 'Name', hozAlign: 'left', formatter: cell => cell.getValue()?.toString() || '', headerHozAlign: 'center' },
+  //         { title: 'Số lượng ', field: 'StandardAmount', hozAlign: 'center', formatter: cell => cell.getValue()?.toString() || '', headerHozAlign: 'center' },
+  //         {
+  //           title: 'Ghi chú',
+  //           field: 'Note',
+  //           headerHozAlign: 'center'
+  //         }
+  //       ]
+  //     });
+  //   }
+  // }
   drawTbAssetManagementModal() {
     if (this.tbAssetPersonModal) {
-      this.tbAssetPersonModal.setData(this.assetAllocationDetailData);
-    } else {
-      this.tbAssetPersonModal = new Tabulator('#dataTbAssetManagement', {
-        data: this.assetAllocationDetailData,
-        layout: "fitDataStretch",
-        paginationSize: 5,
-        selectableRows: true,
-        movableColumns: true,
-        reactiveData: true,
-        columns: [
-          {
-            title: 'ID',
-            field: 'ID',
-            hozAlign: 'center',
-            width: 60,
-            visible: false
-          },
-          {
-            title: 'TSAssetManagementPersonalID',
-            field: 'TSAssetManagementPersonalID',
-            hozAlign: 'center',
-            width: 60,
-            visible:false
-          },
-          {
-            title: 'STT',
-            hozAlign: 'center',
-            width: 60,
-            headerHozAlign: 'center',
-            formatter: 'rownum',
-            headerSort: false
-          }
-          ,
-          {
-            title: 'Cấp phát',
-            field: 'IsAllocation',
-            hozAlign: 'center',
-            width: 120,
-            headerHozAlign: 'center',
-            formatter: function (cell: any) {
-              const value = cell.getValue();
-              const checked = value === true || value === 'true' || value === 1 || value === '1';
-              return `<input type="checkbox" ${checked ? 'checked' : ''} />`;
-            },
-            cellClick: function (e, cell) {
-              const currentValue = cell.getValue();
-              const newValue = !(
-                currentValue === true || currentValue === 'true' || currentValue === 1 || currentValue === '1'
-              );
-              cell.setValue(newValue);
-              console.log("Cập nhật giá trị:", newValue);
-            }
-          },
-          { title: 'Tên tài sản', field: 'Name', hozAlign: 'left', formatter: cell => cell.getValue()?.toString() || '', headerHozAlign: 'center' },
-          { title: 'Số lượng ', field: 'StandardAmount', hozAlign: 'center', formatter: cell => cell.getValue()?.toString() || '', headerHozAlign: 'center' },
-          {
-            title: 'Ghi chú',
-            field: 'Note',
-            headerHozAlign: 'center'
-          }
-        ]
-      });
+      this.tbAssetPersonModal.setData(this.assetPersonals); // đúng cho lần mở thêm mới
+      return;
     }
+    this.tbAssetPersonModal = new Tabulator('#dataTbAssetManagement', {
+      data: this.assetPersonals, // <-- trước đây bạn lỡ dùng assetAllocationDetailData
+      layout: 'fitDataStretch',
+      paginationSize: 5,
+      selectableRows: true,
+      movableColumns: true,
+      reactiveData: true,
+      columns: [
+        { title: 'ID', field: 'ID', visible: false },
+        {
+          title: 'TSAssetManagementPersonalID',
+          field: 'TSAssetManagementPersonalID',
+          visible: false,
+        },
+        {
+          title: 'STT',
+          formatter: 'rownum',
+          headerSort: false,
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+          width: 60,
+        },
+        {
+          title: 'Cấp phát',
+          field: 'IsAllocation',
+          width: 120,
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+          formatter(cell: any) {
+            const v = cell.getValue();
+            const c = v === true || v === 'true' || v === 1 || v === '1';
+            return `<input type="checkbox" ${c ? 'checked' : ''}/>`;
+          },
+          cellClick(_e, cell) {
+            const cur = cell.getValue();
+            cell.setValue(
+              !(cur === true || cur === 'true' || cur === 1 || cur === '1')
+            );
+          },
+        },
+        { title: 'Tên tài sản', field: 'Name', headerHozAlign: 'center' },
+        {
+          title: 'Số lượng',
+          field: 'StandardAmount',
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+        },
+        { title: 'Ghi chú', field: 'Note', headerHozAlign: 'center' },
+      ],
+    });
+
+    // fix Tabulator trong modal
+    const modalEl = document.getElementById('addAllocationModal');
+    modalEl?.addEventListener('shown.bs.modal', () =>
+      this.tbAssetPersonModal?.redraw(true)
+    );
   }
+
   // Lấy ID của hàng trong bảng
   getSelectedIds(): number[] {
     if (this.tbAssetAllocationPersonal) {
@@ -383,51 +528,91 @@ export class TsAssetAllocationPersonalComponent implements OnInit, AfterViewInit
     }
     return [];
   }
+  // openModalAllocation() {
+  //   const modalEl = document.getElementById('addAllocationModal');
+  //   if (modalEl) {
+  //     const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+  //     modal.show();
+  //   }
+  // }
+  // openEditModalAllocation() {
+  //   const selectedAllocation = this.tbAssetAllocationPersonal?.getSelectedData()?.[0];
+  //   const detailAllocation = this.tbAssetAllocationDetail?.getData() || [];
+  //   if (!selectedAllocation) {
+  //     this.notification.warning("Thông báo", "Vui lòng chọn một bản ghi để sửa");
+  //     return;
+  //   }
+  //   if (this.tbAssetPersonModal) {
+  //     this.tbAssetPersonModal.setData(this.assetAllocationDetailData);
+  //   }
+  //   this.editingID = selectedAllocation.ID;
+  //   console.log("Edit ID", this.editingID);
+  //   this.TSCNcode = selectedAllocation.Code;
+  //   this.allocationDate = DateTime.fromISO(selectedAllocation.DateAllocation).toFormat('yyyy-MM-dd');
+  //   this.employeeID = selectedAllocation.EmployeeID;
+  //   this.selectedEmployee = this.emPloyeeLists.find(emp => emp.ID === selectedAllocation.EmployeeID) || null;
+  //   console.log('this.employeeID:', this.employeeID);
+  //   console.log('this.selectedEmployee:', this.selectedEmployee);
+  //   const modalElement = document.getElementById('addAllocationModal');
+  //   if (modalElement) {
+  //     const modalInstance = new bootstrap.Modal(modalElement);
+  //     modalInstance.show();
+  //   }
+  // }
+  formNote: string = '';
   openModalAllocation() {
-    const modalEl = document.getElementById('addAllocationModal');
-    if (modalEl) {
-      const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-      modal.show();
-    }
+    this.formNote = '';
+    // mở modal thêm mới
+    const fresh = this.resetAllocationFlags(this.assetPersonals);
+    this.tbAssetPersonModal?.setData(fresh);
+    const el = document.getElementById('addAllocationModal');
+    if (el) bootstrap.Modal.getOrCreateInstance(el).show();
+  }
+  private resetAllocationFlags(data: any[]) {
+    return (data || []).map((x) => ({ ...x, IsAllocation: false }));
   }
   openEditModalAllocation() {
-    const selectedAllocation = this.tbAssetAllocationPersonal?.getSelectedData()?.[0];
-    const detailAllocation = this.tbAssetAllocationDetail?.getData() || [];
-    if (!selectedAllocation) {
-      this.notification.warning("Thông báo", "Vui lòng chọn một bản ghi để sửa");
+    const selected = this.tbAssetAllocationPersonal?.getSelectedData()?.[0];
+    if (!selected) {
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn một bản ghi để sửa'
+      );
       return;
     }
-    if (this.tbAssetPersonModal) {
-      this.tbAssetPersonModal.setData(this.assetAllocationDetailData);
-    }
-    this.editingID = selectedAllocation.ID;
-    console.log("Edit ID", this.editingID);
-    this.TSCNcode = selectedAllocation.Code;
-    this.allocationDate = DateTime.fromISO(selectedAllocation.DateAllocation).toFormat('yyyy-MM-dd');
-    this.employeeID = selectedAllocation.EmployeeID;
-    this.selectedEmployee = this.emPloyeeLists.find(emp => emp.ID === selectedAllocation.EmployeeID) || null;
-    console.log('this.employeeID:', this.employeeID);
-    console.log('this.selectedEmployee:', this.selectedEmployee);
-    const modalElement = document.getElementById('addAllocationModal');
-    if (modalElement) {
-      const modalInstance = new bootstrap.Modal(modalElement);
-      modalInstance.show();
-    }
+
+    this.editingID = selected.ID;
+    this.TSCNcode = selected.Code;
+    this.allocationDate = DateTime.fromISO(selected.DateAllocation).toFormat(
+      'yyyy-MM-dd'
+    );
+    this.employeeID = selected.EmployeeID;
+    this.selectedEmployee =
+      this.emPloyeeLists.find((e) => e.ID === selected.EmployeeID) || null;
+
+    // nạp chi tiết cấp phát vào bảng modal khi SỬA
+    this.assetAllocationService
+      .getAssetAllocationDetail(selected.ID, 0)
+      .subscribe((res) => {
+        const details = Array.isArray(res.data.assetsAllocationPersonalDetail)
+          ? res.data.assetsAllocationPersonalDetail
+          : [];
+        this.assetAllocationDetailData = details;
+        this.tbAssetPersonModal?.setData(this.assetAllocationDetailData);
+        const el = document.getElementById('addAllocationModal');
+        if (el) new bootstrap.Modal(el).show();
+      });
   }
   closeModal() {
     if (this.modalElement) {
-      const modal = bootstrap.Modal.getInstance(this.modalElement.nativeElement);
-      modal?.hide();
+      const m = bootstrap.Modal.getInstance(this.modalElement.nativeElement);
+      m?.hide();
     }
     this.TSCNcode = '';
-    this.allocationDate = "";
+    this.allocationDate = '';
     this.employeeID = null;
     this.selectedEmployee = null;
-    if (this.tbAssetPersonModal) {
-      this.tbAssetPersonModal.deselectRow?.();
-      this.tbAssetPersonModal.setData([]);
-    }
-
+    this.tbAssetPersonModal?.deselectRow?.();
   }
   validateAllocationForm(): boolean {
     let isValid = true;
@@ -436,11 +621,16 @@ export class TsAssetAllocationPersonalComponent implements OnInit, AfterViewInit
       isValid = false;
     }
     if (!this.employeeID) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn nhân viên cấp phát!');
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn nhân viên cấp phát!'
+      );
       isValid = false;
     }
-    const noteElement = document.getElementsByName('note')[0] as HTMLTextAreaElement;
-   
+    const noteElement = document.getElementsByName(
+      'note'
+    )[0] as HTMLTextAreaElement;
+
     return isValid;
   }
   saveAllocationPersonal() {
@@ -452,9 +642,7 @@ export class TsAssetAllocationPersonalComponent implements OnInit, AfterViewInit
     const selectedAssets = this.tbAssetPersonModal?.getSelectedData() || [];
     const detailAllocation = this.tbAssetAllocationDetail?.getData() || [];
     const allocationDetails = selectedAssets.map((asset, index) => {
-      const existingDetail = detailAllocation.find(
-        d => d.ID === asset.ID
-      );
+      const existingDetail = detailAllocation.find((d) => d.ID === asset.ID);
       return {
         ID: existingDetail ? existingDetail.ID : 0,
         STT: index + 1,
@@ -464,7 +652,7 @@ export class TsAssetAllocationPersonalComponent implements OnInit, AfterViewInit
         CreatedBy: 'AdminSW',
         UpdateDate: today.toISOString().split('T')[0],
         UpdateBy: 'AdminSW',
-        IsDeleted: false
+        IsDeleted: false,
       };
     });
     const payload = {
@@ -480,31 +668,38 @@ export class TsAssetAllocationPersonalComponent implements OnInit, AfterViewInit
         CreatedBy: 'AdminSW',
         UpdateDate: today.toISOString().split('T')[0],
         UpdateBy: 'AdminSW',
-        IsDeleted: false
+        Note: this.formNote,
+        IsDeleted: false,
       },
-      tSAllocationAssetPersonalDetails: allocationDetails
+      tSAllocationAssetPersonalDetails: allocationDetails,
     };
     this.assetAllocationService.saveAssetAllocationPerson(payload).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success("Thông báo", "Lưu thành công");
+          this.notification.success('Thông báo', 'Lưu thành công');
+          this.formNote = '';
           this.closeModal();
           this.getAssetAllocationPersonals();
         } else {
-          this.notification.warning("Thông báo", "Lưu thất bại");
+          this.notification.warning('Thông báo', 'Lưu thất bại');
         }
       },
       error: (err) => {
         console.error(err);
-        this.notification.warning("Thông báo", "Lỗi kết nối máy chủ");
-      }
+        this.notification.warning('Thông báo', 'Lỗi kết nối máy chủ');
+      },
     });
   }
   validateApproveAllocation(
-    action: 'HR_APPROVE' | 'HR_CANCEL' | 'Delete' | 'PERSONAL_APPROVE' | 'PERSONAL_CANCEL'
+    action:
+      | 'HR_APPROVE'
+      | 'HR_CANCEL'
+      | 'Delete'
+      | 'PERSONAL_APPROVE'
+      | 'PERSONAL_CANCEL'
   ): boolean {
     if (!this.tbAssetAllocationPersonal) {
-      this.notification.warning("Thông báo", "Chọn một hàng để duyệt");
+      this.notification.warning('Thông báo', 'Chọn một hàng để duyệt');
       return false;
     }
     const selectedRow = this.tbAssetAllocationPersonal.getSelectedData();
@@ -513,10 +708,16 @@ export class TsAssetAllocationPersonalComponent implements OnInit, AfterViewInit
         case 'PERSONAL_CANCEL':
           console.log('row: ', row);
           if (row.IsApproveHR === true) {
-            this.notification.warning("Thông báo", "Tài sản đã được HR duyệt, cá nhân không thể hủy duyệt.");
+            this.notification.warning(
+              'Thông báo',
+              'Tài sản đã được HR duyệt, cá nhân không thể hủy duyệt.'
+            );
             return false;
           }
-          if (row.isApprovedPersonalProperty !== true && row.isApprovedPersonalProperty !== 1) {
+          if (
+            row.isApprovedPersonalProperty !== true &&
+            row.isApprovedPersonalProperty !== 1
+          ) {
             return false;
           }
           break;
@@ -524,55 +725,84 @@ export class TsAssetAllocationPersonalComponent implements OnInit, AfterViewInit
     }
     return true;
   }
-  updateApprove(action: 'HR_APPROVE' | 'HR_CANCEL' | 'Delete' | 'PERSONAL_APPROVE' | 'PERSONAL_CANCEL') {
+  updateApprove(
+    action:
+      | 'HR_APPROVE'
+      | 'HR_CANCEL'
+      | 'Delete'
+      | 'PERSONAL_APPROVE'
+      | 'PERSONAL_CANCEL'
+  ) {
     if (!this.validateApproveAllocation(action)) return;
 
     const ids = this.getSelectedIds();
     if (ids.length !== 1) {
-      this.notification.warning("Thông báo", "Chỉ được chọn một bản ghi để cập nhật.");
+      this.notification.warning(
+        'Thông báo',
+        'Chỉ được chọn một bản ghi để cập nhật.'
+      );
       return;
     }
     const id = ids[0];
-    let updatePayload: { tSAllocationAssetPersonal: { id: number, isDeleted?: boolean, isApproveHR?: boolean, isApprovedPersonalProperty?: boolean } };
+    let updatePayload: {
+      tSAllocationAssetPersonal: {
+        id: number;
+        isDeleted?: boolean;
+        isApproveHR?: boolean;
+        isApprovedPersonalProperty?: boolean;
+      };
+    };
     switch (action) {
       case 'HR_APPROVE':
-        updatePayload = { tSAllocationAssetPersonal: { id, isApproveHR: true } };
+        updatePayload = {
+          tSAllocationAssetPersonal: { id, isApproveHR: true },
+        };
         break;
       case 'HR_CANCEL':
-        updatePayload = { tSAllocationAssetPersonal: { id, isApproveHR: false } };
+        updatePayload = {
+          tSAllocationAssetPersonal: { id, isApproveHR: false },
+        };
         break;
       case 'PERSONAL_APPROVE':
-        updatePayload = { tSAllocationAssetPersonal: { id, isApprovedPersonalProperty: true } };
+        updatePayload = {
+          tSAllocationAssetPersonal: { id, isApprovedPersonalProperty: true },
+        };
         break;
       case 'PERSONAL_CANCEL':
-        updatePayload = { tSAllocationAssetPersonal: { id, isApprovedPersonalProperty: false } };
+        updatePayload = {
+          tSAllocationAssetPersonal: { id, isApprovedPersonalProperty: false },
+        };
         break;
       case 'Delete':
         updatePayload = { tSAllocationAssetPersonal: { id, isDeleted: true } };
         break;
     }
-    this.assetAllocationService.saveAssetAllocationPerson(updatePayload).subscribe({
-      next: (res) => {
-        if (res.status === 1) {
-          this.notification.success("Thông báo", "Thành công");
-          setTimeout(() => this.getAssetAllocationPersonals(), 100);
-        } else {
-          this.notification.warning("Thông báo", "Thất bại");
-        }
-      },
-      error: (err) => {
-        console.error(err);
-        this.notification.warning("Thông báo", "Lỗi kết nối");
-      }
-    });
+    this.assetAllocationService
+      .saveAssetAllocationPerson(updatePayload)
+      .subscribe({
+        next: (res) => {
+          if (res.status === 1) {
+            this.notification.success('Thông báo', 'Thành công');
+            setTimeout(() => this.getAssetAllocationPersonals(), 100);
+          } else {
+            this.notification.warning('Thông báo', 'Thất bại');
+          }
+        },
+        error: (err) => {
+          console.error(err);
+          this.notification.warning('Thông báo', 'Lỗi kết nối');
+        },
+      });
   }
   onSearchChange(): void {
     if (!this.tbAssetAllocationPersonal) return;
     const value = this.filterText.trim();
     if (value) {
-      this.tbAssetAllocationPersonal.setFilter([
-        { field: 'Code', type: 'like', value }
-      ], 'or', { caseSensitive: false });
+      this.tbAssetAllocationPersonal.setFilter(
+        [{ field: 'Code', type: 'like', value }],
+        'or',
+        { caseSensitive: false }
+      );
     } else {
       this.clearAllFilters();
     }

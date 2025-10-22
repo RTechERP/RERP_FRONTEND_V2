@@ -108,7 +108,12 @@ export class TsAssetManagementPersonalComponent
             headerHozAlign: 'center',
             visible: false,
           },
-          { title: 'Mã tài sản', field: 'Code', headerHozAlign: 'center' },
+          {
+            title: 'Mã tài sản',
+            field: 'Code',
+            headerHozAlign: 'center',
+            bottomCalc: 'count',
+          },
           { title: 'Tên tài sản', field: 'Name', headerHozAlign: 'center' },
 
           { title: 'Đơn vị tính', field: 'UnitName', headerHozAlign: 'center' },

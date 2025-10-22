@@ -236,10 +236,28 @@ export class TsAssetAllocationPersonalComponent
           hozAlign: 'center',
           headerHozAlign: 'center',
           width: 200,
+          bottomCalc: 'count',
         },
         {
           title: 'Cá Nhân Duyệt',
           field: 'IsApprovedPersonalProperty',
+          formatter: function (cell: any) {
+            const value = cell.getValue();
+            const checked =
+              value === true ||
+              value === 'true' ||
+              value === 1 ||
+              value === '1';
+            return `<input type="checkbox" ${
+              checked ? 'checked' : ''
+            } onclick="return false;" />`;
+          },
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'HR Duyệt',
+          field: 'IsApproveHR',
           formatter: function (cell: any) {
             const value = cell.getValue();
             const checked =
@@ -340,6 +358,7 @@ export class TsAssetAllocationPersonalComponent
           {
             data: this.assetAllocationDetailData,
             ...DEFAULT_TABLE_CONFIG,
+            layout: 'fitDataStretch',
             paginationMode: 'local',
             reactiveData: true,
             columns: [
@@ -379,7 +398,7 @@ export class TsAssetAllocationPersonalComponent
                     value === '1';
                   return `<input type="checkbox" ${
                     checked ? 'checked' : ''
-                  } disabled />`;
+                  } onclick="return false;" />`;
                 },
                 headerHozAlign: 'center',
               },

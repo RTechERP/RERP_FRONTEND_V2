@@ -1,7 +1,22 @@
-import { Component, OnInit, Input, Output, EventEmitter, inject, Inject, EnvironmentInjector, ApplicationRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  Input,
+  Output,
+  EventEmitter,
+  inject,
+  Inject,
+  EnvironmentInjector,
+  ApplicationRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -15,7 +30,7 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzFloatButtonModule } from 'ng-zorro-antd/float-button';
 import { NzFlexModule } from 'ng-zorro-antd/flex';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
-import { NzNotificationService } from 'ng-zorro-antd/notification'
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { DateTime } from 'luxon';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import type { Editor } from 'tabulator-tables';
@@ -45,7 +60,9 @@ export function phoneVNValidator(): ValidatorFn {
     CommonModule,
     FormsModule,
     NzTabsModule,
-    FormsModule, NzFlexModule, NzRadioModule,
+    FormsModule,
+    NzFlexModule,
+    NzRadioModule,
     NzSelectModule,
     NzGridModule,
     NzFloatButtonModule,
@@ -59,10 +76,10 @@ export function phoneVNValidator(): ValidatorFn {
     NzFormModule,
     FormsModule,
     ReactiveFormsModule,
-    NzUploadModule
+    NzUploadModule,
   ],
   templateUrl: './vehicle-repair-component-form.component.html',
-  styleUrl: './vehicle-repair-component-form.component.css'
+  styleUrl: './vehicle-repair-component-form.component.css',
 })
 export class VehicleRepairComponentFormComponent implements OnInit {
   constructor(
@@ -75,7 +92,6 @@ export class VehicleRepairComponentFormComponent implements OnInit {
     private tbProductRtcService: TbProductRtcService
   ) {
     this.formGroup = this.fb.group({
-
       VehicleManagementID: ['', [Validators.required]],
       VehicleName: [''],
       LicensePlate: [''],
@@ -96,11 +112,10 @@ export class VehicleRepairComponentFormComponent implements OnInit {
       Note: ['', [Validators.required, Validators.maxLength(500)]],
       IsDeleted: [false],
       RepairGarageName: ['', [Validators.required, Validators.maxLength(100)]],
-      ContactPhone: ['', [
-        Validators.required,
-        phoneVNValidator(),
-        Validators.maxLength(12)
-      ]],
+      ContactPhone: [
+        '',
+        [Validators.required, phoneVNValidator(), Validators.maxLength(12)],
+      ],
     });
   }
   formGroup: FormGroup;
@@ -115,28 +130,33 @@ export class VehicleRepairComponentFormComponent implements OnInit {
   employeeList: any[] = [];
   vehicleList: any[] = [];
   TypeList: any[] = [];
-  fathSever: string = 'D:/RTC_Sw/RTC/VehicleRepair/';// thay bằng đường dẫn sever
+  fathSever: string = 'D:/RTC_Sw/RTC/VehicleRepair/'; // thay bằng đường dẫn sever
   private syncEmployeeFields(id?: number) {
     if (!id) return;
-    const emp = this.employeeList.find(x => x.ID === id);
+    const emp = this.employeeList.find((x) => x.ID === id);
     if (!emp) return;
-    this.formGroup.patchValue({
-      EmployeeCode: emp.Code || '',
-      EmployeeRepairName: emp.FullName || '',
-      SDT: emp.SDTCaNhan || ''
-    }, { emitEvent: false });
+    this.formGroup.patchValue(
+      {
+        EmployeeCode: emp.Code || '',
+        EmployeeRepairName: emp.FullName || '',
+        SDT: emp.SDTCaNhan || '',
+      },
+      { emitEvent: false }
+    );
   }
 
   private syncVehicleFields(id?: number) {
     if (!id) return;
-    const v = this.vehicleList.find(x => x.ID === id);
+    const v = this.vehicleList.find((x) => x.ID === id);
     if (!v) return;
-    this.formGroup.patchValue({
-      VehicleName: v.VehicleName || '',
-      LicensePlate: v.LicensePlate || ''
-    }, { emitEvent: false });
+    this.formGroup.patchValue(
+      {
+        VehicleName: v.VehicleName || '',
+        LicensePlate: v.LicensePlate || '',
+      },
+      { emitEvent: false }
+    );
   }
-
 
   ngOnInit(): void {
     this.getRepairType();
@@ -144,66 +164,95 @@ export class VehicleRepairComponentFormComponent implements OnInit {
     this.getEmployee();
 
     if (this.dataInput) {
-      const { DateReport, TimeStartRepair, TimeEndRepair, ...rest } = this.dataInput;
-      this.formGroup.patchValue({
-        ...rest,
-        DateReport: DateReport?.slice(0, 10) || '',
-        TimeStartRepair: TimeStartRepair?.slice(0, 10) || '',
-        TimeEndRepair: TimeEndRepair?.slice(0, 10) || ''
-      }, { emitEvent: false }); // tránh bắn event khi list chưa có
-    }
-    else {
+      const { DateReport, TimeStartRepair, TimeEndRepair, ...rest } =
+        this.dataInput;
+      this.formGroup.patchValue(
+        {
+          ...rest,
+          DateReport: DateReport?.slice(0, 10) || '',
+          TimeStartRepair: TimeStartRepair?.slice(0, 10) || '',
+          TimeEndRepair: TimeEndRepair?.slice(0, 10) || '',
+        },
+        { emitEvent: false }
+      ); // tránh bắn event khi list chưa có
+    } else {
       const today = DateTime.now().toISODate(); // 'YYYY-MM-DD' cho <input type="date">
-      this.formGroup.patchValue({
-        DateReport: today,
-        TimeStartRepair: today
-      }, { emitEvent: false });
+      this.formGroup.patchValue(
+        {
+          DateReport: today,
+          TimeStartRepair: today,
+        },
+        { emitEvent: false }
+      );
     }
 
     // Chọn xe -> fill biển số + gán EmployeeID của xe
-    this.formGroup.get('VehicleManagementID')!.valueChanges
-      .pipe(distinctUntilChanged(), filter((id: any) => !!id))
+    this.formGroup
+      .get('VehicleManagementID')!
+      .valueChanges.pipe(
+        distinctUntilChanged(),
+        filter((id: any) => !!id)
+      )
       .subscribe((id: number) => {
-        const v = this.vehicleList.find(x => x.ID === id);
+        const v = this.vehicleList.find((x) => x.ID === id);
         if (!v) return;
 
-        this.formGroup.patchValue({
-          VehicleName: v.VehicleName || '',
-          LicensePlate: v.LicensePlate || ''
-        }, { emitEvent: false });
+        this.formGroup.patchValue(
+          {
+            VehicleName: v.VehicleName || '',
+            LicensePlate: v.LicensePlate || '',
+          },
+          { emitEvent: false }
+        );
 
         if (v.EmployeeID) {
-          this.formGroup.patchValue({ EmployeeID: v.EmployeeID }, { emitEvent: true });
+          this.formGroup.patchValue(
+            { EmployeeID: v.EmployeeID },
+            { emitEvent: true }
+          );
         }
       });
-    this.formGroup.get('EmployeeID')!.valueChanges
-      .pipe(distinctUntilChanged(), filter((id: any) => !!id))
+    this.formGroup
+      .get('EmployeeID')!
+      .valueChanges.pipe(
+        distinctUntilChanged(),
+        filter((id: any) => !!id)
+      )
       .subscribe((id: number) => {
-        const emp = this.employeeList.find(x => x.ID === id);
+        const emp = this.employeeList.find((x) => x.ID === id);
         if (!emp) return;
 
-        this.formGroup.patchValue({
-          EmployeeCode: emp.Code || '',
-          EmployeeRepairName: emp.FullName || '',
-          SDT: emp.SDTCaNhan || ''
-        }, { emitEvent: false });
+        this.formGroup.patchValue(
+          {
+            EmployeeCode: emp.Code || '',
+            EmployeeRepairName: emp.FullName || '',
+            SDT: emp.SDTCaNhan || '',
+          },
+          { emitEvent: false }
+        );
       });
-    this.formGroup.get('CostRepairEstimate')!.valueChanges.subscribe(val => {
+    this.formGroup.get('CostRepairEstimate')!.valueChanges.subscribe((val) => {
       if (val == null || val === '') return;
       const clean = val.toString().replace(/\D/g, '');
       const formatted = Number(clean).toLocaleString('vi-VN');
-      this.formGroup.patchValue({
-        CostRepairEstimate: formatted + 'đ'
-      }, { emitEvent: false });
+      this.formGroup.patchValue(
+        {
+          CostRepairEstimate: formatted + 'đ',
+        },
+        { emitEvent: false }
+      );
     });
 
-    this.formGroup.get('CostRepairActual')!.valueChanges.subscribe(val => {
+    this.formGroup.get('CostRepairActual')!.valueChanges.subscribe((val) => {
       if (val == null || val === '') return;
       const clean = val.toString().replace(/\D/g, '');
       const formatted = Number(clean).toLocaleString('vi-VN');
-      this.formGroup.patchValue({
-        CostRepairActual: formatted + 'đ'
-      }, { emitEvent: false });
+      this.formGroup.patchValue(
+        {
+          CostRepairActual: formatted + 'đ',
+        },
+        { emitEvent: false }
+      );
     });
     queueMicrotask(() => {
       const vId = this.formGroup.value?.VehicleManagementID;
@@ -214,7 +263,7 @@ export class VehicleRepairComponentFormComponent implements OnInit {
   }
   getEmployee() {
     const request = { status: 0, departmentid: 0, keyword: '' };
-    this.vehicleRepairService.getEmployee(request).subscribe(res => {
+    this.vehicleRepairService.getEmployee(request).subscribe((res) => {
       this.employeeList = res.data || [];
       const eId = this.formGroup.value?.EmployeeID;
       if (eId) {
@@ -226,18 +275,20 @@ export class VehicleRepairComponentFormComponent implements OnInit {
     });
   }
   private trimAllStringControls() {
-    Object.keys(this.formGroup.controls).forEach(k => {
+    Object.keys(this.formGroup.controls).forEach((k) => {
       const c = this.formGroup.get(k);
       const v = c?.value;
       if (typeof v === 'string') c!.setValue(v.trim(), { emitEvent: false });
     });
   }
   getVehicle() {
-    this.vehicleManagementService.getVehicleManagement().subscribe(res => {
+    this.vehicleManagementService.getVehicleManagement().subscribe((res) => {
       this.vehicleList = res.data || [];
       const vId = this.formGroup.value?.VehicleManagementID;
       if (vId) {
-        this.formGroup.get('VehicleManagementID')!.setValue(vId, { emitEvent: true });
+        this.formGroup
+          .get('VehicleManagementID')!
+          .setValue(vId, { emitEvent: true });
         this.syncVehicleFields(vId);
       }
     });
@@ -249,7 +300,7 @@ export class VehicleRepairComponentFormComponent implements OnInit {
       console.log('repairTypes', this.TypeList);
     });
   }
-  ngAfterviewInit(): void { }
+  ngAfterviewInit(): void {}
   close() {
     this.closeModal.emit();
     this.activeModal.dismiss('cancel');
@@ -266,7 +317,6 @@ export class VehicleRepairComponentFormComponent implements OnInit {
       (file as any).url = url;
       (file as any).objectURL = url;
       this.selectedFile = raw;
-
     }
     this.fileList = [file];
     this.formGroup.patchValue({ FileName: file.name });
@@ -278,7 +328,7 @@ export class VehicleRepairComponentFormComponent implements OnInit {
     const url = (f as any).objectURL;
     if (url) URL.revokeObjectURL(url);
     this.fileList = [];
-    this.selectedFile = null;            // reset để tránh dùng nhầm
+    this.selectedFile = null; // reset để tránh dùng nhầm
     this.formGroup.patchValue({ FileName: '' });
     return true;
   };
@@ -287,7 +337,6 @@ export class VehicleRepairComponentFormComponent implements OnInit {
     const url = (file as any).objectURL || file.url || file.thumbUrl;
     if (url) window.open(url, '_blank');
   }
-
 
   openPreview() {
     if (!this.previewFileUrl) return;
@@ -298,10 +347,14 @@ export class VehicleRepairComponentFormComponent implements OnInit {
     this.trimAllStringControls();
 
     if (this.formGroup.invalid) {
-      Object.values(this.formGroup.controls).forEach(c => {
-        c.markAsTouched(); c.updateValueAndValidity({ onlySelf: true });
+      Object.values(this.formGroup.controls).forEach((c) => {
+        c.markAsTouched();
+        c.updateValueAndValidity({ onlySelf: true });
       });
-      this.notification.warning('Cảnh báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
+      this.notification.warning(
+        'Cảnh báo',
+        'Vui lòng điền đầy đủ thông tin bắt buộc'
+      );
       return;
     }
 
@@ -323,51 +376,69 @@ export class VehicleRepairComponentFormComponent implements OnInit {
         TimeStartRepair: formValue.TimeStartRepair,
         TimeEndRepair: formValue.TimeEndRepair || null,
         Reason: formValue.Reason,
-        CostRepairEstimate: Number(formValue.CostRepairEstimate.toString().replace(/\D/g, '')),
-        CostRepairActual: Number(formValue.CostRepairActual.toString().replace(/\D/g, '')),
+        CostRepairEstimate: Number(
+          formValue.CostRepairEstimate.toString().replace(/\D/g, '')
+        ),
+        CostRepairActual: Number(
+          formValue.CostRepairActual.toString().replace(/\D/g, '')
+        ),
         EmployeeID: formValue.EmployeeID,
         Note: formValue.Note,
         IsDeleted: formValue.IsDeleted || false,
         RepairGarageName: formValue.RepairGarageName,
         ContactPhone: formValue.ContactPhone,
         FileName: fileName,
-        FilePath: filePath
-      }
+        FilePath: filePath,
+      },
     };
 
-    this.tbProductRtcService
-      .uploadImage(this.selectedFile, this.fathSever) 
-      .subscribe({
-        next: (response: any) => {
-
-          if (response?.status && response.status !== 1) {
-            this.notification.error('Lỗi upload', response?.message || 'Upload thất bại');
-            return;
-          }
-
-          this.vehicleRepairService.saveData(payload).subscribe({
-            next: (response: any) => {
-              if (response?.status == 1) {
-                this.notification.success('Thành công', 'Lưu thông tin sửa chữa xe thành công');
-                this.formSubmitted.emit();
-                this.activeModal.close('save');
-              } else {
-                this.notification.error('Lỗi', response?.message || 'Lưu thất bại');
-              }
-            },
-            error: (err) => {
-              const msg = err?.error?.message || err?.message || err?.statusText || 'Lỗi khi lưu thông tin';
-              this.notification.error('Lỗi', msg);
-              console.error('Lỗi khi lưu:', err);
-            }
-          });
-        },
-        error: (err) => {
-          const msg = err?.error?.message || err?.message || err?.statusText || 'Không upload được file';
-          this.notification.error('Lỗi upload', msg);
-          console.error('Lỗi upload:', err);
+    this.tbProductRtcService.uploadImage(this.selectedFile).subscribe({
+      next: (response: any) => {
+        if (response?.status && response.status !== 1) {
+          this.notification.error(
+            'Lỗi upload',
+            response?.message || 'Upload thất bại'
+          );
+          return;
         }
-      });
+
+        this.vehicleRepairService.saveData(payload).subscribe({
+          next: (response: any) => {
+            if (response?.status == 1) {
+              this.notification.success(
+                'Thành công',
+                'Lưu thông tin sửa chữa xe thành công'
+              );
+              this.formSubmitted.emit();
+              this.activeModal.close('save');
+            } else {
+              this.notification.error(
+                'Lỗi',
+                response?.message || 'Lưu thất bại'
+              );
+            }
+          },
+          error: (err) => {
+            const msg =
+              err?.error?.message ||
+              err?.message ||
+              err?.statusText ||
+              'Lỗi khi lưu thông tin';
+            this.notification.error('Lỗi', msg);
+            console.error('Lỗi khi lưu:', err);
+          },
+        });
+      },
+      error: (err) => {
+        const msg =
+          err?.error?.message ||
+          err?.message ||
+          err?.statusText ||
+          'Không upload được file';
+        this.notification.error('Lỗi upload', msg);
+        console.error('Lỗi upload:', err);
+      },
+    });
   }
   addType() {
     const modalRef = this.ngbModal.open(VehicleRepairTypeFormComponent, {
@@ -386,5 +457,4 @@ export class VehicleRepairComponentFormComponent implements OnInit {
       }
     );
   }
-
-} 
+}

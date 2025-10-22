@@ -131,9 +131,9 @@
         <form class="row g-3 needs-validation was-validated fs-7" novalidate>
           <div class="row pt-2">
             <div class="col-md-6 pb-3 ">
-              <nz-form-label class="fs-12">Mã cấp phát </nz-form-label>
+              <nz-form-label class="fs-12">Mã thu hồi </nz-form-label>
               <nz-form-control>
-                <input nz-input name="TSTHCode" [(ngModel)]="TSTHcode" readonly />
+                <input nz-input name="TSTHCode" [(ngModel)]="TSTHcode" disabled />
               </nz-form-control>
             </div>
             <div class="col-md-6 pb-3">
@@ -169,14 +169,14 @@
             <div class="col md-4 pb-3">
               <nz-form-label class="fs-7">Phòng ban</nz-form-label>
               <nz-form-control>
-                <input nz-input required name="DepartmentName" [value]="selectedDepartmentReturnName" readonly />
+                <input nz-input required name="DepartmentName" [value]="selectedDepartmentReturnName" disabled />
               </nz-form-control>
             </div>
             <!-- Chức vụ -->
             <div class="col md-4 pb-3">
               <nz-form-label class="fs-7">Chức vụ</nz-form-label>
               <nz-form-control>
-                <input nz-input required name="Position" [value]="selectedPositionReturnName" readonly />
+                <input nz-input required name="Position" [value]="selectedPositionReturnName" disabled />
               </nz-form-control>
             </div>
           </div>
@@ -198,14 +198,14 @@
             <div class="col md-4 pb-3">
               <nz-form-label class="fs-7">Phòng ban</nz-form-label>
               <nz-form-control>
-                <input nz-input required name="DepartmentName" [value]="selectedDepartmentRecoveryName" readonly />
+                <input nz-input required name="DepartmentName" [value]="selectedDepartmentRecoveryName" disabled />
               </nz-form-control>
             </div>
             <!-- Chức vụ -->
             <div class="col md-4 pb-3">
               <nz-form-label class="fs-7">Chức vụ</nz-form-label>
               <nz-form-control>
-                <input nz-input required name="Position" [value]="selectedPositionRecoveryName" readonly />
+                <input nz-input required name="Position" [value]="selectedPositionRecoveryName" disabled />
               </nz-form-control>
             </div>
           </div>
@@ -224,8 +224,8 @@
         </form>
       </div>
       <div class="modal-footer">
-        <button nz-button nzType="default" data-bs-dismiss="modal">Đóng</button>
-        <button nz-button nzType="primary" (click)="saveRecoveryPersonal()">Cấp phát</button>
+        <button nz-button nzType="default" nzDanger data-bs-dismiss="modal">Đóng</button>
+        <button nz-button nzType="primary" (click)="saveRecoveryPersonal()">Lưu dữ liệu</button>
       </div>
     </div>
   </div>

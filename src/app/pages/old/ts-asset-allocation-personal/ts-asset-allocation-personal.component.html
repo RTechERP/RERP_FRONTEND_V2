@@ -71,18 +71,21 @@
             <button nz-button nzType="default" nzSize="small" class="btn-delete " (click)="updateApprove('Delete')">
               <img src="assets/icon/action_delete_item_16.png" alt="Xóa nhóm TB" />Xóa
             </button>
-     
+    <span class="mx-2"
+                            style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
             <button nz-button nzType="default" nzSize="small" (click)="updateApprove('PERSONAL_APPROVE')">
               <img src="assets/icon/action_approved_16.png" />Cá nhân duyệt
             </button>
-              <button nz-button nzType="default" nzSize="small" (click)="updateApprove('PERSONAL_CANCEL')">
-                 <img src="assets/icon/action_unapproved_16.png" />Cá nhân hủy  duyệt
+            <button nz-button nzType="default" nzSize="small" (click)="updateApprove('PERSONAL_CANCEL')">
+              <img src="assets/icon/action_unapproved_16.png" />Cá nhân hủy duyệt
             </button>
-              <button nz-button nzType="default" nzSize="small"  (click)="updateApprove('HR_APPROVE')">
+                <span class="mx-2"
+                            style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
+            <button nz-button nzType="default" nzSize="small" (click)="updateApprove('HR_APPROVE')">
               <img src="assets/icon/action_approved_16.png" />HR duyệt
             </button>
-              <button nz-button nzType="default" nzSize="small"  (click)="updateApprove('HR_CANCEL')">
-              <img src="assets/icon/action_approved_16.png" />HR hủy duyệt
+            <button nz-button nzType="default" nzSize="small" (click)="updateApprove('HR_CANCEL')">
+              <img src="assets/icon/action_unapproved_16.png" />HR hủy duyệt
             </button>
           </div>
         </div>
@@ -132,24 +135,27 @@
           </div>
           <div class="row">
             <!-- Select nhân viên -->
-            <div class="col md-4 pb-3">
-              <nz-form-label class="fs-12">
-                Cấp phát cho <span class="text-danger">(*)</span>
-              </nz-form-label>
-              <nz-select class="w-100 fs-12" nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên..."
-                [(ngModel)]="employeeID" name="employeeID" (ngModelChange)="onEmployeeChange($event)">
-                <nz-option *ngFor="let emp of emPloyeeLists" [nzLabel]="emp.Code + ' - ' + emp.FullName"
-                  [nzValue]="emp.ID">
-                </nz-option>
-              </nz-select>
-            </div>
+              <div class="col md-4 pb-3">
+                <nz-form-label class="fs-12">
+                  Cấp phát cho <span class="text-danger">(*)</span>
+                </nz-form-label>
+          <nz-select class="w-100 fs-12" nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên..."
+  [(ngModel)]="employeeID" name="employeeID" (ngModelChange)="onEmployeeChange($event)">
+  <nz-option-group *ngFor="let g of employeeGroups" [nzLabel]="g.department">
+    <nz-option *ngFor="let emp of g.items"
+      [nzLabel]="emp.Code + ' - ' + emp.FullName"
+      [nzValue]="emp.ID">
+    </nz-option>
+  </nz-option-group>
+</nz-select>
+              </div>
 
             <!-- Phòng ban -->
             <div class="col md-4 pb-3">
               <nz-form-label class="fs-7">Phòng ban</nz-form-label>
               <nz-form-control>
                 <input nz-input required name="DepartmentName" [value]="selectedEmployee?.DepartmentName || ''"
-                  readonly />
+                  disabled />
               </nz-form-control>
             </div>
 
@@ -157,7 +163,7 @@
             <div class="col md-4 pb-3">
               <nz-form-label class="fs-7">Chức vụ</nz-form-label>
               <nz-form-control>
-                <input nz-input required name="Position" [value]="selectedEmployee?.ChucVuHD || ''" readonly />
+                <input nz-input required name="Position" [value]="selectedEmployee?.ChucVuHD || ''" disabled />
               </nz-form-control>
             </div>
           </div>
@@ -168,12 +174,7 @@
                 Ghi chú <span class="text-danger">(*)</span>
               </nz-form-label>
               <nz-form-control>
-              <textarea
-  nz-input
-  rows="4"
-  placeholder="Nhập ghi chú"
-  name="formNote"
-  [(ngModel)]="formNote">
+                <textarea nz-input rows="4" placeholder="Nhập ghi chú" name="formNote" [(ngModel)]="formNote">
 </textarea>
               </nz-form-control>
             </div>
@@ -185,7 +186,7 @@
         </form>
       </div>
       <div class="modal-footer">
- <button nz-button nzType="default" nzDanger (click)="closeModal()">Đóng</button>
+        <button nz-button nzType="default" nzDanger (click)="closeModal()">Đóng</button>
         <button nz-button nzType="primary" (click)="saveAllocationPersonal()">Cấp phát</button>
       </div>
     </div>

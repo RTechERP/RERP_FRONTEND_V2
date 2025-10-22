@@ -621,6 +621,14 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
             return false;
           }
           break;
+             case 'Delete':
+          console.log('row: ', row);
+          if (row.IsApproveHR === true) {
+            this.notification.warning("Thông báo", "Tài sản đã được HR duyệt, không thể xóa.");
+            return false;
+          }
+          break;
+          
       }
     }
     return true;
@@ -629,6 +637,9 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
     this.recoveryDate = newDate.toISOString().slice(0, 10);
     this.generateTSAssetCode();
   }
+  private getSelectedRow(): any | null {
+  return this.tbAssetRecoveryPersonal?.getSelectedData()?.[0] || null;
+}
   updateApprove(action: 'HR_APPROVE' | 'HR_CANCEL' | 'Delete' | 'PERSONAL_APPROVE' | 'PERSONAL_CANCEL') {
     if (!this.validateApproveAllocation(action)) return;
     const today = new Date();
@@ -637,26 +648,28 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
       this.notification.warning("Thông báo", "Chỉ được chọn một bản ghi để cập nhật.");
       return;
     }
+      const row = this.getSelectedRow();
+       const employeeId = Number(row.EmployeeReturnID || 0);
     const id = ids[0];
-    let updatePayload: { tSRecoveryAssetPersonal: { id: number, isDeleted?: boolean, isApproveHR?: boolean, isApprovedPersonalProperty?: boolean, DateApprovedPersonalProperty?: string, DateApprovedHR?: string } };
+    let updatePayload: { tSRecoveryAssetPersonal: { id: number, isDeleted?: boolean, isApproveHR?: boolean, isApprovedPersonalProperty?: boolean, DateApprovedPersonalProperty?: string, DateApprovedHR?: string , EmployeeReturnID:number} };
     switch (action) {
       case 'HR_APPROVE':
-        updatePayload = { tSRecoveryAssetPersonal: { id, isApproveHR: true, DateApprovedHR: today.toISOString().split('T')[0] } };
+        updatePayload = { tSRecoveryAssetPersonal: { id, isApproveHR: true, DateApprovedHR: today.toISOString().split('T')[0] , EmployeeReturnID:employeeId} };
         break;
       case 'HR_CANCEL':
-        updatePayload = { tSRecoveryAssetPersonal: { id, isApproveHR: false, DateApprovedHR: today.toISOString().split('T')[0] } };
+        updatePayload = { tSRecoveryAssetPersonal: { id, isApproveHR: false, DateApprovedHR: today.toISOString().split('T')[0],EmployeeReturnID:employeeId } };
         break;
       case 'PERSONAL_APPROVE':
-        updatePayload = { tSRecoveryAssetPersonal: { id, isApprovedPersonalProperty: true, DateApprovedPersonalProperty: today.toISOString().split('T')[0], } };
+        updatePayload = { tSRecoveryAssetPersonal: { id, isApprovedPersonalProperty: true, DateApprovedPersonalProperty: today.toISOString().split('T')[0], EmployeeReturnID:employeeId} };
         break;
       case 'PERSONAL_CANCEL':
-        updatePayload = { tSRecoveryAssetPersonal: { id, isApprovedPersonalProperty: false, DateApprovedPersonalProperty: today.toISOString().split('T')[0], } };
+        updatePayload = { tSRecoveryAssetPersonal: { id, isApprovedPersonalProperty: false, DateApprovedPersonalProperty: today.toISOString().split('T')[0],EmployeeReturnID:employeeId } };
         break;
       case 'Delete':
-        updatePayload = { tSRecoveryAssetPersonal: { id, isDeleted: true } };
+        updatePayload = { tSRecoveryAssetPersonal: { id, isDeleted: true ,EmployeeReturnID:employeeId} };
         break;
     }
-    this.tsAssetAllocationPersonalService.saveAssetAllocationPerson(updatePayload).subscribe({
+    this.tsAssetAllocationPersonalService.SaveApprove(updatePayload).subscribe({
       next: (res) => {
         if (res.status === 1) {
           this.notification.success("Thông báo", "Thành công");
@@ -665,9 +678,9 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
           this.notification.warning("Thông báo", "Thất bại");
         }
       },
-      error: (err) => {
-        console.error(err);
-        this.notification.warning("Thông báo", "Lỗi kết nối");
+      error: (res) => {
+        console.error(res);
+        this.notification.warning("Thông báo",res.error.message);
       }
     });
   }

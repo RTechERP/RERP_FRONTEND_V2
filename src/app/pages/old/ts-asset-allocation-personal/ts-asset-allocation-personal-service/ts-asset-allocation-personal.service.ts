@@ -41,6 +41,9 @@ export class TsAssetAllocationPersonalService {
   saveAssetAllocationPerson(request: any) {
     return this.httpclient.post<any>(`${this.url + `save-data`}`, request);
   }
+    SaveApprove(request: any) {
+    return this.httpclient.post<any>(`${this.url + `save-approve`}`, request);
+  }
   getTSCNCode(
     allocationDate: string
   ): Observable<{ status: number; data: string }> {

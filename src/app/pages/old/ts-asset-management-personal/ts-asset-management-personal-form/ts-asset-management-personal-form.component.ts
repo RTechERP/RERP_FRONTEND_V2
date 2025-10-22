@@ -139,6 +139,11 @@ export class TsAssetManagementPersonalFormComponent implements OnInit {
       }
     });
   }
+  blockE(event: KeyboardEvent) {
+  if (event.key === 'e' || event.key === 'E' || event.key === '+' || event.key === '-') {
+    event.preventDefault();
+  }
+}
   private trimAllStringControls() {
     Object.keys(this.formGroup.controls).forEach(k => {
       const c = this.formGroup.get(k);

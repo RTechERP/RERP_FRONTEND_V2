@@ -39,7 +39,12 @@
                                 </span>
                             </nz-form-label>
                             <nz-form-control [nzSpan]="24"[nzErrorTip]="'Nhập số lượng trong kho'">
-                                <input nz-input type="number" formControlName="Quantity" />
+                          <input
+  nz-input
+  type="number"
+  formControlName="Quantity"
+  (keydown)="blockE($event)"
+/>
                             </nz-form-control>
                         </nz-form-item>
                     </nz-col>
@@ -60,7 +65,7 @@
                                         nzPlaceHolder="Chọn đơn vị tính" class="fs-12 w-100" required nzShowSearch
                                         nzAllowClear>
                                         <nz-option *ngFor="let item of unitData" [nzValue]="item.ID"
-                                            [nzLabel]="item.UnitCode + ' - ' + item.UnitName">
+                                            [nzLabel]="item.ID + ' - ' + item.UnitName">
                                         </nz-option>
                                     </nz-select>
                                 </nz-input-group>

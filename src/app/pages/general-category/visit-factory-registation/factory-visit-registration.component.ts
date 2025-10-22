@@ -744,6 +744,13 @@ export class FactoryVisitRegistrationComponent
   }
 
   saveRegistration(): void {
+    const clientErrors = this.validateRegistrationForm();
+    if (clientErrors.length > 0) {
+      clientErrors.forEach((msg) =>
+        this.notification.error('Lỗi nhập liệu', msg)
+      );
+      return;
+    }
     if (this.isEditMode) {
       const detailsPayload = (this.registrationDetails || []).map((d) => ({
         id: d.id || 0,
@@ -799,19 +806,42 @@ export class FactoryVisitRegistrationComponent
   }
 
   private handleValidationError(error: any, action: string): void {
-    if (error.error && error.error.errors) {
-      Object.keys(error.error.errors).forEach((field) => {
-        const fieldErrors = error.error.errors[field];
-        fieldErrors.forEach((fieldError: string) => {
-          this.notification.error('Lỗi validation', `${field}: ${fieldError}`);
-        });
-      });
-    } else if (error.error && error.error.title) {
-      this.notification.error('Lỗi', error.error.title || 'Có lỗi xảy ra');
+    if (error.error && error.error.title) {
+      // Error với title từ backend
+      this.notification.error('Lỗi', error.error.title);
+    } else if (error.error && error.error.message) {
+      // Error với message từ backend
+      this.notification.error('Lỗi', error.error.message);
+    } else if (error.status) {
+      // HTTP status errors
+      let message = '';
+      if (error.status === 400) {
+        // Không hiển thị thông báo chung chung cho 400
+        return;
+      }
+      switch (error.status) {
+        case 401:
+          message = 'Không có quyền truy cập';
+          break;
+        case 403:
+          message = 'Bị từ chối truy cập';
+          break;
+        case 404:
+          message = 'Không tìm thấy dữ liệu';
+          break;
+        case 500:
+          message = 'Lỗi máy chủ';
+          break;
+        default:
+          message = `Lỗi HTTP ${error.status}`;
+      }
+      this.notification.error('Lỗi', message);
+    } else if (error.message) {
+      this.notification.error('Lỗi', error.message);
     } else {
       this.notification.error(
         'Lỗi',
-        'Có lỗi xảy ra khi ' + action.toLowerCase()
+        `Có lỗi xảy ra khi ${action.toLowerCase()}`
       );
     }
   }
@@ -1277,5 +1307,29 @@ export class FactoryVisitRegistrationComponent
         this.calendar.render();
       }
     }, 100);
+  }
+
+  //check validate
+  private validateRegistrationForm(): string[] {
+    const errors: string[] = [];
+    const f = this.registrationForm;
+
+    if (!f.registrationDate) errors.push('Vui lòng chọn ngày đăng ký');
+    if (!f.startTime) errors.push('Vui lòng chọn thời gian bắt đầu');
+    if (!f.endTime) errors.push('Vui lòng chọn thời gian kết thúc');
+    if (!f.purpose || !f.purpose.trim()) errors.push('Vui lòng nhập mục đích');
+    if (!f.guestCompany || !f.guestCompany.trim())
+      errors.push('Vui lòng nhập công ty/đơn vị khách');
+    if (!f.guestType || String(f.guestType).trim() === '')
+      errors.push('Vui lòng chọn loại khách');
+
+    this.registrationDetails.forEach((d, idx) => {
+      const rowNo = idx + 1;
+      if (!d.fullName || !d.fullName.trim()) {
+        errors.push(`Họ tên không được để trống (Thông tin người tham gia)`);
+      }
+    });
+
+    return errors;
   }
 }

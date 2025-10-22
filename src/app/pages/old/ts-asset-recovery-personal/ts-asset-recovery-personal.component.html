@@ -78,6 +78,8 @@
                         <button nz-button nzType="default" nzSize="small" class="btn-delete " (click)="updateApprove('Delete')">
                             <img src="assets/icon/action_delete_item_16.png" alt="Xóa nhóm TB" />Xóa 
                         </button>
+                        '    <span class="mx-2"
+                            style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
             <!-- <button class="fs-12" nz-button nzType="default" nzSize="small"
               (click)="updateApprove('PERSONAL_APPROVE')">
               <nz-icon nzType="check" nzTheme="outline"></nz-icon> Cá nhân duyệt
@@ -97,9 +99,13 @@
               <button nz-button nzType="default" nzSize="small" (click)="updateApprove('PERSONAL_CANCEL')">
                  <img src="assets/icon/action_unapproved_16.png" />Cá nhân hủy  duyệt
             </button>
+                <span class="mx-2"
+                            style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
               <button nz-button nzType="default" nzSize="small"  (click)="updateApprove('HR_APPROVE')">
               <img src="assets/icon/action_approved_16.png" />HR duyệt
             </button>
+                <span class="mx-2"
+                            style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
               <button nz-button nzType="default" nzSize="small"  (click)="updateApprove('HR_CANCEL')">
                 <img src="assets/icon/action_unapproved_16.png" />HR hủy duyệt
             </button>
@@ -188,9 +194,9 @@
 
               <nz-select class="w-100 fs-12" nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên..."
                 [(ngModel)]="employeeRecoveryID" name="employeeRecoveryID"
-                (ngModelChange)="onEmployeeRecoverySelect($event)">
+                (ngModelChange)="onEmployeeRecoverySelect($event)" disabled>
                 <nz-option *ngFor="let emp of emPloyeeLists" [nzLabel]="emp.Code + ' - ' + emp.FullName"
-                  [nzValue]="emp.ID">
+                  [nzValue]="emp.ID" >
                 </nz-option>
               </nz-select>
             </div>

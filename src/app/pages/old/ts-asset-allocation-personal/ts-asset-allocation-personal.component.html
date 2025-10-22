@@ -74,13 +74,16 @@
                             (click)="updateApprove('Delete')">
                             <img src="assets/icon/action_delete_item_16.png" alt="Xóa nhóm TB" />Xóa
                         </button>
-
+                        <span class="mx-2"
+                            style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
                         <button nz-button nzType="default" nzSize="small" (click)="updateApprove('PERSONAL_APPROVE')">
                             <img src="assets/icon/action_approved_16.png" />Cá nhân duyệt
                         </button>
                         <button nz-button nzType="default" nzSize="small" (click)="updateApprove('PERSONAL_CANCEL')">
                             <img src="assets/icon/action_unapproved_16.png" />Cá nhân hủy duyệt
                         </button>
+                        <span class="mx-2"
+                            style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
                         <button nz-button nzType="default" nzSize="small" (click)="updateApprove('HR_APPROVE')">
                             <img src="assets/icon/action_approved_16.png" />HR duyệt
                         </button>
@@ -141,9 +144,11 @@
                             </nz-form-label>
                             <nz-select class="w-100 fs-12" nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên..."
                                 [(ngModel)]="employeeID" name="employeeID" (ngModelChange)="onEmployeeChange($event)">
-                                <nz-option *ngFor="let emp of emPloyeeLists" [nzLabel]="emp.Code + ' - ' + emp.FullName"
-                                    [nzValue]="emp.ID">
-                                </nz-option>
+                                <nz-option-group *ngFor="let g of employeeGroups" [nzLabel]="g.department">
+                                    <nz-option *ngFor="let emp of g.items" [nzLabel]="emp.Code + ' - ' + emp.FullName"
+                                        [nzValue]="emp.ID">
+                                    </nz-option>
+                                </nz-option-group>
                             </nz-select>
                         </div>
 
@@ -152,7 +157,7 @@
                             <nz-form-label class="fs-7">Phòng ban</nz-form-label>
                             <nz-form-control>
                                 <input nz-input required name="DepartmentName"
-                                    [value]="selectedEmployee?.DepartmentName || ''" readonly />
+                                    [value]="selectedEmployee?.DepartmentName || ''" disabled />
                             </nz-form-control>
                         </div>
 
@@ -161,7 +166,7 @@
                             <nz-form-label class="fs-7">Chức vụ</nz-form-label>
                             <nz-form-control>
                                 <input nz-input required name="Position" [value]="selectedEmployee?.ChucVuHD || ''"
-                                    readonly />
+                                    disabled />
                             </nz-form-control>
                         </div>
                     </div>

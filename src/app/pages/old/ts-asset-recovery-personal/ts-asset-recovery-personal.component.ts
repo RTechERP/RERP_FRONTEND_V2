@@ -20,6 +20,7 @@ import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DateTime } from 'luxon';
 declare var bootstrap: any;
+import { AuthService } from '../../../auth/auth.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification'
 import { TsAssetAllocationPersonalService } from '../ts-asset-allocation-personal/ts-asset-allocation-personal-service/ts-asset-allocation-personal.service';
 import { CommonModule } from '@angular/common';
@@ -60,6 +61,7 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
     private tsAssetRecoveryPersonalService: TsAssetRecoveryPersonalService,
     private notification: NzNotificationService,
     private assetManagementPersonalService: TsAssetManagementPersonalService,
+    private authService:AuthService
   ) { }
   isSearchVisible: boolean = false;
   dateStart: string = '';
@@ -101,11 +103,16 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
   TypeID: number = 0;
   FilterText: string = '';
   VehicleID: number = 0;
+  editMode:boolean=false;
+currentUser: any | null = null; 
   ngOnInit() {
     this.generateTSAssetCode();
+       this.getCurrentUsser();
+   
   }
   ngAfterViewInit(): void {
     //  this.getAssetRecoveryPersonals();
+ 
     this.drawTbRecoveryPersonal();
     this.drawRecoveryDetail();
     this.getListEmployee();
@@ -125,10 +132,19 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
       this.selectedEmployee = null;
     });
   }
-
+getCurrentUsser() {
+  this.authService.getCurrentUser().subscribe((res: any) => {
+    const u = res?.data;
+    this.currentUser = u || null;
+    this.employeeRecoveryID   = u?.EmployeeID ?? null; 
+  
+   
+    if (u?.ID) this.onEmployeeRecoverySelect(u.ID);
+  });
+}
   getAssetManagementPersonal() {
     this.tsAssetAllocationPersonalService.getAssetManagementPersonal().subscribe((respon: any) => {
-      this.assetPersonals = respon.tSAssetManagmentPersonal;
+      this.assetPersonals = respon.data;
       if (this.tbAssetPersonModal) {
         this.tbAssetPersonModal.setData(this.assetPersonals);
       }
@@ -158,13 +174,13 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
     this.tbAssetRecoveryPersonal = new Tabulator('#dataTbRecovery',
       {
         ...DEFAULT_TABLE_CONFIG,
-        
+layout:"fitDataStretch",
         ajaxURL: this.tsAssetRecoveryPersonalService.getAssetRecoveryAjax(),
         ajaxConfig: 'POST',
         ajaxRequestFunc: (url, config, params) => {
           const request = {
-            DateStart: this.toIsoStart(this.DateStart),   // "2023-12-31T17:00:00.000Z"
-            DateEnd: this.toIsoEnd(this.DateEnd),       // "2026-01-01T16:59:59.999Z"
+            DateStart: this.toIsoStart(this.DateStart),
+            DateEnd: this.toIsoEnd(this.DateEnd),
             EmployeeReturnID: this.EmployeeReturnID ?? 0,
             EmployeeRecoveryID: this.EmployeeRecoveryID ?? 0,
             Status: 0,
@@ -187,26 +203,26 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
           { title: 'EmployeeReturnID', field: 'EmployeeReturnID', hozAlign: 'center', headerHozAlign: 'center', visible: false },
           { title: 'EmployeeRecoveryID', field: 'EmployeeRecoveryID', hozAlign: 'center', headerHozAlign: 'center', visible: false },
           { title: 'STT', field: 'STT', hozAlign: 'center', headerHozAlign: 'center' },
-          { title: 'Code', field: 'Code', hozAlign: 'center', headerHozAlign: 'center', width: 200 },
+          { title: 'Mã biên bản', field: 'Code', hozAlign: 'center', headerHozAlign: 'center', width: 200 },
           {
             title: 'Cá Nhân Duyệt',
             field: 'IsApprovedPersonalProperty',
-            formatter: (cell: any) => {
-              const value = cell.getValue();
-              const checked = value === true || value === 'true' || value === 1 || value === '1';
-              return `<input type="checkbox" ${checked ? 'checked' : ''} disabled />`;
-            },
+           formatter: function (cell: any) {
+  const value = cell.getValue();
+  const checked = value === true || value === 'true' || value === 1 || value === '1';
+  return `<input type="checkbox" ${checked ? 'checked' : ''} onclick="return false;" />`;
+},
             hozAlign: 'center',
             headerHozAlign: 'center'
           },
           {
             title: 'HR Duyệt',
             field: 'IsApproveHR',
-            formatter: (cell: any) => {
-              const value = cell.getValue();
-              const checked = value === true || value === 'true' || value === 1 || value === '1';
-              return `<input type="checkbox" ${checked ? 'checked' : ''} disabled />`;
-            },
+          formatter: function (cell: any) {
+  const value = cell.getValue();
+  const checked = value === true || value === 'true' || value === 1 || value === '1';
+  return `<input type="checkbox" ${checked ? 'checked' : ''} onclick="return false;" />`;
+},
             hozAlign: 'center',
             headerHozAlign: 'center'
           },
@@ -215,24 +231,40 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
             field: 'DateApprovedPersonalProperty',
 
             hozAlign: 'center',
-            headerHozAlign: 'center'
+            headerHozAlign: 'center',
+              formatter: cell => {
+              const v = cell.getValue();
+              if (!v) return '';
+              const d = new Date(v);
+              return d.toLocaleDateString('vi-VN');
+            }
           },
           {
             title: 'Ngày duyệt HR',
             field: 'DateApprovedHR',
-
             hozAlign: 'center',
-            headerHozAlign: 'center'
+            headerHozAlign: 'center',
+            formatter: cell => {
+              const v = cell.getValue();
+              if (!v) return '';
+              const d = new Date(v);
+              return d.toLocaleDateString('vi-VN');
+            }
           },
           {
             title: 'Ngày thu hồi',
             field: 'DateRecovery',
-
             hozAlign: 'center',
-            headerHozAlign: 'center'
+            headerHozAlign: 'center',
+            formatter: cell => {
+              const v = cell.getValue();
+              if (!v) return '';
+              const d = new Date(v);
+              return d.toLocaleDateString('vi-VN');
+            }
           },
-          { title: 'Thu hồi từ', field: 'EmployeeReturnName', hozAlign: 'left', headerHozAlign: 'center' },
-          { title: 'Người thu hồi', field: 'EmployeeRecoveryName', hozAlign: 'left', headerHozAlign: 'center' },
+          { title: 'Thu hồi từ', field: 'FullNameReturn', hozAlign: 'left', headerHozAlign: 'center' },
+          { title: 'Người thu hồi', field: 'FullNameRecovery', hozAlign: 'left', headerHozAlign: 'center' },
 
           { title: 'Ghi chú', field: 'Note', hozAlign: 'left', headerHozAlign: 'center' },
         ]
@@ -241,15 +273,18 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
       const rowData = row.getData();
       const id = rowData['ID'];
       this.tsAssetRecoveryPersonalService.getAssetRecoveryDetail(id).subscribe(res => {
-        const details = Array.isArray(res.data.assetsRecoveryDetail)
-          ? res.data.assetsRecoveryDetail
-          : [];
+        const details = res.data;
         this.assetRocoveryDetail = details;
         this.drawRecoveryDetail(); if (this.tbAssetRecoveryDetail) {
           this.tbAssetRecoveryDetail.setData(this.assetRocoveryDetail);
         }
       });
     });
+    this.tbAssetRecoveryPersonal.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
+  this.tbAssetRecoveryPersonal?.deselectRow();
+  row.select();            
+  this.openEditModal();      
+});
     this.tbAssetRecoveryPersonal.on('rowClick', (e: UIEvent, row: RowComponent) => {
       this.selectedRow = row.getData();
       this.sizeTbDetail = null;
@@ -272,78 +307,74 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
     return isValid;
   }
   saveRecoveryPersonal() {
-    if (!this.validateRecoveryForm()) {
-      return;
-    }
-    const today = new Date();
-    const recoveryCode = this.TSTHcode;
-    const selectedAssets = this.tbAssetRecoveryPersonal?.getSelectedData() || [];
-    const selectAssetModal = this.tbAssetPersonModal?.getData();
-    if (!selectAssetModal || selectAssetModal.length === 0) {
-      this.notification.warning("Thông báo", "Không có tài sản nào trong danh sách để lưu");
-      return;
-    }
-    const recoveryID = this.editingID || 0;
-    const recoveryDetails = selectAssetModal.map((asset, index) => {
-      return {
-        ID: 0,
-        STT: index + 1,
-        TSAssetManagementPersonal: asset.TSAssetManagementPersonalID,
-        TSRecoveryAssetPersonalID: recoveryID,
-        Note: asset.Note || '',
-        TSAssetManagementPersonalID: asset.ID,
-        CreatedDate: today.toISOString().split('T')[0],
-        CreatedBy: 'AdminSW',
-        UpdateDate: today.toISOString().split('T')[0],
-        UpdateBy: 'AdminSW',
-        IsDeleted: false,
-        IsAllocation: asset.IsAllocation
-      };
-    });
-    // Tạo đối tượng payload
-    const payload = {
-      tSRecoveryAssetPersonal: {
-        ID: recoveryID,
-        STT: this.maxSTT + 1,
-        Code: recoveryCode,
-        DateRecovery: this.recoveryDate,
-        EmployeeReturnID: this.employeeReturnID,
-        EmployeeRecoveryID: this.employeeRecoveryID,
-        IsApproveHR: false,
-        IsApprovedPersonalProperty: false,
-        CreatedDate: today.toISOString().split('T')[0],
-        CreatedBy: 'AdminSW',
-        UpdateDate: today.toISOString().split('T')[0],
-        UpdateBy: 'AdminSW',
-        IsDeleted: false
-      },
-      tSRecoveryAssetPersonalDetails: recoveryDetails
-    };
-    // Gửi dữ liệu lên API
-    this.tsAssetAllocationPersonalService.saveAssetAllocationPerson(payload).subscribe({
-      next: (res) => {
-        if (res.status === 1) {
-          this.notification.success("Thông báo", "Lưu thành công");
-          this.closeModal();
-          this.getAssetRecoveryPersonals();
-        } else {
-          this.notification.warning("Thông báo", "Lưu thất bại");
-        }
-      },
-      error: (err) => {
-        console.error(err);
-        this.notification.warning("Thông báo", "Lỗi kết nối máy chủ");
-      }
-    });
+  if (!this.validateRecoveryForm()) return;
+
+  const isEdit = !!this.editMode && (this.editingID ?? 0) > 0;
+  const today = new Date();
+  const selectAssetModal = this.tbAssetPersonModal?.getData() || [];
+  if (selectAssetModal.length === 0) {
+    this.notification.warning("Thông báo", "Không có tài sản nào trong danh sách để lưu");
+    return;
   }
-   searchData(): void {
+
+  const recoveryID = this.editingID || 0;
+  const recoveryDetails = selectAssetModal.map((row: any, index: number) => {
+
+    const detailId = isEdit ? (row.ID ?? 0) : 0;
+
+    const tsAssetId = row.TSAssetManagementPersonalID ?? row.ID;
+
+    return {
+      ID: detailId,                               
+      STT: index + 1,
+          TSAssetManagementPersonal: row.TSAssetManagementPersonalID,
+      TSRecoveryAssetPersonalID: recoveryID,
+      Note: row.Note || '',
+      CreatedDate: today.toISOString().split('T')[0],
+      CreatedBy: 'AdminSW',
+      UpdateDate: today.toISOString().split('T')[0],
+      UpdateBy: 'AdminSW',
+      IsDeleted: false,
+      IsAllocation: (row.IsAllocation === true || row.IsAllocation === 'true' || row.IsAllocation === 1)
+    };
+  });
+
+  const payload = {
+    tSRecoveryAssetPersonal: {
+      ID: recoveryID,
+      STT: this.maxSTT + 1,
+      Code: this.TSTHcode,
+      DateRecovery: this.recoveryDate,
+      EmployeeReturnID: this.employeeReturnID,
+      EmployeeRecoveryID: this.employeeRecoveryID,
+      IsApproveHR: false,
+      IsApprovedPersonalProperty: false,
+      CreatedDate: today.toISOString().split('T')[0],
+      CreatedBy: 'AdminSW',
+      UpdateDate: today.toISOString().split('T')[0],
+      UpdateBy: 'AdminSW',
+      IsDeleted: false
+    },
+    tSRecoveryAssetPersonalDetails: recoveryDetails
+  };
+console.log(payload);
+  this.tsAssetAllocationPersonalService.saveAssetAllocationPerson(payload).subscribe({
+    next: (res) => {
+      if (res.status === 1) { this.notification.success("Thông báo", "Lưu thành công"); this.closeModal(); this.getAssetRecoveryPersonals(); }
+      else this.notification.warning("Thông báo", "Lưu thất bại");
+    },
+    error: () => this.notification.warning("Thông báo", "Lỗi kết nối máy chủ")
+  });
+}
+
+  searchData(): void {
     this.tbAssetRecoveryPersonal?.setData();
   }
   resetFilters(): void {
     const now = DateTime.now();
     this.EmployeeRecoveryID = 0;
     this.EmployeeReturnID = 0;
-   
+
     this.FilterText = '';
     this.DateStart = now.startOf('month').toJSDate();
     this.DateEnd = now.endOf('month').toJSDate();
@@ -368,19 +399,19 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
       this.tbAssetPersonModal.setData([]);
     }
   }
-generateTSAssetCode(date?: string): void {
-  const d = date || this.recoveryDate || new Date().toISOString().split('T')[0];
-  this.recoveryDate = d;
+  generateTSAssetCode(date?: string): void {
+    const d = date || this.recoveryDate || new Date().toISOString().split('T')[0];
+    this.recoveryDate = d;
 
-  this.tsAssetRecoveryPersonalService.getTSTHCode(d).subscribe({
-    next: (res) => {
-      this.TSTHcode = res.data,
-    console.log("TSTHcode",this.TSTHcode);
+    this.tsAssetRecoveryPersonalService.getTSTHCode(d).subscribe({
+      next: (res) => {
+        this.TSTHcode = res.data,
+          console.log("TSTHcode", this.TSTHcode);
 
-    },
-    error: (e) => console.error('getTSCNCode error:', e)
-  });
-}
+      },
+      error: (e) => console.error('getTSCNCode error:', e)
+    });
+  }
   onEmployeeRecoverySelect(employeeID: number) {
     const employee = this.emPloyeeLists.find(e => e.ID === employeeID);
     if (!employee) {
@@ -402,6 +433,7 @@ generateTSAssetCode(date?: string): void {
 
   }
   openEditModal() {
+    this.editMode=true;
     const selectedRecovery = this.tbAssetRecoveryPersonal?.getSelectedData()?.[0];
     const detailRecovery = this.tbAssetRecoveryDetail?.getData() || [];
     if (!selectedRecovery) {
@@ -447,7 +479,9 @@ generateTSAssetCode(date?: string): void {
           movableColumns: true,
           reactiveData: true,
           columns: [
-            { title: 'ID', field: 'ID', hozAlign: 'center', width: 60 },
+                        { title: 'ID', field: 'ID', hozAlign: 'center', width: 60 },
+
+            { title: 'TSAssetManagementPersonalID', field: 'TSAssetManagementPersonalID', hozAlign: 'center', width: 60 },
             { title: 'TSRecoveryAssetPersonalID', field: 'TSRecoveryAssetPersonalID', hozAlign: 'center', width: 60, visible: false },
 
             {
@@ -484,7 +518,7 @@ generateTSAssetCode(date?: string): void {
               title: 'Ghi Chú',
               field: 'Note',
               hozAlign: 'center',
-              headerHozAlign: 'center'
+              headerHozAlign: 'center',
             }
           ]
         });
@@ -544,11 +578,12 @@ generateTSAssetCode(date?: string): void {
             }
           },
           { title: 'Tên tài sản', field: 'Name', hozAlign: 'left', formatter: cell => cell.getValue()?.toString() || '', headerHozAlign: 'center' },
-          { title: 'Số lượng ', field: 'StandardAmount', hozAlign: 'center', formatter: cell => cell.getValue()?.toString() || '', headerHozAlign: 'center' },
+          { title: 'Số lượng ', field: 'StandardAmount', hozAlign: 'right', formatter: cell => cell.getValue()?.toString() || '', headerHozAlign: 'center' },
           {
             title: 'Ghi chú',
             field: 'Note'
             , headerHozAlign: 'center'
+            ,editor:'input'
           }
         ]
 
@@ -626,7 +661,7 @@ generateTSAssetCode(date?: string): void {
       next: (res) => {
         if (res.status === 1) {
           this.notification.success("Thông báo", "Thành công");
-          setTimeout(() => this.getAssetRecoveryPersonals(), 100);
+        this.tbAssetRecoveryPersonal?.setData();
         } else {
           this.notification.warning("Thông báo", "Thất bại");
         }
@@ -661,13 +696,18 @@ generateTSAssetCode(date?: string): void {
   onFilterChange(): void {
     this.getAssetRecoveryPersonals();
   }
- openModalRecovery() {
-  this.editingID = 0;
-  this.TSTHcode = '';                        // reset code cũ
-  const today = new Date().toISOString().split('T')[0];
-  this.generateTSAssetCode(today);           // ép gọi API với ngày hôm nay
+  openModalRecovery() {
+    this.editingID = 0;
+    this.editMode = false;        
+    this.TSTHcode = '';       
+      if (this.currentUser?.ID) {
+    this.employeeRecoveryID = this.currentUser.EmployeeID;
+    this.onEmployeeRecoverySelect(this.currentUser.EmployeeID);
+  }                 // reset code cũ
+    const today = new Date().toISOString().split('T')[0];
+    this.generateTSAssetCode(today);           // ép gọi API với ngày hôm nay
 
-  const el = document.getElementById('addRecoveryModal');
-  if (el) bootstrap.Modal.getOrCreateInstance(el).show();
-}
+    const el = document.getElementById('addRecoveryModal');
+    if (el) bootstrap.Modal.getOrCreateInstance(el).show();
+  }
 }

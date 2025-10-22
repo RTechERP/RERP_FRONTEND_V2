@@ -92,7 +92,6 @@ export class TsAssetManagementPersonalTypeFormComponent {
       Name: ['', [Validators.required]],
       Code: ['', [Validators.required]],
       YearValue: [null, Validators.required],
- 
     });
   }
   private toDate(val: any): Date | null { 

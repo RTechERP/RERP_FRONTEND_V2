@@ -70,9 +70,9 @@ export class TsAssetManagementPersonalComponent implements OnInit, AfterViewInit
 
   }
   getAssetManagementPersonal() {
-    this.tsAssetmanagementPersonal.getAssetsManagementPersonal().subscribe((data: any) => {
-      this.assetManagemnetPersonalData = data.tSAssetManagmentPersonal;
-      this.tableAssetManagementPersonal?.setData(data.tSAssetManagmentPersonal);
+    this.tsAssetmanagementPersonal.getAssetsManagementPersonal().subscribe((response: any) => {
+      this.assetManagemnetPersonalData = response.data;
+      this.tableAssetManagementPersonal?.setData(response.data);
       console.log('Data:', this.assetManagemnetPersonalData)
     });
   }

@@ -86,6 +86,7 @@ export class TsAssetAllocationPersonalComponent implements OnInit, AfterViewInit
   //Chọn nhân viên
   selectedEmployee: any = null;
   editingID: number = 0;
+  employeeGroups: Array<{ department: string; items: any[] }> = [];
   constructor(
     private assetAllocationService: TsAssetAllocationPersonalService,
     private assetManagemnetService: TsAssetManagementPersonalService,
@@ -115,11 +116,11 @@ export class TsAssetAllocationPersonalComponent implements OnInit, AfterViewInit
       pageNumber: 1
     }
     this.assetAllocationService.getAssetAllocationPersonal(request).subscribe((respon: any) => {
-      this.assetAllocationPersonalData = respon.assetAllocationPersonal;
+      this.assetAllocationPersonalData = respon.data;
       console.log(this.assetAllocationPersonalData);
       this.maxSTT = respon.MaxSTT;
       console.log(this.maxSTT);
-      this.tbAssetAllocationPersonal?.setData(respon.assetAllocationPersonal);
+      this.tbAssetAllocationPersonal?.setData(respon.data);
     })
   }
   getListEmployee() {
@@ -130,12 +131,21 @@ export class TsAssetAllocationPersonalComponent implements OnInit, AfterViewInit
     };
     this.assetManagemnetService.getEmployee(request).subscribe((respon: any) => {
       this.emPloyeeLists = respon.data;
+        this.buildEmployeeGroups();
       console.log("đwdwdwd",this.emPloyeeLists);
       this.employeeID = null;
       this.selectedEmployee = null;
     });
   }
- 
+ private buildEmployeeGroups(): void {
+  const map = new Map<string, any[]>();
+  for (const e of this.emPloyeeLists || []) {
+    const k = e.DepartmentName || 'Khác';
+    if (!map.has(k)) map.set(k, []);
+    map.get(k)!.push(e);
+  }
+  this.employeeGroups = Array.from(map, ([department, items]) => ({ department, items }));
+}
   onDateChange(newDate: Date): void {
     this.allocationDate = newDate.toISOString().slice(0, 10);
     this.generateTSAssetCode();
@@ -145,7 +155,7 @@ export class TsAssetAllocationPersonalComponent implements OnInit, AfterViewInit
   }
   getAssetManagementPersonal() {
     this.assetAllocationService.getAssetManagementPersonal().subscribe((respon: any) => {
-      this.assetPersonals = respon.tSAssetManagmentPersonal;
+      this.assetPersonals = respon.data;
       if (this.tbAssetPersonModal) {
         this.tbAssetPersonModal.setData(this.assetPersonals);
       }
@@ -191,21 +201,21 @@ layout:"fitDataStretch",
           {
             title: 'Cá Nhân Duyệt',
             field: 'IsApprovedPersonalProperty',
-            formatter: function (cell: any) {
-              const value = cell.getValue();
-              const checked = value === true || value === 'true' || value === 1 || value === '1';
-              return `<input type="checkbox" ${checked ? 'checked' : ''} disabled/>`;
-            },
+           formatter: function (cell: any) {
+  const value = cell.getValue();
+  const checked = value === true || value === 'true' || value === 1 || value === '1';
+  return `<input type="checkbox" ${checked ? 'checked' : ''} onclick="return false;" />`;
+},
             hozAlign: 'center',
             headerHozAlign: 'center'
           },
           {
             title: 'HR Duyệt', field: 'IsApproveHR',
-            formatter: function (cell: any) {
-              const value = cell.getValue();
-              const checked = value === true || value === 'true' || value === 1 || value === '1';
-              return `<input type="checkbox" ${checked ? 'checked' : ''} disabled />`;
-            },
+          formatter: function (cell: any) {
+  const value = cell.getValue();
+  const checked = value === true || value === 'true' || value === 1 || value === '1';
+  return `<input type="checkbox" ${checked ? 'checked' : ''} onclick="return false;" />`;
+},
             hozAlign: 'center', headerHozAlign: 'center'
           },
           {
@@ -222,9 +232,8 @@ layout:"fitDataStretch",
       const id = rowData['ID'];
       console.log('ID', id);
       this.assetAllocationService.getAssetAllocationDetail(id, 0).subscribe(res => {
-        const details = Array.isArray(res.data.assetsAllocationPersonalDetail)
-          ? res.data.assetsAllocationPersonalDetail
-          : []; 
+        const details = res.data;
+        
         this.assetAllocationDetailData = details;
         console.log("djhqaokjhdfihqfihqa", details);  
 
@@ -235,7 +244,12 @@ layout:"fitDataStretch",
     this.tbAssetAllocationPersonal.on('rowClick', (e: UIEvent, row: RowComponent) => {
       this.selectedRow = row.getData();
       this.sizeTbDetail = null;
-    })
+    });
+      this.tbAssetAllocationPersonal.on('rowDblClick', (_e: UIEvent, row: RowComponent) => {
+    const data = row.getData();
+    row.select();
+    this.openEditModalAllocation(data);
+  });
   }
   drawAllocationDetail() {
     {
@@ -243,6 +257,7 @@ layout:"fitDataStretch",
         this.tbAssetAllocationDetail.setData(this.assetAllocationDetailData);
       } else {
         this.tbAssetAllocationDetail = new Tabulator('#dataTbAllocationDetail', {
+          
           data: this.assetAllocationDetailData,
        ...DEFAULT_TABLE_CONFIG,
        paginationMode:"local",
@@ -304,7 +319,9 @@ layout:"fitDataStretch",
             }
           ]
         });
+        
       }
+      
     }
   }
   toggleSearchPanel(): void {
@@ -398,8 +415,8 @@ layout:"fitDataStretch",
         cellClick(_e, cell){ const cur = cell.getValue(); cell.setValue(!(cur===true||cur==='true'||cur===1||cur==='1')); }
       },
       { title:'Tên tài sản', field:'Name', headerHozAlign:'center' },
-      { title:'Số lượng', field:'StandardAmount', hozAlign:'center', headerHozAlign:'center' },
-      { title:'Ghi chú', field:'Note', headerHozAlign:'center' },
+      { title:'Số lượng', field:'StandardAmount', hozAlign:'right', headerHozAlign:'center' },
+      { title:'Ghi chú', field:'Note', headerHozAlign:'center' , editor: 'input'  },
     ]
   });
 
@@ -459,23 +476,26 @@ layout:"fitDataStretch",
 private resetAllocationFlags(data: any[]) {
   return (data || []).map(x => ({ ...x, IsAllocation: false }));
 }
-openEditModalAllocation() {
-  const selected = this.tbAssetAllocationPersonal?.getSelectedData()?.[0];
-  if (!selected) { this.notification.warning("Thông báo","Vui lòng chọn một bản ghi để sửa"); return; }
-
+openEditModalAllocation(rowData?: any) {
+  const selected = rowData ?? this.tbAssetAllocationPersonal?.getSelectedData()?.[0];
+  if (!selected) { 
+    this.notification.warning("Thông báo","Vui lòng chọn một bản ghi để sửa"); 
+    return; 
+  }
+this.formNote = selected.Note;
   this.editingID = selected.ID;
   this.TSCNcode = selected.Code;
   this.allocationDate = DateTime.fromISO(selected.DateAllocation).toFormat('yyyy-MM-dd');
   this.employeeID = selected.EmployeeID;
   this.selectedEmployee = this.emPloyeeLists.find(e => e.ID === selected.EmployeeID) || null;
 
-  // nạp chi tiết cấp phát vào bảng modal khi SỬA
   this.assetAllocationService.getAssetAllocationDetail(selected.ID, 0).subscribe(res => {
-    const details = Array.isArray(res.data.assetsAllocationPersonalDetail) ? res.data.assetsAllocationPersonalDetail : [];
+    const details =res.data;  
     this.assetAllocationDetailData = details;
     this.tbAssetPersonModal?.setData(this.assetAllocationDetailData);
+
     const el = document.getElementById('addAllocationModal');
-    if (el) new bootstrap.Modal(el).show();
+    if (el) bootstrap.Modal.getOrCreateInstance(el).show();
   });
 }
 closeModal() {
@@ -531,7 +551,7 @@ closeModal() {
     const payload = {
       tSAllocationAssetPersonal: {
         ID: this.editingID || 0,
-        STT: this.maxSTT + 1,
+     
         Code: allocationCode,
         DateAllocation: this.allocationDate,
         EmployeeID: this.employeeID,

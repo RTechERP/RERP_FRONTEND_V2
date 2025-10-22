@@ -36,6 +36,11 @@ import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-
 
 import { FactoryVisitRegistrationComponent } from '../../pages/general-category/visit-factory-registation/factory-visit-registration.component';
 import { TsAssetAllocationPersonalComponent } from '../../pages/old/ts-asset-allocation-personal/ts-asset-allocation-personal.component';
+import { TsAssetManagementPersonalComponent } from '../../pages/old/ts-asset-management-personal/ts-asset-management-personal.component';
+import { TsAssetManagementPersonalTypeComponent } from '../../pages/old/ts-asset-management-personal/ts-asset-management-personal-type/ts-asset-management-personal-type.component';
+import { TsAssetRecoveryPersonalComponent } from '../../pages/old/ts-asset-recovery-personal/ts-asset-recovery-personal.component';
+import { VehicleRepairComponent } from '../../pages/hrm/vehicle-repair/vehicle-repair.component';
+import { VehicleRepairTypeComponent } from '../../pages/hrm/vehicle-repair/vehicle-repair-type/vehicle-repair-type.component';
 type TabItem = {
   title: string;
   comp: Type<any>;
@@ -173,10 +178,50 @@ export class MainLayoutComponent implements OnInit {
 
         {
           kind: 'leaf',
+          key: 'TsAssetManagementPersonalComponent',
+          title: 'Danh sách tài sản cá nhân',
+          isOpen: true,
+          comp: TsAssetManagementPersonalComponent,
+          //   icon: 'assets/icon/layers.png',
+        },
+        {
+          kind: 'leaf',
+          key: 'TsAssetManagementPersonalTypeComponent',
+          title: 'Danh sách loại tài sản cá nhân',
+          isOpen: true,
+          comp: TsAssetManagementPersonalTypeComponent,
+          //   icon: 'assets/icon/layers.png',
+        },
+        {
+          kind: 'leaf',
           key: 'TsAssetAllocationPersonalComponent',
-          title: 'Tài sản cá nhân',
+          title: 'Cấp phát tài sản cá nhân',
           isOpen: true,
           comp: TsAssetAllocationPersonalComponent,
+          //   icon: 'assets/icon/layers.png',
+        },
+        {
+          kind: 'leaf',
+          key: 'TsAssetRecoveryPersonalComponent',
+          title: 'Thu hồi tài sản cá nhân',
+          isOpen: true,
+          comp: TsAssetRecoveryPersonalComponent,
+          //   icon: 'assets/icon/layers.png',
+        },
+        {
+          kind: 'leaf',
+          key: 'VehicleRepairComponent',
+          title: 'Danh sách xe sửa chữa',
+          isOpen: true,
+          comp: VehicleRepairComponent,
+          //   icon: 'assets/icon/layers.png',
+        },
+        {
+          kind: 'leaf',
+          key: 'VehicleRepairComponent',
+          title: 'Danh sách loại sửa chữa',
+          isOpen: true,
+          comp: VehicleRepairTypeComponent,
           //   icon: 'assets/icon/layers.png',
         },
       ],

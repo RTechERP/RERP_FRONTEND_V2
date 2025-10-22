@@ -1,18 +1,17 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { HOST } from '../../../app.config';
+import { environment } from '../../../../environments/environment';
+// import { HOST } from '../../../app.config';
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class VehicleManagementService {
+  private url = `${environment.host}api/vehiclemanagement/`;
+  constructor(private http: HttpClient) {}
 
-  private url = `${HOST}api/vehiclemanagement/`;
-  constructor(private http: HttpClient) { }
-
-  
   getVehicleManagement() {
-    return this.http.get<any>(this.url+'get-vehicles');
+    return this.http.get<any>(this.url + 'get-vehicles');
   }
   getVehicleCategory() {
     return this.http.get<any>(`${this.url + `get-vehicle-category`}`);
@@ -21,15 +20,13 @@ export class VehicleManagementService {
     return this.http.get<any>(`${this.url + `employee`}`);
   }
   saveDataVehicleManagement(payload: any): Observable<any> {
-    return this.http.post(this.url+'vehicle' , payload)
+    return this.http.post(this.url + 'vehicle', payload);
   }
   saveDataVehicleCategory(payload: any): Observable<any> {
-    return this.http.post(`${this.url + `save-vehicle-category`}`, payload)
+    return this.http.post(`${this.url + `save-vehicle-category`}`, payload);
   }
-  GetEmployeeInfor(id: number): Observable<any>{
+  GetEmployeeInfor(id: number): Observable<any> {
     const url = `${this.url + `employeesdt`}?id=${id}`;
     return this.http.get<any>(url);
   }
 }
-
- 

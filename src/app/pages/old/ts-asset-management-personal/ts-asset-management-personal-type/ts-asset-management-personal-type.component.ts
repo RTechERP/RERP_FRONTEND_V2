@@ -91,7 +91,7 @@ export class TsAssetManagementPersonalTypeComponent implements OnInit, AfterView
         columns: [
           { title: 'STT', field: 'STT', hozAlign: 'right', width: 70, headerHozAlign: 'center' },
           { title: 'ID', field: 'ID', hozAlign: 'right', width: 70, headerHozAlign: 'center', visible: false },
-          { title: 'Mã tài sản', field: 'Code', headerHozAlign: 'center' },
+          { title: 'Mã tài sản', field: 'Code', headerHozAlign: 'center',bottomCalc: 'count' },
           { title: 'Tên tài sản', field: 'Name', headerHozAlign: 'center' },
 
 

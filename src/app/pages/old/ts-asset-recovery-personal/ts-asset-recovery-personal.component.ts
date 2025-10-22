@@ -61,7 +61,7 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
     private tsAssetRecoveryPersonalService: TsAssetRecoveryPersonalService,
     private notification: NzNotificationService,
     private assetManagementPersonalService: TsAssetManagementPersonalService,
-    private authService:AuthService
+    private authService: AuthService
   ) { }
   isSearchVisible: boolean = false;
   dateStart: string = '';
@@ -103,16 +103,16 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
   TypeID: number = 0;
   FilterText: string = '';
   VehicleID: number = 0;
-  editMode:boolean=false;
-currentUser: any | null = null; 
+  editMode: boolean = false;
+  currentUser: any | null = null;
   ngOnInit() {
     this.generateTSAssetCode();
-       this.getCurrentUsser();
-   
+    this.getCurrentUsser();
+
   }
   ngAfterViewInit(): void {
     //  this.getAssetRecoveryPersonals();
- 
+
     this.drawTbRecoveryPersonal();
     this.drawRecoveryDetail();
     this.getListEmployee();
@@ -132,16 +132,16 @@ currentUser: any | null = null;
       this.selectedEmployee = null;
     });
   }
-getCurrentUsser() {
-  this.authService.getCurrentUser().subscribe((res: any) => {
-    const u = res?.data;
-    this.currentUser = u || null;
-    this.employeeRecoveryID   = u?.EmployeeID ?? null; 
-  
-   
-    if (u?.ID) this.onEmployeeRecoverySelect(u.ID);
-  });
-}
+  getCurrentUsser() {
+    this.authService.getCurrentUser().subscribe((res: any) => {
+      const u = res?.data;
+      this.currentUser = u || null;
+      this.employeeRecoveryID = u?.EmployeeID ?? null;
+
+
+      if (u?.ID) this.onEmployeeRecoverySelect(u.ID);
+    });
+  }
   getAssetManagementPersonal() {
     this.tsAssetAllocationPersonalService.getAssetManagementPersonal().subscribe((respon: any) => {
       this.assetPersonals = respon.data;
@@ -174,7 +174,7 @@ getCurrentUsser() {
     this.tbAssetRecoveryPersonal = new Tabulator('#dataTbRecovery',
       {
         ...DEFAULT_TABLE_CONFIG,
-layout:"fitDataStretch",
+        layout: "fitDataStretch",
         ajaxURL: this.tsAssetRecoveryPersonalService.getAssetRecoveryAjax(),
         ajaxConfig: 'POST',
         ajaxRequestFunc: (url, config, params) => {
@@ -203,26 +203,26 @@ layout:"fitDataStretch",
           { title: 'EmployeeReturnID', field: 'EmployeeReturnID', hozAlign: 'center', headerHozAlign: 'center', visible: false },
           { title: 'EmployeeRecoveryID', field: 'EmployeeRecoveryID', hozAlign: 'center', headerHozAlign: 'center', visible: false },
           { title: 'STT', field: 'STT', hozAlign: 'center', headerHozAlign: 'center' },
-          { title: 'Mã biên bản', field: 'Code', hozAlign: 'center', headerHozAlign: 'center', width: 200 },
+          { title: 'Mã biên bản', field: 'Code', hozAlign: 'center', headerHozAlign: 'center', width: 200, bottomCalc: 'count' },
           {
             title: 'Cá Nhân Duyệt',
             field: 'IsApprovedPersonalProperty',
-           formatter: function (cell: any) {
-  const value = cell.getValue();
-  const checked = value === true || value === 'true' || value === 1 || value === '1';
-  return `<input type="checkbox" ${checked ? 'checked' : ''} onclick="return false;" />`;
-},
+            formatter: function (cell: any) {
+              const value = cell.getValue();
+              const checked = value === true || value === 'true' || value === 1 || value === '1';
+              return `<input type="checkbox" ${checked ? 'checked' : ''} onclick="return false;" />`;
+            },
             hozAlign: 'center',
             headerHozAlign: 'center'
           },
           {
             title: 'HR Duyệt',
             field: 'IsApproveHR',
-          formatter: function (cell: any) {
-  const value = cell.getValue();
-  const checked = value === true || value === 'true' || value === 1 || value === '1';
-  return `<input type="checkbox" ${checked ? 'checked' : ''} onclick="return false;" />`;
-},
+            formatter: function (cell: any) {
+              const value = cell.getValue();
+              const checked = value === true || value === 'true' || value === 1 || value === '1';
+              return `<input type="checkbox" ${checked ? 'checked' : ''} onclick="return false;" />`;
+            },
             hozAlign: 'center',
             headerHozAlign: 'center'
           },
@@ -232,7 +232,7 @@ layout:"fitDataStretch",
 
             hozAlign: 'center',
             headerHozAlign: 'center',
-              formatter: cell => {
+            formatter: cell => {
               const v = cell.getValue();
               if (!v) return '';
               const d = new Date(v);
@@ -281,10 +281,10 @@ layout:"fitDataStretch",
       });
     });
     this.tbAssetRecoveryPersonal.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
-  this.tbAssetRecoveryPersonal?.deselectRow();
-  row.select();            
-  this.openEditModal();      
-});
+      this.tbAssetRecoveryPersonal?.deselectRow();
+      row.select();
+      this.openEditModal();
+    });
     this.tbAssetRecoveryPersonal.on('rowClick', (e: UIEvent, row: RowComponent) => {
       this.selectedRow = row.getData();
       this.sizeTbDetail = null;
@@ -307,65 +307,65 @@ layout:"fitDataStretch",
     return isValid;
   }
   saveRecoveryPersonal() {
-  if (!this.validateRecoveryForm()) return;
+    if (!this.validateRecoveryForm()) return;
 
-  const isEdit = !!this.editMode && (this.editingID ?? 0) > 0;
-  const today = new Date();
-  const selectAssetModal = this.tbAssetPersonModal?.getData() || [];
-  if (selectAssetModal.length === 0) {
-    this.notification.warning("Thông báo", "Không có tài sản nào trong danh sách để lưu");
-    return;
-  }
+    const isEdit = !!this.editMode && (this.editingID ?? 0) > 0;
+    const today = new Date();
+    const selectAssetModal = this.tbAssetPersonModal?.getData() || [];
+    if (selectAssetModal.length === 0) {
+      this.notification.warning("Thông báo", "Không có tài sản nào trong danh sách để lưu");
+      return;
+    }
 
-  const recoveryID = this.editingID || 0;
-  const recoveryDetails = selectAssetModal.map((row: any, index: number) => {
+    const recoveryID = this.editingID || 0;
+    const recoveryDetails = selectAssetModal.map((row: any, index: number) => {
 
-    const detailId = isEdit ? (row.ID ?? 0) : 0;
+      const detailId = isEdit ? (row.ID ?? 0) : 0;
 
-    const tsAssetId = row.TSAssetManagementPersonalID ?? row.ID;
+      const tsAssetId = row.TSAssetManagementPersonalID ?? row.ID;
 
-    return {
-      ID: detailId,                               
-      STT: index + 1,
-          TSAssetManagementPersonal: row.TSAssetManagementPersonalID,
-      TSRecoveryAssetPersonalID: recoveryID,
-      Note: row.Note || '',
-      CreatedDate: today.toISOString().split('T')[0],
-      CreatedBy: 'AdminSW',
-      UpdateDate: today.toISOString().split('T')[0],
-      UpdateBy: 'AdminSW',
-      IsDeleted: false,
-      IsAllocation: (row.IsAllocation === true || row.IsAllocation === 'true' || row.IsAllocation === 1)
+      return {
+        ID: detailId,
+        STT: index + 1,
+        TSAssetManagementPersonal: row.TSAssetManagementPersonalID,
+        TSRecoveryAssetPersonalID: recoveryID,
+        Note: row.Note || '',
+        CreatedDate: today.toISOString().split('T')[0],
+        CreatedBy: 'AdminSW',
+        UpdateDate: today.toISOString().split('T')[0],
+        UpdateBy: 'AdminSW',
+        IsDeleted: false,
+        IsAllocation: (row.IsAllocation === true || row.IsAllocation === 'true' || row.IsAllocation === 1)
+      };
+    });
+
+    const payload = {
+      tSRecoveryAssetPersonal: {
+        ID: recoveryID,
+        STT: this.maxSTT + 1,
+        Code: this.TSTHcode,
+        DateRecovery: this.recoveryDate,
+        EmployeeReturnID: this.employeeReturnID,
+        EmployeeRecoveryID: this.employeeRecoveryID,
+        IsApproveHR: false,
+        IsApprovedPersonalProperty: false,
+        CreatedDate: today.toISOString().split('T')[0],
+        CreatedBy: 'AdminSW',
+        UpdateDate: today.toISOString().split('T')[0],
+        UpdateBy: 'AdminSW',
+        IsDeleted: false
+      },
+      tSRecoveryAssetPersonalDetails: recoveryDetails
     };
-  });
-
-  const payload = {
-    tSRecoveryAssetPersonal: {
-      ID: recoveryID,
-      STT: this.maxSTT + 1,
-      Code: this.TSTHcode,
-      DateRecovery: this.recoveryDate,
-      EmployeeReturnID: this.employeeReturnID,
-      EmployeeRecoveryID: this.employeeRecoveryID,
-      IsApproveHR: false,
-      IsApprovedPersonalProperty: false,
-      CreatedDate: today.toISOString().split('T')[0],
-      CreatedBy: 'AdminSW',
-      UpdateDate: today.toISOString().split('T')[0],
-      UpdateBy: 'AdminSW',
-      IsDeleted: false
-    },
-    tSRecoveryAssetPersonalDetails: recoveryDetails
-  };
-console.log(payload);
-  this.tsAssetAllocationPersonalService.saveAssetAllocationPerson(payload).subscribe({
-    next: (res) => {
-      if (res.status === 1) { this.notification.success("Thông báo", "Lưu thành công"); this.closeModal(); this.getAssetRecoveryPersonals(); }
-      else this.notification.warning("Thông báo", "Lưu thất bại");
-    },
-    error: () => this.notification.warning("Thông báo", "Lỗi kết nối máy chủ")
-  });
-}
+    console.log(payload);
+    this.tsAssetAllocationPersonalService.saveAssetAllocationPerson(payload).subscribe({
+      next: (res) => {
+        if (res.status === 1) { this.notification.success("Thông báo", "Lưu thành công"); this.closeModal(); this.getAssetRecoveryPersonals(); }
+        else this.notification.warning("Thông báo", "Lưu thất bại");
+      },
+      error: () => this.notification.warning("Thông báo", "Lỗi kết nối máy chủ")
+    });
+  }
 
   searchData(): void {
     this.tbAssetRecoveryPersonal?.setData();
@@ -433,7 +433,7 @@ console.log(payload);
 
   }
   openEditModal() {
-    this.editMode=true;
+    this.editMode = true;
     const selectedRecovery = this.tbAssetRecoveryPersonal?.getSelectedData()?.[0];
     const detailRecovery = this.tbAssetRecoveryDetail?.getData() || [];
     if (!selectedRecovery) {
@@ -479,7 +479,7 @@ console.log(payload);
           movableColumns: true,
           reactiveData: true,
           columns: [
-                        { title: 'ID', field: 'ID', hozAlign: 'center', width: 60 },
+            { title: 'ID', field: 'ID', hozAlign: 'center', width: 60 },
 
             { title: 'TSAssetManagementPersonalID', field: 'TSAssetManagementPersonalID', hozAlign: 'center', width: 60 },
             { title: 'TSRecoveryAssetPersonalID', field: 'TSRecoveryAssetPersonalID', hozAlign: 'center', width: 60, visible: false },
@@ -502,9 +502,8 @@ console.log(payload);
               formatter: function (cell: any) {
                 const value = cell.getValue();
                 const checked = value === true || value === 'true' || value === 1 || value === '1';
-                return `<input type="checkbox" ${checked ? 'checked' : ''} disabled />`;
-              }
-              , headerHozAlign: 'center'
+                return `<input type="checkbox" ${checked ? 'checked' : ''} onclick="return false;" />`;
+              }, headerHozAlign: 'center'
             },
 
             {
@@ -583,7 +582,7 @@ console.log(payload);
             title: 'Ghi chú',
             field: 'Note'
             , headerHozAlign: 'center'
-            ,editor:'input'
+            , editor: 'input'
           }
         ]
 
@@ -661,7 +660,7 @@ console.log(payload);
       next: (res) => {
         if (res.status === 1) {
           this.notification.success("Thông báo", "Thành công");
-        this.tbAssetRecoveryPersonal?.setData();
+          this.tbAssetRecoveryPersonal?.setData();
         } else {
           this.notification.warning("Thông báo", "Thất bại");
         }
@@ -698,12 +697,12 @@ console.log(payload);
   }
   openModalRecovery() {
     this.editingID = 0;
-    this.editMode = false;        
-    this.TSTHcode = '';       
-      if (this.currentUser?.ID) {
-    this.employeeRecoveryID = this.currentUser.EmployeeID;
-    this.onEmployeeRecoverySelect(this.currentUser.EmployeeID);
-  }                 // reset code cũ
+    this.editMode = false;
+    this.TSTHcode = '';
+    if (this.currentUser?.ID) {
+      this.employeeRecoveryID = this.currentUser.EmployeeID;
+      this.onEmployeeRecoverySelect(this.currentUser.EmployeeID);
+    }                 // reset code cũ
     const today = new Date().toISOString().split('T')[0];
     this.generateTSAssetCode(today);           // ép gọi API với ngày hôm nay
 

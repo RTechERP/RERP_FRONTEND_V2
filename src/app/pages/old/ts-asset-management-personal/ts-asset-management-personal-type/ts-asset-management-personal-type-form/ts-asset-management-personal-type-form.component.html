@@ -54,10 +54,14 @@
                     <nz-form-label [nzSpan]="24">Năm hiệu lực<span class="text-danger ps-1 me-1"> (*)
                         </span>
                     </nz-form-label>
-                    <nz-form-control [nzErrorTip]="'Chọn loại tài sản'">
-                        <input nz-input type="number" formControlName="YearValue" />
-
-                    </nz-form-control>
+                   <nz-form-control [nzErrorTip]="'Chọn loại tài sản'">
+      <input
+        nz-input
+        type="number"
+        formControlName="YearValue"
+        (keydown)="blockE($event)"
+      />
+    </nz-form-control>
                 </nz-form-item>
             </nz-col>
 
@@ -67,9 +71,14 @@
                     <nz-form-label [nzSpan]="24">Định mức cấp phát<span class="text-danger ps-1 me-1"> (*)
                         </span>
                     </nz-form-label>
-                    <nz-form-control [nzSpan]="24"  [nzErrorTip]="'Nhập định mức cấp phát'">
-                        <input nz-input type="number" formControlName="StandardAmount" />
-                    </nz-form-control>
+                   <nz-form-control [nzSpan]="24" [nzErrorTip]="'Nhập định mức cấp phát'">
+      <input
+        nz-input
+        type="number"
+        formControlName="StandardAmount"
+        (keydown)="blockE($event)"
+      />
+    </nz-form-control>
                 </nz-form-item>
             </nz-col>
 

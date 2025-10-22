@@ -161,6 +161,11 @@ export class TsAssetManagementPersonalTypeFormComponent {
       }
     });
   }
+  blockE(event: KeyboardEvent) {
+  if (event.key === 'e' || event.key === 'E' || event.key === '+' || event.key === '-') {
+    event.preventDefault();
+  }
+} 
   close() {
     this.closeModal.emit();
     this.activeModal.dismiss('cancel');

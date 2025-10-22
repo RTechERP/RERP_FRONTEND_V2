@@ -81,6 +81,7 @@ export class TsAssetManagementPersonalComponent implements OnInit, AfterViewInit
       {
 ...DEFAULT_TABLE_CONFIG,
 paginationMode:"local",
+layout:"fitDataStretch",
         columns: [
           { title: 'STT', field: 'STT', hozAlign: 'right', width: 70, headerHozAlign: 'center' },
           { title: 'ID', field: 'ID', hozAlign: 'right', width: 70, headerHozAlign: 'center' , visible:false},
@@ -100,7 +101,7 @@ paginationMode:"local",
     return date.isValid ? date.toFormat('dd/MM/yyyy') : '';
   }
 },
-           { title: 'Note', field: 'Note', hozAlign: 'left', width:300 }
+           { title: 'Ghi chú', field: 'Note', hozAlign: 'left', width:300 }
         ]
       });
   }

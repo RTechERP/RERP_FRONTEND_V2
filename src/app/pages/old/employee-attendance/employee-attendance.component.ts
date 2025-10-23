@@ -4,8 +4,6 @@ import { Component } from '@angular/core';
   selector: 'app-employee-attendance',
   imports: [],
   templateUrl: './employee-attendance.component.html',
-  styleUrl: './employee-attendance.component.css'
+  styleUrl: './employee-attendance.component.css',
 })
-export class EmployeeAttendanceComponent {
-
-}
+export class EmployeeAttendanceComponent {}

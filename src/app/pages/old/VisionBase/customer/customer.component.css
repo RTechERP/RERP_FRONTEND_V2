@@ -1,0 +1,58 @@
+.reset {
+    all: revert;
+}
+
+/* .tabulator {
+  font-size: 0.75rem;
+  border: 1px solid !important;
+} */
+
+.tabulator-cell {
+  padding: 0px;
+}
+
+.fs-12 {
+  font-size: 0.75rem;
+}
+/* Fullscreen trên màn nhỏ, tránh tràn ngang */
+.modal-fullscreen-sm-down .modal-content {
+  border-radius: 0;
+}
+
+/* Body chiếm tối đa chiều cao còn lại, cuộn dọc */
+.modal-body-responsive {
+  padding: .5rem;
+  max-height: calc(100dvh - 48px - 48px); /* header ~48, footer ~48 */
+  overflow: hidden; /* tránh double scroll */
+}
+
+.tab-pane-scroll {
+  height: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+}
+
+/* Nz-tab header dính trên cùng khi cuộn */
+.nz-tabs-nav, .ant-tabs-nav {
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 5;
+}
+
+/* Input, select full width luôn */
+[nz-input], .ant-picker, .ant-select, .ant-input, .ant-picker-input {
+  width: 100%;
+}
+
+/* Giảm font-size tiêu đề trên mobile */
+@media (max-width: 576px) {
+  .modal-header h6 { font-size: 14px; }
+  .fs-12 { font-size: 12px !important; }
+  .modal-footer { padding: .5rem; }
+}
+
+/* Xoá margin âm từng chỗ cũ */
+[nz-row] { margin-top: 0 !important; }

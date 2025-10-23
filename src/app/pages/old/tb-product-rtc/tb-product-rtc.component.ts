@@ -44,6 +44,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TbProductRtcService } from './tb-product-rtc-service/tb-product-rtc.service';
 import { TbProductRtcImportExcelComponent } from './tb-product-rtc-import-excel/tb-product-rtc-import-excel.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { NzModalService } from 'ng-zorro-antd/modal';
 @Component({
   standalone: true,
   imports: [
@@ -76,7 +77,8 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
   dataInput: any = {};
   constructor(
     private notification: NzNotificationService,
-    private tbProductRtcService: TbProductRtcService
+    private tbProductRtcService: TbProductRtcService,
+    private modal: NzModalService
   ) {}
   productTable: Tabulator | null = null;
   selectedRow: any = '';
@@ -401,23 +403,62 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
     return [];
   }
   onDeleteProduct() {
-    const selectedIds = this.getSelectedIds();
+    const selectedRows = this.productTable?.getSelectedData();
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một thiết bị để xóa!');
+      return;
+    }
+  
+    // Tạo chuỗi tên thiết bị
+    let nameDisplay = '';
+    selectedRows.forEach((item: any, index: number) => {
+      
+        nameDisplay += item.ProductName + ',';
+     
+    });
+  
+    if (selectedRows.length > 10) {
+      if (nameDisplay.length > 10) {
+        nameDisplay = nameDisplay.slice(0, 10) + '...';
+      }
+      nameDisplay += ` và ${selectedRows.length - 1} thiết bị khác`;
+    } else {
+      if (nameDisplay.length > 20) {
+        nameDisplay = nameDisplay.slice(0, 20) + '...';
+      }
+    }
     const payload = {
-      productRTCs: [
-        {
-          ID: selectedIds[0],
-          IsDelete: true,
-        },
-      ],
+      productRTCs: selectedRows.map((row: any) => ({
+        ID: row.ID,
+        IsDelete: true
+      }))
     };
-    this.tbProductRtcService.saveData(payload).subscribe({
-      next: () => {
-        this.notification.success('Thành công', 'Xóa thiết bị thành công!');
-        this.getProduct();
-        this.drawTable();
-      },
-      error: (err) => {
-        this.notification.warning('Lỗi', 'Lỗi kết nối máy chủ!');
+  
+    console.log('Payload xóa:', payload);
+  
+    // Hiển thị confirm
+    this.modal.confirm({
+      nzTitle: 'Xác nhận xóa',
+      nzContent: `Bạn có chắc chắn muốn xóa thiết bị <b>[${nameDisplay}]</b> không?`,
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
+      nzOkDanger: true,
+      nzOnOk: () => {
+        this.tbProductRtcService.saveData(payload).subscribe({
+          
+          next: (res) => {
+            if (res.status === 1) {
+              this.notification.success('Thành công', 'Đã xóa thiết bị thành công!');
+              this.getProduct(); // Tải lại dữ Concerns liệu
+            } else {
+              this.notification.warning('Thông báo', res.message || 'Không thể xóa thiết bị!');
+            }
+          },
+          error: (err) => {
+            console.error('Lỗi xóa:', err);
+            this.notification.error('Lỗi', 'Có lỗi xảy ra khi xóa thiết bị!');
+          },
+        });
       },
     });
   }

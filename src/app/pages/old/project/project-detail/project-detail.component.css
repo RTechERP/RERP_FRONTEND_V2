@@ -1,16 +1,16 @@
 .reset {
-    all: revert;
+  all: revert;
 }
 
 .tabulator {
-  font-size: 0.75rem;
-  border: 1px solid !important;
+font-size: 0.75rem;
+border: 1px solid !important;
 }
 
 .tabulator-cell {
-  padding: 0px;
+padding: 0px;
 }
 
 .fs-12 {
-  font-size: 0.75rem;
+font-size: 0.75rem;
 }

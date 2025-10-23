@@ -1189,11 +1189,11 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     return isValid;
   }
   openAddCustomer(){
-    console.log("Bình")
     const modalRef = this.modalService.open(CustomerDetailComponent, {
       centered: true,
+      size: 'xl',
       backdrop: 'static',
-      windowClass: 'full-screen-modal',
+      keyboard: false,
     });
     modalRef.componentInstance.isEditMode = false;
     modalRef.result.catch(

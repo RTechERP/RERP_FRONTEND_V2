@@ -34,6 +34,9 @@ import { OverTimeComponent } from '../over-time/over-time.component';
 import { EmployeeBussinessComponent } from '../employee-bussiness/employee-bussiness.component';
 import { NightShiftComponent } from '../night-shift/night-shift.component';
 import { EmployeeAttendanceComponent } from '../employee-attendance/employee-attendance.component';
+import { TsAssetRecoveryPersonalNewComponent } from '../../hrm/asset/assetpersonal/ts-asset-recovery-personal-new/ts-asset-recovery-personal-new.component';
+import { VehicleCategoryComponent } from '../../hrm/vehicle-management/vehicle-category/vehicle-category.component';
+import { VehicleManagementComponent } from '../../hrm/vehicle-management/vehicle-management.component';
 
 @Component({
   selector: 'app-menus',
@@ -175,7 +178,7 @@ export const menus: MenuItem[] = [
         key: 'TsAssetRecoveryPersonalComponent',
         title: 'Thu hồi tài sản cá nhân',
         isOpen: true,
-        comp: TsAssetRecoveryPersonalComponent,
+        comp: TsAssetRecoveryPersonalNewComponent,
         //   icon: 'assets/icon/layers.png',
       },
       {
@@ -337,6 +340,23 @@ export const menus: MenuItem[] = [
       //     comp: ,
       //     //   icon: 'assets/icon/layers.png',
       //   },
+      //   {
+      //     kind: 'leaf',
+      //     key: 'VehicleCategoryComponent',
+      //     title: 'Loại xe',
+      //     isOpen: true,
+      //     comp: VehicleCategoryComponent,
+      //     //   icon: 'assets/icon/layers.png',
+      //   },
+
+      {
+        kind: 'leaf',
+        key: 'VehicleManagementComponent',
+        title: 'Danh sách xe',
+        isOpen: true,
+        comp: VehicleManagementComponent,
+        //   icon: 'assets/icon/layers.png',
+      },
     ],
   },
   //#endregion

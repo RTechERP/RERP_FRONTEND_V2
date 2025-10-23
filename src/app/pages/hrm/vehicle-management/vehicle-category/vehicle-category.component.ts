@@ -7,12 +7,12 @@ import {
   inject,
   Inject,
   EnvironmentInjector,
-  ApplicationRef
+  ApplicationRef,
 } from '@angular/core';
 import { Tabulator } from 'tabulator-tables';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzGridModule } from 'ng-zorro-antd/grid';
@@ -26,8 +26,11 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzFloatButtonModule } from 'ng-zorro-antd/float-button';
 import { NzFlexModule } from 'ng-zorro-antd/flex';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
-import { NzNotificationService } from 'ng-zorro-antd/notification'
-import { NzTableComponent } from "ng-zorro-antd/table";
+import {
+  NzNotificationModule,
+  NzNotificationService,
+} from 'ng-zorro-antd/notification';
+import { NzTableComponent } from 'ng-zorro-antd/table';
 import { DateTime } from 'luxon';
 import type { Editor } from 'tabulator-tables';
 import { NzModalService } from 'ng-zorro-antd/modal';
@@ -35,14 +38,16 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { VehicleManagementFormComponent } from '../vehicle-management-form/vehicle-management-form.component';
 import { VehicleCategoryFormComponent } from './vehicle-category-form/vehicle-category-form.component';
 
-
 @Component({
   selector: 'app-vehicle-category',
+  standalone: true,
   imports: [
     CommonModule,
     FormsModule,
     NzTabsModule,
-    FormsModule, NzFlexModule, NzRadioModule,
+    FormsModule,
+    NzFlexModule,
+    NzRadioModule,
     NzSelectModule,
     NzGridModule,
     NzFloatButtonModule,
@@ -52,18 +57,21 @@ import { VehicleCategoryFormComponent } from './vehicle-category-form/vehicle-ca
     NzInputModule,
     NzButtonModule,
     NzModalModule,
-    NzInputNumberModule
+    NzInputNumberModule,
+    NzModalModule,
+    NzNotificationModule,
+    NgbModalModule,
+    // NgbActiveModal,
   ],
   templateUrl: './vehicle-category.component.html',
-  styleUrl: './vehicle-category.component.css'
+  styleUrl: './vehicle-category.component.css',
 })
-export class VehicleCategoryComponent 
-  implements OnInit {
+export class VehicleCategoryComponent implements OnInit {
   constructor(
     private notification: NzNotificationService,
     private modal: NzModalService,
     private modalService: NgbModal
-  ) { }
+  ) {}
   @Input() dataInput: any;
   @Output() closeModal = new EventEmitter<void>();
   @Output() formSubmitted = new EventEmitter<void>();
@@ -72,32 +80,30 @@ export class VehicleCategoryComponent
   vehicleCategoryList: any[] = [];
   tb_vehicleCategory: Tabulator | null = null;
   selectedRow: any = null;
-      searchText: string = '';
+  searchText: string = '';
   selectedID: number | null = 0;
 
   ngOnInit(): void {
     this.getVehicleCategory();
-
   }
 
   async getVehicleCategory() {
     this.vehicleManagementService.getVehicleCategory().subscribe({
       next: (response: any) => {
-        console.log("tb_vehicleCategory", response.data);
+        console.log('tb_vehicleCategory', response.data);
         this.vehicleCategoryList = response.data;
         this.drawTbVehicleCategory();
       },
       error: (error) => {
         console.error('Lỗi:', error);
-      }
+      },
     });
   }
-    createdText(text: String) {
+  createdText(text: String) {
     return `<span class="fs-12">${text}</span>`;
   }
 
   onDeleteVehicle() {
-
     if (!this.selectedID || this.selectedID === 0) {
       this.notification.warning('Thông báo', 'Vui lòng chọn loại xe để xóa!');
       return;
@@ -112,40 +118,44 @@ export class VehicleCategoryComponent
       nzOnOk: () => {
         const status = {
           ID: this.selectedID,
-          IsDelete: true
+          IsDelete: true,
         };
-        console.log("Payload xóa lĩnh vực dự án", status);
-        this.vehicleManagementService.saveDataVehicleCategory(status).subscribe({
-          next: (res) => {
-            if (res.status === 1) {
-              this.notification.success("Thông báo", "Xóa lĩnh vực dự án thành công");
-              setTimeout(() => this.getVehicleCategory(), 100);
-            } else {
-              this.notification.warning("Thông báo", "Thất bại");
-            }
-          },
-          error: (err) => {
-            console.error(err);
-            this.notification.warning("Thông báo", "Lỗi kết nối");
-          }
-        });
+        console.log('Payload xóa lĩnh vực dự án', status);
+        this.vehicleManagementService
+          .saveDataVehicleCategory(status)
+          .subscribe({
+            next: (res) => {
+              if (res.status === 1) {
+                this.notification.success(
+                  'Thông báo',
+                  'Xóa lĩnh vực dự án thành công'
+                );
+                setTimeout(() => this.getVehicleCategory(), 100);
+              } else {
+                this.notification.warning('Thông báo', 'Thất bại');
+              }
+            },
+            error: (err) => {
+              console.error(err);
+              this.notification.warning('Thông báo', 'Lỗi kết nối');
+            },
+          });
       },
     });
-
   }
 
   //#endregion
-onSearch() {
+  onSearch() {
     if (this.tb_vehicleCategory) {
       if (!this.searchText.trim()) {
         this.tb_vehicleCategory.clearFilter(false); // <-- Thêm false ở đây
       } else {
         this.tb_vehicleCategory.setFilter([
           [
-            { field: "CategoryName", type: "like", value: this.searchText },
-            { field: "CategoryCode", type: "like", value: this.searchText },
-            { field: "STT" , type: "like", value: this.searchText}
-          ]
+            { field: 'CategoryName', type: 'like', value: this.searchText },
+            { field: 'CategoryCode', type: 'like', value: this.searchText },
+            { field: 'STT', type: 'like', value: this.searchText },
+          ],
         ]);
       }
     }
@@ -177,7 +187,7 @@ onSearch() {
         },
       ],
     });
-      this.tb_vehicleCategory.on('rowDblClick', (e: any, row: any) => {
+    this.tb_vehicleCategory.on('rowDblClick', (e: any, row: any) => {
       this.selectedRow = row.getData();
       this.onEditVehicle();
     });
@@ -185,61 +195,67 @@ onSearch() {
     this.tb_vehicleCategory.on('rowClick', (e: any, row: any) => {
       this.selectedRow = row.getData();
       this.selectedID = this.selectedRow.ID;
-      console.log("selectedID", this.selectedID);
+      console.log('selectedID', this.selectedID);
     });
   }
   //#endregion
 
-   //#region Add Product
-    onAddVehicle() {
-      const modalRef = this.modalService.open(VehicleCategoryFormComponent, {
+  //#region Add Product
+  onAddVehicle() {
+    const modalRef = this.modalService.open(VehicleCategoryFormComponent, {
       size: 'l',
       backdrop: 'static',
       keyboard: false,
       centered: true,
     });
-  
-    modalRef.result.then(
-          (result) => {
-          this.notification.success("Thông báo", "Tạo sản phẩm thành công");
-              setTimeout(() => this.getVehicleCategory(), 100);
-          },
-          () => {
-            console.log('Modal dismissed');
-          }
-        );
-    }
-    //#endregion
 
-    onEditVehicle() {
-        if(this.selectedRow == null){
-              const selected = this.tb_vehicleCategory?.getSelectedData();
-        if (!selected || selected.length === 0) {
-          this.notification.warning('Thông báo', 'Vui lòng chọn một đơn vị để sửa!');
-          return;
-        }
-        this.selectedRow = { ...selected[0] };
-        }
-    
-        const modalRef = this.modalService.open(VehicleCategoryFormComponent, {
-          size: 'l',
-          backdrop: 'static',
-          keyboard: false,
-          centered: true
-        });
-        console.log(this.selectedRow)
-        modalRef.componentInstance.dataInput = this.selectedRow;
-        modalRef.result.then(
-          (result) => {
-            this.notification.success("Thông báo", "Sửa lĩnh vực dựa án thành công");
-              setTimeout(() => this.getVehicleCategory(), 100);
-          },
-          () => {
-            console.log('Modal dismissed');
-          }
-        );
+    modalRef.result.then(
+      (result) => {
+        this.notification.success('Thông báo', 'Tạo sản phẩm thành công');
+        setTimeout(() => this.getVehicleCategory(), 100);
+      },
+      () => {
+        console.log('Modal dismissed');
       }
-          close() {
+    );
+  }
+  //#endregion
+
+  onEditVehicle() {
+    if (this.selectedRow == null) {
+      const selected = this.tb_vehicleCategory?.getSelectedData();
+      if (!selected || selected.length === 0) {
+        this.notification.warning(
+          'Thông báo',
+          'Vui lòng chọn một đơn vị để sửa!'
+        );
+        return;
+      }
+      this.selectedRow = { ...selected[0] };
+    }
+
+    const modalRef = this.modalService.open(VehicleCategoryFormComponent, {
+      size: 'l',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+    });
+    console.log(this.selectedRow);
+    modalRef.componentInstance.dataInput = this.selectedRow;
+    modalRef.result.then(
+      (result) => {
+        this.notification.success(
+          'Thông báo',
+          'Sửa lĩnh vực dựa án thành công'
+        );
+        setTimeout(() => this.getVehicleCategory(), 100);
+      },
+      () => {
+        console.log('Modal dismissed');
+      }
+    );
+  }
+  close() {
     this.closeModal.emit();
     this.activeModal.dismiss('cancel');
   }

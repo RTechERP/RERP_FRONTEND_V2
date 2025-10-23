@@ -465,7 +465,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       return; // Ngừng lưu nếu bị trùng mã
     }
     if (this.fileToUpload) {
-      this.tbProductRtcService.uploadImage(this.fileToUpload).subscribe({
+      this.tbProductRtcService.uploadImage(this.fileToUpload, SERVER_PATH).subscribe({
         next: (res) => {
           if (res.status === 1) {
             this.imageFileName = res.FileName;

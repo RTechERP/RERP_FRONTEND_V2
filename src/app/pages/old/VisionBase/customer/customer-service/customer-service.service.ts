@@ -1,14 +1,16 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Host, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { end } from '@popperjs/core';
-import { HOST } from '../../../../../app.config';
+import { environment } from '../../../../../../environments/environment';
+// import { HOST } from '../../../../../app.config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CustomerServiceService {
-  private _url = HOST + 'api/Customer/';
+  private _url = environment.host + 'api/Customer/';
+  private _urlE = environment.host + 'api/Employee/';
   constructor(private http: HttpClient) {}
 
   getMainData(
@@ -28,15 +30,17 @@ export class CustomerServiceService {
       },
     });
   }
+  getMainData2(request: any) {
+    return this.http.get<any>(`${this._url}get-customer`, {
+      params: request, // Angular tự chuyển object thành query string
+    });
+  }
   getEmployees(status: number): Observable<any> {
-    return this.http.get<any>(
-      'https://localhost:7187/api/Employee/get-employees',
-      {
-        params: {
-          status: status.toString(),
-        },
-      }
-    );
+    return this.http.get<any>(this._urlE + 'get-employees', {
+      params: {
+        status: status.toString(),
+      },
+    });
   }
 
   getMainDataAjax(): string {

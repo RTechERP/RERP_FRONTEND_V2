@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { HOST } from '../../../../app.config';
+import { environment } from '../../../../../environments/environment';
+// import { HOST } from '../../../../app.config';
 @Injectable({
   providedIn: 'root',
 })
 export class TsAssetAllocationPersonalService {
-  private url = `${HOST}api/AssetManagementPersonal/`;
-  urlGetAssetAllocationPersonal = `${HOST}api/AssetManagementPersonal/get-asset-allocation-personal`;
+  private url = `${environment.host}api/AssetManagementPersonal/`;
+  urlGetAssetAllocationPersonal = `${environment.host}api/AssetManagementPersonal/get-asset-allocation-personal`;
   constructor(private httpclient: HttpClient) {}
   getAssetAllocationPersonal(request: any) {
     return this.httpclient.post<any>(
@@ -41,11 +42,14 @@ export class TsAssetAllocationPersonalService {
   saveAssetAllocationPerson(request: any) {
     return this.httpclient.post<any>(`${this.url + `save-data`}`, request);
   }
-    SaveApprove(request: any) {
+  SaveApprove(request: any) {
     return this.httpclient.post<any>(`${this.url + `save-approve`}`, request);
   }
-     SaveApprovePersonal(request: any) {
-    return this.httpclient.post<any>(`${this.url + `save-approve-personal`}`, request);
+  SaveApprovePerson(request: any) {
+    return this.httpclient.post<any>(
+      `${this.url + `save-approve-person`}`,
+      request
+    );
   }
   getTSCNCode(
     allocationDate: string

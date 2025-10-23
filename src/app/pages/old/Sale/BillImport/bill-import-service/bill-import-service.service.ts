@@ -2,8 +2,9 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { DateTime } from 'luxon';
-import { HOST } from '../../../../../app.config';
+// import { HOST } from '../../../../../app.config';
 import { RouterTestingHarness } from '@angular/router/testing';
+import { environment } from '../../../../../../environments/environment';
 @Injectable({
   providedIn: 'root',
 })
@@ -15,7 +16,7 @@ export class BillImportServiceService {
       deparmentID: deparmentID.toString(),
     };
 
-    return this.http.get(HOST + `api/BillExport`, params);
+    return this.http.get(environment.host + `api/BillExport`, params);
   }
   getBillImport(
     khoType: any,
@@ -40,31 +41,33 @@ export class BillImportServiceService {
       checkedAll: checkedAll,
     };
 
-    return this.http.post(HOST + `api/BillImport`, params);
+    return this.http.post(environment.host + `api/BillImport`, params);
   }
   getBillImportDetail(billID: number): Observable<any> {
-    return this.http.get(HOST + `api/BillImportDetail/BillImportID/${billID}`);
+    return this.http.get(
+      environment.host + `api/BillImportDetail/BillImportID/${billID}`
+    );
   }
   getBillImportByID(id: number) {
-    return this.http.get<any>(HOST + `api/billimport/${id}`);
+    return this.http.get<any>(environment.host + `api/billimport/${id}`);
   }
   approved(data: any, approved: boolean): Observable<any> {
     return this.http.post(
-      HOST + `api/BillImport/approved?isapproved=${approved}`,
+      environment.host + `api/BillImport/approved?isapproved=${approved}`,
       data
     );
   }
   getDataRulePay() {
-    return this.http.get<any>(HOST + `api/rulepay`);
+    return this.http.get<any>(environment.host + `api/rulepay`);
   }
   getNewCode(billType: number) {
     return this.http.get<any>(
-      HOST + `api/billImport/get-bill-code?billType=${billType}`
+      environment.host + `api/billImport/get-bill-code?billType=${billType}`
     );
   }
   getDocumentImport(PONCCID: number, BillImportID: number) {
     return this.http.get<any>(
-      HOST +
+      environment.host +
         `api/documentimport?poNCCId=${PONCCID}&billImportID=${BillImportID}`
     );
   }
@@ -72,12 +75,16 @@ export class BillImportServiceService {
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
     });
-    return this.http.post(HOST + `api/billimport/save-data`, payload, {
-      headers,
-    });
+    return this.http.post(
+      environment.host + `api/billimport/save-data`,
+      payload,
+      {
+        headers,
+      }
+    );
   }
   export(id: number): Observable<Blob> {
-    const url = `${HOST}api/billimport/import-excel?id=${id}`;
+    const url = `${environment.host}api/billimport/import-excel?id=${id}`;
     return this.http.get(url, {
       responseType: 'blob',
     });
@@ -87,18 +94,18 @@ export class BillImportServiceService {
     documentImportID: number
   ): Observable<any> {
     return this.http.get<any>(
-      HOST +
+      environment.host +
         `api/billdocumentimportlog/get-by-bdiid?bdiID=${id}&dcocumentImportID=${documentImportID}`
     );
   }
   getDocumenImportPONCC(id: number): Observable<any> {
     return this.http.get<any>(
-      HOST + `api/documentimportponcc/get-by-bdiid/${id}`
+      environment.host + `api/documentimportponcc/get-by-bdiid/${id}`
     );
   }
   saveBillDocumentImport(data: any): Observable<any> {
     return this.http.post<any>(
-      HOST + `api/documentimportponcc/save-data`,
+      environment.host + `api/documentimportponcc/save-data`,
       data
     );
   }
@@ -126,28 +133,30 @@ export class BillImportServiceService {
     };
 
     return this.http.post(
-      HOST + `api/BillImport/bill-import-synthetic`,
+      environment.host + `api/BillImport/bill-import-synthetic`,
       params
     );
   }
   getDataContextMenu(): Observable<any> {
-    return this.http.get<any>(HOST + `api/documentimport/dropdownmenu`);
+    return this.http.get<any>(
+      environment.host + `api/documentimport/dropdownmenu`
+    );
   }
   updateDocument(data: any): Observable<any> {
     return this.http.post<any>(
-      HOST + `api/documentimportponcc/update-document`,
+      environment.host + `api/documentimportponcc/update-document`,
       data
     );
   }
   getBillImportQR(warehouseID: number, code: string) {
     return this.http.get<any>(
-      HOST +
+      environment.host +
         `api/billimport/scan-import?code=${code}&warehouseId=${warehouseID}`
     );
   }
   getProductOption(warehouseID: number, productGroupID: number) {
     return this.http.get<any>(
-      HOST +
+      environment.host +
         `api/billimport/get-product?warehouseID=${warehouseID}&ProductGroupID=${productGroupID}`
     );
   }

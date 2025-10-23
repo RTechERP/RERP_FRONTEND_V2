@@ -6,13 +6,16 @@
 }
 
 /* Bôi màu cho tab thêm ngon hehehe */
-::ng-deep .ant-tabs .ant-tabs-tab .ant-tabs-tab-btn {
+::ng-deep .app-header-tabs > .ant-tabs .ant-tabs-tab .ant-tabs-tab-btn {
   color: #c6c6c6;
 }
 
-::ng-deep .ant-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+::ng-deep
+  .app-header-tabs
+  > .ant-tabs
+  .ant-tabs-tab.ant-tabs-tab-active
+  .ant-tabs-tab-btn {
   color: #f3f3f3;
-
 }
 
 .app-layout {
@@ -115,8 +118,8 @@ nz-sider {
   left: 0;
 }
 
-::ng-deep .ant-tabs>.ant-tabs-nav,
-.ant-tabs>div>.ant-tabs-nav {
+::ng-deep .ant-tabs > .ant-tabs-nav,
+.ant-tabs > div > .ant-tabs-nav {
   margin: 0 !important;
   overflow: hidden !important;
 }
@@ -125,34 +128,45 @@ nz-sider {
   height: 40px !important;
 }
 
-::ng-deep .ant-tabs-card.ant-tabs-top>.ant-tabs-nav .ant-tabs-tab {
+::ng-deep .ant-tabs-card.ant-tabs-top > .ant-tabs-nav .ant-tabs-tab {
   border: unset;
   border-radius: unset;
   font-size: 0.75rem;
 }
 
-::ng-deep .ant-tabs-card.ant-tabs-top>.ant-tabs-nav .ant-tabs-tab:not(.ant-tabs-tab-active) {
+::ng-deep
+  .ant-tabs-card.ant-tabs-top
+  > .ant-tabs-nav
+  .ant-tabs-tab:not(.ant-tabs-tab-active) {
   border: unset;
   border-radius: unset;
   background-color: transparent;
 }
 
-::ng-deep .ant-tabs-card>.ant-tabs-nav .ant-tabs-tab-active,
-.ant-tabs-card>div>.ant-tabs-nav .ant-tabs-tab-active {
+::ng-deep .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active,
+.ant-tabs-card > div > .ant-tabs-nav .ant-tabs-tab-active {
   background-color: #ef4723 !important;
   padding: 7px 16px !important;
   /* color: #fff; */
 }
 
-::ng-deep .ant-tabs-card.ant-tabs-top>.ant-tabs-nav .ant-tabs-tab+.ant-tabs-tab,
-.ant-tabs-card.ant-tabs-bottom>.ant-tabs-nav .ant-tabs-tab+.ant-tabs-tab,
-.ant-tabs-card.ant-tabs-top>div>.ant-tabs-nav .ant-tabs-tab+.ant-tabs-tab,
-.ant-tabs-card.ant-tabs-bottom>div>.ant-tabs-nav .ant-tabs-tab+.ant-tabs-tab {
+::ng-deep
+  .ant-tabs-card.ant-tabs-top
+  > .ant-tabs-nav
+  .ant-tabs-tab
+  + .ant-tabs-tab,
+.ant-tabs-card.ant-tabs-bottom > .ant-tabs-nav .ant-tabs-tab + .ant-tabs-tab,
+.ant-tabs-card.ant-tabs-top > div > .ant-tabs-nav .ant-tabs-tab + .ant-tabs-tab,
+.ant-tabs-card.ant-tabs-bottom
+  > div
+  > .ant-tabs-nav
+  .ant-tabs-tab
+  + .ant-tabs-tab {
   margin: 0 !important;
 }
 
-::ng-deep .ant-tabs>.ant-tabs-nav,
-.ant-tabs>div>.ant-tabs-nav {
+::ng-deep .ant-tabs > .ant-tabs-nav,
+.ant-tabs > div > .ant-tabs-nav {
   position: static !important;
 }
 
@@ -160,7 +174,7 @@ nz-sider {
   color: #fff !important;
 }
 
-::ng-deep .ant-tabs-card.ant-tabs-small>.ant-tabs-nav .ant-tabs-tab {
+::ng-deep .ant-tabs-card.ant-tabs-small > .ant-tabs-nav .ant-tabs-tab {
   padding: 8px 16px !important;
   font-size: 0.75rem !important;
 }

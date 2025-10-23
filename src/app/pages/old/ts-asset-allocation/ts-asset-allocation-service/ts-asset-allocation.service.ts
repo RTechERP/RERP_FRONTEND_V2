@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { HOST } from '../../../../app.config';
+import { environment } from '../../../../../environments/environment';
+// import { HOST } from '../../../../app.config';
 @Injectable({ providedIn: 'root' })
 export class AssetAllocationService {
-  private url = `${HOST}api/AssetsAllocation/`;
+  private url = `${environment.host}api/AssetsAllocation/`;
   constructor(private http: HttpClient) {}
   getAssetAllocationDetail(id: number): Observable<any> {
     const url = `${this.url + `get-asset-allocation-detail`}?id=${id}`;
@@ -27,7 +28,7 @@ export class AssetAllocationService {
   }
   exportAllocationReport(request: any): Observable<Blob> {
     return this.http.post(
-      `${HOST}api/AssetsAllocation/export-allocation-asset-report`,
+      `${environment.host}api/AssetsAllocation/export-allocation-asset-report`,
       request,
       {
         responseType: 'blob',

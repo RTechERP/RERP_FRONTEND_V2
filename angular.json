@@ -32,7 +32,7 @@
             ],
             "styles": [
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
-              "node_modules/tabulator-tables/dist/css/tabulator.min.css",
+              "node_modules/tabulator-tables/dist/css/tabulator_simple.css",
               "src/theme.less",
               "src/styles.css"
             ],
@@ -51,8 +51,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "5mb",
+                  "maximumError": "10mb"
                 }
               ],
               "outputHashing": "all",
@@ -60,12 +60,29 @@
                 "scripts": true,
                 "styles": true,
                 "vendor": true
-              }
+              },
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ]
             },
             "development": {
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "test": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.test.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -78,6 +95,9 @@
             },
             "development": {
               "buildTarget": "RERPV2:build:development"
+            },
+            "test": {
+              "buildTarget": "RERPV2:build:test"
             }
           },
           "defaultConfiguration": "development"
@@ -104,6 +124,6 @@
     }
   },
   "cli": {
-    "analytics": "55a0292d-99d5-4314-bb19-77eed5a728b8"
+    "analytics": "89f6b7c9-462d-4bd9-a1d1-9e2efe7241ea"
   }
 }

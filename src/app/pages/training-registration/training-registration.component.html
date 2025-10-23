@@ -1,254 +1,163 @@
 <ng-container class="w-100">
-  <nz-splitter>
-    <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
-      <div class="card h-100 border-0 rounded-0">
-        <div class="card-header bg-white p-1">
-          <div class="d-flex justify-content-between align-items-center">
-            <h6 class="m-0 ms-2">Tìm kiếm</h6>
-            <button
-              class="border-0 me-2"
-              nz-button
-              nzSize="small"
-              nzType="default"
-              nzDanger
-              aria-label="Đóng tìm kiếm"
-              (click)="ToggleSearchPanel()"
-            >
-              <nz-icon nzType="close" nzTheme="outline" />
-            </button>
-          </div>
-        </div>
-        <div class="card-body">
-          <form nz-form nzLayout="vertical">
-            <nz-form-item>
-              <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
-              <nz-form-control [nzSpan]="24">
-                <nz-date-picker
-                  class="w-100"
-                  [(ngModel)]="filter.dateStart"
-                  nzFormat="dd/MM/yyyy"
-                  name="dateStart"
-                  nzSize="small"
-                ></nz-date-picker>
-              </nz-form-control>
-            </nz-form-item>
-            <nz-form-item class="mt-2">
-              <nz-form-label class="fs-12" [nzSpan]="24"
-                >Đến ngày</nz-form-label
-              >
-              <nz-form-control [nzSpan]="24">
-                <nz-date-picker
-                  class="w-100"
-                  [(ngModel)]="filter.dateEnd"
-                  nzFormat="dd/MM/yyyy"
-                  name="dateEnd"
-                  nzSize="small"
-                ></nz-date-picker>
-              </nz-form-control>
-            </nz-form-item>
-            <nz-form-item class="mt-2">
-              <nz-form-label class="fs-12" [nzSpan]="24"
-                >Phòng ban</nz-form-label
-              >
-              <nz-form-control [nzSpan]="24">
-                <nz-select
-                  class="w-100"
-                  [(ngModel)]="filter.departmentID"
-                  name="departmentID"
-                  nzShowSearch
-                  nzAllowClear
-                  nzSize="small"
-                  nzPlaceHolder="Chọn phòng ban"
-                >
-                </nz-select>
-              </nz-form-control>
-            </nz-form-item>
-            <nz-form-item class="mt-2">
-              <nz-form-label class="fs-12" [nzSpan]="24"
-                >Loại đào tạo</nz-form-label
-              >
-              <nz-form-control [nzSpan]="24">
-                <nz-select
-                  class="w-100"
-                  [(ngModel)]="filter.trainingCategoryID"
-                  name="trainingCategoryID"
-                  nzShowSearch
-                  nzAllowClear
-                  nzSize="small"
-                  nzPlaceHolder="Chọn loại đào tạo"
-                >
-                  <nz-option [nzValue]="1" nzLabel="Đào tạo nội bộ"></nz-option>
-                  <nz-option [nzValue]="2" nzLabel="Đào tạo ngoài"></nz-option>
-                </nz-select>
-              </nz-form-control>
-            </nz-form-item>
-          </form>
-        </div>
-        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
-          <button
-            nz-button
-            nzType="default"
-            nzSize="small"
-            (click)="resetFilter()"
-          >
-            Đặt lại
-          </button>
-          <button
-            nz-button
-            nzType="primary"
-            nzSize="small"
-            (click)="applyFilter()"
-          >
-            Tìm kiếm
-          </button>
-        </div>
-      </div>
-    </nz-splitter-panel>
-    <nz-splitter-panel nzDefaultSize="100%">
-      <div class="card h-100 border-0 rounded-0">
-        <div class="card-header bg-white p-1">
-          <div class="d-flex gap-1">
-            <button
-              nz-button
-              nzType="default"
-              nzSize="small"
-              (click)="ToggleSearchPanel()"
-              aria-label="Tìm kiếm"
-            >
-              <nz-icon nzType="search" />
-            </button>
-            <button
-              class="fs-12"
-              disablePermission="'Training_Registration_CRUD'"
-              nz-button
-              nzType="default"
-              (click)="onAddClick()"
-              nzSize="small"
-            >
-              <nz-icon nzType="plus" /> Thêm
-            </button>
-            <button
-              class="fs-12"
-              disablePermission="'Training_Registration_CRUD'"
-              nz-button
-              nzType="default"
-              (click)="onEditClick()"
-              nzSize="small"
-            >
-              <nz-icon nzType="edit" nzTheme="fill" />Sửa
-            </button>
-            <button class="fs-12" disablePermission="'Training_Registration_CRUD'" nz-button nzType="default" nzSize="small">
-              <nz-icon nzType="delete" nzTheme="fill" />Xóa
-            </button>
-            <!-- Trưởng bộ phận -->
-            <div class="btn-group">
-              <button
-                nz-button
-                nz-dropdown
-                [nzDropdownMenu]="menu1"
-                class="p-0 fs-12 h-auto"
-              >
-                <nz-icon
-                  nzType="TBP-Approved"
-                  nzTheme="fill"
-                  class="ms-1"
-                />Trưởng bộ phận
-                <i nz-icon nzType="down"></i>
-              </button>
-              <nz-dropdown-menu #menu1="nzDropdownMenu">
-                <ul nz-menu>
-                  <li nz-menu-item (click)="approvedTrainingRegistration(1,2)">
-                    <i nz-icon nzType="check" class="me-1"></i>Duyệt
-                  </li>
-                  <li nz-menu-item (click)="approvedTrainingRegistration(2,2)">
-                    <i nz-icon nzType="file" class="me-1"></i>Hủy duyệt
-                  </li>
-                </ul>
-              </nz-dropdown-menu>
+    <nz-splitter>
+        <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
+            <div class="card h-100 border-0 rounded-0">
+                <div class="card-header bg-white p-1">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 ms-2">Tìm kiếm</h6>
+                        <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+                            aria-label="Đóng tìm kiếm" (click)="ToggleSearchPanel()">
+                            <nz-icon nzType="close" nzTheme="outline" />
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form nz-form nzLayout="vertical">
+                        <nz-form-item>
+                            <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-date-picker class="w-100" [(ngModel)]="filter.dateStart" nzFormat="dd/MM/yyyy"
+                                    name="dateStart" nzSize="small"></nz-date-picker>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-date-picker class="w-100" [(ngModel)]="filter.dateEnd" nzFormat="dd/MM/yyyy"
+                                    name="dateEnd" nzSize="small"></nz-date-picker>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Phòng ban</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select class="w-100" [(ngModel)]="filter.departmentID" name="departmentID"
+                                    nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="Chọn phòng ban">
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Loại đào tạo</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select class="w-100" [(ngModel)]="filter.trainingCategoryID"
+                                    name="trainingCategoryID" nzShowSearch nzAllowClear nzSize="small"
+                                    nzPlaceHolder="Chọn loại đào tạo">
+                                    <nz-option [nzValue]="1" nzLabel="Đào tạo nội bộ"></nz-option>
+                                    <nz-option [nzValue]="2" nzLabel="Đào tạo ngoài"></nz-option>
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </form>
+                </div>
+                <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+                    <button nz-button nzType="default" nzSize="small" (click)="resetFilter()">
+                        Đặt lại
+                    </button>
+                    <button nz-button nzType="primary" nzSize="small" (click)="applyFilter()">
+                        Tìm kiếm
+                    </button>
+                </div>
             </div>
+        </nz-splitter-panel>
+        <nz-splitter-panel nzDefaultSize="100%">
+            <div class="card h-100 border-0 rounded-0">
+                <div class="card-header bg-white p-1">
+                    <div class="d-flex gap-1">
+                        <button nz-button nzType="default" nzSize="small" (click)="ToggleSearchPanel()"
+                            aria-label="Tìm kiếm">
+                            <nz-icon nzType="search" />
+                        </button>
+                        <button class="btn-add" nz-button nzType="default" (click)="onAddClick()" nzSize="small">
+                            <img src="assets/icon/action_add_item_16.png" /> Thêm
+                        </button>
+                        <button class="btn-edit" nz-button nzType="default" (click)="onEditClick()" nzSize="small"
+                            [disabled]="( !isEditAllowedByRole)">
+                            <img src="assets/icon/action_edit_item_16.png" />Sửa
+                        </button>
+                        <button class="btn-delete" nz-button nzType="default" nzSize="small"
+                            [disabled]="( !isEditAllowedByRole)">
+                            <img src="assets/icon/action_delete_item_16.png" />Xóa
+                        </button>
+                        <!-- Trưởng bộ phận -->
+                        <div class="btn-group">
+                            <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
+                                [nzDropdownMenu]="menu1" disablePermission="N57">
+                                <img src="assets/icon/action_confirm_tbp_16.png" />Trưởng bộ phận
+                                <i nz-icon nzType="down"></i>
+                            </button>
+                            <nz-dropdown-menu #menu1="nzDropdownMenu">
+                                <ul nz-menu>
+                                    <li nz-menu-item (click)="approvedTrainingRegistration(1,2)">
+                                        <img src="assets/icon/action_approved_16.png" />Duyệt
+                                    </li>
+                                    <li nz-menu-item (click)="approvedTrainingRegistration(2,2)">
+                                        <img src="assets/icon/action_unapproved_16.png" />Hủy duyệt
+                                    </li>
+                                </ul>
+                            </nz-dropdown-menu>
+                        </div>
 
-            <!-- HCNS -->
-            <div class="btn-group">
-              <button
-                nz-button
-                nz-dropdown
-                [nzDropdownMenu]="menu2"
-                class="p-0 fs-12 h-auto"
-              >
-                <nz-icon
-                  nzType="HCNS-Approved"
-                  nzTheme="fill"
-                  class="ms-1"
-                />HCNS
-                <i nz-icon nzType="down"></i>
-              </button>
-              <nz-dropdown-menu #menu2="nzDropdownMenu">
-                <ul nz-menu>
-                  <li nz-menu-item (click)="approvedTrainingRegistration(1,3)">
-                    <i nz-icon nzType="check" class="me-1"></i>Duyệt
-                  </li>
-                  <li nz-menu-item (click)="approvedTrainingRegistration(2,3)">
-                    <i nz-icon nzType="file" class="me-1"></i>Hủy duyệt
-                  </li>
-                </ul>
-              </nz-dropdown-menu>
-            </div>
+                        <!-- HCNS -->
+                        <div class="btn-group">
+                            <button nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="menu2"
+                                disablePermission="N56">
+                                <img src="assets/icon/action_confirm_hr_16.png" />HCNS
+                                <i nz-icon nzType="down"></i>
+                            </button>
+                            <nz-dropdown-menu #menu2="nzDropdownMenu">
+                                <ul nz-menu>
+                                    <li nz-menu-item (click)="approvedTrainingRegistration(1,3)">
+                                        <img src="assets/icon/action_approved_16.png" />Duyệt
+                                    </li>
+                                    <li nz-menu-item (click)="approvedTrainingRegistration(2,3)">
+                                        <img src="assets/icon/action_unapproved_16.png" />Hủy duyệt
+                                    </li>
+                                </ul>
+                            </nz-dropdown-menu>
+                        </div>
 
-            <!-- Ban giám đốc -->
-            <div class="btn-group">
-              <button
-                nz-button
-                nz-dropdown
-                [nzDropdownMenu]="menu3"
-                class="p-0 fs-12 h-auto"
-              >
-                <nz-icon nzType="BGD-Approved" nzTheme="fill" class="ms-1" />Ban
-                giám đốc
-                <i nz-icon nzType="down"></i>
-              </button>
-              <nz-dropdown-menu #menu3="nzDropdownMenu">
-                <ul nz-menu>
-                  <li nz-menu-item (click)="approvedTrainingRegistration(1,4)">
-                    <i nz-icon nzType="check" class="me-1"></i>Duyệt
-                  </li>
-                  <li nz-menu-item (click)="approvedTrainingRegistration(2,4)">
-                    <i nz-icon nzType="file" class="me-1"></i>Hủy duyệt
-                  </li>
-                </ul>
-              </nz-dropdown-menu>
+                        <!-- Ban giám đốc -->
+                        <div class="btn-group">
+                            <button nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="menu3"
+                                disablePermission="N58">
+                                <img src="assets/icon/action_confirm_bgd_16.png" />Ban giám đốc
+                                <i nz-icon nzType="down"></i>
+                            </button>
+                            <nz-dropdown-menu #menu3="nzDropdownMenu">
+                                <ul nz-menu>
+                                    <li nz-menu-item (click)="approvedTrainingRegistration(1,4)">
+                                        <img src="assets/icon/action_approved_16.png" />Duyệt
+                                    </li>
+                                    <li nz-menu-item (click)="approvedTrainingRegistration(2,4)">
+                                        <img src="assets/icon/action_unapproved_16.png" />Hủy duyệt
+                                    </li>
+                                </ul>
+                            </nz-dropdown-menu>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <nz-splitter>
+                        <nz-splitter-panel [nzSize]="showDetailPanel ? '60%' : '100%'" [nzCollapsible]="true"
+                            nzResizable="true">
+                            <div #tbData></div>
+                        </nz-splitter-panel>
+                        <nz-splitter-panel #detailPanel [nzSize]="showDetailPanel ? '40%' : 0" [nzCollapsible]="true"
+                            nzResizable="true">
+                            <nz-tabset class="ps-1">
+                                <nz-tab nzTitle="Hạng mục đăng ký">
+                                    <div #tbDetail></div>
+                                </nz-tab>
+                                <nz-tab nzTitle="Chi tiết duyệt">
+                                    <div #tbAppoved></div>
+                                </nz-tab>
+                                <nz-tab nzTitle="File đính kèm">
+                                    <div #tbFiles></div>
+                                </nz-tab>
+                            </nz-tabset>
+                        </nz-splitter-panel>
+                    </nz-splitter>
+                </div>
             </div>
-          </div>
-        </div>
-        <div class="card-body p-0" >
-          <nz-splitter>
-            <nz-splitter-panel
-              [nzSize]="showDetailPanel ? '60%' : '100%'"
-              [nzCollapsible]="true"
-              nzResizable="true"
-            >
-              <div #tbData></div>
-            </nz-splitter-panel>
-            <nz-splitter-panel
-              #detailPanel
-              [nzSize]="showDetailPanel ? '40%' : 0"
-              [nzCollapsible]="true"
-              nzResizable="true"
-            >
-              <nz-tabset class="ps-1">
-                <nz-tab nzTitle="Hạng mục đăng ký">
-                  <div #tbDetail></div>
-                </nz-tab>
-                <nz-tab nzTitle="Chi tiết duyệt">
-                  <div #tbAppoved></div>
-                </nz-tab>
-                <nz-tab nzTitle="File đính kèm">
-                  <div #tbFiles></div>
-                </nz-tab>
-              </nz-tabset>
-            </nz-splitter-panel>
-          </nz-splitter>
-        </div>
-      </div>
-    </nz-splitter-panel>
-  </nz-splitter>
+        </nz-splitter-panel>
+    </nz-splitter>
 </ng-container>

@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { HOST } from '../../../../app.config';
+import { environment } from '../../../../../environments/environment';
+// import { HOST } from '../../../../app.config';
 @Injectable({
   providedIn: 'root',
 })
 export class TsAssetRecoveryPersonalService {
   constructor(private httpclient: HttpClient) {}
-  private url = `${HOST}api/AssetManagementPersonal/`;
+  private url = `${environment.host}api/AssetManagementPersonal/`;
   getAssetRecoveryPersonal(request: any) {
     return this.httpclient.post<any>(
       `${this.url + `get-asset-recovery-personal`}`,

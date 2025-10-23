@@ -1,12 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { HOST } from '../../../../app.config';
+import { environment } from '../../../../../environments/environment';
+// import { HOST } from '../../../../app.config';
 @Injectable({
   providedIn: 'root',
 })
 export class PokhService {
-  private _url = HOST + 'api/POKH/';
+  private _url = environment.host + 'api/POKH/';
   constructor(private http: HttpClient) {}
 
   getPOKH(

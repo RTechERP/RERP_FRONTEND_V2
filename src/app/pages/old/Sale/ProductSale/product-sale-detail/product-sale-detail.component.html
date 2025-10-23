@@ -5,15 +5,16 @@
       <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
     </div>
     <div class="modal-body">
-      <form  nz-form class="g-3 needs-validation was-validated" >
+      <form  nz-form [formGroup]="formGroup" class="g-3 needs-validation was-validated" >
         <div class="row">
           <div class="col-md-6 ">
-            <nz-form-label class="fs-12">Mã kho</nz-form-label>
-            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn kho">
+            <nz-form-label class="fs-12">Mã kho<span class="text-danger ps-1 me-1"> (*) </span></nz-form-label>
+            <nz-form-control [nzSpan]="24" [nzErrorTip]="formGroup.get('ProductGroupID')?.invalid && (formGroup.get('ProductGroupID')?.dirty || formGroup.get('ProductGroupID')?.touched)
+            ? 'Vui lòng chọn kho!'
+            : undefined">
               <nz-input-group required nzSearch nzSize="default" class="w-100">
                 <nz-select
-                  [(ngModel)]="newProductSale.ProductGroupID"
-                  name="ProductGroupID"
+                  formControlName="ProductGroupID"
                   nzPlaceHolder="Chọn kho"
                   class="fs-12 w-100"
                   required
@@ -32,12 +33,13 @@
           </div>
          
           <div class="col-md-6 pb-3">
-            <nz-form-label class="fs-12">Đơn vị</nz-form-label>  
-            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn kho">
+            <nz-form-label class="fs-12">Đơn vị<span class="text-danger ps-1 me-1"> (*) </span></nz-form-label>  
+            <nz-form-control [nzSpan]="24" [nzErrorTip]="formGroup.get('Unit')?.invalid && (formGroup.get('Unit')?.dirty || formGroup.get('Unit')?.touched)
+            ? 'Vui lòng chọn đơn vị!'
+            : undefined">
               <nz-input-group required [nzAddOnAfter]="unitCountIconButton" nzSearch nzSize="default" class="w-100">
                 <nz-select
-                  [(ngModel)]="newProductSale.Unit"
-                  name="Unit"
+                  formControlName="Unit"
                   nzPlaceHolder="Chọn đơn vị"
                   class="fs-12 w-100"
                   required
@@ -61,40 +63,43 @@
         </div>
         <div class="row">
           <div class="col-md-6 pb-3">
-            <nz-form-label class="fs-12">Mã sản phẩm</nz-form-label>
-            <nz-form-control>
-                <input nz-input  name="ProductCode" [(ngModel)]="newProductSale.ProductCode"  />
+            <nz-form-label class="fs-12">Mã thiết bị <span class="text-danger ps-1 me-1"> (*) </span></nz-form-label>
+            <nz-form-control [nzErrorTip]="getProductCodeError()">
+                <input nz-input formControlName="ProductCode" />
             </nz-form-control>
           </div>
           <div class="col-md-6 pb-3">
             <nz-form-label class="fs-12">Tồn kho đầu kì</nz-form-label>  
             <nz-form-control [nzSpan]="24" nzErrorTip="">
-              <nz-input-number [(ngModel)]="newProductSale.NumberInStoreDauky" [style.width.%]="100" name="NumberInStoreDauky" nzMin="0.0" nzStep="0.1" [disabled]="true" />
+              <nz-input-number formControlName="NumberInStoreDauky" [style.width.%]="100" nzMin="0.0" nzStep="0.1" />
             </nz-form-control>
           </div>
         </div>
         <div class="row">
           <div class="col-md-6 pb-3">
-            <nz-form-label class="fs-12">Tên thiết bị</nz-form-label>
-            <nz-form-control>
-                <input nz-input name="ProductName" [(ngModel)]="newProductSale.ProductName" placeholder="Vui lòng nhập tên thiết bị"  />
+            <nz-form-label class="fs-12">Tên thiết bị<span class="text-danger ps-1 me-1"> (*) </span></nz-form-label>
+            <nz-form-control [nzErrorTip]="formGroup.get('ProductName')?.invalid && (formGroup.get('ProductName')?.dirty || formGroup.get('ProductName')?.touched)
+            ? 'Vui lòng nhập tên thiết bị!'
+            : undefined">
+                <input nz-input formControlName="ProductName" placeholder="Vui lòng nhập tên thiết bị"  />
             </nz-form-control>
           </div>
           <div class="col-md-6 pb-3">
             <nz-form-label class="fs-12">Tồn kho cuối kì</nz-form-label>  
             <nz-form-control [nzSpan]="24" nzErrorTip="">
-              <nz-input-number [style.width.%]="100" [(ngModel)]="newProductSale.NumberInStoreCuoiKy" name="NumberInStoreCuoiKy" nzMin="0.0" nzStep="0.1" nzSize="default" [disabled]="true" />              
+              <nz-input-number [style.width.%]="100" formControlName="NumberInStoreCuoiKy" nzMin="0.0" nzStep="0.1" nzSize="default" />              
             </nz-form-control>
           </div>
         </div>
         <div class="row">
           <div class="col-md-6 pb-3">
-            <nz-form-label class="fs-12">Vị trí</nz-form-label>
-            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn kho">
+            <nz-form-label class="fs-12">Vị trí<span class="text-danger ps-1 me-1"> (*) </span></nz-form-label>
+            <nz-form-control [nzSpan]="24" [nzErrorTip]="formGroup.get('LocationID')?.invalid && (formGroup.get('LocationID')?.dirty || formGroup.get('LocationID')?.touched)
+            ? 'Vui lòng chọn vị trí!'
+            : undefined">
               <nz-input-group required nzSearch nzSize="default" class="w-100" [nzAddOnAfter]="locationIconButton">
                 <nz-select
-                  [(ngModel)]="newProductSale.LocationID"
-                  name="LocationID"
+                  formControlName="LocationID"
                   nzPlaceHolder="Chọn vị trí"
                   class="fs-12 w-100"
                   required
@@ -116,12 +121,13 @@
             </nz-form-control>
           </div>
           <div class="col-md-6 pb-3">
-            <nz-form-label class="fs-12">Hãng </nz-form-label>  
-            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn hãng">
+            <nz-form-label class="fs-12">Hãng<span class="text-danger ps-1 me-1"> (*) </span></nz-form-label>  
+            <nz-form-control [nzSpan]="24" [nzErrorTip]="formGroup.get('Maker')?.invalid && (formGroup.get('Maker')?.dirty || formGroup.get('Maker')?.touched)
+            ? 'Vui lòng chọn hãng!'
+            : undefined">
               <nz-input-group required nzSearch nzSize="default" class="w-100" [nzAddOnAfter]="firmIconButton">
                 <nz-select
-                  [(ngModel)]="newProductSale.FirmID"
-                  name="FirmID"
+                  formControlName="Maker"
                   nzPlaceHolder="Chọn hãng"
                   class="fs-12 w-100"
                   required
@@ -130,7 +136,7 @@
                 >
                   <nz-option
                     *ngFor="let id of listFirm"
-                    [nzValue]="id.ID"
+                    [nzValue]="id.FirmName"
                     [nzLabel]="id.FirmName"
                   ></nz-option>
                 </nz-select>
@@ -147,7 +153,7 @@
           <div class="col-md-12">
               <nz-form-label class="fs-12">Ghi chú</nz-form-label>
               <nz-form-control>
-                  <textarea nz-input placeholder="Ghi chú" required   [(ngModel)]="newProductSale.Note" name="Note" ></textarea>
+                  <textarea nz-input placeholder="Ghi chú" formControlName="Note"></textarea>
               </nz-form-control>      
         </div>
       </div>

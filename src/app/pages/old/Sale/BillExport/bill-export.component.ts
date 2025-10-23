@@ -37,6 +37,7 @@ import { HistoryDeleteBillComponent } from './Modal/history-delete-bill/history-
 import { BillExportSyntheticComponent } from './Modal/bill-export-synthetic/bill-export-synthetic.component';
 import { ScanBillComponent } from './Modal/scan-bill/scan-bill.component';
 import { BillDocumentExportComponent } from './Modal/bill-document-export/bill-document-export.component';
+import { ActivatedRoute } from '@angular/router';
 interface BillExport {
   Id?: number;
   TypeBill: boolean;
@@ -82,6 +83,7 @@ interface BillExport {
   styleUrl: './bill-export.component.css',
 })
 export class BillExportComponent implements OnInit, AfterViewInit {
+  wareHouseCode: string = "HN";
   dataProductGroup: any[] = [];
   data: any[] = [];
   sizeSearch: string = '0';
@@ -95,6 +97,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
   isCheckmode: boolean = false;
   id: number = 0;
   selectBillExport: any[] = [];
+  billExportID : number =0;
   newBillExport: BillExport = {
     TypeBill: false,
     Code: '',
@@ -142,9 +145,16 @@ export class BillExportComponent implements OnInit, AfterViewInit {
     private billExportService: BillExportService,
     private notification: NzNotificationService,
     private modal: NzModalService,
-    private modalService: NgbModal
-  ) {}
+    private modalService: NgbModal,
+    private route: ActivatedRoute // hỡ trợ router
+  ) { }
   ngOnInit(): void {
+    // Đọc wareHouseCode từ query params
+   // Đọc wareHouseCode từ query params
+   this.route.queryParams.subscribe(params => {
+    this.wareHouseCode = params['wareHouseCode'] || '';
+    console.log('wareHouseCode in BillExportComponent:', this.wareHouseCode);
+  });
     this.getProductGroup();
   }
   ngAfterViewInit(): void {
@@ -249,6 +259,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
   }
   searchData() {
     this.loadDataBillExport();
+    this.getBillExportDetail(this.id);
     console.log('searchparams', this.searchParams);
   }
   onCheckboxChange() {
@@ -354,6 +365,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.newBillExport = this.newBillExport;
     modalRef.componentInstance.isCheckmode = this.isCheckmode;
     modalRef.componentInstance.id = this.id;
+    modalRef.componentInstance.wareHouseCode = this.wareHouseCode;
 
     modalRef.result.catch((result) => {
       if (result == true) {
@@ -379,9 +391,21 @@ export class BillExportComponent implements OnInit, AfterViewInit {
       this.notification.info('Thông báo', 'Vui lòng chọn 1 phiếu để xóa!');
       return;
     }
+    const selected = this.data[0];
+    if (selected?.IsApproved === true) {
+      this.notification.warning('Thông báo', 'Phiếu đã được duyệt không thể xóa!');
+      return;
+    }
+
+    const payload = {
+      billExport: {
+        ID: selected.ID || 0,
+        IsDeleted: true,
+      }
+    };
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: 'Bạn có chắc chắn muốn xóa phiếu không?',
+      nzContent: `Bạn có chắc chắn muốn xóa phiếu "${selected?.Code || ''}" không?`,
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
       nzOnOk: () => {

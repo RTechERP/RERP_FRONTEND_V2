@@ -8,7 +8,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { jwtDecode } from 'jwt-decode';
 import { Router } from '@angular/router';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
-import { AuthService } from '../../../../auth/auth.service';
+import { AuthService } from '../../../auth/auth.service';
 @Component({
   selector: 'app-app-user-dropdown',
   standalone: true,

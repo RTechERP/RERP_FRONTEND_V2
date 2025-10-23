@@ -1275,9 +1275,9 @@ export class FactoryVisitRegistrationComponent
         id: String(item.id),
         title:
           item.guestCompany +
-          '<br>' +
+          ': ' +
           item.registeringEmployeeName +
-          '<br>' +
+          ':' +
           item.purpose,
         // ${ || ''}\n
         // ${ || ''}`,

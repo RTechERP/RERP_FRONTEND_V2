@@ -38,6 +38,7 @@ import { CommonModule } from '@angular/common';
 import { TsAssetManagementPersonalService } from '../ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { DisablePermissionDirective } from '../../../directives/disable-permission.directive';
 @Component({
   standalone: true,
   imports: [
@@ -59,6 +60,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
     NzSelectModule,
     NzTableModule,
     NzTabsModule,
+    DisablePermissionDirective,
   ],
 
   selector: 'app-ts-asset-allocation-personal',
@@ -272,23 +274,23 @@ export class TsAssetAllocationPersonalComponent
           hozAlign: 'center',
           headerHozAlign: 'center',
         },
-        {
-          title: 'HR Duyệt',
-          field: 'IsApproveHR',
-          formatter: function (cell: any) {
-            const value = cell.getValue();
-            const checked =
-              value === true ||
-              value === 'true' ||
-              value === 1 ||
-              value === '1';
-            return `<input type="checkbox" ${
-              checked ? 'checked' : ''
-            } onclick="return false;" />`;
-          },
-          hozAlign: 'center',
-          headerHozAlign: 'center',
-        },
+        // {
+        //   title: 'HR Duyệt',
+        //   field: 'IsApproveHR',
+        //   formatter: function (cell: any) {
+        //     const value = cell.getValue();
+        //     const checked =
+        //       value === true ||
+        //       value === 'true' ||
+        //       value === 1 ||
+        //       value === '1';
+        //     return `<input type="checkbox" ${
+        //       checked ? 'checked' : ''
+        //     } onclick="return false;" />`;
+        //   },
+        //   hozAlign: 'center',
+        //   headerHozAlign: 'center',
+        // },
         {
           title: 'Ngày cấp phát',
           field: 'DateAllocation',
@@ -607,6 +609,8 @@ export class TsAssetAllocationPersonalComponent
   openModalAllocation() {
     this.formNote = '';
     // mở modal thêm mới
+    this.allocationDate = new Date().toISOString().split('T')[0];
+    this.onDateChange(new Date(this.allocationDate));
     const fresh = this.resetAllocationFlags(this.assetPersonals);
     this.tbAssetPersonModal?.setData(fresh);
     const el = document.getElementById('addAllocationModal');
@@ -768,6 +772,9 @@ export class TsAssetAllocationPersonalComponent
     }
     return true;
   }
+  private getSelectedRow(): any | null {
+    return this.tbAssetAllocationPersonal?.getSelectedData()?.[0] || null;
+  }
   updateApprove(
     action:
       | 'HR_APPROVE'
@@ -777,7 +784,7 @@ export class TsAssetAllocationPersonalComponent
       | 'PERSONAL_CANCEL'
   ) {
     if (!this.validateApproveAllocation(action)) return;
-
+    const row = this.getSelectedRow();
     const ids = this.getSelectedIds();
     if (ids.length !== 1) {
       this.notification.warning(
@@ -786,6 +793,8 @@ export class TsAssetAllocationPersonalComponent
       );
       return;
     }
+    const idd = Number(row.ID);
+    const employeeId = Number(row.EmployeeID || 0);
     const id = ids[0];
     let updatePayload: {
       tSAllocationAssetPersonal: {
@@ -793,49 +802,162 @@ export class TsAssetAllocationPersonalComponent
         isDeleted?: boolean;
         isApproveHR?: boolean;
         isApprovedPersonalProperty?: boolean;
+        EmployeeID: number;
       };
     };
     switch (action) {
       case 'HR_APPROVE':
         updatePayload = {
-          tSAllocationAssetPersonal: { id, isApproveHR: true },
+          tSAllocationAssetPersonal: {
+            id,
+            isApproveHR: true,
+            EmployeeID: employeeId,
+          },
         };
         break;
       case 'HR_CANCEL':
         updatePayload = {
-          tSAllocationAssetPersonal: { id, isApproveHR: false },
+          tSAllocationAssetPersonal: {
+            id,
+            isApproveHR: false,
+            EmployeeID: employeeId,
+          },
         };
         break;
       case 'PERSONAL_APPROVE':
         updatePayload = {
-          tSAllocationAssetPersonal: { id, isApprovedPersonalProperty: true },
+          tSAllocationAssetPersonal: {
+            id,
+            isApprovedPersonalProperty: true,
+            EmployeeID: employeeId,
+          },
         };
         break;
       case 'PERSONAL_CANCEL':
         updatePayload = {
-          tSAllocationAssetPersonal: { id, isApprovedPersonalProperty: false },
+          tSAllocationAssetPersonal: {
+            id,
+            isApprovedPersonalProperty: false,
+            EmployeeID: employeeId,
+          },
         };
         break;
       case 'Delete':
-        updatePayload = { tSAllocationAssetPersonal: { id, isDeleted: true } };
+        updatePayload = {
+          tSAllocationAssetPersonal: {
+            id,
+            isDeleted: true,
+            EmployeeID: employeeId,
+          },
+        };
         break;
     }
-    this.assetAllocationService
-      .saveAssetAllocationPerson(updatePayload)
-      .subscribe({
-        next: (res) => {
-          if (res.status === 1) {
-            this.notification.success('Thông báo', 'Thành công');
-            setTimeout(() => this.getAssetAllocationPersonals(), 100);
-          } else {
-            this.notification.warning('Thông báo', 'Thất bại');
-          }
-        },
-        error: (err) => {
-          console.error(err);
-          this.notification.warning('Thông báo', 'Lỗi kết nối');
-        },
-      });
+    this.assetAllocationService.SaveApprove(updatePayload).subscribe({
+      next: (res) => {
+        if (res.status === 1) {
+          this.notification.success('Thông báo', 'Thành công');
+          setTimeout(() => this.getAssetAllocationPersonals(), 100);
+        } else {
+          this.notification.warning('Thông báo', 'Thất bại');
+        }
+      },
+      error: (res) => {
+        console.error(res);
+        this.notification.warning('Thông báo', res.error.message);
+      },
+    });
+  }
+  updateApprovePersonal(
+    action:
+      | 'HR_APPROVE'
+      | 'HR_CANCEL'
+      | 'Delete'
+      | 'PERSONAL_APPROVE'
+      | 'PERSONAL_CANCEL'
+  ) {
+    if (!this.validateApproveAllocation(action)) return;
+    const row = this.getSelectedRow();
+    const ids = this.getSelectedIds();
+    if (ids.length !== 1) {
+      this.notification.warning(
+        'Thông báo',
+        'Chỉ được chọn một bản ghi để cập nhật.'
+      );
+      return;
+    }
+    const idd = Number(row.ID);
+    const employeeId = Number(row.EmployeeID || 0);
+    const id = ids[0];
+    let updatePayload: {
+      tSAllocationAssetPersonal: {
+        id: number;
+        isDeleted?: boolean;
+        isApproveHR?: boolean;
+        isApprovedPersonalProperty?: boolean;
+        EmployeeID: number;
+      };
+    };
+    switch (action) {
+      case 'HR_APPROVE':
+        updatePayload = {
+          tSAllocationAssetPersonal: {
+            id,
+            isApproveHR: true,
+            EmployeeID: employeeId,
+          },
+        };
+        break;
+      case 'HR_CANCEL':
+        updatePayload = {
+          tSAllocationAssetPersonal: {
+            id,
+            isApproveHR: false,
+            EmployeeID: employeeId,
+          },
+        };
+        break;
+      case 'PERSONAL_APPROVE':
+        updatePayload = {
+          tSAllocationAssetPersonal: {
+            id,
+            isApprovedPersonalProperty: true,
+            EmployeeID: employeeId,
+          },
+        };
+        break;
+      case 'PERSONAL_CANCEL':
+        updatePayload = {
+          tSAllocationAssetPersonal: {
+            id,
+            isApprovedPersonalProperty: false,
+            EmployeeID: employeeId,
+          },
+        };
+        break;
+      case 'Delete':
+        updatePayload = {
+          tSAllocationAssetPersonal: {
+            id,
+            isDeleted: true,
+            EmployeeID: employeeId,
+          },
+        };
+        break;
+    }
+    this.assetAllocationService.SaveApprovePerson(updatePayload).subscribe({
+      next: (res) => {
+        if (res.status === 1) {
+          this.notification.success('Thông báo', 'Thành công');
+          setTimeout(() => this.getAssetAllocationPersonals(), 100);
+        } else {
+          this.notification.warning('Thông báo', 'Thất bại');
+        }
+      },
+      error: (res) => {
+        console.error(res);
+        this.notification.warning('Thông báo', res.error.message);
+      },
+    });
   }
   onSearchChange(): void {
     if (!this.tbAssetAllocationPersonal) return;

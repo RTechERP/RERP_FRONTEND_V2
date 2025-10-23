@@ -1,0 +1,162 @@
+<!-- handover-minutes.component.html -->
+<div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">CHI TIẾT BIỂU GHI NHẬN LỖI & PHƯƠNG ÁN KHẮC PHỤC</h6>
+    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body">
+    <!-- Nội dung tab hiện tại -->
+    <div class="tab-content">
+        <form>
+            <div class="row g-1 mb-2">
+                <!-- Column 1: Customer Info -->
+                <div class="col-md-6">
+                    <div class="row g-1">
+                        <div class="col-md-6 mt-1">
+                            <label class="mb-0 fs-12">Loại biểu ghi <span class="text-danger ps-1">(*)</span></label> 
+                            <nz-select nzShowSearch name="types" nzPlaceHolder="Chọn loại biểu ghi" nzAllowClear
+                                nzSize="default" class="w-100" [(ngModel)]="formData.issueSolutionType">
+                                <nz-option *ngFor="let item of issueSolutionTypes" [nzValue]="item.value"
+                                    [nzLabel]="item.name"></nz-option>
+                            </nz-select>
+                        </div>
+                        <div class="col-md-6 mt-1">
+                            <label class="mb-0 fs-12">Ngày ghi nhận</label>
+                            <nz-date-picker name="dateStart" class="w-100" nzFormat="dd/MM/yyyy" nzAllowClear="false"
+                                [(ngModel)]="formData.dateIssue"></nz-date-picker>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="mb-0 fs-12">Phòng ghi nhận</label>
+                            <nz-select nzShowSearch name="departmentId" nzPlaceHolder="Chọn phòng ghi nhận" nzAllowClear
+                                nzSize="default" class="w-100" [(ngModel)]="formData.departmentId">
+                                <nz-option *ngFor="let department of departments" [nzValue]="department.ID"
+                                    [nzLabel]="department.Name"></nz-option>
+                            </nz-select>
+                        </div>
+                        <div class="col-md-6 mt-1">
+                            <label class="mb-0 fs-12">Phòng ban liên quan</label>
+                            <nz-select nzShowSearch name="relatedDepartmentId" nzPlaceHolder="Chọn phòng ban liên quan" nzAllowClear
+                                nzSize="default" class="w-100" [(ngModel)]="formData.relatedDepartmentId">
+                                <nz-option *ngFor="let department of departments" [nzValue]="department.ID"
+                                    [nzLabel]="department.Name"></nz-option>
+                            </nz-select>
+                        </div>
+                        <div class="col-md-6 mt-1 ">
+                            <label class="mb-0 fs-12">Số chứng từ</label>
+                            <nz-select nzMode="multiple" nzShowSearch name="documentId" nzPlaceHolder="Chọn số chứng từ" nzAllowClear
+                                nzSize="default" class="w-100" [(ngModel)]="formData.documentNumber">
+                                <nz-option *ngFor="let item of documents" [nzValue]="item.Code"
+                                    [nzLabel]="item.Code + ' - ' + item.SourceTable"></nz-option>
+                            </nz-select>
+                        </div>
+                        <div class="col-md-6 mt-1 ">
+                            <label class="mb-0 fs-12">Nhà cung cấp</label>
+                            <nz-select nzShowSearch name="supplierId" nzPlaceHolder="Chọn nhà cung cấp" nzAllowClear
+                                nzSize="default" class="w-100" [(ngModel)]="formData.supplierId">
+                                <nz-option *ngFor="let supplier of suppliers" [nzValue]="supplier.ID"
+                                    [nzLabel]="supplier.NameNCC + ' - ' + supplier.CodeNCC"></nz-option>
+                            </nz-select>
+                        </div>
+                        <div class="col-md-12 mt-1">
+                            <label class="mb-0 fs-12">Trạng thái</label>
+                            <nz-select nzShowSearch name="status" nzPlaceHolder="Chọn trạng thái" nzAllowClear
+                                nzSize="default" class="w-100" [(ngModel)]="formData.statusId" (ngModelChange)="onStatusChange()">
+                                <nz-option *ngFor="let status of statuses" [nzValue]="status.ID"
+                                    [nzLabel]="status.StatusName"></nz-option>
+                            </nz-select>
+                        </div>
+                        <div class="col-md-12 mt-1 ">
+                            <label class="mb-0 fs-12">Lý do không đồng ý</label>
+                            <textarea class="form-control form-control-sm fs-12" name="reasonIgnoreStatusText" rows="2" [(ngModel)]="formData.reasonIgnoreStatusText" [disabled]="!isIgnoreStatusSelected()"></textarea>
+                        </div>
+                        <div class="col-md-12 mt-1 ">
+                            <label class="mb-0 fs-12">Mô tả lỗi/sự việc</label>
+                            <textarea class="form-control form-control-sm fs-12" name="issueDescription" rows="2" [(ngModel)]="formData.issueDescription"></textarea>
+                        </div>
+                        <div class="col-md-12 mt-1 ">
+                            <label class="mb-0 fs-12">Phương án khắc phục trước mắt</label>
+                            <textarea class="form-control form-control-sm fs-12" name="immediateAction" rows="2" [(ngModel)]="formData.immediateAction"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column 2: Employee Info -->
+                <div class="col-md-6">
+                    <div class="row g-1">
+
+                        <div class="col-md-6 mt-1">
+                            <label class="mb-0 fs-12">Khách hàng</label>
+                            <nz-select nzShowSearch name="customerId" nzPlaceHolder="Chọn khách hàng" nzAllowClear
+                                nzSize="default" class="w-100" [(ngModel)]="formData.customerId">
+                                <nz-option *ngFor="let customer of customers" [nzValue]="customer.ID"
+                                    [nzLabel]="customer.CustomerCode+ ' - ' + customer.CustomerName"></nz-option>
+                            </nz-select>
+                        </div>
+                        <div class="col-md-6 mt-1">
+                            <label class="mb-0 fs-12">Người xác nhận hoàn thành</label>
+                            <nz-select nzShowSearch name="verifiedBy" nzPlaceHolder="Chọn người xác nhận hoàn thành" nzAllowClear
+                                nzSize="default" class="w-100" [(ngModel)]="formData.verifiedBy">
+                                <nz-option *ngFor="let employee of employees" [nzValue]="employee.ID"
+                                    [nzLabel]="employee.FullName"></nz-option>
+                            </nz-select>
+                        </div>
+                        <div class="col-md-6 mt-1">
+                            <label class="mb-0 fs-12">Người chịu trách nhiệm xử lý</label>
+                            <nz-select nzShowSearch name="employeeId" nzPlaceHolder="Chọn người chịu trách nhiệm xử lý" nzAllowClear
+                                nzSize="default" class="w-100" [(ngModel)]="formData.employeeId">
+                                <nz-option *ngFor="let employee of employees" [nzValue]="employee.ID"
+                                    [nzLabel]="employee.FullName"></nz-option>
+                            </nz-select>
+                        </div>
+                        <div class="col-md-6 mt-1">
+                            <label class="mb-0 fs-12">Thời hạn khắc phục</label>
+                            <nz-date-picker name="dateStart" class="w-100" nzFormat="dd/MM/yyyy" nzAllowClear="false"
+                                [(ngModel)]="formData.deadline"></nz-date-picker>
+                        </div>
+
+                        <div class="col-md-12 mt-1">
+                            <label class="mb-0 fs-12">Mã dự án</label>
+                            <nz-select nzShowSearch name="projectId" nzPlaceHolder="Chọn dự án" nzAllowClear
+                                nzSize="default" class="w-100" [(ngModel)]="formData.projectId">
+                                <nz-option *ngFor="let project of projects" [nzValue]="project.ID"
+                                    [nzLabel]="project.ProjectName + '-' + project.ProjectCode"></nz-option>
+                            </nz-select>
+                        </div>
+                        <div class="col-md-12 mt-1">
+                            <label class="mb-0 fs-12">Nguyên nhân</label>
+                            <nz-select nzShowSearch name="issueCauseId" nzPlaceHolder="Chọn nguyên nhân" nzAllowClear
+                                nzSize="default" class="w-100" [(ngModel)]="formData.issueCauseId" (ngModelChange)="onIssueCauseChange()">
+                                <nz-option *ngFor="let issueCause of issueCauses" [nzValue]="issueCause.ID"
+                                    [nzLabel]="issueCause.IssueCauseText"></nz-option>
+                            </nz-select>
+                        </div>
+
+                        <div class="col-md-12 mt-1 ">
+                            <label class="mb-0 fs-12">Nguyên nhân khác</label>
+                            <textarea class="form-control form-control-sm fs-12" name="otherIssueCauseNote" rows="2" [(ngModel)]="formData.otherIssueCauseNote" [disabled]="!isOtherCauseSelected()"></textarea>
+                        </div>
+
+                        <div class="col-md-12 mt-1 ">
+                            <label class="mb-0 fs-12">Chi tiết ảnh hưởng/Hậu quả</label>
+                            <textarea class="form-control form-control-sm fs-12" name="impactDetail" rows="2" [(ngModel)]="formData.impactDetail"></textarea>
+                        </div>
+
+                        <div class="col-md-12 mt-1 ">
+                            <label class="mb-0 fs-12">Phương án phòng ngừa lâu dài</label>
+                            <textarea class="form-control form-control-sm fs-12" name="preventiveAction" rows="2" [(ngModel)]="formData.preventiveAction"></textarea>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="col-md-12 mt-1 ">
+                    <label class="mb-0 fs-12">Ghi chú</label>
+                    <textarea class="form-control form-control-sm fs-12" name="note" rows="4" [(ngModel)]="formData.note"></textarea>
+                </div>
+            </div>
+        </form>
+
+        <div class="modal-footer py-1">
+            <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
+            <button nz-button nzType="primary" nzSize="default" (click)="saveData()">Lưu</button>
+        </div>
+    </div>

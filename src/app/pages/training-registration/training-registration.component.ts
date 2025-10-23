@@ -49,6 +49,7 @@ import { AppUserService } from '../../services/app-user.service';
 import { PermissionService } from '../../services/permission.service';
 import { HasPermissionDirective } from '../../directives/has-permission.directive';
 import { DisablePermissionDirective } from '../../directives/disable-permission.directive';
+import { DEFAULT_TABLE_CONFIG } from '../../tabulator-default.config';
 
 @Component({
   selector: 'app-training-registration',

@@ -360,7 +360,7 @@ export class TsAssetAllocationPersonalComponent
           {
             data: this.assetAllocationDetailData,
             ...DEFAULT_TABLE_CONFIG,
-            layout: 'fitDataStretch',
+            // layout: 'fitDataStretch',
             paginationMode: 'local',
             reactiveData: true,
             columns: [

@@ -32,6 +32,7 @@ import { ProjectSurveyComponent } from '../../pages/old/project/project-survey/p
 import { ProjectItemLateComponent } from '../../pages/old/project/project-item-late/project-item-late.component';
 import { ProjectWorkItemTimelineComponent } from '../../pages/old/project/project-work-item-timeline/project-work-item-timeline.component';
 import { SynthesisOfGeneratedMaterialsComponent } from '../../pages/old/project/synthesis-of-generated-materials/synthesis-of-generated-materials.component';
+import { IssueSolutionComponent } from '../../pages/old/issue-solution/issue-solution.component';
 type TabItem = {
   title: string;
   comp: Type<any>;
@@ -120,6 +121,14 @@ export class MainLayoutComponent implements OnInit {
           isOpen: true,
           //   icon: 'assets/images/icons8-overview-20.png',
           comp: CustomerComponent,
+        },
+        {
+          kind: 'leaf',
+          key: 'IssueLogSolutionComponent',
+          title: 'Biểu ghi nhận lỗi & phương án khắc phục liên phòng ban',
+          isOpen: true,
+          //   icon: 'assets/images/icons8-overview-20.png',
+          comp: IssueSolutionComponent,
         },
       ],
     },

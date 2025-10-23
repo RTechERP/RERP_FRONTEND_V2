@@ -76,18 +76,22 @@
                         </button>
                         <span class="mx-2"
                             style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
-                        <button nz-button nzType="default" nzSize="small" (click)="updateApprove('PERSONAL_APPROVE')">
+                        <button nz-button nzType="default" nzSize="small"
+                            (click)="updateApprovePersonal('PERSONAL_APPROVE')">
                             <img src="assets/icon/action_approved_16.png" />Cá nhân duyệt
                         </button>
-                        <button nz-button nzType="default" nzSize="small" (click)="updateApprove('PERSONAL_CANCEL')">
+                        <button nz-button nzType="default" nzSize="small"
+                            (click)="updateApprovePersonal('PERSONAL_CANCEL')">
                             <img src="assets/icon/action_unapproved_16.png" />Cá nhân hủy duyệt
                         </button>
                         <span class="mx-2"
                             style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
-                        <button nz-button nzType="default" nzSize="small" (click)="updateApprove('HR_APPROVE')">
+                        <button nz-button nzType="default" nzSize="small" (click)="updateApprove('HR_APPROVE')"
+                            disablePermission="N23">
                             <img src="assets/icon/action_approved_16.png" />HR duyệt
                         </button>
-                        <button nz-button nzType="default" nzSize="small" (click)="updateApprove('HR_CANCEL')">
+                        <button nz-button nzType="default" nzSize="small" (click)="updateApprove('HR_CANCEL')"
+                            disablePermission="N23">
                             <img src="assets/icon/action_unapproved_16.png" />HR hủy duyệt
                         </button>
                     </div>

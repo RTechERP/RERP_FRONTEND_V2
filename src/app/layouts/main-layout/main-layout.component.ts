@@ -41,12 +41,14 @@ import { TsAssetManagementPersonalTypeComponent } from '../../pages/old/ts-asset
 import { TsAssetRecoveryPersonalComponent } from '../../pages/old/ts-asset-recovery-personal/ts-asset-recovery-personal.component';
 import { VehicleRepairComponent } from '../../pages/hrm/vehicle-repair/vehicle-repair.component';
 import { VehicleRepairTypeComponent } from '../../pages/hrm/vehicle-repair/vehicle-repair-type/vehicle-repair-type.component';
+
 import { DepartmentComponent } from '../../pages/old/department/department.component';
 import { TeamComponent } from '../../pages/old/team/team.component';
 import { PositionsComponent } from '../../pages/old/positions/positions.component';
 import { EmployeeComponent } from '../../pages/old/employee/employee.component';
 import { ContractComponent } from '../../pages/old/contract/contract.component';
 import { EmployeeScheduleWorkComponent } from '../../pages/old/holiday/employee-schedule-work/employee-schedule-work.component';
+
 type TabItem = {
   title: string;
   comp: Type<any>;
@@ -230,7 +232,6 @@ export class MainLayoutComponent implements OnInit {
           comp: VehicleRepairTypeComponent,
           //   icon: 'assets/icon/layers.png',
         },
-
         {
           kind: 'leaf',
           key: 'DepartmentComponent',

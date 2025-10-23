@@ -105,6 +105,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
 
   sizeTbDetail: any = '0';
   sizeTbSaleTable: any = '0';
+  activeView: 'contact' | 'address' | 'sale' = 'contact'; // Mặc định hiện Liên hệ
 
   private tb_MainTable!: Tabulator;
   private tb_ContactTable!: Tabulator;
@@ -112,6 +113,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   private tb_SaleTable!: Tabulator;
 
   sizeSearch: string = '0';
+  showDetail = false; // ← MẶC ĐỊNH ẨN
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
   }
@@ -143,6 +145,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
     this.getEmployeeData();
     this.getTeamData();
   }
+  
 
   ngAfterViewInit(): void {
     this.initAddressTable();
@@ -241,10 +244,10 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   openModal() {
     const modalRef = this.modalService.open(CustomerDetailComponent, {
       centered: true,
+      size: 'xl',
       backdrop: 'static',
-      windowClass: 'full-screen-modal',
+      keyboard: false,
     });
-    modalRef.componentInstance.isEditMode = this.isEditMode;
     modalRef.componentInstance.EditID = this.selectedId;
     modalRef.result.then(
       (result) => {
@@ -260,6 +263,12 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         console.log('Modal closed');
       }
     );
+  }
+  setDefautSearch(){
+    this.filters.keyword = "";
+    this.filters.userId = 0;
+    this.filters.teamId = 0;
+
   }
 
   openMajorModal() {
@@ -418,13 +427,18 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         },
       ],
     });
+    this.tb_MainTable.on('dataLoading',()=>{
+      this.tb_MainTable.deselectRow();
+      this.sizeTbDetail='0';
+    })
     this.tb_MainTable.on('rowClick', (e: any, row: RowComponent) => {
+      this.sizeTbDetail = null;
+
       const rowData = row.getData();
       this.selectedRow = rowData;
       this.selectedId = rowData['ID'];
+      // Load dữ liệu phụ
       this.getContactAndAddress(this.selectedId);
-      this.sizeTbSaleTable = '200';
-      this.sizeTbDetail = '240';
     });
   }
 
@@ -435,7 +449,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         data: this.customerContactData,
         ...DEFAULT_TABLE_CONFIG,
         // layout: 'fitColumns',
-        height: '90%',
+       
         // selectableRows: 1,
         pagination: false,
         // paginationSize: 100,
@@ -469,9 +483,9 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         data: this.addressStockData,
         ...DEFAULT_TABLE_CONFIG,
         // layout: 'fitDataFill',
-        height: '90%',
+       
         // selectableRows: 1,
-        pagination: false,
+        pagination: true,
         // paginationSize: 100,
         // movableColumns: true,
         // resizableRows: true,

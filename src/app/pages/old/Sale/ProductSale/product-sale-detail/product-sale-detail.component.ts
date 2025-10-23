@@ -246,7 +246,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
         next: (res) => {
           if (res.status === 1) {
             this.notification.success('Thông báo', 'Cập nhật thành công!');
-            this.closeModal();
+            this.activeModal.dismiss(true);
        
           } else {
             this.notification.warning('Thông báo', res.message || 'Không thể cập nhật sản phẩm!');
@@ -286,7 +286,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
         next: (res) => {
           if (res.status === 1) {
             this.notification.success('Thông báo',  'Thêm mới thành công!');
-            this.closeModal();
+            this.activeModal.dismiss(true);
           } else {
             this.notification.warning('Thông báo', res.message || 'Không thể thêm sản phẩm!');
           }
@@ -299,7 +299,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
     }
   }
   closeModal() {
-    this.activeModal.dismiss(true);
+    this.activeModal.dismiss(false);
   }
 
   // Hàm để lấy error message cho ProductCode

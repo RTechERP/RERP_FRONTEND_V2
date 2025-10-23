@@ -71,8 +71,11 @@ export class ProductsaleServiceService {
   getdataUnitCount() {
     return this.httpclient.get<any>(`${this.unitcountUrl}`);
   }
+  // getDataProductGroupcbb() {
+  //   return this.httpclient.get<any>(`${this.productgroupUrl}?isvisible=true`);
+  // }
   getDataProductGroupcbb() {
-    return this.httpclient.get<any>(`${this.productgroupUrl}?isvisible=true`);
+    return this.httpclient.get<any>(`${this.productgroupUrl}/get-all`);
   }
   getDataFirm() {
     return this.httpclient.get<any>(`${this.frimUrl}`);

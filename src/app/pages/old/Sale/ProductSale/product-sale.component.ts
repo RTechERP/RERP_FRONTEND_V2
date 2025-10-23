@@ -185,7 +185,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
                   firstRow.select();
                   const rowData = firstRow.getData();
                   this.dataDelete = rowData;
-                  this.id = rowData["ID"];
+                 // this.id = rowData["ID"];
                   this.getDataProductSaleByIDgroup(this.id);
                   this.getDataProductGroupWareHouse(this.id);
                 }
@@ -218,7 +218,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     }
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: 'Bạn có chắc chắn muốn xóa không?',
+      nzContent: 'Bạn có chắc chắn muốn xóa nhóm ['+this.dataDelete.ProductGroupName+'] không?',
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
@@ -433,9 +433,23 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
       );
       return;
     }
+    let name = '';
+    dataSelect.forEach((item) => {
+      name += item.ProductName + ',';
+    });
+    if(dataSelect.length > 10) {
+      if (name.length > 10) {
+        name = name.slice(0, 10) + '...';
+      }
+      name += ` và ${dataSelect.length - 1} vật tư khác`;
+    } else {
+      if (name.length > 20) {
+        name = name.slice(0, 20) + '...';
+      }
+    }
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: 'Bạn có chắc chắn muốn xóa không?',
+      nzContent: `Bạn có chắc chắn muốn xóa vật tư <b>[${name}]</b> không?`,
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
@@ -468,8 +482,9 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
       ...DEFAULT_TABLE_CONFIG,
       data: this.dataProducGroup,
       height: '100%',
-      pagination: false,
       selectableRows: 1,
+      pagination: false,
+      rowHeader: false,
       rowFormatter: function (row) {
         const data = row.getData();
         const el = row.getElement();
@@ -498,13 +513,22 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     });
 
     this.table.on('rowClick', (e: MouseEvent, row: RowComponent) => {
+      // Nếu click vào cột checkbox thì bỏ qua
       const rowData = row.getData();
       this.dataDelete = rowData;
       this.id = rowData['ID'];
-      //   console.log('Selected ID:', this.id);
+        console.log('Selected ID:', this.id);
       this.getDataProductSaleByIDgroup(this.id);
       this.getDataProductGroupWareHouse(this.id);
     });
+    this.table.on(
+      'rowDblClick',
+      (e: MouseEvent, row: RowComponent) => {
+        const rowData = row.getData();
+        this.id = rowData['ID']; // Make it an array with single item
+        this.openModalProductGroup(true);
+      });
+    
   }
   drawTable_PGWareHouse() {
     this.table_pgwarehouse = new Tabulator('#table_pgwarehouse', {

@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit, ViewChild, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { RowComponent } from 'tabulator-tables';
@@ -21,6 +21,22 @@ interface UnitCount {
   UnitCode: string,
   UnitName: string,
 }
+
+// Custom validator để kiểm tra ký tự tiếng Việt
+function noVietnameseValidator(control: AbstractControl): ValidationErrors | null {
+  if (!control.value) {
+    return null; // Không validate nếu giá trị rỗng
+  }
+  
+  // Regex để kiểm tra ký tự tiếng Việt
+  const vietnameseRegex = /[àáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵÀÁẢÃẠÂẦẤẨẪẬĂẰẮẲẴẶÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴđĐ]/i;
+  
+  if (vietnameseRegex.test(control.value)) {
+    return { vietnameseChars: true };
+  }
+  
+  return null;
+}
 @Component({
   selector: 'app-unit-count-detail',
   standalone:true,
@@ -40,27 +56,51 @@ interface UnitCount {
   templateUrl: './unit-count-detail.component.html',
   styleUrl: './unit-count-detail.component.css'
 })
-export class UnitCountDetailComponent {
+export class UnitCountDetailComponent implements OnInit, AfterViewInit {
   newUnitCount: UnitCount={
     UnitName: '',
     UnitCode: '',
   }
   @Input() listProductGroupcbb: any[] = [];
+  
+  formGroup: FormGroup;
+
   constructor(
     private notification: NzNotificationService,
     private fb: FormBuilder,
     public activeModal: NgbActiveModal,
     private modalService: NgbModal,
     private productsaleService: ProductsaleServiceService
-  ) { }
+  ) { 
+    this.formGroup = this.fb.group({
+      UnitCode: ['', [Validators.required, noVietnameseValidator]],
+      UnitName: ['', [Validators.required]]
+    });
+  }
+
+  ngOnInit(): void {
+    // Patch form values from input data
+    this.formGroup.patchValue({
+      UnitCode: this.newUnitCount.UnitCode || '',
+      UnitName: this.newUnitCount.UnitName || ''
+    });
+  }
+
+  ngAfterViewInit(): void {
+    
+  }
   addNewLocation(){
-    if (!this.newUnitCount.UnitCode || !this.newUnitCount.UnitName) {
-      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin!');
+    this.trimAllStringControls();
+    if (this.formGroup.invalid) {
+      this.formGroup.markAllAsTouched();
+      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin bắt buộc!');
       return;
     }
+
+    const formValue = this.formGroup.getRawValue();
     const payload = [{   
-        LocationCode: this.newUnitCount.UnitCode,
-        LocationName: this.newUnitCount.UnitName,
+        LocationCode: formValue.UnitCode,
+        LocationName: formValue.UnitName,
     }];
     this.productsaleService.saveDataUnitCount(payload).subscribe({
       next: (res) => {
@@ -79,5 +119,38 @@ export class UnitCountDetailComponent {
   }
   closeModal() {
     this.activeModal.dismiss(true);
+  }
+
+  // Hàm để lấy error message cho UnitCode
+  getUnitCodeError(): string | undefined {
+    const control = this.formGroup.get('UnitCode');
+    if (control?.invalid && (control?.dirty || control?.touched)) {
+      if (control.errors?.['required']) {
+        return 'Vui lòng nhập mã đơn vị!';
+      }
+      if (control.errors?.['vietnameseChars']) {
+        return 'Mã đơn vị không được chứa ký tự tiếng Việt!';
+      }
+    }
+    return undefined;
+  }
+
+  // Hàm để lấy error message cho UnitName
+  getUnitNameError(): string | undefined {
+    const control = this.formGroup.get('UnitName');
+    if (control?.invalid && (control?.dirty || control?.touched)) {
+      if (control.errors?.['required']) {
+        return 'Vui lòng nhập tên đơn vị!';
+      }
+    }
+    return undefined;
+  }
+
+  private trimAllStringControls() {
+    Object.keys(this.formGroup.controls).forEach(k => {
+      const c = this.formGroup.get(k);
+      const v = c?.value;
+      if (typeof v === 'string') c!.setValue(v.trim(), { emitEvent: false });
+    });
   }
 }

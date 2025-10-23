@@ -55,13 +55,10 @@
                       <!-- Cột trái -->
                       <nz-splitter-panel nzDefaultSize="25%" [nzCollapsible]="true" nzResizable="true" style="height: 100%;">
                         <nz-splitter nzLayout="vertical" style="height: 100%;">
-                          <!-- Bảng ProductGroup (trên - 60%) -->
-                          <nz-splitter-panel nzSize="60%" style="overflow: auto;">
+                          <nz-splitter-panel  style="overflow: auto;">
                             <div id="table_productgroup" style="height: 100%;"></div>
                           </nz-splitter-panel>
-                  
-                          <!-- Bảng ProductGroupWareHouse (dưới - 40%) -->
-                          <nz-splitter-panel nzSize="40%" [nzCollapsible]="true" nzResizable="true" style="overflow: auto;">
+                          <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" style="overflow: auto;">
                             <div id="table_pgwarehouse" style="height: 100%;"></div>
                           </nz-splitter-panel> 
                         </nz-splitter>

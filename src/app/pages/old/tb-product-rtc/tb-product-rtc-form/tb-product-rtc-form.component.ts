@@ -29,11 +29,14 @@ import { TbProductRtcService } from '../tb-product-rtc-service/tb-product-rtc.se
 import { UnitService } from '../../ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
 import { log } from 'ng-zorro-antd/core/logger';
 import { NzFormModule } from 'ng-zorro-antd/form';
-export const SERVER_PATH = `D:/RTC_Sw/RTC/ProductRTC/`;
+export const SERVER_PATH = `D:/RTC/`;
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { TbProductGroupRtcFormComponent } from '../tb-product-group-rtc-form/tb-product-group-rtc-form.component';
+import { FirmDetailComponent } from '../../Sale/ProductSale/firm-detail/firm-detail.component';
+import { LocationDetailComponent } from '../../Sale/ProductSale/location-detail/location-detail.component';
+import { UnitCountDetailComponent } from '../../Sale/ProductSale/unit-count-detail/unit-count-detail.component';
 @Component({
   standalone: true,
   selector: 'app-tb-product-rtc-form',
@@ -138,7 +141,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       CodeHCM: [''],
 
       BorrowCustomer: [false],
-      Note: ['', Validators.required],
+      Note: [''],
       Resolution: [''],
       MonoColor: [''],
       SensorSize: [''],
@@ -465,12 +468,13 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       return; // Ngừng lưu nếu bị trùng mã
     }
     if (this.fileToUpload) {
-      this.tbProductRtcService.uploadImage(this.fileToUpload).subscribe({
+      this.tbProductRtcService.uploadImage(this.fileToUpload, SERVER_PATH).subscribe({
         next: (res) => {
           if (res.status === 1) {
-            this.imageFileName = res.FileName;
-            this.previewImageUrl = `${SERVER_PATH}${res.FileName}`;
-            this.formDeviceInfo.get('LocationImg')?.setValue(res.FileName); // bind vào form
+            console.log("binh log:", res)
+            this.imageFileName = res.data;
+            this.previewImageUrl = `${SERVER_PATH}${res.data}`;
+            this.formDeviceInfo.get('LocationImg')?.setValue(res.data); // bind vào form
             // Sau khi upload ảnh xong => save dữ liệu
             this.saveProductData();
           } else {
@@ -581,5 +585,59 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
         console.log('Modal dismissed');
       }
     );
+  }
+  //hàm gọi modal firm
+  openModalFirmDetail(){
+    const modalRef = this.ngbModal.open(FirmDetailComponent, {
+      centered: true,
+      backdrop: 'static',
+      keyboard: false
+    });
+
+    modalRef.result.catch(
+      (result) => {
+        if (result == true) {
+        this.getFirm()
+        }
+      },
+    );
+  }
+  // hàm gọi modal location
+  openModalLocationDetail(){
+    const modalRef = this.ngbModal.open(LocationDetailComponent, {
+      centered: true,
+      backdrop: 'static',
+      keyboard: false
+    });
+    modalRef.componentInstance.listProductGroupcbb= this.productGroupData;
+    modalRef.result.catch(
+      (result) => {
+        if (result == true) {
+        this.getLocation();
+        }
+      },
+    );
+  }
+   // hàm gọi modal unitcount
+   openModalUnitCountDetail(){
+    const modalRef = this.ngbModal.open(UnitCountDetailComponent, {
+      centered: true,
+      backdrop: 'static',
+      keyboard: false
+    });
+    modalRef.result.catch(
+      (result) => {
+        if (result == true) {
+        this.getunit();
+        }
+      },
+    );
+   }
+   // hàm xóa ảnh
+   clearImage() {
+    this.formDeviceInfo.patchValue({
+      LocationImg: null
+    });
+    this.previewImageUrl = null;
   }
 }

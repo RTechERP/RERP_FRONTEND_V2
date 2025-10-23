@@ -32,6 +32,7 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
+import { NzFormModule } from 'ng-zorro-antd/form';
 import {
   TabulatorFull as Tabulator,
   RowComponent,
@@ -45,7 +46,7 @@ import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/sign
 import { EnvironmentInjector } from '@angular/core';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DateTime } from 'luxon';
-import { FormGroup, FormBuilder } from '@angular/forms';
+import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -58,6 +59,7 @@ import { SelectControlComponent } from '../../select-control/select-control.comp
 
 import { CustomerServiceService } from '../customer/customer-service/customer-service.service';
 import { CustomerMajorDetailComponent } from '../customer-major/customer-major-detail/customer-major-detail.component';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 
 @Component({
   selector: 'app-customer-detail',
@@ -85,6 +87,7 @@ import { CustomerMajorDetailComponent } from '../customer-major/customer-major-d
     NzUploadModule,
     NzSwitchModule,
     NzCheckboxModule,
+    NzFormModule,
     CommonModule,
     NzTreeSelectModule,
   ],
@@ -113,6 +116,9 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
   provincesData: any[] = [];
   businessFieldData: any[] = [];
   majorData: any[] = [];
+
+  // Form validation
+  formGroup: FormGroup;
 
   formData: any = {
     fullName: '',
@@ -151,8 +157,30 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
     private customerService: CustomerServiceService,
     public activeModal: NgbActiveModal,
     private injector: EnvironmentInjector,
-    private appRef: ApplicationRef
-  ) {}
+    private appRef: ApplicationRef,
+    private fb: FormBuilder
+  ) {
+    this.formGroup = this.fb.group({
+      province: [null, [Validators.required]],
+      provinceCode: [{value: '', disabled: true}],
+      customerCode: [''],
+      customerShortName: ['', [Validators.required]],
+      taxCode: [''],
+      customerType: [null],
+      isBigAccount: [false],
+      businessField: [null],
+      fullName: ['', [Validators.required]],
+      address: ['', [Validators.required]],
+      debt: [''],
+      noteVoucher: [''],
+      majorId: [null, [Validators.required]],
+      hardCopyVoucher: [''],
+      productDetails: [''],
+      checkVoucher: [''],
+      noteDelivery: [''],
+      closingDateDebt: [new Date()]
+    });
+  }
 
   ngOnInit(): void {
     this.loadBusinessField();
@@ -176,14 +204,12 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
       size: 'm',
     });
-    modalRef.result.then(
+    modalRef.result.catch(
       (result) => {
-        if (result.success && result.reloadData) {
+        if (result == true) {
+          this.loadCustomerSpecialization();
         }
       },
-      (reason) => {
-        console.log('Modal closed');
-      }
     );
   }
 
@@ -194,17 +220,43 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
           let province = this.provincesData.find(
             (x) => x.Code == response.data.provinceCode
           );
+          
+          // Cập nhật form values
+          this.formGroup.patchValue({
+            fullName: response.data.model.CustomerName,
+            address: response.data.model.Address,
+            businessField: response.data.business.BusinessFieldID,
+            provinceCode: response.data.provinceCode,
+            customerCode: response.data.customerCode,
+            province: province?.Name,
+            customerShortName: response.data.model.CustomerShortName,
+            taxCode: response.data.model.TaxCode,
+            customerType: response.data.model.CustomerType,
+            isBigAccount: response.data.model.BigAccount,
+            debt: response.data.model.Debt,
+            noteVoucher: response.data.model.NoteVoucher,
+            majorId: response.data.model.CustomerSpecializationID,
+            hardCopyVoucher: response.data.model.HardCopyVoucher,
+            productDetails: response.data.model.ProductDetails,
+            checkVoucher: response.data.model.CheckVoucher,
+            noteDelivery: response.data.model.NoteDelivery,
+            closingDateDebt: response.data.model.ClosingDateDebt
+              ? response.data.model.ClosingDateDebt.substring(0, 10)
+              : new Date().toISOString().split('T')[0],
+          });
+
+          // Giữ lại formData cho các mục đích khác nếu cần
           this.formData = {
             fullName: response.data.model.CustomerName,
             address: response.data.model.Address,
             businessField: response.data.business.BusinessFieldID,
             provinceCode: response.data.provinceCode,
             customerCode: response.data.customerCode,
-            province: province.Name,
+            province: province?.Name,
             customerShortName: response.data.model.CustomerShortName,
             taxCode: response.data.model.TaxCode,
             customerType: response.data.model.CustomerType,
-            isBigAccount: response.data.model.BigAccount, //check convert
+            isBigAccount: response.data.model.BigAccount,
             debt: response.data.model.Debt,
             noteVoucher: response.data.model.NoteVoucher,
             majorId: response.data.model.CustomerSpecializationID,
@@ -216,6 +268,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
               ? response.data.model.ClosingDateDebt.substring(0, 10)
               : new Date().toISOString().split('T')[0],
           };
+
           this.addressStockTableData = response.data.addressStock;
           this.tb_AddressTable.replaceData(this.addressStockTableData);
           this.data = response.data.customerContact;
@@ -358,10 +411,10 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
         (province) => province.Name === provinceName
       );
       if (selectedProvince && selectedProvince.Code) {
-        this.formData.provinceCode = selectedProvince.Code;
+        this.formGroup.patchValue({ provinceCode: selectedProvince.Code });
       }
     } else {
-      this.formData.provinceCode = '';
+      this.formGroup.patchValue({ provinceCode: '' });
     }
   }
 
@@ -397,6 +450,11 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
   }
 
   saveAndClose() {
+    // Validate form trước khi lưu
+    if (!this.validateForm()) {
+      return;
+    }
+
     const contactRows = this.tb_DataTable ? this.tb_DataTable.getData() : [];
     const addressRows = this.tb_AddressTable
       ? this.tb_AddressTable.getData()
@@ -423,27 +481,29 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       EmployeeID: r?.EmployeeID ?? null,
     }));
 
+    // Lấy giá trị từ form controls
+    const formValues = this.formGroup.value;
+
     const customer = {
       ID: this.EditID ?? 0,
-      Province: this.formData.province ?? '',
-      CustomerCode:
-        this.formData.provinceCode + '-' + this.formData.customerCode,
-      CustomerName: this.formData.fullName ?? '',
-      CustomerShortName: this.formData.customerShortName ?? '',
-      TaxCode: this.formData.taxCode ?? '',
-      CustomerType: this.formData.customerType ?? null,
-      BigAccount: this.formData.isBigAccount,
-      Address: this.formData.address ?? '',
-      Debt: this.formData.debt ?? '',
-      NoteVoucher: this.formData.noteVoucher ?? '',
-      HardCopyVoucher: this.formData.hardCopyVoucher ?? '',
-      ProductDetails: this.formData.productDetails ?? '',
-      CheckVoucher: this.formData.checkVoucher ?? '',
-      NoteDelivery: this.formData.noteDelivery ?? '',
+      Province: formValues.province ?? '',
+      CustomerCode: formValues.provinceCode + '-' + formValues.customerCode,
+      CustomerName: formValues.fullName ?? '',
+      CustomerShortName: formValues.customerShortName ?? '',
+      TaxCode: formValues.taxCode ?? '',
+      CustomerType: formValues.customerType ?? null,
+      BigAccount: formValues.isBigAccount,
+      Address: formValues.address ?? '',
+      Debt: formValues.debt ?? '',
+      NoteVoucher: formValues.noteVoucher ?? '',
+      HardCopyVoucher: formValues.hardCopyVoucher ?? '',
+      ProductDetails: formValues.productDetails ?? '',
+      CheckVoucher: formValues.checkVoucher ?? '',
+      NoteDelivery: formValues.noteDelivery ?? '',
       IsDeleted: false,
-      ClosingDateDebt: this.formData.closingDateDebt ?? null,
-      FullName: this.formData.fullName ?? '',
-      CustomerSpecializationID: this.formData.majorId ?? 0,
+      ClosingDateDebt: formValues.closingDateDebt ?? null,
+      FullName: formValues.fullName ?? '',
+      CustomerSpecializationID: formValues.majorId ?? 0,
     } as any;
 
     const payload = {
@@ -451,7 +511,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       CustomerContacts: customerContacts,
       AddressStocks: addressStocks,
       CustomerEmployees: customerEmployees,
-      BusinessFieldID: this.formData.businessField,
+      BusinessFieldID: formValues.businessField,
     };
 
     this.customerService.save(payload).subscribe({
@@ -474,15 +534,17 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
 
   initDataTable(): void {
     this.tb_DataTable = new Tabulator(this.tb_DataTableElement.nativeElement, {
+      ...DEFAULT_TABLE_CONFIG,
+      //height:'40vh',
       data: this.data,
-      layout: 'fitColumns',
-      height: '100%',
-      selectableRows: 1,
-      pagination: true,
-      paginationSize: 100,
-      movableColumns: true,
-      resizableRows: true,
-      reactiveData: true,
+      // layout: 'fitColumns',
+       height: '100%',
+      // selectableRows: 1,
+      // pagination: true,
+      // paginationSize: 100,
+      // movableColumns: true,
+      // resizableRows: true,
+      // reactiveData: true,
       columnDefaults: {
         headerWordWrap: true,
         headerVertical: false,
@@ -496,6 +558,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
           field: 'addRow',
           hozAlign: 'center',
           width: 40,
+          frozen:true,
           headerSort: false,
           titleFormatter: () =>
             `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
@@ -524,7 +587,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
           // }
         },
         { title: 'ID', field: 'ID', visible: false },
-        { title: 'Họ tên', field: 'ContactName', editor: true },
+        { title: 'Họ tên', field: 'ContactName', editor: true,   frozen:true, },
         { title: 'Bộ phận', field: 'CustomerPart', editor: true },
         { title: 'Chức vụ', field: 'CustomerPosition', editor: true },
         { title: 'Team', field: 'CustomerTeam', editor: true },
@@ -537,15 +600,17 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
     this.tb_AddressTable = new Tabulator(
       this.tb_AddressTableElement.nativeElement,
       {
+        ...DEFAULT_TABLE_CONFIG,
+      
         data: this.addressStockTableData,
-        layout: 'fitColumns',
+        // layout: 'fitColumns',
         height: '100%',
-        selectableRows: 1,
-        pagination: true,
-        paginationSize: 100,
-        movableColumns: true,
-        resizableRows: true,
-        reactiveData: true,
+        // selectableRows: 1,
+        // pagination: true,
+        // paginationSize: 100,
+        // movableColumns: true,
+        // resizableRows: true,
+        // reactiveData: true,
         columnDefaults: {
           headerWordWrap: true,
           headerVertical: false,
@@ -559,6 +624,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
             field: 'addRow',
             hozAlign: 'center',
             width: 40,
+            frozen:true,
             headerSort: false,
             titleFormatter: () =>
               `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
@@ -594,15 +660,17 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
   }
   initSaleTable(): void {
     this.tb_SaleTable = new Tabulator(this.tb_SaleTableElement.nativeElement, {
+      ...DEFAULT_TABLE_CONFIG,
       data: this.customerSaleTableData,
-      layout: 'fitColumns',
-      height: '100%',
+     
+      // layout: 'fitColumns',
+       height: '100%',
       selectableRows: 1,
-      pagination: true,
-      paginationSize: 100,
-      movableColumns: true,
-      resizableRows: true,
-      reactiveData: true,
+      // pagination: true,
+      // paginationSize: 100,
+      // movableColumns: true,
+      // resizableRows: true,
+      // reactiveData: true,
       columnDefaults: {
         headerWordWrap: true,
         headerVertical: false,
@@ -616,6 +684,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
           field: 'addRow',
           hozAlign: 'center',
           width: 40,
+          frozen:true,
           headerSort: false,
           titleFormatter: () =>
             `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
@@ -687,4 +756,59 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       ],
     });
   }
+
+  //#region Validation methods
+  private trimAllStringControls() {
+    Object.keys(this.formGroup.controls).forEach(k => {
+      const c = this.formGroup.get(k);
+      const v = c?.value;
+      if (typeof v === 'string') c!.setValue(v.trim(), { emitEvent: false });
+    });
+  }
+
+  // Method để lấy error message cho các trường
+  getFieldError(fieldName: string): string | undefined {
+    const control = this.formGroup.get(fieldName);
+    if (control?.invalid && (control?.dirty || control?.touched)) {
+      if (control.errors?.['required']) {
+        switch (fieldName) {
+          case 'province':
+            return 'Vui lòng chọn tỉnh!';
+          case 'customerShortName':
+            return 'Vui lòng nhập ký hiệu!';
+          case 'fullName':
+            return 'Vui lòng nhập tên khách hàng!';
+          case 'address':
+            return 'Vui lòng nhập địa chỉ!';
+          case 'majorId':
+            return 'Vui lòng chọn ngành nghề!';
+          default:
+            return 'Trường này là bắt buộc!';
+        }
+      }
+    }
+    return undefined;
+  }
+
+  // Method để validate form
+  validateForm(): boolean {
+    this.trimAllStringControls();
+    const requiredFields = [
+      'province',
+      'customerShortName',
+      'fullName',
+      'address',
+      'majorId'
+    ];
+    const invalidFields = requiredFields.filter(key => {
+      const control = this.formGroup.get(key);
+      return !control || control.invalid || control.value === '' || control.value == null;
+    });
+    if (invalidFields.length > 0) {
+      this.formGroup.markAllAsTouched();
+      return false;
+    }
+    return true;
+  }
+  //#endregion
 }

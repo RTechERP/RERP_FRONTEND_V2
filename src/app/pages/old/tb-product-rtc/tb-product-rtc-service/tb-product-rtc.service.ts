@@ -30,9 +30,10 @@ export class TbProductRtcService {
   saveData(payload: any): Observable<any> {
     return this.http.post(`${this.url + `save-data`}`, payload);
   }
-  uploadImage(file: File): Observable<any> {
+  uploadImage(file: File, path:string): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
+     formData.append('path', path);
     return this.http.post<any>(`${this.url}upload`, formData);
   }
   getProductAjax(): string {

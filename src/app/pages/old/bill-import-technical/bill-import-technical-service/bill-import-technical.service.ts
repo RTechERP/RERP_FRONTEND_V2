@@ -1,15 +1,16 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { HOST } from '../../../../../app.config';
+import { environment } from '../../../../../environments/environment';
+// import { HOST } from '../../../../../app.config';
 @Injectable({
   providedIn: 'root',
 })
 export class BillImportTechnicalService {
-  private url = `${HOST}api/BillImportTechnical/`;
-  private urlCustomer = `${HOST}api/Customer/get-customers`;
-  private urlNCC = `${HOST}api/SupplierSale/get-ncc`;
-  private urlRulepay = `${HOST}api/BillImportTechnical/get-rulepay`;
+  private url = `${environment.host}api/BillImportTechnical/`;
+  private urlCustomer = `${environment.host}api/Customer/get-customers`;
+  private urlNCC = `${environment.host}api/SupplierSale/get-ncc`;
+  private urlRulepay = `${environment.host}api/BillImportTechnical/get-rulepay`;
   constructor(private http: HttpClient) {}
   getBillimportTechnical(request: any) {
     return this.http.post<any>(

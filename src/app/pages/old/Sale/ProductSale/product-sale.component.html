@@ -1,75 +1,85 @@
 <ng-container class="w-100">
-    <div class="card h-100 border-0 rounded-0">
-        <div class="card-header bg-white p-1 action-bar">
-            <div class="d-flex gap-1">
+    <nz-splitter style="height: 94vh; ">
+        <nz-splitter-panel>
+            <div class="card border-0 rounded-0">
+                <div class="card-header bg-white p-1 action-bar">
+                    <div class="d-flex h-40 gap-1">
+                        <button nz-button nzType="default" nzSize="small" class=" btn-add"
+                            (click)="openModalProductGroup(false)">
+                            <img src="assets/icon/action_add_group_16.png" alt="Thêm mới " />Tạo nhóm TB
+                        </button>
+                        <button nz-button nzType="default" nzSize="small" class="btn-edit"
+                            (click)="openModalProductGroup(true)">
+                            <img src="assets/icon/action_edit_item_16.png" alt="Sửa nhóm TB" />Sửa nhóm TB
+                        </button>
+                        <button nz-button nzType="default" nzSize="small" class="btn-delete "
+                            (click)="deleteProductGroup()">
+                            <img src="assets/icon/action_delete_item_16.png" alt="Xóa nhóm TB" />Xóa nhóm TB
+                        </button>
 
-                <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add"
-                    (click)="openModalProductGroup(false)">
-                    <img src="assets/icon/add-white-btn.png" alt="Thêm mới " />Tạo nhóm TB
-                </button>
-                <button nz-button nzType="default" nzSize="small" class="btn-edit"
-                    (click)="openModalProductGroup(true)">
-                    <img src="assets/icon/edit-white-btn.png" alt="Sửa nhóm TB" />Sửa nhóm TB
-                </button>
-                <button nz-button nzType="default" nzSize="small" class="btn-delete " (click)="deleteProductGroup()">
-                    <img src="assets/icon/delete-white-btn.png" alt="Xóa nhóm TB" />Xóa nhóm TB
-                </button>
+                        <span class="mx-2 divider"></span>
 
-                <span class="mx-2 divider"></span>
+                        <button nz-button nzType="default" nzSize="small" class="btn-add"
+                            (click)="openModalForNewProductSale()">
+                            <img src="assets/icon/action_add_item_16.png" alt="Thêm thiết bị" />Tạo thiết bị
+                        </button>
+                        <button nz-button nzType="default" nzSize="small" class="btn-edit"
+                            (click)="updateProductSale()">
+                            <img src="assets/icon/action_edit_item_16.png" alt="Sửa thiết bị" />Sửa thiết bị
+                        </button>
+                        <button nz-button nzType="default" nzSize="small" class="btn-delete"
+                            (click)="deleteProductSale()">
+                            <img src="assets/icon/action_delete_item_16.png" alt="Xóa thiết bị" />Xóa thiết bị
+                        </button>
 
-                <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add"
-                    (click)="openModalForNewProductSale()">
-                    <img src="assets/icon/add-white-btn.png" alt="Thêm thiết bị" />Tạo thiết bị
-                </button>
-                <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="updateProductSale()">
-                    <img src="assets/icon/edit-white-btn.png" alt="Sửa thiết bị" />Sửa thiết bị
-                </button>
-                <button nz-button nzType="default" nzSize="small" class="btn-delete" (click)="deleteProductSale()">
-                    <img src="assets/icon/delete-white-btn.png" alt="Xóa thiết bị" />Xóa thiết bị
-                </button>
+                        <span class="mx-2 divider"></span>
 
-                <span class="mx-2 divider"></span>
-
-                <button nz-button nzType="default" nzSize="small" (click)="openModalImportExcel()">
-                    <img src="/assets/icon/import-excel.png" alt="Nhập Excel" class="me-1" />Nhập
-                    excel
-                </button>
-                <button nz-button nzType="default" nzSize="small" (click)="exportExcel()">
-                    <img src="/assets/icon/excel.png" alt="Xuất Excel" class="me-1" />Xuất
-                    excel
-                </button>
-                <div style="display: flex; width: 30%;" class="ms-auto">
-                    <label nz-checkbox [(ngModel)]="checkedALL" name="checkedALL"
-                        (nzCheckedChange)="getAllProductSale()">Tất
-                        cả</label>
-                    <input type="text" nzSize="small" [(ngModel)]="keyword" name="keyword" nz-input class="fs-12"
-                        style="font-style: italic; flex: 1;" placeholder="Tìm kiếm" />
-                    <button nz-button nzType="primary" nzSize="small" (click)="getdataFind()">
-                        <nz-icon nzType="search"></nz-icon>
-                    </button>
+                        <button nz-button nzType="default" nzSize="small" (click)="openModalImportExcel()">
+                            <img src="assets/icon/action_import_16.png" alt="Nhập Excel" class="me-1" />Nhập
+                            excel
+                        </button>
+                        <button nz-button nzType="default" nzSize="small" (click)="exportExcel()">
+                            <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" class="me-1" />Xuất
+                            excel
+                        </button>
+                        <div style="display: flex; width: 30%;" class="ms-auto">
+                            <label nz-checkbox [(ngModel)]="checkedALL" name="checkedALL"
+                                (nzCheckedChange)="getAllProductSale()">Tất
+                                cả</label>
+                            <input type="text" nzSize="small" [(ngModel)]="keyword" name="keyword" nz-input
+                                class="fs-12" style="font-style: italic; flex: 1;" placeholder="Tìm kiếm" />
+                            <button nz-button nzSize="small" (click)="getdataFind()">
+                                <nz-icon nzType="search"></nz-icon>
+                            </button>
+                        </div>
+                    </div>
                 </div>
+                <nz-splitter style="height: 100%;">
+                    <!-- Cột trái -->
+                    <nz-splitter-panel nzDefaultSize="25%" [nzCollapsible]="true" nzResizable="true"
+                        style="height: 100%;">
+                        <nz-splitter nzLayout="vertical" style="height: 100%;">
+                            <!-- Bảng ProductGroup (trên - 60%) -->
+                            <nz-splitter-panel nzSize="60%" style="overflow: auto;">
+                                <div id="table_productgroup" style="height: 100%;"></div>
+                            </nz-splitter-panel>
+
+                            <!-- Bảng ProductGroupWareHouse (dưới - 40%) -->
+                            <nz-splitter-panel nzSize="40%" [nzCollapsible]="true" nzResizable="true"
+                                style="overflow: auto;">
+                                <div id="table_pgwarehouse" style="height: 100%;"></div>
+                            </nz-splitter-panel>
+                        </nz-splitter>
+                    </nz-splitter-panel>
+
+                    <!-- Cột phải -->
+                    <nz-splitter-panel [nzCollapsible]="true" style="overflow: auto;">
+                        <div id="table_productsale" style="height: 100%;"></div>
+                    </nz-splitter-panel>
+                </nz-splitter>
             </div>
-        </div>
-        <div class="card-body pt-2">
-            <nz-splitter>
-                <nz-splitter-panel nzDefaultSize="20%" [nzCollapsible]="true" nzResizable="true">
-                    <nz-splitter nzLayout="vertical">
-                        <!-- table productGroup -->
-                        <nz-splitter-panel>
-                            <div id="table_productgroup"></div>
-                        </nz-splitter-panel>
-                        <!-- table productGroupWareHouse -->
-                        <nz-splitter-panel nzDefaultSize="20%" [nzCollapsible]="true" nzResizable="true">
-                            <div id="table_pgwarehouse"></div>
-                        </nz-splitter-panel>
-                    </nz-splitter>
-                </nz-splitter-panel>
-                <nz-splitter-panel [nzCollapsible]="true" nzSize="">
-                    <div id="table_productsale"></div>
-                </nz-splitter-panel>
-            </nz-splitter>
-        </div>
-    </div>
+        </nz-splitter-panel>
+    </nz-splitter>
 
 </ng-container>
 

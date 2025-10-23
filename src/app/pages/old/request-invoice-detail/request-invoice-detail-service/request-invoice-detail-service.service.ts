@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { HOST } from '../../../../app.config';
+import { environment } from '../../../../../environments/environment';
+// import { HOST } from '../../../../app.config';
 @Injectable({
   providedIn: 'root',
 })
 export class RequestInvoiceDetailService {
-  private _url = HOST + 'api/RequestInvoiceDetail/';
+  private _url = environment.host + 'api/RequestInvoiceDetail/';
   constructor(private http: HttpClient) {}
 
   loadEmployee(): Observable<any> {

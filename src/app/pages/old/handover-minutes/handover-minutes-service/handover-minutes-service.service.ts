@@ -1,13 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { HOST } from '../../../../app.config';
+import { environment } from '../../../../../environments/environment';
+// import { HOST } from '../../../../app.config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class HandoverMinutesService {
-  private _url = HOST + 'api/HandoverMinutes/';
+  private _url = environment.host + 'api/HandoverMinutes/';
   constructor(private http: HttpClient) {}
 
   getHandoverMinutes(

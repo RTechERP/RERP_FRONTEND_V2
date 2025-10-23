@@ -1,20 +1,22 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { HOST } from '../../../../../app.config';
+import { environment } from '../../../../../../environments/environment';
+// import { HOST } from '../../../../../app.config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ProductsaleServiceService {
-  private baseUrl = HOST + `api/ProductSale`;
-  private warehouseUrl = HOST + `api/Warehouse`;
-  private productgroupUrl = HOST + `api/ProductGroup`;
-  private productgroupwarehouseUrl = HOST + `api/ProductGroupWareHouse`;
-  private locationUrl = HOST + `api/Location`;
-  private unitcountUrl = HOST + `api/UnitCount`;
-  private frimUrl = HOST + `api/Firm`;
-  private employeeUrl = HOST + `api/Employee`;
+  private baseUrl = environment.host + `api/ProductSale`;
+  private warehouseUrl = environment.host + `api/Warehouse`;
+  private productgroupUrl = environment.host + `api/ProductGroup`;
+  private productgroupwarehouseUrl =
+    environment.host + `api/ProductGroupWareHouse`;
+  private locationUrl = environment.host + `api/Location`;
+  private unitcountUrl = environment.host + `api/UnitCount`;
+  private frimUrl = environment.host + `api/Firm`;
+  private employeeUrl = environment.host + `api/Employee`;
 
   constructor(private httpclient: HttpClient) {}
 

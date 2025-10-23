@@ -51,7 +51,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
     NgIf
   ]
 })
-export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
+export class SummaryFoodOrderComponent implements OnInit, AfterViewInit{
 
   private orderTabulator!: Tabulator;
   private reportTabulator!: Tabulator;
@@ -83,7 +83,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService
   ) {
     this.initializeForm();
-  }
+   }
 
   ngOnInit() {
     this.loadDepartments();
@@ -93,14 +93,14 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
     this.loadDayOfWeek();
     this.initializeForm();
 
-    // Subscribe to month and year changes
-    this.searchForm.get('month')?.valueChanges.subscribe(() => {
-      this.onSearch();
-    });
-
-    this.searchForm.get('year')?.valueChanges.subscribe(() => {
-      this.onSearch();
-    });
+      // Subscribe to month and year changes
+      this.searchForm.get('month')?.valueChanges.subscribe(() => {
+          this.onSearch();
+      });
+      
+      this.searchForm.get('year')?.valueChanges.subscribe(() => {
+          this.onSearch();
+      });
   }
 
   ngAfterViewInit(): void {
@@ -205,12 +205,12 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
   private generateColumnsForMonth(month: number, year: number): any[] {
     const daysInMonth = new Date(year, month, 0).getDate();
     const columns = [];
-
+    
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month - 1, day);
       const dayOfWeek = this.getDayOfWeekName(date.getDay());
       const isWeekend = dayOfWeek === 'T7' || dayOfWeek === 'CN';
-
+      
       columns.push({
         title: dayOfWeek,
         columns: [{
@@ -221,7 +221,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
           headerHozAlign: 'center',
         }],
         headerStyle: isWeekend ? 'background-color:rgb(201, 158, 40);' : '',
-        titleFormatter: (column: any) => {
+        titleFormatter: (column:any) => {
           const titleEl = document.createElement('div');
           titleEl.innerHTML = `
             <div style="
@@ -234,7 +234,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
         },
       });
     }
-
+    
     // // Thêm cột tổng
     // columns.push({
     //   title: 'Tổng',
@@ -242,7 +242,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
     //   hozAlign: 'left',
     //   headerHozAlign: 'center'
     // });
-
+    
     return columns;
   }
 
@@ -255,39 +255,39 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
 
 
   // Sử dụng trong initializeOrderTabulator
-  private initializeOrderTabulator(container: HTMLElement): void {
-    const month = this.searchForm.get('month')?.value;
-    const year = this.searchForm.get('year')?.value || new Date().getFullYear();
-
-    const dynamicColumns = this.generateColumnsForMonth(month, year);
-
-    this.orderTabulator = new Tabulator(container, {
-      data: this.foodOrderList,
-      selectableRows: 1,
-      layout: 'fitDataStretch',
-      height: '80vh',
-      groupBy: 'DepartmentName',
-      groupHeader(value, count, data, group) {
-        return "<span style='color:black'>Phòng ban: </span>" + value;
+private initializeOrderTabulator(container: HTMLElement): void {
+  const month = this.searchForm.get('month')?.value;
+  const year = this.searchForm.get('year')?.value || new Date().getFullYear();
+  
+  const dynamicColumns = this.generateColumnsForMonth(month, year);
+  
+  this.orderTabulator = new Tabulator(container, {
+    data: this.foodOrderList,
+    selectableRows: 1,
+    layout: 'fitDataStretch',
+    height: '80vh',
+    groupBy: 'DepartmentName',
+    groupHeader(value, count, data, group) {
+      return "<span style='color:black'>Phòng ban: </span>" + value;
+    },
+    columns: [
+      { title: 'STT', field: 'STT', hozAlign: 'left', headerHozAlign: 'center'},
+      { title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center'},
+      { title: 'Tên nhân viên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center' },
+      { title: 'Chức vụ', field: 'PositionName', hozAlign: 'left', headerHozAlign: 'center' },
+      { 
+        title: `BÁO CÁO ĐẶT CƠM THÁNG ${month}`, 
+        headerHozAlign: 'center',
+        columns: dynamicColumns
       },
-      columns: [
-        { title: 'STT', field: 'STT', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: 'Tên nhân viên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: 'Chức vụ', field: 'PositionName', hozAlign: 'left', headerHozAlign: 'center' },
-        {
-          title: `BÁO CÁO ĐẶT CƠM THÁNG ${month}`,
-          headerHozAlign: 'center',
-          columns: dynamicColumns
-        },
-        { title: 'Tổng', field: 'TotalOrder', hozAlign: 'left', headerHozAlign: 'center' }
-      ],
-    });
-  }
+      { title: 'Tổng', field: 'TotalOrder', hozAlign: 'left', headerHozAlign: 'center' }
+    ],
+  });
+}
 
 
   private initializeReportTabulator(container: HTMLElement): void {
-
+    
     const month = this.searchForm.get('month')?.value;
     const year = this.searchForm.get('year')?.value || new Date().getFullYear();
     const dynamicColumns = this.generateColumnsForMonth(month, year);
@@ -299,48 +299,33 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
       groupBy: 'DepartmentName',
       columns: [
         { title: 'STT', field: 'STT', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center'},
         { title: 'Tên nhân viên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center' },
         { title: 'Chức vụ', field: 'PositionName', hozAlign: 'left', headerHozAlign: 'center' },
-        {
-          title: `BẢNG CHẤM CÔNG ĂN CA THÁNG ${month}`, headerHozAlign: 'center',
+        { title: `BẢNG CHẤM CÔNG ĂN CA THÁNG ${month}`, headerHozAlign: 'center',
           columns: dynamicColumns
         },
-        {
-          title: 'Tổng', field: 'TotalOrder', hozAlign: 'left', headerHozAlign: 'center', bottomCalc: "sum", bottomCalcParams: {
-            precision: 1,
-          }
-        },
-        {
-          title: 'Ăn ca ngày', field: 'TotalLunch', hozAlign: 'left', headerHozAlign: 'center', bottomCalc: "sum", bottomCalcParams: {
-            precision: 1,
-          }
-        },
-        {
-          title: 'Ăn ca đêm', field: 'TotalDinner', hozAlign: 'left', headerHozAlign: 'center', bottomCalc: "sum", bottomCalcParams: {
-            precision: 1,
-          }
-        },
-        {
-          title: 'Tổng số ăn ca được hưởng', field: 'TotalMeal', hozAlign: 'left', headerHozAlign: 'center', bottomCalc: "sum", bottomCalcParams: {
-            precision: 1,
-          }
-        },
-        {
-          title: 'Số ăn ca tại công ty trong tháng', field: 'TotalOrder', hozAlign: 'left', headerHozAlign: 'center', bottomCalc: "sum", bottomCalcParams: {
-            precision: 1,
-          }
-        },
-        {
-          title: 'Số ăn ca thực tế được hưởng', field: 'TotalMealGet', hozAlign: 'left', headerHozAlign: 'center', bottomCalc: "sum", bottomCalcParams: {
-            precision: 1,
-          }
-        },
-        {
-          title: 'Ghi chú', field: 'Note', hozAlign: 'left', headerHozAlign: 'center', bottomCalc: "sum", bottomCalcParams: {
-            precision: 1,
-          }
-        },
+        { title: 'Tổng', field: 'TotalOrder', hozAlign: 'left', headerHozAlign: 'center', bottomCalc:"sum", bottomCalcParams:{
+          precision:1,
+        }},
+        { title: 'Ăn ca ngày', field: 'TotalLunch', hozAlign: 'left', headerHozAlign: 'center', bottomCalc:"sum", bottomCalcParams:{
+          precision:1,
+        }},
+        { title: 'Ăn ca đêm', field: 'TotalDinner', hozAlign: 'left', headerHozAlign: 'center', bottomCalc:"sum", bottomCalcParams:{
+          precision:1,
+        }},
+        { title: 'Tổng số ăn ca được hưởng', field: 'TotalMeal', hozAlign: 'left', headerHozAlign: 'center', bottomCalc:"sum", bottomCalcParams:{
+          precision:1,
+        }},
+        { title: 'Số ăn ca tại công ty trong tháng', field: 'TotalOrder', hozAlign: 'left', headerHozAlign: 'center', bottomCalc:"sum", bottomCalcParams:{
+          precision:1,
+        }},
+        { title: 'Số ăn ca thực tế được hưởng', field: 'TotalMealGet', hozAlign: 'left', headerHozAlign: 'center', bottomCalc:"sum", bottomCalcParams:{
+          precision:1,
+        }},
+        { title: 'Ghi chú', field: 'Note', hozAlign: 'left', headerHozAlign: 'center', bottomCalc:"sum", bottomCalcParams:{
+          precision:1,
+        }},
       ],
     });
   }
@@ -352,7 +337,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
   async exportToExcel() {
     const month = this.searchForm.get('month')?.value;
     const year = this.searchForm.get('year')?.value;
-
+    
     // Hàm lấy thứ trong tuần từ ngày cụ thể
     const getDayOfWeek = (day: number, month: number, year: number) => {
       const date = new Date(year, month - 1, day);
@@ -402,7 +387,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
       row['Ghi chú'] = safe(item.Note);
       return row;
     });
-
+    
     const workbook = new ExcelJS.Workbook();
     const worksheetFoodOrder = workbook.addWorksheet('Báo cáo đặt cơm');
     const worksheetMealReport = workbook.addWorksheet('Báo cáo ăn ca');
@@ -417,10 +402,10 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
 
     // Cấu hình cột
     const mealReportColumns = [
-      { header: '', key: 'STT', width: 10 },
-      { header: '', key: 'Mã nhân viên', width: 15 },
-      { header: '', key: 'Tên nhân viên', width: 30 },
-      { header: '', key: 'Chức vụ', width: 25 },
+      {header: '', key: 'STT', width: 10},
+      {header: '', key: 'Mã nhân viên', width: 15},
+      {header: '', key: 'Tên nhân viên', width: 30},
+      {header: '', key: 'Chức vụ', width: 25},
     ];
     for (let i = 1; i <= 31; i++) {
       mealReportColumns.push({
@@ -430,12 +415,12 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
       });
     }
     mealReportColumns.push(
-      { header: '', key: 'Ăn ca ngày', width: 15 },
-      { header: '', key: 'Ăn ca đêm', width: 15 },
-      { header: '', key: 'Tổng số ăn ca được hưởng', width: 20 },
-      { header: '', key: 'Số ăn ca tại công ty trong tháng', width: 20 },
-      { header: '', key: 'Số ăn ca thực tế được hưởng', width: 20 },
-      { header: '', key: 'Ghi chú', width: 20 }
+      {header: '', key: 'Ăn ca ngày', width: 15},
+      {header: '', key: 'Ăn ca đêm', width: 15},
+      {header: '', key: 'Tổng số ăn ca được hưởng', width: 20},
+      {header: '', key: 'Số ăn ca tại công ty trong tháng', width: 20},
+      {header: '', key: 'Số ăn ca thực tế được hưởng', width: 20},
+      {header: '', key: 'Ghi chú', width: 20}
     );
 
     worksheetMealReport.columns = mealReportColumns;
@@ -445,7 +430,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
     dayOfWeekRow.getCell(1).value = '';
     dayOfWeekRow.getCell(1).font = { name: 'Tahoma', size: 9, bold: true };
     dayOfWeekRow.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
-
+    
     // Bỏ qua 3 cột đầu (STT, Mã NV, Tên NV, Chức vụ)
     for (let i = 5; i <= 35; i++) {
       const day = i - 4;
@@ -461,8 +446,8 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
     const headerRow = worksheetMealReport.getRow(3);
     headerRow.values = [
       'STT', 'Mã NV', 'Tên nhân viên', 'Chức vụ',
-      ...Array.from({ length: 31 }, (_, i) => i + 1),
-      'Ăn ca ngày', 'Ăn ca đêm', 'Tổng số ăn ca',
+      ...Array.from({length: 31}, (_, i) => i + 1),
+      'Ăn ca ngày', 'Ăn ca đêm', 'Tổng số ăn ca', 
       'Ăn ca tại công ty', 'Thực tế được hưởng', 'Ghi chú'
     ];
 
@@ -523,10 +508,10 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
 
     // Cấu hình cột
     const foodOrderColumns = [
-      { header: '', key: 'STT', width: 10 },
-      { header: '', key: 'Mã nhân viên', width: 15 },
-      { header: '', key: 'Tên nhân viên', width: 30 },
-      { header: '', key: 'Chức vụ', width: 25 },
+      {header: '', key: 'STT', width: 10},
+      {header: '', key: 'Mã nhân viên', width: 15},
+      {header: '', key: 'Tên nhân viên', width: 30},
+      {header: '', key: 'Chức vụ', width: 25},
     ];
     for (let i = 1; i <= 31; i++) {
       foodOrderColumns.push({
@@ -535,7 +520,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
         width: 8
       });
     }
-    foodOrderColumns.push({ header: '', key: 'Tổng', width: 15 });
+    foodOrderColumns.push({header: '', key: 'Tổng', width: 15});
     worksheetFoodOrder.columns = foodOrderColumns;
 
     // Thêm dòng thứ trong tuần (dòng 2)
@@ -557,7 +542,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
     const headerRowFood = worksheetFoodOrder.getRow(3);
     headerRowFood.values = [
       'STT', 'Mã NV', 'Tên nhân viên', 'Chức vụ',
-      ...Array.from({ length: 31 }, (_, i) => i + 1),
+      ...Array.from({length: 31}, (_, i) => i + 1),
       'Tổng'
     ];
     headerRowFood.eachCell((cell: ExcelJS.Cell) => {

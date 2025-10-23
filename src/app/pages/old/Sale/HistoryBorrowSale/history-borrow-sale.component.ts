@@ -33,6 +33,7 @@ import { DEPARTMENTID } from '../../../../../app.config';
 import { DateTime } from 'luxon';
 import { HistoryBorrowSaleService } from './history-borrow-sale-service/history-borrow-sale.service';
 import { BillExportService } from '../BillExport/bill-export-service/bill-export.service';
+import { BillImportDetailComponent } from '../BillImport/Modal/bill-import-detail/bill-import-detail.component';
 @Component({
   selector: 'app-history-borrow-sale',
   standalone: true,
@@ -64,8 +65,25 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private modal: NzModalService,
     private modalService: NgbModal,
-    private billExportService: BillExportService
-  ) {}
+    private billExportService: BillExportService,
+  ) { }
+
+  newBillImport: any = {
+    BillImportCode: '',
+    ReciverID: 0,
+    Reciver: "",
+    DeliverID: 0,
+    Deliver: "",
+    KhoType: "",
+    KhoTypeID: 0,
+    WarehouseID: 1,
+    BillTypeNew: 0,
+    SupplierID: 0,
+    Supplier: "",
+    CreatDate: new Date(),
+    RequestDate: new Date(),
+    RulePayID: 0,
+  };
   cbbStatus: any = [
     { ID: 0, Name: '--Tất cả--' },
     { ID: 1, Name: 'Chưa trả' },
@@ -96,6 +114,7 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
   };
 
   data: number[] = [];
+  dataCreateImport: any[] = [];
 
   ngOnInit(): void {
     this.getCbbEmployee();
@@ -127,6 +146,72 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
       error: (err: any) => {
         this.notification.error('Lỗi', 'Không thể tải dữ liệu kho');
       },
+    });
+  }
+  createImport() {
+    // 1. Kiểm tra lựa chọn
+    if (this.dataCreateImport.length === 0) {
+      this.notification.info('Thông báo', 'Vui lòng tích chọn vào bản ghi bạn cần sinh phiếu trả!');
+      return;
+    }
+  
+    // 2. Kiểm tra cùng người mượn (Code)
+    const distinctReturners = [...new Set(this.dataCreateImport.map(row => row.Code))];
+    if (distinctReturners.length > 1) {
+      this.notification.info('Thông báo', 'Vui lòng chọn các sản phẩm chỉ trong 1 người mượn để tạo phiếu trả!');
+      return;
+    }
+  
+    // // 3. Lấy mã kho (giả định)
+    // const warehouseCode = this.getWarehouseCode(this.warehouseID); // Thay bằng logic thực tế
+  
+    // 4. Lọc các bản ghi chưa trả
+    const validData = this.dataCreateImport.filter(row => !row.ReturnedStatus);
+  
+    if (validData.length === 0) {
+      this.notification.info('Thông báo', 'Tất cả bản ghi được chọn đã được trả!');
+      return;
+    }
+  
+    // 5. Lấy danh sách ProductGroupID duy nhất
+    const distinctGroups = [...new Set(validData.filter(row => row.ProductGroupID != null).map(row => row.ProductGroupID))];
+  
+    // 6. Với mỗi ProductGroupID, mở modal
+    distinctGroups.forEach(groupID => {
+      // Lọc dữ liệu theo ProductGroupID
+      const filterData = validData.filter(row => row.ProductGroupID === groupID);
+      console.log("filterData", filterData);
+      console.log("njdjfd",groupID);
+      if (filterData.length === 0) {
+        this.notification.info('Thông báo', 'Không có dữ liệu hợp lệ cho nhóm sản phẩm này!');
+        return;
+      } 
+      // Mở modal
+      const modalRef = this.modalService.open(BillImportDetailComponent, {
+        centered: true,
+        size: 'xl',
+        backdrop: 'static',
+        keyboard: false
+      });
+  
+      // Truyền dữ liệu sang BillImportDetailComponent
+      modalRef.componentInstance.createImport = true;
+      modalRef.componentInstance.isCheckmode = true;
+     // modalRef.componentInstance.warehouseCode = warehouseCode;
+      modalRef.componentInstance.groupID = groupID;
+      modalRef.componentInstance.dataHistory = filterData; // Chứa tất cả bản ghi của nhóm, bao gồm các ProductID
+      modalRef.componentInstance.billType = 1;
+  
+      modalRef.result.then(
+        (result) => {
+          if (result === true) {
+            this.data = [];
+            this.dataCreateImport = [];
+            this.loadData();
+          }
+        },
+        () => {}
+      );
     });
   }
   loadData() {
@@ -466,12 +551,14 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
     this.table.on('rowSelected', (row: RowComponent) => {
       const selectedRows = this.table.getSelectedRows();
       this.data = selectedRows.map((row: any) => row.getData().BorrowID); // Lấy dữ liệu của tất cả các dòng được chọn
+      this.dataCreateImport = selectedRows.map((row: any) => row.getData());
       console.log('data', this.data);
     });
 
     this.table.on('rowDeselected', (row: RowComponent) => {
       const selectedRows = this.table.getSelectedRows();
       this.data = selectedRows.map((row: any) => row.getData().BorrowID); // Cập nhật this.data với các dòng còn được chọn
+      this.dataCreateImport = selectedRows.map((row: any) => row.getData());
     });
   }
 }

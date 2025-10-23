@@ -1,4 +1,9 @@
-import { AfterViewInit, Component, OnInit, ViewEncapsulation } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  OnInit,
+  ViewEncapsulation,
+} from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
@@ -21,10 +26,13 @@ import { TsAssetManagementPersonalService } from '../ts-asset-management-persona
 import { inject } from '@angular/core';
 import { DateTime } from 'luxon';
 import { TsAssetAllocationPersonalService } from '../../ts-asset-allocation-personal/ts-asset-allocation-personal-service/ts-asset-allocation-personal.service';
-import { NzNotificationService } from 'ng-zorro-antd/notification';
+import {
+  NzNotificationModule,
+  NzNotificationService,
+} from 'ng-zorro-antd/notification';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
-import { NzModalService } from 'ng-zorro-antd/modal';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { TsAssetManagementPersonalTypeFormComponent } from './ts-asset-management-personal-type-form/ts-asset-management-personal-type-form.component';
 import { TsAssetManagementPersonalFormComponent } from '../ts-asset-management-personal-form/ts-asset-management-personal-form.component';
 @Component({
@@ -47,22 +55,26 @@ import { TsAssetManagementPersonalFormComponent } from '../ts-asset-management-p
     NzInputModule,
     NzSelectModule,
     NzTableModule,
-
+    NzModalModule,
+    NzNotificationModule,
+    NgbModalModule,
   ],
   templateUrl: './ts-asset-management-personal-type.component.html',
-  styleUrl: './ts-asset-management-personal-type.component.css'
+  styleUrl: './ts-asset-management-personal-type.component.css',
 })
-export class TsAssetManagementPersonalTypeComponent implements OnInit, AfterViewInit {
+export class TsAssetManagementPersonalTypeComponent
+  implements OnInit, AfterViewInit
+{
   assetManagemnetPersonalData: any[] = [];
   private ngbModal = inject(NgbModal);
   assetType: any[] = [];
   tableAssetManagementPersonal: Tabulator | null = null;
-  constructor(private tsAssetmanagementPersonal: TsAssetManagementPersonalService,
+  constructor(
+    private tsAssetmanagementPersonal: TsAssetManagementPersonalService,
     private notification: NzNotificationService,
     private nzModal: NzModalService,
-    private tsAssetAllocationPersonalService: TsAssetAllocationPersonalService,
-
-  ) { }
+    private tsAssetAllocationPersonalService: TsAssetAllocationPersonalService
+  ) {}
   ngOnInit(): void {
     this.getAssetType();
   }
@@ -74,7 +86,7 @@ export class TsAssetManagementPersonalTypeComponent implements OnInit, AfterView
       },
       error: (err) => {
         console.error('Lỗi lấy loại tài sản:', err);
-      }
+      },
     });
   }
   ngAfterViewInit(): void {
@@ -83,17 +95,35 @@ export class TsAssetManagementPersonalTypeComponent implements OnInit, AfterView
   }
 
   drawTableAssetManagementPersonal(): void {
-    this.tableAssetManagementPersonal = new Tabulator('#dataTableAssetManagementTypePersonal',
+    this.tableAssetManagementPersonal = new Tabulator(
+      '#dataTableAssetManagementTypePersonal',
       {
         ...DEFAULT_TABLE_CONFIG,
-        layout:"fitDataStretch",
-        paginationMode: "local",
+        layout: 'fitDataStretch',
+        paginationMode: 'local',
         columns: [
-          { title: 'STT', field: 'STT', hozAlign: 'right', width: 70, headerHozAlign: 'center' },
-          { title: 'ID', field: 'ID', hozAlign: 'right', width: 70, headerHozAlign: 'center', visible: false },
-          { title: 'Mã tài sản', field: 'Code', headerHozAlign: 'center',bottomCalc: 'count' },
+          {
+            title: 'STT',
+            field: 'STT',
+            hozAlign: 'right',
+            width: 70,
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'ID',
+            field: 'ID',
+            hozAlign: 'right',
+            width: 70,
+            headerHozAlign: 'center',
+            visible: false,
+          },
+          {
+            title: 'Mã tài sản',
+            field: 'Code',
+            headerHozAlign: 'center',
+            bottomCalc: 'count',
+          },
           { title: 'Tên tài sản', field: 'Name', headerHozAlign: 'center' },
-
 
           //      {
           //   title: 'Ngày mua',
@@ -107,16 +137,20 @@ export class TsAssetManagementPersonalTypeComponent implements OnInit, AfterView
           //   }
           // },
           //            { title: 'Note', field: 'Note', hozAlign: 'left', width:300 }
-        ]
-      });
+        ],
+      }
+    );
   }
   addAssetTypePersonal() {
-    const modalRef = this.ngbModal.open(TsAssetManagementPersonalTypeFormComponent, {
-      size: 'xl',
-      backdrop: 'static',
-      keyboard: false,
-      centered: true,
-    });
+    const modalRef = this.ngbModal.open(
+      TsAssetManagementPersonalTypeFormComponent,
+      {
+        size: 'xl',
+        backdrop: 'static',
+        keyboard: false,
+        centered: true,
+      }
+    );
     //     modalRef.componentInstance.dataInput =null;
     modalRef.result.then(
       (result) => {
@@ -135,16 +169,21 @@ export class TsAssetManagementPersonalTypeComponent implements OnInit, AfterView
     }
     const rowData = { ...selected[0] };
 
-    const modalRef = this.ngbModal.open(TsAssetManagementPersonalTypeFormComponent, {
-      size: 'xl', backdrop: 'static', keyboard: false, centered: true
-    });
-
+    const modalRef = this.ngbModal.open(
+      TsAssetManagementPersonalTypeFormComponent,
+      {
+        size: 'xl',
+        backdrop: 'static',
+        keyboard: false,
+        centered: true,
+      }
+    );
 
     modalRef.componentInstance.dataInput = rowData;
 
     modalRef.result.then(
       () => this.getAssetType(),
-      () => { }
+      () => {}
     );
   }
   deleteAssetTypePersonal() {
@@ -162,7 +201,6 @@ export class TsAssetManagementPersonalTypeComponent implements OnInit, AfterView
       nzOkDanger: true,
       nzCancelText: 'Hủy',
       nzOnOk: () => {
-
         const payload = { tSTypeAssetPersonal: { id: ID, isDeleted: true } };
         return this.tsAssetAllocationPersonalService
           .saveAssetAllocationPerson(payload)

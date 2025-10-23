@@ -7,7 +7,8 @@ import { environment } from '../../../../environments/environment';
   providedIn: 'root',
 })
 export class VehicleManagementService {
-  private url = `${environment.host}api/vehiclemanagement/`;
+  private host = environment.host + 'api/';
+  private url = `${this.host}api/vehiclemanagement/`;
   constructor(private http: HttpClient) {}
 
   getVehicleManagement() {
@@ -17,7 +18,7 @@ export class VehicleManagementService {
     return this.http.get<any>(`${this.url + `get-vehicle-category`}`);
   }
   getEmployee() {
-    return this.http.get<any>(`${this.url + `employee`}`);
+    return this.http.get<any>(`${this.host + `employee`}`);
   }
   saveDataVehicleManagement(payload: any): Observable<any> {
     return this.http.post(this.url + 'vehicle', payload);

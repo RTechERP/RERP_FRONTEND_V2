@@ -27,10 +27,13 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { inject } from '@angular/core';
 import { DateTime } from 'luxon';
 import { TsAssetAllocationPersonalService } from '../ts-asset-allocation-personal/ts-asset-allocation-personal-service/ts-asset-allocation-personal.service';
-import { NzNotificationService } from 'ng-zorro-antd/notification';
+import {
+  NzNotificationModule,
+  NzNotificationService,
+} from 'ng-zorro-antd/notification';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
-import { NzModalService } from 'ng-zorro-antd/modal';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { TsAssetManagementPersonalFormComponent } from './ts-asset-management-personal-form/ts-asset-management-personal-form.component';
 @Component({
   selector: 'app-ts-asset-management-personal',
@@ -53,6 +56,9 @@ import { TsAssetManagementPersonalFormComponent } from './ts-asset-management-pe
     NzSelectModule,
     NzTableModule,
     NzTabsModule,
+    NzModalModule,
+    NzNotificationModule,
+    NgbModalModule,
   ],
   templateUrl: './ts-asset-management-personal.component.html',
   styleUrls: ['./ts-asset-management-personal.component.css'],

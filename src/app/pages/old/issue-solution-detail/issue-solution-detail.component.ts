@@ -16,6 +16,8 @@ import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { RowComponent } from 'tabulator-tables';
 import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzNotificationModule } from 'ng-zorro-antd/notification';
+
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -59,6 +61,8 @@ export class IssueSolutionDetailComponent implements OnInit, AfterViewInit {
   @Input() selectedId = 0;
   @Input() groupedData: any[] = [];
   @Input() isEditMode: boolean = false;
+
+  form!: FormGroup;
   
   departments: any[] = [];
   customers: any[] = [];
@@ -71,30 +75,6 @@ export class IssueSolutionDetailComponent implements OnInit, AfterViewInit {
   
 
   issueSolutionTypes: any[] = [];
-  
-
-  formData = {
-    issueSolutionType: null, //0.Chung, 1.Dự án
-    dateIssue: new Date(),
-    departmentId: null,
-    relatedDepartmentId: null,
-    issueDescription: '',
-    customerId: null,
-    supplierId: null,
-    projectId: null,
-    impactDetail: '',
-    immediateAction: '',
-    preventiveAction: '',
-    employeeId: null,
-    deadline: new Date(),
-    verifiedBy: null,
-    statusId: null,
-    issueCauseId: null,
-    note: '',
-    documentNumber: [],
-    reasonIgnoreStatusText: '',
-    otherIssueCauseNote: ''
-  };
 
   constructor(
     private fb: FormBuilder,
@@ -118,6 +98,37 @@ export class IssueSolutionDetailComponent implements OnInit, AfterViewInit {
     this.loadCauses();
     this.loadDocuments();
 
+    this.form = this.fb.group({
+      issueSolutionType: ['', Validators.required],
+      dateIssue: [null],
+      departmentId: [null],
+      relatedDepartmentId: [null],
+      documentNumber: [[]],
+      supplierId: [null],
+      statusId: [null],
+      reasonIgnoreStatusText: [{ value: '', disabled: true }],
+      issueDescription: ['', Validators.required],
+      immediateAction: [''],
+      customerId: [null],
+      verifiedBy: [null],
+      employeeId: [null],
+      deadline: [null],
+      projectId: [null],
+      issueCauseId: [null],
+      otherIssueCauseNote: [{ value: '', disabled: true }],
+      impactDetail: [''],
+      preventiveAction: [''],
+      note: [''],
+    });
+
+    this.form.get('statusId')?.valueChanges.subscribe(() => {
+      this.updateStatusValidation();
+    });
+
+    this.form.get('issueCauseId')?.valueChanges.subscribe(() => {
+      this.updateCauseValidation();
+    });
+
     if(this.isEditMode && this.groupedData.length > 0)
     {
       this.handleEditModeData();
@@ -133,54 +144,73 @@ export class IssueSolutionDetailComponent implements OnInit, AfterViewInit {
     console.log("data", data.MainData)
     
     if (data.MainData) {
-
-        this.formData.issueSolutionType = data.MainData.IssueSolutionType ?? 0;
-        this.formData.dateIssue = data.MainData.DateIssue ? new Date(data.MainData.DateIssue) : new Date();
-        this.formData.departmentId = data.MainData.DepartmentID ?? null;
-        this.formData.relatedDepartmentId = data.MainData.RelatedDepartmentID ?? null;
-        this.formData.issueDescription = data.MainData.IssueDescription ?? '';
-        this.formData.customerId = data.MainData.CustomerID ?? null;
-        this.formData.supplierId = data.MainData.SupplierID ?? null;
-        this.formData.projectId = data.MainData.ProjectID ?? null;
-        this.formData.impactDetail = data.MainData.ImpactDetail ?? '';
-        this.formData.immediateAction = data.MainData.ImmediateAction ?? '';
-        this.formData.preventiveAction = data.MainData.PreventiveAction ?? '';
-        this.formData.employeeId = data.MainData.EmployeeID ?? null;
-        this.formData.deadline = data.MainData.Deadline ? new Date(data.MainData.Deadline) : new Date();
-        this.formData.verifiedBy = data.MainData.VerifiedBy ?? null;
-        this.formData.note = data.MainData.Note ?? '';
+      // Set values trực tiếp vào FormGroup
+      const formData = {
+        issueSolutionType: data.MainData[0].IssueSolutionType ?? 0,
+        dateIssue: data.MainData[0].DateIssue ? new Date(data.MainData[0].DateIssue) : new Date(),
+        departmentId: data.MainData[0].DepartmentID ?? null,
+        relatedDepartmentId: data.MainData[0].RelatedDepartmentID ?? null,
+        issueDescription: data.MainData[0].IssueDescription ?? '',
+        customerId: data.MainData[0].CustomerID ?? null,
+        supplierId: data.MainData[0].SupplierID ?? null,
+        projectId: data.MainData[0].ProjectID ?? null,
+        impactDetail: data.MainData[0].ImpactDetail ?? '',
+        immediateAction: data.MainData[0].ImmediateAction ?? '',
+        preventiveAction: data.MainData[0].PreventiveAction ?? '',
+        employeeId: data.MainData[0].EmployeeID ?? null,
+        deadline: data.MainData[0].Deadline ? new Date(data.MainData[0].Deadline) : new Date(),
+        verifiedBy: data.MainData[0].VerifiedBy ?? null,
+        note: data.MainData[0].Note ?? '',
+        issueCauseId: data.MainData[0].IssueCauseID ?? null,
+        otherIssueCauseNote: data.MainData[0].OtherIssueCauseNote ?? '',
+        statusId: data.MainData[0].StatusID ?? null,
+        reasonIgnoreStatusText: data.MainData[0].ReasonIgnoreStatusText ?? '',
+        documentNumber: []
+      };
       
+      // Set vào FormGroup
+      this.form.patchValue(formData);
       
-        this.formData.issueCauseId = data.MainData.IssueCauseID ?? null;
-        this.formData.otherIssueCauseNote = data.MainData.OtherIssueCauseNote ?? '';
-      
-      
-      // Lấy dữ liệu trạng thái từ issueSolutionStatusLink
-        this.formData.statusId = data.MainData.StatusID ?? null;
-        this.formData.reasonIgnoreStatusText = data.MainData.ReasonIgnoreStatusText ?? '';
-      
+      // Update validation sau khi set data
+      this.updateStatusValidation();
+      this.updateCauseValidation();
       
       // Lấy dữ liệu chứng từ từ issueSolutionDocuments
-      // const documentsData = data.find(item => item.issueSolutionDocuments);
-      // if (documentsData && documentsData.issueSolutionDocuments && Array.isArray(documentsData.issueSolutionDocuments)) {
-      //   this.formData.documentNumber = documentsData.issueSolutionDocuments.map((doc: any) => doc.DocumentNumber).filter(Boolean);
-      // }
+      const documentsData = data.DocData
+      if (documentsData.length > 0) {
+        const documentNumbers = documentsData.map((doc: any) => doc.DocumentNumber).filter(Boolean);
+        this.form.patchValue({ documentNumber: documentNumbers });
+      }
     }
   }
 
   isIgnoreStatusSelected(): boolean {
-    const selected = this.statuses.find((s: any) => s.ID === this.formData.statusId);
+    const selected = this.statuses.find((s: any) => s.ID === this.form.get('statusId')?.value);
     return !!(selected && (selected.StatusCode === 'SC4' || selected.ID === 4 || selected.StatusName === 'Không đồng ý (ghi rõ lý do)'));
   }
 
   onStatusChange(): void {
     if (!this.isIgnoreStatusSelected()) {
-      this.formData.reasonIgnoreStatusText = '';
+      this.form.patchValue({ reasonIgnoreStatusText: '' });
     }
+    this.updateStatusValidation();
+  }
+
+  updateStatusValidation(): void {
+    const reasonControl = this.form.get('reasonIgnoreStatusText');
+    if (this.isIgnoreStatusSelected()) {
+      reasonControl?.setValidators([Validators.required]);
+      reasonControl?.enable();
+    } else {
+      reasonControl?.clearValidators();
+      reasonControl?.setValue('');
+      reasonControl?.disable();
+    }
+    reasonControl?.updateValueAndValidity();
   }
 
   isOtherCauseSelected(): boolean {
-    const selected = this.issueCauses.find((c: any) => c.ID === this.formData.issueCauseId);
+    const selected = this.issueCauses.find((c: any) => c.ID === this.form.get('issueCauseId')?.value);
     if (!selected) return false;
     const text = (selected.IssueCauseText || '').toLowerCase();
     return !!(selected.IssueCauseCode === 'IC5' || selected.ID === 5 || text.includes('Khác'));
@@ -188,8 +218,22 @@ export class IssueSolutionDetailComponent implements OnInit, AfterViewInit {
 
   onIssueCauseChange(): void {
     if (!this.isOtherCauseSelected()) {
-      this.formData.otherIssueCauseNote = '';
+      this.form.patchValue({ otherIssueCauseNote: '' });
     }
+    this.updateCauseValidation();
+  }
+
+  updateCauseValidation(): void {
+    const otherCauseControl = this.form.get('otherIssueCauseNote');
+    if (this.isOtherCauseSelected()) {
+      otherCauseControl?.setValidators([Validators.required]);
+      otherCauseControl?.enable();
+    } else {
+      otherCauseControl?.clearValidators();
+      otherCauseControl?.setValue('');
+      otherCauseControl?.disable();
+    }
+    otherCauseControl?.updateValueAndValidity();
   }
 
   loadStatuses(){
@@ -337,87 +381,106 @@ export class IssueSolutionDetailComponent implements OnInit, AfterViewInit {
   }
 
   saveData(): void {
-    const IssueLogSolution = {
-      ID: this.selectedId ?? 0,
-      DateIssue: this.formData.dateIssue,
-      DepartmentID: this.formData.departmentId ?? 0,
-      RelatedDepartmentID: this.formData.relatedDepartmentId ?? 0,
-      IssueDescription: this.formData.issueDescription ?? '',
-      CustomerID: this.formData.customerId ?? 0,
-      SupplierID: this.formData.supplierId ?? 0,
-      ProjectID: this.formData.projectId ?? 0,
-      ImpactDetail: this.formData.impactDetail ?? '',
-      ImmediateAction: this.formData.immediateAction ?? '',
-      PreventiveAction: this.formData.preventiveAction ?? '',
-      EmployeeID: this.formData.employeeId ?? 0,
-      Deadline: this.formData.deadline,
-      VerifiedBy: this.formData.verifiedBy ?? 0,
-      Note: this.formData.note ?? '',
-      IssueSolutionType: this.formData.issueSolutionType ?? 0
-    };
+    // Kiểm tra form hợp lệ
+    if (this.form.valid) {
+      // Lấy data trực tiếp từ FormGroup
+      const formValue = this.form.value;
+      
+      const IssueLogSolution = {
+        ID: this.selectedId ?? 0,
+        DateIssue: formValue.dateIssue,
+        DepartmentID: formValue.departmentId ?? 0,
+        RelatedDepartmentID: formValue.relatedDepartmentId ?? 0,
+        IssueDescription: formValue.issueDescription ?? '',
+        CustomerID: formValue.customerId ?? 0,
+        SupplierID: formValue.supplierId ?? 0,
+        ProjectID: formValue.projectId ?? 0,
+        ImpactDetail: formValue.impactDetail ?? '',
+        ImmediateAction: formValue.immediateAction ?? '',
+        PreventiveAction: formValue.preventiveAction ?? '',
+        EmployeeID: formValue.employeeId ?? 0,
+        Deadline: formValue.deadline,
+        VerifiedBy: formValue.verifiedBy ?? 0,
+        Note: formValue.note ?? '',
+        IssueSolutionType: formValue.issueSolutionType ?? 0
+      };
 
-    const CauseLink = {
-      ID: 0, 
-      IssueCauseID: this.formData.issueCauseId ?? null, 
-      Note: this.formData.otherIssueCauseNote ?? '', 
-      CreatedDate: new Date(),
-      CreatedBy: '', 
-      UpdatedBy: '',
-      UpdatedDate: null,
-    }
-
-    const StatusLink = {
-      ID: 0, 
-      StatusID: this.formData.statusId ?? null, // ID status từ combo 
-      Note: this.formData.reasonIgnoreStatusText ?? '', 
-      CreatedDate: new Date(),
-      CreatedBy: '', 
-      UpdatedBy: '',
-      UpdatedDate: null,
-    }
-
-    // Tạo danh sách documents
-    const issueSolutionDocuments = this.formData.documentNumber?.map((docCode: string) => {
-      const document = this.documents.find(doc => doc.Code === docCode); //tìm loại chứng từ tương ứng
-      return {
-        ID: 0,
-        DocumentNumber: docCode,
-        DocumentType: document?.SourceTable || '',
+      const CauseLink = {
+        ID: 0, 
+        IssueCauseID: formValue.issueCauseId ?? null, 
+        Note: formValue.otherIssueCauseNote ?? '', 
         CreatedDate: new Date(),
-        CreatedBy: '',
+        CreatedBy: '', 
         UpdatedBy: '',
         UpdatedDate: null,
+      }
+
+      const StatusLink = {
+        ID: 0, 
+        StatusID: formValue.statusId ?? null, // ID status từ combo 
+        Note: formValue.reasonIgnoreStatusText ?? '', 
+        CreatedDate: new Date(),
+        CreatedBy: '', 
+        UpdatedBy: '',
+        UpdatedDate: null,
+      }
+
+      // Tạo danh sách documents
+      const issueSolutionDocuments = formValue.documentNumber?.map((docCode: string) => {
+        const document = this.documents.find(doc => doc.Code === docCode); //tìm loại chứng từ tương ứng
+        return {
+          ID: 0,
+          DocumentNumber: docCode,
+          DocumentType: document?.SourceTable || '',
+          CreatedDate: new Date(),
+          CreatedBy: '',
+          UpdatedBy: '',
+          UpdatedDate: null,
+        };
+      }) || [];
+
+      const payload = {
+        issueSolutionLogs: IssueLogSolution,
+        issueSolutionCauseLink: CauseLink,
+        issueSolutionStatusLink: StatusLink,
+        issueSolutionDocuments: issueSolutionDocuments, 
+        DeletedIds: [], 
       };
-    }) || [];
 
-    const payload = {
-      issueSolutionLogs: IssueLogSolution,
-      issueSolutionCauseLink: CauseLink,
-      issueSolutionStatusLink: StatusLink,
-      issueSolutionDocuments: issueSolutionDocuments, 
-      DeletedIds: [], 
-    };
+      this.issueSolutionService.saveData(payload).subscribe({
+        next: (response) => {
+          if (response.status === 1) {
+            this.handleSuccess(response);
+          } else {
+            this.notification.error(
+              'Lỗi',
+              response.message || 'Lưu dữ liệu thất bại!'
+            );
+          }
+        },
+        error: (err: any) => {
+          this.notification.error('Lỗi', 'Không thể lưu dữ liệu!');
+        },
+      });
+    } else {
+      // Hiển thị lỗi validation
+      this.markAllFieldsAsTouched();
+      this.notification.error('Lỗi', 'Vui lòng kiểm tra lại thông tin!');
+    }
+  }
 
-    this.issueSolutionService.saveData(payload).subscribe({
-      next: (response) => {
-        if (response.status === 1) {
-          this.handleSuccess(response);
-        } else {
-          this.notification.error(
-            'Lỗi',
-            response.message || 'Lưu dữ liệu thất bại!'
-          );
-        }
-      },
-      error: (err: any) => {
-        this.notification.error('Lỗi', 'Không thể lưu dữ liệu!');
-      },
+  markAllFieldsAsTouched(): void {
+    Object.keys(this.form.controls).forEach(key => {
+      this.form.get(key)?.markAsTouched();
     });
   }
 
   handleSuccess(response: any): void {
     this.notification.success('Thành công', 'Lưu dữ liệu thành công!');
-    this.activeModal.close(response.data);
+    this.activeModal.close({
+      success: true,
+      reloadData: true,
+    });
   }
 
   closeModal(): void {

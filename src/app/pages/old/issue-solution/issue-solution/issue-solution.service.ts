@@ -11,11 +11,13 @@ export class IssueSolutionService {
   constructor(private http: HttpClient) { }
 
   getAllIssueSolution(
-    keyword: string
+    keyword: string,
+    issueSolutionType: number
   ): Observable<any> {
     return this.http.get<any>(this._url, {
       params: {
         keyword: keyword,
+        issueSolutionType: issueSolutionType
       },
     });
   }

@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { HOST } from '../../../../app.config';
+import { environment } from '../../../../../environments/environment';
+// import { HOST } from '../../../../app.config';
 @Injectable({
   providedIn: 'root',
 })
 export class TbProductRtcService {
-  private url = `${HOST}api/ProductRTC/`;
-  private urlFirm = `${HOST}api/Firm`;
+  private url = `${environment.host}api/ProductRTC/`;
+  private urlFirm = `${environment.host}api/Firm`;
   constructor(private http: HttpClient) {}
 
   getProductRTC(request: any) {
@@ -29,9 +30,10 @@ export class TbProductRtcService {
   saveData(payload: any): Observable<any> {
     return this.http.post(`${this.url + `save-data`}`, payload);
   }
-  uploadImage(file: File): Observable<any> {
+  uploadImage(file: File, path:string): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
+     formData.append('path', path);
     return this.http.post<any>(`${this.url}upload`, formData);
   }
   getProductAjax(): string {

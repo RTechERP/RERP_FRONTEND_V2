@@ -175,7 +175,12 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     });
   }
   getListEmployee() {
-    this.assetManagementPersonalService.getListEmployee().subscribe((respon: any) => {
+     const request = {
+      status: 0,
+      departmentid: 0,
+      keyword: ''
+    };
+    this.assetManagementPersonalService.getEmployee(request).subscribe((respon: any) => {
       this.emPloyeeLists = respon.employees;
       console.log(this.emPloyeeLists);
       this.employeeID = null;

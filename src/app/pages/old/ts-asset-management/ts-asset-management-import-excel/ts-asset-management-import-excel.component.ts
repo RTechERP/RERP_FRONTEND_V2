@@ -651,7 +651,12 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       this.listTypeAsset = resppon.data;
       console.log(this.listTypeAsset);
     });
-     this.tsAssetManagementPersonalService.getListEmployee().subscribe((respon: any) => {
+     const request = {
+      status: 0,
+      departmentid: 0,
+      keyword: ''
+    };
+     this.tsAssetManagementPersonalService.getEmployee(request).subscribe((respon: any) => {
       this.emPloyeeLists = respon.employees;
     });
     this.assetsManagementService.getAssetAllocationDetail(1).subscribe({

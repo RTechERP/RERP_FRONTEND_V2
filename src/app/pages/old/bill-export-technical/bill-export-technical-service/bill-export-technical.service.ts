@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { HOST } from '../../../../app.config';
+import { environment } from '../../../../../environments/environment';
+// import { HOST } from '../../../../app.config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class BillExportTechnicalService {
-  private url = `${HOST}api/BillExportTechnical/`;
+  private url = `${environment.host}api/BillExportTechnical/`;
   constructor(private http: HttpClient) {}
   getBillExport(): string {
     return this.url + `get-bill-export-technical`;

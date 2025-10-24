@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { HOST } from '../../../app.config';
+import { environment } from '../../../../environments/environment';
+// import { HOST } from '../../../app.config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TrainingRegistrationService {
-  apiUrl: string = HOST + 'api';
+  apiUrl: string = environment.host + 'api';
   constructor(private http: HttpClient) {}
   getAll(param: any): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/trainingregistration`, param);
@@ -26,12 +27,15 @@ export class TrainingRegistrationService {
     return this.http.post<any>(`${this.apiUrl}/Home/upload`, formData);
   }
 
-  uploadMultipleFiles(files: File[]): Observable<any> {
+  uploadMultipleFiles(files: File[], subPath?: string): Observable<any> {
     const formData = new FormData();
     files.forEach((file) => {
       formData.append('files', file);
     });
     formData.append('key', 'TrainingRegistration');
+    if (subPath && subPath.trim()) {
+      formData.append('subPath', subPath.trim());
+    }
     return this.http.post<any>(`${this.apiUrl}/Home/upload-multiple`, formData);
   }
   getEmployee(): Observable<any> {

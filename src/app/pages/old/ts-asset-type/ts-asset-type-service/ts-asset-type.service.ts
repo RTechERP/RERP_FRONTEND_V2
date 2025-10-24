@@ -2,13 +2,14 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { HttpParams } from '@angular/common/http';
-import { HOST } from '../../../../app.config';
+import { environment } from '../../../../../environments/environment';
+// import { HOST } from '../../../../app.config';
 @Injectable({
   providedIn: 'root',
 })
 export class TypeAssetsService {
-  url = `${HOST}api/AssetType/get-asset-type`;
-  urlsave = `${HOST}api/AssetType/save-data`;
+  url = `${environment.host}api/AssetType/get-asset-type`;
+  urlsave = `${environment.host}api/AssetType/save-data`;
   constructor(private httpclient: HttpClient) {}
 
   getTypeAssets(): Observable<any> {

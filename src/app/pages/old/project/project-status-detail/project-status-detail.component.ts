@@ -76,7 +76,7 @@ export class ProjectStatusDetailComponent implements OnInit {
       .subscribe({
         next: (response: any) => {
           if (response.status == 1) {
-            this.notification.error('', 'Đã lưu trạng thái!', {
+            this.notification.success('', 'Đã lưu trạng thái!', {
               nzStyle: { fontSize: '0.75rem' },
             });
             this.activeModal.dismiss(true);

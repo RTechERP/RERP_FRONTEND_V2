@@ -4,12 +4,13 @@ import { Observable } from 'rxjs';
 import { HttpParams } from '@angular/common/http';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
-import { HOST } from '../../../../app.config';
+import { environment } from '../../../../../environments/environment';
+// import { HOST } from '../../../../app.config';
 @Injectable({
   providedIn: 'root',
 })
 export class ProjectService {
-  private apiUrl = HOST + 'api/';
+  private apiUrl = environment.host + 'api/';
 
   private urlProject = this.apiUrl + 'project/';
   private urlProjectWorkPropress = this.apiUrl + 'projectworkpropress/';
@@ -130,7 +131,7 @@ export class ProjectService {
   ): Observable<any> {
     return this.http.get<any>(
       this.urlProject +
-        `get-project-code-modal?projectId=${projectId}&shortName=${shortName}&projectType=${projectType}`
+        `get-project-code-modal?projectId=${projectId}&customerShortName=${shortName}&projectType=${projectType}`
     );
   }
   // lấy leader

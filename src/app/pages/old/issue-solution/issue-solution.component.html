@@ -4,28 +4,28 @@
             <div class="d-flex gap-1">
 
                 <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add" (click)="openModal()">
-                    <img src="assets/icon/add-white-btn.png" alt="Thêm " />Tạo
+                    <img src="assets/icon/action_add_item_16.png" alt="Thêm" />Tạo
                 </button>
                 <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="onEdit()">
-                    <img src="assets/icon/edit-white-btn.png" alt="Sửa" />Sửa
+                    <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />Sửa
                 </button>
-                <button nz-button nzType="default" nzSize="small" class="btn-delete">
-                    <img src="assets/icon/delete-white-btn.png" alt="Xóa" />Xóa
+                <button nz-button nzType="default" nzSize="small" class="btn-delete" (click)="onDelete()">
+                    <img src="assets/icon/action_delete_item_16.png" alt="Xóa" />Xóa
                 </button>
 
                 <span class="mx-2 divider"></span>
-                <nz-select nzSize="small" nzShowSearch nzAllowClear nzPlaceHolder="Loại biểu mẫu" class="fs-12">
-                    <nz-option nzLabel="Jack" nzValue="jack"></nz-option>
-                    <nz-option nzLabel="Lucy" nzValue="lucy"></nz-option>
-                    <nz-option nzLabel="Tom" nzValue="tom"></nz-option>
+                <nz-select nzSize="small" nzShowSearch nzAllowClear nzPlaceHolder="Loại biểu mẫu" class="fs-12" 
+                [(ngModel)]="filters.issueSolutionType" (ngModelChange)="onIssueSolutionTypeChange()">
+                    <nz-option *ngFor="let item of issueSolutionTypes" [nzValue]="item.value"
+                    [nzLabel]="item.name"></nz-option>
                 </nz-select>
 
                 <div style="display: flex; width: 30%;" class="ms-auto">
 
                     <input type="text" nzSize="small" name="keyword" nz-input class="fs-12"
-                        style="font-style: italic; flex: 1;" placeholder="Tìm kiếm" />
+                        style="font-style: italic; flex: 1;" placeholder="Tìm kiếm" [(ngModel)]="filters.keyword"/>
                     <button nz-button nzType="primary" nzSize="small">
-                        <nz-icon nzType="search"></nz-icon>
+                        <nz-icon nzType="search" (click)="onSearch()"></nz-icon>
                     </button>
                 </div>
             </div>

@@ -59,24 +59,33 @@ export class IssueSolutionComponent implements OnInit, AfterViewInit {
   selectedId: number = 0;
   filters: any = {
     keyword: '',
+    issueSolutionType: 0
   };
+
+  issueSolutionTypes: any[] = [];
   constructor(
     private issueSolutionService: IssueSolutionService,
     private notification: NzNotificationService,
     private modalService: NgbModal,
-  ) { }
+    private modal: NzModalService,
+  ) {
+    this.issueSolutionTypes = [
+      { value: 0, name: 'Chung' },
+      { value: 1, name: 'Dự án' },
+    ];
+  }
   
   ngOnInit(): void {
+    
   }
 
   ngAfterViewInit(): void {
     this.initMainTable();
     this.loadMainData();
-
   }
 
   loadMainData(): void {
-    this.issueSolutionService.getAllIssueSolution(this.filters.keyword).subscribe({
+    this.issueSolutionService.getAllIssueSolution(this.filters.keyword, this.filters.issueSolutionType).subscribe({
       next: (response) => {
         console.log(response);
         if (response.status == 1) {
@@ -92,6 +101,54 @@ export class IssueSolutionComponent implements OnInit, AfterViewInit {
         this.notification.error('Lỗi', error);
       },
     });
+  }
+
+  onIssueSolutionTypeChange()
+  {
+    this.loadMainData();
+  }
+
+  onSearch(){
+    this.loadMainData();
+  }
+
+  onDelete(){
+    if(!this.selectedId) {
+      this.notification.error('Lỗi',"Vui lòng chọn bản ghi cần xóa");
+      return;
+    }
+    this.modal.confirm({
+      nzTitle: 'Bạn có chắc chắn muốn xóa?',
+      nzContent: 'Hành động này không thể hoàn tác.',
+      nzOkText: 'Xóa',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        const issueSolutionLogsDel= {
+          ID: this.selectedId,
+          IsDeleted: true,
+        }
+        const payload = {
+          issueSolutionLogs: issueSolutionLogsDel
+        }
+        this.issueSolutionService.saveData(payload).subscribe({
+          next: (response) => {
+            if (response.status === 1) {
+              this.notification.success('Thành công', 'Xóa dữ liệu thành công!');
+              this.loadMainData();
+            } else {
+              this.notification.error(
+                'Lỗi',
+                response.message || 'Xóa dữ liệu thất bại!'
+              );
+            }
+          },
+          error: (err: any) => {
+            this.notification.error('Lỗi', 'Không thể xóa dữ liệu!' + err);
+          },
+        });
+      },
+    });
+    
   }
 
   onEdit(){
@@ -198,6 +255,7 @@ export class IssueSolutionComponent implements OnInit, AfterViewInit {
           title: 'Số chứng từ',
           field: 'DocumentNumbers',
           sorter: 'string',
+          width: 400
         },
         {
           title: 'Phòng ban liên quan',
@@ -292,9 +350,20 @@ export class IssueSolutionComponent implements OnInit, AfterViewInit {
       ],
     });
 
-    this.tb_Master.on('rowClick', (e: any, row: RowComponent) => {
-      const ID = row.getData()['ID'];
-      this.selectedId = ID;
+    // this.tb_Master.on('rowClick', (e: any, row: RowComponent) => {
+    //   const ID = row.getData()['ID'];
+    //   this.selectedId = ID;
+    //   console.log(this.selectedId)
+    // });
+    this.tb_Master.on('rowSelected', (row: any) => {
+      this.selectedId = row.getData().ID;
+      console.log(this.selectedId)
+    });
+
+    this.tb_Master.on('rowDeselected', (row: any) => {
+      if (this.selectedId === row.getData().ID) {
+        this.selectedId = 0;
+      }
       console.log(this.selectedId)
     });
   }

@@ -15,6 +15,7 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './auth/auth.interceptor';
 import { NzCalendarModule } from 'ng-zorro-antd/calendar';
+import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 registerLocaleData(vi);
 
@@ -24,7 +25,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideNzIcons(icons),
     provideNzI18n(vi_VN),
-    importProvidersFrom(FormsModule),
+    importProvidersFrom(FormsModule, NgbModal, NgbActiveModal),
     provideAnimationsAsync(),
     provideHttpClient(withInterceptors([authInterceptor])),
     importProvidersFrom(NzCalendarModule),

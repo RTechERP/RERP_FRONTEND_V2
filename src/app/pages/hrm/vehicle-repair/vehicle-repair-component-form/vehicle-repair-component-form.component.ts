@@ -392,53 +392,55 @@ export class VehicleRepairComponentFormComponent implements OnInit {
       },
     };
 
-    this.tbProductRtcService.uploadImage(this.selectedFile, SERVER_PATH).subscribe({
-      next: (response: any) => {
-        if (response?.status && response.status !== 1) {
-          this.notification.error(
-            'Lỗi upload',
-            response?.message || 'Upload thất bại'
-          );
-          return;
-        }
+    this.tbProductRtcService
+      .uploadImage(this.selectedFile, this.fathSever)
+      .subscribe({
+        next: (response: any) => {
+          if (response?.status && response.status !== 1) {
+            this.notification.error(
+              'Lỗi upload',
+              response?.message || 'Upload thất bại'
+            );
+            return;
+          }
 
-        this.vehicleRepairService.saveData(payload).subscribe({
-          next: (response: any) => {
-            if (response?.status == 1) {
-              this.notification.success(
-                'Thành công',
-                'Lưu thông tin sửa chữa xe thành công'
-              );
-              this.formSubmitted.emit();
-              this.activeModal.close('save');
-            } else {
-              this.notification.error(
-                'Lỗi',
-                response?.message || 'Lưu thất bại'
-              );
-            }
-          },
-          error: (err) => {
-            const msg =
-              err?.error?.message ||
-              err?.message ||
-              err?.statusText ||
-              'Lỗi khi lưu thông tin';
-            this.notification.error('Lỗi', msg);
-            console.error('Lỗi khi lưu:', err);
-          },
-        });
-      },
-      error: (err) => {
-        const msg =
-          err?.error?.message ||
-          err?.message ||
-          err?.statusText ||
-          'Không upload được file';
-        this.notification.error('Lỗi upload', msg);
-        console.error('Lỗi upload:', err);
-      },
-    });
+          this.vehicleRepairService.saveData(payload).subscribe({
+            next: (response: any) => {
+              if (response?.status == 1) {
+                this.notification.success(
+                  'Thành công',
+                  'Lưu thông tin sửa chữa xe thành công'
+                );
+                this.formSubmitted.emit();
+                this.activeModal.close('save');
+              } else {
+                this.notification.error(
+                  'Lỗi',
+                  response?.message || 'Lưu thất bại'
+                );
+              }
+            },
+            error: (err) => {
+              const msg =
+                err?.error?.message ||
+                err?.message ||
+                err?.statusText ||
+                'Lỗi khi lưu thông tin';
+              this.notification.error('Lỗi', msg);
+              console.error('Lỗi khi lưu:', err);
+            },
+          });
+        },
+        error: (err) => {
+          const msg =
+            err?.error?.message ||
+            err?.message ||
+            err?.statusText ||
+            'Không upload được file';
+          this.notification.error('Lỗi upload', msg);
+          console.error('Lỗi upload:', err);
+        },
+      });
   }
   addType() {
     const modalRef = this.ngbModal.open(VehicleRepairTypeFormComponent, {

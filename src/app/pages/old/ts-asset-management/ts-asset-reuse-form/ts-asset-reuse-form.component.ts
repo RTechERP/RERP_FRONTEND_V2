@@ -99,7 +99,12 @@ export class TsAssetReuseFormComponent implements OnInit, AfterViewInit {
     this.activeModal.dismiss('cancel');
   }
   getListEmployee() {
-    this.assetManagementPersonalService.getListEmployee().subscribe((respon: any) => {
+     const request = {
+      status: 0,
+      departmentid: 0,
+      keyword: ''
+    };
+    this.assetManagementPersonalService.getEmployee(request).subscribe((respon: any) => {
       this.emPloyeeLists = respon.employees;
     });
   }

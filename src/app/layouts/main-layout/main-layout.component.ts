@@ -17,7 +17,7 @@ import { NgComponentOutlet } from '@angular/common';
 import { Type, Injector } from '@angular/core';
 import { NotifyItem } from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
 import { AppNotifycationDropdownComponent } from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
-import { AppUserDropdownComponent } from '../../pages/old/app/app-user-dropdown/app-user-dropdown.component';
+// import { AppUserDropdownComponent } from '/pages/old/app/app-user-dropdown/app-user-dropdown.component';
 import { Title } from '@angular/platform-browser';
 import { ProjectComponent } from '../../pages/old/project/project.component';
 // import { CustomerComponent } from '../../pages/customer/customer.component';
@@ -32,7 +32,28 @@ import { ProjectSurveyComponent } from '../../pages/old/project/project-survey/p
 import { ProjectItemLateComponent } from '../../pages/old/project/project-item-late/project-item-late.component';
 import { ProjectWorkItemTimelineComponent } from '../../pages/old/project/project-work-item-timeline/project-work-item-timeline.component';
 import { SynthesisOfGeneratedMaterialsComponent } from '../../pages/old/project/synthesis-of-generated-materials/synthesis-of-generated-materials.component';
+<<<<<<< HEAD
 import { IssueSolutionComponent } from '../../pages/old/issue-solution/issue-solution.component';
+=======
+import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
+
+import { FactoryVisitRegistrationComponent } from '../../pages/general-category/visit-factory-registation/factory-visit-registration.component';
+import { TsAssetAllocationPersonalComponent } from '../../pages/old/ts-asset-allocation-personal/ts-asset-allocation-personal.component';
+import { TsAssetManagementPersonalComponent } from '../../pages/old/ts-asset-management-personal/ts-asset-management-personal.component';
+import { TsAssetManagementPersonalTypeComponent } from '../../pages/old/ts-asset-management-personal/ts-asset-management-personal-type/ts-asset-management-personal-type.component';
+import { TsAssetRecoveryPersonalComponent } from '../../pages/old/ts-asset-recovery-personal/ts-asset-recovery-personal.component';
+import { VehicleRepairComponent } from '../../pages/hrm/vehicle-repair/vehicle-repair.component';
+import { VehicleRepairTypeComponent } from '../../pages/hrm/vehicle-repair/vehicle-repair-type/vehicle-repair-type.component';
+
+import { DepartmentComponent } from '../../pages/old/department/department.component';
+import { TeamComponent } from '../../pages/old/team/team.component';
+import { PositionsComponent } from '../../pages/old/positions/positions.component';
+import { EmployeeComponent } from '../../pages/old/employee/employee.component';
+import { ContractComponent } from '../../pages/old/contract/contract.component';
+import { EmployeeScheduleWorkComponent } from '../../pages/old/holiday/employee-schedule-work/employee-schedule-work.component';
+import { menus } from '../../pages/old/menus/menus.component';
+
+>>>>>>> origin/master
 type TabItem = {
   title: string;
   comp: Type<any>;
@@ -105,6 +126,7 @@ export class MainLayoutComponent implements OnInit {
 
   isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
   isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
+<<<<<<< HEAD
   menus: MenuItem[] = [
     //#region menu CRM
     {
@@ -262,6 +284,9 @@ export class MainLayoutComponent implements OnInit {
     },
     //#endregion
   ];
+=======
+  menus = menus;
+>>>>>>> origin/master
   dynamicTabs: TabItem[] = [];
 
   menu: any = {};

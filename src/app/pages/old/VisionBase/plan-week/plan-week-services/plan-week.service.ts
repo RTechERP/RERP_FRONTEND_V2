@@ -3,13 +3,14 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 // import { HOST } from '../../../../../app.config';
 import { end } from '@popperjs/core';
-import { HOST } from '../../../../../app.config';
+import { environment } from '../../../../../../environments/environment';
+// import { HOST } from '../../../../../app.config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PlanWeekService {
-  private _url = HOST + 'api/PlanWeek/';
+  private _url = environment.host + 'api/PlanWeek/';
   constructor(private http: HttpClient) {}
 
   getDepartment(): Observable<any> {

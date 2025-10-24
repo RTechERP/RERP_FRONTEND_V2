@@ -642,10 +642,10 @@ nz-carousel {
   }
 }
 
-.custom-date-cell {
+/* .custom-date-cell {
   padding: 6px;
   text-align: center;
-}
+} */
 
 .custom-date-cell span {
   display: inline-block;
@@ -656,8 +656,8 @@ nz-carousel {
 }
 
 /* Chỉ tô màu Chủ nhật thuộc tháng hiện tại */
-.custom-date-cell span.sunday {
-  background: #ffecec;
-  color: #d93025;
-  font-weight: 600;
+.holiday {
+  background: #dc3545;
+  color: #fff;
+  /* font-weight: 600; */
 }

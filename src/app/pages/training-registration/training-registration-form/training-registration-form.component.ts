@@ -51,9 +51,6 @@ import {
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzModalModule } from 'ng-zorro-antd/modal';
-import { APP_LOGIN_NAME } from '../../../app.config';
-import { EMPLOYEE_ID } from '../../../app.config';
-import { ISADMIN } from '../../../app.config';
 import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
 import { NgbModal, NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
@@ -62,6 +59,7 @@ import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { SERVER_PATH } from '../../../app.config';
+import { AppUserService } from '../../../services/app-user.service';
 
 @Component({
   selector: 'app-training-registration-form',
@@ -106,7 +104,7 @@ export class TrainingRegistrationFormComponent
   @Input() dataInput: any;
   table: any;
   fileTable: any;
-
+  private appUserService = inject(AppUserService);
   // Reactive form
   private fb = inject(NonNullableFormBuilder);
   validateForm = this.fb.group({
@@ -293,79 +291,16 @@ export class TrainingRegistrationFormComponent
       return;
     }
 
-    // Lọc ra các file mới cần upload
-    const newFiles = this.fileList.filter(
-      (file) => file.status === 'new' && !file.isDeleted && !file.IsDeleted
-    );
-
-    // Nếu không có file mới cần upload
-    if (newFiles.length === 0) {
-      this.saveDataToServer();
-      return;
-    }
-
-    // Sử dụng API upload multiple files để upload tất cả file cùng lúc
-    const filesToUpload = newFiles.map((file) => file.originFile);
-
-    this.trainingRegistrationService
-      .uploadMultipleFiles(filesToUpload)
-      .subscribe({
-        next: (response) => {
-          if (response.status === 1 && response.data) {
-            // Cập nhật thông tin file trong fileList với kết quả từ server
-            response.data.forEach((uploadedFile: any, index: number) => {
-              const fileIndex = this.fileList.findIndex(
-                (f) => f.uid === newFiles[index].uid
-              );
-              if (fileIndex !== -1) {
-                this.fileList[fileIndex] = {
-                  ...this.fileList[fileIndex],
-                  status: 'done',
-                  FileName: uploadedFile.fileName,
-                  ServerPath: uploadedFile.filePath,
-                  OriginName: uploadedFile.originalName,
-                  ID: 0,
-                };
-              }
-            });
-            this.updateFileTable();
-            this.notification.success(
-              'Thông báo',
-              `Đã upload thành công ${response.data.length} file`
-            );
-          } else {
-            this.notification.error(
-              'Thông báo',
-              response.message || 'Upload file thất bại'
-            );
-          }
-
-          // Lưu dữ liệu sau khi upload
-          this.saveDataToServer();
-        },
-        error: (error) => {
-          this.notification.error(
-            'Thông báo',
-            'Upload file thất bại: ' + (error.error?.message || error.message)
-          );
-          // Vẫn tiếp tục lưu dữ liệu ngay cả khi upload thất bại
-          this.saveDataToServer();
-        },
-      });
-  }
-
-  // Phương thức lưu dữ liệu sau khi upload file
-  saveDataToServer() {
+    // Bước 1: Lưu master trước (không kèm file) để lấy ID/Code
     const formatDate = (date: any) => {
       return date
         ? DateTime.fromJSDate(new Date(date)).toFormat('yyyy-MM-dd')
         : null;
     };
-
     const formValues = this.validateForm.value;
     const trainingRange = formValues.TrainingRange || [];
 
-    // Chuẩn bị dữ liệu chi tiết
+    // Chuẩn bị dữ liệu chi tiết cho lần lưu master
     const detailData = this.table.getData().map((item: any) => ({
       ID: item.ID || 0,
       TrainingRegistrationID: this.dataInput?.ID || 0,
@@ -375,7 +310,153 @@ export class TrainingRegistrationFormComponent
       IsDeleted: false,
     }));
 
-    // Chuẩn bị danh sách file
+    const trainingDataMaster = {
+      ID: this.dataInput?.ID || 0,
+      EmployeeID: formValues.EmployeeID,
+      Purpose: formValues.Purpose,
+      TrainingType: formValues.TrainingType,
+      IsCertification: formValues.IsCertification,
+      SessionsPerCourse: formValues.SessionsPerCourse,
+      SessionDuration: formValues.SessionDuration,
+      DateRegister: formatDate(new Date()),
+      DateStart: formatDate(trainingRange[0]),
+      DateEnd: formatDate(trainingRange[1]),
+      CompletionAssessment: formValues.CompletionAssessment || '',
+      LstFile: [], // Lưu master trước, KHÔNG kèm file
+      LstDetail: detailData, // Lưu chi tiết ngay trong lần đầu
+    };
+
+    this.trainingRegistrationService.saveData(trainingDataMaster).subscribe({
+      next: (res) => {
+        if (res.status === 1 && res.data) {
+          // Cập nhật lại dataInput với ID/Code trả về
+          this.dataInput = {
+            ...(this.dataInput || {}),
+            ID: res.data.ID,
+            Code: res.data.Code,
+          };
+
+          // Bước 2: Upload file (nếu có)
+          const newFiles = this.fileList.filter(
+            (file) =>
+              file.status === 'new' && !file.isDeleted && !file.IsDeleted
+          );
+
+          if (newFiles.length === 0) {
+            // Không có file mới => hoàn tất sau khi lưu master
+            this.notification.success(
+              'Thông báo',
+              'Đã lưu thông tin đăng ký đào tạo'
+            );
+            this.resetForm();
+            this.activeModal.close('success');
+            return;
+          }
+
+          const filesToUpload = newFiles.map((file) => file.originFile);
+
+          // Tạo subPath: Đăng ký đào tạo/year/department/Code
+          const employeeId = formValues.EmployeeID;
+          const emp = this.lstEmployees.find((e) => e.ID === employeeId);
+          const year = new Date().getFullYear().toString();
+          const departmentName = (emp?.DepartmentName || 'Khác').toString();
+          const code = (res.data.Code || '').toString();
+
+          const sanitize = (s: string) =>
+            s.replace(/[<>:"/\\|?*\u0000-\u001F]/g, '').trim();
+          const subPath = [
+            sanitize(year),
+            sanitize(departmentName),
+            sanitize(code),
+          ].join('/');
+
+          this.trainingRegistrationService
+            .uploadMultipleFiles(filesToUpload, subPath)
+            .subscribe({
+              next: (uploadRes) => {
+                if (uploadRes.status === 1 && uploadRes.data) {
+                  // Cập nhật fileList với kết quả upload
+                  uploadRes.data.forEach((uploadedFile: any, index: number) => {
+                    const fileIndex = this.fileList.findIndex(
+                      (f) => f.uid === newFiles[index].uid
+                    );
+                    if (fileIndex !== -1) {
+                      this.fileList[fileIndex] = {
+                        ...this.fileList[fileIndex],
+                        status: 'done',
+                        FileName: uploadedFile.fileName,
+                        ServerPath: uploadedFile.filePath,
+                        OriginName: uploadedFile.originalName,
+                        ID: 0,
+                      };
+                    }
+                  });
+                  this.updateFileTable();
+                  this.notification.success(
+                    'Thông báo',
+                    `Đã upload thành công ${uploadRes.data.length} file`
+                  );
+
+                  // Bước 3: Cập nhật lại master chỉ với danh sách file (tránh lưu chi tiết lần 2)
+                  this.saveDataToServer(true);
+                } else {
+                  this.notification.error(
+                    'Thông báo',
+                    uploadRes.message || 'Upload file thất bại'
+                  );
+                }
+              },
+              error: (err) => {
+                console.error('Lỗi upload:', err);
+                this.notification.error(
+                  'Thông báo',
+                  'Upload file thất bại: ' + (err.error?.message || err.message)
+                );
+              },
+            });
+        } else {
+          this.notification.error(
+            'Thông báo',
+            res.message || 'Lưu thông tin đăng ký đào tạo thất bại'
+          );
+        }
+      },
+      error: (error) => {
+        console.error('Lỗi khi lưu master:', error);
+        this.notification.error(
+          'Thông báo',
+          'Lưu thông tin đăng ký đào tạo thất bại: ' +
+            (error.error?.message || error.message)
+        );
+      },
+    });
+  }
+
+  // Phương thức lưu dữ liệu sau khi upload file
+  // Trong class TrainingRegistrationFormComponent
+  saveDataToServer(skipDetails: boolean = false) {
+    const formatDate = (date: any) => {
+      return date
+        ? DateTime.fromJSDate(new Date(date)).toFormat('yyyy-MM-dd')
+        : null;
+    };
+
+    const formValues = this.validateForm.value;
+    const trainingRange = formValues.TrainingRange || [];
+
+    // Chuẩn bị dữ liệu chi tiết (có thể bỏ qua ở lần 2)
+    const detailData = skipDetails
+      ? []
+      : this.table.getData().map((item: any) => ({
+          ID: item.ID || 0,
+          TrainingRegistrationID: this.dataInput?.ID || 0,
+          TrainingRegistrationCategoryID: item.CategoryID,
+          DescriptionDetail: item.Explaination || '',
+          Note: item.Note || '',
+          IsDeleted: false,
+        }));
+
+    // Chuẩn bị danh sách file (lần 2 sau khi upload)
     const fileData = this.fileList.map((file) => ({
       ID: file.ID || 0,
       FileName: file.FileName || file.name,
@@ -384,7 +465,6 @@ export class TrainingRegistrationFormComponent
       IsDeleted: file.isDeleted || file.IsDeleted || false,
     }));
 
-    // Chuẩn bị dữ liệu để gửi lên server
     const trainingData = {
       ID: this.dataInput?.ID || 0,
       EmployeeID: formValues.EmployeeID,
@@ -469,7 +549,7 @@ export class TrainingRegistrationFormComponent
       height: '40vh',
       layout: 'fitDataStretch',
       columns: [
-        { title: 'STT', field: 'STT', width: 70, hozAlign: 'center' },
+        { title: 'STT', field: 'STT', width: 50, hozAlign: 'center' },
         {
           title: 'ID',
           field: 'ID',

@@ -337,13 +337,28 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       //   paginationMode: 'remote',
       //   paginationSizeSelector: [10, 30, 50, 100, 200, 300, 500],
       ajaxURL: this.customerService.getMainDataAjax(),
+      //ajaxConfig: 'POST',
       ajaxParams: this.getMainDataAjaxParams(),
+      ajaxRequestFunc: (url, config, params) => {
+        const request = {
+          filterText: this.filters.keyword || '',
+          groupId: this.filters.teamId || 0,
+          employeeId: this.filters.userId || 0,
+          page: params.page || 1,
+          size: params.size || 50,
+        };
+        return this.customerService.getMainData2(request).toPromise();
+      },
+
       ajaxResponse: (url, params, res) => {
         // console.log(res.data.data);
         // console.log(res.data.data1.TotalPage);
+
         return {
           data: res.data.data,
-          last_page: res.data.data1.TotalPage,
+          last_page: res.data.data1[0].TotalPage,
+          // data: res?.data?.data?.data ?? [],
+          //last_page: res?.data?.data?.data1?.[0]?.TotalPage ?? 1,
         };
       },
       //   langs: {

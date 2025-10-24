@@ -1,0 +1,82 @@
+<div class="modal-header bg-primary p-2">
+    <h6 class="modal-title text-white">TÀI SẢN CÁ NHÂN</h6>
+    <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+</div>
+
+<div class="modal-body">
+    <form [formGroup]="formGroup" class="row g-3 ">
+        <nz-row [nzGutter]="24">
+
+
+
+
+            <nz-col [nzSpan]="12">
+                <nz-form-item class="col-md-12">
+                    <nz-form-label [nzSpan]="24">Mã loại<span class="text-danger ps-1 me-1"> (*)
+                        </span>
+                    </nz-form-label>
+                    <nz-form-control [nzErrorTip]="'Nhập mã loại'">
+                        <input nz-input type="text" formControlName="Code" />
+
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+
+
+            <nz-col [nzSpan]="12">
+                <nz-form-item class="col-md-12">
+                    <nz-form-label [nzSpan]="24">Tên loại<span class="text-danger ps-1 me-1"> (*)
+                        </span>
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24" [nzErrorTip]="'Nhập tên loại'">
+                        <input nz-input type="text" formControlName="Name" />
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+
+
+
+
+
+
+
+
+
+        </nz-row>
+        <nz-row [nzGutter]="24">
+
+
+
+
+            <nz-col [nzSpan]="12">
+                <nz-form-item class="col-md-12">
+
+                    <nz-form-label [nzSpan]="24">Năm hiệu lực<span class="text-danger ps-1 me-1"> (*)
+                        </span>
+                    </nz-form-label>
+                    <nz-form-control [nzErrorTip]="'Chọn năm hiệu lực'">
+                        <input nz-input type="number" formControlName="YearValue" (keydown)="blockE($event)" />
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+
+
+            <nz-col [nzSpan]="12">
+                <nz-form-item class="col-md-12">
+                    <nz-form-label [nzSpan]="24">Định mức cấp phát<span class="text-danger ps-1 me-1"> (*)
+                        </span>
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24" [nzErrorTip]="'Nhập định mức cấp phát'">
+                        <input nz-input type="number" formControlName="StandardAmount" (keydown)="blockE($event)" />
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+
+        </nz-row>
+
+    </form>
+</div>
+<div class="modal-footer">
+    <button nz-button nzType="default" nzDanger (click)="close()">Đóng</button>
+    <button nz-button nzType="primary" (click)="save()">Lưu dữ liệu</button>
+</div>

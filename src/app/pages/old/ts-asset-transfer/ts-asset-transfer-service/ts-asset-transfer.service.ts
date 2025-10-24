@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { HOST } from '../../../../app.config';
+import { environment } from '../../../../../environments/environment';
+// import { HOST } from '../../../../app.config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class TsAssetTransferService {
-  private url = `${HOST}api/AssetTranfer/`;
+  private url = `${environment.host}api/AssetTranfer/`;
   constructor(private http: HttpClient) {}
   getAssetTranferDetail(id: number): Observable<any> {
     const url = `${this.url + `get-asset-tranfer-detail`}?id=${id}`;
@@ -24,7 +25,7 @@ export class TsAssetTransferService {
   ): Observable<{ status: number; data: string }> {
     const params = new HttpParams().set('transferDate', transferDate);
     return this.http.get<{ status: number; data: string }>(
-      `${HOST}api/AssetTranfer/get-asset-tranfer-code`,
+      `${environment.host}api/AssetTranfer/get-asset-tranfer-code`,
       { params }
     );
   }

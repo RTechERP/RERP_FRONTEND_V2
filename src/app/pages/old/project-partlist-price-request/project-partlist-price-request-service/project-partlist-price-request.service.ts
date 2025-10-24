@@ -1,14 +1,15 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, shareReplay } from 'rxjs';
-import { HOST } from '../../../../../app.config';
+import { environment } from '../../../../../environments/environment';
+// import { HOST } from '../../../../../app.config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ProjectPartlistPriceRequestService {
   private http = inject(HttpClient);
-  private baseUrl = `${HOST}/api/ProjectPartlistPriceRequest`;
+  private baseUrl = `${environment.host}/api/ProjectPartlistPriceRequest`;
 
   // Sửa đổi method getAllPartlist để có thể lấy nhiều dữ liệu hơn
   getAllPartlist(

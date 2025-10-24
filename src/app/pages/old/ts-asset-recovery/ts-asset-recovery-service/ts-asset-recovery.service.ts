@@ -1,16 +1,17 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { HOST } from '../../../../app.config';
+import { environment } from '../../../../../environments/environment';
+// import { HOST } from '../../../../app.config';
 @Injectable({
   providedIn: 'root',
 })
 export class AssetsRecoveryService {
-  urlGetRecoveryCode = `${HOST}api/AssetsRecovery/get-recovery-code`;
-  urlgetassetsrecovery = `${HOST}api/AssetsRecovery/get-asset-recovery`;
-  urlgetassetsrecoverydetail = `${HOST}api/AssetsRecovery/get-asset-recovery-detail`;
-  urlGetRecoveryByEmployee = `${HOST}api/AssetsRecovery/get-recovery-by-employee`;
-  urlSaveRecovery = `${HOST}api/AssetsRecovery/save-data`;
+  urlGetRecoveryCode = `${environment.host}api/AssetsRecovery/get-recovery-code`;
+  urlgetassetsrecovery = `${environment.host}api/AssetsRecovery/get-asset-recovery`;
+  urlgetassetsrecoverydetail = `${environment.host}api/AssetsRecovery/get-asset-recovery-detail`;
+  urlGetRecoveryByEmployee = `${environment.host}api/AssetsRecovery/get-recovery-by-employee`;
+  urlSaveRecovery = `${environment.host}api/AssetsRecovery/save-data`;
   constructor(private http: HttpClient) {}
   getAssetsRecovery(request: any): Observable<any> {
     return this.http.post<any>(this.urlgetassetsrecovery, request);
@@ -43,7 +44,7 @@ export class AssetsRecoveryService {
   }
   exportRecoveryReport(request: any): Observable<Blob> {
     return this.http.post(
-      `${HOST}api/AssetsRecovery/export-recovery-asset-report`,
+      `${environment.host}api/AssetsRecovery/export-recovery-asset-report`,
       request,
       {
         responseType: 'blob',

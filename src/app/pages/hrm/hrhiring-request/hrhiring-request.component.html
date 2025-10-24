@@ -91,11 +91,6 @@
                                 </button>
 
                                 <!-- Thêm nút toggle detail -->
-                                <button nz-button nzType="default" nzSize="small" (click)="toggleDetailPanel()"
-                                    [title]="showDetail ? 'Ẩn chi tiết' : 'Hiện chi tiết'">
-                                    <img src="assets/icon/action_info_16.png" />
-                                    {{ showDetail ? 'Ẩn chi tiết' : 'Xem chi tiết' }}
-                                </button>
 
                                 <button class="btn-add" nz-button nzType="default" nzSize="small" (click)="add()">
                                     <!-- <nz-icon nzType="plus" /> Thêm -->
@@ -105,7 +100,7 @@
                                     <img src="assets/icon/action_edit_item_16.png" />Sửa
                                 </button>
                                 <button class="btn-delete" nz-button nzType="default" nzSize="small"
-                                    (click)="deleteReq()" disabled>
+                                    (click)="deleteReq()">
                                     <img src="assets/icon/action_delete_item_16.png" />Xóa
                                 </button>
                                 <!-- <button class="fs-12" nz-button nzType="default" nzSize="small"
@@ -116,41 +111,55 @@
                                 <!-- TBP xác nhận -->
                                 <div class="btn-group">
                                     <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
-                                        [nzDropdownMenu]="menuTBP">
+                                        [nzDropdownMenu]="menuTBP" disablePermission="N57">
                                         <img src="assets/icon/action_confirm_tbp_16.png" />TBP xác nhận
                                         <i nz-icon nzType="down"></i>
                                     </button>
 
                                     <nz-dropdown-menu #menuTBP="nzDropdownMenu">
                                         <ul nz-menu>
-                                            <li nz-menu-item (click)="approvedTBPNew(1,1)" [nzDisabled]="canApproveTBP">
-                                                <img src="assets/icon/action_approved_16.png" />TBP duyệt
+                                            <li nz-menu-item (click)="approvedTBPNew(1,1)">
+                                                <img src="assets/icon/action_approved_16.png" />
+                                                <span class="ms-1">TBP duyệt</span>
                                             </li>
-                                            <li nz-menu-item (click)="approvedTBPNew(2,1)" [nzDisabled]="canApproveTBP">
-                                                <img src="assets/icon/action_unapproved_16.png" />TBP hủy duyệt
+                                            <li nz-menu-item (click)="approvedTBPNew(2,1)">
+                                                <img src="assets/icon/action_unapproved_16.png" />
+                                                <span class="ms-1">TBP hủy duyệt</span>
                                             </li>
 
                                         </ul>
+
                                     </nz-dropdown-menu>
                                 </div>
 
                                 <!-- [HR xác nhận] -->
                                 <div class="btn-group">
                                     <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
-                                        [nzDropdownMenu]="menuHR">
+                                        [nzDropdownMenu]="menuHR" disablePermission="N56,N59">
                                         <img src="assets/icon/action_confirm_hr_16.png" />HR xác nhận
                                         <i nz-icon nzType="down"></i>
                                     </button>
 
                                     <nz-dropdown-menu #menuHR="nzDropdownMenu">
                                         <ul nz-menu>
-                                            <li nz-menu-item (click)="approvedTBPNew(1,2)" [nzDisabled]="canCancelHCNS">
-                                                <img src="assets/icon/action_approved_16.png" />HR duyệt
+                                            <li nz-menu-item (click)="approvedTBPNew(1,2)" disablePermission="N59">
+                                                <img src="assets/icon/action_approved_16.png" />
+                                                <span class="ms-1">HR duyệt</span>
                                             </li>
-                                            <li nz-menu-item (click)="approvedTBPNew(2,2)" [nzDisabled]="canCancelHCNS">
-                                                <img src="assets/icon/action_unapproved_16.png" />HR hủy duyệt
+                                            <li nz-menu-item (click)="approvedTBPNew(2,2)" disablePermission="N59">
+                                                <img src="assets/icon/action_unapproved_16.png" />
+                                                <span class="ms-1">HR hủy duyệt</span>
                                             </li>
-
+                                            <li nz-menu-divider></li>
+                                            <li nz-menu-item (click)="approvedTBPNew(1,3)" disablePermission="N56">
+                                                <img src="assets/icon/action_approved_16.png" />
+                                                <span class="ms-1">Trường phòng HR duyệt</span>
+                                            </li>
+                                            <li nz-menu-item (click)="approvedTBPNew(2,3)" disablePermission="N56">
+                                                <img src="assets/icon/action_unapproved_16.png" />
+                                                <span class="ms-1">Trường phòng HR hủy</span>
+                                                duyệt
+                                            </li>
                                         </ul>
                                     </nz-dropdown-menu>
                                 </div>
@@ -158,20 +167,20 @@
                                 <!-- BGĐ xác nhận -->
                                 <div class="btn-group">
                                     <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
-                                        [nzDropdownMenu]="menuBGD" disabled>
+                                        [nzDropdownMenu]="menuBGD" disablePermission="N58">
                                         <img src="assets/icon/action_confirm_bgd_16.png" />BGĐ xác nhận
                                         <i nz-icon nzType="down"></i>
                                     </button>
 
                                     <nz-dropdown-menu #menuBGD="nzDropdownMenu">
                                         <ul nz-menu>
-                                            <li nz-menu-item (click)="approvedTBPNew(1,3)" read="!canApproveBGD">
-                                                <img src="assets/icon/action_approved_16.png" />BGĐ duyệt
+                                            <li nz-menu-item (click)="approvedTBPNew(1,3)">
+                                                <img src="assets/icon/action_approved_16.png" />
+                                                <span class="ms-1">BGĐ duyệt</span>
                                             </li>
-                                            <li nz-menu-item (click)="approvedTBPNew(2,3)"
-                                                [nzDisabled]="!canApproveBGD">
-                                                <img src="assets/icon/action_unapproved_16.png" />BGĐ hủy
-                                                duyệt
+                                            <li nz-menu-item (click)="approvedTBPNew(2,3)">
+                                                <img src="assets/icon/action_unapproved_16.png" />
+                                                <span class="ms-1">BGĐ hủy duyệt</span>
                                             </li>
 
                                         </ul>
@@ -201,7 +210,11 @@
                                     [disabled]="!canCancelBGD" (click)="cancelApprovedBGD()">
                                     <nz-icon nzType="stop" nzTheme="outline" /> BGĐ Hủy
                                 </button> -->
-
+                                <button nz-button nzType="default" nzSize="small" (click)="toggleDetailPanel()"
+                                    [title]="showDetail ? 'Ẩn chi tiết' : 'Hiện chi tiết'">
+                                    <img src="assets/icon/action_info_16.png" />
+                                    {{ showDetail ? 'Ẩn chi tiết' : 'Xem chi tiết' }}
+                                </button>
                                 <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="viewForm()">
                                     <img src="assets/icon/action_print_16.png" /> In phiếu
                                 </button>
@@ -238,8 +251,7 @@
                 <div class="card-header bg-white p-2 border-bottom">
                     <div class="d-flex justify-content-between align-items-center">
                         <h6 class="m-0 fw-bold">
-                            {{ selectedHRHIRING ? 'Chi tiết: ' + selectedHRHIRING.EmployeeChucVuHDName : 'Chi tiết yêu
-                            cầu tuyển dụng' }}
+                            Chi tiết phiếu yêu cầu tuyển dụng
                         </h6>
                         <div class="d-flex gap-1">
                             <button nz-button nzType="primary" nzSize="small" [disabled]="!selectedHRHIRING"
@@ -254,183 +266,225 @@
                     </div>
                 </div>
 
-                <div class="card-body p-3" style="overflow-y: auto; max-height: calc(100vh - 200px);">
-                    <!-- No selection state -->
-                    <div *ngIf="!selectedHRHIRING" class="text-center text-muted py-5">
-                        <p class="mb-0">Chọn một yêu cầu để xem chi tiết</p>
-                    </div>
-
-                    <!-- Detail content - chỉ hiển thị các trường có trong form -->
-                    <div *ngIf="selectedHRHIRING" class="detail-content">
-
-                        <!-- 1. Thông tin cơ bản -->
-                        <div class="detail-section mb-3">
-                            <h6 class="section-title">I. THÔNG TIN CƠ BẢN</h6>
-                            <div class="row g-2">
-                                <div class="col-6">
-                                    <label>Phòng ban:</label>
-                                    <div class="detail-value">{{ selectedHRHIRING.DepartmentName || 'Chưa có' }}</div>
-                                </div>
-                                <div class="col-6">
-                                    <label>Vị trí tuyển dụng:</label>
-                                    <div class="detail-value">{{ selectedHRHIRING.EmployeeChucVuHDName || 'Chưa có' }}
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <label>Số lượng tuyển:</label>
-                                    <div class="detail-value">{{ selectedHRHIRING.QuantityHiring || 0 }} người</div>
-                                </div>
-                                <div class="col-6">
-                                    <label>Giới tính:</label>
-                                    <div class="detail-value">{{ formatGenderSelections(selectedHRHIRING) }}</div>
-                                </div>
-                                <div class="col-6">
-                                    <label>Độ tuổi:</label>
-                                    <div class="detail-value">{{ formatAgeRangeDetail(selectedHRHIRING) }}</div>
-                                </div>
-                                <div class="col-6">
-                                    <label>Mức lương:</label>
-                                    <div class="detail-value">{{ formatSalaryRangeDetail(selectedHRHIRING) }}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 2. Địa điểm làm việc -->
-                        <div class="detail-section mb-3">
-                            <h6 class="section-title">II. ĐỊA ĐIỂM LÀM VIỆC</h6>
-                            <div class="detail-value">{{ selectedHRHIRING.WorkAddress || 'Chưa có' }}</div>
-                        </div>
-
-                        <!-- 3. Yêu cầu về ngoại hình -->
-                        <div class="detail-section mb-3">
-                            <h6 class="section-title">III. YÊU CẦU VỀ NGOẠI HÌNH</h6>
-                            <div class="detail-value">{{ formatAppearanceSelections(selectedHRHIRING) }}</div>
-                        </div>
-
-                        <!-- 4. Yêu cầu về học vấn -->
-                        <div class="detail-section mb-3">
-                            <h6 class="section-title">IV. YÊU CẦU VỀ HỌC VẤN</h6>
-                            <div class="detail-value">{{ formatEducationSelections(selectedHRHIRING) }}</div>
-                        </div>
-
-                        <!-- 5. Yêu cầu về kinh nghiệm -->
-                        <div class="detail-section mb-3">
-                            <h6 class="section-title">V. YÊU CẦU VỀ KINH NGHIỆM</h6>
-                            <div class="detail-value">{{ formatExperienceSelections(selectedHRHIRING) }}</div>
-                        </div>
-
-                        <!-- 6. Yêu cầu về ngoại ngữ -->
-                        <div class="detail-section mb-3">
-                            <h6 class="section-title">VI. YÊU CẦU VỀ NGOẠI NGỮ</h6>
-                            <div class="row g-2">
-                                <div class="col-6">
-                                    <label>Tiếng Anh:</label>
-                                    <div class="detail-value">{{ selectedHRHIRING.EnglishLevel || 'Không yêu cầu' }}
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <label>Ngoại ngữ khác:</label>
-                                    <div class="detail-value">{{ formatOtherLanguage(selectedHRHIRING) }}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 7. Yêu cầu về tin học -->
-                        <div class="detail-section mb-3">
-                            <h6 class="section-title">VII. YÊU CẦU VỀ TIN HỌC</h6>
-                            <div class="detail-value">{{ formatComputerSkills(selectedHRHIRING) }}</div>
-                        </div>
-
-                        <!-- 8. Yêu cầu về sức khỏe -->
-                        <div class="detail-section mb-3">
-                            <h6 class="section-title">VIII. YÊU CẦU VỀ SỨC KHỎE</h6>
-                            <div class="detail-value">{{ formatHealthRequirements(selectedHRHIRING) }}</div>
-                        </div>
-
-                        <!-- 9. Yêu cầu về giao tiếp -->
-                        <div class="detail-section mb-3">
-                            <h6 class="section-title">IX. YÊU CẦU VỀ GIAO TIẾP</h6>
-                            <div class="detail-value">{{ formatCommunicationRequirements(selectedHRHIRING) }}</div>
-                        </div>
-
-                        <!-- 10. Yêu cầu chuyên môn -->
-                        <div class="detail-section mb-3">
-                            <h6 class="section-title">X. YÊU CẦU CHUYÊN MÔN</h6>
-                            <div class="detail-text-area">
-                                {{ selectedHRHIRING.ProfessionalRequirement || 'Chưa có yêu cầu chuyên môn' }}
-                            </div>
-                        </div>
-
-                        <!-- 11. Mô tả công việc -->
-                        <div class="detail-section mb-3">
-                            <h6 class="section-title">XI. MÔ TẢ CÔNG VIỆC</h6>
-                            <div class="detail-text-area">
-                                {{ selectedHRHIRING.JobDescription || 'Chưa có mô tả công việc' }}
-                            </div>
-                        </div>
-
-                        <!-- 12. Trạng thái duyệt -->
-                        <div class="detail-section mb-3">
-                            <h6 class="section-title">XII. TRẠNG THÁI DUYỆT</h6>
-
-                            <!-- Overall status -->
-                            <div class="mb-2">
-                                <label>Tổng quan:</label>
-                                <div class="detail-value">
-                                    <span class="badge bg-secondary">{{ getOverallApprovalStatus() }}</span>
-                                </div>
+                <nz-tabset class="approval-tabs" (nzSelectedIndexChange)="onTabChange($event)">
+                    <!-- Tab 1 -->
+                    <nz-tab nzTitle="Thông tin tuyển dụng">
+                        <div class="card-body p-3" style="overflow-y: auto; max-height: calc(100vh - 200px);">
+                            <!-- No selection state -->
+                            <div *ngIf="!selectedHRHIRING" class="text-center text-muted py-5">
+                                <p class="mb-0">Chọn một yêu cầu để xem chi tiết</p>
                             </div>
 
-                            <!-- Individual statuses -->
-                            <div class="row g-2">
-                                <div class="col-4">
-                                    <label>HCNS:</label>
-                                    <div class="detail-value">
-                                        <span class="badge bg-light text-dark">{{ getApprovalStatusText('HCNS')
-                                            }}</span>
-                                    </div>
-                                </div>
-                                <div class="col-4">
-                                    <label>TBP:</label>
-                                    <div class="detail-value">
-                                        <span class="badge bg-light text-dark">{{ getApprovalStatusText('TBP') }}</span>
-                                    </div>
-                                </div>
-                                <div class="col-4">
-                                    <label>BGĐ:</label>
-                                    <div class="detail-value">
-                                        <span class="badge bg-light text-dark">{{ getApprovalStatusText('BGD') }}</span>
-                                    </div>
-                                </div>
-                            </div>
+                            <!-- Detail content - chỉ hiển thị các trường có trong form -->
+                            <div *ngIf="selectedHRHIRING" class="detail-content">
 
-                            <!-- Approval timeline if available -->
-                            <div class="mt-2" *ngIf="approvalStatus">
-                                <label>Thời gian duyệt:</label>
-                                <div class="small">
-                                    <div *ngIf="approvalStatus.HCNSApprovedDate">
-                                        HCNS: {{ approvalStatus.HCNSApprovedDate | date:'dd/MM/yyyy HH:mm' }}
-                                    </div>
-                                    <div *ngIf="approvalStatus.TBPApprovedDate">
-                                        TBP: {{ approvalStatus.TBPApprovedDate | date:'dd/MM/yyyy HH:mm' }}
-                                    </div>
-                                    <div *ngIf="approvalStatus.BGDApprovedDate">
-                                        BGĐ: {{ approvalStatus.BGDApprovedDate | date:'dd/MM/yyyy HH:mm' }}
+                                <!-- 1. Thông tin cơ bản -->
+                                <div class="detail-section mb-3">
+                                    <h6 class="section-title">I. THÔNG TIN CƠ BẢN</h6>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <label>Phòng ban:</label>
+                                            <div class="detail-value">{{ selectedHRHIRING.DepartmentName || 'Chưa có' }}
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <label>Vị trí tuyển dụng:</label>
+                                            <div class="detail-value">{{ selectedHRHIRING.EmployeeChucVuHDName || 'Chưa
+                                                có' }}
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <label>Số lượng tuyển:</label>
+                                            <div class="detail-value">{{ selectedHRHIRING.QuantityHiring || 0 }} người
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <label>Giới tính:</label>
+                                            <div class="detail-value">{{ formatGenderSelections(selectedHRHIRING) }}
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <label>Độ tuổi:</label>
+                                            <div class="detail-value">{{ formatAgeRangeDetail(selectedHRHIRING) }}</div>
+                                        </div>
+                                        <div class="col-6">
+                                            <label>Mức lương:</label>
+                                            <div class="detail-value">{{ formatSalaryRangeDetail(selectedHRHIRING) }}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
+
+                                <!-- 2. Địa điểm làm việc -->
+                                <div class="detail-section mb-3">
+                                    <h6 class="section-title">II. ĐỊA ĐIỂM LÀM VIỆC</h6>
+                                    <div class="detail-value">{{ selectedHRHIRING.WorkAddress || 'Chưa có' }}</div>
+                                </div>
+
+                                <!-- 3. Yêu cầu về ngoại hình -->
+                                <div class="detail-section mb-3">
+                                    <h6 class="section-title">III. YÊU CẦU VỀ NGOẠI HÌNH</h6>
+                                    <div class="detail-value">{{ formatAppearanceSelections(selectedHRHIRING) }}</div>
+                                </div>
+
+                                <!-- 4. Yêu cầu về học vấn -->
+                                <div class="detail-section mb-3">
+                                    <h6 class="section-title">IV. YÊU CẦU VỀ HỌC VẤN</h6>
+                                    <div class="detail-value">{{ formatEducationSelections(selectedHRHIRING) }}</div>
+                                </div>
+
+                                <!-- 5. Yêu cầu về kinh nghiệm -->
+                                <div class="detail-section mb-3">
+                                    <h6 class="section-title">V. YÊU CẦU VỀ KINH NGHIỆM</h6>
+                                    <div class="detail-value">{{ formatExperienceSelections(selectedHRHIRING) }}</div>
+                                </div>
+
+                                <!-- 6. Yêu cầu về ngoại ngữ -->
+                                <div class="detail-section mb-3">
+                                    <h6 class="section-title">VI. YÊU CẦU VỀ NGOẠI NGỮ</h6>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <label>Tiếng Anh:</label>
+                                            <div class="detail-value">{{ selectedHRHIRING.EnglishLevel || 'Không yêu
+                                                cầu' }}
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <label>Ngoại ngữ khác:</label>
+                                            <div class="detail-value">{{ formatOtherLanguage(selectedHRHIRING) }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 7. Yêu cầu về tin học -->
+                                <div class="detail-section mb-3">
+                                    <h6 class="section-title">VII. YÊU CẦU VỀ TIN HỌC</h6>
+                                    <div class="detail-value">{{ formatComputerSkills(selectedHRHIRING) }}</div>
+                                </div>
+
+                                <!-- 8. Yêu cầu về sức khỏe -->
+                                <div class="detail-section mb-3">
+                                    <h6 class="section-title">VIII. YÊU CẦU VỀ SỨC KHỎE</h6>
+                                    <div class="detail-value">{{ formatHealthRequirements(selectedHRHIRING) }}</div>
+                                </div>
+
+                                <!-- 9. Yêu cầu về giao tiếp -->
+                                <div class="detail-section mb-3">
+                                    <h6 class="section-title">IX. YÊU CẦU VỀ GIAO TIẾP</h6>
+                                    <div class="detail-value">{{ formatCommunicationRequirements(selectedHRHIRING) }}
+                                    </div>
+                                </div>
+
+                                <!-- 10. Yêu cầu chuyên môn -->
+                                <div class="detail-section mb-3">
+                                    <h6 class="section-title">X. YÊU CẦU CHUYÊN MÔN</h6>
+                                    <div class="detail-text-area">
+                                        {{ selectedHRHIRING.ProfessionalRequirement || 'Chưa có yêu cầu chuyên môn' }}
+                                    </div>
+                                </div>
+
+                                <!-- 11. Mô tả công việc -->
+                                <div class="detail-section mb-3">
+                                    <h6 class="section-title">XI. MÔ TẢ CÔNG VIỆC</h6>
+                                    <div class="detail-text-area">
+                                        {{ selectedHRHIRING.JobDescription || 'Chưa có mô tả công việc' }}
+                                    </div>
+                                </div>
+
+                                <!-- 12. Trạng thái duyệt -->
+                                <div class="detail-section mb-3">
+                                    <h6 class="section-title">XII. TRẠNG THÁI DUYỆT</h6>
+
+                                    <!-- Overall status -->
+                                    <div class="mb-2">
+                                        <label>Tổng quan:</label>
+                                        <div class="detail-value">
+                                            <span class="badge bg-secondary">{{ getOverallApprovalStatus() }}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Individual statuses -->
+                                    <div class="row g-2">
+                                        <div class="col-3">
+                                            <label>TBP:</label>
+                                            <div class="detail-value">
+                                                <span class="badge"
+                                                    [style.backgroundColor]="getApprovalStatusColor('TBP')"
+                                                    [style.color]="getApprovalStatusColor('TBP')==='orange' ? '#212529' : '#fff'">
+                                                    {{ getApprovalStatusText('TBP') }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
+                                            <label>HCNS:</label>
+                                            <div class="detail-value">
+                                                <span class="badge"
+                                                    [style.backgroundColor]="getApprovalStatusColor('HCNS')"
+                                                    [style.color]="getApprovalStatusColor('HCNS')==='orange' ? '#212529' : '#fff'">
+                                                    {{ getApprovalStatusText('HCNS') }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
+                                            <label>TBP HR:</label>
+                                            <div class="detail-value">
+                                                <span class="badge"
+                                                    [style.backgroundColor]="getApprovalStatusColor('TBPHCNS')"
+                                                    [style.color]="getApprovalStatusColor('TBPHCNS')==='orange' ? '#212529' : '#fff'">
+                                                    {{ getApprovalStatusText('TBPHCNS') }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="col-3">
+                                            <label>BGĐ:</label>
+                                            <div class="detail-value">
+                                                <span class="badge"
+                                                    [style.backgroundColor]="getApprovalStatusColor('BGD')"
+                                                    [style.color]="getApprovalStatusColor('BGD')==='orange' ? '#212529' : '#fff'">
+                                                    {{ getApprovalStatusText('BGD') }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Approval timeline if available -->
+                                    <div class="mt-2" *ngIf="approvalStatus">
+                                        <label>Thời gian duyệt:</label>
+                                        <div class="small" style="font-weight: bold;">
+                                            <div *ngIf="getApprovalDate('TBP')">TBP: {{ getApprovalDate('TBP') |
+                                                date:'dd/MM/yyyy ' }} ({{ getApproverName('TBP') }})</div>
+                                            <div *ngIf="getApprovalDate('HCNS')">HCNS: {{ getApprovalDate('HCNS') |
+                                                date:'dd/MM/yyyy ' }} ({{ getApproverName('HCNS') }})</div>
+                                            <div *ngIf="getApprovalDate('TBPHCNS')">TBP HR: {{
+                                                getApprovalDate('TBPHCNS')
+                                                |
+                                                date:'dd/MM/yyyy ' }} ({{ getApproverName('TBPHCNS') }})</div>
+                                            <div *ngIf="getApprovalDate('BGD')">BGĐ: {{ getApprovalDate('BGD') |
+                                                date:'dd/MM/yyyy ' }} ({{ getApproverName('HCNS') }})</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 13. Ghi chú -->
+                                <div class="detail-section mb-3" *ngIf="selectedHRHIRING.Note">
+                                    <h6 class="section-title">XIII. GHI CHÚ</h6>
+                                    <div class="detail-text-area">
+                                        {{ selectedHRHIRING.Note }}
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
+                    </nz-tab>
 
-                        <!-- 13. Ghi chú -->
-                        <div class="detail-section mb-3" *ngIf="selectedHRHIRING.Note">
-                            <h6 class="section-title">XIII. GHI CHÚ</h6>
-                            <div class="detail-text-area">
-                                {{ selectedHRHIRING.Note }}
-                            </div>
+                    <!-- Tab 2 -->
+                    <nz-tab nzTitle="Thông tin duyệt" [nzForceRender]="true">
+                        <div>
+                            <div #tb_approvals></div>
                         </div>
+                    </nz-tab>
+                </nz-tabset>
 
-                    </div>
-                </div>
             </div>
         </nz-splitter-panel>
     </nz-splitter>

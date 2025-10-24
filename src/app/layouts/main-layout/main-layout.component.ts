@@ -17,7 +17,7 @@ import { NgComponentOutlet } from '@angular/common';
 import { Type, Injector } from '@angular/core';
 import { NotifyItem } from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
 import { AppNotifycationDropdownComponent } from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
-import { AppUserDropdownComponent } from '../../pages/old/app/app-user-dropdown/app-user-dropdown.component';
+// import { AppUserDropdownComponent } from '/pages/old/app/app-user-dropdown/app-user-dropdown.component';
 import { Title } from '@angular/platform-browser';
 import { ProjectComponent } from '../../pages/old/project/project.component';
 // import { CustomerComponent } from '../../pages/customer/customer.component';
@@ -32,6 +32,24 @@ import { ProjectSurveyComponent } from '../../pages/old/project/project-survey/p
 import { ProjectItemLateComponent } from '../../pages/old/project/project-item-late/project-item-late.component';
 import { ProjectWorkItemTimelineComponent } from '../../pages/old/project/project-work-item-timeline/project-work-item-timeline.component';
 import { SynthesisOfGeneratedMaterialsComponent } from '../../pages/old/project/synthesis-of-generated-materials/synthesis-of-generated-materials.component';
+import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
+
+import { FactoryVisitRegistrationComponent } from '../../pages/general-category/visit-factory-registation/factory-visit-registration.component';
+import { TsAssetAllocationPersonalComponent } from '../../pages/old/ts-asset-allocation-personal/ts-asset-allocation-personal.component';
+import { TsAssetManagementPersonalComponent } from '../../pages/old/ts-asset-management-personal/ts-asset-management-personal.component';
+import { TsAssetManagementPersonalTypeComponent } from '../../pages/old/ts-asset-management-personal/ts-asset-management-personal-type/ts-asset-management-personal-type.component';
+import { TsAssetRecoveryPersonalComponent } from '../../pages/old/ts-asset-recovery-personal/ts-asset-recovery-personal.component';
+import { VehicleRepairComponent } from '../../pages/hrm/vehicle-repair/vehicle-repair.component';
+import { VehicleRepairTypeComponent } from '../../pages/hrm/vehicle-repair/vehicle-repair-type/vehicle-repair-type.component';
+
+import { DepartmentComponent } from '../../pages/old/department/department.component';
+import { TeamComponent } from '../../pages/old/team/team.component';
+import { PositionsComponent } from '../../pages/old/positions/positions.component';
+import { EmployeeComponent } from '../../pages/old/employee/employee.component';
+import { ContractComponent } from '../../pages/old/contract/contract.component';
+import { EmployeeScheduleWorkComponent } from '../../pages/old/holiday/employee-schedule-work/employee-schedule-work.component';
+import { menus } from '../../pages/old/menus/menus.component';
+
 type TabItem = {
   title: string;
   comp: Type<any>;
@@ -104,155 +122,7 @@ export class MainLayoutComponent implements OnInit {
 
   isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
   isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
-  menus: MenuItem[] = [
-    //#region menu CRM
-    {
-      kind: 'group',
-      key: 'crm',
-      title: 'CRM',
-      isOpen: true,
-      icon: 'assets/icon/menu_crm_24.png',
-      children: [
-        {
-          kind: 'leaf',
-          key: 'CustomerComponent',
-          title: 'Khách hàng',
-          isOpen: true,
-          //   icon: 'assets/images/icons8-overview-20.png',
-          comp: CustomerComponent,
-        },
-      ],
-    },
-
-    //#region menu KHO
-    {
-      kind: 'group',
-      key: 'warehouse',
-      title: 'KHO',
-      isOpen: true,
-      icon: 'assets/icon/menu_warehouse_24.png',
-      children: [
-        {
-          kind: 'leaf',
-          key: 'ProductSaleComponent',
-          title: 'SẢN PHẨM KHO SALE',
-          isOpen: true,
-          comp: ProductSaleComponent,
-          //   icon: 'assets/icon/layers.png',
-        },
-        {
-          kind: 'leaf',
-          key: 'TbProductRtcComponent',
-          title: 'SẢN PHẨM KHO DEMO',
-          isOpen: true,
-          comp: TbProductRtcComponent /* không icon */,
-        },
-      ],
-    },
-    //#endregion
-
-    //#region menu Nhân sự
-    {
-      kind: 'group',
-      key: 'hrm',
-      title: 'HRM',
-      isOpen: true,
-      icon: 'assets/icon/menu_hrm_24.png',
-      children: [
-        {
-          kind: 'leaf',
-          key: 'HrhiringRequestComponent',
-          title: 'TUYỂN DỤNG',
-          isOpen: true,
-          comp: HrhiringRequestComponent,
-          //   icon: 'assets/icon/layers.png',
-        },
-      ],
-    },
-    //#endregion
-
-    //#region menu DANH MỤC DUNG
-    {
-      kind: 'group',
-      key: 'categories',
-      title: 'DANH MỤC CHUNG',
-      isOpen: true,
-      icon: 'assets/icon/menu_categories_24.png',
-      children: [
-        {
-          kind: 'leaf',
-          key: 'TrainingRegistrationComponent',
-          title: 'ĐÀO TẠO',
-          isOpen: true,
-          comp: TrainingRegistrationComponent,
-          //   icon: 'assets/icon/layers.png',
-        },
-      ],
-    },
-
-    //#endregion
-
-    //#region menu dự án
-    {
-      kind: 'group',
-      key: 'project',
-      title: 'DỰ ÁN',
-      isOpen: true,
-      icon: 'assets/icon/menu_project_24.png',
-      children: [
-        {
-          kind: 'leaf',
-          key: 'ProjectComponent',
-          title: 'Danh sách dự án',
-          isOpen: true,
-          comp: ProjectComponent,
-        },
-        {
-          kind: 'leaf',
-          key: 'ProjectWorkPropressComponent',
-          title: 'Tiến độ công việc',
-          isOpen: true,
-          comp: ProjectWorkPropressComponent,
-        },
-        {
-          kind: 'leaf',
-          key: 'ProjectWorkTimelineComponent',
-          title: 'Timeline công việc',
-          isOpen: true,
-          comp: ProjectWorkTimelineComponent,
-        },
-        {
-          kind: 'leaf',
-          key: 'ProjectSurveyComponent',
-          title: 'Khảo sát dự án',
-          isOpen: true,
-          comp: ProjectSurveyComponent,
-        },
-        {
-          kind: 'leaf',
-          key: 'ProjectItemLateComponent',
-          title: 'Hạng mục công việc chậm tiến độ',
-          isOpen: true,
-          comp: ProjectItemLateComponent,
-        },
-        {
-          kind: 'leaf',
-          key: 'ProjectWorkItemTimelineComponent',
-          title: 'Timeline hạng mục công việc',
-          isOpen: true,
-          comp: ProjectWorkItemTimelineComponent,
-        },
-        {
-          kind: 'leaf',
-          key: 'SynthesisOfGeneratedMaterialsComponent',
-          title: 'Báo cáo vật tư phát sinh',
-          isOpen: true,
-          comp: SynthesisOfGeneratedMaterialsComponent,
-        },
-      ],
-    },
-    //#endregion
-  ];
+  menus = menus;
   dynamicTabs: TabItem[] = [];
 
   menu: any = {};

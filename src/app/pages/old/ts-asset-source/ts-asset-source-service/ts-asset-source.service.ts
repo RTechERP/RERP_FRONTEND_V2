@@ -1,14 +1,15 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { HOST } from '../../../../app.config';
+import { environment } from '../../../../../environments/environment';
+// import { HOST } from '../../../../app.config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AssetsService {
-  url = `${HOST}api/AssetSource/get-source-asset`;
-  urlSaveSource = `${HOST}api/AssetSource/save-data`;
+  url = `${environment.host}api/AssetSource/get-source-asset`;
+  urlSaveSource = `${environment.host}api/AssetSource/save-data`;
   constructor(private httpclient: HttpClient) {}
   getAssets(): Observable<any> {
     return this.httpclient.get<any>(this.url);

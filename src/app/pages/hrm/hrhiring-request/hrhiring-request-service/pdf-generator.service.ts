@@ -106,7 +106,7 @@ export class PdfGeneratorService {
       <!-- Header với logo -->
       <div style="display: flex; align-items: flex-start; margin-bottom: 20px; border: 1px solid #000;">
         <div style="width: 120px; height: 80px; display: flex; align-items: center; justify-content: center; border-right: 1px solid #000; padding: 10px;">
-          <img src="logoRTC.png"
+          <img src="assets/images/logo-RTC-2023-1200-banchuan.png"
                style="max-width: 100px; max-height: 70px; object-fit: contain;" 
                crossorigin="anonymous"
                alt="RTC Logo"

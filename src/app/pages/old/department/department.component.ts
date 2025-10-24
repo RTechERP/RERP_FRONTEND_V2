@@ -11,11 +11,17 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzNotificationModule } from 'ng-zorro-antd/notification';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import {
+  ReactiveFormsModule,
+  FormBuilder,
+  FormGroup,
+  Validators,
+} from '@angular/forms';
 import { TabulatorFull as Tabulator, RowComponent } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { DepartmentServiceService } from './department-service/department-service.service';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 
 @Component({
   selector: 'app-department',
@@ -34,9 +40,9 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
     NzNotificationModule,
     ReactiveFormsModule,
     NgIf,
-    NzSpinModule
+    NzSpinModule,
   ],
-  standalone: true
+  standalone: true,
 })
 export class DepartmentComponent implements OnInit {
   private tabulator!: Tabulator;
@@ -69,7 +75,7 @@ export class DepartmentComponent implements OnInit {
       Name: ['', [Validators.required]],
       Status: [1],
       Email: [''],
-      HeadofDepartment: [null, [Validators.required]]
+      HeadofDepartment: [null, [Validators.required]],
     });
   }
 
@@ -82,27 +88,46 @@ export class DepartmentComponent implements OnInit {
   private initializeTable(): void {
     this.tabulator = new Tabulator('#tb_department', {
       data: this.departments,
-      layout: 'fitColumns',
-      responsiveLayout: true,
-      selectableRows: 1,
-      height: '100%',
+      ...DEFAULT_TABLE_CONFIG,
+      //   layout: 'fitColumns',
+      //   responsiveLayout: true,
+      //   selectableRows: 1,
+      //   height: '100%',
       columns: [
-        { title: 'STT', field: 'STT', hozAlign: 'center', headerHozAlign: 'center', width: 80},
-        { title: 'Mã phòng ban', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: 300},
-        { title: 'Tên phòng ban', field: 'Name', hozAlign: 'left', headerHozAlign: 'center', width: 900},
-        { 
-          title: 'Trạng thái', 
-          field: 'Status', 
-          hozAlign: 'left', 
+        {
+          title: 'STT',
+          field: 'STT',
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+          width: 80,
+        },
+        {
+          title: 'Mã phòng ban',
+          field: 'Code',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+          width: 300,
+        },
+        {
+          title: 'Tên phòng ban',
+          field: 'Name',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+          width: 900,
+        },
+        {
+          title: 'Trạng thái',
+          field: 'Status',
+          hozAlign: 'left',
           headerHozAlign: 'center',
           formatter: (cell) => {
             const value = cell.getValue();
-            return value === 1 ? 
-              '<span>Hoạt động</span>' : 
-              '<span>Ngừng hoạt động</span>';
-          }
+            return value === 1
+              ? '<span>Hoạt động</span>'
+              : '<span>Ngừng hoạt động</span>';
+          },
         },
-      ]
+      ],
     });
 
     this.tabulator.on('rowClick', (e: UIEvent, row: RowComponent) => {
@@ -121,15 +146,18 @@ export class DepartmentComponent implements OnInit {
       next: (data: any) => {
         this.departments = data.data.map((item: any, index: number) => ({
           ...item,
-          STT: index + 1
+          STT: index + 1,
         }));
         this.tabulator.setData(this.departments);
         this.isLoading = false;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách phòng ban: ' + error.message);
+        this.notification.error(
+          'Lỗi',
+          'Lỗi khi tải danh sách phòng ban: ' + error.message
+        );
         this.isLoading = false;
-      }
+      },
     });
   }
 
@@ -140,13 +168,16 @@ export class DepartmentComponent implements OnInit {
         this.employeeList = data.data.map((employee: any) => ({
           value: Number(employee.ID),
           label: `${employee.Code} - ${employee.FullName}`,
-          ...employee
+          ...employee,
         }));
         console.log('Employee list:', this.employeeList); // Debug log
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách nhân viên: ' + error.message);
-      }
+        this.notification.error(
+          'Lỗi',
+          'Lỗi khi tải danh sách nhân viên: ' + error.message
+        );
+      },
     });
   }
 
@@ -154,18 +185,19 @@ export class DepartmentComponent implements OnInit {
     const value = event.target.value.toLowerCase();
     this.searchText = value;
     this.tabulator.setFilter([
-      { field: "Code", type: "like", value: value },
-      { field: "Name", type: "like", value: value },
-      { field: "Email", type: "like", value: value }
+      { field: 'Code', type: 'like', value: value },
+      { field: 'Name', type: 'like', value: value },
+      { field: 'Email', type: 'like', value: value },
     ]);
   }
 
   openAddModal() {
     this.isEditMode = false;
-    const nextSTT = this.departments.length > 0 
-      ? Math.max(...this.departments.map(item => item.STT)) + 1 
-      : 1;
-    
+    const nextSTT =
+      this.departments.length > 0
+        ? Math.max(...this.departments.map((item) => item.STT)) + 1
+        : 1;
+
     this.departmentForm.patchValue({
       ID: 0,
       STT: nextSTT,
@@ -173,7 +205,7 @@ export class DepartmentComponent implements OnInit {
       Name: '',
       Status: 1,
       Email: '',
-      HeadofDepartment: null
+      HeadofDepartment: null,
     });
     this.isVisible = true;
   }
@@ -181,15 +213,18 @@ export class DepartmentComponent implements OnInit {
   openEditModal() {
     const selectedRows = this.tabulator.getSelectedRows();
     if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn phòng ban cần chỉnh sửa');
+      this.notification.warning(
+        'Cảnh báo',
+        'Vui lòng chọn phòng ban cần chỉnh sửa'
+      );
       return;
     }
     this.isEditMode = true;
     this.selectedDepartment = selectedRows[0].getData();
-    
+
     // Reset form before setting new values
     this.departmentForm.reset();
-    
+
     // Set form values with proper type conversion
     this.departmentForm.patchValue({
       ID: this.selectedDepartment.ID,
@@ -198,9 +233,9 @@ export class DepartmentComponent implements OnInit {
       Name: this.selectedDepartment.Name,
       Status: Number(this.selectedDepartment.Status),
       Email: this.selectedDepartment.Email || '',
-      HeadofDepartment: Number(this.selectedDepartment.HeadofDepartment) // Convert to number
+      HeadofDepartment: Number(this.selectedDepartment.HeadofDepartment), // Convert to number
     });
-    
+
     console.log('Form values after patch:', this.departmentForm.value); // Debug log
     this.isVisible = true;
   }
@@ -219,32 +254,40 @@ export class DepartmentComponent implements OnInit {
       nzOkType: 'primary',
       nzOkDanger: true,
       nzOnOk: () => this.deleteDepartment(),
-      nzCancelText: 'Hủy'
+      nzCancelText: 'Hủy',
     });
   }
 
   deleteDepartment() {
-    this.departmentService.deleteDepartment(this.selectedDepartment.ID).subscribe({
-      next: () => {
-        this.notification.success('Thành công', 'Xóa phòng ban thành công');
-        this.loadDepartments();
-        this.selectedDepartment = null;
-      },
-      error: (response) => {
-        this.notification.error('Lỗi', 'Xóa phòng ban thất bại: ' + response.error.message);
-      }
-    });
+    this.departmentService
+      .deleteDepartment(this.selectedDepartment.ID)
+      .subscribe({
+        next: () => {
+          this.notification.success('Thành công', 'Xóa phòng ban thành công');
+          this.loadDepartments();
+          this.selectedDepartment = null;
+        },
+        error: (response) => {
+          this.notification.error(
+            'Lỗi',
+            'Xóa phòng ban thất bại: ' + response.error.message
+          );
+        },
+      });
   }
 
   onSubmit() {
     if (this.departmentForm.invalid) {
-      Object.values(this.departmentForm.controls).forEach(control => {
+      Object.values(this.departmentForm.controls).forEach((control) => {
         if (control.invalid) {
           control.markAsTouched();
           control.updateValueAndValidity({ onlySelf: true });
         }
       });
-      this.notification.warning('Cảnh báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
+      this.notification.warning(
+        'Cảnh báo',
+        'Vui lòng điền đầy đủ thông tin bắt buộc'
+      );
       return;
     }
 
@@ -254,16 +297,22 @@ export class DepartmentComponent implements OnInit {
     if (this.isEditMode) {
       this.departmentService.createDepartment(formData).subscribe({
         next: () => {
-          this.notification.success('Thành công', 'Cập nhật phòng ban thành công');
+          this.notification.success(
+            'Thành công',
+            'Cập nhật phòng ban thành công'
+          );
           this.closeModal();
           this.loadDepartments();
         },
         error: (error) => {
-          this.notification.error('Lỗi', 'Cập nhật phòng ban thất bại: ' + error.message);
+          this.notification.error(
+            'Lỗi',
+            'Cập nhật phòng ban thất bại: ' + error.message
+          );
         },
         complete: () => {
           this.isSubmitting = false;
-        }
+        },
       });
     } else {
       this.departmentService.createDepartment(formData).subscribe({
@@ -273,11 +322,14 @@ export class DepartmentComponent implements OnInit {
           this.loadDepartments();
         },
         error: (response) => {
-          this.notification.error('Lỗi', 'Thêm phòng ban thất bại: ' + response.error.message);
+          this.notification.error(
+            'Lỗi',
+            'Thêm phòng ban thất bại: ' + response.error.message
+          );
         },
         complete: () => {
           this.isSubmitting = false;
-        }
+        },
       });
     }
   }

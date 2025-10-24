@@ -30,7 +30,7 @@ import { ProductSaleDetailComponent } from './product-sale-detail/product-sale-d
 import { ProductGroupDetailComponent } from './product-group-detail/product-group-detail.component';
 import { ImportExcelProductSaleComponent } from './import-excel-product-sale/import-excel-product-sale.component';
 import { ISADMIN } from '../../../../app.config';
-import { DEFAULT_TABLE_CONFIG, DEFAULT_TABLE_CONFIG_NOT_PAGINATIONMODE_REMOTE } from '../../../../tabulator-default.config';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 
 interface ProductGroup {
   ID?: number;
@@ -178,9 +178,9 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
             }
             if (this.table) {
               this.table.setData(this.dataProducGroup).then(() => {
-              // Lấy tất cả các hàng, đáng tin cậy hơn getRowFromPosition(0) ngay lập tức
-               const allRows = this.table.getRows();        
-               const firstRow = allRows.length > 0 ? allRows[0] : null;
+                // Lấy tất cả các hàng, đáng tin cậy hơn getRowFromPosition(0) ngay lập tức
+                const allRows = this.table.getRows();
+                const firstRow = allRows.length > 0 ? allRows[0] : null;
                 if (firstRow) {
                   firstRow.select();
                   const rowData = firstRow.getData();
@@ -557,7 +557,8 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
   drawTable_ProductSale() {
     this.table_productsale = new Tabulator('#table_productsale', {
       data: this.dataProductSale,
-      ...DEFAULT_TABLE_CONFIG_NOT_PAGINATIONMODE_REMOTE,
+      ...DEFAULT_TABLE_CONFIG,
+      paginationMode: 'local',
       layout: 'fitDataStretch',
       // selectableRows: true,
       columns: [
@@ -800,7 +801,6 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
       Note: '',
     };
     this.openModalProductSale();
-    
   }
 
   openModalImportExcel() {

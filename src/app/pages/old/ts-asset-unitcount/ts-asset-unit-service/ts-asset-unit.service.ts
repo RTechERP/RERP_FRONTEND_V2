@@ -1,14 +1,15 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { HOST } from '../../../../app.config';
+import { environment } from '../../../../../environments/environment';
+// import { HOST } from '../../../../app.config';
 @Injectable({
   providedIn: 'root',
 })
 export class UnitService {
-  url = `${HOST}api/AssetsUnit/get-unit`;
+  url = `${environment.host}api/AssetsUnit/get-unit`;
 
-  urlsavedata = `${HOST}api/AssetsUnit/save-d`;
+  urlsavedata = `${environment.host}api/AssetsUnit/save-d`;
   constructor(private httpclient: HttpClient) {}
   deleteUnit(unit: any) {
     unit.IsDeleted = true;

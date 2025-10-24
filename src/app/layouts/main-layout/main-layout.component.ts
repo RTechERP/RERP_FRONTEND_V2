@@ -20,6 +20,7 @@ import { AppNotifycationDropdownComponent } from '../../pages/old/app-notifycati
 // import { AppUserDropdownComponent } from '/pages/old/app/app-user-dropdown/app-user-dropdown.component';
 import { Title } from '@angular/platform-browser';
 import { ProjectComponent } from '../../pages/old/project/project.component';
+import { EmployeePayrollComponent } from '../../pages/hrm/employee/employee-payroll/employee-payroll/employee-payroll.component';
 // import { CustomerComponent } from '../../pages/customer/customer.component';
 import { TbProductRtcComponent } from '../../pages/old/tb-product-rtc/tb-product-rtc.component';
 import { CustomerComponent } from '../../pages/old/VisionBase/customer/customer.component';
@@ -34,14 +35,13 @@ import { ProjectWorkItemTimelineComponent } from '../../pages/old/project/projec
 import { SynthesisOfGeneratedMaterialsComponent } from '../../pages/old/project/synthesis-of-generated-materials/synthesis-of-generated-materials.component';
 import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
 
-import { FactoryVisitRegistrationComponent } from '../../pages/general-category/visit-factory-registation/factory-visit-registration.component';
 import { TsAssetAllocationPersonalComponent } from '../../pages/old/ts-asset-allocation-personal/ts-asset-allocation-personal.component';
 import { TsAssetManagementPersonalComponent } from '../../pages/old/ts-asset-management-personal/ts-asset-management-personal.component';
 import { TsAssetManagementPersonalTypeComponent } from '../../pages/old/ts-asset-management-personal/ts-asset-management-personal-type/ts-asset-management-personal-type.component';
 import { TsAssetRecoveryPersonalComponent } from '../../pages/old/ts-asset-recovery-personal/ts-asset-recovery-personal.component';
 import { VehicleRepairComponent } from '../../pages/hrm/vehicle-repair/vehicle-repair.component';
 import { VehicleRepairTypeComponent } from '../../pages/hrm/vehicle-repair/vehicle-repair-type/vehicle-repair-type.component';
-
+import { TsAssetRecoveryPersonalNewComponent } from '../../pages/hrm/asset/assetpersonal/ts-asset-recovery-personal-new/ts-asset-recovery-personal-new.component';
 import { DepartmentComponent } from '../../pages/old/department/department.component';
 import { TeamComponent } from '../../pages/old/team/team.component';
 import { PositionsComponent } from '../../pages/old/positions/positions.component';
@@ -210,10 +210,10 @@ export class MainLayoutComponent implements OnInit {
         },
         {
           kind: 'leaf',
-          key: 'TsAssetRecoveryPersonalComponent',
+          key: 'TsAssetRecoveryPersonalNewComponent',
           title: 'Thu hồi tài sản cá nhân',
           isOpen: true,
-          comp: TsAssetRecoveryPersonalComponent,
+          comp: TsAssetRecoveryPersonalNewComponent,
           //   icon: 'assets/icon/layers.png',
         },
         {
@@ -285,6 +285,14 @@ export class MainLayoutComponent implements OnInit {
           comp: EmployeeScheduleWorkComponent,
           //   icon: 'assets/icon/layers.png',
         },
+         {
+          kind: 'leaf',
+          key: 'EmployeePayrollComponent',
+          title: 'Bảng lương',
+          isOpen: true,
+          comp: EmployeePayrollComponent,
+          //   icon: 'assets/icon/layers.png',
+        },
       ],
     },
     //#endregion
@@ -305,14 +313,7 @@ export class MainLayoutComponent implements OnInit {
           comp: TrainingRegistrationComponent,
           //   icon: 'assets/icon/layers.png',
         },
-        {
-          kind: 'leaf',
-          key: 'FactoryVisitRegistrationComponent',
-          title: 'THĂM NHÀ MÁY',
-          isOpen: true,
-          comp: FactoryVisitRegistrationComponent,
-          //   icon: 'assets/icon/layers.png',
-        },
+      
       ],
     },
 

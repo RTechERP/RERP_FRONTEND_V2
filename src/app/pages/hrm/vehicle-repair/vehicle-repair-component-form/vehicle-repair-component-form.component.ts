@@ -392,7 +392,7 @@ export class VehicleRepairComponentFormComponent implements OnInit {
       },
     };
 
-    this.tbProductRtcService.uploadImage(this.selectedFile).subscribe({
+    this.tbProductRtcService.uploadImage(this.selectedFile, SERVER_PATH).subscribe({
       next: (response: any) => {
         if (response?.status && response.status !== 1) {
           this.notification.error(

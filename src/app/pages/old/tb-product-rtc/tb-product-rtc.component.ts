@@ -308,6 +308,26 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
         { title: 'AddressBox', field: 'AddressBox', visible: false },
       ],
     });
+    this.productTable.on(
+      'rowDblClick',
+      (e: UIEvent, row: RowComponent) => {
+        const selectedProduct =row.getData();
+        const modalRef = this.ngbModal.open(TbProductRtcFormComponent, {
+          size: 'xl',
+          backdrop: 'static',
+          keyboard: false,
+          centered: true,
+        });
+        modalRef.componentInstance.dataInput = selectedProduct;
+        modalRef.result.then(
+          (result) => {
+            this.getProduct();
+          },
+          () => {
+            console.log('Modal dismissed');
+          }
+        );
+      });
   }
   onAddGroupProduct() {
     const modalRef = this.ngbModal.open(TbProductGroupRtcFormComponent, {

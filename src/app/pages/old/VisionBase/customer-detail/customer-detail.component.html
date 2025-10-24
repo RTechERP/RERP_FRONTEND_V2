@@ -1,5 +1,5 @@
 <div class="modal-header bg-primary text-uppercase py-2">
-  <h6 class="modal-title text-white">KHÁCH HÀNG CHI TIẾT</h6>
+  <h6 class="modal-title text-white">CHI TIẾT KHÁCH HÀNG </h6>
   <button
     type="button"
     class="btn-close"
@@ -41,7 +41,7 @@
             </nz-form-control>
           </nz-form-item>
         </div>
-        <div nz-col class="col-md-2">
+        <div nz-col class="col-md-5">
           <nz-form-item>
             <nz-form-label
               class="fs-12 d-flex align-items-center"
@@ -50,53 +50,28 @@
               Mã khách <span class="text-danger ps-1">*</span>
             </nz-form-label>
             <nz-form-control [nzSpan]="24">
-              <input
-                nz-input
-                type="text"
-                formControlName="provinceCode"
-                [disabled]="true"
-              />
+              <nz-input-group nzCompact>
+                <input
+                  nz-input
+                  type="text"
+                  formControlName="provinceCode"
+                  style="width: 40%"
+                  [disabled]="true"
+                
+                />
+                <input nz-input
+                type="text"   placeholder="-" style="text-align: center; width: 20%;" [disabled]="true"/>
+                <input
+                  nz-input
+                  type="text"
+                  formControlName="customerCode"
+                  style="width: 40%"
+                />
+              </nz-input-group>
             </nz-form-control>
           </nz-form-item>
         </div>
-        <div nz-col class="col-md-1">
-          <nz-form-item>
-            <nz-form-label
-              class="fs-12 d-flex align-items-center"
-              [nzSpan]="24"
-              [style.visibility]="'hidden'"
-            >
-              -
-            </nz-form-label>
-            <nz-form-control [nzSpan]="24">
-              <input
-                nz-input
-                type="text"
-                placeholder="-"
-                style="text-align: center"
-                readonly="true"
-              />
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-        <div nz-col class="col-md-2">
-          <nz-form-item>
-            <nz-form-label
-              class="fs-12 d-flex align-items-center"
-              [nzSpan]="24"
-              [style.visibility]="'hidden'"
-            >
-              Mã khách
-            </nz-form-label>
-            <nz-form-control [nzSpan]="24">
-              <input
-                nz-input
-                type="text"
-                formControlName="customerCode"
-              />
-            </nz-form-control>
-          </nz-form-item>
-        </div>
+        
         <div nz-col class="col-md-3">
           <nz-form-item>
             <nz-form-label
@@ -404,7 +379,7 @@
         </div>
       </div>
 
-      <!-- Bảng sản phẩm chi tiết -->
+      <!-- Bảng khách hàng chi tiết -->
       <div class="row mt-3">
         <nz-splitter style="max-height: 40vh">
           <nz-splitter-panel [nzCollapsible]="true" nzDefaultSize="50%">

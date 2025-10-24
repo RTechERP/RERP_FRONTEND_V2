@@ -7,7 +7,7 @@ import { VehicleRepairTypeComponent } from '../../hrm/vehicle-repair/vehicle-rep
 import { VehicleRepairComponent } from '../../hrm/vehicle-repair/vehicle-repair.component';
 import { TrainingRegistrationComponent } from '../../training-registration/training-registration.component';
 import { ContractComponent } from '../contract/contract.component';
-import { CustomerComponent } from '../customer/customer.component';
+//import { CustomerComponent } from '../customer/customer.component';
 import { DepartmentComponent } from '../department/department.component';
 import { EmployeeComponent } from '../employee/employee.component';
 import { EmployeeScheduleWorkComponent } from '../holiday/employee-schedule-work/employee-schedule-work.component';
@@ -37,6 +37,7 @@ import { EmployeeAttendanceComponent } from '../employee-attendance/employee-att
 import { TsAssetRecoveryPersonalNewComponent } from '../../hrm/asset/assetpersonal/ts-asset-recovery-personal-new/ts-asset-recovery-personal-new.component';
 import { VehicleCategoryComponent } from '../../hrm/vehicle-management/vehicle-category/vehicle-category.component';
 import { VehicleManagementComponent } from '../../hrm/vehicle-management/vehicle-management.component';
+import { CustomerComponent } from '../VisionBase/customer/customer.component';
 
 @Component({
   selector: 'app-menus',

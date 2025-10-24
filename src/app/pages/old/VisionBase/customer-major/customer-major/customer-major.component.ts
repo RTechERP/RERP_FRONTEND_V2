@@ -58,6 +58,7 @@ import { SelectControlComponent } from '../../../select-control/select-control.c
 
 import { CustomerMajorService } from '../customer-major-service/customer-major.service';
 import { CustomerMajorDetailComponent } from '../customer-major-detail/customer-major-detail.component';
+import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 @Component({
   selector: 'app-customer-major',
   imports: [
@@ -124,15 +125,22 @@ export class CustomerMajorComponent implements OnInit, AfterViewInit {
   }
 
   onEdit(): void {
-    if (this.selectedId > 0) {
+    const selectedRows = this.tb_MainTable?.getSelectedData();
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn một ngành nghề để sửa!');
+      return;
+    }
+      this.selectedId = selectedRows[0].ID;
       this.isEditMode = true;
       this.openCustomerMajorDetail();
-    } else {
-      this.notification.info('Thông báo', 'Vui lòng chọn 1 bản ghi cần sửa!');
-    }
   }
 
   onDelete() {
+    const selectedRows = this.tb_MainTable?.getSelectedData();
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một ngành nghề để xóa!');
+      return;
+    }
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
       nzContent: 'Bạn có chắc chắn muốn xóa dòng này?',
@@ -147,7 +155,9 @@ export class CustomerMajorComponent implements OnInit, AfterViewInit {
           next: (res: any) => {
             if (res?.status === 1) {
               this.notification.success('Thông báo', 'Xóa thành công');
-              this.activeModal.close({ success: true, reloadData: true });
+              if (this.tb_MainTable) {
+                this.loadData();
+              }
             } else {
               this.notification.error(
                 'Lỗi',
@@ -212,27 +222,28 @@ export class CustomerMajorComponent implements OnInit, AfterViewInit {
 
   initMainTable(): void {
     this.tb_MainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
+      ...DEFAULT_TABLE_CONFIG,
       data: this.data,
-      layout: 'fitColumns',
-      height: '85vh',
-      selectableRows: 1,
-      pagination: true,
-      paginationSize: 100,
-      movableColumns: true,
-      resizableRows: true,
-      reactiveData: true,
-      columnDefaults: {
-        headerWordWrap: true,
-        headerVertical: false,
-        headerHozAlign: 'center',
-        minWidth: 60,
-        resizable: true,
-      },
+      //layout: 'fitColumns',
+      paginationMode: 'local',
+      // columnDefaults: {
+      //   headerWordWrap: true,
+      //   headerVertical: false,
+      //   headerHozAlign: 'center',
+      //   minWidth: 60,
+      //   resizable: true,
+      // },
+      height: '70vh',
+      selectableRows:1,
+      layout: "fitColumns",
+      responsiveLayout: true,
+      rowHeader:false,
+
       columns: [
         { title: 'ID', field: 'ID', visible: false },
-        { title: 'STT', field: 'STT', width: '10%' },
-        { title: 'Mã ngành nghề', field: 'Code', width: '30%' },
-        { title: 'Tên ngành nghề', field: 'Name', width: '60%' },
+        { title: 'STT', field: 'STT', width:"10%" },
+        { title: 'Mã ngành nghề', field: 'Code'},
+        { title: 'Tên ngành nghề', field: 'Name'},
       ],
     });
     this.tb_MainTable.on('rowClick', (e: any, row: RowComponent) => {

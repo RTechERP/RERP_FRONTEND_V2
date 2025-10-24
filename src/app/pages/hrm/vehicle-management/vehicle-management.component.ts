@@ -42,7 +42,7 @@ import { VehicleManagementService } from './vehicle-management.service';
 import { VehicleCategoryComponent } from './vehicle-category/vehicle-category.component';
 import { VehicleManagementFormComponent } from './vehicle-management-form/vehicle-management-form.component';
 import { CommonModule } from '@angular/common';
-import { DEFAULT_TABLE_CONFIG, DEFAULT_TABLE_CONFIG_UNSTORE } from '../../../tabulator-default.config';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { inject } from '@angular/core';
 import { VehicleRepairComponentFormComponent } from '../vehicle-repair/vehicle-repair-component-form/vehicle-repair-component-form.component';
 
@@ -73,7 +73,7 @@ import { VehicleRepairComponentFormComponent } from '../vehicle-repair/vehicle-r
     NzUploadModule,
   ],
   templateUrl: './vehicle-management.component.html',
-  styleUrl: './vehicle-management.component.css'
+  styleUrl: './vehicle-management.component.css',
 })
 export class VehicleManagementComponent implements AfterViewInit {
   //#region Khai báo biến
@@ -85,11 +85,10 @@ export class VehicleManagementComponent implements AfterViewInit {
     private modal: NzModalService,
     private modalService: NgbModal,
     private router: Router
-
-  ) { }
+  ) {}
 
   searchText: string = '';
- private ngbModal = inject(NgbModal);
+  private ngbModal = inject(NgbModal);
   tb_vehicleManagement: Tabulator | null = null;
   vehicleMnagemens: any[] = [];
   selectedRow: any;
@@ -103,16 +102,15 @@ export class VehicleManagementComponent implements AfterViewInit {
   async getVehicleManagement() {
     this.VehicleManagementService.getVehicleManagement().subscribe({
       next: (response: any) => {
-        console.log("tb_vehicleManagement", response.data);
+        console.log('tb_vehicleManagement', response.data);
         this.vehicleMnagemens = response.data;
         this.drawTbVehicle();
       },
       error: (error) => {
         console.error('Lỗi:', error);
-      }
+      },
     });
   }
-
 
   //#endregion
   onSearch() {
@@ -122,12 +120,12 @@ export class VehicleManagementComponent implements AfterViewInit {
       } else {
         this.tb_vehicleManagement.setFilter([
           [
-            { field: "DriverName", type: "like", value: this.searchText },
-            { field: "LicensePlate", type: "like", value: this.searchText },
-            { field: "VehicleName", type: "like", value: this.searchText },
-            { field: "STT", type: "like", value: this.searchText },
-            { field: "PhoneNumber", type: "like", value: this.searchText }
-          ]
+            { field: 'DriverName', type: 'like', value: this.searchText },
+            { field: 'LicensePlate', type: 'like', value: this.searchText },
+            { field: 'VehicleName', type: 'like', value: this.searchText },
+            { field: 'STT', type: 'like', value: this.searchText },
+            { field: 'PhoneNumber', type: 'like', value: this.searchText },
+          ],
         ]);
       }
     }
@@ -135,7 +133,7 @@ export class VehicleManagementComponent implements AfterViewInit {
   //#region Vẽ bảng khảo sát dự án
   drawTbVehicle() {
     this.tb_vehicleManagement = new Tabulator('#tb_vehicleManagement', {
- ...DEFAULT_TABLE_CONFIG_UNSTORE,
+      ...DEFAULT_TABLE_CONFIG,
       groupBy: 'VehicleCategoryText',
       selectableRows: 1,
       data: this.vehicleMnagemens,
@@ -169,7 +167,7 @@ export class VehicleManagementComponent implements AfterViewInit {
         {
           title: 'Liên hệ',
           field: 'PhoneNumber',
-          headerHozAlign: 'center'
+          headerHozAlign: 'center',
         },
       ],
     });
@@ -181,7 +179,7 @@ export class VehicleManagementComponent implements AfterViewInit {
     this.tb_vehicleManagement.on('rowClick', (e: any, row: any) => {
       this.selectedRow = row.getData();
       this.selectedID = this.selectedRow.ID;
-      console.log("selectedID: ", this.selectedID);
+      console.log('selectedID: ', this.selectedID);
     });
   }
   //#endregion
@@ -197,7 +195,7 @@ export class VehicleManagementComponent implements AfterViewInit {
 
     modalRef.result.then(
       (result) => {
-        this.notification.success("Thông báo", "Tạo sản phẩm thành công");
+        this.notification.success('Thông báo', 'Tạo sản phẩm thành công');
         setTimeout(() => this.getVehicleManagement(), 100);
       },
       () => {
@@ -211,7 +209,10 @@ export class VehicleManagementComponent implements AfterViewInit {
     if (this.selectedRow == null) {
       const selected = this.tb_vehicleManagement?.getSelectedData();
       if (!selected || selected.length === 0) {
-        this.notification.warning('Thông báo', 'Vui lòng chọn một đơn vị để sửa!');
+        this.notification.warning(
+          'Thông báo',
+          'Vui lòng chọn một đơn vị để sửa!'
+        );
         return;
       }
       this.selectedRow = { ...selected[0] };
@@ -221,13 +222,16 @@ export class VehicleManagementComponent implements AfterViewInit {
       size: 'lg',
       backdrop: 'static',
       keyboard: false,
-      centered: true
+      centered: true,
     });
-    console.log(this.selectedRow)
+    console.log(this.selectedRow);
     modalRef.componentInstance.dataInput = this.selectedRow;
     modalRef.result.then(
       (result) => {
-        this.notification.success("Thông báo", "Sửa lĩnh vực dựa án thành công");
+        this.notification.success(
+          'Thông báo',
+          'Sửa lĩnh vực dựa án thành công'
+        );
         setTimeout(() => this.getVehicleManagement(), 100);
       },
       () => {
@@ -240,7 +244,6 @@ export class VehicleManagementComponent implements AfterViewInit {
     return `<span class="fs-12">${text}</span>`;
   }
   onDeleteVehicle() {
-
     if (!this.selectedID || this.selectedID === 0) {
       this.notification.warning('Thông báo', 'Vui lòng chọn xe để xóa!');
       return;
@@ -255,25 +258,29 @@ export class VehicleManagementComponent implements AfterViewInit {
       nzOnOk: () => {
         const status = {
           ID: this.selectedID,
-          IsDeleted: true
+          IsDeleted: true,
         };
-        this.VehicleManagementService.saveDataVehicleManagement(status).subscribe({
+        this.VehicleManagementService.saveDataVehicleManagement(
+          status
+        ).subscribe({
           next: (res) => {
             if (res.status === 1) {
-              this.notification.success("Thông báo", "Xóa lĩnh vực dự án thành công");
+              this.notification.success(
+                'Thông báo',
+                'Xóa lĩnh vực dự án thành công'
+              );
               setTimeout(() => this.getVehicleManagement(), 100);
             } else {
-              this.notification.warning("Thông báo", "Thất bại");
+              this.notification.warning('Thông báo', 'Thất bại');
             }
           },
           error: (err) => {
             console.error(err);
-            this.notification.warning("Thông báo", "Lỗi kết nối");
-          }
+            this.notification.warning('Thông báo', 'Lỗi kết nối');
+          },
         });
       },
     });
-
   }
   onViewVehicleCategory() {
     const modalRef = this.modalService.open(VehicleCategoryComponent, {
@@ -284,8 +291,7 @@ export class VehicleManagementComponent implements AfterViewInit {
     });
 
     modalRef.result.then(
-      (result) => {
-      },
+      (result) => {},
       () => {
         console.log('Modal dismissed');
       }
@@ -307,13 +313,10 @@ export class VehicleManagementComponent implements AfterViewInit {
     const worksheet = workbook.addWorksheet('Lĩnh vực dự án');
     const columns = table.getColumns();
 
-    const headers = columns.map(
-      (col: any) => col.getDefinition().title
-    );
+    const headers = columns.map((col: any) => col.getDefinition().title);
 
     // Thêm dòng header và lưu lại dòng đó để thao tác
     const headerRow = worksheet.addRow(headers);
-
 
     // Gán style màu xám cho từng ô trong dòng header
     headerRow.eachCell((cell, colNumber) => {
@@ -325,8 +328,6 @@ export class VehicleManagementComponent implements AfterViewInit {
       cell.font = { bold: true };
       cell.alignment = { vertical: 'middle', horizontal: 'center' };
     });
-
-
 
     data.forEach((row: any) => {
       const rowData = columns.map((col: any) => {
@@ -422,29 +423,34 @@ export class VehicleManagementComponent implements AfterViewInit {
     document.body.removeChild(link);
     window.URL.revokeObjectURL(link.href);
   }
-   addVehicleRepair() {
-  // yêu cầu chọn dòng trước
-  if (!this.selectedID) {
-    this.notification.warning('Thông báo', 'Chọn xe trước khi thêm sửa chữa.');
-    return;
+  addVehicleRepair() {
+    // yêu cầu chọn dòng trước
+    if (!this.selectedID) {
+      this.notification.warning(
+        'Thông báo',
+        'Chọn xe trước khi thêm sửa chữa.'
+      );
+      return;
+    }
+
+    const modalRef = this.ngbModal.open(VehicleRepairComponentFormComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+    });
+
+    // truyền tối thiểu ID; truyền thêm tên/biển số để hiển thị tức thì nếu muốn
+    modalRef.componentInstance.dataInput = {
+      VehicleManagementID: this.selectedID,
+      VehicleName: this.selectedRow?.VehicleName,
+      LicensePlate: this.selectedRow?.LicensePlate,
+      EmployeeID: this.selectedRow?.EmployeeID, // nếu backend có
+    };
+
+    modalRef.result.then(
+      () => this.getVehicleManagement(),
+      () => {}
+    );
   }
-
-  const modalRef = this.ngbModal.open(VehicleRepairComponentFormComponent, {
-    size: 'xl', backdrop: 'static', keyboard: false, centered: true,
-  });
-
-  // truyền tối thiểu ID; truyền thêm tên/biển số để hiển thị tức thì nếu muốn
-  modalRef.componentInstance.dataInput = {
-    VehicleManagementID: this.selectedID,
-    VehicleName: this.selectedRow?.VehicleName,
-    LicensePlate: this.selectedRow?.LicensePlate,
-    EmployeeID: this.selectedRow?.EmployeeID, // nếu backend có
-  };
-
-  modalRef.result.then(
-    () => this.getVehicleManagement(),
-    () => {}
-  );
-}
-
 }

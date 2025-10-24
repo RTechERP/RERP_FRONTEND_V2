@@ -126,7 +126,7 @@
                 <span class="header-trigger" (click)="isCollapsed = !isCollapsed">
                     <nz-icon class="trigger text-light" [nzType]="isCollapsed ? 'menu-unfold' : 'menu-fold'" />
                 </span>
-                <div style="width: 100%; max-width: 100%; overflow: auto">
+                <div style="width: 100%; max-width: 100%; overflow: auto" class="app-header-tabs">
                     <!-- <nz-tabset nzLinkRouter (nzClose)="closeTab($event)" nzType="editable-card" nzHideAdd
                         [(nzSelectedIndex)]="selectedIndex" [nzSize]="'small'">
                         @for (tab of dynamicTabs; track tab.title) {

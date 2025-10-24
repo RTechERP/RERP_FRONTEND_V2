@@ -1,7 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Host, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { HOST } from '../../../app.config';
+import { environment } from '../../../../environments/environment';
+// import { HOST } from '../../../app.config';
 
 @Injectable({
   providedIn: 'root',
@@ -9,10 +10,12 @@ import { HOST } from '../../../app.config';
 export class HomeLayoutService {
   constructor(private http: HttpClient) {}
   getMenuParents(): Observable<any> {
-    return this.http.get<any>(HOST + `api/menu/menus/parent`);
+    return this.http.get<any>(environment.host + `api/menu/menus/parent`);
   }
 
   getEmployeeOnleaveAndWFH(): Observable<any> {
-    return this.http.get<any>(HOST + 'api/home/employee-onleave-and-wfh');
+    return this.http.get<any>(
+      environment.host + 'api/home/employee-onleave-and-wfh'
+    );
   }
 }

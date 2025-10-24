@@ -1,13 +1,14 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { HOST } from '../../../../app.config';
+import { environment } from '../../../../../environments/environment';
+// import { HOST } from '../../../../app.config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CustomerServiceService {
-  private _url = HOST + 'api/';
+  private _url = environment.host + 'api/';
   constructor(private http: HttpClient) {}
 
   getCustomers(): Observable<any> {

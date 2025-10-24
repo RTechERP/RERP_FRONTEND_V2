@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { HOST } from '../../../../app.config';
+import { environment } from '../../../../../environments/environment';
+// import { HOST } from '../../../../app.config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ViewPokhService {
-  private _url = HOST + 'api/ViewPOKH/';
+  private _url = environment.host + 'api/ViewPOKH/';
   constructor(private http: HttpClient) {}
   loadViewPOKH(
     datetimeS: Date,

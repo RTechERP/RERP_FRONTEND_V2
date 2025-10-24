@@ -1,14 +1,15 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { HOST } from '../../../../../app.config';
+// import { HOST } from '../../../../../app.config';
 import { end } from '@popperjs/core';
+import { environment } from '../../../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CustomerMajorService {
-  private _url = HOST + 'api/CustomerSpecialization/';
+  private _url = environment.host + 'api/CustomerSpecialization/';
   constructor(private http: HttpClient) {}
   save(payload: any): Observable<any> {
     return this.http.post<any>(this._url, payload);

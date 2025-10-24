@@ -1,0 +1,122 @@
+<div>
+    <!-- Header -->
+    <div class="modal-header bg-primary align-items-center ps-2">
+        <h6 class="text-light text-uppercase m-0" style="padding: 0, 5rem">
+            Quản lý chi tiết xe
+        </h6>
+          <button type="button" class="btn-close fs-12" aria-label="Close" (click)="close()"></button>
+    </div>
+    <!-- Body-->
+    <div class="modal-body">
+        <form nz-row [nzGutter]="16">
+            <!-- Thông tin người lái xe -->
+            <div nz-col nzSpan="24"
+                style="border: 1px solid #d9d9d9; padding: 10px; margin-bottom: 10px; border-radius: 5px;">
+                <h5 class="section-title">
+                    <i class="fas fa-user me-2"></i>Thông tin người lái xe
+                </h5>
+                <div nz-row [nzGutter]="16" style="margin-bottom: 10px;">
+                    <div nz-col nzSpan="12">
+                        <nz-form-item>
+                            <nz-form-label class="fs-12 d-flex align-items-center" style="margin-bottom: 5px;">Lái xe
+                            </nz-form-label>
+                            <nz-select class="w-100" nzSize="default" nzShowSearch nzAllowClear [(ngModel)]="employeeID"
+                                nzPlaceHolder="Lái xe..." (ngModelChange)="onEmployeeChange($event)"
+                                name="employee">
+                                <nz-option *ngFor="let emp of employeeList" [nzLabel]="emp.Code + ' - ' +  emp.FullName"
+                                    [nzValue]="emp.ID"></nz-option>
+                            </nz-select>
+                        </nz-form-item>
+                    </div>
+                    <div nz-col nzSpan="12">
+                        <nz-form-item>
+                            <nz-form-label class="fs-12 d-flex align-items-center" style="margin-bottom: 5px;">Tên lái
+                                xe</nz-form-label>
+                            <input id="employeeName" name="employeeName" nz-input [(ngModel)]="employeeName" disabled />
+                        </nz-form-item>
+                    </div>
+                </div>
+
+                <div nz-row [nzGutter]="16" style="margin-bottom: 10px;">
+                    <div nz-col nzSpan="12">
+                        <nz-form-item>
+                            <nz-form-label class="fs-12 d-flex align-items-center"
+                                style="margin-bottom: 5px;">SDT</nz-form-label>
+                            <input nz-input class="w-100" [(ngModel)]="SDT" name="SDT" disabled>
+                        </nz-form-item>
+                    </div>
+                    <div nz-col nzSpan="12">
+                        <nz-form-item>
+                            <nz-form-label class="fs-12 d-flex align-items-center"
+                                style="margin-bottom: 5px;">STT</nz-form-label>
+                            <nz-input-number id="STT" name="STT" class="fs-12 d-flex align-items-center"
+                                [(ngModel)]="STT" [nzMin]="1" [nzMax]="100" [nzStep]="1" style="width: 100%;"
+                                ></nz-input-number>
+                        </nz-form-item>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thông tin người lái xe -->
+            <div nz-col nzSpan="24"
+                style="border: 1px solid #d9d9d9; padding: 10px; margin-bottom: 10px; border-radius: 5px;">
+                <h5 class="section-title">
+                    <i class="fas fa-car-side me-2"></i>Thông tin xe
+                </h5>
+                <!-- Row 3: Loại kho -->
+                <div style="margin-bottom: 10px;">
+                    <nz-form-item>
+                        <nz-form-label class="fs-12 d-flex align-items-center " style="margin-bottom: 5px;">Tên
+                            xe</nz-form-label>
+                        <input id="carName" name="carName" nz-input [(ngModel)]="carName" nz-input />
+                    </nz-form-item>
+                </div>
+
+                <div style="margin-bottom: 10px;">
+                    <nz-form-item>
+                        <nz-form-label class="fs-12 d-flex align-items-center " style="margin-bottom: 5px;">Biển
+                            số</nz-form-label>
+                        <input id="licensePlates" name="licensePlates" nz-input [(ngModel)]="licensePlates" nz-input />
+                    </nz-form-item>
+                </div>
+
+
+                <div nz-row [nzGutter]="16" style="margin-bottom: 10px;">
+                    <div nz-col nzSpan="11">
+                        <nz-form-item>
+                            <nz-form-label class="fs-12 d-flex align-items-center" style="margin-bottom: 5px;">Loại xe
+                            </nz-form-label>
+                            <nz-select class="w-100" nzSize="default" nzShowSearch nzAllowClear
+                                [(ngModel)]="vehicleCategoryID" nzPlaceHolder="Chọn loại ..."
+                                (ngModelChange)="onVehicleChange($event)" name="vehicleCategory">
+                                <nz-option *ngFor="let emp of vehicleCategoryList" [nzLabel]="emp.CategoryCode + ' - ' +  emp.CategoryName"
+                                    [nzValue]="emp.ID"></nz-option>
+                            </nz-select>
+
+                        </nz-form-item>
+                    </div>
+                    <div nz-col nzSpan="2" style="display: flex; align-items: flex-end; justify-content: center;">
+                        <nz-icon nzType="plus-square" nzTheme="twotone" (click)="onAddVehicleCategory()"
+                            style="font-size: 32px; cursor: pointer;" />
+                    </div>
+
+                    <div nz-col nzSpan="11">
+                        <nz-form-item>
+                            <nz-form-label class="fs-12 d-flex align-items-center" style="margin-bottom: 5px;">Chỗ
+                                ngồi</nz-form-label>
+                            <nz-input-number id="slots" name="slots" class="fs-12 d-flex align-items-button"
+                                [(ngModel)]="slots" [nzMin]="1" [nzMax]="100" [nzStep]="1"
+                                style="width: 100%;"></nz-input-number>
+                        </nz-form-item>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer bg-whitesmoke br p-1">
+        <button nz-button nzType="default" nzDanger (click)="close()">
+            Đóng
+        </button>
+        <button nz-button nzType="primary" (click)="saveStatus()">Lưu</button>
+    </div>
+</div>

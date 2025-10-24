@@ -90,8 +90,9 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
   listProductGroup: any[] = [];
   dataProducGroup: any[] = [];
 
+  id:number=0;
   // các biến truyền vào của hàm getDataProductSale
-  id: number = 0;
+  idSale: number = 0;
   keyword: string = '';
   checkedALL: boolean = false;
 
@@ -185,7 +186,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
                   firstRow.select();
                   const rowData = firstRow.getData();
                   this.dataDelete = rowData;
-                 // this.id = rowData["ID"];
+                 this.id = rowData["ID"];
                   this.getDataProductSaleByIDgroup(this.id);
                   this.getDataProductGroupWareHouse(this.id);
                 }
@@ -361,8 +362,8 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
       );
       return;
     } else {
-      this.id = ids[0];
-      this.productsaleSV.getDataProductSalebyID(this.id).subscribe({
+      this.idSale = ids[0];
+      this.productsaleSV.getDataProductSalebyID(this.idSale).subscribe({
         next: (res) => {
           if (res?.data) {
             const data = Array.isArray(res.data) ? res.data[0] : res.data;
@@ -457,8 +458,10 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
           next: (res) => {
             if (res.status === 1) {
               this.notification.success('Thông báo', 'Đã xóa thành công!');
-              this.id = 0; // Set to 0 to trigger selection of first record in GetProductGroup
-              this.getProductGroup();
+              // this.id = 0; // Set to 0 to trigger selection of first record in GetProductGroup
+              // this.getProductGroup();
+              this.idSale =0;
+              this.getDataProductSaleByIDgroup(this.id)
             } else {
               this.notification.warning(
                 'Thông báo',
@@ -621,9 +624,9 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
       (e: MouseEvent, row: RowComponent) => {
         const rowData = row.getData();
         this.selectedList = [rowData]; // Make it an array with single item
-        this.id = rowData['ID'];
+        this.idSale = rowData['ID'];
         this.isCheckmode = true;
-        this.productsaleSV.getDataProductSalebyID(this.id).subscribe({
+        this.productsaleSV.getDataProductSalebyID(this.idSale).subscribe({
           next: (res) => {
             if (res?.data) {
               const data = Array.isArray(res.data) ? res.data[0] : res.data;
@@ -776,11 +779,11 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.listUnitCount = this.listUnitCount;
     modalRef.componentInstance.listProductGroupcbb = this.listProductGroupcbb;
     modalRef.componentInstance.selectedList = this.selectedList;
-    modalRef.componentInstance.id = this.id;
+    modalRef.componentInstance.id = this.idSale;
 
     modalRef.result.catch((result) => {
       if (result == true) {
-        this.getProductGroup();
+        //this.getProductGroup();
         this.getDataProductSaleByIDgroup(this.id);
       }
     });

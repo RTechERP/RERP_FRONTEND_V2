@@ -481,8 +481,8 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       EmployeeID: r?.EmployeeID ?? null,
     }));
 
-    // Lấy giá trị từ form controls
-    const formValues = this.formGroup.value;
+   // Lấy giá trị từ form controls, bao gồm cả các trường disabled
+  const formValues = this.formGroup.getRawValue(); // Sử dụng getRawValue thay vì value
 
     const customer = {
       ID: this.EditID ?? 0,
@@ -513,7 +513,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       CustomerEmployees: customerEmployees,
       BusinessFieldID: formValues.businessField,
     };
-
+    console.log("payloadB: ", payload);
     this.customerService.save(payload).subscribe({
       next: (res: any) => {
         if (res?.status === 1) {
@@ -545,13 +545,9 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       // movableColumns: true,
       // resizableRows: true,
       // reactiveData: true,
-      columnDefaults: {
-        headerWordWrap: true,
-        headerVertical: false,
-        headerHozAlign: 'center',
-        minWidth: 60,
-        resizable: true,
-      },
+      rowHeader: false,
+      selectableRows:1,
+     layout:"fitColumns",
       columns: [
         {
           title: '',
@@ -611,13 +607,9 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
         // movableColumns: true,
         // resizableRows: true,
         // reactiveData: true,
-        columnDefaults: {
-          headerWordWrap: true,
-          headerVertical: false,
-          headerHozAlign: 'center',
-          minWidth: 60,
-          resizable: true,
-        },
+        rowHeader: false,
+        selectableRows:1,
+       layout:"fitColumns",
         columns: [
           {
             title: '',
@@ -665,7 +657,9 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
      
       // layout: 'fitColumns',
        height: '100%',
-      selectableRows: 1,
+       rowHeader: false,
+       selectableRows:1,
+      layout:"fitColumns",
       // pagination: true,
       // paginationSize: 100,
       // movableColumns: true,
@@ -712,7 +706,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
           //   }
           // }
         },
-        { title: 'ID', field: 'EmployeeID' },
+        { title: 'ID', field: 'EmployeeID', visible:false },
         {
           title: 'Nhân viên Sale',
           field: 'FullName',

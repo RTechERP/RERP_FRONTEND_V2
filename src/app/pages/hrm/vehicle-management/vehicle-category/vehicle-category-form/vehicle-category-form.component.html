@@ -1,0 +1,48 @@
+<div>
+    <!-- Header -->
+    <div class="modal-header bg-primary align-items-center ps-2">
+        <h6 class="text-light text-uppercase m-0" style="padding: 0, 5rem">
+            Quản lý chi tiết loại xe
+        </h6>
+        <button type="button" class="btn-close fs-12" aria-label="Close" (click)="close()"></button>
+    </div>
+    <!-- Body-->
+    <div class="modal-body">
+        <form nz-row [nzGutter]="16">
+            <!-- Thông tin người lái xe -->
+            <div nz-col nzSpan="24">
+
+                
+                <!-- Row 2 -->
+                <div style="margin-bottom: 10px;">
+                    <nz-form-item nz-row width="100%" [nzGutter]="8">
+                        <nz-form-label nz-col nzSpan="4" class="fs-12 d-flex align-items-center">Mã loại xe
+                        </nz-form-label>
+                        <input id="vehicleCategoryCode" name="vehicleCategoryCode"  nz-col nzSpan="11" nz-input [(ngModel)]="VehicleCategoryCode" />
+                        <nz-form-label nz-col nzSpan="2" class="fs-12 d-flex justify-content-center align-items-center">
+                            STT
+                        </nz-form-label>
+                        <nz-input-number  id="STT" name="STT"  class="fs-12 d-flex align-items-center" nz-col nzSpan="6" [(ngModel)]="STT"
+                            [nzMin]="1" [nzMax]="100" [nzStep]="1" style="width: 100%;"></nz-input-number>
+                    </nz-form-item>
+                </div>
+                <div style="margin-bottom: 10px;">
+                    <nz-form-item nz-row width="100%" [nzGutter]="6">
+                        <nz-form-label nz-col nzSpan="4" class="fs-12 d-flex align-items-center">Tên loại xe
+                        </nz-form-label>
+                        <input id="VehicleCategoryName" name="VehicleCategoryName" nz-col nzSpan="19" nz-input
+                            [(ngModel)]="VehicleCategoryName" />
+                    </nz-form-item>
+                </div>
+            </div>
+
+            
+        </form>
+    </div>
+    <div class="modal-footer bg-whitesmoke br p-1">
+        <button nz-button nzType="default" nzDanger (click)="close()">
+            Đóng
+        </button>
+        <button nz-button nzType="primary" (click)="saveStatus()">Lưu</button>
+    </div>
+</div>

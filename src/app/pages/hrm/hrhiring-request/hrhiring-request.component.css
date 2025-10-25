@@ -1,0 +1,43 @@
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+.reset {
+  all: revert;
+}
+
+.ant-splitter-panel {
+  position: relative;
+}
+
+.tabulator {
+  font-size: 0.75rem;
+  position: absolute;
+  width: 100%;
+}
+
+.tabulator-cell {
+  padding: 0px;
+}
+
+.inner-content {
+  padding: 0 !important;
+}
+
+.ant-tabs-tab-btn {
+  font-size: 0.75rem;
+}
+
+:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-tab-btn {
+   color: #141a24 !important;
+  opacity: 1 !important;
+  padding: 4px !important;
+  padding-left: 12px !important;
+}
+:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #0e1114 !important;
+  font-weight: 600;
+}
+:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-ink-bar {
+  background: #1677ff !important;
+}

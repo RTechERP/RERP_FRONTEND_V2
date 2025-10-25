@@ -1,0 +1,128 @@
+<ng-container class="w-100">
+    <nz-splitter style="height: 94vh; ">
+        <nz-splitter-panel *ngIf="isSearchVisible" [nzSize]="'20%'" [nzResizable]="false">
+            <div class="card h-100 border-0 rounded-0">
+                <!-- Header -->
+                <div class="card-header bg-white p-1">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 ms-2">Tìm kiếm</h6>
+                        <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+                            (click)="toggleSearchPanel()">
+                            <nz-icon nzType="close" nzTheme="outline"></nz-icon>
+                        </button>
+                    </div>
+                </div>
+                <!-- Body -->
+                <div class="card-body">
+                    <form nz-form nzLayout="vertical">
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Chọn nhóm sản phẩm</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select class="w-100 fs-12" nzSize="small" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn nhóm sản phẩm..." [(ngModel)]="productGroupID"
+                                    (ngModelChange)="onGroupChange($event)" name="productGroupID">
+                                    <nz-option *ngFor="let emp of productGroupData"
+                                        [nzLabel]="emp.ID + ' - ' + emp.ProductGroupName"
+                                        [nzValue]="emp.ID"></nz-option>
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <!-- Bộ lọc chế độ tìm kiếm
+<nz-form-item class="mt-2">
+  <nz-form-label class="fs-12" [nzSpan]="24">Tìm kiếm theo</nz-form-label>
+  <nz-form-control [nzSpan]="24">
+    <label nz-checkbox
+           [ngModel]="searchMode==='all'"
+           (ngModelChange)="searchMode=$event?'all':'none'; onSearchModeChange(searchMode)"
+           name="searchAll">
+      Tất cả
+    </label>
+  </nz-form-control>
+</nz-form-item> -->
+                        <!-- Từ khóa -->
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <input nz-input placeholder="Nhập từ khóa" [(ngModel)]="keyWord"
+                                    (ngModelChange)="onKeywordChange($event)" nzSize="small" name="filterText" />
+                            </nz-form-control>
+                        </nz-form-item>
+                    </form>
+                </div>
+                <!-- Footer -->
+                <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end flex-wrap">
+                    <button nz-button nzType="default" nzSize="small">Đặt lại</button>
+                    <button nz-button nzType="primary" nzSize="small">Tìm kiếm</button>
+                </div>
+            </div>
+        </nz-splitter-panel>
+        <nz-splitter-panel [nzSize]="isSearchVisible ? '80%' : '100%'">
+            <div class="card  border-0 rounded-0">
+                <div class="card-header  bg-white p-1">
+                    <div class="d-flex h-40  gap-1">
+
+
+                        <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
+                            <nz-icon nzType="search" />
+                        </button>
+
+
+                        <button nz-button nzType="default" nzSize="small" class=" btn-add"
+                            (click)="onAddGroupProduct()">
+                            <img src="assets/icon/action_add_group_16.png" alt="Thêm mới " />Tạo nhóm TB
+                        </button>
+                        <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="onEditGroup()">
+                            <img src="assets/icon/action_edit_item_16.png" alt="Sửa nhóm TB" />Sửa nhóm TB
+                        </button>
+                        <button nz-button nzType="default" nzSize="small" class="btn-delete"
+                            (click)="onDeleteProductGroup()">
+                            <img src="assets/icon/action_delete_item_16.png" alt="Xóa nhóm TB" />Xóa nhóm TB
+                        </button>
+                        <span class="mx-2"
+                            style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
+                        <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add"
+                            (click)="onAddProducRTC()">
+                            <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " />Tạo thiết bị
+                        </button>
+                        <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="onEditProduct()">
+                            <img src="assets/icon/action_edit_item_16.png" alt="Sửa thiết bị" />Sửa thiết bị
+                        </button>
+                        <button nz-button nzType="default" nzSize="small" class="btn-delete "
+                            (click)="onDeleteProduct()">
+                            <img src="assets/icon/action_delete_item_16.png" alt="Xóa thiết bị" />Xóa thiết bị
+                        </button>
+
+                        <span class="mx-2"
+                            style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
+                        <button nz-button nzType="default" nzSize="small" class="me-1">
+                            <img src="assets/icon/action_add_qr_code_16.png" alt="Thêm QRCode"
+                                style="width:16px; height:16px; object-fit:contain" />Thêm QRCode
+                        </button>
+                        <button nz-button nzType="default" nzSize="small" class="me-1" (click)="openModalImportExcel()">
+                            <img src="assets/icon/action_import_16.png" alt="Nhập Excel"
+                                style="width:16px; height:16px; object-fit:contain" />Nhập Excel
+                        </button>
+                        <button nz-button nzType="default" nzSize="small" class="me-1" (click)="exportToExcelProduct()">
+                            <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel"
+                                style="width:16px; height:16px; object-fit:contain" />Xuất Excel
+                        </button>
+                        <button nz-button nzType="default" nzSize="small" class="me-1">
+                            <img src="assets/icon/purchase.png" alt="Yêu cầu mua hàng"
+                                style="width:16px; height:16px; object-fit:contain" />Yêu cầu mua hàng
+                        </button>
+
+
+
+
+                    </div>
+                </div>
+
+                <nz-splitter style="height: 90vh;">
+                    <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
+                        <div id="dataTableProduct" style="height: 100%;"></div>
+                    </nz-splitter-panel>
+                </nz-splitter>
+            </div>
+        </nz-splitter-panel>
+    </nz-splitter>
+</ng-container>

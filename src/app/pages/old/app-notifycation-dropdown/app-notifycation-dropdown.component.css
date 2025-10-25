@@ -1,0 +1,118 @@
+/* Khung */
+.notif-dropdown {
+  width: 390px;
+  max-height: 420px;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 5px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.notif-header {
+  flex: 0 0 auto;
+  padding: 12px;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #1890ff;
+  background: #b0cde9;
+}
+
+.notif-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
+}
+.notif-footer {
+  flex: 0 0 auto;
+  padding: 10px;
+  text-align: center;
+  font-size: 13px;
+  color: #1890ff;
+  border-top: 1px solid #f0f0f0;
+  cursor: pointer;
+}
+
+.notif-footer:hover {
+  background: #f0f0f0;
+}
+
+.notif-section {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #888;
+  background: #ddd;
+  border-top: 1px solid #f0f0f0;
+  border-bottom: 1px solid #f0f0f0;
+}
+.notif-body {
+  flex: 1 1 auto;
+  overflow: auto;
+}
+
+.notif-item {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 12px;
+  cursor: pointer;
+  border: 1px solid #efefef;
+}
+.notif-item:hover {
+  background: #f5f5f5;
+}
+
+.notif-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1890ff;
+  font-size: 16px;
+}
+
+.notif-lines {
+  min-width: 0;
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  row-gap: 2px;
+}
+
+.notif-title {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notif-detail {
+  display: block;
+  font-size: 12px;
+  color: #666;
+  white-space: normal;
+  word-break: break-word;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.notif-time {
+  font-size: 12px;
+  color: #888;
+  text-align: right;
+  min-width: 32px;
+  white-space: nowrap;
+  
+}
+.notif-count {
+  font-size: 10px !important;     /* chữ nhỏ hơn */
+  /* min-width: 14px;    
+  height: 14px;        
+  line-height: 14px;   
+  padding: 0 3px;        */
+}
+
+/* Cuộn thanh thân nếu cần */

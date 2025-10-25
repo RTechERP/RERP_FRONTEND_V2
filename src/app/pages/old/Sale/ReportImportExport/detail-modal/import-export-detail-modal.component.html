@@ -1,0 +1,131 @@
+<div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0">
+    <h6 class="modal-title text-white">Lịch sử nhập xuất</h6>
+    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+  </div>
+  
+  <div class="modal-body p-2 flex-grow-1 overflow-visible" style="overflow-y: unset;">
+    <form nz-form [nzLayout]="'horizontal'" class="mt-2">
+       <!-- Dòng 1: Mã sản phẩm & Tên sản phẩm -->
+<!-- Dòng 1: Mã sản phẩm & Tên sản phẩm -->
+<div class="row gx-2 mb-2 align-items-end small-input-row">
+    <!-- Mã sản phẩm -->
+    <div class="col-md-6 col-sm-12">
+      <label class="form-label m-0">Mã sản phẩm</label>
+      <input
+        nz-input
+        nzSize="small"
+        [(ngModel)]="productSale.productCode"
+        name="productCode"
+        class="form-control-like text-uppercase w-100"
+        readonly
+      />
+    </div>
+  
+    <!-- Tên sản phẩm -->
+    <div class="col-md-6 col-sm-12">
+      <label class="form-label m-0">Tên sản phẩm</label>
+      <input
+        nz-input
+        nzSize="small"
+        [(ngModel)]="productSale.productName"
+        name="productName"
+        class="form-control-like w-100"
+        readonly
+      />
+    </div>
+  </div>
+  
+  <!-- Dòng 2: Các trường còn lại, chia đều -->
+<div class="row gx-2 mb-2 align-items-end small-input-row">
+    <!-- Mỗi col chiếm 1/5 chiều rộng -->
+    <div class="col">
+      <label class="form-label m-0">Tồn kho đầu kỳ</label>
+      <input
+        nz-input
+        nzSize="small"
+        [(ngModel)]="productSale.tonDauKy"
+        name="tonDauKy"
+        class="form-control-like text-end w-100"
+        readonly
+      />
+    </div>
+  
+    <div class="col">
+      <label class="form-label m-0">Nhập</label>
+      <input
+        nz-input
+        nzSize="small"
+        type="number"
+        [(ngModel)]="productSale.tongNhap"
+        name="tongNhap"
+        class="form-control-like text-end w-100"
+      />
+    </div>
+  
+    <div class="col">
+      <label class="form-label m-0">Xuất</label>
+      <input
+        nz-input
+        nzSize="small"
+        type="number"
+        [(ngModel)]="productSale.tongXuat"
+        name="tongXuat"
+        class="form-control-like text-end w-100"
+      />
+    </div>
+  
+    <div class="col">
+      <label class="form-label m-0">SL giữ</label>
+      <input
+        nz-input
+        nzSize="small"
+        type="number"
+        [(ngModel)]="productSale.soLuongGiu"
+        name="soLuongGiu"
+        class="form-control-like text-end w-100"
+      />
+    </div>
+  
+    <div class="col">
+      <label class="form-label m-0">Tồn kho cuối kỳ</label>
+      <input
+        nz-input
+        nzSize="small"
+        [(ngModel)]="productSale.tonCuoiky"
+        name="tonCuoiKy"
+        class="form-control-like text-end w-100"
+        readonly
+      />
+    </div>
+  </div>
+    </form>
+  
+    <nz-splitter>
+      <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
+        <div id="table_import" style="height: 60vh;"></div>
+      </nz-splitter-panel>
+      <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
+        <div id="table_export"  style="height: 60vh;"></div>
+      </nz-splitter-panel>
+    </nz-splitter>
+    <div class="modal-footer flex-shrink-0">
+      <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
+    </div>
+  </div>
+  <style>
+    .form-control-like {
+  border: 1px solid #d9d9d9;
+  background-color: #fff;
+  font-size: 12px;
+  height: 28px;
+  padding: 0 6px;
+  border-radius: 2px;
+}
+
+.small-input-row label {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+  </style>
+  

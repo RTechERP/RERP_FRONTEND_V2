@@ -1,0 +1,78 @@
+.user-dropdown {
+    min-width: 350px;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.user-dropdown-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    /* khoảng cách avatar - info */
+    padding: 12px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.user-info {
+    flex: 1;
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #000;
+}
+
+.user-role {
+    font-size: 12px;
+    color: #888;
+}
+
+.logout-btn {
+    margin-left: auto;
+    /* đẩy icon ra mép phải */
+    line-height: 1;
+    color: #ff4d4f;
+    cursor: pointer;
+}
+
+.logout-btn:hover {
+    filter: brightness(0.9);
+}
+
+.user-dropdown ul[nz-menu] {
+    border: 0;
+    box-shadow: none;
+}
+
+.user-dropdown ul[nz-menu] li[nz-menu-item] {
+    font-size: 13px;
+    padding: 8px 12px;
+}
+
+.user-icon {
+    width: 20px;
+    height: 20px;
+
+
+    line-height: 1;
+    color: #ff4d4f;
+    cursor: pointer;
+}
+
+.menu-item-flex-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 8px;
+}
+

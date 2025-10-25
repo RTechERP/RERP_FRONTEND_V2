@@ -1,0 +1,24 @@
+<!-- Modal -->
+<div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">CHI TIẾT NGÀNH NGHỀ</h6>
+    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+</div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">STT <span style="color: red">*</span></label>
+                    <input nz-input type="text" [(ngModel)]="STT" name="STT" >
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Mã ngành nghề <span style="color: red">*</span></label>
+                    <input nz-input type="text" [(ngModel)]="Code" name="Code" >
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Tên ngành nghề <span style="color: red">*</span></label>
+                    <input nz-input type="text" [(ngModel)]="Name" name="Name" >
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button nz-button nzType="primary" nzSize="default" (click)="save()">Lưu</button>
+                <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
+            </div>

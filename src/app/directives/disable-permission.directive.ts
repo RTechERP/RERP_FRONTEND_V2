@@ -1,10 +1,17 @@
-import { Directive, Input, ElementRef, Renderer2, OnInit, OnDestroy } from '@angular/core';
+import {
+  Directive,
+  Input,
+  ElementRef,
+  Renderer2,
+  OnInit,
+  OnDestroy,
+} from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
 import { PermissionService } from '../services/permission.service';
 
 @Directive({
   selector: '[disablePermission]',
-  standalone: true
+  standalone: true,
 })
 export class DisablePermissionDirective implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
@@ -27,7 +34,8 @@ export class DisablePermissionDirective implements OnInit, OnDestroy {
   ngOnInit() {
     // Lưu trạng thái ban đầu
     this.originalDisabled = this.el.nativeElement.disabled || false;
-    this.originalPointerEvents = this.el.nativeElement.style.pointerEvents || '';
+    this.originalPointerEvents =
+      this.el.nativeElement.style.pointerEvents || '';
     this.originalOpacity = this.el.nativeElement.style.opacity || '';
 
     // Subscribe to permission changes
@@ -87,10 +95,10 @@ export class DisablePermissionDirective implements OnInit, OnDestroy {
 
     // Disable pointer events cho tất cả elements
     this.renderer.setStyle(this.el.nativeElement, 'pointer-events', 'none');
-    
+
     // Thêm visual feedback (làm mờ)
     this.renderer.setStyle(this.el.nativeElement, 'opacity', '0.5');
-    
+
     // Thêm cursor not-allowed
     this.renderer.setStyle(this.el.nativeElement, 'cursor', 'not-allowed');
 
@@ -101,15 +109,27 @@ export class DisablePermissionDirective implements OnInit, OnDestroy {
   private enableElement(): void {
     // Restore disabled state về trạng thái ban đầu
     if (this.el.nativeElement.disabled !== undefined) {
-      this.renderer.setProperty(this.el.nativeElement, 'disabled', this.originalDisabled);
+      this.renderer.setProperty(
+        this.el.nativeElement,
+        'disabled',
+        this.originalDisabled
+      );
     }
 
     // Restore pointer events
-    this.renderer.setStyle(this.el.nativeElement, 'pointer-events', this.originalPointerEvents);
-    
+    this.renderer.setStyle(
+      this.el.nativeElement,
+      'pointer-events',
+      this.originalPointerEvents
+    );
+
     // Restore opacity
-    this.renderer.setStyle(this.el.nativeElement, 'opacity', this.originalOpacity);
-    
+    this.renderer.setStyle(
+      this.el.nativeElement,
+      'opacity',
+      this.originalOpacity
+    );
+
     // Remove cursor style
     this.renderer.removeStyle(this.el.nativeElement, 'cursor');
 

@@ -111,8 +111,8 @@ export class BillExportService {
       };
       return this.http.post<any>(API_URL + `api/historydeletebill/get-by-billtype`,params);
     }
-    getOptionProduct(id:number){
-      return this.http.get<any>(API_URL + `api/billexport/get-product?id=${id}`);
+    getProductOption(warehouseCode:string, productGroupID: number){
+      return this.http.get<any>(API_URL + `api/billexport/get-product?warehouseCode=${warehouseCode}&productGroupID=${productGroupID}`);
     }
     export(id: number, type:number): Observable<Blob> {  
       const url = `${API_URL}api/billexport/export-excel?id=${id}&type=${type}`;
@@ -160,4 +160,10 @@ export class BillExportService {
     saveDataBillDocumentExport(data:any){
       return this.http.post<any>(API_URL + `api/billdocumentexport/save-data`,data);
     }
+    saveDataBillDetailSerialNumber(data:any){
+      return this.http.post<any>(API_URL + `api/billdetailserialnumber/save-data`, data);
+    }
+    getSerialByIDs(payload: { Ids: number[], Type: number }) {
+      return this.http.post<any>(API_URL + 'api/billdetailserialnumber/get-by-ids', payload);
+  }
 }

@@ -1,0 +1,110 @@
+<ng-container class="w-100">
+    <nz-splitter>
+        <nz-splitter-panel [nzSize]="sizeSearch" [nzCollapsible]="true">
+            <div class="card h-100 border-0 rounded-0">
+              <div class="card-header bg-white p-1">
+                <div class="d-flex justify-content-between align-items-center">
+                  <h6 class="m-0 ms-2">Tìm kiếm</h6>
+                  <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+                    (click)="toggleSearchPanel()">
+                    <nz-icon nzType="close" nzTheme="outline" />
+                  </button>
+                </div>
+              </div>
+              <div class="card-body">
+                <form nz-form nzLayout="vertical">
+                  <!-- Date range -->
+                  <nz-form-item>
+                    <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                      <nz-date-picker [nzFormat]="dateFormat" class="w-100" nzSize="small" [(ngModel)]="searchParams.dateStart" name="dateStart" [nzDisabled]="checked"></nz-date-picker>
+                    </nz-form-control>
+                  </nz-form-item>
+                  <nz-form-item class="mt-2">
+                    <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                      <nz-date-picker [nzFormat]="dateFormat" class="w-100" nzSize="small" [(ngModel)]="searchParams.dateEnd" name="dateEnd" [nzDisabled]="checked"></nz-date-picker>
+                    </nz-form-control>
+                  </nz-form-item>   
+                  <nz-form-item class="mt-2">
+                    <nz-form-label class="fs-12" [nzSpan]="24">Trạng thái</nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                      <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small"
+                         [(ngModel)]="searchParams.status" name="status">
+                        <nz-option *ngFor="let item of cbbStatus" [nzValue]="item.ID" [nzLabel]="item.Name">
+                          <div class="d-flex align-items-center">
+                            <span class="me-2">{{ item.ID }}</span>
+                            <span>{{ item.Name }}</span>
+                          </div>
+                        </nz-option>
+                      </nz-select>
+                    </nz-form-control>
+                  </nz-form-item>   
+                  <nz-form-item class="mt-2">
+                    <nz-form-label class="fs-12" [nzSpan]="24">Lọc kho</nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                      <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small"
+                         [(ngModel)]="searchParams.productGroupID" name="status">
+                        <nz-option *ngFor="let item of cbbProductGroup" [nzValue]="item.ID" [nzLabel]="item.ProductGroupName">             
+                        </nz-option>
+                      </nz-select>
+                    </nz-form-control>
+                  </nz-form-item>   
+                  <nz-form-item class="mt-2">
+                    <nz-form-label class="fs-12" [nzSpan]="24">Nhân viên</nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                      <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small"
+                         [(ngModel)]="searchParams.employeeID" name="status">
+                        <nz-option *ngFor="let item of cbbEmployee" [nzValue]="item.ID" [nzLabel]="item.FullName">
+                        </nz-option>
+                      </nz-select>
+                    </nz-form-control>
+                  </nz-form-item>   
+                  <nz-form-item class="mt-2">
+                    <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <input class="w-100" nz-input placeholder="Nhập từ khóa" [(ngModel)]="searchParams.keyword" name="keyword" nzSize="small" />
+                    </nz-form-control>
+                  </nz-form-item>                
+                </form>
+              </div>
+              <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+                <button nz-button nzType="default" nzSize="small" (click)="resetform()">Đặt lại</button>
+                <button nz-button nzType="primary" nzSize="small" (click)="searchData()">Tìm kiếm</button>
+              </div>
+            </div>
+          </nz-splitter-panel>
+      <nz-splitter-panel nzDefaultSize="100%">
+        <div class="card h-100 border-0 rounded-0">       
+          <!-- Toolbar -->
+          <div class="card-header bg-white p-2" style="overflow-x: auto;">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div class="d-flex gap-1">
+                        <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
+                          <nz-icon nzType="search" />
+                      </button>
+                      <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="createImport()">
+                        <nz-icon nzType="plus" nzTheme="outline" /> Tạo phiếu trả
+                    </button>
+                      <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="IsApprovedReturned(true)">
+                        <nz-icon nzType="check" nzTheme="outline" style="color: green;" /> Đã trả
+                    </button>
+                    <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="IsApprovedReturned(false)">
+                        <nz-icon nzType="close" nzTheme="outline" style="color: red;" /> Hủy trả
+                    </button>
+                        <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
+                          <nz-icon nzType="file-excel" /> Xuất Excel
+                        </button>
+                </div>
+              </div>     
+          </div>
+          <!-- Body chứa 2 bảng -->
+          <div class="card-body p-0 w-100">        
+              <div id="table_HistoryBorrowSale" style="height: 80vh;"></div>
+          </div>
+          
+        </div>
+      </nz-splitter-panel>
+    </nz-splitter>
+  </ng-container>
+  

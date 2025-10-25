@@ -1,0 +1,576 @@
+<div class="modal-dialog-scrollable">
+    <div class="modal-header bg-primary align-items-center ps-2">
+        <h6 class="text-light text-uppercase m-0" style="padding: 0, 5rem">
+            CHI TIẾT YÊU CẦU TUYỂN DỤNG
+        </h6>
+    </div>
+
+    <div class="modal-body pt-0 pb-0 p-2 w-100 position-relative" style="max-height: 80vh">
+        <fieldset class="reset m-0">
+            <legend class="reset fs-12 p-0">THÔNG TIN YÊU CẦU TUYỂN DỤNG</legend>
+            <form nz-form nzLayout="vertical" [formGroup]="form">
+                <nz-row [nzGutter]="8">
+                    <div nz-col [nzSpan]="11">
+                        <!-- Tăng từ 8 lên 9 -->
+                        <nz-form-item class="m-0">
+                            <!-- Phòng ban - ĐÃ CÓ * -->
+                            <label class="fs-12 p-0">
+                                Phòng ban/Bộ phận <span class="text-danger fs-12">(*)</span>
+                            </label>
+                            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn phòng ban!">
+                                <nz-select name="DepartmentID" class="w-100" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn phòng ban" formControlName="DepartmentID">
+                                    @for (d of departmentList; track $index) {
+                                    <nz-option [nzValue]="d.ID" [nzLabel]="d.Name">
+                                        {{ d.Name }}
+                                    </nz-option>
+                                    }
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </div>
+                    <div nz-col [nzSpan]="9">
+                        <!-- Tăng từ 8 lên 9 -->
+                        <nz-form-item class="m-0">
+                            <!-- Vị trí tuyển dụng - THÊM * -->
+                            <label class="fs-12 p-0">
+                                Vị trí tuyển dụng <span class="text-danger fs-12">(*)</span>
+                            </label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select name="PositionID" class="w-100" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn vị trí" formControlName="PositionID">
+                                    @for (p of positionList; track $index) {
+                                    <nz-option [nzValue]="p.ID" [nzLabel]="p.Name">
+                                        {{ p.Name }}
+                                    </nz-option>
+                                    }
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </div>
+                    <div nz-col [nzSpan]="4">
+                        <!-- Giảm từ 8 xuống 6 -->
+                        <nz-form-item class="m-0">
+                            <!-- Số lượng - THÊM * -->
+                            <label class="fs-12 p-0">
+                                Số lượng <span class="text-danger fs-12">(*)</span>
+                            </label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-input-number class="w-100" formControlName="QuantityHiring" [nzMin]="1" [nzMax]="50"
+                                    nzPlaceHolder="1"></nz-input-number>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </div>
+                </nz-row>
+                <nz-row [nzGutter]="24">
+                    <div nz-col [nzSpan]="8">
+                        <nz-form-item class="pt-1 m-0">
+                            <!-- Lương đề xuất - THÊM * -->
+                            <label class="fs-12 p-0">
+                                Lương đề xuất(VNĐ) <span class="text-danger fs-12">(*)</span>
+                            </label>
+                            <nz-form-control [nzSpan]="24">
+                                <div class="double-range-slider-box">
+                                    <div class="double-range-slider">
+                                        <span class="range-track" [style.left.%]="getSalaryRangeTrackLeft()"
+                                            [style.width.%]="getSalaryRangeTrackWidth()"></span>
+
+                                        <!-- Lương đề xuất -->
+                                        <input type="range" class="min-range" min="0" max="100000000" step="100000"
+                                            [value]="form.value.SalaryMin" (input)="
+                        onMinSalaryChange($event); validateRange('SalaryMin')
+                      " />
+                                        <input type="range" class="max-range" min="0" max="100000000" step="100000"
+                                            [value]="form.value.SalaryMax" (input)="
+                        onMaxSalaryChange($event); validateRange('SalaryMax')
+                      " />
+                                    </div>
+                                </div>
+                                <!-- Hiển thị min max ở phía dưới -->
+                                <div class="mt-1 d-flex justify-content-between fs-12 text-muted">
+                                    <span>Min: {{ formatSalaryDisplay(form.value.SalaryMin) }}</span>
+                                    <span>Max: {{ formatSalaryDisplay(form.value.SalaryMax) }}</span>
+                                </div>
+                            </nz-form-control>
+                        </nz-form-item>
+
+                    </div>
+                    <div nz-col [nzSpan]="8">
+                        <nz-form-item class="pt-1 m-0">
+                            <!-- Độ tuổi - THÊM * -->
+                            <label class="fs-12 p-0">
+                                Độ tuổi <span class="text-danger fs-12">(*)</span>
+                            </label>
+                            <nz-form-control [nzSpan]="24">
+                                <div class="double-range-slider-box">
+                                    <div class="double-range-slider">
+                                        <span class="range-track" [style.left.%]="getAgeRangeTrackLeft()"
+                                            [style.width.%]="getAgeRangeTrackWidth()"></span>
+
+                                        <!-- Độ tuổi -->
+                                        <input type="range" class="min-range" min="18" max="65" step="1"
+                                            [value]="form.value.AgeMin"
+                                            (input)="onMinAgeChange($event); validateRange('AgeMin')" />
+                                        <input type="range" class="max-range" min="18" max="65" step="1"
+                                            [value]="form.value.AgeMax"
+                                            (input)="onMaxAgeChange($event); validateRange('AgeMax')" />
+                                    </div>
+                                </div>
+                                <!-- Hiển thị min max ở phía dưới -->
+                                <div class="mt-1 d-flex justify-content-between fs-12 text-muted">
+                                    <span>Min: {{ form.value.AgeMin }} tuổi</span>
+                                    <span>Max: {{ form.value.AgeMax }} tuổi</span>
+                                </div>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </div>
+                    <div nz-col [nzSpan]="8">
+                        <nz-form-item class="pt-1 m-0">
+                            <!-- Giới tính - THÊM * -->
+                            <label class="fs-12 p-0">
+                                Giới tính <span class="text-danger fs-12">(*)</span>
+                            </label>
+                            <nz-form-control [nzSpan]="24">
+                                <!-- THAY ĐỔI: từ flex-column thành flex-row -->
+                                <div class="d-flex flex-row gap-3 fs-12 flex-wrap">
+                                    <label class="d-flex align-items-center">
+                                        <input type="checkbox" class="form-check-input me-2"
+                                            [checked]="form.value.GenderSelections?.includes(1)"
+                                            (change)="toggleGender(1, $event)" />
+                                        Nam
+                                    </label>
+                                    <label class="d-flex align-items-center">
+                                        <input type="checkbox" class="form-check-input me-2"
+                                            [checked]="form.value.GenderSelections?.includes(2)"
+                                            (change)="toggleGender(2, $event)" />
+                                        Nữ
+                                    </label>
+                                    <label class="d-flex align-items-center">
+                                        <input type="checkbox" class="form-check-input me-2"
+                                            [checked]="form.value.GenderSelections?.includes(3)"
+                                            (change)="toggleGender(3, $event)" />
+                                        Không yêu cầu
+                                    </label>
+                                </div>
+                            </nz-form-control>
+                        </nz-form-item>
+                    </div>
+                </nz-row>
+            </form>
+        </fieldset>
+        <div nz-row class="pt-1">
+            <div nz-col [nzSpan]="24">
+                <fieldset class="reset m-0">
+                    <legend class="reset fs-12 p-0">CHI TIẾT YÊU CẦU</legend>
+                    <form nz-form nzLayout="vertical" [formGroup]="form">
+                        <nz-row [nzGutter]="12">
+                            <div nz-col [nzSpan]="12">
+                                <nz-row [nzGutter]="12">
+                                    <div nz-col [nzSpan]="24">
+                                        <nz-form-item class="m-0">
+                                            <!-- Ngoại hình - THÊM * -->
+                                            <label class="fs-12 p-0">
+                                                Ngoại hình <span class="text-danger fs-12">(*)</span>
+                                            </label>
+                                            <nz-form-control [nzSpan]="24">
+                                                <!-- THAY ĐỔI: từ radio thành checkbox và xếp ngang -->
+                                                <div class="d-flex flex-row gap-3 fs-12 flex-wrap">
+                                                    <label class="d-flex align-items-center">
+                                                        <input type="checkbox" class="form-check-input me-2" [checked]="
+                                form.value.AppearanceSelections?.includes(1)
+                              " (change)="
+                                toggleAppearance(1, $event)
+                              " />
+                                                        Không yêu cầu
+                                                    </label>
+                                                    <label class="d-flex align-items-center">
+                                                        <input type="checkbox" class="form-check-input me-2" [checked]="
+                                form.value.AppearanceSelections?.includes(2)
+                              " (change)="
+                                toggleAppearance(2, $event)
+                              " />
+                                                        Tương đối
+                                                    </label>
+                                                    <label class="d-flex align-items-center">
+                                                        <input type="checkbox" class="form-check-input me-2" [checked]="
+                                form.value.AppearanceSelections?.includes(3)
+                              " (change)="
+                                toggleAppearance(3, $event)
+                              " />
+                                                        Quan trọng
+                                                    </label>
+                                                </div>
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                    </div>
+                                    <div nz-col [nzSpan]="24">
+                                        <nz-form-item class="pt-1 m-0">
+                                            <!-- Địa chỉ làm việc - THÊM * -->
+                                            <label class="fs-12 p-0">
+                                                Địa chỉ làm việc
+                                                <span class="text-danger fs-12">(*)</span>
+                                            </label>
+                                            <nz-form-control [nzSpan]="24">
+                                                <input nz-input placeholder="Nhập địa chỉ"
+                                                    formControlName="WorkAddress" />
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                    </div>
+                                </nz-row>
+                                <nz-row [nzGutter]="12">
+                                    <div nz-col [nzSpan]="24">
+                                        <nz-form-item class="pt-1 m-0">
+                                            <!-- Yêu cầu chuyên môn - THÊM * -->
+                                            <label class="fs-12 p-0">
+                                                Yêu cầu chuyên môn
+                                                <span class="text-danger fs-12">(*)</span>
+                                            </label>
+                                            <nz-form-control [nzSpan]="24">
+                                                <textarea rows="2" nz-input placeholder="Mô tả yêu cầu chuyên môn..."
+                                                    formControlName="ProfessionalRequirement"></textarea>
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                    </div>
+                                </nz-row>
+                                <nz-row [nzGutter]="12">
+                                    <div nz-col [nzSpan]="24">
+                                        <nz-form-item class="pt-1 m-0">
+                                            <!-- Mô tả công việc - THÊM * -->
+                                            <label class="fs-12 p-0">
+                                                Mô tả công việc
+                                                <span class="text-danger fs-12">(*)</span>
+                                            </label>
+                                            <nz-form-control [nzSpan]="24">
+                                                <textarea rows="4" nz-input placeholder="Mô tả chi tiết công việc..."
+                                                    formControlName="JobDescription"></textarea>
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                    </div>
+                                </nz-row>
+                            </div>
+                            <div nz-col [nzSpan]="12">
+                                <nz-row [nzGutter]="12">
+                                    <div nz-col [nzSpan]="24">
+                                        <fieldset class="reset m-0">
+                                            <legend class="reset w-auto border-bottom-0 text-dark p-0 m-0">
+                                                Trình độ học vấn
+                                                <span class="text-danger fs-12">(*)</span>
+                                            </legend>
+                                            <nz-form-item class="m-0">
+                                                <div class="d-flex flex-column gap-1 fs-12">
+                                                    @for (opt of educationOptions; track $index) {
+                                                    <label class="d-flex align-items-center">
+                                                        <input type="checkbox" class="form-check-input me-2" [checked]="
+                                form.value.EducationSelections?.includes(
+                                  opt.value
+                                )
+                              " (change)="
+                                toggleEducation(
+                                  opt.value,
+                                  $event
+                                )
+                              " />
+                                                        <span>{{ opt.label }}</span>
+                                                    </label>
+                                                    }
+                                                </div>
+                                            </nz-form-item>
+                                        </fieldset>
+                                    </div>
+                                </nz-row>
+                                <nz-row [nzGutter]="12">
+                                    <div nz-col [nzSpan]="24">
+                                        <fieldset class="reset m-0">
+                                            <legend class="reset w-auto border-bottom-0 text-dark p-0 m-0">
+                                                Kinh nghiệm làm việc
+                                                <span class="text-danger fs-12">(*)</span>
+                                            </legend>
+                                            <nz-form-item class="m-0">
+                                                <div class="row g-2">
+                                                    @for (opt of expOptions; track $index) {
+                                                    <div class="col-6">
+                                                        <label class="d-flex align-items-center">
+                                                            <input type="checkbox" class="form-check-input me-2"
+                                                                [checked]="
+                                  form.value.ExperienceSelections?.includes(
+                                    opt.value
+                                  )
+                                " (change)="
+                                  toggleExperience(
+                                    opt.value,
+                                    $event
+                                  )
+                                " />
+                                                            <span class="fs-12">{{ opt.label }}</span>
+                                                        </label>
+                                                    </div>
+                                                    }
+                                                </div>
+                                            </nz-form-item>
+                                        </fieldset>
+                                    </div>
+                                </nz-row>
+                            </div>
+                        </nz-row>
+
+                        <nz-row [nzGutter]="12" class="pt-2">
+                            <div nz-col [nzSpan]="12">
+                                <fieldset class="reset m-0">
+                                    <legend class="reset w-auto border-bottom-0 text-dark p-0 m-0">
+                                        Trình độ ngoại ngữ
+                                        <span class="text-danger fs-12">(*)</span>
+                                    </legend>
+                                    <nz-form-item class="m-0">
+                                        <div class="d-flex flex-column gap-3">
+                                            <!-- Tiếng Anh - ĐỂ DỌC -->
+                                            <div>
+                                                <label class="fs-12 fw-semibold d-block mb-2">Tiếng Anh:
+                                                    <span class="text-danger fs-12">(*)</span></label>
+                                                <nz-select nzAllowClear class="w-100" formControlName="EnglishLevel"
+                                                    nzPlaceHolder="Chọn trình độ">
+                                                    <nz-option nzValue="Level A" nzLabel="Level A"></nz-option>
+                                                    <nz-option nzValue="Level B" nzLabel="Level B"></nz-option>
+                                                    <nz-option nzValue="Level C" nzLabel="Level C"></nz-option>
+                                                    <nz-option nzValue="Không cần" nzLabel="Không cần"></nz-option>
+                                                </nz-select>
+                                            </div>
+
+                                            <!-- Ngôn ngữ khác - ĐỂ DỌC -->
+                                            <div>
+                                                <label class="fs-12 fw-semibold d-block mb-2">Ngôn ngữ khác:</label>
+                                                <div class="d-flex gap-2 align-items-center mb-2">
+                                                    <input nz-input class="flex-fill" placeholder="Nhập tên ngôn ngữ"
+                                                        formControlName="OtherLanguage" />
+                                                    <nz-select nzAllowClear class="w-50"
+                                                        formControlName="OtherLanguageLevel" nzPlaceHolder="Trình độ">
+                                                        <nz-option nzValue="Level A" nzLabel="Level A"></nz-option>
+                                                        <nz-option nzValue="Level B" nzLabel="Level B"></nz-option>
+                                                        <nz-option nzValue="Level C" nzLabel="Level C"></nz-option>
+                                                        <nz-option nzValue="Không cần" nzLabel="Không cần"></nz-option>
+                                                    </nz-select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </nz-form-item>
+                                </fieldset>
+                            </div>
+
+                            <div nz-col [nzSpan]="12">
+                                <fieldset class="reset m-0">
+                                    <legend class="reset w-auto border-bottom-0 text-dark p-0 m-0">
+                                        Kỹ năng máy tính
+                                        <span class="text-danger fs-12">(*)</span>
+                                    </legend>
+                                    <nz-form-item class="m-0">
+                                        <div class="d-flex flex-column gap-3">
+                                            <!-- Checkbox grid -->
+                                            <div class="row g-2">
+                                                <div class="col-4">
+                                                    <label class="d-flex align-items-center">
+                                                        <input type="checkbox" class="form-check-input me-2"
+                                                            formControlName="SkillWord" />
+                                                        <span class="fs-12">Word</span>
+                                                    </label>
+                                                </div>
+                                                <div class="col-4">
+                                                    <label class="d-flex align-items-center">
+                                                        <input type="checkbox" class="form-check-input me-2"
+                                                            formControlName="SkillExcel" />
+                                                        <span class="fs-12">Excel</span>
+                                                    </label>
+                                                </div>
+                                                <div class="col-4">
+                                                    <label class="d-flex align-items-center">
+                                                        <input type="checkbox" class="form-check-input me-2"
+                                                            formControlName="SkillPowerpoint" />
+                                                        <span class="fs-12">PowerPoint</span>
+                                                    </label>
+                                                </div>
+                                                <div class="col-4">
+                                                    <label class="d-flex align-items-center">
+                                                        <input type="checkbox" class="form-check-input me-2"
+                                                            formControlName="SkillOutlook" />
+                                                        <span class="fs-12">Outlook</span>
+                                                    </label>
+                                                </div>
+                                                <div class="col-4">
+                                                    <label class="d-flex align-items-center">
+                                                        <input type="checkbox" class="form-check-input me-2"
+                                                            formControlName="SkillInternet" />
+                                                        <span class="fs-12">Internet</span>
+                                                    </label>
+                                                </div>
+                                                <!-- Có thể thêm checkbox khác nếu cần -->
+                                                <div class="col-4">
+                                                    <!-- Để trống hoặc thêm checkbox khác -->
+                                                </div>
+                                            </div>
+
+                                            <!-- Kỹ năng khác - CHUYỂN THÀNH TEXTAREA -->
+                                            <div>
+                                                <label class="fs-12 fw-semibold d-block mb-2">Kỹ năng khác:</label>
+                                                <textarea nz-input rows="2" class="w-100"
+                                                    placeholder="Mô tả kỹ năng máy tính khác..."
+                                                    formControlName="SkillOther"></textarea>
+                                            </div>
+                                        </div>
+                                    </nz-form-item>
+                                </fieldset>
+                            </div>
+                        </nz-row>
+                        <nz-row [nzGutter]="12" class="pt-2">
+                            <div nz-col [nzSpan]="24">
+                                <fieldset class="reset m-0">
+                                    <legend class="reset w-auto border-bottom-0 text-dark p-0 m-0">
+                                        Yêu cầu về sức khỏe
+                                        <span class="text-danger fs-12">(*)</span>
+                                    </legend>
+                                    <nz-form-item class="m-0">
+                                        <div class="d-flex flex-column gap-2 fs-12">
+                                            <!-- Cần thể hình đặc biệt -->
+                                            <div class="d-flex align-items-center gap-2">
+                                                <label class="d-flex align-items-center" style="min-width: 180px">
+                                                    <input type="checkbox" class="form-check-input me-2"
+                                                        formControlName="NeedPhysical" (change)="
+                              onHealthCheckChange('NeedPhysical', $event)
+                            " />
+                                                    Cần thể hình đặc biệt
+                                                </label>
+                                                <div *ngIf="form.value.NeedPhysical" class="flex-fill">
+                                                    <input nz-input
+                                                        placeholder="Ghi chú về thể hình (VD: Cao > 1.6m, Nặng > 50kg...)"
+                                                        formControlName="PhysicalNote" class="w-100"
+                                                        style="min-width: 300px" />
+                                                </div>
+                                            </div>
+
+                                            <!-- Cần sức lực đặc biệt -->
+                                            <div class="d-flex align-items-center gap-2">
+                                                <label class="d-flex align-items-center" style="min-width: 180px">
+                                                    <input type="checkbox" class="form-check-input me-2"
+                                                        formControlName="NeedSpecialStrength" (change)="
+                              onHealthCheckChange('NeedSpecialStrength', $event)
+                            " />
+                                                    Cần sức lực đặc biệt
+                                                </label>
+                                                <div *ngIf="form.value.NeedSpecialStrength" class="flex-fill">
+                                                    <input nz-input
+                                                        placeholder="Ghi chú về sức lực (VD: Có thể bê vác hàng nặng, làm việc lâu...)"
+                                                        formControlName="StrengthNote" class="w-100"
+                                                        style="min-width: 300px" />
+                                                </div>
+                                            </div>
+
+                                            <!-- Sức khỏe đủ đảm bảo -->
+                                            <!-- Sức khỏe đủ đảm bảo -->
+                                            <div class="d-flex align-items-center gap-2">
+                                                <label class="d-flex align-items-center" style="min-width: 180px">
+                                                    <input type="checkbox" class="form-check-input me-2"
+                                                        formControlName="EnsureHealth" (change)="
+                              onHealthCheckChange('EnsureHealth', $event)
+                            " />
+                                                    Sức khỏe đủ đảm bảo
+                                                </label>
+                                                <div *ngIf="form.value.EnsureHealth" class="flex-fill">
+                                                    <input nz-input
+                                                        placeholder="Ghi chú về sức khỏe tổng quát (VD: Không bệnh tim, mắt tốt...)"
+                                                        formControlName="HealthNote" class="w-100"
+                                                        style="min-width: 300px" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </nz-form-item>
+                                </fieldset>
+                            </div>
+                        </nz-row>
+                        <nz-row [nzGutter]="12" class="pt-2">
+                            <div nz-col [nzSpan]="24">
+                                <fieldset class="reset m-0">
+                                    <legend class="reset w-auto border-bottom-0 text-dark p-0 m-0">
+                                        Yêu cầu về giao tiếp
+                                        <span class="text-danger fs-12">(*)</span>
+                                    </legend>
+                                    <nz-form-item class="m-0">
+                                        <div class="d-flex flex-column gap-2 fs-12">
+                                            <!-- Không cần giao tiếp bên ngoài -->
+                                            <label class="d-flex align-items-center">
+                                                <input type="checkbox" class="form-check-input me-2"
+                                                    formControlName="CommNoneExternal" />
+                                                Không cần giao tiếp với bên ngoài
+                                            </label>
+
+                                            <!-- Cần giao tiếp nội bộ -->
+                                            <label class="d-flex align-items-center">
+                                                <input type="checkbox" class="form-check-input me-2"
+                                                    formControlName="CommInternal" />
+                                                Cần giao tiếp với nhiều người trong Công ty
+                                            </label>
+
+                                            <!-- Khách hàng trong nước -->
+                                            <label class="d-flex align-items-center">
+                                                <input type="checkbox" class="form-check-input me-2"
+                                                    formControlName="CommDomesticCustomer" />
+                                                Cần giao tiếp với khách hàng trong nước
+                                            </label>
+
+                                            <!-- Khách hàng nước ngoài - CÓ INPUT GHI CHÚ -->
+                                            <div class="d-flex align-items-center gap-2">
+                                                <label class="d-flex align-items-center" style="min-width: 250px">
+                                                    <input type="checkbox" class="form-check-input me-2"
+                                                        formControlName="CommForeignCustomer"
+                                                        (change)="onCommunicationCheckChange('CommForeignCustomer', $event)" />
+                                                    Cần giao tiếp với khách hàng nước ngoài
+                                                </label>
+                                                <div *ngIf="form.value.CommForeignCustomer" class="flex-fill">
+                                                    <input nz-input
+                                                        placeholder="Nhập tên nước (VD: Mỹ, Nhật, Trung Quốc...)"
+                                                        formControlName="CommForeignCountry" class="w-100"
+                                                        style="min-width: 250px" />
+                                                </div>
+                                            </div>
+
+                                            <!-- Báo đài, truyền thông -->
+                                            <label class="d-flex align-items-center">
+                                                <input type="checkbox" class="form-check-input me-2"
+                                                    formControlName="CommMedia" />
+                                                Cần tiếp xúc với các cơ quan báo đài, truyền thông
+                                            </label>
+
+                                            <!-- Chính quyền -->
+                                            <label class="d-flex align-items-center">
+                                                <input type="checkbox" class="form-check-input me-2"
+                                                    formControlName="CommAuthorities" />
+                                                Cần tiếp xúc với các cấp chính quyền địa phương, trung ương
+                                            </label>
+                                        </div>
+                                    </nz-form-item>
+                                </fieldset>
+                            </div>
+                        </nz-row>
+                        <nz-row [nzGutter]="12" class="pt-2">
+                            <div nz-col [nzSpan]="24">
+                                <nz-form-item class="m-0">
+                                    <!-- Ghi chú - KHÔNG CÓ * -->
+                                    <label class="fs-12 p-0"> Ghi chú</label>
+                                    <nz-form-control [nzSpan]="24">
+                                        <textarea rows="2" nz-input placeholder="Nhập ghi chú bổ sung..."
+                                            formControlName="Note"></textarea>
+                                    </nz-form-control>
+                                </nz-form-item>
+                            </div>
+                        </nz-row>
+                    </form>
+                </fieldset>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer bg-whitesmoke br p-1 d-flex align-items-center">
+        <div class="d-flex align-items-center flex-wrap gap-1">
+            <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">
+                Đóng
+            </button>
+            <button nz-button nzType="primary" (click)="save()">Lưu</button>
+        </div>
+    </div>
+</div>

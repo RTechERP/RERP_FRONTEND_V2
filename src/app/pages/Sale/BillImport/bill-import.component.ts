@@ -32,6 +32,9 @@ import { BillDocumentExportComponent } from '../BillExport/Modal/bill-document-e
 import { BillDocumentImportComponent } from './Modal/bill-document-import/bill-document-import.component';
 import { BillImportSyntheticComponent } from './Modal/bill-import-synthetic/bill-import-synthetic.component';
 import { ScanBillImportComponent } from './Modal/scan-bill-import/scan-bill-import.component';
+import { BillExportService } from '../BillExport/bill-export-service/bill-export.service';
+import { BillImportChoseSerialComponent } from '../BillExport/Modal/bill-import-chose-serial/bill-import-chose-serial/bill-import-chose-serial.component';
+import { BillExportDetailComponent } from '../BillExport/Modal/bill-export-detail/bill-export-detail.component';
 interface BillImport {
   Id?: number;
   BillImportCode: string;
@@ -40,14 +43,14 @@ interface BillImport {
   DeliverID: number;
   Deliver: string;
   KhoTypeID: number;
-  KhoType:string;
+  KhoType: string;
   WarehouseID: number;
-  BillTypeNew:number;
+  BillTypeNew: number;
   SupplierID: number;
-  Supplier:string;
-  RulePayID:number;
-  CreatDate: Date | string;
-  RequestDate: Date | string;
+  Supplier: string;
+  RulePayID: number;
+  CreatDate: Date | string | null;
+  RequestDate: Date | string | null;
 }
 @Component({
   selector: 'app-bill-import',
@@ -80,23 +83,24 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private modal: NzModalService,
     private modalService: NgbModal,
+    private billExportService: BillExportService,
   ) { }
-  
+
   newBillImport: BillImport = {
     BillImportCode: '',
     ReciverID: 0,
-    Reciver:"",
+    Reciver: "",
     DeliverID: 0,
-    Deliver:"",
-    KhoType:"",
+    Deliver: "",
+    KhoType: "",
     KhoTypeID: 0,
     WarehouseID: 1,
     BillTypeNew: 0,
     SupplierID: 0,
-    Supplier:"",
+    Supplier: "",
     CreatDate: new Date(),
     RequestDate: new Date(),
-    RulePayID:0,
+    RulePayID: 0,
   };
 
   dataProductGroup: any[] = [];
@@ -138,13 +142,13 @@ export class BillImportComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.getProductGroup();
   }
-  ngAfterViewInit(): void { 
+  ngAfterViewInit(): void {
     this.drawTable();
   }
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
   }
-  onCheckboxChange(){
+  onCheckboxChange() {
     this.loadDataBillImport();
   }
   resetform(): void {
@@ -162,9 +166,9 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     };
     this.searchText = '';
   }
-  searchData(){
+  searchData() {
     this.loadDataBillImport();
-    this.sizeSearch="";
+    this.sizeSearch = "";
   }
 
   openModalBillImportDetail(ischeckmode: boolean) {
@@ -194,6 +198,34 @@ export class BillImportComponent implements OnInit, AfterViewInit {
         }
       },
     );
+  }
+  convertExport()
+  {
+      this.isCheckmode = true;
+      if (this.isCheckmode == true && this.id == 0) {
+        this.notification.info('Thông báo', 'Vui lòng chọn 1 phiếu xuất để sửa');
+        this.id = 0;
+        return
+      }
+      const modalRef = this.modalService.open(BillExportDetailComponent, {
+        centered: true,
+        // windowClass: 'full-screen-modal',
+        size: 'xl',
+        backdrop: 'static',
+        keyboard: false
+      });
+      modalRef.componentInstance.checkConvert = true;
+      modalRef.componentInstance.isCheckmode = this.isCheckmode;
+      modalRef.componentInstance.id = this.id
+  
+      modalRef.result.catch(
+        (result) => {
+          if (result == true) {
+            this.id = 0;
+            this.loadDataBillImport();
+          }
+        },
+      );
   }
   onKhoTypeChange(selected: number[]): void {
     this.selectedKhoTypes = selected;
@@ -275,7 +307,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
       keyboard: false
     });
     modalRef.componentInstance.billImportID = this.id;
-    modalRef.componentInstance.billType= 1;
+    modalRef.componentInstance.billType = 1;
     modalRef.result.catch(
       (result) => {
         if (result == true) {
@@ -284,8 +316,8 @@ export class BillImportComponent implements OnInit, AfterViewInit {
       },
     );
   }
-   // hủy chứng từ , duyệt chứng từ
-   IsApproved(apr: boolean) {
+  // hủy chứng từ , duyệt chứng từ
+  IsApproved(apr: boolean) {
     if (!this.data || this.data.length === 0) {
       this.notification.info("Thông báo", "Vui lòng chọn 1 phiếu để nhận chứng từ !");
       return;
@@ -345,166 +377,166 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     });
   }
 
-    //#region xuất excel
-    async exportExcel() {
-      const table = this.table_billImport;
-      if (!table) return;
-  
-      const data = table.getData();
-      if (!data || data.length === 0) {
-        this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
-        return;
-      }
-  
-      const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Danh sách phiếu nhập');
-  
-      const columns = table.getColumns();
-      // Bỏ qua cột đầu tiên
-      const filteredColumns = columns.slice(1);
-      const headers = ['STT', ...filteredColumns.map(
-        (col: any) => col.getDefinition().title
-      )];
-      worksheet.addRow(headers);
-  
-      data.forEach((row: any, index: number) => {
-        const rowData = [index + 1, ...filteredColumns.map((col: any) => {
-          const field = col.getField();
-          let value = row[field];
-  
-          if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
-            value = new Date(value);
-          }
-          if (field === 'IsApproved') {
-            value = value === true ? '✓' : '';  // hoặc '✓' / '✗'
-          }
-  
-          return value;
-        })];
-  
-        worksheet.addRow(rowData);
-        worksheet.views = [
-          { state: 'frozen', ySplit: 1 } // Freeze hàng đầu tiên
-        ];
-      });
-  
-      // Format cột có giá trị là Date
-      worksheet.eachRow((row, rowNumber) => {
-        if (rowNumber === 1) return; // bỏ qua tiêu đề
-        row.eachCell((cell, colNumber) => {
-          if (cell.value instanceof Date) {
-            cell.numFmt = 'dd/mm/yyyy'; // hoặc 'yyyy-mm-dd'
-          }
-        });
-      });
-  
-      // Tự động căn chỉnh độ rộng cột
-      worksheet.columns.forEach((column: any) => {
-        let maxLength = 10;
-        column.eachCell({ includeEmpty: true }, (cell: any) => {
-          const cellValue = cell.value ? cell.value.toString() : '';
-          // Giới hạn độ dài tối đa của cell là 50 ký tự
-          maxLength = Math.min(Math.max(maxLength, cellValue.length + 2), 50);
-          cell.alignment = { wrapText: true, vertical: 'middle' };
-        });
-        // Giới hạn độ rộng cột tối đa là 30
-        column.width = Math.min(maxLength, 30);
-      });
-  
-      // Thêm bộ lọc cho toàn bộ cột (từ A1 đến cột cuối cùng)
-      worksheet.autoFilter = {
-        from: {
-          row: 1,
-          column: 1,
-        },
-        to: {
-          row: 1,
-          column: filteredColumns.length,
-        },
-      };
-  
-      // Xuất file
-      const buffer = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([buffer], {
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      });
-  
-      const formattedDate = new Date()
-        .toISOString()
-        .slice(2, 10)
-        .split('-')
-        .reverse()
-        .join('');
-  
-      const link = document.createElement('a');
-      link.href = window.URL.createObjectURL(blob);
-      link.download = `DanhSachPhieuNhập.xlsx`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(link.href);
-    }
-    //#endregion
-    //Xuất Excel theo mẫu 
-    onExportExcel() {
-      if (!this.id || this.id === 0) {
-        this.notification.error("Lỗi", "Vui lòng chọn bản ghi cần xuất file");
-        return;
-      }
-    
-      const selectedHandover = this.data.find(item => item.ID === this.id);
-      if (!selectedHandover) {
-        this.notification.error("Lỗi", "Không tìm thấy bản ghi được chọn");
-        return;
-      }
-    
-      this.billImportService.export(this.id).subscribe({
-        next: (res) => {
-          const url = window.URL.createObjectURL(res);
-          const a = document.createElement('a');
-          const now = new Date();
-          const dateString = `${now.getDate().toString().padStart(2, '0')}_${(now.getMonth() + 1).toString().padStart(2, '0')}_${now.getFullYear()}`;
-          const fileName = `Phiếu nhập - ${selectedHandover.BillImportCode || 'export'}_${dateString}.xlsx`;
-          a.href = url;
-          a.download = fileName;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          window.URL.revokeObjectURL(url);
-        },
-        error: (err) => {
-          this.notification.error('Lỗi', 'Có lỗi xảy ra khi xuất file.');
-          console.error(err);
-        }
-      });
-    }
-    //hồ sơ chứng từ 
-    openModalBillDocumentImport() {
-      if (this.id == 0) {
-        this.notification.info('Thông báo', 'Vui lòng chọn 1 phiếu nhập!');
-        this.id = 0;
-        return
-      }
-     const code = this.data[0].BillImportCode;
-      const modalRef = this.modalService.open(BillDocumentImportComponent, {
-        centered: true,
-        size: 'xl',
-        backdrop: 'static',
-        keyboard: false
-      });
-      modalRef.componentInstance.id = this.id;
-      modalRef.componentInstance.code = code;
-      modalRef.result.catch(
-        (result) => {
-          if (result == true) {
-            this.id = 0;
-            this.loadDataBillImport();
-          }
-        },
-      );
+  //#region xuất excel
+  async exportExcel() {
+    const table = this.table_billImport;
+    if (!table) return;
+
+    const data = table.getData();
+    if (!data || data.length === 0) {
+      this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
+      return;
     }
 
-     //#region tong hop phieu nhập
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Danh sách phiếu nhập');
+
+    const columns = table.getColumns();
+    // Bỏ qua cột đầu tiên
+    const filteredColumns = columns.slice(1);
+    const headers = ['STT', ...filteredColumns.map(
+      (col: any) => col.getDefinition().title
+    )];
+    worksheet.addRow(headers);
+
+    data.forEach((row: any, index: number) => {
+      const rowData = [index + 1, ...filteredColumns.map((col: any) => {
+        const field = col.getField();
+        let value = row[field];
+
+        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+          value = new Date(value);
+        }
+        if (field === 'IsApproved') {
+          value = value === true ? '✓' : '';  // hoặc '✓' / '✗'
+        }
+
+        return value;
+      })];
+
+      worksheet.addRow(rowData);
+      worksheet.views = [
+        { state: 'frozen', ySplit: 1 } // Freeze hàng đầu tiên
+      ];
+    });
+
+    // Format cột có giá trị là Date
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return; // bỏ qua tiêu đề
+      row.eachCell((cell, colNumber) => {
+        if (cell.value instanceof Date) {
+          cell.numFmt = 'dd/mm/yyyy'; // hoặc 'yyyy-mm-dd'
+        }
+      });
+    });
+
+    // Tự động căn chỉnh độ rộng cột
+    worksheet.columns.forEach((column: any) => {
+      let maxLength = 10;
+      column.eachCell({ includeEmpty: true }, (cell: any) => {
+        const cellValue = cell.value ? cell.value.toString() : '';
+        // Giới hạn độ dài tối đa của cell là 50 ký tự
+        maxLength = Math.min(Math.max(maxLength, cellValue.length + 2), 50);
+        cell.alignment = { wrapText: true, vertical: 'middle' };
+      });
+      // Giới hạn độ rộng cột tối đa là 30
+      column.width = Math.min(maxLength, 30);
+    });
+
+    // Thêm bộ lọc cho toàn bộ cột (từ A1 đến cột cuối cùng)
+    worksheet.autoFilter = {
+      from: {
+        row: 1,
+        column: 1,
+      },
+      to: {
+        row: 1,
+        column: filteredColumns.length,
+      },
+    };
+
+    // Xuất file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+
+    const formattedDate = new Date()
+      .toISOString()
+      .slice(2, 10)
+      .split('-')
+      .reverse()
+      .join('');
+
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = `DanhSachPhieuNhập.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(link.href);
+  }
+  //#endregion
+  //Xuất Excel theo mẫu 
+  onExportExcel() {
+    if (!this.id || this.id === 0) {
+      this.notification.error("Lỗi", "Vui lòng chọn bản ghi cần xuất file");
+      return;
+    }
+
+    const selectedHandover = this.data.find(item => item.ID === this.id);
+    if (!selectedHandover) {
+      this.notification.error("Lỗi", "Không tìm thấy bản ghi được chọn");
+      return;
+    }
+
+    this.billImportService.export(this.id).subscribe({
+      next: (res) => {
+        const url = window.URL.createObjectURL(res);
+        const a = document.createElement('a');
+        const now = new Date();
+        const dateString = `${now.getDate().toString().padStart(2, '0')}_${(now.getMonth() + 1).toString().padStart(2, '0')}_${now.getFullYear()}`;
+        const fileName = `Phiếu nhập - ${selectedHandover.BillImportCode || 'export'}_${dateString}.xlsx`;
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        this.notification.error('Lỗi', 'Có lỗi xảy ra khi xuất file.');
+        console.error(err);
+      }
+    });
+  }
+  //hồ sơ chứng từ 
+  openModalBillDocumentImport() {
+    if (this.id == 0) {
+      this.notification.info('Thông báo', 'Vui lòng chọn 1 phiếu nhập!');
+      this.id = 0;
+      return
+    }
+    const code = this.data[0].BillImportCode;
+    const modalRef = this.modalService.open(BillDocumentImportComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false
+    });
+    modalRef.componentInstance.id = this.id;
+    modalRef.componentInstance.code = code;
+    modalRef.result.catch(
+      (result) => {
+        if (result == true) {
+          this.id = 0;
+          this.loadDataBillImport();
+        }
+      },
+    );
+  }
+
+  //#region tong hop phieu nhập
   openModalBillImportSynthetic() {
     const modalRef = this.modalService.open(BillImportSyntheticComponent, {
       centered: true,
@@ -523,45 +555,45 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     );
   }
   //#endregion
-//xoa phieu nhap
-deleteBillImport() {
-    if(!this.data){
-      this.notification.warning('Thông báo','Vui lòng chọn 1 phiếu muốn xóa!');
+  //xoa phieu nhap
+  deleteBillImport() {
+    if (!this.data) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn 1 phiếu muốn xóa!');
       return;
     }
-    if(this.data[0].Status==true){
-      this.notification.warning('Thông báo','Phiếu đã được duyệt không thể xóa!');
+    if (this.data[0].Status == true) {
+      this.notification.warning('Thông báo', 'Phiếu đã được duyệt không thể xóa!');
       return;
     }
 
-  const payload = {
-        billImport: {
-          ID: this.data[0].ID || 0,
-          IsDeleted: true, // Bổ sung nếu cần
-        }
-      };
-      this.modal.confirm({
-        nzTitle: 'Xác nhận xóa',
-        nzContent: `Bạn có chắc chắn muốn xóa phiếu "${this.data[0].BillImportCode}" không?`,
-        nzOkText: 'Đồng ý',
-        nzCancelText: 'Hủy',
-        nzOnOk: () => {
-          this.billImportService.saveBillImport(payload).subscribe({
-            next: (res) => {
-              if (res.status === 1) {
-                this.notification.success('Thông báo','Xóa thành công!');
-                this.loadDataBillImport();
-              } else {
-                this.notification.warning('Thông báo','Xóa thất bại!');
-              }
-            },
-            error: (err: any) => {
-              this.notification.error('Thông báo', 'Có lỗi xảy ra khi xóa dữ liệu!');
+    const payload = {
+      billImport: {
+        ID: this.data[0].ID || 0,
+        IsDeleted: true, // Bổ sung nếu cần
+      }
+    };
+    this.modal.confirm({
+      nzTitle: 'Xác nhận xóa',
+      nzContent: `Bạn có chắc chắn muốn xóa phiếu "${this.data[0].BillImportCode}" không?`,
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        this.billImportService.saveBillImport(payload).subscribe({
+          next: (res) => {
+            if (res.status === 1) {
+              this.notification.success('Thông báo', 'Xóa thành công!');
+              this.loadDataBillImport();
+            } else {
+              this.notification.warning('Thông báo', 'Xóa thất bại!');
             }
-          });
-        }
-      });
-}
+          },
+          error: (err: any) => {
+            this.notification.error('Thông báo', 'Có lỗi xảy ra khi xóa dữ liệu!');
+          }
+        });
+      }
+    });
+  }
   //vẽ bảng
   drawTable() {
     const rowMenu = [
@@ -587,24 +619,24 @@ deleteBillImport() {
         },
       },
     ];
-  
+
     const headerMenu = function (this: any) {
       const menu = [];
       const columns = this.getColumns();
-  
+
       for (let column of columns) {
         let icon = document.createElement("i");
         icon.classList.add("fas");
         icon.classList.add(column.isVisible() ? "fa-check-square" : "fa-square");
-  
+
         let label = document.createElement("span");
         let title = document.createElement("span");
-  
+
         title.textContent = " " + column.getDefinition().title;
-  
+
         label.appendChild(icon);
         label.appendChild(title);
-  
+
         menu.push({
           label: label,
           action: function (e: any) {
@@ -617,7 +649,7 @@ deleteBillImport() {
       }
       return menu;
     };
-  
+
     if (this.table_billImport) {
       this.table_billImport.replaceData(this.dataTableBillImport);
     } else {
@@ -632,16 +664,16 @@ deleteBillImport() {
         reactiveData: true,
         rowContextMenu: rowMenu,
         columns: [
-          { 
+          {
             title: "",
-            formatter: "rowSelection", 
+            formatter: "rowSelection",
             titleFormatter: "rowSelection",
             hozAlign: "center",
             headerHozAlign: "center",
             headerSort: false,
             width: 40,
             frozen: true,
-            
+
           },
           {
             title: 'Nhận chứng từ',
@@ -688,7 +720,7 @@ deleteBillImport() {
             field: 'BillImportCode',
             hozAlign: 'left',
             headerHozAlign: 'center',
-            headerMenu: headerMenu,  
+            headerMenu: headerMenu,
             resizable: true,
             variableHeight: true,
             bottomCalc: "count",
@@ -755,7 +787,7 @@ deleteBillImport() {
           }
         ]
       });
-  
+
       // Events for row selection
       this.table_billImport.on("rowSelected", (row: RowComponent) => {
         const rowData = row.getData();
@@ -765,7 +797,7 @@ deleteBillImport() {
         this.getBillImportDetail(this.id);
         this.getBillImportByID(this.id);
       });
-  
+
       this.table_billImport.on("rowDeselected", () => {
         const selectedRows = this.table_billImport.getSelectedRows();
         if (selectedRows.length === 0) {
@@ -776,48 +808,45 @@ deleteBillImport() {
         }
       });
     }
-  if (this.table_billImportDetail) {
-    this.table_billImportDetail.replaceData(this.dataTableBillImportDetail);
-  } else {
-    this.table_billImportDetail = new Tabulator('#table_billimportdetail', {
-      data: this.dataTableBillImportDetail,
-      layout: 'fitDataFill',
-      height: "80vh",
-      pagination: true,
-      movableColumns: true,
-      resizableRows: true,
-      reactiveData: true,
-      selectableRows: 1,
-      columns: [
-        { title: 'Mã nội bộ', field: 'ProductNewCode', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: 'Mã hàng', field: 'ProductCode', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: 'Chi tiết sản phẩm', field: 'ProductName', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: 'Serial Number', field: 'SerialNumber', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: 'ĐVT', field: 'Unit', hozAlign: 'center', headerHozAlign: 'center' },
-        { title: 'Mã theo dự án', field: 'ProjectCodeExport', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: 'SL thực tế', field: 'Qty', hozAlign: 'right', headerHozAlign: 'center' },
-        { title: 'Hóa đơn', field: 'SomeBill', hozAlign: 'left', headerHozAlign: 'center' },
-        {
-          title: 'Ngày hóa đơn',
-          field: 'DateSomeBill',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          formatter: (cell) => {
-            const value = cell.getValue();
-            return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
+    if (this.table_billImportDetail) {
+      this.table_billImportDetail.replaceData(this.dataTableBillImportDetail);
+    } else {
+      this.table_billImportDetail = new Tabulator('#table_billimportdetail', {
+        data: this.dataTableBillImportDetail,
+        layout: 'fitDataFill',
+        height: "80vh",
+        pagination: true,
+        movableColumns: true,
+        resizableRows: true,
+        reactiveData: true,
+        selectableRows: 1,
+        columns: [
+          { title: 'Mã nội bộ', field: 'ProductNewCode', hozAlign: 'left', headerHozAlign: 'center' },
+          { title: 'Mã hàng', field: 'ProductCode', hozAlign: 'left', headerHozAlign: 'center' },
+          { title: 'Chi tiết sản phẩm', field: 'ProductName', hozAlign: 'left', headerHozAlign: 'center' },
+          { title: 'Serial Number', field: 'SerialNumber', hozAlign: 'left', headerHozAlign: 'center' },
+          { title: 'ĐVT', field: 'Unit', hozAlign: 'center', headerHozAlign: 'center' },
+          { title: 'Mã theo dự án', field: 'ProjectCodeExport', hozAlign: 'left', headerHozAlign: 'center' },
+          { title: 'SL thực tế', field: 'Qty', hozAlign: 'right', headerHozAlign: 'center' },
+          { title: 'Hóa đơn', field: 'SomeBill', hozAlign: 'left', headerHozAlign: 'center' },
+          {
+            title: 'Ngày hóa đơn',
+            field: 'DateSomeBill',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            formatter: (cell) => {
+              const value = cell.getValue();
+              return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
+            },
           },
-        },
-        { title: 'Loại hàng', field: 'ProductGroupName', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: 'Mã dự án', field: 'ProjectCodeExport', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: 'Tên dự án', field: 'ProjectNameText', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: 'Khách hàng', field: 'CustomerFullName', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: 'Đơn mua hàng', field: 'BillCodePO', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: 'Ghi chú (PO)', field: 'Note', hozAlign: 'left', headerHozAlign: 'center' },
-      ]
-      
-    });
+          { title: 'Loại hàng', field: 'ProductGroupName', hozAlign: 'left', headerHozAlign: 'center' },
+          { title: 'Mã dự án', field: 'ProjectCodeExport', hozAlign: 'left', headerHozAlign: 'center' },
+          { title: 'Tên dự án', field: 'ProjectNameText', hozAlign: 'left', headerHozAlign: 'center' },
+          { title: 'Khách hàng', field: 'CustomerFullName', hozAlign: 'left', headerHozAlign: 'center' },
+          { title: 'Đơn mua hàng', field: 'BillCodePO', hozAlign: 'left', headerHozAlign: 'center' },
+          { title: 'Ghi chú (PO)', field: 'Note', hozAlign: 'left', headerHozAlign: 'center' },         
+        ]
+      });
+    }
   }
-
-  
-}
 }

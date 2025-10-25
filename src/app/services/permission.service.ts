@@ -1,20 +1,38 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { UserService } from './user.service';
+import { IUser } from '../models/user.interface';
+import { AppUserService } from './app-user.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PermissionService {
-  private permissionsSubject = new BehaviorSubject<string[]>([]);
+  private permissionsSubject = new BehaviorSubject<string>('');
   public permissions$ = this.permissionsSubject.asObservable();
 
-  constructor(private userService: UserService) {
-    // Subscribe to user changes để tự động cập nhật permissions
-    this.userService.user$.subscribe(user => {
-      if (user && user.Permissions) {
-        this.loadPermissionsFromUser(user.Permissions);
-      } else {
+  constructor() {
+    this.loadPermissionsFromToken();
+  }
+
+  /**
+   * Decode JWT token và lấy permissions
+   */
+  private loadPermissionsFromToken(): void {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = this.decodeJWT(token);
+        const permissions = payload.permissions || payload.PERMISSIONS || [];
+
+        // Nếu permissions là string (cách nhau bởi dấu phẩy), chuyển thành array
+        if (typeof permissions === 'string') {
+          this.setPermissions(permissions.split(',').map(p => p.trim()));
+        } else if (Array.isArray(permissions)) {
+          this.setPermissions(permissions);
+        }
+      } catch (error) {
+        console.error('Error decoding token:', error);
         this.setPermissions([]);
       }
     });
@@ -26,14 +44,14 @@ export class PermissionService {
   private loadPermissionsFromUser(permissionsString: string): void {
     try {
       let permissionArray: string[] = [];
-      
+
       if (permissionsString && permissionsString.trim()) {
         permissionArray = permissionsString
           .split(/[,;]/) // Split theo dấu phẩy hoặc dấu chấm phẩy
           .map(p => p.trim()) // Loại bỏ khoảng trắng
           .filter(p => p.length > 0); // Loại bỏ string rỗng
       }
-      
+
       this.setPermissions(permissionArray);
       console.log('Permissions loaded from currentUser:', permissionArray);
     } catch (error) {
@@ -45,7 +63,7 @@ export class PermissionService {
   /**
    * Set permissions và notify subscribers
    */
-  setPermissions(permissions: string[]): void {
+  setPermissions(permissions: string): void {
     this.permissionsSubject.next(permissions);
   }
 
@@ -53,7 +71,9 @@ export class PermissionService {
    * Get current permissions
    */
   getPermissions(): string[] {
-    return this.permissionsSubject.value;
+    let permissions = this.permissionsSubject.value.split(',');
+    // console.log('permissions', permissions);
+    return permissions;
   }
 
   /**
@@ -61,21 +81,35 @@ export class PermissionService {
    */
   hasPermission(permission: string): boolean {
     const permissions = this.getPermissions();
-    return permissions.includes(permission);
+    // console.log(permission, permissions);
+    const p = permission.split(',');
+    // let isPermisstion = permissions.includes(permission);
+    const isPermission = permission
+      .split(',')
+      .some((code) => permissions.includes(code));
+
+    // const isPermisstion = permissions.some((code) =>
+    //   permission.split(',').includes(code)
+    // );
+    // console.log('isPermisstion:', isPermission);
+
+    const isAdmin = this.appUserService.currentUser?.IsAdmin || false;
+    console.log('isAdmin:', isAdmin);
+    return isPermission || isAdmin;
   }
 
   /**
    * Kiểm tra user có ít nhất một trong các permissions
    */
   hasAnyPermission(permissions: string[]): boolean {
-    return permissions.some(permission => this.hasPermission(permission));
+    return permissions.some((permission) => this.hasPermission(permission));
   }
 
   /**
    * Kiểm tra user có tất cả permissions
    */
   hasAllPermissions(permissions: string[]): boolean {
-    return permissions.every(permission => this.hasPermission(permission));
+    return permissions.every((permission) => this.hasPermission(permission));
   }
 
   /**
@@ -108,6 +142,6 @@ export class PermissionService {
    * Clear permissions (khi logout)
    */
   clearPermissions(): void {
-    this.setPermissions([]);
+    this.setPermissions('');
   }
 }

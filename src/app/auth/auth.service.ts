@@ -6,17 +6,17 @@ import { Router } from '@angular/router';
 import { UserService } from '../services/user.service';
 import { PermissionService } from '../services/permission.service';
 import { environment } from '../../environments/environment';
-import {HOST} from '../app.config';
+// import { HOST } from '../app.config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = HOST + 'api/home/';
+  private apiUrl = environment.host + 'api/home/';
   private tokenkey = 'token';
-  
+
   constructor(
-    private http: HttpClient, 
+    private http: HttpClient,
     private userService: UserService,
     private permissionService: PermissionService,
     private router: Router
@@ -27,18 +27,16 @@ export class AuthService {
       tap((response: any) => {
         if (response && response.access_token) {
           localStorage.setItem(this.tokenkey, response.access_token);
-          
-          // Refresh permissions từ token mới
-          this.permissionService.refreshPermissions();
 
           // Gọi getCurrentUser ngay sau khi login thành công
           this.getCurrentUser().subscribe({
             next: (userResponse) => {
               console.log('getCurrentUser success after login:', userResponse);
+              this.permissionService.refreshPermissions();
             },
             error: (error) => {
               console.error('getCurrentUser error after login:', error);
-            }
+            },
           });
         }
       }),
@@ -58,9 +56,9 @@ export class AuthService {
     }
     // Sử dụng API key từ environment
     const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
       'x-api-key': environment.apiKey,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     });
 
     return this.http.get(`${this.apiUrl}current-user`, { headers }).pipe(
@@ -72,7 +70,6 @@ export class AuthService {
         }
       }),
       catchError((error) => {
-
         if (error.status === 401) {
           console.log('Token expired, logging out...');
           this.logout();
@@ -89,13 +86,13 @@ export class AuthService {
   logout() {
     // Xóa token
     localStorage.removeItem(this.tokenkey);
-    
+
     // Xóa thông tin user (PermissionService sẽ tự động clear permissions)
     this.userService.clearUser();
-    
+
     // Xóa tất cả dữ liệu khác có thể liên quan đến session
     this.clearAllAuthData();
-    
+
     // Chuyển hướng về trang login
     this.router.navigate(['/login']);
   }
@@ -112,11 +109,11 @@ export class AuthService {
       'sessionData',
       'authData'
     ];
-    
+
     keysToRemove.forEach(key => {
       localStorage.removeItem(key);
     });
-    
+
     // Xóa tất cả keys bắt đầu với 'auth_' hoặc 'user_'
     Object.keys(localStorage).forEach(key => {
       if (key.startsWith('auth_') || key.startsWith('user_')) {

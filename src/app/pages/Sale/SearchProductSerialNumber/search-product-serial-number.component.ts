@@ -80,8 +80,8 @@ export class SearchProductSerialNumberComponent implements OnInit, AfterViewInit
     this.searchProductSerialNumberService.getAll(this.keyword)
       .subscribe({
         next: (res: any) => {
-          this.dataImport = res.dataImport;
-          this.dataExport = res.dataExport;
+          this.dataImport = res.data.dataImport;
+          this.dataExport = res.data.dataExport;
           if (this.dataImport) {
             this.table_Import.replaceData(this.dataImport);
           }

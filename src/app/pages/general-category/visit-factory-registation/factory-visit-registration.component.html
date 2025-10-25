@@ -1,0 +1,520 @@
+<ng-container class="w-100">
+    <nz-splitter>
+        <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
+            <div class="card h-100 border-0 rounded-0">
+                <div class="card-header bg-white p-1">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 ms-2">Tìm kiếm</h6>
+                        <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+                            (click)="toggleSearchPanel()">
+                            <nz-icon nzType="close" nzTheme="outline" />
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form nz-form nzLayout="vertical">
+                        <nz-form-item>
+                            <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-date-picker class="w-100" nzSize="small" [(ngModel)]="searchForm.fromDate"
+                                    name="fromDate"></nz-date-picker>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-date-picker class="w-100" nzSize="small" [(ngModel)]="searchForm.toDate"
+                                    name="toDate"></nz-date-picker>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Người đăng ký</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select nzSize="small" class="w-100" [(ngModel)]="searchForm.personInCharge"
+                                    name="personInCharge" nzPlaceHolder="Chọn người đăng ký" [nzShowSearch]="true"
+                                    [nzAllowClear]="true">
+                                    <ng-container *ngFor="let dept of employeesByDepartment">
+                                        <nz-option-group [nzLabel]="dept.department">
+                                            <ng-container *ngFor="let emp of dept.employees">
+                                                <nz-option [nzValue]="emp.id.toString()"
+                                                    [nzLabel]="emp.code + ' - ' + emp.FullName"></nz-option>
+                                            </ng-container>
+                                        </nz-option-group>
+                                    </ng-container>
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <input nz-input placeholder="Nhập từ khóa" nzSize="small"
+                                    [(ngModel)]="searchForm.keyword" name="keyword" />
+                            </nz-form-control>
+                        </nz-form-item>
+                    </form>
+                </div>
+                <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+                    <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">Đặt lại</button>
+                    <button nz-button nzType="primary" nzSize="small" (click)="search()">Tìm kiếm</button>
+                </div>
+            </div>
+        </nz-splitter-panel>
+        <nz-splitter-panel nzDefaultSize="100%">
+            <div class="card h-100 border-0 rounded-0">
+                <div class="card-header bg-white p-1">
+                    <div class="d-flex gap-1">
+                        <button nz-button nzType="default" nzSize="small" title="Tìm kiếm"
+                            (click)="toggleSearchPanel()">
+                            <nz-icon nzType="search" />
+                        </button>
+                        <button class="btn-add" nz-button nzType="default" nzSize="small"
+                            (click)="openRegistrationModal()">
+                            <img src="assets/icon/action_add_item_16.png" /> Thêm
+                        </button>
+                        <button class="btn-edit" nz-button nzType="default" nzSize="small" (click)="editRegistration()">
+                            <img src="assets/icon/action_edit_item_16.png" /> Sửa
+                        </button>
+                        <button class="btn-delete" nz-button nzType="default" nzSize="small"
+                            (click)="deleteRegistration()">
+                            <img src="assets/icon/action_delete_item_16.png" /> Xóa
+                        </button>
+
+                        <!-- <button class="btn-delete" nz-button nzType="default" nzSize="small"
+                            (click)="approveRegistration()">
+                            <img src="assets/icon/action_delete_item_16.png" /> Xóa
+                        </button> -->
+
+                        <button class="fs-12" nz-button [nzType]="'default'" disablePermission="N84"
+                            [nzDanger]="selectedRegistration?.informationReceived" nzSize="small"
+                            (click)="approveRegistration()">
+                            <!-- <nz-icon
+                                [nzType]="selectedRegistration?.informationReceived ? 'close-circle' : 'check-circle'" />
+                            {{ selectedRegistration?.informationReceived ? 'Hủy duyệt' : 'Nhận thông tin' }} -->
+
+                            <img
+                                [src]="selectedRegistration?.informationReceived ? 'assets/icon/action_unapproved_16.png' : 'assets/icon/action_approved_16.png'" />
+                            {{
+                            selectedRegistration?.informationReceived ? 'Hủy nhận thông tin' : 'Nhận thông tin' }}
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <nz-splitter>
+                        <nz-splitter-panel [nzCollapsible]="true" nzResizable="true"
+                            [nzSize]="selectedRegistration ? undefined : '100%'">
+
+                            <div class="p-2 border-bottom">
+                                <div class="d-flex flex-wrap gap-3 align-items-center">
+                                    <div class="d-flex align-items-center gap-1">
+                                        <div class="legend-color"
+                                            style="width: 12px; height: 12px; background-color: #27ae60; border-radius: 2px;">
+                                        </div>
+                                        <small>Đã duyệt</small>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <div class="legend-color"
+                                            style="width: 12px; height: 12px; background-color: #2b82e6ff; border-radius: 2px;">
+                                        </div>
+                                        <small>Chưa duyệt</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div #registrationTable id="registration-table"></div>
+                        </nz-splitter-panel>
+                        <!-- Legend cho màu sắc -->
+
+                        <!-- <div #registrationTable1 id="registration-table"></div> -->
+                        <nz-splitter-panel [nzCollapsible]="true" nzResizable="true"
+                            [nzSize]="selectedRegistration ? undefined : 0">
+                            <nz-tabset class="ps-1">
+                                <nz-tab nzTitle="Chi tiết thăm nhà máy">
+                                    <div class="p-2">
+                                        <p>Người đăng ký: {{visitFactory.fullName}}</p>
+                                        <p>Ngày đăng ký: uiqeuqheqhewqhew</p>
+                                    </div>
+                                </nz-tab>
+                                <nz-tab nzTitle="Người tham gia">
+                                    <div class="p-2">
+                                        <div class="mb-2 d-flex gap-1">
+                                            <button class="fs-12" nz-button nzType="default" nzSize="small"
+                                                (click)="openParticipantModal()">
+                                                <nz-icon nzType="plus" /> Thêm người tham gia
+                                            </button>
+                                            <button class="fs-12" nz-button nzType="default" nzSize="small"
+                                                (click)="deleteParticipant()">
+                                                <nz-icon nzType="delete" />Xóa
+                                            </button>
+                                            <button class="fs-12 ms-auto" nz-button nzType="default" nzDanger
+                                                nzSize="small" (click)="closeDetailPanel()" title="Đóng">
+                                                <nz-icon nzType="close" /> Đóng chi tiết
+                                            </button>
+                                        </div>
+                                        <!-- Bảng chi tiết thăm nhà máy -->
+                                        <div class="mb-2">
+                                            <div #detailTable id="visit-detail-table"></div>
+                                        </div>
+                                    </div>
+                                </nz-tab>
+
+                            </nz-tabset>
+                        </nz-splitter-panel>
+                    </nz-splitter>
+                </div>
+            </div>
+        </nz-splitter-panel>
+    </nz-splitter>
+</ng-container>
+
+<!-- Registration Modal -->
+<nz-modal [(nzVisible)]="isRegistrationModalVisible"
+    [nzTitle]="isEditMode ? 'Sửa đăng ký thăm nhà máy' : 'Thêm đăng ký thăm nhà máy'" [nzFooter]="null"
+    (nzOnCancel)="isRegistrationModalVisible = false" [nzWidth]="'80vw'"
+    [nzBodyStyle]="{ padding: '0', height: 'calc(100vh - 200px)' }">
+    <ng-container *nzModalContent>
+        <div class="modal-container">
+            <div class="modal-header">
+                <form nz-form [nzLayout]="'vertical'">
+                    <div class="form-section">
+                        <div class="section-title">Thông tin đăng ký thăm nhà máy (*)</div>
+                        <div class="section-content">
+                            <div nz-row [nzGutter]="8">
+                                <div nz-col [nzSpan]="4">
+                                    <nz-form-item>
+                                        <nz-form-label>Ngày đăng ký (*)</nz-form-label>
+                                        <nz-form-control>
+                                            <input type="date" nz-input [(ngModel)]="registrationForm.registrationDate"
+                                                name="registrationDate" required>
+                                        </nz-form-control>
+                                    </nz-form-item>
+                                </div>
+                                <div nz-col [nzSpan]="5">
+                                    <nz-form-item>
+                                        <nz-form-label>Nhân viên đăng ký (*)</nz-form-label>
+                                        <nz-form-control>
+                                            <nz-select [(ngModel)]="employeeID" name="registeringEmployee" disabled=""
+                                                nzPlaceHolder="Chọn nhân viên đăng ký" required [nzShowSearch]="true"
+                                                [nzAllowClear]="true">
+                                                <ng-container *ngFor="let dept of employeesByDepartment">
+                                                    <nz-option-group [nzLabel]="dept.department">
+                                                        <ng-container *ngFor="let emp of dept.employees">
+                                                            <nz-option [nzValue]="emp.id.toString()"
+                                                                [nzLabel]="emp.displayName"></nz-option>
+                                                        </ng-container>
+                                                    </nz-option-group>
+                                                </ng-container>
+                                            </nz-select>
+                                        </nz-form-control>
+                                    </nz-form-item>
+                                </div>
+                                <div nz-col [nzSpan]="4">
+                                    <nz-form-item>
+                                        <nz-form-label>Loại khách (*)</nz-form-label>
+                                        <nz-form-control>
+                                            <nz-select [(ngModel)]="registrationForm.guestType" name="guestType"
+                                                nzPlaceHolder="Chọn loại khách" required>
+                                                <ng-container *ngFor="let type of guestTypes">
+                                                    <nz-option [nzValue]="type.id.toString()"
+                                                        [nzLabel]="type.name"></nz-option>
+                                                </ng-container>
+                                            </nz-select>
+                                        </nz-form-control>
+                                    </nz-form-item>
+                                </div>
+                                <div nz-col [nzSpan]="5">
+                                    <nz-form-item>
+                                        <nz-form-label>Công ty/đơn vị khách (*)</nz-form-label>
+                                        <nz-form-control>
+                                            <input type="text" nz-input [(ngModel)]="registrationForm.guestCompany"
+                                                name="guestCompany" required>
+                                        </nz-form-control>
+                                    </nz-form-item>
+                                </div>
+                                <div nz-col [nzSpan]="6">
+                                    <nz-form-item>
+                                        <nz-form-label>Người duyệt</nz-form-label>
+                                        <nz-form-control>
+                                            <nz-select [(ngModel)]="approverID" name="approver" disabled=""
+                                                nzPlaceHolder="Chọn người duyệt" [nzShowSearch]="true"
+                                                [nzAllowClear]="true">
+                                                <ng-container *ngFor="let dept of employeesByDepartment">
+                                                    <nz-option-group [nzLabel]="dept.department">
+                                                        <ng-container *ngFor="let emp of dept.employees">
+                                                            <nz-option [nzValue]="emp.id.toString()"
+                                                                [nzLabel]="emp.displayName"></nz-option>
+                                                        </ng-container>
+                                                    </nz-option-group>
+                                                </ng-container>
+                                            </nz-select>
+                                        </nz-form-control>
+                                    </nz-form-item>
+                                </div>
+                            </div>
+
+                            <div nz-row [nzGutter]="8">
+                                <div nz-col [nzSpan]="5">
+                                    <nz-form-item>
+                                        <nz-form-label>Thời gian bắt đầu (*)</nz-form-label>
+                                        <nz-form-control>
+                                            <nz-date-picker class="w-100" name="startTime"
+                                                [(ngModel)]="startPickerModel"
+                                                (ngModelChange)="onStartTimeChange($event)"
+                                                [nzShowTime]="{ nzFormat: 'HH:mm' }" [nzFormat]="'dd/MM/yyyy HH:mm'"
+                                                required></nz-date-picker>
+                                        </nz-form-control>
+                                    </nz-form-item>
+                                </div>
+                                <div nz-col [nzSpan]="5">
+                                    <nz-form-item>
+                                        <nz-form-label>Thời gian kết thúc (*)</nz-form-label>
+                                        <nz-form-control>
+                                            <nz-date-picker class="w-100" name="endTime" [(ngModel)]="endPickerModel"
+                                                (ngModelChange)="onEndTimeChange($event)"
+                                                [nzShowTime]="{ nzFormat: 'HH:mm' }" [nzFormat]="'dd/MM/yyyy HH:mm'"
+                                                required></nz-date-picker>
+                                        </nz-form-control>
+                                    </nz-form-item>
+                                </div>
+                                <div nz-col [nzSpan]="7">
+                                    <nz-form-item>
+                                        <nz-form-label>Mục đích (*)</nz-form-label>
+                                        <nz-form-control>
+                                            <textarea nz-input [(ngModel)]="registrationForm.purpose" name="purpose"
+                                                rows="3" required></textarea>
+                                        </nz-form-control>
+                                    </nz-form-item>
+                                </div>
+                                <div nz-col [nzSpan]="7">
+                                    <nz-form-item>
+                                        <nz-form-label>Ghi chú</nz-form-label>
+                                        <nz-form-control>
+                                            <textarea nz-input [(ngModel)]="registrationForm.notes" name="notes"
+                                                rows="3"></textarea>
+                                        </nz-form-control>
+                                    </nz-form-item>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Scrollable Content -->
+            <div class="modal-content">
+                <form nz-form [nzLayout]="'vertical'">
+                    <!-- Phần 2: Thông tin người tham gia -->
+                    <div class="form-section">
+                        <div class="section-title">Thông tin người tham gia (*)</div>
+                        <div class="section-content">
+
+                            <!-- Dynamic registration details by numberOfPeople -->
+                            <fieldset>
+                                <div class="mt-2">
+                                    <!-- Số người tham gia -->
+                                    <div class="mb-3">
+                                        <nz-form-item>
+                                            <nz-form-label>Số người tham gia (*)</nz-form-label>
+                                            <nz-form-control>
+                                                <div class="d-flex align-items-center gap-1">
+                                                    <button nz-button nzType="default" nzSize="small"
+                                                        (click)="decreasePeople()">-</button>
+                                                    <input type="number" nz-input
+                                                        [(ngModel)]="registrationForm.numberOfPeople"
+                                                        name="numberOfPeople" min="1"
+                                                        (ngModelChange)="onNumberOfPeopleChange()" required
+                                                        style="width: 80px; text-align: center;" />
+                                                    <button nz-button nzType="default" nzSize="small"
+                                                        (click)="increasePeople()">+</button>
+                                                </div>
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="fw-semibold">Thông tin người tham gia ({{
+                                            registrationForm.numberOfPeople }})</span>
+                                        <div class="d-flex align-items-center gap-1">
+                                            <span *ngIf="isEditMode" class="text-secondary fs-12">(Chế độ sửa: có thể
+                                                chỉnh sửa thông tin)</span>
+                                        </div>
+                                    </div>
+                                    <div *ngFor="let d of registrationDetails; let i = index"
+                                        class="border rounded p-2 mb-2">
+                                        <div nz-row [nzGutter]="16">
+                                            <div nz-col [nzSpan]="4">
+                                                <nz-form-item>
+                                                    <nz-form-label>Mã nhân viên</nz-form-label>
+                                                    <nz-form-control>
+                                                        <div class="d-flex align-items-center gap-1">
+                                                            <button *ngIf="registrationDetails.length > 1" nz-button
+                                                                nzType="default" nzSize="small" nzDanger
+                                                                (click)="removeDetailRow(i)" title="Xóa dòng">
+                                                                <nz-icon nzType="delete"></nz-icon>
+                                                            </button>
+                                                            <nz-select class="flex-grow-1"
+                                                                [(ngModel)]="registrationDetails[i].employeeId"
+                                                                name="detail_employeeId_{{i}}"
+                                                                nzPlaceHolder="Chọn mã - họ tên"
+                                                                (ngModelChange)="onDetailEmployeeSelect($event, i)"
+                                                                [nzShowSearch]="true" [nzAllowClear]="true">
+                                                                <ng-container
+                                                                    *ngFor="let dept of employeesByDepartment">
+                                                                    <nz-option-group [nzLabel]="dept.department">
+                                                                        <ng-container
+                                                                            *ngFor="let emp of dept.employees">
+                                                                            <nz-option [nzValue]="emp.id.toString()"
+                                                                                [nzLabel]="emp.code + ' - ' + emp.FullName"></nz-option>
+                                                                        </ng-container>
+                                                                    </nz-option-group>
+                                                                </ng-container>
+                                                            </nz-select>
+                                                        </div>
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                            </div>
+                                            <div nz-col [nzSpan]="4">
+                                                <nz-form-item>
+                                                    <nz-form-label>Họ và tên</nz-form-label>
+                                                    <nz-form-control>
+                                                        <input type="text" nz-input
+                                                            [(ngModel)]="registrationDetails[i].fullName"
+                                                            name="detail_fullName_{{i}}">
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                            </div>
+                                            <div nz-col [nzSpan]="4">
+                                                <nz-form-item>
+                                                    <nz-form-label>Công ty/đơn vị</nz-form-label>
+                                                    <nz-form-control>
+                                                        <input type="text" nz-input
+                                                            [(ngModel)]="registrationDetails[i].company"
+                                                            name="detail_company_{{i}}">
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                            </div>
+                                            <div nz-col [nzSpan]="4">
+                                                <nz-form-item>
+                                                    <nz-form-label>Chức vụ</nz-form-label>
+                                                    <nz-form-control>
+                                                        <input type="text" nz-input
+                                                            [(ngModel)]="registrationDetails[i].position"
+                                                            name="detail_position_{{i}}">
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                            </div>
+                                            <div nz-col [nzSpan]="4">
+                                                <nz-form-item>
+                                                    <nz-form-label>Số điện thoại</nz-form-label>
+                                                    <nz-form-control>
+                                                        <input type="tel" nz-input
+                                                            [(ngModel)]="registrationDetails[i].phoneNumber"
+                                                            name="detail_phone_{{i}}">
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                            </div>
+                                            <div nz-col [nzSpan]="4">
+                                                <nz-form-item>
+                                                    <nz-form-label>Email</nz-form-label>
+                                                    <nz-form-control>
+                                                        <input type="email" nz-input
+                                                            [(ngModel)]="registrationDetails[i].email"
+                                                            name="detail_email_{{i}}">
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Fixed Footer -->
+            <div class="modal-footer bg-whitesmoke br p-1 d-flex align-items-center">
+                <div class="d-flex align-items-center flex-wrap gap-1">
+                    <button nz-button nzType="default" nzDanger
+                        (click)="isRegistrationModalVisible = false">Hủy</button>
+                    <button nz-button nzType="primary" (click)="saveRegistration()">Lưu</button>
+                </div>
+            </div>
+            <!-- <div class="modal-footer">
+                <button nz-button nzType="default" (click)="isRegistrationModalVisible = false">Hủy</button>
+                <button nz-button nzType="primary" (click)="saveRegistration()">Lưu</button>
+            </div> -->
+        </div>
+    </ng-container>
+</nz-modal>
+
+<!-- Participant Modal -->
+<nz-modal [(nzVisible)]="isParticipantModalVisible" [nzTitle]="'Thêm người tham gia'" [nzFooter]="null"
+    (nzOnCancel)="isParticipantModalVisible = false">
+    <ng-container *nzModalContent>
+        <form nz-form [nzLayout]="'vertical'">
+            <div nz-row [nzGutter]="16">
+                <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                        <nz-form-label>Mã nhân viên (*)</nz-form-label>
+                        <nz-form-control>
+                            <input type="text" nz-input [(ngModel)]="participantForm.employeeCode" name="employeeCode"
+                                (ngModelChange)="onEmployeeCodeChange()" required>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                        <nz-form-label>Họ và tên (*)</nz-form-label>
+                        <nz-form-control>
+                            <input type="text" nz-input [(ngModel)]="participantForm.fullName" name="fullName" required>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+            </div>
+
+            <div nz-row [nzGutter]="16">
+                <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                        <nz-form-label>Công ty/đơn vị (*)</nz-form-label>
+                        <nz-form-control>
+                            <input type="text" nz-input [(ngModel)]="participantForm.company" name="company" required>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                        <nz-form-label>Chức vụ (*)</nz-form-label>
+                        <nz-form-control>
+                            <input type="text" nz-input [(ngModel)]="participantForm.position" name="position" required>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+            </div>
+
+            <div nz-row [nzGutter]="16">
+                <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                        <nz-form-label>Số điện thoại (*)</nz-form-label>
+                        <nz-form-control>
+                            <input type="tel" nz-input [(ngModel)]="participantForm.phoneNumber" name="phoneNumber"
+                                required>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                        <nz-form-label>Email (*)</nz-form-label>
+                        <nz-form-control>
+                            <input type="email" nz-input [(ngModel)]="participantForm.email" name="email" required>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+            </div>
+        </form>
+
+        <div class="modal-footer">
+            <button nz-button nzType="default" (click)="isParticipantModalVisible = false">Hủy</button>
+            <button nz-button nzType="primary" (click)="saveParticipant()">Lưu</button>
+        </div>
+    </ng-container>
+</nz-modal>

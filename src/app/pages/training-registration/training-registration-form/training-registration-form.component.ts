@@ -267,14 +267,14 @@ export class TrainingRegistrationFormComponent implements OnInit, AfterViewInit 
       this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin bắt buộc!');
       return;
     }
-  
+
     // Bước 1: Lưu master trước (không kèm file) để lấy ID/Code
     const formatDate = (date: any) => {
       return date ? DateTime.fromJSDate(new Date(date)).toFormat('yyyy-MM-dd') : null;
     };
     const formValues = this.validateForm.value;
     const trainingRange = formValues.TrainingRange || [];
-  
+
     // Chuẩn bị dữ liệu chi tiết cho lần lưu master
     const detailData = this.table.getData().map((item: any) => ({
       ID: item.ID || 0,
@@ -284,7 +284,7 @@ export class TrainingRegistrationFormComponent implements OnInit, AfterViewInit 
       Note: item.Note || '',
       IsDeleted: false,
     }));
-  
+
     const trainingDataMaster = {
       ID: this.dataInput?.ID || 0,
       EmployeeID: formValues.EmployeeID,
@@ -300,18 +300,18 @@ export class TrainingRegistrationFormComponent implements OnInit, AfterViewInit 
       LstFile: [],           // Lưu master trước, KHÔNG kèm file
       LstDetail: detailData, // Lưu chi tiết ngay trong lần đầu
     };
-  
+
     this.trainingRegistrationService.saveData(trainingDataMaster).subscribe({
       next: (res) => {
         if (res.status === 1 && res.data) {
           // Cập nhật lại dataInput với ID/Code trả về
           this.dataInput = { ...(this.dataInput || {}), ID: res.data.ID, Code: res.data.Code };
-  
-          // Bước 2: Upload file (nếu có)
+
+          
           const newFiles = this.fileList.filter(
             (file) => file.status === 'new' && !file.isDeleted && !file.IsDeleted
           );
-  
+
           if (newFiles.length === 0) {
             // Không có file mới => hoàn tất sau khi lưu master
             this.notification.success('Thông báo', 'Đã lưu thông tin đăng ký đào tạo');
@@ -319,16 +319,16 @@ export class TrainingRegistrationFormComponent implements OnInit, AfterViewInit 
             this.activeModal.close('success');
             return;
           }
-  
+
           const filesToUpload = newFiles.map((file) => file.originFile);
-  
+
           // Tạo subPath: Đăng ký đào tạo/year/department/Code
           const employeeId = formValues.EmployeeID;
           const emp = this.lstEmployees.find((e) => e.ID === employeeId);
           const year = new Date().getFullYear().toString();
           const departmentName = (emp?.DepartmentName || 'Khác').toString();
           const code = (res.data.Code || '').toString();
-  
+
           const sanitize = (s: string) => s.replace(/[<>:"/\\|?*\u0000-\u001F]/g, '').trim();
           const subPath = [
             sanitize('Đăng ký đào tạo'),
@@ -336,7 +336,7 @@ export class TrainingRegistrationFormComponent implements OnInit, AfterViewInit 
             sanitize(departmentName),
             sanitize(code),
           ].join('/');
-  
+
           this.trainingRegistrationService.uploadMultipleFiles(filesToUpload, subPath).subscribe({
             next: (uploadRes) => {
               if (uploadRes.status === 1 && uploadRes.data) {
@@ -359,7 +359,7 @@ export class TrainingRegistrationFormComponent implements OnInit, AfterViewInit 
                   'Thông báo',
                   `Đã upload thành công ${uploadRes.data.length} file`
                 );
-  
+
                 // Bước 3: Cập nhật lại master chỉ với danh sách file (tránh lưu chi tiết lần 2)
                 this.saveDataToServer(true);
               } else {
@@ -397,10 +397,10 @@ export class TrainingRegistrationFormComponent implements OnInit, AfterViewInit 
     const formatDate = (date: any) => {
       return date ? DateTime.fromJSDate(new Date(date)).toFormat('yyyy-MM-dd') : null;
     };
-  
+
     const formValues = this.validateForm.value;
     const trainingRange = formValues.TrainingRange || [];
-  
+
     // Chuẩn bị dữ liệu chi tiết (có thể bỏ qua ở lần 2)
     const detailData = skipDetails
       ? []
@@ -412,7 +412,7 @@ export class TrainingRegistrationFormComponent implements OnInit, AfterViewInit 
           Note: item.Note || '',
           IsDeleted: false,
         }));
-  
+
     // Chuẩn bị danh sách file (lần 2 sau khi upload)
     const fileData = this.fileList.map((file) => ({
       ID: file.ID || 0,
@@ -421,7 +421,7 @@ export class TrainingRegistrationFormComponent implements OnInit, AfterViewInit 
       ServerPath: file.ServerPath || '',
       IsDeleted: file.isDeleted || file.IsDeleted || false,
     }));
-  
+
     const trainingData = {
       ID: this.dataInput?.ID || 0,
       EmployeeID: formValues.EmployeeID,
@@ -437,7 +437,7 @@ export class TrainingRegistrationFormComponent implements OnInit, AfterViewInit 
       LstFile: fileData,
       LstDetail: detailData,
     };
-  
+
     this.trainingRegistrationService.saveData(trainingData).subscribe({
       next: (response) => {
         if (response.status === 1) {

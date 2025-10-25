@@ -50,8 +50,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification'
     NzSelectModule,
     NzTableModule,
     NzTabsModule,
-    NgbModalModule,
-    TsAssetUnitFormComponent
+    NgbModalModule
   ]
 })
 export class TsAssetUnitcountComponent implements OnInit,AfterViewInit {

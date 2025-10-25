@@ -1,0 +1,133 @@
+<ng-container class="w-100">
+  <nz-splitter>
+    <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-1">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="m-0 ms-2">Tìm kiếm</h6>
+            <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+              (click)="toggleSearchPanel()" aria-label="Close">
+              <nz-icon nzType="close" nzTheme="outline" />
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <form nz-form nzLayout="vertical">
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-date-picker name="dateStart" [(ngModel)]="filters.dateStart" nzFormat="dd/MM/yyyy" class="w-100"
+                  nzAllowClear="false"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-date-picker name="dateEnd" [(ngModel)]="filters.dateEnd" nzFormat="dd/MM/yyyy" class="w-100"
+                  nzAllowClear="false"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Nhân viên</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select class="w-100" [(ngModel)]="filters.employeeID" name="employeeID" nzShowSearch nzAllowClear
+                  nzSize="small" nzPlaceHolder="Chọn nhân viên">
+                   <ng-container *ngFor="let item of dataEmployee">
+                    <nz-option [nzLabel]="item.Code +' - '+ item.FullName" [nzValue]="item.ID">
+                    </nz-option>
+                  </ng-container>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Nhà cung cấp</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select class="w-100" [(ngModel)]="filters.supplierID" name="supplierID" nzShowSearch nzAllowClear
+                  nzSize="small" nzPlaceHolder="Chọn nhà cung cấp">
+                   <ng-container *ngFor="let item of dataSupplierSale">
+                    <nz-option [nzLabel]="item.CodeNCC +' - '+ item.NameNCC" [nzValue]="item.ID">
+                    </nz-option>
+                  </ng-container>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Trạng thái</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select class="w-100" [(ngModel)]="filters.status" name="status" nzShowSearch nzAllowClear
+                  nzSize="small" nzPlaceHolder="Chọn trạng thái">
+                   <ng-container >
+                    <nz-option [nzLabel]="'--- Tất cả ---'" [nzValue]="0">
+                    </nz-option>
+                    <nz-option [nzLabel]="'Đang tiến hành'" [nzValue]="1">
+                    </nz-option>
+                    <nz-option [nzLabel]="'Hoàn thành'" [nzValue]="2">
+                    </nz-option>
+                    <nz-option [nzLabel]="'Đã thanh toán'" [nzValue]="3">
+                    </nz-option>
+                    <nz-option [nzLabel]="'Huỷ'" [nzValue]="4">
+                    </nz-option>
+                  </ng-container>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+<nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Tìm kiếm</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select class="w-100" [(ngModel)]="filters.keywords" name="keywords" nzShowSearch nzAllowClear
+                  nzSize="small" nzPlaceHolder="Nhập từ khóa">
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+
+          </form>
+        </div>
+        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+          <button nz-button nzType="default" nzSize="small">Đặt lại</button>
+          <button nz-button nzType="primary" nzSize="small" (click)="filter()">Tìm kiếm</button>
+        </div>
+      </div>
+    </nz-splitter-panel>
+    <nz-splitter-panel nzDefaultSize="100%">
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-1">
+          <div class="d-flex gap-1 align-items-center">
+            <!-- Nhóm nút bên trái -->
+            <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()" aria-label="Search">
+              <nz-icon nzType="search" />
+            </button>
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="handleAction('create')">
+              <nz-icon nzType="plus" /> Thêm
+            </button>
+            <button class="fs-12" nz-button nzType="default" nzSize="small">
+              <nz-icon nzType="edit" nzTheme="fill" />Sửa
+            </button>
+            <button class="fs-12" nz-button nzType="default" nzSize="small">
+              <nz-icon nzType="delete" nzTheme="fill" />Xóa
+            </button>
+          </div>
+        </div>
+
+        <div class="card-body p-0">
+          <nz-splitter>
+            <nz-splitter-panel nzSize="" [nzCollapsible]="true" nzResizable="true">
+              <tabulator-table-single [ajaxURL]="apiUrlPoNcc" [ajaxParams]="filters" [ajaxConfig]="'GET'"
+                [columnNames]="columns" [selectableRow]=1 [hasSelection]="true" [height]="'88vh'" [paginationSize]="30"
+                (rowSelectionChanged)="onRowsSelected($event)" (rowDblClick)="onRowsDoubleClick($event)">
+              </tabulator-table-single>
+
+            </nz-splitter-panel>
+            <nz-splitter-panel #detailPanel [nzCollapsible]="true" nzResizable="true">
+
+              <tabulator-table-single [tableData]="dataPoNccDetail" [ajaxConfig]="'GET'" [columnNames]="columnsdetail"
+                [hasSelection]="true" [height]="'88vh'" [paginationSize]="30">
+              </tabulator-table-single>
+
+            </nz-splitter-panel>
+          </nz-splitter>
+        </div>
+      </div>
+    </nz-splitter-panel>
+  </nz-splitter>
+</ng-container>

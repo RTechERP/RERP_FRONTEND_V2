@@ -21,6 +21,11 @@ export class ProjectService {
     this.apiUrl + 'synthesisofgeneratedmaterials/';
   private urlProjectSynthesisDepartment =
     this.apiUrl + 'projectsynthesisdepartment/';
+        private urlBillExportTechnical = this.apiUrl + 'BillExportTechnical/';
+            private urlCustomer = this.apiUrl + 'Customer/';
+                private urlSupplierSale = this.apiUrl + 'SupplierSale/';
+                    private urlProductRTC = this.apiUrl + 'ProductRTC/';
+                        private urlCurrency = this.apiUrl + 'Currency/';
   constructor(
     private http: HttpClient,
     private notification: NzNotificationService
@@ -118,9 +123,7 @@ export class ProjectService {
   }
   // lấy chi tiết dự án
   getProjectStatusById(projectId: number): Observable<any> {
-    return this.http.get<any>(
-      this.urlProject + `get-project-status?projectId=${projectId}`
-    );
+    return this.http.get<any>(this.urlProject + `get-project-status-by-id?projectId=${projectId}`);
   }
   // lấy mã dự án
   getProjectCodeModal(
@@ -800,4 +803,51 @@ export class ProjectService {
     window.URL.revokeObjectURL(link.href);
   }
   //#endregion
+  // Sản phẩm: lấy danh sách ProductRTC
+getAllProduct(): Observable<any> {
+return this.http.get<any>(this.urlProductRTC + 'get-all');
 }
+// Mã phiếu xuất kỹ thuật
+getBillCode(billtype: number): Observable<any> {
+const params = new HttpParams().set('billtype', billtype);
+return this.http.get<any>(this.urlBillExportTechnical + 'get-bill-code', { params });
+}
+// Receiver (người nhận)
+getReceiver(): Observable<any> {
+return this.http.get<any>(this.urlProject + 'get-users');
+}
+// Nhà cung cấp
+getSupplierSale(): Observable<any> {
+return this.http.get<any>(this.urlSupplierSale + 'get-all');
+}
+// Khách hàng
+getCustomer(): Observable<any> {
+return this.http.get<any>(this.urlCustomer + 'get-all');
+}
+// Lấy chi tiết phiếu xuất kỹ thuật theo ID
+getBillById(id: string): Observable<any> {
+return this.http.get<any>(this.urlBillExportTechnical + `get-bill-export-technical-detail?ID=${id}`);
+}
+// Lưu/Cập nhật phiếu xuất kỹ thuật
+  saveOrUpdateBillExpost(payload: any): Observable<any> {
+    return this.http.post<any>(this.urlBillExportTechnical + 'save-data', payload);
+  }
+
+  // Báo cáo PO dự án
+  getProjectPO(params: any): Observable<any> {
+    return this.http.get<any>(this.apiUrl + 'ProjectReportPO/ProjectReport', params);
+  }
+
+  // Currency: lấy danh sách
+  getAll(params?: any): Observable<any> {
+    return this.http.get<any>(this.urlCurrency + 'get-all', params);
+  }
+
+  // Currency: lưu (thêm/sửa)
+  save(payload: any): Observable<any> {
+    return this.http.post<any>(this.urlCurrency, payload);
+  }
+}
+
+
+

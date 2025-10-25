@@ -1,0 +1,73 @@
+:host {
+  display: block;
+}
+
+.bill-export-form {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.product-section {
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 6px;
+  border: 1px solid #e8e8e8;
+}
+
+.product-table-container {
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.tabulator {
+  font-size: 13px;
+}
+
+.tabulator .tabulator-header {
+  background-color: #fafafa;
+  font-weight: 600;
+}
+
+.tabulator .tabulator-row {
+  min-height: 38px;
+}
+
+.tabulator .tabulator-cell {
+  padding: 8px 12px;
+  border-right: 1px solid #e8e8e8;
+}
+
+.btn-remove {
+  background: #ff4d4f;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-remove:hover {
+  background: #d9363e;
+}
+
+.mr-1 {
+  margin-right: 4px;
+}
+
+.mr-2 {
+  margin-right: 8px;
+}
+
+.text-primary {
+  color: #1890ff;
+}
+
+.border-top {
+  border-top: 1px solid #e8e8e8 !important;
+}

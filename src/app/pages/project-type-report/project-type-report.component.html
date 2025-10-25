@@ -1,0 +1,85 @@
+<div class="container-fluid mt-1">
+  <h4 class="text-center fw-bold">BÁO CÁO KIỂU DỰ ÁN</h4>
+  <nz-card class="mb-1">
+    <div nz-row nzGutter="16">
+      <div nz-col nzSm="8" nzMd="8" nzLg="6">
+        <label nz-label>Từ ngày:</label>
+        <nz-date-picker 
+          [(ngModel)]="startDateObj" 
+          nzFormat="dd/MM/yyyy"
+          style="width: 100%">
+        </nz-date-picker>
+      </div>
+      
+      <div nz-col nzSm="8" nzMd="8" nzLg="6">
+        <label nz-label>Đến ngày:</label>
+        <nz-date-picker 
+          [(ngModel)]="endDateObj" 
+          nzFormat="dd/MM/yyyy"
+          style="width: 100%">
+        </nz-date-picker>
+      </div>
+      
+      <div nz-col nzSm="8" nzMd="8" nzLg="6" class="d-flex align-items-end">
+        <button 
+          nz-button 
+          nzType="primary" 
+          (click)="loadProjectTypeReport()" 
+          [nzLoading]="isLoading">
+          Tải báo cáo
+        </button>
+      </div>
+    </div>
+  </nz-card>
+  
+  <!-- Main content section -->
+  <div nz-row nzGutter="16">
+    <!-- Chart section -->
+    <div nz-col [nzSpan]="isTableVisible ? 16 : 24">
+      <nz-card nzTitle="Biểu đồ thống kê theo kiểu dự án" *ngIf="projectTypeData.length > 0">
+        <div class="chart-container" style="position: relative; height: 64vh;">
+          <canvas #chartCanvas></canvas>
+        </div>
+      </nz-card>
+    </div>
+    
+    <!-- Data table section - chỉ hiển thị khi có dữ liệu -->
+    <div nz-col nzSpan="8" *ngIf="isTableVisible && projectsByType.length > 0">
+      <nz-card 
+        [nzTitle]="tableTitle"
+        [nzExtra]="extraTemplate">
+        <div class="mb-3">
+          <nz-input-group nzPrefixIcon="search">
+            <input 
+              type="text" 
+              nz-input 
+              placeholder="Tìm kiếm theo mã hoặc tên dự án..." 
+              [(ngModel)]="searchTerm"
+              (input)="onSearchChange()" />
+          </nz-input-group>
+        </div>
+        <div class="table-container" style="height: 63vhpx;">
+          <div #dataTable></div>
+        </div>
+      </nz-card>
+      <ng-template #extraTemplate>
+        <button nz-button nzType="default" nzSize="small" (click)="backToReport()">
+          Quay lại
+        </button>
+      </ng-template>
+    </div>
+  </div>
+  
+  <!-- Loading and error messages -->
+  <div *ngIf="isLoading" class="text-center mt-3">
+    <nz-spin nzTip="Đang tải dữ liệu..."></nz-spin>
+  </div>
+  
+  <nz-alert 
+    *ngIf="errorMessage" 
+    nzType="error" 
+    nzMessage="Lỗi" 
+    [nzDescription]="errorMessage"
+    class="mt-3">
+  </nz-alert>
+</div>

@@ -1,0 +1,701 @@
+<div class="modal-dialog-scrollable">
+  <div class="modal-header bg-primary align-items-center ps-3">
+    <div class="d-flex align-items-center">
+      <h6 class="text-light text-uppercase m-0 fw-bold">Chi tiết PONCC</h6>
+    </div>
+  </div>
+
+  <div class="modal-body p-2" style="height: 87vh;">
+    <form nz-form class="container-fluid">
+      <nz-splitter>
+        <nz-splitter-panel nzSize="70%" [nzCollapsible]="true" nzResizable="true">
+          <nz-card nzTitle="THÔNG TIN CHUNG" style="border: 1px solid gray;" class="mb-2 card-yellow"
+            [nzBordered]="true" nzSize="small">
+            <div nz-row [nzGutter]="24">
+              <div nz-col [nzSpan]="20">
+                <nz-form-item>
+                  <nz-form-label nz-col [nzSpan]="24" class="fs-12">Nhà cung cấp<span
+                      class="text-danger">(*)</span></nz-form-label>
+                  <nz-form-control nz-col [nzSpan]="24" nzErrorTip="Vui lòng chọn nhà cung cấp!">
+                    <div nz-row [nzGutter]="1">
+                      <div nz-col [nzSpan]="23">
+                        <nz-select name="projectTypeID" id="projectTypeID" class="w-100" nzShowSearch nzAllowClear
+                          nzPlaceHolder="Chọn loại dự án">
+                          <nz-option>AAAAA
+                          </nz-option>
+                        </nz-select>
+                      </div>
+                      <div nz-col [nzSpan]="1">
+                        <button nz-button nzType="default" type="button" class="btn-full" aria-label="Thêm">
+                          <nz-icon nzType="plus" nzTheme="outline"></nz-icon> 
+                        </button>
+                      </div>
+                    </div>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+              <div nz-col [nzSpan]="3">
+                <nz-form-item>
+                  <nz-form-label nz-col [nzSpan]="24" class="fs-12">Mã PO NCC <span
+                      class="text-danger">(*)</span></nz-form-label>
+                  <nz-form-control nzErrorTip="Vui lòng chọn mã PO NCC!">
+                    <nz-select name="userID" id="userID" class="w-100" nzShowSearch nzAllowClear
+                      nzPlaceHolder="Chọn sale phụ trách">
+                      <nz-option>AAAAA
+                      </nz-option>
+                    </nz-select>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+              <div nz-col [nzSpan]="24">
+                <nz-form-item>
+                  <nz-form-label nz-col [nzSpan]="24" class="fs-12">Địa chỉ</nz-form-label>
+                  <nz-form-control nz-col [nzSpan]="24" nzErrorTip="Vui lòng chọn địa chỉ!">
+                    <input name="projectContactName" id="projectContactName"  [disabled]=true nz-input placeholder="Nhập địa chỉ"
+  title="Địa chỉ" />
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+              <div nz-col [nzSpan]="24">
+                <nz-form-item>
+                  <nz-form-label nz-col [nzSpan]="24" class="fs-12">Mã số thuế</nz-form-label>
+                  <nz-form-control nz-col [nzSpan]="24" nzErrorTip="Vui lòng chọn mã số thuế!">
+                    <input title="Mã số thuế" name="projectContactName" id="projectContactNames" [disabled]=true nz-input />
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+              <div nz-col [nzSpan]="24">
+                <nz-form-item>
+                  <nz-form-label nz-col [nzSpan]="24" class="fs-12">Diễn giải <span
+                      class="text-danger">(*)</span></nz-form-label>
+                  <nz-form-control nz-col [nzSpan]="24" nzErrorTip="Vui lòng nhập diễn giải!">
+                    <input title="Diễn giải" name="projectContactName" id="projectContactNamee" nz-input />
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+              <div nz-col [nzSpan]="10">
+                <nz-form-item>
+                  <nz-form-label nz-col [nzSpan]="24" class="fs-12">Nv mua hàng <span
+                      class="text-danger">(*)</span></nz-form-label>
+                  <nz-form-control nzErrorTip="Vui lòng chọn trạng thái dự án!" nz-col [nzSpan]="24"><nz-select
+                      name="projectStatusID" id="projectStatusID" class="w-100" nzShowSearch nzAllowClear
+                      nzPlaceHolder="Chọn trạng thái dự án">
+                      <nz-option>AAAAA
+                      </nz-option>
+                    </nz-select></nz-form-control>
+                </nz-form-item>
+              </div>
+              <div nz-col [nzSpan]="7">
+                <nz-form-item>
+                  <nz-form-label nz-col [nzSpan]="24" class="fs-12">Điều khoản TT <span
+                      class="text-danger">(*)</span></nz-form-label>
+                  <nz-form-control nz-col [nzSpan]="24" nzErrorTip="Vui lòng chọn hãng!">
+                    <div nz-row [nzGutter]="1">
+                      <div nz-col [nzSpan]="20">
+                        <nz-select name="firmBaseID" id="firmBaseID" class="w-100" nzShowSearch nzAllowClear
+                          nzPlaceHolder="Chọn hãng">
+                          <nz-option>AAAAA
+                          </nz-option>
+                        </nz-select>
+                      </div>
+                      <div nz-col [nzSpan]="4">
+                        <button nz-button nzType="default" class="btn-full" aria-label="Thêm">
+                          <nz-icon nzType="plus" nzTheme="outline"></nz-icon>
+                        </button>
+                      </div>
+                    </div>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+              <div nz-col [nzSpan]="7">
+                <nz-form-item>
+                  <nz-form-label nz-col [nzSpan]="24" class="fs-12">Công ty <span
+                      class="text-danger">(*)</span></nz-form-label>
+                  <nz-form-control nz-col [nzSpan]="24" nzErrorTip="Vui lòng chọn loại dự án!">
+                    <div nz-row [nzGutter]="1">
+                      <div nz-col [nzSpan]="20">
+                        <nz-select name="projectTypeID" id="projectTypeID" class="w-100" nzShowSearch nzAllowClear
+                          nzPlaceHolder="Chọn loại dự án">
+                          <nz-option>AAAAA
+                          </nz-option>
+                        </nz-select>
+                      </div>
+                      <div nz-col [nzSpan]="4">
+                        <button nz-button nzType="default" class="btn-full" aria-label="Thêm mới">
+                          <nz-icon nzType="plus" nzTheme="outline"></nz-icon>
+                        </button>
+                      </div>
+                    </div>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+            </div>
+          </nz-card>
+        </nz-splitter-panel>
+        <nz-splitter-panel [nzSize]="" [nzCollapsible]="true" nzResizable="true">
+          <nz-card nzTitle="HÀNG" style="border: 1px solid gray;" class="mb-2 card-yellow" [nzBordered]="true"
+            nzSize="small">
+            <div nz-row [nzGutter]="24">
+              <div nz-col [nzSpan]="24">
+                <nz-form-item>
+                  <nz-form-label nz-col [nzSpan]="10" class="fs-12" style="text-align: left;">Ngày đơn hàng
+                  </nz-form-label>
+                  <nz-form-control>
+                    <nz-date-picker name="expectedPlanDate" id="expectedPlanDate" nzFormat="dd/MM/yyyy" class="w-100"
+                      nzAllowClear="false">
+                    </nz-date-picker>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+              <div nz-col [nzSpan]="24">
+                <nz-form-item>
+                  <nz-form-label class="fs-12" nz-col [nzSpan]="7" style="text-align: left;">Số đơn hàng
+                  </nz-form-label>
+                  <nz-form-control>
+                    <input name="projectContactName" title="số đơn hàng" nz-input />
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+              <div nz-col [nzSpan]="24">
+                <nz-form-item>
+                  <nz-form-label class="fs-12" nz-col [nzSpan]="7" style="text-align: left;">Tình trạng
+                  </nz-form-label>
+                  <nz-form-control>
+                    <input name="projectContactName" title="tình trạng" nz-input />
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+              <div nz-col [nzSpan]="24">
+                <nz-form-item>
+                  <nz-form-label class="fs-12" nz-col [nzSpan]="7" style="text-align: left;">Tổng tiền PO
+                  </nz-form-label>
+                  <nz-form-control>
+                    <input name="totalPOAmount" title="Tổng tiền PO" nz-input />
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+
+              <div nz-col [nzSpan]="10">
+                <nz-form-item>
+                  <nz-form-label class="fs-12" nz-col [nzSpan]="10" style="text-align: left;">Ngày PO </nz-form-label>
+                  <nz-form-control>
+                    <nz-date-picker name="expectedPODate" id="expectedPODate" nzFormat="dd/MM/yyyy" class="w-100"
+                      nzAllowClear="false">
+                    </nz-date-picker>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+              <div nz-col [nzSpan]="14">
+                <nz-form-item>
+                  <nz-form-label class="fs-12" style="text-align: left;" nz-col [nzSpan]="7">Ngày kết thúc dự án
+                  </nz-form-label>
+                  <nz-form-control>
+                    <nz-date-picker name="expectedProjectEndDate" id="expectedProjectEndDate" nzFormat="dd/MM/yyyy"
+                      class="w-100" nzAllowClear="false">
+                    </nz-date-picker>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+            </div>
+          </nz-card>
+        </nz-splitter-panel>
+      </nz-splitter>
+    </form>
+  </div>
+
+  <div class="modal-content" style="width: 1400px; max-width: 95vw;">
+    <div class="modal-header">
+      <h4 class="modal-title">Chi tiết PONCC</h4>
+    </div>
+
+    <div class="modal-body" style="max-height: 80vh; overflow-y: auto;">
+      <nz-spin [nzSpinning]="isLoading">
+        <form nz-form [formGroup]="ponccForm" (ngSubmit)="onSubmit()">
+          <nz-splitter [nzLayout]="'horizontal'" >
+
+            <!-- Panel trái: Thông tin chung -->
+            <nz-splitter-panel [nzSize]="'70%'" [nzCollapsible]="true" nzResizable="true">
+              <nz-card nzTitle="THÔNG TIN CHUNG" style="border: 1px solid gray;" class="mb-2 card-blue" [nzBordered]="true" nzSize="small">
+                <div nz-row [nzGutter]="16">
+
+                  <!-- Nhà cung cấp -->
+                  <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                      <nz-form-label nz-col [nzSpan]="24" class="fs-12">Nhà cung cấp <span class="text-danger">(*)</span></nz-form-label>
+                      <nz-form-control nz-col [nzSpan]="24" nzErrorTip="Vui lòng chọn nhà cung cấp!">
+                        <div nz-row [nzGutter]="1">
+                          <div nz-col [nzSpan]="20">
+                            <nz-select
+                              formControlName="supplierSaleID"
+                              class="w-100"
+                              nzShowSearch
+                              nzAllowClear
+                              nzPlaceHolder="Chọn nhà cung cấp">
+                              <nz-option
+                                *ngFor="let supplier of dataSupplierSale"
+                                [nzValue]="supplier.ID"
+                                [nzLabel]="supplier.Name">
+                              </nz-option>
+                            </nz-select>
+                          </div>
+                          <div nz-col [nzSpan]="4">
+                            <button nz-button nzType="default" type="button" style="width: 100%" aria-label="Thêm">
+                              <nz-icon nzType="plus" nzTheme="outline"></nz-icon>
+                            </button>
+                          </div>
+                        </div>
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+
+                  <!-- Mã PO NCC -->
+                  <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                      <nz-form-label nz-col [nzSpan]="24" class="fs-12">Mã PO NCC <span class="text-danger">(*)</span></nz-form-label>
+                      <nz-form-control nz-col [nzSpan]="24" nzErrorTip="Vui lòng nhập mã PO NCC!">
+                        <input nz-input formControlName="poCode" placeholder="Mã PO NCC" />
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+
+                  <!-- Địa chỉ -->
+                  <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                      <nz-form-label nz-col [nzSpan]="24" class="fs-12">Địa chỉ</nz-form-label>
+                      <nz-form-control nz-col [nzSpan]="24">
+                        <input nz-input formControlName="addressDelivery" placeholder="Địa chỉ giao hàng" />
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+
+                  <!-- Mã số thuế -->
+                  <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                      <nz-form-label nz-col [nzSpan]="24" class="fs-12">Mã số thuế</nz-form-label>
+                      <nz-form-control nz-col [nzSpan]="24">
+                        <input nz-input formControlName="accountNumberSupplier" placeholder="Mã số thuế" />
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+
+                  <!-- Diễn giải -->
+                  <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                      <nz-form-label nz-col [nzSpan]="24" class="fs-12">Diễn giải</nz-form-label>
+                      <nz-form-control nz-col [nzSpan]="24">
+                        <textarea nz-input formControlName="note" placeholder="Diễn giải" rows="2"></textarea>
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+
+                  <!-- Nv mua hàng -->
+                  <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                      <nz-form-label nz-col [nzSpan]="24" class="fs-12">Nv mua hàng <span class="text-danger">(*)</span></nz-form-label>
+                      <nz-form-control nz-col [nzSpan]="24" nzErrorTip="Vui lòng chọn nhân viên!">
+                        <div nz-row [nzGutter]="1">
+                          <div nz-col [nzSpan]="20">
+                            <nz-select
+                              formControlName="employeeID"
+                              class="w-100"
+                              nzShowSearch
+                              nzAllowClear
+                              nzPlaceHolder="Chọn nhân viên">
+                              <nz-option
+                                *ngFor="let employee of dataEmployee"
+                                [nzValue]="employee.ID"
+                                [nzLabel]="employee.FullName">
+                              </nz-option>
+                            </nz-select>
+                          </div>
+                          <div nz-col [nzSpan]="4">
+                            <button nz-button nzType="default" type="button" style="width: 100%" aria-label="Thêm">
+                              <nz-icon nzType="plus" nzTheme="outline"></nz-icon>
+                            </button>
+                          </div>
+                        </div>
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+
+                  <!-- Điều khoản TT -->
+                  <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                      <nz-form-label nz-col [nzSpan]="24" class="fs-12">Điều khoản TT</nz-form-label>
+                      <nz-form-control nz-col [nzSpan]="24">
+                        <div nz-row [nzGutter]="1">
+                          <div nz-col [nzSpan]="20">
+                            <nz-select
+                              formControlName="rulePayIDs"
+                              class="w-100"
+                              nzMode="multiple"
+                              nzShowSearch
+                              nzAllowClear
+                              nzPlaceHolder="Chọn điều khoản thanh toán">
+                              <nz-option
+                                *ngFor="let rule of dataRulePay"
+                                [nzValue]="rule.ID"
+                                [nzLabel]="rule.Name">
+                              </nz-option>
+                            </nz-select>
+                          </div>
+                          <div nz-col [nzSpan]="4">
+                            <button nz-button nzType="default" type="button" style="width: 100%" aria-label="Thêm mới">
+                              <nz-icon nzType="plus" nzTheme="outline"></nz-icon>
+                            </button>
+                          </div>
+                        </div>
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+
+                  <!-- Công ty -->
+                  <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                      <nz-form-label nz-col [nzSpan]="24" class="fs-12">Công ty <span class="text-danger">(*)</span></nz-form-label>
+                      <nz-form-control nz-col [nzSpan]="24" nzErrorTip="Vui lòng chọn công ty!">
+                        <div nz-row [nzGutter]="1">
+                          <div nz-col [nzSpan]="20">
+                            <nz-select
+                              formControlName="company"
+                              class="w-100"
+                              nzShowSearch
+                              nzAllowClear
+                              nzPlaceHolder="Chọn công ty">
+                              <nz-option
+                                *ngFor="let company of dataCompany"
+                                [nzValue]="company.value"
+                                [nzLabel]="company.label">
+                              </nz-option>
+                            </nz-select>
+                          </div>
+                          <div nz-col [nzSpan]="4">
+                            <button nz-button nzType="default" type="button" style="width: 100%"  aria-label="Thêm mới">
+                              <nz-icon nzType="plus" nzTheme="outline"></nz-icon>
+                            </button>
+                          </div>
+                        </div>
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+
+                  <!-- Loại PO -->
+                  <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                      <nz-form-label nz-col [nzSpan]="24" class="fs-12">Loại PO</nz-form-label>
+                      <nz-form-control nz-col [nzSpan]="24">
+                        <nz-select
+                          formControlName="poType"
+                          class="w-100"
+                          nzPlaceHolder="Chọn loại PO">
+                          <nz-option
+                            *ngFor="let type of dataPOType"
+                            [nzValue]="type.value"
+                            [nzLabel]="type.label">
+                          </nz-option>
+                        </nz-select>
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+
+                  <!-- Checkboxes -->
+                  <div nz-col [nzSpan]="24">
+                    <div nz-row [nzGutter]="16">
+                      <div nz-col [nzSpan]="8">
+                        <nz-checkbox formControlName="nccNew">NCC mới</nz-checkbox>
+                      </div>
+                      <div nz-col [nzSpan]="8">
+                        <nz-checkbox formControlName="deptSupplier">Công nợ NCC</nz-checkbox>
+                      </div>
+                      <div nz-col [nzSpan]="8">
+                        <nz-checkbox formControlName="orderQualityNotMet">Chất lượng đơn hàng không đạt</nz-checkbox>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Lý do không đạt chất lượng -->
+                  <div nz-col [nzSpan]="24" *ngIf="ponccForm.get('orderQualityNotMet')?.value">
+                    <nz-form-item>
+                      <nz-form-label nz-col [nzSpan]="24" class="fs-12">Lý do không đạt chất lượng <span class="text-danger">(*)</span></nz-form-label>
+                      <nz-form-control nz-col [nzSpan]="24" nzErrorTip="Vui lòng nhập lý do!">
+                        <textarea nz-input formControlName="reasonForFailure" placeholder="Nhập lý do không đạt chất lượng" rows="3"></textarea>
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+
+                </div>
+              </nz-card>
+            </nz-splitter-panel>
+
+            <!-- Panel phải: Thông tin hàng -->
+            <nz-splitter-panel [nzSize]="'30%'" [nzCollapsible]="true" nzResizable="true">
+              <nz-card nzTitle="HÀNG" style="border: 1px solid gray;" class="mb-2 card-yellow" [nzBordered]="true" nzSize="small">
+                <div nz-row [nzGutter]="16">
+
+                  <!-- Ngày đơn hàng -->
+                  <div nz-col [nzSpan]="24">
+                    <nz-form-item>
+                      <nz-form-label nz-col [nzSpan]="10" class="fs-12" style="text-align: left;">Ngày đơn hàng <span class="text-danger">(*)</span></nz-form-label>
+                      <nz-form-control nzErrorTip="Vui lòng chọn ngày!">
+                        <nz-date-picker
+                          formControlName="requestDate"
+                          nzFormat="dd/MM/yyyy"
+                          class="w-100"
+                          nzAllowClear="false">
+                        </nz-date-picker>
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+
+                  <!-- Số đơn hàng -->
+                  <div nz-col [nzSpan]="24">
+                    <nz-form-item>
+                      <nz-form-label class="fs-12" nz-col [nzSpan]="7" style="text-align: left;">Số đơn hàng <span class="text-danger">(*)</span></nz-form-label>
+                      <nz-form-control nzErrorTip="Vui lòng nhập số đơn hàng!">
+                        <input nz-input formControlName="billCode" placeholder="Số đơn hàng" />
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+
+                  <!-- Tình trạng -->
+                  <div nz-col [nzSpan]="24">
+                    <nz-form-item>
+                      <nz-form-label class="fs-12" nz-col [nzSpan]="7" style="text-align: left;">Tình trạng</nz-form-label>
+                      <nz-form-control>
+                        <nz-select
+                          formControlName="status"
+                          class="w-100"
+                          nzPlaceHolder="Chọn tình trạng">
+                          <nz-option
+                            *ngFor="let status of dataStatus"
+                            [nzValue]="status.value"
+                            [nzLabel]="status.label">
+                          </nz-option>
+                        </nz-select>
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+
+                  <!-- Tổng tiền PO -->
+                  <div nz-col [nzSpan]="24">
+                    <nz-form-item>
+                      <nz-form-label class="fs-12" nz-col [nzSpan]="7" style="text-align: left;">Tổng tiền PO <span class="text-danger">(*)</span></nz-form-label>
+                      <nz-form-control nz-col [nzSpan]="14" nzErrorTip="Vui lòng nhập tổng tiền!">
+                        <nz-input-number
+                          formControlName="totalMoneyPO"
+                          class="w-100"
+                          [nzMin]="0"
+                          [nzFormatter]="formatCurrency"
+                          [nzParser]="parseCurrency"
+                          nzPlaceHolder="0.00">
+                        </nz-input-number>
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+
+                  <!-- Tiền tệ -->
+                  <div nz-col [nzSpan]="24">
+                    <nz-form-item>
+                      <nz-form-label class="fs-12" nz-col [nzSpan]="7" style="text-align: left;">Tiền tệ <span class="text-danger">(*)</span></nz-form-label>
+                      <nz-form-control nzErrorTip="Vui lòng chọn tiền tệ!">
+                        <nz-select
+                          formControlName="currencyID"
+                          class="w-100"
+                          nzShowSearch
+                          nzAllowClear
+                          nzPlaceHolder="Chọn tiền tệ">
+                          <nz-option
+                            *ngFor="let currency of dataCurrency"
+                            [nzValue]="currency.ID"
+                            [nzLabel]="currency.Name">
+                          </nz-option>
+                        </nz-select>
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+
+                  <!-- Tỷ giá -->
+                  <div nz-col [nzSpan]="24">
+                    <nz-form-item>
+                      <nz-form-label class="fs-12" nz-col [nzSpan]="7" style="text-align: left;">Tỷ giá</nz-form-label>
+                      <nz-form-control>
+                        <nz-input-number
+                          formControlName="currencyRate"
+                          class="w-100"
+                          [nzMin]="0.01"
+                          [nzStep]="0.01"
+                          nzPlaceHolder="1.00">
+                        </nz-input-number>
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+
+                  <!-- Ngày giao hàng -->
+                  <div nz-col [nzSpan]="24">
+                    <nz-form-item>
+                      <nz-form-label class="fs-12" nz-col [nzSpan]="10" style="text-align: left;">Ngày giao hàng <span class="text-danger">(*)</span></nz-form-label>
+                      <nz-form-control nzErrorTip="Vui lòng chọn ngày giao hàng!">
+                        <nz-date-picker
+                          formControlName="deliveryDate"
+                          nzFormat="dd/MM/yyyy"
+                          class="w-100"
+                          nzAllowClear="false">
+                        </nz-date-picker>
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+
+                  <!-- Điểm giao hàng -->
+                  <div nz-col [nzSpan]="24">
+                    <nz-form-item>
+                      <nz-form-label class="fs-12" style="text-align: left;" nz-col [nzSpan]="7">Điểm giao hàng</nz-form-label>
+                      <nz-form-control>
+                        <input nz-input formControlName="shippingPoint" placeholder="Điểm giao hàng" />
+                      </nz-form-control>
+                    </nz-form-item>
+                  </div>
+
+                </div>
+              </nz-card>
+            </nz-splitter-panel>
+
+          </nz-splitter>
+
+          <!-- Tabs for additional information -->
+          <nz-tabset class="mt-3">
+
+            <!-- Tab Chi tiết sản phẩm -->
+            <nz-tab nzTitle="Chi tiết sản phẩm">
+              <div class="table-operations mb-2">
+                <button nz-button nzType="primary" (click)="AddProduct()" type="button">
+                  <nz-icon nzType="plus"></nz-icon>
+                  Thêm sản phẩm
+                </button>
+              </div>
+              <tabulator-table-single
+                #detailTableComp
+                [columnNames]="detailColumns"
+                [tableData]="dataDetail"
+                [height]="'300'">
+              </tabulator-table-single>
+            </nz-tab>
+
+            <!-- Tab Thông tin bổ sung -->
+            <nz-tab nzTitle="Thông tin bổ sung">
+              <div nz-row [nzGutter]="16">
+                <div nz-col [nzSpan]="12">
+                  <nz-form-item>
+                    <nz-form-label>Số tài khoản NCC</nz-form-label>
+                    <nz-form-control>
+                      <input nz-input formControlName="accountNumberSupplier" placeholder="Số tài khoản nhà cung cấp" />
+                    </nz-form-control>
+                  </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="12">
+                  <nz-form-item>
+                    <nz-form-label>Bank Charge</nz-form-label>
+                    <nz-form-control>
+                      <input nz-input formControlName="bankCharge" placeholder="Phí ngân hàng" />
+                    </nz-form-control>
+                  </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="12">
+                  <nz-form-item>
+                    <nz-form-label>Fedex Account</nz-form-label>
+                    <nz-form-control>
+                      <input nz-input formControlName="fedexAccount" placeholder="Tài khoản Fedex" />
+                    </nz-form-control>
+                  </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="12">
+                  <nz-form-item>
+                    <nz-form-label>Xuất xứ hàng hóa</nz-form-label>
+                    <nz-form-control>
+                      <input nz-input formControlName="originItem" placeholder="Xuất xứ hàng hóa" />
+                    </nz-form-control>
+                  </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="12">
+                  <nz-form-item>
+                    <nz-form-label>NCC xử lý chứng từ</nz-form-label>
+                    <nz-form-control>
+                      <input nz-input formControlName="supplierVoucher" placeholder="Nhà cung cấp xử lý chứng từ" />
+                    </nz-form-control>
+                  </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="12">
+                  <nz-form-item>
+                    <nz-form-label>Ngân hàng NCC</nz-form-label>
+                    <nz-form-control>
+                      <input nz-input formControlName="bankSupplier" placeholder="Ngân hàng nhà cung cấp" />
+                    </nz-form-control>
+                  </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="12">
+                  <nz-form-item>
+                    <nz-form-label>Điều khoản Incoterm</nz-form-label>
+                    <nz-form-control>
+                      <input nz-input formControlName="ruleIncoterm" placeholder="Điều khoản Incoterm" />
+                    </nz-form-control>
+                  </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="12">
+                  <nz-form-item>
+                    <nz-form-label>Chỉ tiêu đơn hàng</nz-form-label>
+                    <nz-form-control>
+                      <input nz-input formControlName="orderTargets" placeholder="Chỉ tiêu đơn hàng" />
+                    </nz-form-control>
+                  </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="12">
+                  <nz-form-item>
+                    <nz-form-control>
+                      <label nz-checkbox formControlName="NCCNew">NCC mới</label>
+                    </nz-form-control>
+                  </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="12">
+                  <nz-form-item>
+                    <nz-form-control>
+                      <label nz-checkbox formControlName="DeptSupplier">Công nợ NCC</label>
+                    </nz-form-control>
+                  </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="24">
+                  <nz-form-item>
+                    <nz-form-label>Điều khoản khác</nz-form-label>
+                    <nz-form-control>
+                      <textarea nz-input formControlName="OtherTerms" placeholder="Các điều khoản khác" rows="3"></textarea>
+                    </nz-form-control>
+                  </nz-form-item>
+                </div>
+              </div>
+            </nz-tab>
+
+            <!-- Tab Chứng từ nhập khẩu -->
+            <nz-tab nzTitle="Chứng từ nhập khẩu">
+              <tabulator-table-single
+                #documentTableComp
+                [columnNames]="documentColumns"
+                [tableData]="dataDocumentImport"
+                [height]="'300'">
+              </tabulator-table-single>
+            </nz-tab>
+
+          </nz-tabset>
+
+        </form>
+      </nz-spin>
+    </div>
+
+    <div class="modal-footer">
+      <button nz-button nzType="default" nzDanger (click)="onCancel()" type="button">
+        Đóng
+      </button>
+      <button nz-button nzType="primary" (click)="onSubmit()" type="button" [nzLoading]="isLoading">
+        <nz-icon nzType="save"></nz-icon>
+        Lưu
+      </button>
+    </div>
+  </div>
+</div>

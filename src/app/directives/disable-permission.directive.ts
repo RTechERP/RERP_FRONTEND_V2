@@ -49,9 +49,27 @@ export class DisablePermissionDirective implements OnInit, OnDestroy {
     let hasPermission = false;
 
     if (typeof permission === 'string') {
-      hasPermission = this.permissionService.hasPermission(permission);
+      // Loại bỏ dấu nháy đơn hoặc nháy kép nếu có
+      const cleanPermission = permission.replace(/^['"]|['"]$/g, '');
+      
+      // Kiểm tra xem có phải là string có dấu phẩy không
+      if (cleanPermission.includes(',')) {
+        // Split thành array và trim từng permission
+        const permissionArray = cleanPermission
+          .split(',')
+          .map(p => p.trim())
+          .filter(p => p.length > 0);
+        hasPermission = this.permissionService.hasAnyPermission(permissionArray);
+      } else {
+        // Single permission
+        hasPermission = this.permissionService.hasPermission(cleanPermission);
+      }
     } else if (Array.isArray(permission)) {
-      hasPermission = this.permissionService.hasAnyPermission(permission);
+      // Nếu là array, clean từng permission
+      const cleanPermissions = permission.map(p => 
+        typeof p === 'string' ? p.replace(/^['"]|['"]$/g, '') : p
+      );
+      hasPermission = this.permissionService.hasAnyPermission(cleanPermissions);
     }
 
     if (hasPermission) {

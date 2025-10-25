@@ -1,0 +1,47 @@
+/* Container chung */
+.d-flex {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Khoảng cách giữa các phần tử */
+  flex-wrap: wrap; /* Cho phép xuống hàng khi hẹp */
+}
+
+/* Các nút thao tác */
+.d-flex button[nz-button] {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-size: 13px;
+}
+
+/* Nhóm filter */
+.d-flex .filter-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Label nhỏ gọn */
+.d-flex label {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Input, Select, Datepicker đồng đều chiều cao */
+[nz-date-picker],
+[nz-select],
+[nz-input] {
+  min-width: 120px;
+}
+
+/* Table */
+#billExportTable {
+  margin-top: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 6px;
+  background: #fff;
+}

@@ -42,9 +42,9 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { LOGIN_NAME } from '../../app.config';
+import { APP_LOGIN_NAME } from '../../app.config';
 import { EMPLOYEE_ID } from '../../app.config';
-import { IS_ADMIN } from '../../app.config';
+import { ISADMIN } from '../../app.config';
 import { ProjectPartlistPurchaseRequestService } from './service/project-partlist-purchase-request.service';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NSelectComponent } from '../n-select/n-select.component';
@@ -117,7 +117,7 @@ export class ProjectPartlistPurchaseRequestComponent
 
   // Current user info
   currentEmployeeId: number = EMPLOYEE_ID;
-  isAdmin: boolean = IS_ADMIN;
+  isAdmin: boolean = ISADMIN;
   activeTabIndex = 0;
 
   tabs = [

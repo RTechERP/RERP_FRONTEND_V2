@@ -1,0 +1,98 @@
+<div class="container-fluid mt-3">
+  <!-- Tiêu đề -->
+  <div nz-row nzJustify="center" class="mb-2">
+    <div nz-col nzSpan="24">
+      <h4 class="text-center fw-bold">BÁO CÁO DỰ ÁN ĐÃ PO</h4>
+    </div>
+  </div>
+
+  <!-- Bộ lọc theo tháng/năm -->
+  <nz-card nzSize="small" class="mb-2">
+    <div nz-row nzGutter="16">
+      <div nz-col nzXs="24" nzSm="12" nzMd="8">
+        <label class="form-label">Từ ngày</label>
+        <nz-date-picker 
+          nzSize="small" 
+          [(ngModel)]="filters.startDate" 
+          [nzFormat]="'yyyy-MM-dd'" 
+          style="width: 100%">
+        </nz-date-picker>
+      </div>
+      <div nz-col nzXs="24" nzSm="12" nzMd="8">
+        <label class="form-label">Đến ngày</label>
+        <nz-date-picker 
+          nzSize="small" 
+          [(ngModel)]="filters.endDate" 
+          [nzFormat]="'yyyy-MM-dd'" 
+          style="width: 100%">
+        </nz-date-picker>
+      </div>
+      <div nz-col nzXs="24" nzSm="24" nzMd="8" class="d-flex align-items-end">
+        <button nz-button nzType="primary" nzSize="small" (click)="applyFilters()" [nzLoading]="loading">
+          <span nz-icon nzType="filter"></span> Lọc
+        </button>
+      </div>
+    </div>
+  </nz-card>
+
+  <!-- Tab navigation -->
+  <nz-tabset [(nzSelectedIndex)]="activeTabIndex" (nzSelectedIndexChange)="onTabIndexChange($event)">
+    <nz-tab nzTitle="Theo tháng"></nz-tab>
+    <nz-tab nzTitle="Theo năm"></nz-tab>
+  </nz-tabset>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="text-center my-4">
+    <nz-spin nzSimple></nz-spin>
+    <p class="mt-2">Đang tải dữ liệu...</p>
+  </div>
+
+  <!-- Error message -->
+  <nz-alert 
+    *ngIf="errorMessage" 
+    nzType="error" 
+    nzMessage="Lỗi" 
+    [nzDescription]="errorMessage"
+    nzShowIcon
+    class="my-3">
+  </nz-alert>
+
+  <div *ngIf="!loading && activeTabIndex === 0 && !errorMessage" nz-row nzGutter="16">
+    <!-- <div nz-col nzSpan="24" class="mb-3">
+      <nz-card nzSize="small">
+        <div class="text-center">
+          <h5 class="text-primary">Tổng giá trị dự án đã PO: {{ getMonthlyTotalValue() | number:'1.0-0' }} triệu đồng</h5>
+        </div>
+      </nz-card>
+    </div> -->
+
+    <!-- Biểu đồ theo tháng -->
+    <div nz-col nzSpan="24" class="mb-3">
+      <nz-card nzTitle="Biểu đồ dự án đã PO theo tháng" nzSize="small">
+        <div style="height:63vh;">
+          <canvas #monthlyChartCanvas></canvas>
+        </div>
+      </nz-card>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && activeTabIndex === 1 && !errorMessage" nz-row nzGutter="16">
+    <!-- Tổng giá trị -->
+    <!-- <div nz-col nzSpan="24" class="mb-3">
+      <nz-card nzSize="small">
+        <div class="text-center">
+          <h5 class="text-primary">Tổng giá trị dự án đã PO: {{ getYearlyTotalValue() | number:'1.0-0' }} triệu đồng</h5>
+        </div>
+      </nz-card>
+    </div> -->
+
+    <!-- Biểu đồ theo năm -->
+    <div nz-col nzSpan="24" class="mb-3">
+      <nz-card nzTitle="Biểu đồ dự án đã PO theo năm" nzSize="small">
+        <div style="height:63vh;">
+          <canvas #yearlyChartCanvas></canvas>
+        </div>
+      </nz-card>
+    </div>
+  </div>
+</div>

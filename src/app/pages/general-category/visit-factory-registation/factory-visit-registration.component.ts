@@ -75,10 +75,13 @@ export class FactoryVisitRegistrationComponent
   @ViewChild('participantTable', { static: false })
   participantTableRef!: ElementRef;
   @ViewChild('detailTable', { static: false }) detailTableRef!: ElementRef;
+  //   @ViewChild('registration-table') calendarRef!: FullCalendarComponent;
 
   registrationTable!: Tabulator;
   participantTable!: Tabulator;
   detailTable!: Tabulator;
+
+  visitFactory: any;
 
   searchForm = {
     fromDate: '',
@@ -1074,7 +1077,7 @@ export class FactoryVisitRegistrationComponent
   }
 
   private getEmployeeDisplayNameById(id: number | null | undefined): string {
-    console.log('id:', id);
+    // console.log('id:', id);
     if (!id && id !== 0) return '';
     const found = this.employees.find((e) => e.id === id);
     if (found) {
@@ -1161,6 +1164,7 @@ export class FactoryVisitRegistrationComponent
     this.registrationForm.endTime = `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
   }
 
+  eventElements = new Map<string, HTMLElement>(); // key = eventId, value = element
   private initCalendar(): void {
     const el = this.registrationTableRef?.nativeElement;
     if (!el) return;
@@ -1186,11 +1190,25 @@ export class FactoryVisitRegistrationComponent
       allDaySlot: false,
       dayMaxEvents: false,
       eventClick: (info) => {
+        // console.log('this.calendar.getEvents():', this.calendar.getEvents());
+        // console.log(info, typeof info);
         const id = Number(info.event.id);
         const found = (this.registrations || []).find(
           (r) => Number(r.id) === id
         );
-        if (found) this.selectRegistration(found);
+        if (found) {
+          this.selectRegistration(found);
+          this.visitFactory = this.registrations.find((x) => x.id === id);
+          console.log(this.visitFactory);
+        }
+
+        this.eventElements.forEach((el) => (el.style.borderColor = ''));
+
+        info.el.style.borderColor = 'red';
+      },
+
+      eventDidMount: (info) => {
+        this.eventElements.set(info.event.id, info.el);
       },
     });
     this.calendar.render();
@@ -1263,8 +1281,8 @@ export class FactoryVisitRegistrationComponent
     // console.log(list);
     const events = (list || []).map((item) => {
       // Màu sắc theo trạng thái duyệt
-      let backgroundColor = '#e74c3c'; // Chưa duyệt: đỏ
-      let borderColor = '#c0392b';
+      let backgroundColor = '#2b82e6ff'; // Chưa duyệt: đỏ
+      let borderColor = '#2b82e6ff';
 
       if (item.informationReceived) {
         backgroundColor = '#27ae60'; // Đã duyệt: xanh lá
@@ -1323,12 +1341,12 @@ export class FactoryVisitRegistrationComponent
     if (!f.guestType || String(f.guestType).trim() === '')
       errors.push('Vui lòng chọn loại khách');
 
-    this.registrationDetails.forEach((d, idx) => {
-      const rowNo = idx + 1;
-      if (!d.fullName || !d.fullName.trim()) {
-        errors.push(`Họ tên không được để trống (Thông tin người tham gia)`);
-      }
-    });
+    // this.registrationDetails.forEach((d, idx) => {
+    //   const rowNo = idx + 1;
+    //   if (!d.fullName || !d.fullName.trim()) {
+    //     errors.push(`Họ tên không được để trống (Thông tin người tham gia)`);
+    //   }
+    // });
 
     return errors;
   }

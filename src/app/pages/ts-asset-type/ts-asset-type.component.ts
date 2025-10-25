@@ -51,7 +51,7 @@ import { TyAssetTypeFormComponent } from './ts-asset-type-form/ts-asset-type-for
     NzTableModule,
     NzTabsModule,
     NgbModalModule,
-    TyAssetTypeFormComponent
+
   ]
 })
 export class TsAssetTypeComponent implements OnInit, AfterViewInit {

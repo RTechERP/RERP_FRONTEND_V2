@@ -2,7 +2,6 @@ import { ProjectSurveyComponent } from './pages/project/project-survey/project-s
 import { Routes } from '@angular/router';
 import { WelcomeComponent } from './pages/welcome/welcome.component';
 import { ProjectComponent } from './pages/project/project.component';
-
 import { ProjectListWorkReportComponent } from './pages/project/project-list-work-report/project-list-work-report.component';
 import { ProjectWorkCategoryComponent } from './pages/project/project-work-category/project-work-category.component';
 import { ProjectWorkPropressComponent } from './pages/project/project-work-propress/project-work-propress.component';
@@ -11,7 +10,6 @@ import { ProjectItemLateComponent } from './pages/project/project-item-late/proj
 import { ProjectWorkItemTimelineComponent } from './pages/project/project-work-item-timeline/project-work-item-timeline.component';
 import { SynthesisOfGeneratedMaterialsComponent } from './pages/project/synthesis-of-generated-materials/synthesis-of-generated-materials.component';
 import { ProjectSynthesisDepartmentComponent } from './pages/project/project-synthesis-department/project-synthesis-department.component';
-
 import { ProjectPartlistPurchaseRequestComponent } from './pages/project-partlist-purchase-request/project-partlist-purchase-request.component';
 import { LoginComponent } from './auth/login/login.component';
 import { authGuard } from './auth/auth.guard';
@@ -36,6 +34,8 @@ import { ProductComponent } from './pages/product/product.component';
 import { TbProductRtcComponent } from './pages/tb-product-rtc/tb-product-rtc.component';
 import { ProductSaleComponent } from './pages/Sale/ProductSale/product-sale.component';
 import { TrainingRegistrationComponent } from './pages/training-registration/training-registration.component';
+import { InventoryComponent } from './pages/Sale/Inventory/inventory.component';
+import { ProductLocationComponent } from './pages/product-location/product-location.component';
 export const routes: Routes = [
   {
     path: '',
@@ -106,19 +106,67 @@ export const routes: Routes = [
         path: 'product-demo', //DANH SÁCH SẢN PHẨM DEMO
         component: TbProductRtcComponent,
       },
-
+      // {
+      //   path: 'inventory-sale', //DANH SÁCH SẢN PHẨM DEMO
+      //   component: InventoryComponent,
+      // },
       {
         path: 'product-sale', //DANH SÁCH SẢN PHẨM SALE
         component: ProductSaleComponent,
       },
-      //#endregion
+      {
+        path: 'product-location', //QUẢN LÝ VỊ TRÍ SẢN PHẨM
+        component: ProductLocationComponent,
+      },
     ],
   },
+  {
+    path: 'training-registration',
+    loadComponent: () =>
+      import(
+        './pages/training-registration/training-registration.component'
+      ).then((m) => m.TrainingRegistrationComponent),
+  },
+  {
+    path: 'currency-list',
+    loadComponent: () =>
+      import('./pages/currency-list/currency-list.component').then(
+        (m) => m.CurrencyListComponent
+      ),
+  },
     {
-        path: 'training-registration',
-        loadComponent: () =>
-          import(
-            './pages/training-registration/training-registration.component'
-          ).then((m) => m.TrainingRegistrationComponent),
-      },
+    path: 'project-type-report',
+    loadComponent: () =>
+      import('./pages/project-type-report/project-type-report.component').then(
+        (m) => m.ProjectTypeReportComponent
+      ),
+  },
+    {
+    path: 'test-iq',
+    loadComponent: () =>
+      import('./pages/test-IQ/test-IQ.component').then(
+        (m) => m.TestIQComponent
+      ),
+  },
+    {
+    path: 'project-po-report',
+    loadComponent: () =>
+      import('./pages/project-po-report/project-po-report.component').then(
+        (m) => m.ProjectPoReportComponent
+      ),
+  },
+      {
+    path: 'bill-export-build',
+    loadComponent: () =>
+      import('./pages/billexport-build/billexport-build.component').then(
+        (m) => m.BillexportBuildComponent
+      ),
+  },
+  {
+    path: 'firm',
+    loadComponent: () =>
+      import('./pages/firm/firm.component').then(
+        (m) => m.FirmComponent
+      ),
+  },
 ];

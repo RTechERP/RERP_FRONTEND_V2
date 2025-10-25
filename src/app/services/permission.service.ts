@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { UserService } from './user.service';
 
 @Injectable({
   providedIn: 'root'
@@ -8,49 +9,36 @@ export class PermissionService {
   private permissionsSubject = new BehaviorSubject<string[]>([]);
   public permissions$ = this.permissionsSubject.asObservable();
 
-  constructor() {
-    this.loadPermissionsFromToken();
-  }
-
-  /**
-   * Decode JWT token và lấy permissions
-   */
-  private loadPermissionsFromToken(): void {
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const payload = this.decodeJWT(token);
-        const permissions = payload.permissions || payload.PERMISSIONS || [];
-        
-        // Nếu permissions là string (cách nhau bởi dấu phẩy), chuyển thành array
-        if (typeof permissions === 'string') {
-          this.setPermissions(permissions.split(',').map(p => p.trim()));
-        } else if (Array.isArray(permissions)) {
-          this.setPermissions(permissions);
-        }
-      } catch (error) {
-        console.error('Error decoding token:', error);
+  constructor(private userService: UserService) {
+    // Subscribe to user changes để tự động cập nhật permissions
+    this.userService.user$.subscribe(user => {
+      if (user && user.Permissions) {
+        this.loadPermissionsFromUser(user.Permissions);
+      } else {
         this.setPermissions([]);
       }
-    }
+    });
   }
 
   /**
-   * Decode JWT token
+   * Lấy permissions từ currentUser và chuyển đổi từ string thành array
    */
-  private decodeJWT(token: string): any {
+  private loadPermissionsFromUser(permissionsString: string): void {
     try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-          .join('')
-      );
-      return JSON.parse(jsonPayload);
+      let permissionArray: string[] = [];
+      
+      if (permissionsString && permissionsString.trim()) {
+        permissionArray = permissionsString
+          .split(/[,;]/) // Split theo dấu phẩy hoặc dấu chấm phẩy
+          .map(p => p.trim()) // Loại bỏ khoảng trắng
+          .filter(p => p.length > 0); // Loại bỏ string rỗng
+      }
+      
+      this.setPermissions(permissionArray);
+      console.log('Permissions loaded from currentUser:', permissionArray);
     } catch (error) {
-      throw new Error('Invalid token format');
+      console.error('Error loading permissions from user:', error);
+      this.setPermissions([]);
     }
   }
 
@@ -91,10 +79,29 @@ export class PermissionService {
   }
 
   /**
-   * Refresh permissions từ token mới
+   * Kiểm tra user KHÔNG có permission
+   */
+  lacksPermission(permission: string): boolean {
+    return !this.hasPermission(permission);
+  }
+
+  /**
+   * Kiểm tra user KHÔNG có tất cả permissions
+   */
+  lacksAllPermissions(permissions: string[]): boolean {
+    return permissions.every(permission => this.lacksPermission(permission));
+  }
+
+  /**
+   * Refresh permissions từ currentUser
    */
   refreshPermissions(): void {
-    this.loadPermissionsFromToken();
+    const currentUser = this.userService.getUser();
+    if (currentUser && currentUser.Permissions) {
+      this.loadPermissionsFromUser(currentUser.Permissions);
+    } else {
+      this.setPermissions([]);
+    }
   }
 
   /**

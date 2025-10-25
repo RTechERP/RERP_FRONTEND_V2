@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import {
   Params,
   Route,
@@ -22,6 +22,8 @@ import { MenuService } from './pages/menus/menu-service/menu.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
+import { AuthService } from './auth/auth.service';
+import { SessionCleanupService } from './services/session-cleanup.service';
 
 @Component({
   selector: 'app-root',
@@ -45,7 +47,30 @@ import { NzAvatarModule } from 'ng-zorro-antd/avatar';
   standalone: true,
   template: `<router-outlet></router-outlet>`,
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
+  constructor(
+    private authService: AuthService,
+    private sessionCleanupService: SessionCleanupService
+  ) {}
+
+  ngOnInit() {
+    // SessionCleanupService sẽ tự động setup cleanup handlers
+    console.log('App initialized with session cleanup');
+  }
+
+  logout() {
+    this.authService.logout();
+  }
+
+  /**
+   * Xử lý khi user đóng trình duyệt hoặc tab
+   */
+  @HostListener('window:beforeunload', ['$event'])
+  beforeUnloadHandler(event: any) {
+    // SessionCleanupService sẽ xử lý cleanup
+    this.sessionCleanupService.clearAllSessionData();
+  }
+
   notifItems = [
     {
       icon: 'mail',

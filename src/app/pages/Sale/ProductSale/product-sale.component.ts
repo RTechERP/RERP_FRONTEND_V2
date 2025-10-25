@@ -70,8 +70,6 @@ interface ProductSale {
     NzInputNumberModule,
     NzCheckboxModule,
     NgbModule,
-    ProductSaleDetailComponent,
-    ImportExcelProductSaleComponent,
   ],
   templateUrl: './product-sale.component.html',
   styleUrl: './product-sale.component.css',

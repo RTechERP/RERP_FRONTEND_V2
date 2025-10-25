@@ -24,7 +24,6 @@ export class UserService {
       if (storedUser) {
         const user = JSON.parse(storedUser) as IUser;
         this.userSubject.next(user);
-        console.log('User data loaded from localStorage:', user);
       }
     } catch (error) {
       console.error('Error loading user from localStorage:', error);
@@ -38,7 +37,6 @@ export class UserService {
   private saveUserToStorage(user: IUser): void {
     try {
       localStorage.setItem(this.USER_STORAGE_KEY, JSON.stringify(user));
-      console.log('User data saved to localStorage');
     } catch (error) {
       console.error('Error saving user to localStorage:', error);
     }
@@ -57,7 +55,6 @@ export class UserService {
   public setUser(user: IUser): void {
     this.userSubject.next(user);
     this.saveUserToStorage(user);
-    console.log('User data set and saved:', user);
   }
 
   /**
@@ -66,7 +63,8 @@ export class UserService {
   public clearUser(): void {
     this.userSubject.next(null);
     localStorage.removeItem(this.USER_STORAGE_KEY);
-    console.log('User data cleared from memory and localStorage');
+    
+
   }
 
   /**

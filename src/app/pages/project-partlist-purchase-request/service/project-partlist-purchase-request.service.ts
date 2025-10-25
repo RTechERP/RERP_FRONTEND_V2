@@ -16,13 +16,13 @@ export class ProjectPartlistPurchaseRequestService {
 
   getAllData(filters: any): Observable<any> {
     return this.http.post(
-      `${this.apiUrl}/get-all`,
+      `${this.baseUrl}/get-all`,
       filters
     );
   }
-getAPIPurchaseRequest(){
-  return `${this.apiUrl}/get-all`;
-}
+  getAPIPurchaseRequest(){
+    return `${this.baseUrl}/get-all`;
+  }
   getProjects(): Observable<any> {
     return this.http.get(`${HOST}/api/Project/get-all`);
   }
@@ -53,10 +53,10 @@ getAPIPurchaseRequest(){
   getCustomer(): Observable<any> {
     return this.http.get(`${HOST}/api/Customer/get-all`); }
   saveData(data: any[]): Observable<any> {
-    return this.http.post(`${this.apiUrl}/save-data`, data);
+    return this.http.post(`${this.baseUrl}/save-data`, data);
   }
   getPurchaseRequestByIDs(id:number):Observable<any> {
-      return this.http.get(`${this.apiUrl}/get-by-id/${id}`);
+      return this.http.get(`${this.baseUrl}/get-by-id/${id}`);
   }
   // approve(data: any[]): Observable<any> {
   //   return this.http.post(
@@ -67,16 +67,16 @@ getAPIPurchaseRequest(){
 
 
   addSupplier(data: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/add-supplier`, data);
+    return this.http.post(`${this.baseUrl}/add-supplier`, data);
   }
   getProductHistory(productCode: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/product-history/${productCode}`);
+    return this.http.get(`${this.baseUrl}/product-history/${productCode}`);
   }
 
   // Phương thức xuất Excel
   exportExcel(data: any[], type: string): Observable<any> {
     return this.http.post(
-      `${this.apiUrl}/export-excel`,
+      `${this.baseUrl}/export-excel`,
       {
         data,
         type,
@@ -90,6 +90,6 @@ getAPIPurchaseRequest(){
     return this.http.get(`${HOST}/api/SupplierSale/get-all`);
   }
   keepProduct(data: any[]): Observable<any> {
-    return this.http.post(`${this.apiUrl}/keep-product`, data);
+    return this.http.post(`${this.baseUrl}/keep-product`, data);
   }
 }

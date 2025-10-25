@@ -48,9 +48,9 @@ import {
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzModalModule } from 'ng-zorro-antd/modal';
-import { LOGIN_NAME } from '../../app.config';
+import { APP_LOGIN_NAME } from '../../app.config';
 import { EMPLOYEE_ID } from '../../app.config';
-import { IS_ADMIN } from '../../app.config';
+import {ISADMIN } from '../../app.config';
 import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -258,7 +258,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           return {
             ID: data['ID'],
             IsDeleted: true,
-            UpdatedBy: LOGIN_NAME,
+            UpdatedBy: APP_LOGIN_NAME,
             UpdatedDate: new Date().toISOString(),
           };
         });
@@ -576,7 +576,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       'TotalDayLeadTime',
       'TotalPriceExchange',
     ];
-    if (!IS_ADMIN) {
+    if (!ISADMIN) {
       validFields.push('QuoteEmployeeID');
       validFields.push('UpdatedBy');
     }
@@ -642,7 +642,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
 
       // Sử dụng định dạng ISO chuẩn cho UpdatedDate
       filteredItem.UpdatedDate = DateTime.local().toISO();
-      filteredItem.UpdatedBy = !IS_ADMIN ? LOGIN_NAME : '';
+      filteredItem.UpdatedBy = !ISADMIN ? APP_LOGIN_NAME : '';
       return filteredItem;
     });
 
@@ -845,9 +845,9 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       // Cập nhật dữ liệu
       Object.assign(rowData, {
         StatusRequest: status,
-        UpdatedBy: LOGIN_NAME,
+        UpdatedBy: APP_LOGIN_NAME,
         UpdatedDate: new Date(),
-        QuoteEmployeeID: !IS_ADMIN ? EMPLOYEE_ID : rowData['QuoteEmployeeID'],
+        QuoteEmployeeID: !ISADMIN ? EMPLOYEE_ID : rowData['QuoteEmployeeID'],
         DatePriceQuote:
           status === 2
             ? new Date()
@@ -902,7 +902,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
             ID: Number(rowData['ID']),
             IsCheckPrice: isCheckPrice,
             QuoteEmployeeID: isCheckPrice ? EMPLOYEE_ID : 0,
-            UpdatedBy: LOGIN_NAME,
+            UpdatedBy: APP_LOGIN_NAME,
             UpdatedDate: DateTime.local().toJSDate(),
           };
         });

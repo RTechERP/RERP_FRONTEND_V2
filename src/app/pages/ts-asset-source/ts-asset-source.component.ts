@@ -51,7 +51,6 @@ import { TsAssetSourceFormComponent } from './ts-asset-source-form/ts-asset-sour
     NzTableModule,
     NzTabsModule,
     NgbModalModule,
-    TsAssetSourceFormComponent,
 
   ],
   selector: 'app-ts-asset-source',
@@ -67,12 +66,12 @@ assetSourceData:any[]=[];
   ngOnInit() {
   }
   ngAfterViewInit(): void {
-    
+
   }
     getAssetSource() {
     this.assetSourceService.getAssets().subscribe((response: any) => {
       this.assetSourceData = response.data;
-  console.log("source",this.assetSourceData);    
+  console.log("source",this.assetSourceData);
     });
   }
 

@@ -1,0 +1,184 @@
+<div class="container-fluid p-3">
+  <h2 class="mb-3">{{ mode === 'add' ? 'Thêm mới' : 'Chỉnh sửa' }} phiếu xuất</h2>
+  <form nz-form [formGroup]="form" nzLayout="vertical">
+    <div class="row g-3">
+      <!-- Left Column -->
+      <div class="col-md-6">
+        <nz-form-item>
+          <nz-form-label nzRequired>Số phiếu</nz-form-label>
+          <nz-form-control nzErrorTip="Vui lòng nhập số phiếu">
+            <nz-input-group>
+              <input 
+                nz-input 
+                formControlName="Code" 
+                placeholder="billExport_Technical_0" 
+                [disabled]="true" 
+              />
+              <span nz-icon nzType="sync" nzSpin *ngIf="isGeneratingCode" nz-input-suffix></span>
+            </nz-input-group>
+          </nz-form-control>
+        </nz-form-item>
+        
+        <nz-form-item>
+          <nz-form-label>Nhà cung cấp</nz-form-label>
+          <nz-form-control>
+            <nz-select 
+              formControlName="NameNCC" 
+              nzShowSearch 
+              nzPlaceHolder="Chọn nhà cung cấp"
+              nzOptionFilterProp="label"
+              [nzDisabled]="isLoading"
+            >
+              <nz-option 
+                *ngFor="let supplier of supplierList" 
+                [nzValue]="supplier.NameNCC" 
+                [nzLabel]="supplier.CodeNCC + ' - ' + supplier.NameNCC"
+              >
+                {{ supplier.CodeNCC }} - {{ supplier.NameNCC }}
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+        
+        <nz-form-item>
+          <nz-form-label>Loại kho</nz-form-label>
+          <nz-form-control>
+            <input nz-input formControlName="WarehouseType" readonly />
+          </nz-form-control>
+        </nz-form-item>
+        
+        <nz-form-item>
+          <nz-form-label>Dự án</nz-form-label>
+          <nz-form-control>
+            <input 
+              nz-input 
+              formControlName="ProjectName" 
+              placeholder="Nhập tên dự án" 
+              [disabled]="isLoading" 
+            />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <!-- Right Column -->
+      <div class="col-md-6">
+        <nz-form-item>
+          <nz-form-label nzRequired>Loại phiếu</nz-form-label>
+          <nz-form-control nzErrorTip="Vui lòng chọn loại phiếu">
+            <nz-select 
+              formControlName="BillType" 
+              nzPlaceHolder="Chọn loại phiếu"
+              [nzDisabled]="isLoading || isGeneratingCode"
+              (ngModelChange)="onBillTypeChange($event)"
+            >
+              <nz-option 
+                *ngFor="let lp of loaiPhieuList" 
+                [nzValue]="lp" 
+                [nzLabel]="lp"
+              ></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label>Người nhận</nz-form-label>
+          <nz-form-control>
+            <nz-select 
+              formControlName="Receiver" 
+              nzShowSearch 
+              nzPlaceHolder="Chọn người nhận"
+              nzOptionFilterProp="label"
+              [nzDisabled]="isLoading"
+            >
+              <nz-option 
+                *ngFor="let receiver of receiverList" 
+                [nzValue]="receiver.FullName" 
+                [nzLabel]="receiver.LoginName + ' - ' + receiver.FullName"
+              > 
+                {{ receiver.LoginName }} - {{ receiver.FullName }}
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+        
+        <nz-form-item>
+          <nz-form-label>Liên hệ</nz-form-label>
+          <nz-form-control>
+            <input nz-input value="ADMIN" readonly />
+          </nz-form-control>
+        </nz-form-item>
+        
+        <nz-form-item>
+          <nz-form-label>Khách hàng</nz-form-label>
+          <nz-form-control>
+            <nz-select 
+              formControlName="CustomerName" 
+              nzShowSearch 
+              nzPlaceHolder="Chọn khách hàng"
+              nzOptionFilterProp="label"
+              [nzDisabled]="isLoading"
+            >
+              <nz-option 
+                *ngFor="let customer of customerList" 
+                [nzValue]="customer.CustomerName" 
+                [nzLabel]="customer.CustomerShortName + ' - ' + customer.CustomerName"
+              >
+                {{ customer.CustomerShortName }} - {{ customer.CustomerName }}
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label>Ngày xuất</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker 
+              formControlName="CreatedDate" 
+              style="width: 100%" 
+              nzPlaceHolder="Chọn ngày xuất" 
+              [nzDisabled]="isLoading"
+            />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+
+    <!-- Product Table -->
+    <div class="mt-3">
+      <button 
+        nz-button 
+        nzType="dashed" 
+        (click)="addProduct()" 
+        class="mb-2"
+        [disabled]="isLoading"
+      >
+        <span nz-icon nzType="plus"></span> Thêm sản phẩm
+      </button>
+      <div id="productExportTable" class="mt-2"></div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="d-flex justify-content-end gap-2 mt-4">
+      <button 
+        nz-button 
+        nzType="default" 
+        nzShape="round" 
+        (click)="cancel()"
+        [disabled]="isLoading"
+      >
+        <span nz-icon nzType="close"></span> Hủy
+      </button>
+      <button 
+        nz-button 
+        nzType="primary" 
+        nzShape="round" 
+        [disabled]="form.invalid || isLoading" 
+        (click)="onSaveBill()"
+      >
+        <span nz-icon nzType="save" *ngIf="!isLoading"></span>
+        <span nz-icon nzType="loading" nzSpin *ngIf="isLoading"></span>
+        {{ isLoading ? 'Đang xử lý...' : 'Lưu phiếu' }}
+      </button>
+    </div>
+  </form>
+</div>

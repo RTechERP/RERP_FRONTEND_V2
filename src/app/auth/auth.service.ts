@@ -18,7 +18,8 @@ export class AuthService {
   constructor(
     private http: HttpClient, 
     private userService: UserService,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private router: Router
   ) {}
 
   login(credentials: { loginname: string; password: string }): Observable<any> {
@@ -86,8 +87,42 @@ export class AuthService {
   }
 
   logout() {
+    // Xóa token
     localStorage.removeItem(this.tokenkey);
-    this.permissionService.clearPermissions();
+    
+    // Xóa thông tin user (PermissionService sẽ tự động clear permissions)
+    this.userService.clearUser();
+    
+    // Xóa tất cả dữ liệu khác có thể liên quan đến session
+    this.clearAllAuthData();
+    
+    // Chuyển hướng về trang login
+    this.router.navigate(['/login']);
+  }
+
+  /**
+   * Xóa tất cả dữ liệu authentication khỏi localStorage
+   */
+  private clearAllAuthData(): void {
+    const keysToRemove = [
+      this.tokenkey,
+      'currentUser',
+      'permissions',
+      'userPermissions',
+      'sessionData',
+      'authData'
+    ];
+    
+    keysToRemove.forEach(key => {
+      localStorage.removeItem(key);
+    });
+    
+    // Xóa tất cả keys bắt đầu với 'auth_' hoặc 'user_'
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('auth_') || key.startsWith('user_')) {
+        localStorage.removeItem(key);
+      }
+    });
   }
 
   isLoggedIn(): boolean {

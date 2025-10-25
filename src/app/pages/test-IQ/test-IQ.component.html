@@ -1,0 +1,264 @@
+<nz-modal
+  [(nzVisible)]="isModalVisible"
+  [nzFooter]="null"
+  [nzWidth]="'100vw'"
+  [nzStyle]="{ top: '0', padding: 0 }"
+  [nzBodyStyle]="{ height: '100vh', overflow: 'hidden', padding: '0' }"
+  [nzMaskClosable]="false"
+  (nzOnCancel)="closeModal()"
+>
+  <ng-container *nzModalContent>
+    <div class="iq-modal-container">
+      <div class="iq-modal-header">
+        <div class="header-top">
+          <div class="iq-modal-title">
+            <h3>Bài kiểm tra IQ Test</h3>
+            <div class="text-muted">
+              Tổng số câu hỏi: <strong>{{ questions.length }}</strong> • Thời gian: <strong>{{ timeLimitMinutes }} phút</strong>
+            </div>
+          </div>
+
+          <div class="header-actions">
+            <button *ngIf="startedAt && !submitted && !showThankYou"
+                    nz-button nzType="primary"
+                    class="submit-btn-top"
+                    (click)="confirmSubmit()">
+              Nộp bài
+            </button>
+            <button *ngIf="!startedAt || submitted || showThankYou"
+                    class="modal-close-btn"
+                    (click)="closeModal()">×</button>
+          </div>
+        </div>
+
+        <!-- Progress bar + timer ngay dưới -->
+        <div *ngIf="startedAt && !submitted && !showThankYou" class="header-progress">
+          <nz-progress
+            [nzPercent]="progressPercent"
+            nzSize="small"
+            [nzShowInfo]="false"
+            [nzStatus]="timerColor">
+          </nz-progress>
+          <div class="time-remaining"
+              [ngClass]="{'text-danger': remainingSeconds <= 10}">
+            {{ getRemainingMmSs() }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Scrollable content -->
+      <div class="iq-modal-body">
+
+        <!-- Form ứng viên -->
+        <nz-card *ngIf="!startedAt && !submitted" nzSize="default" class="candidate-form-card shadow-sm">
+          <div class="card-header-custom">
+            <span nz-icon nzType="user" nzTheme="outline" class="me-2"></span>
+            <span class="text-uppercase">Thông tin ứng viên</span>
+          </div>
+
+          <form nz-form [nzLayout]="'vertical'" class="mt-3">
+            <div nz-row [nzGutter]="[16, 0]">
+              <div nz-col nzSpan="12">
+                <nz-form-item>
+                  <nz-form-label>
+                    <span class="fw-medium">Họ và tên</span>
+                    <span class="text-danger">*</span>
+                  </nz-form-label>
+                  <nz-form-control>
+                    <input nz-input [(ngModel)]="candidateName" name="candidateName" placeholder="Nhập họ và tên đầy đủ" required class="custom-input" />
+                  </nz-form-control>
+                </nz-form-item>
+                <nz-form-item>
+                  <nz-form-label>
+                    <span class="fw-medium">Ngày sinh</span>
+                    <span class="text-danger">*</span>
+                  </nz-form-label>
+                  <nz-form-control>
+                    <nz-date-picker [(ngModel)]="dob" name="dob" nzFormat="dd/MM/yyyy" placeholder="Chọn ngày sinh" required class="custom-input" style="width: 100%;"></nz-date-picker>
+                  </nz-form-control>
+                </nz-form-item>
+                <nz-form-item>
+                  <nz-form-label>
+                    <span class="fw-medium">Số điện thoại</span>
+                    <span class="text-danger">*</span>
+                  </nz-form-label>
+                  <nz-form-control>
+                    <input nz-input [(ngModel)]="phone" name="phone" placeholder="Nhập số điện thoại" required class="custom-input" />
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+
+              <!-- Right Column -->
+              <div nz-col nzSpan="12">
+                <nz-form-item>
+                  <nz-form-label>
+                    <span class="fw-medium">Địa chỉ</span>
+                    <span class="text-danger">*</span>
+                  </nz-form-label>
+                  <nz-form-control>
+                    <input nz-input [(ngModel)]="address" name="address" placeholder="Nhập địa chỉ" required class="custom-input" />
+                  </nz-form-control>
+                </nz-form-item>
+                <nz-form-item>
+                  <nz-form-label>
+                    <span class="fw-medium">Email</span>
+                    <span class="text-danger">*</span>
+                  </nz-form-label>
+                  <nz-form-control>
+                    <input nz-input [(ngModel)]="email" name="email" placeholder="Nhập địa chỉ email" type="email" required class="custom-input" />
+                  </nz-form-control>
+                </nz-form-item>
+                <nz-form-item>
+                  <nz-form-label>
+                    <span class="fw-medium">Vị trí ứng tuyển</span>
+                    <span class="text-danger">*</span>
+                  </nz-form-label>
+                  <nz-form-control>
+                    <input nz-input [(ngModel)]="position" name="position" placeholder="Nhập vị trí ứng tuyển" required class="custom-input" />
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+            </div>
+          </form>
+
+          <nz-alert *ngIf="!isInfoValid()" class="mt-3" nzType="warning"
+                    nzMessage="Vui lòng nhập đầy đủ thông tin các trường bắt buộc (*) để bắt đầu bài test."></nz-alert>
+
+          <div class="d-flex justify-content-center mt-4">
+            <button nz-button nzType="primary" nzSize="large"
+                    (click)="start()"
+                    [disabled]="startedAt || !isInfoValid()"
+                    class="start-button">
+              <span nz-icon nzType="play-circle" nzTheme="outline" class="me-2"></span>
+              Bắt đầu làm bài IQ
+            </button>
+          </div>
+        </nz-card>
+
+       <!-- Câu hỏi + đáp án -->
+    <div *ngIf="startedAt && !submitted && !showThankYou" class="mt-3">
+      <nz-card nzSize="small" class="question-card">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="fw-semibold">Câu {{ currentIndex + 1 }} / {{ questions.length }}</div>
+        </div>
+
+        <div class="question-content">
+    <div class="question-block mb-3">
+      <div *ngIf="currentQuestion.text" class="question-text">{{ currentQuestion.text }}</div>
+      <img *ngIf="currentQuestion.image" [src]="currentQuestion.image" alt="question" class="question-image" />
+    </div>
+
+    <!-- Nếu là MCQ -->
+    <div *ngIf="currentQuestion.type === 'mcq'" class="options-container">
+      <nz-radio-group [ngModel]="selectedAnswers[currentQuestion.id]"
+                      (ngModelChange)="selectAnswer(currentQuestion.id, $event)"
+                      [ngClass]="currentQuestionHasImages() ? 'options-grid-row' : 'options-grid-column'">
+        <div *ngFor="let opt of currentQuestion.options; let idx = index" class="option-item">
+          <label nz-radio [nzValue]="idx" class="option-radio-label no-border">
+            <div class="option-content">
+              <span class="option-label">{{ opt.text }}</span>
+              <!-- eslint-disable-next-line @angular-eslint/template/accessibility-alt-text -->
+              <img alter="abcd" *ngIf="opt.image" [src]="opt.image" class="option-image" />
+            </div>
+          </label>
+        </div>
+      </nz-radio-group>
+    </div>
+
+    <!-- câu điền text -->
+    <div *ngIf="currentQuestion.type === 'text'" class="text-answer-container">
+
+          <input *ngIf="currentQuestion.id === 'q11'"
+                nz-input
+                placeholder="Nhập đáp án (ví dụ: 11.1)"
+                [(ngModel)]="selectedAnswers[currentQuestion.id]"/>
+
+          <input *ngIf="currentQuestion.id !== 'q11'"
+                nz-input
+                placeholder="Nhập đáp án"
+                [(ngModel)]="selectedAnswers[currentQuestion.id]" />
+        </div>
+        </div>
+      </nz-card>
+    </div>
+
+        <div *ngIf="startedAt && !submitted && !showThankYou" class="iq-modal-footer">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <!-- Navigation trái -->
+            <div class="d-flex gap-2">
+              <button nz-button nzType="default" (click)="prev()" [disabled]="currentIndex === 0">« Trước</button>
+              <button nz-button nzType="primary" (click)="next()" [disabled]="currentIndex === questions.length - 1">Tiếp »</button>
+            </div>
+
+            <!-- Các nút số câu ở giữa/phải -->
+            <div class="d-flex flex-wrap gap-2 justify-content-center">
+              <button nz-button *ngFor="let q of questions; let i = index"
+                      (click)="goTo(i)"
+                      [ngClass]="getQuestionButtonClass(i)">
+                {{ i + 1 }}
+              </button>
+            </div>
+          </div>
+        </div>
+         <!-- Kết quả -->
+        <nz-card *ngIf="submitted" class="mt-3" nzType="inner">
+          <h3 class="mt-0">Kết quả</h3>
+          <div>Họ và tên: <strong>{{ candidateName || 'N/A' }}</strong></div>
+          <div>Ngày sinh: <strong>{{ dob ? (dob | date: 'dd/MM/yyyy') : '-' }}</strong></div>
+          <div>Email: <strong>{{ email || '-' }}</strong></div>
+          <div>Số điện thoại: <strong>{{ phone || '-' }}</strong></div>
+          <div>Địa chỉ: <strong>{{ address || '-' }}</strong></div>
+          <div>Vị trí ứng tuyển: <strong>{{ position || '-' }}</strong></div>
+          <div>Điểm: <strong>{{ score }}</strong> / {{ questions.length }}</div>
+          <div>Bắt đầu: <strong>{{ startedAt?.toLocaleString() }}</strong></div>
+          <div>Nộp bài: <strong>{{ submittedAt?.toLocaleString() }}</strong></div>
+          <div>Thời gian còn lại khi nộp: <strong>{{ formatRemaining() }}</strong></div>
+        </nz-card>
+
+        <!-- Review mode -->
+        <div *ngIf="isReview">
+          <div *ngFor="let q of questions; let qi = index" class="mb-4 review-question"
+              [ngClass]="{ 'no-answer': selectedAnswers[q.id] === undefined }">
+
+            <!-- Câu hỏi -->
+            <div class="question-text fw-semibold mb-2">
+              {{ qi + 1 }}. {{ q.text || '' }}
+            </div>
+
+            <!-- Nếu là MCQ -->
+            <div *ngIf="q.type==='mcq'" class="options-horizontal" style="display: flex; flex-wrap: wrap; gap: 12px;">
+              <div *ngFor="let opt of q.options; let idx = index"
+                  [ngClass]="{
+                    'text-success fw-bold': q.correctIndex === idx,
+                    'text-danger': selectedAnswers[q.id] === idx && selectedAnswers[q.id] !== q.correctIndex
+                  }"
+                  style="border: 1px solid #ddd; border-radius: 4px; padding: 8px 12px; display: flex; align-items: center; gap: 4px; min-width: 120px;">
+                <span>{{ opt.text }}</span>
+                <img *ngIf="opt.image" [src]="opt.image" alt="option" style="max-height: 50px;">
+                <span *ngIf="selectedAnswers[q.id] === idx && selectedAnswers[q.id] !== q.correctIndex" style="margin-left:4px;">(Đáp án chọn)</span>
+                <span *ngIf="q.correctIndex === idx" style="margin-left:4px;">(Đáp án đúng)</span>
+              </div>
+            </div>
+
+            <!-- Nếu là câu Text -->
+            <div *ngIf="q.type==='text'" class="text-answer-container" style="display: flex; gap: 16px; margin-top: 8px;">
+              <div>Đáp án nhập: <strong>{{ selectedAnswers[q.id] || '-' }}</strong></div>
+              <div>Đáp án đúng: <strong>{{ q.answerText || '-' }}</strong></div>
+            </div>
+
+          </div>
+        </div>
+
+        <nz-card *ngIf="showThankYou" class="mt-3 text-center">
+          <h3>Cảm ơn bạn đã hoàn thành bài thi IQ!</h3>
+          <div class="d-flex justify-content-center gap-2 mt-3">
+            <button nz-button nzType="primary" (click)="viewResult()">Xem kết quả</button>
+            <button nz-button nzType="default" (click)="closeModal()">Thoát</button>
+          </div>
+        </nz-card>
+
+
+      </div>
+    </div>
+  </ng-container>
+</nz-modal>

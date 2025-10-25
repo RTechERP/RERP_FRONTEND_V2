@@ -1,0 +1,117 @@
+.splitter-container {
+  margin-bottom: 20px;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+.splitter-container.hidden {
+  display: none;
+}
+
+.panel-content {
+  height: 100%;
+  padding: 16px;
+  overflow: auto;
+}
+
+.tabulator-container {
+  height: 670px;
+  width: 100%;
+}
+
+/* Cải thiện style cho splitter bar */
+::ng-deep .nz-splitter-bar {
+  background-color: #e8e8e8;
+  border-left: 1px solid #d9d9d9;
+  border-right: 1px solid #d9d9d9;
+  width: 8px !important;
+  transition: background-color 0.2s ease;
+}
+
+::ng-deep .nz-splitter-bar:hover {
+  background-color: #1890ff;
+  cursor: col-resize;
+}
+
+::ng-deep .nz-splitter-bar.nz-splitter-bar-active {
+  background-color: #096dd9;
+}
+
+.text-truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 1px 6px rgba(0, 0, 0, 0.02), 0 1px 16px rgba(0, 0, 0, 0.03);
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+}
+
+/* Thêm style cho bảng Tabulator */
+::ng-deep .tabulator {
+  font-family: inherit;
+  border: none;
+}
+
+::ng-deep .tabulator .tabulator-header {
+  background-color: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+  font-weight: 500;
+}
+
+::ng-deep .tabulator .tabulator-header .tabulator-col {
+  border-right: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+
+::ng-deep .tabulator .tabulator-row {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+::ng-deep .tabulator .tabulator-row.tabulator-row-even {
+  background-color: #fafafa;
+}
+
+::ng-deep .tabulator .tabulator-row:hover {
+  background-color: #e6f7ff;
+}
+
+/* Style cho group headers */
+::ng-deep .tabulator-group-header {
+  background-color: #f0f8ff !important;
+  font-weight: 600;
+  color: #1890ff;
+  padding: 8px 16px;
+}
+
+/* Style cho pagination */
+::ng-deep .tabulator-footer {
+  background-color: #fafafa;
+  border-top: 1px solid #f0f0f0;
+  padding: 8px;
+}
+
+/* Style cho search input */
+.search-container {
+  margin-bottom: 16px;
+  padding: 0 8px;
+}
+
+/* Đảm bảo responsive */
+@media (max-width: 768px) {
+  .panel-content {
+    padding: 12px;
+  }
+  
+  .splitter-container {
+    margin-bottom: 16px;
+  }
+  
+  .tabulator-container {
+    height: 500px;
+  }
+}

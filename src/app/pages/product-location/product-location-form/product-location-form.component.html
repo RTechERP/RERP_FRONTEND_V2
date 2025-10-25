@@ -1,0 +1,131 @@
+<div class="modal-header">
+  <h4 class="modal-title">{{ productLocationForm.get('ID')?.value ? 'Sửa vị trí sản phẩm' : 'Thêm vị trí sản phẩm' }}</h4>
+  <button type="button" class="btn-close" aria-label="Close" (click)="closeModal()"></button>
+</div>
+
+<div class="modal-body">
+  <form nz-form [formGroup]="productLocationForm">
+    <div nz-row nzGutter="16">
+      <div nz-col nzSpan="12">
+        <nz-form-item>
+          <nz-form-label nzRequired>Mã vị trí</nz-form-label>
+          <nz-form-control 
+            [nzValidateStatus]="isFieldInvalid('LocationCode') ? 'error' : ''"
+            [nzErrorTip]="getFieldError('LocationCode')">
+            <input 
+              nz-input 
+              formControlName="LocationCode"
+              placeholder="Nhập mã vị trí">
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      
+      <div nz-col nzSpan="12">
+        <nz-form-item>
+          <nz-form-label nzRequired>Tên vị trí</nz-form-label>
+          <nz-form-control 
+            [nzValidateStatus]="isFieldInvalid('LocationName') ? 'error' : ''"
+            [nzErrorTip]="getFieldError('LocationName')">
+            <input 
+              nz-input 
+              formControlName="LocationName"
+              placeholder="Nhập tên vị trí">
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+
+    <div nz-row nzGutter="16">
+      <div nz-col nzSpan="12">
+        <nz-form-item>
+          <nz-form-label>Tên cũ</nz-form-label>
+          <nz-form-control 
+            [nzValidateStatus]="isFieldInvalid('OldLocationName') ? 'error' : ''"
+            [nzErrorTip]="getFieldError('OldLocationName')">
+            <input 
+              nz-input 
+              formControlName="OldLocationName"
+              placeholder="Nhập tên cũ (nếu có)">
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <div nz-col nzSpan="12">
+        <nz-form-item>
+          <nz-form-label>Kho ID</nz-form-label>
+          <nz-form-control 
+            [nzValidateStatus]="isFieldInvalid('WarehouseID') ? 'error' : ''"
+            [nzErrorTip]="getFieldError('WarehouseID')">
+            <nz-input-number 
+              formControlName="WarehouseID"
+              nzPlaceHolder="Nhập ID kho"
+              style="width: 100%">
+            </nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+
+    <div nz-row nzGutter="16">
+      <div nz-col nzSpan="12">
+        <nz-form-item>
+          <nz-form-label>Tọa độ X</nz-form-label>
+          <nz-form-control 
+            [nzValidateStatus]="isFieldInvalid('CoordinatesX') ? 'error' : ''"
+            [nzErrorTip]="getFieldError('CoordinatesX')">
+            <nz-input-number 
+              formControlName="CoordinatesX"
+              nzPlaceHolder="Nhập tọa độ X"
+              style="width: 100%">
+            </nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <div nz-col nzSpan="12">
+        <nz-form-item>
+          <nz-form-label>Tọa độ Y</nz-form-label>
+          <nz-form-control 
+            [nzValidateStatus]="isFieldInvalid('CoordinatesY') ? 'error' : ''"
+            [nzErrorTip]="getFieldError('CoordinatesY')">
+            <nz-input-number 
+              formControlName="CoordinatesY"
+              nzPlaceHolder="Nhập tọa độ Y"
+              style="width: 100%">
+            </nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+
+    <div nz-row nzGutter="16">
+      <div nz-col nzSpan="24">
+        <nz-form-item>
+          <nz-form-label nzRequired>Loại vị trí</nz-form-label>
+          <nz-form-control 
+            [nzValidateStatus]="isFieldInvalid('LocationType') ? 'error' : ''"
+            [nzErrorTip]="getFieldError('LocationType')">
+            <nz-select 
+              nzPlaceHolder="Chọn loại vị trí" 
+              formControlName="LocationType">
+              <nz-option 
+                *ngFor="let type of locationTypes" 
+                [nzValue]="type.value" 
+                [nzLabel]="type.label">
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="modal-footer">
+  <button nz-button nzType="default" (click)="closeModal()">
+    Hủy
+  </button>
+  <button nz-button nzType="primary" (click)="saveData()">
+    Lưu
+  </button>
+</div>

@@ -1,7 +1,6 @@
 import { Component, OnInit, AfterViewInit, ViewChild, NgZone } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import * as bootstrap from 'bootstrap';
 
 import { CommonModule } from '@angular/common';
 import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
@@ -23,7 +22,6 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { ProductSaleDetailComponent } from '../ProductSale/product-sale-detail/product-sale-detail.component';
 import { ProductGroupDetailComponent } from '../ProductSale/product-group-detail/product-group-detail.component';
 import { ImportExcelProductSaleComponent } from '../ProductSale/import-excel-product-sale/import-excel-product-sale.component';
-import { IS_ADMIN } from '../../../app.config';
 import { InventoryService } from './inventory-service/inventory.service';
 import { ProductSaleComponent } from '../ProductSale/product-sale.component';
 import { InventoryBorrowNCCComponent } from './Modal/inventory-borrow-ncc/inventory-borrow-ncc.component';
@@ -67,8 +65,6 @@ interface ProductSale {
     NzInputNumberModule,
     NzCheckboxModule,
     NgbModule,
-    ProductSaleDetailComponent,
-    ImportExcelProductSaleComponent
   ],
   templateUrl: './inventory.component.html',
   styleUrl: './inventory.component.css'
@@ -92,7 +88,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
 
   wareHouseCode:string="HN";
   productGroupID:number=0;
-  
+
   table_productgroup:any;
   dataProductGroup:any[]=[];
 
@@ -130,7 +126,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
     Note: '',
   };
   ngOnInit(): void {
-    
+
   }
   ngAfterViewInit(): void {
     this.drawTable_ProductGroup();
@@ -146,7 +142,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
       keyboard: false
     });
-  
+
     modalRef.result.catch(
       (result) => {
         if (result == true) {
@@ -156,7 +152,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
     );
   }
     //#region dong mo modal
-    // updateProductSale() {  
+    // updateProductSale() {
     //   var dataSelect = this.table_inventory.getSelectedData();
     //   this.selectedList = dataSelect; // Cập nhật lại selectedList với dữ liệu mới nhất
     //   const ids = this.selectedList.map(item => item.ProductSaleID);
@@ -195,7 +191,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
   getdataFind(){
 
   }
-   //#region các hàm lấy dữ liệu và mở mđ ProductGroup 
+   //#region các hàm lấy dữ liệu và mở mđ ProductGroup
    getProductGroup() {
     this.productsaleSV.getdataProductGroup(this.wareHouseCode,false).subscribe({
       next: (res) => {
@@ -254,7 +250,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
       }
     });
   }
-  
+
   openModalProductGroup() {
     if(this.productGroupID === 0){
       this.notification.warning("Thông báo", "Vui lòng chọn 1 nhóm sản phẩm để sửa!")
@@ -268,12 +264,12 @@ export class InventoryComponent implements OnInit, AfterViewInit {
       IsVisible: false,
       WareHouseID: 0
     };
-  
+
     this.productsaleSV.getdataProductGroupWareHouse(this.productGroupID, 1).subscribe({
       next: (res) => {
         if (res?.data && res.data.length > 0) {
           this.newProductGroup.EmployeeID = res.data[0].EmployeeID ?? 0;
-        } 
+        }
         this.newProductGroup.WareHouseID = 1;
         const modalRef = this.modalService.open(ProductGroupDetailComponent, {
           centered: true,
@@ -281,15 +277,15 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           backdrop: 'static',
           keyboard: false
         });
-  
+
         modalRef.componentInstance.newProductGroup = this.newProductGroup;
         modalRef.componentInstance.isCheckmode = true;
         modalRef.componentInstance.id = this.productGroupID;
         modalRef.componentInstance.isFromParent = true;
-  
+
         modalRef.result.catch((result) => {
           if (result == true) {
-            // reload lại dữ liệu 
+            // reload lại dữ liệu
             this.getProductGroup();
             this.getDataProductGroupWareHouse(this.productGroupID);
             this.productGroupID=0;
@@ -373,7 +369,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
     worksheet.autoFilter = {
       from: {
         row: 1,
-        column: 1, 
+        column: 1,
       },
       to: {
         row: 1,
@@ -431,7 +427,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
     });
     this.table_productgroup.on("rowDblClick", (e: MouseEvent, row: any) => {
       const rowData = row.getData();
-    
+
       this.productGroupID = rowData['ID'];
       this.zone.run(() => {
         this.openModalProductGroup();
@@ -442,7 +438,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
       const selectedRows = this.table_productgroup.getSelectedRows();
       if (selectedRows.length === 0) {
         this.productGroupID = 0; // Reset id về 0 (hoặc null)
-      //   this.tableReport?.replaceData([]); // Xóa dữ liệu bảng chi tiết  
+      //   this.tableReport?.replaceData([]); // Xóa dữ liệu bảng chi tiết
       }
     });
   }
@@ -512,5 +508,5 @@ export class InventoryComponent implements OnInit, AfterViewInit {
         { title: 'Ghi chú', field: 'Note', hozAlign: 'left', headerHozAlign: 'center' }
       ],
     });
-  }  
+  }
 }

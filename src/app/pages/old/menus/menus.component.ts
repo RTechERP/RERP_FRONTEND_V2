@@ -380,7 +380,7 @@ export const menus: MenuItem[] = [
       {
         kind: 'leaf',
         key: 'FactoryVisitRegistrationComponent',
-        title: 'THĂM NHÀ MÁY',
+        title: 'THĂM QUAN NHÀ MÁY',
         isOpen: true,
         comp: FactoryVisitRegistrationComponent,
         //   icon: 'assets/icon/layers.png',

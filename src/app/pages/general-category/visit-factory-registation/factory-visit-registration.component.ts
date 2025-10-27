@@ -934,8 +934,8 @@ export class FactoryVisitRegistrationComponent
       nzOkText: confirmText,
       nzCancelText: 'Hủy',
       nzOnOk: () => {
-        const updatedRegistration = {
-          ...this.selectedRegistration,
+        const updatedRegistration: any = {
+          id: this.selectedRegistration.id,
           informationReceived: !isApproved,
         };
 

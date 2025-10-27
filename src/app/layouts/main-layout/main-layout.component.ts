@@ -20,6 +20,7 @@ import { AppNotifycationDropdownComponent } from '../../pages/old/app-notifycati
 // import { AppUserDropdownComponent } from '/pages/old/app/app-user-dropdown/app-user-dropdown.component';
 import { Title } from '@angular/platform-browser';
 import { ProjectComponent } from '../../pages/old/project/project.component';
+// import { EmployeePayrollComponent } from '../../pages/hrm/employee/employee-payroll/employee-payroll/employee-payroll.component';
 // import { CustomerComponent } from '../../pages/customer/customer.component';
 import { TbProductRtcComponent } from '../../pages/old/tb-product-rtc/tb-product-rtc.component';
 import { CustomerComponent } from '../../pages/old/VisionBase/customer/customer.component';
@@ -34,14 +35,13 @@ import { ProjectWorkItemTimelineComponent } from '../../pages/old/project/projec
 import { SynthesisOfGeneratedMaterialsComponent } from '../../pages/old/project/synthesis-of-generated-materials/synthesis-of-generated-materials.component';
 import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
 
-import { FactoryVisitRegistrationComponent } from '../../pages/general-category/visit-factory-registation/factory-visit-registration.component';
 import { TsAssetAllocationPersonalComponent } from '../../pages/old/ts-asset-allocation-personal/ts-asset-allocation-personal.component';
 import { TsAssetManagementPersonalComponent } from '../../pages/old/ts-asset-management-personal/ts-asset-management-personal.component';
 import { TsAssetManagementPersonalTypeComponent } from '../../pages/old/ts-asset-management-personal/ts-asset-management-personal-type/ts-asset-management-personal-type.component';
 import { TsAssetRecoveryPersonalComponent } from '../../pages/old/ts-asset-recovery-personal/ts-asset-recovery-personal.component';
 import { VehicleRepairComponent } from '../../pages/hrm/vehicle-repair/vehicle-repair.component';
 import { VehicleRepairTypeComponent } from '../../pages/hrm/vehicle-repair/vehicle-repair-type/vehicle-repair-type.component';
-
+import { TsAssetRecoveryPersonalNewComponent } from '../../pages/hrm/asset/assetpersonal/ts-asset-recovery-personal-new/ts-asset-recovery-personal-new.component';
 import { DepartmentComponent } from '../../pages/old/department/department.component';
 import { TeamComponent } from '../../pages/old/team/team.component';
 import { PositionsComponent } from '../../pages/old/positions/positions.component';
@@ -55,24 +55,27 @@ type TabItem = {
   comp: Type<any>;
   injector?: Injector;
 };
-type BaseItem = {
+export type BaseItem = {
   key: string;
   title: string;
   isOpen: boolean;
-  icon?: string | null; // tùy chọn
+  icon?: string | null;
 };
 
-type LeafItem = BaseItem & {
+export type LeafItem = BaseItem & {
   kind: 'leaf';
   comp: Type<any>;
 };
 
-type GroupItem = BaseItem & {
+export type GroupItem = BaseItem & {
   kind: 'group';
-  children: LeafItem[];
+  children: MenuItem[]; // cho phép lồng group
 };
 
-type MenuItem = LeafItem | GroupItem;
+export type MenuItem = LeafItem | GroupItem;
+
+export const isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
+export const isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
 
 const COMPONENT_REGISTRY: Record<string, Type<any>> = {
   customer: CustomerComponent,
@@ -171,9 +174,10 @@ export class MainLayoutComponent implements OnInit {
     },
   ];
   ngOnInit(): void {
+    const saved = localStorage.getItem('openMenuKey') || '';
+    this.setOpenMenu(saved || null);
     this.getMenus(43);
   }
-
   newTab(comp: Type<any>, title: string, injector?: Injector) {
     const idx = this.dynamicTabs.findIndex((t) => t.title === title);
     if (idx >= 0) {
@@ -212,12 +216,28 @@ export class MainLayoutComponent implements OnInit {
     console.log('picked:', n);
     // TODO: điều hướng/đánh dấu đã đọc...
   }
+  // toggleMenu(key: string) {
+  //   const m = this.menus.find((x) => x.key === key);
+  //   if (m) m.isOpen = !m.isOpen;
+  // }
+  // isMenuOpen(key: string): boolean {
+  //   const m = this.menus.find((x) => x.key === key);
+  //   return !!m && !!m.isOpen;
+  // }
+  private setOpenMenu(key: string | null) {
+    this.menus.forEach((m) => (m.isOpen = key !== null && m.key === key));
+    localStorage.setItem('openMenuKey', key ?? '');
+  }
+
+  isMenuOpen = (key: string) =>
+    this.menus.some((m) => m.key === key && m.isOpen);
   toggleMenu(key: string) {
     const m = this.menus.find((x) => x.key === key);
     if (m) m.isOpen = !m.isOpen;
   }
-  isMenuOpen(key: string): boolean {
-    const m = this.menus.find((x) => x.key === key);
-    return !!m && !!m.isOpen;
+
+  // dùng khi muốn mở thẳng 1 group từ nơi khác
+  openOnly(key: string) {
+    this.setOpenMenu(key);
   }
 }

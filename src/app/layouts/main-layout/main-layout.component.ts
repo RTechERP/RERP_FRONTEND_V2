@@ -55,24 +55,28 @@ type TabItem = {
   comp: Type<any>;
   injector?: Injector;
 };
-type BaseItem = {
+export type BaseItem = {
   key: string;
   title: string;
   isOpen: boolean;
-  icon?: string | null; // tùy chọn
+  icon?: string | null;
 };
 
-type LeafItem = BaseItem & {
+export type LeafItem = BaseItem & {
   kind: 'leaf';
   comp: Type<any>;
 };
 
-type GroupItem = BaseItem & {
+export type GroupItem = BaseItem & {
   kind: 'group';
-  children: LeafItem[];
+  children: MenuItem[]; // cho phép lồng group
 };
 
-type MenuItem = LeafItem | GroupItem;
+export type MenuItem = LeafItem | GroupItem;
+
+export const isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
+export const isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
+
 
 const COMPONENT_REGISTRY: Record<string, Type<any>> = {
   customer: CustomerComponent,
@@ -170,10 +174,11 @@ export class MainLayoutComponent implements OnInit {
       icon: 'file-done',
     },
   ];
-  ngOnInit(): void {
-    this.getMenus(43);
-  }
-
+ngOnInit(): void {
+  const saved = localStorage.getItem('openMenuKey') || '';
+  this.setOpenMenu(saved || null);
+  this.getMenus(43);
+}
   newTab(comp: Type<any>, title: string, injector?: Injector) {
     const idx = this.dynamicTabs.findIndex((t) => t.title === title);
     if (idx >= 0) {
@@ -212,12 +217,25 @@ export class MainLayoutComponent implements OnInit {
     console.log('picked:', n);
     // TODO: điều hướng/đánh dấu đã đọc...
   }
-  toggleMenu(key: string) {
+  // toggleMenu(key: string) {
+  //   const m = this.menus.find((x) => x.key === key);
+  //   if (m) m.isOpen = !m.isOpen;
+  // }
+  // isMenuOpen(key: string): boolean {
+  //   const m = this.menus.find((x) => x.key === key);
+  //   return !!m && !!m.isOpen;
+  // }
+  private setOpenMenu(key: string | null) {
+  this.menus.forEach(m => (m.isOpen = key !== null && m.key === key));
+  localStorage.setItem('openMenuKey', key ?? '');
+}
+
+isMenuOpen = (key: string) => this.menus.some(m => m.key === key && m.isOpen);
+ toggleMenu(key: string) {
     const m = this.menus.find((x) => x.key === key);
     if (m) m.isOpen = !m.isOpen;
   }
-  isMenuOpen(key: string): boolean {
-    const m = this.menus.find((x) => x.key === key);
-    return !!m && !!m.isOpen;
-  }
+
+// dùng khi muốn mở thẳng 1 group từ nơi khác
+openOnly(key: string) { this.setOpenMenu(key); }
 }

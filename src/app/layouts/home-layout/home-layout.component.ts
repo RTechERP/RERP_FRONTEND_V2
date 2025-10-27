@@ -9,7 +9,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink, RouterModule, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterModule, RouterOutlet } from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCarouselComponent, NzCarouselModule } from 'ng-zorro-antd/carousel';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
@@ -228,7 +228,8 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
     private modalService: NgbModal,
     private modal: NzModalService,
     private cdr: ChangeDetectorRef,
-    private holidayService: HolidayServiceService
+    private holidayService: HolidayServiceService,
+    private router:Router
   ) {}
 
   ngOnInit(): void {
@@ -458,4 +459,9 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
         },
       });
   }
+    openModule(key: string) {
+  localStorage.setItem('openMenuKey', key);
+  this.router.navigate(['/app']); // hoặc route tới MainLayout
+}
+
 }

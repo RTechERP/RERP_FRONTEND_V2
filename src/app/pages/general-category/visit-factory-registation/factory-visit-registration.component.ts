@@ -38,6 +38,7 @@ import { Calendar } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
+import { DateTime } from 'luxon';
 
 @Component({
   selector: 'app-factory-visit-registration',
@@ -81,7 +82,20 @@ export class FactoryVisitRegistrationComponent
   participantTable!: Tabulator;
   detailTable!: Tabulator;
 
-  visitFactory: any;
+  //   visitFactory: any;
+
+  visitFactory = {
+    // id: undefined,
+    registrationDate: null,
+    startTime: null,
+    endTime: null,
+    purpose: String,
+    notes: String,
+    fullName: String,
+    guestCompany: String,
+    VisitGuestTypeName: String,
+    numberOfPeople: Number,
+  };
 
   searchForm = {
     fromDate: '',
@@ -383,6 +397,7 @@ export class FactoryVisitRegistrationComponent
   loadData(): void {
     this.factoryVisitService.getRegistrations().subscribe({
       next: (data) => {
+        console.log('loadData:', data);
         this.registrations = data;
         this.updateRegistrationTable();
       },
@@ -489,6 +504,7 @@ export class FactoryVisitRegistrationComponent
   search(): void {
     this.factoryVisitService.searchRegistrations(this.searchForm).subscribe({
       next: (data) => {
+        console.log('factoryVisitService:', data);
         this.registrations = data;
         this.updateRegistrationTable();
       },
@@ -1198,7 +1214,17 @@ export class FactoryVisitRegistrationComponent
         );
         if (found) {
           this.selectRegistration(found);
-          this.visitFactory = this.registrations.find((x) => x.id === id);
+          //   this.visitFactory = this.registrations.find((x) => x.id === id);
+          let data = this.registrations.find((x) => x.id === id);
+          this.visitFactory = {
+            ...data,
+            fullName: this.getEmployeeDisplayNameById(
+              Number(data.registeringEmployee)
+            ),
+            registrationDate: new Date(data.registrationDate),
+            endTime: new Date(data.endTime),
+            startTime: new Date(data.startTime),
+          };
           console.log(this.visitFactory);
         }
 

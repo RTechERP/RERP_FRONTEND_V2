@@ -10,8 +10,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   // Không chèn token nếu là request tới API login
   const isLoginRequest = req.url.includes('/api/home/login');
   if (isLoginRequest) {
-
-     console.log("token:", token);
+    //  console.log("token:", token);
 
     return next(req);
   }

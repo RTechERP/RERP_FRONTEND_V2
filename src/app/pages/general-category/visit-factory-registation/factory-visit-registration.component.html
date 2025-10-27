@@ -129,8 +129,25 @@
                             <nz-tabset class="ps-1">
                                 <nz-tab nzTitle="Chi tiết thăm nhà máy">
                                     <div class="p-2">
-                                        <p>Người đăng ký: {{visitFactory.fullName}}</p>
-                                        <p>Ngày đăng ký: uiqeuqheqhewqhew</p>
+                                        <p><span class="fw-bold">Người đăng ký:</span> {{visitFactory.fullName || ''}}
+                                        </p>
+                                        <p><span class="fw-bold">Ngày đăng ký:</span> {{visitFactory.registrationDate |
+                                            date:'dd/MM/yyyy'}}</p>
+                                        <p>
+                                            <span class="fw-bold">Từ:</span> {{visitFactory.startTime | date:'dd/MM/yyyy
+                                            HH:mm'}} <span class="fw-bold">Đến:</span> {{visitFactory.endTime|
+                                            date:'dd/MM/yyyy
+                                            HH:mm'}}
+                                        </p>
+                                        <p><span class="fw-bold">Loại khách:</span> {{visitFactory.VisitGuestTypeName||
+                                            ''}}
+                                        </p>
+                                        <p><span class="fw-bold">Công ty/ Đơn vị khách:</span>
+                                            {{visitFactory.guestCompany|| ''}}</p>
+                                        <p><span class="fw-bold">Số người tham gia:</span>
+                                            {{visitFactory.numberOfPeople|| 0}}</p>
+                                        <p><span class="fw-bold">Mục đích:</span> {{visitFactory.purpose|| ''}}</p>
+                                        <p><span class="fw-bold">Ghi chú: </span> {{visitFactory.notes|| ''}}</p>
                                     </div>
                                 </nz-tab>
                                 <nz-tab nzTitle="Người tham gia">

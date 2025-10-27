@@ -303,7 +303,7 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
   getEmployeeOnleaveAndWFH(): void {
     this.homepageService.getEmployeeOnleaveAndWFH().subscribe(
       (response: any) => {
-        console.log('getEmployeeOnleaveAndWFH: ', response);
+        // console.log('getEmployeeOnleaveAndWFH: ', response);
         this.employeeOnleaves = response.data.employeeOnleaves || [];
         this.employeeWfhs = response.data.employeeWfhs || [];
 
@@ -451,7 +451,7 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
           this.holidays = response.data.holidays;
           this.scheduleWorkSaturdays = response.data.scheduleWorkSaturdays;
 
-          console.log(response);
+          //   console.log(response);
         },
         error: (err: any) => {
           this.notification.error('Lỗi', err.error.message);

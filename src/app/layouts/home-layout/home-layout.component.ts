@@ -9,7 +9,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink, RouterModule, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterModule, RouterOutlet } from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCarouselComponent, NzCarouselModule } from 'ng-zorro-antd/carousel';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
@@ -228,7 +228,8 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
     private modalService: NgbModal,
     private modal: NzModalService,
     private cdr: ChangeDetectorRef,
-    private holidayService: HolidayServiceService
+    private holidayService: HolidayServiceService,
+    private router:Router
   ) {}
 
   ngOnInit(): void {
@@ -303,7 +304,7 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
   getEmployeeOnleaveAndWFH(): void {
     this.homepageService.getEmployeeOnleaveAndWFH().subscribe(
       (response: any) => {
-        console.log('getEmployeeOnleaveAndWFH: ', response);
+        // console.log('getEmployeeOnleaveAndWFH: ', response);
         this.employeeOnleaves = response.data.employeeOnleaves || [];
         this.employeeWfhs = response.data.employeeWfhs || [];
 
@@ -451,11 +452,16 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
           this.holidays = response.data.holidays;
           this.scheduleWorkSaturdays = response.data.scheduleWorkSaturdays;
 
-          console.log(response);
+          //   console.log(response);
         },
         error: (err: any) => {
           this.notification.error('Lỗi', err.error.message);
         },
       });
   }
+    openModule(key: string) {
+  localStorage.setItem('openMenuKey', key);
+  this.router.navigate(['/app']); // hoặc route tới MainLayout
+}
+
 }

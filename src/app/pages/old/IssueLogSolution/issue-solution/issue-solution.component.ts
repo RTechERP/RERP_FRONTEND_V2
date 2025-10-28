@@ -25,8 +25,8 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
-import { ISADMIN } from '../../../app.config';
-import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { ISADMIN } from '../../../../app.config';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 
 import { IssueSolutionService } from './issue-solution/issue-solution.service';
 import { IssueSolutionDetailComponent } from '../issue-solution-detail/issue-solution-detail.component';

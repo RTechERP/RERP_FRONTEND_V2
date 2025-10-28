@@ -37,6 +37,7 @@ import { EmployeeAttendanceComponent } from '../employee-attendance/employee-att
 import { TsAssetRecoveryPersonalNewComponent } from '../../hrm/asset/assetpersonal/ts-asset-recovery-personal-new/ts-asset-recovery-personal-new.component';
 import { VehicleCategoryComponent } from '../../hrm/vehicle-management/vehicle-category/vehicle-category.component';
 import { VehicleManagementComponent } from '../../hrm/vehicle-management/vehicle-management.component';
+import { IssueSolutionComponent } from '../IssueLogSolution/issue-solution/issue-solution.component';
 
 @Component({
   selector: 'app-menus',
@@ -102,6 +103,14 @@ export const menus: MenuItem[] = [
         isOpen: true,
         //   icon: 'assets/images/icons8-overview-20.png',
         comp: CustomerComponent,
+      },
+      {
+        kind: 'leaf',
+        key: 'IssueLogSolutionComponent',
+        title: 'Biểu ghi nhận lỗi & phương án khắc phục liên phòng ban',
+        isOpen: true,
+        //   icon: 'assets/images/icons8-overview-20.png',
+        comp: IssueSolutionComponent,
       },
     ],
   },

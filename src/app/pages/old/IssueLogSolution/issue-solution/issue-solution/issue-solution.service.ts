@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { HOST } from '../../../../app.config';
+import { HOST } from '../../../../../app.config';
 
 @Injectable({
   providedIn: 'root'
@@ -36,12 +36,7 @@ export class IssueSolutionService {
   getEmployees() {
     return this.http.get<any>(HOST + 'api/Employee/' + 'get-all');
   }
-  getCauses() {
-    return this.http.get<any>(this._url + 'get-causes');
-  }
-  getStatuses() {
-    return this.http.get<any>(this._url + 'get-statuses');
-  }
+  
   getDocuments() {
     return this.http.get<any>(this._url + 'get-documents');
   }
@@ -58,4 +53,33 @@ export class IssueSolutionService {
     }
     );
   }
+
+  getAllIssueCauses() {
+    return this.http.get<any>(HOST + 'api/IssueCause');
+  }
+  getIssueCauseDetail(id: number) {
+    return this.http.get<any>(HOST + 'api/IssueCause/'+ 'get-detail', {
+      params: {
+        id: id,
+      },
+    });
+  }
+  saveIssueCause(payload: any) {
+    return this.http.post<any>(HOST + 'api/IssueCause/'+ 'save', payload);
+  }
+
+  getAllIssueStatuses() {
+    return this.http.get<any>(HOST + 'api/IssueSolutionStatus');
+  }
+  getIssueStatusDetail(id: number) {
+    return this.http.get<any>(HOST + 'api/IssueSolutionStatus/'+ 'get-detail', {
+      params: {
+        id: id,
+      },
+    });
+  }
+  saveIssueStatus(payload: any) {
+    return this.http.post<any>(HOST + 'api/IssueSolutionStatus/'+ 'save', payload);
+  }
+  
 }

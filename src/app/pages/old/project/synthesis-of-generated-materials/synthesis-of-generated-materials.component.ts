@@ -20,7 +20,7 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
-import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
+// import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
 import { EnvironmentInjector } from '@angular/core';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DateTime } from 'luxon';
@@ -36,6 +36,7 @@ import { ProjectService } from '../project-service/project.service';
 import { Title } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { ChangeDetectorRef } from '@angular/core'; // add
 
 @Component({
   selector: 'app-synthesis-of-generated-materials',
@@ -77,7 +78,8 @@ export class SynthesisOfGeneratedMaterialsComponent
     private notification: NzNotificationService,
     private modal: NzModalService,
     private modalService: NgbModal,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef // add
   ) {}
 
   @ViewChild('tb_synthesisOfGeneratedMaterials', { static: false })
@@ -97,14 +99,18 @@ export class SynthesisOfGeneratedMaterialsComponent
   //#endregion
   //#region Chạy khi mở chương trình
   ngOnInit(): void {
+    this.isLoadTable = true; // set early to avoid NG0100
     this.getProject();
   }
+
   ngAfterViewInit(): void {
     this.drawTbSynthesisOfGeneratedMaterials(
       this.tb_synthesisOfGeneratedMaterialsContainer.nativeElement
     );
 
-    this.getDataProjectSurvey();
+    // defer data load to next tick to stabilize change detection
+    setTimeout(() => this.getDataProjectSurvey());
+    // this.cdr.detectChanges(); // optional but not required with setTimeout
   }
 
   getProject() {

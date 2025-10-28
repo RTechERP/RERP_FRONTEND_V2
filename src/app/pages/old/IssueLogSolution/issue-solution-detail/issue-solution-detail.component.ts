@@ -29,10 +29,12 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
-import { ISADMIN } from '../../../app.config';
-import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { ISADMIN } from '../../../../app.config';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 
 import { IssueSolutionService } from '../issue-solution/issue-solution/issue-solution.service';
+import { IssueCauseComponent } from '../issue-cause/issue-cause.component';
+import { IssueStatusComponent } from '../issue-status/issue-status.component';
 @Component({
   selector: 'app-issue-solution-detail',
   imports: [
@@ -81,6 +83,7 @@ export class IssueSolutionDetailComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     public activeModal: NgbActiveModal,
     private issueSolutionService: IssueSolutionService,
+    private modalService: NgbModal,
   ) {
     // Khởi tạo seed data cho loại biểu ghi
     this.issueSolutionTypes = [
@@ -100,23 +103,23 @@ export class IssueSolutionDetailComponent implements OnInit, AfterViewInit {
 
     this.form = this.fb.group({
       issueSolutionType: ['', Validators.required],
-      dateIssue: [null],
-      departmentId: [null],
+      dateIssue: [null, Validators.required],
+      departmentId: [null, Validators.required],
       relatedDepartmentId: [null],
       documentNumber: [[]],
       supplierId: [null],
-      statusId: [null],
+      statusId: [null, Validators.required],
       reasonIgnoreStatusText: [{ value: '', disabled: true }],
       issueDescription: ['', Validators.required],
-      immediateAction: [''],
-      customerId: [null],
+      immediateAction: ['', Validators.required],
+      customerId: [null, Validators.required],
       verifiedBy: [null],
-      employeeId: [null],
-      deadline: [null],
-      projectId: [null],
-      issueCauseId: [null],
+      employeeId: [null, Validators.required],
+      deadline: [null, Validators.required],
+      projectId: [null, Validators.required],
+      issueCauseId: [null, Validators.required],
       otherIssueCauseNote: [{ value: '', disabled: true }],
-      impactDetail: [''],
+      impactDetail: ['', Validators.required],
       preventiveAction: [''],
       note: [''],
     });
@@ -223,6 +226,43 @@ export class IssueSolutionDetailComponent implements OnInit, AfterViewInit {
     this.updateCauseValidation();
   }
 
+  openModalIssueCause(): void {
+    const modalRef = this.modalService.open(IssueCauseComponent, {
+      centered: true,
+      // windowClass: 'full-screen-modal',
+      size: "lg",
+      backdrop: 'static',
+    });
+
+    modalRef.result.then(
+      (result: any) => {
+        if (result.success && result.reloadData) {
+        }
+      },
+      (reason : any) => {
+        console.log('Modal closed');
+      }
+    );
+  }
+
+  openModalIssueStatus(): void {
+    const modalRef = this.modalService.open(IssueStatusComponent, {
+      centered: true,
+      // windowClass: 'full-screen-modal',
+      size: "lg",
+      backdrop: 'static',
+    });
+    modalRef.result.then(
+      (result: any) => {
+        if (result.success && result.reloadData) {
+        }
+      },
+      (reason : any) => {
+        console.log('Modal closed');
+      }
+    );
+  }
+
   updateCauseValidation(): void {
     const otherCauseControl = this.form.get('otherIssueCauseNote');
     if (this.isOtherCauseSelected()) {
@@ -237,7 +277,7 @@ export class IssueSolutionDetailComponent implements OnInit, AfterViewInit {
   }
 
   loadStatuses(){
-    this.issueSolutionService.getStatuses().subscribe({
+    this.issueSolutionService.getAllIssueStatuses().subscribe({
       next: (response) => {
         if (response.status === 1) {
           this.statuses = response.data
@@ -255,7 +295,7 @@ export class IssueSolutionDetailComponent implements OnInit, AfterViewInit {
   }
 
   loadCauses(){
-    this.issueSolutionService.getCauses().subscribe({
+    this.issueSolutionService.getAllIssueCauses().subscribe({
       next: (response) => {
         if (response.status === 1) {
           this.issueCauses = response.data

@@ -674,15 +674,23 @@ nz-carousel {
     box-shadow: gray;
 } */
 
-.card-img-top{
+/* .card-img-top{
     width: 50% !important;
-}
+} */
 
 .card-module{
     transition: all 0.3s ease;
+    /* width: 40% !important; */
+    cursor: pointer;
+    padding: 1.5rem;
+    width: 80%;
 }
-.card-module:hover{
+/* .card-module:hover{
     transform: translateY(-4px);
+    background-color: pink;
+} */
+.card-module >.card-body:hover{
+    background-color: darkgoldenrod;
 }
 
 .bg-white{

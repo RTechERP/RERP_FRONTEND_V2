@@ -69,7 +69,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
     CommonModule,
     NzUploadModule,
   ],
-  encapsulation: ViewEncapsulation.None,
+  //encapsulation: ViewEncapsulation.None,
   templateUrl: './project-survey.component.html',
   styleUrl: './project-survey.component.css',
 })

@@ -7,4 +7,5 @@ export const environment = {
   apiKey:
     "RTC%$#tEch~`'3keYRTC%$#tEch~`'3keYRTC%$#tEch~`'3keYRTC%$#tEch~`'3keYRTC%$#tEch~`'3keY",
   host: hostname + '/api/',
+  hostwebold: 'http://192.168.1.2:8081',
 };

@@ -21,3 +21,16 @@
 .ant-tabs-tab-btn {
   font-size: 0.75rem;
 }
+
+.actions-bar button {
+  margin-bottom: 4px;
+}
+
+@media (max-width: 768px) {
+  .card-header .actions-bar {
+    width: 100%;
+  }
+  .tabulator {
+    font-size: 0.7rem;
+  }
+}

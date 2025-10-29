@@ -76,7 +76,7 @@ interface HandoverWork {
   Status: number;
   Frequency: string;
   FileName: string;
-  SignedBy: string;
+  SignedBy: boolean;
   Note: string;
 }
 
@@ -89,7 +89,7 @@ interface HandoverWarehouseAsset {
   BorrowQty: number;
   Unit: string;
   ReturnedStatusText: string;
-  SignedBy: string;
+  SignedBy: boolean;
   ReceiverName: string;
   Note: string;
 }
@@ -102,7 +102,7 @@ interface HandoverAssetManagement {
   Quantity: number;
   UnitName: string;
   Status: string;
-  SignedBy: string;
+  SignedBy: boolean;
   ReceiverName: string;
   Note: string;
 }
@@ -190,7 +190,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
     Status: 0,
     Frequency: '',
     FileName: '',
-    SignedBy: '',
+    SignedBy: false,
     Note: '',
   };
 
@@ -203,7 +203,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
     BorrowQty: 0,
     Unit: '',
     ReturnedStatusText: '',
-    SignedBy: '',
+    SignedBy: false,
     ReceiverName: '',
     Note: '',
   };
@@ -216,7 +216,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
     Quantity: 0,
     UnitName: '',
     Status: '',
-    SignedBy: '',
+    SignedBy: false,
     ReceiverName: '',
     Note: '',
   };
@@ -341,7 +341,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
         Status: 0,
         Frequency: '',
         FileName: '',
-        SignedBy: '',
+        SignedBy: false,
         Note: '',
       };
       this.newHandoverWarehouseAsset = {
@@ -353,7 +353,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
         BorrowQty: 0,
         Unit: '',
         ReturnedStatusText: '',
-        SignedBy: '',
+        SignedBy: false,
         ReceiverName: '',
         Note: '',
       };
@@ -365,7 +365,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
         Quantity: 0,
         UnitName: '',
         Status: '',
-        SignedBy: '',
+        SignedBy: false,
         ReceiverName: '',
         Note: '',
       };
@@ -481,7 +481,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             Unit: item.Unit || '',
             ReturnedStatusText: item.ReturnedStatusText || '',
             BorrowID: item.BorrowID || 0,
-            SignedBy: '',
+            SignedBy: false,
             ReceiverName: '',
             Note: '',
           })
@@ -502,7 +502,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             Quantity: item.Quantity || '',
             UnitName: item.UnitName || '',
             Status: item.Status || '',
-            SignedBy: '',
+            SignedBy: false,
             ReceiverName: '',
             Note: '',
           })
@@ -532,19 +532,22 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
           this.handoverSubordinatesTable.setData(this.HandoverSubordinatesData);
         }
 
-        this.HandoverApproveData = HandoverApprove.map(
-          (item: any, index: number) => ({
-            STT: index + 1,
-            HandoverID: 0,
-            EmployeeID: 0,
-            RoleName: item.RoleName || '',
-            ApproveLevel: item.ApproveLevel,
-            ApproveStatus: 0,
-          })
-        );
+        if (this.isCheckmode == false) {
+          this.HandoverApproveData = HandoverApprove.map(
+            (item: any, index: number) => ({
+              ID: item.ID,
+              STT: index + 1,
+              HandoverID: item.HandoverID,
+              EmployeeID: item.EmployeeID,
+              RoleName: item.RoleName || '',
+              ApproveLevel: item.ApproveLevel,
+              ApproveStatus: 0,
+            })
+          );
 
-        if (this.handoverApproveTable) {
-          this.handoverApproveTable.setData(this.HandoverApproveData);
+          if (this.handoverApproveTable) {
+            this.handoverApproveTable.setData(this.HandoverApproveData);
+          }
         }
       },
     });
@@ -622,7 +625,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
           Status: item.Status || 0,
           Frequency: item.Frequency || '',
           FileName: item.FileName || '',
-          SignedBy: item.SignedBy || '',
+          SignedBy: item.SignedBy || false,
           Note: item.Note || '',
         }));
 
@@ -641,7 +644,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             BorrowQty: item.BorrowQty || 0,
             Unit: item.Unit || '',
             ReturnedStatusText: item.ReturnedStatusText || '',
-            SignedBy: item.SignedBy || '',
+            SignedBy: item.SignedBy || false,
             ReceiverName: item.ReceiverName || '',
             Note: item.Note || '',
             BorrowID: item.BorrowID || 0,
@@ -664,7 +667,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             Quantity: item.Quantity || 0,
             UnitName: item.UnitName || '',
             Status: item.Status || '',
-            SignedBy: item.SignedBy || '',
+            SignedBy: item.SignedBy || false,
             ReceiverName: item.ReceiverName || '',
             Note: item.Note || '',
           })
@@ -715,7 +718,6 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
           ApproveLevel: item.ApproveLevel || 0,
           ApproveStatus: item.ApproveStatus || 0,
         }));
-
         this.handoverApproveTable?.setData(this.HandoverApproveData);
       },
 
@@ -850,7 +852,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
       if (!this.newHandoverReceiver.EmployeeID) {
         this.notification.warning(
           'Thông báo',
-          'Vui lòng điền đầy đủ thông tin người nhận bàn giao!'
+          'Vui lòng điền đầy đủ thông tin Người nhận bàn giao!'
         );
         return;
       }
@@ -860,20 +862,22 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
       this.HandoverWorkData && this.HandoverWorkData.length > 0;
 
     if (hasWorkData) {
-      // validate theo bảng Tabulator
       const invalidIndex = this.HandoverWorkData.findIndex(
-        (x: any) => x.EmployeeID <= 0
+        (x: any) => !x.EmployeeID || x.EmployeeID <= 0
       );
+
       if (invalidIndex !== -1) {
+        const work = this.HandoverWorkData[invalidIndex];
         this.notification.warning(
           'Thông báo',
-          `Dòng số ${
-            invalidIndex + 1
-          } chưa điền thông tin người nhận bàn giao công việc!`
+          `Dòng số ${invalidIndex + 1}${
+            work?.ContentWork ? ` nội dung công việc ${work.ContentWork}` : ''
+          } thiếu người nhận bàn giao.`
         );
         return;
       }
     }
+
     const hasFinance =
       this.HandoverFinancesData && this.HandoverFinancesData.length > 0;
     if (hasFinance) {
@@ -884,7 +888,9 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
       if (invalidIndex !== -1) {
         this.notification.warning(
           'Thông báo',
-          `Dòng số ${invalidIndex + 1} chưa điền thông tin kế toán!`
+          `Dòng số ${
+            invalidIndex + 1
+          } chưa điền thông tin kế toán trong Công nợ!`
         );
         return;
       }
@@ -902,7 +908,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
           'Thông báo',
           `Dòng số ${
             invalidIndex + 1
-          } chưa điền thông tin người duyệt biên bản!`
+          } chưa điền thông tin người duyệt biên bản trong Duyệt !`
         );
         return;
       }
@@ -921,7 +927,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
       ) {
         this.notification.warning(
           'Thông báo',
-          'Vui lòng điền đầy đủ thông tin người nhận bàn giao tài sản!'
+          'Vui lòng điền đầy đủ thông tin người nhận bàn giao tài sản cấp phát!'
         );
         return;
       }
@@ -933,7 +939,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
       ) {
         this.notification.warning(
           'Thông báo',
-          'Vui lòng điền đầy đủ thông tin người nhận bàn giao tài sản!'
+          'Vui lòng điền đầy đủ thông tin người nhận bàn giao tài sản cấp phát!'
         );
         return;
       }
@@ -972,33 +978,48 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
       this.HandoverSubordinatesData && this.HandoverSubordinatesData.length > 0;
 
     if (hasSubData) {
-      // Check tất cả các dòng: nếu có SubordinateID thì phải có ReceiverID và AssigneeID
-      const invalidRow = this.HandoverSubordinatesData.findIndex(
-        (x: any) => x.SubordinateID > 0 && (!x.ReceiverID || !x.AssigneeID)
-      );
-
-      if (invalidRow !== -1) {
-        this.notification.warning(
-          'Thông báo',
-          `Dòng số ${
-            invalidRow + 1
-          } chưa điền đầy đủ thông tin người nhận hoặc người phụ trách!`
-        );
-        return;
+      // Duyệt từng dòng để check từng trường
+      for (let i = 0; i < this.HandoverSubordinatesData.length; i++) {
+        const item = this.HandoverSubordinatesData[i];
+        if (item.SubordinateID > 0) {
+          if (!item.AssigneeID) {
+            this.notification.warning(
+              'Thông báo',
+              `Dòng số ${
+                i + 1
+              } chưa điền đầy đủ thông tin Người đảm nhận trong Nhân viên trực thuộc!`
+            );
+            return;
+          }
+          if (!item.ReceiverID) {
+            this.notification.warning(
+              'Thông báo',
+              `Dòng số ${
+                i + 1
+              } chưa điền đầy đủ thông tin Người nhận bàn giao trong Nhân viên trực thuộc!`
+            );
+            return;
+          }
+        }
       }
     } else {
       // Trường hợp thêm mới (form đơn)
-      if (
-        this.newHandoverSubordinate.STT > 0 &&
-        this.newHandoverSubordinate.SubordinateID > 0 &&
-        (!this.newHandoverSubordinate.ReceiverID ||
-          !this.newHandoverSubordinate.AssigneeID)
-      ) {
-        this.notification.warning(
-          'Thông báo',
-          'Vui lòng điền đầy đủ thông tin người nhận và người phụ trách cho nhân viên trực thuộc!'
-        );
-        return;
+      const newItem = this.newHandoverSubordinate;
+      if (newItem.STT > 0 && newItem.SubordinateID > 0) {
+        if (!newItem.AssigneeID) {
+          this.notification.warning(
+            'Thông báo',
+            'Vui lòng điền thông tin Người đảm nhận cho nhân viên trực thuộc!'
+          );
+          return;
+        }
+        if (!newItem.ReceiverID) {
+          this.notification.warning(
+            'Thông báo',
+            'Vui lòng điền thông tin Người nhận bàn giao cho nhân viên trực thuộc!'
+          );
+          return;
+        }
       }
     }
 
@@ -1037,7 +1058,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             Status: item.Status || 0,
             Frequency: item.Frequency || '',
             FileName: item.FileName || '',
-            SignedBy: item.SignedBy || '',
+            SignedBy: item.SignedBy || false,
             Note: item.Note || '',
           })) || []),
         ],
@@ -1053,9 +1074,10 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             BorrowQty: item.BorrowQty || 0,
             Unit: item.Unit || '',
             ReturnedStatusText: item.ReturnedStatusText || '',
-            SignedBy: item.SignedBy || '',
+            SignedBy: item.SignedBy || false,
             ReceiverName: item.ReceiverName || '',
             Note: item.Note || '',
+            BorrowID: item.BorrowID || 0
           })) || []),
         ],
         HandoverAssetManagement: [
@@ -1068,7 +1090,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             Quantity: item.Quantity || '',
             UnitName: item.UnitName || '',
             Status: item.Status || '',
-            SignedBy: item.SignedBy || '',
+            SignedBy: item.SignedBy || false,
             ReceiverName: item.ReceiverName || '',
             Note: item.Note || '',
           })) || []),
@@ -1165,7 +1187,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             Status: item.Status || 0,
             Frequency: item.Frequency || '',
             FileName: item.FileName || '',
-            SignedBy: item.SignedBy || '',
+            SignedBy: item.SignedBy || false,
           })) || []),
         ],
         HandoverWarehouseAsset: [
@@ -1180,7 +1202,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             BorrowQty: item.BorrowQty || 0,
             Unit: item.Unit || '',
             ReturnedStatusText: item.ReturnedStatusText || '',
-            SignedBy: item.SignedBy || '',
+            SignedBy: item.SignedBy || false,
             ReceiverName: item.ReceiverName || '',
             Note: item.Note || '',
             BorrowID: item.BorrowID || 0,
@@ -1197,7 +1219,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             Quantity: item.Quantity || '',
             UnitName: item.UnitName || '',
             Status: item.Status || '',
-            SignedBy: item.SignedBy || '',
+            SignedBy: item.SignedBy || false,
             ReceiverName: item.ReceiverName || '',
             Note: item.Note || '',
           })) || []),
@@ -1275,12 +1297,25 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
                 employee.ID !== 0
             )
             .map((employee) => ({
-              label: employee.FullName,
+              label: employee.FullName, // Label gốc
               value: employee.ID,
               FullName: employee.FullName,
-              DepartmentName: employee.DepartmentName,
+              DepartmentName:
+                employee.DepartmentName || 'Không thuộc phòng ban',
               ChucVuHD: employee.ChucVuHD,
-            }));
+            }))
+            .sort((a: any, b: any) => {
+              // Sắp xếp theo phòng ban, rồi tên
+              if (a.DepartmentName !== b.DepartmentName) {
+                return a.DepartmentName.localeCompare(b.DepartmentName);
+              }
+              return a.FullName.localeCompare(b.FullName);
+            })
+            .map((employee: any) => {
+              // Thêm prefix để rõ nhóm
+              employee.label = `${employee.DepartmentName} - ${employee.FullName}`;
+              return employee;
+            });
         } else {
           this.employeeOptions = [];
         }
@@ -1520,7 +1555,9 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             title: 'Nội dung công việc',
             field: 'ContentWork',
             headerHozAlign: 'center',
-            editor: 'input',
+            editor: 'textarea',
+            minWidth: 400,
+            widthGrow: 2,
           },
           {
             title: 'Trạng thái',
@@ -1585,7 +1622,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
 
                 try {
                   const response = await fetch(
-                    'https://localhost:44365/api/makertraining/upload/',
+                    'https://localhost:44365/api/handover/upload/',
                     {
                       method: 'POST',
                       body: formData,
@@ -1646,18 +1683,16 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
               const selectedProject = this.employeeOptions.find(
                 (p: any) => p.value === newValue
               );
-              // if (selectedProject) {
-              //   row.update({
-              //     DepartmentName: selectedProject.DepartmentName,
-              //   });
-              // }
             },
           },
           {
             title: 'Ký nhận',
             field: 'SignedBy',
             headerHozAlign: 'center',
-            editor: 'input',
+            hozAlign: 'center',
+            editor: 'tickCross',
+            formatter: 'tickCross',
+            editorParams: { tristate: false },
           },
 
           {
@@ -1772,11 +1807,14 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
               this.newHandoverWarehouseAsset.EmployeeID = selectedProject.value;
             },
           },
-          {
+            {
             title: 'Ký nhận',
             field: 'SignedBy',
             headerHozAlign: 'center',
-            editor: 'input',
+            hozAlign: 'center',
+            editor: 'tickCross',
+            formatter: 'tickCross',
+            editorParams: { tristate: false },
           },
 
           {
@@ -1887,13 +1925,15 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
               }
             },
           },
-          {
+           {
             title: 'Ký nhận',
             field: 'SignedBy',
             headerHozAlign: 'center',
-            editor: 'input',
+            hozAlign: 'center',
+            editor: 'tickCross',
+            formatter: 'tickCross',
+            editorParams: { tristate: false },
           },
-
           {
             title: 'Ghi chú',
             field: 'Note',
@@ -1966,13 +2006,27 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             title: 'Vấn đề tồn tại',
             field: 'DebtType',
             headerHozAlign: 'center',
-            editor: 'input',
+            editor: 'textarea',
           },
           {
             title: 'Số tiền',
             field: 'DebtAmount',
             headerHozAlign: 'center',
             editor: 'input',
+            formatter: 'money',
+            hozAlign: 'right',
+            formatterParams: {
+              decimal: ',',
+              thousand: '.',
+              symbol: ' VNĐ',
+              symbolAfter: true,
+              precision: 0,
+            },
+            mutator: (value) => {
+              // Loại bỏ ký tự không phải số khi lưu lại
+              if (!value) return 0;
+              return parseInt(value.toString().replace(/[^\d]/g, '')) || 0;
+            },
           },
           {
             title: 'Kế toán theo dõi',
@@ -2005,11 +2059,6 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
               const selectedProject = this.employeeOptions.find(
                 (p: any) => p.value === newValue
               );
-              // if (selectedProject) {
-              //   row.update({
-              //     DepartmentName: selectedProject.DepartmentName,
-              //   });
-              // }
             },
           },
           {
@@ -2218,7 +2267,12 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             headerHozAlign: 'center',
             field: 'STT',
           },
-          { title: 'Chức vụ', field: 'RoleName', headerHozAlign: 'center' },
+          {
+            title: 'Chức vụ',
+            field: 'RoleName',
+            headerHozAlign: 'center',
+            widthGrow: 2,
+          },
           {
             title: 'Họ và tên',
             field: 'EmployeeID',
@@ -2262,6 +2316,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             field: 'ApproveStatus',
             headerHozAlign: 'center',
             hozAlign: 'center',
+            // widthGrow: 1,
             formatter: function (cell) {
               const value = cell.getValue();
               switch (value) {

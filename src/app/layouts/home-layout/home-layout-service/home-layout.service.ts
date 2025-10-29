@@ -20,6 +20,15 @@ export class HomeLayoutService {
   }
 
   gotoOldLink(data:any){
-    return this.http.post<any>("http://localhost:19028/Home/LoginNew",data);
+
+    // let origin = window.location.origin;
+    // origin = origin.replace(window.location.port,'19028');
+    // console.log(window.location.origin);
+    // console.log('origin:',environment.hostwebold + "/Home/LoginNew");
+
+    const url = 'http://localhost:19028/Home/LoginNew';
+    console.log('gotoOldLink:',url);
+    
+    return this.http.post<any>(url,data,{withCredentials:true});
   }
 }

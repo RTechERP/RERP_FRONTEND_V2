@@ -78,4 +78,8 @@ export class AppUserService {
   public hasPermission(permission: string): boolean {
     return this.userService.hasPermission(permission);
   }
+
+  public get password(): string {
+    return this.currentUser?.PasswordHash || '';
+  }
 }

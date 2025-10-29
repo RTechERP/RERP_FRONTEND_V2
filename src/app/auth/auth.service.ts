@@ -30,7 +30,7 @@ export class AuthService {
           // Gọi getCurrentUser ngay sau khi login thành công
           this.getCurrentUser().subscribe({
             next: (userResponse) => {
-              console.log('getCurrentUser success after login:', userResponse);
+            //   console.log('getCurrentUser success after login:', userResponse);
               this.permissionService.refreshPermissions();
             },
             error: (error) => {
@@ -50,7 +50,7 @@ export class AuthService {
     const token = this.getToken();
 
     if (!token) {
-      console.error('No token available for getCurrentUser');
+    //   console.error('No token available for getCurrentUser');
       return of(null);
     }
     // Sử dụng API key từ environment

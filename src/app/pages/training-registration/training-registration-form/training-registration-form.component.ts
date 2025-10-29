@@ -66,7 +66,7 @@ import { AppUserService } from '../../../services/app-user.service';
   templateUrl: './training-registration-form.component.html',
   styleUrls: ['./training-registration-form.component.css'],
   standalone: true,
-  encapsulation: ViewEncapsulation.None,
+  //encapsulation: ViewEncapsulation.None,
   imports: [
     CommonModule,
     FormsModule,
@@ -330,11 +330,7 @@ export class TrainingRegistrationFormComponent
       next: (res) => {
         if (res.status === 1 && res.data) {
           // Cập nhật lại dataInput với ID/Code trả về
-          this.dataInput = {
-            ...(this.dataInput || {}),
-            ID: res.data.ID,
-            Code: res.data.Code,
-          };
+          this.dataInput = { ...(this.dataInput || {}), ID: res.data.ID, Code: res.data.Code };
 
           // Bước 2: Upload file (nếu có)
           const newFiles = this.fileList.filter(
@@ -362,58 +358,53 @@ export class TrainingRegistrationFormComponent
           const departmentName = (emp?.DepartmentName || 'Khác').toString();
           const code = (res.data.Code || '').toString();
 
-          const sanitize = (s: string) =>
-            s.replace(/[<>:"/\\|?*\u0000-\u001F]/g, '').trim();
+          const sanitize = (s: string) => s.replace(/[<>:"/\\|?*\u0000-\u001F]/g, '').trim();
           const subPath = [
             sanitize(year),
             sanitize(departmentName),
             sanitize(code),
           ].join('/');
 
-          this.trainingRegistrationService
-            .uploadMultipleFiles(filesToUpload, subPath)
-            .subscribe({
-              next: (uploadRes) => {
-                if (uploadRes.status === 1 && uploadRes.data) {
-                  // Cập nhật fileList với kết quả upload
-                  uploadRes.data.forEach((uploadedFile: any, index: number) => {
-                    const fileIndex = this.fileList.findIndex(
-                      (f) => f.uid === newFiles[index].uid
-                    );
-                    if (fileIndex !== -1) {
-                      this.fileList[fileIndex] = {
-                        ...this.fileList[fileIndex],
-                        status: 'done',
-                        FileName: uploadedFile.fileName,
-                        ServerPath: uploadedFile.filePath,
-                        OriginName: uploadedFile.originalName,
-                        ID: 0,
-                      };
-                    }
-                  });
-                  this.updateFileTable();
-                  this.notification.success(
-                    'Thông báo',
-                    `Đã upload thành công ${uploadRes.data.length} file`
-                  );
+          this.trainingRegistrationService.uploadMultipleFiles(filesToUpload, subPath).subscribe({
+            next: (uploadRes) => {
+              if (uploadRes.status === 1 && uploadRes.data) {
+                // Cập nhật fileList với kết quả upload
+                uploadRes.data.forEach((uploadedFile: any, index: number) => {
+                  const fileIndex = this.fileList.findIndex((f) => f.uid === newFiles[index].uid);
+                  if (fileIndex !== -1) {
+                    this.fileList[fileIndex] = {
+                      ...this.fileList[fileIndex],
+                      status: 'done',
+                      FileName: uploadedFile.fileName,
+                      ServerPath: uploadedFile.filePath,
+                      OriginName: uploadedFile.originalName,
+                      ID: 0,
+                    };
+                  }
+                });
+                this.updateFileTable();
+                this.notification.success(
+                  'Thông báo',
+                  `Đã upload thành công ${uploadRes.data.length} file`
+                );
 
-                  // Bước 3: Cập nhật lại master chỉ với danh sách file (tránh lưu chi tiết lần 2)
-                  this.saveDataToServer(true);
-                } else {
-                  this.notification.error(
-                    'Thông báo',
-                    uploadRes.message || 'Upload file thất bại'
-                  );
-                }
-              },
-              error: (err) => {
-                console.error('Lỗi upload:', err);
+                // Bước 3: Cập nhật lại master chỉ với danh sách file (tránh lưu chi tiết lần 2)
+                this.saveDataToServer(true);
+              } else {
                 this.notification.error(
                   'Thông báo',
-                  'Upload file thất bại: ' + (err.error?.message || err.message)
+                  uploadRes.message || 'Upload file thất bại'
                 );
-              },
-            });
+              }
+            },
+            error: (err) => {
+              console.error('Lỗi upload:', err);
+              this.notification.error(
+                'Thông báo',
+                'Upload file thất bại: ' + (err.error?.message || err.message)
+              );
+            }
+          });
         } else {
           this.notification.error(
             'Thông báo',

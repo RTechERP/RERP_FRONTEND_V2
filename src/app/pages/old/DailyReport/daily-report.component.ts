@@ -43,7 +43,7 @@ import { DateTime } from 'luxon';
   ],
   templateUrl: './daily-report.component.html',
   styleUrls: ['./daily-report.component.css'],
-  encapsulation: ViewEncapsulation.None,
+  //encapsulation: ViewEncapsulation.None,
 })
 export class DailyreportComponent implements OnInit, AfterViewInit {
   searchParams = {

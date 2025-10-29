@@ -27,11 +27,9 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
-import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
 import { EnvironmentInjector } from '@angular/core';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 // import { NSelectComponent } from '../n-select/n-select.component';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css'; // Import Tabulator stylesheet
 import { CommonModule } from '@angular/common';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import {

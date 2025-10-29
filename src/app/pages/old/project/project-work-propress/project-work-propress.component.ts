@@ -62,7 +62,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
     NzModalModule,
     CommonModule,
   ],
-  encapsulation: ViewEncapsulation.None,
+  //encapsulation: ViewEncapsulation.None,
   templateUrl: './project-work-propress.component.html',
   styleUrl: './project-work-propress.component.css',
 })

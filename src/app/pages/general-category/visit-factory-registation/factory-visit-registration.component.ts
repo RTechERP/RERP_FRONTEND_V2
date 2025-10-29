@@ -66,7 +66,7 @@ import { DateTime } from 'luxon';
   ],
   templateUrl: './factory-visit-registration.component.html',
   styleUrl: './factory-visit-registration.component.css',
-  encapsulation: ViewEncapsulation.None,
+  //encapsulation: ViewEncapsulation.None,
 })
 export class FactoryVisitRegistrationComponent
   implements OnInit, AfterViewInit

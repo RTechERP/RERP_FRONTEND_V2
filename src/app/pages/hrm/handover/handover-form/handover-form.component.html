@@ -27,31 +27,11 @@
       <div class="col-md-3">
         <nz-form-item class="mt-2">
           <nz-form-label class="fs-12 required-label" [nzSpan]="24">
-            Chọn nhân viên
+            Chọn nhân viên<span class="text-danger ps-1 me-1"> (*)</span>
           </nz-form-label>
           <nz-form-control [nzSpan]="24">
             <div nz-row [nzGutter]="24" style="align-items: center">
               <div nz-col [nzSpan]="24">
-                <!-- <nz-select nzPlaceHolder="Chọn nhân viên" 
-                 name="EmployeeID"
-                    [(ngModel)]="newHandover.EmployeeID"
-                  (ngModelChange)="onSelectEmployee($event, LeaderID)"
-                 nzShowSearch
-                  [nzFilterOption]="filterOption"
-                  nzAllowClear
-                  style="width: 100%">
-                <nz-option-group
-                  *ngFor="let g of cbbEmployee"
-                  [nzLabel]="g.department"
-                >
-                  <nz-option
-                    *ngFor="let emp of g.items"
-                    [nzLabel]="emp.Code + ' - ' + emp.FullName"
-                    [nzValue]="emp.ID"
-                  >
-                  </nz-option>
-                </nz-option-group>
-              </nz-select> -->
                 <nz-select
                   [(ngModel)]="newHandover.EmployeeID"
                   (ngModelChange)="onSelectEmployee($event, LeaderID)"
@@ -81,7 +61,8 @@
       <div class="col-md-3">
         <nz-form-item class="mt-2">
           <nz-form-label class="fs-12 required-label" [nzSpan]="24"
-            >Thời gian bàn giao</nz-form-label
+            >Thời gian bàn giao<span class="text-danger ps-1 me-1"> (*)</span>
+            </nz-form-label
           >
           <nz-form-control [nzSpan]="24">
             <nz-date-picker
@@ -97,7 +78,7 @@
       <div class="col-md-3">
         <nz-form-item class="mt-2">
           <nz-form-label class="fs-12 required-label" [nzSpan]="24">
-            Chọn chức vụ
+            Chọn chức vụ<span class="text-danger ps-1 me-1"> (*)</span>
           </nz-form-label>
           <nz-form-control [nzSpan]="24">
             <div nz-row [nzGutter]="24" style="align-items: center">
@@ -126,7 +107,7 @@
       <div class="col-md-3">
         <nz-form-item class="mt-2">
           <nz-form-label class="fs-12 required-label" [nzSpan]="12">
-            Phòng ban
+            Phòng ban<span class="text-danger ps-1 me-1"> (*)</span>
           </nz-form-label>
           <nz-form-control [nzSpan]="24">
             <div nz-row [nzGutter]="24" style="align-items: center">
@@ -152,40 +133,7 @@
           </nz-form-control>
         </nz-form-item>
       </div>
-      <!-- <div class="col-md-3">
-        <nz-form-item>
-          <nz-form-label
-            [nzSpan]="12"
-            class="fs-12 mt-2 required-label"
-            nzRequired
-            >Ghi chú</nz-form-label
-          >
-          <nz-form-control [nzSpan]="24">
-            <input nz-input [(ngModel)]="this.newHandover.Note" name="Note" />
-          </nz-form-control>
-        </nz-form-item>
-      </div> -->
     </div>
-    <!-- Dòng 2 -->
-    <!-- <div class="row gx-2">
-      <div class="col-md-3">
-        <nz-form-item class="mt-2">
-          <nz-form-label class="fs-12 required-label" [nzSpan]="24"
-            >Thời gian bàn giao</nz-form-label
-          >
-          <nz-form-control [nzSpan]="24">
-            <nz-date-picker
-              [nzFormat]="dateFormat"
-              [nzShowTime]="true"
-              class="w-100 p-1"
-              nzSize="small"
-              [(ngModel)]="newHandover.HandoverDate"
-              name="dateStart"
-            ></nz-date-picker>
-          </nz-form-control>
-        </nz-form-item>
-      </div>
-    </div> -->
   </form>
 
   <nz-splitter class="mt-2">

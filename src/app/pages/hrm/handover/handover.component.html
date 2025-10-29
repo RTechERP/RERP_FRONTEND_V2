@@ -43,10 +43,10 @@
             <nz-form-label class="fs-12" [nzSpan]="24">Nhân viên</nz-form-label>
             <nz-form-control [nzSpan]="24">
               <nz-select
-              [(ngModel)]="searchParams.EmployeeID"
+                [(ngModel)]="searchParams.EmployeeID"
                 nzPlaceHolder="Chọn nhân viên"
                 nzShowSearch
-                  name="employeeID"
+                name="employeeID"
                 [nzFilterOption]="filterOption"
                 nzAllowClear
               >
@@ -146,11 +146,11 @@
                 class="fs-12 btn"
                 nz-button
                 [nzType]="handoverStatusGiver === 1 ? 'primary' : 'default'"
-                  [nzDanger]="handoverStatusGiver === 2"
+                [nzDanger]="handoverStatusGiver === 2"
                 nzSize="small"
                 nz-dropdown
                 [nzDropdownMenu]="handoverMenu"
-                nzTrigger="click"
+                nzTrigger="hover"
                 nzPlacement="bottomLeft"
               >
                 <nz-icon nzType="check-circle" nzTheme="outline"></nz-icon>
@@ -174,11 +174,11 @@
                 class="fs-12 btn"
                 nz-button
                 [nzType]="handoverStatusLeader === 1 ? 'primary' : 'default'"
-                  [nzDanger]="handoverStatusLeader === 2"
+                [nzDanger]="handoverStatusLeader === 2"
                 nzSize="small"
                 nz-dropdown
                 [nzDropdownMenu]="deptMenu"
-                nzTrigger="click"
+                nzTrigger="hover"
                 nzPlacement="bottomLeft"
               >
                 <nz-icon nzType="check-circle" nzTheme="outline"></nz-icon>
@@ -202,7 +202,7 @@
                 class="fs-12 btn"
                 nz-button
                 [nzType]="handoverStatusManager === 1 ? 'primary' : 'default'"
-                  [nzDanger]="handoverStatusManager === 2"
+                [nzDanger]="handoverStatusManager === 2"
                 nzSize="small"
                 nz-dropdown
                 [nzDropdownMenu]="hrMenu"
@@ -228,17 +228,24 @@
           </div>
           <nz-splitter>
             <nz-splitter-panel>
-              <div class="card-body p-0">
-                <div id="Handover" style="width: 100%; height: 100%"></div>
-              </div>
+                    <nz-card nzTitle="Chi tiết người bàn giao">
+                        <div class="card-body p-0">
+                          <div
+                            id="Handover"
+                            style="width: 100%; height: 100%"
+                          ></div>
+                        </div>
+                      </nz-card>
             </nz-splitter-panel>
             <nz-splitter-panel>
-              <div class="card-body p-0">
-                <div
-                  id="HandoverReceiver"
-                  style="width: 100%; height: 100%"
-                ></div>
-              </div>
+                 <nz-card nzTitle="Người nhận bàn giao">
+                        <div class="card-body p-0">
+                          <div
+                            id="HandoverReceiver"
+                            style="width: 100%; height: 100%"
+                          ></div>
+                        </div>
+                      </nz-card>
             </nz-splitter-panel>
           </nz-splitter>
         </div>
@@ -262,22 +269,24 @@
                 <nz-tab nzTitle="Tài sản bàn giao">
                   <nz-splitter>
                     <nz-splitter-panel>
-                      <div class="card-body p-0">
-                        <h5>Tài sản cấp phát</h5>
-                        <div
-                          id="HandoverAssetManagement"
-                          style="width: 100%; height: 100%"
-                        ></div>
-                      </div>
+                      <nz-card nzTitle="Tài sản cấp phát">
+                        <div class="card-body p-0">
+                          <div
+                            id="HandoverAssetManagement"
+                            style="width: 100%; height: 100%"
+                          ></div>
+                        </div>
+                      </nz-card>
                     </nz-splitter-panel>
                     <nz-splitter-panel>
-                      <div class="card-body p-0">
-                        <h5>Tài sản mượn kho</h5>
-                        <div
-                          id="HandoverAsset"
-                          style="width: 100%; height: 100%"
-                        ></div>
-                      </div>
+                      <nz-card nzTitle="Tài sản mượn kho">
+                        <div class="card-body p-0">
+                          <div
+                            id="HandoverAsset"
+                            style="width: 100%; height: 100%"
+                          ></div>
+                        </div>
+                      </nz-card>
                     </nz-splitter-panel>
                   </nz-splitter>
                 </nz-tab>

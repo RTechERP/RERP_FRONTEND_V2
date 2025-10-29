@@ -211,7 +211,7 @@
                                 <h5 class="card-title m-0">Cá nhân</h5>
                             </div>
                             <div class="card-body d-flex">
-                                <a (click)="goToOldLink()" target="_blank">Báo cáo công việc</a>
+                                <a (click)="goToOldLink('/lamthem')" target="_blank">Báo cáo công việc</a>
                                 <a href="http://113.190.234.64:8081/Home/Login" target="_blank">Làm thêm</a>
                                 <a href="http://localhost:19028/Home/LoginNew?userName=ltanh&password=MQA="
                                     target="_blank">Công tác</a>
@@ -229,7 +229,7 @@
                     <div class="card-body">
                         <div class="row gx-4">
                             @for (m of menus; track m.key) {
-                            <div class="col-xl-4 col-md-3 col-sm-6 col-6">
+                            <div class="col-xl-3 col-md-3 col-sm-6 col-6">
                                 <div class="card border-0 mb-4 card-module" (click)="openModule(m.key)">
                                     <div class="card-img d-flex justify-content-center">
                                         <img [src]="m.icon?.replace('24','64')"

@@ -58,6 +58,8 @@ import { HolidayServiceService } from '../../pages/old/holiday/holiday-service/h
 import { HasPermissionDirective } from '../../directives/has-permission.directive';
 import { MenuItem } from '../main-layout/main-layout.component';
 import { menus } from '../../pages/old/menus/menus.component';
+import { environment } from '../../../environments/environment';
+import { AppUserService } from '../../services/app-user.service';
 
 interface dynamicApps {
   MenuName: string;
@@ -242,7 +244,8 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     private cdr: ChangeDetectorRef,
     private holidayService: HolidayServiceService,
-    private router: Router
+    private router: Router,
+    private appUserService:AppUserService
   ) {}
 
   ngOnInit(): void {
@@ -484,19 +487,25 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
     this.router.navigate(['/app']); // hoặc route tới MainLayout
   }
 
-  goToOldLink(){
+  goToOldLink(router:String){
     let data:any={
-        UserName:"ltanh",
-        Password:"MQA=",
-        Router:"lamthem"
+        UserName: this.appUserService.loginName,
+        Password:this.appUserService.password,
+        Router:router
     }
+
+    const url = `http://localhost:19028${router}`
+    console.log('router:',url);
     this.homepageService.gotoOldLink(data).subscribe({
-        next(response) {
-            console.log(response);
+        next:(response) =>{
+            console.log('response:',response);
+            console.log('router next:',url);
+            window.open(url,'_blank');
         },
-        error(err) {
-             console.log(err.error);
+        error:(err)=> {
+             console.log('err:',err.error);
         },
     })
-  }
+
+}
 }

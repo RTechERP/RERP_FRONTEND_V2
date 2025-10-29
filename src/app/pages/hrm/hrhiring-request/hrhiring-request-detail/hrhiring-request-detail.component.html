@@ -86,10 +86,26 @@
                       " />
                                     </div>
                                 </div>
-                                <!-- Hiển thị min max ở phía dưới -->
-                                <div class="mt-1 d-flex justify-content-between fs-12 text-muted">
-                                    <span>Min: {{ formatSalaryDisplay(form.value.SalaryMin) }}</span>
-                                    <span>Max: {{ formatSalaryDisplay(form.value.SalaryMax) }}</span>
+                                <!-- Input min max ở phía dưới -->
+                                <div class="mt-1 d-flex justify-content-between gap-2">
+                                    <div class="d-flex align-items-center">
+                                        <span class="fs-12 text-muted me-2">Min:</span>
+                                        <input type="number" class="form-control form-control-sm" 
+                                               style="width: 120px; font-size: 12px;"
+                                               [value]="form.value.SalaryMin" 
+                                               (input)="onMinSalaryInputChange($event)"
+                                               min="0" max="100000000" step="100000"
+                                               placeholder="VNĐ" />
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <span class="fs-12 text-muted me-2">Max:</span>
+                                        <input type="number" class="form-control form-control-sm" 
+                                               style="width: 120px; font-size: 12px;"
+                                               [value]="form.value.SalaryMax" 
+                                               (input)="onMaxSalaryInputChange($event)"
+                                               min="0" max="100000000" step="100000"
+                                               placeholder="VNĐ" />
+                                    </div>
                                 </div>
                             </nz-form-control>
                         </nz-form-item>
@@ -116,10 +132,26 @@
                                             (input)="onMaxAgeChange($event); validateRange('AgeMax')" />
                                     </div>
                                 </div>
-                                <!-- Hiển thị min max ở phía dưới -->
-                                <div class="mt-1 d-flex justify-content-between fs-12 text-muted">
-                                    <span>Min: {{ form.value.AgeMin }} tuổi</span>
-                                    <span>Max: {{ form.value.AgeMax }} tuổi</span>
+                                <!-- Input min max ở phía dưới -->
+                                <div class="mt-1 d-flex justify-content-between gap-2">
+                                    <div class="d-flex align-items-center">
+                                        <span class="fs-12 text-muted me-2">Min:</span>
+                                        <input type="number" class="form-control form-control-sm" 
+                                               style="width: 80px; font-size: 12px;"
+                                               [value]="form.value.AgeMin" 
+                                               (input)="onMinAgeInputChange($event)"
+                                               min="18" max="65" step="1"
+                                               placeholder="tuổi" />
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <span class="fs-12 text-muted me-2">Max:</span>
+                                        <input type="number" class="form-control form-control-sm" 
+                                               style="width: 80px; font-size: 12px;"
+                                               [value]="form.value.AgeMax" 
+                                               (input)="onMaxAgeInputChange($event)"
+                                               min="18" max="65" step="1"
+                                               placeholder="tuổi" />
+                                    </div>
                                 </div>
                             </nz-form-control>
                         </nz-form-item>

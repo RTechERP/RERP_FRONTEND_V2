@@ -34,13 +34,12 @@ import { ProjectItemLateComponent } from '../../pages/old/project/project-item-l
 import { ProjectWorkItemTimelineComponent } from '../../pages/old/project/project-work-item-timeline/project-work-item-timeline.component';
 import { SynthesisOfGeneratedMaterialsComponent } from '../../pages/old/project/synthesis-of-generated-materials/synthesis-of-generated-materials.component';
 import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
-
 import { TsAssetAllocationPersonalComponent } from '../../pages/old/ts-asset-allocation-personal/ts-asset-allocation-personal.component';
 import { TsAssetManagementPersonalComponent } from '../../pages/old/ts-asset-management-personal/ts-asset-management-personal.component';
 import { TsAssetManagementPersonalTypeComponent } from '../../pages/old/ts-asset-management-personal/ts-asset-management-personal-type/ts-asset-management-personal-type.component';
 import { TsAssetRecoveryPersonalComponent } from '../../pages/old/ts-asset-recovery-personal/ts-asset-recovery-personal.component';
-import { VehicleRepairComponent } from '../../pages/hrm/vehicle-repair/vehicle-repair.component';
-import { VehicleRepairTypeComponent } from '../../pages/hrm/vehicle-repair/vehicle-repair-type/vehicle-repair-type.component';
+import { VehicleRepairComponent } from '../../pages/hrm/vehicle/vehicle-repair/vehicle-repair.component';
+import { VehicleRepairTypeComponent } from '../../pages/hrm/vehicle/vehicle-repair/vehicle-repair-type/vehicle-repair-type.component';
 import { TsAssetRecoveryPersonalNewComponent } from '../../pages/hrm/asset/assetpersonal/ts-asset-recovery-personal-new/ts-asset-recovery-personal-new.component';
 import { DepartmentComponent } from '../../pages/old/department/department.component';
 import { TeamComponent } from '../../pages/old/team/team.component';
@@ -48,8 +47,7 @@ import { PositionsComponent } from '../../pages/old/positions/positions.componen
 import { EmployeeComponent } from '../../pages/old/employee/employee.component';
 import { ContractComponent } from '../../pages/old/contract/contract.component';
 import { EmployeeScheduleWorkComponent } from '../../pages/old/holiday/employee-schedule-work/employee-schedule-work.component';
-import { menus } from '../../pages/old/menus/menus.component';
-
+import { menus } from '../../pages/old/menus/menus.data';
 type TabItem = {
   title: string;
   comp: Type<any>;
@@ -69,7 +67,7 @@ export type LeafItem = BaseItem & {
 
 export type GroupItem = BaseItem & {
   kind: 'group';
-  children: MenuItem[]; // cho phép lồng group
+  children: MenuItem[];
 };
 
 export type MenuItem = LeafItem | GroupItem;
@@ -109,6 +107,7 @@ const COMPONENT_REGISTRY: Record<string, Type<any>> = {
   standalone: true,
 })
 export class MainLayoutComponent implements OnInit {
+  trackKey = (_: number, x: any) => x?.key ?? x?.title ?? _;
   CustomerComponent = CustomerComponent;
   ProductRtcComponent = TbProductRtcComponent;
   ProjectComponent = ProjectComponent;

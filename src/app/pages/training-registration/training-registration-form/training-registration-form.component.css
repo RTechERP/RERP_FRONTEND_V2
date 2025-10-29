@@ -15,11 +15,6 @@
   margin-top: 8px;
 }
 
-.tables-section {
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid #f0f0f0;
-}
 
 /* Styles cho layout 3 cột */
 .three-column-layout {
@@ -151,3 +146,38 @@ app-training-registration-form {
   line-height: 1 !important;
   content: "*" !important;
 }
+
+/* Bỏ border top của modal-footer */
+.modal-footer {
+  border-top: none !important;
+  padding-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Style cho header nhóm phòng ban trong dropdown
+:host ::ng-deep .ant-select-item-group,
+:host ::ng-deep .ant-select-item-group-label,
+:host ::ng-deep .ant-select-dropdown .ant-select-item-group,
+:host ::ng-deep .ant-select-dropdown .ant-select-item-group-label {
+  background-color: #ff4d4f !important;
+  color: white !important;
+  font-weight: bold !important;
+  padding: 8px 12px !important;
+  border-radius: 4px !important;
+  margin: 2px 4px !important;
+}
+
+/* Thêm selector global để đảm bảo */
+/* ::ng-deep .ant-select-item-group {
+  background-color: #ff4d4f !important;
+  color: white !important;
+  font-weight: bold !important;
+}
+
+::ng-deep .ant-select-item-group-label {
+  background-color: #ff4d4f !important;
+  color: white !important;
+  font-weight: bold !important;
+} */ 

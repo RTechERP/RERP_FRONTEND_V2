@@ -11,12 +11,6 @@
   gap: 8px;
   margin-top: 16px;
 }
-
-/* Bỏ hết styling cho form item để sử dụng mặc định của Ant Design */
-.compact-form-item {
-  /* Không có styling gì cả - để Ant Design tự xử lý */
-}
-
 .ant-upload-list-item {
   margin-top: 8px;
 }
@@ -80,16 +74,6 @@
   .file-table {
     height: 40vh;
   }
-
-  /* Adjust z-index for mobile to prevent conflicts */
-  ::ng-deep .ant-picker-dropdown {
-    z-index: 100001 !important;
-  }
-  
-  /* Ensure mobile dropdowns work properly */
-  ::ng-deep .ant-select-dropdown {
-    z-index: 100001 !important;
-  }
 }
 
 /* Performance optimizations for multiple tabs */
@@ -115,39 +99,6 @@
   border-radius: 4px;
 }
 
-/* Fix Tabulator issues in multi-tab environment */
-::ng-deep .tabulator {
-  position: relative;
-  z-index: 1;
-  contain: layout;
-}
-
-/* Fix Tabulator dropdown menus */
-::ng-deep .tabulator-menu {
-  z-index: 99999 !important;
-}
-
-/* Fix Tabulator editor dropdowns */
-::ng-deep .tabulator-edit-select-list {
-  z-index: 99999 !important;
-}
-
-/* Prevent Tabulator from causing scroll issues in tabs */
-::ng-deep .tabulator-tableHolder {
-  overflow: auto;
-  max-height: inherit;
-}
-
-/* Fix for Tabulator column resizing in tabs */
-::ng-deep .tabulator-col-resize-handle {
-  z-index: 10;
-}
-
-/* Ensure Tabulator tooltips appear correctly */
-::ng-deep .tabulator-tooltip {
-  z-index: 100000 !important;
-}
-
 /* Custom button styles */
 .btn-sm {
   padding: 2px 8px;
@@ -166,15 +117,6 @@
   border-color: #ff7875;
 }
 
-/* Global z-index fixes for multi-tab environment */
-::ng-deep .ant-picker-dropdown {
-  z-index: 99999 !important;
-}
-
-::ng-deep .ant-picker-panel-container {
-  min-width: 300px !important;
-  z-index: 99999 !important;
-}
 
 .ant-picker-range {
   width: 100% !important;
@@ -187,115 +129,25 @@
   isolation: isolate;
 }
 
-/* Modal and overlay fixes */
-::ng-deep .ant-modal-wrap {
-  z-index: 99998 !important;
+
+
+/* Ensure this component's content is properly layered */
+app-training-registration-form {
+  position: relative;
+  z-index: 1;
 }
 
-::ng-deep .ant-modal-mask {
-  z-index: 99997 !important;
-}
-
-/* Dropdown fixes */
-::ng-deep .ant-select-dropdown {
-  z-index: 99999 !important;
-}
-
-::ng-deep .ant-dropdown {
-  z-index: 99999 !important;
-}
-
-/* Notification fixes */
-::ng-deep .ant-notification {
-  z-index: 100000 !important;
-}
-
-/* Form validation tooltip fixes */
-::ng-deep .ant-form-item-explain {
-  z-index: 99990 !important;
-}
-
-/* Date range picker specific fixes */
-::ng-deep .ant-picker-range-separator {
-  z-index: 99999 !important;
-}
-
-::ng-deep .ant-picker-input {
-  z-index: 99999 !important;
-}
-
-/* NgBootstrap modal specific fixes */
-::ng-deep .modal-dialog {
-  z-index: 999996 !important;
-}
-
-::ng-deep .modal-content {
-  z-index: 999996 !important;
-}
-
-/* Fix for elements inside modal */
-::ng-deep .modal-body .ant-picker-dropdown,
-::ng-deep .modal-body .ant-select-dropdown,
-::ng-deep .modal-body .ant-dropdown {
-  z-index: 999999 !important;
-}
-
-/* Ensure dropdowns appear above modal */
-::ng-deep .ant-picker-dropdown-placement-bottomLeft,
-::ng-deep .ant-picker-dropdown-placement-bottomRight,
-::ng-deep .ant-picker-dropdown-placement-topLeft,
-::ng-deep .ant-picker-dropdown-placement-topRight {
-  z-index: 999999 !important;
-}
-
-/* Fix for any remaining overlay issues */
-::ng-deep .ant-picker-dropdown-hidden {
+/* Chuyển dấu * từ phía trước sang phía sau label */
+:host ::ng-deep .ant-form-item-required::before {
   display: none !important;
 }
 
-/* Ensure this component's content is properly layered */
-app-training-registration-form {
-  position: relative;
-  z-index: 1;
-}
-
-/* Force all Ant Design overlays to highest z-index */
-::ng-deep .ant-picker-dropdown,
-::ng-deep .ant-select-dropdown,
-::ng-deep .ant-dropdown,
-::ng-deep .ant-tooltip,
-::ng-deep .ant-popover,
-::ng-deep .ant-popconfirm {
-  z-index: 999999 !important;
-}
-
-/* Specific fixes for date picker panels */
-::ng-deep .ant-picker-panel,
-::ng-deep .ant-picker-time-panel,
-::ng-deep .ant-picker-datetime-panel {
-  z-index: 999999 !important;
-}
-
-/* Fix for any overlay that might be hidden */
-::ng-deep .cdk-overlay-container {
-  z-index: 999999 !important;
-}
-
-::ng-deep .cdk-overlay-pane {
-  z-index: 999999 !important;
-}
-
-/* Bootstrap modal fixes if any */
-.modal-backdrop {
-  z-index: 999990 !important;
-}
-
-.modal {
-  z-index: 999995 !important;
-}
-
-/* Ensure this component's content is properly layered */
-app-training-registration-form {
-  position: relative;
-  z-index: 1;
+:host ::ng-deep .ant-form-item-required::after {
+  display: inline-block !important;
+  margin-left: 4px !important;
+  color: #ff4d4f !important;
+  font-size: 14px !important;
+  font-family: SimSun, sans-serif !important;
+  line-height: 1 !important;
+  content: "*" !important;
 }

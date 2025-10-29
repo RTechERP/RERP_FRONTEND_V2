@@ -2,13 +2,13 @@
     <h6 class="modal-title text-white m-0">CHI TIẾT ĐĂNG KÝ</h6>
     <button type="button" class="btn-close btn-close-white" (click)="closeModal()" aria-label="Close"></button>
 </div>
-<div class="training-form-container">
+<div class="training-form-container layout-safe px-4 py-1 ">
     <!-- Form thông tin chính -->
     <form nz-form [formGroup]="validateForm" [nzLayout]="validateForm.controls.formLayout.value" nzLayout="vertical"
         (ngSubmit)="submitForm()">
         <div nz-row [nzGutter]="16">
             <!-- Cột 1 -->
-            <div nz-col [nzSpan]="8">
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="8" [nzXl]="8">
                 <!-- Nhân viên -->
                 <nz-form-item class="compact-form-item">
                     <nz-form-label [nzSpan]="isHorizontal ? 8 : null" nzRequired>Nhân viên</nz-form-label>
@@ -35,7 +35,7 @@
             </div>
 
             <!-- Cột 2 -->
-            <div nz-col [nzSpan]="8">
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="8" [nzXl]="8">
                 <!-- Mục đích đào tạo -->
                 <nz-form-item class="compact-form-item">
                     <nz-form-label [nzSpan]="isHorizontal ? 8 : null" nzRequired>Mục đích đào tạo</nz-form-label>
@@ -56,7 +56,7 @@
             </div>
 
             <!-- Cột 3 -->
-            <div nz-col [nzSpan]="8">
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="8" [nzXl]="8">
                 <!-- Số phút/buổi -->
                 <nz-form-item class="compact-form-item">
                     <nz-form-label [nzSpan]="isHorizontal ? 8 : null" nzRequired>Số phút / buổi</nz-form-label>
@@ -80,7 +80,7 @@
 
         <!-- Hàng 2: Đánh giá & Cấp chứng chỉ -->
         <div nz-row [nzGutter]="16">
-            <div nz-col [nzSpan]="8">
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="16" [nzLg]="16" [nzXl]="16">
                 <nz-form-item class="compact-form-item">
                     <nz-form-label>Đánh giá mức độ hoàn thành</nz-form-label>
                     <nz-form-control>
@@ -113,7 +113,7 @@
     <div class="tables-section">
         <div nz-row [nzGutter]="16">
             <!-- Cột trái - Bảng chi tiết -->
-            <div nz-col [nzSpan]="16">
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="16" [nzXl]="16">
                 <div class="detail-container">
                     <h6>Hạng mục đăng ký</h6>
                     <div #detailTable class="detail-table"></div>
@@ -121,7 +121,7 @@
             </div>
 
             <!-- Cột phải - Bảng file -->
-            <div nz-col [nzSpan]="8">
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="8" [nzXl]="8">
                 <div class="file-container">
                     <div class="file-upload-section mb-2">
                         <nz-upload [(nzFileList)]="fileList" [nzBeforeUpload]="beforeUpload" [nzMultiple]="true"
@@ -132,15 +132,13 @@
                             </button>
                         </nz-upload>
                     </div>
-                    <div #fileTable class="file-table"></div>
+                    <div class="tabulator-safe" #fileTable class="file-table"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal-footer p-2">
+    <div class="modal-footer">
         <button nz-button nzType="default" (click)="closeModal()">Hủy</button>
-        <button nz-button nzType="primary" (click)="uploadFilesAndSaveData()">
-            Lưu dữ liệu
-        </button>
+        <button nz-button nzType="primary" (click)="uploadFilesAndSaveData()">Lưu dữ liệu</button>
     </div>

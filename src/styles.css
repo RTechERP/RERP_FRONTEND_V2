@@ -289,3 +289,17 @@ button[nz-button] img {
 :host ::ng-deep nz-tabset.approval-tabs .ant-tabs-ink-bar {
   background: #1677ff !important;
 } */
+
+.ant-menu-inline > .ant-menu-submenu > .ant-menu-submenu-title {
+  padding-left: 20px !important;
+}
+
+.ant-menu-inline .ant-menu-sub > .ant-menu-submenu > .ant-menu-submenu-title {
+  padding-left: 10px !important;
+}
+.ant-menu-inline .ant-menu-sub .ant-menu-sub > .ant-menu-submenu > .ant-menu-submenu-title {
+  padding-left: 40px !important;
+}
+.ant-menu-inline .ant-menu-item { padding-left: 24px !important; }          
+.ant-menu-inline .ant-menu-sub .ant-menu-item { padding-left: 32px !important; }
+.ant-menu-inline .ant-menu-sub .ant-menu-sub .ant-menu-item { padding-left: 60px !important; }

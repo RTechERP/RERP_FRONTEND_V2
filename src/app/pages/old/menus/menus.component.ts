@@ -37,6 +37,11 @@ import { EmployeeAttendanceComponent } from '../employee-attendance/employee-att
 import { TsAssetRecoveryPersonalNewComponent } from '../../hrm/asset/assetpersonal/ts-asset-recovery-personal-new/ts-asset-recovery-personal-new.component';
 import { VehicleCategoryComponent } from '../../hrm/vehicle-management/vehicle-category/vehicle-category.component';
 import { VehicleManagementComponent } from '../../hrm/vehicle-management/vehicle-management.component';
+import { TsAssetManagementComponent } from '../ts-asset-management/ts-asset-management.component';
+import { TsAssetAllocationComponent } from '../ts-asset-allocation/ts-asset-allocation.component';
+import { TsAssetRecoveryComponent } from '../ts-asset-recovery/ts-asset-recovery.component';
+import { TsAssetTransferComponent } from '../ts-asset-transfer/ts-asset-transfer.component';
+import { HandoverComponent } from '../../hrm/handover/handover.component';
 
 @Component({
   selector: 'app-menus',
@@ -357,6 +362,50 @@ export const menus: MenuItem[] = [
         comp: VehicleManagementComponent,
         //   icon: 'assets/icon/layers.png',
       },
+
+      {
+        kind: 'leaf',
+        key: 'TsAssetManagementComponent',
+        title: 'Danh sách tài sản',
+        isOpen: true,
+        comp: TsAssetManagementComponent,
+        //   icon: 'assets/icon/layers.png',
+      },
+
+      {
+        kind: 'leaf',
+        key: 'TsAssetAllocationComponent',
+        title: 'Cấp phát',
+        isOpen: true,
+        comp: TsAssetAllocationComponent,
+        //   icon: 'assets/icon/layers.png',
+      },
+
+      {
+        kind: 'leaf',
+        key: 'TsAssetRecoveryComponent',
+        title: 'Thu hồi',
+        isOpen: true,
+        comp: TsAssetRecoveryComponent,
+        //   icon: 'assets/icon/layers.png',
+      },
+      {
+        kind: 'leaf',
+        key: 'TsAssetTransferComponent',
+        title: 'Điều chuyển',
+        isOpen: true,
+        comp: TsAssetTransferComponent,
+        //   icon: 'assets/icon/layers.png',
+      },
+
+      {
+        kind: 'leaf',
+        key: 'HandoverComponent',
+        title: 'Biên bản bàn giao',
+        isOpen: true,
+        comp: HandoverComponent,
+        //   icon: 'assets/icon/layers.png',
+      },
     ],
   },
   //#endregion
@@ -380,7 +429,7 @@ export const menus: MenuItem[] = [
       {
         kind: 'leaf',
         key: 'FactoryVisitRegistrationComponent',
-        title: 'THĂM QUAN NHÀ MÁY',
+        title: 'THAM QUAN NHÀ MÁY',
         isOpen: true,
         comp: FactoryVisitRegistrationComponent,
         //   icon: 'assets/icon/layers.png',

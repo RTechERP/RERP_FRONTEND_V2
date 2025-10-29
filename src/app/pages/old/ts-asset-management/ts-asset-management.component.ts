@@ -1,8 +1,16 @@
 import { inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, formatCurrency } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
-import { AfterViewInit, Component, OnInit, ViewEncapsulation, ViewChild, ElementRef, Input } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  OnInit,
+  ViewEncapsulation,
+  ViewChild,
+  ElementRef,
+  Input,
+} from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -19,7 +27,12 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
-import { TabulatorFull as Tabulator, CellComponent, ColumnDefinition, RowComponent } from 'tabulator-tables';
+import {
+  TabulatorFull as Tabulator,
+  CellComponent,
+  ColumnDefinition,
+  RowComponent,
+} from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
@@ -30,7 +43,7 @@ import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
 import { TsAssetManagementPersonalService } from '../ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
 import { updateCSS } from 'ng-zorro-antd/core/util';
-import { NzNotificationService } from 'ng-zorro-antd/notification'
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { log } from 'ng-zorro-antd/core/logger';
 import { AssetStatusService } from '../ts-asset-status/ts-asset-status-service/ts-asset-status.service';
 import { UnitService } from '../ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
@@ -42,6 +55,8 @@ import { TsAssetManagementImportExcelComponent } from './ts-asset-management-imp
 import { TsAssetProposeLiquidationFormComponent } from './ts-asset-propose-liquidation-form/ts-asset-propose-liquidation-form.component';
 import { TsAssetRepairFormComponent } from './ts-asset-repair-form/ts-asset-repair-form.component';
 import { TsAssetReuseFormComponent } from './ts-asset-reuse-form/ts-asset-reuse-form.component';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { count } from 'rxjs';
 
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
@@ -68,11 +83,11 @@ function formatDateCell(cell: CellComponent): string {
     NzSelectModule,
     NzTableModule,
     NzTabsModule,
-    NgbModalModule
+    NgbModalModule,
   ],
   selector: 'app-ts-asset-management',
   templateUrl: './ts-asset-management.component.html',
-  styleUrls: ['./ts-asset-management.component.css']
+  styleUrls: ['./ts-asset-management.component.css'],
 })
 export class TsAssetManagementComponent implements OnInit, AfterViewInit {
   constructor(
@@ -80,8 +95,8 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     private assetManagementService: AssetsManagementService,
     private assetManagementPersonalService: TsAssetManagementPersonalService,
     private assetStatusService: AssetStatusService
-  ) { }
-  selectedRow: any = "";
+  ) {}
+  selectedRow: any = '';
   sizeTbDetail: any = '0';
   modalData: any = [];
   private ngbModal = inject(NgbModal);
@@ -100,12 +115,11 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
 
   filterText: string = '';
   selectedEmployee: any = null;
-  assetDate: string = "";
+  assetDate: string = '';
   departmentData: any[] = [];
   statusData: any[] = [];
   repairData: any[] = [];
-  ngOnInit() {
-  }
+  ngOnInit() {}
   ngAfterViewInit(): void {
     this.getAssetmanagement();
     this.drawEmployeeTable();
@@ -114,10 +128,12 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     this.getDepartment();
   }
   getAssetmanagement() {
-    const statusString = this.status.length > 0 ? this.status.join(',') : '0,1,2,3,4,5,6,7,8';
-    const departmentString = this.department.length > 0
-      ? this.department.join(',')
-      : '0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24';
+    const statusString =
+      this.status.length > 0 ? this.status.join(',') : '0,1,2,3,4,5,6,7,8';
+    const departmentString =
+      this.department.length > 0
+        ? this.department.join(',')
+        : '0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24';
 
     const formatDate = (date: any) => {
       return date ? DateTime.fromJSDate(date).toISODate() : '';
@@ -129,7 +145,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       dateStart: formatDate(this.dateStart) || '2024-05-22',
       dateEnd: formatDate(this.dateEnd) || '2027-05-22',
       status: statusString,
-      department: departmentString
+      department: departmentString,
     };
     this.assetManagementService.getAsset(request).subscribe({
       next: (response) => {
@@ -139,7 +155,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         console.error('Lỗi khi lấy dữ liệu tài sản:', err);
-      }
+      },
     });
   }
   clearAllFilters(): void {
@@ -160,7 +176,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         console.error('Lỗi khi lấy dữ liệu tài sản:', err);
-      }
+      },
     });
   }
   getStatus() {
@@ -171,21 +187,23 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         console.error('Lỗi khi lấy dữ liệu tài sản:', err);
-      }
+      },
     });
   }
   getListEmployee() {
-     const request = {
+    const request = {
       status: 0,
       departmentid: 0,
-      keyword: ''
+      keyword: '',
     };
-    this.assetManagementPersonalService.getEmployee(request).subscribe((respon: any) => {
-      this.emPloyeeLists = respon.employees;
-      console.log(this.emPloyeeLists);
-      this.employeeID = null;
-      this.selectedEmployee = null;
-    });
+    this.assetManagementPersonalService
+      .getEmployee(request)
+      .subscribe((respon: any) => {
+        this.emPloyeeLists = respon.employees;
+        console.log(this.emPloyeeLists);
+        this.employeeID = null;
+        this.selectedEmployee = null;
+      });
   }
   toggleSearchPanel(): void {
     this.isSearchVisible = !this.isSearchVisible;
@@ -199,17 +217,19 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     } else {
       this.assetTable = new Tabulator('#datatablemanagement', {
         data: this.assetData,
-        layout: "fitDataFill",
-        pagination: true,
-        selectableRows: 1,
-        height: '83vh',
-        movableColumns: true,
-        paginationSize: 30,
-        paginationSizeSelector: [5, 10, 20, 50, 100],
-        reactiveData: true,
-        placeholder: 'Không có dữ liệu',
-        dataTree: true,
-        addRowPos: "bottom",
+        ...DEFAULT_TABLE_CONFIG,
+        paginationMode: 'local',
+        // layout: "fitDataFill",
+        // pagination: true,
+        // selectableRows: 1,
+        // height: '83vh',
+        // movableColumns: true,
+        // paginationSize: 30,
+        // paginationSizeSelector: [5, 10, 20, 50, 100],
+        // reactiveData: true,
+        // placeholder: 'Không có dữ liệu',
+        // dataTree: true,
+        // addRowPos: "bottom",
         columns: [
           {
             title: '',
@@ -220,7 +240,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             headerHozAlign: 'center',
             headerSort: false,
             width: 60,
-            cssClass: 'checkbox-center'
+            cssClass: 'checkbox-center',
           },
           {
             title: 'Name',
@@ -235,7 +255,8 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             field: 'STT',
             hozAlign: 'center',
             width: 70,
-            headerHozAlign: 'center'
+            headerHozAlign: 'center',
+            bottomCalc: 'count',
           },
           {
             title: 'UnitID',
@@ -243,7 +264,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             hozAlign: 'center',
             width: 70,
             visible: false,
-            headerHozAlign: 'center'
+            headerHozAlign: 'center',
           },
           {
             title: 'TSAssetID',
@@ -251,7 +272,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             hozAlign: 'center',
             width: 70,
             visible: false,
-            headerHozAlign: 'center'
+            headerHozAlign: 'center',
           },
           {
             title: 'SourceID',
@@ -259,7 +280,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             hozAlign: 'center',
             width: 70,
             visible: false,
-            headerHozAlign: 'center'
+            headerHozAlign: 'center',
           },
           {
             title: 'DepartmentID',
@@ -267,7 +288,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             hozAlign: 'center',
             visible: false,
             width: 70,
-            headerHozAlign: 'center'
+            headerHozAlign: 'center',
           },
           {
             title: 'ID',
@@ -275,24 +296,26 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             hozAlign: 'center',
             width: 70,
             visible: false,
-            headerHozAlign: 'center'
+            headerHozAlign: 'center',
           },
           {
             title: 'Mã tài sản',
             field: 'TSAssetCode',
             headerHozAlign: 'center',
-            hozAlign: 'left'
+            hozAlign: 'left',
           },
           {
             title: 'Tên tài sản',
             field: 'TSAssetName',
             headerHozAlign: 'center',
-            hozAlign: 'left'
+            width: 200,
+            // hozAlign: 'left',
+            formatter: 'textarea',
           },
           {
             title: 'Seri',
             field: 'Seri',
-            hozAlign: 'left'
+            hozAlign: 'left',
           },
           {
             title: 'Đơn vị',
@@ -306,33 +329,35 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
               return value;
             },
             headerHozAlign: 'center',
-            hozAlign: 'left'
+            hozAlign: 'left',
           },
           {
             title: 'Thông số',
             field: 'SpecificationsAsset',
             headerHozAlign: 'center',
-            hozAlign: 'left'
+            width: 200,
+            // hozAlign: 'left',
+            formatter: 'textarea',
           },
           {
             title: 'Ngày mua',
             field: 'DateBuy',
             headerHozAlign: 'center',
             hozAlign: 'center',
-            formatter: formatDateCell
+            formatter: formatDateCell,
           },
           {
             title: 'Ngày hiệu lực',
             field: 'DateEffect',
             formatter: formatDateCell,
             hozAlign: 'center',
-            headerHozAlign: 'center'
+            headerHozAlign: 'center',
           },
           {
             title: 'Bảo hành (tháng)',
             field: 'Insurance',
             headerHozAlign: 'center',
-            hozAlign: 'right'
+            hozAlign: 'right',
           },
           {
             title: 'Loại tài sản',
@@ -346,15 +371,17 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
               return value;
             },
             headerHozAlign: 'center',
-            hozAlign: 'left'
+            hozAlign: 'left',
           },
           {
             title: 'Phòng ban',
             field: 'Name',
-            hozAlign: 'left'
+            hozAlign: 'left',
           },
           {
-            title: 'Trạng thái', field: 'Status', formatter: (cell: CellComponent) => {
+            title: 'Trạng thái',
+            field: 'Status',
+            formatter: (cell: CellComponent) => {
               const val = cell.getValue() as string;
               const el = cell.getElement();
               el.style.backgroundColor = '';
@@ -367,43 +394,37 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
                 el.style.backgroundColor = '#FFCC00';
                 el.style.color = '#000000';
                 el.style.outline = '1px solid #e0e0e0';
-              }
-              else if (val === 'Đã thu hồi') {
+              } else if (val === 'Đã thu hồi') {
                 el.style.backgroundColor = '#FFCCCC';
                 el.style.color = '#000000';
                 el.style.outline = '1px solid #e0e0e0';
-              }
-              else if (val === 'Mất') {
+              } else if (val === 'Mất') {
                 el.style.backgroundColor = '#BB0000';
                 el.style.color = '#000000';
                 el.style.outline = '1px solid #e0e0e0';
-              }
-              else if (val === 'Hỏng') {
+              } else if (val === 'Hỏng') {
                 el.style.backgroundColor = '#FFCCCC';
                 el.style.color = '#000000';
                 el.style.outline = '1px solid #e0e0e0';
-              }
-              else if (val === 'Thanh lý') {
+              } else if (val === 'Thanh lý') {
                 el.style.backgroundColor = '#CD3278';
                 el.style.color = '#000000';
                 el.style.outline = '1px solidrgb(196, 35, 35)';
-              }
-              else if (val === 'Đề nghị thanh lý') {
+              } else if (val === 'Đề nghị thanh lý') {
                 el.style.backgroundColor = '#00FFFF';
                 el.style.color = '#000000';
                 el.style.outline = '1px solidrgb(20, 177, 177)';
-              }
-              else {
+              } else {
                 el.style.backgroundColor = '#e0e0e0';
               }
               return val; // vẫn hiển thị chữ
-            }
-            , headerHozAlign: 'center'
+            },
+            headerHozAlign: 'center',
           },
           {
             title: 'Mã NCC',
             field: 'TSCodeNCC',
-            hozAlign: 'left'
+            hozAlign: 'left',
           },
           {
             title: 'Nguồn gốc',
@@ -416,134 +437,146 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
               let value = cell.getValue() || '';
               return value;
             },
-            headerHozAlign: 'center'
-            , hozAlign: 'left'
+            headerHozAlign: 'center',
+            hozAlign: 'left',
           },
           {
             title: 'Người quản lý',
             field: 'FullName',
             headerHozAlign: 'center',
-            hozAlign: 'left'
+            hozAlign: 'left',
           },
           {
             title: 'Người tạo',
             field: 'CreatedBy',
             headerHozAlign: 'center',
-            hozAlign: 'left'
+            hozAlign: 'left',
           },
           {
             title: 'Ngày tạo',
             field: 'CreatedDate',
             headerHozAlign: 'center',
-            hozAlign: 'left'
+            hozAlign: 'left',
           },
           {
             title: 'Người cập nhật',
             field: 'UpdatedBy',
             headerHozAlign: 'center',
-            hozAlign: 'left'
+            hozAlign: 'left',
           },
           {
             title: 'Ngày cập nhật',
             field: 'UpdatedDate',
             headerHozAlign: 'center',
             hozAlign: 'left',
-            formatter: formatDateCell
+            formatter: formatDateCell,
           },
           {
             title: 'Is Allocation',
             field: 'IsAllocation',
-            formatter: (cell: CellComponent) => cell.getValue() ? 'Có' : 'Không', HeaderhozAlign: 'center'
+            formatter: (cell: CellComponent) =>
+              cell.getValue() ? 'Có' : 'Không',
+            HeaderhozAlign: 'center',
           },
           {
             title: 'Office Active',
             field: 'OfficeActiveStatus',
             HeaderhozAlign: 'center',
-            hozAlign: 'right'
+            hozAlign: 'right',
           },
           {
             title: 'Windows Active',
             field: 'WindowActiveStatus',
             HeaderhozAlign: 'center',
-            hozAlign: 'right'
+            hozAlign: 'right',
           },
           {
             title: 'Mô tả chi tiết',
             field: 'SpecificationsAsset',
             HeaderhozAlign: 'center',
-            hozAlign: 'left'
+            hozAlign: 'left',
           },
           {
             title: 'Ghi chú',
             field: 'Note',
-            hozAlign: 'left'
-          }
-
+            hozAlign: 'left',
+          },
         ] as any[],
       });
       this.assetTable.on('rowClick', (evt, row: RowComponent) => {
         const rowData = row.getData();
         const ID = rowData['ID'];
-        this.assetManagementService.getAssetAllocationDetail(ID).subscribe(respon => {
-          this.assetManagementDetail = respon.data.assetsAllocation;
-          this.drawEmployeeTable();
-        });
+        this.assetManagementService
+          .getAssetAllocationDetail(ID)
+          .subscribe((respon) => {
+            this.assetManagementDetail = respon.data.assetsAllocation;
+            this.drawEmployeeTable();
+          });
       });
       this.assetTable.on('rowClick', (e: UIEvent, row: RowComponent) => {
         this.selectedRow = row.getData();
         this.sizeTbDetail = null;
-      })
+      });
     }
   }
   private drawEmployeeTable(): void {
     if (this.assetDetailtable) {
       this.assetDetailtable.setData(this.assetManagementDetail);
     } else {
-      this.assetDetailtable = new Tabulator('#datatableemployee',
-        {
-          data: this.assetManagementDetail,
-          layout: "fitDataStretch",
-          paginationSize: 5,
-          movableColumns: true,
-          reactiveData: true,
-          columns: [
-            {
-              title: 'Trạng thái',
-              field: 'Status',
-              formatter: (cell) => {
-                const val = cell.getValue() as string;
-                const el = cell.getElement();
-                el.style.backgroundColor = '';
-                el.style.color = '';
-                if (val === 'Chưa sử dụng') {
-                  el.style.backgroundColor = '#33CC99';
-                  el.style.color = '#fff';
-                  el.style.outline = '#000000';
-                } else if (val === 'Đang sử dụng') {
-                  el.style.backgroundColor = '#FFCC00';
-                  el.style.color = '#000000';
-                  el.style.outline = '#000000';
-                }
-                else if (val === 'Đã thu hồi') {
-                  el.style.backgroundColor = '#FFCCCC';
-                  el.style.color = '#000000';
-                  el.style.outline = '#000000';
-                }
-                else {
-                  el.style.backgroundColor = '#e0e0e0';
-                }
-                return val;
+      this.assetDetailtable = new Tabulator('#datatableemployee', {
+        data: this.assetManagementDetail,
+        layout: 'fitDataStretch',
+        paginationSize: 5,
+        movableColumns: true,
+        reactiveData: true,
+        columns: [
+          {
+            title: 'Trạng thái',
+            field: 'Status',
+            formatter: (cell) => {
+              const val = cell.getValue() as string;
+              const el = cell.getElement();
+              el.style.backgroundColor = '';
+              el.style.color = '';
+              if (val === 'Chưa sử dụng') {
+                el.style.backgroundColor = '#33CC99';
+                el.style.color = '#fff';
+                el.style.outline = '#000000';
+              } else if (val === 'Đang sử dụng') {
+                el.style.backgroundColor = '#FFCC00';
+                el.style.color = '#000000';
+                el.style.outline = '#000000';
+              } else if (val === 'Đã thu hồi') {
+                el.style.backgroundColor = '#FFCCCC';
+                el.style.color = '#000000';
+                el.style.outline = '#000000';
+              } else {
+                el.style.backgroundColor = '#e0e0e0';
               }
+              return val;
             },
-            { title: 'Mã NV', field: 'Code', headerHozAlign: 'center' },
-            { title: 'Họ và tên', field: 'FullName', headerHozAlign: 'center' },
-            { title: 'Phòng ban', field: 'dpmName', headerHozAlign: 'center' },
-            { title: 'Chức vụ', field: 'CVName', headerHozAlign: 'center' },
-            { title: 'Ngày cập nhật', field: 'UpdatedDate', headerHozAlign: 'center', formatter: formatDateCell, hozAlign: 'center' },
-            { title: 'Ngày tạo', field: 'CreatedDate', headerHozAlign: 'center', formatter: formatDateCell, hozAlign: 'center' },
-            { title: 'Ghi chú', field: 'Note', headerHozAlign: 'center' },
-          ]
-        });
+          },
+          { title: 'Mã NV', field: 'Code', headerHozAlign: 'center' },
+          { title: 'Họ và tên', field: 'FullName', headerHozAlign: 'center' },
+          { title: 'Phòng ban', field: 'dpmName', headerHozAlign: 'center' },
+          { title: 'Chức vụ', field: 'CVName', headerHozAlign: 'center' },
+          {
+            title: 'Ngày cập nhật',
+            field: 'UpdatedDate',
+            headerHozAlign: 'center',
+            formatter: formatDateCell,
+            hozAlign: 'center',
+          },
+          {
+            title: 'Ngày tạo',
+            field: 'CreatedDate',
+            headerHozAlign: 'center',
+            formatter: formatDateCell,
+            hozAlign: 'center',
+          },
+          { title: 'Ghi chú', field: 'Note', headerHozAlign: 'center' },
+        ],
+      });
     }
   }
   getSelectedIds(): number[] {
@@ -555,14 +588,14 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
   }
   onDeleteAsset() {
     const selectedIds = this.getSelectedIds();
-    const assetManagements = selectedIds.map(id => ({
+    const assetManagements = selectedIds.map((id) => ({
       ID: id,
       IsDeleted: true,
     }));
     const asset = {
       tSAssetManagements: assetManagements,
     };
-    console.log("payload", asset)
+    console.log('payload', asset);
     this.assetManagementService.saveDataAsset(asset).subscribe({
       next: () => {
         this.notification.success('Thành công', 'Xóa biên bản thành công!');
@@ -572,7 +605,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       error: (err) => {
         console.error('Lỗi khi xóa:', err);
         this.notification.warning('Lỗi', 'Lỗi kết nối máy chủ!');
-      }
+      },
     });
   }
   onAddAsset() {
@@ -597,7 +630,10 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
   onEitAsset() {
     const selected = this.assetTable?.getSelectedData();
     if (!selected || selected.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một đơn vị để sửa!');
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn một đơn vị để sửa!'
+      );
       return;
     }
     const selectedAssets = { ...selected[0] };
@@ -605,7 +641,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       size: 'lg',
       backdrop: 'static',
       keyboard: false,
-      centered: true
+      centered: true,
     });
     modalRef.componentInstance.dataInput = selectedAssets;
     modalRef.result.then(
@@ -621,16 +657,22 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
   onReportLoss() {
     const selected = this.assetTable?.getSelectedData();
     if (!selected || selected.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một tài sản để báo mất!');
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn một tài sản để báo mất!'
+      );
       return;
     }
     const selectedAssets = { ...selected[0] };
-    const modalRef = this.ngbModal.open(TsAssetManagementReportLossFormComponent, {
-      size: 'xl',
-      backdrop: 'static',
-      keyboard: false,
-      centered: true
-    });
+    const modalRef = this.ngbModal.open(
+      TsAssetManagementReportLossFormComponent,
+      {
+        size: 'xl',
+        backdrop: 'static',
+        keyboard: false,
+        centered: true,
+      }
+    );
     modalRef.componentInstance.dataInput = selectedAssets;
     modalRef.result.then(
       (result) => {
@@ -641,27 +683,35 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         console.log('Modal dismissed');
       }
     );
-
   }
   onRepaireAsset() {
     const selected = this.assetTable?.getSelectedData();
     if (!selected || selected.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một tài sản để báo mất!');
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn một tài sản để báo mất!'
+      );
       return;
     }
     const selectedAssets = { ...selected[0] };
     if (
-      selectedAssets.StatusID === 7 || selectedAssets.Status === 'Đề nghị thanh lí' ||
-      selectedAssets.StatusID === 4 || selectedAssets.Status === 'Mất' || selectedAssets.StatusID === 6
+      selectedAssets.StatusID === 7 ||
+      selectedAssets.Status === 'Đề nghị thanh lí' ||
+      selectedAssets.StatusID === 4 ||
+      selectedAssets.Status === 'Mất' ||
+      selectedAssets.StatusID === 6
     ) {
-      this.notification.warning('Thông báo', 'Tài sản này không thể đề nghị thanh lý vì đã bị mất hoặc đã đề nghị thanh lý!');
+      this.notification.warning(
+        'Thông báo',
+        'Tài sản này không thể đề nghị thanh lý vì đã bị mất hoặc đã đề nghị thanh lý!'
+      );
       return;
     }
     const modalRef = this.ngbModal.open(TsAssetRepairFormComponent, {
       size: 'xl',
       backdrop: 'static',
       keyboard: false,
-      centered: true
+      centered: true,
     });
     modalRef.componentInstance.dataInput = selectedAssets;
     modalRef.result.then(
@@ -673,55 +723,67 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         console.log('Modal dismissed');
       }
     );
-
   }
   onReuseAsset() {
     const selected = this.assetTable?.getSelectedData();
     if (!selected || selected.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một tài sản để báo mất!');
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn một tài sản để báo mất!'
+      );
       return;
     }
     const selectedAssets = { ...selected[0] };
-    if (
-      selectedAssets.StatusID !=3) {
-      this.notification.warning('Thông báo', 'Tài sản này không sửa chữa bảo dưỡng, không thể sử dụng lại!');
+    if (selectedAssets.StatusID != 3) {
+      this.notification.warning(
+        'Thông báo',
+        'Tài sản này không sửa chữa bảo dưỡng, không thể sử dụng lại!'
+      );
       return;
     }
-    this.assetManagementService.getAssetRepair(selectedAssets.ID).subscribe(respon => {
-      this.repairData = respon.data;
-      const modalRef = this.ngbModal.open(TsAssetReuseFormComponent, {
-        size: 'xl',
-        backdrop: 'static',
-        keyboard: false,
-        centered: true
-      });
-      modalRef.componentInstance.dataInput1 = this.repairData;
-      modalRef.componentInstance.dataInput = selectedAssets;
+    this.assetManagementService
+      .getAssetRepair(selectedAssets.ID)
+      .subscribe((respon) => {
+        this.repairData = respon.data;
+        const modalRef = this.ngbModal.open(TsAssetReuseFormComponent, {
+          size: 'xl',
+          backdrop: 'static',
+          keyboard: false,
+          centered: true,
+        });
+        modalRef.componentInstance.dataInput1 = this.repairData;
+        modalRef.componentInstance.dataInput = selectedAssets;
 
-      modalRef.result.then(
-        (result) => {
-          console.log('Modal closed with result:', result);
-          this.getAssetmanagement();
-        },
-        () => {
-          console.log('Modal dismissed');
-        }
-      );
-    });
+        modalRef.result.then(
+          (result) => {
+            console.log('Modal closed with result:', result);
+            this.getAssetmanagement();
+          },
+          () => {
+            console.log('Modal dismissed');
+          }
+        );
+      });
   }
   onReportBroken() {
     const selected = this.assetTable?.getSelectedData();
     if (!selected || selected.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một đơn vị để sửa!');
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn một đơn vị để sửa!'
+      );
       return;
     }
     const selectedAssets = { ...selected[0] };
-    const modalRef = this.ngbModal.open(TsAssetManagementReportBorkenFormComponent, {
-      size: 'xl',
-      backdrop: 'static',
-      keyboard: false,
-      centered: true
-    });
+    const modalRef = this.ngbModal.open(
+      TsAssetManagementReportBorkenFormComponent,
+      {
+        size: 'xl',
+        backdrop: 'static',
+        keyboard: false,
+        centered: true,
+      }
+    );
     modalRef.componentInstance.dataInput = selectedAssets;
     modalRef.result.then(
       (result) => {
@@ -736,21 +798,28 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
   onLiquidation() {
     const selected = this.assetTable?.getSelectedData();
     if (!selected || selected.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một tài sản để đề nghị thanh lí');
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn một tài sản để đề nghị thanh lí'
+      );
       return;
     }
     const selectedAssets = { ...selected[0] };
     if (
-      selectedAssets.StatusID != 7 || selectedAssets.Status != 'Đề nghị thanh lý'
+      selectedAssets.StatusID != 7 ||
+      selectedAssets.Status != 'Đề nghị thanh lý'
     ) {
-      this.notification.warning('Thông báo', 'Tài sản này chưa đề nghị thanh lý, không thể thanh lí!');
+      this.notification.warning(
+        'Thông báo',
+        'Tài sản này chưa đề nghị thanh lý, không thể thanh lí!'
+      );
       return;
     }
     const modalRef = this.ngbModal.open(TsAssetLiquidationComponent, {
       size: 'xl',
       backdrop: 'static',
       keyboard: false,
-      centered: true
+      centered: true,
     });
     modalRef.componentInstance.dataInput = selectedAssets;
 
@@ -767,23 +836,34 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
   onReportLiquidation() {
     const selected = this.assetTable?.getSelectedData();
     if (!selected || selected.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một tài sản để đề nghị thanh lí');
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn một tài sản để đề nghị thanh lí'
+      );
       return;
     }
     const selectedAssets = { ...selected[0] };
     if (
-      selectedAssets.StatusID === 7 || selectedAssets.Status === 'Đề nghị thanh lí' ||
-      selectedAssets.StatusID === 4 || selectedAssets.Status === 'Mất'
+      selectedAssets.StatusID === 7 ||
+      selectedAssets.Status === 'Đề nghị thanh lí' ||
+      selectedAssets.StatusID === 4 ||
+      selectedAssets.Status === 'Mất'
     ) {
-      this.notification.warning('Thông báo', 'Tài sản này không thể đề nghị thanh lý vì đã bị mất hoặc đã đề nghị thanh lý!');
+      this.notification.warning(
+        'Thông báo',
+        'Tài sản này không thể đề nghị thanh lý vì đã bị mất hoặc đã đề nghị thanh lý!'
+      );
       return;
     }
-    const modalRef = this.ngbModal.open(TsAssetProposeLiquidationFormComponent, {
-      size: 'xl',
-      backdrop: 'static',
-      keyboard: false,
-      centered: true
-    });
+    const modalRef = this.ngbModal.open(
+      TsAssetProposeLiquidationFormComponent,
+      {
+        size: 'xl',
+        backdrop: 'static',
+        keyboard: false,
+        centered: true,
+      }
+    );
     modalRef.componentInstance.dataInput = selectedAssets;
 
     modalRef.result.then(
@@ -799,15 +879,13 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
   onExportExcel() {
     this.exportToExcelAdvanced();
   }
-  onDisposeAsset() {
-
-  }
+  onDisposeAsset() {}
   async exportToExcelAdvanced() {
     if (!this.assetTable) return;
 
     const selectedData = [...this.assetData]; // ✅ Dữ liệu gốc, bỏ getRows()
 
-    console.log("selectedData:", selectedData);
+    console.log('selectedData:', selectedData);
 
     if (!selectedData || selectedData.length === 0) {
       this.notification.info('Thông báo', 'Không có dữ liệu để xuất Excel.');
@@ -817,13 +895,21 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Danh sách tài sản');
 
-    const columns = this.assetTable.getColumnDefinitions().filter((col: any) =>
-      col.visible !== false && col.field && col.field.trim() !== ''
+    const columns = this.assetTable
+      .getColumnDefinitions()
+      .filter(
+        (col: any) =>
+          col.visible !== false && col.field && col.field.trim() !== ''
+      );
+
+    console.log(
+      'columns:',
+      columns.map((c) => c.field)
     );
 
-    console.log("columns:", columns.map(c => c.field));
-
-    const headerRow = worksheet.addRow(columns.map((col: any) => col.title || col.field));
+    const headerRow = worksheet.addRow(
+      columns.map((col: any) => col.title || col.field)
+    );
     headerRow.font = { bold: true };
     headerRow.fill = {
       type: 'pattern',
@@ -876,7 +962,9 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
 
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `danh-sach-tai-san-${new Date().toISOString().split('T')[0]}.xlsx`;
+    link.download = `danh-sach-tai-san-${
+      new Date().toISOString().split('T')[0]
+    }.xlsx`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -890,13 +978,9 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       keyboard: false,
       windowClass: 'modal-fullscreen',
     });
-    modalRef.result.catch(
-      (result) => {
-        if (result == true) {
-
-
-        }
-      },
-    );
+    modalRef.result.catch((result) => {
+      if (result == true) {
+      }
+    });
   }
 }

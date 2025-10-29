@@ -606,6 +606,7 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
       size: 'xl',
       backdrop: 'static',
       keyboard: false,
+      
     });
 
     // Truyền dữ liệu vào modal (nếu sửa)

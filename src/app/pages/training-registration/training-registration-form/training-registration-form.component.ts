@@ -37,11 +37,9 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
-import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
 import { EnvironmentInjector } from '@angular/core';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 // import { NSelectComponent } from '../../n-select/n-select.component';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css'; // Import Tabulator stylesheet
 import { CommonModule } from '@angular/common';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import {
@@ -66,7 +64,6 @@ import { AppUserService } from '../../../services/app-user.service';
   templateUrl: './training-registration-form.component.html',
   styleUrls: ['./training-registration-form.component.css'],
   standalone: true,
-  encapsulation: ViewEncapsulation.None,
   imports: [
     CommonModule,
     FormsModule,
@@ -179,12 +176,15 @@ export class TrainingRegistrationFormComponent
     public activeModal: NgbActiveModal
   ) {}
   ngAfterViewInit(): void {
+    // Khởi tạo bảng trước
     this.loadDetail();
     this.loadFileTable();
+    
+    // Đợi bảng khởi tạo xong rồi mới load dữ liệu
     if (this.dataInput) {
       setTimeout(() => {
         this.loadTrainingRegistration();
-      }, 0);
+      }, 300); // Tăng thời gian chờ để đảm bảo bảng đã khởi tạo hoàn toàn
     }
   }
   ngOnInit() {
@@ -266,12 +266,42 @@ export class TrainingRegistrationFormComponent
       this.updateFileTable();
     }
 
-    if (this.table) {
-      this.table.setData(this.dataInput.LstDetail || []);
-      console.log('Đã gán dữ liệu cho table:', this.table.getData());
-    } else {
-      console.warn('Table chưa khởi tạo');
-    }
+    // Đảm bảo bảng đã được khởi tạo trước khi gán dữ liệu
+    setTimeout(() => {
+      if (this.table) {
+        const detailData = this.dataInput.LstDetail || [];
+        console.log('Dữ liệu detail sẽ được gán:', detailData);
+        
+        // Gán dữ liệu và thêm STT
+        const dataWithSTT = detailData.map((item: any, index: number) => ({
+          ...item,
+          STT: index + 1
+        }));
+        
+        this.table.setData(dataWithSTT);
+        
+        // Force redraw để đảm bảo bảng hiển thị
+        setTimeout(() => {
+          this.table.redraw(true);
+          console.log('Đã gán dữ liệu cho table:', this.table.getData());
+        }, 100);
+      } else {
+        console.warn('Table chưa khởi tạo, thử lại sau 500ms');
+        // Thử lại sau 500ms nếu table chưa khởi tạo
+        setTimeout(() => {
+          if (this.table && this.dataInput.LstDetail) {
+            const detailData = this.dataInput.LstDetail || [];
+            const dataWithSTT = detailData.map((item: any, index: number) => ({
+              ...item,
+              STT: index + 1
+            }));
+            this.table.setData(dataWithSTT);
+            this.table.redraw(true);
+            console.log('Đã gán dữ liệu cho table (lần 2):', this.table.getData());
+          }
+        }, 500);
+      }
+    }, 200);
   }
 
   // Phương thức xử lý upload file và lưu dữ liệu
@@ -681,5 +711,25 @@ export class TrainingRegistrationFormComponent
 
   get isHorizontal(): boolean {
     return this.validateForm.controls.formLayout.value === 'horizontal';
+  }
+
+  // Phương thức để refresh dữ liệu bảng
+  refreshTableData() {
+    if (this.table && this.dataInput && this.dataInput.LstDetail) {
+      const detailData = this.dataInput.LstDetail || [];
+      const dataWithSTT = detailData.map((item: any, index: number) => ({
+        ...item,
+        STT: index + 1
+      }));
+      
+      console.log('Refreshing table data:', dataWithSTT);
+      this.table.setData(dataWithSTT);
+      
+      // Force redraw
+      setTimeout(() => {
+        this.table.redraw(true);
+        console.log('Table data  after refresh:', this.table.getData());
+      }, 100);
+    }
   }
 }

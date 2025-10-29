@@ -492,6 +492,83 @@ export class HrhiringRequestDetailComponent implements OnInit {
     }
   }
 
+  // Input handlers for direct number input
+  onMinSalaryInputChange(event: any): void {
+    const value = parseInt(event.target.value) || 0;
+    const currentMax = this.form.value.SalaryMax;
+    const step = 100000;
+
+    // Validate range
+    const clampedValue = Math.max(0, Math.min(100000000, value));
+    
+    if (clampedValue <= currentMax - step) {
+      this.form.patchValue({ SalaryMin: clampedValue });
+    } else {
+      // Auto adjust to maintain minimum gap
+      const newMin = Math.max(0, currentMax - step);
+      this.form.patchValue({ SalaryMin: newMin });
+      event.target.value = newMin;
+    }
+    this.validateRange('SalaryMin');
+  }
+
+  onMaxSalaryInputChange(event: any): void {
+    const value = parseInt(event.target.value) || 0;
+    const currentMin = this.form.value.SalaryMin;
+    const step = 100000;
+
+    // Validate range
+    const clampedValue = Math.max(0, Math.min(100000000, value));
+    
+    if (clampedValue >= currentMin + step) {
+      this.form.patchValue({ SalaryMax: clampedValue });
+    } else {
+      // Auto adjust to maintain minimum gap
+      const newMax = Math.min(100000000, currentMin + step);
+      this.form.patchValue({ SalaryMax: newMax });
+      event.target.value = newMax;
+    }
+    this.validateRange('SalaryMax');
+  }
+
+  onMinAgeInputChange(event: any): void {
+    const value = parseInt(event.target.value) || 18;
+    const currentMax = this.form.value.AgeMax;
+    const step = 1;
+
+    // Validate range
+    const clampedValue = Math.max(18, Math.min(65, value));
+    
+    if (clampedValue <= currentMax - step) {
+      this.form.patchValue({ AgeMin: clampedValue });
+    } else {
+      // Auto adjust to maintain minimum gap
+      const newMin = Math.max(18, currentMax - step);
+      this.form.patchValue({ AgeMin: newMin });
+      event.target.value = newMin;
+    }
+    this.validateRange('AgeMin');
+  }
+
+  onMaxAgeInputChange(event: any): void {
+    const value = parseInt(event.target.value) || 65;
+    const currentMin = this.form.value.AgeMin;
+    const step = 1;
+
+    // Validate range
+    const clampedValue = Math.max(18, Math.min(65, value));
+    
+    if (clampedValue >= currentMin + step) {
+      this.form.patchValue({ AgeMax: clampedValue });
+    } else {
+      // Auto adjust to maintain minimum gap
+      const newMax = Math.min(65, currentMin + step);
+      this.form.patchValue({ AgeMax: newMax });
+      event.target.value = newMax;
+    }
+    this.validateRange('AgeMax');
+  }
+
   // Click handlers for salary slider
   onSalarySliderClick(event: any, type: 'min' | 'max'): void {
     const slider = event.target;

@@ -18,4 +18,8 @@ export class HomeLayoutService {
       environment.host + 'api/home/employee-onleave-and-wfh'
     );
   }
+
+  gotoOldLink(data:any){
+    return this.http.post<any>("http://localhost:19028/Home/LoginNew",data);
+  }
 }

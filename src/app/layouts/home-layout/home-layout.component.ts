@@ -9,7 +9,12 @@ import {
   ViewChild,
 } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink, RouterModule, RouterOutlet } from '@angular/router';
+import {
+  Router,
+  RouterLink,
+  RouterModule,
+  RouterOutlet,
+} from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCarouselComponent, NzCarouselModule } from 'ng-zorro-antd/carousel';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
@@ -50,6 +55,9 @@ import { NzListModule } from 'ng-zorro-antd/list';
 import { NzCalendarMode, NzCalendarModule } from 'ng-zorro-antd/calendar';
 import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
 import { HolidayServiceService } from '../../pages/old/holiday/holiday-service/holiday-service.service';
+import { HasPermissionDirective } from '../../directives/has-permission.directive';
+import { MenuItem } from '../main-layout/main-layout.component';
+import { menus } from '../../pages/old/menus/menus.component';
 
 interface dynamicApps {
   MenuName: string;
@@ -128,6 +136,8 @@ interface WorkStatus {
     NzCollapseModule,
     NzListModule,
     NzCalendarModule,
+    HasPermissionDirective,
+    NzTabsModule,
   ],
   templateUrl: './home-layout.component.html',
   styleUrl: './home-layout.component.css',
@@ -222,6 +232,9 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
     return isSaturday;
   }
 
+
+  menus:MenuItem[] = menus;
+
   constructor(
     private notification: NzNotificationService,
     private homepageService: HomeLayoutService,
@@ -229,7 +242,7 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     private cdr: ChangeDetectorRef,
     private holidayService: HolidayServiceService,
-    private router:Router
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -237,7 +250,7 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
     this.getMenuParents();
     // this.generateCalendarDays();
     this.getEmployeeOnleaveAndWFH();
-    this.getHoliday();
+    this.getHoliday(this.today.getFullYear(), this.today.getMonth());
   }
 
   //   private generateCalendarDays(): void {
@@ -444,24 +457,46 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
   }
 
   //GET DANH SÁCH NGÀY NGHỈ TRONG THÁNG
-  getHoliday(): void {
-    this.holidayService
-      .getHolidays(this.today.getMonth() + 1, this.today.getFullYear())
-      .subscribe({
-        next: (response: any) => {
-          this.holidays = response.data.holidays;
-          this.scheduleWorkSaturdays = response.data.scheduleWorkSaturdays;
+  getHoliday(year: number, month: number): void {
+    this.holidayService.getHolidays(month + 1, year).subscribe({
+      next: (response: any) => {
+        this.holidays = response.data.holidays;
+        this.scheduleWorkSaturdays = response.data.scheduleWorkSaturdays;
 
-          //   console.log(response);
-        },
-        error: (err: any) => {
-          this.notification.error('Lỗi', err.error.message);
-        },
-      });
+        //   console.log(response);
+      },
+      error: (err: any) => {
+        this.notification.error('Lỗi', err.error.message);
+      },
+    });
   }
-    openModule(key: string) {
-  localStorage.setItem('openMenuKey', key);
-  this.router.navigate(['/app']); // hoặc route tới MainLayout
-}
+  onValueChange(value: Date): void {
+    // console.log(`Current value: ${value}`);
 
+    console.log(`Current year: ${value.getFullYear()}`);
+    console.log(`Current month: ${value.getMonth()}`);
+
+    this.getHoliday(value.getFullYear(), value.getMonth());
+  }
+  onPanelChange(change: { date: Date; mode: string }): void {}
+  openModule(key: string) {
+    localStorage.setItem('openMenuKey', key);
+    this.router.navigate(['/app']); // hoặc route tới MainLayout
+  }
+
+  goToOldLink(){
+    let data:any={
+        UserName:"ltanh",
+        Password:"MQA=",
+        Router:"lamthem"
+    }
+    this.homepageService.gotoOldLink(data).subscribe({
+        next(response) {
+            console.log(response);
+        },
+        error(err) {
+             console.log(err.error);
+        },
+    })
+  }
 }

@@ -1,0 +1,315 @@
+<nz-splitter>
+  <nz-splitter-panel [nzSize]="sizeSearch" [nzCollapsible]="true">
+    <div class="card h-100 border-0 rounded-0">
+      <div class="card-header bg-white p-1">
+        <div class="d-flex justify-content-between align-items-center">
+          <h6 class="m-0 ms-2">Tìm kiếm</h6>
+          <button
+            class="border-0 me-2"
+            nz-button
+            nzSize="small"
+            nzType="default"
+            nzDanger
+            (click)="toggleSearchPanel()"
+          >
+            <nz-icon nzType="close" nzTheme="outline" />
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <form nz-form nzLayout="vertical">
+          <nz-form-item class="mt-2">
+            <nz-form-label class="fs-12" [nzSpan]="24">Phòng ban</nz-form-label>
+            <nz-form-control [nzSpan]="24">
+              <nz-select
+                [(ngModel)]="searchParams.DepartmentID"
+                [nzPlaceHolder]="'Chọn phòng ban'"
+                style="width: 100%"
+                name="departmentID"
+                nzShowSearch
+                [nzFilterOption]="filterOption"
+                nzAllowClear
+              >
+                <nz-option
+                  *ngFor="let item of dataDepartment"
+                  [nzLabel]="item.Name"
+                  [nzValue]="item.ID"
+                ></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item class="mt-2">
+            <nz-form-label class="fs-12" [nzSpan]="24">Nhân viên</nz-form-label>
+            <nz-form-control [nzSpan]="24">
+              <nz-select
+              [(ngModel)]="searchParams.EmployeeID"
+                nzPlaceHolder="Chọn nhân viên"
+                nzShowSearch
+                  name="employeeID"
+                [nzFilterOption]="filterOption"
+                nzAllowClear
+              >
+                <nz-option-group
+                  *ngFor="let g of cbbEmployee"
+                  [nzLabel]="g.department"
+                >
+                  <nz-option
+                    *ngFor="let emp of g.items"
+                    [nzLabel]="emp.Code + ' - ' + emp.FullName"
+                    [nzValue]="emp.ID"
+                  >
+                  </nz-option>
+                </nz-option-group>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+          <nz-form-item class="mt-2">
+            <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+            <nz-form-control [nzSpan]="24">
+              <input
+                class="w-100"
+                nz-input
+                placeholder="Nhập từ khóa"
+                [(ngModel)]="searchParams.Keyword"
+                name="keyword"
+                nzSize="small"
+              />
+            </nz-form-control>
+          </nz-form-item>
+        </form>
+      </div>
+      <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+        <button
+          nz-button
+          nzType="primary"
+          nzSize="small"
+          (click)="searchData()"
+        >
+          Tìm kiếm
+        </button>
+      </div>
+    </div>
+  </nz-splitter-panel>
+  <nz-splitter-panel>
+    <nz-splitter nzLayout="vertical">
+      <nz-splitter-panel>
+        <div class="card border-0 rounded-0">
+          <div class="card-header bg-white p-1" style="overflow-x: auto">
+            <div class="d-flex gap-1">
+              <button
+                nz-button
+                nzType="default"
+                nzSize="small"
+                (click)="toggleSearchPanel()"
+              >
+                <nz-icon nzType="search" />
+              </button>
+              <button
+                class="fs-12 btn"
+                nz-button
+                nzType="default"
+                nzSize="small"
+                (click)="onAddHandover(false)"
+              >
+                <nz-icon nzType="plus" nzTheme="outline" /> Thêm
+              </button>
+              <button
+                class="fs-12 btn"
+                nz-button
+                nzType="default"
+                nzSize="small"
+                (click)="onAddHandover(true)"
+              >
+                <nz-icon nzType="edit" nzTheme="fill" /> Sửa
+              </button>
+              <button
+                class="fs-12 btn"
+                nz-button
+                nzType="default"
+                nzSize="small"
+                (click)="onDeleteHandover()"
+              >
+                <nz-icon nzType="delete" nzTheme="fill" /> Xóa
+              </button>
+              <button
+                class="fs-12 btn"
+                nz-button
+                nzType="default"
+                nzSize="small"
+                (click)="exportExcel(HandoverID)"
+              >
+                <nz-icon nzType="file-excel" nzTheme="outline" /> Xuất Excel
+              </button>
+              <!-- Người bàn giao -->
+              <button
+                class="fs-12 btn"
+                nz-button
+                [nzType]="handoverStatusGiver === 1 ? 'primary' : 'default'"
+                  [nzDanger]="handoverStatusGiver === 2"
+                nzSize="small"
+                nz-dropdown
+                [nzDropdownMenu]="handoverMenu"
+                nzTrigger="click"
+                nzPlacement="bottomLeft"
+              >
+                <nz-icon nzType="check-circle" nzTheme="outline"></nz-icon>
+                Người bàn giao
+              </button>
+
+              <nz-dropdown-menu #handoverMenu="nzDropdownMenu">
+                <ul nz-menu>
+                  <li nz-menu-item (click)="approveHandover(HandoverID, 1, 1)">
+                    <nz-icon nzType="check" nzTheme="outline"></nz-icon> Duyệt
+                  </li>
+                  <li nz-menu-item (click)="approveHandover(HandoverID, 1, 2)">
+                    <nz-icon nzType="close" nzTheme="outline"></nz-icon> Hủy
+                    duyệt
+                  </li>
+                </ul>
+              </nz-dropdown-menu>
+
+              <!-- Trưởng bộ phận -->
+              <button
+                class="fs-12 btn"
+                nz-button
+                [nzType]="handoverStatusLeader === 1 ? 'primary' : 'default'"
+                  [nzDanger]="handoverStatusLeader === 2"
+                nzSize="small"
+                nz-dropdown
+                [nzDropdownMenu]="deptMenu"
+                nzTrigger="click"
+                nzPlacement="bottomLeft"
+              >
+                <nz-icon nzType="check-circle" nzTheme="outline"></nz-icon>
+                Trưởng bộ phận
+              </button>
+
+              <nz-dropdown-menu #deptMenu="nzDropdownMenu">
+                <ul nz-menu>
+                  <li nz-menu-item (click)="approveHandover(HandoverID, 2, 1)">
+                    <nz-icon nzType="check" nzTheme="outline"></nz-icon> Duyệt
+                  </li>
+                  <li nz-menu-item (click)="approveHandover(HandoverID, 2, 2)">
+                    <nz-icon nzType="close" nzTheme="outline"></nz-icon> Hủy
+                    duyệt
+                  </li>
+                </ul>
+              </nz-dropdown-menu>
+
+              <!-- Trưởng phòng HCNS -->
+              <button
+                class="fs-12 btn"
+                nz-button
+                [nzType]="handoverStatusManager === 1 ? 'primary' : 'default'"
+                  [nzDanger]="handoverStatusManager === 2"
+                nzSize="small"
+                nz-dropdown
+                [nzDropdownMenu]="hrMenu"
+                nzTrigger="hover"
+                nzPlacement="bottomLeft"
+              >
+                <nz-icon nzType="check-circle" nzTheme="outline"></nz-icon>
+                Trưởng phòng HCNS
+              </button>
+
+              <nz-dropdown-menu #hrMenu="nzDropdownMenu">
+                <ul nz-menu>
+                  <li nz-menu-item (click)="approveHandover(HandoverID, 3, 1)">
+                    <nz-icon nzType="check" nzTheme="outline"></nz-icon> Duyệt
+                  </li>
+                  <li nz-menu-item (click)="approveHandover(HandoverID, 3, 2)">
+                    <nz-icon nzType="close" nzTheme="outline"></nz-icon> Hủy
+                    duyệt
+                  </li>
+                </ul>
+              </nz-dropdown-menu>
+            </div>
+          </div>
+          <nz-splitter>
+            <nz-splitter-panel>
+              <div class="card-body p-0">
+                <div id="Handover" style="width: 100%; height: 100%"></div>
+              </div>
+            </nz-splitter-panel>
+            <nz-splitter-panel>
+              <div class="card-body p-0">
+                <div
+                  id="HandoverReceiver"
+                  style="width: 100%; height: 100%"
+                ></div>
+              </div>
+            </nz-splitter-panel>
+          </nz-splitter>
+        </div>
+      </nz-splitter-panel>
+      <nz-splitter-panel>
+        <nz-splitter>
+          <nz-splitter-panel [nzCollapsible]="true">
+            <div class="box">
+              <nz-tabset
+                nzType="card"
+                (nzSelectedIndexChange)="onTabChange($event)"
+              >
+                <nz-tab nzTitle="Công việc bàn giao" [tabIndex]="0">
+                  <div class="card-body p-0">
+                    <div
+                      id="HandoverWork"
+                      style="width: 100%; height: 100%"
+                    ></div>
+                  </div>
+                </nz-tab>
+                <nz-tab nzTitle="Tài sản bàn giao">
+                  <nz-splitter>
+                    <nz-splitter-panel>
+                      <div class="card-body p-0">
+                        <h5>Tài sản cấp phát</h5>
+                        <div
+                          id="HandoverAssetManagement"
+                          style="width: 100%; height: 100%"
+                        ></div>
+                      </div>
+                    </nz-splitter-panel>
+                    <nz-splitter-panel>
+                      <div class="card-body p-0">
+                        <h5>Tài sản mượn kho</h5>
+                        <div
+                          id="HandoverAsset"
+                          style="width: 100%; height: 100%"
+                        ></div>
+                      </div>
+                    </nz-splitter-panel>
+                  </nz-splitter>
+                </nz-tab>
+                <nz-tab nzTitle="Công nợ còn thiếu" [tabIndex]="0">
+                  <div class="card-body p-0">
+                    <div
+                      id="HandoverFinances"
+                      style="width: 100%; height: 100%"
+                    ></div>
+                  </div>
+                </nz-tab>
+                <nz-tab nzTitle="Nhân viên trực thuộc" [tabIndex]="0">
+                  <div class="card-body p-0">
+                    <div
+                      id="HandoverSubordinates"
+                      style="width: 100%; height: 100%"
+                    ></div>
+                  </div>
+                </nz-tab>
+                <nz-tab nzTitle="Duyệt" [tabIndex]="0">
+                  <div class="card-body p-0">
+                    <div
+                      id="HandoverApprove"
+                      style="width: 100%; height: 100%"
+                    ></div>
+                  </div>
+                </nz-tab>
+              </nz-tabset>
+            </div>
+          </nz-splitter-panel>
+        </nz-splitter>
+      </nz-splitter-panel>
+    </nz-splitter>
+  </nz-splitter-panel>
+</nz-splitter>

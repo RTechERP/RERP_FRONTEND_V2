@@ -495,15 +495,19 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
     }
 
     const url = `http://localhost:19028${router}`
-    console.log('router:',url);
+    // console.log('router:',url);
     this.homepageService.gotoOldLink(data).subscribe({
         next:(response) =>{
-            console.log('response:',response);
-            console.log('router next:',url);
+            // console.log('response:',response);
+            // console.log('router next:',url);
             window.open(url,'_blank');
+            // window.location.href = url;
         },
         error:(err)=> {
-             console.log('err:',err.error);
+             console.log('err:',err);
+            //  console.log('err status:',err.status);
+            //  window.open(url,'_blank');
+            // window.location.href = url;
         },
     })
 

@@ -109,6 +109,8 @@ export class TrainingRegistrationFormComponent
       'vertical'
     ),
     EmployeeID: this.fb.control(null, [Validators.required]),
+    Position: this.fb.control(''),
+    Department: this.fb.control(''),
     Purpose: this.fb.control('', [Validators.required]),
     TrainingType: this.fb.control(null, [Validators.required]),
     IsCertification: this.fb.control(false),
@@ -158,6 +160,7 @@ export class TrainingRegistrationFormComponent
   }
 
   lstEmployees: any[] = [];
+  employeeGroups: any[] = [];
 
   // Danh sách loại đào tạo
   trainingTypes: any[] = [
@@ -189,6 +192,25 @@ export class TrainingRegistrationFormComponent
   }
   ngOnInit() {
     this.loadEmployees();
+    
+    // Lắng nghe thay đổi nhân viên để cập nhật chức vụ và phòng ban
+    this.validateForm.get('EmployeeID')?.valueChanges.subscribe(employeeId => {
+      if (employeeId) {
+        const selectedEmployee = this.lstEmployees.find(emp => emp.ID === employeeId);
+        if (selectedEmployee) {
+          this.validateForm.patchValue({
+            Position: selectedEmployee.ChucVuHD || '',
+            Department: selectedEmployee.DepartmentName || ''
+          });
+        }
+      } else {
+        // Xóa chức vụ và phòng ban khi không chọn nhân viên
+        this.validateForm.patchValue({
+          Position: '',
+          Department: ''
+        });
+      }
+    });
   }
 
   // Phương thức xử lý trước khi upload
@@ -215,6 +237,7 @@ export class TrainingRegistrationFormComponent
       next: (response) => {
         if (response.status === 1) {
           this.lstEmployees = response.data;
+          this.buildEmployeeGroups();
         }
       },
       error: (error) => {
@@ -224,6 +247,19 @@ export class TrainingRegistrationFormComponent
         );
       },
     });
+  }
+
+  private buildEmployeeGroups(): void {
+    const map = new Map<string, any[]>();
+    for (const e of this.lstEmployees || []) {
+      const k = e.DepartmentName || 'Khác';
+      if (!map.has(k)) map.set(k, []);
+      map.get(k)!.push(e);
+    }
+    this.employeeGroups = Array.from(map, ([department, items]) => ({
+      department,
+      items,
+    }));
   }
 
   loadTrainingRegistration() {

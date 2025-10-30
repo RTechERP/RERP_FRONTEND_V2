@@ -328,7 +328,50 @@ export class HrhiringRequestDetailComponent implements OnInit {
 
   formatSalaryDisplay(value: number): string {
     if (!value) return '0 VNĐ';
-    return `${value.toLocaleString('vi-VN')} VNĐ`;
+    const formatted = value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return `${formatted} VNĐ`;
+  }
+
+  formatSalaryInput(value: number): string {
+    if (!value || value === 0) return '';
+    // Sử dụng format tùy chỉnh với dấu phẩy
+    return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  parseSalaryInput(value: string): number {
+    if (!value || value.trim() === '') return 0;
+    
+    // Loại bỏ tất cả ký tự không phải số
+    const cleanValue = value.replace(/[^0-9]/g, '');
+    
+    if (cleanValue === '') return 0;
+    
+    const parsed = parseInt(cleanValue) || 0;
+    return Math.max(0, parsed); // Đảm bảo không âm
+  }
+
+  validateNumberInput(event: KeyboardEvent): void {
+    const char = event.key;
+    const currentValue = (event.target as HTMLInputElement).value;
+    
+    // Cho phép: số (0-9), dấu phẩy (,), Backspace, Delete, Tab, Enter, Arrow keys
+    const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+    
+    if (allowedKeys.includes(char)) {
+      return; // Cho phép các phím điều khiển
+    }
+    
+    // Chỉ cho phép số và dấu phẩy
+    if (!/[0-9,]/.test(char)) {
+      event.preventDefault();
+      return;
+    }
+    
+    // Không cho phép nhiều dấu phẩy liên tiếp
+    if (char === ',' && currentValue.slice(-1) === ',') {
+      event.preventDefault();
+      return;
+    }
   }
 
   // formatSalaryRange(min: number, max: number): string {
@@ -494,41 +537,59 @@ export class HrhiringRequestDetailComponent implements OnInit {
 
   // Input handlers for direct number input
   onMinSalaryInputChange(event: any): void {
-    const value = parseInt(event.target.value) || 0;
+    const inputValue = event.target.value;
+    const value = this.parseSalaryInput(inputValue);
     const currentMax = this.form.value.SalaryMax;
     const step = 100000;
 
     // Validate range
     const clampedValue = Math.max(0, Math.min(100000000, value));
     
-    if (clampedValue <= currentMax - step) {
-      this.form.patchValue({ SalaryMin: clampedValue });
-    } else {
-      // Auto adjust to maintain minimum gap
-      const newMin = Math.max(0, currentMax - step);
-      this.form.patchValue({ SalaryMin: newMin });
-      event.target.value = newMin;
+    // Không cho phép min >= max
+    if (clampedValue >= currentMax) {
+      // Giữ nguyên giá trị cũ nếu min >= max
+      const currentMin = this.form.value.SalaryMin;
+      event.target.value = this.formatSalaryInput(currentMin);
+      
+      // Hiển thị thông báo
+      this.notification.warning('Thông báo', `Lương tối thiểu không thể lớn hơn hoặc bằng lương tối đa (${this.formatSalaryInput(currentMax)})`);
+      return;
     }
+    
+    this.form.patchValue({ SalaryMin: clampedValue });
     this.validateRange('SalaryMin');
   }
 
   onMaxSalaryInputChange(event: any): void {
     const value = parseInt(event.target.value) || 0;
     const currentMin = this.form.value.SalaryMin;
-    const step = 100000;
 
     // Validate range
     const clampedValue = Math.max(0, Math.min(100000000, value));
     
-    if (clampedValue >= currentMin + step) {
-      this.form.patchValue({ SalaryMax: clampedValue });
-    } else {
-      // Auto adjust to maintain minimum gap
-      const newMax = Math.min(100000000, currentMin + step);
-      this.form.patchValue({ SalaryMax: newMax });
-      event.target.value = newMax;
+    // Không cho phép max <= min
+    if (clampedValue <= currentMin) {
+      // Giữ nguyên giá trị cũ nếu max <= min
+      const currentMax = this.form.value.SalaryMax;
+      event.target.value = currentMax;
+      
+      // Hiển thị thông báo
+      this.notification.warning('Thông báo', `Lương tối đa không thể nhỏ hơn hoặc bằng lương tối thiểu (${this.formatSalaryInput(currentMin)})`);
+      return;
     }
+    
+    this.form.patchValue({ SalaryMax: clampedValue });
     this.validateRange('SalaryMax');
+  }
+
+  onMinSalaryBlur(event: any): void {
+    const value = this.form.value.SalaryMin;
+    event.target.value = this.formatSalaryInput(value);
+  }
+
+  onMaxSalaryBlur(event: any): void {
+    const value = this.form.value.SalaryMax;
+    event.target.value = this.formatSalaryInput(value);
   }
 
   onMinAgeInputChange(event: any): void {

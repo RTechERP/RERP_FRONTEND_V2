@@ -73,6 +73,9 @@ interface Handover {
   IsApprove: boolean;
   HandoverDate: Date | null;
   Note: string;
+
+  DateStart: Date;
+ DateEnd: Date;
 }
 
 interface HandoverReceiver {
@@ -89,7 +92,7 @@ interface HandoverWork {
   Status: boolean;
   Frequency: string;
   FileName: string;
-  SignedBy: string;
+  IsSigned: boolean;
   Note: string;
 }
 
@@ -102,7 +105,7 @@ interface HandoverWarehouseAsset {
   BorrowQty: number;
   Unit: string;
   ReturnedStatusText: string;
-  SignedBy: string;
+  IsSigned: boolean;
   ReceiverName: string;
   Note: string;
 }
@@ -115,7 +118,7 @@ interface HandoverAssetManagement {
   Quantity: number;
   UnitName: string;
   Status: string;
-  SignedBy: string;
+  IsSigned: boolean;
   ReceiverName: string;
   Note: string;
 }
@@ -192,6 +195,8 @@ export class HandoverComponent implements OnInit, AfterViewInit {
     IsApprove: false,
     HandoverDate: null,
     Note: '',
+    DateStart: new Date(),
+    DateEnd: new Date(),
   };
 
   newHandoverReceiver: HandoverReceiver = {
@@ -208,7 +213,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
     Status: false,
     Frequency: '',
     FileName: '',
-    SignedBy: '',
+    IsSigned: false,
     Note: '',
   };
 
@@ -221,7 +226,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
     BorrowQty: 0,
     Unit: '',
     ReturnedStatusText: '',
-    SignedBy: '',
+    IsSigned: false,
     ReceiverName: '',
     Note: '',
   };
@@ -234,7 +239,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
     Quantity: 0,
     UnitName: '',
     Status: '',
-    SignedBy: '',
+    IsSigned: false,
     ReceiverName: '',
     Note: '',
   };
@@ -274,6 +279,9 @@ export class HandoverComponent implements OnInit, AfterViewInit {
     EmployeeID: 0,
     LeaderID: 0,
     Keyword: '',
+    DateStart: new Date(),
+    DateEnd: new Date(),
+
   };
 
   handoverList: any[] = [];
@@ -282,7 +290,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
   HandoverID: number = 0;
   data: any[] = [];
 
-  HandoverReceiverData: any[] = [];
+  HandoverReceiverData: any[] = []; 
   handoverReceiverTable: Tabulator | null = null;
 
   HandoverWorkData: any[] = [];
@@ -325,6 +333,10 @@ export class HandoverComponent implements OnInit, AfterViewInit {
     this.getHandover();
     this.getdataDepartment();
     this.getdataEmployee();
+
+//      const startDate = this.searchParams.DateStart;
+//     startDate.setFullYear(startDate.getFullYear() - 1);
+// this.searchParams.DateEnd = new Date(new Date(this.searchParams.DateEnd).setDate(new Date(this.searchParams.DateEnd).getDate() + 1));
   }
 
   ngAfterViewInit(): void {
@@ -352,6 +364,35 @@ export class HandoverComponent implements OnInit, AfterViewInit {
     );
   };
 
+     toLocalISOString(date: Date | string): string {
+  // Chuyển đổi chuỗi thành Date nếu cần
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+
+  // Kiểm tra xem dateObj có hợp lệ không
+  if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
+    throw new Error('Invalid date input');
+  }
+
+  const tzOffset = 7 * 60; // GMT+7, tính bằng phút
+  const adjustedDate = new Date(dateObj.getTime() + tzOffset * 60 * 1000); // Điều chỉnh sang GMT+7
+  const pad = (n: number) => String(Math.floor(Math.abs(n))).padStart(2, '0');
+
+  return (
+    adjustedDate.getUTCFullYear() +
+    '-' +
+    pad(adjustedDate.getUTCMonth() + 1) +
+    '-' +
+    pad(adjustedDate.getUTCDate()) +
+    'T' +
+    pad(adjustedDate.getUTCHours()) +
+    ':' +
+    pad(adjustedDate.getUTCMinutes()) +
+    ':' +
+    pad(adjustedDate.getUTCSeconds())
+  ); // Trả về định dạng YYYY-MM-DDTHH:mm:ss
+}
+
+
   onTabChange(index: number) {
     this.activeTab = index;
     // Initialize tables when tabs become active
@@ -377,11 +418,18 @@ export class HandoverComponent implements OnInit, AfterViewInit {
   }
 
   getHandover(): void {
+
+    console.log(this.searchParams);
     this.HandoverService.getHandover(
       this.searchParams.DepartmentID,
       this.searchParams.EmployeeID,
       this.searchParams.LeaderID,
-      this.searchParams.Keyword
+      this.searchParams.Keyword,
+    //   this.searchParams.DateStart,
+    this.searchParams.DateStart,
+      this.searchParams.DateEnd
+    //   this.toLocalISOString(this.searchParams.DateStart),
+    //   this.toLocalISOString(this.searchParams.DateEnd)
     ).subscribe((response: any) => {
       this.HandoverData = response.data?.asset || [];
       if (this.handoverTable) {
@@ -579,8 +627,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
         : null;
 
     const modalRef = this.modalService.open(HandoverFormComponent, {
-      centered: true,
-      windowClass: 'full-screen-modal',
+      fullscreen:true,
       backdrop: 'static',
       keyboard: false,
     });
@@ -713,7 +760,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
         data: this.HandoverData || [],
         layout: 'fitDataStretch',
         selectableRows: 1,
-        height: '40vh',
+        height: '100%',
         movableColumns: true,
         reactiveData: true,
         placeholder: 'Không có dữ liệu',
@@ -844,7 +891,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
         data: this.HandoverReceiverData || [],
         layout: 'fitDataStretch',
         selectableRows: 1,
-        height: '46vh',
+        height: '100%',
         movableColumns: true,
         reactiveData: true,
         placeholder: 'Không có dữ liệu',
@@ -897,7 +944,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
         data: this.HandoverWorkData || [],
         layout: 'fitDataStretch',
         selectableRows: 1,
-        height: '46vh',
+        height: '100%',
         movableColumns: true,
         reactiveData: true,
         placeholder: 'Không có dữ liệu',
@@ -986,7 +1033,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
           },
           {
             title: 'Ký nhận',
-            field: 'SignedBy',
+            field: 'IsSigned',
             headerHozAlign: 'center',
             hozAlign: 'center',
             formatter: 'tickCross', 
@@ -1011,7 +1058,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
           data: this.HandoverAssetManagement || [],
           layout: 'fitDataStretch',
           selectableRows: 1,
-          height: '46vh',
+          height: '100%',
           movableColumns: true,
           reactiveData: true,
           placeholder: 'Không có dữ liệu',
@@ -1080,7 +1127,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
             },
               {
             title: 'Ký nhận',
-            field: 'SignedBy',
+            field: 'IsSigned',
             headerHozAlign: 'center',
             hozAlign: 'center',
             formatter: 'tickCross', 
@@ -1104,7 +1151,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
         data: this.HandoverWarehouseAssetData || [],
         layout: 'fitDataStretch',
         selectableRows: 1,
-        height: '46vh',
+        height: '100%',
         movableColumns: true,
         reactiveData: true,
         placeholder: 'Không có dữ liệu',
@@ -1173,7 +1220,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
           },
              {
             title: 'Ký nhận',
-            field: 'SignedBy',
+            field: 'IsSigned',
             headerHozAlign: 'center',
             hozAlign: 'center',
             formatter: 'tickCross', 
@@ -1201,7 +1248,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
         data: this.HandoverFinancesData || [],
         layout: 'fitDataStretch',
         selectableRows: 1,
-        height: '46vh',
+        height: '100%',
         movableColumns: true,
         reactiveData: true,
         placeholder: 'Không có dữ liệu',
@@ -1290,7 +1337,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
         data: this.HandoverSubordinatesData || [],
         layout: 'fitDataStretch',
         selectableRows: 1,
-        height: '46vh',
+        height: '100%',
         movableColumns: true,
         reactiveData: true,
         placeholder: 'Không có dữ liệu',
@@ -1359,7 +1406,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
         data: this.HandoverApproveData || [],
         layout: 'fitColumns',
         selectableRows: 1,
-        height: '46vh',
+        height: '100%',
         movableColumns: true,
         reactiveData: true,
         placeholder: 'Không có dữ liệu',

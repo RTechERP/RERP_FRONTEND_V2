@@ -603,7 +603,8 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
   openTrainingFormModal(selectedData: any) {
     // Mở modal
     const modalRef = this.modalService.open(TrainingRegistrationFormComponent, {
-      size: 'xl',
+    //   size: 'xl',
+    fullscreen:true,
       backdrop: 'static',
       keyboard: false,
       

@@ -15,7 +15,7 @@ import { NzDestroyService } from 'ng-zorro-antd/core/services';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NgComponentOutlet } from '@angular/common';
 import { Type, Injector } from '@angular/core';
-import { AppNotifycationDropdownComponent, NotifyItem } from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
+// import { AppNotifycationDropdownComponent, NotifyItem } from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
 // import { AppNotifycationDropdownComponent } from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
 // import { AppUserDropdownComponent } from '/pages/old/app/app-user-dropdown/app-user-dropdown.component';
 import { Title } from '@angular/platform-browser';
@@ -30,6 +30,7 @@ import { CustomerComponent } from '../../pages/old/VisionBase/customer/customer.
 import { menus } from '../../pages/old/menus/menus.component';
 import { MenuService } from '../../pages/old/menus/menu-service/menu.service';
 import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
+import { AppNotifycationDropdownComponent, NotifyItem } from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
 
 type TabItem = {
   title: string;

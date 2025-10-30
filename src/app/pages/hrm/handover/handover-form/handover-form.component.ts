@@ -76,7 +76,7 @@ interface HandoverWork {
   Status: number;
   Frequency: string;
   FileName: string;
-  SignedBy: boolean;
+  IsSigned: boolean;
   Note: string;
 }
 
@@ -89,7 +89,7 @@ interface HandoverWarehouseAsset {
   BorrowQty: number;
   Unit: string;
   ReturnedStatusText: string;
-  SignedBy: boolean;
+  IsSigned: boolean;
   ReceiverName: string;
   Note: string;
 }
@@ -102,7 +102,7 @@ interface HandoverAssetManagement {
   Quantity: number;
   UnitName: string;
   Status: string;
-  SignedBy: boolean;
+  IsSigned: boolean;
   ReceiverName: string;
   Note: string;
 }
@@ -190,7 +190,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
     Status: 0,
     Frequency: '',
     FileName: '',
-    SignedBy: false,
+    IsSigned: false,
     Note: '',
   };
 
@@ -203,7 +203,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
     BorrowQty: 0,
     Unit: '',
     ReturnedStatusText: '',
-    SignedBy: false,
+    IsSigned: false,
     ReceiverName: '',
     Note: '',
   };
@@ -216,7 +216,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
     Quantity: 0,
     UnitName: '',
     Status: '',
-    SignedBy: false,
+    IsSigned: false,
     ReceiverName: '',
     Note: '',
   };
@@ -290,6 +290,8 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
   DeletedWarehouseAsset: any[] = [];
   cbbEmployeeGroup: any[] = [];
 
+  height:string = '100%'
+
   constructor(
     private notification: NzNotificationService,
     private handoverService: HandoverService,
@@ -341,7 +343,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
         Status: 0,
         Frequency: '',
         FileName: '',
-        SignedBy: false,
+        IsSigned: false,
         Note: '',
       };
       this.newHandoverWarehouseAsset = {
@@ -353,7 +355,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
         BorrowQty: 0,
         Unit: '',
         ReturnedStatusText: '',
-        SignedBy: false,
+        IsSigned: false,
         ReceiverName: '',
         Note: '',
       };
@@ -365,7 +367,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
         Quantity: 0,
         UnitName: '',
         Status: '',
-        SignedBy: false,
+        IsSigned: false,
         ReceiverName: '',
         Note: '',
       };
@@ -450,7 +452,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
       this.newHandover.EmployeeID = selected.ID;
       this.newHandover.FullName = selected.FullName;
       this.newHandover.DepartmentID = selected.DepartmentID;
-      this.newHandover.PositionID = selected.IDChucVu;
+      this.newHandover.PositionID = selected.ChucVuHDID;
       this.newHandover.DepartmentName = selected.DepartmentName;
       this.newHandover.PositionName = selected.ChucVuHD;
       this.newHandover.HandoverDate = new Date();
@@ -481,7 +483,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             Unit: item.Unit || '',
             ReturnedStatusText: item.ReturnedStatusText || '',
             BorrowID: item.BorrowID || 0,
-            SignedBy: false,
+            IsSigned: false,
             ReceiverName: '',
             Note: '',
           })
@@ -502,7 +504,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             Quantity: item.Quantity || '',
             UnitName: item.UnitName || '',
             Status: item.Status || '',
-            SignedBy: false,
+            IsSigned: false,
             ReceiverName: '',
             Note: '',
           })
@@ -625,7 +627,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
           Status: item.Status || 0,
           Frequency: item.Frequency || '',
           FileName: item.FileName || '',
-          SignedBy: item.SignedBy || false,
+          IsSigned: item.IsSigned || false,
           Note: item.Note || '',
         }));
 
@@ -644,7 +646,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             BorrowQty: item.BorrowQty || 0,
             Unit: item.Unit || '',
             ReturnedStatusText: item.ReturnedStatusText || '',
-            SignedBy: item.SignedBy || false,
+            IsSigned: item.IsSigned || false,
             ReceiverName: item.ReceiverName || '',
             Note: item.Note || '',
             BorrowID: item.BorrowID || 0,
@@ -667,7 +669,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             Quantity: item.Quantity || 0,
             UnitName: item.UnitName || '',
             Status: item.Status || '',
-            SignedBy: item.SignedBy || false,
+            IsSigned: item.IsSigned || false,
             ReceiverName: item.ReceiverName || '',
             Note: item.Note || '',
           })
@@ -822,15 +824,40 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
 
   saveData(): void {
     // Validation
-    if (
-      !this.newHandover.DepartmentID ||
-      !this.newHandover.EmployeeID ||
-      !this.newHandover.HandoverDate ||
-      !this.newHandover.PositionID
-    ) {
+    // if (
+    //   !this.newHandover.DepartmentID ||
+    //   !this.newHandover.EmployeeID ||
+    //   !this.newHandover.HandoverDate ||
+    //   !this.newHandover.PositionID
+    // ) {
+    //   this.notification.warning(
+    //     'Thông báo',
+    //     'Vui lòng điền đầy đủ thông tin người bàn giao!'
+    //   );
+    //   return;
+    // }
+
+    const missingFields: string[] = [];
+
+    if (!this.newHandover.DepartmentID) {
+      missingFields.push('Phòng ban');
+    }
+    if (!this.newHandover.EmployeeID) {
+      missingFields.push('Người bàn giao');
+    }
+    if (!this.newHandover.HandoverDate) {
+      missingFields.push('Ngày bàn giao');
+    }
+    if (!this.newHandover.PositionID) {
+      missingFields.push('Chức vụ');
+    }
+
+    if (missingFields.length > 0) {
       this.notification.warning(
         'Thông báo',
-        'Vui lòng điền đầy đủ thông tin người bàn giao!'
+        `Vui lòng điền đầy đủ thông tin trường ${missingFields.join(
+          ', '
+        )} của người bàn giao! `
       );
       return;
     }
@@ -1058,7 +1085,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             Status: item.Status || 0,
             Frequency: item.Frequency || '',
             FileName: item.FileName || '',
-            SignedBy: item.SignedBy || false,
+            IsSigned: item.IsSigned || false,
             Note: item.Note || '',
           })) || []),
         ],
@@ -1074,7 +1101,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             BorrowQty: item.BorrowQty || 0,
             Unit: item.Unit || '',
             ReturnedStatusText: item.ReturnedStatusText || '',
-            SignedBy: item.SignedBy || false,
+            IsSigned: item.IsSigned || false,
             ReceiverName: item.ReceiverName || '',
             Note: item.Note || '',
             BorrowID: item.BorrowID || 0
@@ -1090,7 +1117,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             Quantity: item.Quantity || '',
             UnitName: item.UnitName || '',
             Status: item.Status || '',
-            SignedBy: item.SignedBy || false,
+            IsSigned: item.IsSigned || false,
             ReceiverName: item.ReceiverName || '',
             Note: item.Note || '',
           })) || []),
@@ -1187,7 +1214,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             Status: item.Status || 0,
             Frequency: item.Frequency || '',
             FileName: item.FileName || '',
-            SignedBy: item.SignedBy || false,
+            IsSigned: item.IsSigned || false,
           })) || []),
         ],
         HandoverWarehouseAsset: [
@@ -1202,7 +1229,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             BorrowQty: item.BorrowQty || 0,
             Unit: item.Unit || '',
             ReturnedStatusText: item.ReturnedStatusText || '',
-            SignedBy: item.SignedBy || false,
+            IsSigned: item.IsSigned || false,
             ReceiverName: item.ReceiverName || '',
             Note: item.Note || '',
             BorrowID: item.BorrowID || 0,
@@ -1219,7 +1246,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
             Quantity: item.Quantity || '',
             UnitName: item.UnitName || '',
             Status: item.Status || '',
-            SignedBy: item.SignedBy || false,
+            IsSigned: item.IsSigned || false,
             ReceiverName: item.ReceiverName || '',
             Note: item.Note || '',
           })) || []),
@@ -1376,7 +1403,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
       this.handoverReceiverTable = new Tabulator('#handoverReceiver', {
         data: this.handoverReceiverData,
         layout: 'fitColumns',
-        height: '73vh',
+        height: this.height,
         placeholder: 'Không có dữ liệu',
         movableColumns: true,
         resizableRows: true,
@@ -1500,7 +1527,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
       this.handoverWorkTable = new Tabulator('#handoverWork', {
         data: this.HandoverWorkData,
         layout: 'fitColumns',
-        height: '73vh',
+        height: '100%',
         placeholder: 'Không có dữ liệu',
         movableColumns: true,
         resizableRows: true,
@@ -1687,7 +1714,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
           },
           {
             title: 'Ký nhận',
-            field: 'SignedBy',
+            field: 'IsSigned',
             headerHozAlign: 'center',
             hozAlign: 'center',
             editor: 'tickCross',
@@ -1714,7 +1741,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
         Status: 0,
         Frequency: '',
         FileName: '',
-        SignedBy: '',
+        IsSigned: '',
         Note: '',
       });
     }
@@ -1729,7 +1756,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
       this.handoverWarehouseAssetTable = new Tabulator('#handoverWarehouse', {
         data: this.HandoverWarehouseAssetData,
         layout: 'fitColumns',
-        height: '73vh',
+        height: this.height,
         movableColumns: true,
         placeholder: 'Không có dữ liệu',
         resizableRows: true,
@@ -1809,7 +1836,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
           },
             {
             title: 'Ký nhận',
-            field: 'SignedBy',
+            field: 'IsSigned',
             headerHozAlign: 'center',
             hozAlign: 'center',
             editor: 'tickCross',
@@ -1843,7 +1870,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
       this.handoverAssetManagementTable = new Tabulator('#handoverAsset', {
         data: this.HandoverAssetManagementData,
         layout: 'fitColumns',
-        height: '73vh',
+        height: this.height,
         movableColumns: true,
         placeholder: 'Không có dữ liệu',
         resizableRows: true,
@@ -1927,7 +1954,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
           },
            {
             title: 'Ký nhận',
-            field: 'SignedBy',
+            field: 'IsSigned',
             headerHozAlign: 'center',
             hozAlign: 'center',
             editor: 'tickCross',
@@ -1952,7 +1979,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
       this.handoverFinancesTable = new Tabulator('#handoverFinance', {
         data: this.HandoverFinancesData,
         layout: 'fitColumns',
-        height: '73vh',
+        height: this.height,
         movableColumns: true,
         placeholder: 'Không có dữ liệu',
         resizableRows: true,
@@ -2122,7 +2149,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
       this.handoverSubordinatesTable = new Tabulator('#handoverSubordinate', {
         data: this.HandoverSubordinatesData,
         layout: 'fitColumns',
-        height: '73vh',
+        height: this.height,
         movableColumns: true,
         placeholder: 'Không có dữ liệu',
         resizableRows: true,
@@ -2253,7 +2280,7 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
       this.handoverApproveTable = new Tabulator('#handoverApprove', {
         data: this.HandoverApproveData,
         layout: 'fitColumns',
-        height: '73vh',
+        height: this.height,
         movableColumns: true,
         placeholder: 'Không có dữ liệu',
         resizableRows: true,

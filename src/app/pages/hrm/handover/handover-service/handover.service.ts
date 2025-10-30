@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 // import { environment.host } from '../../../app.config';
-import { DateTime } from 'luxon';
+// import { DateTime } from 'luxon';
 import { NumberSymbol } from '@angular/common';
 import { environment } from '../../../../../environments/environment';
 
@@ -18,12 +18,16 @@ export class HandoverService {
     EmployeeID: number,
     LeaderID: number,
     Keyword: string,
+    DateStart: Date,
+    DateEnd: Date
   ): Observable<any> {
     const asset: any = {
       DepartmentID: DepartmentID|| 0,
       EmployeeID: EmployeeID || 0,
       LeaderID: LeaderID || 0,
       Keyword: Keyword?.trim() || '',
+      DateStart: DateStart,
+    DateEnd: DateEnd
     };
     return this.http.post<any>(
       environment.host + `api/handover/get-handover`,

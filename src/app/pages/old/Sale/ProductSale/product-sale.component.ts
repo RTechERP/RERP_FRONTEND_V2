@@ -31,6 +31,7 @@ import { ProductGroupDetailComponent } from './product-group-detail/product-grou
 import { ImportExcelProductSaleComponent } from './import-excel-product-sale/import-excel-product-sale.component';
 import { ISADMIN } from '../../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 
 interface ProductGroup {
   ID?: number;
@@ -71,6 +72,7 @@ interface ProductSale {
     NzInputNumberModule,
     NzCheckboxModule,
     NgbModule,
+    HasPermissionDirective
     // ProductSaleDetailComponent,
     // ImportExcelProductSaleComponent,
   ],

@@ -37,16 +37,13 @@ import { EmployeeAttendanceComponent } from '../employee-attendance/employee-att
 import { TsAssetRecoveryPersonalNewComponent } from '../../hrm/asset/assetpersonal/ts-asset-recovery-personal-new/ts-asset-recovery-personal-new.component';
 import { VehicleCategoryComponent } from '../../hrm/vehicle-management/vehicle-category/vehicle-category.component';
 import { VehicleManagementComponent } from '../../hrm/vehicle-management/vehicle-management.component';
-<<<<<<< HEAD
 import { CustomerComponent } from '../VisionBase/customer/customer.component';
-=======
 import { TsAssetManagementComponent } from '../ts-asset-management/ts-asset-management.component';
 import { TsAssetAllocationComponent } from '../ts-asset-allocation/ts-asset-allocation.component';
 import { TsAssetRecoveryComponent } from '../ts-asset-recovery/ts-asset-recovery.component';
 import { TsAssetTransferComponent } from '../ts-asset-transfer/ts-asset-transfer.component';
 import { HandoverComponent } from '../../hrm/handover/handover.component';
 import { PermissionService } from '../../../services/permission.service';
->>>>>>> origin/master
 
 @Component({
   selector: 'app-menus',

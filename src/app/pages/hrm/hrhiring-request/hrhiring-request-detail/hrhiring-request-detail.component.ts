@@ -345,7 +345,7 @@ export class HrhiringRequestDetailComponent implements OnInit {
     return Math.max(0, parsed); // Đảm bảo không âm
   }
 
-  validateNumberInput(event: KeyboardEvent): void {
+  validateNumberInput(event: KeyboardEvent,event1:any): void {
     const char = event.key;
     
     // Cho phép: số (0-9), Backspace, Delete, Tab, Enter, Arrow keys
@@ -360,6 +360,10 @@ export class HrhiringRequestDetailComponent implements OnInit {
       event.preventDefault();
       return;
     }
+    // const value = this.form.value.SalaryMin || 0;
+    // console.log(value);
+    
+    // event1.target.value = this.formatNumberEnUS(value);
   }
 
   // formatSalaryRange(min: number, max: number): string {
@@ -457,25 +461,36 @@ export class HrhiringRequestDetailComponent implements OnInit {
     }
   }
 
-  // Salary range handlers - CẢI THIỆN ĐỂ TRÁNH TRÙNG NHAU
   onMinSalaryChange(event: any): void {
-    const value = parseInt(event.target.value);
+    let value = parseInt(event.target.value);
+    if(value >this.form.value.SalaryMax){
+        value = this.form.value.SalaryMax
+    }
     this.form.patchValue({ SalaryMin: value });
   }
 
   onMaxSalaryChange(event: any): void {
-    const value = parseInt(event.target.value);
+    let value = parseInt(event.target.value);
+    if(value<this.form.value.SalaryMin){
+        value = this.form.value.SalaryMin
+    }
     this.form.patchValue({ SalaryMax: value });
   }
 
   // Age range handlers - CẢI THIỆN ĐỂ TRÁNH TRÙNG NHAU
   onMinAgeChange(event: any): void {
-    const value = parseInt(event.target.value);
+    let value = parseInt(event.target.value);
+if(value>this.form.value.AgeMax){
+    value = this.form.value.AgeMax
+}
     this.form.patchValue({ AgeMin: value });
   }
 
   onMaxAgeChange(event: any): void {
-    const value = parseInt(event.target.value);
+    let value = parseInt(event.target.value);
+    if(value<this.form.value.AgeMin){
+    value = this.form.value.AgeMin
+}
     this.form.patchValue({ AgeMax: value });
   }
 
@@ -484,6 +499,9 @@ export class HrhiringRequestDetailComponent implements OnInit {
     const rawValue = event.target.value.replace(/,/g, ''); // Loại bỏ dấu phẩy
     let numericValue = parseInt(rawValue) || 0;
     
+    if(numericValue>this.form.value.SalaryMax){
+        numericValue = this.form.value.SalaryMax;
+    }
     // Validate range: 0 - 100,000,000
     if (isNaN(numericValue) || numericValue < 0) {
       numericValue = 0;
@@ -500,7 +518,9 @@ export class HrhiringRequestDetailComponent implements OnInit {
   onMaxSalaryInputChange(event: any): void {
     const rawValue = event.target.value.replace(/,/g, ''); // Loại bỏ dấu phẩy
     let numericValue = parseInt(rawValue) || 0;
-    
+        if(numericValue<this.form.value.SalaryMin){
+        numericValue = this.form.value.SalaryMin;
+    }
     // Validate range: 0 - 100,000,000
     if (isNaN(numericValue) || numericValue < 0) {
       numericValue = 0;
@@ -527,7 +547,9 @@ export class HrhiringRequestDetailComponent implements OnInit {
   onMinAgeInputChange(event: any): void {
     const inputValue = event.target.value.replace(/,/g, '');
     let numericValue = parseInt(inputValue, 10);
-    
+    if(numericValue>this.form.value.AgeMax){
+        numericValue = this.form.value.AgeMax
+    }
     // Validate range: 18 - 65
     if (isNaN(numericValue) || numericValue < 18) {
       numericValue = 18;
@@ -542,6 +564,9 @@ export class HrhiringRequestDetailComponent implements OnInit {
   onMaxAgeInputChange(event: any): void {
     const inputValue = event.target.value.replace(/,/g, '');
     let numericValue = parseInt(inputValue, 10);
+    if(numericValue<this.form.value.AgeMin){
+        numericValue = this.form.value.AgeMin
+    }
     
     // Validate range: 18 - 65
     if (isNaN(numericValue) || numericValue < 18) {
@@ -549,7 +574,6 @@ export class HrhiringRequestDetailComponent implements OnInit {
     } else if (numericValue > 65) {
       numericValue = 65;
     }
-    
     this.form.patchValue({ AgeMax: numericValue });
     event.target.value = this.formatNumberEnUS(numericValue);
   }

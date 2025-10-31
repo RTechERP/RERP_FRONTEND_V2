@@ -47,6 +47,7 @@ import { EmployeeContractComponent } from './employee-contract/employee-contract
 import { EmployeeImportExcelComponent } from "./employee-import-excel/employee-import-excel.component";
 import { EmployeeTeamComponent } from "./employee-team/employee-team.component";
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { HasPermissionDirective } from "../../../directives/has-permission.directive";
 
 
 @Component({
@@ -89,6 +90,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
     NgIf,
     NzSpinModule,
     EmployeeTeamComponent,
+    HasPermissionDirective
 ],
   providers: [
     NzModalService,

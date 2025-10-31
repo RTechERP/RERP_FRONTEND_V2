@@ -29,7 +29,7 @@ import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { EnvironmentInjector } from '@angular/core';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DateTime } from 'luxon';
-import { ProjectService } from './project-service/project.service';
+// import { ProjectService } from './project-service/project.service';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import * as ExcelJS from 'exceljs';
@@ -45,6 +45,7 @@ import { ProjectEmployeeComponent } from './project-employee/project-employee.co
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { ProjectService } from './project-service/project.service';
 @Component({
   selector: 'app-projects',
   standalone: true,
@@ -73,7 +74,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
   ],
   templateUrl: './project.component.html',
   styleUrl: './project.component.css',
-  //encapsulation: ViewEncapsulation.None,
+//   encapsulation: ViewEncapsulation.None,
 })
 export class ProjectComponent implements OnInit, AfterViewInit {
   // Khai báo format ngày giờ

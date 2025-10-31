@@ -9,50 +9,59 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { ReactiveFormsModule } from '@angular/forms';
-import { MenuService } from '../../pages/old/menus/menu-service/menu.service';
+// import { MenuService } from '../../pages/old/menus/menu-service/menu.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzDestroyService } from 'ng-zorro-antd/core/services';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NgComponentOutlet } from '@angular/common';
 import { Type, Injector } from '@angular/core';
-import { NotifyItem } from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
-import { AppNotifycationDropdownComponent } from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
+// import { AppNotifycationDropdownComponent, NotifyItem } from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
+// import { AppNotifycationDropdownComponent } from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
 // import { AppUserDropdownComponent } from '/pages/old/app/app-user-dropdown/app-user-dropdown.component';
 import { Title } from '@angular/platform-browser';
 import { ProjectComponent } from '../../pages/old/project/project.component';
-import { EmployeePayrollComponent } from '../../pages/hrm/employee/employee-payroll/employee-payroll/employee-payroll.component';
+// import { EmployeePayrollComponent } from '../../pages/hrm/employee/employee-payroll/employee-payroll/employee-payroll.component';
 // import { CustomerComponent } from '../../pages/customer/customer.component';
 import { TbProductRtcComponent } from '../../pages/old/tb-product-rtc/tb-product-rtc.component';
 import { CustomerComponent } from '../../pages/old/VisionBase/customer/customer.component';
-import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
+
 import { menus } from '../../pages/old/menus/menus.data';
+// import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
+
+
+// import { menus } from '../../pages/old/menus/menus.component';
+import { LeafItem, MenuItem, MenuService } from '../../pages/old/menus/menu-service/menu.service';
+import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
+import { AppNotifycationDropdownComponent, NotifyItem } from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
+import { MenusComponent } from '../../pages/old/menus/menus.component';
+
 type TabItem = {
   title: string;
   comp: Type<any>;
   injector?: Injector;
 };
-export type BaseItem = {
-  key: string;
-  title: string;
-  isOpen: boolean;
-  icon?: string | null;
-};
+// export type BaseItem = {
+//   key: string;
+//   title: string;
+//   isOpen: boolean;
+//   icon?: string | null;
 
-export type LeafItem = BaseItem & {
-  kind: 'leaf';
-  comp: Type<any>;
-};
+// };
 
-export type GroupItem = BaseItem & {
-  kind: 'group';
-  children: MenuItem[];
-};
+// export type LeafItem = BaseItem & {
+//   kind: 'leaf';
+//   comp: Type<any>;
+// };
 
-export type MenuItem = LeafItem | GroupItem;
+// export type GroupItem = BaseItem & {
+//   kind: 'group';
+//   children: MenuItem[]; // cho phép lồng group
+// };
+
+// export type MenuItem = LeafItem | GroupItem;
 
 export const isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
-export const isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
-
+//export const isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
 
 const COMPONENT_REGISTRY: Record<string, Type<any>> = {
   customer: CustomerComponent,
@@ -76,9 +85,6 @@ const COMPONENT_REGISTRY: Record<string, Type<any>> = {
     AppNotifycationDropdownComponent,
     AppUserDropdownComponent,
     NgComponentOutlet,
-    CustomerComponent,
-    TbProductRtcComponent,
-    ProjectComponent,
   ],
   templateUrl: '../../app.component.html',
   styleUrl: '../../app.component.css',
@@ -94,16 +100,16 @@ export class MainLayoutComponent implements OnInit {
     private router: Router,
     private menuService: MenuService,
     private notification: NzNotificationService
-  ) { }
+  ) {this.menus = this.menuService.getMenus()}
   notificationComponent = AppNotifycationDropdownComponent;
   //#region Khai báo biến
   isCollapsed = true;
   isDatcom = false;
   selectedIndex = 0;
 
-  isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
+ // isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
   isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
-  menus = menus;
+  menus:MenuItem[]=[];
   dynamicTabs: TabItem[] = [];
 
   menu: any = {};
@@ -153,8 +159,9 @@ export class MainLayoutComponent implements OnInit {
   ];
   ngOnInit(): void {
     const saved = localStorage.getItem('openMenuKey') || '';
+    console.log(this.menus);
     this.setOpenMenu(saved || null);
-    this.getMenus(43);
+    // this.getMenus(43);
   }
   newTab(comp: Type<any>, title: string, injector?: Injector) {
     const idx = this.dynamicTabs.findIndex((t) => t.title === title);
@@ -172,20 +179,20 @@ export class MainLayoutComponent implements OnInit {
     if (this.selectedIndex >= this.dynamicTabs.length)
       this.selectedIndex = this.dynamicTabs.length - 1;
   }
-  getMenus(id: number): void {
-    this.menuService.getMenus(id).subscribe({
-      next: (response: any) => {
-        if (response.status == 1) {
-          this.menu = response.data;
-          //   console.log(this.menu);
-        }
-      },
-      error: (err) => {
-        // console.log(err);
-        // this.notification.error('Thông báo', err.error.message);
-      },
-    });
-  }
+//   getMenus(id: number): void {
+//     this.menuService.getMenus(id).subscribe({
+//       next: (response: any) => {
+//         if (response.status == 1) {
+//           this.menu = response.data;
+//           //   console.log(this.menu);
+//         }
+//       },
+//       error: (err) => {
+//         // console.log(err);
+//         // this.notification.error('Thông báo', err.error.message);
+//       },
+//     });
+//   }
 
   logout() {
     this.auth.logout();
@@ -203,16 +210,18 @@ export class MainLayoutComponent implements OnInit {
   //   return !!m && !!m.isOpen;
   // }
   private setOpenMenu(key: string | null) {
-    this.menus.forEach(m => (m.isOpen = key !== null && m.key === key));
+    this.menus.forEach((m) => (m.isOpen = key !== null && m.key === key));
     localStorage.setItem('openMenuKey', key ?? '');
   }
 
-  isMenuOpen = (key: string) => this.menus.some(m => m.key === key && m.isOpen);
+  isMenuOpen = (key: string) => this.menus.some((m) => m.key === key && m.isOpen);
   toggleMenu(key: string) {
     const m = this.menus.find((x) => x.key === key);
     if (m) m.isOpen = !m.isOpen;
   }
 
   // dùng khi muốn mở thẳng 1 group từ nơi khác
-  openOnly(key: string) { this.setOpenMenu(key); }
+  openOnly(key: string) {
+    this.setOpenMenu(key);
+  }
 }

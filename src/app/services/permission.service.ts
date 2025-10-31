@@ -90,8 +90,15 @@ export class PermissionService {
     // const isPermisstion = permissions.some((code) =>
     //   permission.split(',').includes(code)
     // );
-    console.log('isPermisstion:', isPermission);
-    return isPermission;
+    // console.log('isPermisstion:', isPermission);
+
+    const isAdmin = this.appUserService.currentUser?.IsAdmin || false;
+    // console.log('isAdmin:', isAdmin);
+
+    const isPermissions = isPermission || isAdmin || permission == '';
+    // console.log(isPermissions);
+    
+    return isPermissions;
   }
 
   /**

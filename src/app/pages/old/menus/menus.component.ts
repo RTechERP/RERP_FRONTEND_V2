@@ -1,6 +1,13 @@
 import { Component, OnInit, Type } from '@angular/core';
 import { MenuService } from './menu-service/menu.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { FactoryVisitRegistrationComponent } from '../../general-category/visit-factory-registation/factory-visit-registration.component';
+
+import { TsAssetAllocationComponent } from '../ts-asset-allocation/ts-asset-allocation.component';
+import { TsAssetRecoveryComponent } from '../ts-asset-recovery/ts-asset-recovery.component';
+import { TsAssetTransferComponent } from '../ts-asset-transfer/ts-asset-transfer.component';
+import { HandoverComponent } from '../../hrm/handover/handover.component';
+import { PermissionService } from '../../../services/permission.service';
 
 
 import { menus, MenuItem } from './menus.data';
@@ -9,6 +16,7 @@ import { menus, MenuItem } from './menus.data';
   imports: [],
   templateUrl: './menus.component.html',
   styleUrl: './menus.component.css',
+  standalone:true,
 })
 export class MenusComponent implements OnInit {
   //#region Khai báo biến
@@ -17,22 +25,12 @@ export class MenusComponent implements OnInit {
 
   constructor(
     private menuService: MenuService,
-    private notifi: NzNotificationService
+    private notifi: NzNotificationService,
+    public permission: PermissionService
   ) {}
 
   ngOnInit(): void {
-    this.getMenus(43);
-  }
-  getMenus(id: number): void {
-    this.menuService.getMenus(id).subscribe({
-      next: (response: any) => {
-        this.menus = response.data;
-      },
-      error: (err) => {
-        this.notifi.error('Thông báo', err.message);
-      },
-    });
+    // this.getMenus(43);
   }
   
 }
-

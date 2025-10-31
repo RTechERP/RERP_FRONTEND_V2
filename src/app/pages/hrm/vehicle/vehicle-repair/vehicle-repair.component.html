@@ -18,16 +18,16 @@
                         <nz-form-item class="mt-2">
                             <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
                             <nz-form-control [nzSpan]="24">
-                                <nz-date-picker class="w-100" nzSize="small" [(ngModel)]="DateStart"
-                                    name="dateStart"  nzFormat="dd/MM/yyyy"></nz-date-picker>
+                                <nz-date-picker class="w-100" nzSize="small" [(ngModel)]="DateStart" name="dateStart"
+                                    nzFormat="dd/MM/yyyy"></nz-date-picker>
                             </nz-form-control>
                         </nz-form-item>
                         <!-- Đến ngày -->
                         <nz-form-item class="mt-2">
                             <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
                             <nz-form-control [nzSpan]="24">
-                                <nz-date-picker class="w-100" nzSize="small" [(ngModel)]="DateEnd"
-                                    name="dateEnd"  nzFormat="dd/MM/yyyy"></nz-date-picker>
+                                <nz-date-picker class="w-100" nzSize="small" [(ngModel)]="DateEnd" name="dateEnd"
+                                    nzFormat="dd/MM/yyyy"></nz-date-picker>
                             </nz-form-control>
                         </nz-form-item>
                         <nz-form-item class="mt-2">
@@ -89,6 +89,7 @@
                         </button>
 
 
+<<<<<<< HEAD:src/app/pages/hrm/vehicle/vehicle-repair/vehicle-repair.component.html
                         <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add" (click)="addVehicleRepair()">
                             <img src="assets/icon/action_add_item_16.png" alt="Thêm "/>Thêm mới yêu cầu
                         </button>
@@ -97,13 +98,32 @@
                         </button>
                         <button nz-button nzType="default" nzSize="small" class="btn-delete " (click)="deleteVehicleRepair()">
                             <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />Xóa yêu cầu
+=======
+                        <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add"
+                            (click)="addVehicleRepair()" *hasPermission="'N2,N34,N1'">
+                            <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " />Thêm mới yêu cầu
                         </button>
-                           <span class="mx-2"
+                        <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="editVehicleRepair()"
+                            *hasPermission="'N2,N34,N1'">
+                            <img src="assets/icon/action_edit_item_16.png" alt="Sửa nhóm TB" />Sửa yêu cầu
+                        </button>
+                        <button nz-button nzType="default" nzSize="small" class="btn-delete "
+                            (click)="deleteVehicleRepair()" *hasPermission="'N2,N34,N1'">
+                            <img src="assets/icon/action_delete_item_16.png" alt="Xóa nhóm TB" />Xóa yêu cầu
+>>>>>>> origin/master:src/app/pages/hrm/vehicle-repair/vehicle-repair.component.html
+                        </button>
+                        <span class="mx-2"
                             style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
+<<<<<<< HEAD:src/app/pages/hrm/vehicle/vehicle-repair/vehicle-repair.component.html
                          <button nz-button nzType="default" nzSize="small" (click)="exportToExcelProduct()">
                             <img src="assets/icon/excel.png" alt="Xuất excel" />Xuất Excel
+=======
+                        <button nz-button nzType="default" nzSize="small" (click)="exportToExcelProduct()"
+                            *hasPermission="'N2,N34,N1'">
+                            <img src="assets/icon/excel.png" alt="Xóa nhóm TB" />Xuất Excel
+>>>>>>> origin/master:src/app/pages/hrm/vehicle-repair/vehicle-repair.component.html
                         </button>
-                     
+
                     </div>
                 </div>
 

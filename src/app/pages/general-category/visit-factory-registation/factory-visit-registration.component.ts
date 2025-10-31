@@ -38,6 +38,7 @@ import { Calendar } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
+import { DateTime } from 'luxon';
 
 @Component({
   selector: 'app-factory-visit-registration',
@@ -75,6 +76,7 @@ export class FactoryVisitRegistrationComponent
   @ViewChild('participantTable', { static: false })
   participantTableRef!: ElementRef;
   @ViewChild('detailTable', { static: false }) detailTableRef!: ElementRef;
+  //   @ViewChild('registration-table') calendarRef!: FullCalendarComponent;
 
   registrationTable!: Tabulator;
   participantTable!: Tabulator;
@@ -82,7 +84,6 @@ export class FactoryVisitRegistrationComponent
 
   searchForm = {
     fromDate: '',
-    toDate: '',
     personInCharge: '',
     keyword: '',
   };
@@ -380,6 +381,7 @@ export class FactoryVisitRegistrationComponent
   loadData(): void {
     this.factoryVisitService.getRegistrations().subscribe({
       next: (data) => {
+        console.log('loadData:', data);
         this.registrations = data;
         this.updateRegistrationTable();
       },
@@ -486,6 +488,7 @@ export class FactoryVisitRegistrationComponent
   search(): void {
     this.factoryVisitService.searchRegistrations(this.searchForm).subscribe({
       next: (data) => {
+        console.log('factoryVisitService:', data);
         this.registrations = data;
         this.updateRegistrationTable();
       },
@@ -493,15 +496,15 @@ export class FactoryVisitRegistrationComponent
     });
   }
 
-  resetSearch(): void {
-    this.searchForm = {
-      fromDate: '',
-      toDate: '',
-      personInCharge: '',
-      keyword: '',
-    };
-    this.loadData();
-  }
+  // resetSearch(): void {
+  //   this.searchForm = {
+  //     fromDate: '',
+  //     toDate: '',
+  //     personInCharge: '',
+  //     keyword: '',
+  //   };
+  //   this.loadData();
+  // }
 
   openRegistrationModal(): void {
     this.isEditMode = false;
@@ -915,8 +918,8 @@ export class FactoryVisitRegistrationComponent
       nzOkText: confirmText,
       nzCancelText: 'Hủy',
       nzOnOk: () => {
-        const updatedRegistration = {
-          ...this.selectedRegistration,
+        const updatedRegistration: any = {
+          id: this.selectedRegistration.id,
           informationReceived: !isApproved,
         };
 
@@ -1074,7 +1077,7 @@ export class FactoryVisitRegistrationComponent
   }
 
   private getEmployeeDisplayNameById(id: number | null | undefined): string {
-    console.log('id:', id);
+    // console.log('id:', id);
     if (!id && id !== 0) return '';
     const found = this.employees.find((e) => e.id === id);
     if (found) {
@@ -1161,6 +1164,7 @@ export class FactoryVisitRegistrationComponent
     this.registrationForm.endTime = `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
   }
 
+  eventElements = new Map<string, HTMLElement>(); // key = eventId, value = element
   private initCalendar(): void {
     const el = this.registrationTableRef?.nativeElement;
     if (!el) return;
@@ -1186,6 +1190,8 @@ export class FactoryVisitRegistrationComponent
       allDaySlot: false,
       dayMaxEvents: false,
       eventClick: (info) => {
+        // console.log('this.calendar.getEvents():', this.calendar.getEvents());
+        // console.log(info, typeof info);
         const id = Number(info.event.id);
         const found = (this.registrations || []).find(
           (r) => Number(r.id) === id
@@ -1193,7 +1199,6 @@ export class FactoryVisitRegistrationComponent
         if (found) this.selectRegistration(found);
       },
     });
-    this.calendar.render();
     this.updateCalendarEvents();
   }
 
@@ -1263,8 +1268,8 @@ export class FactoryVisitRegistrationComponent
     // console.log(list);
     const events = (list || []).map((item) => {
       // Màu sắc theo trạng thái duyệt
-      let backgroundColor = '#e74c3c'; // Chưa duyệt: đỏ
-      let borderColor = '#c0392b';
+      let backgroundColor = '#2b82e6ff'; // Chưa duyệt: đỏ
+      let borderColor = '#2b82e6ff';
 
       if (item.informationReceived) {
         backgroundColor = '#27ae60'; // Đã duyệt: xanh lá
@@ -1323,12 +1328,12 @@ export class FactoryVisitRegistrationComponent
     if (!f.guestType || String(f.guestType).trim() === '')
       errors.push('Vui lòng chọn loại khách');
 
-    this.registrationDetails.forEach((d, idx) => {
-      const rowNo = idx + 1;
-      if (!d.fullName || !d.fullName.trim()) {
-        errors.push(`Họ tên không được để trống (Thông tin người tham gia)`);
-      }
-    });
+    // this.registrationDetails.forEach((d, idx) => {
+    //   const rowNo = idx + 1;
+    //   if (!d.fullName || !d.fullName.trim()) {
+    //     errors.push(`Họ tên không được để trống (Thông tin người tham gia)`);
+    //   }
+    // });
 
     return errors;
   }

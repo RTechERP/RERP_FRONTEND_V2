@@ -1,0 +1,149 @@
+<div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0">
+    <h6 class="modal-title text-white">Chi tiết biên bản bàn giao</h6>
+    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+</div>
+<div class="modal-body p-2 flex-grow-1">
+    <form nz-form class="mt-2 mb-2">
+        <!-- Dòng 1: 4 ô -->
+        <div class="row gx-2">
+            <div class="col-md-3">
+                <nz-form-item class="mt-2">
+                    <nz-form-label class="fs-12 required-label" [nzSpan]="24">
+                        Chọn nhân viên<span class="text-danger ps-1 me-1"> (*)</span>
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <div nz-row [nzGutter]="24" style="align-items: center">
+                            <div nz-col [nzSpan]="24">
+                                <nz-select [(ngModel)]="newHandover.EmployeeID"
+                                    (ngModelChange)="onSelectEmployee($event, LeaderID)" nzPlaceHolder="Chọn nhân viên"
+                                    style="width: 100%" name="EmployeeID" nzShowSearch [nzFilterOption]="filterOption"
+                                    nzAllowClear>
+                                    <nz-option-group *ngFor="let group of cbbEmployeeGroup"
+                                        [nzLabel]="group.department">
+                                        <nz-option *ngFor="let emp of group.employees"
+                                            [nzLabel]="emp.Code + ' - ' + emp.FullName" [nzValue]="emp.ID"></nz-option>
+                                    </nz-option-group>
+                                </nz-select>
+                            </div>
+                        </div>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+            <div class="col-md-3">
+                <nz-form-item class="mt-2">
+                    <nz-form-label class="fs-12 required-label" [nzSpan]="24">Thời gian bàn giao<span
+                            class="text-danger ps-1 me-1"> (*)</span>
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <nz-date-picker [nzFormat]="dateFormat" class="w-100 p-1" nzSize="small"
+                            [(ngModel)]="newHandover.HandoverDate" name="HandoverDate"></nz-date-picker>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+            <div class="col-md-3">
+                <nz-form-item class="mt-2">
+                    <nz-form-label class="fs-12 required-label" [nzSpan]="24">
+                        Chọn chức vụ<span class="text-danger ps-1 me-1"> (*)</span>
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <div nz-row [nzGutter]="24" style="align-items: center">
+                            <div nz-col [nzSpan]="24">
+                                <nz-select [(ngModel)]="newHandover.PositionID" nzPlaceHolder="Chọn chức vụ"
+                                    style="width: 100%" name="PositionID" nzShowSearch [nzFilterOption]="filterOption"
+                                    nzAllowClear>
+                                    <nz-option *ngFor="let item of dataPosition" [nzLabel]="item.Name"
+                                        [nzValue]="item.ID">
+                                    </nz-option>
+                                </nz-select>
+                            </div>
+                        </div>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+            <div class="col-md-3">
+                <nz-form-item class="mt-2">
+                    <nz-form-label class="fs-12 required-label" [nzSpan]="12">
+                        Phòng ban<span class="text-danger ps-1 me-1"> (*)</span>
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <div nz-row [nzGutter]="24" style="align-items: center">
+                            <div nz-col [nzSpan]="24">
+                                <nz-select [(ngModel)]="newHandover.DepartmentID" nzPlaceHolder="Chọn phòng ban"
+                                    style="width: 100%" name="Name" nzShowSearch [nzFilterOption]="filterOption"
+                                    nzAllowClear>
+                                    <nz-option *ngFor="let item of dataDepartment" [nzLabel]="item.Name"
+                                        [nzValue]="item.ID">
+                                    </nz-option>
+                                </nz-select>
+                            </div>
+                        </div>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+        </div>
+    </form>
+
+    <div class="box">
+        <nz-tabset nzType="card" (nzSelectedIndexChange)="onTabChange($event)" style="height: 100%">
+            <nz-tab nzTitle="Người nhận bàn giao" [tabIndex]="0" style="height: 100%">
+                <div class="card-body p-0" style="height: 100%;">
+                    <div id="handoverReceiver" style="width: 100%; height: 100%"></div>
+                </div>
+            </nz-tab>
+            <nz-tab nzTitle="Công việc bàn giao">
+                <div class="box" style="height: 100%">
+                    <div class="card-body" style="height: 100%">
+                        <div id="handoverWork" style="width: 100%; height: 100%"></div>
+                    </div>
+                </div>
+            </nz-tab>
+            <nz-tab nzTitle="Tài sản cấp phát">
+                <div class="box" style="height: 100%">
+                    <div class="card-body" style="height: 100%">
+                        <div id="handoverAsset" style="width: 100%; height: 100%"></div>
+                    </div>
+                </div>
+            </nz-tab>
+            <nz-tab nzTitle="Tài sản kho">
+                <div class="box" style="height: 100%">
+                    <div class="card-body" style="height: 100%">
+                        <div id="handoverWarehouse" style="width: 100%; height: 100%"></div>
+                    </div>
+                </div>
+            </nz-tab>
+            <nz-tab nzTitle="Công nợ">
+                <div class="box" style="height: 100%">
+                    <div class="card-body" style="height: 100%">
+                        <div id="handoverFinance" style="width: 100%; height: 100%"></div>
+                    </div>
+                </div>
+            </nz-tab>
+            <nz-tab nzTitle="Nhân viên trực thuộc">
+                <div class="box" style="height: 100%">
+                    <div class="card-body" style="height: 100%">
+                        <div id="handoverSubordinate" style="width: 100%; height: 100%"></div>
+                    </div>
+                </div>
+            </nz-tab>
+            <nz-tab nzTitle="Duyệt">
+                <div class="box" style="height: 100%">
+                    <div class="card-body" style="height: 100%">
+                        <div id="handoverApprove" style="width: 100%; height: 100%"></div>
+                    </div>
+                </div>
+            </nz-tab>
+        </nz-tabset>
+
+
+    </div>
+
+</div>
+
+<div class="modal-footer flex-shrink-0">
+    <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">
+        Đóng
+    </button>
+    <button class="fs-12 btn" nz-button nzType="primary" (click)="saveData()">
+        Lưu
+    </button>
+</div>

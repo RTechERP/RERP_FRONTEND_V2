@@ -25,15 +25,15 @@ import { ProjectComponent } from '../../pages/old/project/project.component';
 import { TbProductRtcComponent } from '../../pages/old/tb-product-rtc/tb-product-rtc.component';
 import { CustomerComponent } from '../../pages/old/VisionBase/customer/customer.component';
 
-import { menus } from '../../pages/old/menus/menus.data';
+
 // import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
 
 
 // import { menus } from '../../pages/old/menus/menus.component';
-import { LeafItem, MenuItem, MenuService } from '../../pages/old/menus/menu-service/menu.service';
+import { GroupItem,LeafItem, MenuItem, MenuService } from '../../pages/systems/menus/menu-service/menu.service';
 import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
 import { AppNotifycationDropdownComponent, NotifyItem } from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
-import { MenusComponent } from '../../pages/old/menus/menus.component';
+import { MenusComponent } from '../../pages/systems/menus/menus.component';
 
 type TabItem = {
   title: string;
@@ -61,7 +61,7 @@ type TabItem = {
 // export type MenuItem = LeafItem | GroupItem;
 
 export const isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
-//export const isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
+export const isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
 
 const COMPONENT_REGISTRY: Record<string, Type<any>> = {
   customer: CustomerComponent,
@@ -107,7 +107,7 @@ export class MainLayoutComponent implements OnInit {
   isDatcom = false;
   selectedIndex = 0;
 
- // isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
+  isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
   isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
   menus:MenuItem[]=[];
   dynamicTabs: TabItem[] = [];

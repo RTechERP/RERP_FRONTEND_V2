@@ -301,5 +301,5 @@ height: 100% !important;
   padding-left: 40px !important;
 }
 .ant-menu-inline .ant-menu-item { padding-left: 24px !important; }          
-.ant-menu-inline .ant-menu-sub .ant-menu-item { padding-left: 32px !important; }
+.ant-menu-inline .ant-menu-sub .ant-menu-item { padding-left: 40px !important; }
 .ant-menu-inline .ant-menu-sub .ant-menu-sub .ant-menu-item { padding-left: 68px !important; }

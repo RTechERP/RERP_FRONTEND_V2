@@ -63,7 +63,7 @@
             <ng-container *ngFor="let m of menus; trackBy: trackKey">
 
                 <!-- CẤP 1: GROUP -->
-                <li nz-submenu *ngIf="isGroup(m) && m.isOpen" [nzOpen]="true" [nzTitle]="groupTitle">
+                <li nz-submenu *ngIf="isGroup(m) && m.isOpen &&m.isPermission" [nzOpen]="true" [nzTitle]="groupTitle">
                     <ng-template #groupTitle>
                         <span class="menu-title">
                             <span class="icon-slot icon-20"><img *ngIf="m.icon" [src]="m.icon"

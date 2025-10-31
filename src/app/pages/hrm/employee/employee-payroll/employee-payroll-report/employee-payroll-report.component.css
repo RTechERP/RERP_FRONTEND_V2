@@ -1,9 +1,0 @@
-.tabulator-col .tabulator-col-title {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-}
-.tabulator-col.header-bottom .tabulator-col-title {
-  display: flex;
-  align-items: flex-end;
-}

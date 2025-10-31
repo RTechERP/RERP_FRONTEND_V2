@@ -1,28 +1,23 @@
 <h6 class="mt-1">Chức vụ nội bộ</h6>
 <ng-container class="w-100">
-  <div class="card h-100 border-0 rounded-0">
-    <div class="card-header bg-white p-2">
-      <div class="d-flex justify-content-between align-items-center">
-        <div class="d-flex gap-2">
-        
-           <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add" (click)="openAddModal()">
-                            <img src="assets/icon/action_add_item_16.png" alt="Thêm  "/>Thêm 
-                        </button>
-                        <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="openEditModal()">
-                            <img src="assets/icon/action_edit_item_16.png" alt="Sửa " />Sửa
-                        </button>
-                        <button nz-button nzType="default" nzSize="small" class="btn-delete " (click)="openDeleteModal()">
-                            <img src="assets/icon/action_delete_item_16.png" alt="Xóa" />Xóa 
-                        </button>
-        </div>
-      </div>
-    </div>
-    <div class="card-body p-0 position-relative">
-      <div *ngIf="isLoading">
-        <nz-spin
-          [nzSpinning]="isLoading"
-          nzSimple
-          [style]="{
+    <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex gap-2">
+
+                    <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add" (click)="openAddModal()">
+                        <img src="assets/icon/action_add_item_16.png" alt="Thêm  " />Thêm
+                    </button>
+                    <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="openEditModal()">
+                        <img src="assets/icon/action_edit_item_16.png" alt="Sửa " />Sửa
+                    </button>
+                    <button nz-button nzType="default" nzSize="small" class="btn-delete " (click)="openDeleteModal()">
+                        <img src="assets/icon/action_delete_item_16.png" alt="Xóa" />Xóa
+                    </button>
+                </div>
+                <div class="card-body p-0 position-relative">
+                    <div *ngIf="isLoading">
+                        <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
             position: 'absolute',
             top: '0',
             left: '0',
@@ -33,36 +28,33 @@
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center'
-          }"
-        ></nz-spin>
-      </div>
-      <div id="position-internal-table"></div>
-    </div>
-  </div>
+          }"></nz-spin>
+                    </div>
+                    <div id="position-internal-table"></div>
+                </div>
+            </div>
+</div>
+</div>
 </ng-container>
 
-<nz-modal [(nzVisible)]="isVisible" 
-  [nzTitle]="isEditMode ? 'Sửa chức vụ nội bộ' : 'Thêm chức vụ nội bộ mới'" 
-  (nzOnCancel)="handleCancel()" 
-  (nzOnOk)="handleOk()"
-  [nzOkText]="'Lưu'"
-  [nzCancelText]="'Hủy'"
-  [nzOkLoading]="isSubmitting">
-  <ng-container *nzModalContent>
-    <form nz-form [formGroup]="positionForm" (ngSubmit)="onSubmit()">
-      <nz-form-item>
-        <nz-form-label [nzSpan]="24">Mã chức vụ <sup class="text-danger mx-1"> (*)</sup></nz-form-label>
-        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập mã chức vụ">
-          <input nz-input formControlName="Code" placeholder="Nhập mã chức vụ" />
-        </nz-form-control>
-      </nz-form-item>
+<nz-modal [(nzVisible)]="isVisible" [nzTitle]="isEditMode ? 'Sửa chức vụ nội bộ' : 'Thêm chức vụ nội bộ mới'"
+    (nzOnCancel)="handleCancel()" (nzOnOk)="handleOk()" [nzOkText]="'Lưu'" [nzCancelText]="'Hủy'"
+    [nzOkLoading]="isSubmitting">
+    <ng-container *nzModalContent>
+        <form nz-form [formGroup]="positionForm" (ngSubmit)="onSubmit()">
+            <nz-form-item>
+                <nz-form-label [nzSpan]="24">Mã chức vụ <sup class="text-danger mx-1"> (*)</sup></nz-form-label>
+                <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập mã chức vụ">
+                    <input nz-input formControlName="Code" placeholder="Nhập mã chức vụ" />
+                </nz-form-control>
+            </nz-form-item>
 
-      <nz-form-item>
-        <nz-form-label [nzSpan]="24">Tên chức vụ <sup class="text-danger"> (*)</sup></nz-form-label>
-        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập tên chức vụ">
-          <input nz-input formControlName="Name" placeholder="Nhập tên chức vụ" />
-        </nz-form-control>
-      </nz-form-item>
-    </form>
-  </ng-container>
+            <nz-form-item>
+                <nz-form-label [nzSpan]="24">Tên chức vụ <sup class="text-danger"> (*)</sup></nz-form-label>
+                <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập tên chức vụ">
+                    <input nz-input formControlName="Name" placeholder="Nhập tên chức vụ" />
+                </nz-form-control>
+            </nz-form-item>
+        </form>
+    </ng-container>
 </nz-modal>

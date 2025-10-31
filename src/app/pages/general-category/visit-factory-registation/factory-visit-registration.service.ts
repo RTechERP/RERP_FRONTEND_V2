@@ -19,6 +19,9 @@ export interface FactoryVisitRegistration {
   approver?: string;
   createdAt?: string;
   updatedAt?: string;
+  FullName?: string;
+  EmployeeReceiveName?: string;
+  VisitGuestTypeName?: string;
 }
 
 export interface Participant {
@@ -313,6 +316,9 @@ export class FactoryVisitRegistrationService {
       numberOfPeople: x.TotalPeople,
       informationReceived: x.IsReceive,
       approver: x.EmployeeReceive ? String(x.EmployeeReceive) : undefined,
+      FullName: x.FullName,
+      EmployeeReceiveName: x.EmployeeReceiveName,
+      VisitGuestTypeName: x.VisitGuestTypeName,
     };
   }
 

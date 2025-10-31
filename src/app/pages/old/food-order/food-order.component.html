@@ -1,107 +1,98 @@
 <ng-container class="w-100">
 
-  <nz-splitter>
-    <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
-      <div class="card h-100 border-0 rounded-0">
-        <div class="card-header bg-white p-1">
-          <div class="d-flex justify-content-between align-items-center">
-            <h6 class="m-0 ms-2">Tìm kiếm</h6>
-            <button
-              class="border-0 me-2"
-              nz-button
-              nzSize="default"
-              nzType="default"
-              nzDanger
-              (click)="toggleSearchPanel()"
-            >
-              <nz-icon nzType="close" nzTheme="outline" />
-            </button>
-          </div>
-        </div>
-        <div class="card-body">
-          <form nz-form [formGroup]="searchForm" nzLayout="vertical">
-              <nz-form-item>
-                <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
-                <nz-form-control [nzSpan]="24">
-                  <nz-date-picker
-                    formControlName="dateStart"
-                    nzFormat="dd/MM/yyyy"
-                    [nzSize]="'small'"
-                    style="width: 100%;"
-                  ></nz-date-picker>
-                </nz-form-control>
-              </nz-form-item>
-              <nz-form-item>
-                <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
-                <nz-form-control [nzSpan]="24">
-                  <nz-date-picker
-                    formControlName="dateEnd"
-                    nzFormat="dd/MM/yyyy"
-                    [nzSize]="'small'"
-                     style="width: 100%;"
-                  ></nz-date-picker>
-                </nz-form-control>
-              </nz-form-item>
-              <nz-form-item>
-                <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
-                <nz-form-control [nzSpan]="24">
-                  <input nz-input formControlName="keyWord" nzSize="small" placeholder="Nhập từ khóa"/>
-                </nz-form-control>
-              </nz-form-item>
-          </form>
-        </div>
-        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
-          <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">Đặt lại</button>
-          <button nz-button nzType="primary" nzSize="small" (click)="loadFoodOrder()">Tìm kiếm</button>
-        </div>
-      </div>
-    </nz-splitter-panel>
-    <nz-splitter-panel>
-      <div class="card h-100 border-0 rounded-0">
-        <div class="card-header bg-white p-2">
-          <div class="d-flex justify-content-between align-items-center">
-            <div class="d-flex gap-2">
-              <button
-                nz-button
-                nzType="default"
-                nzSize="small"
-                (click)="toggleSearchPanel()"
-              >
-                <nz-icon nzType="search" />
-              </button>
-              <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;" (click)="openAddModal()">
-                <nz-icon nzType="plus" /> Thêm
-              </button>
-              <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;" (click)="openEditModal()">
-                <nz-icon nzType="edit" /> Sửa
-              </button>
-              <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;" (click)="deleteFoodOrder()">
-                <nz-icon nzType="delete" /> Xóa
-              </button>
-              <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;" (click)="approved(true)">
-                <nz-icon nzType="check-square" /> Duyệt
-              </button>
-              <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;" (click)="approved(false)">
-                <nz-icon nzType="close-square" /> Hủy duyệt
-              </button>
-              <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;" (click)="openSummaryFoodOrderModal()">
-                <nz-icon nzType="export" /> Báo cáo ăn ca
-              </button>
-              <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;" (click)="exportToExcel()">
-                <nz-icon nzType="export" /> Xuất excel
-              </button>
+    <nz-splitter>
+        <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
+            <div class="card h-100 border-0 rounded-0">
+                <div class="card-header bg-white p-1">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 ms-2">Tìm kiếm</h6>
+                        <button class="border-0 me-2" nz-button nzSize="default" nzType="default" nzDanger
+                            (click)="toggleSearchPanel()">
+                            <nz-icon nzType="close" nzTheme="outline" />
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form nz-form [formGroup]="searchForm" nzLayout="vertical">
+                        <nz-form-item>
+                            <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-date-picker formControlName="dateStart" nzFormat="dd/MM/yyyy" [nzSize]="'small'"
+                                    style="width: 100%;"></nz-date-picker>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item>
+                            <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-date-picker formControlName="dateEnd" nzFormat="dd/MM/yyyy" [nzSize]="'small'"
+                                    style="width: 100%;"></nz-date-picker>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item>
+                            <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <input nz-input formControlName="keyWord" nzSize="small" placeholder="Nhập từ khóa" />
+                            </nz-form-control>
+                        </nz-form-item>
+                    </form>
+                </div>
+                <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+                    <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">Đặt lại</button>
+                    <button nz-button nzType="primary" nzSize="small" (click)="loadFoodOrder()">Tìm kiếm</button>
+                </div>
             </div>
-          </div>
-        </div>
-        <div class="card-body p-0 fs-12">   
-          <nz-tabset>
-            <nz-tab nzTitle="VP Hà Nội">
-              <div class="card-body p-0 position-relative">
-                <div *ngIf="isLoading">
-                  <nz-spin
-                    [nzSpinning]="isLoading"
-                    nzSimple
-                    [style]="{
+        </nz-splitter-panel>
+        <nz-splitter-panel>
+            <div class="card h-100 border-0 rounded-0">
+                <div class="card-header bg-white p-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex gap-2">
+                            <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
+                                <nz-icon nzType="search" />
+                            </button>
+                            <button nz-button nzType="default" nzSize="small"
+                                style="font-size: 0.75rem; font-weight: bold;" (click)="openAddModal()"
+                                *hasPermission="'N2,N23,N34,N1,N80'">
+                                <nz-icon nzType="plus" /> Thêm
+                            </button>
+                            <button nz-button nzType="default" nzSize="small"
+                                style="font-size: 0.75rem; font-weight: bold;" (click)="openEditModal()"
+                                *hasPermission="'N2,N23,N34,N1,N80'">
+                                <nz-icon nzType="edit" /> Sửa
+                            </button>
+                            <button nz-button nzType="default" nzSize="small"
+                                style="font-size: 0.75rem; font-weight: bold;" (click)="deleteFoodOrder()"
+                                *hasPermission="'N2,N23,N34,N1,N80'">
+                                <nz-icon nzType="delete" /> Xóa
+                            </button>
+                            <button nz-button nzType="default" nzSize="small"
+                                style="font-size: 0.75rem; font-weight: bold;" (click)="approved(true)"
+                                *hasPermission="'N2,N23,N34,N1,N80'">
+                                <nz-icon nzType="check-square" /> Duyệt
+                            </button>
+                            <button nz-button nzType="default" nzSize="small"
+                                style="font-size: 0.75rem; font-weight: bold;" (click)="approved(false)"
+                                *hasPermission="'N2,N23,N34,N1,N80'">
+                                <nz-icon nzType="close-square" /> Hủy duyệt
+                            </button>
+                            <button nz-button nzType="default" nzSize="small"
+                                style="font-size: 0.75rem; font-weight: bold;" (click)="openSummaryFoodOrderModal()"
+                                *hasPermission="'N34'">
+                                <nz-icon nzType="export" /> Báo cáo ăn ca
+                            </button>
+                            <button nz-button nzType="default" nzSize="small"
+                                style="font-size: 0.75rem; font-weight: bold;" (click)="exportToExcel()">
+                                <nz-icon nzType="export" /> Xuất excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0 fs-12">
+                    <nz-tabset>
+                        <nz-tab nzTitle="VP Hà Nội">
+                            <div class="card-body p-0 position-relative">
+                                <div *ngIf="isLoading">
+                                    <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
                       position: 'absolute',
                       top: '0',
                       left: '0',
@@ -112,19 +103,15 @@
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center'
-                    }"
-                  ></nz-spin>
-                </div>
-                <div #tb_foodOrder_HN></div>
-              </div>
-            </nz-tab>
-            <nz-tab nzTitle="Xưởng Đan Phượng">
-              <div class="card-body p-0 position-relative">
-                <div *ngIf="isLoading">
-                  <nz-spin
-                    [nzSpinning]="isLoading"
-                    nzSimple
-                    [style]="{
+                    }"></nz-spin>
+                                </div>
+                                <div #tb_foodOrder_HN></div>
+                            </div>
+                        </nz-tab>
+                        <nz-tab nzTitle="Xưởng Đan Phượng">
+                            <div class="card-body p-0 position-relative">
+                                <div *ngIf="isLoading">
+                                    <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
                       position: 'absolute',
                       top: '0',
                       left: '0',
@@ -135,142 +122,101 @@
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center'
-                    }"
-                  ></nz-spin>
+                    }"></nz-spin>
+                                </div>
+                                <div #tb_foodOrder_ĐP></div>
+                            </div>
+                        </nz-tab>
+                    </nz-tabset>
                 </div>
-                <div #tb_foodOrder_ĐP></div>
-              </div>
-            </nz-tab>
-          </nz-tabset>
-        </div>
-      </div>
-    </nz-splitter-panel>
-  </nz-splitter>
+            </div>
+        </nz-splitter-panel>
+    </nz-splitter>
 </ng-container>
 
 
-<div
-  class="modal fade"
-  id="addFoodOrderModal"
-  tabindex="-1"
-  aria-labelledby="addFoodOrderModalLabel"
-  aria-hidden="true"
->
-  <div class="modal-dialog modal-dialog-centered fs-12">
-    <div class="modal-content">
-      <div class="modal-header bg-primary">
-        <h6
-          class="modal-title text-uppercase text-white"
-          id="addFoodOrderModalLabel"
-        >
-          CHI TIẾT CƠM CA
-        </h6>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
-      </div>
-      <div class="modal-body">
-        <form
-          nz-form [formGroup]="foodOrderForm" (ngSubmit)="onSubmit()"
-        >
-        <nz-form-item>
-          <nz-form-label [nzSpan]="24">Họ tên<span class="text-danger"> (*)</span></nz-form-label>
-          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn người đặt">
-            <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="default"
-              formControlName="FullName" nzPlaceHolder="Chọn họ tên nhân viên"
-              [nzOptions]="employeeList">
-            </nz-select>
-          </nz-form-control>
-        </nz-form-item>
-  
-        <nz-form-item>
-          <nz-form-label [nzSpan]="24">Ngày đặt<span class="text-danger"> (*)</span></nz-form-label>
-          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn ngày đặt">
-              <nz-date-picker
-                formControlName="DateOrder"
-                nzPlaceHolder="Chọn ngày đặt"
-                nzFormat="dd/MM/yyyy"
-                [nzSize]="'default'"
-                style="width: 100%"
-              ></nz-date-picker>
-          </nz-form-control>
-        </nz-form-item>
+<div class="modal fade" id="addFoodOrderModal" tabindex="-1" aria-labelledby="addFoodOrderModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered fs-12">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h6 class="modal-title text-uppercase text-white" id="addFoodOrderModalLabel">
+                    CHI TIẾT CƠM CA
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form nz-form [formGroup]="foodOrderForm" (ngSubmit)="onSubmit()">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24">Họ tên<span class="text-danger"> (*)</span></nz-form-label>
+                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn người đặt">
+                            <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="default"
+                                formControlName="FullName" nzPlaceHolder="Chọn họ tên nhân viên"
+                                [nzOptions]="employeeList">
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
 
-        <nz-form-item>
-          <nz-form-label [nzSpan]="24">Số lượng<span class="text-danger"> (*)</span></nz-form-label>
-          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập số lượng">
-            <nz-input-number formControlName="Quantity" placeholder="Nhập số lượng" nzMin="1" nzMax="100" style="width: 100%"/>
-          </nz-form-control>
-        </nz-form-item>
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24">Ngày đặt<span class="text-danger"> (*)</span></nz-form-label>
+                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn ngày đặt">
+                            <nz-date-picker formControlName="DateOrder" nzPlaceHolder="Chọn ngày đặt"
+                                nzFormat="dd/MM/yyyy" [nzSize]="'default'" style="width: 100%"></nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
 
-        <nz-form-item>
-          <nz-form-label [nzSpan]="24">Địa điểm<span class="text-danger"> (*)</span></nz-form-label>
-          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn địa điểm">
-            <nz-radio-group formControlName="Location">
-              <label nz-radio nzValue="1">VP Hà Nội</label>
-              <label nz-radio nzValue="2" >Xưởng Đan Phượng</label>
-            </nz-radio-group>
-          </nz-form-control>
-        </nz-form-item>
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24">Số lượng<span class="text-danger"> (*)</span></nz-form-label>
+                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập số lượng">
+                            <nz-input-number formControlName="Quantity" placeholder="Nhập số lượng" nzMin="1"
+                                nzMax="100" style="width: 100%" />
+                        </nz-form-control>
+                    </nz-form-item>
 
-        <nz-form-item>
-          <nz-form-label [nzSpan]="24">Ghi chú</nz-form-label>
-          <nz-form-control [nzSpan]="24">
-            <textarea rows="4" formControlName="Note" nz-input></textarea>
-          </nz-form-control>
-        </nz-form-item>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button
-          type="button"
-          class="btn btn-outline-danger"
-          data-bs-dismiss="modal"
-        >
-          Đóng
-        </button>
-        <button
-          type="button"
-          class="btn btn-primary"
-          (click)="onSubmit()"
-        >
-          Lưu
-        </button>
-      </div>
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24">Địa điểm<span class="text-danger"> (*)</span></nz-form-label>
+                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn địa điểm">
+                            <nz-radio-group formControlName="Location">
+                                <label nz-radio nzValue="1">VP Hà Nội</label>
+                                <label nz-radio nzValue="2">Xưởng Đan Phượng</label>
+                            </nz-radio-group>
+                        </nz-form-control>
+                    </nz-form-item>
+
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24">Ghi chú</nz-form-label>
+                        <nz-form-control [nzSpan]="24">
+                            <textarea rows="4" formControlName="Note" nz-input></textarea>
+                        </nz-form-control>
+                    </nz-form-item>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">
+                    Đóng
+                </button>
+                <button type="button" class="btn btn-primary" (click)="onSubmit()">
+                    Lưu
+                </button>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 
 
-<div
-  class="modal fade"
-  id="summaryFoodOrderModal"
-  tabindex="-1"
-  aria-labelledby="summaryFoodOrderModalLabel"
-  aria-hidden="true"
->
-  <div class="modal-dialog modal-dialog-centered fs-12 modal-fullscreen">
-    <div class="modal-content">
-      <div class="modal-header bg-primary">
-        <h6
-          class="modal-title text-uppercase text-white"
-          id="summaryFoodOrderModalLabel"
-        >
-          BẢNG CHẤM CÔNG ĂN CA
-        </h6>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
-      </div>
-      <div class="modal-body pt-0">
-          <app-summary-food-order></app-summary-food-order>
-      </div>
+<div class="modal fade" id="summaryFoodOrderModal" tabindex="-1" aria-labelledby="summaryFoodOrderModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered fs-12 modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h6 class="modal-title text-uppercase text-white" id="summaryFoodOrderModalLabel">
+                    BẢNG CHẤM CÔNG ĂN CA
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-0">
+                <app-summary-food-order></app-summary-food-order>
+            </div>
+        </div>
     </div>
-  </div>
 </div>

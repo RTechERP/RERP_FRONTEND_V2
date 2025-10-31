@@ -49,6 +49,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NgIf } from '@angular/common';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { HasPermissionDirective } from "../../../directives/has-permission.directive";
 
 @Component({
   selector: 'app-customer',
@@ -65,7 +66,6 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
     NzSpaceModule,
     NzLayoutModule,
     NzFlexModule,
-
     NzDrawerModule,
     NzSplitterModule,
     NzGridModule,
@@ -82,7 +82,8 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
     NzSelectModule,
     NzSpinModule,
     NgIf,
-  ],
+    HasPermissionDirective
+],
   providers: [NzModalService, NzNotificationService, NzConfigService],
   standalone: true,
   //encapsulation: ViewEncapsulation.None,

@@ -21,7 +21,7 @@
                                             Mã nhóm <span class="text-danger ps-1 me-1"> * </span>
                                             <button nz-button nzType="text" nzSize="small"
                                                 class="fs-12 button button-succes me-2" (click)="onAddGroupProduct()"
-                                                title="Thêm nhóm"><nz-icon nzType="plus" /> </button>
+                                                title="Thêm nhóm"> <i class="fas fa-plus"></i> </button>
                                         </nz-form-label>
                                         <nz-form-control [nzErrorTip]="'Chọn nhóm'">
                                             <nz-input-group required nzSearch nzSize="default" class="w-100">
@@ -236,7 +236,7 @@
 
                                     <!-- Cột checkbox, đẩy về cuối -->
                                     <nz-col [nzSpan]="20" class="d-flex align-items-center justify-content-end mb-2">
-                                        <label nz-checkbox formControlName="IsBorrowCustomer">
+                                        <label nz-checkbox formControlName="BorrowCustomer">
                                             Đồ mượn khách hàng
                                         </label>
                                     </nz-col>

@@ -57,7 +57,7 @@ import { filter } from 'rxjs';
   ],
   templateUrl: './project-employee.component.html',
   styleUrl: './project-employee.component.css',
-  encapsulation: ViewEncapsulation.None,
+  //encapsulation: ViewEncapsulation.None,
 })
 export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
   // Chưa gán hàm loadPermission
@@ -396,7 +396,6 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
                     }
                   },
                 });
-
                 this.updateSTTColumn();
               },
               width: '5px',

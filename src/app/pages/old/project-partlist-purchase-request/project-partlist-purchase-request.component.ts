@@ -63,7 +63,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
   ],
   templateUrl: '././project-partlist-purchase-request.component.html',
   styleUrls: ['././project-partlist-purchase-request.component.css'],
-  encapsulation: ViewEncapsulation.None,
+  //encapsulation: ViewEncapsulation.None,
 })
 export class ProjectPartlistPurchaseRequestComponent implements OnInit {
   filters: any;

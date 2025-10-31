@@ -11,7 +11,6 @@ import { environment } from '../../../../../environments/environment';
 })
 export class ProjectService {
   private apiUrl = environment.host + 'api/';
-
   private urlProject = this.apiUrl + 'project/';
   private urlProjectWorkPropress = this.apiUrl + 'projectworkpropress/';
   private urlProjectWorkTimeline = this.apiUrl + 'projectworktimeline/';
@@ -29,6 +28,10 @@ export class ProjectService {
   GlobalEmployeeId: number = 78;
   LoginName: string = 'ADMIN';
   ISADMIN: boolean = true;
+  //save hãng 
+  saveFirmBase(data:any): Observable<any>{
+    return this.http.post<any>(`${this.urlProject}save-firm-base`, data);
+  }
   // Lấy danh sách thư mục dự án
   getFolders(): Observable<any> {
     return this.http.get<any>(this.urlProject + 'get-folders');
@@ -129,6 +132,7 @@ export class ProjectService {
     shortName: string,
     projectType: number
   ): Observable<any> {
+    debugger
     return this.http.get<any>(
       this.urlProject +
         `get-project-code-modal?projectId=${projectId}&customerShortName=${shortName}&projectType=${projectType}`
@@ -164,9 +168,10 @@ export class ProjectService {
   }
   // Kiểm tra đã có mã dự án chưa
   checkProjectCode(projectId: number, projectCode: string): Observable<any> {
+    debugger
     return this.http.get<any>(
       this.urlProject +
-        `check-project-code?projectId=${projectId}&projectCode=${projectCode}`
+        `check-project-code?id=${projectId}&projectCode=${projectCode}`
     );
   }
 
@@ -294,8 +299,7 @@ export class ProjectService {
     let selected: any[] = [];
 
     data.forEach((row) => {
-      selected.push(row);
-
+        selected.push(row);
       if (row._children && Array.isArray(row._children)) {
         selected = selected.concat(
           this.getSelectedRowsRecursive(row._children)
@@ -420,8 +424,9 @@ export class ProjectService {
   }
 
   getUserTeam(departmentId: number): Observable<any> {
+    debugger
     return this.http.get<any>(
-      this.urlProjectWorkTimeline + `get-user-team/${departmentId}`
+      this.urlProjectWorkTimeline + `get-user-team?depID=${departmentId}`
     );
   }
 

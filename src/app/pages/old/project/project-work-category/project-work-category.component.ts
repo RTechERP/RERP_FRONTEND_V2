@@ -57,7 +57,7 @@ import { ProjectService } from '../project-service/project.service';
     NzTreeSelectModule,
     NzModalModule,
   ],
-  encapsulation: ViewEncapsulation.None,
+  //encapsulation: ViewEncapsulation.None,
   templateUrl: './project-work-category.component.html',
   styleUrl: './project-work-category.component.css',
 })

@@ -45,7 +45,6 @@
                                   nzShowSearch
                                   nzAllowClear
                                   nzPlaceHolder="Chọn khách hàng"
-                                  (selectionChange)="getProjectCode()"
                                   (ngModelChange)="getProjectCode()"
                                   [(ngModel)]="customerId"
                                 >
@@ -166,7 +165,7 @@
                                   <nz-form-control [nzSpan]="24">
                                       <nz-select formControlName="projectStatusId" class="w-100" nzShowSearch nzAllowClear
                                           nzPlaceHolder="Chọn trạng thái"
-                                          (selectionChange)="getDayChange()">
+                                          (selectionChange)="getDayChange()"
                                           (ngModelChange)="getDayChange()">
                                           <!-- Nội dung option của bạn ở đây -->
                                           @for (item of statuses; track $index) {
@@ -209,9 +208,7 @@
                                   </nz-form-label>
                                   <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('endUserId')">
                                       <nz-select formControlName="endUserId" class="w-100" nzShowSearch
-                                          nzAllowClear nzPlaceHolder="Chọn người dùng cuối"
-                                          (selectionChange)="getProjectCode()">
-                                          (change)="getProjectCode()">
+                                          nzAllowClear nzPlaceHolder="Chọn người dùng cuối"> 
                                           <!-- Nội dung option của bạn ở đây -->
                                           @for (item of customers; track $index) {
                                           <nz-option nzCustomContent="true" [nzLabel]="item.CustomerName"
@@ -233,7 +230,8 @@
                                       nz-button 
                                       nzType="text" 
                                       nzSize="small"
-                                          title="Thêm hãng">
+                                          title="Thêm hãng"
+                                          (click)="openModalFirmBase()">
                                           <i class="fas fa-plus"></i>
                                       </button>
                                   </nz-form-label>
@@ -253,10 +251,6 @@
                               <nz-form-item>
                                   <nz-form-label class="fs-12 d-flex align-items-center"  [nzSpan]="24">
                                       Loại
-                                      <button class="p-0 m-0 fs-12 px-1 h-auto" nz-button nzType="text" nzSize="small"
-                                          title="Thêm loại">
-                                          <i class="fas fa-plus"></i>
-                                      </button>
                                   </nz-form-label>
                                   <nz-form-control [nzSpan]="24">
                                       <nz-select formControlName="prjTypeBaseId" class="w-100"
@@ -419,8 +413,8 @@
                                   <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('projectTypeId')">
                                       <nz-select formControlName="projectTypeId" class="w-100" nzShowSearch nzAllowClear
                                           nzPlaceHolder="Chọn kiểu dự án"
-                                          (selectionChange)="getProjectCode()"
-                                          (ngModelChange)="getProjectCode()"
+                                        
+                                          
                                           >
                                           <nz-option [nzValue]="1" nzLabel="Dự án"></nz-option>
                                           <nz-option [nzValue]="2" nzLabel="Thương mại"></nz-option>

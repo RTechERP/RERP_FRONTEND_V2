@@ -87,6 +87,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
   modalData: any = [];
   ngAfterViewInit(): void {}
   ngOnInit() {
+    console.log('dataInput gốc:', this.dataInput);
     this.initForm();
     if (!this.dataInput) {
       this.dataInput = {};
@@ -167,7 +168,6 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       ProductLocationID: [null, Validators.required],
       NumberInStore: [{ value: null, disabled: true }],
       LocationImg: [null],
-      IsBorrowCustomer: [false],
     });
   }
 
@@ -175,10 +175,17 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
     if (!data) return;
     this.formDeviceInfo.patchValue({
       ...data,
+      BorrowCustomer: data.BorrowCustomer ?? false,
       CreateDate: data.CreateDate
         ? DateTime.fromISO(data.CreateDate).toJSDate()
         : null,
+        LocationImg: data.LocationImg ? data.LocationImg.split(/[\\/]/).pop() : null, // Chỉ lấy tên file
     });
+    if (data.LocationImg) {
+      this.previewImageUrl = `${data.LocationImg}`;
+      this.imageFileName = data.LocationImg.split(/[\\/]/).pop(); // Chỉ tên file
+      console.log('Ảnh cũ được load:', this.previewImageUrl); // Kiểm tra
+    }
   }
   formatDateForInput(dateString: string): string {
     if (!dateString) return '';
@@ -233,6 +240,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
 
     this.imageFileName = file.name;
 
+    
     // Check null before set property
     if (this.dataInput) {
       // this.dataInput.LocationImg = file.name;
@@ -245,13 +253,20 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       return false;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e: any) => {
+    const fileReader = new FileReader();
+    fileReader.onload = (e: any) => {
       this.previewImageUrl = e.target.result;
     };
-    reader.readAsDataURL(rawFile);
-
+    fileReader.readAsDataURL(rawFile);
+  
     return false;
+    // const reader = new FileReader();
+    // reader.onload = (e: any) => {
+    //   this.previewImageUrl = e.target.result;
+    // };
+    // reader.readAsDataURL(rawFile);
+
+    // return false;
   };
 
   validateField(fieldName: string) {
@@ -369,7 +384,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       SerialNumber: '',
       PartNumber: '',
       LocationImg: '',
-      BorrowCustomer: '',
+      BorrowCustomer: false,
       ProductLocationID: '',
       Resolution: '',
       MonoColor: '',
@@ -498,7 +513,18 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
   }
   saveProductData() {
     const formValue = this.formDeviceInfo.value;
+    console.log('CHECKBOX VALUE:', formValue.BorrowCustomer);
 
+    let finalLocationImg = '';
+    if (this.fileToUpload) {
+      // Trường hợp upload ảnh mới → dùng tên file trả về từ server
+      finalLocationImg = `${SERVER_PATH}${this.imageFileName}`;
+    } else if (this.dataInput?.LocationImg) {
+      // Trường hợp giữ nguyên ảnh cũ → dùng đường dẫn cũ (đã có D:/RTC/ hoặc không)
+      finalLocationImg = this.dataInput.LocationImg;
+    } else {
+      finalLocationImg = '';
+    }
     const payload = {
       productRTCs: [
         {
@@ -515,7 +541,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
           Serial: formValue.Serial,
           SerialNumber: formValue.SerialNumber,
           PartNumber: formValue.PartNumber,
-          LocationImg: `${SERVER_PATH}${formValue.LocationImg}`,
+          LocationImg: finalLocationImg,
           // LocationImg: formValue.LocationImg || '',
           ProductCodeRTC: this.productCode,
           BorrowCustomer: formValue.BorrowCustomer,
@@ -551,7 +577,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
         },
       ],
     };
-    console.log('Payload', payload);
+    console.log('Payloadhaha', payload);
     this.tbProductRtcService.saveData(payload).subscribe({
       next: (res) => {
         if (res.status === 1) {

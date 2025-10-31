@@ -25,8 +25,8 @@ export class ProductsaleServiceService {
     isvisible: boolean
   ): Observable<any> {
     return this.httpclient.get<any>(
-      //   `${this.productgroupUrl}?isvisible=${isvisible}&warehousecode=${warehouseCode}`
-      `${this.productgroupUrl}/get-all`
+         `${this.productgroupUrl}?isvisible=${isvisible}&warehousecode=${warehouseCode}`
+      // `${this.productgroupUrl}/get-all`
     );
   }
   getdataProductSalebyID(

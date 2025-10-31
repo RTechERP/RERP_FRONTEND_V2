@@ -16,6 +16,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ProductsaleServiceService } from '../product-sale-service/product-sale-service.service';
+import { cbbDataGroupService } from '../../../../../services/cbbDataGroup.service';
 
 interface ProductGroup {
   ID?: number;
@@ -67,7 +68,8 @@ export class ProductGroupDetailComponent implements OnInit, AfterViewInit {
     private fb: FormBuilder,
     public activeModal: NgbActiveModal,
     private modalService: NgbModal,
-    private productsaleService: ProductsaleServiceService
+    private productsaleService: ProductsaleServiceService,
+    private cbbDataGroupService: cbbDataGroupService
   ) { 
     this.formGroup = this.fb.group({
       WareHouseID: [null, [Validators.required]],
@@ -237,7 +239,11 @@ export class ProductGroupDetailComponent implements OnInit, AfterViewInit {
     this.productsaleService.getdataEmployee().subscribe({
       next: (res) => {
         if (res?.data) {
-          this.listEmployee = Array.isArray(res.data) ? res.data : [];
+          this.listEmployee = this.cbbDataGroupService.createdDataGroup(
+            res.data,
+            'DepartmentName'
+          )
+          console.log('haha',this.listEmployee);
         }
       },
       error: (err) => {

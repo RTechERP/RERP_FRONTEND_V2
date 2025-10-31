@@ -68,7 +68,7 @@ export class CustomerServiceService {
   }
 
   save(payload: any): Observable<any> {
-    return this.http.post<any>(this._url, payload);
+    return this.http.post<any>(this._url+'save-data-old', payload);
   }
 
   getDetail(id: number): Observable<any> {

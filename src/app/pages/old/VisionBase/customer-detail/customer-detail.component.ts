@@ -494,8 +494,12 @@ if (this.tb_AddressTable) {
     .map((r: any) => ({
       ID: r?.ID ?? 0,
       ContactName: r?.ContactName ?? '',
+      CustomerPart:r?.CustomerPart ?? '',
+      CustomerPosition:r?.CustomerPosition ?? '',
+      CustomerTeam:r?.CustomerTeam ?? '',
+      ContactPhone:r?.ContactPhone ?? '',
+      ContactEmail:r?.ContactEmail ?? ''
     }));
-  
   const addressStocks = (addressRows || [])
     .filter((r: any) => r?.Address?.trim())
     .map((r: any) => ({

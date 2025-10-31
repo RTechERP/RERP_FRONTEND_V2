@@ -66,7 +66,7 @@ import { AppUserService } from '../../../services/app-user.service';
   templateUrl: './training-registration-form.component.html',
   styleUrls: ['./training-registration-form.component.css'],
   standalone: true,
-  encapsulation: ViewEncapsulation.None,
+
   imports: [
     CommonModule,
     FormsModule,

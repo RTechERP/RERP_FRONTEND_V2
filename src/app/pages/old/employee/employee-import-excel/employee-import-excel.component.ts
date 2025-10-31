@@ -18,7 +18,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { EmployeeService } from '../employee-service/employee.service';
 import { DepartmentServiceService } from '../../department/department-service/department-service.service';
-import { PositionServiceService } from '../../positions/position-service/position-service.service';
+import { PositionServiceService } from '../../../hrm/employee/posittion/position-service/position-service.service';
 // import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({

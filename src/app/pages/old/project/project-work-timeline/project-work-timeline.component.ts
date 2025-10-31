@@ -60,7 +60,7 @@ import { firstValueFrom } from 'rxjs';
     NzModalModule,
     CommonModule,
   ],
-  encapsulation: ViewEncapsulation.None,
+  //encapsulation: ViewEncapsulation.None,
   templateUrl: './project-work-timeline.component.html',
   styleUrl: './project-work-timeline.component.css',
 })

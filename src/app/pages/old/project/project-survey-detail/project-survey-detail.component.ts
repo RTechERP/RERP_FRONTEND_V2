@@ -63,7 +63,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
     NzUploadModule,
   ],
   standalone: true,
-  encapsulation: ViewEncapsulation.None,
+  //encapsulation: ViewEncapsulation.None,
   templateUrl: './project-survey-detail.component.html',
   styleUrl: './project-survey-detail.component.css',
 })

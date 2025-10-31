@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import * as bootstrap from 'bootstrap';
+
 
 import { CommonModule } from '@angular/common';
 import {
@@ -35,7 +35,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { ProductSaleDetailComponent } from '../ProductSale/product-sale-detail/product-sale-detail.component';
 import { ProductGroupDetailComponent } from '../ProductSale/product-group-detail/product-group-detail.component';
 import { ImportExcelProductSaleComponent } from '../ProductSale/import-excel-product-sale/import-excel-product-sale.component';
-import { IS_ADMIN } from '../../../../../app.config';
+
 import { InventoryService } from './inventory-service/inventory.service';
 import { ProductSaleComponent } from '../ProductSale/product-sale.component';
 import { InventoryBorrowNCCComponent } from './Modal/inventory-borrow-ncc/inventory-borrow-ncc.component';

@@ -292,6 +292,8 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
 
   height:string = '100%'
 
+  employeeCode:string = '';
+
   constructor(
     private notification: NzNotificationService,
     private handoverService: HandoverService,
@@ -434,7 +436,16 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
 
   onSelectEmployee(employeeID: number, leaderID: number): void {
     if (!employeeID) return;
+const selectedEmployee = this.cbbEmployeeGroup
+    .flatMap((x: any) => x.employees)
+    .find((emp: any) => emp.ID === employeeID);
 
+  if (selectedEmployee) {
+    this.employeeCode = selectedEmployee.Code;
+
+  } else {
+    this.employeeCode = ''; // trường hợp clear selection
+  }
     // Tìm object nhân viên trong danh sách
     const employee = this.cbbEmployee.find((e: any) => e.ID === employeeID);
 
@@ -778,23 +789,83 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
     });
   }
 
-  handleChange(info: any): void {
-    if (info.file.status === 'uploading') {
-    }
-    if (info.file.status === 'done') {
-      this.notification.success('Thông báo', 'Upload file thành công!');
+//   handleChange(info: any): void {
+//     if (info.file.status === 'uploading') {
+//     }
+//     if (info.file.status === 'done') {
+//       this.notification.success('Thông báo', 'Upload file thành công!');
 
-      const res = info.file.response;
+//       const res = info.file.response;
 
-      const uploadedFile = {
-        FileName: res.FileName,
-        HandoverID: res.HandoverID,
-      };
-      this.handoverWorkTable?.addRow(uploadedFile);
-    }
-    if (info.file.status === 'error') {
-      this.notification.error('Thông báo', 'Có lỗi xảy ra khi upload!');
-    }
+//       const uploadedFile = {
+//         FileName: res.FileName,
+//         HandoverID: res.HandoverID,
+//       };
+//       this.handoverWorkTable?.addRow(uploadedFile);
+//     }
+//     if (info.file.status === 'error') {
+//       this.notification.error('Thông báo', 'Có lỗi xảy ra khi upload!');
+//     }
+//   }
+
+
+uploadFileForRow(rowData: any) {
+    const input = document.createElement('input');
+    
+    input.type = 'file';
+    input.accept = '*/*';
+
+    input.onchange = (event: any) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const filesToUpload = [file];
+      const year = new Date().getFullYear().toString();
+      const code = this.employeeCode;
+      const sanitize = (s: string) =>
+        s.replace(/[<>:"/\\|?*\u001F]/g, '').trim();
+
+      const subPath = [
+        // 'Handover',
+        sanitize(year),
+        sanitize(code),
+        sanitize(rowData.ContentWork || 'Work'),
+      ].join('/');
+
+      // Gọi API upload
+      this.handoverService
+        .uploadMultipleFiles(filesToUpload, subPath)
+        .subscribe({
+          next: (res) => {
+            if (
+              res.status === 1 &&
+              Array.isArray(res.data) &&
+              res.data.length > 0
+            ) {
+              const uploaded = res.data[0];
+              console.log('upload:', uploaded);
+
+              // Cập nhật dữ liệu hàng
+              rowData.FileName = uploaded.OriginalFileName;
+              this.notification.success(
+                'Thông báo',
+                `Upload thành công file: ${uploaded.OriginalFileName}`
+              );
+            } else {
+              this.notification.error('Thông báo', 'Upload thất bại');
+            }
+          },
+          error: (err) => {
+            console.error('Lỗi upload:', err);
+            this.notification.error(
+              'Thông báo',
+              'Upload thất bại: ' + (err.error?.message || err.message)
+            );
+          },
+        });
+    };
+
+    input.click();
   }
 
   toLocalISOString(date: Date | string): string {
@@ -1622,62 +1693,19 @@ export class HandoverFormComponent implements OnInit, AfterViewInit {
           {
             title: 'File đính kèm',
             field: 'FileName',
-            headerHozAlign: 'center',
-            formatter: function (cell, formatterParams, onRendered) {
-              const fileName = cell.getValue();
-              const data = cell.getRow().getData();
-              return fileName
-                ? `<a href="${data['FilePath']}" target="_blank">${fileName}</a>`
-                : 'Chưa có file';
+            formatter: (cell) => {
+              const fileName = cell.getValue(); // lấy FileName từ rowData
+              if (fileName) {
+                return `<span>${fileName}</span>`;
+              }
+              return `<button class="btn btn-sm btn-primary">Upload</button>`;
             },
-            editor: function (cell, onRendered, success, cancel, editorParams) {
-              // Create file input element
-              const input = document.createElement('input');
-              input.type = 'file';
-              input.accept = '.pdf,.doc,.docx,.xlsx,.txt,.png,.jpg'; // Match allowed extensions from API
-
-              // Handle file selection and upload
-              input.addEventListener('change', async () => {
-                if (!input.files || input.files?.length === 0) {
-                  cancel(cell.getValue());
-                  return;
-                }
-                const file = input.files[0];
-                // Prepare form data for API
-                const formData = new FormData();
-                formData.append('file', file);
-
-                try {
-                  const response = await fetch(
-                    'https://localhost:44365/api/handover/upload/',
-                    {
-                      method: 'POST',
-                      body: formData,
-                    }
-                  );
-
-                  const result = await response.json();
-
-                  if (response.ok && result.status === 1) {
-                    // Update row data with API response
-                    cell.getRow().update({
-                      FileName: result.FileName,
-                      FilePath: result.FilePath,
-                    });
-                    success(result.FileName); // Update cell value
-                  } else {
-                    alert(result.Message || 'Upload thất bại');
-                    cancel(cell.getValue());
-                  }
-                } catch (error: any) {
-                  alert('Upload thất bại: ' + error.message);
-                  cancel(cell.getValue());
-                }
-              });
-
-              return input;
+            cellClick: (e, cell) => {
+              const rowData = cell.getRow().getData();
+              this.uploadFileForRow(rowData);
             },
-            width: 200, // Adjust width as needed
+            width: 150,
+            hozAlign: 'center',
           },
           {
             title: 'Nhân viên nhận bàn giao',

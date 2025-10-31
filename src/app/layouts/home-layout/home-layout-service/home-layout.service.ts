@@ -26,7 +26,8 @@ export class HomeLayoutService {
     // console.log(window.location.origin);
     // console.log('origin:',environment.hostwebold + "/Home/LoginNew");
 
-    const url = 'http://localhost:19028/Home/LoginNew';
+    // const url = 'http://localhost:19028/Home/LoginNew';
+    const url = 'http://113.190.234.64:8081/Home/LoginNew'
     // console.log('gotoOldLink:',url);
     
     return this.http.post<any>(url,data,{withCredentials:true});

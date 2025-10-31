@@ -108,4 +108,17 @@ getDataDepartment(): Observable<any> {
   }
 
 
+  uploadMultipleFiles(files: File[], subPath?: string): Observable<any> {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+    formData.append('key', 'Handover');
+    if (subPath && subPath.trim()) {
+      formData.append('subPath', subPath.trim());
+    }
+    return this.http.post<any>(environment.host +`api/home/upload-multiple`, formData);
+  }
+
+
 }

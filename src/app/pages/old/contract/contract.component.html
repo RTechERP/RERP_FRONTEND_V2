@@ -1,45 +1,27 @@
 <ng-container class="w-100">
-  <div class="card h-100 border-0 rounded-0">
-    <div class="card-header bg-white p-2">
-      <div class="d-flex justify-content-between align-items-center">
-        <div class="d-flex gap-2">
-          <button
-            nz-button
-            nzType="default"
-            nzSize="small"
-            style="font-size: 0.75rem; font-weight: bold"
-            (click)="openAddModal()"
-          >
-            <nz-icon nzType="plus" /> Thêm
-          </button>
-          <button
-            nz-button
-            nzType="default"
-            nzSize="small"
-            style="font-size: 0.75rem; font-weight: bold"
-            (click)="openEditModal()"
-          >
-            <nz-icon nzType="edit" /> Sửa
-          </button>
-          <button
-            nz-button
-            nzType="default"
-            nzSize="small"
-            style="font-size: 0.75rem; font-weight: bold"
-            (click)="openDeleteModal()"
-          >
-            <nz-icon nzType="delete" /> Xóa
-          </button>
+    <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex gap-2">
+                    <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold"
+                        (click)="openAddModal()" *hasPermission="'N2,N1'">
+                        <nz-icon nzType="plus" /> Thêm
+                    </button>
+                    <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold"
+                        (click)="openEditModal()" *hasPermission="'N2,N1'">
+                        <nz-icon nzType="edit" /> Sửa
+                    </button>
+                    <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold"
+                        (click)="openDeleteModal()" *hasPermission="'N2,N1'">
+                        <nz-icon nzType="delete" /> Xóa
+                    </button>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
 
-      <div class="card-body p-0 position-relative">
-        <div *ngIf="isLoading">
-          <nz-spin
-            [nzSpinning]="isLoading"
-            nzSimple
-            [style]="{
+        <div class="card-body p-0 position-relative">
+            <div *ngIf="isLoading">
+                <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
               position: 'absolute',
               top: '0',
               left: '0',
@@ -50,75 +32,50 @@
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
-            }"
-          ></nz-spin>
-        </div>
+            }"></nz-spin>
+            </div>
 
-        <div id="tb_contract"></div>
-      </div>
-  </div>
+            <div id="tb_contract"></div>
+        </div>
+    </div>
 </ng-container>
 
-<div
-  class="modal fade"
-  id="addContractModal"
-  tabindex="-1"
-  aria-labelledby="addContractModalLabel"
-  aria-hidden="true"
->
-  <div class="modal-dialog modal-dialog-centered fs-12">
-    <div class="modal-content">
-      <div class="modal-header bg-primary">
-        <h6
-          class="modal-title text-uppercase text-white"
-          id="addSpecializationModalLabel"
-        >
-          {{ isEditMode ? "Sửa hợp đồng" : "Thêm hợp đồng mới" }}
-        </h6>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
-      </div>
-      <div class="modal-body">
-        <form
-          nz-form [formGroup]="contractForm" (ngSubmit)="onSubmit()"
-        >
-        <nz-form-item>
-          <nz-form-label [nzSpan]="24">Mã hợp đồng<span class="text-danger"> (*)</span></nz-form-label>
-          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập mã hợp đồng">
-            <input nz-input formControlName="Code" placeholder="Nhập mã hợp đồng" />
-          </nz-form-control>
-        </nz-form-item>
-  
-        <nz-form-item>
-          <nz-form-label [nzSpan]="24">Loại hợp đồng <span class="text-danger"> (*)</span></nz-form-label>
-          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập loại hợp đồng">
-            <input nz-input formControlName="Name" placeholder="Nhập loại hợp đồng" />
-          </nz-form-control>
-        </nz-form-item>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button
-          type="button"
-          class="btn btn-outline-danger"
-          data-bs-dismiss="modal"
-          style="height: 3vh; border: 1px solid; border-radius: 0;"
-        >
-          Đóng
-        </button>
-        <button
-          type="button"
-          class="btn btn-primary"
-          (click)="onSubmit()"
-          style="height: 3vh; border-radius: 0;"
-        >
-          Lưu
-        </button>
-      </div>
+<div class="modal fade" id="addContractModal" tabindex="-1" aria-labelledby="addContractModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered fs-12">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h6 class="modal-title text-uppercase text-white" id="addSpecializationModalLabel">
+                    {{ isEditMode ? "Sửa hợp đồng" : "Thêm hợp đồng mới" }}
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form nz-form [formGroup]="contractForm" (ngSubmit)="onSubmit()">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24">Mã hợp đồng<span class="text-danger"> (*)</span></nz-form-label>
+                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập mã hợp đồng">
+                            <input nz-input formControlName="Code" placeholder="Nhập mã hợp đồng" />
+                        </nz-form-control>
+                    </nz-form-item>
+
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24">Loại hợp đồng <span class="text-danger"> (*)</span></nz-form-label>
+                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập loại hợp đồng">
+                            <input nz-input formControlName="Name" placeholder="Nhập loại hợp đồng" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal"
+                    style="height: 3vh; border: 1px solid; border-radius: 0;">
+                    Đóng
+                </button>
+                <button type="button" class="btn btn-primary" (click)="onSubmit()"
+                    style="height: 3vh; border-radius: 0;">
+                    Lưu
+                </button>
+            </div>
+        </div>
     </div>
-  </div>
 </div>

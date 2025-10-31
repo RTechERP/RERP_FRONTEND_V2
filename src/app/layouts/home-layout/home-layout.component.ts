@@ -56,10 +56,12 @@ import { NzCalendarMode, NzCalendarModule } from 'ng-zorro-antd/calendar';
 import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
 import { HolidayServiceService } from '../../pages/old/holiday/holiday-service/holiday-service.service';
 import { HasPermissionDirective } from '../../directives/has-permission.directive';
-import { MenuItem } from '../main-layout/main-layout.component';
-import { menus } from '../../pages/old/menus/menus.component';
+// import { MenuItem } from '../main-layout/main-layout.component';
+// import { menus } from '../../pages/old/menus/menus.component';
 import { environment } from '../../../environments/environment';
 import { AppUserService } from '../../services/app-user.service';
+import { MenusComponent } from '../../pages/old/menus/menus.component';
+import { MenuItem, MenuService } from '../../pages/old/menus/menu-service/menu.service';
 
 interface dynamicApps {
   MenuName: string;
@@ -235,7 +237,7 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
   }
 
 
-  menus:MenuItem[] = menus;
+  menus:MenuItem[] = [];
 
   constructor(
     private notification: NzNotificationService,
@@ -245,8 +247,9 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
     private cdr: ChangeDetectorRef,
     private holidayService: HolidayServiceService,
     private router: Router,
-    private appUserService:AppUserService
-  ) {}
+    private appUserService:AppUserService,
+    private menuService:MenuService
+  ) {this.menus = this.menuService.getMenus()}
 
   ngOnInit(): void {
     this.setResponsivePageSize();
@@ -294,14 +297,62 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
     // TODO: điều hướng/đánh dấu đã đọc...
   }
   notifItems: NotifyItem[] = [
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
+    // {
+    //   id: 1,
+    //   title: 'Phiếu xe #A123 đã duyệt',
+    //   detail: 'Xe VP Hà Nội',
+    //   time: '09:12',
+    //   group: 'today',
+    //   icon: 'car',
+    // },
+    // {
+    //   id: 1,
+    //   title: 'Phiếu xe #A123 đã duyệt',
+    //   detail: 'Xe VP Hà Nội',
+    //   time: '09:12',
+    //   group: 'today',
+    //   icon: 'car',
+    // },
+    // {
+    //   id: 1,
+    //   title: 'Phiếu xe #A123 đã duyệt',
+    //   detail: 'Xe VP Hà Nội',
+    //   time: '09:12',
+    //   group: 'today',
+    //   icon: 'car',
+    // },
+    // {
+    //   id: 1,
+    //   title: 'Phiếu xe #A123 đã duyệt',
+    //   detail: 'Xe VP Hà Nội',
+    //   time: '09:12',
+    //   group: 'today',
+    //   icon: 'car',
+    // },
+    // {
+    //   id: 1,
+    //   title: 'Phiếu xe #A123 đã duyệt',
+    //   detail: 'Xe VP Hà Nội',
+    //   time: '09:12',
+    //   group: 'today',
+    //   icon: 'car',
+    // },
+    // {
+    //   id: 1,
+    //   title: 'Phiếu xe #A123 đã duyệt',
+    //   detail: 'Xe VP Hà Nội',
+    //   time: '09:12',
+    //   group: 'today',
+    //   icon: 'car',
+    // },
+    // {
+    //   id: 1,
+    //   title: 'Phiếu xe #A123 đã duyệt',
+    //   detail: 'Xe VP Hà Nội',
+    //   time: '09:12',
+    //   group: 'today',
+    //   icon: 'car',
+    // },
   ];
 
   getMenuParents(): void {
@@ -476,12 +527,13 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
   onValueChange(value: Date): void {
     // console.log(`Current value: ${value}`);
 
-    console.log(`Current year: ${value.getFullYear()}`);
-    console.log(`Current month: ${value.getMonth()}`);
+    // console.log(`Current year: ${value.getFullYear()}`);
+    // console.log(`Current month: ${value.getMonth()}`);
 
     this.getHoliday(value.getFullYear(), value.getMonth());
   }
   onPanelChange(change: { date: Date; mode: string }): void {}
+  
   openModule(key: string) {
     localStorage.setItem('openMenuKey', key);
     this.router.navigate(['/app']); // hoặc route tới MainLayout
@@ -494,7 +546,8 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
         Router:router
     }
 
-    const url = `http://localhost:19028${router}`
+    // const url = `http://localhost:19028${router}`;
+    const url = `http://113.190.234.64:8081${router}`;
     // console.log('router:',url);
     this.homepageService.gotoOldLink(data).subscribe({
         next:(response) =>{

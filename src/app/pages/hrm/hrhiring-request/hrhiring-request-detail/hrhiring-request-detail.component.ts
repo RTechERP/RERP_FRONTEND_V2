@@ -473,14 +473,13 @@ export class HrhiringRequestDetailComponent implements OnInit {
   onMinSalaryChange(event: any): void {
     const value = parseInt(event.target.value);
     const currentMax = this.form.value.SalaryMax;
-    const step = 100000; // Khoảng cách tối thiểu
 
-    // Đảm bảo min không vượt quá max - step
-    if (value <= currentMax - step) {
+    // Đảm bảo min không vượt quá max 
+    if (value <= currentMax) {
       this.form.patchValue({ SalaryMin: value });
     } else {
       // Tự động điều chỉnh min xuống để có khoảng cách tối thiểu
-      const newMin = Math.max(0, currentMax - step);
+      const newMin = Math.max(100000, currentMax);
       this.form.patchValue({ SalaryMin: newMin });
       event.target.value = newMin;
     }
@@ -489,14 +488,13 @@ export class HrhiringRequestDetailComponent implements OnInit {
   onMaxSalaryChange(event: any): void {
     const value = parseInt(event.target.value);
     const currentMin = this.form.value.SalaryMin;
-    const step = 100000; // Khoảng cách tối thiểu
 
-    // Đảm bảo max không nhỏ hơn min + step
-    if (value >= currentMin + step) {
+    // Đảm bảo max không nhỏ hơn min
+    if (value >= currentMin ) {
       this.form.patchValue({ SalaryMax: value });
     } else {
       // Tự động điều chỉnh max lên để có khoảng cách tối thiểu
-      const newMax = Math.min(100000000, currentMin + step);
+      const newMax = Math.min(100000000, currentMin);
       this.form.patchValue({ SalaryMax: newMax });
       event.target.value = newMax;
     }
@@ -508,12 +506,12 @@ export class HrhiringRequestDetailComponent implements OnInit {
     const currentMax = this.form.value.AgeMax;
     const step = 1; // Khoảng cách tối thiểu
 
-    // Đảm bảo min không vượt quá max - step
-    if (value <= currentMax - step) {
+    // Đảm bảo min không vượt quá max
+    if (value <= currentMax ) {
       this.form.patchValue({ AgeMin: value });
     } else {
       // Tự động điều chỉnh min xuống để có khoảng cách tối thiểu
-      const newMin = Math.max(18, currentMax - step);
+      const newMin = Math.max(18, currentMax);
       this.form.patchValue({ AgeMin: newMin });
       event.target.value = newMin;
     }
@@ -524,12 +522,12 @@ export class HrhiringRequestDetailComponent implements OnInit {
     const currentMin = this.form.value.AgeMin;
     const step = 1; // Khoảng cách tối thiểu
 
-    // Đảm bảo max không nhỏ hơn min + step
-    if (value >= currentMin + step) {
+    // Đảm bảo max không nhỏ hơn min
+    if (value >= currentMin) {
       this.form.patchValue({ AgeMax: value });
     } else {
       // Tự động điều chỉnh max lên để có khoảng cách tối thiểu
-      const newMax = Math.min(65, currentMin + step);
+      const newMax = Math.min(65, currentMin);
       this.form.patchValue({ AgeMax: newMax });
       event.target.value = newMax;
     }
@@ -540,13 +538,9 @@ export class HrhiringRequestDetailComponent implements OnInit {
     const inputValue = event.target.value;
     const value = this.parseSalaryInput(inputValue);
     const currentMax = this.form.value.SalaryMax;
-    const step = 100000;
-
-    // Validate range
-    const clampedValue = Math.max(0, Math.min(100000000, value));
     
     // Không cho phép min >= max
-    if (clampedValue >= currentMax) {
+    if (value > currentMax) {
       // Giữ nguyên giá trị cũ nếu min >= max
       const currentMin = this.form.value.SalaryMin;
       event.target.value = this.formatSalaryInput(currentMin);
@@ -556,7 +550,7 @@ export class HrhiringRequestDetailComponent implements OnInit {
       return;
     }
     
-    this.form.patchValue({ SalaryMin: clampedValue });
+    this.form.patchValue({ SalaryMin: value });
     this.validateRange('SalaryMin');
   }
 
@@ -568,7 +562,7 @@ export class HrhiringRequestDetailComponent implements OnInit {
     const clampedValue = Math.max(0, Math.min(100000000, value));
     
     // Không cho phép max <= min
-    if (clampedValue <= currentMin) {
+    if (clampedValue < currentMin) {
       // Giữ nguyên giá trị cũ nếu max <= min
       const currentMax = this.form.value.SalaryMax;
       event.target.value = currentMax;
@@ -600,11 +594,11 @@ export class HrhiringRequestDetailComponent implements OnInit {
     // Validate range
     const clampedValue = Math.max(18, Math.min(65, value));
     
-    if (clampedValue <= currentMax - step) {
+    if (clampedValue <= currentMax) {
       this.form.patchValue({ AgeMin: clampedValue });
     } else {
       // Auto adjust to maintain minimum gap
-      const newMin = Math.max(18, currentMax - step);
+      const newMin = Math.max(18, currentMax);
       this.form.patchValue({ AgeMin: newMin });
       event.target.value = newMin;
     }

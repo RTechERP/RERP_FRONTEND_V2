@@ -256,7 +256,7 @@ button[nz-button] img {
 }
 
 .ant-splitter {
-  height: 93vh !important;
+height: 100% !important;
 }
 
 .tabulator {

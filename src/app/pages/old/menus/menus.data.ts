@@ -10,7 +10,7 @@ import { CustomerComponent } from '../customer/customer.component';
 import { DepartmentComponent } from '../department/department.component';
 import { EmployeeComponent } from '../employee/employee.component';
 import { VehicleManagementComponent } from '../../hrm/vehicle/vehicle-management/vehicle-management.component';
-import { PositionsComponent } from '../positions/positions.component';
+import { PositionsComponent } from '../../hrm/employee/posittion/positions.component';
 import { ProjectItemLateComponent } from '../project/project-item-late/project-item-late.component';
 import { ProjectSurveyComponent } from '../project/project-survey/project-survey.component';
 import { ProjectWorkItemTimelineComponent } from '../project/project-work-item-timeline/project-work-item-timeline.component';
@@ -20,7 +20,7 @@ import { ProjectComponent } from '../project/project.component';
 import { SynthesisOfGeneratedMaterialsComponent } from '../project/synthesis-of-generated-materials/synthesis-of-generated-materials.component';
 import { ProductSaleComponent } from '../Sale/ProductSale/product-sale.component';
 import { TbProductRtcComponent } from '../tb-product-rtc/tb-product-rtc.component';
-import { TeamComponent } from '../team/team.component';
+import { TeamComponent } from '../../hrm/employee/team/team.component';
 import { TsAssetAllocationPersonalComponent } from '../ts-asset-allocation-personal/ts-asset-allocation-personal.component';
 import { TsAssetManagementPersonalTypeComponent } from '../ts-asset-management-personal/ts-asset-management-personal-type/ts-asset-management-personal-type.component';
 import { TsAssetManagementPersonalComponent } from '../ts-asset-management-personal/ts-asset-management-personal.component';
@@ -72,6 +72,7 @@ export const menus: MenuItem[] = [
                 key: 'CustomerComponent',
                 title: 'Khách hàng',
                 isOpen: true,
+                    icon: 'assets/icon/menu_hrm_24.png',
                 //   icon: 'assets/images/icons8-overview-20.png',
                 children: [
                     {
@@ -79,6 +80,7 @@ export const menus: MenuItem[] = [
                         key: 'CustomerComponent',
                         title: 'Khách hàng',
                         isOpen: true,
+                            icon: 'assets/icon/menu_hrm_24.png',
                         //   icon: 'assets/images/icons8-overview-20.png',
                         comp: CustomerComponent,
                     },

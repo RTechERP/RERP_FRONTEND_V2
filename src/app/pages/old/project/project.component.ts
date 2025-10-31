@@ -73,7 +73,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
   ],
   templateUrl: './project.component.html',
   styleUrl: './project.component.css',
-  encapsulation: ViewEncapsulation.None,
+  //encapsulation: ViewEncapsulation.None,
 })
 export class ProjectComponent implements OnInit, AfterViewInit {
   // Khai báo format ngày giờ

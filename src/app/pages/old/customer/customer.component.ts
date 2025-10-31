@@ -85,7 +85,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
   ],
   providers: [NzModalService, NzNotificationService, NzConfigService],
   standalone: true,
-  encapsulation: ViewEncapsulation.None,
+  //encapsulation: ViewEncapsulation.None,
 })
 export class CustomerComponent implements OnInit, AfterViewInit {
   private tabulator!: Tabulator;

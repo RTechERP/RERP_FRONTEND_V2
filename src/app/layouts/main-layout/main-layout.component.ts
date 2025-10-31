@@ -24,29 +24,7 @@ import { EmployeePayrollComponent } from '../../pages/hrm/employee/employee-payr
 // import { CustomerComponent } from '../../pages/customer/customer.component';
 import { TbProductRtcComponent } from '../../pages/old/tb-product-rtc/tb-product-rtc.component';
 import { CustomerComponent } from '../../pages/old/VisionBase/customer/customer.component';
-import { ProductSaleComponent } from '../../pages/old/Sale/ProductSale/product-sale.component';
-import { HrhiringRequestComponent } from '../../pages/hrm/hrhiring-request/hrhiring-request.component';
-import { TrainingRegistrationComponent } from '../../pages/training-registration/training-registration.component';
-import { ProjectWorkPropressComponent } from '../../pages/old/project/project-work-propress/project-work-propress.component';
-import { ProjectWorkTimelineComponent } from '../../pages/old/project/project-work-timeline/project-work-timeline.component';
-import { ProjectSurveyComponent } from '../../pages/old/project/project-survey/project-survey.component';
-import { ProjectItemLateComponent } from '../../pages/old/project/project-item-late/project-item-late.component';
-import { ProjectWorkItemTimelineComponent } from '../../pages/old/project/project-work-item-timeline/project-work-item-timeline.component';
-import { SynthesisOfGeneratedMaterialsComponent } from '../../pages/old/project/synthesis-of-generated-materials/synthesis-of-generated-materials.component';
 import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
-import { TsAssetAllocationPersonalComponent } from '../../pages/old/ts-asset-allocation-personal/ts-asset-allocation-personal.component';
-import { TsAssetManagementPersonalComponent } from '../../pages/old/ts-asset-management-personal/ts-asset-management-personal.component';
-import { TsAssetManagementPersonalTypeComponent } from '../../pages/old/ts-asset-management-personal/ts-asset-management-personal-type/ts-asset-management-personal-type.component';
-import { TsAssetRecoveryPersonalComponent } from '../../pages/old/ts-asset-recovery-personal/ts-asset-recovery-personal.component';
-import { VehicleRepairComponent } from '../../pages/hrm/vehicle/vehicle-repair/vehicle-repair.component';
-import { VehicleRepairTypeComponent } from '../../pages/hrm/vehicle/vehicle-repair/vehicle-repair-type/vehicle-repair-type.component';
-import { TsAssetRecoveryPersonalNewComponent } from '../../pages/hrm/asset/assetpersonal/ts-asset-recovery-personal-new/ts-asset-recovery-personal-new.component';
-import { DepartmentComponent } from '../../pages/old/department/department.component';
-import { TeamComponent } from '../../pages/old/team/team.component';
-import { PositionsComponent } from '../../pages/old/positions/positions.component';
-import { EmployeeComponent } from '../../pages/old/employee/employee.component';
-import { ContractComponent } from '../../pages/old/contract/contract.component';
-import { EmployeeScheduleWorkComponent } from '../../pages/old/holiday/employee-schedule-work/employee-schedule-work.component';
 import { menus } from '../../pages/old/menus/menus.data';
 type TabItem = {
   title: string;
@@ -116,7 +94,7 @@ export class MainLayoutComponent implements OnInit {
     private router: Router,
     private menuService: MenuService,
     private notification: NzNotificationService
-  ) {}
+  ) { }
   notificationComponent = AppNotifycationDropdownComponent;
   //#region Khai báo biến
   isCollapsed = true;
@@ -173,11 +151,11 @@ export class MainLayoutComponent implements OnInit {
       icon: 'file-done',
     },
   ];
-ngOnInit(): void {
-  const saved = localStorage.getItem('openMenuKey') || '';
-  this.setOpenMenu(saved || null);
-  this.getMenus(43);
-}
+  ngOnInit(): void {
+    const saved = localStorage.getItem('openMenuKey') || '';
+    this.setOpenMenu(saved || null);
+    this.getMenus(43);
+  }
   newTab(comp: Type<any>, title: string, injector?: Injector) {
     const idx = this.dynamicTabs.findIndex((t) => t.title === title);
     if (idx >= 0) {
@@ -225,16 +203,16 @@ ngOnInit(): void {
   //   return !!m && !!m.isOpen;
   // }
   private setOpenMenu(key: string | null) {
-  this.menus.forEach(m => (m.isOpen = key !== null && m.key === key));
-  localStorage.setItem('openMenuKey', key ?? '');
-}
+    this.menus.forEach(m => (m.isOpen = key !== null && m.key === key));
+    localStorage.setItem('openMenuKey', key ?? '');
+  }
 
-isMenuOpen = (key: string) => this.menus.some(m => m.key === key && m.isOpen);
- toggleMenu(key: string) {
+  isMenuOpen = (key: string) => this.menus.some(m => m.key === key && m.isOpen);
+  toggleMenu(key: string) {
     const m = this.menus.find((x) => x.key === key);
     if (m) m.isOpen = !m.isOpen;
   }
 
-// dùng khi muốn mở thẳng 1 group từ nơi khác
-openOnly(key: string) { this.setOpenMenu(key); }
+  // dùng khi muốn mở thẳng 1 group từ nơi khác
+  openOnly(key: string) { this.setOpenMenu(key); }
 }

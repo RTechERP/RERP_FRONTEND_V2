@@ -158,7 +158,8 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
   }
   //Lấy danh sách nhân viên
   getListEmployee() {
-    this.TsAssetManagementPersonalService.getListEmployee().subscribe((respon: any) => {
+     const request = { status: 0, departmentid: 0, keyword: '' };
+    this.TsAssetManagementPersonalService.getEmployee(request).subscribe((respon: any) => {
       this.emPloyeeLists = respon.employees;
       this.employeeSelectOptions = this.emPloyeeLists.map((e: any) => ({
         label: e.FullName,

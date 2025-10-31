@@ -12,7 +12,7 @@ import { VehicleRepairTypeComponent } from '../../../hrm/vehicle-repair/vehicle-
 import { VehicleRepairComponent } from '../../../hrm/vehicle-repair/vehicle-repair.component';
 import { TrainingRegistrationComponent } from '../../../training-registration/training-registration.component';
 import { ContractComponent } from '../../contract/contract.component';
-import { CustomerComponent } from '../../customer/customer.component';
+import { CustomerComponent } from '../../VisionBase/customer/customer.component';
 import { DayOffComponent } from '../../day-off/day-off.component';
 import { DepartmentComponent } from '../../department/department.component';
 import { EarlyLateComponent } from '../../early-late/early-late.component';

@@ -14,8 +14,8 @@
                         <nz-form-item class="col-md-12">
                             <nz-form-label [nzSpan]="24">Chọn loại tài sản<span class="text-danger ps-1 me-1"> (*)
                                 </span> <button nz-button nzSize="small" class="fs-12 button button-succes me-2"
-                                        title="Thêm loại sửa chữa" (click)="addType()"><nz-icon nzType="plus" />
-                                    </button>
+                                    title="Thêm loại sửa chữa" (click)="addType()"><nz-icon nzType="plus" />
+                                </button>
                             </nz-form-label>
                             <nz-form-control [nzErrorTip]="'Chọn loại tài sản'">
                                 <nz-input-group required nzSearch nzSize="default" class="w-100">
@@ -38,13 +38,8 @@
                             <nz-form-label [nzSpan]="24">Số lượng trong kho<span class="text-danger ps-1 me-1"> (*)
                                 </span>
                             </nz-form-label>
-                            <nz-form-control [nzSpan]="24"[nzErrorTip]="'Nhập số lượng trong kho'">
-                          <input
-  nz-input
-  type="number"
-  formControlName="Quantity"
-  (keydown)="blockE($event)"
-/>
+                            <nz-form-control [nzSpan]="24" [nzErrorTip]="'Nhập số lượng trong kho'">
+                                <input nz-input type="number" formControlName="Quantity" (keydown)="blockE($event)" />
                             </nz-form-control>
                         </nz-form-item>
                     </nz-col>
@@ -60,7 +55,7 @@
                                 </span>
                             </nz-form-label>
                             <nz-form-control [nzSpan]="24" [nzErrorTip]="'Chọn đơn vị tính'">
-                                <nz-input-group required nzSearch nzSize="default" class="w-100" >
+                                <nz-input-group required nzSearch nzSize="default" class="w-100">
                                     <nz-select nzSize="default" formControlName="UnitCountID" name="UnitCountID"
                                         nzPlaceHolder="Chọn đơn vị tính" class="fs-12 w-100" required nzShowSearch
                                         nzAllowClear>
@@ -78,7 +73,7 @@
                         <nz-form-item class="col-md-12">
                             <nz-form-label [nzSpan]="24">Ngày mua<span class="text-danger ps-1 me-1"> (*)
                                 </span></nz-form-label>
-                            <nz-form-control [nzSpan]="24"[nzErrorTip]="'Chọn ngày mua'">
+                            <nz-form-control [nzSpan]="24" [nzErrorTip]="'Chọn ngày mua'">
                                 <div style="width: 100%;">
                                     <nz-date-picker formControlName="DateBuy" [nzFormat]="'dd/MM/yyyy'"
                                         style="width: 100%;"></nz-date-picker>
@@ -113,5 +108,5 @@
 </div>
 <div class="modal-footer">
     <button nz-button nzType="default" nzDanger (click)="close()">Đóng</button>
-    <button nz-button nzType="primary" (click)="save()">Lưu dữ liệu</button>
+    <button nz-button nzType="primary" (click)="save()" *hasPermission="'N2,N23,N1'">Lưu dữ liệu</button>
 </div>

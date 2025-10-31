@@ -44,6 +44,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TbProductRtcService } from './tb-product-rtc-service/tb-product-rtc.service';
 import { TbProductRtcImportExcelComponent } from './tb-product-rtc-import-excel/tb-product-rtc-import-excel.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 @Component({
   standalone: true,
   imports: [
@@ -67,6 +68,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
     NzTableModule,
     NzTabsModule,
     NgbModalModule,
+    HasPermissionDirective
   ],
   selector: 'app-tb-product-rtc',
   templateUrl: './tb-product-rtc.component.html',

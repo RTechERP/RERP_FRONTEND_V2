@@ -28,6 +28,7 @@ import { FormControl } from '@angular/forms';
 import { EmployeeScheduleWorkComponent } from './employee-schedule-work/employee-schedule-work.component';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 
 @Component({
   selector: 'app-holiday',
@@ -51,7 +52,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
     NzDatePickerModule,
     EmployeeScheduleWorkComponent,
     NzSpinModule,
-    NgIf,
+    NgIf,HasPermissionDirective
   ],
   standalone: true,
 })

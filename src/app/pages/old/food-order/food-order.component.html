@@ -195,7 +195,7 @@
                 <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">
                     Đóng
                 </button>
-                <button type="button" class="btn btn-primary" (click)="onSubmit()">
+                <button type="button" class="btn btn-primary" (click)="onSubmit()" *hasPermission="'N2,N23,N34,N1,N80'">
                     Lưu
                 </button>
             </div>

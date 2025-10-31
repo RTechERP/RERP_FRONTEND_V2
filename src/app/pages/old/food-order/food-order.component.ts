@@ -27,6 +27,7 @@ import { EmployeeService } from '../employee/employee-service/employee.service';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { SummaryFoodOrderComponent } from "./summary-food-order/summary-food-order.component";
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 
 @Component({
   selector: 'app-food-order',
@@ -53,7 +54,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
     NzRadioModule,
     SummaryFoodOrderComponent,
     NgIf,
-    NzSpinModule
+    NzSpinModule,HasPermissionDirective
 ],
 })
 export class FoodOrderComponent implements OnInit, AfterViewInit{

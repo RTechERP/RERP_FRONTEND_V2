@@ -38,6 +38,7 @@ import {
   RowComponent,
 } from 'tabulator-tables';
 import { VehicleRepairTypeFormComponent } from './vehicle-repair-type-form/vehicle-repair-type-form.component';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 
 @Component({
   standalone: true,
@@ -61,7 +62,7 @@ import { VehicleRepairTypeFormComponent } from './vehicle-repair-type-form/vehic
     NzSelectModule,
     NzTableModule,
     NzTabsModule,
-    NgbModalModule,
+    NgbModalModule,HasPermissionDirective
   ],
   selector: 'app-vehicle-repair-type',
   templateUrl: './vehicle-repair-type.component.html',

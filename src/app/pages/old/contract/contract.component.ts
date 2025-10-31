@@ -12,6 +12,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NgIf } from '@angular/common';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 
 @Component({
   selector: 'app-contract',
@@ -25,7 +26,7 @@ import { NgIf } from '@angular/common';
     NzFormModule,
     NzInputModule,
     NzSpinModule,
-    NgIf
+    NgIf,HasPermissionDirective
   ],
   providers: [NzNotificationService, NzModalService],
   standalone: true

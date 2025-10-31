@@ -33,6 +33,7 @@ import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification'
 import { TsAssetTransferFormComponent } from './ts-asset-transfer-form/ts-asset-transfer-form.component';
 import { TsAssetTransferService } from './ts-asset-transfer-service/ts-asset-transfer.service';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
@@ -61,7 +62,7 @@ function formatDateCell(cell: CellComponent): string {
     NzSelectModule,
     NzTableModule,
     NzTabsModule,
-    NgbModalModule
+    NgbModalModule,HasPermissionDirective
   ]
 })
 export class TsAssetTransferComponent implements OnInit, AfterViewInit {

@@ -63,15 +63,15 @@
                         </button>
 
                         <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add"
-                            (click)="openModalAllocation()" disablePermission="N23">
+                            (click)="openModalAllocation()" *hasPermission="'N23'">
                             <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " />Thêm
                         </button>
                         <button nz-button nzType="default" nzSize="small" class="btn-edit"
-                            (click)="openEditModalAllocation()" disablePermission="N23">
+                            (click)="openEditModalAllocation()" *hasPermission="'N23'">
                             <img src="assets/icon/action_edit_item_16.png" alt="Sửa nhóm TB" />Sửa
                         </button>
                         <button nz-button nzType="default" nzSize="small" class="btn-delete "
-                            (click)="updateApprove('Delete')" disablePermission="N23">
+                            (click)="updateApprove('Delete')" *hasPermission="'N23'">
                             <img src="assets/icon/action_delete_item_16.png" alt="Xóa nhóm TB" />Xóa
                         </button>
                         <span class="mx-2"
@@ -87,11 +87,11 @@
                         <span class="mx-2"
                             style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
                         <button nz-button nzType="default" nzSize="small" (click)="updateApprove('HR_APPROVE')"
-                            disablePermission="N23">
+                            *hasPermission="'N23'">
                             <img src="assets/icon/action_approved_16.png" />HR duyệt
                         </button>
                         <button nz-button nzType="default" nzSize="small" (click)="updateApprove('HR_CANCEL')"
-                            disablePermission="N23">
+                            *hasPermission="'N23'">
                             <img src="assets/icon/action_unapproved_16.png" />HR hủy duyệt
                         </button>
                     </div>

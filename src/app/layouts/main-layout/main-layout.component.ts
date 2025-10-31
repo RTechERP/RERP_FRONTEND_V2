@@ -27,34 +27,36 @@ import { CustomerComponent } from '../../pages/old/VisionBase/customer/customer.
 // import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
 
 
-import { menus } from '../../pages/old/menus/menus.component';
-import { MenuService } from '../../pages/old/menus/menu-service/menu.service';
+// import { menus } from '../../pages/old/menus/menus.component';
+import { GroupItem, LeafItem, MenuItem, MenuService } from '../../pages/old/menus/menu-service/menu.service';
 import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
 import { AppNotifycationDropdownComponent, NotifyItem } from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
+import { MenusComponent } from '../../pages/old/menus/menus.component';
 
 type TabItem = {
   title: string;
   comp: Type<any>;
   injector?: Injector;
 };
-export type BaseItem = {
-  key: string;
-  title: string;
-  isOpen: boolean;
-  icon?: string | null;
-};
+// export type BaseItem = {
+//   key: string;
+//   title: string;
+//   isOpen: boolean;
+//   icon?: string | null;
 
-export type LeafItem = BaseItem & {
-  kind: 'leaf';
-  comp: Type<any>;
-};
+// };
 
-export type GroupItem = BaseItem & {
-  kind: 'group';
-  children: MenuItem[]; // cho phép lồng group
-};
+// export type LeafItem = BaseItem & {
+//   kind: 'leaf';
+//   comp: Type<any>;
+// };
 
-export type MenuItem = LeafItem | GroupItem;
+// export type GroupItem = BaseItem & {
+//   kind: 'group';
+//   children: MenuItem[]; // cho phép lồng group
+// };
+
+// export type MenuItem = LeafItem | GroupItem;
 
 export const isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
 export const isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
@@ -95,7 +97,7 @@ export class MainLayoutComponent implements OnInit {
     private router: Router,
     private menuService: MenuService,
     private notification: NzNotificationService
-  ) {}
+  ) {this.menus = this.menuService.getMenus()}
   notificationComponent = AppNotifycationDropdownComponent;
   //#region Khai báo biến
   isCollapsed = true;
@@ -104,7 +106,7 @@ export class MainLayoutComponent implements OnInit {
 
   isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
   isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
-  menus = menus;
+  menus:MenuItem[]=[];
   dynamicTabs: TabItem[] = [];
 
   menu: any = {};
@@ -154,8 +156,9 @@ export class MainLayoutComponent implements OnInit {
   ];
   ngOnInit(): void {
     const saved = localStorage.getItem('openMenuKey') || '';
+    console.log(this.menus);
     this.setOpenMenu(saved || null);
-    this.getMenus(43);
+    // this.getMenus(43);
   }
   newTab(comp: Type<any>, title: string, injector?: Injector) {
     const idx = this.dynamicTabs.findIndex((t) => t.title === title);
@@ -173,20 +176,20 @@ export class MainLayoutComponent implements OnInit {
     if (this.selectedIndex >= this.dynamicTabs.length)
       this.selectedIndex = this.dynamicTabs.length - 1;
   }
-  getMenus(id: number): void {
-    this.menuService.getMenus(id).subscribe({
-      next: (response: any) => {
-        if (response.status == 1) {
-          this.menu = response.data;
-          //   console.log(this.menu);
-        }
-      },
-      error: (err) => {
-        // console.log(err);
-        // this.notification.error('Thông báo', err.error.message);
-      },
-    });
-  }
+//   getMenus(id: number): void {
+//     this.menuService.getMenus(id).subscribe({
+//       next: (response: any) => {
+//         if (response.status == 1) {
+//           this.menu = response.data;
+//           //   console.log(this.menu);
+//         }
+//       },
+//       error: (err) => {
+//         // console.log(err);
+//         // this.notification.error('Thông báo', err.error.message);
+//       },
+//     });
+//   }
 
   logout() {
     this.auth.logout();
@@ -208,8 +211,7 @@ export class MainLayoutComponent implements OnInit {
     localStorage.setItem('openMenuKey', key ?? '');
   }
 
-  isMenuOpen = (key: string) =>
-    this.menus.some((m) => m.key === key && m.isOpen);
+  isMenuOpen = (key: string) => this.menus.some((m) => m.key === key && m.isOpen);
   toggleMenu(key: string) {
     const m = this.menus.find((x) => x.key === key);
     if (m) m.isOpen = !m.isOpen;

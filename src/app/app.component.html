@@ -63,7 +63,7 @@
             <ng-container *ngFor="let m of menus">
 
                 <!-- GROUP -->
-                <li nz-submenu *ngIf="isGroup(m) && m.isOpen" [nzOpen]="true" [nzTitle]="groupTitle">
+                <li nz-submenu *ngIf="isGroup(m) && m.isPermission && m.isOpen" [nzOpen]="true" [nzTitle]="groupTitle">
                     <ng-template #groupTitle>
                         <span class="menu-title">
                             <span class="icon-slot icon-20">
@@ -75,7 +75,7 @@
 
                     <ul>
                         @for (c of (m.children || []); track c.key) {
-                        <li nz-menu-item *ngIf="isLeaf(c) && c.isOpen" nzMatchRouter class="ps-4">
+                        <li nz-menu-item *ngIf="isLeaf(c) && c.isPermission && m.isOpen" nzMatchRouter class="ps-4">
                             <a (click)="newTab(c.comp, c.title)">
                                 <span class="icon-slot icon-14">
                                     <img *ngIf="c.icon" [src]="c.icon" class="menu-icon-sm" />
@@ -169,11 +169,15 @@
                     <nz-dropdown-menu #appmenu="nzDropdownMenu">
                         <div class="app-launcher">
                             <div class="app-launcher-inner">
-                                <a (click)="toggleMenu('crm')" [class.active]="isMenuOpen('crm')">
-                                    <img src="assets/icon/menu_crm_64.png" />
-                                    <span>CRM</span>
+                                @for (m of menus; track m.key) {
+                                <a (click)="toggleMenu(m.key)" [class.active]="isMenuOpen(m.key)"
+                                    *ngIf="m.isPermission">
+                                    <img [src]="m.icon?.replace('24','64')" />
+                                    <span>{{m.title}}</span>
                                 </a>
-                                <a (click)="toggleMenu('warehouse')" [class.active]="isMenuOpen('warehouse')">
+                                }
+
+                                <!-- <a (click)="toggleMenu('warehouse')" [class.active]="isMenuOpen('warehouse')">
                                     <img src="assets/icon/menu_warehouse_64.png" />
                                     <span>KHO</span>
                                 </a>
@@ -188,7 +192,7 @@
                                 <a (click)="toggleMenu('project')" [class.active]="isMenuOpen('project')">
                                     <img src="assets/icon/menu_project_64.png" />
                                     <span>DỰ ÁN</span>
-                                </a>
+                                </a> -->
                             </div>
                         </div>
                     </nz-dropdown-menu>

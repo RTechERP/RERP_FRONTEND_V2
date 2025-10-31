@@ -76,7 +76,7 @@
                                             [style.width.%]="getSalaryRangeTrackWidth()"></span>
 
                                         <!-- Lương đề xuất -->
-                                        <input type="range" class="min-range" min="0" max="100000000" step="100000"
+                                        <input type="range" class="min-range" min="100000" max="100000000" step="100000"
                                             [value]="form.value.SalaryMin" (input)="
                         onMinSalaryChange($event); validateRange('SalaryMin')
                       " />
@@ -90,23 +90,19 @@
                                 <div class="mt-1 d-flex justify-content-between gap-2">
                                     <div class="d-flex align-items-center">
                                         <span class="fs-12 text-muted me-2">Min:</span>
-                                        <input type="text" class="form-control form-control-sm" 
-                                               style="width: 140px; font-size: 12px;"
-                                               [value]="formatSalaryInput(form.value.SalaryMin)" 
-                                               (input)="onMinSalaryInputChange($event)"
-                                               (blur)="onMinSalaryBlur($event)"
-                                               (keypress)="validateNumberInput($event)"
-                                               placeholder="0 VNĐ" />
+                                        <input type="text" class="form-control form-control-sm"
+                                            style="width: 140px; font-size: 12px;"
+                                            [value]="formatSalaryInput(form.value.SalaryMin)"
+                                            (input)="onMinSalaryInputChange($event)" (blur)="onMinSalaryBlur($event)"
+                                            (keypress)="validateNumberInput($event)" placeholder="0 VNĐ" />
                                     </div>
                                     <div class="d-flex align-items-center">
                                         <span class="fs-12 text-muted me-2">Max:</span>
-                                        <input type="text" class="form-control form-control-sm" 
-                                               style="width: 140px; font-size: 12px;"
-                                               [value]="formatSalaryInput(form.value.SalaryMax)" 
-                                               (input)="onMaxSalaryInputChange($event)"
-                                               (blur)="onMaxSalaryBlur($event)"
-                                               (keypress)="validateNumberInput($event)"
-                                               placeholder="0 VNĐ" />
+                                        <input type="text" class="form-control form-control-sm"
+                                            style="width: 140px; font-size: 12px;"
+                                            [value]="formatSalaryInput(form.value.SalaryMax)"
+                                            (input)="onMaxSalaryInputChange($event)" (blur)="onMaxSalaryBlur($event)"
+                                            (keypress)="validateNumberInput($event)" placeholder="0 VNĐ" />
                                     </div>
                                 </div>
                             </nz-form-control>
@@ -138,21 +134,17 @@
                                 <div class="mt-1 d-flex justify-content-between gap-2">
                                     <div class="d-flex align-items-center">
                                         <span class="fs-12 text-muted me-2">Min:</span>
-                                        <input type="number" class="form-control form-control-sm" 
-                                               style="width: 80px; font-size: 12px;"
-                                               [value]="form.value.AgeMin" 
-                                               (input)="onMinAgeInputChange($event)"
-                                               min="18" max="65" step="1"
-                                               placeholder="tuổi" />
+                                        <input type="number" class="form-control form-control-sm"
+                                            style="width: 80px; font-size: 12px;" [value]="form.value.AgeMin"
+                                            (input)="onMinAgeInputChange($event)" min="18" max="65" step="1"
+                                            placeholder="tuổi" />
                                     </div>
                                     <div class="d-flex align-items-center">
                                         <span class="fs-12 text-muted me-2">Max:</span>
-                                        <input type="number" class="form-control form-control-sm" 
-                                               style="width: 80px; font-size: 12px;"
-                                               [value]="form.value.AgeMax" 
-                                               (input)="onMaxAgeInputChange($event)"
-                                               min="18" max="65" step="1"
-                                               placeholder="tuổi" />
+                                        <input type="number" class="form-control form-control-sm"
+                                            style="width: 80px; font-size: 12px;" [value]="form.value.AgeMax"
+                                            (input)="onMaxAgeInputChange($event)" min="18" max="65" step="1"
+                                            placeholder="tuổi" />
                                     </div>
                                 </div>
                             </nz-form-control>

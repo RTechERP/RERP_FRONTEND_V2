@@ -60,6 +60,7 @@ import { ChangeDetectorRef } from '@angular/core';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 // @ts-ignore
 import { saveAs } from 'file-saver';
+import { HandoverRejectreasonFormComponent } from './handover-rejectreason-form/handover-rejectreason-form.component';
 
 interface Handover {
   ID: number;
@@ -519,6 +520,10 @@ export class HandoverComponent implements OnInit, AfterViewInit {
 
       // Dữ liệu duyệt quản lý bàn giao
       this.HandoverApproveData = response.data?.HandoverApprove || [];
+
+      const giverApprove = this.HandoverApproveData.find(x => x.STT === 1);
+      this.handoverStatusGiver = giverApprove?.ApproveStatus ?? 0;
+
       if (this.handoverApproveTable) {
         this.handoverApproveTable.setData(this.HandoverApproveData || []);
       } else {
@@ -555,59 +560,79 @@ export class HandoverComponent implements OnInit, AfterViewInit {
   }
 
   approveHandover(handoverId: number, stt: number, status: number) {
-    this.approveAction(handoverId, stt, status, null);
-    this.getHandoverDataByID(this.HandoverID);
-    if (stt === 1) {
-      this.handoverStatusGiver = status;
-    }
-    if (stt === 2) {
-      this.handoverStatusLeader = status;
-    }
-    if (stt === 3) {
-      this.handoverStatusManager = status;
-    }
-    this.getHandoverDataByID();
-  }
-
-  approveAction(handoverId: number, stt: number, status: number, cell: any) {
-    const body = [
-      {
-        HandoverID: handoverId,
-        STT: stt,
-        ApproveStatus: status,
-        Note: status === 1 ? 'Đã duyệt' : 'Hủy duyệt',
-      },
-    ];
-
-    this.HandoverService.approve(body).subscribe({
-      next: (res) => {
-        if (res?.status === 1) {
-          if (cell) {
-            const row = cell.getRow();
-            const rowData = row.getData();
-            rowData.ApproveStatus = status;
-            row.update({ ApproveStatus: status });
-          }
-
-          if (status === 1) {
-            this.notification.success('Thông báo', 'Đã duyệt thành công!');
-          } else if (status === 2) {
-            this.notification.warning('Thông báo', 'Đã hủy duyệt thành công!');
-          }
-        } else if (res?.status === 0 && res?.message) {
-          // Trường hợp backend trả lỗi dạng 200 với status=0
-          this.notification.error('Thông báo', res.message);
-        } else {
-          this.notification.error('Thông báo', 'Có lỗi xảy ra khi duyệt!');
-        }
-      },
-      error: (err) => {
-        // Lấy message từ backend khi HTTP 400
-        const msg = err?.error?.message || 'Có lỗi xảy ra!';
-        this.notification.error('Thông báo', msg);
-      },
+  if (status === 2) {
+    const modalRef = this.modal.create({
+      nzTitle: 'Nhập lý do hủy duyệt',
+      nzContent: HandoverRejectreasonFormComponent,
+      nzFooter: null 
     });
+
+    modalRef.afterClose.subscribe((reason: string) => {
+      if (!reason) {
+        this.notification.warning('Thông báo', 'Bạn phải nhập lý do để hủy duyệt!');
+        return;
+      }
+      this.approveAction(handoverId, stt, status, null, reason.trim());
+      this.getHandoverDataByID(this.HandoverID);
+      this.updateHandoverStatus(stt, status);
+    });
+  } else {
+    this.approveAction(handoverId, stt, status, null, null);
+    this.getHandoverDataByID(this.HandoverID);
+    this.updateHandoverStatus(stt, status);
   }
+}
+
+// Hàm tiện ích cập nhật trạng thái hiển thị
+private updateHandoverStatus(stt: number, status: number) {
+  if (stt === 1) this.handoverStatusGiver = status;
+  if (stt === 2) this.handoverStatusLeader = status;
+  if (stt === 3) this.handoverStatusManager = status;
+}
+approveAction(
+  handoverId: number,
+  stt: number,
+  status: number,
+  cell: any,
+  rejectReason: string | null
+) {
+  const body = [
+    {
+      HandoverID: handoverId,
+      STT: stt,
+      ApproveStatus: status,
+      RejectReason: rejectReason || '' 
+    },
+  ];
+
+  this.HandoverService.approve(body).subscribe({
+    next: (res) => {
+      if (res?.status === 1) {
+        if (cell) {
+          const row = cell.getRow();
+          const rowData = row.getData();
+          rowData.ApproveStatus = status;
+          rowData.RejectReason = rejectReason || '';
+          row.update({ ApproveStatus: status, RejectReason: rejectReason || '' });
+        }
+
+        if (status === 1) {
+          this.notification.success('Thông báo', 'Đã duyệt thành công!');
+        } else if (status === 2) {
+          this.notification.warning('Thông báo', 'Đã hủy duyệt thành công!');
+        }
+      } else if (res?.status === 0 && res?.message) {
+        this.notification.error('Thông báo', res.message);
+      } else {
+        this.notification.error('Thông báo', 'Có lỗi xảy ra khi duyệt!');
+      }
+    },
+    error: (err) => {
+      const msg = err?.error?.message || 'Có lỗi xảy ra!';
+      this.notification.error('Thông báo', msg);
+    },
+  });
+}
 
   onAddHandover(isEditmode: boolean): void {
     this.isCheckmode = isEditmode;
@@ -1466,6 +1491,30 @@ export class HandoverComponent implements OnInit, AfterViewInit {
                   return "<span style='color: gray;'>Chưa duyệt</span>";
               }
             },
+          },
+          {
+            title: 'Người duyệt thực tế',
+            field: 'ApproverName',
+            headerHozAlign: 'center',
+            widthGrow: 2,
+            minWidth: 250,
+          },
+
+          {
+            title: 'Ngày duyệt',
+            field: 'ApproveDate',
+            headerHozAlign: 'center',
+            widthGrow: 2,
+            minWidth: 250,
+          },
+
+          {
+            title: 'Lý do hủy',
+            field: 'RejectReason',
+            headerHozAlign: 'center',
+            widthGrow: 3,
+            minWidth: 250,
+            formatter: 'textarea',
           },
         ],
       });

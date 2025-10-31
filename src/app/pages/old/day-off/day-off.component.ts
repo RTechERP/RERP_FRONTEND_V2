@@ -28,6 +28,7 @@ import { DayOffService } from './day-off-service/day-off.service';
 import { SummaryDayOffComponent } from './summary-day-off/summary-day-off.component';
 import { DeclareDayOffComponent } from './declare-day-off/declare-day-off.component';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { HasPermissionDirective } from "../../../directives/has-permission.directive";
 
 
 @Component({
@@ -55,8 +56,9 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
     SummaryDayOffComponent,
     DeclareDayOffComponent,
     NgIf,
-    NzSpinModule
-  ]
+    NzSpinModule,
+    HasPermissionDirective
+]
 })
 export class DayOffComponent implements OnInit, AfterViewInit{
 

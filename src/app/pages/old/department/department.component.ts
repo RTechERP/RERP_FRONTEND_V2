@@ -22,6 +22,7 @@ import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { DepartmentServiceService } from './department-service/department-service.service';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { HasPermissionDirective } from "../../../directives/has-permission.directive";
 
 @Component({
   selector: 'app-department',
@@ -41,7 +42,8 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
     ReactiveFormsModule,
     NgIf,
     NzSpinModule,
-  ],
+    HasPermissionDirective
+],
   standalone: true,
 })
 export class DepartmentComponent implements OnInit {

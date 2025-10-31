@@ -1,0 +1,23 @@
+<!-- src/app/pages/handover/handover-rejectreason-form/handover-rejectreason-form.component.html -->
+<form [formGroup]="form" (ngSubmit)="submit()" nz-form>
+  <nz-form-item>
+    <nz-form-label [nzSpan]="24" >Lý do hủy duyệt: <span class="text-danger ps-1 me-1"> (*)</span></nz-form-label>
+    <nz-form-control [nzErrorTip]="'Bạn phải nhập lý do.'">
+      <textarea
+        nz-input
+        formControlName="reason"
+        rows="4"
+        placeholder="Nhập lý do..."
+        [nzAutosize]="{ minRows: 4, maxRows: 6 }">
+      </textarea>
+      <ng-container *ngIf="form.controls['reason'].invalid && form.controls['reason'].touched">
+        <div style="color: red; font-size: 12px; margin-top: 4px;">Bạn phải nhập lý do.</div>
+      </ng-container>
+    </nz-form-control>
+  </nz-form-item>
+
+  <div style="text-align: right; margin-top: 12px;">
+    <button nz-button nzType="default" type="button" (click)="cancel()">Hủy</button>
+    <button nz-button nzType="primary" [disabled]="form.invalid" style="margin-left: 8px;">Xác nhận</button>
+  </div>
+</form>

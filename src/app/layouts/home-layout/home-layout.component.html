@@ -115,20 +115,31 @@
                     <div class="col-xl-6 col-md-12 col-sm-12 col-12">
                         <div class="card mb-4">
                             <div class="card-header">
-                                <h5 class="card-title m-0">Thông báo</h5>
+                                <h5 class="card-title m-0 text-uppercase fw-bold">Thông báo</h5>
                             </div>
-                            <div class="card-body">
-                                <p class="mb-2">
-                                    Some quick example text to build on the card title and
-                                    make up the bulk of the card's content.
-                                </p>
+                            <div class="card-body" style="height: 341px;overflow: auto;">
+                                <nz-list nzItemLayout="vertical">
+                                    @for (item of notifItems; track item) {
+                                    <nz-list-item>
+                                        <nz-list-item-meta class="m-0">
+                                            <nz-list-item-meta-avatar [nzSrc]="item.icon"></nz-list-item-meta-avatar>
+                                            <nz-list-item-meta-title>
+                                                <a href="">{{ item.title }}</a>
+                                            </nz-list-item-meta-title>
+                                            <nz-list-item-meta-description>
+                                                {{ item.detail }}
+                                            </nz-list-item-meta-description>
+                                        </nz-list-item-meta>
+                                    </nz-list-item>
+                                    }
+                                </nz-list>
                             </div>
                         </div>
                     </div>
                     <div class="col-xl-6 col-md-12 col-sm-12 col-12">
                         <div class="card mb-4">
                             <div class="card-header">
-                                <h5 class="card-title m-0">Lịch</h5>
+                                <h5 class="card-title m-0 text-uppercase fw-bold">Lịch làm việc</h5>
                             </div>
                             <div class="card-body">
                                 <nz-calendar [nzFullscreen]="false" [(ngModel)]="today" [nzCustomHeader]=""
@@ -149,12 +160,12 @@
                     <div class="col-xl-6 col-md-12 col-sm-12 col-12">
                         <div class="card mb-4">
                             <div class="card-header">
-                                <h5 class="card-title m-0">Nghỉ</h5>
+                                <h5 class="card-title m-0 text-uppercase fw-bold">Nghỉ</h5>
                             </div>
                             <div class="card-body">
                                 <nz-tabset>
                                     <nz-tab [nzTitle]="titleTemplateOnleave">
-                                        <div class="panel-body" style="height: 38vh; overflow: auto;">
+                                        <div class="panel-body" style="height: 30vh; overflow: auto;">
                                             <nz-collapse>
                                                 @for (panel of employeeOnleaves; track panel) {
                                                 <nz-collapse-panel class="fw-bold"
@@ -174,7 +185,7 @@
                                         </div>
                                     </nz-tab>
                                     <nz-tab [nzTitle]="titleTemplateWFH">
-                                        <div class="card-body" style="height: 38vh; overflow: auto;">
+                                        <div class="card-body" style="height: 30vh; overflow: auto;">
                                             <nz-collapse>
                                                 @for (panel of employeeWfhs; track panel) {
                                                 <nz-collapse-panel class="fw-bold"
@@ -208,13 +219,32 @@
                     <div class="col-xl-6 col-md-12 col-sm-12 col-12">
                         <div class="card mb-4">
                             <div class="card-header">
-                                <h5 class="card-title m-0">Cá nhân</h5>
+                                <h5 class="card-title m-0 text-uppercase fw-bold">truy cập nhanh</h5>
                             </div>
-                            <div class="card-body d-flex">
-                                <a (click)="goToOldLink('/lamthem')" target="_blank">Báo cáo công việc</a>
-                                <a href="http://113.190.234.64:8081/Home/Login" target="_blank">Làm thêm</a>
-                                <a href="http://localhost:19028/Home/LoginNew?userName=ltanh&password=MQA="
-                                    target="_blank">Công tác</a>
+                            <div class="card-body" style="height: 341px;overflow: auto;">
+
+                                <nz-list nzItemLayout="vertical">
+                                    <nz-list-item>
+                                        <nz-list-item-meta class="m-0">
+                                            <nz-list-item-meta-avatar [nzSrc]=""></nz-list-item-meta-avatar>
+                                            <nz-list-item-meta-title>
+                                                <!-- <a href="">{{ item.title }}</a> -->
+                                                <a (click)="goToOldLink('/baocaocongviec')" target="_blank">Báo
+                                                    cáo
+                                                    công việc</a>
+                                            </nz-list-item-meta-title>
+                                        </nz-list-item-meta>
+                                    </nz-list-item>
+                                    <nz-list-item>
+                                        <nz-list-item-meta class="m-0">
+                                            <nz-list-item-meta-avatar [nzSrc]=""></nz-list-item-meta-avatar>
+                                            <nz-list-item-meta-title>
+                                                <a (click)="goToOldLink('/lamthem')" target="_blank">Làm
+                                                    thêm</a>
+                                            </nz-list-item-meta-title>
+                                        </nz-list-item-meta>
+                                    </nz-list-item>
+                                </nz-list>
                             </div>
                         </div>
                     </div>
@@ -226,10 +256,10 @@
                     <div class="card-header">
                         <h5 class="card-title m-0">Chức năng</h5>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body" style="height: 741px;overflow: auto;">
                         <div class="row gx-4">
                             @for (m of menus; track m.key) {
-                            <div class="col-xl-3 col-md-3 col-sm-6 col-6">
+                            <div class="col-xl-3 col-md-3 col-sm-6 col-6" *ngIf="m.isPermission">
                                 <div class="card border-0 mb-4 card-module" (click)="openModule(m.key)">
                                     <div class="card-img d-flex justify-content-center">
                                         <img [src]="m.icon?.replace('24','64')"

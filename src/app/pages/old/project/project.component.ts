@@ -74,11 +74,7 @@ import { ProjectService } from './project-service/project.service';
   ],
   templateUrl: './project.component.html',
   styleUrl: './project.component.css',
-<<<<<<< HEAD
-  //encapsulation: ViewEncapsulation.None,
-=======
 //   encapsulation: ViewEncapsulation.None,
->>>>>>> origin/master
 })
 export class ProjectComponent implements OnInit, AfterViewInit {
   // Khai báo format ngày giờ

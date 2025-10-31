@@ -41,7 +41,7 @@ import { ProjectService } from '../project-service/project.service';
 import { CommonModule } from '@angular/common';
 import { ProjectSurveyDetailComponent } from '../project-survey-detail/project-survey-detail.component';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
-import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { AuthService } from '../../../../auth/auth.service';
 
 @Component({
   selector: 'app-project-survey',
@@ -82,7 +82,8 @@ export class ProjectSurveyComponent implements AfterViewInit {
     private notification: NzNotificationService,
     private modal: NzModalService,
     private modalService: NgbModal,
-    private router: Router
+    private router: Router,
+    private authService:AuthService
   ) {}
 
   @ViewChild('tb_projectSurvey', { static: false })
@@ -112,6 +113,8 @@ export class ProjectSurveyComponent implements AfterViewInit {
   saleId: any;
   keyword: any;
 
+  currentUser:any;
+
   partOfDayId: any = 0;
   reason: any = '';
 
@@ -132,10 +135,23 @@ export class ProjectSurveyComponent implements AfterViewInit {
     this.getEmployees();
     this.getProjects();
     this.getDataProjectSurvey();
+    this.getCurrentUser();
   }
 
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+  }
+  getCurrentUser(){
+    this.authService.getCurrentUser().subscribe({
+    next: (response: any) => {
+      this.currentUser = response.data;
+    },
+    error: (error: any) => {
+      const msg = error.message || 'Lỗi không xác định';
+      this.notification.error('Thông báo', msg);
+      console.error('Lỗi:', error.error);
+    },
+  })
   }
 
   async getEmployees() {
@@ -254,11 +270,10 @@ export class ProjectSurveyComponent implements AfterViewInit {
     ];
 
     this.tb_projectSurvey = new Tabulator(container, {
-      //   height: '100%',
-      //   layout: 'fitColumns',
-      //   locale: 'vi',
-
-      ...DEFAULT_TABLE_CONFIG,
+        height: '100%',
+        layout: 'fitColumns',
+        locale: 'vi',
+        selectableRows:1,
       pagination: false,
       groupBy: 'ProjectCode',
       groupHeader: function (value, count, data, group) {
@@ -507,14 +522,27 @@ export class ProjectSurveyComponent implements AfterViewInit {
   //#region Thêm/sửa khảo sát dự án
   updateProjectSurvey(status: number) {
     // 0 là thêm mới 1 là sửa
-    let selectedRows = this.tb_projectSurvey
-      .getData()
-      .filter((row: any) => row['Selected'] == true);
-    if (status == 1) {
-      if (selectedRows.length != 1) {
-        this.notification.error('', 'Vui lòng chọn 1 yêu cầu cần sửa!', {
-          nzStyle: { fontSize: '0.75rem' },
-        });
+    // let selectedRows = this.tb_projectSurvey
+    //   .getData()
+    //   .filter((row: any) => row['Selected'] == true);
+    // if (status == 1) {
+    //   if (selectedRows.length != 1) {
+    //     this.notification.error('', 'Vui lòng chọn 1 yêu cầu cần sửa!', {
+    //       nzStyle: { fontSize: '0.75rem' },
+    //     });
+    //     return;
+    //   }
+    // }
+
+    if(status !=0){
+      var selectedRows = this.tb_projectSurvey.getSelectedData();
+      // this.selectedList = dataSelect; // Cập nhật lại selectedList với dữ liệu mới nhất
+      // const ids = this.selectedList.map((item) => item.ID);
+      if (selectedRows.length == 0 || selectedRows.length >1) {
+        this.notification.warning(
+          'Thông báo',
+          'Vui lòng chọn 1 yêu cầu để sửa!'
+        );
         return;
       }
     }
@@ -896,23 +924,33 @@ export class ProjectSurveyComponent implements AfterViewInit {
   //#endregion
   //#region Xóa khảo sát dự án
   deletedSurvey(): void {
-    let selectedRows = this.tb_projectSurvey
-      .getData()
-      .filter((row: any) => row['Selected'] == true);
-    if (selectedRows.length != 1) {
-      this.notification.error(
+    // let selectedRows = this.tb_projectSurvey
+    //   .getData()
+    //   .filter((row: any) => row['Selected'] == true);
+    // if (selectedRows.length != 1) {
+    //   this.notification.error(
+    //     'Thông báo',
+    //     `Vui lòng chọn 1 yêu cầu muốn xóa!`,
+    //     {
+    //       nzStyle: { fontSize: '0.75rem' },
+    //     }
+    //   );
+    //   return;
+    // }
+
+    var selectedRows = this.tb_projectSurvey.getSelectedData();
+    // this.selectedList = dataSelect; // Cập nhật lại selectedList với dữ liệu mới nhất
+    // const ids = this.selectedList.map((item) => item.ID);
+    if (selectedRows.length == 0 || selectedRows.length >1) {
+      this.notification.warning(
         'Thông báo',
-        `Vui lòng chọn 1 yêu cầu muốn xóa!`,
-        {
-          nzStyle: { fontSize: '0.75rem' },
-        }
+        'Vui lòng chọn ít nhất 1 yêu cầu để xóa!'
       );
       return;
     }
-
     let emID = selectedRows[0]['EmployeeID'];
     if (
-      emID != this.projectService.GlobalEmployeeId &&
+      emID != this.currentUser.ID &&
       !this.projectService.ISADMIN
     ) {
       this.notification.error(

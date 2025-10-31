@@ -792,7 +792,7 @@
                     Đóng
                 </button>
                 <button type="button" class="btn btn-primary" style="height: 3vh; border-radius: 0; font-weight: bold"
-                    (click)="onSubmit()">
+                    (click)="onSubmit()" *hasPermission="'N1,N2,N60'">
                     Lưu
                 </button>
             </div>
@@ -937,7 +937,8 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-danger" (click)="closeDeleteModal()">Hủy</button>
-                <button type="button" class="btn btn-primary" (click)="deleteEmployee()">Đồng ý</button>
+                <button type="button" class="btn btn-primary" (click)="deleteEmployee()"
+                    *hasPermission="'N1,N2,N60'">Đồng ý</button>
             </div>
         </div>
     </div>

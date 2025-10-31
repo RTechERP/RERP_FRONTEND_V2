@@ -235,7 +235,8 @@
             </div>
             <div class="modal-footer">
                 <button nz-button nzType="default" nzDanger data-bs-dismiss="modal">Đóng</button>
-                <button nz-button nzType="primary" (click)="saveRecoveryPersonal()">Lưu dữ liệu</button>
+                <button nz-button nzType="primary" (click)="saveRecoveryPersonal()" *hasPermission="'N23'">Lưu dữ
+                    liệu</button>
             </div>
         </div>
     </div>

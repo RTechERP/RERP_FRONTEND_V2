@@ -3,19 +3,20 @@
     <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
 </div>
 
-<div class="modal-body p-1 mobile-friendly " style="max-height: 80vh; overflow-y:  auto; overflow-x: hidden;" >
-    <div class="tab-content-equal-height">
+<div class="modal-body p-1 mobile-friendly " style="max-height: 80vh;"  >
+    <div class="tab-content-equal-height" >
         <nz-tabset>
             <!-- Tab 1: Thông tin thiết bị -->
             <nz-tab nzTitle="Thông tin thiết bị">
+                <div style="max-height: 76vh; overflow-y: auto; padding-right: 4px; overflow-x: hidden;">
                 <form nz-form [formGroup]="formDeviceInfo" nzLayout="vertical"
                     class="fs-7 mt-1 tab-content-equal-height">
                     <nz-row [nzGutter]="24">
                         <!-- Cột input 16 span -->
-                        <nz-col [nzSpan]="16">
+                        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="16" [nzLg]="16" [nzXl]="16">
                             <!-- Hàng 1 -->
                             <nz-row [nzGutter]="16">
-                                <nz-col [nzSpan]="12">
+                                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
                                     <nz-form-item>
                                         <nz-form-label class="fs-12 d-flex align-items-center">
                                             Mã nhóm <span class="text-danger ps-1 me-1"> * </span>
@@ -37,7 +38,7 @@
                                         </nz-form-control>
                                     </nz-form-item>
                                 </nz-col>
-                                <nz-col [nzSpan]="12">
+                                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
                                     <nz-form-item>
                                         <nz-form-label class="fs-12">
                                             Vị trí <span class="text-danger ps-1 me-1"> * </span>
@@ -62,7 +63,7 @@
                             </nz-row>
                             <!-- Hàng 2 -->
                             <nz-row [nzGutter]="16">
-                                <nz-col [nzSpan]="12">
+                                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
 
                                     <nz-form-item>
                                         <nz-form-label required>Tên thiết bị<span class="text-danger ps-1 me-1"> * </span></nz-form-label>
@@ -71,7 +72,7 @@
                                         </nz-form-control>
                                     </nz-form-item>
                                 </nz-col>
-                                <nz-col [nzSpan]="12">
+                                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
                                     <nz-form-item>
                                         <nz-form-label required>Part Number<span class="text-danger ps-1 me-1">
                                             *</span></nz-form-label>
@@ -85,7 +86,7 @@
 
                             <!-- Hàng 3 -->
                             <nz-row [nzGutter]="16">
-                                <nz-col [nzSpan]="12">
+                                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
                                     <nz-form-item>
                                         <nz-form-label required>Mã thiết bị<span class="text-danger ps-1 me-1"> *
                                             </span></nz-form-label>
@@ -97,7 +98,7 @@
                                     </nz-form-item>
                                 </nz-col>
 
-                                <nz-col [nzSpan]="12">
+                                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
                                     <nz-form-item>
                                         <nz-form-label required>Serial<span class="text-danger ps-1 me-1"> *
                                             </span></nz-form-label>
@@ -109,7 +110,7 @@
                                 </nz-col>
                             </nz-row>
                             <nz-row [nzGutter]="16">
-                                <nz-col [nzSpan]="12">
+                                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
                                     <nz-form-item>
                                         <nz-form-label required>Code <span class="text-danger ps-1 me-1"> *
                                             </span></nz-form-label>
@@ -119,7 +120,7 @@
                                     </nz-form-item>
                                 </nz-col>
 
-                                <nz-col [nzSpan]="12">
+                                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
                                     <nz-form-item>
                                         <nz-form-label>SL kiểm kê<span class="text-danger ps-1 me-1"> *
                                             </span></nz-form-label>
@@ -133,7 +134,7 @@
                                 </nz-col>
                             </nz-row>
                             <nz-row [nzGutter]="16">
-                                <nz-col [nzSpan]="12">
+                                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
                                     <nz-form-item>
 
                                         <nz-form-label class="fs-12 d-flex align-items-center">
@@ -161,7 +162,7 @@
 
                                     </nz-form-item>
                                 </nz-col>
-                                <nz-col [nzSpan]="12">
+                                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
                                     <nz-form-item>
                                         <nz-form-label>SL Tồn kho</nz-form-label>
                                         <nz-form-control>
@@ -173,7 +174,7 @@
                             </nz-row>
 
                             <nz-row [nzGutter]="16">
-                                <nz-col [nzSpan]="8">
+                                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="8">
                                     <nz-form-item>
                                         <nz-form-label class="fs-12 d-flex align-items-center">
                                             Đơn vị tính<span class="text-danger ps-1 me-1"> * </span>
@@ -195,7 +196,7 @@
                                         </nz-form-control>
                                     </nz-form-item>
                                 </nz-col>
-                                <nz-col [nzSpan]="8">
+                                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="8">
                                     <nz-form-item>
                                         <nz-form-label required>Ngày nhập<span class="text-danger ps-1 me-1"> *
                                             </span></nz-form-label>
@@ -208,7 +209,7 @@
                                     </nz-form-item>
                                 </nz-col>
 
-                                <nz-col [nzSpan]="8">
+                                <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="8">
                                     <nz-form-item>
                                         <nz-form-label>Mã kho HCM</nz-form-label>
                                         <nz-form-control>
@@ -218,15 +219,10 @@
                                     </nz-form-item>
                                 </nz-col>
                             </nz-row>
-
-
-
-
-
                         </nz-col>
 
                         <!-- Cột ảnh 8 span -->
-                        <nz-col [nzSpan]="8">
+                        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
                             <nz-form-item class="mb-3">
                                 <nz-row style="width: 100%" class="align-items-center">
                                     <!-- Cột chữ Ảnh -->
@@ -277,7 +273,7 @@
 
                     </nz-row>
                     <nz-row [nzGutter]="24">
-                        <nz-col [nzSpan]="24">
+                        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="24" [nzXl]="24">
                             <nz-form-item>
                                 <nz-form-label required>Ghi chú
                                 </nz-form-label>
@@ -290,16 +286,17 @@
                         </nz-col>
                     </nz-row>
                 </form>
+                </div>
             </nz-tab>
 
             <!-- Tab 2: Thông số kỹ thuật -->
             <nz-tab nzTitle="Thông số kỹ thuật">
-                <div class="tab2-wrapper tab-content-equal-height">
+                <div class="tab2-wrapper tab-content-equal-height" style="max-height: 76vh; overflow-y: auto; padding-right: 4px; overflow-x: hidden;">
                     <form nz-form [formGroup]="formDeviceInfo" nzLayout="vertical"
                         class="fs-7 mt-1 tab-content-equal-height">
                         <nz-row [nzGutter]="24">
                             <!-- Cột 1 -->
-                            <nz-col [nzSpan]="8">
+                            <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="8">
                                 <nz-form-item>
                                     <nz-form-label>Resolution</nz-form-label>
                                     <nz-form-control>
@@ -354,7 +351,7 @@
                             </nz-col>
 
                             <!-- Cột 2 -->
-                            <nz-col [nzSpan]="8">
+                            <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="8">
 
 
                                 <nz-form-item>
@@ -409,7 +406,7 @@
                             </nz-col>
 
                             <!-- Cột 3 -->
-                            <nz-col [nzSpan]="8">
+                            <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="8" [nzXl]="8">
 
 
                                 <nz-form-item>
@@ -462,8 +459,6 @@
                     </form>
                 </div>
             </nz-tab>
-
-
         </nz-tabset>
     </div>
 </div>

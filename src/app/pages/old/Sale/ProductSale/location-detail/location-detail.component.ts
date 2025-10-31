@@ -98,7 +98,6 @@ export class LocationDetailComponent implements OnInit, AfterViewInit {
     this.trimAllStringControls();
     if (this.formGroup.invalid) {
       this.formGroup.markAllAsTouched();
-      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin bắt buộc!');
       return;
     }
 
@@ -108,12 +107,13 @@ export class LocationDetailComponent implements OnInit, AfterViewInit {
         LocationName: formValue.LocationName,
         ProductGroupID: formValue.ProductGroupID,
     }];
+    console.log("pay", payload);
     this.productsaleService.saveDataLocation(payload).subscribe({
       next: (res) => {
         if (res.status === 1) {
           this.notification.success('Thông báo', 'Thêm mới thành công!');
           this.closeModal();
-        } else {
+        }else {
           this.notification.warning('Thông báo', res.message || 'Không thể thêm vị trí!');
         }
       },

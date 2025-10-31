@@ -35,6 +35,9 @@ import { EnvironmentInjector } from '@angular/core';
 import { ProjectStatusDetailComponent } from '../project-status-detail/project-status-detail.component';
 import { SelectProjectEmployeeGroupComponent } from '../project-control/select-project-employee-group';
 import { CustomerDetailComponent } from '../../VisionBase/customer-detail/customer-detail.component';
+import { FirmBaseDetailComponent } from '../firmbase-detail/firm-base-detail.component';
+// THÊM DÒNG NÀY:
+import { combineLatest, debounceTime, distinctUntilChanged, filter } from 'rxjs';
 
 @Component({
   selector: 'app-project-detail',
@@ -201,6 +204,19 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     this.formGroup.get('projectTypeId')?.valueChanges.subscribe(value => {
       this.projectTypeId = value;
     });
+    // Theo dõi customerId và projectTypeId
+  // combineLatest([
+  //   this.formGroup.get('customerId')!.valueChanges,
+  //   this.formGroup.get('projectTypeId')!.valueChanges,
+  //   this.formGroup.get('endUserId')!.valueChanges,
+  // ]).pipe(
+  //   debounceTime(200),
+  //   filter(([cid, tid]) => !!cid && this.customers.length > 0),
+  //   distinctUntilChanged()
+  // ).subscribe(() => {
+  //   debugger
+  //   this.getProjectCode();
+  // });
   }
 
   ngAfterViewInit(): void {
@@ -263,7 +279,24 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       },
     });
   }
+  
+  //hàm gọi modal firm
+  openModalFirmBase(){
+    const modalRef = this.modalService.open(FirmBaseDetailComponent, {
+      centered: true,
+      backdrop: 'static',
+      keyboard: false
+    });
 
+    modalRef.result.catch(
+      (result) => {
+        if (result == true) {
+        this.getFirmBase()
+        }
+      },
+    );
+  }
+  //end
   getStatuses() {
     this.projectService.getProjectStatus().subscribe({
       next: (response: any) => {
@@ -320,7 +353,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     if (this.projectId > 0) {
       this.projectService.getProject(this.projectId).subscribe({
         next: (response: any) => {
-          console.log(response.data);
+          console.log('binh log',response.data);
           this.projectCode = response.data.ProjectCode;
           this.projectName = response.data.ProjectName;
           this.note = response.data.Note;
@@ -333,7 +366,8 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
             customerId: response.data.CustomerID,
             projectName: response.data.ProjectName,
             userSaleId: response.data.UserID,
-            userTechId: response.data.UserTechnicalID
+            userTechId: response.data.UserTechnicalID,
+            projectCode: response.data.ProjectCode
           });
           this.createDate = DateTime.fromISO(response.data.CreatedDate)
             .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
@@ -354,7 +388,9 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
             pmId: response.data.ProjectManager,
             endUserId: response.data.EndUser,
             priority: response.data.Priotity,
-            projectTypeId: response.data.TypeProject <= 0 ? 1 : response.data.TypeProject
+            projectTypeId: response.data.TypeProject <= 0 ? 1 : response.data.TypeProject,
+            projectIdleader:response.data.ID,
+            projectStatusIdDetail:response.data.ProjectStatus,
           });
         },
         error: (error: any) => {
@@ -440,9 +476,11 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   }
 
   getProjectCode() {
-    if (this.customers.length < 0) return;
+    debugger
+    if (this.customers.length <= 0) return;
     
     // Lấy giá trị từ form controls
+    
     const customerId = this.formGroup.get('customerId')?.value;
     const projectTypeId = this.formGroup.get('projectTypeId')?.value;
     
@@ -475,8 +513,8 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
         .subscribe({
           next: (response: any) => {
             this.projectCode = response.data;
+            console.log("hshs", this.projectCode)
             this.formGroup.patchValue({ projectCode: response.data });
-            
             const endUserId = this.formGroup.get('endUserId')?.value;
             if (!endUserId) {
               this.formGroup.patchValue({ endUserId: customerId });
@@ -596,10 +634,13 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       this.projectService.getProject(projectId).subscribe({
         next: (response: any) => {
           if (response.data) {
+           
             if (this.projectId == this.projectIdleader) {
               this.projectStatusId = response.data.ProjectStatus;
+            
             } else {
               this.projectStatusIdDetail = response.data.ProjectStatus;
+              
             }
           }
         },
@@ -649,6 +690,8 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   }
 
   save() {
+   
+   
     const allData = this.tb_projectTypeLinks.getData();
     const projectTypeLinks =
       this.projectService.getSelectedRowsRecursive(allData);
@@ -837,7 +880,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       prjTypeLinks: prjTypeLinks,
       Situlator: situlatorDetail ?? '',
     };
-
+    console.log("datasv: ", dataSave)
     this.projectService.saveProjectTypeLink(dataSave).subscribe({
       next: (response: any) => {
         if (response.status == 1) {
@@ -865,6 +908,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       dataTreeStartExpanded: true,
       layout: 'fitDataStretch',
       locale: 'vi',
+       
       columns: [
         {
           title: 'Chọn',
@@ -899,6 +943,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       ],
     });
   }
+
 
   getProjectTypeLinks() {
     this.projectService.getProjectTypeLinks(this.projectId).subscribe({

@@ -60,7 +60,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
   templateUrl: './project-partlist-price-request.component.html',
   styleUrls: ['./project-partlist-price-request.component.css'],
   standalone: true,
-  encapsulation: ViewEncapsulation.None,
+  //encapsulation: ViewEncapsulation.None,
   imports: [
     CommonModule,
     FormsModule,

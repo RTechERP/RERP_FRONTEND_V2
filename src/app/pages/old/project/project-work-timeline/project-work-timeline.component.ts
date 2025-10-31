@@ -60,7 +60,7 @@ import { firstValueFrom } from 'rxjs';
     NzModalModule,
     CommonModule,
   ],
-  encapsulation: ViewEncapsulation.None,
+  //encapsulation: ViewEncapsulation.None,
   templateUrl: './project-work-timeline.component.html',
   styleUrl: './project-work-timeline.component.css',
 })
@@ -153,11 +153,13 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit {
   }
 
   getUserTeam() {
+    debugger
     this.teams = [];
     if (this.departmentId > 0) {
       this.projectService.getUserTeam(this.departmentId).subscribe({
         next: (response: any) => {
           this.teams = response.data;
+          console.log("skss", this.teams)
         },
         error: (error) => {
           console.error('Lỗi:', error);
@@ -196,7 +198,6 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit {
       },
     });
   }
-
   async drawTbProjectWorkTimeline(container: HTMLElement) {
     let col: any[] = [
       {
@@ -225,7 +226,9 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit {
         field: `${ds.toFormat('yyyy-MM-dd')}`,
         headerHozAlign: 'center',
         headerSort: false,
-        width: 150,
+        // width: 150,
+        minWidth: 100,
+        cssClass: 'date-column', // ← Thêm class
         formatter: 'textarea',
         cellClick: async (e: MouseEvent, cell: any) => {
           const oldPopup = document.getElementById('cell-popup');
@@ -305,6 +308,16 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit {
       layout: 'fitColumns',
       locale: 'vi',
       columns: col,
+
+      // BẬT LẠI BORDER CHO CỘT CUỐI
+  columnDefaults: {
+    resizable: true,
+  },
+
+  // QUAN TRỌNG: Bật virtual DOM và thêm border
+  renderHorizontal: "virtual",
+  ajaxFiltering: false,
+
     });
   }
   //#endregion

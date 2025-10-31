@@ -15,14 +15,13 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { ProductsaleServiceService } from '../product-sale-service/product-sale-service.service';
-interface Firm {
+import { ProjectService } from '../project-service/project.service';
+interface FirmBase {
   ID?: number,
   FirmCode: string,
   FirmName: string,
   FirmType: number,
 }
-
 // Custom validator để kiểm tra ký tự tiếng Việt
 function noVietnameseValidator(control: AbstractControl): ValidationErrors | null {
   if (!control.value) {
@@ -38,9 +37,8 @@ function noVietnameseValidator(control: AbstractControl): ValidationErrors | nul
   
   return null;
 }
-
 @Component({
-  selector: 'app-firm-detail',
+  selector: 'app-firm-base-detail',
   standalone:true,
   imports: [
     CommonModule, 
@@ -55,11 +53,11 @@ function noVietnameseValidator(control: AbstractControl): ValidationErrors | nul
     NzFormModule,
     NzInputNumberModule
   ],
-  templateUrl: './firm-detail.component.html',
-  styleUrl: './firm-detail.component.css'
+  templateUrl: './firm-base-detail.component.html',
+  styleUrl: './firm-base-detail.component.css'
 })
-export class FirmDetailComponent implements OnInit, AfterViewInit {
-  newFirm: Firm= {
+export class FirmBaseDetailComponent {
+  newFirmBase: FirmBase= {
     FirmCode: '',
     FirmName: '',
     FirmType: 1,
@@ -68,7 +66,6 @@ export class FirmDetailComponent implements OnInit, AfterViewInit {
     { id: 2, name: 'Demo' },
     { id: 1, name: 'Sale' }
   ];
-  
   formGroup: FormGroup;
 
   constructor(
@@ -76,7 +73,7 @@ export class FirmDetailComponent implements OnInit, AfterViewInit {
     private fb: FormBuilder,
     public activeModal: NgbActiveModal,
     private modalService: NgbModal,
-    private productsaleService: ProductsaleServiceService
+    private projectService :ProjectService
   ) { 
     this.formGroup = this.fb.group({
       FirmName: ['', [Validators.required]],
@@ -87,32 +84,38 @@ export class FirmDetailComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     // Patch form values from input data
     this.formGroup.patchValue({
-      FirmName: this.newFirm.FirmName || '',
-      FirmCode: this.newFirm.FirmCode || '',
-      FirmType: this.newFirm.FirmType || 1
+      FirmName: this.newFirmBase.FirmName || '',
+      FirmCode: this.newFirmBase.FirmCode || '',
     });
-  }
-  
-  ngAfterViewInit(): void {
     
   }
-  
+  ngAfterViewInit(): void {
+  }
+   // Hàm để lấy error message cho FirmName
+   getFirmNameError(): string | undefined {
+    const control = this.formGroup.get('FirmName');
+    if (control?.invalid && (control?.dirty || control?.touched)) {
+      if (control.errors?.['required']) {
+        return 'Vui lòng nhập tên hãng!';
+      }
+    }
+    return undefined;
+  }
+  //hàm thêm
   addNewFirm(){
     this.trimAllStringControls();
     if (this.formGroup.invalid) {
       this.formGroup.markAllAsTouched();
-      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin bắt buộc!');
       return;
     }
 
     const formValue = this.formGroup.getRawValue();
-    const payload = [{   
+    const payload = {   
         FirmCode: formValue.FirmCode,
         FirmName: formValue.FirmName,
-        FirmType: formValue.FirmType,
-    }];
+    };
   console.log("payload",payload);
-    this.productsaleService.saveDataFirm(payload).subscribe({
+    this.projectService.saveFirmBase(payload).subscribe({
       next: (res) => {
         if (res.status === 1) {
           this.notification.success('Thông báo', 'Thêm mới thành công!');
@@ -127,21 +130,6 @@ export class FirmDetailComponent implements OnInit, AfterViewInit {
       }
     });
   }
-  closeModal() {
-    this.activeModal.dismiss(true);
-  }
-
-  // Hàm để lấy error message cho FirmName
-  getFirmNameError(): string | undefined {
-    const control = this.formGroup.get('FirmName');
-    if (control?.invalid && (control?.dirty || control?.touched)) {
-      if (control.errors?.['required']) {
-        return 'Vui lòng nhập tên hãng!';
-      }
-    }
-    return undefined;
-  }
-
   // Hàm để lấy error message cho FirmCode
   getFirmCodeError(): string | undefined {
     const control = this.formGroup.get('FirmCode');
@@ -155,23 +143,14 @@ export class FirmDetailComponent implements OnInit, AfterViewInit {
     }
     return undefined;
   }
-
-  // Hàm để lấy error message cho FirmType
-  getFirmTypeError(): string | undefined {
-    const control = this.formGroup.get('FirmType');
-    if (control?.invalid && (control?.dirty || control?.touched)) {
-      if (control.errors?.['required']) {
-        return 'Vui lòng chọn loại hãng!';
-      }
-    }
-    return undefined;
-  }
-
   private trimAllStringControls() {
     Object.keys(this.formGroup.controls).forEach(k => {
       const c = this.formGroup.get(k);
       const v = c?.value;
       if (typeof v === 'string') c!.setValue(v.trim(), { emitEvent: false });
     });
+  }
+  closeModal() {
+    this.activeModal.dismiss(true);
   }
 }

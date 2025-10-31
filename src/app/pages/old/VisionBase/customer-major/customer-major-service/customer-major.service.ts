@@ -24,4 +24,7 @@ export class CustomerMajorService {
       },
     });
   }
+  search(keyword:string):Observable<any>{
+    return this.http.get<any>(`${this._url}search?keyword=${encodeURIComponent(keyword)}`);
+  }
 }

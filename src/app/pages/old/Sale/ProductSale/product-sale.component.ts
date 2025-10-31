@@ -90,7 +90,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
   listProductGroup: any[] = [];
   dataProducGroup: any[] = [];
 
-  id:number=0;
+  id: number = 0;
   // các biến truyền vào của hàm getDataProductSale
   idSale: number = 0;
   keyword: string = '';
@@ -171,6 +171,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
           if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
             this.listProductGroup = res.data;
             this.dataProducGroup = res.data;
+            console.log('table_productgroup', this.dataProducGroup);
             // Chỉ gán ID nếu chưa có ID được chọn
             if (!this.id) {
               this.id = res.data[0].ID;
@@ -181,12 +182,16 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
               this.table.setData(this.dataProducGroup).then(() => {
                 // Lấy tất cả các hàng, đáng tin cậy hơn getRowFromPosition(0) ngay lập tức
                 const allRows = this.table.getRows();
-                const firstRow = allRows.length > 0 ? allRows[0] : null;
-                if (firstRow) {
-                  firstRow.select();
-                  const rowData = firstRow.getData();
+                // 🔹 Tìm hàng đầu tiên có IsVisible = true
+                const firstVisibleRow = allRows.find((row: any) => {
+                  const data = row.getData();
+                  return data.IsVisible === true;
+                });
+                if (firstVisibleRow) {
+                  firstVisibleRow.select();
+                  const rowData = firstVisibleRow.getData();
                   this.dataDelete = rowData;
-                 this.id = rowData["ID"];
+                  this.id = rowData['ID'];
                   this.getDataProductSaleByIDgroup(this.id);
                   this.getDataProductGroupWareHouse(this.id);
                 }
@@ -219,7 +224,10 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     }
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: 'Bạn có chắc chắn muốn xóa nhóm ['+this.dataDelete.ProductGroupName+'] không?',
+      nzContent:
+        'Bạn có chắc chắn muốn xóa nhóm [' +
+        this.dataDelete.ProductGroupName +
+        '] không?',
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
@@ -438,7 +446,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     dataSelect.forEach((item) => {
       name += item.ProductName + ',';
     });
-    if(dataSelect.length > 10) {
+    if (dataSelect.length > 10) {
       if (name.length > 10) {
         name = name.slice(0, 10) + '...';
       }
@@ -460,8 +468,8 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
               this.notification.success('Thông báo', 'Đã xóa thành công!');
               // this.id = 0; // Set to 0 to trigger selection of first record in GetProductGroup
               // this.getProductGroup();
-              this.idSale =0;
-              this.getDataProductSaleByIDgroup(this.id)
+              this.idSale = 0;
+              this.getDataProductSaleByIDgroup(this.id);
             } else {
               this.notification.warning(
                 'Thông báo',
@@ -492,8 +500,10 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
         const data = row.getData();
         const el = row.getElement();
         el.classList.remove('row-inactive');
+        el.classList.remove('row-disabled');
+
         if (data['IsVisible'] === false) {
-          el.classList.add('row-inactive');
+          el.classList.add('row-disabled');
         }
       },
 
@@ -520,18 +530,15 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
       const rowData = row.getData();
       this.dataDelete = rowData;
       this.id = rowData['ID'];
-        console.log('Selected ID:', this.id);
+      console.log('Selected ID:', this.id);
       this.getDataProductSaleByIDgroup(this.id);
       this.getDataProductGroupWareHouse(this.id);
     });
-    this.table.on(
-      'rowDblClick',
-      (e: MouseEvent, row: RowComponent) => {
-        const rowData = row.getData();
-        this.id = rowData['ID']; // Make it an array with single item
-        this.openModalProductGroup(true);
-      });
-    
+    this.table.on('rowDblClick', (e: MouseEvent, row: RowComponent) => {
+      const rowData = row.getData();
+      this.id = rowData['ID']; // Make it an array with single item
+      this.openModalProductGroup(true);
+    });
   }
   drawTable_PGWareHouse() {
     this.table_pgwarehouse = new Tabulator('#table_pgwarehouse', {
@@ -700,14 +707,14 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
           } else {
             this.table_pgwarehouse.setData(this.dataPGWareHouse).then(() => {
               // // Lấy tất cả các hàng, đáng tin cậy hơn getRowFromPosition(0) ngay lập tức
-              //  const allRows = this.table_pgwarehouse.getRows();        
+              //  const allRows = this.table_pgwarehouse.getRows();
               //  const firstRow = allRows.length > 0 ? allRows[0] : null;
               //   if (firstRow) {
               //     firstRow.select();
               //     const rowData = firstRow.getData();
               //     this.dataDelete = rowData;
               //   }
-              });
+            });
           }
         }
       },

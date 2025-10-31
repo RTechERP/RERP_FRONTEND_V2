@@ -174,7 +174,7 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
   }
 
   closeModal() {
-    this.activeModal.dismiss(true);
+    this.activeModal.close(false);
   }
 
   save() {

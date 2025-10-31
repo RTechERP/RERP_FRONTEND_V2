@@ -1,7 +1,7 @@
 <div class="modal-dialog-scrollable">
       <div class="modal-header bg-primary text-uppercase py-2" >
         <!-- TN.Binh update 17/20/25 -->
-       <h6 class="modal-title text-white" id="addProductGroupModalLabel">Thông tin nhóm</h6>
+       <h6 class="modal-title text-white" id="addProductGroupModalLabel" >Thông tin nhóm</h6>
         <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -64,6 +64,7 @@
                 <nz-form-control [nzSpan]="24"  [nzErrorTip]="formGroup.get('EmployeeID')?.invalid && (formGroup.get('EmployeeID')?.dirty || formGroup.get('EmployeeID')?.touched)
                 ? 'Vui lòng chọn nhân viên!'
                 : undefined">
+                 
                   <nz-input-group nzSearch nzSize="default" class="w-100">
                     <nz-select
                       formControlName="EmployeeID"
@@ -73,13 +74,18 @@
                       nzShowSearch
                       nzAllowClear               
                     >
-                      <nz-option
-                        *ngFor="let id of listEmployee"
-                        [nzValue]="id.ID"
-                        [nzLabel]="id.FullName + ' - ' + id.Code"
-                      ></nz-option>
+                    @for (parent of listEmployee; track $index) {
+                      <nz-option-group [nzLabel]="parent.label">
+                        @for (child of parent.options; track $index) {
+                          <nz-option nzCustomContent="true" [nzLabel]="child.item.FullName"
+                              [nzValue]="child.item.ID">{{
+                              child.item.Code + " - " + child.item.FullName
+                              }}</nz-option>
+                          }
+                      </nz-option-group>
+                    }
                     </nz-select>
-                  </nz-input-group>
+                  </nz-input-group> 
                 </nz-form-control>
               </div>
             </div>

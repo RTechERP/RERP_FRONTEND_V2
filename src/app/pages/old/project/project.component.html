@@ -182,7 +182,18 @@
                             <div #tb_projects style=" padding-right: 10px !important;"></div>
                         </nz-splitter-panel>
                         <nz-splitter-panel [nzSize]="sizeTbDetail" [nzCollapsible]="true" nzResizable="true" >
-                            <nz-tabset style=" padding-left: 10px !important;">
+                            <ng-template #tabClose>
+                                <button
+                                  nz-button
+                                  nzType="text"
+                                  class="btn-close-panel"
+                                  style="color: red;"
+                                  (click)="closePanel()"
+                                >
+                                  <i nz-icon nzType="close"></i>
+                                </button>
+                              </ng-template>
+                            <nz-tabset style=" padding-left: 10px !important;" [nzTabBarExtraContent]="tabClose">
                                 <nz-tab nzTitle="Danh sách hạng mục">
                                     <div class="d-flex align-items-center p-1 gap-1 justify-content-sm-end">
                                         <button class="fs-12 border" nz-button nzType="text" nzSize="small"
@@ -204,6 +215,7 @@
                                     <div class="border" #tb_projectTypeLink></div>
                                 </nz-tab>
                             </nz-tabset>
+                           
                         </nz-splitter-panel>
                     </nz-splitter>
                 </div>

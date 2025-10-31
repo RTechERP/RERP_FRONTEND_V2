@@ -131,7 +131,7 @@ interface Product {
   ],
   templateUrl: './office-supply-requests.component.html',
   styleUrls: ['./office-supply-requests.component.css'],
-  encapsulation: ViewEncapsulation.None
+  //encapsulation: ViewEncapsulation.None
 })
 export class OfficeSupplyRequestsComponent implements OnInit {
   table: any;

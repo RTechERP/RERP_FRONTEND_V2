@@ -208,7 +208,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       //   console.log('Params từ Tabulator:', params);
 
       return {
-        filterText: this.filters.keyword || '',
+        filterText: this.filters.keyword.trim() || '',
         groupId: this.filters.teamId || 0,
         employeeId: this.filters.userId || 0,
       };
@@ -242,6 +242,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   }
 
   openModal() {
+    console.log("Editmode: ", this.isEditMode);
     const modalRef = this.modalService.open(CustomerDetailComponent, {
       centered: true,
       size: 'xl',
@@ -260,6 +261,8 @@ export class CustomerComponent implements OnInit, AfterViewInit {
           if (this.tb_MainTable) {
             this.tb_MainTable.setData(null, true);
           }
+        }else{
+          this.isEditMode = false;
         }
       },
       (reason) => {
@@ -271,7 +274,9 @@ export class CustomerComponent implements OnInit, AfterViewInit {
     this.filters.keyword = "";
     this.filters.userId = 0;
     this.filters.teamId = 0;
-
+  }
+  closePanel(){
+    this.sizeTbDetail='0';
   }
 
   openMajorModal() {
@@ -425,7 +430,6 @@ export class CustomerComponent implements OnInit, AfterViewInit {
     this.isEditMode=true;
     console.log(this.selectedId);
     this.openModal();
-  
   }
 
   initMainTable(): void {
@@ -444,7 +448,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       ajaxParams: this.getMainDataAjaxParams(),
       ajaxRequestFunc: (url, config, params) => {
         const request = {
-          filterText: this.filters.keyword || '',
+          filterText: this.filters.keyword.trim() || '',
           groupId: this.filters.teamId || 0,
           employeeId: this.filters.userId || 0,
           page: params.page || 1,
@@ -531,7 +535,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         this.openModal();
       });
     this.tb_MainTable.on('rowClick', (e: any, row: RowComponent) => {
-      this.sizeTbDetail = null;
+      this.sizeTbDetail = '';
 
       const rowData = row.getData();
       this.selectedRow = rowData;
@@ -547,7 +551,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       {
         data: this.customerContactData,
         ...DEFAULT_TABLE_CONFIG,
-        // layout: 'fitColumns',
+        layout:"fitColumns",
        
         // selectableRows: 1,
         pagination: false,
@@ -581,7 +585,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       {
         data: this.addressStockData,
         ...DEFAULT_TABLE_CONFIG,
-        // layout: 'fitDataFill',
+        layout:"fitColumns",
        
         // selectableRows: 1,
         pagination: true,
@@ -608,24 +612,13 @@ export class CustomerComponent implements OnInit, AfterViewInit {
     this.tb_SaleTable = new Tabulator(this.tb_SaleTableElement.nativeElement, {
       data: this.employeeSaleData,
       ...DEFAULT_TABLE_CONFIG,
-      //   layout: 'fitDataFill',
+      layout:"fitColumns",
       height: '90%',
       //   selectableRows: 1,
       pagination: false,
-      //   paginationSize: 100,
-      //   movableColumns: true,
-      //   resizableRows: true,
-      //   reactiveData: true,
-      //   columnDefaults: {
-      //     headerWordWrap: true,
-      //     headerVertical: false,
-      //     headerHozAlign: 'center',
-      //     minWidth: 60,
-      //     resizable: true,
-      //   },
       columns: [
-        { title: 'ID', field: 'ID', width: '100%', visible: false },
-        { title: 'Nhân viên Sale', field: 'FullName', width: '100%' },
+        { title: 'ID', field: 'ID', visible: false },
+        { title: 'Nhân viên Sale', field: 'FullName' },
       ],
     });
   }

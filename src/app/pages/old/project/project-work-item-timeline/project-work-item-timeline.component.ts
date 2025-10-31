@@ -160,11 +160,13 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
   }
 
   getUserTeam() {
+    debugger
     this.teams = [];
     if (this.departmentId > 0) {
       this.projectService.getUserTeam(this.departmentId).subscribe({
         next: (response: any) => {
           this.teams = response.data;
+          console.log("jhaa", this.teams)
         },
         error: (error) => {
           console.error('Lỗi:', error);
@@ -188,10 +190,10 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
         : null,
       departmentId: this.departmentId ? this.departmentId : 0,
       userTeamId: this.teamId ? this.teamId : 0,
-      userId: this.employeeId ? this.employeeId : 0,
+      employeeId: this.employeeId ? this.employeeId : 0,
       status: this.statusId,
     };
-
+    console.log("sjhssd", this.employeeId);
     const response: any = await firstValueFrom(
       this.projectService.getProjectWorkItemTimeline(data)
     );
@@ -210,8 +212,11 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
     this.tb_projectWorkItemTimeline = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
       pagination: false,
-      //   height: '100%',
-      //   layout: 'fitColumns',
+      layout: 'fitColumns',      // Yes
+     // columnMinWidth: 35,          // Cột ngày nhỏ nhất 35px
+      maxHeight: '100%',           // Tùy chọn: giới hạn chiều cao
+      renderHorizontal: 'virtual', // Tối ưu hiệu năng khi nhiều cột
+      rowHeader:false,
       groupHeader: function (value, count, data, group) {
         return value;
       },
@@ -249,13 +254,14 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
                 {
                   title: 'Người phụ trách',
                   field: 'FullName',
-                  width: 130,
+                  width: 100,
                   headerHozAlign: 'center',
+                  formatter: 'textarea',
                 },
                 {
                   title: 'Thời gian bắt đầu',
                   field: 'StartDate',
-                  width: 150,
+                  width: 110,
                   headerHozAlign: 'center',
                   hozAlign: 'center',
                   formatter: function (cell, formatterParams, onRendered) {
@@ -270,14 +276,14 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
                 {
                   title: 'Số ngày',
                   field: 'TotalDay',
-                  width: 80,
+                  width: 50,
                   headerHozAlign: 'center',
                   hozAlign: 'right',
                 },
                 {
                   title: 'Ngày kết thúc',
                   field: 'EndDate',
-                  width: 150,
+                  width: 110,
                   headerHozAlign: 'center',
                   hozAlign: 'center',
                   formatter: function (cell, formatterParams, onRendered) {
@@ -300,17 +306,17 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
   addColunmTable(dataMisson: any, dataMonth: any) {
     let column: any[] = [];
     let colunmChild: any[] = [];
-    this.tb_projectWorkItemTimeline.addColumn({
-      title: '',
-      columns: [
-        {
-          title: ``,
-          headerHozAlign: 'center',
-          width: 10,
-          headerSort: false,
-        },
-      ],
-    });
+    // this.tb_projectWorkItemTimeline.addColumn({
+    //   title: '',
+    //   columns: [
+    //     {
+    //       title: ``,
+    //       headerHozAlign: 'center',
+    //       minWidth: 10,
+    //       headerSort: false,
+    //     },
+    //   ],
+    // });
     for (let i = 0; i < dataMonth.length; i++) {
       colunmChild = [];
       let month = dataMonth[i]['monthDate'];
@@ -325,7 +331,8 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
           let col = {
             title: `${date.day}`,
             field: `${date.toFormat('dd/MM/yyyy')}`,
-            width: 10,
+            minWidth: 35,
+            //maxWidth: 50,
             headerSort: false,
             headerHozAlign: 'center',
             formatter: function (cell: any, row: any) {

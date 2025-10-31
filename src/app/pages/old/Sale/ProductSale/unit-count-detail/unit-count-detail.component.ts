@@ -93,15 +93,15 @@ export class UnitCountDetailComponent implements OnInit, AfterViewInit {
     this.trimAllStringControls();
     if (this.formGroup.invalid) {
       this.formGroup.markAllAsTouched();
-      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin bắt buộc!');
       return;
     }
 
     const formValue = this.formGroup.getRawValue();
     const payload = [{   
-        LocationCode: formValue.UnitCode,
-        LocationName: formValue.UnitName,
+        UnitCode: formValue.UnitCode,
+        UnitName: formValue.UnitName,
     }];
+    console.log("p", payload)
     this.productsaleService.saveDataUnitCount(payload).subscribe({
       next: (res) => {
         if (res.status === 1) {

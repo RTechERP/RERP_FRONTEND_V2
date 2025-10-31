@@ -73,7 +73,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
   ],
   templateUrl: './project.component.html',
   styleUrl: './project.component.css',
-  encapsulation: ViewEncapsulation.None,
+  //encapsulation: ViewEncapsulation.None,
 })
 export class ProjectComponent implements OnInit, AfterViewInit {
   // Khai báo format ngày giờ
@@ -1266,6 +1266,11 @@ export class ProjectComponent implements OnInit, AfterViewInit {
   }
   //#endregion
 
+  //#region đóng panel
+  closePanel(){
+    this.sizeTbDetail = '0';
+  }
+  //#endregion
   //#region Người tham gia dự án
   openProjectEmployee() {
     let selectedRows = this.tb_projects.getSelectedRows();

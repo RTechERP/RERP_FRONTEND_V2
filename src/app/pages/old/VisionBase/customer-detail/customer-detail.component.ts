@@ -117,6 +117,12 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
   businessFieldData: any[] = [];
   majorData: any[] = [];
 
+  listIdsContact: any[] = [];
+  listIdsAdress: any[]=[];
+  listIdsEmp: any[]=[];
+  
+  dictCustomer: { [key: number]: string } = {};
+
   // Form validation
   formGroup: FormGroup;
 
@@ -193,9 +199,11 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.initDataTable();
-    this.initAddressTable();
-    this.initSaleTable();
+    setTimeout(() => {
+      this.initDataTable();
+      this.initAddressTable();
+      this.initSaleTable();
+    }, 0);
   }
 
   openCustomerMajorDetail(): void {
@@ -287,7 +295,25 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
   }
 
   closeModal() {
-    this.activeModal.close();
+    if (this.formGroup) {
+      this.formGroup.reset();
+      this.formGroup.markAsPristine();
+      this.formGroup.markAsUntouched();
+    }
+
+ if (this.tb_SaleTable) {
+  this.tb_SaleTable.clearData();
+}
+
+if (this.tb_DataTable) {
+  this.tb_DataTable.clearData();
+}
+
+if (this.tb_AddressTable) {
+  this.tb_AddressTable.clearData();
+}
+
+    this.activeModal.close({ success: false, reloadData: false });
   }
 
   createdControl(
@@ -461,25 +487,29 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       : [];
     const saleRows = this.tb_SaleTable ? this.tb_SaleTable.getData() : [];
 
-    const customerContacts = (contactRows || []).map((r: any) => ({
+    const customerContacts = (contactRows || [])
+    .filter((r: any) =>
+      r?.ContactName?.trim()
+    )
+    .map((r: any) => ({
       ID: r?.ID ?? 0,
       ContactName: r?.ContactName ?? '',
-      CustomerPart: r?.CustomerPart ?? '',
-      CustomerPosition: r?.CustomerPosition ?? '',
-      CustomerTeam: r?.CustomerTeam ?? '',
-      ContactPhone: r?.ContactPhone ?? '',
-      ContactEmail: r?.ContactEmail ?? '',
     }));
-
-    const addressStocks = (addressRows || []).map((r: any) => ({
+  
+  const addressStocks = (addressRows || [])
+    .filter((r: any) => r?.Address?.trim())
+    .map((r: any) => ({
       ID: r?.ID ?? 0,
       Address: r?.Address ?? '',
     }));
-
-    const customerEmployees = (saleRows || []).map((r: any) => ({
+  
+  const customerEmployees = (saleRows || [])
+    .filter((r: any) => r?.EmployeeID)
+    .map((r: any) => ({
       ID: r?.ID ?? 0,
       EmployeeID: r?.EmployeeID ?? null,
     }));
+  
 
    // Lấy giá trị từ form controls, bao gồm cả các trường disabled
   const formValues = this.formGroup.getRawValue(); // Sử dụng getRawValue thay vì value
@@ -511,6 +541,9 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       CustomerContacts: customerContacts,
       AddressStocks: addressStocks,
       CustomerEmployees: customerEmployees,
+      deletedIdsEmp : this.listIdsEmp,
+      deletedIdsAdrress: this.listIdsAdress,
+      deletedIdsContact: this.listIdsContact,
       BusinessFieldID: formValues.businessField,
     };
     console.log("payloadB: ", payload);
@@ -533,6 +566,14 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
   }
 
   initDataTable(): void {
+    if (!this.tb_DataTableElement?.nativeElement) {
+      console.warn('tb_DataTableElement chưa sẵn sàng');
+      return;
+    }
+  
+    if (this.tb_DataTable) {
+      this.tb_DataTable.destroy(); // Tránh khởi tạo lại
+    }
     this.tb_DataTable = new Tabulator(this.tb_DataTableElement.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       //height:'40vh',
@@ -548,6 +589,8 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       rowHeader: false,
       selectableRows:1,
      layout:"fitColumns",
+     pagination: false,
+     
       columns: [
         {
           title: '',
@@ -561,26 +604,41 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
           headerClick: () => {
             this.addNewRow();
           },
-          formatter: () =>
-            `<i class="fas fa-times text-danger cursor-pointer delete-btn" title="Xóa dòng"></i>`,
-          // cellClick: (e, cell) => {
-          //   if ((e.target as HTMLElement).classList.contains('fas')) {
-          //     this.modal.confirm({
-          //       nzTitle: 'Xác nhận xóa',
-          //       nzContent: 'Bạn có chắc chắn muốn xóa không?',
-          //       nzOkText: 'Đồng ý',
-          //       nzCancelText: 'Hủy',
-          //       nzOnOk: () => {
-          //         const row = cell.getRow();
-          //         const rowData = row.getData();
-          //         if (rowData['ID']) {
-          //           this.deletedDetailIds.push(rowData['ID']);
-          //         }
-          //         row.delete();
-          //       }
-          //     });
-          //   }
-          // }
+          formatter: (cell) => {
+            const data = cell.getRow().getData();
+            let isDeleted = data['IsDeleted'];
+            return !isDeleted
+              ? `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`
+              : '';
+          },
+          cellClick: (e, cell) => {
+            
+            let data = cell.getRow().getData();
+            console.log("hahah",data)
+            let id = data['ID'];
+            let contactName = data['ContactName'];
+            let isDeleted = data['IsDeleted'];
+            if (isDeleted) {
+              return;
+            }
+            this.modal.confirm({
+              nzTitle: `Bạn có chắc chắn muốn xóa nhân viên`,
+              nzContent: `${contactName}?`,
+              nzOkText: 'Xóa',
+              nzOkType: 'primary',
+              nzCancelText: 'Hủy',
+              nzOkDanger: true,
+              nzOnOk: () => {
+                if (id > 0) {
+                  if (!this.listIdsContact.includes(id)) this.listIdsContact.push(id);
+                  this.tb_DataTable.deleteRow(cell.getRow());
+                } else {
+                  this.tb_DataTable.deleteRow(cell.getRow());
+                }
+              },
+            });
+            //this.updateSTTColumn();
+          },
         },
         { title: 'ID', field: 'ID', visible: false },
         { title: 'Họ tên', field: 'ContactName', editor: true,   frozen:true, },
@@ -593,6 +651,14 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
     });
   }
   initAddressTable(): void {
+    if (!this.tb_AddressTableElement?.nativeElement) {
+      console.warn('tb_DataTableElement chưa sẵn sàng');
+      return;
+    }
+  
+    if (this.tb_AddressTable) {
+      this.tb_AddressTable.destroy(); // Tránh khởi tạo lại
+    }
     this.tb_AddressTable = new Tabulator(
       this.tb_AddressTableElement.nativeElement,
       {
@@ -610,6 +676,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
         rowHeader: false,
         selectableRows:1,
        layout:"fitColumns",
+       pagination: false,
         columns: [
           {
             title: '',
@@ -623,26 +690,37 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
             headerClick: () => {
               this.addNewAddressRow();
             },
-            formatter: () =>
-              `<i class="fas fa-times text-danger cursor-pointer delete-btn" title="Xóa dòng"></i>`,
-            // cellClick: (e, cell) => {
-            //   if ((e.target as HTMLElement).classList.contains('fas')) {
-            //     this.modal.confirm({
-            //       nzTitle: 'Xác nhận xóa',
-            //       nzContent: 'Bạn có chắc chắn muốn xóa không?',
-            //       nzOkText: 'Đồng ý',
-            //       nzCancelText: 'Hủy',
-            //       nzOnOk: () => {
-            //         const row = cell.getRow();
-            //         const rowData = row.getData();
-            //         if (rowData['ID']) {
-            //           this.deletedDetailIds.push(rowData['ID']);
-            //         }
-            //         row.delete();
-            //       }
-            //     });
-            //   }
-            // }
+            formatter: (cell) => {
+              const data = cell.getRow().getData();
+              let isDeleted = data['IsDeleted'];
+              return !isDeleted
+                ? `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`
+                : '';
+            },
+            cellClick: (e, cell) => {
+              let data = cell.getRow().getData();
+              let id = data['ID'];
+              let isDeleted = data['IsDeleted'];
+              if (isDeleted) {
+                return;
+              }
+              this.modal.confirm({
+                nzTitle: `Bạn có chắc chắn muốn xóa địa chỉ này không ?`,
+                nzOkText: 'Xóa',
+                nzOkType: 'primary',
+                nzCancelText: 'Hủy',
+                nzOkDanger: true,
+                nzOnOk: () => {
+                  if (id > 0) {
+                    if (!this.listIdsAdress.includes(id)) this.listIdsAdress.push(id);
+                    this.tb_AddressTable.deleteRow(cell.getRow());
+                  } else {
+                    this.tb_AddressTable.deleteRow(cell.getRow());
+                  }
+                },
+              });
+              //this.updateSTTColumn();
+            },
           },
           { title: 'ID', field: 'ID', visible: false },
           { title: 'Địa chỉ giao hàng', field: 'Address', editor: true },
@@ -651,6 +729,14 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
     );
   }
   initSaleTable(): void {
+    if (!this.tb_SaleTableElement?.nativeElement) {
+      console.warn('tb_SaleTableElement chưa sẵn sàng');
+      return;
+    }
+  
+    if (this.tb_SaleTable) {
+      this.tb_SaleTable.destroy(); // Tránh khởi tạo lại
+    }
     this.tb_SaleTable = new Tabulator(this.tb_SaleTableElement.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       data: this.customerSaleTableData,
@@ -660,6 +746,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
        rowHeader: false,
        selectableRows:1,
       layout:"fitColumns",
+      pagination: false,
       // pagination: true,
       // paginationSize: 100,
       // movableColumns: true,
@@ -685,26 +772,40 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
           headerClick: () => {
             this.addNewSaleRow();
           },
-          formatter: () =>
-            `<i class="fas fa-times text-danger cursor-pointer delete-btn" title="Xóa dòng"></i>`,
-          // cellClick: (e, cell) => {
-          //   if ((e.target as HTMLElement).classList.contains('fas')) {
-          //     this.modal.confirm({
-          //       nzTitle: 'Xác nhận xóa',
-          //       nzContent: 'Bạn có chắc chắn muốn xóa không?',
-          //       nzOkText: 'Đồng ý',
-          //       nzCancelText: 'Hủy',
-          //       nzOnOk: () => {
-          //         const row = cell.getRow();
-          //         const rowData = row.getData();
-          //         if (rowData['ID']) {
-          //           this.deletedDetailIds.push(rowData['ID']);
-          //         }
-          //         row.delete();
-          //       }
-          //     });
-          //   }
-          // }
+          formatter: (cell) => {
+            const data = cell.getRow().getData();
+            let isDeleted = data['IsDeleted'];
+            return !isDeleted
+              ? `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`
+              : '';
+          },
+          cellClick: (e, cell) => {
+            let data = cell.getRow().getData();
+            let id = data['ID'];
+            let fullName = data['FullName']
+            let isDeleted = data['IsDeleted'];
+            if (isDeleted) {
+              return;
+            }
+            this.modal.confirm({
+              nzTitle: `Bạn có chắc chắn muốn xóa nhân viên sale`,
+              nzContent: `${fullName}`,
+              nzOkText: 'Xóa',
+              nzOkType: 'primary',
+              nzCancelText: 'Hủy',
+              nzOkDanger: true,
+              nzOnOk: () => {
+                if (id > 0) {
+                  if (!this.listIdsEmp.includes(id)) this.listIdsEmp.push(id);
+                  this.tb_SaleTable.deleteRow(cell.getRow());
+                  console.log("this: ", this.listIdsEmp)
+                } else {
+                  this.tb_SaleTable.deleteRow(cell.getRow());
+                }
+              },
+            });
+            //this.updateSTTColumn();
+          },
         },
         { title: 'ID', field: 'EmployeeID', visible:false },
         {

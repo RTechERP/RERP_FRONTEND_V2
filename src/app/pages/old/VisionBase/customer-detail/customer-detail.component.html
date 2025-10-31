@@ -13,11 +13,11 @@
     <div class="container-fluid">
     <div nz-row [nzGutter]="12" style="margin-top: 10px !important;">
     <div nz-col [nzSpan]="12">
-      <div nz-row [nzGutter]="12" class="pb-2">
+      <div nz-row [nzGutter]="12">
          <div nz-col class="col-md-4">
           <nz-form-item>
             <nz-form-label
-              class="fs-12 d-flex align-items-center"
+              class="fs-12 d-flex align-items-center w-100"
               [nzSpan]="24"
             >
               Tỉnh <span class="text-danger ps-1">*</span>
@@ -141,10 +141,17 @@
         </div>
         <div nz-col class="col-md-3 align-items-center h-auto">
           <nz-form-item>
-            <div [style.visibility]="'hidden'">Big Account</div>
-          <label class="mb-0 fs-12 invisible">Big Account</label>
+            <nz-form-label
+            class="fs-12 d-flex align-items-center"
+            [nzSpan]="24"
+            [style.visibility]="'hidden'"
+          >
+            BigAccount
+          </nz-form-label>
+            <!-- <div [style.visibility]="'hidden'">Big Account</div> -->
+          <!-- <label class="mb-0 fs-12 invisible">Big Account</label> -->
               <label
-                class="mb-0 fs-12 "
+                class="mb-0 fs-12 justify-content "
                 nz-checkbox
                 formControlName="isBigAccount"
                 >Big Account</label

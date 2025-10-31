@@ -1,4 +1,9 @@
     .tab-content-equal-height {
     height: 710px; /* hoặc chiều cao phù hợp với giao diện */
     }
-
+/* Tối ưu cho mobile */
+@media (max-width: 576px) {
+    .modal-body { padding: 12px !important; }
+    .g-3 { --bs-gutter-x: 0.5rem; }
+    nz-form-label { font-size: 11.5px !important; }
+  }

@@ -7,277 +7,230 @@
   </div>
   <div class="modal-body pt-0 pb-0 p-2 w-100" style="width: 800px; min-height: 60vh">
       <nz-tabset class="p-0" (nzSelectedIndexChange)="onChangeIndexTab($event)">
-          <nz-tab nzTitle="Chi tiết dự án">
-              <div style="max-height: 60vh; overflow-y: auto; padding-right: 4px; overflow-x: hidden;">
+        <nz-tab nzTitle="Chi tiết dự án">
+            <div style="max-height: 70vh; overflow-y: auto; padding-right: 4px; overflow-x: hidden;">
               <form nz-form [formGroup]="formGroup" class="g-3 needs-validation was-validated">
-              <div nz-row [nzGutter]="12" class="pb-2">
-                  <div nz-col [nzSpan]="12">            
-                      <div nz-row>
-                          <div nz-col [nzSpan]="24">
-                            <nz-form-item class="pt-2">
-                              <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
-                                  <div class="d-flex ">
-                                        Khách hàng <span class="text-danger ps-1">*</span>
-                                        <button
-                                          class="p-0 m-0 fs-12 px-1 h-auto"
-                                          nz-button
-                                          nzSize="small"
-                                          title="Thêm khách hàng" 
-                                          nzType="text"
-                                          (click)="openAddCustomer()"
-                                        >
-                                        <i class="fas fa-plus"></i>
-                                        </button>
-                                        <!-- <button
-                                          nz-button
-                                          nzSize="small"
-                                          class="fs-12 ms-2 button button-succes"
-                                          title="Sửa dự án"
-                                        >
-                                          <nz-icon nzType="edit" />
-                                        </button> -->
-                                      </div>
-                              </nz-form-label>
-                              <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('customerId')">
-                                <nz-select
-                                  formControlName="customerId"
-                                  class="w-100"
-                                  nzShowSearch
-                                  nzAllowClear
-                                  nzPlaceHolder="Chọn khách hàng"
-                                  (ngModelChange)="getProjectCode()"
-                                  [(ngModel)]="customerId"
-                                >
-                                  @for (item of customers; track $index) {
-                                  <nz-option
-                                    nzCustomContent="true"
-                                    [nzLabel]="item.CustomerName"
-                                    [nzValue]="item.ID"
-                                  >
-                                    {{ item.CustomerCode + " - " + item.CustomerName }}
-                                  </nz-option>
-                                  }
-                                </nz-select>
-                              </nz-form-control>
-                            </nz-form-item>
-                          </div>
+                <div nz-row [nzGutter]="16" class="pb-2">
+          
+                  <!-- CỘT TRÁI -->
+                  <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+          
+                    <!-- Khách hàng -->
+                    <nz-form-item class="pt-2">
+                      <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
+                        <div class="d-flex">
+                          Khách hàng <span class="text-danger ps-1">*</span>
+                          <button class="p-0 m-0 fs-12 px-1 h-auto" nz-button nzSize="small" title="Thêm khách hàng"
+                                  nzType="text" (click)="openAddCustomer()">
+                            <i class="fas fa-plus"></i>
+                          </button>
                         </div>
-
-                      <div nz-row [nzGutter]="12" style="margin-top: -13px;">
-                          <div nz-col [nzSpan]="12">
-                              <nz-form-item >
-                                  <nz-form-label class="fs-12 d-flex align-items-center"  [nzSpan]="24">
-                                      Mã dự án <span class="text-danger ps-1">*</span>
-                                  </nz-form-label>
-                                  <nz-form-control [nzSpan]="24">
-                                      <input formControlName="projectCode" class="w-100" nz-input
-                                           />
-                                  </nz-form-control>
-                              </nz-form-item>
-                          </div>
-                          <div nz-col [nzSpan]="12">
-                              <nz-form-item>
-                                  <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
-                                      Ngày tạo
-                                  </nz-form-label>
-                                  <nz-form-control [nzSpan]="24">
-                                      <nz-date-picker formControlName="createdDate" class="w-100"
-                                          nzFormat="dd/MM/yyyy" [nzAllowClear]="false"></nz-date-picker>
-                                  </nz-form-control>
-                              </nz-form-item>
-                          </div>
+                      </nz-form-label>
+                      <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('customerId')">
+                        <nz-select formControlName="customerId" class="w-100" nzShowSearch nzAllowClear
+                                   nzPlaceHolder="Chọn khách hàng" (ngModelChange)="getProjectCode()" [(ngModel)]="customerId">
+                          @for (item of customers; track $index) {
+                            <nz-option nzCustomContent="true" [nzLabel]="item.CustomerName" [nzValue]="item.ID">
+                              {{ item.CustomerCode + " - " + item.CustomerName }}
+                            </nz-option>
+                          }
+                        </nz-select>
+                      </nz-form-control>
+                    </nz-form-item>
+          
+                    <!-- Mã dự án & Ngày tạo -->
+                    <div nz-row [nzGutter]="12" style="margin-top: -13px;">
+                      <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                        <nz-form-item>
+                          <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
+                            Mã dự án <span class="text-danger ps-1">*</span>
+                          </nz-form-label>
+                          <nz-form-control [nzSpan]="24">
+                            <input formControlName="projectCode" class="w-100" nz-input />
+                          </nz-form-control>
+                        </nz-form-item>
                       </div>
-
-                      <div nz-row style="margin-top: -13px;">
-                          <div nz-col [nzSpan]="24">
-                              <nz-form-item>
-                                  <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
-                                      Tên dự án <span class="text-danger ps-1">*</span>
-                                  </nz-form-label>
-                                  <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('projectName')">
-                                      <input formControlName="projectName" class="w-100" nz-input
-                                          placeholder="Tên dự án" />
-                                  </nz-form-control>
-                              </nz-form-item>
-                          </div>
+                      <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                        <nz-form-item>
+                          <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">Ngày tạo</nz-form-label>
+                          <nz-form-control [nzSpan]="24">
+                            <nz-date-picker formControlName="createdDate" class="w-100" nzFormat="dd/MM/yyyy"
+                                            [nzAllowClear]="false"></nz-date-picker>
+                          </nz-form-control>
+                        </nz-form-item>
                       </div>
-
-                      <div nz-row nzGutter="12" style="margin-top: -13px;"> 
-                          <div nz-col [nzSpan]="12">
-                              <nz-form-item>
-                                  <nz-form-label class="fs-12" [nzSpan]="24">
-                                      Sale
-                                      <span class="text-danger ps-1">*</span>
-                                  </nz-form-label>
-                                  <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('userSaleId')">
-                                      <nz-select formControlName="userSaleId" class="w-100" nzShowSearch
-                                          nzAllowClear nzPlaceHolder="Chọn người phụ trách sale">
-                                          @for (parent of users; track $index) {
-                                          <nz-option-group [nzLabel]="parent.label">
-                                              @for (child of parent.options; track $index) {
-                                              <nz-option nzCustomContent="true" [nzLabel]="child.item.FullName"
-                                                  [nzValue]="child.item.ID">{{
-                                                  child.item.Code + " - " + child.item.FullName
-                                                  }}</nz-option>
-                                              }
-                                          </nz-option-group>
-                                          }
-                                      </nz-select>
-                                  </nz-form-control>
-                              </nz-form-item>
-                          </div>
-                          <div nz-col [nzSpan]="12">
-                              <nz-form-item>
-                                  <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
-                                     Technical
-                                      <span class="text-danger ps-1">*</span>
-                                  </nz-form-label>
-                                  <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('userTechId')">
-                                      <nz-select formControlName="userTechId" class="w-100" nzShowSearch
-                                          nzAllowClear nzPlaceHolder="Chọn người phụ trách technical">
-                                          <!-- Nội dung option của bạn ở đây -->
-                                          @for (parent of users; track $index) {
-                                          <nz-option-group [nzLabel]="parent.label">
-                                              @for (child of parent.options; track $index) {
-                                              <nz-option nzCustomContent="true" [nzLabel]="child.item.FullName"
-                                                  [nzValue]="child.item.ID">{{
-                                                  child.item.Code + " - " + child.item.FullName
-                                                  }}</nz-option>
-                                              }
-                                          </nz-option-group>
-                                          }
-                                      </nz-select>
-                                  </nz-form-control>
-                              </nz-form-item>
-                          </div>
+                    </div>
+          
+                    <!-- Tên dự án -->
+                    <nz-form-item style="margin-top: -13px;">
+                      <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
+                        Tên dự án <span class="text-danger ps-1">*</span>
+                      </nz-form-label>
+                      <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('projectName')">
+                        <input formControlName="projectName" class="w-100" nz-input placeholder="Tên dự án" />
+                      </nz-form-control>
+                    </nz-form-item>
+          
+                    <!-- Sale & Technical -->
+                    <div nz-row nzGutter="12" style="margin-top: -13px;">
+                      <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                        <nz-form-item>
+                          <nz-form-label class="fs-12" [nzSpan]="24">
+                            Sale <span class="text-danger ps-1">*</span>
+                          </nz-form-label>
+                          <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('userSaleId')">
+                            <nz-select formControlName="userSaleId" class="w-100" nzShowSearch nzAllowClear
+                                       nzPlaceHolder="Chọn người phụ trách sale">
+                              @for (parent of users; track $index) {
+                                <nz-option-group [nzLabel]="parent.label">
+                                  @for (child of parent.options; track $index) {
+                                    <nz-option nzCustomContent="true" [nzLabel]="child.item.FullName" [nzValue]="child.item.ID">
+                                      {{ child.item.Code + " - " + child.item.FullName }}
+                                    </nz-option>
+                                  }
+                                </nz-option-group>
+                              }
+                            </nz-select>
+                          </nz-form-control>
+                        </nz-form-item>
                       </div>
-                      
-                      <div nz-row nzGutter="12" style="margin-top: -13px;">
-                          <div nz-col [nzSpan]="12">
-                              <nz-form-item class="">
-                                  <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
-                                      Trạng thái
-                                      <button class="p-0 m-0 fs-12 px-1 h-auto" nz-button nzType="text" nzSize="small"
-                                          title="Thêm trạng thái" (click)="openAddProjectStatusModal()">
-                                          <i class="fas fa-plus"></i>
-                                      </button>
-                                  </nz-form-label>
-                                  <nz-form-control [nzSpan]="24">
-                                      <nz-select formControlName="projectStatusId" class="w-100" nzShowSearch nzAllowClear
-                                          nzPlaceHolder="Chọn trạng thái"
-                                          (selectionChange)="getDayChange()"
-                                          (ngModelChange)="getDayChange()">
-                                          <!-- Nội dung option của bạn ở đây -->
-                                          @for (item of statuses; track $index) {
-                                          <nz-option nzCustomContent="true" [nzLabel]="item.StatusName"
-                                              [nzValue]="item.ID">{{ item.StatusName }}</nz-option>
-                                          }
-                                      </nz-select>
-                                  </nz-form-control>
-                              </nz-form-item>
-                          </div>
-                          <div nz-col [nzSpan]="12">
-                              <nz-form-item >
-                                  <nz-form-label class="fs-12"  [nzSpan]="24">
-                                      Pm <span class="text-danger ps-1">*</span>
-                                  </nz-form-label>
-                                  <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('pmId')">
-                                      <nz-select formControlName="pmId" class="w-100" nzShowSearch
-                                          nzAllowClear nzPlaceHolder="Chọn pm">
-                                          <!-- Nội dung option của bạn ở đây -->
-                                          @for (parent of users; track $index) {
-                                          <nz-option-group [nzLabel]="parent.label">
-                                              @for (child of parent.options; track $index) {
-                                              <nz-option nzCustomContent="true" [nzLabel]="child.item.FullName"
-                                                  [nzValue]="child.item.EmployeeID">{{
-                                                  child.item.Code + " - " + child.item.FullName
-                                                  }}</nz-option>
-                                              }
-                                          </nz-option-group>
-                                          }
-                                      </nz-select>
-                                  </nz-form-control>
-                              </nz-form-item>
-                          </div>
+          
+                      <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                        <nz-form-item>
+                          <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
+                            Technical <span class="text-danger ps-1">*</span>
+                          </nz-form-label>
+                          <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('userTechId')">
+                            <nz-select formControlName="userTechId" class="w-100" nzShowSearch nzAllowClear
+                                       nzPlaceHolder="Chọn người phụ trách technical">
+                              @for (parent of users; track $index) {
+                                <nz-option-group [nzLabel]="parent.label">
+                                  @for (child of parent.options; track $index) {
+                                    <nz-option nzCustomContent="true" [nzLabel]="child.item.FullName" [nzValue]="child.item.ID">
+                                      {{ child.item.Code + " - " + child.item.FullName }}
+                                    </nz-option>
+                                  }
+                                </nz-option-group>
+                              }
+                            </nz-select>
+                          </nz-form-control>
+                        </nz-form-item>
                       </div>
-                      <div nz-row >
-                          <div nz-col [nzSpan]="24" style="margin-top: -13px;">
-                              <nz-form-item>
-                                  <nz-form-label class="fs-12" [nzSpan]="24">
-                                      End User <span class="text-danger ps-1">*</span>
-                                  </nz-form-label>
-                                  <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('endUserId')">
-                                      <nz-select formControlName="endUserId" class="w-100" nzShowSearch
-                                          nzAllowClear nzPlaceHolder="Chọn người dùng cuối"> 
-                                          <!-- Nội dung option của bạn ở đây -->
-                                          @for (item of customers; track $index) {
-                                          <nz-option nzCustomContent="true" [nzLabel]="item.CustomerName"
-                                              [nzValue]="item.ID">{{
-                                              item.CustomerCode + " - " + item.CustomerName
-                                              }}</nz-option>
-                                          }
-                                      </nz-select>
-                                  </nz-form-control>
-                              </nz-form-item>
-                          </div>
+                    </div>
+          
+                    <!-- Trạng thái & PM -->
+                    <div nz-row nzGutter="12" style="margin-top: -13px;">
+                      <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                        <nz-form-item>
+                          <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
+                            Trạng thái
+                            <button class="p-0 m-0 fs-12 px-1 h-auto" nz-button nzType="text" nzSize="small"
+                                    title="Thêm trạng thái" (click)="openAddProjectStatusModal()">
+                              <i class="fas fa-plus"></i>
+                            </button>
+                          </nz-form-label>
+                          <nz-form-control [nzSpan]="24">
+                            <nz-select formControlName="projectStatusId" class="w-100" nzShowSearch nzAllowClear
+                                       nzPlaceHolder="Chọn trạng thái" (selectionChange)="getDayChange()"
+                                       (ngModelChange)="getDayChange()">
+                              @for (item of statuses; track $index) {
+                                <nz-option nzCustomContent="true" [nzLabel]="item.StatusName" [nzValue]="item.ID">
+                                  {{ item.StatusName }}
+                                </nz-option>
+                              }
+                            </nz-select>
+                          </nz-form-control>
+                        </nz-form-item>
                       </div>
-                      <div nz-row nzGutter="12" style="margin-top: -13px;">
-                          <div nz-col [nzSpan]="12">
-                              <nz-form-item>
-                                  <nz-form-label class="fs-12 d-flex align-items-center"  [nzSpan]="24" >
-                                      Hãng
-                                      <button class="p-0 m-0 px-1 fs-12 h-auto" 
-                                      nz-button 
-                                      nzType="text" 
-                                      nzSize="small"
-                                          title="Thêm hãng"
-                                          (click)="openModalFirmBase()">
-                                          <i class="fas fa-plus"></i>
-                                      </button>
-                                  </nz-form-label>
-                                  <nz-form-control [nzSpan]="24">
-                                      <nz-select formControlName="firmBaseId" class="w-100" nzShowSearch
-                                          nzAllowClear nzPlaceHolder="Chọn hãng">
-                                          <!-- Nội dung option của bạn ở đây -->
-                                          @for (item of firmBases; track $index) {
-                                          <nz-option nzCustomContent="true" [nzLabel]="item.FirmName"
-                                              [nzValue]="item.ID">{{ item.FirmName }}</nz-option>
-                                          }
-                                      </nz-select>
-                                  </nz-form-control>
-                              </nz-form-item>
-                          </div>
-                          <div nz-col [nzSpan]="12">
-                              <nz-form-item>
-                                  <nz-form-label class="fs-12 d-flex align-items-center"  [nzSpan]="24">
-                                      Loại
-                                  </nz-form-label>
-                                  <nz-form-control [nzSpan]="24">
-                                      <nz-select formControlName="prjTypeBaseId" class="w-100"
-                                          nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại">
-                                          <!-- Nội dung option của bạn ở đây -->
-                                          @for (item of projectTypeBases; track $index) {
-                                          <nz-option nzCustomContent="true" [nzLabel]="item.ProjectTypeName"
-                                              [nzValue]="item.ID">{{ item.ProjectTypeName }}</nz-option>
-                                          }
-                                      </nz-select>
-                                  </nz-form-control>
-                              </nz-form-item>
-                          </div>
+          
+                      <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                        <nz-form-item>
+                          <nz-form-label class="fs-12" [nzSpan]="24">
+                            Pm <span class="text-danger ps-1">*</span>
+                          </nz-form-label>
+                          <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('pmId')">
+                            <nz-select formControlName="pmId" class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn pm">
+                              @for (parent of users; track $index) {
+                                <nz-option-group [nzLabel]="parent.label">
+                                  @for (child of parent.options; track $index) {
+                                    <nz-option nzCustomContent="true" [nzLabel]="child.item.FullName"
+                                               [nzValue]="child.item.EmployeeID">
+                                      {{ child.item.Code + " - " + child.item.FullName }}
+                                    </nz-option>
+                                  }
+                                </nz-option-group>
+                              }
+                            </nz-select>
+                          </nz-form-control>
+                        </nz-form-item>
                       </div>
-                      <div nz-row>
-                          <div nz-col [nzSpan]="24">
-                              <div nz-row class="w-100 px-0">
-                                  <div class="bg-danger">
-                                      <div #tb_projectTypeLinks></div>
-                                  </div>
-                              </div>
-                          </div>
+                    </div>
+          
+                    <!-- End User -->
+                    <nz-form-item style="margin-top: -13px;">
+                      <nz-form-label class="fs-12" [nzSpan]="24">
+                        End User <span class="text-danger ps-1">*</span>
+                      </nz-form-label>
+                      <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('endUserId')">
+                        <nz-select formControlName="endUserId" class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn người dùng cuối">
+                          @for (item of customers; track $index) {
+                            <nz-option nzCustomContent="true" [nzLabel]="item.CustomerName" [nzValue]="item.ID">
+                              {{ item.CustomerCode + " - " + item.CustomerName }}
+                            </nz-option>
+                          }
+                        </nz-select>
+                      </nz-form-control>
+                    </nz-form-item>
+          
+                    <!-- Hãng & Loại -->
+                    <div nz-row nzGutter="12" style="margin-top: -13px;">
+                      <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                        <nz-form-item>
+                          <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
+                            Hãng
+                            <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small" title="Thêm hãng"
+                                    (click)="openModalFirmBase()">
+                              <i class="fas fa-plus"></i>
+                            </button>
+                          </nz-form-label>
+                          <nz-form-control [nzSpan]="24">
+                            <nz-select formControlName="firmBaseId" class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn hãng">
+                              @for (item of firmBases; track $index) {
+                                <nz-option nzCustomContent="true" [nzLabel]="item.FirmName" [nzValue]="item.ID">
+                                  {{ item.FirmName }}
+                                </nz-option>
+                              }
+                            </nz-select>
+                          </nz-form-control>
+                        </nz-form-item>
                       </div>
+          
+                      <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                        <nz-form-item>
+                          <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">Loại</nz-form-label>
+                          <nz-form-control [nzSpan]="24">
+                            <nz-select formControlName="prjTypeBaseId" class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại">
+                              @for (item of projectTypeBases; track $index) {
+                                <nz-option nzCustomContent="true" [nzLabel]="item.ProjectTypeName" [nzValue]="item.ID">
+                                  {{ item.ProjectTypeName }}
+                                </nz-option>
+                              }
+                            </nz-select>
+                          </nz-form-control>
+                        </nz-form-item>
+                      </div>
+                    </div>
+          
+                    <!-- Bảng loại dự án -->
+                    <div nz-row>
+                      <div nz-col [nzSpan]="24">
+                        <div #tb_projectTypeLinks></div>
+                      </div>
+                    </div>
                   </div>
 
                   <!-- Cột bên phải -->
-                  <div nz-col [nzSpan]="12">
+                  <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
                       <div nz-row class="pt-1">
                           <div nz-col [nzSpan]="24">
                               <fieldset class="reset m-0">
@@ -453,66 +406,93 @@
               </form>
               </div>
           </nz-tab>
-          <nz-tab nzTitle="Cập nhật leader" >
-              <form nz-form [formGroup]="formGroup" class="g-3 needs-validation was-validated" >
-              <div  nz-row [nzGutter]="12" class="pt-1 pb-1 w-100 m-0">
-                  <div nz-col [nzSpan]="12" class="ps-0">
-                      <nz-form-item>
-                          <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
-                              Dự án <span class="text-danger ps-1">*</span>
-                          </nz-form-label>
-                          <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('projectIdleader')">
-                              <nz-select formControlName="projectIdleader" class="w-100" nzShowSearch nzAllowClear
-                                  nzPlaceHolder="Chọn dự án"
-                                  (selectionChange)="loadAll()"
-                                  (ngModelChange)="loadAll()">
-                                  <!-- Nội dung option của bạn ở đây -->
-                                  @for (item of projects; track $index) {
-                                  <nz-option nzCustomContent="true" [nzLabel]="item.ProjectName"
-                                      [nzValue]="item.ID">{{
-                                      item.ProjectCode + " - " + item.ProjectName
-                                      }}</nz-option>
-                                  }
-                              </nz-select>
-                          </nz-form-control>
-                      </nz-form-item>
-                  </div>
-                  <div nz-col [nzSpan]="12" class="pe-0">
-                      <nz-form-item>
-                          <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
-                              Trạng thái <span class="text-danger ps-1">*</span>
-                          </nz-form-label>
-                          <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('projectStatusIdDetail')">
-                              <nz-select formControlName="projectStatusIdDetail" class="w-100" nzShowSearch nzAllowClear
-                                  nzPlaceHolder="Chọn trạng thái">
-                                  <!-- Nội dung option của bạn ở đây -->
-                                  <!-- Nội dung option của bạn ở đây -->
-                                  @for (item of statuses; track $index) {
-                                  <nz-option nzCustomContent="true" [nzLabel]="item.StatusName" [nzValue]="item.ID">{{
-                                      item.StatusName }}</nz-option>
-                                  }
-                              </nz-select>
-                          </nz-form-control>
-                      </nz-form-item>
-                  </div>
-                  <div nz-col [nzSpan]="24" class="p-0" style="margin-top: -13px;">
-                      <div nz-row class="w-100">
-                          <nz-form-item class="pt-1 w-100">
-                              <nz-form-label class="fs-12" [nzSpan]="24"> Hiện trạng </nz-form-label>
-                              <nz-form-control [nzSpan]="24">
-                                  <textarea formControlName="situlatorDetail" rows="4" nz-input
-                                      placeholder="Nhập hiện trạng"></textarea>
-                              </nz-form-control>
-                          </nz-form-item>
-                      </div>
-                  </div>
-                  <div nz-col [nzSpan]="24" class="p-0"  style="margin-top: -13px;">
-                      <div nz-row class="py-2">
-                          <div #tb_projectTypeLinksDetail></div>
-                      </div>
-                  </div>
+          <nz-tab nzTitle="Cập nhật leader">
+            <form nz-form [formGroup]="formGroup" class="g-3 needs-validation was-validated">
+              <div nz-row [nzGutter]="16" class="pt-1 pb-1 w-100 m-0">
+                <!-- Cột: Dự án -->
+                <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12" class="ps-0">
+                  <nz-form-item>
+                    <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
+                      Dự án <span class="text-danger ps-1">*</span>
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('projectIdleader')">
+                      <nz-select
+                        formControlName="projectIdleader"
+                        class="w-100"
+                        nzShowSearch
+                        nzAllowClear
+                        nzPlaceHolder="Chọn dự án"
+                        (selectionChange)="loadAll()"
+                        (ngModelChange)="loadAll()"
+                      >
+                        @for (item of projects; track $index) {
+                          <nz-option
+                            nzCustomContent="true"
+                            [nzLabel]="item.ProjectName"
+                            [nzValue]="item.ID"
+                          >
+                            {{ item.ProjectCode + " - " + item.ProjectName }}
+                          </nz-option>
+                        }
+                      </nz-select>
+                    </nz-form-control>
+                  </nz-form-item>
+                </div>
+          
+                <!-- Cột: Trạng thái -->
+                <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12" class="pe-0">
+                  <nz-form-item>
+                    <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
+                      Trạng thái <span class="text-danger ps-1">*</span>
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24" [nzErrorTip]="getFieldError('projectStatusIdDetail')">
+                      <nz-select
+                        formControlName="projectStatusIdDetail"
+                        class="w-100"
+                        nzShowSearch
+                        nzAllowClear
+                        nzPlaceHolder="Chọn trạng thái"
+                      >
+                        @for (item of statuses; track $index) {
+                          <nz-option
+                            nzCustomContent="true"
+                            [nzLabel]="item.StatusName"
+                            [nzValue]="item.ID"
+                          >
+                            {{ item.StatusName }}
+                          </nz-option>
+                        }
+                      </nz-select>
+                    </nz-form-control>
+                  </nz-form-item>
+                </div>
+          
+                <!-- Hiện trạng -->
+                <div nz-col [nzSpan]="24" class="p-0" style="margin-top: -13px;">
+                  <nz-form-item class="pt-1 w-100">
+                    <nz-form-label class="fs-12" [nzSpan]="24">
+                      Hiện trạng
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                      <textarea
+                        formControlName="situlatorDetail"
+                        rows="4"
+                        nz-input
+                        placeholder="Nhập hiện trạng"
+                      ></textarea>
+                    </nz-form-control>
+                  </nz-form-item>
+                </div>
+          
+                <!-- Bảng chi tiết -->
+                <div nz-col [nzSpan]="24" class="p-0" style="margin-top: -13px;">
+                 
+                    <div #tb_projectTypeLinksDetail></div>
+                  
+                </div>
+          
               </div>
-              </form>
+            </form>
           </nz-tab>
       </nz-tabset>
   </div>

@@ -1,0 +1,54 @@
+
+:host ::ng-deep .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active {
+  background-color: #3b82f6; /* blue-500 */
+  border-color: #3b82f6;
+}
+
+:host ::ng-deep .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #fff !important; /* buộc chữ trắng */
+}
+
+::ng-deep .ant-card-head-title {
+  padding: 10px 0 !important;
+}
+
+::ng-deep .ant-card-head {
+  padding: 0 10px !important;
+    border-bottom: 2px gray solid !important;
+    background-color: gainsboro;
+} 
+
+::ng-deep .ant-card-body {
+  padding: 0 !important;
+  height: 100% !important;  
+}
+
+::ng-deep .card {
+  height: 100% !important;  
+}
+
+::ng-deep .ant-splitter-panel {
+  height: 100% !important;
+}
+
+::ng-deep .ant-tabs-content  {
+      height: 100% !important;
+
+}
+
+::ng-deep .ant-tabs-tabpane  {
+      height: 100% !important;
+
+}
+
+:ng-deep .ant-tabs {
+  height: 100% !important;
+}
+
+.box {
+  height: 100%;
+}
+
+:ng-deep nz-tap-body {
+  height: 100%;
+}

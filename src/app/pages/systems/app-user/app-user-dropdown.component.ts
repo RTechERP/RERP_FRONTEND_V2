@@ -37,12 +37,12 @@ export class AppUserDropdownComponent {
     if (token) {
       try {
         const decoded: any = jwtDecode(token);
-        console.log('decoded token:', decoded);
+        // console.log('decoded token:', decoded);
         this.employeeCode = decoded.code;
         this.fullName = decoded.fullname;
         this.positionName = decoded.positionname;
       } catch (error) {
-        console.error('Invalid token', error);
+        // console.error('Invalid token', error);
       }
     }
   }

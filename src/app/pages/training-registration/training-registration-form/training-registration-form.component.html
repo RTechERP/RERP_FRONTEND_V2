@@ -2,29 +2,57 @@
     <h6 class="modal-title text-white m-0">CHI TIẾT ĐĂNG KÝ</h6>
     <button type="button" class="btn-close btn-close-white" (click)="closeModal()" aria-label="Close"></button>
 </div>
-<div class="training-form-container">
+<div class="training-form-container layout-safe px-4 py-1 ">
     <!-- Form thông tin chính -->
     <form nz-form [formGroup]="validateForm" [nzLayout]="validateForm.controls.formLayout.value" nzLayout="vertical"
         (ngSubmit)="submitForm()">
         <div nz-row [nzGutter]="16">
-            <!-- Cột 1 -->
-            <div nz-col [nzSpan]="8">
-                <!-- Nhân viên -->
+            <!-- Cột 1: Nhân viên -->
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="8" [nzXl]="8">
                 <nz-form-item class="compact-form-item">
-                    <nz-form-label [nzSpan]="isHorizontal ? 8 : null" nzRequired>Nhân viên</nz-form-label>
-                    <nz-form-control [nzSpan]="isHorizontal ? 16 : null" nzErrorTip="Vui lòng chọn nhân viên!">
+                    <nz-form-label [nzSpan]="isHorizontal ? 6 : null" nzRequired>Nhân viên</nz-form-label>
+                    <nz-form-control [nzSpan]="isHorizontal ? 18 : null" nzErrorTip="Vui lòng chọn nhân viên!">
                         <nz-select formControlName="EmployeeID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên"
                             nzSize="default">
-                            <nz-option *ngFor="let employee of lstEmployees" [nzValue]="employee.ID"
-                                [nzLabel]="employee.Code + ' - ' + employee.FullName"></nz-option>
+                            <nz-option-group *ngFor="let group of employeeGroups" [nzLabel]="group.department">
+                                <nz-option *ngFor="let emp of group.items" [nzValue]="emp.ID"
+                                    [nzLabel]="emp.Code + ' - ' + emp.FullName"></nz-option>
+                            </nz-option-group>
                         </nz-select>
                     </nz-form-control>
                 </nz-form-item>
+            </div>
 
-                <!-- Loại đào tạo -->
+            <!-- Cột 2: Chức vụ -->
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="8" [nzXl]="8">
                 <nz-form-item class="compact-form-item">
-                    <nz-form-label [nzSpan]="isHorizontal ? 8 : null" nzRequired>Loại đào tạo</nz-form-label>
-                    <nz-form-control [nzSpan]="isHorizontal ? 16 : null" nzErrorTip="Vui lòng chọn loại đào tạo!">
+                    <nz-form-label [nzSpan]="isHorizontal ? 6 : null">Chức vụ</nz-form-label>
+                    <nz-form-control [nzSpan]="isHorizontal ? 18 : null">
+                        <input nz-input formControlName="Position" placeholder="Chức vụ" nzSize="default" readonly
+                            style="background-color: #f5f5f5;">
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+
+            <!-- Cột 3: Phòng ban -->
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="8" [nzXl]="8">
+                <nz-form-item class="compact-form-item">
+                    <nz-form-label [nzSpan]="isHorizontal ? 6 : null">Phòng ban</nz-form-label>
+                    <nz-form-control [nzSpan]="isHorizontal ? 18 : null">
+                        <input nz-input formControlName="Department" placeholder="Phòng ban" nzSize="default" readonly
+                            style="background-color: #f5f5f5;">
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+        </div>
+
+        <!-- Hàng 2: Loại đào tạo, Số buổi/khóa, Số phút/buổi -->
+        <div nz-row [nzGutter]="16">
+            <!-- Loại đào tạo -->
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                <nz-form-item class="compact-form-item">
+                    <nz-form-label nzRequired>Loại đào tạo</nz-form-label>
+                    <nz-form-control nzErrorTip="Vui lòng chọn loại đào tạo!">
                         <nz-select formControlName="TrainingType" nzShowSearch nzAllowClear
                             nzPlaceHolder="Chọn loại đào tạo" nzSize="default">
                             <nz-option *ngFor="let type of trainingTypes" [nzValue]="type.ID"
@@ -34,53 +62,44 @@
                 </nz-form-item>
             </div>
 
-            <!-- Cột 2 -->
-            <div nz-col [nzSpan]="8">
-                <!-- Mục đích đào tạo -->
+            <!-- Số buổi/khóa -->
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
                 <nz-form-item class="compact-form-item">
-                    <nz-form-label [nzSpan]="isHorizontal ? 8 : null" nzRequired>Mục đích đào tạo</nz-form-label>
-                    <nz-form-control [nzSpan]="isHorizontal ? 16 : null" nzErrorTip="Vui lòng nhập mục đích đào tạo!">
-                        <input nz-input formControlName="Purpose" placeholder="Nhập mục đích đào tạo"
-                            nzSize="default" />
-                    </nz-form-control>
-                </nz-form-item>
-
-                <!-- Số lượng buổi/khóa -->
-                <nz-form-item class="compact-form-item">
-                    <nz-form-label [nzSpan]="isHorizontal ? 8 : null" nzRequired>Số buổi / khóa</nz-form-label>
-                    <nz-form-control [nzSpan]="isHorizontal ? 16 : null" nzErrorTip="Vui lòng nhập số buổi!">
+                    <nz-form-label nzRequired>Số buổi / khóa</nz-form-label>
+                    <nz-form-control nzErrorTip="Vui lòng nhập số buổi!">
                         <nz-input-number formControlName="SessionsPerCourse" [nzMin]="1" [nzStep]="1"
                             nzPlaceHolder="Nhập số buổi" nzSize="default" style="width: 100%"></nz-input-number>
                     </nz-form-control>
                 </nz-form-item>
             </div>
 
-            <!-- Cột 3 -->
-            <div nz-col [nzSpan]="8">
-                <!-- Số phút/buổi -->
+            <!-- Số phút/buổi -->
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
                 <nz-form-item class="compact-form-item">
-                    <nz-form-label [nzSpan]="isHorizontal ? 8 : null" nzRequired>Số phút / buổi</nz-form-label>
-                    <nz-form-control [nzSpan]="isHorizontal ? 16 : null" nzErrorTip="Vui lòng nhập số phút!">
+                    <nz-form-label nzRequired>Số phút / buổi</nz-form-label>
+                    <nz-form-control nzErrorTip="Vui lòng nhập số phút!">
                         <nz-input-number aria-label="Số phút / buổi" formControlName="SessionDuration" [nzMin]="15"
                             [nzStep]="15" nzPlaceHolder="Nhập số phút" nzSize="default"
                             style="width: 100%"></nz-input-number>
                     </nz-form-control>
                 </nz-form-item>
-
-                <!-- Thời gian đào tạo -->
-                <nz-form-item class="compact-form-item">
-                    <nz-form-label [nzSpan]="isHorizontal ? 4 : null" nzRequired>Thời gian đào tạo</nz-form-label>
-                    <nz-form-control [nzSpan]="isHorizontal ? 8 : null" nzErrorTip="Vui lòng chọn thời gian đào tạo!">
-                        <nz-range-picker formControlName="TrainingRange" nzFormat="dd/MM/yyyy"></nz-range-picker>
-                    </nz-form-control>
-                </nz-form-item>
-
             </div>
         </div>
 
-        <!-- Hàng 2: Đánh giá & Cấp chứng chỉ -->
+        <!-- Hàng 3: Thời gian đào tạo, Đánh giá mức độ hoàn thành, Cấp chứng chỉ -->
         <div nz-row [nzGutter]="16">
-            <div nz-col [nzSpan]="8">
+            <!-- Thời gian đào tạo -->
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+                <nz-form-item class="compact-form-item">
+                    <nz-form-label nzRequired>Thời gian đào tạo</nz-form-label>
+                    <nz-form-control nzErrorTip="Vui lòng chọn thời gian đào tạo!">
+                        <nz-range-picker formControlName="TrainingRange" nzFormat="dd/MM/yyyy"></nz-range-picker>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+
+            <!-- Đánh giá mức độ hoàn thành -->
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
                 <nz-form-item class="compact-form-item">
                     <nz-form-label>Đánh giá mức độ hoàn thành</nz-form-label>
                     <nz-form-control>
@@ -96,12 +115,27 @@
                 </nz-form-item>
             </div>
 
-            <div nz-col [nzSpan]="4">
+            <!-- Cấp chứng chỉ -->
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
                 <nz-form-item class="compact-form-item" style="margin-top: 22px;">
                     <nz-form-control>
                         <label style="margin-top: 1.5vh;" nz-checkbox formControlName="IsCertification">
                             Cấp chứng chỉ
                         </label>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+        </div>
+
+        <!-- Hàng 4: Mục đích đào tạo -->
+        <div nz-row [nzGutter]="16">
+            <!-- Mục đích đào tạo -->
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="24" [nzXl]="24">
+                <nz-form-item class="compact-form-item">
+                    <nz-form-label [nzSpan]="isHorizontal ? 3 : null" nzRequired>Mục đích đào tạo</nz-form-label>
+                    <nz-form-control [nzSpan]="isHorizontal ? 21 : null" nzErrorTip="Vui lòng nhập mục đích đào tạo!">
+                        <textarea nz-input formControlName="Purpose" placeholder="Nhập mục đích đào tạo"
+                            nzSize="default" rows="2"></textarea>
                     </nz-form-control>
                 </nz-form-item>
             </div>
@@ -113,7 +147,7 @@
     <div class="tables-section">
         <div nz-row [nzGutter]="16">
             <!-- Cột trái - Bảng chi tiết -->
-            <div nz-col [nzSpan]="16">
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="16" [nzXl]="16">
                 <div class="detail-container">
                     <h6>Hạng mục đăng ký</h6>
                     <div #detailTable class="detail-table"></div>
@@ -121,7 +155,7 @@
             </div>
 
             <!-- Cột phải - Bảng file -->
-            <div nz-col [nzSpan]="8">
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="8" [nzXl]="8">
                 <div class="file-container">
                     <div class="file-upload-section mb-2">
                         <nz-upload [(nzFileList)]="fileList" [nzBeforeUpload]="beforeUpload" [nzMultiple]="true"
@@ -132,15 +166,13 @@
                             </button>
                         </nz-upload>
                     </div>
-                    <div #fileTable class="file-table"></div>
+                    <div class="tabulator-safe" #fileTable class="file-table"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal-footer p-2">
+    <div class="modal-footer">
         <button nz-button nzType="default" (click)="closeModal()">Hủy</button>
-        <button nz-button nzType="primary" (click)="uploadFilesAndSaveData()">
-            Lưu dữ liệu
-        </button>
+        <button nz-button nzType="primary" (click)="uploadFilesAndSaveData()">Lưu dữ liệu</button>
     </div>

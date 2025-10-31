@@ -141,6 +141,7 @@
   display: flex;
   flex-direction: column;
   min-height: 100%;
+  padding-bottom: 0 !important;
 }
 
 .pagination-bar {
@@ -150,7 +151,7 @@
 /* Give extra space from footer on small screens */
 @media (max-width: 576px) {
   .homepage-container {
-    padding-bottom: 84px !important; /* keep distance from sticky footer */
+    padding-bottom: 0 !important; /* keep distance from sticky footer */
   }
 }
 .app-card {
@@ -209,8 +210,8 @@
     font-size: 16px !important;
   }
   .tile-icon-img {
-    width: 100%;
-    height: 100%;
+    /* width: 100%;
+    height: 100%; */
     object-fit: contain;
     transition: all 0.3s ease;
   }
@@ -234,8 +235,8 @@
     font-size: 17px !important;
   }
   .tile-icon-img {
-    width: 100%;
-    height: 100%;
+    /* width: 100%;
+    height: 100%; */
     object-fit: contain;
     transition: all 0.3s ease;
   }
@@ -266,8 +267,8 @@
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
   }
   .tile-icon-img {
-    width: 80%;
-    height: 100%;
+    /* width: 80%;
+    height: 100%; */
     object-fit: contain;
     transition: all 0.3s ease;
     padding: 10px;
@@ -660,4 +661,48 @@ nz-carousel {
   background: #dc3545;
   color: #fff;
   /* font-weight: 600; */
+}
+
+::ng-deep .ant-tabs-tab {
+  padding: 5px 0 !important;
+}
+
+::ng-deep h6 {
+  margin-bottom: 0.5rem !important;
+}
+
+/* .card-module{
+    box-shadow: gray;
+} */
+
+/* .card-img-top{
+    width: 50% !important;
+} */
+
+.card-module{
+    transition: all 0.3s ease;
+    /* width: 40% !important; */
+    cursor: pointer;
+    padding: 1.5rem;
+    width: 80%;
+}
+.card-module:hover{
+    transform: translateY(-4px);
+    /* background-color: pink; */
+}
+.card-module >.card-body:hover{
+    background-color: darkgoldenrod;
+}
+
+.bg-white{
+    opacity: 0 !important;
+}
+
+::ng-deep .ant-radio-group{
+    display: none !important;
+}
+
+::ng-deep .ant-picker-calendar-header{
+    justify-content: space-between !important;
+    padding-top: 0 !important;
 }

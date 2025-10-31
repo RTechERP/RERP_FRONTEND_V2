@@ -42,11 +42,11 @@ export class LoginComponent {
         this.token = this.authService.getToken();
         try {
           const decoded: any = jwtDecode(this.token);
-          console.log('decoded token:', decoded);
+        //   console.log('decoded token:', decoded);
         } catch (error) {
           console.error('Invalid token', error);
         }
-        console.log('token login:', this.token);
+        // console.log('token login:', this.token);
         this.router.navigate(['/home']);
       },
       error: (err) => {

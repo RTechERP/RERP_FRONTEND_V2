@@ -37,11 +37,9 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
-import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
 import { EnvironmentInjector } from '@angular/core';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 // import { NSelectComponent } from '../../n-select/n-select.component';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css'; // Import Tabulator stylesheet
 import { CommonModule } from '@angular/common';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import {
@@ -66,7 +64,10 @@ import { AppUserService } from '../../../services/app-user.service';
   templateUrl: './training-registration-form.component.html',
   styleUrls: ['./training-registration-form.component.css'],
   standalone: true,
+<<<<<<< HEAD
   //encapsulation: ViewEncapsulation.None,
+=======
+>>>>>>> origin/master
   imports: [
     CommonModule,
     FormsModule,
@@ -112,6 +113,8 @@ export class TrainingRegistrationFormComponent
       'vertical'
     ),
     EmployeeID: this.fb.control(null, [Validators.required]),
+    Position: this.fb.control(''),
+    Department: this.fb.control(''),
     Purpose: this.fb.control('', [Validators.required]),
     TrainingType: this.fb.control(null, [Validators.required]),
     IsCertification: this.fb.control(false),
@@ -161,6 +164,7 @@ export class TrainingRegistrationFormComponent
   }
 
   lstEmployees: any[] = [];
+  employeeGroups: any[] = [];
 
   // Danh sách loại đào tạo
   trainingTypes: any[] = [
@@ -179,16 +183,38 @@ export class TrainingRegistrationFormComponent
     public activeModal: NgbActiveModal
   ) {}
   ngAfterViewInit(): void {
+    // Khởi tạo bảng trước
     this.loadDetail();
     this.loadFileTable();
+    
+    // Đợi bảng khởi tạo xong rồi mới load dữ liệu
     if (this.dataInput) {
       setTimeout(() => {
         this.loadTrainingRegistration();
-      }, 0);
+      }, 300); // Tăng thời gian chờ để đảm bảo bảng đã khởi tạo hoàn toàn
     }
   }
   ngOnInit() {
     this.loadEmployees();
+    
+    // Lắng nghe thay đổi nhân viên để cập nhật chức vụ và phòng ban
+    this.validateForm.get('EmployeeID')?.valueChanges.subscribe(employeeId => {
+      if (employeeId) {
+        const selectedEmployee = this.lstEmployees.find(emp => emp.ID === employeeId);
+        if (selectedEmployee) {
+          this.validateForm.patchValue({
+            Position: selectedEmployee.ChucVuHD || '',
+            Department: selectedEmployee.DepartmentName || ''
+          });
+        }
+      } else {
+        // Xóa chức vụ và phòng ban khi không chọn nhân viên
+        this.validateForm.patchValue({
+          Position: '',
+          Department: ''
+        });
+      }
+    });
   }
 
   // Phương thức xử lý trước khi upload
@@ -215,6 +241,7 @@ export class TrainingRegistrationFormComponent
       next: (response) => {
         if (response.status === 1) {
           this.lstEmployees = response.data;
+          this.buildEmployeeGroups();
         }
       },
       error: (error) => {
@@ -224,6 +251,19 @@ export class TrainingRegistrationFormComponent
         );
       },
     });
+  }
+
+  private buildEmployeeGroups(): void {
+    const map = new Map<string, any[]>();
+    for (const e of this.lstEmployees || []) {
+      const k = e.DepartmentName || 'Khác';
+      if (!map.has(k)) map.set(k, []);
+      map.get(k)!.push(e);
+    }
+    this.employeeGroups = Array.from(map, ([department, items]) => ({
+      department,
+      items,
+    }));
   }
 
   loadTrainingRegistration() {
@@ -266,12 +306,42 @@ export class TrainingRegistrationFormComponent
       this.updateFileTable();
     }
 
-    if (this.table) {
-      this.table.setData(this.dataInput.LstDetail || []);
-      console.log('Đã gán dữ liệu cho table:', this.table.getData());
-    } else {
-      console.warn('Table chưa khởi tạo');
-    }
+    // Đảm bảo bảng đã được khởi tạo trước khi gán dữ liệu
+    setTimeout(() => {
+      if (this.table) {
+        const detailData = this.dataInput.LstDetail || [];
+        console.log('Dữ liệu detail sẽ được gán:', detailData);
+        
+        // Gán dữ liệu và thêm STT
+        const dataWithSTT = detailData.map((item: any, index: number) => ({
+          ...item,
+          STT: index + 1
+        }));
+        
+        this.table.setData(dataWithSTT);
+        
+        // Force redraw để đảm bảo bảng hiển thị
+        setTimeout(() => {
+          this.table.redraw(true);
+          console.log('Đã gán dữ liệu cho table:', this.table.getData());
+        }, 100);
+      } else {
+        console.warn('Table chưa khởi tạo, thử lại sau 500ms');
+        // Thử lại sau 500ms nếu table chưa khởi tạo
+        setTimeout(() => {
+          if (this.table && this.dataInput.LstDetail) {
+            const detailData = this.dataInput.LstDetail || [];
+            const dataWithSTT = detailData.map((item: any, index: number) => ({
+              ...item,
+              STT: index + 1
+            }));
+            this.table.setData(dataWithSTT);
+            this.table.redraw(true);
+            console.log('Đã gán dữ liệu cho table (lần 2):', this.table.getData());
+          }
+        }, 500);
+      }
+    }, 200);
   }
 
   // Phương thức xử lý upload file và lưu dữ liệu
@@ -330,11 +400,7 @@ export class TrainingRegistrationFormComponent
       next: (res) => {
         if (res.status === 1 && res.data) {
           // Cập nhật lại dataInput với ID/Code trả về
-          this.dataInput = {
-            ...(this.dataInput || {}),
-            ID: res.data.ID,
-            Code: res.data.Code,
-          };
+          this.dataInput = { ...(this.dataInput || {}), ID: res.data.ID, Code: res.data.Code };
 
           // Bước 2: Upload file (nếu có)
           const newFiles = this.fileList.filter(
@@ -362,58 +428,53 @@ export class TrainingRegistrationFormComponent
           const departmentName = (emp?.DepartmentName || 'Khác').toString();
           const code = (res.data.Code || '').toString();
 
-          const sanitize = (s: string) =>
-            s.replace(/[<>:"/\\|?*\u0000-\u001F]/g, '').trim();
+          const sanitize = (s: string) => s.replace(/[<>:"/\\|?*\u0000-\u001F]/g, '').trim();
           const subPath = [
             sanitize(year),
             sanitize(departmentName),
             sanitize(code),
           ].join('/');
 
-          this.trainingRegistrationService
-            .uploadMultipleFiles(filesToUpload, subPath)
-            .subscribe({
-              next: (uploadRes) => {
-                if (uploadRes.status === 1 && uploadRes.data) {
-                  // Cập nhật fileList với kết quả upload
-                  uploadRes.data.forEach((uploadedFile: any, index: number) => {
-                    const fileIndex = this.fileList.findIndex(
-                      (f) => f.uid === newFiles[index].uid
-                    );
-                    if (fileIndex !== -1) {
-                      this.fileList[fileIndex] = {
-                        ...this.fileList[fileIndex],
-                        status: 'done',
-                        FileName: uploadedFile.fileName,
-                        ServerPath: uploadedFile.filePath,
-                        OriginName: uploadedFile.originalName,
-                        ID: 0,
-                      };
-                    }
-                  });
-                  this.updateFileTable();
-                  this.notification.success(
-                    'Thông báo',
-                    `Đã upload thành công ${uploadRes.data.length} file`
-                  );
+          this.trainingRegistrationService.uploadMultipleFiles(filesToUpload, subPath).subscribe({
+            next: (uploadRes) => {
+              if (uploadRes.status === 1 && uploadRes.data) {
+                // Cập nhật fileList với kết quả upload
+                uploadRes.data.forEach((uploadedFile: any, index: number) => {
+                  const fileIndex = this.fileList.findIndex((f) => f.uid === newFiles[index].uid);
+                  if (fileIndex !== -1) {
+                    this.fileList[fileIndex] = {
+                      ...this.fileList[fileIndex],
+                      status: 'done',
+                      FileName: uploadedFile.fileName,
+                      ServerPath: uploadedFile.filePath,
+                      OriginName: uploadedFile.originalName,
+                      ID: 0,
+                    };
+                  }
+                });
+                this.updateFileTable();
+                this.notification.success(
+                  'Thông báo',
+                  `Đã upload thành công ${uploadRes.data.length} file`
+                );
 
-                  // Bước 3: Cập nhật lại master chỉ với danh sách file (tránh lưu chi tiết lần 2)
-                  this.saveDataToServer(true);
-                } else {
-                  this.notification.error(
-                    'Thông báo',
-                    uploadRes.message || 'Upload file thất bại'
-                  );
-                }
-              },
-              error: (err) => {
-                console.error('Lỗi upload:', err);
+                // Bước 3: Cập nhật lại master chỉ với danh sách file (tránh lưu chi tiết lần 2)
+                this.saveDataToServer(true);
+              } else {
                 this.notification.error(
                   'Thông báo',
-                  'Upload file thất bại: ' + (err.error?.message || err.message)
+                  uploadRes.message || 'Upload file thất bại'
                 );
-              },
-            });
+              }
+            },
+            error: (err) => {
+              console.error('Lỗi upload:', err);
+              this.notification.error(
+                'Thông báo',
+                'Upload file thất bại: ' + (err.error?.message || err.message)
+              );
+            }
+          });
         } else {
           this.notification.error(
             'Thông báo',
@@ -690,5 +751,25 @@ export class TrainingRegistrationFormComponent
 
   get isHorizontal(): boolean {
     return this.validateForm.controls.formLayout.value === 'horizontal';
+  }
+
+  // Phương thức để refresh dữ liệu bảng
+  refreshTableData() {
+    if (this.table && this.dataInput && this.dataInput.LstDetail) {
+      const detailData = this.dataInput.LstDetail || [];
+      const dataWithSTT = detailData.map((item: any, index: number) => ({
+        ...item,
+        STT: index + 1
+      }));
+      
+      console.log('Refreshing table data:', dataWithSTT);
+      this.table.setData(dataWithSTT);
+      
+      // Force redraw
+      setTimeout(() => {
+        this.table.redraw(true);
+        console.log('Table data  after refresh:', this.table.getData());
+      }, 100);
+    }
   }
 }

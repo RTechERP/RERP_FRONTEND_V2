@@ -24,6 +24,7 @@ export interface IUser {
   TeamOfUser: number;
   Permissions: string;
   Name: string;
+  PasswordHash:string;
 }
 
 export interface ILoginResponse {

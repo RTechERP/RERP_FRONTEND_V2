@@ -1,0 +1,84 @@
+<ng-container class="w-100">
+    <nz-splitter style="height: 80vh; ">
+        <nz-splitter-panel [nzSize]="'100%'">
+            <div class="card  border-0 rounded-0">
+                <div class="card-header  bg-white p-1">
+                    <div class="d-flex h-40  gap-1">
+
+                        <button class="btn-edit" nz-button nzType="default" nzSize="small"
+                            (click)="editProposeVehicleRepair()">
+                            <img src="assets/icon/action_edit_item_16.png" />Bổ sung thông tin
+                        </button>
+                        <button class="btn-delete" nz-button nzType="default" nzSize="small" (click)="onDeleteVehicle()"
+                            disabled>
+                            <img src="assets/icon/action_delete_item_16.png" />Xóa
+                        </button>
+
+
+                        <button nz-button nzType="default" nzSize="small" class="me-1" (click)="exportAllVehicles_ByTemplateRow5()">
+                            <img src="assets/icon/excel.png" alt="Xuất Excel"
+                                style="width:16px; height:16px; object-fit:contain" />Xuất Excel
+                        </button>
+
+                        <div class="ms-auto d-flex gap-1 align-items-center">
+                            <!-- <nz-input-group style="width: 250px">
+                <input
+                  nz-input
+                  nz-size="small"
+                  type="text"
+                  placeholder="Enter text to search..."
+                  [(ngModel)]="searchText"
+                  (ngModelChange)="onSearch()"
+                  (keyup.enter)="onSearch()"
+                />
+              </nz-input-group>
+
+              Nút Tìm kiếm bên ngoài -->
+                            <!-- <button
+                class="fs-12"
+                nz-button
+                nzType="primary"
+                nzSize="small"
+                (click)="onSearch()"
+                [disabled]="!searchText || searchText.trim().length === 0"
+              >
+                <nz-icon nzType="search"></nz-icon> Tìm kiếm
+              </button> -->
+                            <div style="display: flex;" class="ms-auto ">
+                                <input type="text" nzSize="small" [(ngModel)]="searchText" name="keyword" nz-input
+                                    class="fs-12" style=" flex: 1;" placeholder="Tìm kiếm" />
+                                <button nz-button nzSize="small" (click)="onSearch()">
+                                    <nz-icon nzType="search"></nz-icon>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <nz-splitter class="split-responsive">
+                    <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
+                        <div id="tb_vehicleManagement"></div>
+                    </nz-splitter-panel>
+
+                    <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" [nzSize]="sizeTbDetail">
+                        <nz-tabset style="height: 100%;">
+                            <nz-tab nzTitle="Lịch sử sửa chữa" [nzForceRender]="true">
+                                <div class="tab-scroll">
+                                    <div id="vehicleRepairHistoryTable" class="table-host"></div>
+                                </div>
+                            </nz-tab>
+
+                            <nz-tab nzTitle="File đính kèm" [nzForceRender]="true">
+                                <div class="tab-scroll">
+                                    <div id="vehicleRepairHistoryFileTable" class="table-host"></div>
+                                </div>
+                            </nz-tab>
+
+                        </nz-tabset>
+                    </nz-splitter-panel>
+                </nz-splitter>
+            </div>
+        </nz-splitter-panel>
+    </nz-splitter>
+</ng-container>

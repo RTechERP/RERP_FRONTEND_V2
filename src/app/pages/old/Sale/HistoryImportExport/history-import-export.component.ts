@@ -1,7 +1,6 @@
 import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import * as bootstrap from 'bootstrap';
 
 import { CommonModule } from '@angular/common';
 import {
@@ -28,8 +27,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
-import { IS_ADMIN } from '../../../../../app.config';
-import { DEPARTMENTID } from '../../../../../app.config';
+
 import { DateTime } from 'luxon';
 import { HistoryImportExportService } from './history-import-export-service/history-import-export.service';
 @Component({

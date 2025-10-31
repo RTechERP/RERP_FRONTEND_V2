@@ -60,8 +60,8 @@ import { HasPermissionDirective } from '../../directives/has-permission.directiv
 // import { menus } from '../../pages/old/menus/menus.component';
 import { environment } from '../../../environments/environment';
 import { AppUserService } from '../../services/app-user.service';
-import { MenusComponent } from '../../pages/old/menus/menus.component';
-import { MenuItem, MenuService } from '../../pages/old/menus/menu-service/menu.service';
+import { MenusComponent } from '../../pages/systems/menus/menus.component';
+import { MenuItem, MenuService } from '../../pages/systems/menus/menu-service/menu.service';
 
 interface dynamicApps {
   MenuName: string;

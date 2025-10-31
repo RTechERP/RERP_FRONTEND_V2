@@ -82,24 +82,8 @@ export class FactoryVisitRegistrationComponent
   participantTable!: Tabulator;
   detailTable!: Tabulator;
 
-  //   visitFactory: any;
-
-  visitFactory = {
-    // id: undefined,
-    registrationDate: null,
-    startTime: null,
-    endTime: null,
-    purpose: String,
-    notes: String,
-    fullName: String,
-    guestCompany: String,
-    VisitGuestTypeName: String,
-    numberOfPeople: Number,
-  };
-
   searchForm = {
     fromDate: '',
-    toDate: '',
     personInCharge: '',
     keyword: '',
   };
@@ -512,15 +496,15 @@ export class FactoryVisitRegistrationComponent
     });
   }
 
-  resetSearch(): void {
-    this.searchForm = {
-      fromDate: '',
-      toDate: '',
-      personInCharge: '',
-      keyword: '',
-    };
-    this.loadData();
-  }
+  // resetSearch(): void {
+  //   this.searchForm = {
+  //     fromDate: '',
+  //     toDate: '',
+  //     personInCharge: '',
+  //     keyword: '',
+  //   };
+  //   this.loadData();
+  // }
 
   openRegistrationModal(): void {
     this.isEditMode = false;
@@ -1212,32 +1196,9 @@ export class FactoryVisitRegistrationComponent
         const found = (this.registrations || []).find(
           (r) => Number(r.id) === id
         );
-        if (found) {
-          this.selectRegistration(found);
-          //   this.visitFactory = this.registrations.find((x) => x.id === id);
-          let data = this.registrations.find((x) => x.id === id);
-          this.visitFactory = {
-            ...data,
-            fullName: this.getEmployeeDisplayNameById(
-              Number(data.registeringEmployee)
-            ),
-            registrationDate: new Date(data.registrationDate),
-            endTime: new Date(data.endTime),
-            startTime: new Date(data.startTime),
-          };
-          console.log(this.visitFactory);
-        }
-
-        this.eventElements.forEach((el) => (el.style.borderColor = ''));
-
-        info.el.style.borderColor = 'red';
-      },
-
-      eventDidMount: (info) => {
-        this.eventElements.set(info.event.id, info.el);
+        if (found) this.selectRegistration(found);
       },
     });
-    this.calendar.render();
     this.updateCalendarEvents();
   }
 

@@ -30,7 +30,7 @@ import { authGuard } from './auth/auth.guard';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
 import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
 import { AppComponent } from './app.component';
-import { MenusComponent } from './pages/old/menus/menus.component';
+import { MenusComponent } from './pages/systems/menus/menus.component';
 import { HomeLayoutComponent } from './layouts/home-layout/home-layout.component';
 import { TsAssetManagementPersonalComponent } from './pages/old/ts-asset-management-personal/ts-asset-management-personal.component';
 import { TsAssetAllocationPersonalComponent } from './pages/old/ts-asset-allocation-personal/ts-asset-allocation-personal.component';

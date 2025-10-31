@@ -28,6 +28,7 @@ import { TsAssetManagementPersonalService } from '../../../../old/ts-asset-manag
 import { TsAssetRecoveryPersonalService } from '../../../../old/ts-asset-recovery-personal/ts-asset-recovery-personal-service/ts-asset-recovery-personal.service';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { DisablePermissionDirective } from '../../../../../directives/disable-permission.directive';
+import { HasPermissionDirective } from "../../../../../directives/has-permission.directive";
 @Component({
   selector: 'app-ts-asset-recovery-personal-new',
  standalone: true,
@@ -50,8 +51,9 @@ import { DisablePermissionDirective } from '../../../../../directives/disable-pe
     NzSelectModule,
     NzTableModule,
     NzTabsModule,
-    DisablePermissionDirective
-  ],
+    DisablePermissionDirective,
+    HasPermissionDirective
+],
   templateUrl: './ts-asset-recovery-personal-new.component.html',
   styleUrl: './ts-asset-recovery-personal-new.component.css'
 })

@@ -1,28 +1,20 @@
-.training-form-container {
-  padding: 16px;
-}
 
+.btn-close{
+  outline: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
 .form-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
   margin-top: 16px;
 }
-
-/* Bỏ hết styling cho form item để sử dụng mặc định của Ant Design */
-.compact-form-item {
-  /* Không có styling gì cả - để Ant Design tự xử lý */
-}
-
 .ant-upload-list-item {
   margin-top: 8px;
 }
 
-.tables-section {
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid #f0f0f0;
-}
 
 /* Styles cho layout 3 cột */
 .three-column-layout {
@@ -79,6 +71,22 @@
   }
 }
 
+/* Performance optimizations for multiple tabs */
+.training-form-container {
+  contain: layout style;
+}
+
+/* Smooth transitions */
+.training-form-container {
+  transition: opacity 0.2s ease-in-out;
+}
+
+/* Proper stacking context */
+.tables-section {
+  position: relative;
+  z-index: 1;
+}
+
 /* Styles cho tabulator tables */
 .detail-table,
 .file-table {
@@ -104,14 +112,72 @@
   border-color: #ff7875;
 }
 
-.ant-picker-dropdown {
-  z-index: 1050 !important; /* cao hơn modal backdrop */
-}
-
-.ant-picker-panel-container {
-  min-width: 300px !important;
-}
 
 .ant-picker-range {
   width: 100% !important;
 }
+
+/* Component isolation */
+.training-form-container {
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
+}
+
+
+
+/* Ensure this component's content is properly layered */
+app-training-registration-form {
+  position: relative;
+  z-index: 1;
+}
+
+/* Chuyển dấu * từ phía trước sang phía sau label */
+:host ::ng-deep .ant-form-item-required::before {
+  display: none !important;
+}
+
+:host ::ng-deep .ant-form-item-required::after {
+  display: inline-block !important;
+  margin-left: 4px !important;
+  color: #ff4d4f !important;
+  font-size: 14px !important;
+  font-family: SimSun, sans-serif !important;
+  line-height: 1 !important;
+  content: "*" !important;
+}
+
+/* Bỏ border top của modal-footer */
+.modal-footer {
+  border-top: none !important;
+  padding-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Style cho header nhóm phòng ban trong dropdown
+:host ::ng-deep .ant-select-item-group,
+:host ::ng-deep .ant-select-item-group-label,
+:host ::ng-deep .ant-select-dropdown .ant-select-item-group,
+:host ::ng-deep .ant-select-dropdown .ant-select-item-group-label {
+  background-color: #ff4d4f !important;
+  color: white !important;
+  font-weight: bold !important;
+  padding: 8px 12px !important;
+  border-radius: 4px !important;
+  margin: 2px 4px !important;
+}
+
+/* Thêm selector global để đảm bảo */
+/* ::ng-deep .ant-select-item-group {
+  background-color: #ff4d4f !important;
+  color: white !important;
+  font-weight: bold !important;
+}
+
+::ng-deep .ant-select-item-group-label {
+  background-color: #ff4d4f !important;
+  color: white !important;
+  font-weight: bold !important;
+} */ 

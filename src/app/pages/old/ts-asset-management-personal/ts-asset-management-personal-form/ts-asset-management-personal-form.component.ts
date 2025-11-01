@@ -25,9 +25,9 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { VehicleRepairService } from '../../../hrm/vehicle/vehicle-repair/vehicle-repair-service/vehicle-repair.service';
 import { TbProductRtcService } from '../../../old/tb-product-rtc/tb-product-rtc-service/tb-product-rtc.service';
 import { TsAssetAllocationPersonalService } from '../../ts-asset-allocation-personal/ts-asset-allocation-personal-service/ts-asset-allocation-personal.service';
-import { AssetAllocationService } from '../../ts-asset-allocation/ts-asset-allocation-service/ts-asset-allocation.service';
+import { AssetAllocationService } from '../../../hrm/asset/asset/ts-asset-allocation/ts-asset-allocation-service/ts-asset-allocation.service';
 import { TsAssetManagementPersonalService } from '../ts-asset-management-personal-service/ts-asset-management-personal.service';
-import { UnitService } from '../../ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
+import { UnitService } from '../../../hrm/asset/asset/ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
 import { TsAssetManagementPersonalTypeFormComponent } from '../ts-asset-management-personal-type/ts-asset-management-personal-type-form/ts-asset-management-personal-type-form.component';
 @Component({
   standalone: true,

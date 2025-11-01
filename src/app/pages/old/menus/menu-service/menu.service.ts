@@ -42,6 +42,7 @@ import { TsAssetManagementComponent } from '../../ts-asset-management/ts-asset-m
 import { TsAssetRecoveryComponent } from '../../ts-asset-recovery/ts-asset-recovery.component';
 import { TsAssetTransferComponent } from '../../ts-asset-transfer/ts-asset-transfer.component';
 import { PermissionService } from '../../../../services/permission.service';
+import { OfficeSupplyComponent } from '../../OfficeSuppliesManagement/OfficeSupply/office-supply.component';
 
 @Injectable({
   providedIn: 'root',
@@ -415,6 +416,18 @@ export class MenuService {
         comp: HandoverComponent,
         //   icon: 'assets/icon/layers.png',
       },
+
+      //#region QUẢN LÝ VPP
+{
+        kind: 'leaf',
+        key: 'OfficeSupplyComponent',
+        title: 'Danh sách VPP',
+        isOpen: true,
+        isPermission: false,
+        comp: OfficeSupplyComponent,
+        //   icon: 'assets/icon/layers.png',
+      },
+      //#endregion
     ],
   },
   //#endregion

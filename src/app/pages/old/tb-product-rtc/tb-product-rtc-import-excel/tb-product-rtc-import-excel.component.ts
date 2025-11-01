@@ -22,7 +22,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { TsAssetManagementPersonalService } from '../../ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { TbProductRtcService } from '../tb-product-rtc-service/tb-product-rtc.service';
-import { UnitService } from '../../ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
+import { UnitService } from '../../../hrm/asset/asset/ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
 export const SERVER_PATH = `D:\RTC_Sw\RTC\ProductRTC`;
 import { NzProgressModule } from 'ng-zorro-antd/progress';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';  

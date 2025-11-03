@@ -1,0 +1,121 @@
+<div class="modal-content">
+  <!-- Header -->
+  <div class="modal-header bg-primary align-items-center ps-2">
+    <h6 class="text-light text-uppercase m-0">Thông tin chi tiết tiền tệ</h6>
+  </div>
+  <!-- Body -->
+  <div class="modal-body">
+    <form nz-form nzLayout="vertical" [formGroup]="currencyForm">
+      <div nz-row nzGutter="24">
+        <!-- Cột trái -->
+        <div nz-col nzSpan="12">  
+          <nz-form-item style="margin-bottom: 16px;">
+            <nz-form-label>Mã tiền tệ <span class="text-danger">*</span></nz-form-label>
+            <nz-form-control [nzValidateStatus]="isFieldInvalid('Code') ? 'error' : ''" [nzErrorTip]="getFieldError('Code')">
+              <input nz-input formControlName="Code" placeholder="Nhập mã tiền tệ" />
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item style="margin-bottom: 16px;">
+            <nz-form-label>Đơn vị nhỏ nhất <span class="text-danger">*</span></nz-form-label>
+            <nz-form-control [nzValidateStatus]="isFieldInvalid('MinUnit') ? 'error' : ''" [nzErrorTip]="getFieldError('MinUnit')">
+              <input nz-input formControlName="MinUnit" placeholder="Nhập đơn vị nhỏ nhất" />
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item style="margin-bottom: 16px;">
+            <nz-form-label>Tỉ giá <span class="text-danger">*</span></nz-form-label>
+            <nz-form-control [nzValidateStatus]="isFieldInvalid('CurrencyRate') ? 'error' : ''" [nzErrorTip]="getFieldError('CurrencyRate')">
+              <input nz-input type="number" min="0" step="0.0001" formControlName="CurrencyRate" placeholder="Nhập tỉ giá" />
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item style="margin-bottom: 16px;">
+            <nz-form-label>Tên tiếng Việt <span class="text-danger">*</span></nz-form-label>
+            <nz-form-control [nzValidateStatus]="isFieldInvalid('NameVietNamese') ? 'error' : ''" [nzErrorTip]="getFieldError('NameVietNamese')">
+              <input nz-input formControlName="NameVietNamese" placeholder="Nhập tên tiếng Việt" />
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item style="margin-bottom: 16px;">
+            <nz-form-label>Tên tiếng Anh <span class="text-danger">*</span></nz-form-label>
+            <nz-form-control [nzValidateStatus]="isFieldInvalid('NameEnglist') ? 'error' : ''" [nzErrorTip]="getFieldError('NameEnglist')">
+              <input nz-input formControlName="NameEnglist" placeholder="Nhập tên tiếng Anh" />
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item style="margin-bottom: 16px;">
+            <nz-form-control>
+              <div nz-row nzGutter="8">
+                <div nz-col nzSpan="12">
+                  <label class="d-block mb-1">Ngày bắt đầu <span class="text-danger">*</span></label>
+                  <nz-form-control [nzValidateStatus]="isFieldInvalid('DateStart') ? 'error' : ''" [nzErrorTip]="getFieldError('DateStart')">
+                    <nz-date-picker
+                      formControlName="DateStart"
+                      style="width: 100%"
+                      placeholder="Ngày bắt đầu"
+                    ></nz-date-picker>
+                  </nz-form-control>
+                </div>
+                <div nz-col nzSpan="12">
+                  <label class="d-block mb-1">Ngày hết hạn <span class="text-danger">*</span></label>
+                  <nz-form-control [nzValidateStatus]="isFieldInvalid('DateExpried') ? 'error' : ''" [nzErrorTip]="getFieldError('DateExpried')">
+                    <nz-date-picker
+                      formControlName="DateExpried"
+                      style="width: 100%"
+                      placeholder="Ngày hết hạn"
+                    ></nz-date-picker>
+                  </nz-form-control>
+                </div>
+              </div>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <!-- Cột phải -->
+        <div nz-col nzSpan="12">
+          <nz-form-item style="margin-bottom: 16px;">
+            <nz-form-label>TG chính ngạch</nz-form-label>
+            <nz-form-control [nzValidateStatus]="isFieldInvalid('CurrencyRateOfficialQuota') ? 'error' : ''" [nzErrorTip]="getFieldError('CurrencyRateOfficialQuota')">
+              <input nz-input type="number" formControlName="CurrencyRateOfficialQuota" placeholder="Nhập tỷ giá chính ngạch" />
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item style="margin-bottom: 16px;">
+            <nz-form-label>Ngày hết hạn TGCN</nz-form-label>
+            <nz-form-control>
+              <nz-date-picker formControlName="DateExpriedOfficialQuota" style="width: 100%" placeholder="Ngày hết hạn TGCN"></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item style="margin-bottom: 16px;">
+            <nz-form-label>TG tiểu ngạch</nz-form-label>
+            <nz-form-control [nzValidateStatus]="isFieldInvalid('CurrencyRateUnofficialQuota') ? 'error' : ''" [nzErrorTip]="getFieldError('CurrencyRateUnofficialQuota')">
+              <input nz-input type="number" formControlName="CurrencyRateUnofficialQuota" placeholder="Nhập tỷ giá tiểu ngạch" />
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item style="margin-bottom: 16px;">
+            <nz-form-label>Ngày hết hạn TGTN</nz-form-label>
+            <nz-form-control>
+              <nz-date-picker formControlName="DateExpriedUnofficialQuota" style="width: 100%" placeholder="Ngày hết hạn TGTN"></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item style="margin-bottom: 16px;">
+            <nz-form-label>Ghi chú</nz-form-label>
+            <nz-form-control [nzValidateStatus]="isFieldInvalid('Note') ? 'error' : ''" [nzErrorTip]="getFieldError('Note')">
+              <textarea nz-input rows="3" formControlName="Note" placeholder="Nhập ghi chú"></textarea>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Footer -->
+  <div class="modal-footer">
+    <button nz-button nzType="primary" type="button" [disabled]="currencyForm.invalid" (click)="handleSubmit()">Lưu</button>
+    <button nz-button type="button" (click)="handleCancel()">Hủy</button>
+  </div>
+</div>

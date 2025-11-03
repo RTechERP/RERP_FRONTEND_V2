@@ -1,0 +1,30 @@
+.reset {
+    all: revert;
+}
+
+.tabulator {
+  font-size: 0.75rem;
+  border: 1px solid !important;
+}
+
+.tabulator-cell {
+  padding: 0px;
+}
+
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+.fs-11 {
+  font-size: 0.6875rem;
+}
+
+/* Validation styles */
+.is-invalid {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+.text-danger {
+  color: #dc3545 !important;
+}

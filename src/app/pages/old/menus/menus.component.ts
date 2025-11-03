@@ -31,12 +31,18 @@ import { FoodOrderComponent } from '../food-order/food-order.component';
 import { DayOffComponent } from '../day-off/day-off.component';
 import { EarlyLateComponent } from '../early-late/early-late.component';
 import { OverTimeComponent } from '../over-time/over-time.component';
-import { EmployeeBussinessComponent } from '../employee-bussiness/employee-bussiness.component';
+import { EmployeeBussinessComponent } from '../hr/employee-bussiness/employee-bussiness.component';
 import { NightShiftComponent } from '../night-shift/night-shift.component';
-import { EmployeeAttendanceComponent } from '../employee-attendance/employee-attendance.component';
+import { EmployeeAttendanceComponent } from '../../employee-attendance/employee-attendance.component';
 import { TsAssetRecoveryPersonalNewComponent } from '../../hrm/asset/assetpersonal/ts-asset-recovery-personal-new/ts-asset-recovery-personal-new.component';
 import { VehicleCategoryComponent } from '../../hrm/vehicle-management/vehicle-category/vehicle-category.component';
 import { VehicleManagementComponent } from '../../hrm/vehicle-management/vehicle-management.component';
+import { EmployeeNoFingerprintComponent } from '../../hrm/employee-no-fingerprint/employee-no-fingerprint.component';
+import { MeetingTypeComponent } from '../../general-category/meeting-type/meeting-type.component';
+import { ErrorComponent } from '../Technical/error/error.component';
+import { KpiEvaluationComponent } from '../Technical/kpi-evaluation/kpi-evaluation.component';
+import { ProtectiveGearComponent } from '../../hrm/protective-gear/protective-gear.component';
+import { EmployeeTimekeepingComponent } from '../../hrm/employee-timekeeping/employee-timekeeping.component';
 
 @Component({
   selector: 'app-menus',
@@ -52,7 +58,7 @@ export class MenusComponent implements OnInit {
   constructor(
     private menuService: MenuService,
     private notifi: NzNotificationService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.getMenus(43);
@@ -102,6 +108,14 @@ export const menus: MenuItem[] = [
         isOpen: true,
         //   icon: 'assets/images/icons8-overview-20.png',
         comp: CustomerComponent,
+      },
+      {
+        kind: 'leaf',
+        key: 'EmployeeAttendanceComponent',
+        title: 'Employee Attendance',
+        isOpen: true,
+        //   icon: 'assets/images/icons8-overview-20.png',
+        comp: EmployeeAttendanceComponent,
       },
     ],
   },
@@ -155,6 +169,14 @@ export const menus: MenuItem[] = [
         title: 'Danh sách tài sản cá nhân',
         isOpen: true,
         comp: TsAssetManagementPersonalComponent,
+        //   icon: 'assets/icon/layers.png',
+      },
+      {
+        kind: 'leaf',
+        key: 'EmployeeNoFingerprintComponent',
+        title: 'Quên chấm công',
+        isOpen: true,
+        comp: EmployeeNoFingerprintComponent,
         //   icon: 'assets/icon/layers.png',
       },
       {
@@ -357,6 +379,22 @@ export const menus: MenuItem[] = [
         comp: VehicleManagementComponent,
         //   icon: 'assets/icon/layers.png',
       },
+            {
+        kind: 'leaf',
+        key: 'ProtectiveGearComponent',
+        title: 'Đồ bảo hộ',
+        isOpen: true,
+        comp: ProtectiveGearComponent,
+        //   icon: 'assets/icon/layers.png',
+      },
+        {
+        kind: 'leaf',
+        key: 'EmployeeTimekeepingComponent',
+        title: 'Bảng chấm công',
+        isOpen: true,
+        comp: EmployeeTimekeepingComponent,
+        //   icon: 'assets/icon/layers.png',
+      },
     ],
   },
   //#endregion
@@ -385,6 +423,28 @@ export const menus: MenuItem[] = [
         comp: FactoryVisitRegistrationComponent,
         //   icon: 'assets/icon/layers.png',
       },
+      {
+        kind: 'leaf',
+        key: 'MeetingTypeComponent',
+        title: 'Loại cuộc họp',
+        isOpen: true,
+        comp: MeetingTypeComponent,
+      },
+            {
+        kind: 'leaf',
+        key: 'ErrorComponent',
+        title: 'Lỗi',
+        isOpen: true,
+        comp: ErrorComponent,
+      },
+            {
+        kind: 'leaf',
+        key: 'KpiEvaluationComponent',
+        title: 'Đánh giá KPI',
+        isOpen: true,
+        comp: KpiEvaluationComponent,
+      },
+
     ],
   },
 

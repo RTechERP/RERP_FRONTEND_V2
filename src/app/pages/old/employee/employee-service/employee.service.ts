@@ -10,6 +10,11 @@ export class EmployeeService {
   private _url = environment.host + 'api/'; //'https://localhost:7187/api/';
   constructor(private http: HttpClient) {}
 
+
+  getEmployeesURL(): string {
+    return this._url + 'Employee/get-employees';
+  }
+ 
   getAllEmployee(): Observable<any> {
     return this.http.get(this._url + 'Employee/get-all');
   }

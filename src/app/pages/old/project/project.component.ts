@@ -990,6 +990,9 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       size: 'xl',
       backdrop: 'static',
       keyboard: false,
+      // centered: true,
+      // backdrop: 'static',
+      // windowClass: 'full-screen-modal',
     });
 
     modalRef.componentInstance.projectId = status == 0 ? 0 : selectedIDs[0];
@@ -1265,6 +1268,11 @@ export class ProjectComponent implements OnInit, AfterViewInit {
   }
   //#endregion
 
+  //#region đóng panel
+  closePanel(){
+    this.sizeTbDetail = '0';
+  }
+  //#endregion
   //#region Người tham gia dự án
   openProjectEmployee() {
     let selectedRows = this.tb_projects.getSelectedRows();

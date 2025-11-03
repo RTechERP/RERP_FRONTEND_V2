@@ -4,22 +4,22 @@
         <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
     </div>
     <div class="modal-body">
-        <form nz-form class=" g-3 needs-validation was-validated">
+        <form nz-form [formGroup]="formGroup" class="g-3 needs-validation was-validated">
             <div class="row">
                 <div class="col-md-12 pb-3">
-                    <nz-form-label class="fs-12">Mã đơn vị</nz-form-label>
-                    <nz-form-control>
-                        <input nz-input [(ngModel)]="newUnitCount.UnitCode" name="UnitCode" class="fs-12 w-100"
-                            nzSize="default" nzPlaceHolder="Nhập mã hãng" />
+                    <nz-form-label class="fs-12">Mã đơn vị<span class="text-danger ps-1 me-1"> * </span></nz-form-label>
+                    <nz-form-control [nzErrorTip]="getUnitCodeError()">
+                        <input nz-input formControlName="UnitCode" class="fs-12 w-100"
+                            nzSize="default" nzPlaceHolder="Nhập mã đơn vị" />
                     </nz-form-control>
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-12 pb-3">
-                    <nz-form-label class="fs-12">Tên đơn vị</nz-form-label>
-                    <nz-form-control>
-                        <input nz-input [(ngModel)]="newUnitCount.UnitName" name="UnitName" class="fs-12 w-100"
-                            nzSize="default" nzPlaceHolder="Nhập tên hãng" />
+                    <nz-form-label class="fs-12">Tên đơn vị<span class="text-danger ps-1 me-1"> * </span></nz-form-label>
+                    <nz-form-control [nzErrorTip]="getUnitNameError()">
+                        <input nz-input formControlName="UnitName" class="fs-12 w-100"
+                            nzSize="default" nzPlaceHolder="Nhập tên đơn vị" />
                     </nz-form-control>
                 </div>
             </div>

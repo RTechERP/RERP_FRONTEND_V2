@@ -396,7 +396,6 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
                     }
                   },
                 });
-
                 this.updateSTTColumn();
               },
               width: '5px',

@@ -4,14 +4,14 @@
       <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
     </div>
     <div class="modal-body">
-      <form nz-form class=" g-3 needs-validation was-validated">
+      <form nz-form [formGroup]="formGroup" class="g-3 needs-validation was-validated">
         <div class="row">
           <div class="col-md-12 pb-3">
-            <nz-form-label class="fs-12">Tên Hãng</nz-form-label>
-            <nz-form-control>
+            <nz-form-label class="fs-12">Tên Hãng <span class="text-danger ps-1 me-1"> * </span></nz-form-label>
+            <nz-form-control [nzErrorTip]="getFirmNameError()">
                 <input
                 nz-input
-                [(ngModel)]="newFirm.FirmName"name="FirmName"
+                formControlName="FirmName"
                 class="fs-12 w-100"
                 nzSize="default"
                 nzPlaceHolder="Nhập tên hãng"     
@@ -21,11 +21,11 @@
         </div>   
         <div class="row">
             <div class="col-md-12 pb-3">
-              <nz-form-label class="fs-12">Mã</nz-form-label>
-              <nz-form-control>
+              <nz-form-label class="fs-12">Mã <span class="text-danger ps-1 me-1"> * </span></nz-form-label>
+              <nz-form-control [nzErrorTip]="getFirmCodeError()">
                   <input
                   nz-input
-                  [(ngModel)]="newFirm.FirmCode"name="FirmCode"
+                  formControlName="FirmCode"
                   class="fs-12 w-100"
                   nzSize="default"
                   nzPlaceHolder="Nhập mã hãng"     
@@ -35,11 +35,11 @@
           </div> 
           <div class="row">
             <div class="col-md-12 pb-3">
-              <nz-form-label class="fs-12">Loại</nz-form-label>
-                <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn loại hãng">
+              <nz-form-label class="fs-12">Loại <span class="text-danger ps-1 me-1"> * </span></nz-form-label>
+                <nz-form-control [nzSpan]="24" [nzErrorTip]="getFirmTypeError()">
                     <nz-input-group nzSearch nzSize="default" class="w-100">
-                      <nz-select [(ngModel)]="newFirm.FirmType" name="FirmType" nzPlaceHolder="Chọn loại hãng" class="fs-12"
-                        required nzShowSearch nzAllowClear>
+                      <nz-select formControlName="FirmType" nzPlaceHolder="Chọn loại hãng" class="fs-12"
+                        nzShowSearch nzAllowClear>
                         <nz-option *ngFor="let type of firmtype" [nzValue]="type.id" [nzLabel]="type.name">
                         </nz-option>
                       </nz-select>

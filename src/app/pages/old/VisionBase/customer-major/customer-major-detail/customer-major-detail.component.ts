@@ -32,6 +32,7 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
+import { NzFormModule } from 'ng-zorro-antd/form';
 import {
   TabulatorFull as Tabulator,
   RowComponent,
@@ -45,7 +46,7 @@ import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/sign
 import { EnvironmentInjector } from '@angular/core';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DateTime } from 'luxon';
-import { FormGroup, FormBuilder } from '@angular/forms';
+import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -84,9 +85,9 @@ import { CustomerMajorService } from '../customer-major-service/customer-major.s
     NzUploadModule,
     NzSwitchModule,
     NzCheckboxModule,
+    NzFormModule,
     CommonModule,
     NzTreeSelectModule,
-    ReactiveFormsModule,
   ],
   templateUrl: './customer-major-detail.component.html',
   styleUrl: './customer-major-detail.component.css',
@@ -94,6 +95,9 @@ import { CustomerMajorService } from '../customer-major-service/customer-major.s
 export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
   @Input() EditID!: number;
   @Input() isEditMode!: boolean;
+
+  // Form validation
+  formGroup: FormGroup;
 
   Code: any = '';
   Name: any = '';
@@ -108,8 +112,15 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
     private customerService: CustomerServiceService,
-    private customerMajorService: CustomerMajorService
-  ) {}
+    private customerMajorService: CustomerMajorService,
+    private fb: FormBuilder
+  ) {
+    this.formGroup = this.fb.group({
+      STT: [0, [Validators.required, Validators.min(1)]],
+      Code: ['', [Validators.required]],
+      Name: ['', [Validators.required]]
+    });
+  }
 
   ngOnInit(): void {
     this.loadCustomerSpecialization();
@@ -141,6 +152,14 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
     this.customerMajorService.getDetail(id).subscribe({
       next: (response) => {
         if (response.status === 1) {
+          // Cập nhật form values
+          this.formGroup.patchValue({
+            STT: response.data.STT,
+            Code: response.data.Code,
+            Name: response.data.Name
+          });
+
+          // Giữ lại các biến cũ cho tương thích
           this.STT = response.data.STT;
           this.Code = response.data.Code;
           this.Name = response.data.Name;
@@ -155,20 +174,28 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
   }
 
   closeModal() {
-    this.activeModal.close({ success: false, reloadData: false });
+    this.activeModal.close(false);
   }
 
   save() {
+    // Validate form trước khi lưu
+    if (!this.validateForm()) {
+      return;
+    }
+
+    // Lấy giá trị từ form controls
+    const formValues = this.formGroup.value;
+    
     const model = {
-      STT: this.STT,
-      Code: this.Code,
-      Name: this.Name,
+      STT: formValues.STT,
+      Code: formValues.Code,
+      Name: formValues.Name,
     };
     this.customerMajorService.save(model).subscribe({
       next: (res: any) => {
         if (res?.status === 1) {
           this.notification.success('Thông báo', 'Lưu thành công');
-          this.activeModal.close({ success: true, reloadData: true });
+          this.activeModal.dismiss(true);
         } else {
           this.notification.error(
             'Lỗi',
@@ -181,4 +208,57 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
       },
     });
   }
+
+  //#region Validation methods
+  private trimAllStringControls() {
+    Object.keys(this.formGroup.controls).forEach(k => {
+      const c = this.formGroup.get(k);
+      const v = c?.value;
+      if (typeof v === 'string') c!.setValue(v.trim(), { emitEvent: false });
+    });
+  }
+
+  // Method để lấy error message cho các trường
+  getFieldError(fieldName: string): string | undefined {
+    const control = this.formGroup.get(fieldName);
+    if (control?.invalid && (control?.dirty || control?.touched)) {
+      if (control.errors?.['required']) {
+        switch (fieldName) {
+          case 'STT':
+            return 'Vui lòng nhập STT!';
+          case 'Code':
+            return 'Vui lòng nhập mã ngành nghề!';
+          case 'Name':
+            return 'Vui lòng nhập tên ngành nghề!';
+          default:
+            return 'Trường này là bắt buộc!';
+        }
+      }
+      if (control.errors?.['min']) {
+        switch (fieldName) {
+          case 'STT':
+            return 'STT phải lớn hơn 0!';
+          default:
+            return 'Giá trị không hợp lệ!';
+        }
+      }
+    }
+    return undefined;
+  }
+
+  // Method để validate form
+  validateForm(): boolean {
+    this.trimAllStringControls();
+    const requiredFields = ['STT', 'Code', 'Name'];
+    const invalidFields = requiredFields.filter(key => {
+      const control = this.formGroup.get(key);
+      return !control || control.invalid || control.value === '' || control.value == null;
+    });
+    if (invalidFields.length > 0) {
+      this.formGroup.markAllAsTouched();
+      return false;
+    }
+    return true;
+  }
+  //#endregion
 }

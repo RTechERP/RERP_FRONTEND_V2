@@ -5,7 +5,9 @@
                 <div class="card-header bg-white p-1 action-bar">
                     <div class="d-flex h-40 gap-1">
                         <button nz-button nzType="default" nzSize="small" class=" btn-add"
-                            (click)="openModalProductGroup(false)" *hasPermission="'N27,N1'">
+                            (click)="openModalProductGroup(false)" 
+                            *hasPermission="'N27,N1'"
+                            >
                             <img src="assets/icon/action_add_group_16.png" alt="Thêm mới " />Tạo nhóm TB
                         </button>
                         <button nz-button nzType="default" nzSize="small" class="btn-edit"
@@ -60,16 +62,12 @@
                     <nz-splitter-panel nzDefaultSize="25%" [nzCollapsible]="true" nzResizable="true"
                         style="height: 100%;">
                         <nz-splitter nzLayout="vertical" style="height: 100%;">
-                            <!-- Bảng ProductGroup (trên - 60%) -->
-                            <nz-splitter-panel nzSize="60%" style="overflow: auto;">
-                                <div id="table_productgroup" style="height: 100%;"></div>
-                            </nz-splitter-panel>
-
-                            <!-- Bảng ProductGroupWareHouse (dưới - 40%) -->
-                            <nz-splitter-panel nzSize="40%" [nzCollapsible]="true" nzResizable="true"
-                                style="overflow: auto;">
-                                <div id="table_pgwarehouse" style="height: 100%;"></div>
-                            </nz-splitter-panel>
+                          <nz-splitter-panel  style="overflow: auto;">
+                            <div id="table_productgroup" style="height: 100%;"></div>
+                          </nz-splitter-panel>
+                          <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" style="overflow: auto;">
+                            <div id="table_pgwarehouse" style="height: 100%;"></div>
+                          </nz-splitter-panel> 
                         </nz-splitter>
                     </nz-splitter-panel>
 

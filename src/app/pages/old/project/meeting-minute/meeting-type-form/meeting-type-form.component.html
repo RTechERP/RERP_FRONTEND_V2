@@ -1,0 +1,92 @@
+<div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0">
+  <h6 class="modal-title text-white">Chi tiết loại cuộc họp</h6>
+  <button
+    type="button"
+    class="btn-close"
+    (click)="closeModal()"
+    aria-label="Close"
+  ></button>
+</div>
+<div
+  class="modal-body p-2 flex-grow-1 overflow-visible"
+  style="overflow-y: unset"
+>
+  <form nz-form class="mt-2">
+    <!-- Dòng 1: 4 ô -->
+    <div class="row gx-2">
+      <div class="col-md-6">
+        <nz-form-item>
+          <nz-form-label
+            [nzSpan]="12"
+            class="fs-12 mt-2 required-label"
+            nzRequired
+            >Mã loại cuộc họp</nz-form-label
+          >
+          <nz-form-control [nzSpan]="24">
+            <input
+              nz-input
+              [(ngModel)]="this.newMeetingType.TypeCode"
+              name="TypeCode"
+            />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div class="col-md-6">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="12" class="fs-12 mt-2" nzRequired
+            >Nhóm</nz-form-label
+          >
+          <nz-form-control [nzSpan]="24">
+            <nz-select
+              [(ngModel)]="newMeetingType.GroupID"
+              name="GroupID"
+              nzPlaceHolder="Chọn nhóm"
+              class="w-100"
+            >
+              <nz-option [nzValue]="1" nzLabel="Khách hàng"></nz-option>
+              <nz-option [nzValue]="2" nzLabel="Nội bộ"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+    <!-- Dòng 2 -->
+    <div class="col-md-12">
+      <nz-form-item>
+        <nz-form-label [nzSpan]="12" class="fs-12 mt-2" nzRequired
+          >Tên loại cuộc họp</nz-form-label
+        >
+        <nz-form-control [nzSpan]="24">
+          <input
+            nz-input
+            [(ngModel)]="this.newMeetingType.TypeName"
+            name="TypeName"
+          />
+        </nz-form-control>
+      </nz-form-item>
+    </div>
+    <div class="col-md-12">
+      <nz-form-item>
+        <nz-form-label [nzSpan]="12" class="fs-12 mt-2" nzRequired
+          >Nội dung</nz-form-label
+        >
+        <nz-form-control [nzSpan]="24">
+          <textarea
+            nz-input
+            [(ngModel)]="this.newMeetingType.TypeContent"
+            name="TypeContent"
+          ></textarea>
+        </nz-form-control>
+      </nz-form-item>
+    </div>
+  </form>
+
+  <div class="modal-footer flex-shrink-0">
+    <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">
+      Đóng
+    </button>
+    <button class="fs-12 btn" nz-button nzType="primary" (click)="saveData()">
+      Thêm
+    </button>
+  </div>
+</div>

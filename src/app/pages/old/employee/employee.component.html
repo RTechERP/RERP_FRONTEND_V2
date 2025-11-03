@@ -549,446 +549,633 @@
                     </nz-form-control>
                   </nz-form-item>
 
-                  <nz-form-item>
-                    <nz-form-label [nzSpan]="24"
-                      >Địa điểm làm việc
-                      <span class="text-danger"> (*)</span></nz-form-label
-                    >
-                    <nz-form-control
-                      [nzSpan]="24"
-                      nzErrorTip="Vui lòng nhập địa điểm làm việc"
-                    >
-                      <input
-                        nz-input
-                        formControlName="DiaDiemLamViec"
-                        placeholder="Nhập địa điểm làm việc"
-                      />
-                    </nz-form-control>
-                  </nz-form-item>
-                </nz-col>
-                <nz-col nzSpan="4">
-                  <div
-                    class="d-flex flex-column align-items-center text-center"
-                  >
-                    <label>Ảnh</label>
-                    <nz-upload
-                      class="avatar-uploader"
-                      nzName="avatar"
-                      nzListType="picture-card"
-                      [nzShowUploadList]="false"
-                      [nzBeforeUpload]="beforeUpload"
-                      (nzChange)="handleChange($event)"
-                    >
-                      <div *ngIf="!avatarUrl">
-                        <div nz-icon nzType="plus"></div>
-                        <div style="margin-top: 8px">Upload</div>
-                      </div>
-                      <img
-                        *ngIf="avatarUrl"
-                        [src]="avatarUrl"
-                        style="width: 100%"
-                      />
-                    </nz-upload>
-                    <div class="mt-2 text-center">
-                      <small class="text-muted">Kích thước ảnh: 2MB</small
-                      ><br />
-                      <small class="text-muted">Định dạng: JPG/PNG</small>
-                    </div>
-                  </div>
-                </nz-col>
-              </nz-row>
-            </nz-tab>
-            <nz-tab nzTitle="Thông tin liên hệ">
-              <nz-row [nzGutter]="24">
-                <nz-col nzSpan="12">
-                  <nz-row>
-                    <nz-col nzSpan="24">
-                      <fieldset class="reset">
-                        <legend class="fs-12 reset fw-bold">CMND/CCCD</legend>
-                        <nz-form-item>
-                          <nz-form-label [nzSpan]="24"
-                            >Số
-                            <span class="text-danger"> (*)</span></nz-form-label
-                          >
-                          <nz-form-control
-                            [nzSpan]="24"
-                            nzErrorTip="Vui lòng nhập số CMND/CCCD"
-                          >
-                            <input
-                              nz-input
-                              formControlName="CMTND"
-                              placeholder="Nhập số CMND/CCCD"
-                            />
-                          </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item>
-                          <nz-form-label [nzSpan]="24"
-                            >Ngày cấp
-                            <span class="text-danger"> (*)</span></nz-form-label
-                          >
-                          <nz-form-control
-                            [nzSpan]="24"
-                            nzErrorTip="Vui lòng nhập ngày cấp"
-                          >
-                            <nz-date-picker
-                              formControlName="NgayCap"
-                              nzPlaceHolder="Chọn ngày bắt đầu làm việc"
-                              nzFormat="dd/MM/yyyy"
-                              [nzSize]="'default'"
-                              style="width: 100%"
-                            ></nz-date-picker>
-                          </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item>
-                          <nz-form-label [nzSpan]="24"
-                            >Nơi cấp
-                            <span class="text-danger"> (*)</span></nz-form-label
-                          >
-                          <nz-form-control
-                            [nzSpan]="24"
-                            nzErrorTip="Vui lòng nhập nơi cấp"
-                          >
-                            <input
-                              nz-input
-                              formControlName="NoiCap"
-                              placeholder="Nhập nơi cấp"
-                            />
-                          </nz-form-control>
-                        </nz-form-item>
-                        <br />
-                        <br />
-                        <br />
-                        <br />
-                      </fieldset>
-                    </nz-col>
-                  </nz-row>
-                  <nz-row>
-                    <nz-col nzSpan="24">
-                      <fieldset class="reset">
-                        <legend class="fs-12 reset fw-bold">
-                          Thông tin liên hệ
-                        </legend>
-                        <nz-form-item>
-                          <nz-form-label [nzSpan]="24"
-                            >SĐT cá nhân
-                            <span class="text-danger"> (*)</span></nz-form-label
-                          >
-                          <nz-form-control
-                            [nzSpan]="24"
-                            nzErrorTip="Vui lòng nhập SĐT cá nhân"
-                          >
-                            <input
-                              nz-input
-                              formControlName="SDTCaNhan"
-                              placeholder="Nhập SĐT cá nhân"
-                            />
-                          </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item>
-                          <nz-form-label [nzSpan]="24"
-                            >Email cá nhân
-                            <span class="text-danger"> (*)</span></nz-form-label
-                          >
-                          <nz-form-control
-                            [nzSpan]="24"
-                            nzErrorTip="Vui lòng nhập email cá nhân"
-                          >
-                            <input
-                              nz-input
-                              formControlName="EmailCaNhan"
-                              placeholder="Nhập email cá nhân"
-                            />
-                          </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item>
-                          <nz-form-label [nzSpan]="24"
-                            >SĐT công ty cấp
-                          </nz-form-label>
-                          <nz-form-control
-                            [nzSpan]="24"
-                            nzErrorTip="Vui lòng nhập SĐT công ty cấp"
-                          >
-                            <input
-                              nz-input
-                              formControlName="SDTCongTy"
-                              placeholder="Nhập SĐT công ty cấp"
-                            />
-                          </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item>
-                          <nz-form-label [nzSpan]="24"
-                            >Email công ty cấp
-                          </nz-form-label>
-                          <nz-form-control
-                            [nzSpan]="24"
-                            nzErrorTip="Vui lòng nhập email công ty cấp"
-                          >
-                            <input
-                              nz-input
-                              formControlName="EmailCongTy"
-                              placeholder="Nhập email công ty cấp"
-                            />
-                          </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item>
-                          <nz-form-label [nzSpan]="24"
-                            >Họ và tên người thân
-                            <span class="text-danger"> (*)</span></nz-form-label
-                          >
-                          <nz-form-control
-                            [nzSpan]="24"
-                            nzErrorTip="Vui lòng nhập họ và tên người thân"
-                          >
-                            <input
-                              nz-input
-                              formControlName="NguoiLienHeKhiCan"
-                              placeholder="Nhập họ và tên người thân"
-                            />
-                          </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item>
-                          <nz-form-label [nzSpan]="24"
-                            >Mối quan hệ
-                            <span class="text-danger"> (*)</span></nz-form-label
-                          >
-                          <nz-form-control
-                            [nzSpan]="24"
-                            nzErrorTip="Vui lòng nhập mối quan hệ"
-                          >
-                            <input
-                              nz-input
-                              formControlName="MoiQuanHe"
-                              placeholder="Nhập mối quan hệ"
-                            />
-                          </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item class="pb-3">
-                          <nz-form-label [nzSpan]="24"
-                            >SĐT người thân
-                            <span class="text-danger"> (*)</span></nz-form-label
-                          >
-                          <nz-form-control
-                            [nzSpan]="24"
-                            nzErrorTip="Vui lòng nhập SĐT người thân"
-                          >
-                            <input
-                              nz-input
-                              formControlName="SDTNguoiThan"
-                              placeholder="Nhập SĐT người thân"
-                            />
-                          </nz-form-control>
-                        </nz-form-item>
-                      </fieldset>
-                    </nz-col>
-                  </nz-row>
-                </nz-col>
-                <nz-col nzSpan="12">
-                  <nz-row nzGutter="12">
-                    <nz-col nzSpan="24">
-                      <fieldset class="reset">
-                        <legend class="fs-12 reset fw-bold">
-                          Địa chỉ thường trú
-                        </legend>
-                        <nz-form-item>
-                          <nz-form-label [nzSpan]="24"
-                            >Tỉnh/Thành phố
-                            <span class="text-danger"> (*)</span></nz-form-label
-                          >
-                          <nz-form-control
-                            [nzSpan]="24"
-                            nzErrorTip="Vui lòng nhập tỉnh/thành phố"
-                          >
-                            <input
-                              nz-input
-                              formControlName="TinhDcThuongTru"
-                              placeholder="Nhập tỉnh/thành phố"
-                            />
-                          </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item>
-                          <nz-form-label [nzSpan]="24"
-                            >Quận/Huyện
-                            <span class="text-danger"> (*)</span></nz-form-label
-                          >
-                          <nz-form-control
-                            [nzSpan]="24"
-                            nzErrorTip="Vui lòng nhập quận/huyện"
-                          >
-                            <input
-                              nz-input
-                              formControlName="QuanDcThuongTru"
-                              placeholder="Nhập quận/huyện"
-                            />
-                          </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item>
-                          <nz-form-label [nzSpan]="24"
-                            >Phường/Xã
-                            <span class="text-danger"> (*)</span></nz-form-label
-                          >
-                          <nz-form-control
-                            [nzSpan]="24"
-                            nzErrorTip="Vui lòng nhập phường/xã"
-                          >
-                            <input
-                              nz-input
-                              formControlName="PhuongDcThuongTru"
-                              placeholder="Nhập phường/xã"
-                            />
-                          </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item>
-                          <nz-form-label [nzSpan]="24"> Đường </nz-form-label>
-                          <nz-form-control
-                            [nzSpan]="24"
-                            nzErrorTip="Vui lòng nhập đường"
-                          >
-                            <input
-                              nz-input
-                              formControlName="DuongDcThuongTru"
-                              placeholder="Nhập đường"
-                            />
-                          </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item>
-                          <nz-form-label [nzSpan]="24"> Số nhà </nz-form-label>
-                          <nz-form-control
-                            [nzSpan]="24"
-                            nzErrorTip="Vui lòng nhập số nhà"
-                          >
-                            <input
-                              nz-input
-                              formControlName="SoNhaDcThuongTru"
-                              placeholder="Nhập số nhà"
-                            />
-                          </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item>
-                          <nz-form-label [nzSpan]="24"
-                            >Địa chỉ thường trú (Theo sổ hộ khẩu)
-                            <span class="text-danger"> (*)</span></nz-form-label
-                          >
-                          <nz-form-control
-                            [nzSpan]="24"
-                            nzErrorTip="Vui lòng địa chỉ thường trú (Theo số hộ khẩu)"
-                          >
-                            <input
-                              nz-input
-                              formControlName="DcThuongTru"
-                              placeholder="Nhập địa chỉ thường trú (Theo số hộ khẩu)"
-                            />
-                          </nz-form-control>
-                        </nz-form-item>
-                      </fieldset>
-                    </nz-col>
-                  </nz-row>
-                  <nz-row nzSpan="12">
-                    <nz-col nzSpan="24">
-                      <fieldset class="reset">
-                        <legend class="fs-12 reset fw-bold">
-                          Địa chỉ tạm trú
-                        </legend>
-                        <nz-form-item>
-                          <nz-form-label [nzSpan]="24"
-                            >Tỉnh/Thành phố
-                            <span class="text-danger"> (*)</span></nz-form-label
-                          >
-                          <nz-form-control
-                            [nzSpan]="24"
-                            nzErrorTip="Vui lòng nhập tỉnh/thành phố"
-                          >
-                            <input
-                              nz-input
-                              formControlName="TinhDcTamTru"
-                              placeholder="Nhập tỉnh/thành phố"
-                            />
-                          </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item>
-                          <nz-form-label [nzSpan]="24"
-                            >Quận/Huyện
-                            <span class="text-danger"> (*)</span></nz-form-label
-                          >
-                          <nz-form-control
-                            [nzSpan]="24"
-                            nzErrorTip="Vui lòng nhập quận/huyện"
-                          >
-                            <input
-                              nz-input
-                              formControlName="QuanDcTamTru"
-                              placeholder="Nhập quận/huyện"
-                            />
-                          </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item>
-                          <nz-form-label [nzSpan]="24"
-                            >Phường/Xã
-                            <span class="text-danger"> (*)</span></nz-form-label
-                          >
-                          <nz-form-control
-                            [nzSpan]="24"
-                            nzErrorTip="Vui lòng nhập phường/xã"
-                          >
-                            <input
-                              nz-input
-                              formControlName="PhuongDcTamTru"
-                              placeholder="Nhập phường/xã"
-                            />
-                          </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item>
-                          <nz-form-label [nzSpan]="24">Đường</nz-form-label>
-                          <nz-form-control
-                            [nzSpan]="24"
-                            nzErrorTip="Vui lòng nhập đường"
-                          >
-                            <input
-                              nz-input
-                              formControlName="DuongDcTamTru"
-                              placeholder="Nhập đường"
-                            />
-                          </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item>
-                          <nz-form-label [nzSpan]="24"> Số nhà </nz-form-label>
-                          <nz-form-control
-                            [nzSpan]="24"
-                            nzErrorTip="Vui lòng nhập số nhà"
-                          >
-                            <input
-                              nz-input
-                              formControlName="SoNhaDcTamTru"
-                              placeholder="Nhập số nhà"
-                            />
-                          </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item>
-                          <nz-form-label [nzSpan]="24"
-                            >Địa chỉ tạm trú (Theo sổ hộ khẩu)
-                            <span class="text-danger"> (*)</span></nz-form-label
-                          >
-                          <nz-form-control
-                            [nzSpan]="24"
-                            nzErrorTip="Vui lòng địa chỉ tạm trú (Theo số hộ khẩu)"
-                          >
-                            <input
-                              nz-input
-                              formControlName="DcTamTru"
-                              placeholder="Nhập địa chỉ tạm trú (Theo số hộ khẩu)"
-                            />
-                          </nz-form-control>
-                        </nz-form-item>
-                      </fieldset>
-                    </nz-col>
-                  </nz-row>
-                </nz-col>
-              </nz-row>
-            </nz-tab>
-            <nz-tab nzTitle="Thông tin lương">
-              <nz-row nzGutter="24">
-                <nz-col nzSpan="12">
-                  <fieldset class="reset">
-                    <legend class="fs-12 reset fw-bold">BHXH</legend>
+                                    <nz-form-item>
+                                        <nz-form-label [nzSpan]="24">Quốc tịch
+                                            <span class="text-danger"> (*)</span></nz-form-label>
+                                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập quốc tịch">
+                                            <input nz-input formControlName="QuocTich" placeholder="Nhập quốc tịch" />
+                                        </nz-form-control>
+                                    </nz-form-item>
+                                    <nz-form-item>
+                                        <nz-form-label [nzSpan]="24">Tình trạng hôn nhân<span class="text-danger">
+                                                (*)</span></nz-form-label>
+                                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập tình trạng hôn nhân">
+                                            <nz-select formControlName="TinhTrangHonNhanID" style="width: 100%;"
+                                                nzPlaceHolder="Nhập tình trạng hôn nhân">
+                                                <nz-option [nzValue]="1" nzLabel="Độc thân"></nz-option>
+                                                <nz-option [nzValue]="2" nzLabel="Đã kết hôn"></nz-option>
+                                            </nz-select>
+                                        </nz-form-control>
+                                    </nz-form-item>
+
+                                    <nz-form-item>
+                                        <nz-form-label [nzSpan]="24">Địa điểm làm việc
+                                            <span class="text-danger"> (*)</span></nz-form-label>
+                                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập địa điểm làm việc">
+                                            <input nz-input formControlName="DiaDiemLamViec"
+                                                placeholder="Nhập địa điểm làm việc" />
+                                        </nz-form-control>
+                                    </nz-form-item>
+                                </nz-col>
+                                <nz-col nzSpan="4">
+                                    <div class="d-flex flex-column align-items-center text-center">
+                                        <label>Ảnh</label>
+                                        <nz-upload class="avatar-uploader" nzName="avatar" nzListType="picture-card"
+                                            [nzShowUploadList]="false" [nzBeforeUpload]="beforeUpload"
+                                            (nzChange)="handleChange($event)">
+                                            <div *ngIf="!avatarUrl">
+                                                <div nz-icon nzType="plus"></div>
+                                                <div style="margin-top: 8px">Upload</div>
+                                            </div>
+                                            <img *ngIf="avatarUrl" [src]="avatarUrl" style="width: 100%" />
+                                        </nz-upload>
+                                        <div class="mt-2 text-center">
+                                            <small class="text-muted">Kích thước ảnh: 2MB</small><br>
+                                            <small class="text-muted">Định dạng: JPG/PNG</small>
+                                        </div>
+                                    </div>
+                                </nz-col>
+                            </nz-row>
+                        </nz-tab>
+                        <nz-tab nzTitle="Thông tin liên hệ">
+                            <nz-row [nzGutter]="24">
+                                <nz-col nzSpan="12">
+                                    <nz-row>
+                                        <nz-col nzSpan="24">
+                                            <fieldset class="reset">
+                                                <legend class="fs-12 reset fw-bold">CMND/CCCD</legend>
+                                                <nz-form-item>
+                                                    <nz-form-label [nzSpan]="24">Số
+                                                        <span class="text-danger"> (*)</span></nz-form-label>
+                                                    <nz-form-control [nzSpan]="24"
+                                                        nzErrorTip="Vui lòng nhập số CMND/CCCD">
+                                                        <input nz-input formControlName="CMTND"
+                                                            placeholder="Nhập số CMND/CCCD" />
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                                <nz-form-item>
+                                                    <nz-form-label [nzSpan]="24">Ngày cấp
+                                                        <span class="text-danger"> (*)</span></nz-form-label>
+                                                    <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập ngày cấp">
+                                                        <nz-date-picker formControlName="NgayCap"
+                                                            nzPlaceHolder="Chọn ngày bắt đầu làm việc"
+                                                            nzFormat="dd/MM/yyyy" [nzSize]="'default'"
+                                                            style="width: 100%"></nz-date-picker>
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                                <nz-form-item>
+                                                    <nz-form-label [nzSpan]="24">Nơi cấp
+                                                        <span class="text-danger"> (*)</span></nz-form-label>
+                                                    <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập nơi cấp">
+                                                        <input nz-input formControlName="NoiCap"
+                                                            placeholder="Nhập nơi cấp" />
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                                <br>
+                                                <br>
+                                                <br>
+                                                <br>
+                                            </fieldset>
+                                        </nz-col>
+                                    </nz-row>
+                                    <nz-row>
+                                        <nz-col nzSpan="24">
+                                            <fieldset class="reset">
+                                                <legend class="fs-12 reset fw-bold">Thông tin liên hệ</legend>
+                                                <nz-form-item>
+                                                    <nz-form-label [nzSpan]="24">SĐT cá nhân
+                                                        <span class="text-danger"> (*)</span></nz-form-label>
+                                                    <nz-form-control [nzSpan]="24"
+                                                        nzErrorTip="Vui lòng nhập SĐT cá nhân">
+                                                        <input nz-input formControlName="SDTCaNhan"
+                                                            placeholder="Nhập SĐT cá nhân" />
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                                <nz-form-item>
+                                                    <nz-form-label [nzSpan]="24">Email cá nhân
+                                                        <span class="text-danger"> (*)</span></nz-form-label>
+                                                    <nz-form-control [nzSpan]="24"
+                                                        nzErrorTip="Vui lòng nhập email cá nhân">
+                                                        <input nz-input formControlName="EmailCaNhan"
+                                                            placeholder="Nhập email cá nhân" />
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                                <nz-form-item>
+                                                    <nz-form-label [nzSpan]="24">SĐT công ty cấp
+                                                    </nz-form-label>
+                                                    <nz-form-control [nzSpan]="24"
+                                                        nzErrorTip="Vui lòng nhập SĐT công ty cấp">
+                                                        <input nz-input formControlName="SDTCongTy"
+                                                            placeholder="Nhập SĐT công ty cấp" />
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                                <nz-form-item>
+                                                    <nz-form-label [nzSpan]="24">Email công ty cấp
+                                                    </nz-form-label>
+                                                    <nz-form-control [nzSpan]="24"
+                                                        nzErrorTip="Vui lòng nhập email công ty cấp">
+                                                        <input nz-input formControlName="EmailCongTy"
+                                                            placeholder="Nhập email công ty cấp" />
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                                <nz-form-item>
+                                                    <nz-form-label [nzSpan]="24">Họ và tên người thân
+                                                        <span class="text-danger"> (*)</span></nz-form-label>
+                                                    <nz-form-control [nzSpan]="24"
+                                                        nzErrorTip="Vui lòng nhập họ và tên người thân">
+                                                        <input nz-input formControlName="NguoiLienHeKhiCan"
+                                                            placeholder="Nhập họ và tên người thân" />
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                                <nz-form-item>
+                                                    <nz-form-label [nzSpan]="24">Mối quan hệ
+                                                        <span class="text-danger"> (*)</span></nz-form-label>
+                                                    <nz-form-control [nzSpan]="24"
+                                                        nzErrorTip="Vui lòng nhập mối quan hệ">
+                                                        <input nz-input formControlName="MoiQuanHe"
+                                                            placeholder="Nhập mối quan hệ" />
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                                <nz-form-item class="pb-3">
+                                                    <nz-form-label [nzSpan]="24">SĐT người thân
+                                                        <span class="text-danger"> (*)</span></nz-form-label>
+                                                    <nz-form-control [nzSpan]="24"
+                                                        nzErrorTip="Vui lòng nhập SĐT người thân">
+                                                        <input nz-input formControlName="SDTNguoiThan"
+                                                            placeholder="Nhập SĐT người thân" />
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                            </fieldset>
+                                        </nz-col>
+                                    </nz-row>
+                                </nz-col>
+                                <nz-col nzSpan="12">
+                                    <nz-row nzGutter="12">
+                                        <nz-col nzSpan="24">
+                                            <fieldset class="reset">
+                                                <legend class="fs-12 reset fw-bold ">Địa chỉ thường trú</legend>
+                                                <nz-form-item>
+                                                    <nz-form-label [nzSpan]="24">Tỉnh/Thành phố
+                                                        <span class="text-danger"> (*)</span></nz-form-label>
+                                                    <nz-form-control [nzSpan]="24"
+                                                        nzErrorTip="Vui lòng nhập tỉnh/thành phố">
+                                                        <input nz-input formControlName="TinhDcThuongTru"
+                                                            placeholder="Nhập tỉnh/thành phố" />
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                                <nz-form-item>
+                                                    <nz-form-label [nzSpan]="24">Quận/Huyện
+                                                        <span class="text-danger"> (*)</span></nz-form-label>
+                                                    <nz-form-control [nzSpan]="24"
+                                                        nzErrorTip="Vui lòng nhập quận/huyện">
+                                                        <input nz-input formControlName="QuanDcThuongTru"
+                                                            placeholder="Nhập quận/huyện" />
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                                <nz-form-item>
+                                                    <nz-form-label [nzSpan]="24">Phường/Xã
+                                                        <span class="text-danger"> (*)</span></nz-form-label>
+                                                    <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập phường/xã">
+                                                        <input nz-input formControlName="PhuongDcThuongTru"
+                                                            placeholder="Nhập phường/xã" />
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                                <nz-form-item>
+                                                    <nz-form-label [nzSpan]="24">
+                                                        Đường
+                                                    </nz-form-label>
+                                                    <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập đường">
+                                                        <input nz-input formControlName="DuongDcThuongTru"
+                                                            placeholder="Nhập đường" />
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                                <nz-form-item>
+                                                    <nz-form-label [nzSpan]="24">
+                                                        Số nhà
+                                                    </nz-form-label>
+                                                    <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập số nhà">
+                                                        <input nz-input formControlName="SoNhaDcThuongTru"
+                                                            placeholder="Nhập số nhà" />
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                                <nz-form-item>
+                                                    <nz-form-label [nzSpan]="24">Địa chỉ thường trú (Theo sổ hộ khẩu)
+                                                        <span class="text-danger"> (*)</span></nz-form-label>
+                                                    <nz-form-control [nzSpan]="24"
+                                                        nzErrorTip="Vui lòng địa chỉ thường trú (Theo số hộ khẩu)">
+                                                        <input nz-input formControlName="DcThuongTru"
+                                                            placeholder="Nhập địa chỉ thường trú (Theo số hộ khẩu)" />
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                            </fieldset>
+                                        </nz-col>
+                                    </nz-row>
+                                    <nz-row nzSpan="12">
+                                        <nz-col nzSpan="24">
+                                            <fieldset class="reset">
+                                                <legend class="fs-12 reset fw-bold">Địa chỉ tạm trú</legend>
+                                                <nz-form-item>
+                                                    <nz-form-label [nzSpan]="24">Tỉnh/Thành phố
+                                                        <span class="text-danger"> (*)</span></nz-form-label>
+                                                    <nz-form-control [nzSpan]="24"
+                                                        nzErrorTip="Vui lòng nhập tỉnh/thành phố">
+                                                        <input nz-input formControlName="TinhDcTamTru"
+                                                            placeholder="Nhập tỉnh/thành phố" />
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                                <nz-form-item>
+                                                    <nz-form-label [nzSpan]="24">Quận/Huyện
+                                                        <span class="text-danger"> (*)</span></nz-form-label>
+                                                    <nz-form-control [nzSpan]="24"
+                                                        nzErrorTip="Vui lòng nhập quận/huyện">
+                                                        <input nz-input formControlName="QuanDcTamTru"
+                                                            placeholder="Nhập quận/huyện" />
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                                <nz-form-item>
+                                                    <nz-form-label [nzSpan]="24">Phường/Xã
+                                                        <span class="text-danger"> (*)</span></nz-form-label>
+                                                    <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập phường/xã">
+                                                        <input nz-input formControlName="PhuongDcTamTru"
+                                                            placeholder="Nhập phường/xã" />
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                                <nz-form-item>
+                                                    <nz-form-label [nzSpan]="24">Đường</nz-form-label>
+                                                    <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập đường">
+                                                        <input nz-input formControlName="DuongDcTamTru"
+                                                            placeholder="Nhập đường" />
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                                <nz-form-item>
+                                                    <nz-form-label [nzSpan]="24">
+                                                        Số nhà
+                                                    </nz-form-label>
+                                                    <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập số nhà">
+                                                        <input nz-input formControlName="SoNhaDcTamTru"
+                                                            placeholder="Nhập số nhà" />
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                                <nz-form-item>
+                                                    <nz-form-label [nzSpan]="24">Địa chỉ tạm trú (Theo sổ hộ khẩu)
+                                                        <span class="text-danger"> (*)</span></nz-form-label>
+                                                    <nz-form-control [nzSpan]="24"
+                                                        nzErrorTip="Vui lòng địa chỉ tạm trú (Theo số hộ khẩu)">
+                                                        <input nz-input formControlName="DcTamTru"
+                                                            placeholder="Nhập địa chỉ tạm trú (Theo số hộ khẩu)" />
+                                                    </nz-form-control>
+                                                </nz-form-item>
+                                            </fieldset>
+                                        </nz-col>
+                                    </nz-row>
+                                </nz-col>
+                            </nz-row>
+                        </nz-tab>
+                        <nz-tab nzTitle="Thông tin lương">
+                            <nz-row nzGutter="24">
+                                <nz-col nzSpan="12">
+                                    <fieldset class="reset">
+                                        <legend class="fs-12 reset fw-bold">BHXH</legend>
+                                        <nz-form-item>
+                                            <nz-form-label [nzSpan]="24">Số sổ
+                                            </nz-form-label>
+                                            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập số sổ BHXH">
+                                                <input nz-input formControlName="SoSoBHXH"
+                                                    placeholder="Nhập số sổ BHXH" />
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                        <nz-form-item>
+                                            <nz-form-label [nzSpan]="24">Người giữ sổ
+                                            </nz-form-label>
+                                            <nz-select formControlName="NguoiGiuSoBHXHText"
+                                                nzPlaceHolder="Nhập người giữ sổ" style="width: 100%;" nzAllowClear
+                                                nzShowSearch>
+                                                <nz-option *ngFor="let e of employees" [nzValue]="e.FullName"
+                                                    [nzLabel]="e.FullName"></nz-option>
+                                            </nz-select>
+                                        </nz-form-item>
+                                        <nz-form-item>
+                                            <nz-form-label [nzSpan]="24">Ngày bắt đầu đóng tại công ty
+                                            </nz-form-label>
+                                            <nz-form-control [nzSpan]="24"
+                                                nzErrorTip="Vui lòng nhập ngày bắt đầu đóng tại công ty">
+                                                <nz-date-picker formControlName="NgayBatDauBHXHCty"
+                                                    nzPlaceHolder="Chọn ngày bắt đầu làm việc" nzFormat="dd/MM/yyyy"
+                                                    [nzSize]="'default'" style="width: 100%"></nz-date-picker>
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                        <nz-form-item>
+                                            <nz-form-label [nzSpan]="24">Mức đóng hiện tại
+                                            </nz-form-label>
+                                            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập mức đóng hiện tại">
+                                                <input nz-input formControlName="MucDongBHXHHienTai"
+                                                    placeholder="Nhập mức đóng hiện tại" />
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                        <br>
+                                        <br>
+                                        <br>
+                                    </fieldset>
+                                    <fieldset class="reset">
+                                        <legend class="fs-12 reset fw-bold">Giảm trừ gia cảnh</legend>
+                                        <nz-form-item>
+                                            <nz-form-label [nzSpan]="24">Giảm trừ bản thân
+                                            </nz-form-label>
+                                            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập giảm trừ bản thân">
+                                                <input nz-input formControlName="GiamTruBanThan"
+                                                    placeholder="Nhập giảm trừ bản thân" />
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                        <nz-form-item>
+                                            <nz-form-label [nzSpan]="24">Giảm trừ gia cảnh(sô người phụ thuộc)
+                                            </nz-form-label>
+                                            <nz-form-control [nzSpan]="24"
+                                                nzErrorTip="Vui lòng nhập giảm trừ gia cảnh(Số người phụ thuộc)">
+                                                <input nz-input formControlName="SoNguoiPT"
+                                                    placeholder="Nhập giảm trừ gia cảnh(Số người phụ thuộc)" />
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                        <nz-form-item>
+                                            <nz-form-label [nzSpan]="24">Giảm trừ gia cảnh(Tổng tiền)
+                                            </nz-form-label>
+                                            <nz-form-control [nzSpan]="24"
+                                                nzErrorTip="Vui lòng nhập giảm trừ gia cảnh(Tổng tiền)">
+                                                <input nz-input formControlName="TongTien"
+                                                    placeholder="Nhập giảm trừ gia cảng(Tổng tiền)" />
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                        <nz-form-item>
+                                            <nz-form-label [nzSpan]="24">MST cá nhân
+                                            </nz-form-label>
+                                            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập MST cá nhân">
+                                                <input nz-input formControlName="MST" placeholder="Nhập MST cá nhân" />
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                        <nz-form-item>
+                                            <nz-form-label [nzSpan]="24">STK chuyển lương
+                                            </nz-form-label>
+                                            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập STK chuyển lương">
+                                                <input nz-input formControlName="STKChuyenLuong"
+                                                    placeholder="Nhập STK chuyển lương" />
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                    </fieldset>
+                                </nz-col>
+                                <nz-col nzSpan="12">
+                                    <fieldset class="reset">
+                                        <legend class="fs-12 reset fw-bold">Lương</legend>
+                                        <nz-form-item>
+                                            <nz-form-label [nzSpan]="24">Lương thử việc
+                                            </nz-form-label>
+                                            <nz-form-control [nzSpan]="24">
+                                                <input nz-input type="number" formControlName="LuongThuViec" />
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                        <nz-form-item>
+                                            <nz-form-label [nzSpan]="24">Lương cơ bản
+                                            </nz-form-label>
+                                            <nz-form-control [nzSpan]="24">
+                                                <input nz-input type="number" formControlName="LuongCoBan" />
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                        <nz-form-item>
+                                            <nz-form-label [nzSpan]="24">Phụ cấp ăn ca
+                                            </nz-form-label>
+                                            <nz-form-control [nzSpan]="24">
+                                                <input nz-input type="number" formControlName="AnCa" />
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                        <nz-form-item>
+                                            <nz-form-label [nzSpan]="24">Phụ cấp xăng xe
+                                            </nz-form-label>
+                                            <nz-form-control [nzSpan]="24">
+                                                <input nz-input type="number" formControlName="XangXe" />
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                        <nz-form-item>
+                                            <nz-form-label [nzSpan]="24">Phụ cấp điện thoại
+                                            </nz-form-label>
+                                            <nz-form-control [nzSpan]="24">
+                                                <input nz-input type="number" formControlName="DienThoai" />
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                        <nz-form-item>
+                                            <nz-form-label [nzSpan]="24">Phụ cấp nhà ở
+                                            </nz-form-label>
+                                            <nz-form-control [nzSpan]="24">
+                                                <input nz-input type="number" formControlName="NhaO" />
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                        <nz-form-item>
+                                            <nz-form-label [nzSpan]="24">Phụ cấp trang phục
+                                            </nz-form-label>
+                                            <nz-form-control [nzSpan]="24">
+                                                <input nz-input type="number" formControlName="TrangPhuc" />
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                        <nz-form-item>
+                                            <nz-form-label [nzSpan]="24">Phụ cấp chuyên cần
+                                            </nz-form-label>
+                                            <nz-form-control [nzSpan]="24">
+                                                <input nz-input type="number" formControlName="ChuyenCan" />
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                        <nz-form-item>
+                                            <nz-form-label [nzSpan]="24">Phụ cấp khác
+                                            </nz-form-label>
+                                            <nz-form-control [nzSpan]="24">
+                                                <input nz-input type="number" formControlName="Khac" />
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                        <nz-form-item>
+                                            <nz-form-label [nzSpan]="24">Tổng phụ cấp
+                                            </nz-form-label>
+                                            <nz-form-control [nzSpan]="24">
+                                                <input nz-input type="number" formControlName="TongPhuCap" />
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                        <nz-form-item>
+                                            <nz-form-label [nzSpan]="24">Tổng lương
+                                            </nz-form-label>
+                                            <nz-form-control [nzSpan]="24">
+                                                <input nz-input type="number" formControlName="TongLuong" />
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                    </fieldset>
+                                </nz-col>
+                            </nz-row>
+                        </nz-tab>
+                        <nz-tab nzTitle="Checklist hồ sơ">
+                            <label nz-checkbox formControlName="allChecked">Tất cả</label><br>
+                            <fieldset class="reset">
+                                <legend class="reset fw-bold">Danh sách</legend>
+                                <nz-row nzGutter="24">
+                                    <nz-col nzSpan="12">
+                                        <label nz-checkbox formControlName="SYLL">SYLL</label><br>
+                                        <label nz-checkbox formControlName="GiayKS">Giấy KS</label><br>
+                                        <label nz-checkbox formControlName="CMNDorCCCD">CMND/CCCD</label><br>
+                                        <label nz-checkbox formControlName="SoHK">Sổ HK</label><br>
+                                        <label nz-checkbox formControlName="GiayKSK">Giấy KSK</label><br>
+                                        <label nz-checkbox formControlName="XNNS">XNNS</label><br>
+                                        <label nz-checkbox formControlName="BangCap">Bằng cấp</label><br>
+                                        <label nz-checkbox formControlName="CV">CV</label><br>
+                                        <label nz-checkbox formControlName="DXV">ĐXV</label><br>
+                                    </nz-col>
+                                    <nz-col nzSpan="12">
+                                        <label nz-checkbox formControlName="CamKetTs">Cam kết tài sản</label><br>
+                                        <label nz-checkbox formControlName="ToTrinhTD">Tờ trình tuyển dụng</label><br>
+                                        <label nz-checkbox formControlName="ThuMoiNhanViec">Thư mời nhận
+                                            việc</label><br>
+                                        <label nz-checkbox formControlName="QDTD">Quyết định tuyển dụng</label><br>
+                                        <label nz-checkbox formControlName="HDTV">Hợp đồng thử việc</label><br>
+                                        <label nz-checkbox formControlName="DGTV">Đánh giá thử việc</label><br>
+                                        <label nz-checkbox formControlName="HDLDXDTHYear">HDLD
+                                            KXDTH(12T-36T)</label><br>
+                                        <label nz-checkbox formControlName="DGChuyenHD">Đánh giá chuyển hợp
+                                            đồng</label><br>
+                                        <label nz-checkbox formControlName="HDLDKXDTH">HDLDKXDTH</label><br>
+                                    </nz-col>
+                                </nz-row>
+                            </fieldset>
+                        </nz-tab>
+                        <nz-tab nzTitle="Trình độ học vấn">
+                            <div id="tb_education"></div>
+                        </nz-tab>
+                    </nz-tabset>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal"
+                    style="height: 3vh; border: 1px solid; border-radius: 0">
+                    Đóng
+                </button>
+                <button type="button" class="btn btn-primary" style="height: 3vh; border-radius: 0; font-weight: bold"
+                    (click)="onSubmit()" *hasPermission="'N1,N2,N60'">
+                    Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="positionContractModal" tabindex="-1" aria-labelledby="positionContractModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h6 class="modal-title text-uppercase text-white" id="positionContractModalLabel">Quản lý chức vụ theo
+                    hợp đồng</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body fs-12">
+                <app-position-contract></app-position-contract>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="positionInternalModal" tabindex="-1" aria-labelledby="positionInternalModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h6 class="modal-title text-uppercase text-white" id="positionInternalModalLabel">Quản lý chức vụ nội bộ
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body fs-12">
+                <app-position-internal></app-position-internal>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="employeeApprove" tabindex="-1" aria-labelledby="employeeApproveModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h6 class="modal-title text-uppercase text-white" id="employeeApproveModalLabel">Quản lý người duyệt
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body fs-12">
+                <app-employee-approve></app-employee-approve>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="loginManagerForm" tabindex="-1" aria-labelledby="loginManagerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h6 class="modal-title text-uppercase text-white" id="loginManagerModalLabel">Quản lý thông tin đăng
+                    nhập</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body fs-12">
+                <app-employee-login-manager [selectedEmployee]="selectedEmployee"></app-employee-login-manager>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="employeeContractForm" tabindex="-1" aria-labelledby="employeeContractModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h6 class="modal-title text-uppercase text-white" id="employeeContractModalLabel">Hợp đồng lao động</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body fs-12">
+                <app-employee-contract [selectedEmployee]="selectedEmployee"></app-employee-contract>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="importExcelForm" tabindex="-1" aria-labelledby="importExcelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h6 class="modal-title text-uppercase text-white" id="importExcelModalLabel">NHẬP DỮ LIỆU EXCEL</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body fs-12">
+                <app-employee-import-excel></app-employee-import-excel>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="employeeTeamForm" tabindex="-1" aria-labelledby="employeeTeamModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h6 class="modal-title text-uppercase text-white" id="employeeTeamModalLabel">TEAM PHÒNG BAN</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body fs-12">
+                <app-employee-team></app-employee-team>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h6 class="modal-title text-uppercase text-white" id="deleteModalLabel">THÔNG BÁO</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form [formGroup]="deleteForm">
+                    <div class="fs-6 fw-bold py-2">Bạn có thực sự muốn chuyển trạng thái của nhân viên <span
+                            class="text-danger">{{selectedEmployee?.FullName}}</span> thành Ngừng hoạt động?</div>
                     <nz-form-item>
                       <nz-form-label [nzSpan]="24">Số sổ </nz-form-label>
                       <nz-form-control
@@ -1018,322 +1205,17 @@
                         ></nz-option>
                       </nz-select>
                     </nz-form-item>
-                    <nz-form-item>
-                      <nz-form-label [nzSpan]="24"
-                        >Ngày bắt đầu đóng tại công ty
-                      </nz-form-label>
-                      <nz-form-control
-                        [nzSpan]="24"
-                        nzErrorTip="Vui lòng nhập ngày bắt đầu đóng tại công ty"
-                      >
-                        <nz-date-picker
-                          formControlName="NgayBatDauBHXHCty"
-                          nzPlaceHolder="Chọn ngày bắt đầu làm việc"
-                          nzFormat="dd/MM/yyyy"
-                          [nzSize]="'default'"
-                          style="width: 100%"
-                        ></nz-date-picker>
-                      </nz-form-control>
-                    </nz-form-item>
-                    <nz-form-item>
-                      <nz-form-label [nzSpan]="24"
-                        >Mức đóng hiện tại
-                      </nz-form-label>
-                      <nz-form-control
-                        [nzSpan]="24"
-                        nzErrorTip="Vui lòng nhập mức đóng hiện tại"
-                      >
-                        <input
-                          nz-input
-                          formControlName="MucDongBHXHHienTai"
-                          placeholder="Nhập mức đóng hiện tại"
-                        />
-                      </nz-form-control>
-                    </nz-form-item>
-                    <br />
-                    <br />
-                    <br />
-                  </fieldset>
-                  <fieldset class="reset">
-                    <legend class="fs-12 reset fw-bold">
-                      Giảm trừ gia cảnh
-                    </legend>
-                    <nz-form-item>
-                      <nz-form-label [nzSpan]="24"
-                        >Giảm trừ bản thân
-                      </nz-form-label>
-                      <nz-form-control
-                        [nzSpan]="24"
-                        nzErrorTip="Vui lòng nhập giảm trừ bản thân"
-                      >
-                        <input
-                          nz-input
-                          formControlName="GiamTruBanThan"
-                          placeholder="Nhập giảm trừ bản thân"
-                        />
-                      </nz-form-control>
-                    </nz-form-item>
-                    <nz-form-item>
-                      <nz-form-label [nzSpan]="24"
-                        >Giảm trừ gia cảnh(sô người phụ thuộc)
-                      </nz-form-label>
-                      <nz-form-control
-                        [nzSpan]="24"
-                        nzErrorTip="Vui lòng nhập giảm trừ gia cảnh(Số người phụ thuộc)"
-                      >
-                        <input
-                          nz-input
-                          formControlName="SoNguoiPT"
-                          placeholder="Nhập giảm trừ gia cảnh(Số người phụ thuộc)"
-                        />
-                      </nz-form-control>
-                    </nz-form-item>
-                    <nz-form-item>
-                      <nz-form-label [nzSpan]="24"
-                        >Giảm trừ gia cảnh(Tổng tiền)
-                      </nz-form-label>
-                      <nz-form-control
-                        [nzSpan]="24"
-                        nzErrorTip="Vui lòng nhập giảm trừ gia cảnh(Tổng tiền)"
-                      >
-                        <input
-                          nz-input
-                          formControlName="TongTien"
-                          placeholder="Nhập giảm trừ gia cảng(Tổng tiền)"
-                        />
-                      </nz-form-control>
-                    </nz-form-item>
-                    <nz-form-item>
-                      <nz-form-label [nzSpan]="24">MST cá nhân </nz-form-label>
-                      <nz-form-control
-                        [nzSpan]="24"
-                        nzErrorTip="Vui lòng nhập MST cá nhân"
-                      >
-                        <input
-                          nz-input
-                          formControlName="MST"
-                          placeholder="Nhập MST cá nhân"
-                        />
-                      </nz-form-control>
-                    </nz-form-item>
-                    <nz-form-item>
-                      <nz-form-label [nzSpan]="24"
-                        >STK chuyển lương
-                      </nz-form-label>
-                      <nz-form-control
-                        [nzSpan]="24"
-                        nzErrorTip="Vui lòng nhập STK chuyển lương"
-                      >
-                        <input
-                          nz-input
-                          formControlName="STKChuyenLuong"
-                          placeholder="Nhập STK chuyển lương"
-                        />
-                      </nz-form-control>
-                    </nz-form-item>
-                  </fieldset>
-                </nz-col>
-                <nz-col nzSpan="12">
-                  <fieldset class="reset">
-                    <legend class="fs-12 reset fw-bold">Lương</legend>
-                    <nz-form-item>
-                      <nz-form-label [nzSpan]="24"
-                        >Lương thử việc
-                      </nz-form-label>
-                      <nz-form-control [nzSpan]="24">
-                        <input
-                          nz-input
-                          type="number"
-                          formControlName="LuongThuViec"
-                        />
-                      </nz-form-control>
-                    </nz-form-item>
-                    <nz-form-item>
-                      <nz-form-label [nzSpan]="24">Lương cơ bản </nz-form-label>
-                      <nz-form-control [nzSpan]="24">
-                        <input
-                          nz-input
-                          type="number"
-                          formControlName="LuongCoBan"
-                        />
-                      </nz-form-control>
-                    </nz-form-item>
-                    <nz-form-item>
-                      <nz-form-label [nzSpan]="24"
-                        >Phụ cấp ăn ca
-                      </nz-form-label>
-                      <nz-form-control [nzSpan]="24">
-                        <input nz-input type="number" formControlName="AnCa" />
-                      </nz-form-control>
-                    </nz-form-item>
-                    <nz-form-item>
-                      <nz-form-label [nzSpan]="24"
-                        >Phụ cấp xăng xe
-                      </nz-form-label>
-                      <nz-form-control [nzSpan]="24">
-                        <input
-                          nz-input
-                          type="number"
-                          formControlName="XangXe"
-                        />
-                      </nz-form-control>
-                    </nz-form-item>
-                    <nz-form-item>
-                      <nz-form-label [nzSpan]="24"
-                        >Phụ cấp điện thoại
-                      </nz-form-label>
-                      <nz-form-control [nzSpan]="24">
-                        <input
-                          nz-input
-                          type="number"
-                          formControlName="DienThoai"
-                        />
-                      </nz-form-control>
-                    </nz-form-item>
-                    <nz-form-item>
-                      <nz-form-label [nzSpan]="24"
-                        >Phụ cấp nhà ở
-                      </nz-form-label>
-                      <nz-form-control [nzSpan]="24">
-                        <input nz-input type="number" formControlName="NhaO" />
-                      </nz-form-control>
-                    </nz-form-item>
-                    <nz-form-item>
-                      <nz-form-label [nzSpan]="24"
-                        >Phụ cấp trang phục
-                      </nz-form-label>
-                      <nz-form-control [nzSpan]="24">
-                        <input
-                          nz-input
-                          type="number"
-                          formControlName="TrangPhuc"
-                        />
-                      </nz-form-control>
-                    </nz-form-item>
-                    <nz-form-item>
-                      <nz-form-label [nzSpan]="24"
-                        >Phụ cấp chuyên cần
-                      </nz-form-label>
-                      <nz-form-control [nzSpan]="24">
-                        <input
-                          nz-input
-                          type="number"
-                          formControlName="ChuyenCan"
-                        />
-                      </nz-form-control>
-                    </nz-form-item>
-                    <nz-form-item>
-                      <nz-form-label [nzSpan]="24">Phụ cấp khác </nz-form-label>
-                      <nz-form-control [nzSpan]="24">
-                        <input nz-input type="number" formControlName="Khac" />
-                      </nz-form-control>
-                    </nz-form-item>
-                    <nz-form-item>
-                      <nz-form-label [nzSpan]="24">Tổng phụ cấp </nz-form-label>
-                      <nz-form-control [nzSpan]="24">
-                        <input
-                          nz-input
-                          type="number"
-                          formControlName="TongPhuCap"
-                        />
-                      </nz-form-control>
-                    </nz-form-item>
-                    <nz-form-item>
-                      <nz-form-label [nzSpan]="24">Tổng lương </nz-form-label>
-                      <nz-form-control [nzSpan]="24">
-                        <input
-                          nz-input
-                          type="number"
-                          formControlName="TongLuong"
-                        />
-                      </nz-form-control>
-                    </nz-form-item>
-                  </fieldset>
-                </nz-col>
-              </nz-row>
-            </nz-tab>
-            <nz-tab nzTitle="Checklist hồ sơ">
-              <label nz-checkbox formControlName="allChecked">Tất cả</label
-              ><br />
-              <fieldset class="reset">
-                <legend class="reset fw-bold">Danh sách</legend>
-                <nz-row nzGutter="24">
-                  <nz-col nzSpan="12">
-                    <label nz-checkbox formControlName="SYLL">SYLL</label><br />
-                    <label nz-checkbox formControlName="GiayKS">Giấy KS</label
-                    ><br />
-                    <label nz-checkbox formControlName="CMNDorCCCD"
-                      >CMND/CCCD</label
-                    ><br />
-                    <label nz-checkbox formControlName="SoHK">Sổ HK</label
-                    ><br />
-                    <label nz-checkbox formControlName="GiayKSK">Giấy KSK</label
-                    ><br />
-                    <label nz-checkbox formControlName="XNNS">XNNS</label><br />
-                    <label nz-checkbox formControlName="BangCap">Bằng cấp</label
-                    ><br />
-                    <label nz-checkbox formControlName="CV">CV</label><br />
-                    <label nz-checkbox formControlName="DXV">ĐXV</label><br />
-                  </nz-col>
-                  <nz-col nzSpan="12">
-                    <label nz-checkbox formControlName="CamKetTs"
-                      >Cam kết tài sản</label
-                    ><br />
-                    <label nz-checkbox formControlName="ToTrinhTD"
-                      >Tờ trình tuyển dụng</label
-                    ><br />
-                    <label nz-checkbox formControlName="ThuMoiNhanViec"
-                      >Thư mời nhận việc</label
-                    ><br />
-                    <label nz-checkbox formControlName="QDTD"
-                      >Quyết định tuyển dụng</label
-                    ><br />
-                    <label nz-checkbox formControlName="HDTV"
-                      >Hợp đồng thử việc</label
-                    ><br />
-                    <label nz-checkbox formControlName="DGTV"
-                      >Đánh giá thử việc</label
-                    ><br />
-                    <label nz-checkbox formControlName="HDLDXDTHYear"
-                      >HDLD KXDTH(12T-36T)</label
-                    ><br />
-                    <label nz-checkbox formControlName="DGChuyenHD"
-                      >Đánh giá chuyển hợp đồng</label
-                    ><br />
-                    <label nz-checkbox formControlName="HDLDKXDTH"
-                      >HDLDKXDTH</label
-                    ><br />
-                  </nz-col>
-                </nz-row>
-              </fieldset>
-            </nz-tab>
-            <nz-tab nzTitle="Trình độ học vấn">
-              <div id="tb_education"></div>
-            </nz-tab>
-          </nz-tabset>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button
-          type="button"
-          class="btn btn-outline-danger"
-          data-bs-dismiss="modal"
-          style="height: 3vh; border: 1px solid; border-radius: 0"
-        >
-          Đóng
-        </button>
-        <button
-          type="button"
-          class="btn btn-primary"
-          style="height: 3vh; border-radius: 0; font-weight: bold"
-          (click)="onSubmit()"
-        >
-          Lưu
-        </button>
-      </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" (click)="closeDeleteModal()">Hủy</button>
+                <button type="button" class="btn btn-primary" (click)="deleteEmployee()"
+                    *hasPermission="'N1,N2,N60'">Đồng ý</button>
+            </div>
+        </div>
     </div>
   </div>
-</div>
+
 
 <div
   class="modal fade"

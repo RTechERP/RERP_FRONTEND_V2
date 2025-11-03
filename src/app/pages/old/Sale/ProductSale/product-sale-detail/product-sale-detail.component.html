@@ -1,8 +1,7 @@
-
 <div class="modal-dialog-scrollable">
-    <div class="modal-header bg-primary text-uppercase py-2" >
-     <h6 class="modal-title text-white" id="addProductSaleModalLabel">Thông tin vật tư</h6>
-      <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+    <div class="modal-header bg-primary text-uppercase py-2">
+        <h6 class="modal-title text-white" id="addProductSaleModalLabel">Thông tin vật tư</h6>
+        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
     </div>
     <div class="modal-body">
       <form  nz-form [formGroup]="formGroup" class="g-3 needs-validation was-validated" >
@@ -175,9 +174,9 @@
       </form>
     </div>
     <div class="modal-footer">
-      <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
-      <button tclass="fs-12 btn" nz-button nzType="primary"(click)="saveDataProductSale()"   >Lưu</button>
-      <!-- (click)="isCheckmode? updateProductGroup(): addProductGroup()" -->
+        <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
+        <button tclass="fs-12 btn" nz-button nzType="primary" (click)="saveDataProductSale()"
+            *hasPermission="'N27,N35,N1,N33,N34'">Lưu</button>
+        <!-- (click)="isCheckmode? updateProductGroup(): addProductGroup()" -->
     </div>
-  </div>
-
+</div>

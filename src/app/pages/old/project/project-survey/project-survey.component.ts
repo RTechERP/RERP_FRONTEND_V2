@@ -42,6 +42,8 @@ import { CommonModule } from '@angular/common';
 import { ProjectSurveyDetailComponent } from '../project-survey-detail/project-survey-detail.component';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { AuthService } from '../../../../auth/auth.service';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 
 @Component({
   selector: 'app-project-survey',
@@ -67,7 +69,7 @@ import { AuthService } from '../../../../auth/auth.service';
     NzTreeSelectModule,
     NzModalModule,
     CommonModule,
-    NzUploadModule,
+    NzUploadModule,HasPermissionDirective
   ],
   //encapsulation: ViewEncapsulation.None,
   templateUrl: './project-survey.component.html',

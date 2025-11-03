@@ -32,7 +32,7 @@ import { filter, last } from 'rxjs';
 import { debounce } from 'rxjs';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { VehicleRepairComponentFormComponent } from './vehicle-repair-component-form/vehicle-repair-component-form.component';
-import { HasPermissionDirective } from "../../../directives/has-permission.directive";
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 @Component({
   standalone: true,
   imports: [

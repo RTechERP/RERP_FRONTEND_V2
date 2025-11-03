@@ -39,6 +39,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { DateTime } from 'luxon';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 
 @Component({
   selector: 'app-factory-visit-registration',
@@ -63,6 +64,7 @@ import { DateTime } from 'luxon';
     NzTabsModule,
     NzCheckboxModule,
     DisablePermissionDirective,
+    HasPermissionDirective
   ],
   templateUrl: './factory-visit-registration.component.html',
   styleUrl: './factory-visit-registration.component.css',

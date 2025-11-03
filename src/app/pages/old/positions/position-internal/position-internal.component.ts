@@ -14,6 +14,7 @@ import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { PositionServiceService } from '../position-service/position-service.service';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 
 @Component({
   selector: 'app-position-internal',
@@ -31,7 +32,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
     NzSwitchModule,
     NzNotificationModule,
     NzSpinModule,
-    NgIf
+    NgIf,HasPermissionDirective
   ],
   standalone: true
 })

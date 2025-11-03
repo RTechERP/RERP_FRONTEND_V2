@@ -29,6 +29,7 @@ import { OverTimeService } from './over-time-service/over-time.service';
 import { OverTimeDetailComponent } from "./over-time-detail/over-time-detail.component";
 import { OverTimeTypeComponent } from "./over-time-type/over-time-type.component";
 import { SummaryOverTimeComponent } from './summary-over-time/summary-over-time.component';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 
 
 @Component({
@@ -57,7 +58,8 @@ import { SummaryOverTimeComponent } from './summary-over-time/summary-over-time.
     NzSpinModule,
     OverTimeDetailComponent,
     OverTimeTypeComponent,
-    SummaryOverTimeComponent
+    SummaryOverTimeComponent,
+    HasPermissionDirective
 ]
 })
 export class OverTimeComponent implements OnInit, AfterViewInit{

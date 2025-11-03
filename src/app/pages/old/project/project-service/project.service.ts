@@ -5,14 +5,15 @@ import { HttpParams } from '@angular/common/http';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 import { environment } from '../../../../../environments/environment';
+import { DateTime } from 'luxon';
 // import { HOST } from '../../../../app.config';
 @Injectable({
   providedIn: 'root',
 })
 export class ProjectService {
   private apiUrl = environment.host + 'api/';
-
   private urlProject = this.apiUrl + 'project/';
+  private urlProjectSummary = this.apiUrl + 'projectnew/';
   private urlProjectWorkPropress = this.apiUrl + 'projectworkpropress/';
   private urlProjectWorkTimeline = this.apiUrl + 'projectworktimeline/';
   private urlProjectSurvey = this.apiUrl + 'projectsurvey/';
@@ -29,6 +30,10 @@ export class ProjectService {
   GlobalEmployeeId: number = 78;
   LoginName: string = 'ADMIN';
   ISADMIN: boolean = true;
+  //save hãng 
+  saveFirmBase(data:any): Observable<any>{
+    return this.http.post<any>(`${this.urlProject}save-firm-base`, data);
+  }
   // Lấy danh sách thư mục dự án
   getFolders(): Observable<any> {
     return this.http.get<any>(this.urlProject + 'get-folders');
@@ -129,6 +134,7 @@ export class ProjectService {
     shortName: string,
     projectType: number
   ): Observable<any> {
+    debugger
     return this.http.get<any>(
       this.urlProject +
         `get-project-code-modal?projectId=${projectId}&customerShortName=${shortName}&projectType=${projectType}`
@@ -164,9 +170,10 @@ export class ProjectService {
   }
   // Kiểm tra đã có mã dự án chưa
   checkProjectCode(projectId: number, projectCode: string): Observable<any> {
+    debugger
     return this.http.get<any>(
       this.urlProject +
-        `check-project-code?projectId=${projectId}&projectCode=${projectCode}`
+        `check-project-code?id=${projectId}&projectCode=${projectCode}`
     );
   }
 
@@ -294,8 +301,7 @@ export class ProjectService {
     let selected: any[] = [];
 
     data.forEach((row) => {
-      selected.push(row);
-
+        selected.push(row);
       if (row._children && Array.isArray(row._children)) {
         selected = selected.concat(
           this.getSelectedRowsRecursive(row._children)
@@ -420,8 +426,9 @@ export class ProjectService {
   }
 
   getUserTeam(departmentId: number): Observable<any> {
+    debugger
     return this.http.get<any>(
-      this.urlProjectWorkTimeline + `get-user-team/${departmentId}`
+      this.urlProjectWorkTimeline + `get-user-team?depID=${departmentId}`
     );
   }
 
@@ -801,4 +808,52 @@ export class ProjectService {
     window.URL.revokeObjectURL(link.href);
   }
   //#endregion
+
+  //cho leader kiểu dự án
+  // Project Tree Folder API
+  saveProjectTreeFolder(data: any): Observable<any> {
+    return this.http.post<any>(this.urlProject + 'save-project-tree-folder', data);
+  }
+     // lấy danh sách leader của loại dự án
+     getEmployeeProjectType(projectTypeId: any): Observable<any> {
+      return this.http.get<any>(this.apiUrl + `Project/getemployeeprojecttype/${projectTypeId}`);
+    }
+       // lưu leader dự án
+  saveemployeeprojecttype(
+    employeeProjectType: any,
+  ): Observable<any> {
+    return this.http.post<any>(
+      this.apiUrl + `Project/saveemployeeprojecttype`,employeeProjectType
+    );
+  }
+   // Chức năng người tham gia dự án theo departmentID
+  getProjectEmployeefilter(departmentID: number): Observable<any> {
+    return this.http.get<any>(
+      this.apiUrl + `Project/get-project-employee-filter/${departmentID}`
+    );
+  }
+  //end
+  //tổng hợp dự án
+  getProjectSummary(
+    dateTimeS:DateTime,
+    dateTimeE:DateTime,
+    departmentID:number,
+    userID:number,
+    projectTypeID: string,
+    keyword: string,
+    userTeamID: number,
+    
+  ): Observable<any> {
+    const filter: any = {
+      dateTimeS: dateTimeS?.toISO() || new Date().toISOString(),
+      dateTimeE: dateTimeE?.toISO() || new Date().toISOString(),
+      keyword: keyword.trim(),
+      userID: userID.toString(),
+      projectTypeID: projectTypeID.trim(),
+      userTeamID:userTeamID.toString(),
+      departmentID: departmentID.toString(),
+    };
+
+    return this.http.post(`${this.urlProjectSummary}get-projects`, filter);
+  }
 }

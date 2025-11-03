@@ -1,295 +1,553 @@
 <ng-container class="w-100">
-    <nz-splitter>
-        <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
-            <div class="card h-100 border-0 rounded-0">
-                <div class="card-header bg-white p-1">
-                    <div class="d-flex justify-content-between align-items-center ">
-                        <h6 class="m-0 ms-2">Tìm kiếm</h6>
-                        <button class="border-0 me-2" nz-button nzSize="default" nzType="default" nzDanger
-                            (click)="toggleSearchPanel()">
-                            <nz-icon nzType="close" nzTheme="outline" />
-                        </button>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <form nz-form nzLayout="vertical" [formGroup]="searchForm">
-                        <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Tình trạng</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="default"
-                                    formControlName="status">
-                                    <nz-option [nzValue]="0" nzLabel="Đang làm việc"></nz-option>
-                                    <nz-option [nzValue]="-1" nzLabel="Tất cả"></nz-option>
-                                    <nz-option [nzValue]="1" nzLabel="Nghỉ việc"></nz-option>
-                                </nz-select>
-                            </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Phòng ban</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <nz-select [(ngModel)]="department" nzPlaceHolder="Tất cả phòng ban"
-                                    style="width: 100%;" nzAllowClear nzShowSearch formControlName="department">
-                                    <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID"
-                                        [nzLabel]="dept.Name"></nz-option>
-                                </nz-select>
-                            </nz-form-control>
-                        </nz-form-item>
-                        <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <input nz-input placeholder="Nhập từ khóa" nzSize="default" formControlName="keyword" />
-                            </nz-form-control>
-                        </nz-form-item>
-                    </form>
-                </div>
-                <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
-                    <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">Đặt lại</button>
-                    <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">Tìm kiếm</button>
-                </div>
-            </div>
-        </nz-splitter-panel>
-        <nz-splitter-panel>
-            <div class="card h-100 border-0 rounded-0">
-                <div class="card-header bg-white p-2">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="d-flex gap-2">
-                            <button nz-button nzType="default" nzSize="small"
-                                style="font-size: 0.75rem; font-weight: bold" (click)="toggleSearchPanel()">
-                                <nz-icon nzType="search" />
-                            </button>
-                            <button nz-button nzType="default" nzSize="small"
-                                style="font-size: 0.75rem; font-weight: bold" (click)="openAddModal()"
-                                *hasPermission="'N1,N2,N60'">
-                                <nz-icon nzType="plus" /> Thêm
-                            </button>
-                            <button nz-button nzType="default" nzSize="small"
-                                style="font-size: 0.75rem; font-weight: bold" (click)="openEditModal()"
-                                *hasPermission="'N1,N2,N60'">
-                                <nz-icon nzType="edit" /> Sửa
-                            </button>
-                            <button nz-button nzType="default" nzSize="small"
-                                style="font-size: 0.75rem; font-weight: bold" (click)="openDeleteModal()"
-                                *hasPermission="'N1,N2,N60'">
-                                <nz-icon nzType="delete" /> Xóa
-                            </button>
-                            <button nz-button nzType="default" nzSize="small"
-                                style="font-size: 0.75rem; font-weight: bold" (click)="openImportExcelForm()"
-                                *hasPermission="'N2,N1'">
-                                <nz-icon nzType="import" /> Nhập excel
-                            </button>
-                            <button nz-button nzType="default" nzSize="small"
-                                style="font-size: 0.75rem; font-weight: bold" (click)="exportToExcel()">
-                                <nz-icon nzType="export" /> Xuất excel
-                            </button>
-                            <button nz-button nzType="default" nzSize="small"
-                                style="font-size: 0.75rem; font-weight: bold" (click)="openEmployeeApproveForm()"
-                                *hasPermission="'N1'">
-                                <nz-icon nzType="check-circle" /> Quản lý người duyệt
-                            </button>
-                            <button nz-button nzType="default" nzSize="small"
-                                style="font-size: 0.75rem; font-weight: bold" (click)="openLoginManagerForm()"
-                                *hasPermission="'N1,N2,N60'">
-                                <nz-icon nzType="login" /> Quản lý đăng nhập
-                            </button>
-                            <button nz-button nzType="default" nzSize="small"
-                                style="font-size: 0.75rem; font-weight: bold" (click)="openEmployeeContract()"
-                                *hasPermission="'N1,N2,N60'">
-                                <nz-icon nzType="book" /> Hợp đồng
-                            </button>
-                            <button nz-button nzType="default" nzSize="small"
-                                style="font-size: 0.75rem; font-weight: bold" (click)="openEmployeeTeamForm()"
-                                *hasPermission="'N1,N2,N60'">
-                                <nz-icon nzType="usergroup-add" /> Team
-                            </button>
-                        </div>
-                        <div class="d-flex gap-2">
-                            <label nz-checkbox [formControl]="endContractControl">Sắp hết HĐ</label><br>
-                            <button nz-button nzType="text" nzSize="small"
-                                style="font-size: 0.75rem; border: 1px solid black;">
-                                Đang làm việc
-                            </button>
-                            <button nz-button nzType="text" nzSize="small"
-                                style="font-size: 0.75rem; border: 1px solid black; background-color: wheat">
-                                Nghỉ việc
-                            </button>
-                            <button nz-button nzType="text" nzSize="small"
-                                style="font-size: 0.75rem; border: 1px solid black;background-color: yellow;">
-                                Sắp hết HĐ(1T)
-                            </button>
-                            <button nz-button nzType="text" nzSize="small"
-                                style="font-size: 0.75rem; border: 1px solid black; background-color: red; color: white">
-                                Sắp hết HĐ(15N)
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card-body p-0 position-relative">
-                    <div *ngIf="isLoading">
-                        <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
-                position: 'absolute',
-                top: '0',
-                left: '0',
-                width: '100%',
-                height: '100%',
-                background: 'rgba(255,255,255,0.4)',
-                zIndex: '999',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }"></nz-spin>
-                    </div>
-                    <div id="tb_employee"></div>
-                </div>
-            </div>
-        </nz-splitter-panel>
-    </nz-splitter>
+  <nz-splitter>
+    <nz-splitter-panel>
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-1">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="m-0 ms-2">Tìm kiếm</h6>
+            <button
+              class="border-0 me-2"
+              nz-button
+              nzSize="default"
+              nzType="default"
+              nzDanger
+              (click)="toggleSearchPanel()"
+            >
+              <nz-icon nzType="close" nzTheme="outline" />
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <form nz-form nzLayout="vertical" [formGroup]="searchForm">
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24"
+                >Tình trạng</nz-form-label
+              >
+              <nz-form-control [nzSpan]="24">
+                <nz-select
+                  class="w-100"
+                  nzShowSearch
+                  nzAllowClear
+                  nzSize="default"
+                  formControlName="status"
+                >
+                  <nz-option [nzValue]="0" nzLabel="Đang làm việc"></nz-option>
+                  <nz-option [nzValue]="-1" nzLabel="Tất cả"></nz-option>
+                  <nz-option [nzValue]="1" nzLabel="Nghỉ việc"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24"
+                >Phòng ban</nz-form-label
+              >
+              <nz-form-control [nzSpan]="24">
+                <nz-select
+                  [(ngModel)]="department"
+                  nzPlaceHolder="Tất cả phòng ban"
+                  style="width: 100%"
+                  nzAllowClear
+                  nzShowSearch
+                  formControlName="department"
+                >
+                  <nz-option
+                    *ngFor="let dept of departmentList"
+                    [nzValue]="dept.ID"
+                    [nzLabel]="dept.Name"
+                  ></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <input
+                  nz-input
+                  placeholder="Nhập từ khóa"
+                  nzSize="default"
+                  formControlName="keyword"
+                />
+              </nz-form-control>
+            </nz-form-item>
+          </form>
+        </div>
+        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+          <button
+            nz-button
+            nzType="default"
+            nzSize="small"
+            (click)="resetSearch()"
+          >
+            Đặt lại
+          </button>
+          <button
+            nz-button
+            nzType="primary"
+            nzSize="small"
+            (click)="onSearch()"
+          >
+            Tìm kiếm
+          </button>
+        </div>
+      </div>
+    </nz-splitter-panel>
+    <nz-splitter-panel
+      nzDefaultSize="100%"
+      [nzSize]="isSearchVisible ? '80%' : '100%'"
+    >
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-1">
+          <div class="d-flex gap-1" style="overflow-x: auto">
+            <button
+              nz-button
+              nzType="default"
+              nzSize="small"
+              (click)="toggleSearchPanel()"
+            >
+              <nz-icon nzType="search" />
+            </button>
+            <button
+            nz-button nzType="default" nzSize="small" class="fs-12 btn-add"
+              (click)="openAddModal()"
+              *hasPermission="'N1,N2,N60'"
+            >
+            <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " /> Thêm
+            </button>
+            <button
+            nz-button nzType="default" nzSize="small" class="btn-edit"
+              (click)="openEditModal()"
+              *hasPermission="'N1,N2,N60'"
+            >
+            <img src="assets/icon/action_edit_item_16.png" alt="Sửa thiết bị" /> Sửa
+            </button>
+            <button
+            nz-button nzType="default" nzSize="small" class="btn-delete "
+              (click)="openDeleteModal()"
+              *hasPermission="'N1,N2,N60'"
+            >
+            <img src="assets/icon/action_delete_item_16.png" alt="Xóa thiết bị" /> Xóa
+            </button>
+            <button
+            nz-button nzType="default" nzSize="small" class="me-1"
+              (click)="openImportExcelForm()"
+              *hasPermission="'N2,N1'"
+            >
+            <img src="assets/icon/action_import_16.png" alt="Nhập Excel"
+            style="width:16px; height:16px; object-fit:contain" /> Nhập excel
+            </button>
+            <button
+            nz-button nzType="default" nzSize="small" class="me-1"
+              (click)="exportToExcel()"
+            >
+            <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel"
+            style="width:16px; height:16px; object-fit:contain" /> Xuất excel
+            </button>
+            <button
+              nz-button
+              nzType="default"
+              nzSize="small"
+              style="font-size: 0.75rem; font-weight: bold"
+              (click)="openEmployeeApproveForm()"
+              *hasPermission="'N1'"
+            >
+              <nz-icon nzType="check-circle" /> Quản lý người duyệt
+            </button>
+            <button
+              nz-button
+              nzType="default"
+              nzSize="small"
+              style="font-size: 0.75rem; font-weight: bold"
+              (click)="openLoginManagerForm()"
+              *hasPermission="'N1,N2,N60'"
+            >
+              <nz-icon nzType="login" /> Quản lý đăng nhập
+            </button>
+            <button
+              nz-button
+              nzType="default"
+              nzSize="small"
+              style="font-size: 0.75rem; font-weight: bold"
+              (click)="openEmployeeContract()"
+              *hasPermission="'N1,N2,N60'"
+            >
+              <nz-icon nzType="book" /> Hợp đồng
+            </button>
+            <button
+              nz-button
+              nzType="default"
+              nzSize="small"
+              style="font-size: 0.75rem; font-weight: bold"
+              (click)="openEmployeeTeamForm()"
+              *hasPermission="'N1,N2,N60'"
+            >
+              <nz-icon nzType="usergroup-add" /> Team
+            </button>
+            <label nz-checkbox [formControl]="endContractControl" class="fs-12"
+              >Sắp hết HĐ</label
+            ><br />
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <nz-splitter>
+            <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
+              <div *ngIf="isLoading">
+                <nz-spin
+                  [nzSpinning]="isLoading"
+                  nzSimple
+                  [style]="{
+                    position: 'absolute',
+                    top: '0',
+                    left: '0',
+                    width: '100%',
+                    height: '100%',
+                    background: 'rgba(255,255,255,0.4)',
+                    zIndex: '999',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }"
+                ></nz-spin>
+              </div>
+              <div id="tb_employee"></div>
+            </nz-splitter-panel>
+          </nz-splitter>
+        </div>
+      </div>
+    </nz-splitter-panel>
+  </nz-splitter>
 </ng-container>
 
+<!-- region modal -->
+<div
+  class="modal fade"
+  id="addEmployeeModal"
+  tabindex="-1"
+  aria-labelledby="addEmployeeModalLabel"
+  aria-hidden="true"
+>
+  <div
+    class="modal-dialog modal-dialog-centered fs-12 modal-xl modal-dialog-scrollable"
+  >
+    <div class="modal-content">
+      <div class="modal-header bg-primary">
+        <h6
+          class="modal-title text-uppercase text-white"
+          id="addEmployeeModalLabel"
+        >
+          {{ isEditMode ? "SỬA NHÂN VIÊN" : "THÊM NHÂN VIÊN" }}
+        </h6>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body" style="height: 90vh; overflow-y: auto">
+        <form nz-form [formGroup]="employeeForm">
+          <nz-tabset (nzSelectedIndexChange)="onTabChange($event)">
+            <nz-tab nzTitle="Thông tin chung">
+              <nz-row [nzGutter]="24">
+                <nz-col nzSpan="10">
+                  <nz-form-item>
+                    <nz-form-label [nzSpan]="24"
+                      >Mã nhân viên<span class="text-danger">
+                        (*)</span
+                      ></nz-form-label
+                    >
+                    <nz-form-control
+                      [nzSpan]="24"
+                      nzErrorTip="Vui lòng nhập mã nhân viên"
+                    >
+                      <input
+                        nz-input
+                        formControlName="Code"
+                        placeholder="Nhập mã nhân viên"
+                      />
+                    </nz-form-control>
+                  </nz-form-item>
 
-<div class="modal fade" id="addEmployeeModal" tabindex="-1" aria-labelledby="addEmployeeModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered fs-12 modal-xl modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header bg-primary">
-                <h6 class="modal-title text-uppercase text-white" id="addEmployeeModalLabel">
-                    {{ isEditMode ? "SỬA NHÂN VIÊN" : "THÊM NHÂN VIÊN" }}
-                </h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" style="height: 90vh; overflow-y: auto;">
-                <form nz-form [formGroup]="employeeForm">
-                    <nz-tabset (nzSelectedIndexChange)="onTabChange($event)">
-                        <nz-tab nzTitle="Thông tin chung">
-                            <nz-row [nzGutter]="24">
-                                <nz-col nzSpan="10">
-                                    <nz-form-item>
-                                        <nz-form-label [nzSpan]="24">Mã nhân viên<span class="text-danger">
-                                                (*)</span></nz-form-label>
-                                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập mã nhân viên">
-                                            <input nz-input formControlName="Code" placeholder="Nhập mã nhân viên" />
-                                        </nz-form-control>
-                                    </nz-form-item>
+                  <nz-form-item>
+                    <nz-form-label [nzSpan]="24">ID Chấm công </nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                      <input
+                        nz-input
+                        formControlName="IDChamCongMoi"
+                        placeholder="Nhập ID chấm công"
+                      />
+                    </nz-form-control>
+                  </nz-form-item>
+                  <nz-form-item>
+                    <nz-form-label [nzSpan]="24"
+                      >Họ và tên<span class="text-danger">
+                        (*)</span
+                      ></nz-form-label
+                    >
+                    <nz-form-control
+                      [nzSpan]="24"
+                      nzErrorTip="Vui lòng nhập họ và tên"
+                    >
+                      <input
+                        nz-input
+                        formControlName="FullName"
+                        placeholder="Nhập họ và tên"
+                      />
+                    </nz-form-control>
+                  </nz-form-item>
 
-                                    <nz-form-item>
-                                        <nz-form-label [nzSpan]="24">ID Chấm công
-                                        </nz-form-label>
-                                        <nz-form-control [nzSpan]="24">
-                                            <input nz-input formControlName="IDChamCongMoi"
-                                                placeholder="Nhập ID chấm công" />
-                                        </nz-form-control>
-                                    </nz-form-item>
-                                    <nz-form-item>
-                                        <nz-form-label [nzSpan]="24">Họ và tên<span class="text-danger">
-                                                (*)</span></nz-form-label>
-                                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập họ và tên">
-                                            <input nz-input formControlName="FullName" placeholder="Nhập họ và tên" />
-                                        </nz-form-control>
-                                    </nz-form-item>
+                  <nz-form-item>
+                    <nz-form-label [nzSpan]="24"
+                      >Chức vụ(Theo HĐLĐ)
+                      <span class="text-danger"> (*)</span>
+                    </nz-form-label>
+                    <nz-select
+                      formControlName="ChucVuHDID"
+                      nzPlaceHolder="Nhập chức vụ (Theo HĐLĐ)"
+                      style="width: 90%"
+                      nzAllowClear
+                      nzShowSearch
+                    >
+                      <nz-option
+                        *ngFor="let pc of positionContractList"
+                        [nzValue]="pc.ID"
+                        [nzLabel]="pc.Name"
+                      ></nz-option>
+                    </nz-select>
+                    <button
+                      nz-button
+                      nzType="default"
+                      nzSize="default"
+                      style="
+                        font-size: 0.75rem;
+                        font-weight: bold;
+                        margin-left: 0.4vw;
+                      "
+                      (click)="openPositionContractForm()"
+                    >
+                      <nz-icon nzType="plus" />
+                    </button>
+                  </nz-form-item>
+                  <nz-form-item>
+                    <nz-form-label [nzSpan]="24"
+                      >Phòng ban<span class="text-danger">
+                        (*)</span
+                      ></nz-form-label
+                    >
+                    <nz-form-control [nzSpan]="24">
+                      <nz-select
+                        [(ngModel)]="department"
+                        formControlName="DepartmentID"
+                        nzPlaceHolder="Tất cả phòng ban"
+                        style="width: 100%"
+                        nzAllowClear
+                        nzShowSearch
+                      >
+                        <nz-option
+                          *ngFor="let dept of departmentList"
+                          [nzValue]="dept.ID"
+                          [nzLabel]="dept.Name"
+                        ></nz-option>
+                      </nz-select>
+                    </nz-form-control>
+                  </nz-form-item>
 
-                                    <nz-form-item>
-                                        <nz-form-label [nzSpan]="24">Chức vụ(Theo HĐLĐ)
-                                            <span class="text-danger"> (*)</span>
-                                        </nz-form-label>
-                                        <nz-select formControlName="ChucVuHDID" nzPlaceHolder="Nhập chức vụ (Theo HĐLĐ)"
-                                            style="width: 90%;" nzAllowClear nzShowSearch>
-                                            <nz-option *ngFor="let pc of positionContractList" [nzValue]="pc.ID"
-                                                [nzLabel]="pc.Name"></nz-option>
-                                        </nz-select>
-                                        <button nz-button nzType="default" nzSize="default"
-                                            style="font-size: 0.75rem; font-weight: bold; margin-left: 0.4vw;"
-                                            (click)="openPositionContractForm()">
-                                            <nz-icon nzType="plus" />
-                                        </button>
-                                    </nz-form-item>
-                                    <nz-form-item>
-                                        <nz-form-label [nzSpan]="24">Phòng ban<span class="text-danger">
-                                                (*)</span></nz-form-label>
-                                        <nz-form-control [nzSpan]="24">
-                                            <nz-select [(ngModel)]="department" formControlName="DepartmentID"
-                                                nzPlaceHolder="Tất cả phòng ban" style="width: 100%;" nzAllowClear
-                                                nzShowSearch>
-                                                <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID"
-                                                    [nzLabel]="dept.Name"></nz-option>
-                                            </nz-select>
-                                        </nz-form-control>
-                                    </nz-form-item>
+                  <nz-form-item>
+                    <nz-form-label [nzSpan]="24"
+                      >Chức vụ(Theo nội bộ)
+                      <span class="text-danger"> (*)</span></nz-form-label
+                    >
+                    <nz-select
+                      [(ngModel)]="positionInternal"
+                      formControlName="ChuVuID"
+                      nzPlaceHolder="Nhập chức vụ (Theo nội bộ)"
+                      style="width: 90%"
+                      nzAllowClear
+                      nzShowSearch
+                    >
+                      <nz-option
+                        *ngFor="let pi of positionInternalList"
+                        [nzValue]="pi.ID"
+                        [nzLabel]="pi.Name"
+                      ></nz-option>
+                    </nz-select>
+                    <button
+                      nz-button
+                      nzType="default"
+                      nzSize="default"
+                      style="
+                        font-size: 0.75rem;
+                        font-weight: bold;
+                        margin-left: 0.4vw;
+                      "
+                      (click)="openPositionInternalForm()"
+                    >
+                      <nz-icon nzType="plus" />
+                    </button>
+                  </nz-form-item>
+                  <nz-form-item>
+                    <nz-form-label [nzSpan]="24"
+                      >Đợn vị(BHXH)<span class="text-danger">
+                        (*)</span
+                      ></nz-form-label
+                    >
+                    <nz-form-control
+                      [nzSpan]="24"
+                      nzErrorTip="Vui lòng nhập đơn vị(BHXH)"
+                    >
+                      <input
+                        nz-input
+                        formControlName="DvBHXH"
+                        placeholder="Nhập đơn vị(BHXH)"
+                      />
+                    </nz-form-control>
+                  </nz-form-item>
 
-                                    <nz-form-item>
-                                        <nz-form-label [nzSpan]="24">Chức vụ(Theo nội bộ)
-                                            <span class="text-danger"> (*)</span></nz-form-label>
-                                        <nz-select [(ngModel)]="positionInternal" formControlName="ChuVuID"
-                                            nzPlaceHolder="Nhập chức vụ (Theo nội bộ)" style="width: 90%;" nzAllowClear
-                                            nzShowSearch>
-                                            <nz-option *ngFor="let pi of positionInternalList" [nzValue]="pi.ID"
-                                                [nzLabel]="pi.Name"></nz-option>
-                                        </nz-select>
-                                        <button nz-button nzType="default" nzSize="default"
-                                            style="font-size: 0.75rem; font-weight: bold; margin-left: 0.4vw;"
-                                            (click)="openPositionInternalForm()">
-                                            <nz-icon nzType="plus" />
-                                        </button>
-                                    </nz-form-item>
-                                    <nz-form-item>
-                                        <nz-form-label [nzSpan]="24">Đợn vị(BHXH)<span class="text-danger">
-                                                (*)</span></nz-form-label>
-                                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập đơn vị(BHXH)">
-                                            <input nz-input formControlName="DvBHXH" placeholder="Nhập đơn vị(BHXH)" />
-                                        </nz-form-control>
-                                    </nz-form-item>
+                  <nz-form-item>
+                    <nz-form-label [nzSpan]="24"
+                      >Ngày bắt đầu làm việc
+                      <span class="text-danger"> (*)</span></nz-form-label
+                    >
+                    <nz-form-control
+                      [nzSpan]="24"
+                      nzErrorTip="Vui lòng nhập ngày bắt đầu làm việc"
+                    >
+                      <nz-date-picker
+                        formControlName="StartWorking"
+                        nzPlaceHolder="Chọn ngày bắt đầu làm việc"
+                        nzFormat="dd/MM/yyyy"
+                        [nzSize]="'default'"
+                        style="width: 100%"
+                      ></nz-date-picker>
+                    </nz-form-control>
+                  </nz-form-item>
+                </nz-col>
+                <nz-col nzSpan="10">
+                  <nz-form-item>
+                    <nz-form-label [nzSpan]="24"
+                      >Ngày sinh<span class="text-danger">
+                        (*)</span
+                      ></nz-form-label
+                    >
+                    <nz-form-control
+                      [nzSpan]="24"
+                      nzErrorTip="Vui lòng nhập ngày sinh"
+                    >
+                      <nz-date-picker
+                        formControlName="BirthOfDate"
+                        nzPlaceHolder="Chọn ngày bắt đầu làm việc"
+                        nzFormat="dd/MM/yyyy"
+                        [nzSize]="'default'"
+                        style="width: 100%"
+                      ></nz-date-picker>
+                    </nz-form-control>
+                  </nz-form-item>
 
-                                    <nz-form-item>
-                                        <nz-form-label [nzSpan]="24">Ngày bắt đầu làm việc
-                                            <span class="text-danger"> (*)</span></nz-form-label>
-                                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập ngày bắt đầu làm việc">
-                                            <nz-date-picker formControlName="StartWorking"
-                                                nzPlaceHolder="Chọn ngày bắt đầu làm việc" nzFormat="dd/MM/yyyy"
-                                                [nzSize]="'default'" style="width: 100%"></nz-date-picker>
-                                        </nz-form-control>
-                                    </nz-form-item>
-                                </nz-col>
-                                <nz-col nzSpan="10">
-                                    <nz-form-item>
-                                        <nz-form-label [nzSpan]="24">Ngày sinh<span class="text-danger">
-                                                (*)</span></nz-form-label>
-                                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập ngày sinh">
-                                            <nz-date-picker formControlName="BirthOfDate"
-                                                nzPlaceHolder="Chọn ngày bắt đầu làm việc" nzFormat="dd/MM/yyyy"
-                                                [nzSize]="'default'" style="width: 100%"></nz-date-picker>
-                                        </nz-form-control>
-                                    </nz-form-item>
+                  <nz-form-item>
+                    <nz-form-label [nzSpan]="24"
+                      >Nơi sinh
+                      <span class="text-danger"> (*)</span></nz-form-label
+                    >
+                    <nz-form-control
+                      [nzSpan]="24"
+                      nzErrorTip="Vui lòng nhập nơi sinh"
+                    >
+                      <input
+                        nz-input
+                        formControlName="NoiSinh"
+                        placeholder="Nhập nơi sinh"
+                      />
+                    </nz-form-control>
+                  </nz-form-item>
+                  <nz-form-item>
+                    <nz-form-label [nzSpan]="24"
+                      >Giới tính<span class="text-danger">
+                        (*)</span
+                      ></nz-form-label
+                    >
+                    <nz-select
+                      formControlName="GioiTinh"
+                      style="width: 100%"
+                      nzPlaceHolder="Nhập giới tính"
+                    >
+                      <nz-option [nzValue]="0" nzLabel="Nữ"></nz-option>
+                      <nz-option [nzValue]="1" nzLabel="Nam"></nz-option>
+                      <nz-option [nzValue]="2" nzLabel="Khác"></nz-option>
+                    </nz-select>
+                  </nz-form-item>
 
-                                    <nz-form-item>
-                                        <nz-form-label [nzSpan]="24">Nơi sinh
-                                            <span class="text-danger"> (*)</span></nz-form-label>
-                                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập nơi sinh">
-                                            <input nz-input formControlName="NoiSinh" placeholder="Nhập nơi sinh" />
-                                        </nz-form-control>
-                                    </nz-form-item>
-                                    <nz-form-item>
-                                        <nz-form-label [nzSpan]="24">Giới tính<span class="text-danger">
-                                                (*)</span></nz-form-label>
-                                        <nz-select formControlName="GioiTinh" style="width: 100%;"
-                                            nzPlaceHolder="Nhập giới tính">
-                                            <nz-option [nzValue]="0" nzLabel="Nữ"></nz-option>
-                                            <nz-option [nzValue]="1" nzLabel="Nam"></nz-option>
-                                            <nz-option [nzValue]="2" nzLabel="Khác"></nz-option>
-                                        </nz-select>
-                                    </nz-form-item>
+                  <nz-form-item>
+                    <nz-form-label [nzSpan]="24"
+                      >Dân tộc
+                      <span class="text-danger"> (*)</span></nz-form-label
+                    >
+                    <nz-form-control
+                      [nzSpan]="24"
+                      nzErrorTip="Vui lòng nhập dân tộc"
+                    >
+                      <input
+                        nz-input
+                        formControlName="DanToc"
+                        placeholder="Nhập dân tộc"
+                      />
+                    </nz-form-control>
+                  </nz-form-item>
+                  <nz-form-item>
+                    <nz-form-label [nzSpan]="24"
+                      >Tôn giáo<span class="text-danger">
+                        (*)</span
+                      ></nz-form-label
+                    >
+                    <nz-form-control
+                      [nzSpan]="24"
+                      nzErrorTip="Vui lòng nhập tôn giáo"
+                    >
+                      <input
+                        nz-input
+                        formControlName="TonGiao"
+                        placeholder="Nhập tôn giáo"
+                      />
+                    </nz-form-control>
+                  </nz-form-item>
 
-                                    <nz-form-item>
-                                        <nz-form-label [nzSpan]="24">Dân tộc
-                                            <span class="text-danger"> (*)</span></nz-form-label>
-                                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập dân tộc">
-                                            <input nz-input formControlName="DanToc" placeholder="Nhập dân tộc" />
-                                        </nz-form-control>
-                                    </nz-form-item>
-                                    <nz-form-item>
-                                        <nz-form-label [nzSpan]="24">Tôn giáo<span class="text-danger">
-                                                (*)</span></nz-form-label>
-                                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập tôn giáo">
-                                            <input nz-input formControlName="TonGiao" placeholder="Nhập tôn giáo" />
-                                        </nz-form-control>
-                                    </nz-form-item>
+                  <nz-form-item>
+                    <nz-form-label [nzSpan]="24"
+                      >Quốc tịch
+                      <span class="text-danger"> (*)</span></nz-form-label
+                    >
+                    <nz-form-control
+                      [nzSpan]="24"
+                      nzErrorTip="Vui lòng nhập quốc tịch"
+                    >
+                      <input
+                        nz-input
+                        formControlName="QuocTich"
+                        placeholder="Nhập quốc tịch"
+                      />
+                    </nz-form-control>
+                  </nz-form-item>
+                  <nz-form-item>
+                    <nz-form-label [nzSpan]="24"
+                      >Tình trạng hôn nhân<span class="text-danger">
+                        (*)</span
+                      ></nz-form-label
+                    >
+                    <nz-form-control
+                      [nzSpan]="24"
+                      nzErrorTip="Vui lòng nhập tình trạng hôn nhân"
+                    >
+                      <nz-select
+                        formControlName="TinhTrangHonNhanID"
+                        style="width: 100%"
+                        nzPlaceHolder="Nhập tình trạng hôn nhân"
+                      >
+                        <nz-option [nzValue]="1" nzLabel="Độc thân"></nz-option>
+                        <nz-option
+                          [nzValue]="2"
+                          nzLabel="Đã kết hôn"
+                        ></nz-option>
+                      </nz-select>
+                    </nz-form-control>
+                  </nz-form-item>
 
                                     <nz-form-item>
                                         <nz-form-label [nzSpan]="24">Quốc tịch
@@ -919,19 +1177,33 @@
                     <div class="fs-6 fw-bold py-2">Bạn có thực sự muốn chuyển trạng thái của nhân viên <span
                             class="text-danger">{{selectedEmployee?.FullName}}</span> thành Ngừng hoạt động?</div>
                     <nz-form-item>
-                        <nz-form-label [nzSpan]="24">
-                            Ngày nghỉ việc
-                        </nz-form-label>
-                        <nz-date-picker formControlName="EndWorking" nzPlaceHolder="Ngày nghỉ việc"
-                            nzFormat="dd/MM/yyyy" [nzSize]="'default'" style="width: 100%"></nz-date-picker>
+                      <nz-form-label [nzSpan]="24">Số sổ </nz-form-label>
+                      <nz-form-control
+                        [nzSpan]="24"
+                        nzErrorTip="Vui lòng nhập số sổ BHXH"
+                      >
+                        <input
+                          nz-input
+                          formControlName="SoSoBHXH"
+                          placeholder="Nhập số sổ BHXH"
+                        />
+                      </nz-form-control>
                     </nz-form-item>
                     <nz-form-item>
-                        <nz-form-label [nzSpan]="24">Lý do nghỉ việc
-                        </nz-form-label>
-                        <nz-form-control [nzSpan]="24">
-                            <textarea nz-input formControlName="ReasonDeleted"
-                                placeholder="Nhập lý do nghỉ việc"></textarea>
-                        </nz-form-control>
+                      <nz-form-label [nzSpan]="24">Người giữ sổ </nz-form-label>
+                      <nz-select
+                        formControlName="NguoiGiuSoBHXHText"
+                        nzPlaceHolder="Nhập người giữ sổ"
+                        style="width: 100%"
+                        nzAllowClear
+                        nzShowSearch
+                      >
+                        <nz-option
+                          *ngFor="let e of employees"
+                          [nzValue]="e.FullName"
+                          [nzLabel]="e.FullName"
+                        ></nz-option>
+                      </nz-select>
                     </nz-form-item>
                 </form>
             </div>
@@ -942,4 +1214,289 @@
             </div>
         </div>
     </div>
+  </div>
+
+
+<div
+  class="modal fade"
+  id="positionContractModal"
+  tabindex="-1"
+  aria-labelledby="positionContractModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary">
+        <h6
+          class="modal-title text-uppercase text-white"
+          id="positionContractModalLabel"
+        >
+          Quản lý chức vụ theo hợp đồng
+        </h6>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body fs-12">
+        <app-position-contract></app-position-contract>
+      </div>
+    </div>
+  </div>
 </div>
+
+<div
+  class="modal fade"
+  id="positionInternalModal"
+  tabindex="-1"
+  aria-labelledby="positionInternalModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary">
+        <h6
+          class="modal-title text-uppercase text-white"
+          id="positionInternalModalLabel"
+        >
+          Quản lý chức vụ nội bộ
+        </h6>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body fs-12">
+        <app-position-internal></app-position-internal>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  class="modal fade"
+  id="employeeApprove"
+  tabindex="-1"
+  aria-labelledby="employeeApproveModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary">
+        <h6
+          class="modal-title text-uppercase text-white"
+          id="employeeApproveModalLabel"
+        >
+          Quản lý người duyệt
+        </h6>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body fs-12">
+        <app-employee-approve></app-employee-approve>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  class="modal fade"
+  id="loginManagerForm"
+  tabindex="-1"
+  aria-labelledby="loginManagerModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary">
+        <h6
+          class="modal-title text-uppercase text-white"
+          id="loginManagerModalLabel"
+        >
+          Quản lý thông tin đăng nhập
+        </h6>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body fs-12">
+        <app-employee-login-manager
+          [selectedEmployee]="selectedEmployee"
+        ></app-employee-login-manager>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  class="modal fade"
+  id="employeeContractForm"
+  tabindex="-1"
+  aria-labelledby="employeeContractModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary">
+        <h6
+          class="modal-title text-uppercase text-white"
+          id="employeeContractModalLabel"
+        >
+          Hợp đồng lao động
+        </h6>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body fs-12">
+        <app-employee-contract
+          [selectedEmployee]="selectedEmployee"
+        ></app-employee-contract>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  class="modal fade"
+  id="importExcelForm"
+  tabindex="-1"
+  aria-labelledby="importExcelModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary">
+        <h6
+          class="modal-title text-uppercase text-white"
+          id="importExcelModalLabel"
+        >
+          NHẬP DỮ LIỆU EXCEL
+        </h6>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body fs-12">
+        <app-employee-import-excel></app-employee-import-excel>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  class="modal fade"
+  id="employeeTeamForm"
+  tabindex="-1"
+  aria-labelledby="employeeTeamModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary">
+        <h6
+          class="modal-title text-uppercase text-white"
+          id="employeeTeamModalLabel"
+        >
+          TEAM PHÒNG BAN
+        </h6>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body fs-12">
+        <app-employee-team></app-employee-team>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  class="modal fade"
+  id="deleteModal"
+  tabindex="-1"
+  aria-labelledby="deleteModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary">
+        <h6 class="modal-title text-uppercase text-white" id="deleteModalLabel">
+          THÔNG BÁO
+        </h6>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="deleteForm">
+          <div class="fs-6 fw-bold py-2">
+            Bạn có thực sự muốn chuyển trạng thái của nhân viên
+            <span class="text-danger">{{ selectedEmployee?.FullName }}</span>
+            thành Ngừng hoạt động?
+          </div>
+          <nz-form-item>
+            <nz-form-label [nzSpan]="24"> Ngày nghỉ việc </nz-form-label>
+            <nz-date-picker
+              formControlName="EndWorking"
+              nzPlaceHolder="Ngày nghỉ việc"
+              nzFormat="dd/MM/yyyy"
+              [nzSize]="'default'"
+              style="width: 100%"
+            ></nz-date-picker>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-form-label [nzSpan]="24">Lý do nghỉ việc </nz-form-label>
+            <nz-form-control [nzSpan]="24">
+              <textarea
+                nz-input
+                formControlName="ReasonDeleted"
+                placeholder="Nhập lý do nghỉ việc"
+              ></textarea>
+            </nz-form-control>
+          </nz-form-item>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-danger"
+          (click)="closeDeleteModal()"
+        >
+          Hủy
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="deleteEmployee()"
+        >
+          Đồng ý
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- end region -->

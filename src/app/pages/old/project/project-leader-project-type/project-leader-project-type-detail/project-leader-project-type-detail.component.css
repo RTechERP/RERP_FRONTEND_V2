@@ -1,0 +1,30 @@
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+.reset {
+  all: revert;
+}
+
+.ant-splitter-panel{
+  position: relative;
+}
+
+.tabulator {
+  font-size: 0.75rem;
+  width: 100%;
+}
+
+.tabulator-cell {
+  padding: 0px;
+}
+
+.inner-content {
+  padding: 0 !important;
+}
+label {
+  font-size: 14px;
+}
+
+
+

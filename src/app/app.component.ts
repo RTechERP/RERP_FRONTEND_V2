@@ -17,7 +17,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { ReactiveFormsModule } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { MenuService } from './pages/old/menus/menu-service/menu.service';
+import { MenuService } from './pages/systems/menus/menu-service/menu.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';

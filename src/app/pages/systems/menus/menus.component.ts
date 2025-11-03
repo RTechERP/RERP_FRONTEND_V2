@@ -1,8 +1,13 @@
 import { Component, OnInit, Type } from '@angular/core';
-import { MenuService } from '../../systems/menus/menu-service/menu.service';
+import { MenuService } from './menu-service/menu.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { FactoryVisitRegistrationComponent } from '../../general-category/visit-factory-registation/factory-visit-registration.component';
 
+
+import { HandoverComponent } from '../../hrm/handover/handover.component';
 import { PermissionService } from '../../../services/permission.service';
+import { MenuItem } from './menu-service/menu.service';
+
 
 @Component({
   selector: 'app-menus',
@@ -13,7 +18,7 @@ import { PermissionService } from '../../../services/permission.service';
 })
 export class MenusComponent implements OnInit {
   //#region Khai báo biến
-  menus: any[] = [];
+ menus: MenuItem[] = [];
   //#endregion
 
   constructor(

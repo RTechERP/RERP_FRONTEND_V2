@@ -98,7 +98,7 @@ export class TsAssetTypeComponent implements OnInit, AfterViewInit {
         layout: 'fitDataStretch',
         pagination: true,
         selectableRows: 1,
-        height: '83vh',
+        height: '89vh',
         movableColumns: true,
         paginationSize: 30,
         paginationSizeSelector: [5, 10, 20, 50, 100],

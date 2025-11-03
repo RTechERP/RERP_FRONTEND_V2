@@ -1,3 +1,32 @@
-<p>
-  ts-asset-source works!
-</p>
+<ng-container class="w-100">
+    <nz-splitter style="height: 94vh; ">
+      
+        <nz-splitter-panel>
+            <div class="card  border-0 rounded-0">
+                <div class="card-header  bg-white p-1">
+                    <div class="d-flex h-40  gap-1">
+
+
+                        <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add">
+                            <img src="assets/icon/action_add_item_16.png" alt="Thêm "/>Thêm 
+                        </button>
+                        <button nz-button nzType="default" nzSize="small" class="btn-edit" >
+                            <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />Sửa
+                        </button>
+                        <button nz-button nzType="default" nzSize="small" class="btn-delete ">
+                            <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />Xóa
+                        </button>
+                      
+
+                    </div>
+                </div>
+
+                <nz-splitter>
+                    <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
+                        <div id="dataSourceAsset" style="height: 100%;"></div>
+                    </nz-splitter-panel>
+                </nz-splitter>
+            </div>
+        </nz-splitter-panel>
+    </nz-splitter>
+</ng-container> 

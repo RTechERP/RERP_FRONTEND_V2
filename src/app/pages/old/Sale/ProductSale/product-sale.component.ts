@@ -75,7 +75,6 @@ interface ProductSale {
     HasPermissionDirective
     // ProductSaleDetailComponent,
     // ImportExcelProductSaleComponent,
-    HasPermissionDirective
   ],
   templateUrl: './product-sale.component.html',
   styleUrl: './product-sale.component.css',

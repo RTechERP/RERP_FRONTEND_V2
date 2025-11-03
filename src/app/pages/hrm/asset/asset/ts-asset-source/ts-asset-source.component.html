@@ -7,13 +7,13 @@
                     <div class="d-flex h-40  gap-1">
 
 
-                        <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add" (click)="onAdd()" hasPermission="N2,N23,N1">
+                        <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add" (click)="onAdd()" *hasPermission="'N2,N23,N1'">
                             <img src="assets/icon/action_add_item_16.png" alt="Thêm "/>Thêm 
                         </button>
-                        <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="onEdit()" hasPermission="N2,N23,N1" >
+                        <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="onEdit()" *hasPermission="'N2,N23,N1'" >
                             <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />Sửa
                         </button>
-                        <button nz-button nzType="default" nzSize="small" class="btn-delete "(click)="onDeleted()"  hasPermission="N2,N23,N1" >
+                        <button nz-button nzType="default" nzSize="small" class="btn-delete "(click)="onDeleted()"  *hasPermission="'N2,N23,N1'" >
                             <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />Xóa
                         </button>
                       

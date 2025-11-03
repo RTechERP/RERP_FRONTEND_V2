@@ -337,7 +337,7 @@ export class MenuService {
                 key: 'TeamComponent',
                 title: 'Team',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission("N26,N40,N1"),
+                isPermission: this.permissionService.hasPermission(""),
                 comp: TeamComponent,
                 //   icon: 'assets/icon/layers.png',
               },

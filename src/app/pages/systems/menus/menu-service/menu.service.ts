@@ -42,6 +42,8 @@ import { TsAssetManagementComponent } from '../../../hrm/asset/asset/ts-asset-ma
 import { TsAssetRecoveryComponent } from '../../../hrm/asset/asset/ts-asset-recovery/ts-asset-recovery.component';
 import { TsAssetTransferComponent } from '../../../hrm/asset/asset/ts-asset-transfer/ts-asset-transfer.component';
 import { PermissionService } from '../../../../services/permission.service';
+import { TsAssetTypeComponent } from '../../../hrm/asset/asset/ts-asset-type/ts-asset-type.component';
+import { TsAssetSourceComponent } from '../../../hrm/asset/asset/ts-asset-source/ts-asset-source.component';
 
 @Injectable({
   providedIn: 'root',
@@ -151,6 +153,24 @@ export class MenuService {
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission(""),
                 comp: TsAssetManagementComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+                   {
+                kind: 'leaf',
+                key: 'TsAssetTypeComponent',
+                title: 'Loại tài sản',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(""),
+                comp: TsAssetTypeComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+                  {
+                kind: 'leaf',
+                key: 'TsAssetSourceComponent',
+                title: 'Nguồn gốc tài sản',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(""),
+                comp: TsAssetSourceComponent,
                 //   icon: 'assets/icon/layers.png',
               },
 

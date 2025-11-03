@@ -76,13 +76,58 @@ export class TsAssetSourceComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private assetSourceService: AssetsService
   ) {}
-
+  assetSourceTable: Tabulator | null = null;
+    selectedSource: any = {};
   ngOnInit() {}
-  ngAfterViewInit(): void {}
+  ngAfterViewInit(): void {
+    this.getAssetSource();
+  }
   getAssetSource() {
     this.assetSourceService.getAssets().subscribe((response: any) => {
       this.assetSourceData = response.data;
       console.log('source', this.assetSourceData);
+          this.drawTable();
     });
+  }
+  private drawTable(): void {
+    if (this.assetSourceTable) {
+      this.assetSourceTable.setData(this.assetSourceData);
+    } else {
+      this.assetSourceTable = new Tabulator('#dataSourceAsset', {
+        data: this.assetSourceData,
+        layout: "fitDataStretch",
+        pagination: true,
+        selectableRows: 1,
+        height: '89vh',
+        movableColumns: true,
+        paginationSize: 30,
+        paginationSizeSelector: [5, 10, 20, 50, 100],
+        reactiveData: true,
+        placeholder: 'Không có dữ liệu',
+        dataTree: true,
+        addRowPos: "bottom",
+        history: true,
+        columns: [
+           {
+            title: 'STT',
+            hozAlign: 'center',
+            width: 60,
+            headerHozAlign: 'center',
+            formatter: 'rownum',
+            headerSort: false
+          }
+          ,
+          { title: 'ID', field: 'ID', visible:false},
+          { title: 'Mã nguồn gốc', field: 'SourceCode' },
+           { title: 'Tên nguồn gốc', field: 'SourceName' },
+        ],
+        rowClick: (e: MouseEvent, row: RowComponent) => {
+          this.assetSourceTable!.getSelectedRows().forEach(r => r.deselect());
+          row.select();
+          this.selectedSource = row.getData();
+          console.log("Select ", this.selectedSource);
+        },
+      } as any);
+    }
   }
 }

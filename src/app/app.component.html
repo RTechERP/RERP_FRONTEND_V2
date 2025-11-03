@@ -1,9 +1,11 @@
 <nz-layout class="app-layout">
     <nz-sider class="menu-sidebar" nzCollapsible nzWidth="256px" nzBreakpoint="md" [(nzCollapsed)]="isCollapsed"
         [nzTrigger]="null" nzTheme="light">
-        <div class="sidebar-logo" nzTheme="light">
-            <a routerLink="/home">
-                <img src="assets\images\logo-RTC-2023-1200-banchuan.png" alt="logo" />
+        <div class="sidebar-logo d-flex justify-content-center align-items-center" nzTheme="light">
+            <a routerLink="/home" class="text-center">
+                <!-- <img [src]="" alt="logo" class="img-logo" /> -->
+                <img [src]="isCollapsed ? 'assets/images/icon-logo-RTC-2023.png' : 'assets/images/logo-RTC-2023-1200-banchuan.png'"
+                    alt="">
                 <!-- <h1>RTC</h1> -->
             </a>
         </div>
@@ -79,35 +81,49 @@
             </ng-container>
         </ul> -->
 
+
+
         <ul nz-menu nzMode="inline">
             @for (m of menus; track m.key) {
-            <li nz-submenu nzTitle="Group 1">
+
+            <ng-template #nzTitle>
+                <img [src]="m.icon" class="menu-icon" width="10%" style="margin-right: 8px; vertical-align: middle;" />
+                <p class="m-0 fw-bold">{{ m.title }}</p>
+            </ng-template>
+            <li nz-submenu [nzTitle]="nzTitle" *ngIf="isGroup(m) && m.isPermission && m.isOpen" nzIcon="">
                 <ul>
-                    <li nz-menu-item *ngIf="isLeaf(m) && m.isOpen&&m.isPermission">{{m.title}}</li>
-                    <!-- <li nz-menu-item>Option 6</li> -->
-                    <li nz-submenu nzTitle="Group 2 con của 1" *ngIf="isGroup(m) && m.isOpen&&m.isPermission">
+                    @for (c1 of m.children; track c1.key) {
+                    <li nz-menu-item *ngIf="isLeaf(c1) && c1.isPermission && c1.isOpen"
+                        (click)="newTab(c1.comp, c1.title)">
+                        <img *ngIf="c1.icon" [src]="c1.icon" class="menu-icon" /> {{c1.title}}
+                    </li>
+                    <li nz-submenu nzTitle="{{c1.title}}" *ngIf="isGroup(c1) && c1.isPermission && c1.isOpen">
                         <ul>
-                            @for (c of m.children; track c.key) {
-                            <li nz-menu-item *ngIf="isLeaf(c) && c.isOpen&&m.isPermission">{{c.title}}</li>
-                            <!-- <li nz-menu-item>Option 8</li> -->
-                            <li nz-submenu nzTitle="Group 3 con của 2" *ngIf="isGroup(c) && c.isOpen&&c.isPermission">
+                            @for (c2 of c1.children; track c2.key) {
+                            <li nz-menu-item *ngIf="isLeaf(c2) && c2.isPermission && c2.isOpen"
+                                (click)="newTab(c2.comp, c2.title)">
+                                <img *ngIf="c2.icon" [src]="c2.icon" class="menu-icon" /> {{c2.title}}
+                            </li>
+                            <li nz-submenu nzTitle="{{c2.title}}" *ngIf="isGroup(c2) && c2.isPermission && c2.isOpen">
                                 <ul>
-                                    @for (cc of c.children; track cc.key) {
-                                    <li nz-menu-item>{{cc.title}}</li>
+                                    @for (c3 of c2.children; track c3.key) {
+                                    <li nz-menu-item *ngIf="isLeaf(c3) && c3.isPermission && c3.isOpen"
+                                        (click)="newTab(c3.comp, c3.title)">
+                                        <img *ngIf="c2.icon" [src]="c2.icon" class="menu-icon" /> {{c3.title}}
+                                    </li>
                                     }
+
                                 </ul>
                             </li>
                             }
 
                         </ul>
                     </li>
+                    }
                 </ul>
             </li>
             }
-
-
         </ul>
-
     </nz-sider>
     <nz-layout>
         <nz-header>
@@ -117,20 +133,11 @@
                     <nz-icon class="trigger text-light" [nzType]="isCollapsed ? 'menu-unfold' : 'menu-fold'" />
                 </span>
                 <div style="width: 100%; max-width: 100%; overflow: auto" class="app-header-tabs">
-                    <!-- <nz-tabset nzLinkRouter (nzClose)="closeTab($event)" nzType="editable-card" nzHideAdd
-                        [(nzSelectedIndex)]="selectedIndex" [nzSize]="'small'">
-                        @for (tab of dynamicTabs; track tab.title) {
-                        <nz-tab nzClosable>
-                            <a *nzTabLink nz-tab-link [routerLink]="tab.routerLink"
-                                [queryParams]="tab.queryParams ?? {}" queryParamsHandling="merge" class="text-light">
-                                {{ tab.title }}
-                            </a>
-                        </nz-tab>
-                        }a thaqo 
-                    </nz-tabset> -->
+
                     <nz-tabset nzType="editable-card" nzHideAdd [(nzSelectedIndex)]="selectedIndex"
                         (nzClose)="closeTab($event)">
-                        <nz-tab *ngFor="let tab of dynamicTabs" [nzTitle]="tab.title" [nzClosable]="true">
+                        <nz-tab *ngFor="let tab of dynamicTabs" [nzTitle]="tab.title" [nzClosable]="true"
+                            class="text-uppercase">
 
                         </nz-tab>
                     </nz-tabset>
@@ -140,16 +147,7 @@
                         class=" text-light">
                         <nz-icon nzType="appstore" nzTheme="outline" />
                     </button>
-                    <!-- <nz-dropdown-menu #appmenu="nzDropdownMenu">
-                        <div class="app-launcher">
-                            <div class="app-launcher-inner">
-                                <a (click)="isDatcom = !isDatcom">
-                                    <img src="assets/icon/online-shop.gif">
-                                    <span>Đặt cơm</span>
-                                </a>
-                            </div>
-                        </div>
-                    </nz-dropdown-menu> -->
+
                     <nz-dropdown-menu #appmenu="nzDropdownMenu">
                         <div class="app-launcher">
                             <div class="app-launcher-inner">
@@ -160,23 +158,6 @@
                                     <span>{{m.title}}</span>
                                 </a>
                                 }
-
-                                <!-- <a (click)="toggleMenu('warehouse')" [class.active]="isMenuOpen('warehouse')">
-                                    <img src="assets/icon/menu_warehouse_64.png" />
-                                    <span>KHO</span>
-                                </a>
-                                <a (click)="toggleMenu('hrm')" [class.active]="isMenuOpen('hrm')">
-                                    <img src="assets/icon/menu_hrm_64.png" />
-                                    <span>HRM</span>
-                                </a>
-                                <a (click)="toggleMenu('categories')" [class.active]="isMenuOpen('categories')">
-                                    <img src="assets/icon/menu_categories_64.png" />
-                                    <span>DANH MỤC CHUNG</span>
-                                </a>
-                                <a (click)="toggleMenu('project')" [class.active]="isMenuOpen('project')">
-                                    <img src="assets/icon/menu_project_64.png" />
-                                    <span>DỰ ÁN</span>
-                                </a> -->
                             </div>
                         </div>
                     </nz-dropdown-menu>

@@ -46,6 +46,7 @@ import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { ProjectService } from './project-service/project.service';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 @Component({
   selector: 'app-projects',
   standalone: true,
@@ -70,7 +71,7 @@ import { ProjectService } from './project-service/project.service';
     NzSpinModule,
     NzTreeSelectModule,
     NzModalModule,
-    CommonModule,
+    CommonModule,HasPermissionDirective
   ],
   templateUrl: './project.component.html',
   styleUrl: './project.component.css',

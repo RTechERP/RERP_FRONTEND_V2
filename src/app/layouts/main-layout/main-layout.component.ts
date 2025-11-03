@@ -28,7 +28,7 @@ import { CustomerComponent } from '../../pages/old/VisionBase/customer/customer.
 
 
 // import { menus } from '../../pages/old/menus/menus.component';
-import { GroupItem, LeafItem, MenuItem, MenuService } from '../../pages/old/menus/menu-service/menu.service';
+import { GroupItem, LeafItem, MenuItem, MenuService } from '../../pages/systems/menus/menu-service/menu.service';
 import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
 import { AppNotifycationDropdownComponent, NotifyItem } from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
 import { MenusComponent } from '../../pages/old/menus/menus.component';
@@ -103,7 +103,7 @@ export class MainLayoutComponent implements OnInit {
   isCollapsed = true;
   isDatcom = false;
   selectedIndex = 0;
-
+  trackKey = (_: number, x: any) => x?.key ?? x?.title ?? _;
   isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
   isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
   menus:MenuItem[]=[];

@@ -217,7 +217,8 @@
                                             </button>
                                         </nz-upload>
 
-                                    <input nz-input formControlName="FileName" placeholder="Chưa chọn file" readonly />
+                                        <input nz-input formControlName="FileName" placeholder="Chưa chọn file"
+                                            readonly />
 
 
 
@@ -269,5 +270,5 @@
 </div>
 <div class="modal-footer">
     <button nz-button nzType="default" nzDanger (click)="close()">Đóng</button>
-    <button nz-button nzType="primary" (click)="save()">Lưu dữ liệu</button>
+    <button nz-button nzType="primary" (click)="save()" *hasPermission="'N2,N34,N1'">Lưu dữ liệu</button>
 </div>

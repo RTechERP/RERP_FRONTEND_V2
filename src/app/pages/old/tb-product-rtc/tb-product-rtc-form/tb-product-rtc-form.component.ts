@@ -26,7 +26,7 @@ import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import type { NzUploadFile } from 'ng-zorro-antd/upload';
 import { TbProductRtcService } from '../tb-product-rtc-service/tb-product-rtc.service';
-import { UnitService } from '../../ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
+import { UnitService } from '../../../hrm/asset/asset/ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
 import { log } from 'ng-zorro-antd/core/logger';
 import { NzFormModule } from 'ng-zorro-antd/form';
 export const SERVER_PATH = `D:/RTC/`;

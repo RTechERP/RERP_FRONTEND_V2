@@ -28,6 +28,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { EmployeeBussinessService } from './employee-bussiness-service/employee-bussiness.service';
 import { EmployeeBussinessDetailComponent } from './employee-bussiness-detail/employee-bussiness-detail.component';
 import { EmployeeBussinessBonusComponent } from "./employee-bussiness-bonus/employee-bussiness-bonus.component";
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 
 @Component({
   selector: 'app-employee-bussiness',
@@ -54,7 +55,8 @@ import { EmployeeBussinessBonusComponent } from "./employee-bussiness-bonus/empl
     NgIf,
     NzSpinModule,
     EmployeeBussinessDetailComponent,
-    EmployeeBussinessBonusComponent
+    EmployeeBussinessBonusComponent,
+    HasPermissionDirective
 ]
 })
 export class EmployeeBussinessComponent implements OnInit, AfterViewInit{

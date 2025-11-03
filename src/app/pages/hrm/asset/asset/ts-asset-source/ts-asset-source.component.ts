@@ -36,6 +36,7 @@ import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DateTime } from 'luxon';
 declare var bootstrap: any;
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { TsAssetManagementPersonalService } from '../../../../old/ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
 import { updateCSS } from 'ng-zorro-antd/core/util';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -64,6 +65,7 @@ import { TsAssetSourceFormComponent } from './ts-asset-source-form/ts-asset-sour
     NzTableModule,
     NzTabsModule,
     NgbModalModule,
+    NzModalModule,
     // TsAssetSourceFormComponent,
   ],
   selector: 'app-ts-asset-source',
@@ -71,22 +73,26 @@ import { TsAssetSourceFormComponent } from './ts-asset-source-form/ts-asset-sour
   styleUrls: ['./ts-asset-source.component.css'],
 })
 export class TsAssetSourceComponent implements OnInit, AfterViewInit {
+  private ngbModal = inject(NgbModal);
   assetSourceData: any[] = [];
+  modalData: any = [];
   constructor(
     private notification: NzNotificationService,
-    private assetSourceService: AssetsService
-  ) {}
+    private assetSourceService: AssetsService,
+    private nzModal: NzModalService
+  ) { }
   assetSourceTable: Tabulator | null = null;
-    selectedSource: any = {};
-  ngOnInit() {}
+  selectedSource: any = {};
+  ngOnInit() { }
   ngAfterViewInit(): void {
+    this.drawTable();
     this.getAssetSource();
   }
   getAssetSource() {
     this.assetSourceService.getAssets().subscribe((response: any) => {
       this.assetSourceData = response.data;
       console.log('source', this.assetSourceData);
-          this.drawTable();
+      this.drawTable();
     });
   }
   private drawTable(): void {
@@ -107,8 +113,19 @@ export class TsAssetSourceComponent implements OnInit, AfterViewInit {
         dataTree: true,
         addRowPos: "bottom",
         history: true,
+        langs: {
+          vi: {
+            pagination: {
+              first: '<<',
+              last: '>>',
+              prev: '<',
+              next: '>',
+            },
+          },
+        },
+         locale: 'vi',
         columns: [
-           {
+          {
             title: 'STT',
             hozAlign: 'center',
             width: 60,
@@ -117,9 +134,9 @@ export class TsAssetSourceComponent implements OnInit, AfterViewInit {
             headerSort: false
           }
           ,
-          { title: 'ID', field: 'ID', visible:false},
+          { title: 'ID', field: 'ID', visible: false },
           { title: 'Mã nguồn gốc', field: 'SourceCode' },
-           { title: 'Tên nguồn gốc', field: 'SourceName' },
+          { title: 'Tên nguồn gốc', field: 'SourceName' },
         ],
         rowClick: (e: MouseEvent, row: RowComponent) => {
           this.assetSourceTable!.getSelectedRows().forEach(r => r.deselect());
@@ -130,4 +147,84 @@ export class TsAssetSourceComponent implements OnInit, AfterViewInit {
       } as any);
     }
   }
+  onAdd() {
+    const modalRef = this.ngbModal.open(TsAssetSourceFormComponent
+      , {
+        size: 'lg',
+        backdrop: 'static',
+        keyboard: false,
+        centered: true
+      });
+    modalRef.componentInstance.dataInput = this.modalData;
+    modalRef.result.then(
+      (result) => {
+        console.log('Modal closed with result:', result);
+        this.getAssetSource();
+      },
+      (dismissed) => {
+
+      }
+    );
+  }
+  onEdit(): void {
+    const selected = this.assetSourceTable?.getSelectedData();
+    if (!selected || selected.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn một loại tài sản để sửa!');
+      return;
+    }
+    const selecteStatus = { ...selected[0] };
+    const modalRef = this.ngbModal.open(TsAssetSourceFormComponent, {
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true
+    });
+    modalRef.componentInstance.dataInput = selecteStatus;
+    modalRef.result.then(
+      (result) => {
+        this.getAssetSource();
+
+      },
+      () => {
+        console.log('Modal dismissed');
+      }
+    );
+  }
+  onDeleted() {
+    const selected = this.assetSourceTable?.getSelectedData();
+    if (!selected?.length) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn loại tài sản để xóa!');
+      return;
+    }
+
+    const item = selected[0];
+    const name = item.SourceName || item.SourceCode || `ID ${item.ID}`;
+    const payload = { ID: item.ID, IsDeleted: true };
+
+    this.nzModal.confirm({
+      nzTitle: 'Xác nhận xóa',
+      nzContent: `Bạn có chắc chắn muốn xóa <strong>${name}</strong> không?`,
+      nzOkText: 'Xóa',
+      nzOkType: 'primary',
+      nzOkDanger: true,
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        this.assetSourceService.SaveData(payload).subscribe({
+          next: (res) => {
+            if (res?.status === 1) {
+              this.notification.success('Thông báo', 'Thành công');
+              this.getAssetSource();
+            } else {
+              this.notification.warning('Thông báo', 'Thất bại');
+            }
+          },
+          error: (err) => {
+            console.error(err);
+            this.notification.warning('Thông báo', 'Lỗi kết nối');
+          }
+        });
+      }
+    });
+  }
+
 }

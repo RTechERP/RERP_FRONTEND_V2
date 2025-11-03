@@ -296,12 +296,7 @@ export class HrhiringRequestDetailComponent implements OnInit {
 
   // Event handlers
   onSalaryChange(field: string, value: number): void {
-    // Có thể thêm logic validation ở đây
-    if (field === 'SalaryMin' && value > this.form.value.SalaryMax) {
-      this.form.patchValue({ SalaryMax: value });
-    } else if (field === 'SalaryMax' && value < this.form.value.SalaryMin) {
-      this.form.patchValue({ SalaryMin: value });
-    }
+    // No validation logic
   }
 
   onAgeChange(field: string, value: number): void {
@@ -328,7 +323,47 @@ export class HrhiringRequestDetailComponent implements OnInit {
 
   formatSalaryDisplay(value: number): string {
     if (!value) return '0 VNĐ';
-    return `${value.toLocaleString('vi-VN')} VNĐ`;
+    const formatted = value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return `${formatted} VNĐ`;
+  }
+
+  formatSalaryInput(value: number): string {
+    if (!value || value === 0) return '';
+    // Sử dụng format tùy chỉnh với dấu phẩy
+    return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  parseSalaryInput(value: string): number {
+    if (!value || value.trim() === '') return 0;
+    
+    // Loại bỏ tất cả ký tự không phải số
+    const cleanValue = value.replace(/[^0-9]/g, '');
+    
+    if (cleanValue === '') return 0;
+    
+    const parsed = parseInt(cleanValue) || 0;
+    return Math.max(0, parsed); // Đảm bảo không âm
+  }
+
+  validateNumberInput(event: KeyboardEvent,event1:any): void {
+    const char = event.key;
+    
+    // Cho phép: số (0-9), Backspace, Delete, Tab, Enter, Arrow keys
+    const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+    
+    if (allowedKeys.includes(char)) {
+      return; // Cho phép các phím điều khiển
+    }
+    
+    // Chỉ cho phép số (0-9)
+    if (!/[0-9]/.test(char)) {
+      event.preventDefault();
+      return;
+    }
+    // const value = this.form.value.SalaryMin || 0;
+    // console.log(value);
+    
+    // event1.target.value = this.formatNumberEnUS(value);
   }
 
   // formatSalaryRange(min: number, max: number): string {
@@ -426,71 +461,123 @@ export class HrhiringRequestDetailComponent implements OnInit {
     }
   }
 
-  // Salary range handlers - CẢI THIỆN ĐỂ TRÁNH TRÙNG NHAU
   onMinSalaryChange(event: any): void {
-    const value = parseInt(event.target.value);
-    const currentMax = this.form.value.SalaryMax;
-    const step = 100000; // Khoảng cách tối thiểu
-
-    // Đảm bảo min không vượt quá max - step
-    if (value <= currentMax - step) {
-      this.form.patchValue({ SalaryMin: value });
-    } else {
-      // Tự động điều chỉnh min xuống để có khoảng cách tối thiểu
-      const newMin = Math.max(0, currentMax - step);
-      this.form.patchValue({ SalaryMin: newMin });
-      event.target.value = newMin;
+    let value = parseInt(event.target.value);
+    if(value >this.form.value.SalaryMax){
+        value = this.form.value.SalaryMax
     }
+    this.form.patchValue({ SalaryMin: value });
   }
 
   onMaxSalaryChange(event: any): void {
-    const value = parseInt(event.target.value);
-    const currentMin = this.form.value.SalaryMin;
-    const step = 100000; // Khoảng cách tối thiểu
-
-    // Đảm bảo max không nhỏ hơn min + step
-    if (value >= currentMin + step) {
-      this.form.patchValue({ SalaryMax: value });
-    } else {
-      // Tự động điều chỉnh max lên để có khoảng cách tối thiểu
-      const newMax = Math.min(100000000, currentMin + step);
-      this.form.patchValue({ SalaryMax: newMax });
-      event.target.value = newMax;
+    let value = parseInt(event.target.value);
+    if(value<this.form.value.SalaryMin){
+        value = this.form.value.SalaryMin
     }
+    this.form.patchValue({ SalaryMax: value });
   }
 
   // Age range handlers - CẢI THIỆN ĐỂ TRÁNH TRÙNG NHAU
   onMinAgeChange(event: any): void {
-    const value = parseInt(event.target.value);
-    const currentMax = this.form.value.AgeMax;
-    const step = 1; // Khoảng cách tối thiểu
-
-    // Đảm bảo min không vượt quá max - step
-    if (value <= currentMax - step) {
-      this.form.patchValue({ AgeMin: value });
-    } else {
-      // Tự động điều chỉnh min xuống để có khoảng cách tối thiểu
-      const newMin = Math.max(18, currentMax - step);
-      this.form.patchValue({ AgeMin: newMin });
-      event.target.value = newMin;
-    }
+    let value = parseInt(event.target.value);
+if(value>this.form.value.AgeMax){
+    value = this.form.value.AgeMax
+}
+    this.form.patchValue({ AgeMin: value });
   }
 
   onMaxAgeChange(event: any): void {
-    const value = parseInt(event.target.value);
-    const currentMin = this.form.value.AgeMin;
-    const step = 1; // Khoảng cách tối thiểu
-
-    // Đảm bảo max không nhỏ hơn min + step
-    if (value >= currentMin + step) {
-      this.form.patchValue({ AgeMax: value });
-    } else {
-      // Tự động điều chỉnh max lên để có khoảng cách tối thiểu
-      const newMax = Math.min(65, currentMin + step);
-      this.form.patchValue({ AgeMax: newMax });
-      event.target.value = newMax;
-    }
+    let value = parseInt(event.target.value);
+    if(value<this.form.value.AgeMin){
+    value = this.form.value.AgeMin
+}
+    this.form.patchValue({ AgeMax: value });
   }
+
+  // Input handlers for direct number input
+  onMinSalaryInputChange(event: any): void {
+    const rawValue = event.target.value.replace(/,/g, ''); // Loại bỏ dấu phẩy
+    let numericValue = parseInt(rawValue) || 0;
+    
+    if(numericValue>this.form.value.SalaryMax){
+        numericValue = this.form.value.SalaryMax;
+    }
+    // Validate range: 0 - 100,000,000
+    if (isNaN(numericValue) || numericValue < 0) {
+      numericValue = 0;
+    } else if (numericValue > 100000000) {
+      numericValue = 100000000;
+    }
+    
+    this.form.patchValue({ SalaryMin: numericValue });
+    
+    // Format lại hiển thị
+    event.target.value = this.formatNumberEnUS(numericValue);
+  }
+
+  onMaxSalaryInputChange(event: any): void {
+    const rawValue = event.target.value.replace(/,/g, ''); // Loại bỏ dấu phẩy
+    let numericValue = parseInt(rawValue) || 0;
+        if(numericValue<this.form.value.SalaryMin){
+        numericValue = this.form.value.SalaryMin;
+    }
+    // Validate range: 0 - 100,000,000
+    if (isNaN(numericValue) || numericValue < 0) {
+      numericValue = 0;
+    } else if (numericValue > 100000000) {
+      numericValue = 100000000;
+    }
+    
+    this.form.patchValue({ SalaryMax: numericValue });
+    
+    // Format lại hiển thị
+    event.target.value = this.formatNumberEnUS(numericValue);
+  }
+
+  onMinSalaryBlur(event: any): void {
+    const value = this.form.value.SalaryMin || 0;
+    event.target.value = this.formatNumberEnUS(value);
+  }
+
+  onMaxSalaryBlur(event: any): void {
+    const value = this.form.value.SalaryMax || 0;
+    event.target.value = this.formatNumberEnUS(value);
+  }
+
+  onMinAgeInputChange(event: any): void {
+    const inputValue = event.target.value.replace(/,/g, '');
+    let numericValue = parseInt(inputValue, 10);
+    if(numericValue>this.form.value.AgeMax){
+        numericValue = this.form.value.AgeMax
+    }
+    // Validate range: 18 - 65
+    if (isNaN(numericValue) || numericValue < 18) {
+      numericValue = 18;
+    } else if (numericValue > 65) {
+      numericValue = 65;
+    }
+    
+    this.form.patchValue({ AgeMin: numericValue });
+    event.target.value = this.formatNumberEnUS(numericValue);
+  }
+
+  onMaxAgeInputChange(event: any): void {
+    const inputValue = event.target.value.replace(/,/g, '');
+    let numericValue = parseInt(inputValue, 10);
+    if(numericValue<this.form.value.AgeMin){
+        numericValue = this.form.value.AgeMin
+    }
+    
+    // Validate range: 18 - 65
+    if (isNaN(numericValue) || numericValue < 18) {
+      numericValue = 18;
+    } else if (numericValue > 65) {
+      numericValue = 65;
+    }
+    this.form.patchValue({ AgeMax: numericValue });
+    event.target.value = this.formatNumberEnUS(numericValue);
+  }
+
 
   // Click handlers for salary slider
   onSalarySliderClick(event: any, type: 'min' | 'max'): void {
@@ -505,15 +592,9 @@ export class HrhiringRequestDetailComponent implements OnInit {
     const value = Math.round(minValue + (maxValue - minValue) * percentage);
 
     if (type === 'min') {
-      const currentMax = this.form.value.SalaryMax;
-      if (value <= currentMax) {
-        this.form.patchValue({ SalaryMin: value });
-      }
+      this.form.patchValue({ SalaryMin: value });
     } else {
-      const currentMin = this.form.value.SalaryMin;
-      if (value >= currentMin) {
-        this.form.patchValue({ SalaryMax: value });
-      }
+      this.form.patchValue({ SalaryMax: value });
     }
   }
 
@@ -530,15 +611,9 @@ export class HrhiringRequestDetailComponent implements OnInit {
     const value = Math.round(minValue + (maxValue - minValue) * percentage);
 
     if (type === 'min') {
-      const currentMax = this.form.value.AgeMax;
-      if (value <= currentMax) {
-        this.form.patchValue({ AgeMin: value });
-      }
+      this.form.patchValue({ AgeMin: value });
     } else {
-      const currentMin = this.form.value.AgeMin;
-      if (value >= currentMin) {
-        this.form.patchValue({ AgeMax: value });
-      }
+      this.form.patchValue({ AgeMax: value });
     }
   }
 
@@ -553,6 +628,62 @@ export class HrhiringRequestDetailComponent implements OnInit {
     const minDisplay = min ? min.toLocaleString('vi-VN') : '0';
     const maxDisplay = max ? max.toLocaleString('vi-VN') : '0';
     return `${minDisplay} - ${maxDisplay} VNĐ`;
+  }
+
+  // Method format số theo en-US (1,000,000)
+  formatNumberEnUS(value: number): string {
+    if (!value || value === 0) return '0';
+    return value.toLocaleString('en-US');
+  }
+
+  // Paste handler cho salary inputs
+  onSalaryPaste(event: ClipboardEvent): void {
+    event.preventDefault();
+    const clipboardData = event.clipboardData?.getData('text') || '';
+    
+    // Chỉ cho phép paste nếu là số
+    if (/^\d+$/.test(clipboardData)) {
+      const target = event.target as HTMLInputElement;
+      let numericValue = parseInt(clipboardData) || 0;
+      
+      // Validate range: 0 - 100,000,000
+      if (numericValue < 0) {
+        numericValue = 0;
+      } else if (numericValue > 100000000) {
+        numericValue = 100000000;
+      }
+      
+      target.value = this.formatNumberEnUS(numericValue);
+      
+      // Trigger input event để cập nhật form
+      const inputEvent = new Event('input', { bubbles: true });
+      target.dispatchEvent(inputEvent);
+    }
+  }
+
+  // Paste handler cho age inputs
+  onAgePaste(event: ClipboardEvent): void {
+    event.preventDefault();
+    const clipboardData = event.clipboardData?.getData('text') || '';
+    
+    // Chỉ cho phép paste nếu là số
+    if (/^\d+$/.test(clipboardData)) {
+      const target = event.target as HTMLInputElement;
+      let numericValue = parseInt(clipboardData) || 18;
+      
+      // Validate range: 18 - 65
+      if (numericValue < 18) {
+        numericValue = 18;
+      } else if (numericValue > 65) {
+        numericValue = 65;
+      }
+      
+      target.value = this.formatNumberEnUS(numericValue);
+      
+      // Trigger input event để cập nhật form
+      const inputEvent = new Event('input', { bubbles: true });
+      target.dispatchEvent(inputEvent);
+    }
   }
 
   // Salary range track methods
@@ -607,34 +738,7 @@ export class HrhiringRequestDetailComponent implements OnInit {
     return ((max - 18) / total) * 100;
   }
 
-  // Thêm method validation để kiểm tra khoảng cách
-  validateRange(field: string): void {
-    if (field === 'SalaryMin' || field === 'SalaryMax') {
-      const min = this.form.value.SalaryMin;
-      const max = this.form.value.SalaryMax;
-      const step = 100000;
 
-      if (max - min < step) {
-        if (field === 'SalaryMin') {
-          this.form.patchValue({ SalaryMax: min + step });
-        } else {
-          this.form.patchValue({ SalaryMin: max - step });
-        }
-      }
-    } else if (field === 'AgeMin' || field === 'AgeMax') {
-      const min = this.form.value.AgeMin;
-      const max = this.form.value.AgeMax;
-      const step = 1;
-
-      if (max - min < step) {
-        if (field === 'AgeMin') {
-          this.form.patchValue({ AgeMax: min + step });
-        } else {
-          this.form.patchValue({ AgeMin: max - step });
-        }
-      }
-    }
-  }
 
   // Cập nhật save method trong component
   save(): void {
@@ -1004,22 +1108,6 @@ export class HrhiringRequestDetailComponent implements OnInit {
       this.healthRequirementsValidator,
       this.communicationRequirementsValidator,
     ]);
-
-    // Salary range validator
-    this.form
-      .get('SalaryMin')
-      ?.valueChanges.subscribe(() => this.validateSalaryRange());
-    this.form
-      .get('SalaryMax')
-      ?.valueChanges.subscribe(() => this.validateSalaryRange());
-
-    // Age range validator
-    this.form
-      .get('AgeMin')
-      ?.valueChanges.subscribe(() => this.validateAgeRange());
-    this.form
-      .get('AgeMax')
-      ?.valueChanges.subscribe(() => this.validateAgeRange());
   }
 
   private computerSkillsValidator = (control: any) => {
@@ -1067,39 +1155,7 @@ export class HrhiringRequestDetailComponent implements OnInit {
     return null;
   };
 
-  private validateSalaryRange(): void {
-    const min = this.form.get('SalaryMin')?.value || 0;
-    const max = this.form.get('SalaryMax')?.value || 0;
 
-    if (min >= max) {
-      this.form.get('SalaryMax')?.setErrors({ salaryRangeInvalid: true });
-    } else {
-      // Clear error if range is valid
-      const maxControl = this.form.get('SalaryMax');
-      if (maxControl?.errors?.['salaryRangeInvalid']) {
-        delete maxControl.errors['salaryRangeInvalid'];
-        if (Object.keys(maxControl.errors).length === 0) {
-          maxControl.setErrors(null);
-        }
-      }
-    }
-  }
 
-  private validateAgeRange(): void {
-    const min = this.form.get('AgeMin')?.value || 18;
-    const max = this.form.get('AgeMax')?.value || 65;
 
-    if (min >= max) {
-      this.form.get('AgeMax')?.setErrors({ ageRangeInvalid: true });
-    } else {
-      // Clear error if range is valid
-      const maxControl = this.form.get('AgeMax');
-      if (maxControl?.errors?.['ageRangeInvalid']) {
-        delete maxControl.errors['ageRangeInvalid'];
-        if (Object.keys(maxControl.errors).length === 0) {
-          maxControl.setErrors(null);
-        }
-      }
-    }
-  }
 }

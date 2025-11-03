@@ -1,54 +1,51 @@
 <ng-container class="w-100">
 
-      <div class="card h-100 border-0 rounded-0">
+    <div class="card h-100 border-0 rounded-0">
         <div class="card-header bg-white" style="padding-left: 0;">
-          <div class="d-flex justify-content-between align-items-center">
-            <div class="d-flex gap-2">
-              <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;" (click)="onSubmit()">
-                <nz-icon nzType="save" /> Lưu
-              </button>
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex gap-2">
+                    <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;"
+                        (click)="onSubmit()" *hasPermission="'N2,N1'">
+                        <nz-icon nzType="save" /> Lưu
+                    </button>
+                </div>
             </div>
-          </div>
-          <div class="card-body p-0">
-            <form [formGroup]="searchForm" class="d-flex gap-2 align-items-center">
-              <div class="d-flex">
-                <nz-form-label>Nhân viên</nz-form-label>
-                <nz-form-control>
-                  <nz-select formControlName="employeeId" nzPlaceHolder="Chọn nhân viên" nzAllowClear nzShowSearch nzSize="small" style="width: 10vw;">
-                    <nz-option *ngFor="let e of employeeList" [nzValue]="e.ID" [nzLabel]="e.FullName"></nz-option>
-                  </nz-select>
-                </nz-form-control>
-              </div>
-              <div class="d-flex">
-                <nz-form-label>Người duyệt</nz-form-label>
-                <nz-form-control>
-                  <nz-select formControlName="approverId" nzPlaceHolder="Chọn người duyệt" nzAllowClear  nzSize="small" style="width: 10vw;">
-                    <nz-option *ngFor="let a of approverList" [nzValue]="a.ID" [nzLabel]="a.FullName"></nz-option>
-                  </nz-select>
-                </nz-form-control>
-              </div>
-              <div class="d-flex">
-                <nz-form-label
-                  >Ngày
-                  </nz-form-label
-                >
-                <nz-form-control>
-                <nz-date-picker
-                  formControlName="dateRegister"
-                  nzFormat="dd/MM/yyyy"
-                  [nzSize]="'small'"
-                ></nz-date-picker>
-                </nz-form-control>
-              </div>
-          </form>
-          </div>
+            <div class="card-body p-0">
+                <form [formGroup]="searchForm" class="d-flex gap-2 align-items-center">
+                    <div class="d-flex">
+                        <nz-form-label>Nhân viên</nz-form-label>
+                        <nz-form-control>
+                            <nz-select formControlName="employeeId" nzPlaceHolder="Chọn nhân viên" nzAllowClear
+                                nzShowSearch nzSize="small" style="width: 10vw;">
+                                <nz-option *ngFor="let e of employeeList" [nzValue]="e.ID"
+                                    [nzLabel]="e.FullName"></nz-option>
+                            </nz-select>
+                        </nz-form-control>
+                    </div>
+                    <div class="d-flex">
+                        <nz-form-label>Người duyệt</nz-form-label>
+                        <nz-form-control>
+                            <nz-select formControlName="approverId" nzPlaceHolder="Chọn người duyệt" nzAllowClear
+                                nzSize="small" style="width: 10vw;">
+                                <nz-option *ngFor="let a of approverList" [nzValue]="a.ID"
+                                    [nzLabel]="a.FullName"></nz-option>
+                            </nz-select>
+                        </nz-form-control>
+                    </div>
+                    <div class="d-flex">
+                        <nz-form-label>Ngày
+                        </nz-form-label>
+                        <nz-form-control>
+                            <nz-date-picker formControlName="dateRegister" nzFormat="dd/MM/yyyy"
+                                [nzSize]="'small'"></nz-date-picker>
+                        </nz-form-control>
+                    </div>
+                </form>
+            </div>
         </div>
         <div class="card-body p-0 position-relative">
-          <div *ngIf="isLoading">
-            <nz-spin
-              [nzSpinning]="isLoading"
-              nzSimple
-              [style]="{
+            <div *ngIf="isLoading">
+                <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
                 position: 'absolute',
                 top: '0',
                 left: '0',
@@ -59,10 +56,9 @@
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
-              }"
-            ></nz-spin>
-          </div>
-          <div id="tb_over_time_detail"></div>
+              }"></nz-spin>
+            </div>
+            <div id="tb_over_time_detail"></div>
         </div>
-      </div>
+    </div>
 </ng-container>

@@ -9,7 +9,12 @@ import {
   ViewChild,
 } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink, RouterModule, RouterOutlet } from '@angular/router';
+import {
+  Router,
+  RouterLink,
+  RouterModule,
+  RouterOutlet,
+} from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCarouselComponent, NzCarouselModule } from 'ng-zorro-antd/carousel';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
@@ -50,6 +55,13 @@ import { NzListModule } from 'ng-zorro-antd/list';
 import { NzCalendarMode, NzCalendarModule } from 'ng-zorro-antd/calendar';
 import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
 import { HolidayServiceService } from '../../pages/old/holiday/holiday-service/holiday-service.service';
+import { HasPermissionDirective } from '../../directives/has-permission.directive';
+// import { MenuItem } from '../main-layout/main-layout.component';
+// import { menus } from '../../pages/old/menus/menus.component';
+import { environment } from '../../../environments/environment';
+import { AppUserService } from '../../services/app-user.service';
+import { MenusComponent } from '../../pages/old/menus/menus.component';
+import { MenuItem, MenuService } from '../../pages/systems/menus/menu-service/menu.service';
 
 interface dynamicApps {
   MenuName: string;
@@ -128,6 +140,8 @@ interface WorkStatus {
     NzCollapseModule,
     NzListModule,
     NzCalendarModule,
+    HasPermissionDirective,
+    NzTabsModule,
   ],
   templateUrl: './home-layout.component.html',
   styleUrl: './home-layout.component.css',
@@ -222,6 +236,9 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
     return isSaturday;
   }
 
+
+  menus:MenuItem[] = [];
+
   constructor(
     private notification: NzNotificationService,
     private homepageService: HomeLayoutService,
@@ -229,15 +246,17 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     private cdr: ChangeDetectorRef,
     private holidayService: HolidayServiceService,
-    private router:Router
-  ) {}
+    private router: Router,
+    private appUserService:AppUserService,
+    private menuService:MenuService
+  ) {this.menus = this.menuService.getMenus()}
 
   ngOnInit(): void {
     this.setResponsivePageSize();
     this.getMenuParents();
     // this.generateCalendarDays();
     this.getEmployeeOnleaveAndWFH();
-    this.getHoliday();
+    this.getHoliday(this.today.getFullYear(), this.today.getMonth());
   }
 
   //   private generateCalendarDays(): void {
@@ -278,14 +297,62 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
     // TODO: điều hướng/đánh dấu đã đọc...
   }
   notifItems: NotifyItem[] = [
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
+    // {
+    //   id: 1,
+    //   title: 'Phiếu xe #A123 đã duyệt',
+    //   detail: 'Xe VP Hà Nội',
+    //   time: '09:12',
+    //   group: 'today',
+    //   icon: 'car',
+    // },
+    // {
+    //   id: 1,
+    //   title: 'Phiếu xe #A123 đã duyệt',
+    //   detail: 'Xe VP Hà Nội',
+    //   time: '09:12',
+    //   group: 'today',
+    //   icon: 'car',
+    // },
+    // {
+    //   id: 1,
+    //   title: 'Phiếu xe #A123 đã duyệt',
+    //   detail: 'Xe VP Hà Nội',
+    //   time: '09:12',
+    //   group: 'today',
+    //   icon: 'car',
+    // },
+    // {
+    //   id: 1,
+    //   title: 'Phiếu xe #A123 đã duyệt',
+    //   detail: 'Xe VP Hà Nội',
+    //   time: '09:12',
+    //   group: 'today',
+    //   icon: 'car',
+    // },
+    // {
+    //   id: 1,
+    //   title: 'Phiếu xe #A123 đã duyệt',
+    //   detail: 'Xe VP Hà Nội',
+    //   time: '09:12',
+    //   group: 'today',
+    //   icon: 'car',
+    // },
+    // {
+    //   id: 1,
+    //   title: 'Phiếu xe #A123 đã duyệt',
+    //   detail: 'Xe VP Hà Nội',
+    //   time: '09:12',
+    //   group: 'today',
+    //   icon: 'car',
+    // },
+    // {
+    //   id: 1,
+    //   title: 'Phiếu xe #A123 đã duyệt',
+    //   detail: 'Xe VP Hà Nội',
+    //   time: '09:12',
+    //   group: 'today',
+    //   icon: 'car',
+    // },
   ];
 
   getMenuParents(): void {
@@ -444,24 +511,58 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
   }
 
   //GET DANH SÁCH NGÀY NGHỈ TRONG THÁNG
-  getHoliday(): void {
-    this.holidayService
-      .getHolidays(this.today.getMonth() + 1, this.today.getFullYear())
-      .subscribe({
-        next: (response: any) => {
-          this.holidays = response.data.holidays;
-          this.scheduleWorkSaturdays = response.data.scheduleWorkSaturdays;
+  getHoliday(year: number, month: number): void {
+    this.holidayService.getHolidays(month + 1, year).subscribe({
+      next: (response: any) => {
+        this.holidays = response.data.holidays;
+        this.scheduleWorkSaturdays = response.data.scheduleWorkSaturdays;
 
-          //   console.log(response);
-        },
-        error: (err: any) => {
-          this.notification.error('Lỗi', err.error.message);
-        },
-      });
+        //   console.log(response);
+      },
+      error: (err: any) => {
+        this.notification.error('Lỗi', err.error.message);
+      },
+    });
   }
-    openModule(key: string) {
-  localStorage.setItem('openMenuKey', key);
-  this.router.navigate(['/app']); // hoặc route tới MainLayout
-}
+  onValueChange(value: Date): void {
+    // console.log(`Current value: ${value}`);
 
+    // console.log(`Current year: ${value.getFullYear()}`);
+    // console.log(`Current month: ${value.getMonth()}`);
+
+    this.getHoliday(value.getFullYear(), value.getMonth());
+  }
+  onPanelChange(change: { date: Date; mode: string }): void {}
+  
+  openModule(key: string) {
+    localStorage.setItem('openMenuKey', key);
+    this.router.navigate(['/app']); // hoặc route tới MainLayout
+  }
+
+  goToOldLink(router:String){
+    let data:any={
+        UserName: this.appUserService.loginName,
+        Password:this.appUserService.password,
+        Router:router
+    }
+
+    // const url = `http://localhost:19028${router}`;
+    const url = `http://113.190.234.64:8081${router}`;
+    // console.log('router:',url);
+    this.homepageService.gotoOldLink(data).subscribe({
+        next:(response) =>{
+            // console.log('response:',response);
+            // console.log('router next:',url);
+            window.open(url,'_blank');
+            // window.location.href = url;
+        },
+        error:(err)=> {
+             console.log('err:',err);
+            //  console.log('err status:',err.status);
+            //  window.open(url,'_blank');
+            // window.location.href = url;
+        },
+    })
+
+}
 }

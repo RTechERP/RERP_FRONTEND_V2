@@ -57,27 +57,27 @@
                             </button>
 
                             <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add"
-                                (click)="openAddModal()">
-                                <img src="assets/icon/add-white-btn.png" alt="Thêm mới"
+                                (click)="openAddModal()" *hasPermission="'N27,N31,N1'">
+                                <img src="assets/icon/action_add_item_16.png" alt="Thêm mới"
                                     style="width:16px; height:16px; " />Thêm
                             </button>
 
                             <!-- Nút Edit -->
-                            <button nz-button nzType="default" nzSize="small" class="btn-edit"
-                                (click)="openEditModal()">
-                                <img src="assets/icon/edit-white-btn.png" alt="Sửa"
+                            <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="openEditModal()"
+                                *hasPermission="'N27,N31,N1'">
+                                <img src="assets/icon/action_edit_item_16.png" alt="Sửa"
                                     style="width:16px; height:16px; object-fit:contain" />Sửa
                             </button>
 
                             <!-- Nút Delete -->
                             <button nz-button nzType="default" nzSize="small" class="btn-delete"
-                                (click)="openDeleteModal()">
-                                <img src="assets/icon/delete-white-btn.png" alt="Xóa"
+                                (click)="openDeleteModal()" *hasPermission="'N27,N31,N1'">
+                                <img src="assets/icon/action_delete_item_16.png" alt="Xóa"
                                     style="width:16px; height:16px; object-fit:contain" />Xóa
                             </button>
 
                             <button class="fs-12" nz-button nzType="default" nzSize="small"
-                                (click)="openCustomerSpecializationForm()">
+                                (click)="openCustomerSpecializationForm()" *hasPermission="'N27,N31,N1'">
                                 <img src="/assets/icon/competence.png" alt="Xuất Excel" class="me-1"
                                     style="width:16px; height:16px;" />Ngành nghề
                             </button>
@@ -384,7 +384,7 @@
 
     <ng-template #modalFooter>
         <button nz-button nzType="default" (click)="closeModal()">Hủy</button>
-        <button nz-button nzType="primary" (click)="onSubmit()">Lưu</button>
+        <button nz-button nzType="primary" (click)="onSubmit()" *hasPermission="'N27,N31,N1'">Lưu</button>
     </ng-template>
 </nz-modal>
 

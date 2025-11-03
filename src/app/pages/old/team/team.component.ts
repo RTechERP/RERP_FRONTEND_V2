@@ -19,6 +19,7 @@ import { TeamServiceService } from './team-service/team-service.service';
 // import { EmployeeService } from '../employees/employee-service/employee.service';
 import { DepartmentServiceService } from '../department/department-service/department-service.service';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 
 @Component({
   selector: 'app-team',
@@ -39,7 +40,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
     NzSplitterModule,
     FormsModule,
     NgIf,
-    NzSpinModule
+    NzSpinModule,HasPermissionDirective
   ],
   standalone: true
 })

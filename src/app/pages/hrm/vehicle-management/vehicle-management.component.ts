@@ -45,6 +45,7 @@ import { CommonModule } from '@angular/common';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { inject } from '@angular/core';
 import { VehicleRepairComponentFormComponent } from '../vehicle-repair/vehicle-repair-component-form/vehicle-repair-component-form.component';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 
 @Component({
   selector: 'app-vehicle-management',
@@ -70,7 +71,7 @@ import { VehicleRepairComponentFormComponent } from '../vehicle-repair/vehicle-r
     NzTreeSelectModule,
     NzModalModule,
     CommonModule,
-    NzUploadModule,
+    NzUploadModule,HasPermissionDirective
   ],
   templateUrl: './vehicle-management.component.html',
   styleUrl: './vehicle-management.component.css',

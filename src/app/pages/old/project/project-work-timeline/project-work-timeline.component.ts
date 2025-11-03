@@ -35,6 +35,7 @@ import { Router } from '@angular/router';
 import { ProjectService } from '../project-service/project.service';
 import { Title } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 @Component({
   selector: 'app-project-work-timeline',
   imports: [
@@ -58,9 +59,9 @@ import { firstValueFrom } from 'rxjs';
     NzSpinModule,
     NzTreeSelectModule,
     NzModalModule,
-    CommonModule,
+    CommonModule,HasPermissionDirective
   ],
-  encapsulation: ViewEncapsulation.None,
+  //encapsulation: ViewEncapsulation.None,
   templateUrl: './project-work-timeline.component.html',
   styleUrl: './project-work-timeline.component.css',
 })

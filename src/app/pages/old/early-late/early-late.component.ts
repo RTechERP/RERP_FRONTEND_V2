@@ -28,6 +28,7 @@ import { EarlyLateService } from './early-late-service/early-late.service';
 import { DepartmentServiceService } from '../department/department-service/department-service.service';
 import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 
 @Component({
   selector: 'app-early-late',
@@ -54,7 +55,8 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
     NzRadioModule,
     NzTimePickerModule,
     NzSpinModule,
-    NgIf
+    NgIf,
+    HasPermissionDirective
   ]
 })
 export class EarlyLateComponent implements OnInit, AfterViewInit{

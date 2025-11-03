@@ -35,14 +35,7 @@ import { HomeLayoutComponent } from './layouts/home-layout/home-layout.component
 import { TsAssetManagementPersonalComponent } from './pages/old/ts-asset-management-personal/ts-asset-management-personal.component';
 import { TsAssetAllocationPersonalComponent } from './pages/old/ts-asset-allocation-personal/ts-asset-allocation-personal.component';
 import { TsAssetRecoveryPersonalComponent } from './pages/old/ts-asset-recovery-personal/ts-asset-recovery-personal.component';
-import { TsAssetUnitcountComponent } from './pages/old/ts-asset-unitcount/ts-asset-unitcount.component';
-import { TsAssetTypeComponent } from './pages/old/ts-asset-type/ts-asset-type.component';
-import { TsAssetStatusComponent } from './pages/old/ts-asset-status/ts-asset-status.component';
-import { TsAssetSourceComponent } from './pages/old/ts-asset-source/ts-asset-source.component';
-import { TsAssetManagementComponent } from './pages/old/ts-asset-management/ts-asset-management.component';
-import { TsAssetAllocationComponent } from './pages/old/ts-asset-allocation/ts-asset-allocation.component';
-import { TsAssetRecoveryComponent } from './pages/old/ts-asset-recovery/ts-asset-recovery.component';
-import { TsAssetTransferComponent } from './pages/old/ts-asset-transfer/ts-asset-transfer.component';
+
 // import { CustomerComponent } from './pages/customer/customer.component';
 import { ProductComponent } from './pages/old/product/product.component';
 import { TbProductRtcComponent } from './pages/old/tb-product-rtc/tb-product-rtc.component';

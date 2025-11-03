@@ -35,6 +35,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { TsAssetManagementPersonalTypeFormComponent } from './ts-asset-management-personal-type-form/ts-asset-management-personal-type-form.component';
 import { TsAssetManagementPersonalFormComponent } from '../ts-asset-management-personal-form/ts-asset-management-personal-form.component';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 @Component({
   standalone: true,
   selector: 'app-ts-asset-management-personal-type',
@@ -58,6 +59,7 @@ import { TsAssetManagementPersonalFormComponent } from '../ts-asset-management-p
     NzModalModule,
     NzNotificationModule,
     NgbModalModule,
+    HasPermissionDirective
   ],
   templateUrl: './ts-asset-management-personal-type.component.html',
   styleUrl: './ts-asset-management-personal-type.component.css',

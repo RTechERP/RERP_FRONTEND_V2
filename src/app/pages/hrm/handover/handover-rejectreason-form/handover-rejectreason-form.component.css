@@ -1,0 +1,12 @@
+::ng-deep .ant-modal-body {
+    padding: 16px;
+    background-color: #f0f0f0;
+}
+
+::ng-deep .ant-modal-header {
+    background-color: #096dd9;
+}
+
+::ng-deep .ant-modal-title {
+    color: white;
+}

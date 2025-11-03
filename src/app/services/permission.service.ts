@@ -93,8 +93,12 @@ export class PermissionService {
     // console.log('isPermisstion:', isPermission);
 
     const isAdmin = this.appUserService.currentUser?.IsAdmin || false;
-    console.log('isAdmin:', isAdmin);
-    return isPermission || isAdmin;
+    // console.log('isAdmin:', isAdmin);
+
+    const isPermissions = isPermission || isAdmin || permission == '';
+    // console.log(isPermissions);
+    
+    return isPermissions;
   }
 
   /**

@@ -62,7 +62,7 @@ import { CommonModule } from '@angular/common';
     NzModalModule,
     CommonModule,
   ],
-  encapsulation: ViewEncapsulation.None,
+  //encapsulation: ViewEncapsulation.None,
   templateUrl: './project-synthesis-department.component.html',
   styleUrl: './project-synthesis-department.component.css',
 })

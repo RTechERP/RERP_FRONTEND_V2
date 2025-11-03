@@ -75,19 +75,20 @@
                         </button>
 
                         <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add"
-                            (click)="openModalRecovery()" disablePermission="N23">
+                            (click)="openModalRecovery()" *hasPermission="'N23'">
                             <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " />Thêm
                         </button>
-                        <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="openEditModal()" disablePermission="N23" >
+                        <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="openEditModal()"
+                            *hasPermission="'N23'">
                             <img src="assets/icon/action_edit_item_16.png" alt="Sửa nhóm TB" />Sửa
                         </button>
                         <button nz-button nzType="default" nzSize="small" class="btn-delete "
-                            (click)="updateApprove('Delete')" disablePermission="N23">
+                            (click)="updateApprove('Delete')" *hasPermission="'N23'">
                             <img src="assets/icon/action_delete_item_16.png" alt="Xóa nhóm TB" />Xóa
                         </button>
                         <span class="mx-2"
                             style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
-                       
+
                         <button nz-button nzType="default" nzSize="small"
                             (click)="updateApprovePeronal('PERSONAL_APPROVE')">
                             <img src="assets/icon/action_approved_16.png" />Cá nhân duyệt
@@ -99,12 +100,12 @@
                         <span class="mx-2"
                             style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
                         <button nz-button nzType="default" nzSize="small" (click)="updateApprove('HR_APPROVE')"
-                            disablePermission="N23">
+                            *hasPermission="'N23'">
                             <img src="assets/icon/action_approved_16.png" />HR duyệt
                         </button>
-                     
+
                         <button nz-button nzType="default" nzSize="small" (click)="updateApprove('HR_CANCEL')"
-                            disablePermission="N23">
+                            *hasPermission="'N23'">
                             <img src="assets/icon/action_unapproved_16.png" />HR hủy duyệt
                         </button>
                     </div>
@@ -234,7 +235,8 @@
             </div>
             <div class="modal-footer">
                 <button nz-button nzType="default" nzDanger data-bs-dismiss="modal">Đóng</button>
-                <button nz-button nzType="primary" (click)="saveRecoveryPersonal()">Lưu dữ liệu</button>
+                <button nz-button nzType="primary" (click)="saveRecoveryPersonal()" *hasPermission="'N23'">Lưu dữ
+                    liệu</button>
             </div>
         </div>
     </div>

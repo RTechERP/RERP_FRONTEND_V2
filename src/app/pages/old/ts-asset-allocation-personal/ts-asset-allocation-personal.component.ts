@@ -39,6 +39,7 @@ import { TsAssetManagementPersonalService } from '../ts-asset-management-persona
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { DisablePermissionDirective } from '../../../directives/disable-permission.directive';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 @Component({
   standalone: true,
   imports: [
@@ -61,6 +62,7 @@ import { DisablePermissionDirective } from '../../../directives/disable-permissi
     NzTableModule,
     NzTabsModule,
     DisablePermissionDirective,
+    HasPermissionDirective
   ],
 
   selector: 'app-ts-asset-allocation-personal',

@@ -37,7 +37,7 @@ interface newOfficeSupplyUnit{
   ],
   templateUrl: './office-supply-unit.component.html',
   styleUrl: './office-supply-unit.component.css',
-  encapsulation: ViewEncapsulation.None,
+  //encapsulation: ViewEncapsulation.None,
 })
 export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
   newOfficeSupplyUniy: newOfficeSupplyUnit = {

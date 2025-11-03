@@ -1,47 +1,53 @@
 <ng-container class="w-100">
-  <div class="card h-100 border-0 rounded-0">
-    <div class="card-header bg-white p-2">
-      <div class="d-flex justify-content-between align-items-center">
-            <div class="d-flex gap-2 pt-2">
-              <button nz-button nzType="default" nzSize="small" (click)="openAddModal()" style="font-size: 0.75rem; font-weight: bold;">
-                <nz-icon nzType="plus" /> Thêm
-              </button>
-              <button nz-button nzType="default" nzSize="small" (click)="openEditModal()" style="font-size: 0.75rem; font-weight: bold;">
-                <nz-icon nzType="edit" /> Sửa
-              </button>
-              <button nz-button nzType="default" nzSize="small" (click)="openDeleteModal()" style="font-size: 0.75rem; font-weight: bold;">
-                <nz-icon nzType="delete" /> Xóa
-              </button>
-              <button nz-button nzType="default" nzSize="small" (click)="resetDepartment()" style="font-size: 0.75rem; font-weight: bold;">
-                <nz-icon nzType="redo" nzTheme="outline" /> Reset
-              </button>
-              <button nz-button nzType="default" nzSize="small" (click)="openAddEmployeeModal()" style="font-size: 0.75rem; font-weight: bold;">
-                <nz-icon nzType="plus" /> Thêm NV
-              </button>
-              <button nz-button nzType="default" nzSize="small" (click)="removeEmployeeFromTeam()" style="font-size: 0.75rem; font-weight: bold;">
-                <nz-icon nzType="delete" /> Xóa NV
-              </button>
-            </div>       
-            <div class="d-flex gap-2 pt-1" style="height: 4vh;width: 40%;">
-              <label for="" class="fs-12 fw-bold col-2 text-center pt-1">Phòng ban</label>
-              <nz-select [(ngModel)]="department" (ngModelChange)="onDepartmentChange()" nzPlaceHolder="Tất cả phòng ban" style="width: 80%;" nzAllowClear nzShowSearch>
-                <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID" [nzLabel]="dept.Name"></nz-option>
-              </nz-select>
-              <button nz-button nzType="default" nzSize="small" (click)="removeEmployeeFromTeam()" style="font-size: 0.75rem; font-weight: bold; height: 3vh;width: 4vw;">
-                <nz-icon nzType="search"/>
-              </button>
+    <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex gap-2 pt-2">
+                    <button nz-button nzType="default" nzSize="small" (click)="openAddModal()"
+                        *hasPermission="'N26,N40,N1'" style="font-size: 0.75rem; font-weight: bold;">
+                        <nz-icon nzType="plus" /> Thêm
+                    </button>
+                    <button nz-button nzType="default" nzSize="small" (click)="openEditModal()"
+                        *hasPermission="'N26,N40,N1'" style="font-size: 0.75rem; font-weight: bold;">
+                        <nz-icon nzType="edit" /> Sửa
+                    </button>
+                    <button nz-button nzType="default" nzSize="small" (click)="openDeleteModal()"
+                        *hasPermission="'N26,N40,N1'" style="font-size: 0.75rem; font-weight: bold;">
+                        <nz-icon nzType="delete" /> Xóa
+                    </button>
+                    <button nz-button nzType="default" nzSize="small" (click)="resetDepartment()"
+                        style="font-size: 0.75rem; font-weight: bold;">
+                        <nz-icon nzType="redo" nzTheme="outline" /> Reset
+                    </button>
+                    <button nz-button nzType="default" nzSize="small" (click)="openAddEmployeeModal()"
+                        *hasPermission="'N26,N40,N1'" style="font-size: 0.75rem; font-weight: bold;">
+                        <nz-icon nzType="plus" /> Thêm NV
+                    </button>
+                    <button nz-button nzType="default" nzSize="small" (click)="removeEmployeeFromTeam()"
+                        *hasPermission="'N26,N40,N1'" style="font-size: 0.75rem; font-weight: bold;">
+                        <nz-icon nzType="delete" /> Xóa NV
+                    </button>
+                </div>
+                <div class="d-flex gap-2 pt-1" style="height: 4vh;width: 40%;">
+                    <label for="" class="fs-12 fw-bold col-2 text-center pt-1">Phòng ban</label>
+                    <nz-select [(ngModel)]="department" (ngModelChange)="onDepartmentChange()"
+                        nzPlaceHolder="Tất cả phòng ban" style="width: 80%;" nzAllowClear nzShowSearch>
+                        <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID"
+                            [nzLabel]="dept.Name"></nz-option>
+                    </nz-select>
+                    <button nz-button nzType="default" nzSize="small" (click)="removeEmployeeFromTeam()"
+                        style="font-size: 0.75rem; font-weight: bold; height: 3vh;width: 4vw;">
+                        <nz-icon nzType="search" />
+                    </button>
+                </div>
             </div>
-      </div>
-    </div>
-    <div class="card-body p-0">   
-      <nz-splitter>
-        <nz-splitter-panel nzDefaultSize="60%" nzMin="20%" nzMax="70%">
-          <div class="card-body p-0 position-relative">
-            <div *ngIf="isLoading">
-              <nz-spin
-                [nzSpinning]="isLoading"
-                nzSimple
-                [ngStyle]="{
+        </div>
+        <div class="card-body p-0">
+            <nz-splitter>
+                <nz-splitter-panel nzDefaultSize="60%" nzMin="20%" nzMax="70%">
+                    <div class="card-body p-0 position-relative">
+                        <div *ngIf="isLoading">
+                            <nz-spin [nzSpinning]="isLoading" nzSimple [ngStyle]="{
                   position: 'absolute',
                   top: '0',
                   left: '0',
@@ -52,19 +58,15 @@
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
-                }"
-              ></nz-spin>
-            </div>
-            <div id="team-table"></div>           
-          </div>
-        </nz-splitter-panel>
-        <nz-splitter-panel>
-          <div class="card-body p-0 position-relative">
-            <div *ngIf="isLoad">
-              <nz-spin
-                [nzSpinning]="isLoad"
-                nzSimple
-                [ngStyle]="{
+                }"></nz-spin>
+                        </div>
+                        <div id="team-table"></div>
+                    </div>
+                </nz-splitter-panel>
+                <nz-splitter-panel>
+                    <div class="card-body p-0 position-relative">
+                        <div *ngIf="isLoad">
+                            <nz-spin [nzSpinning]="isLoad" nzSimple [ngStyle]="{
                   position: 'absolute',
                   top: '0',
                   left: '0',
@@ -75,93 +77,81 @@
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
-                }"
-              ></nz-spin>
-            </div>
-            <div id="employee-table"></div>
-          </div>
-        </nz-splitter-panel>
-      </nz-splitter>
+                }"></nz-spin>
+                        </div>
+                        <div id="employee-table"></div>
+                    </div>
+                </nz-splitter-panel>
+            </nz-splitter>
+        </div>
     </div>
-  </div>
 </ng-container>
 
-<nz-modal [(nzVisible)]="isVisible" 
-  [nzTitle]="isEditMode ? 'SỬA TEAM' : 'THÊM TEAM'" 
-  (nzOnCancel)="handleCancel()" 
-  (nzOnOk)="handleOk()"
-  [nzOkText]="'Lưu'"
-  [nzCancelText]="'Hủy'"
-  [nzOkLoading]="isSubmitting">
-  <ng-container *nzModalContent>
-    <form nz-form [formGroup]="teamForm" (ngSubmit)="onSubmit()">
-      <nz-form-item>
-        <nz-form-label [nzSpan]="24">Phòng ban <sup class="text-danger">(*)</sup></nz-form-label>
-        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn phòng ban">
-          <nz-select formControlName="DepartmentID" nzPlaceHolder="Chọn phòng ban" nzAllowClear nzShowSearch>
-            <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID" [nzLabel]="dept.Name"></nz-option>
-          </nz-select>
-        </nz-form-control>
-      </nz-form-item>
+<nz-modal [(nzVisible)]="isVisible" [nzTitle]="isEditMode ? 'SỬA TEAM' : 'THÊM TEAM'" (nzOnCancel)="handleCancel()"
+    (nzOnOk)="handleOk()" [nzOkText]="'Lưu'" [nzCancelText]="'Hủy'" [nzOkLoading]="isSubmitting">
+    <ng-container *nzModalContent>
+        <form nz-form [formGroup]="teamForm" (ngSubmit)="onSubmit()">
+            <nz-form-item>
+                <nz-form-label [nzSpan]="24">Phòng ban <sup class="text-danger">(*)</sup></nz-form-label>
+                <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn phòng ban">
+                    <nz-select formControlName="DepartmentID" nzPlaceHolder="Chọn phòng ban" nzAllowClear nzShowSearch>
+                        <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID"
+                            [nzLabel]="dept.Name"></nz-option>
+                    </nz-select>
+                </nz-form-control>
+            </nz-form-item>
 
-      <nz-form-item>
-        <nz-form-label [nzSpan]="24">Nhóm cha <sup class="text-danger">(*)</sup></nz-form-label>
-        <nz-form-control [nzSpan]="24">
-          <nz-select formControlName="ParentID" nzPlaceHolder="Chọn nhóm cha" nzAllowClear nzShowSearch>
-            <nz-option *ngFor="let team of flattenedTeamList" [nzValue]="team.ID" [nzLabel]="team.Name"></nz-option>
-          </nz-select>
-        </nz-form-control>
-      </nz-form-item>
+            <nz-form-item>
+                <nz-form-label [nzSpan]="24">Nhóm cha <sup class="text-danger">(*)</sup></nz-form-label>
+                <nz-form-control [nzSpan]="24">
+                    <nz-select formControlName="ParentID" nzPlaceHolder="Chọn nhóm cha" nzAllowClear nzShowSearch>
+                        <nz-option *ngFor="let team of flattenedTeamList" [nzValue]="team.ID"
+                            [nzLabel]="team.Name"></nz-option>
+                    </nz-select>
+                </nz-form-control>
+            </nz-form-item>
 
-      <nz-form-item>
-        <nz-form-label [nzSpan]="24">Leader <sup class="text-danger">(*)</sup></nz-form-label>
-        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn leader">
-          <nz-select formControlName="LeaderID" nzPlaceHolder="Chọn leader" nzAllowClear nzShowSearch>
-            <nz-option *ngFor="let emp of employeeCombo" [nzValue]="emp.ID" [nzLabel]="emp.FullName"></nz-option>
-          </nz-select>
-        </nz-form-control>
-      </nz-form-item>
+            <nz-form-item>
+                <nz-form-label [nzSpan]="24">Leader <sup class="text-danger">(*)</sup></nz-form-label>
+                <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn leader">
+                    <nz-select formControlName="LeaderID" nzPlaceHolder="Chọn leader" nzAllowClear nzShowSearch>
+                        <nz-option *ngFor="let emp of employeeCombo" [nzValue]="emp.ID"
+                            [nzLabel]="emp.FullName"></nz-option>
+                    </nz-select>
+                </nz-form-control>
+            </nz-form-item>
 
-      <nz-form-item>
-        <nz-form-label [nzSpan]="24">Tên Team <sup class="text-danger">(*)</sup></nz-form-label>
-        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập tên team">
-          <input nz-input formControlName="Name" placeholder="Nhập tên team" />
-        </nz-form-control>
-      </nz-form-item>
+            <nz-form-item>
+                <nz-form-label [nzSpan]="24">Tên Team <sup class="text-danger">(*)</sup></nz-form-label>
+                <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập tên team">
+                    <input nz-input formControlName="Name" placeholder="Nhập tên team" />
+                </nz-form-control>
+            </nz-form-item>
 
-      <nz-form-item>
-        <nz-form-label [nzSpan]="24">Loại Team <sup class="text-danger">(*)</sup></nz-form-label>
-        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn loại team">
-          <nz-select formControlName="ProjectTypeID" nzPlaceHolder="Chọn loại team" nzAllowClear nzShowSearch>
-            <nz-option *ngFor="let type of projectTypeList" [nzValue]="type.ID" [nzLabel]="type.ProjectTypeName"></nz-option>
-          </nz-select>
-        </nz-form-control>
-      </nz-form-item>
-    </form>
-  </ng-container>
+            <nz-form-item>
+                <nz-form-label [nzSpan]="24">Loại Team <sup class="text-danger">(*)</sup></nz-form-label>
+                <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn loại team">
+                    <nz-select formControlName="ProjectTypeID" nzPlaceHolder="Chọn loại team" nzAllowClear nzShowSearch>
+                        <nz-option *ngFor="let type of projectTypeList" [nzValue]="type.ID"
+                            [nzLabel]="type.ProjectTypeName"></nz-option>
+                    </nz-select>
+                </nz-form-control>
+            </nz-form-item>
+        </form>
+    </ng-container>
 </nz-modal>
 
-<nz-modal [(nzVisible)]="isEmployeeModalVisible" 
-  [nzTitle]="'THÊM NHÂN VIÊN'" 
-  (nzOnCancel)="closeEmployeeModal()" 
-  (nzOnOk)="addEmployeesToTeam()"
-  [nzOkText]="'Lưu'"
-  [nzCancelText]="'Hủy'"
-  [nzWidth]="800"
-  class="fs-12">
-  <ng-container *nzModalContent>
-    <div class="d-flex gap-2 mb-2">
-      <label for="" class="fs-12 fw-bold col-1 text-center pt-1">Phòng ban</label>
-      <nz-select
-        [(ngModel)]="departmentEmployee"
-        (ngModelChange)="onDepartmentEmployeeChange()"
-        nzPlaceHolder="Tất cả phòng ban"
-        style="width: 100%;"
-        nzAllowClear
-        nzShowSearch>
-        <nz-option *ngFor="let dept of departmentEmployeeList" [nzValue]="dept" [nzLabel]="dept.Name"></nz-option>
-      </nz-select>
-    </div>
-    <div id="employee-team-table"></div>
-  </ng-container>
+<nz-modal [(nzVisible)]="isEmployeeModalVisible" [nzTitle]="'THÊM NHÂN VIÊN'" (nzOnCancel)="closeEmployeeModal()"
+    (nzOnOk)="addEmployeesToTeam()" [nzOkText]="'Lưu'" [nzCancelText]="'Hủy'" [nzWidth]="800" class="fs-12">
+    <ng-container *nzModalContent>
+        <div class="d-flex gap-2 mb-2">
+            <label for="" class="fs-12 fw-bold col-1 text-center pt-1">Phòng ban</label>
+            <nz-select [(ngModel)]="departmentEmployee" (ngModelChange)="onDepartmentEmployeeChange()"
+                nzPlaceHolder="Tất cả phòng ban" style="width: 100%;" nzAllowClear nzShowSearch>
+                <nz-option *ngFor="let dept of departmentEmployeeList" [nzValue]="dept"
+                    [nzLabel]="dept.Name"></nz-option>
+            </nz-select>
+        </div>
+        <div id="employee-team-table"></div>
+    </ng-container>
 </nz-modal>

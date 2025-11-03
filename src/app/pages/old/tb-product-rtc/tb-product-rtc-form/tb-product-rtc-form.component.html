@@ -461,5 +461,5 @@
 
 <div class="modal-footer">
     <button nz-button nzType="default" nzDanger (click)="close()">Đóng</button>
-    <button nz-button nzType="primary" (click)="saveData()">Lưu dữ liệu</button>
+    <button nz-button nzType="primary" (click)="saveData()" *hasPermission="'N26,N38,N1,N73,N80'">Lưu dữ liệu</button>
 </div>

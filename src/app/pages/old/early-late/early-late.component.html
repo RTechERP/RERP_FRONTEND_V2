@@ -2,126 +2,118 @@
     <nz-splitter>
         <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
             <div class="card h-100 border-0 rounded-0">
-              <div class="card-header bg-white p-1">
-                <div class="d-flex justify-content-between align-items-center">
-                  <h6 class="m-0 ms-2">Tìm kiếm</h6>
-                  <button
-                    class="border-0 me-2"
-                    nz-button
-                    nzSize="default"
-                    nzType="default"
-                    nzDanger
-                    (click)="toggleSearchPanel()"
-                  >
-                    <nz-icon nzType="close" nzTheme="outline" />
-                  </button>
+                <div class="card-header bg-white p-1">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 ms-2">Tìm kiếm</h6>
+                        <button class="border-0 me-2" nz-button nzSize="default" nzType="default" nzDanger
+                            (click)="toggleSearchPanel()">
+                            <nz-icon nzType="close" nzTheme="outline" />
+                        </button>
+                    </div>
                 </div>
-              </div>
-              <div class="card-body">
-                <form nz-form [formGroup]="searchForm" nzLayout="vertical">
-                  <nz-row [nzGutter]="24" class="pb-1">
-                    <nz-col [nzSpan]="12">
-                      <nz-form-label class="p-0">Tháng</nz-form-label>
-                    </nz-col>
-                    <nz-col [nzSpan]="12">
-                      <nz-form-label class="p-0">Năm</nz-form-label>
-                    </nz-col>
-                  </nz-row>
-                  <nz-row [nzGutter]="24">
-                    <nz-col [nzSpan]="12">
-                      <nz-input-number formControlName="month" nzMin="1" nzMax="12" nzSize="default" style="width: 100%"/>
-                    </nz-col>
-                    <nz-col [nzSpan]="12">
-                      <nz-input-number formControlName="year" nzMin="1" nzMax="3000" nzSize="default" style="width: 100%"/>
-                    </nz-col>
-                  </nz-row>
-                  <nz-form-item class="mt-2">
-                    <nz-form-label [nzSpan]="24">Phòng ban</nz-form-label>
-                    <nz-form-control [nzSpan]="24">
-                      <nz-select formControlName="departmentId" nzPlaceHolder="Chọn phòng ban" nzAllowClear nzShowSearch>
-                        <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID" [nzLabel]="dept.Name"></nz-option>
-                      </nz-select>
-                    </nz-form-control>
-                  </nz-form-item>
-                  <nz-form-item class="mt-2">
-                    <nz-form-label class="fs-12" [nzSpan]="24">Trạng thái TBP</nz-form-label>
-                    <nz-form-control [nzSpan]="24">
-                      <nz-select
-                        class="w-100"
-                        nzShowSearch
-                        nzAllowClear
-                        nzSize="default"
-                        nzPlaceHolder="Chọn trạng thái TBP"
-                        formControlName="status"
-                      >
-                      <nz-option nzValue="0" nzLabel="Chờ duyệt"></nz-option>
-                      <nz-option nzValue="1" nzLabel="Đã duyệt"></nz-option>
-                      <nz-option nzValue="2" nzLabel="Không đồng ý duyệt"></nz-option>
-                      </nz-select>
-                    </nz-form-control>
-                  </nz-form-item>
-                  <nz-form-item class="mt-2">
-                    <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
-                    <nz-form-control [nzSpan]="24">
-                      <input 
-                        nz-input 
-                        placeholder="Nhập từ khóa" 
-                        nzSize="default"
-                        formControlName="keyWord"
-                      />
-                    </nz-form-control>
-                  </nz-form-item>
-                </form>
-              </div>
-              <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
-                <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">Đặt lại</button>
-                <button nz-button nzType="primary" nzSize="small" (click)="loadEarlyLate()">Tìm kiếm</button>
-              </div>
+                <div class="card-body">
+                    <form nz-form [formGroup]="searchForm" nzLayout="vertical">
+                        <nz-row [nzGutter]="24" class="pb-1">
+                            <nz-col [nzSpan]="12">
+                                <nz-form-label class="p-0">Tháng</nz-form-label>
+                            </nz-col>
+                            <nz-col [nzSpan]="12">
+                                <nz-form-label class="p-0">Năm</nz-form-label>
+                            </nz-col>
+                        </nz-row>
+                        <nz-row [nzGutter]="24">
+                            <nz-col [nzSpan]="12">
+                                <nz-input-number formControlName="month" nzMin="1" nzMax="12" nzSize="default"
+                                    style="width: 100%" />
+                            </nz-col>
+                            <nz-col [nzSpan]="12">
+                                <nz-input-number formControlName="year" nzMin="1" nzMax="3000" nzSize="default"
+                                    style="width: 100%" />
+                            </nz-col>
+                        </nz-row>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label [nzSpan]="24">Phòng ban</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select formControlName="departmentId" nzPlaceHolder="Chọn phòng ban" nzAllowClear
+                                    nzShowSearch>
+                                    <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID"
+                                        [nzLabel]="dept.Name"></nz-option>
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Trạng thái TBP</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="default"
+                                    nzPlaceHolder="Chọn trạng thái TBP" formControlName="status">
+                                    <nz-option nzValue="0" nzLabel="Chờ duyệt"></nz-option>
+                                    <nz-option nzValue="1" nzLabel="Đã duyệt"></nz-option>
+                                    <nz-option nzValue="2" nzLabel="Không đồng ý duyệt"></nz-option>
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <input nz-input placeholder="Nhập từ khóa" nzSize="default" formControlName="keyWord" />
+                            </nz-form-control>
+                        </nz-form-item>
+                    </form>
+                </div>
+                <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+                    <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">Đặt lại</button>
+                    <button nz-button nzType="primary" nzSize="small" (click)="loadEarlyLate()">Tìm kiếm</button>
+                </div>
             </div>
-          </nz-splitter-panel>
-      <nz-splitter-panel>
-        <div class="card h-100 border-0 rounded-0">
-          <div class="card-header bg-white p-2">
-            <div class="d-flex justify-content-between align-items-center">
-              <div class="d-flex gap-2">
-                <button
-                  nz-button
-                  nzType="default"
-                  nzSize="small"
-                  (click)="toggleSearchPanel()"
-                >
-                  <nz-icon nzType="search" />
-                </button>
-                <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;" (click)="openAddModal()">
-                  <nz-icon nzType="plus" /> Thêm
-                </button>
-                <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;" (click)="openEditModal()">
-                  <nz-icon nzType="edit" /> Sửa
-                </button>
-                <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;" (click)="openDeleteModal()">
-                  <nz-icon nzType="delete" /> Xóa
-                </button>
-                <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;" (click)="isApproveTBP()">
-                  <nz-icon nzType="check-square" /> TBP Duyệt
-                </button>
-                <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;" (click)="isApproveHR()">
-                    <nz-icon nzType="check-square" /> HR Duyệt
-                  </button>
-                <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;" (click)="isDisapproveHR()">
-                  <nz-icon nzType="close-square" /> HR hủy duyệt
-                </button>
-                <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;" (click)="exportToExcel()">
-                  <nz-icon nzType="export" /> Xuất excel
-                </button>
-              </div>
-            </div>
-          </div>
-          <div class="card-body p-0 position-relative fs-12">
-            <div *ngIf="isLoading">
-              <nz-spin
-                [nzSpinning]="isLoading"
-                nzSimple
-                [style]="{
+        </nz-splitter-panel>
+        <nz-splitter-panel>
+            <div class="card h-100 border-0 rounded-0">
+                <div class="card-header bg-white p-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex gap-2">
+                            <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
+                                <nz-icon nzType="search" />
+                            </button>
+                            <button nz-button nzType="default" nzSize="small"
+                                style="font-size: 0.75rem; font-weight: bold;" (click)="openAddModal()"
+                                *hasPermission="'N2,N1'">
+                                <nz-icon nzType="plus" /> Thêm
+                            </button>
+                            <button nz-button nzType="default" nzSize="small"
+                                style="font-size: 0.75rem; font-weight: bold;" (click)="openEditModal()"
+                                *hasPermission="'N2,N1'">
+                                <nz-icon nzType="edit" /> Sửa
+                            </button>
+                            <button nz-button nzType="default" nzSize="small"
+                                style="font-size: 0.75rem; font-weight: bold;" (click)="openDeleteModal()"
+                                *hasPermission="'N2,N1'">
+                                <nz-icon nzType="delete" /> Xóa
+                            </button>
+                            <button nz-button nzType="default" nzSize="small"
+                                style="font-size: 0.75rem; font-weight: bold;" (click)="isApproveTBP()"
+                                *hasPermission="'N1'">
+                                <nz-icon nzType="check-square" /> TBP Duyệt
+                            </button>
+                            <button nz-button nzType="default" nzSize="small"
+                                style="font-size: 0.75rem; font-weight: bold;" (click)="isApproveHR()"
+                                *hasPermission="'N2,N1'">
+                                <nz-icon nzType="check-square" /> HR Duyệt
+                            </button>
+                            <button nz-button nzType="default" nzSize="small"
+                                style="font-size: 0.75rem; font-weight: bold;" (click)="isDisapproveHR()"
+                                *hasPermission="'N2,N1'">
+                                <nz-icon nzType="close-square" /> HR hủy duyệt
+                            </button>
+                            <button nz-button nzType="default" nzSize="small"
+                                style="font-size: 0.75rem; font-weight: bold;" (click)="exportToExcel()">
+                                <nz-icon nzType="export" /> Xuất excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0 position-relative fs-12">
+                    <div *ngIf="isLoading">
+                        <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
                   position: 'absolute',
                   top: '0',
                   left: '0',
@@ -132,165 +124,122 @@
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
-                }"
-              ></nz-spin>
+                }"></nz-spin>
+                    </div>
+                    <div id="tb_early_late"></div>
+                </div>
             </div>
-            <div id="tb_early_late"></div>
-          </div>
-        </div>
-      </nz-splitter-panel>
+        </nz-splitter-panel>
     </nz-splitter>
-  </ng-container>
+</ng-container>
 
 
 
-  <div
-  class="modal fade"
-  id="addEarlyLateModal"
-  tabindex="-1"
-  aria-labelledby="addEarlyLateModalLabel"
-  aria-hidden="true"
->
-  <div class="modal-dialog modal-dialog-centered fs-12">
-    <div class="modal-content">
-      <div class="modal-header bg-primary">
-        <h6
-          class="modal-title text-uppercase text-white"
-          id="addEarlyLateModalLabel"
-        >
-          CHI TIẾT ĐI MUỘN - VỀ SỚM
-        </h6>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
-      </div>
-      <div class="modal-body">
-        <form
-          nz-form [formGroup]="earlyLateForm"
-        >
-        <nz-form-item>
-          <nz-form-label [nzSpan]="24">Họ và tên<span class="text-danger"> (*)</span></nz-form-label>
-          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn tên nhân viên">
-            <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="default"
-              formControlName="EmployeeID" nzPlaceHolder="Chọn họ tên nhân viên">
-              @for (item of employeeList; track $index) {
-                <nz-option
-                  nzCustomContent="true"
-                  [nzLabel]="item.FullName"
-                  [nzValue]="item.ID"
-                  >{{ item.Code + " - " + item.FullName }}</nz-option
-                >
-                }
-            </nz-select>
-          </nz-form-control>
-        </nz-form-item>
+<div class="modal fade" id="addEarlyLateModal" tabindex="-1" aria-labelledby="addEarlyLateModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered fs-12">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h6 class="modal-title text-uppercase text-white" id="addEarlyLateModalLabel">
+                    CHI TIẾT ĐI MUỘN - VỀ SỚM
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form nz-form [formGroup]="earlyLateForm">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24">Họ và tên<span class="text-danger"> (*)</span></nz-form-label>
+                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn tên nhân viên">
+                            <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="default"
+                                formControlName="EmployeeID" nzPlaceHolder="Chọn họ tên nhân viên">
+                                @for (item of employeeList; track $index) {
+                                <nz-option nzCustomContent="true" [nzLabel]="item.FullName" [nzValue]="item.ID">{{
+                                    item.Code + " - " + item.FullName }}</nz-option>
+                                }
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
 
-        <nz-form-item>
-          <nz-form-label [nzSpan]="24">Người duyệt<span class="text-danger"> (*)</span></nz-form-label>
-          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn người duyệt">
-            <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="default"
-              formControlName="ApprovedTP" nzPlaceHolder="Chọn người duyệt">
-              @for (item of approverList; track $index) {
-                <nz-option
-                  nzCustomContent="true"
-                  [nzLabel]="item.FullName"
-                  [nzValue]="item.EmployeeID"
-                  >{{ item.Code + " - " + item.FullName }}</nz-option
-                >
-                }
-            </nz-select>
-          </nz-form-control>
-        </nz-form-item>
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24">Người duyệt<span class="text-danger"> (*)</span></nz-form-label>
+                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn người duyệt">
+                            <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="default"
+                                formControlName="ApprovedTP" nzPlaceHolder="Chọn người duyệt">
+                                @for (item of approverList; track $index) {
+                                <nz-option nzCustomContent="true" [nzLabel]="item.FullName"
+                                    [nzValue]="item.EmployeeID">{{ item.Code + " - " + item.FullName }}</nz-option>
+                                }
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
 
-        <nz-row [nzGutter]="24" class="pb-1">
-          <nz-col [nzSpan]="12">
-            <nz-form-label class="p-0">Ngày</nz-form-label>
-          </nz-col>
-          <nz-col [nzSpan]="12">
-            <nz-form-label class="p-0">Loại</nz-form-label>
-          </nz-col>
-        </nz-row>
-        <nz-row [nzGutter]="24">
-          <nz-col [nzSpan]="12">
-            <nz-date-picker
-                      formControlName="DateRegister"
-                      nzPlaceHolder="Chọn ngày đăng ký"
-                      nzFormat="dd/MM/yyyy"
-                      [nzSize]="'default'"
-                      style="width: 100%"
-            ></nz-date-picker>
-          </nz-col>
-          <nz-col [nzSpan]="12">
-            <nz-select formControlName="Type" style="width: 100%;" nzPlaceHolder="Chọn thời gian">
-              <nz-option [nzValue]="1" nzLabel="Đi muộn việc cá nhân"></nz-option>
-              <nz-option [nzValue]="2" nzLabel="Về sớm việc cá nhân"></nz-option>
-              <nz-option [nzValue]="3" nzLabel="Về sớm việc công ty"></nz-option>
-              <nz-option [nzValue]="4" nzLabel="Đi muộn việc công ty"></nz-option>
-            </nz-select>
-          </nz-col>
-        </nz-row>
+                    <nz-row [nzGutter]="24" class="pb-1">
+                        <nz-col [nzSpan]="12">
+                            <nz-form-label class="p-0">Ngày</nz-form-label>
+                        </nz-col>
+                        <nz-col [nzSpan]="12">
+                            <nz-form-label class="p-0">Loại</nz-form-label>
+                        </nz-col>
+                    </nz-row>
+                    <nz-row [nzGutter]="24">
+                        <nz-col [nzSpan]="12">
+                            <nz-date-picker formControlName="DateRegister" nzPlaceHolder="Chọn ngày đăng ký"
+                                nzFormat="dd/MM/yyyy" [nzSize]="'default'" style="width: 100%"></nz-date-picker>
+                        </nz-col>
+                        <nz-col [nzSpan]="12">
+                            <nz-select formControlName="Type" style="width: 100%;" nzPlaceHolder="Chọn thời gian">
+                                <nz-option [nzValue]="1" nzLabel="Đi muộn việc cá nhân"></nz-option>
+                                <nz-option [nzValue]="2" nzLabel="Về sớm việc cá nhân"></nz-option>
+                                <nz-option [nzValue]="3" nzLabel="Về sớm việc công ty"></nz-option>
+                                <nz-option [nzValue]="4" nzLabel="Đi muộn việc công ty"></nz-option>
+                            </nz-select>
+                        </nz-col>
+                    </nz-row>
 
-        <nz-row [nzGutter]="24" class="pb-1">
-          <nz-col [nzSpan]="12">
-            <nz-form-label class="p-0">Từ</nz-form-label>
-          </nz-col>
-          <nz-col [nzSpan]="12">
-            <nz-form-label class="p-0">Đến</nz-form-label>
-          </nz-col>
-        </nz-row>
-        <nz-row [nzGutter]="24">
-          <nz-col [nzSpan]="12">
-            <nz-time-picker
-                      formControlName="DateStart"
-                      nzFormat="HH:mm"
-                      style="width: 100%"
-            ></nz-time-picker>
-          </nz-col>
-          <nz-col [nzSpan]="12">
-            <nz-time-picker
-                      formControlName="DateEnd"
-                      nzFormat="HH:mm"
-                      style="width: 100%"
-            ></nz-time-picker>
-          </nz-col>
-        </nz-row>
+                    <nz-row [nzGutter]="24" class="pb-1">
+                        <nz-col [nzSpan]="12">
+                            <nz-form-label class="p-0">Từ</nz-form-label>
+                        </nz-col>
+                        <nz-col [nzSpan]="12">
+                            <nz-form-label class="p-0">Đến</nz-form-label>
+                        </nz-col>
+                    </nz-row>
+                    <nz-row [nzGutter]="24">
+                        <nz-col [nzSpan]="12">
+                            <nz-time-picker formControlName="DateStart" nzFormat="HH:mm"
+                                style="width: 100%"></nz-time-picker>
+                        </nz-col>
+                        <nz-col [nzSpan]="12">
+                            <nz-time-picker formControlName="DateEnd" nzFormat="HH:mm"
+                                style="width: 100%"></nz-time-picker>
+                        </nz-col>
+                    </nz-row>
 
 
-        <nz-form-item>
-          <nz-form-label [nzSpan]="24">Lý do<span class="text-danger"> (*)</span></nz-form-label>
-          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập lý do">
-            <textarea rows="4" nz-input formControlName="Reason"></textarea>
-          </nz-form-control>
-        </nz-form-item>
-       
-        <nz-form-item>
-          <nz-form-label [nzSpan]="24">Lý do sửa</nz-form-label>
-          <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập lý do sửa">
-            <textarea rows="4" nz-input formControlName="ReasonHREdit"></textarea>
-          </nz-form-control>
-        </nz-form-item>
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24">Lý do<span class="text-danger"> (*)</span></nz-form-label>
+                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập lý do">
+                            <textarea rows="4" nz-input formControlName="Reason"></textarea>
+                        </nz-form-control>
+                    </nz-form-item>
 
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button
-          type="button"
-          class="btn btn-outline-danger"
-          (click)="closeModal()"
-        >
-          Đóng
-        </button>
-        <button
-          type="button"
-          class="btn btn-primary"
-          (click)="onSubmit()"
-        >
-          Lưu
-        </button>
-      </div>
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24">Lý do sửa</nz-form-label>
+                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập lý do sửa">
+                            <textarea rows="4" nz-input formControlName="ReasonHREdit"></textarea>
+                        </nz-form-control>
+                    </nz-form-item>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger" (click)="closeModal()">
+                    Đóng
+                </button>
+                <button type="button" class="btn btn-primary" (click)="onSubmit()" *hasPermission="'N2,N1'">
+                    Lưu
+                </button>
+            </div>
+        </div>
     </div>
-  </div>
 </div>

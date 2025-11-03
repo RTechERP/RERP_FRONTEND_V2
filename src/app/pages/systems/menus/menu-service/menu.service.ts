@@ -139,6 +139,14 @@ export class MenuService {
         //   icon: 'assets/icon/layers.png',
       },
       {
+        kind: 'group',
+        key: 'TsAssetManagementPersonal',
+        title: 'TÀI SẢN CÁ NHÂN',
+        isOpen: true,
+        isPermission: this.permissionService.hasPermission(""),
+        icon: 'assets/icon/menu_hrm_24.png',
+        children:[
+            {
         kind: 'leaf',
         key: 'TsAssetManagementPersonalComponent',
         title: 'Tài sản cá nhân',
@@ -174,6 +182,9 @@ export class MenuService {
         comp: TsAssetRecoveryPersonalNewComponent,
         //   icon: 'assets/icon/layers.png',
       },
+        ]
+      },
+      
       
       {
         kind: 'leaf',

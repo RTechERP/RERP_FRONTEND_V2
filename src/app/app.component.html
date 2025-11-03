@@ -7,62 +7,12 @@
                 <!-- <h1>RTC</h1> -->
             </a>
         </div>
-        <!-- <ul nz-menu nzTheme="light" nzMode="inline" [nzInlineCollapsed]="false">
-
-            <li nz-submenu nzOpen nzTitle="CRM" nzIcon="dashboard">
-                <ul>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(CustomerComponent,'Khách hàng')">Khách hàng</a>
-                    </li>
-                </ul>
-            </li>
-            <li nz-submenu nzOpen nzTitle="ProductRTC" nzIcon="dashboard">
-                <ul>
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(ProductRtcComponent,'ProductRTC')">ProductRTC</a>
-                    </li>
-
-                </ul>
-            </li>
-            @if (isDatcom) {
-            <li nz-submenu nzOpen nzTitle="DỰ ÁN" nzIcon="dashboard">
-                <ul>
 
 
-                    <li nz-menu-item nzMatchRouter>
-                        <a (click)="newTab(ProjectComponent,'Dự án')">Dự án</a>
-                    </li>
-                </ul>
-            </li>
-            }
-        </ul> -->
         <!-- <ul nz-menu nzTheme="light" nzMode="inline" [nzInlineCollapsed]="false">
             <ng-container *ngFor="let m of menus">
-              
-                <li nz-submenu *ngIf="isGroup(m) && m.isOpen" nzOpen [nzTitle]="m.title" [nzIcon]="m.icon ?? null">
-                    <ul>
-                        <li nz-menu-item *ngFor="let c of m.children" nzMatchRouter>
-                            <a (click)="newTab(c.comp, c.title)">
-                                <nz-icon *ngIf="c.icon" [nzType]="c.icon"></nz-icon>
-                                <span class="ms-1">{{ c.title }}</span>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
 
-                <li nz-submenu *ngIf="isLeaf(m) && m.isOpen" nzOpen [nzTitle]="m.title" [nzIcon]="m.icon ?? null">
-                    <ul>
-                        <li nz-menu-item nzMatchRouter>
-                            <a (click)="newTab(m.comp, m.title)">{{ m.title }}</a>
-                        </li>
-                    </ul>
-                </li>
-            </ng-container>
-        </ul> -->
-        <ul nz-menu nzTheme="light" nzMode="inline" [nzInlineCollapsed]="false">
-            <ng-container *ngFor="let m of menus">
 
-                <!-- GROUP -->
                 <li nz-submenu *ngIf="isGroup(m) && m.isPermission && m.isOpen" [nzOpen]="true" [nzTitle]="groupTitle">
                     <ng-template #groupTitle>
                         <span class="menu-title">
@@ -76,7 +26,6 @@
                     <ul>
                         <ng-container *ngFor="let c of (m.children || []); trackBy: trackKey">
 
-                            <!-- Cấp 2: GROUP -->
                             <li nz-submenu *ngIf="isGroup(c)&& c.isOpen &&c.isPermission" [nzOpen]="true"
                                 [nzTitle]="cTitle">
                                 <ng-template #cTitle>
@@ -88,11 +37,10 @@
                                     </span>
                                 </ng-template>
 
-                                <!-- CẤP 3 -->
                                 <ul>
                                     <ng-container *ngFor="let g of (c.children || []); trackBy: trackKey">
 
-                                        <!-- Cấp 3: LEAF -->
+
                                         <ng-container *ngIf="isLeaf(g)&&g.isPermission==true">
                                             <li nz-menu-item (click)="newTab(g.comp, g.title)" class="ps-4">
                                                 <span class="icon-slot icon-14"><img *ngIf="g.icon" [src]="g.icon"
@@ -102,20 +50,10 @@
                                             </li>
                                         </ng-container>
 
-                                        <!-- (tuỳ chọn) Cấp 3: GROUP nữa nếu muốn sâu hơn -->
-                                        <!--
-                <ng-container *ngIf="isGroup(g)">
-                  <li nz-submenu [nzOpen]="true" [nzTitle]="g.title">
-                    <ul> ... (lặp tương tự nếu cần cấp 4+) ... </ul>
-                  </li>
-                </ng-container>
-                -->
 
                                     </ng-container>
                                 </ul>
                             </li>
-
-                            <!-- Cấp 2: LEAF -->
                             <ng-container *ngIf="isLeaf(c)&& c.isOpen &&c.isPermission">
                                 <li nz-menu-item (click)="newTab(c.comp, c.title)" class="ps-4">
                                     <span class="icon-slot icon-14"><img *ngIf="c.icon" [src]="c.icon"
@@ -129,7 +67,7 @@
                     </ul>
                 </li>
 
-                <!-- CẤP 1: LEAF -->
+
                 <ng-container *ngIf="isLeaf(m) && m.isOpen&&m.isPermission">
                     <li nz-menu-item (click)="newTab(m.comp, m.title)">
                         <span class="icon-slot icon-20"><img *ngIf="m.icon" [src]="m.icon" class="menu-icon" /></span>
@@ -139,24 +77,36 @@
                 </ng-container>
 
             </ng-container>
+        </ul> -->
+
+        <ul nz-menu nzMode="inline">
+            @for (m of menus; track m.key) {
+            <li nz-submenu nzTitle="Group 1">
+                <ul>
+                    <li nz-menu-item *ngIf="isLeaf(m) && m.isOpen&&m.isPermission">{{m.title}}</li>
+                    <!-- <li nz-menu-item>Option 6</li> -->
+                    <li nz-submenu nzTitle="Group 2 con của 1" *ngIf="isGroup(m) && m.isOpen&&m.isPermission">
+                        <ul>
+                            @for (c of m.children; track c.key) {
+                            <li nz-menu-item *ngIf="isLeaf(c) && c.isOpen&&m.isPermission">{{c.title}}</li>
+                            <!-- <li nz-menu-item>Option 8</li> -->
+                            <li nz-submenu nzTitle="Group 3 con của 2" *ngIf="isGroup(c) && c.isOpen&&c.isPermission">
+                                <ul>
+                                    @for (cc of c.children; track cc.key) {
+                                    <li nz-menu-item>{{cc.title}}</li>
+                                    }
+                                </ul>
+                            </li>
+                            }
+
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            }
+
+
         </ul>
-        <!--Không được xóa-->
-        <!-- LEAF -->
-        <!-- <li nz-submenu *ngIf="isLeaf(m) && m.isOpen" [nzOpen]="true" [nzTitle]="leafTitle">
-      <ng-template #leafTitle>
-        <span class="menu-title">
-          <img *ngIf="m.icon" [src]="m.icon" class="menu-icon" />
-          <span>{{ m.title }}</span>
-        </span>
-      </ng-template>
-
-      <ul>
-        <li nz-menu-item nzMatchRouter>
-          <a (click)="newTab(m.comp, m.title)">{{ m.title }}</a>
-        </li>
-      </ul>
-    </li> -->
-
 
     </nz-sider>
     <nz-layout>

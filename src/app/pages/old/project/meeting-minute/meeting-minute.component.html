@@ -148,49 +148,42 @@
         </div>
       </nz-splitter-panel>
       <nz-splitter-panel>
-        <nz-splitter>
-          <nz-splitter-panel [nzCollapsible]="true">
-            <div class="box">
-              <nz-tabset nzType="card" (nzSelectedIndexChange)="onTabChange($event)">
-                <nz-tab nzTitle ="Nhân viên tham gia" [tabIndex]=0>
-                  <div class="card-body p-0">
-                    <div id="Employee" style="width: 100%; height: 100%"></div>
-                  </div>
-                </nz-tab>
-                <nz-tab nzTitle="Nội dung">
-                  <div class="card-body p-0 ">
-                    <div #EmployeeContentNE
-                      id="EmployeeContentNE"
-                      style="width: 100%; height: 100%"
-                    ></div>
-                  </div>
-                </nz-tab>
-              </nz-tabset>
-            </div>
-          </nz-splitter-panel>
-          <nz-splitter-panel [nzCollapsible]="true">
-            <div class="box">
-              <nz-tabset nzType="card" (nzSelectedIndexChange)="onCustomerTabChange($event)">
-                <nz-tab nzTitle="Khách hàng tham gia">
-                   <div class="card-body p-0">
-                    <div
-                      id="Customer"
-                      style="width: 100%; height: 100%"
-                    ></div>
-                  </div>
-                </nz-tab>
-                <nz-tab nzTitle="Nội dung">
-                   <div class="card-body p-0">
-                    <div
-                      id="CustomerContent"
-                      style="width: 100%; height: 100%"
-                    ></div>
-                  </div>
-                </nz-tab>
-              </nz-tabset>
-            </div>
-          </nz-splitter-panel>
-        </nz-splitter>
+        <div class="box">
+          <nz-tabset   (nzSelectedIndexChange)="onMainTabChange($event)">
+            <nz-tab  nzTitle="Nhân viên">
+              <div class="card-body p-0">
+                <nz-tabset   (nzSelectedIndexChange)="onTabChange($event)">
+                  <nz-tab nzTitle="Nhân viên tham gia">
+                    <div class="card-body p-0">
+                      <div id="Employee" style="width: 100%; height: 100%"></div>
+                    </div>
+                  </nz-tab>
+                  <nz-tab nzTitle="Nội dung">
+                    <div class="card-body p-0">
+                      <div #EmployeeContentNE id="EmployeeContentNE" style="width: 100%; height: 100%"></div>
+                    </div>
+                  </nz-tab>
+                </nz-tabset>
+              </div>
+            </nz-tab>
+            <nz-tab nzTitle="Khách hàng">
+              <div class="card-body p-0">
+                <nz-tabset   (nzSelectedIndexChange)="onCustomerTabChange($event)">
+                  <nz-tab nzTitle="Khách hàng tham gia">
+                    <div class="card-body p-0">
+                      <div id="Customer" style="width: 100%; height: 100%"></div>
+                    </div>
+                  </nz-tab>
+                  <nz-tab nzTitle="Nội dung">
+                    <div class="card-body p-0">
+                      <div id="CustomerContent" style="width: 100%; height: 100%"></div>
+                    </div>
+                  </nz-tab>
+                </nz-tabset>
+              </div>
+            </nz-tab>
+          </nz-tabset>
+        </div>
       </nz-splitter-panel>
     </nz-splitter>
   </nz-splitter-panel>

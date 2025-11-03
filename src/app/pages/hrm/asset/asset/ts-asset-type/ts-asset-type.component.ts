@@ -32,7 +32,9 @@ import {
   ColumnDefinition,
   RowComponent,
 } from 'tabulator-tables';
+import { NzModalModule } from 'ng-zorro-antd/modal';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
+import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TypeAssetsService } from './ts-asset-type-service/ts-asset-type.service';
@@ -64,6 +66,7 @@ import { TyAssetTypeFormComponent } from './ts-asset-type-form/ts-asset-type-for
     NzTableModule,
     NzTabsModule,
     NgbModalModule,
+     NzModalModule,
     // TyAssetTypeFormComponent
   ],
 })
@@ -75,11 +78,15 @@ export class TsAssetTypeComponent implements OnInit, AfterViewInit {
   selecteType: any = {};
   constructor(
     private typeAssetService: TypeAssetsService,
-    private notification: NzNotificationService
+    private notification: NzNotificationService,
+     private nzModal: NzModalService
   ) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    
+  }
   ngAfterViewInit(): void {
+    this.drawTable();
     this.getTypeAsset();
   }
   getTypeAsset() {
@@ -89,7 +96,7 @@ export class TsAssetTypeComponent implements OnInit, AfterViewInit {
       this.drawTable();
     });
   }
-  private drawTable(): void {
+   drawTable(): void {
     if (this.typeAssetTable) {
       this.typeAssetTable.setData(this.typeAssetData);
     } else {
@@ -107,6 +114,17 @@ export class TsAssetTypeComponent implements OnInit, AfterViewInit {
         dataTree: true,
         addRowPos: 'bottom',
         history: true,
+         langs: {
+    vi: {
+      pagination: {
+        first: '<<',
+        last: '>>',
+        prev: '<',
+        next: '>',
+      },
+    },
+  },
+   locale: 'vi',
         columns: [
           {
             title: 'ID',
@@ -180,7 +198,7 @@ export class TsAssetTypeComponent implements OnInit, AfterViewInit {
     modalRef.result.then(
       (result) => {
         console.log('Modal closed with result:', result);
-        this.drawTable();
+      this.getTypeAsset();  
       },
       () => {
         console.log('Modal dismissed');
@@ -188,32 +206,38 @@ export class TsAssetTypeComponent implements OnInit, AfterViewInit {
     );
   }
   onDeleteTypeAsset() {
-    const selected = this.typeAssetTable?.getSelectedData();
-    if (!selected || selected.length === 0) {
-      this.notification.warning(
-        'Thông báo',
-        'Vui lòng chọn loại tài sản để xóa!'
-      );
-      return;
-    }
-    const payloadTypeAsset = {
-      ID: selected[0].ID,
-      IsDeleted: true,
-    };
-    console.log(payloadTypeAsset);
-    this.typeAssetService.SaveData(payloadTypeAsset).subscribe({
-      next: (res) => {
-        if (res.status === 1) {
-          this.notification.success('Thông báo', 'Thành công');
-          setTimeout(() => this.getTypeAsset(), 100);
-        } else {
-          this.notification.warning('Thông báo', 'Thất bại');
-        }
-      },
-      error: (err) => {
-        console.error(err);
-        this.notification.warning('Thông báo', 'Lỗi kết nối');
-      },
-    });
+  const selected = this.typeAssetTable?.getSelectedData();
+  if (!selected || selected.length === 0) {
+    this.notification.warning('Thông báo', 'Vui lòng chọn loại tài sản để xóa!');
+    return;
   }
+
+  const item = selected[0];
+  const payloadTypeAsset = { ID: item.ID, IsDeleted: true };
+
+  this.nzModal.confirm({
+    nzTitle: 'Xác nhận xóa',
+    nzContent: `Bạn có chắc chắn muốn xóa <strong>${item.TypeAssetName || ''}</strong> không?`,
+    nzOkText: 'Xóa',
+    nzOkType: 'primary',
+    nzOkDanger: true,
+    nzCancelText: 'Hủy',
+    nzOnOk: () => {
+      this.typeAssetService.SaveData(payloadTypeAsset).subscribe({
+        next: (res) => {
+          if (res.status === 1) {
+            this.notification.success('Thông báo', 'Xóa thành công');
+            setTimeout(() => this.getTypeAsset(), 100);
+          } else {
+            this.notification.warning('Thông báo', 'Xóa thất bại');
+          }
+        },
+        error: (err) => {
+          console.error(err);
+          this.notification.warning('Thông báo', 'Lỗi kết nối');
+        },
+      });
+    },
+  });
+}
 }

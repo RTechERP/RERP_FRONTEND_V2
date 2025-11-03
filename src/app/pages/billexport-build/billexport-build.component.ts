@@ -14,7 +14,7 @@ import { Tabulator, ColumnDefinition } from 'tabulator-tables';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { Subject, takeUntil } from 'rxjs';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-import { ProjectService } from '../project/project-service/project.service';
+import { ProjectService } from '../old/project/project-service/project.service';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { forkJoin } from 'rxjs';
 

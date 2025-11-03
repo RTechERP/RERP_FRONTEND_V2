@@ -1,0 +1,51 @@
+<div class="modal-header bg-primary text-uppercase py-2">
+  <h6 class="modal-title text-white">
+    {{ productLocationForm.get('ID')?.value ? 'Sửa vị trí sản phẩm' : 'Thêm vị trí sản phẩm' }}
+  </h6>
+  <button type="button" class="btn-close" aria-label="Close" (click)="closeModal()"></button>
+</div>
+
+<div class="modal-body">
+  <!-- Form nhập liệu -->
+  <form nz-form [formGroup]="productLocationForm">
+    <div nz-row [nzGutter]="16">
+      <!-- Trường Kho -->
+      <div nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label nzRequired [nzSpan]="6">Kho</nz-form-label>
+          <nz-form-control [nzSpan]="18">
+            <nz-select formControlName="ProductGroupID" nzPlaceHolder="Chọn kho">
+              <nz-option *ngFor="let productGroup of productGroups" [nzValue]="productGroup.id" [nzLabel]="productGroup.name">
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <!-- Trường Mã vị trí -->
+      <div nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label nzRequired [nzSpan]="6">Mã vị trí</nz-form-label>
+          <nz-form-control [nzSpan]="18">
+            <input nz-input formControlName="LocationCode" placeholder="Nhập mã vị trí">
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <!-- Trường Tên vị trí -->
+      <div nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label nzRequired [nzSpan]="6">Tên vị trí</nz-form-label>
+          <nz-form-control [nzSpan]="18">
+            <input nz-input formControlName="LocationName" placeholder="Nhập tên vị trí">
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="modal-footer">
+  <button nz-button nzType="default" (click)="closeModal()">Hủy</button>
+  <button nz-button nzType="primary" (click)="saveData()">Lưu</button>
+</div>

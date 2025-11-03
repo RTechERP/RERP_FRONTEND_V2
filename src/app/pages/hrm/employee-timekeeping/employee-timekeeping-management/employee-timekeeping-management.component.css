@@ -1,0 +1,41 @@
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+.reset {
+  all: revert;
+}
+
+.ant-splitter-panel{
+  position: relative;
+}
+
+.tabulator {
+  font-size: 0.75rem;
+  position: absolute;
+  width: 100%;
+}
+
+.tabulator-cell {
+  padding: 0px;
+}
+
+.inner-content {
+  padding: 0 !important;
+}
+
+.ant-tabs-tab-btn {
+  font-size: 0.75rem;
+}
+
+
+:host ::ng-deep .tabulator-col .mt-header-day.weekend{
+  background:#fde68a; border-radius:4px;
+}
+
+
+:host ::ng-deep .ant-tabs,
+:host ::ng-deep .ant-tabs-content,
+:host ::ng-deep .ant-tabs-tabpane {
+  height: 100%;
+}

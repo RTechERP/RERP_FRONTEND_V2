@@ -1,0 +1,156 @@
+<div class="modal-dialog-scrollable">
+  <div class="modal-header bg-primary align-items-center ps-2">
+    <h6 class="text-light text-uppercase m-0">
+      {{ modalTitle }}
+    </h6>
+  </div>
+
+  <div class="modal-body">
+    <div class="container-fluid">
+      <div class="row g-3">
+        <!-- Năm -->
+        <div class="col-md-6">
+          <nz-form-item>
+            <nz-form-label class="fs-12 d-flex align-items-center">
+              Tháng <span class="text-danger ps-1">(*)</span>
+            </nz-form-label>
+            <nz-form-control [nzSpan]="24">
+              <nz-select
+                name="month"
+                class="w-100"
+                nzAllowClear
+                nzPlaceHolder="Chọn tháng"
+                [(ngModel)]="month"
+                (ngModelChange)="onMonthOrYearChange()"
+              >
+                @for (i of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; track
+                $index) {
+                <nz-option [nzValue]="i" [nzLabel]="'Tháng ' + i"></nz-option>
+                }
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div class="col-md-6">
+          <nz-form-item>
+            <nz-form-label class="fs-12 d-flex align-items-center">
+              Năm <span class="text-danger ps-1">(*)</span>
+            </nz-form-label>
+            <nz-form-control [nzSpan]="24">
+              <nz-date-picker
+                class="w-100"
+                name="year"
+                [(ngModel)]="year"
+                [nzMode]="'year'"
+                [nzFormat]="'YYYY'"
+                nzAllowClear="false"
+                (ngModelChange)="onYearChange($event)"
+              ></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <!-- Từ ngày -->
+        <div class="col-md-6">
+          <nz-form-item class="pt-1">
+            <nz-form-label class="fs-12">Từ ngày</nz-form-label>
+            <nz-date-picker
+              name="fromDate"
+              [(ngModel)]="fromDate"
+              class="w-100"
+              nzPlaceHolder="Chọn từ ngày"
+              [nzDisabled]="isFormDisabled"
+              nzFormat="dd/MM/yyyy"
+              (ngModelChange)="onMonthChange($event)"
+            ></nz-date-picker>
+          </nz-form-item>
+        </div>
+
+        <!-- Đến ngày -->
+        <div class="col-md-6">
+          <nz-form-item class="pt-1">
+            <nz-form-label class="fs-12">Đến ngày </nz-form-label>
+            <nz-date-picker
+              name="toDate"
+              [(ngModel)]="toDate"
+              class="w-100"
+              nzPlaceHolder="Chọn đến ngày"
+              [nzDisabled]="isFormDisabled"
+              nzFormat="dd/MM/yyyy"
+              (ngModelChange)="onMonthChange($event)"
+            ></nz-date-picker>
+          </nz-form-item>
+        </div>
+
+        <!-- Tên bảng chấm công -->
+        <div class="col-md-12">
+          <nz-form-item class="pt-1">
+            <nz-form-label class="fs-12"
+              >Tên bảng chấm công
+              <span class="text-danger ps-1">(*)</span></nz-form-label
+            >
+            <input
+              nz-input
+              type="text"
+              name="Name"
+              [(ngModel)]="Name"
+              class="w-100"
+              placeholder="Nhập tên bảng chấm công"
+              [disabled]="isFormDisabled"
+              maxlength="500"
+            />
+          </nz-form-item>
+        </div>
+
+        <!-- Ghi chú (không bắt buộc) -->
+        <div class="col-md-12">
+          <nz-form-item class="pt-1">
+            <nz-form-label class="fs-12">Ghi chú</nz-form-label>
+            <textarea
+              name="note"
+              nz-input
+              [(ngModel)]="note"
+              placeholder="Nhập ghi chú (không bắt buộc)"
+              [disabled]="isFormDisabled"
+              rows="2"
+              maxlength="300"
+              class="w-100"
+            ></textarea>
+          </nz-form-item>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer br p-1 d-flex align-items-center">
+    <div class="d-flex align-items-center flex-wrap gap-1">
+      <div *ngIf="loading" class="d-flex align-items-center me-2">
+        <nz-spin nzSimple nzSize="small" class="me-2"></nz-spin>
+        <span class="fs-12">Đang tải...</span>
+      </div>
+      <button
+        nz-button
+        nzType="default"
+        nzDanger
+        (click)="closeModal()"
+        [disabled]="saving"
+      >
+        Đóng
+      </button>
+      <button
+        *ngIf="!isViewMode"
+        nz-button
+        nzType="primary"
+        (click)="saveET()"
+        [disabled]="saving || !isFormValid()"
+      >
+        <span
+          *ngIf="saving"
+          class="spinner-border spinner-border-sm me-2"
+        ></span>
+        {{ saving ? "Đang lưu..." : "Lưu" }}
+      </button>
+    </div>
+  </div>
+</div>

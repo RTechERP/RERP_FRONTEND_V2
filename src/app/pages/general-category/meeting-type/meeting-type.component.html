@@ -1,0 +1,115 @@
+<ng-container class="w-100">
+  <nz-splitter>
+    <nz-splitter-panel nzDefaultSize="100%">
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-1">
+          <div class="d-flex gap-1 align-items-center">
+            <button
+              class="fs-12"
+              nz-button
+              nzType="default"
+              nzSize="small"
+              (click)="addMeetingType()"
+            >
+              <nz-icon nzType="plus"></nz-icon> Thêm
+            </button>
+            <button
+              class="fs-12"
+              nz-button
+              nzType="default"
+              nzSize="small"
+              (click)="editMeetingType()"
+            >
+              <nz-icon nzType="edit" nzTheme="fill"></nz-icon> Sửa
+            </button>
+            <button
+              class="fs-12"
+              nz-button
+              nzType="default"
+              nzSize="small"
+              (click)="deleteMeetingType()"
+            >
+              <nz-icon nzType="delete" nzTheme="fill"></nz-icon> Xóa
+            </button>
+            <button
+              class="fs-12"
+              nz-button
+              nzType="default"
+              nzSize="small"
+              (click)="refreshData()"
+            >
+              <nz-icon nzType="reload" nzTheme="outline"></nz-icon> Refresh
+            </button>
+
+            <!-- Thanh tìm kiếm bên phải -->
+            <div class="ms-auto d-flex gap-1 align-items-center">
+              <form [formGroup]="searchForm">
+                <nz-input-group [nzSuffix]="clearTemplate" style="width: 250px">
+                  <input
+                    nz-input
+                    type="text"
+                    placeholder="Enter text to search..."
+                    formControlName="searchValue"
+                    (input)="onSearch()"
+                    (keyup.enter)="onSearch()"
+                    style="font-size: 12px;"
+                  />
+                </nz-input-group>
+              </form>
+
+             
+              <!-- Template cho nút X xóa -->
+              <ng-template #clearTemplate>
+                <nz-icon
+                  *ngIf="searchForm.get('searchValue')?.value && searchForm.get('searchValue')?.value.trim().length > 0"
+                  nzType="close-circle"
+                  nzTheme="fill"
+                  (click)="clearSearch()"
+                  class="search-clear-icon"
+                  title="Xóa nội dung tìm kiếm"
+                ></nz-icon>
+              </ng-template>
+
+              <!-- Nút Tìm kiếm bên ngoài -->
+              <button
+                class="fs-12"
+                nz-button
+                nzType="primary"
+                nzSize="small"
+                (click)="onSearch()"
+                [disabled]="!searchForm.get('searchValue')?.value || searchForm.get('searchValue')?.value.trim().length === 0"
+              >
+                <nz-icon nzType="search"></nz-icon> Tìm kiếm
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="card-body p-0 d-flex align-items-center justify-content-center"
+          style="position: relative"
+        >
+          <div
+            *ngIf="isLoadTable"
+            style="
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              background: rgba(255, 255, 255, 0.4);
+              z-index: 999;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            "
+          >
+            <nz-spin [nzSpinning]="isLoadTable" nzSimple></nz-spin>
+          </div>
+          <div class="w-100 h-100" #tb_meetingType></div>
+        </div>
+      </div>
+    </nz-splitter-panel>
+  </nz-splitter>
+</ng-container>
+

@@ -42,6 +42,7 @@ import { TsAssetManagementComponent } from '../../ts-asset-management/ts-asset-m
 import { TsAssetRecoveryComponent } from '../../ts-asset-recovery/ts-asset-recovery.component';
 import { TsAssetTransferComponent } from '../../ts-asset-transfer/ts-asset-transfer.component';
 import { PermissionService } from '../../../../services/permission.service';
+import { PriceHistoryPartlistComponent } from '../../project/price-history-partlist/price-history-partlist.component';
 
 @Injectable({
   providedIn: 'root',
@@ -517,6 +518,14 @@ export class MenuService {
         isOpen: true,
         isPermission: this.permissionService.hasPermission(""),
         comp: SynthesisOfGeneratedMaterialsComponent,
+      },
+      {
+        kind: 'leaf',
+        key: 'PriceHistoryPartlistComponent',
+        title: 'Lịch sử giá',
+        isOpen: true,
+        isPermission: this.permissionService.hasPermission(""),
+        comp: PriceHistoryPartlistComponent,
       },
     ],
   },

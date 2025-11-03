@@ -436,6 +436,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
     this.tb_MainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       selectableRows:1,
+      paginationMode: 'remote',
       //   layout: 'fitDataFill',
       //   height: '90%',
       //   selectableRows: 1,
@@ -445,7 +446,6 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       //   paginationSizeSelector: [10, 30, 50, 100, 200, 300, 500],
       ajaxURL: this.customerService.getMainDataAjax(),
       ajaxConfig: 'GET',
-      ajaxParams: this.getMainDataAjaxParams(),
       ajaxRequestFunc: (url, config, params) => {
         const request = {
           filterText: this.filters.keyword.trim() || '',

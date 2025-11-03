@@ -1,0 +1,10 @@
+:host ::ng-deep .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active {
+  background-color: #3b82f6; /* blue-500 */
+  border-color: #3b82f6;
+}
+
+:host ::ng-deep .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #fff !important; /* buộc chữ trắng */
+}
+
+

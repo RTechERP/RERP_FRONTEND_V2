@@ -22,7 +22,7 @@ import {
 } from '@angular/core';
 import { NgbActiveModal, NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import * as bootstrap from 'bootstrap';
+// import * as bootstrap from 'bootstrap';
 
 import { CommonModule } from '@angular/common';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -54,7 +54,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { SelectControlComponent } from '../../../BillExport/Modal/select-control/select-control.component';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { BillImportChoseSerialComponent } from '../../../BillExport/Modal/bill-import-chose-serial/bill-import-chose-serial/bill-import-chose-serial.component';
+import { BillImportChoseSerialComponent } from '../../../../bill-import-technical/bill-import-chose-serial/bill-import-chose-serial.component';
 interface ProductSale {
   Id?: number;
   ProductCode: string;
@@ -1119,7 +1119,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
                 };
 
                 this.billExportService.getSerialByIDs(payload).subscribe({
-                  next: (res) => {
+                  next: (res:any) => {
                     if (res?.status === 1 && res.data) {
                       const existingSerials = res.data.map((item: any) => ({
                         ID: item.ID,
@@ -1132,7 +1132,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
                       this.openSerialModal(rowData, row, quantity, productCode, []);
                     }
                   },
-                  error: (err) => {
+                  error: (err:any) => {
                     this.notification.error('Lỗi', 'Lỗi khi tải serial!');
                     console.error('Lỗi API:', err);
                     this.openSerialModal(rowData, row, quantity, productCode, []);

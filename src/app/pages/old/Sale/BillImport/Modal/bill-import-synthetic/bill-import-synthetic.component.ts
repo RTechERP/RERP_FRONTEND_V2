@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import * as bootstrap from 'bootstrap';
+// import * as bootstrap from 'bootstrap';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { CommonModule } from '@angular/common';
 import {

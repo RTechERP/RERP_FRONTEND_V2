@@ -1288,7 +1288,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
       this.employeeDetailTable = new Tabulator('#employeeDetail', {
         data: this.employeeDetailData,
         layout: 'fitDataStretch',
-        height: '24vh',
+        height: '30vh',
         movableColumns: true,
         resizableRows: true,
         reactiveData: true,
@@ -1468,7 +1468,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
         {
           data: this.employeeDetailContentData,
           layout: 'fitDataStretch',
-          height: '24vh',
+          height: '30vh',
           movableColumns: true,
           resizableRows: true,
           reactiveData: true,
@@ -1673,7 +1673,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
       this.customerDetailTable = new Tabulator('#customerDetail', {
         data: this.customerDetailData,
         layout: 'fitDataStretch',
-        height: '24vh',
+        height: '30vh',
         movableColumns: true,
         resizableRows: true,
         reactiveData: true,
@@ -1787,7 +1787,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
         {
           data: this.customerDetailContentData,
           layout: 'fitDataStretch',
-          height: '24vh',
+          height: '30vh',
           movableColumns: true,
           resizableRows: true,
           reactiveData: true,

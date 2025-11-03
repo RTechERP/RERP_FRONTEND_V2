@@ -190,7 +190,6 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
     this.draw_MeetingMinutesTable();
     this.draw_employeeTable();
     //this.draw_employeeContentTable();
-    this.draw_customerTable();
     setTimeout(() => {
       this.onTabChange(0);
     }, 100);
@@ -211,8 +210,28 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
   onCustomerTabChange(index: number) {
     // Initialize customer content table when tab becomes active
     setTimeout(() => {
+      if (!document.getElementById('Customer')) {
+        // Ensure customer base table is drawn after DOM exists
+        this.draw_customerTable();
+      }
       if (index === 1 && !this.customerContentTable) {
         this.draw_customerContentTable();
+      }
+      this.cdr.detectChanges();
+    }, 100);
+  }
+
+  onMainTabChange(index: number) {
+    // 0: Nhân viên, 1: Khách hàng
+    setTimeout(() => {
+      if (index === 0) {
+        // Ensure employee base table exists when switching back
+        if (!this.employeeTable) {
+          this.draw_employeeTable();
+        }
+      } else if (index === 1) {
+        // Ensure customer base table is initialized when Khách hàng tab activates
+        this.draw_customerTable();
       }
       this.cdr.detectChanges();
     }, 100);
@@ -885,12 +904,15 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
             hozAlign: 'center',
             headerHozAlign: 'center',
             field: 'DetailContent',
+             width: 200,  formatter:'textarea'
           },
-          { title: 'Kết quả', field: 'DetailResult', headerHozAlign: 'center' },
+          { title: 'Kết quả', field: 'DetailResult', headerHozAlign: 'center',  width: 200,  formatter:'textarea' },
           {
             title: 'Mã nhân viên',
             field: 'EmployeeID',
+          
             headerHozAlign: 'center',
+           
           },
           {
             title: 'Người phụ trách',
@@ -911,6 +933,7 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
             title: 'Ghi chú',
             field: 'Note',
             headerHozAlign: 'center',
+             width: 200,  formatter:'textarea'
           },
           {
             title: 'Phát sinh',
@@ -927,6 +950,10 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
   }
 
   private draw_customerTable(): void {
+    if (!document.getElementById('Customer')) {
+      // Container not in DOM yet (tab not active); skip for now
+      return;
+    }
     if (this.customerTable) {
       this.customerTable.setData(this.customerData);
     } else {
@@ -983,6 +1010,10 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
   }
 
   private draw_customerContentTable(): void {
+    if (!document.getElementById('CustomerContent')) {
+      // Not visible yet
+      return;
+    }
     if (this.customerContentTable) {
       this.customerContentTable.setData(this.customerContentData);
     } else {
@@ -1017,8 +1048,9 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
             hozAlign: 'center',
             headerHozAlign: 'center',
             field: 'DetailContent',
+             width: 200,  formatter:'textarea'
           },
-          { title: 'Kết quả', field: 'DetailResult', headerHozAlign: 'center' },
+          { title: 'Kết quả', field: 'DetailResult', headerHozAlign: 'center', width: 200,  formatter:'textarea' },
           {
             title: 'Họ tên',
             field: 'CustomerName',
@@ -1038,6 +1070,7 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
             title: 'Ghi chú',
             field: 'Note',
             headerHozAlign: 'center',
+             width: 200,  formatter:'textarea'
           },
           {
             title: 'Phát sinh',

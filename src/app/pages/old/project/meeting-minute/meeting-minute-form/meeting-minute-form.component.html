@@ -6,7 +6,7 @@
   </div>
 
   <!-- BODY -->
-  <div class="modal-body flex-grow-1 overflow-auto" style="max-height: 70vh;">
+  <div class="modal-body flex-grow-1 overflow-auto" style="max-height: 80vh;">
     <form nz-form [formGroup]="form">
       <!-- Form phần trên -->
       <div class="row gx-2">
@@ -121,27 +121,27 @@
     </form>
 
     <!-- PHẦN DƯỚI (Tab + Splitter) -->
-    <div class="mt-2" style="min-height: 50vh;">
-      <nz-splitter>
+    <div class="mt-2">
+      <nz-splitter style="height: 100vh;">
         <nz-splitter-panel nzResizable="true">
           <nz-tabset nzType="card" (nzSelectedIndexChange)="onTabChangeEmployeeContent($event)">
             <nz-tab nzTitle="Nhân viên tham gia">
-              <nz-splitter nzLayout="vertical">
-                <nz-splitter-panel nzDefaultSize="40%" nzMin="20%" nzMax="100%">
-                  <div id="employeeDetail" style="height: 25vh"></div>
+              <nz-splitter nzLayout="vertical" style="height: 100%;">
+                <nz-splitter-panel nzDefaultSize="50%" nzMin="20%" nzMax="100%">
+                  <div id="employeeDetail" style="height: 100%;"></div>
                 </nz-splitter-panel>
                 <nz-splitter-panel>
-                  <div id="customerDetail" *ngIf="selectedGroupId === 1 || selectedGroupId === null" style="height: 100%"></div>
+                  <div id="customerDetail" *ngIf="selectedGroupId === 1 || selectedGroupId === null" style="height: 100%;"></div>
                 </nz-splitter-panel>
               </nz-splitter>
             </nz-tab>
             <nz-tab nzTitle="Nội dung">
-              <nz-splitter nzLayout="vertical">
-                <nz-splitter-panel>
-                  <div id="employeeDetailContent" style="height: 100%"></div>
+              <nz-splitter nzLayout="vertical" style="height: 100%;">
+                <nz-splitter-panel nzDefaultSize="50%" nzMin="20%" nzMax="100%">
+                  <div id="employeeDetailContent" style="height: 100%;"></div>
                 </nz-splitter-panel>
                 <nz-splitter-panel>
-                  <div id="customerDetailContent" *ngIf="selectedGroupId === 1 || selectedGroupId === null" style="height: 100%"></div>
+                  <div id="customerDetailContent" *ngIf="selectedGroupId === 1 || selectedGroupId === null" style="height: 100%;"></div>
                 </nz-splitter-panel>
               </nz-splitter>
             </nz-tab>

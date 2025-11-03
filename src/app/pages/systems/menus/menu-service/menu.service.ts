@@ -44,6 +44,8 @@ import { TsAssetTransferComponent } from '../../../hrm/asset/asset/ts-asset-tran
 import { PermissionService } from '../../../../services/permission.service';
 import { TsAssetTypeComponent } from '../../../hrm/asset/asset/ts-asset-type/ts-asset-type.component';
 import { TsAssetSourceComponent } from '../../../hrm/asset/asset/ts-asset-source/ts-asset-source.component';
+import { OfficeSupplyUnitComponent } from '../../../hrm/office-supply/OfficeSupplyUnit/office-supply-unit.component';
+import { OfficeSupplyComponent } from '../../../hrm/office-supply/OfficeSupply/office-supply.component';
 
 @Injectable({
   providedIn: 'root',
@@ -155,21 +157,21 @@ export class MenuService {
                 comp: TsAssetManagementComponent,
                 //   icon: 'assets/icon/layers.png',
               },
-                   {
+              {
                 kind: 'leaf',
                 key: 'TsAssetTypeComponent',
                 title: 'Loại tài sản',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission(""),
+                isPermission: this.permissionService.hasPermission("N23,N1"),
                 comp: TsAssetTypeComponent,
                 //   icon: 'assets/icon/layers.png',
               },
-                  {
+              {
                 kind: 'leaf',
                 key: 'TsAssetSourceComponent',
                 title: 'Nguồn gốc tài sản',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission(""),
+                isPermission: this.permissionService.hasPermission("N23,N1"),
                 comp: TsAssetSourceComponent,
                 //   icon: 'assets/icon/layers.png',
               },
@@ -258,7 +260,7 @@ export class MenuService {
             isOpen: true,
             isPermission: this.permissionService.hasPermission("N59"),
             children: [
-                 {
+              {
                 kind: 'leaf',
                 key: 'VehicleManagementComponent',
                 title: 'Danh sách xe',
@@ -268,24 +270,50 @@ export class MenuService {
                 //   icon: 'assets/icon/layers.png',
               },
               {
-              kind: 'leaf',
-              key: 'VehicleRepairComponent',
-              title: 'Danh sách xe sửa chữa',
-              isOpen: true,
-              isPermission: this.permissionService.hasPermission("N59"),
-              comp: VehicleRepairComponent,
-              //   icon: 'assets/icon/layers.png',
-            },
-            {
-              kind: 'leaf',
-              key: 'VehicleRepairComponent',
-              title: 'Danh sách loại sửa chữa',
-              isOpen: true,
-              isPermission: this.permissionService.hasPermission("N1242"),
-              comp: VehicleRepairTypeComponent,
-              //   icon: 'assets/icon/layers.png',
-            },],
+                kind: 'leaf',
+                key: 'VehicleRepairComponent',
+                title: 'Danh sách xe sửa chữa',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission("N59"),
+                comp: VehicleRepairComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+              {
+                kind: 'leaf',
+                key: 'VehicleRepairComponent',
+                title: 'Danh sách loại sửa chữa',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission("N1242"),
+                comp: VehicleRepairTypeComponent,
+                //   icon: 'assets/icon/layers.png',
+              },],
             //   icon: 'assets/icon/layers.png',
+          },
+          {
+            kind: 'group',
+            key: 'OfficeSupplyUnit',
+            title: 'Văn phòng phẩm',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(""),
+            children: [
+
+              {
+                kind: 'leaf',
+                key: 'OfficeSupplyComponent',
+                title: 'Danh sách VPP',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission("N2,N34,N1"),
+                comp: OfficeSupplyComponent,    
+              },
+            {
+                kind: 'leaf',
+                key: 'OfficeSupplyUnitComponent',
+                title: 'Đơn vị tính',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission("N2,N34,N1"),
+                comp: OfficeSupplyUnitComponent,    
+              }],
+          
           },
           {
             kind: 'group',
@@ -459,7 +487,7 @@ export class MenuService {
               //     //   icon: 'assets/icon/layers.png',
               //   },
 
-           
+
 
 
 

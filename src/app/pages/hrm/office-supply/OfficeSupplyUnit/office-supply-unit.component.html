@@ -6,13 +6,13 @@
           <div class="d-flex gap-1">
 
 
-            <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add" (click)="openUnitModalForNewUnit()">
+            <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add" (click)="openUnitModalForNewUnit()" hasPermission="N2,N34,N1">
               <img src="assets/icon/action_add_item_16.png" alt="Thêm " />Thêm
             </button>
-            <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="openUnitModalForUpdateUnit()">
+            <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="openUnitModalForUpdateUnit()" hasPermission="N2,N34,N1" >
               <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />Sửa
             </button>
-            <button nz-button nzType="default" nzSize="small" class="btn-delete " (click)="deleteUnit()">
+            <button nz-button nzType="default" nzSize="small" class="btn-delete " (click)="deleteUnit()" hasPermission="N2,N34,N1"  >
               <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />Xóa
             </button>
          <div style="display:flex;" class="ms-auto">

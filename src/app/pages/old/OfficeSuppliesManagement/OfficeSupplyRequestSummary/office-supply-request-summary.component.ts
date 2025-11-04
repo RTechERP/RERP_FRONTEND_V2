@@ -39,7 +39,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
   ],
   templateUrl: './office-supply-request-summary.component.html',
   styleUrl: './office-supply-request-summary.component.css',
-//   encapsulation: ViewEncapsulation.None
+  //encapsulation: ViewEncapsulation.None
 })
 export class OfficeSupplyRequestSummaryComponent implements OnInit,AfterViewInit {
   datatable: any[] = [];

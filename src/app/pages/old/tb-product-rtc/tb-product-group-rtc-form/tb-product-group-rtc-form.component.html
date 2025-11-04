@@ -12,30 +12,29 @@
                     <nz-form-control [nzSpan]="24" [nzErrorTip]="formGroup.get('NumberOrder')?.invalid && (formGroup.get('NumberOrder')?.dirty || formGroup.get('NumberOrder')?.touched)
           ? 'Vui lòng nhập số thứ tự!'
           : undefined">
-                        <input nz-input type="number" placeholder="Nhập STT" formControlName="NumberOrder" />
-                    </nz-form-control>
-                </nz-form-item>
-            </nz-col>
-            <nz-col [nzSpan]="18">
-                <!-- Mã TB -->
-                <nz-form-item class="col-md-12">
-                    <nz-form-label [nzSpan]="24">Mã nhóm <span class="text-danger ps-1 "> (*) </span></nz-form-label>
-                    <nz-form-control [nzSpan]="24" [nzErrorTip]="
+            <input nz-input type="number" placeholder="Nhập STT" formControlName="NumberOrder" />
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+      <nz-col [nzSpan]="18" >
+        <!-- Mã TB -->
+        <nz-form-item class="col-md-12">
+          <nz-form-label [nzSpan]="24">Mã nhóm <span class="text-danger ps-1 "> (*) </span></nz-form-label>
+          <nz-form-control [nzSpan]="24" [nzErrorTip]="
           formGroup.get('ProductGroupNo')?.hasError('required') && (formGroup.get('ProductGroupNo')?.dirty || formGroup.get('ProductGroupNo')?.touched)
             ? 'Vui lòng nhập mã TB!'
             : (formGroup.get('ProductGroupNo')?.hasError('maxlength') ? 'Mã TB tối đa 20 ký tự!' : undefined)">
-                        <input nz-input placeholder="Nhập mã TB" formControlName="ProductGroupNo" />
-                    </nz-form-control>
-                </nz-form-item>
-            </nz-col>
-        </nz-row>
-        <!-- Số TB -->
-        <nz-row [nzGutter]="24">
-            <nz-col [nzSpan]="24">
-                <nz-form-item class="col-md-12">
-                    <nz-form-label [nzSpan]="24">Tên nhóm<span class="text-danger ps-1 me-1"> (*) </span>
-                    </nz-form-label>
-                    <nz-form-control [nzSpan]="24" [nzErrorTip]="
+            <input nz-input placeholder="Nhập mã TB" formControlName="ProductGroupNo" />
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+    </nz-row>
+    <!-- Số TB -->
+ <nz-row [nzGutter]="24" style="margin-top: -13px;">
+    <nz-col [nzSpan]="24">
+ <nz-form-item class="col-md-12">
+      <nz-form-label [nzSpan]="24">Tên nhóm<span class="text-danger ps-1 me-1"> (*) </span> </nz-form-label>
+      <nz-form-control [nzSpan]="24" [nzErrorTip]="
           formGroup.get('ProductGroupName')?.hasError('required') && (formGroup.get('ProductGroupName')?.dirty || formGroup.get('ProductGroupName')?.touched)
             ? 'Vui lòng nhập tên TB!'
             : (formGroup.get('ProductGroupName')?.hasError('maxlength') ? 'Tên TB tối đa 100 ký tự!' : undefined)">

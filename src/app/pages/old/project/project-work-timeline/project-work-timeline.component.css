@@ -27,3 +27,7 @@
 .ant-tabs-tab-btn {
   font-size: 0.75rem;
 }
+.date-column,
+.tabulator-col.date-column {
+  border-right: 1px solid #ddd !important;
+}

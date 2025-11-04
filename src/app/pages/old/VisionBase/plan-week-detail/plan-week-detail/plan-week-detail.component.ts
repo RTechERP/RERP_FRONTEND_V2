@@ -226,10 +226,17 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
   }
 
   saveAndClose() {
-    const DATA = this.tb_MainTable.getData().map((row: any) => ({
-      ...row,
-      UserID: row?.UserID || this.filters.userId || this.UserID || 0,
-    }));
+    const DATA = this.tb_MainTable
+      .getData()
+      .filter((row: any) => row?._dirty === true)
+      .map((row: any) => ({
+        ...row,
+        UserID: row?.UserID || this.filters.userId || this.UserID || 0,
+      }));
+    if (DATA.length === 0) {
+      this.notification.info('Thông báo', 'Không có thay đổi để lưu');
+      return;
+    }
     this.planWeekService.save(DATA).subscribe({
       next: (response) => {
         if (response.status === 1) {
@@ -328,6 +335,12 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
 
         return cols;
       },
+    });
+    this.tb_MainTable.on('cellEdited', (cell: any) => {
+      const row = cell.getRow();
+      const data = row.getData();
+      data._dirty = true;
+      row.update(data);
     });
   }
 }

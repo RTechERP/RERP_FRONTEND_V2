@@ -69,4 +69,13 @@ export class PlanWeekService {
       String(date.getSeconds()).padStart(2, '0')
     );
   }
+
+  delete(userId: number, datePlan: Date): Observable<any>{
+    const dto = {
+      userId: userId,
+      datePlan: datePlan
+    };
+    return this.http.post<any>(this._url + 'delete', dto);
+  }
+
 }

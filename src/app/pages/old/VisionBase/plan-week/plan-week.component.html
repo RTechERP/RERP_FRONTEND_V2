@@ -63,7 +63,7 @@
                             <nz-form-label class="fs-12" [nzSpan]="24">Phòng ban</nz-form-label>
                             <nz-form-control [nzSpan]="24">
                                 <nz-select name="departmentId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
-                                    nzPlaceHolder="Phòng ban" [(ngModel)]="filters.departmentId">
+                                    nzPlaceHolder="Phòng ban" [(ngModel)]="filters.departmentId" (ngModelChange)="onDepartmentChange($event)">
                                     <nz-option *ngFor="let item of filterDepartmentData" [nzValue]="item.ID"
                                         [nzLabel]="item.Code + '-' + item.Name"></nz-option>
                                 </nz-select>
@@ -82,7 +82,8 @@
                                     [(ngModel)]="filters.teamId"
                                     nzVirtualHeight="500px"
                                     [nzNodes]="filterTeamData"
-                                    [nzDefaultExpandAll]="true">
+                                    [nzDefaultExpandAll]="true"
+                                    (ngModelChange)="onTeamChange($event)">
                                 </nz-tree-select>
                             </nz-form-control>
                         </nz-form-item>
@@ -90,7 +91,7 @@
                             <nz-form-label class="fs-12" [nzSpan]="24">Nhân viên</nz-form-label>
                             <nz-form-control [nzSpan]="24">
                                 <nz-select name="userId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
-                                    nzPlaceHolder="Nhân viên" [(ngModel)]="filters.userId">
+                                    nzPlaceHolder="Nhân viên" [(ngModel)]="filters.userId" (ngModelChange)="onUserChange($event)">
                                     <nz-option *ngFor="let item of filterUserData" [nzValue]="item.UserID"
                                         [nzLabel]="item.Code + '-' + item.FullName"></nz-option>
                                 </nz-select>
@@ -105,7 +106,7 @@
                 </div>
             </div>
         </nz-splitter-panel>
-        <nz-splitter-panel>
+        <nz-splitter-panel *ngIf="!(isMobile && sizeSearch !== '0')">
             <div class="card-body p-0 h-100">
                 <div #tb_MainTable id="tb_MainTable"></div>
             </div>

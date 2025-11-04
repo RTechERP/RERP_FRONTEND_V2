@@ -18,7 +18,7 @@
             "browser": "src/main.ts",
             "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
-            "baseHref": "/rerpweb/",
+            "baseHref": "/",
             "assets": [
               {
                 "glob": "**/*",
@@ -60,12 +60,29 @@
                 "scripts": true,
                 "styles": true,
                 "vendor": true
-              }
+              },
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ]
             },
             "development": {
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "test": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.test.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -78,6 +95,9 @@
             },
             "development": {
               "buildTarget": "RERPV2:build:development"
+            },
+            "test": {
+              "buildTarget": "RERPV2:build:test"
             }
           },
           "defaultConfiguration": "development"

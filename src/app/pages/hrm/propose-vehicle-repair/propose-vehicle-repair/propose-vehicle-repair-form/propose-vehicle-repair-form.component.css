@@ -1,0 +1,77 @@
+.reset {
+    all: revert;
+}
+
+.tabulator {
+  font-size: 0.75rem;
+  border: 1px solid !important;
+}
+
+.tabulator-cell {
+  padding: 0px;
+}
+
+.fs-12 {
+  font-size: 0.75rem;
+}
+.custom-border {
+  border: 1px ;  /* Màu viền mặc định của Ant Design */
+  border-radius: 4px;         /* Bo góc 4px */
+  padding: 16px;              /* Tạo khoảng đệm bên trong */
+  transition: all 0.3s;       /* Hiệu ứng mượt khi hover */
+
+}
+
+.product-list-container {
+  margin: 16px;
+  padding: 16px;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+
+  .add-row-container {
+    margin-top: 16px;
+    text-align: center;
+  }
+
+  nz-table {
+    margin-top: 16px;
+  }
+}
+.fullscreen-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  background: white; 
+  z-index: 1050;
+}
+#productTable, .tabulator {
+  width: 100% !important;
+  min-width: 0;
+}
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  height: 65vh; 
+}
+
+nz-tabset {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.nz-tabs-content,
+.nz-tabs-tabpane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.nz-tabs-tabpane > * {
+  flex: 1;
+  overflow-y: auto;
+}

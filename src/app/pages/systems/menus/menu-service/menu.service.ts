@@ -52,6 +52,8 @@ import { OfficeSupplyUnitComponent } from '../../../hrm/office-supply/OfficeSupp
 import { OfficeSupplyComponent } from '../../../hrm/office-supply/OfficeSupply/office-supply.component';
 import { OfficeSupplyRequestsComponent } from '../../../hrm/office-supply/OfficeSupplyRequests/office-supply-requests.component';
 import { OfficeSupplyRequestSummaryComponent } from '../../../hrm/office-supply/OfficeSupplyRequestSummary/office-supply-request-summary.component';
+import { VehicleRepairHistoryComponent } from '../../../hrm/propose-vehicle-repair/vehicle-repair-history/vehicle-repair-history/vehicle-repair-history.component';
+import { ProposeVehicleRepairComponent } from '../../../hrm/propose-vehicle-repair/propose-vehicle-repair/propose-vehicle-repair/propose-vehicle-repair.component';
 
 @Injectable({
   providedIn: 'root',
@@ -260,10 +262,10 @@ export class MenuService {
 
       {
         kind: 'group',
-        key: 'VehicleRepairComponent',
+        key: 'VehicleRepairComponent121',
         title: 'Quản lí xe',
         isOpen: true,
-        isPermission: this.permissionService.hasPermission("N59"),
+        isPermission: this.permissionService.hasPermission(""),
         children: [
           {
             kind: 'leaf',
@@ -279,19 +281,38 @@ export class MenuService {
             key: 'VehicleRepairComponent',
             title: 'Danh sách xe sửa chữa',
             isOpen: true,
-            isPermission: this.permissionService.hasPermission("N59"),
+            isPermission: this.permissionService.hasPermission(""),
             comp: VehicleRepairComponent,
             //   icon: 'assets/icon/layers.png',
           },
           {
             kind: 'leaf',
-            key: 'VehicleRepairComponent',
+            key: 'VehicleRepairTypeComponent',
             title: 'Danh sách loại sửa chữa',
             isOpen: true,
-            isPermission: this.permissionService.hasPermission("N1242"),
+            isPermission: this.permissionService.hasPermission(""),
             comp: VehicleRepairTypeComponent,
             //   icon: 'assets/icon/layers.png',
-          },],
+          },
+           {
+            kind: 'leaf',
+            key: 'VehicleRepairHistory',
+            title: 'Danh sách lịch sử sửa chữa',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission("N2,N34,N1"),
+            comp: VehicleRepairHistoryComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+           {
+            kind: 'leaf',
+            key: 'ProposeVehicleRepair',
+            title: 'Danh sách  đề xuất sửa chữa',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission("N2,N34,N1"),
+            comp: ProposeVehicleRepairComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+        ],
         //   icon: 'assets/icon/layers.png',
       },
       {

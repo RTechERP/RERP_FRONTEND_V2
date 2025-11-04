@@ -1,16 +1,22 @@
 .reset {
-    all: revert;
+  all: revert;
 }
 
 .tabulator {
-  font-size: 0.75rem;
-  border: 1px solid !important;
+font-size: 0.75rem;
+border: 1px solid !important;
 }
 
 .tabulator-cell {
-  padding: 0px;
+padding: 0px;
 }
 
 .fs-12 {
-  font-size: 0.75rem;
+font-size: 0.75rem;
+}
+::ng-deep .ant-select-item-group {
+  color: #4a5568 !important;
+  font-weight: bold;
+  font-size: 15px !important;
+  background-color: rgb(232, 234, 235) !important; /* nền xám rất nhạt */
 }

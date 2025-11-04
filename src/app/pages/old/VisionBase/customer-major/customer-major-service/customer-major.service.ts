@@ -12,7 +12,7 @@ export class CustomerMajorService {
   private _url = environment.host + 'api/CustomerSpecialization/';
   constructor(private http: HttpClient) {}
   save(payload: any): Observable<any> {
-    return this.http.post<any>(this._url, payload);
+    return this.http.post<any>(this._url+"save-data", payload);
   }
   getData(): Observable<any> {
     return this.http.get<any>(this._url);
@@ -23,5 +23,8 @@ export class CustomerMajorService {
         id: id,
       },
     });
+  }
+  search(keyword:string):Observable<any>{
+    return this.http.get<any>(`${this._url}search?keyword=${encodeURIComponent(keyword)}`);
   }
 }

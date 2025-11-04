@@ -4,14 +4,14 @@
         <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
     </div>
     <div class="modal-body">
-        <form nz-form class=" g-3 needs-validation was-validated">
+        <form nz-form [formGroup]="formGroup" class="g-3 needs-validation was-validated">
             <div class="row">
                 <div class="col-md-12 pb-3">
-                    <nz-form-label class="fs-12">Kho</nz-form-label>
-                    <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn loại kho">
+                    <nz-form-label class="fs-12">Kho <span class="text-danger ps-1 me-1"> * </span></nz-form-label>
+                    <nz-form-control [nzSpan]="24" [nzErrorTip]="getProductGroupError()">
                         <nz-input-group nzSearch nzSize="default" class="w-100">
-                            <nz-select [(ngModel)]="newLocation.ProductGroupID" name="ProductGroupID" nzPlaceHolder="Chọn kho"
-                                class="fs-12" required nzShowSearch nzAllowClear>
+                            <nz-select formControlName="ProductGroupID" nzPlaceHolder="Chọn kho"
+                                class="fs-12" nzShowSearch nzAllowClear>
                                 <nz-option *ngFor="let type of listProductGroupcbb" [nzValue]="type.ID" [nzLabel]="type.ProductGroupName">
                                 </nz-option>
                             </nz-select>
@@ -21,18 +21,18 @@
             </div>
             <div class="row">
                 <div class="col-md-12 pb-3">
-                    <nz-form-label class="fs-12">Mã vị trí</nz-form-label>
-                    <nz-form-control>
-                        <input nz-input [(ngModel)]="newLocation.LocationCode" name="LocationCode"class="fs-12 w-100"
+                    <nz-form-label class="fs-12">Mã vị trí <span class="text-danger ps-1 me-1"> * </span></nz-form-label>
+                    <nz-form-control [nzErrorTip]="getLocationCodeError()">
+                        <input nz-input formControlName="LocationCode" class="fs-12 w-100"
                             nzSize="default" nzPlaceHolder="Nhập mã vị trí" />
                     </nz-form-control>
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-12 pb-3">
-                    <nz-form-label class="fs-12">Tên vị trí</nz-form-label>
-                    <nz-form-control>
-                        <input nz-input [(ngModel)]="newLocation.LocationName" name="LocationName" class="fs-12 w-100"
+                    <nz-form-label class="fs-12">Tên vị trí <span class="text-danger ps-1 me-1"> * </span></nz-form-label>
+                    <nz-form-control [nzErrorTip]="getLocationNameError()">
+                        <input nz-input formControlName="LocationName" class="fs-12 w-100"
                             nzSize="default" nzPlaceHolder="Nhập tên vị trí" />
                     </nz-form-control>
                 </div>

@@ -12,7 +12,7 @@ import { VehicleRepairTypeComponent } from '../../../hrm/vehicle-repair/vehicle-
 import { VehicleRepairComponent } from '../../../hrm/vehicle-repair/vehicle-repair.component';
 import { TrainingRegistrationComponent } from '../../../training-registration/training-registration.component';
 import { ContractComponent } from '../../../old/contract/contract.component';
-import { CustomerComponent } from '../../../old/customer/customer.component';
+// import { CustomerComponent } from '../../../old/customer/customer.component';
 import { DayOffComponent } from '../../../old/day-off/day-off.component';
 import { DepartmentComponent } from '../../../old/department/department.component';
 import { EarlyLateComponent } from '../../../old/early-late/early-late.component';
@@ -43,6 +43,12 @@ import { TsAssetRecoveryComponent } from '../../../hrm/asset/asset/ts-asset-reco
 import { TsAssetTransferComponent } from '../../../hrm/asset/asset/ts-asset-transfer/ts-asset-transfer.component';
 import { PermissionService } from '../../../../services/permission.service';
 import { OfficeSupplyComponent } from '../../../old/OfficeSuppliesManagement/OfficeSupply/office-supply.component';
+import { ProjectLeaderProjectTypeComponent } from '../../../old/project/project-leader-project-type/project-leader-project-type.component';
+import { MeetingMinuteComponent } from '../../../old/project/meeting-minute/meeting-minute.component';
+import { ProjectNewComponent } from '../../../old/project/project-new/project-new.component';
+import { CustomerComponent } from '../../../old/VisionBase/customer/customer.component';
+import { PlanWeekComponent } from '../../../old/VisionBase/plan-week/plan-week.component';
+
 
 @Injectable({
   providedIn: 'root',
@@ -139,41 +145,52 @@ export class MenuService {
         //   icon: 'assets/icon/layers.png',
       },
       {
-        kind: 'leaf',
-        key: 'TsAssetManagementPersonalComponent',
-        title: 'Tài sản cá nhân',
+        kind: 'group',
+        key: 'TsAssetManagementPersonal',
+        title: 'TÀI SẢN CÁ NHÂN',
         isOpen: true,
-        isPermission: this.permissionService.hasPermission("N23,N52,N1,N36,N34"),
-        comp: TsAssetManagementPersonalComponent,
-        //   icon: 'assets/icon/layers.png',
+        isPermission: this.permissionService.hasPermission(""),
+        icon: 'assets/icon/menu_hrm_24.png',
+        children:[
+            {
+                kind: 'leaf',
+                key: 'TsAssetManagementPersonalComponent',
+                title: 'Tài sản cá nhân',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission("N23,N52,N1,N36,N34"),
+                comp: TsAssetManagementPersonalComponent,
+                //   icon: 'assets/icon/layers.png',
+            },
+            {
+                kind: 'leaf',
+                key: 'TsAssetManagementPersonalTypeComponent',
+                title: 'Loại tài sản cá nhân',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission("N23,N52,N1,N36,N34"),
+                comp: TsAssetManagementPersonalTypeComponent,
+                //   icon: 'assets/icon/layers.png',
+            },
+            {
+                kind: 'leaf',
+                key: 'TsAssetAllocationPersonalComponent',
+                title: 'Cấp phát tài sản cá nhân',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission("N23,N52,N1,N67,N36"),
+                comp: TsAssetAllocationPersonalComponent,
+                //   icon: 'assets/icon/layers.png',
+            },
+            {
+                kind: 'leaf',
+                key: 'TsAssetRecoveryPersonalComponent',
+                title: 'Thu hồi tài sản cá nhân',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission("N23,N52,N1,N67,N36"),
+                comp: TsAssetRecoveryPersonalNewComponent,
+                //   icon: 'assets/icon/layers.png',
+            },
+        ]
       },
-      {
-        kind: 'leaf',
-        key: 'TsAssetManagementPersonalTypeComponent',
-        title: 'Loại tài sản cá nhân',
-        isOpen: true,
-        isPermission: this.permissionService.hasPermission("N23,N52,N1,N36,N34"),
-        comp: TsAssetManagementPersonalTypeComponent,
-        //   icon: 'assets/icon/layers.png',
-      },
-      {
-        kind: 'leaf',
-        key: 'TsAssetAllocationPersonalComponent',
-        title: 'Cấp phát tài sản cá nhân',
-        isOpen: true,
-        isPermission: this.permissionService.hasPermission("N23,N52,N1,N67,N36"),
-        comp: TsAssetAllocationPersonalComponent,
-        //   icon: 'assets/icon/layers.png',
-      },
-      {
-        kind: 'leaf',
-        key: 'TsAssetRecoveryPersonalComponent',
-        title: 'Thu hồi tài sản cá nhân',
-        isOpen: true,
-        isPermission: this.permissionService.hasPermission("N23,N52,N1,N67,N36"),
-        comp: TsAssetRecoveryPersonalNewComponent,
-        //   icon: 'assets/icon/layers.png',
-      },
+      
       
       {
         kind: 'leaf',
@@ -531,9 +548,63 @@ export class MenuService {
         isPermission: this.permissionService.hasPermission(""),
         comp: SynthesisOfGeneratedMaterialsComponent,
       },
+      {
+        kind: 'leaf',
+        key: 'ProjectNewComponent',
+        title: 'Tổng hợp dự án phòng ban',
+        isOpen: true,
+        isPermission: this.permissionService.hasPermission(""),
+        comp: ProjectNewComponent,
+      },
+      {
+        kind: 'leaf',
+        key: 'MeetingMinuteComponent',
+        title: 'Biên bản cuộc họp',
+        isOpen: true,
+        isPermission: this.permissionService.hasPermission(""),
+        comp: MeetingMinuteComponent,
+      },
+      {
+        kind: 'leaf',
+        key: 'ProjectLeaderProjectTypeComponent',
+        title: 'Leader kiểu dự án',
+        isOpen: true,
+        isPermission: this.permissionService.hasPermission(""),
+        comp: ProjectLeaderProjectTypeComponent,
+      },
     ],
   },
   //#endregion
+
+  //#region Phòng sale
+  {
+    kind: 'group',
+    key: 'SALE',
+    title: 'PHÒNG SALE',
+    isOpen: true,
+    isPermission: this.permissionService.hasPermission(""),
+    icon: 'assets/icon/menu_project_24.png',
+    children: [
+      {
+        kind: 'group',
+        key: 'ProjectComponent',
+        title: 'Vision Base',
+        isOpen: true,
+        isPermission: this.permissionService.hasPermission(""),
+        children: [
+          {
+            kind: 'leaf',
+            key: 'PlanWeekComponent',
+            title: 'Kế hoạch tuần',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(""),
+            comp: PlanWeekComponent
+          }
+        ]
+      }
+      
+    ],
+  },
 ];
 
 return menus;

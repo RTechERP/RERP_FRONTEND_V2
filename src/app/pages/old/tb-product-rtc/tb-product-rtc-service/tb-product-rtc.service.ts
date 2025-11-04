@@ -33,7 +33,7 @@ export class TbProductRtcService {
   uploadImage(file: File, path:string): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
-     formData.append('path', path);
+    formData.append('path',path);
     return this.http.post<any>(`${this.url}upload`, formData);
   }
   getProductAjax(): string {

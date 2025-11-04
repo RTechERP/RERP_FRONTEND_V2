@@ -1,11 +1,4 @@
-import {
-  Component,
-  OnInit,
-  Input,
-  Output,
-  EventEmitter,
-  inject
-} from '@angular/core';
+import {Component,OnInit,Input,Output, EventEmitter, inject} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
@@ -19,6 +12,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { TypeAssetsService } from '../ts-asset-type-service/ts-asset-type.service';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 @Component({
   standalone: true,
   imports: [
@@ -47,6 +41,7 @@ export class TyAssetTypeFormComponent implements OnInit {
   typeAssetData: any[] = [];
   private typeAssetService = inject(TypeAssetsService);
   public activeModal = inject(NgbActiveModal);
+      private notification = inject(NzNotificationService);
   ngOnInit() {
     console.log('dataInput nhận được:', this.dataInput);
     this.assetID = this.dataInput.ID;
@@ -58,30 +53,43 @@ export class TyAssetTypeFormComponent implements OnInit {
       this.typeAssetData = resppon.data;
     });
   }
-  saveAssetType() {
-    if (!this.assetCode.trim()) return;
-    if (!this.assetType.trim()) return;
-    const assetID = this.dataInput.ID;
-    const payloadType = {
-      ID: assetID ? this.dataInput.ID : 0,
-      AssetCode: this.assetCode,
-      AssetType: this.assetType,
-      IsDeleted: false
-    };
-    console.log("payload type", payloadType);
-    this.typeAssetService.SaveData(payloadType).subscribe({
-      next: () => {
+saveAssetType() {
+  const code = this.assetCode?.trim();
+  const type = this.assetType?.trim();
+
+  if (!code || !type) {
+    this.notification.warning('Cảnh báo', 'Vui lòng nhập đầy đủ mã và tên loại tài sản');
+    return;
+  }
+
+  const assetID = this.dataInput?.ID || 0;
+  const payloadType = {
+    ID: assetID,
+    AssetCode: code,
+    AssetType: type,
+    IsDeleted: false
+  };
+
+  console.log('payload type', payloadType);
+
+  this.typeAssetService.SaveData(payloadType).subscribe({
+    next: (res: any) => {
+      if (res?.status === 1) {
+        this.notification.success('Thành công', 'Lưu loại tài sản thành công');
         this.loadAssetType();
         this.formSubmitted.emit();
         this.activeModal.close(true);
-      },
-      error: () => {
-        console.error('Lỗi khi lưu đơn vị!');
       }
-    });
-  }
-  close() {
-    this.closeModal.emit();
-    this.activeModal.dismiss('cancel');
-  }
+    },
+    error: (res: any) => {
+      this.notification.error('Lỗi', res?.error?.message || 'Không thể lưu loại tài sản');
+    }
+  });
+}
+
+close() {
+  this.closeModal.emit();
+  this.activeModal.dismiss('cancel');
+}
+
 }

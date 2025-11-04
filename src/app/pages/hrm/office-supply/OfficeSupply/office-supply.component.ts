@@ -23,6 +23,7 @@ import { OfficeSupplyUnitModalComponent } from './office-supply-unit-modal/offic
 import { ImportExcelComponent } from './import-excel/import-excel.component';
 
 import {OfficeSupplyService } from './office-supply-service/office-supply-service.service';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 
 
 interface Unit {
@@ -130,8 +131,9 @@ export class OfficeSupplyComponent implements OnInit, AfterViewInit {
     if (!this.table) { // Chỉ khởi tạo nếu chưa có
       this.table = new Tabulator('#datatable', {
         data: this.dataTable,
-        layout: 'fitDataFill',
-        height: '85vh',
+        
+        layout: 'fitDataStretch',
+        height: '89vh',
         selectableRows: 10,
         pagination: true,
         paginationSize: 50,

@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit, ViewChild, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { RowComponent } from 'tabulator-tables';
@@ -21,6 +21,22 @@ interface Firm {
   FirmCode: string,
   FirmName: string,
   FirmType: number,
+}
+
+// Custom validator để kiểm tra ký tự tiếng Việt
+function noVietnameseValidator(control: AbstractControl): ValidationErrors | null {
+  if (!control.value) {
+    return null; // Không validate nếu giá trị rỗng
+  }
+  
+  // Regex để kiểm tra ký tự tiếng Việt
+  const vietnameseRegex = /[àáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵÀÁẢÃẠÂẦẤẨẪẬĂẰẮẲẴẶÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴđĐ]/i;
+  
+  if (vietnameseRegex.test(control.value)) {
+    return { vietnameseChars: true };
+  }
+  
+  return null;
 }
 
 @Component({
@@ -52,33 +68,48 @@ export class FirmDetailComponent implements OnInit, AfterViewInit {
     { id: 2, name: 'Demo' },
     { id: 1, name: 'Sale' }
   ];
+  
+  formGroup: FormGroup;
+
   constructor(
     private notification: NzNotificationService,
     private fb: FormBuilder,
     public activeModal: NgbActiveModal,
     private modalService: NgbModal,
     private productsaleService: ProductsaleServiceService
-  ) { }
-  ngOnInit(): void {
-    
+  ) { 
+    this.formGroup = this.fb.group({
+      FirmName: ['', [Validators.required]],
+      FirmCode: ['', [Validators.required, noVietnameseValidator]],
+      FirmType: [1, [Validators.required]]
+    });
   }
+  ngOnInit(): void {
+    // Patch form values from input data
+    this.formGroup.patchValue({
+      FirmName: this.newFirm.FirmName || '',
+      FirmCode: this.newFirm.FirmCode || '',
+      FirmType: this.newFirm.FirmType || 1
+    });
+  }
+  
   ngAfterViewInit(): void {
     
   }
+  
   addNewFirm(){
-    if (!this.newFirm.FirmType || !this.newFirm.FirmName || !this.newFirm.FirmCode) {
-      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin!');
+    this.trimAllStringControls();
+    if (this.formGroup.invalid) {
+      this.formGroup.markAllAsTouched();
+      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin bắt buộc!');
       return;
     }
+
+    const formValue = this.formGroup.getRawValue();
     const payload = [{   
-        FirmCode: this.newFirm.FirmCode,
-        FirmName: this.newFirm.FirmName,
-        FirmType: this.newFirm.FirmType,
-        CreatedBy: 'admin',
-        CreatedDate: new Date(),
-        UpdatedBy: 'admin',
-        UpdatedDate: new Date(),
-        IsDelete: false,
+        FirmCode: formValue.FirmCode,
+        FirmName: formValue.FirmName,
+        FirmType: formValue.FirmType,
     }];
   console.log("payload",payload);
     this.productsaleService.saveDataFirm(payload).subscribe({
@@ -99,5 +130,48 @@ export class FirmDetailComponent implements OnInit, AfterViewInit {
   closeModal() {
     this.activeModal.dismiss(true);
   }
- 
+
+  // Hàm để lấy error message cho FirmName
+  getFirmNameError(): string | undefined {
+    const control = this.formGroup.get('FirmName');
+    if (control?.invalid && (control?.dirty || control?.touched)) {
+      if (control.errors?.['required']) {
+        return 'Vui lòng nhập tên hãng!';
+      }
+    }
+    return undefined;
+  }
+
+  // Hàm để lấy error message cho FirmCode
+  getFirmCodeError(): string | undefined {
+    const control = this.formGroup.get('FirmCode');
+    if (control?.invalid && (control?.dirty || control?.touched)) {
+      if (control.errors?.['required']) {
+        return 'Vui lòng nhập mã hãng!';
+      }
+      if (control.errors?.['vietnameseChars']) {
+        return 'Mã hãng không được chứa ký tự tiếng Việt!';
+      }
+    }
+    return undefined;
+  }
+
+  // Hàm để lấy error message cho FirmType
+  getFirmTypeError(): string | undefined {
+    const control = this.formGroup.get('FirmType');
+    if (control?.invalid && (control?.dirty || control?.touched)) {
+      if (control.errors?.['required']) {
+        return 'Vui lòng chọn loại hãng!';
+      }
+    }
+    return undefined;
+  }
+
+  private trimAllStringControls() {
+    Object.keys(this.formGroup.controls).forEach(k => {
+      const c = this.formGroup.get(k);
+      const v = c?.value;
+      if (typeof v === 'string') c!.setValue(v.trim(), { emitEvent: false });
+    });
+  }
 }

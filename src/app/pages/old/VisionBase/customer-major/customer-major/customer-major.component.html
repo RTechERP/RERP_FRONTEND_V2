@@ -1,31 +1,32 @@
 <!-- Modal -->
 <div class="modal-header bg-primary text-uppercase py-2">
     <h6 class="modal-title text-white">
-        
         NGÀNH NGHỀ</h6>
     <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
 </div>
 <ng-container class="w-100">
     <div class="card-header bg-white p-1" style="overflow-x: auto;">
         <div class="d-flex gap-1">
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openCustomerMajorDetail()">
-                <nz-icon nzType="plus"></nz-icon> Thêm
+            <button class=" btn-add" nz-button nzType="default" nzSize="small" (click)="openCustomerMajorDetail()">
+                <img src="assets/icon/action_add_item_16.png"> Thêm
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onEdit()">
-                <nz-icon nzType="edit" nzTheme="fill"></nz-icon> Sửa
+            <button class=" btn-edit" nz-button nzType="default" nzSize="small" (click)="onEdit()">
+                <img src="assets/icon/action_edit_item_16.png" alt="Sửa " /> Sửa
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onDelete()">
-                <nz-icon nzType="delete" nzTheme="fill"></nz-icon> Xóa
+            <button class=" btn-delete" nz-button nzType="default" nzSize="small" (click)="onDelete()">
+                <img src="assets/icon/action_delete_item_16.png" alt="Xóa" /> Xóa
             </button>
-            <!-- <nz-input-group nzSearch [nzAddOnAfter]="suffixIconButton" nzSize="small">
-                <input type="text" nz-input placeholder="Nhập nội dung tìm kiếm..." />
-            </nz-input-group>
-            <ng-template #suffixIconButton>
-                <button nz-button nzSize="small" nzType="primary" nzSearch><nz-icon nzType="search" /></button>
-            </ng-template> -->
+            <div style="display: flex; width: 30%;" class="ms-auto">
+                <input type="text" nzSize="small" [(ngModel)]="keyword" name="keyword" nz-input
+                    class="fs-12" style="font-style: italic; flex: 1;" placeholder="Tìm kiếm" (ngModelChange)="getdataFind()"/>
+                <button nz-button nzSize="small" (click)="getdataFind()">
+                    <nz-icon nzType="search"></nz-icon>
+                </button>
+            </div>
         </div>
+
     </div>
-    <div class="card-body p-0 h-100">
+    <div class="modal-body p-1 " style="max-height: 80vh; overflow-y: auto;">
         <div #tb_MainTable id="tb_MainTable"></div>
     </div>
 </ng-container>

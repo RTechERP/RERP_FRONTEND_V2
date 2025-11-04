@@ -71,7 +71,7 @@
                     style="height: 3vh; border: 1px solid; border-radius: 0;">
                     Đóng
                 </button>
-                <button type="button" class="btn btn-primary" (click)="onSubmit()"
+                <button type="button" class="btn btn-primary" (click)="onSubmit()" *hasPermission="'N2,N1'"
                     style="height: 3vh; border-radius: 0;">
                     Lưu
                 </button>

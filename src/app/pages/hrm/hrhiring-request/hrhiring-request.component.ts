@@ -61,6 +61,7 @@ import { DisablePermissionDirective } from '../../../directives/disable-permissi
     HasPermissionDirective,
     DisablePermissionDirective, // Thêm directive mới
     NzTabsModule,
+    
   ],
   templateUrl: './hrhiring-request.component.html',
   styleUrls: ['./hrhiring-request.component.css'],

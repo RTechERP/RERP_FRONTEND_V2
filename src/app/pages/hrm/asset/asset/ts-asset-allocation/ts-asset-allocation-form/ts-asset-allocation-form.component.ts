@@ -25,6 +25,7 @@ import { AssetAllocationService } from '../ts-asset-allocation-service/ts-asset-
 import { Tabulator } from 'tabulator-tables';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { TsAssetChooseAssetsComponent } from '../ts-asset-choose-assets/ts-asset-choose-assets.component';
+import { HasPermissionDirective } from "../../../../../../directives/has-permission.directive";
 @Component({
   standalone: true,
   selector: 'app-ts-asset-allocation-form',
@@ -41,7 +42,8 @@ import { TsAssetChooseAssetsComponent } from '../ts-asset-choose-assets/ts-asset
     NzInputModule,
     NzButtonModule,
     NzModalModule,
-  ]
+    HasPermissionDirective
+]
 })
 export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
   @Input() dataInput: any;

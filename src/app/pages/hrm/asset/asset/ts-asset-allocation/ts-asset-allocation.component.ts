@@ -34,6 +34,7 @@ function formatDateCell(cell: CellComponent): string {
 }
 // @ts-ignore
 import { saveAs } from 'file-saver';
+import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 @Component({
   standalone: true,
   imports: [
@@ -55,7 +56,7 @@ import { saveAs } from 'file-saver';
     NzSelectModule,
     NzTableModule,
     NzTabsModule,
-    NgbModalModule
+    NgbModalModule,HasPermissionDirective
   ],
   selector: 'app-ts-asset-allocation',
   templateUrl: './ts-asset-allocation.component.html',

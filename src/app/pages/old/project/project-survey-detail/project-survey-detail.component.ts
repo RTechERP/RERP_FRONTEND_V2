@@ -43,6 +43,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { AuthService } from '../../../../auth/auth.service';
 
 @Component({
   selector: 'app-project-survey-detail',
@@ -90,7 +91,8 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
-    private modalService: NgbModal
+    private modalService: NgbModal,
+    private authService: AuthService
   ) {}
 
   @Input() projectSurveyId: any = 0;
@@ -138,13 +140,17 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
 
   isLoad: any = true;
   isDisSave: any = false;
+
+  currentUser: any;
   //#endregion
 
   //#region Chạy khi mở trương trình
   ngOnInit(): void {
     this.isAdmin = !this.projectService.ISADMIN;
-    this.userRequestId = this.projectService.GlobalEmployeeId;
+    this.userRequestId =this.currentUser.ID ;
+   
   }
+
   ngAfterViewInit(): void {
     this.drawTbProjectSurveyFile(
       this.tb_projectSurveyFileContainer.nativeElement
@@ -152,7 +158,6 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
     this.drawTbProjectSurveyDetail(
       this.tb_projectSurveyDetailContainer.nativeElement
     );
-
     this.getProjects();
     this.getCustomers();
     this.getStatuses();
@@ -161,7 +166,21 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
     this.getFileDetail();
     this.getDetail();
     this.onUrgentChange(this.isUrgent);
+    this.getCurrentUser();
   }
+  getCurrentUser(){
+    this.authService.getCurrentUser().subscribe({
+    next: (response: any) => {
+      this.currentUser = response.data;
+    },
+    error: (error: any) => {
+      const msg = error.message || 'Lỗi không xác định';
+      this.notification.error('Thông báo', msg);
+      console.error('Lỗi:', error.error);
+    },
+  })
+  }
+  
 
   getProjects() {
     this.projectService.getProjectModal().subscribe({

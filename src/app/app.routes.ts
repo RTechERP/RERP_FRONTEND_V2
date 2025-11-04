@@ -30,11 +30,12 @@ import { authGuard } from './auth/auth.guard';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
 import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
 import { AppComponent } from './app.component';
-import { MenusComponent } from './pages/systems/menus/menus.component';
+import { MenusComponent } from './pages/old/menus/menus.component';
 import { HomeLayoutComponent } from './layouts/home-layout/home-layout.component';
 import { TsAssetManagementPersonalComponent } from './pages/old/ts-asset-management-personal/ts-asset-management-personal.component';
 import { TsAssetAllocationPersonalComponent } from './pages/old/ts-asset-allocation-personal/ts-asset-allocation-personal.component';
 import { TsAssetRecoveryPersonalComponent } from './pages/old/ts-asset-recovery-personal/ts-asset-recovery-personal.component';
+
 import { TsAssetUnitcountComponent } from './pages/hrm/asset/asset/ts-asset-unitcount/ts-asset-unitcount.component';
 import { TsAssetTypeComponent } from './pages/hrm/asset/asset/ts-asset-type/ts-asset-type.component';
 import { TsAssetStatusComponent } from './pages/hrm/asset/asset/ts-asset-status/ts-asset-status.component';

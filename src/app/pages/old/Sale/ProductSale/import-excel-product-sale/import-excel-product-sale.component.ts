@@ -77,15 +77,15 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
         reactiveData: true,
         autoColumns: true, // Tự động tạo cột dựa trên dữ liệu
         autoColumnsDefinitions: {
-          STT: { title: "STT", field: "STT", hozAlign: "center", headerHozAlign: "center", width: 50 },
-          productGroupName: { title: 'Tên nhóm', field: 'ProductGroupName', hozAlign: 'left', headerHozAlign: 'center' },
-          ProductCode: { title: 'Mã Sản phẩm', field: 'ProductCode', hozAlign: 'left', headerHozAlign: 'center' },
-          ProductName: { title: 'Tên Sản phẩm', field: 'ProductName', hozAlign: 'left', headerHozAlign: 'center' },
-          Maker: { title: 'Hãng', field: 'Maker', hozAlign: 'left', headerHozAlign: 'center' },
-          Unit: { title: 'ĐVT', field: 'Unit', hozAlign: 'left', headerHozAlign: 'center' },
-          LoactionName: { title: 'Vị trí', field: 'AddressBox', hozAlign: 'left', headerHozAlign: 'center' },
+          STT: { title: "STT", field: "STT", hozAlign: "center", headerHozAlign: "center", width: 50, editor: "input" },
+          productGroupName: { title: 'Tên nhóm', field: 'ProductGroupName', hozAlign: 'left', headerHozAlign: 'center', editor: "input" },
+          ProductCode: { title: 'Mã Sản phẩm', field: 'ProductCode', hozAlign: 'left', headerHozAlign: 'center' , editor: "input" },
+          ProductName: { title: 'Tên Sản phẩm', field: 'ProductName', hozAlign: 'left', headerHozAlign: 'center', editor: "input" },
+          Maker: { title: 'Hãng', field: 'Maker', hozAlign: 'left', headerHozAlign: 'center', editor: "input" },
+          Unit: { title: 'ĐVT', field: 'Unit', hozAlign: 'left', headerHozAlign: 'center', editor: "input" },
+          LoactionName: { title: 'Vị trí', field: 'AddressBox', hozAlign: 'left', headerHozAlign: 'center', editor: "input" },
        
-          Note: { title: 'Ghi chú', field: 'Note', hozAlign: 'left', headerHozAlign: 'center' }
+          Note: { title: 'Ghi chú', field: 'Note', hozAlign: 'left', headerHozAlign: 'center', editor: "input" }
         }
       });
     }
@@ -218,18 +218,18 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
 
       // Cập nhật cấu hình cột cho bảng Excel
       const columns = [
-        {title: headers[0] || 'STT', field:'STT',hozAlign:'center',headerHozAlign:"center",width:50},
-        {title: headers[1] || 'ProductGroupName', field:'ProductGroupName',hozAlign:'left',headerHozAlign:"center",width:150},
-        {title: headers[2] || 'ProductCode', field:'ProductCode',hozAlign:'left',headerHozAlign:"center",width:120},
-        { title: headers[3] || 'ProductName', field: 'ProductName', hozAlign: 'left', headerHozAlign: 'center', width: 200 },
-        {title: headers[4] || 'Maker', field:'MakerName',hozAlign:'left',headerHozAlign:"center",width:120},
-        { title: headers[5] || 'Unit', field: 'Unit', hozAlign: 'left', headerHozAlign: 'center', width: 80 },
-        { title: headers[6] || 'Location', field: 'LocationName', hozAlign: 'left', headerHozAlign: 'center', width: 150 },
+        {title: headers[0] || 'STT', field:'STT',hozAlign:'center',headerHozAlign:"center",width:50, editor: "input"},
+        {title: headers[1] || 'ProductGroupName', field:'ProductGroupName',hozAlign:'left',headerHozAlign:"center",width:150, editor: "input"},
+        {title: headers[2] || 'ProductCode', field:'ProductCode',hozAlign:'left',headerHozAlign:"center",width:120, editor: "input"},
+        { title: headers[3] || 'ProductName', field: 'ProductName', hozAlign: 'left', headerHozAlign: 'center', width: 200, editor: "input" },
+        {title: headers[4] || 'Maker', field:'MakerName',hozAlign:'left',headerHozAlign:"center",width:120, editor: "input"},
+        { title: headers[5] || 'Unit', field: 'Unit', hozAlign: 'left', headerHozAlign: 'center', width: 80, editor: "input" },
+        { title: headers[6] || 'Location', field: 'LocationName', hozAlign: 'left', headerHozAlign: 'center', width: 150, editor: "input" },
   
-        { title: headers[7] || 'Note', field: 'Note', hozAlign: 'left', headerHozAlign: 'center', width: 100 }
+        { title: headers[7] || 'Note', field: 'Note', hozAlign: 'left', headerHozAlign: 'center', width: 100, editor: "input" }
       ];
 
-      // Cập nhật cấu hình cột cho bảng Excel
+      // Cập nhật cấu hình cột cho bảng Excel 
       if (this.tableExcel) {
         this.tableExcel.setColumns(columns);
       }

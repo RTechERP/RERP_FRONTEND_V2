@@ -25,8 +25,8 @@ export class ProductsaleServiceService {
     isvisible: boolean
   ): Observable<any> {
     return this.httpclient.get<any>(
-      //   `${this.productgroupUrl}?isvisible=${isvisible}&warehousecode=${warehouseCode}`
-      `${this.productgroupUrl}/get-all`
+         `${this.productgroupUrl}?isvisible=${isvisible}&warehousecode=${warehouseCode}`
+      // `${this.productgroupUrl}/get-all`
     );
   }
   getdataProductSalebyID(
@@ -73,8 +73,11 @@ export class ProductsaleServiceService {
   getdataUnitCount() {
     return this.httpclient.get<any>(`${this.unitcountUrl}`);
   }
+  // getDataProductGroupcbb() {
+  //   return this.httpclient.get<any>(`${this.productgroupUrl}?isvisible=true`);
+  // }
   getDataProductGroupcbb() {
-    return this.httpclient.get<any>(`${this.productgroupUrl}?isvisible=true`);
+    return this.httpclient.get<any>(`${this.productgroupUrl}/get-all`);
   }
   getDataFirm() {
     return this.httpclient.get<any>(`${this.frimUrl}`);

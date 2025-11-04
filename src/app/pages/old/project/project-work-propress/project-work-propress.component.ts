@@ -36,6 +36,7 @@ import { ProjectService } from '../project-service/project.service';
 import { Title } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 
 @Component({
   selector: 'app-project-work-propress',
@@ -60,7 +61,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
     NzSpinModule,
     NzTreeSelectModule,
     NzModalModule,
-    CommonModule,
+    CommonModule,HasPermissionDirective
   ],
   //encapsulation: ViewEncapsulation.None,
   templateUrl: './project-work-propress.component.html',

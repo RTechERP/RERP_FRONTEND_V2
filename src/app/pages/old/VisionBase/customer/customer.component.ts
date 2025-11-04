@@ -61,6 +61,7 @@ import { ViewPokhService } from '../../view-pokh/view-pokh/view-pokh.service';
 import { CustomerDetailComponent } from '../customer-detail/customer-detail.component';
 import { CustomerMajorComponent } from '../customer-major/customer-major/customer-major.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+// import { CustomerComponent } from '../../customer/customer.component';
 @Component({
   selector: 'app-customer',
   imports: [
@@ -105,6 +106,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
 
   sizeTbDetail: any = '0';
   sizeTbSaleTable: any = '0';
+  activeView: 'contact' | 'address' | 'sale' = 'contact'; // Mặc định hiện Liên hệ
 
   private tb_MainTable!: Tabulator;
   private tb_ContactTable!: Tabulator;
@@ -112,6 +114,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   private tb_SaleTable!: Tabulator;
 
   sizeSearch: string = '0';
+  showDetail = false; // ← MẶC ĐỊNH ẨN
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
   }
@@ -143,6 +146,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
     this.getEmployeeData();
     this.getTeamData();
   }
+  
 
   ngAfterViewInit(): void {
     this.initAddressTable();
@@ -204,7 +208,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       //   console.log('Params từ Tabulator:', params);
 
       return {
-        filterText: this.filters.keyword || '',
+        filterText: this.filters.keyword.trim() || '',
         groupId: this.filters.teamId || 0,
         employeeId: this.filters.userId || 0,
       };
@@ -238,27 +242,41 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   }
 
   openModal() {
+    console.log("Editmode: ", this.isEditMode);
     const modalRef = this.modalService.open(CustomerDetailComponent, {
       centered: true,
+      size: 'xl',
       backdrop: 'static',
-      windowClass: 'full-screen-modal',
+      keyboard: false,
     });
-    modalRef.componentInstance.isEditMode = this.isEditMode;
     modalRef.componentInstance.EditID = this.selectedId;
+    modalRef.componentInstance.isEditMode = this.isEditMode;
     modalRef.result.then(
       (result) => {
         if (result.success && result.reloadData) {
           this.selectedRow = [];
           this.selectedId = 0;
+          this.isEditMode = false;
+          this.initMainTable();
           if (this.tb_MainTable) {
             this.tb_MainTable.setData(null, true);
           }
+        }else{
+          this.isEditMode = false;
         }
       },
       (reason) => {
         console.log('Modal closed');
       }
     );
+  }
+  setDefautSearch(){
+    this.filters.keyword = "";
+    this.filters.userId = 0;
+    this.filters.teamId = 0;
+  }
+  closePanel(){
+    this.sizeTbDetail='0';
   }
 
   openMajorModal() {
@@ -276,29 +294,48 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   }
 
   onDelete() {
-    this.modal.confirm({
-      nzTitle: 'Xác nhận xóa',
-      nzContent: 'Bạn có chắc chắn muốn xóa dòng này?',
-      nzOkText: 'Đồng ý',
-      nzCancelText: 'Hủy',
-      nzOnOk: () => {
+    const selectedRows = this.tb_MainTable?.getSelectedData();
+      if (!selectedRows || selectedRows.length === 0) {
+        this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một khách hàng để xóa!');
+        return;
+      }
+      const isDeleted = selectedRows.map((item: any) => item.ID);
+    
+      // Tạo chuỗi tên khách hàng
+      let nameDisplay = '';
+      selectedRows.forEach((item: any, index: number) => {
+        nameDisplay += item.CustomerName + ',';
+      });
+    
+      if (selectedRows.length > 10) {
+        if (nameDisplay.length > 10) {
+          nameDisplay = nameDisplay.slice(0, 10) + '...';
+        }
+        nameDisplay += ` và ${selectedRows.length - 1} khách hàng khác`;
+      } else {
+        if (nameDisplay.length > 20) {
+          nameDisplay = nameDisplay.slice(0, 20) + '...';
+        }
+      }
+    
+      // Hiển thị confirm
+      this.modal.confirm({
+        nzTitle: 'Xác nhận xóa',
+        nzContent: `Bạn có chắc chắn muốn xóa khách hàng <b>[${nameDisplay}]</b> không?`,
+        nzOkText: 'Đồng ý',
+        nzCancelText: 'Hủy',
+        nzOkDanger: true,
+        nzOnOk: () => {
+         
         const payload = {
-          Customer: {
-            ID: this.selectedId ?? 0,
-            IsDeleted: true,
-            CustomerName: '',
-            CustomerCode: '',
-          },
-          CustomerContacts: [],
-          AddressStocks: [],
-          CustomerEmployees: [],
-          BusinessFieldID: 0,
+          isDeleted: isDeleted
         };
-
+        console.log("payload: ", payload);
         this.customerService.save(payload).subscribe({
           next: (res: any) => {
             if (res?.status === 1) {
               this.notification.success('Thông báo', 'Xóa thành công');
+              this.initMainTable();
             } else {
               this.notification.error(
                 'Lỗi',
@@ -316,19 +353,90 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       },
     });
   }
+  // onDelete() {
+  //   const selectedRows = this.tb_MainTable?.getSelectedData();
+  //   if (!selectedRows || selectedRows.length === 0) {
+  //     this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một khách hàng để xóa!');
+  //     return;
+  //   }
+  
+  //   // Tạo chuỗi tên khách hàng
+  //   let nameDisplay = '';
+  //   selectedRows.forEach((item: any, index: number) => {
+  //     nameDisplay += item.CustomerName + ',';
+  //   });
+  
+  //   if (selectedRows.length > 10) {
+  //     if (nameDisplay.length > 10) {
+  //       nameDisplay = nameDisplay.slice(0, 10) + '...';
+  //     }
+  //     nameDisplay += ` và ${selectedRows.length - 1} khách hàng khác`;
+  //   } else {
+  //     if (nameDisplay.length > 20) {
+  //       nameDisplay = nameDisplay.slice(0, 20) + '...';
+  //     }
+  //   }
+  
+  //   // Hiển thị confirm
+  //   this.modal.confirm({
+  //     nzTitle: 'Xác nhận xóa',
+  //     nzContent: `Bạn có chắc chắn muốn xóa khách hàng <b>[${nameDisplay}]</b> không?`,
+  //     nzOkText: 'Đồng ý',
+  //     nzCancelText: 'Hủy',
+  //     nzOkDanger: true,
+  //     nzOnOk: () => {
+  //       // Xử lý từng khách hàng riêng lẻ
+  //       const deleteRequests = selectedRows.map((row: any) => {
+  //         const payload = {
+  //           Customer: {
+  //             ID: row.ID,
+  //             IsDeleted: true,
+  //           },
+  //           CustomerContacts: [],
+  //           AddressStocks: [],
+  //           CustomerEmployees: [],
+  //           BusinessFieldID: 0,
+  //         };
+  
+  //         return this.customerService.save(payload).toPromise(); // Chuyển Observable thành Promise
+  //       });
+  
+  //       // Chạy tất cả các yêu cầu xóa
+  //       Promise.all(deleteRequests)
+  //         .then((results) => {
+  //           const allSuccess = results.every((res: any) => res?.status === 'Success');
+  //           if (allSuccess) {
+  //             this.notification.success('Thành công', 'Đã xóa khách hàng thành công!');
+  //             this.initMainTable(); 
+  //           } else {
+  //             this.notification.warning('Thông báo', 'Không thể xóa một số khách hàng!');
+  //           }
+  //         })
+  //         .catch((err) => {
+  //           console.error('Lỗi xóa:', err);
+  //           this.notification.error('Lỗi', err?.message || 'Có lỗi xảy ra khi xóa khách hàng!');
+  //         });
+  //     },
+  //   });
+  // }
 
   onEdit(): void {
-    if (this.selectedId > 0) {
-      this.isEditMode = true;
-      this.openModal();
-    } else {
-      this.notification.info('Thông báo', 'Vui lòng chọn 1 bản ghi cần sửa!');
+    const selectedRows = this.tb_MainTable?.getSelectedData();
+    if (!selectedRows || selectedRows.length === 0 || selectedRows.length > 1) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn một khách hàng để sửa!');
+      return;
     }
+    this.selectedId = selectedRows[0].ID;
+    this.isEditMode=true;
+    console.log(this.selectedId);
+    this.openModal();
   }
 
   initMainTable(): void {
     this.tb_MainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
+      selectableRows:1,
+      paginationMode: 'remote',
       //   layout: 'fitDataFill',
       //   height: '90%',
       //   selectableRows: 1,
@@ -337,11 +445,10 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       //   paginationMode: 'remote',
       //   paginationSizeSelector: [10, 30, 50, 100, 200, 300, 500],
       ajaxURL: this.customerService.getMainDataAjax(),
-      //ajaxConfig: 'POST',
-      ajaxParams: this.getMainDataAjaxParams(),
+      ajaxConfig: 'GET',
       ajaxRequestFunc: (url, config, params) => {
         const request = {
-          filterText: this.filters.keyword || '',
+          filterText: this.filters.keyword.trim() || '',
           groupId: this.filters.teamId || 0,
           employeeId: this.filters.userId || 0,
           page: params.page || 1,
@@ -383,13 +490,12 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       //     resizable: true,
       //   },
       columns: [
-        { title: 'ID', field: 'ID', visible: false },
-        { title: 'Mã khách', field: 'CustomerCode', frozen: true },
-        { title: 'Tên kí hiệu', field: 'CustomerShortName', frozen: true },
+        { title: 'ID', field: 'ID', visible: false ,frozen: true},
+        { title: 'Mã khách', field: 'CustomerCode',frozen: true  },
+        { title: 'Tên kí hiệu', field: 'CustomerShortName', frozen: true, },
         {
           title: 'Tên khách',
           field: 'CustomerName',
-          frozen: true,
           formatter: 'textarea',
         },
         { title: 'Địa chỉ', field: 'Address', formatter: 'textarea' },
@@ -416,13 +522,26 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         },
       ],
     });
+    this.tb_MainTable.on('dataLoading',()=>{
+      this.tb_MainTable.deselectRow();
+      this.sizeTbDetail='0';
+    });
+    this.tb_MainTable.on(
+      'rowDblClick',
+      (e: any, row: RowComponent) => {
+        const rowData = row.getData();
+        this.selectedId = rowData['ID'];
+        this.isEditMode=true;
+        this.openModal();
+      });
     this.tb_MainTable.on('rowClick', (e: any, row: RowComponent) => {
+      this.sizeTbDetail = '';
+
       const rowData = row.getData();
       this.selectedRow = rowData;
       this.selectedId = rowData['ID'];
+      // Load dữ liệu phụ
       this.getContactAndAddress(this.selectedId);
-      this.sizeTbSaleTable = '200';
-      this.sizeTbDetail = '240';
     });
   }
 
@@ -432,8 +551,8 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       {
         data: this.customerContactData,
         ...DEFAULT_TABLE_CONFIG,
-        // layout: 'fitColumns',
-        height: '90%',
+        layout:"fitColumns",
+       
         // selectableRows: 1,
         pagination: false,
         // paginationSize: 100,
@@ -466,10 +585,10 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       {
         data: this.addressStockData,
         ...DEFAULT_TABLE_CONFIG,
-        // layout: 'fitDataFill',
-        height: '90%',
+        layout:"fitColumns",
+       
         // selectableRows: 1,
-        pagination: false,
+        pagination: true,
         // paginationSize: 100,
         // movableColumns: true,
         // resizableRows: true,
@@ -482,8 +601,8 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         //   resizable: true,
         // },
         columns: [
-          { title: 'ID', field: 'ID', width: '100%', visible: false },
-          { title: 'Địa chỉ giao hàng', field: 'Address', width: '100%' },
+          { title: 'ID', field: 'ID', visible: false },
+          { title: 'Địa chỉ giao hàng', field: 'Address' },
         ],
       }
     );
@@ -493,24 +612,13 @@ export class CustomerComponent implements OnInit, AfterViewInit {
     this.tb_SaleTable = new Tabulator(this.tb_SaleTableElement.nativeElement, {
       data: this.employeeSaleData,
       ...DEFAULT_TABLE_CONFIG,
-      //   layout: 'fitDataFill',
+      layout:"fitColumns",
       height: '90%',
       //   selectableRows: 1,
       pagination: false,
-      //   paginationSize: 100,
-      //   movableColumns: true,
-      //   resizableRows: true,
-      //   reactiveData: true,
-      //   columnDefaults: {
-      //     headerWordWrap: true,
-      //     headerVertical: false,
-      //     headerHozAlign: 'center',
-      //     minWidth: 60,
-      //     resizable: true,
-      //   },
       columns: [
-        { title: 'ID', field: 'ID', width: '100%', visible: false },
-        { title: 'Nhân viên Sale', field: 'FullName', width: '100%' },
+        { title: 'ID', field: 'ID', visible: false },
+        { title: 'Nhân viên Sale', field: 'FullName' },
       ],
     });
   }

@@ -20,7 +20,7 @@ export class CustomerServiceService {
     employeeId: number,
     groupId: number
   ) {
-    return this.http.get<any>(this._url + 'get-customer', {
+    return this.http.get<any>(this._url + 'get-data-by-procedure', {
       params: {
         pageNumber: pageNumber.toString(),
         pageSize: pageSize.toString(),
@@ -31,7 +31,7 @@ export class CustomerServiceService {
     });
   }
   getMainData2(request: any) {
-    return this.http.get<any>(`${this._url}get-customer`, {
+    return this.http.get<any>(`${this._url}get-data-by-procedure`, {
       params: request, // Angular tự chuyển object thành query string
     });
   }
@@ -44,7 +44,7 @@ export class CustomerServiceService {
   }
 
   getMainDataAjax(): string {
-    return this._url + 'get-customer';
+    return this._url + 'get-data-by-procedure';
   }
 
   getContactAndAddress(customerId: number): Observable<any> {
@@ -68,7 +68,7 @@ export class CustomerServiceService {
   }
 
   save(payload: any): Observable<any> {
-    return this.http.post<any>(this._url, payload);
+    return this.http.post<any>(this._url+'save-data-old', payload);
   }
 
   getDetail(id: number): Observable<any> {

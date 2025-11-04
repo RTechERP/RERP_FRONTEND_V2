@@ -42,7 +42,14 @@ import { TsAssetManagementComponent } from '../../../hrm/asset/asset/ts-asset-ma
 import { TsAssetRecoveryComponent } from '../../../hrm/asset/asset/ts-asset-recovery/ts-asset-recovery.component';
 import { TsAssetTransferComponent } from '../../../hrm/asset/asset/ts-asset-transfer/ts-asset-transfer.component';
 import { PermissionService } from '../../../../services/permission.service';
-import { OfficeSupplyComponent } from '../../../old/OfficeSuppliesManagement/OfficeSupply/office-supply.component';
+// import { OfficeSupplyComponent } from '../../../old/OfficeSuppliesManagement/OfficeSupply/office-supply.component';
+import { ProjectLeaderProjectTypeComponent } from '../../../old/project/project-leader-project-type/project-leader-project-type.component';
+import { MeetingMinuteComponent } from '../../../old/project/meeting-minute/meeting-minute.component';
+import { ProjectNewComponent } from '../../../old/project/project-new/project-new.component';
+import { TsAssetTypeComponent } from '../../../hrm/asset/asset/ts-asset-type/ts-asset-type.component';
+import { TsAssetSourceComponent } from '../../../hrm/asset/asset/ts-asset-source/ts-asset-source.component';
+import { OfficeSupplyUnitComponent } from '../../../hrm/office-supply/OfficeSupplyUnit/office-supply-unit.component';
+import { OfficeSupplyComponent } from '../../../hrm/office-supply/OfficeSupply/office-supply.component';
 
 @Injectable({
   providedIn: 'root',
@@ -541,6 +548,30 @@ export class MenuService {
         isOpen: true,
         isPermission: this.permissionService.hasPermission(""),
         comp: SynthesisOfGeneratedMaterialsComponent,
+      },
+      {
+        kind: 'leaf',
+        key: 'ProjectNewComponent',
+        title: 'Tổng hợp dự án phòng ban',
+        isOpen: true,
+        isPermission: this.permissionService.hasPermission(""),
+        comp: ProjectNewComponent,
+      },
+      {
+        kind: 'leaf',
+        key: 'MeetingMinuteComponent',
+        title: 'Biên bản cuộc họp',
+        isOpen: true,
+        isPermission: this.permissionService.hasPermission(""),
+        comp: MeetingMinuteComponent,
+      },
+      {
+        kind: 'leaf',
+        key: 'ProjectLeaderProjectTypeComponent',
+        title: 'Leader kiểu dự án',
+        isOpen: true,
+        isPermission: this.permissionService.hasPermission(""),
+        comp: ProjectLeaderProjectTypeComponent,
       },
     ],
   },

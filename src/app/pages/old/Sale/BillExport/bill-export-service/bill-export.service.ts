@@ -209,4 +209,10 @@ export class BillExportService {
       data
     );
   }
+getSerialByIDs(data:any): Observable<any>{
+  return this.http.post(
+    environment.host + `api/BillExport/bill-export-synthetic`,
+    data
+  );
+}
 }

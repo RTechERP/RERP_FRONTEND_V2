@@ -1,0 +1,20 @@
+<div class="modal-dialog-scrollable">
+  <div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white" id="addProductModalLabel">Thêm đơn vị tính mới</h6>
+    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+  </div>
+  <div class="modal-body">
+  <form nz-form [formGroup]="validateForm">
+  <nz-form-item>
+    <nz-form-label>Tên đơn vị<span class="text-danger ps-1">(*)</span></nz-form-label>
+    <nz-form-control [nzErrorTip]="'Vui lòng nhập tên đơn vị'">
+      <input nz-input formControlName="unitName" nzPlaceHolder="Nhập tên đơn vị" />
+    </nz-form-control>
+  </nz-form-item>
+</form>
+  </div>
+  <div class="modal-footer">
+    <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
+    <button class="fs-12 btn" nz-button nzType="primary" (click)="saveDataOfficeSupplyUnit()">Lưu</button>
+  </div>
+</div>

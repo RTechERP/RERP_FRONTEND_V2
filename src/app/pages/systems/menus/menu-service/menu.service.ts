@@ -50,6 +50,10 @@ import { TsAssetTypeComponent } from '../../../hrm/asset/asset/ts-asset-type/ts-
 import { TsAssetSourceComponent } from '../../../hrm/asset/asset/ts-asset-source/ts-asset-source.component';
 import { OfficeSupplyUnitComponent } from '../../../hrm/office-supply/OfficeSupplyUnit/office-supply-unit.component';
 import { OfficeSupplyComponent } from '../../../hrm/office-supply/OfficeSupply/office-supply.component';
+import { CurrencyListComponent } from '../../../general-category/currency-list/currency-list.component';
+import { ProductLocationComponent } from '../../../general-category/product-location/product-location.component';
+import { SupplierSaleComponent } from '../../../general-category/supplier-sale/supplier-sale.component';
+import { FirmComponent } from '../../../general-category/firm/firm.component';
 
 @Injectable({
   providedIn: 'root',
@@ -62,7 +66,7 @@ export class MenuService {
   //   private apiUrl = HOST + 'api/menu/';
   constructor(private http: HttpClient,private permissionService:PermissionService) {}
 
-  
+
 //   getMenus(id: number): Observable<any> {
 //     return this.http.get<any>(this.apiUrl + `menus/${id}`);
 //   }
@@ -134,7 +138,7 @@ export class MenuService {
     isOpen: true,
     isPermission: this.permissionService.hasPermission(""),
     icon: 'assets/icon/menu_hrm_24.png',
-    
+
     children: [
       {
         kind: 'leaf',
@@ -191,8 +195,8 @@ export class MenuService {
             },
         ]
       },
-      
-      
+
+
       {
         kind: 'leaf',
         key: 'VehicleRepairComponent',
@@ -477,6 +481,39 @@ export class MenuService {
         comp: FactoryVisitRegistrationComponent,
         //   icon: 'assets/icon/layers.png',
       },
+      {
+        kind: 'leaf',
+        key: 'CurrencyListComponent',
+        title: 'Tiền tệ',
+        isOpen: true,
+        isPermission: this.permissionService.hasPermission(""),
+        comp: CurrencyListComponent,
+      }
+      ,{
+        kind: 'leaf',
+        key: 'ProductLocationComponent',
+        title: 'Vị trí thiết bị',
+        isOpen: true,
+        isPermission: this.permissionService.hasPermission(""),
+        comp: ProductLocationComponent,
+      },{
+
+        kind: 'leaf',
+          key: 'SupplierSaleComponent',
+          title: 'Nhà cung cấp',
+          isOpen: true,
+          isPermission: this.permissionService.hasPermission(""),
+          comp: SupplierSaleComponent,
+      },
+      {
+        kind: 'leaf',
+          key: 'FirmComponent',
+          title: 'Hãng',
+          isOpen: true,
+          isPermission: this.permissionService.hasPermission(""),
+          comp: FirmComponent,
+      },
+
     ],
   },
 
@@ -580,7 +617,7 @@ export class MenuService {
 
 return menus;
   }
-  
+
 }
 
 
@@ -602,4 +639,4 @@ export type GroupItem = BaseItem & {
   children: MenuItem[];
 };
 export type MenuItem = LeafItem | GroupItem;
-// export 
+// export

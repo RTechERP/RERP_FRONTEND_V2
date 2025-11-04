@@ -7,14 +7,14 @@
 <div class="modal-body">
   <form class="row g-3">
     <div class="col-md-12">
-      <label for="unitNameInput" class="form-label">Mã loại tài sản</label>
+      <label for="unitNameInput" class="form-label">Mã loại tài sản<span class="text-danger ps-1 "> (*) </span></label>
       <nz-input-group >
         <input id="unitNameInput" nz-input name="assetCode" [(ngModel)]="assetCode" placeholder="Nhập mã loại tài sản" />
         <ng-template #prefixIcon><i nz-icon nzType="apartment"></i></ng-template>
       </nz-input-group>
     </div>
     <div class="col-md-12">
-      <label for="unitNameInput" class="form-label">Loại tài sản</label>
+      <label for="unitNameInput" class="form-label">Loại tài sản<span class="text-danger ps-1 "> (*) </span></label>
       <nz-input-group >
         <input id="unitNameInput" nz-input name="unitName" [(ngModel)]="assetType" placeholder="Nhập loại tài sản" />
         <ng-template #prefixIcon><i nz-icon nzType="apartment"></i></ng-template>
@@ -23,7 +23,7 @@
   </form>
 </div>
 <div class="modal-footer">
-  <button nz-button nzType="default" (click)="close()">Đóng</button>
+  <button nz-button nzType="default" nzDanger (click)="close()">Đóng</button>
   <button nz-button nzType="primary" (click)="saveAssetType()">Lưu dữ liệu
   </button>
 </div>

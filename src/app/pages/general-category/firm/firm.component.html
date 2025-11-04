@@ -1,0 +1,30 @@
+<div class="d-flex align-items-center mb-3" style="width: 100%;">
+  <div class="card border-1 rounded-0 w-100" style="max-width: 100%;">
+    <div class="card-header bg-white p-2">
+      <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn-add"  nz-button nzType="default" nzSize="small" (click)="onAddFirm()" *hasPermission="'N27,N31,N1,N35'">
+            <nz-icon nzType="plus" /> Thêm
+          </button>
+          <button class="btn-edit" nz-button nzType="default" nzSize="small" (click)="onEditFirm()" *hasPermission="'N27,N31,N1,N35'">
+            <nz-icon nzType="edit" nzTheme="fill" /> Sửa
+          </button>
+          <button class="btn-delete" nz-button nzType="default" nzSize="small" (click)="onDeleteFirm()" *hasPermission="'N27,N31,N1,N35'">
+            <nz-icon nzType="delete" nzTheme="fill" /> Xóa
+          </button>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <nz-input-group [nzSuffix]="suffixIconSearch">
+            <input type="text" nz-input placeholder="Nhập từ khóa" [(ngModel)]="searchText" (input)="onSearch()" />
+          </nz-input-group>
+          <ng-template #suffixIconSearch>
+            <nz-icon nzType="search"></nz-icon>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+    <div class="card-body p-2" style="height: calc(100vh - 50px);">
+      <div id="dataFirm" style="width: 100%; height: 100%;"></div>
+    </div>
+  </div>
+</div>

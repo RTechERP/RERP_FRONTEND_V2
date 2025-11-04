@@ -23,84 +23,14 @@
             <app-app-notifycation-dropdown [items]="notifItems" (itemClick)="onPick($event)">
                 <button nz-button nzType="text" class="text-light fs-7" trigger>
                     <nz-badge [nzOverflowCount]="9" [nzCount]="notifItems.length + 67" class="fs-7">
-                        <!-- <nz-icon nzType="bell" style="font-size: 30px" /> -->
                         <img src="assets/icon/notification_home.png">
                     </nz-badge>
                 </button>
             </app-app-notifycation-dropdown>
-            <!-- <button nz-button nz-dropdown [nzDropdownMenu]="appmenu" nzPlacement="bottomRight" nzType="text"
-                class="text-light">
-                <nz-icon nzType="appstore" nzTheme="outline" style="color: black; font-size: 30px" />
-            </button> -->
-            <!-- <nz-dropdown-menu #appmenu="nzDropdownMenu">
-                <div class="app-launcher">
-                    <div class="app-launcher-inner">
-                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')"><img
-                                src="asset/image/icon/order-food.png" /><span>Đặt cơm</span></a>
-                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
-                            <span>Đặt xe</span></a>
-                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')"><img
-                                src="asset/image/icon/order-food.png" /><span>Đặt cơm</span></a>
-                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
-                            <span>Đặt xe</span></a>
-                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')"><img
-                                src="asset/images/icon/order-food.png" /><span>Đặt cơm</span></a>
-                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
-                            <span>Đặt xe</span></a>
-                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')"><img
-                                src="asset/image/icon/order-food.png" /><span>Đặt cơm</span></a>
-                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
-                            <span>Đặt xe</span></a>
-                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')"><img
-                                src="asset/image/icon/order-food.png" /><span>Đặt cơm</span></a>
-                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
-                            <span>Đặt xe</span></a>
-                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')"><img
-                                src="asset/image/icon/order-food.png" /><span>Đặt cơm</span></a>
-                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
-                            <span>Đặt xe</span></a>
-                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')"><img
-                                src="asset/image/icon/order-food.png" /><span>Đặt cơm</span></a>
-                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
-                            <span>Đặt xe</span></a>
-                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')"><img
-                                src="asset/image/icon/order-food.png" /><span>Đặt cơm</span></a>
-                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
-                            <span>Đặt xe</span></a>
-                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')"><img
-                                src="asset/image/icon/order-food.png" /><span>Đặt cơm</span></a>
-                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
-                            <span>Đặt xe</span></a>
-                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')"><img
-                                src="assets/icon/order-food.png" /><span>Đặt cơm</span></a>
-                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
-                            <span>Đặt xe</span></a>
-                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')"><img
-                                src="asset/image/icon/order-food.png" /><span>Đặt cơm</span></a>
-                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
-                            <span>Đặt xe</span></a>
-                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')"><img
-                                src="asset/image/icon/order-food.png" /><span>Đặt cơm</span></a>
-                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
-                            <span>Đặt xe</span></a>
-                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')"><img
-                                src="asset/image/icon/order-food.png" /><span>Đặt cơm</span></a>
-                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
-                            <span>Đặt xe</span></a>
-                        <a (click)="newTab(['/project/2'], 'Tổng hợp dự án AGV')">
-                            <img src="asset/image/icon/order-food.png" /><span>Đặt cơm</span></a>
-                        <a href="#"><img src="asset/image/icon/booking-vehicle.png" />
-                            <span>Đặt xe</span></a>
 
-                        
-                    </div>
-                </div>
-            </nz-dropdown-menu> -->
-            <!-- </button> -->
             <div>
                 <app-app-user-dropdown>
                     <button nz-button nzType="text" trigger>
-                        <!-- <img src="assets/icon/user.png" style="width: 30px; height: 30px; border-radius: 50%" /> -->
                         <img src="assets/icon/user.png">
                     </button>
                 </app-app-user-dropdown>
@@ -117,7 +47,7 @@
                             <div class="card-header">
                                 <h5 class="card-title m-0 text-uppercase fw-bold">Thông báo</h5>
                             </div>
-                            <div class="card-body" style="height: 341px;overflow: auto;">
+                            <div class="card-body" style="height: 333px;overflow: auto;">
                                 <nz-list nzItemLayout="vertical">
                                     @for (item of notifItems; track item) {
                                     <nz-list-item>
@@ -158,51 +88,46 @@
                         </div>
                     </div>
                     <div class="col-xl-6 col-md-12 col-sm-12 col-12">
-                        <div class="card mb-4">
+                        <div class="card">
                             <div class="card-header">
                                 <h5 class="card-title m-0 text-uppercase fw-bold">Nghỉ</h5>
                             </div>
                             <div class="card-body">
                                 <nz-tabset>
                                     <nz-tab [nzTitle]="titleTemplateOnleave">
-                                        <div class="panel-body" style="height: 30vh; overflow: auto;">
-                                            <nz-collapse>
-                                                @for (panel of employeeOnleaves; track panel) {
-                                                <nz-collapse-panel class="fw-bold"
-                                                    [nzHeader]="panel.DepartmentName + ' (' + panel.Employees.length + ')'"
-                                                    [nzActive]="true">
+                                        <nz-collapse>
+                                            @for (panel of employeeOnleaves; track panel) {
+                                            <nz-collapse-panel class="fw-bold"
+                                                [nzHeader]="panel.DepartmentName + ' (' + panel.Employees.length + ')'"
+                                                [nzActive]="true">
 
-                                                    <nz-list nzSize="small" class="fw-normal ">
-                                                        @for (item of panel.Employees; track item;let i = $index) {
-                                                        <nz-list-item>{{i + 1}}. {{
-                                                            item.EmployeeLeave}}{{item.TimeOnLeaveText}}</nz-list-item>
-                                                        }
-                                                    </nz-list>
-                                                </nz-collapse-panel>
-                                                }
-                                            </nz-collapse>
-
-                                        </div>
+                                                <nz-list nzSize="small" class="fw-normal ">
+                                                    @for (item of panel.Employees; track item;let i = $index) {
+                                                    <nz-list-item>{{i + 1}}. {{
+                                                        item.EmployeeLeave}}{{item.TimeOnLeaveText}}</nz-list-item>
+                                                    }
+                                                </nz-list>
+                                            </nz-collapse-panel>
+                                            }
+                                        </nz-collapse>
                                     </nz-tab>
                                     <nz-tab [nzTitle]="titleTemplateWFH">
-                                        <div class="card-body" style="height: 30vh; overflow: auto;">
-                                            <nz-collapse>
-                                                @for (panel of employeeWfhs; track panel) {
-                                                <nz-collapse-panel class="fw-bold"
-                                                    [nzHeader]="panel.DepartmentName + ' (' + panel.Employees.length + ')'"
-                                                    [nzActive]="true">
+                                        <nz-collapse>
+                                            @for (panel of employeeWfhs; track panel) {
+                                            <nz-collapse-panel class="fw-bold"
+                                                [nzHeader]="panel.DepartmentName + ' (' + panel.Employees.length + ')'"
+                                                [nzActive]="true">
 
-                                                    <nz-list nzSize="small" class="fw-normal">
-                                                        @for (item of panel.Employees; track item;let i = $index) {
-                                                        <nz-list-item>{{i + 1}}. {{ item.EmployeeName
-                                                            }}{{item.TimeWFHText}}{{item.IsApprovedBGDText}}</nz-list-item>
+                                                <nz-list nzSize="small" class="fw-normal">
+                                                    @for (item of panel.Employees; track item;let i = $index) {
+                                                    <nz-list-item>{{i + 1}}. {{ item.EmployeeName
+                                                        }}{{item.TimeWFHText}}{{item.IsApprovedBGDText}}</nz-list-item>
 
-                                                        }
-                                                    </nz-list>
-                                                </nz-collapse-panel>
-                                                }
-                                            </nz-collapse>
-                                        </div>
+                                                    }
+                                                </nz-list>
+                                            </nz-collapse-panel>
+                                            }
+                                        </nz-collapse>
                                     </nz-tab>
                                 </nz-tabset>
 
@@ -217,7 +142,7 @@
                         </div>
                     </div>
                     <div class="col-xl-6 col-md-12 col-sm-12 col-12">
-                        <div class="card mb-4">
+                        <div class="card">
                             <div class="card-header">
                                 <h5 class="card-title m-0 text-uppercase fw-bold">truy cập nhanh</h5>
                             </div>
@@ -252,15 +177,16 @@
             </div>
 
             <div class="col-xl-6 col-md-12 col-sm-12 col-12">
-                <div class="card mb-4">
+                <div class="card">
                     <div class="card-header">
-                        <h5 class="card-title m-0">Chức năng</h5>
+                        <h5 class="card-title m-0 text-uppercase fw-bold">Chức năng</h5>
                     </div>
-                    <div class="card-body" style="height: 741px;overflow: auto;">
+                    <div class="card-body" style="height: 83vh;overflow: auto;">
                         <div class="row gx-4">
                             @for (m of menus; track m.key) {
-                            <div class="col-xl-3 col-md-3 col-sm-6 col-6" *ngIf="m.isPermission">
-                                <div class="card border-0 mb-4 card-module" (click)="openModule(m.key)">
+                            <div class="col-xl-3 col-md-3 col-sm-6 col-6 d-flex justify-content-center align-items-center"
+                                *ngIf="m.isPermission">
+                                <div class="card card-module border-0 p-4" (click)="openModule(m.key)">
                                     <div class="card-img d-flex justify-content-center">
                                         <img [src]="m.icon?.replace('24','64')"
                                             class="card-img-top img-fluid shadow p-3 rounded" alt="">

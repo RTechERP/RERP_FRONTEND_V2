@@ -1,0 +1,190 @@
+<nz-splitter>
+  <nz-splitter-panel [nzSize]="sizeSearch" [nzCollapsible]="true">
+    <div class="card h-100 border-0 rounded-0">
+      <div class="card-header bg-white p-1">
+        <div class="d-flex justify-content-between align-items-center">
+          <h6 class="m-0 ms-2">Tìm kiếm</h6>
+          <button
+            class="border-0 me-2"
+            nz-button
+            nzSize="small"
+            nzType="default"
+            nzDanger
+            (click)="toggleSearchPanel()"
+          >
+            <nz-icon nzType="close" nzTheme="outline" />
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <form nz-form nzLayout="vertical">
+          <!-- Date range -->
+          <nz-form-item>
+            <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
+            <nz-form-control [nzSpan]="24">
+              <nz-date-picker
+                [nzFormat]="dateFormat"
+                class="w-100"
+                nzSize="small"
+                [(ngModel)]="searchParams.DateStart"
+                name="dateStart"
+              >
+              </nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+          <nz-form-item class="mt-2">
+            <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
+            <nz-form-control [nzSpan]="24">
+              <nz-date-picker
+                [nzFormat]="dateFormat"
+                class="w-100"
+                nzSize="small"
+                [(ngModel)]="searchParams.DateEnd"
+                name="dateEnd"
+              ></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+          <!-- cbb loại cuộc họp -->
+          <nz-form-item class="mt-2">
+            <nz-form-label class="fs-12" [nzSpan]="24"
+              >Chọn loại cuộc họp
+            </nz-form-label>
+            <nz-form-control [nzSpan]="24">
+              <nz-form-control [nzSpan]="24">
+                <nz-select
+                  [(ngModel)]="searchParams.MeetingTypeID"
+                  [ngModelOptions]="{ standalone: true }"
+                  nzPlaceHolder="Chọn loại phòng họp"
+                  style="width: 100%"
+                  name="meetingTypeID"
+                >
+                  <nz-option-group
+                    *ngFor="let group of meetingTypeGroupsData"
+                    [nzLabel]="getGroupName(group.GroupID)"
+                  >
+                    <nz-option
+                      *ngFor="let room of group.Rooms"
+                      [nzLabel]="room.TypeCode + ' - ' + room.TypeName"
+                      [nzValue]="room.ID"
+                    ></nz-option>
+                  </nz-option-group>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-control>
+          </nz-form-item>
+          <nz-form-item class="mt-2">
+            <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+            <nz-form-control [nzSpan]="24">
+              <input
+                class="w-100"
+                nz-input
+                placeholder="Nhập từ khóa"
+                [(ngModel)]="searchParams.Keywords"
+                name="keyword"
+                nzSize="small"
+              />
+            </nz-form-control>
+          </nz-form-item>
+        </form>
+      </div>
+      <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+        <button nz-button nzType="default" nzSize="small" (click)="resetform()">
+          Đặt lại
+        </button>
+        <button
+          nz-button
+          nzType="primary"
+          nzSize="small"
+          (click)="searchData()"
+        >
+          Tìm kiếm
+        </button>
+      </div>
+    </div>
+  </nz-splitter-panel>
+  <nz-splitter-panel>
+    <nz-splitter nzLayout="vertical">
+      <nz-splitter-panel>
+        <div class="card border-0 rounded-0">
+          <div class="card-header bg-white p-1" style="overflow-x: auto">
+            <div class="d-flex gap-1">
+              <button
+                nz-button
+                nzType="default"
+                nzSize="small"
+                (click)="toggleSearchPanel()"
+              >
+                <nz-icon nzType="search" />
+              </button>
+              <button
+              nz-button nzSize="small" class="fs-12 button button-succes btn-add" 
+                (click)="onAddMeetingMinutes(false)" 
+              >
+              <img src="assets/icon/add-white-btn.png" alt="Thêm mới "  /> Thêm
+              </button>
+              <button
+              class="fs-12 btn-edit" nz-button nzType="default" nzSize="small" nzD 
+                (click)="onAddMeetingMinutes(true)"
+              >
+              <img src="assets/icon/edit-white-btn.png" alt="Sửa"> Sửa
+              </button>
+              <button
+              class="fs-12 btn-delete" nz-button nzType="default" nzSize="small" nzDanger 
+                (click)="onDeleteMeetingMinutes()"
+              >
+                <nz-icon nzType="delete" nzTheme="fill" /> Xóa
+              </button>
+              <button
+              nz-button nzType="default" nzSize="small" class="fs-12 btn"
+                (click)="exportExcel()"
+              >
+              <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" class="me-1" /> Xuất Excel
+              </button>
+            </div>
+          </div>
+          <div class="card-body p-0">
+            <div id="MeetingMinutes" style="width: 100%; height: 100%"></div>
+          </div>
+        </div>
+      </nz-splitter-panel>
+      <nz-splitter-panel>
+        <div class="box">
+          <nz-tabset   (nzSelectedIndexChange)="onMainTabChange($event)">
+            <nz-tab  nzTitle="Nhân viên">
+              <div class="card-body p-0">
+                <nz-tabset   (nzSelectedIndexChange)="onTabChange($event)">
+                  <nz-tab nzTitle="Nhân viên tham gia">
+                    <div class="card-body p-0">
+                      <div id="Employee" style="width: 100%; height: 100%"></div>
+                    </div>
+                  </nz-tab>
+                  <nz-tab nzTitle="Nội dung">
+                    <div class="card-body p-0">
+                      <div #EmployeeContentNE id="EmployeeContentNE" style="width: 100%; height: 100%"></div>
+                    </div>
+                  </nz-tab>
+                </nz-tabset>
+              </div>
+            </nz-tab>
+            <nz-tab nzTitle="Khách hàng">
+              <div class="card-body p-0">
+                <nz-tabset   (nzSelectedIndexChange)="onCustomerTabChange($event)">
+                  <nz-tab nzTitle="Khách hàng tham gia">
+                    <div class="card-body p-0">
+                      <div id="Customer" style="width: 100%; height: 100%"></div>
+                    </div>
+                  </nz-tab>
+                  <nz-tab nzTitle="Nội dung">
+                    <div class="card-body p-0">
+                      <div id="CustomerContent" style="width: 100%; height: 100%"></div>
+                    </div>
+                  </nz-tab>
+                </nz-tabset>
+              </div>
+            </nz-tab>
+          </nz-tabset>
+        </div>
+      </nz-splitter-panel>
+    </nz-splitter>
+  </nz-splitter-panel>
+</nz-splitter>

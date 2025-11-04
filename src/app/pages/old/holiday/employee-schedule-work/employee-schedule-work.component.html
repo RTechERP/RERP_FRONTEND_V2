@@ -1,43 +1,45 @@
 <ng-container class="w-100">
-      <div class="card h-100 border-0 rounded-0">
+    <div class="card h-100 border-0 rounded-0">
         <div class="card-header bg-white p-2">
-          <div class="d-flex justify-content-between align-items-center">
-            <div class="d-flex gap-2">
-              <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;" (click)="saveEmployeeScheduleWork()">
-                <nz-icon nzType="save" /> Lưu
-              </button>
-              <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;" (click)="approvedSW(true)">
-                <nz-icon nzType="check-square" /> Duyệt
-              </button>
-              <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;" (click)="approvedSW(false)">
-                <nz-icon nzType="close-square" /> Hủy duyệt
-              </button>
-              <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;" (click)="exportToExcel()">
-                <nz-icon nzType="export" /> Xuất excel
-              </button>
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex gap-2">
+                    <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;"
+                        (click)="saveEmployeeScheduleWork()" *hasPermission="'N2,N1'">
+                        <nz-icon nzType="save" /> Lưu
+                    </button>
+                    <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;"
+                        (click)="approvedSW(true)">
+                        <nz-icon nzType="check-square" *hasPermission="'N2,N1'" /> Duyệt
+                    </button>
+                    <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;"
+                        (click)="approvedSW(false)">
+                        <nz-icon nzType="close-square" *hasPermission="'N2,N1'" /> Hủy duyệt
+                    </button>
+                    <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;"
+                        (click)="exportToExcel()">
+                        <nz-icon nzType="export" /> Xuất excel
+                    </button>
+                </div>
+                <form [formGroup]="searchForm" class="d-flex gap-2 align-items-center">
+                    <div>
+                        <nz-form-label>Tháng</nz-form-label>
+                        <nz-input-number formControlName="month" nzMin="1" nzMax="12" nzSize="small" />
+                    </div>
+                    <div>
+                        <nz-form-label>Năm</nz-form-label>
+                        <nz-input-number formControlName="year" nzMin="1" nzMax="3000" nzSize="small" />
+                    </div>
+                    <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;"
+                        (click)="loadScheduleWork()">
+                        <nz-icon nzType="search" /> Tìm kiếm
+                    </button>
+                </form>
             </div>
-            <form [formGroup]="searchForm" class="d-flex gap-2 align-items-center">
-              <div>
-                <nz-form-label>Tháng</nz-form-label>
-                <nz-input-number formControlName="month" nzMin="1" nzMax="12" nzSize="small"/>
-              </div>
-              <div>
-                <nz-form-label>Năm</nz-form-label>
-              <nz-input-number formControlName="year" nzMin="1" nzMax="3000" nzSize="small"/>
-              </div>
-            <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;" (click)="loadScheduleWork()">
-              <nz-icon nzType="search" /> Tìm kiếm
-            </button>
-          </form>
-          </div>
         </div>
 
         <div class="card-body p-0 position-relative">
-          <div *ngIf="isLoading">
-            <nz-spin
-              [nzSpinning]="isLoading"
-              nzSimple  
-              [style]="{
+            <div *ngIf="isLoading">
+                <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
                 position: 'absolute',
                 top: '0',
                 left: '0',
@@ -48,10 +50,9 @@
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
-              }"
-            ></nz-spin>
-          </div>
-          <div id="tb_schedule-work"></div>
+              }"></nz-spin>
+            </div>
+            <div id="tb_schedule-work"></div>
         </div>
-      </div>
+    </div>
 </ng-container>

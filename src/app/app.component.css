@@ -6,12 +6,17 @@
 }
 
 /* Bôi màu cho tab thêm ngon hehehe */
-::ng-deep .app-header-tabs>.ant-tabs .ant-tabs-tab .ant-tabs-tab-btn {
+::ng-deep .app-header-tabs > .ant-tabs .ant-tabs-tab .ant-tabs-tab-btn {
   color: #c6c6c6;
 }
 
-::ng-deep .app-header-tabs>.ant-tabs .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+::ng-deep
+  .app-header-tabs
+  > .ant-tabs
+  .ant-tabs-tab.ant-tabs-tab-active
+  .ant-tabs-tab-btn {
   color: #f3f3f3;
+  text-transform: uppercase;
 }
 
 .app-layout {
@@ -114,8 +119,8 @@ nz-sider {
   left: 0;
 }
 
-::ng-deep .ant-tabs>.ant-tabs-nav,
-.ant-tabs>div>.ant-tabs-nav {
+::ng-deep .ant-tabs > .ant-tabs-nav,
+.ant-tabs > div > .ant-tabs-nav {
   margin: 0 !important;
   overflow: hidden !important;
 }
@@ -124,34 +129,45 @@ nz-sider {
   height: 40px !important;
 }
 
-::ng-deep .ant-tabs-card.ant-tabs-top>.ant-tabs-nav .ant-tabs-tab {
+::ng-deep .ant-tabs-card.ant-tabs-top > .ant-tabs-nav .ant-tabs-tab {
   border: unset;
   border-radius: unset;
   font-size: 0.75rem;
 }
 
-::ng-deep .ant-tabs-card.ant-tabs-top>.ant-tabs-nav .ant-tabs-tab:not(.ant-tabs-tab-active) {
+::ng-deep
+  .ant-tabs-card.ant-tabs-top
+  > .ant-tabs-nav
+  .ant-tabs-tab:not(.ant-tabs-tab-active) {
   border: unset;
   border-radius: unset;
   background-color: transparent;
 }
 
-::ng-deep .ant-tabs-card>.ant-tabs-nav .ant-tabs-tab-active,
-.ant-tabs-card>div>.ant-tabs-nav .ant-tabs-tab-active {
+::ng-deep .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active,
+.ant-tabs-card > div > .ant-tabs-nav .ant-tabs-tab-active {
   background-color: #ef4723 !important;
   padding: 7px 16px !important;
   /* color: #fff; */
 }
 
-::ng-deep .ant-tabs-card.ant-tabs-top>.ant-tabs-nav .ant-tabs-tab+.ant-tabs-tab,
-.ant-tabs-card.ant-tabs-bottom>.ant-tabs-nav .ant-tabs-tab+.ant-tabs-tab,
-.ant-tabs-card.ant-tabs-top>div>.ant-tabs-nav .ant-tabs-tab+.ant-tabs-tab,
-.ant-tabs-card.ant-tabs-bottom>div>.ant-tabs-nav .ant-tabs-tab+.ant-tabs-tab {
+::ng-deep
+  .ant-tabs-card.ant-tabs-top
+  > .ant-tabs-nav
+  .ant-tabs-tab
+  + .ant-tabs-tab,
+.ant-tabs-card.ant-tabs-bottom > .ant-tabs-nav .ant-tabs-tab + .ant-tabs-tab,
+.ant-tabs-card.ant-tabs-top > div > .ant-tabs-nav .ant-tabs-tab + .ant-tabs-tab,
+.ant-tabs-card.ant-tabs-bottom
+  > div
+  > .ant-tabs-nav
+  .ant-tabs-tab
+  + .ant-tabs-tab {
   margin: 0 !important;
 }
 
-::ng-deep .ant-tabs>.ant-tabs-nav,
-.ant-tabs>div>.ant-tabs-nav {
+::ng-deep .ant-tabs > .ant-tabs-nav,
+.ant-tabs > div > .ant-tabs-nav {
   position: static !important;
 }
 
@@ -159,7 +175,7 @@ nz-sider {
   color: #fff !important;
 }
 
-::ng-deep .ant-tabs-card.ant-tabs-small>.ant-tabs-nav .ant-tabs-tab {
+::ng-deep .ant-tabs-card.ant-tabs-small > .ant-tabs-nav .ant-tabs-tab {
   padding: 8px 16px !important;
   font-size: 0.75rem !important;
 }
@@ -349,6 +365,11 @@ nz-sider {
     transform: rotate(0);
   }
 }
+.menu-title,
+.menu-item-flex {
+  display: inline-flex;
+  align-items: center;
+}
 
 /* Ô chứa icon, luôn chiếm chỗ */
 .icon-slot {
@@ -370,11 +391,11 @@ nz-sider {
 }
 
 /* Ảnh icon thật */
-.menu-icon {
+/* .menu-icon {
   width: 20px;
   height: 20px;
   object-fit: contain;
-}
+} */
 
 .menu-icon-sm {
   width: 14px;
@@ -387,24 +408,41 @@ nz-sider {
   white-space: nowrap;
 }
 
-.menu-icon,
+/* Bỏ margin cũ để không lệch khi không có ảnh */
+/* .menu-icon,
 .menu-icon-sm {
   margin-right: 0;
+} */
+
+
+
+::ng-deep .ant-menu{
+    font-size: 0.75rem !important;
+    text-transform: uppercase;
+    width: 150px;
 }
 
-/* Set indent mặc định cho inline menu (Ant v5+ dùng CSS var) */
-:root {
-  --ant-menu-inline-indent: 16px;
-  /* tùy */
+
+::ng-deep .ant-menu-inline.ant-menu-root .ant-menu-item {
+    white-space: pre-line;
+    line-height: normal;
 }
 
-:host ::ng-deep 
-.ant-menu-inline .ant-menu-sub > .ant-menu-submenu > .ant-menu-submenu-title {
-  padding-left: 10px !important;
+::ng-deep .ant-menu-inline.ant-menu-root .ant-menu-submenu-title > .ant-menu-title-content{
+     white-space: pre-line;
+    line-height: normal;
+    /* font-weight: bold; */
 }
 
-/* Cấp 3: submenu cấp con của cấp 2 */
-:host ::ng-deep 
-.ant-menu-inline .ant-menu-sub .ant-menu-sub > .ant-menu-submenu > .ant-menu-submenu-title {
-  padding-left: 40px !important;
+::ng-deep .ant-menu-vertical .ant-menu-submenu .menu-icon{
+    width: 100% !important;
 }
+
+::ng-deep .ant-layout-sider-collapsed .sidebar-logo{
+    /* background-color: #1a73e8; */
+    height: 40px !important;
+}
+
+/* ::ng-deep .ant-layout-sider-collapsed .sidebar-logo .img-logo{
+    width: 100% !important;
+} */

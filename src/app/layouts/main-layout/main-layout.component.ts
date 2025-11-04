@@ -24,16 +24,14 @@ import { ProjectComponent } from '../../pages/old/project/project.component';
 // import { CustomerComponent } from '../../pages/customer/customer.component';
 import { TbProductRtcComponent } from '../../pages/old/tb-product-rtc/tb-product-rtc.component';
 import { CustomerComponent } from '../../pages/old/VisionBase/customer/customer.component';
-
-
 // import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
 
 
 // import { menus } from '../../pages/old/menus/menus.component';
-import { GroupItem,LeafItem, MenuItem, MenuService } from '../../pages/systems/menus/menu-service/menu.service';
+import { GroupItem, LeafItem, MenuItem, MenuService } from '../../pages/systems/menus/menu-service/menu.service';
 import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
 import { AppNotifycationDropdownComponent, NotifyItem } from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
-import { MenusComponent } from '../../pages/systems/menus/menus.component';
+import { MenusComponent } from '../../pages/old/menus/menus.component';
 
 type TabItem = {
   title: string;
@@ -91,7 +89,6 @@ const COMPONENT_REGISTRY: Record<string, Type<any>> = {
   standalone: true,
 })
 export class MainLayoutComponent implements OnInit {
-  trackKey = (_: number, x: any) => x?.key ?? x?.title ?? _;
   CustomerComponent = CustomerComponent;
   ProductRtcComponent = TbProductRtcComponent;
   ProjectComponent = ProjectComponent;
@@ -106,7 +103,7 @@ export class MainLayoutComponent implements OnInit {
   isCollapsed = true;
   isDatcom = false;
   selectedIndex = 0;
-
+  trackKey = (_: number, x: any) => x?.key ?? x?.title ?? _;
   isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
   isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
   menus:MenuItem[]=[];

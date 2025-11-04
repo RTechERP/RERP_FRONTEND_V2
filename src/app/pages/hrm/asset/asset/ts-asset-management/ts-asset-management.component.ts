@@ -57,6 +57,7 @@ import { TsAssetRepairFormComponent } from './ts-asset-repair-form/ts-asset-repa
 import { TsAssetReuseFormComponent } from './ts-asset-reuse-form/ts-asset-reuse-form.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { count } from 'rxjs';
+import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
@@ -83,7 +84,7 @@ function formatDateCell(cell: CellComponent): string {
     NzSelectModule,
     NzTableModule,
     NzTabsModule,
-    NgbModalModule,
+    NgbModalModule,HasPermissionDirective
   ],
   selector: 'app-ts-asset-management',
   templateUrl: './ts-asset-management.component.html',

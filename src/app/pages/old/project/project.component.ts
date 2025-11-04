@@ -46,6 +46,7 @@ import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { ProjectService } from './project-service/project.service';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 @Component({
   selector: 'app-projects',
   standalone: true,
@@ -70,7 +71,7 @@ import { ProjectService } from './project-service/project.service';
     NzSpinModule,
     NzTreeSelectModule,
     NzModalModule,
-    CommonModule,
+    CommonModule,HasPermissionDirective
   ],
   templateUrl: './project.component.html',
   styleUrl: './project.component.css',
@@ -989,6 +990,9 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       size: 'xl',
       backdrop: 'static',
       keyboard: false,
+      // centered: true,
+      // backdrop: 'static',
+      // windowClass: 'full-screen-modal',
     });
 
     modalRef.componentInstance.projectId = status == 0 ? 0 : selectedIDs[0];
@@ -1264,6 +1268,11 @@ export class ProjectComponent implements OnInit, AfterViewInit {
   }
   //#endregion
 
+  //#region đóng panel
+  closePanel(){
+    this.sizeTbDetail = '0';
+  }
+  //#endregion
   //#region Người tham gia dự án
   openProjectEmployee() {
     let selectedRows = this.tb_projects.getSelectedRows();

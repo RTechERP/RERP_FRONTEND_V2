@@ -61,6 +61,7 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 // @ts-ignore
 import { saveAs } from 'file-saver';
 import { HandoverRejectreasonFormComponent } from './handover-rejectreason-form/handover-rejectreason-form.component';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 
 interface Handover {
   ID: number;
@@ -178,7 +179,7 @@ interface HandoverApprove {
     NzFormModule,
     NzInputNumberModule,
     NzDropDownModule,
-    NzMenuModule,
+    NzMenuModule,HasPermissionDirective
   ],
   templateUrl: './handover.component.html',
   styleUrl: './handover.component.css',

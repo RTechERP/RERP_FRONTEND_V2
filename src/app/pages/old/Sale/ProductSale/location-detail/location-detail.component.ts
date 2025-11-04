@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit, ViewChild, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { RowComponent } from 'tabulator-tables';
@@ -21,6 +21,22 @@ interface Location {
   LocationCode: string,
   LocationName: string,
   ProductGroupID: number
+}
+
+// Custom validator để kiểm tra ký tự tiếng Việt
+function noVietnameseValidator(control: AbstractControl): ValidationErrors | null {
+  if (!control.value) {
+    return null; // Không validate nếu giá trị rỗng
+  }
+  
+  // Regex để kiểm tra ký tự tiếng Việt
+  const vietnameseRegex = /[àáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵÀÁẢÃẠÂẦẤẨẪẬĂẰẮẲẴẶÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴđĐ]/i;
+  
+  if (vietnameseRegex.test(control.value)) {
+    return { vietnameseChars: true };
+  }
+  
+  return null;
 }
 
 @Component({
@@ -49,35 +65,55 @@ export class LocationDetailComponent implements OnInit, AfterViewInit {
     ProductGroupID: 0
   }
   @Input() listProductGroupcbb: any[] = [];
+  
+  formGroup: FormGroup;
+
   constructor(
     private notification: NzNotificationService,
     private fb: FormBuilder,
     public activeModal: NgbActiveModal,
     private modalService: NgbModal,
     private productsaleService: ProductsaleServiceService
-  ) { }
-  ngOnInit(): void {
-    
+  ) { 
+    this.formGroup = this.fb.group({
+      ProductGroupID: [null, [Validators.required]],
+      LocationCode: ['', [Validators.required, noVietnameseValidator]],
+      LocationName: ['', [Validators.required]]
+    });
   }
+  ngOnInit(): void {
+    // Patch form values from input data
+    this.formGroup.patchValue({
+      ProductGroupID: this.newLocation.ProductGroupID || null,
+      LocationCode: this.newLocation.LocationCode || '',
+      LocationName: this.newLocation.LocationName || ''
+    });
+  }
+  
   ngAfterViewInit(): void {
     
   }
+  
   addNewLocation(){
-    if (!this.newLocation.LocationName || !this.newLocation.LocationCode || !this.newLocation.ProductGroupID) {
-      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin!');
+    this.trimAllStringControls();
+    if (this.formGroup.invalid) {
+      this.formGroup.markAllAsTouched();
       return;
     }
+
+    const formValue = this.formGroup.getRawValue();
     const payload = [{   
-        LocationCode: this.newLocation.LocationCode,
-        LocationName: this.newLocation.LocationName,
-        ProductGroupID: this.newLocation.ProductGroupID,
+        LocationCode: formValue.LocationCode,
+        LocationName: formValue.LocationName,
+        ProductGroupID: formValue.ProductGroupID,
     }];
+    console.log("pay", payload);
     this.productsaleService.saveDataLocation(payload).subscribe({
       next: (res) => {
         if (res.status === 1) {
           this.notification.success('Thông báo', 'Thêm mới thành công!');
           this.closeModal();
-        } else {
+        }else {
           this.notification.warning('Thông báo', res.message || 'Không thể thêm vị trí!');
         }
       },
@@ -89,5 +125,49 @@ export class LocationDetailComponent implements OnInit, AfterViewInit {
   }
   closeModal() {
     this.activeModal.dismiss(true);
+  }
+
+  // Hàm để lấy error message cho LocationCode
+  getLocationCodeError(): string | undefined {
+    const control = this.formGroup.get('LocationCode');
+    if (control?.invalid && (control?.dirty || control?.touched)) {
+      if (control.errors?.['required']) {
+        return 'Vui lòng nhập mã vị trí!';
+      }
+      if (control.errors?.['vietnameseChars']) {
+        return 'Mã vị trí không được chứa ký tự tiếng Việt!';
+      }
+    }
+    return undefined;
+  }
+
+  // Hàm để lấy error message cho LocationName
+  getLocationNameError(): string | undefined {
+    const control = this.formGroup.get('LocationName');
+    if (control?.invalid && (control?.dirty || control?.touched)) {
+      if (control.errors?.['required']) {
+        return 'Vui lòng nhập tên vị trí!';
+      }
+    }
+    return undefined;
+  }
+
+  // Hàm để lấy error message cho ProductGroupID
+  getProductGroupError(): string | undefined {
+    const control = this.formGroup.get('ProductGroupID');
+    if (control?.invalid && (control?.dirty || control?.touched)) {
+      if (control.errors?.['required']) {
+        return 'Vui lòng chọn kho!';
+      }
+    }
+    return undefined;
+  }
+
+  private trimAllStringControls() {
+    Object.keys(this.formGroup.controls).forEach(k => {
+      const c = this.formGroup.get(k);
+      const v = c?.value;
+      if (typeof v === 'string') c!.setValue(v.trim(), { emitEvent: false });
+    });
   }
 }

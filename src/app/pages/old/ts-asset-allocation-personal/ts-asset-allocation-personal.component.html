@@ -195,7 +195,8 @@
             </div>
             <div class="modal-footer">
                 <button nz-button nzType="default" nzDanger (click)="closeModal()">Đóng</button>
-                <button nz-button nzType="primary" (click)="saveAllocationPersonal()">Cấp phát</button>
+                <button nz-button nzType="primary" (click)="saveAllocationPersonal()" *hasPermission="'N23'">Cấp
+                    phát</button>
             </div>
         </div>
     </div>

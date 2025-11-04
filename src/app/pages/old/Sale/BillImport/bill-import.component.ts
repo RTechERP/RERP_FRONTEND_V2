@@ -1,7 +1,7 @@
 import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import * as bootstrap from 'bootstrap';
+// import * as bootstrap from 'bootstrap';
 
 import { CommonModule } from '@angular/common';
 import {
@@ -29,8 +29,8 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { BillImportServiceService } from './bill-import-service/bill-import-service.service';
-import { IS_ADMIN } from '../../../../../app.config';
-import { DEPARTMENTID } from '../../../../../app.config';
+import { IS_ADMIN } from '../../../../app.config';
+import { DEPARTMENTID } from '../../../../app.config';
 import { DateTime } from 'luxon';
 import { HistoryDeleteBillComponent } from '../BillExport/Modal/history-delete-bill/history-delete-bill.component';
 import { BillImportDetailComponent } from './Modal/bill-import-detail/bill-import-detail.component';
@@ -38,6 +38,7 @@ import { BillDocumentExportComponent } from '../BillExport/Modal/bill-document-e
 import { BillDocumentImportComponent } from './Modal/bill-document-import/bill-document-import.component';
 import { BillImportSyntheticComponent } from './Modal/bill-import-synthetic/bill-import-synthetic.component';
 import { ScanBillImportComponent } from './Modal/scan-bill-import/scan-bill-import.component';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 interface BillImport {
   Id?: number;
   BillImportCode: string;
@@ -176,6 +177,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     this.loadDataBillImport();
     this.sizeSearch = '';
   }
+  convertExport(){}
 
   openModalBillImportDetail(ischeckmode: boolean) {
     this.isCheckmode = ischeckmode;
@@ -662,6 +664,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
       this.table_billImport.replaceData(this.dataTableBillImport);
     } else {
       this.table_billImport = new Tabulator('#table_billImport', {
+        ...DEFAULT_TABLE_CONFIG,
         data: this.dataTableBillImport,
         layout: 'fitDataFill',
         height: '80vh',
@@ -672,16 +675,6 @@ export class BillImportComponent implements OnInit, AfterViewInit {
         reactiveData: true,
         rowContextMenu: rowMenu,
         columns: [
-          {
-            title: '',
-            formatter: 'rowSelection',
-            titleFormatter: 'rowSelection',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            headerSort: false,
-            width: 40,
-            frozen: true,
-          },
           {
             title: 'Nhận chứng từ',
             field: 'Status',
@@ -827,6 +820,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
       this.table_billImportDetail.replaceData(this.dataTableBillImportDetail);
     } else {
       this.table_billImportDetail = new Tabulator('#table_billimportdetail', {
+        ...DEFAULT_TABLE_CONFIG,
         data: this.dataTableBillImportDetail,
         layout: 'fitDataFill',
         height: '80vh',

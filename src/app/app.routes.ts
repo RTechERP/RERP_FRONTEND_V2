@@ -24,27 +24,13 @@ import { ProjectItemLateComponent } from './pages/old/project/project-item-late/
 import { ProjectWorkItemTimelineComponent } from './pages/old/project/project-work-item-timeline/project-work-item-timeline.component';
 import { SynthesisOfGeneratedMaterialsComponent } from './pages/old/project/synthesis-of-generated-materials/synthesis-of-generated-materials.component';
 import { ProjectSynthesisDepartmentComponent } from './pages/old/project/project-synthesis-department/project-synthesis-department.component';
-import { ProjectPartlistPurchaseRequestComponent } from './pages/old/project-partlist-purchase-request/project-partlist-purchase-request.component';
 import { LoginComponent } from './auth/login/login.component';
 import { authGuard } from './auth/auth.guard';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';
 import { MainLayoutComponent } from './layouts/main-layout/main-layout.component';
-import { AppComponent } from './app.component';
 import { MenusComponent } from './pages/old/menus/menus.component';
 import { HomeLayoutComponent } from './layouts/home-layout/home-layout.component';
-import { TsAssetManagementPersonalComponent } from './pages/old/ts-asset-management-personal/ts-asset-management-personal.component';
-import { TsAssetAllocationPersonalComponent } from './pages/old/ts-asset-allocation-personal/ts-asset-allocation-personal.component';
-import { TsAssetRecoveryPersonalComponent } from './pages/old/ts-asset-recovery-personal/ts-asset-recovery-personal.component';
-import { TsAssetUnitcountComponent } from './pages/hrm/asset/asset/ts-asset-unitcount/ts-asset-unitcount.component';
-import { TsAssetTypeComponent } from './pages/hrm/asset/asset/ts-asset-type/ts-asset-type.component';
-import { TsAssetStatusComponent } from './pages/hrm/asset/asset/ts-asset-status/ts-asset-status.component';
-import { TsAssetSourceComponent } from './pages/hrm/asset/asset/ts-asset-source/ts-asset-source.component';
-import { TsAssetManagementComponent } from './pages/hrm/asset/asset/ts-asset-management/ts-asset-management.component';
-import { TsAssetAllocationComponent } from './pages/hrm/asset/asset/ts-asset-allocation/ts-asset-allocation.component';
-import { TsAssetRecoveryComponent } from './pages/hrm/asset/asset/ts-asset-recovery/ts-asset-recovery.component';
-import { TsAssetTransferComponent } from './pages/hrm/asset/asset/ts-asset-transfer/ts-asset-transfer.component';
-// import { CustomerComponent } from './pages/customer/customer.component';
-import { ProductComponent } from './pages/old/product/product.component';
+
 import { TbProductRtcComponent } from './pages/old/tb-product-rtc/tb-product-rtc.component';
 import { ProductSaleComponent } from './pages/old/Sale/ProductSale/product-sale.component';
 import { HrmComponent } from './pages/hrm/hrm.component';

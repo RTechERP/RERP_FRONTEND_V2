@@ -1,0 +1,6 @@
+::ng-deep .ant-select-item-group {
+    color: #4a5568 !important;
+    font-weight: bold;
+    font-size: 15px !important;
+    background-color: rgb(232, 234, 235) !important; /* nền xám rất nhạt */
+  }

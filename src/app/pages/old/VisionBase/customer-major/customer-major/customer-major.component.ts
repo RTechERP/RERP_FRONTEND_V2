@@ -58,6 +58,8 @@ import { SelectControlComponent } from '../../../select-control/select-control.c
 
 import { CustomerMajorService } from '../customer-major-service/customer-major.service';
 import { CustomerMajorDetailComponent } from '../customer-major-detail/customer-major-detail.component';
+import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
+import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 @Component({
   selector: 'app-customer-major',
   imports: [
@@ -100,6 +102,8 @@ export class CustomerMajorComponent implements OnInit, AfterViewInit {
   selectedId: number = 0;
   isEditMode: boolean = false;
   data: any[] = [];
+  keyword = '';
+
 
   constructor(
     private notification: NzNotificationService,
@@ -108,7 +112,8 @@ export class CustomerMajorComponent implements OnInit, AfterViewInit {
     public activeModal: NgbActiveModal,
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
-    private customerMajorService: CustomerMajorService
+    private customerMajorService: CustomerMajorService,
+    
   ) {}
 
   ngOnInit(): void {
@@ -124,15 +129,41 @@ export class CustomerMajorComponent implements OnInit, AfterViewInit {
   }
 
   onEdit(): void {
-    if (this.selectedId > 0) {
+    const selectedRows = this.tb_MainTable?.getSelectedData();
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn một ngành nghề để sửa!');
+      return;
+    }
+      this.selectedId = selectedRows[0].ID;
       this.isEditMode = true;
       this.openCustomerMajorDetail();
-    } else {
-      this.notification.info('Thông báo', 'Vui lòng chọn 1 bản ghi cần sửa!');
-    }
+  }
+  getdataFind(){
+    const key = this.keyword?.trim().toLowerCase() || '';
+    this.customerMajorService.search(key).subscribe({
+      next: (response) => {
+        if (response.status === 1) {
+          this.data = response.data;
+          if (this.tb_MainTable) {
+            this.tb_MainTable.setData(this.data);
+          }
+        } else {
+          this.notification.error('Lỗi', response.message);
+        }
+      },
+      error: (error) => {
+        this.notification.error('Lỗi', error);
+      },
+    });
+
   }
 
   onDelete() {
+    const selectedRows = this.tb_MainTable?.getSelectedData();
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một ngành nghề để xóa!');
+      return;
+    }
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
       nzContent: 'Bạn có chắc chắn muốn xóa dòng này?',
@@ -147,7 +178,10 @@ export class CustomerMajorComponent implements OnInit, AfterViewInit {
           next: (res: any) => {
             if (res?.status === 1) {
               this.notification.success('Thông báo', 'Xóa thành công');
-              this.activeModal.close({ success: true, reloadData: true });
+              if (this.tb_MainTable) {
+                this.keyword='';
+                this.loadData();
+              }
             } else {
               this.notification.error(
                 'Lỗi',
@@ -176,9 +210,11 @@ export class CustomerMajorComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.EditID = this.selectedId;
     modalRef.result.then(
       (result) => {
-        if (result.success && result.reloadData) {
+        if (result==true) {
           this.selectedRow = [];
           this.selectedId = 0;
+          this.isEditMode = false;
+          this.keyword='';
           if (this.tb_MainTable) {
             this.loadData();
           }
@@ -212,27 +248,28 @@ export class CustomerMajorComponent implements OnInit, AfterViewInit {
 
   initMainTable(): void {
     this.tb_MainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
+      ...DEFAULT_TABLE_CONFIG,
       data: this.data,
-      layout: 'fitColumns',
-      height: '85vh',
-      selectableRows: 1,
-      pagination: true,
-      paginationSize: 100,
-      movableColumns: true,
-      resizableRows: true,
-      reactiveData: true,
-      columnDefaults: {
-        headerWordWrap: true,
-        headerVertical: false,
-        headerHozAlign: 'center',
-        minWidth: 60,
-        resizable: true,
-      },
+      //layout: 'fitColumns',
+      paginationMode: 'local',
+      // columnDefaults: {
+      //   headerWordWrap: true,
+      //   headerVertical: false,
+      //   headerHozAlign: 'center',
+      //   minWidth: 60,
+      //   resizable: true,
+      // },
+      height: '70vh',
+      selectableRows:1,
+      layout: "fitColumns",
+      responsiveLayout: true,
+      rowHeader:false,
+
       columns: [
         { title: 'ID', field: 'ID', visible: false },
-        { title: 'STT', field: 'STT', width: '10%' },
-        { title: 'Mã ngành nghề', field: 'Code', width: '30%' },
-        { title: 'Tên ngành nghề', field: 'Name', width: '60%' },
+        { title: 'STT', field: 'STT', width:"10%"},
+        { title: 'Mã ngành nghề', field: 'Code'},
+        { title: 'Tên ngành nghề', field: 'Name'},
       ],
     });
     this.tb_MainTable.on('rowClick', (e: any, row: RowComponent) => {

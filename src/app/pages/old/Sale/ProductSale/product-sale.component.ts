@@ -72,9 +72,9 @@ interface ProductSale {
     NzInputNumberModule,
     NzCheckboxModule,
     NgbModule,
+    HasPermissionDirective
     // ProductSaleDetailComponent,
     // ImportExcelProductSaleComponent,
-    HasPermissionDirective
   ],
   templateUrl: './product-sale.component.html',
   styleUrl: './product-sale.component.css',
@@ -92,8 +92,9 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
   listProductGroup: any[] = [];
   dataProducGroup: any[] = [];
 
-  // các biến truyền vào của hàm getDataProductSale
   id: number = 0;
+  // các biến truyền vào của hàm getDataProductSale
+  idSale: number = 0;
   keyword: string = '';
   checkedALL: boolean = false;
 
@@ -172,6 +173,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
           if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
             this.listProductGroup = res.data;
             this.dataProducGroup = res.data;
+            console.log('table_productgroup', this.dataProducGroup);
             // Chỉ gán ID nếu chưa có ID được chọn
             if (!this.id) {
               this.id = res.data[0].ID;
@@ -182,10 +184,14 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
               this.table.setData(this.dataProducGroup).then(() => {
                 // Lấy tất cả các hàng, đáng tin cậy hơn getRowFromPosition(0) ngay lập tức
                 const allRows = this.table.getRows();
-                const firstRow = allRows.length > 0 ? allRows[0] : null;
-                if (firstRow) {
-                  firstRow.select();
-                  const rowData = firstRow.getData();
+                // 🔹 Tìm hàng đầu tiên có IsVisible = true
+                const firstVisibleRow = allRows.find((row: any) => {
+                  const data = row.getData();
+                  return data.IsVisible === true;
+                });
+                if (firstVisibleRow) {
+                  firstVisibleRow.select();
+                  const rowData = firstVisibleRow.getData();
                   this.dataDelete = rowData;
                   this.id = rowData['ID'];
                   this.getDataProductSaleByIDgroup(this.id);
@@ -220,7 +226,10 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     }
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: 'Bạn có chắc chắn muốn xóa không?',
+      nzContent:
+        'Bạn có chắc chắn muốn xóa nhóm [' +
+        this.dataDelete.ProductGroupName +
+        '] không?',
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
@@ -363,8 +372,8 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
       );
       return;
     } else {
-      this.id = ids[0];
-      this.productsaleSV.getDataProductSalebyID(this.id).subscribe({
+      this.idSale = ids[0];
+      this.productsaleSV.getDataProductSalebyID(this.idSale).subscribe({
         next: (res) => {
           if (res?.data) {
             const data = Array.isArray(res.data) ? res.data[0] : res.data;
@@ -435,9 +444,23 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
       );
       return;
     }
+    let name = '';
+    dataSelect.forEach((item) => {
+      name += item.ProductName + ',';
+    });
+    if (dataSelect.length > 10) {
+      if (name.length > 10) {
+        name = name.slice(0, 10) + '...';
+      }
+      name += ` và ${dataSelect.length - 1} vật tư khác`;
+    } else {
+      if (name.length > 20) {
+        name = name.slice(0, 20) + '...';
+      }
+    }
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: 'Bạn có chắc chắn muốn xóa không?',
+      nzContent: `Bạn có chắc chắn muốn xóa vật tư <b>[${name}]</b> không?`,
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
@@ -445,8 +468,10 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
           next: (res) => {
             if (res.status === 1) {
               this.notification.success('Thông báo', 'Đã xóa thành công!');
-              this.id = 0; // Set to 0 to trigger selection of first record in GetProductGroup
-              this.getProductGroup();
+              // this.id = 0; // Set to 0 to trigger selection of first record in GetProductGroup
+              // this.getProductGroup();
+              this.idSale = 0;
+              this.getDataProductSaleByIDgroup(this.id);
             } else {
               this.notification.warning(
                 'Thông báo',
@@ -470,14 +495,17 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
       ...DEFAULT_TABLE_CONFIG,
       data: this.dataProducGroup,
       height: '100%',
-      pagination: false,
       selectableRows: 1,
+      pagination: false,
+      rowHeader: false,
       rowFormatter: function (row) {
         const data = row.getData();
         const el = row.getElement();
         el.classList.remove('row-inactive');
+        el.classList.remove('row-disabled');
+
         if (data['IsVisible'] === false) {
-          el.classList.add('row-inactive');
+          el.classList.add('row-disabled');
         }
       },
 
@@ -500,12 +528,18 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     });
 
     this.table.on('rowClick', (e: MouseEvent, row: RowComponent) => {
+      // Nếu click vào cột checkbox thì bỏ qua
       const rowData = row.getData();
       this.dataDelete = rowData;
       this.id = rowData['ID'];
-      //   console.log('Selected ID:', this.id);
+      console.log('Selected ID:', this.id);
       this.getDataProductSaleByIDgroup(this.id);
       this.getDataProductGroupWareHouse(this.id);
+    });
+    this.table.on('rowDblClick', (e: MouseEvent, row: RowComponent) => {
+      const rowData = row.getData();
+      this.id = rowData['ID']; // Make it an array with single item
+      this.openModalProductGroup(true);
     });
   }
   drawTable_PGWareHouse() {
@@ -599,9 +633,9 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
       (e: MouseEvent, row: RowComponent) => {
         const rowData = row.getData();
         this.selectedList = [rowData]; // Make it an array with single item
-        this.id = rowData['ID'];
+        this.idSale = rowData['ID'];
         this.isCheckmode = true;
-        this.productsaleSV.getDataProductSalebyID(this.id).subscribe({
+        this.productsaleSV.getDataProductSalebyID(this.idSale).subscribe({
           next: (res) => {
             if (res?.data) {
               const data = Array.isArray(res.data) ? res.data[0] : res.data;
@@ -674,14 +708,14 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
             this.drawTable_PGWareHouse();
           } else {
             this.table_pgwarehouse.setData(this.dataPGWareHouse).then(() => {
-              // Lấy tất cả các hàng, đáng tin cậy hơn getRowFromPosition(0) ngay lập tức
-              const allRows = this.table_pgwarehouse.getRows();
-              const firstRow = allRows.length > 0 ? allRows[0] : null;
-              if (firstRow) {
-                firstRow.select();
-                const rowData = firstRow.getData();
-                this.dataDelete = rowData;
-              }
+              // // Lấy tất cả các hàng, đáng tin cậy hơn getRowFromPosition(0) ngay lập tức
+              //  const allRows = this.table_pgwarehouse.getRows();
+              //  const firstRow = allRows.length > 0 ? allRows[0] : null;
+              //   if (firstRow) {
+              //     firstRow.select();
+              //     const rowData = firstRow.getData();
+              //     this.dataDelete = rowData;
+              //   }
             });
           }
         }
@@ -754,11 +788,11 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.listUnitCount = this.listUnitCount;
     modalRef.componentInstance.listProductGroupcbb = this.listProductGroupcbb;
     modalRef.componentInstance.selectedList = this.selectedList;
-    modalRef.componentInstance.id = this.id;
+    modalRef.componentInstance.id = this.idSale;
 
     modalRef.result.catch((result) => {
       if (result == true) {
-        this.getProductGroup();
+        //this.getProductGroup();
         this.getDataProductSaleByIDgroup(this.id);
       }
     });

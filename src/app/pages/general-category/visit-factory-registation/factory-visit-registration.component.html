@@ -20,13 +20,7 @@
                                     name="fromDate"></nz-date-picker>
                             </nz-form-control>
                         </nz-form-item>
-                        <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                                <nz-date-picker class="w-100" nzSize="small" [(ngModel)]="searchForm.toDate"
-                                    name="toDate"></nz-date-picker>
-                            </nz-form-control>
-                        </nz-form-item>
+                      
                         <nz-form-item class="mt-2">
                             <nz-form-label class="fs-12" [nzSpan]="24">Người đăng ký</nz-form-label>
                             <nz-form-control [nzSpan]="24">
@@ -54,7 +48,7 @@
                     </form>
                 </div>
                 <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
-                    <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">Đặt lại</button>
+                    <button nz-button nzType="default" nzSize="small" >Đặt lại</button>
                     <button nz-button nzType="primary" nzSize="small" (click)="search()">Tìm kiếm</button>
                 </div>
             </div>
@@ -124,57 +118,7 @@
                         <!-- Legend cho màu sắc -->
 
                         <!-- <div #registrationTable1 id="registration-table"></div> -->
-                        <nz-splitter-panel [nzCollapsible]="true" nzResizable="true"
-                            [nzSize]="selectedRegistration ? undefined : 0">
-                            <nz-tabset class="ps-1">
-                                <nz-tab nzTitle="Chi tiết thăm nhà máy">
-                                    <div class="p-2">
-                                        <p><span class="fw-bold">Người đăng ký:</span> {{visitFactory.fullName || ''}}
-                                        </p>
-                                        <p><span class="fw-bold">Ngày đăng ký:</span> {{visitFactory.registrationDate |
-                                            date:'dd/MM/yyyy'}}</p>
-                                        <p>
-                                            <span class="fw-bold">Từ:</span> {{visitFactory.startTime | date:'dd/MM/yyyy
-                                            HH:mm'}} <span class="fw-bold">Đến:</span> {{visitFactory.endTime|
-                                            date:'dd/MM/yyyy
-                                            HH:mm'}}
-                                        </p>
-                                        <p><span class="fw-bold">Loại khách:</span> {{visitFactory.VisitGuestTypeName||
-                                            ''}}
-                                        </p>
-                                        <p><span class="fw-bold">Công ty/ Đơn vị khách:</span>
-                                            {{visitFactory.guestCompany|| ''}}</p>
-                                        <p><span class="fw-bold">Số người tham gia:</span>
-                                            {{visitFactory.numberOfPeople|| 0}}</p>
-                                        <p><span class="fw-bold">Mục đích:</span> {{visitFactory.purpose|| ''}}</p>
-                                        <p><span class="fw-bold">Ghi chú: </span> {{visitFactory.notes|| ''}}</p>
-                                    </div>
-                                </nz-tab>
-                                <nz-tab nzTitle="Người tham gia">
-                                    <div class="p-2">
-                                        <div class="mb-2 d-flex gap-1">
-                                            <button class="fs-12" nz-button nzType="default" nzSize="small"
-                                                (click)="openParticipantModal()">
-                                                <nz-icon nzType="plus" /> Thêm người tham gia
-                                            </button>
-                                            <button class="fs-12" nz-button nzType="default" nzSize="small"
-                                                (click)="deleteParticipant()">
-                                                <nz-icon nzType="delete" />Xóa
-                                            </button>
-                                            <button class="fs-12 ms-auto" nz-button nzType="default" nzDanger
-                                                nzSize="small" (click)="closeDetailPanel()" title="Đóng">
-                                                <nz-icon nzType="close" /> Đóng chi tiết
-                                            </button>
-                                        </div>
-                                        <!-- Bảng chi tiết thăm nhà máy -->
-                                        <div class="mb-2">
-                                            <div #detailTable id="visit-detail-table"></div>
-                                        </div>
-                                    </div>
-                                </nz-tab>
-
-                            </nz-tabset>
-                        </nz-splitter-panel>
+                       
                     </nz-splitter>
                 </div>
             </div>

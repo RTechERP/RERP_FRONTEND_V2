@@ -1,3 +1,29 @@
-<p>
-  ts-asset-source-form works!
-</p>
+<div class="modal-header bg-primary p-2">
+  <h6 class="modal-title text-white" id="unitModalLabel">
+    Loại tài sản
+  </h6>
+  <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+</div>
+<div class="modal-body">
+  <form class="row g-3">
+    <div class="col-md-12">
+      <label for="sourceCode" class="form-label">Mã nguồn gốc<span class="text-danger ps-1 "> (*) </span></label>
+      <nz-input-group >
+        <input id="sourceCode" nz-input name="sourceCode" [(ngModel)]="sourceCode" placeholder="Nhập mã nguồn gốc" />
+        <ng-template #prefixIcon><i nz-icon nzType="apartment"></i></ng-template>
+      </nz-input-group>
+    </div>
+    <div class="col-md-12">
+      <label for="SourceName" class="form-label">Tên nguồn gốc<span class="text-danger ps-1 "> (*) </span></label>
+      <nz-input-group >
+        <input id="SourceName" nz-input name="SourceName" [(ngModel)]="SourceName" placeholder="Nhập tên nguồn gốc" />
+        <ng-template #prefixIcon><i nz-icon nzType="apartment"></i></ng-template>
+      </nz-input-group>
+    </div>
+  </form>
+</div>
+<div class="modal-footer">
+  <button nz-button nzType="default" nzDanger (click)="close()">Đóng</button>
+  <button nz-button nzType="primary" (click)="save()">Lưu dữ liệu
+  </button>
+</div>

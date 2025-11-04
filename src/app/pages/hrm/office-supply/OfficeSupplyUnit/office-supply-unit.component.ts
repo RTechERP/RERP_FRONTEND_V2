@@ -16,6 +16,7 @@ import { OfficeSupplyUnitDetailComponent } from './office-supply-unit-detail/off
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 interface newOfficeSupplyUnit {
   ID?: number;
   Name: string;
@@ -35,6 +36,7 @@ interface newOfficeSupplyUnit {
     NzButtonModule,
     NzFormModule,
     OfficeSupplyUnitDetailComponent,
+    HasPermissionDirective
   ],
   templateUrl: './office-supply-unit.component.html',
   styleUrl: './office-supply-unit.component.css',

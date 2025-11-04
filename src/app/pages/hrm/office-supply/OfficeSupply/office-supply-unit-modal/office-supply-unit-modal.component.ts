@@ -120,6 +120,17 @@ export class OfficeSupplyUnitModalComponent implements OnInit, AfterViewInit {
         movableColumns: true,
         resizableRows: true,
         reactiveData: true,
+         langs: {
+          vi: {
+            pagination: {
+              first: '<<',
+              last: '>>',
+              prev: '<',
+              next: '>',
+            },
+          },
+        },
+        locale: 'vi',
         columns: [
           {
             title: 'Tên đơn vị',
@@ -160,11 +171,11 @@ export class OfficeSupplyUnitModalComponent implements OnInit, AfterViewInit {
           this.notification.success('Thông báo', 'Thêm mới thành công!');
           this.selectedItem = {};
           this.getUnit();
-          this.activeModal.close('success');
+        
         },
-        error: (err) => {
-          console.error('Lỗi khi thêm mới:', err);
-          this.notification.error('Thông báo', 'Có lỗi xảy ra khi thêm mới!');
+        error: (response:any) => {
+          console.error('Lỗi khi thêm mới:', response);
+          this.notification.error('Thông báo', response.error.message||'Có lỗi xảy ra khi thêm mới!');
         }
       });
     } else {
@@ -174,7 +185,7 @@ export class OfficeSupplyUnitModalComponent implements OnInit, AfterViewInit {
           this.notification.success('Thông báo', 'Cập nhật thành công!');
           this.selectedItem = {};
           this.getUnit();
-          this.activeModal.close('success');
+         
         },
         error: (err) => {
           console.error('Lỗi khi cập nhật dữ liệu:', err);

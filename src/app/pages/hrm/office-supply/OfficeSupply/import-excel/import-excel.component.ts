@@ -446,52 +446,68 @@ export class ImportExcelComponent implements OnInit, AfterViewInit {
         }
 
         // Hàm để xử lý lưu từng sản phẩm với delay
-        const saveProductWithDelay = (index: number) => {
-          if (index >= processedData.length) {
-            // Đã xử lý xong tất cả sản phẩm
-            console.log('--- Tất cả các request adddata đã hoàn thành ---');
-            this.showSaveSummary(successCount, errorCount, totalProductsToSave);
-            return;
-          }
+       const saveProductWithDelay = (index: number) => {
+  if (index >= processedData.length) {
+    console.log('--- Tất cả các request adddata đã hoàn thành ---');
+    this.showSaveSummary(successCount, errorCount, totalProductsToSave);
+    return;
+  }
 
-          const product = processedData[index];
-          console.log(`Gửi lưu sản phẩm ${index + 1}/${totalProductsToSave}:`, product);
+  const product = processedData[index];
+  console.log(`Gửi lưu sản phẩm ${index + 1}/${totalProductsToSave}:`, product);
 
-          // Thêm delay 0,0005 giây trước khi lưu mỗi sản phẩm
-          setTimeout(() => {
-            this.officesupplyService.adddata(product).subscribe({
-              next: (response) => {
-                console.log(`Response từ adddata cho sản phẩm ${index + 1}:`, response);
-                if (response.status === 1) {
-                  successCount++;
-                } else {
-                  errorCount++;
-                  console.error(`Lỗi khi lưu sản phẩm ${index + 1}:`, response.message);
-                }
+  setTimeout(() => {
+    this.officesupplyService.adddata(product).subscribe({
+      next: (response: any) => {
+        console.log(`Response từ adddata cho sản phẩm ${index + 1}:`, response);
 
-                completedRequests++;
-                this.processedRowsForSave = completedRequests;
-                this.displayProgress = Math.round((completedRequests / totalProductsToSave) * 100);
-                this.displayText = `Đang lưu: ${completedRequests}/${totalProductsToSave} bản ghi`;
+        if (response.status === 1) {
+          successCount++;
+        } else {
+          errorCount++;
 
-                // Xử lý sản phẩm tiếp theo
-                saveProductWithDelay(index + 1);
-              },
-              error: (err) => {
-                errorCount++;
-                console.error(`Lỗi khi lưu sản phẩm ${index + 1}:`, err);
+          // Lấy message khi backend trả status != 1
+          const msg =
+            response.error?.message ||
+            response.message ||
+            'Lưu thất bại, không có message từ server';
 
-                completedRequests++;
-                this.processedRowsForSave = completedRequests;
-                this.displayProgress = Math.round((completedRequests / totalProductsToSave) * 100);
-                this.displayText = `Đang lưu: ${completedRequests}/${totalProductsToSave} bản ghi`;
+          console.error(`Lỗi khi lưu sản phẩm ${index + 1}:`, msg, response);
+          // Nếu muốn show từng dòng lỗi:
+          // this.notification.error('Thông báo', `Dòng ${index + 1}: ${msg}`);
+        }
 
-                // Xử lý sản phẩm tiếp theo
-                saveProductWithDelay(index + 1);
-              }
-            });
-          }, 5); // Delay 0,0005s
-        };
+        completedRequests++;
+        this.processedRowsForSave = completedRequests;
+        this.displayProgress = Math.round((completedRequests / totalProductsToSave) * 100);
+        this.displayText = `Đang lưu: ${completedRequests}/${totalProductsToSave} bản ghi`;
+
+        saveProductWithDelay(index + 1);
+      },
+      error: (err: any /* hoặc HttpErrorResponse */) => {
+        errorCount++;
+
+        // Lấy message khi call API lỗi hẳn (4xx/5xx, timeout,...)
+        const msg =
+          err.error?.message ||
+          err.message ||
+          'Lỗi kết nối server khi lưu sản phẩm';
+
+        console.error(`Lỗi khi lưu sản phẩm ${index + 1}:`, msg, err);
+
+        // Nếu muốn show luôn:
+        // this.notification.error('Thông báo', `Dòng ${index + 1}: ${msg}`);
+
+        completedRequests++;
+        this.processedRowsForSave = completedRequests;
+        this.displayProgress = Math.round((completedRequests / totalProductsToSave) * 100);
+        this.displayText = `Đang lưu: ${completedRequests}/${totalProductsToSave} bản ghi`;
+
+        saveProductWithDelay(index + 1);
+      }
+    });
+  }, 5);
+};
 
         // Bắt đầu xử lý từ sản phẩm đầu tiên
         saveProductWithDelay(0);

@@ -54,6 +54,7 @@ import { OfficeSupplyRequestsComponent } from '../../../hrm/office-supply/Office
 import { OfficeSupplyRequestSummaryComponent } from '../../../hrm/office-supply/OfficeSupplyRequestSummary/office-supply-request-summary.component';
 import { VehicleRepairHistoryComponent } from '../../../hrm/propose-vehicle-repair/vehicle-repair-history/vehicle-repair-history/vehicle-repair-history.component';
 import { ProposeVehicleRepairComponent } from '../../../hrm/propose-vehicle-repair/propose-vehicle-repair/propose-vehicle-repair/propose-vehicle-repair.component';
+import { DailyReportHrComponent } from '../../../hrm/daily-report-hr/daily-report-hr.component';
 
 @Injectable({
   providedIn: 'root',
@@ -350,7 +351,7 @@ export class MenuService {
                 key: 'OfficeSupplyRequestsComponent',
                 title: 'Đăng kí VPP',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
+                isPermission: this.permissionService.hasPermission('N2,N34,N1,N54,N72,N70'),
                 comp: OfficeSupplyRequestsComponent,
               },
               {
@@ -358,7 +359,7 @@ export class MenuService {
                 key: 'OfficeSupplyRequestSummaryComponent',
                 title: 'Tổng hợp VPP',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
+                isPermission: this.permissionService.hasPermission('N2,N34,N1,N72'),
                 comp: OfficeSupplyRequestSummaryComponent,
               },
             ],
@@ -560,6 +561,16 @@ export class MenuService {
               //#endregion
             ],
           },
+          
+          {
+            kind: 'leaf',
+            key: 'DailyReportHrComponent',
+            title: 'Báo cáo công việc', 
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: DailyReportHrComponent,
+            //   icon: 'assets/icon/layers.png',
+          }
         ],
       },
       //#endregion

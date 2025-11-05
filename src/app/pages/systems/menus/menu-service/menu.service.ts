@@ -12,7 +12,7 @@ import { VehicleRepairTypeComponent } from '../../../hrm/vehicle-repair/vehicle-
 import { VehicleRepairComponent } from '../../../hrm/vehicle-repair/vehicle-repair.component';
 import { TrainingRegistrationComponent } from '../../../training-registration/training-registration.component';
 import { ContractComponent } from '../../../old/contract/contract.component';
-import { CustomerComponent } from '../../../old/customer/customer.component';
+// import { CustomerComponent } from '../../../old/customer/customer.component';
 import { DayOffComponent } from '../../../old/day-off/day-off.component';
 import { DepartmentComponent } from '../../../old/department/department.component';
 import { EarlyLateComponent } from '../../../old/early-late/early-late.component';
@@ -46,6 +46,7 @@ import { OfficeSupplyComponent } from '../../../old/OfficeSuppliesManagement/Off
 import { ProjectLeaderProjectTypeComponent } from '../../../old/project/project-leader-project-type/project-leader-project-type.component';
 import { MeetingMinuteComponent } from '../../../old/project/meeting-minute/meeting-minute.component';
 import { ProjectNewComponent } from '../../../old/project/project-new/project-new.component';
+import { CustomerComponent } from '../../../old/VisionBase/customer/customer.component';
 @Injectable({
   providedIn: 'root',
 })

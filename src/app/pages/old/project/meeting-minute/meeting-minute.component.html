@@ -1,3 +1,4 @@
+<ng-container class="w-100">
 <nz-splitter>
   <nz-splitter-panel [nzSize]="sizeSearch" [nzCollapsible]="true">
     <div class="card h-100 border-0 rounded-0">
@@ -25,7 +26,7 @@
               <nz-date-picker
                 [nzFormat]="dateFormat"
                 class="w-100"
-                nzSize="small"
+                nzSize="default"
                 [(ngModel)]="searchParams.DateStart"
                 name="dateStart"
               >
@@ -38,7 +39,7 @@
               <nz-date-picker
                 [nzFormat]="dateFormat"
                 class="w-100"
-                nzSize="small"
+                nzSize="default"
                 [(ngModel)]="searchParams.DateEnd"
                 name="dateEnd"
               ></nz-date-picker>
@@ -55,8 +56,10 @@
                   [(ngModel)]="searchParams.MeetingTypeID"
                   [ngModelOptions]="{ standalone: true }"
                   nzPlaceHolder="Chọn loại phòng họp"
+                  nzShowSearch nzAllowClear
                   style="width: 100%"
                   name="meetingTypeID"
+                  nzSize="default"
                 >
                   <nz-option-group
                     *ngFor="let group of meetingTypeGroupsData"
@@ -78,10 +81,11 @@
               <input
                 class="w-100"
                 nz-input
+                nzSize="default"
                 placeholder="Nhập từ khóa"
                 [(ngModel)]="searchParams.Keywords"
                 name="keyword"
-                nzSize="small"
+                
               />
             </nz-form-control>
           </nz-form-item>
@@ -103,9 +107,7 @@
     </div>
   </nz-splitter-panel>
   <nz-splitter-panel>
-    <nz-splitter nzLayout="vertical">
-      <nz-splitter-panel>
-        <div class="card border-0 rounded-0">
+      <div class="card border-0 rounded-0">
           <div class="card-header bg-white p-1" style="overflow-x: auto">
             <div class="d-flex gap-1">
               <button
@@ -141,50 +143,42 @@
               <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" class="me-1" /> Xuất Excel
               </button>
             </div>
-          </div>
-          <div class="card-body p-0">
-            <div id="MeetingMinutes" style="width: 100%; height: 100%"></div>
-          </div>
-        </div>
-      </nz-splitter-panel>
-      <nz-splitter-panel>
-        <div class="box">
-          <nz-tabset   (nzSelectedIndexChange)="onMainTabChange($event)">
-            <nz-tab  nzTitle="Nhân viên">
-              <div class="card-body p-0">
-                <nz-tabset   (nzSelectedIndexChange)="onTabChange($event)">
+          </div>       
+          <div class="card-body p-0" style="height: calc(100vh - 120px);">
+            <nz-splitter nzLayout="vertical" style="height: 100%;">   
+            <nz-splitter-panel nzDefaultSize="50%" nzMin="30%" nzMax="70%">
+             <div id="MeetingMinutes" style="height: 100%; min-height: 300px;"></div>
+            </nz-splitter-panel>
+           <nz-splitter-panel nzDefaultSize="50%" nzMin="30%" nzMax="70%">
+          <nz-tabset (nzSelectedIndexChange)="onMainTabChange($event)" style="height: 100%;">
+            <nz-tab nzTitle="Nhân viên">
+                <nz-tabset (nzSelectedIndexChange)="onTabChange($event)" style="height: 100%;">
                   <nz-tab nzTitle="Nhân viên tham gia">
-                    <div class="card-body p-0">
-                      <div id="Employee" style="width: 100%; height: 100%"></div>
-                    </div>
+                      <div id="Employee" style="height: 100%; min-height: 350px;"></div>
                   </nz-tab>
                   <nz-tab nzTitle="Nội dung">
-                    <div class="card-body p-0">
-                      <div #EmployeeContentNE id="EmployeeContentNE" style="width: 100%; height: 100%"></div>
-                    </div>
+                      <div #EmployeeContentNE id="EmployeeContentNE" style="height: 100%; min-height: 350px;"></div>
                   </nz-tab>
                 </nz-tabset>
-              </div>
             </nz-tab>
             <nz-tab nzTitle="Khách hàng">
-              <div class="card-body p-0">
-                <nz-tabset   (nzSelectedIndexChange)="onCustomerTabChange($event)">
+                <nz-tabset (nzSelectedIndexChange)="onCustomerTabChange($event)" style="height: 100%;">
                   <nz-tab nzTitle="Khách hàng tham gia">
-                    <div class="card-body p-0">
-                      <div id="Customer" style="width: 100%; height: 100%"></div>
-                    </div>
+                      <div id="Customer" style="height: 100%; min-height: 350px;"></div>
                   </nz-tab>
                   <nz-tab nzTitle="Nội dung">
-                    <div class="card-body p-0">
-                      <div id="CustomerContent" style="width: 100%; height: 100%"></div>
-                    </div>
+                      <div id="CustomerContent" style="height: 100%; min-height: 350px;"></div>
                   </nz-tab>
                 </nz-tabset>
-              </div>
+            </nz-tab>
+            <nz-tab nzTitle="File đính kèm">
+              <div id="file_table" #fileTableContainer style="height: 100%; min-height: 330px; overflow: hidden; display: flex; flex-direction: column;"></div>
             </nz-tab>
           </nz-tabset>
-        </div>
-      </nz-splitter-panel>
-    </nz-splitter>
+          </nz-splitter-panel>
+        </nz-splitter>
+          </div>
+    </div>
   </nz-splitter-panel>
 </nz-splitter>
+</ng-container>

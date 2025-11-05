@@ -15,7 +15,7 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { ChangeDetectorRef } from '@angular/core';
@@ -43,6 +43,7 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 
 import { MeetingMinuteComponent } from '../meeting-minute.component';
 import { MeetingMinuteService } from '../meeting-minute-service/meeting-minute.service';
+import { NzFormModule } from 'ng-zorro-antd/form';
 
 interface MeetingType {
   GroupID: number;
@@ -56,6 +57,7 @@ interface MeetingType {
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     NzTabsModule,
     NzSelectModule,
     NzGridModule,
@@ -64,13 +66,15 @@ interface MeetingType {
     NzInputModule,
     NzSplitterModule,
     NzButtonModule,
-    NzModalModule,
+    // NzModalModule,
     FormsModule,
+    NzFormModule,   
   ],
   templateUrl: './meeting-type-form.component.html',
   styleUrl: './meeting-type-form.component.css',
 })
 export class MeetingTypeFormComponent implements OnInit, AfterViewInit {
+  form!: FormGroup;
   ngOnInit(): void {
     this.newMeetingType = {
       GroupID: 0,
@@ -78,6 +82,12 @@ export class MeetingTypeFormComponent implements OnInit, AfterViewInit {
       TypeName: '',
       TypeContent: '',
     };
+    this.form = this.fb.group({
+      GroupID: [null, [Validators.required]],
+      TypeCode: ['', [this.trimRequiredValidator]],
+      TypeName: ['', [this.trimRequiredValidator]],
+      TypeContent: [''],
+    });
   }
 
   ngAfterViewInit(): void {}
@@ -93,35 +103,52 @@ export class MeetingTypeFormComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private meetingminuteService: MeetingMinuteService,
     private activeModal: NgbActiveModal,
-    private modal: NzModalService,
-    private modalService: NgbModal,
+    // private modal: NzModalService,
+    // private modalService: NgbModal,
     private cdr: ChangeDetectorRef,
     private injector: EnvironmentInjector,
-    private appRef: ApplicationRef
+    private appRef: ApplicationRef,
+    private fb: FormBuilder
   ) {}
 
+  trimRequiredValidator = (control: any) => {
+    const value = control?.value;
+    if (value === null || value === undefined) return { required: true };
+    if (typeof value === 'string' && value.trim().length === 0) return { required: true };
+    return null;
+  };
+
   closeModal() {
-    this.activeModal.close();
+    this.activeModal.close(true);
   }
 
   saveData() {
-    // Add new product group
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+    const valueRaw = this.form.getRawValue();
+    const value = {
+      GroupID: valueRaw.GroupID,
+      TypeCode: typeof valueRaw.TypeCode === 'string' ? valueRaw.TypeCode.trim() : valueRaw.TypeCode,
+      TypeName: typeof valueRaw.TypeName === 'string' ? valueRaw.TypeName.trim() : valueRaw.TypeName,
+      TypeContent: typeof valueRaw.TypeContent === 'string' ? valueRaw.TypeContent.trim() : valueRaw.TypeContent,
+    };
     const payload = {
-      GroupID: this.newMeetingType.GroupID, 
-      TypeCode: this.newMeetingType.TypeCode,
-      TypeName: this.newMeetingType.TypeName,
-      TypeContent: this.newMeetingType.TypeContent,
+      GroupID: value.GroupID,
+      TypeCode: value.TypeCode,
+      TypeName: value.TypeName,
+      TypeContent: value.TypeContent,
     };
     this.meetingminuteService.saveMeetingType(payload).subscribe({
       next: (res) => {
         if (res.status === 1) {
           this.notification.success('Thông báo', 'Thêm mới thành công!');
           this.closeModal();
+        }else if(res.status === 2) {
+          this.notification.warning('Thông báo', 'Mã loại cuộc họp đã tồn tại!');
         } else {
-          this.notification.warning(
-            'Thông báo',
-            res.message || 'Không thể thêm nhóm!'
-          );
+          this.notification.warning('Thông báo', 'Không thể thêm mới!');
         }
       },
       error: (err) => {

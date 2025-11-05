@@ -1,92 +1,119 @@
-<div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0">
-  <h6 class="modal-title text-white">Chi tiết loại cuộc họp</h6>
-  <button
-    type="button"
-    class="btn-close"
-    (click)="closeModal()"
-    aria-label="Close"
-  ></button>
-</div>
-<div
-  class="modal-body p-2 flex-grow-1 overflow-visible"
-  style="overflow-y: unset"
->
-  <form nz-form class="mt-2">
-    <!-- Dòng 1: 4 ô -->
-    <div class="row gx-2">
-      <div class="col-md-6">
-        <nz-form-item>
-          <nz-form-label
-            [nzSpan]="12"
-            class="fs-12 mt-2 required-label"
-            nzRequired
-            >Mã loại cuộc họp</nz-form-label
+<div class="modal-dialog-scrollable">
+  <div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">Chi tiết loại cuộc họp</h6>
+    <button
+      type="button"
+      class="btn-close"
+      (click)="closeModal()"
+      aria-label="Close"
+    ></button>
+  </div>
+
+  <div class="modal-body" style="max-height: 80vh !important; overflow-y: auto;">
+    <form nz-form [formGroup]="form" class="g-3 needs-validation was-validated">
+      <!-- Hàng 1: Mã loại cuộc họp + Nhóm -->
+      <div class="row">
+        <div class="col-md-6 pb-3">
+          <nz-form-label class="fs-12">
+            Mã loại cuộc họp
+            <span class="text-danger ps-1 me-1">*</span>
+          </nz-form-label>
+          <nz-form-control
+            [nzErrorTip]="
+              form.get('TypeCode')?.invalid &&
+              (form.get('TypeCode')?.dirty || form.get('TypeCode')?.touched)
+                ? 'Vui lòng nhập mã loại cuộc họp!'
+                : undefined
+            "
           >
-          <nz-form-control [nzSpan]="24">
             <input
               nz-input
-              [(ngModel)]="this.newMeetingType.TypeCode"
-              name="TypeCode"
+              formControlName="TypeCode"
+              placeholder="Nhập mã loại cuộc họp"
+              class="fs-12"
             />
           </nz-form-control>
-        </nz-form-item>
-      </div>
-      <div class="col-md-6">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="12" class="fs-12 mt-2" nzRequired
-            >Nhóm</nz-form-label
-          >
-          <nz-form-control [nzSpan]="24">
-            <nz-select
-              [(ngModel)]="newMeetingType.GroupID"
-              name="GroupID"
-              nzPlaceHolder="Chọn nhóm"
-              class="w-100"
-            >
-              <nz-option [nzValue]="1" nzLabel="Khách hàng"></nz-option>
-              <nz-option [nzValue]="2" nzLabel="Nội bộ"></nz-option>
-            </nz-select>
-          </nz-form-control>
-        </nz-form-item>
-      </div>
-    </div>
-    <!-- Dòng 2 -->
-    <div class="col-md-12">
-      <nz-form-item>
-        <nz-form-label [nzSpan]="12" class="fs-12 mt-2" nzRequired
-          >Tên loại cuộc họp</nz-form-label
-        >
-        <nz-form-control [nzSpan]="24">
-          <input
-            nz-input
-            [(ngModel)]="this.newMeetingType.TypeName"
-            name="TypeName"
-          />
-        </nz-form-control>
-      </nz-form-item>
-    </div>
-    <div class="col-md-12">
-      <nz-form-item>
-        <nz-form-label [nzSpan]="12" class="fs-12 mt-2" nzRequired
-          >Nội dung</nz-form-label
-        >
-        <nz-form-control [nzSpan]="24">
-          <textarea
-            nz-input
-            [(ngModel)]="this.newMeetingType.TypeContent"
-            name="TypeContent"
-          ></textarea>
-        </nz-form-control>
-      </nz-form-item>
-    </div>
-  </form>
+        </div>
 
-  <div class="modal-footer flex-shrink-0">
+        <div class="col-md-6 pb-3">
+          <nz-form-label class="fs-12">
+            Nhóm
+            <span class="text-danger ps-1 me-1">*</span>
+          </nz-form-label>
+          <nz-form-control
+            [nzErrorTip]="
+              form.get('GroupID')?.invalid &&
+              (form.get('GroupID')?.dirty || form.get('GroupID')?.touched)
+                ? 'Vui lòng chọn nhóm!'
+                : undefined
+            "
+          >
+            <nz-input-group required nzSearch nzSize="default" class="w-100">
+              <nz-select
+                formControlName="GroupID"
+                nzPlaceHolder="Chọn nhóm cuộc họp"
+                class="fs-12 w-100"
+                required
+                nzShowSearch
+                nzAllowClear
+              >
+                <nz-option [nzValue]="1" nzLabel="Khách hàng"></nz-option>
+                <nz-option [nzValue]="2" nzLabel="Nội bộ"></nz-option>
+              </nz-select>
+            </nz-input-group>
+          </nz-form-control>
+        </div>
+      </div>
+
+      <!-- Hàng 2: Tên loại cuộc họp -->
+      <div class="row">
+        <div class="col-md-12 pb-3">
+          <nz-form-label class="fs-12">
+            Tên loại cuộc họp
+            <span class="text-danger ps-1 me-1">*</span>
+          </nz-form-label>
+          <nz-form-control
+            [nzErrorTip]="
+              form.get('TypeName')?.invalid &&
+              (form.get('TypeName')?.dirty || form.get('TypeName')?.touched)
+                ? 'Vui lòng nhập tên loại cuộc họp!'
+                : undefined
+            "
+          >
+            <input
+              nz-input
+              formControlName="TypeName"
+              placeholder="Nhập tên loại cuộc họp"
+              class="fs-12"
+            />
+          </nz-form-control>
+        </div>
+      </div>
+
+      <!-- Hàng 3: Nội dung -->
+      <div class="row">
+        <div class="col-md-12 pb-3">
+          <nz-form-label class="fs-12">Nội dung</nz-form-label>
+          <nz-form-control>
+            <textarea
+              nz-input
+              placeholder="Nhập nội dung chi tiết"
+              formControlName="TypeContent"
+              class="fs-12"
+              rows="3"
+            ></textarea>
+          </nz-form-control>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal-footer">
     <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">
       Đóng
     </button>
     <button class="fs-12 btn" nz-button nzType="primary" (click)="saveData()">
-      Thêm
+      Lưu
     </button>
   </div>
 </div>

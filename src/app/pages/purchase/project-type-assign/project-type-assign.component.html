@@ -1,0 +1,39 @@
+<ng-container class="w-100">
+    <nz-splitter>
+        <nz-splitter-panel nzDefaultSize="100%">
+            <div class="card h-100 border-0 rounded-0">
+                <div class="card-header bg-white p-1">
+                    <div class="d-flex gap-1">
+                        <button nz-button nzType="default" nzSize="small" (click)="ToggleSearchPanel()"
+                            aria-label="Tìm kiếm">
+                            <nz-icon nzType="search" />
+                        </button>
+                        <button class="btn-add" nz-button nzType="default" (click)="onAddClick()" nzSize="small">
+                            <img src="assets/icon/action_add_item_16.png" /> Thêm
+                        </button>
+                        <button class="btn-edit" nz-button nzType="default" (click)="onEditClick()" nzSize="small"
+                            [disabled]="( !isEditAllowedByRole)">
+                            <img src="assets/icon/action_edit_item_16.png" />Sửa
+                        </button>
+                        <button class="btn-delete" nz-button nzType="default" nzSize="small"
+                            [disabled]="( !isEditAllowedByRole)">
+                            <img src="assets/icon/action_delete_item_16.png" />Xóa
+                        </button>
+                        <input class="search-input form-control float-end" type="text" nz-input placeholder="Tìm kiếm" [(ngModel)]="keyword" (keyup.enter)="loadData()">
+                    </div>
+                <div class="card-body p-0">
+                    <nz-splitter>
+                        <nz-splitter-panel [nzSize]="showDetailPanel ? '60%' : '100%'" [nzCollapsible]="true"
+                            nzResizable="true">
+                            <div #tbData></div>
+                        </nz-splitter-panel>
+                        <nz-splitter-panel #detailPanel [nzSize]="showDetailPanel ? '40%' : 0" [nzCollapsible]="true"
+                            nzResizable="true">
+                                    <div #tbDetail></div>
+                        </nz-splitter-panel>
+                    </nz-splitter>
+                </div>
+            </div>
+        </nz-splitter-panel>
+    </nz-splitter>
+</ng-container>

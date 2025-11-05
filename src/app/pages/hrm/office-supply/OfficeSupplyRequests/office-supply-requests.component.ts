@@ -177,11 +177,12 @@ export class OfficeSupplyRequestsComponent implements OnInit {
 
   ngOnInit(): void {
     this.getDataDeparment();
-    this. getOfficeSupplyRequest();
+    this.getOfficeSupplyRequest();
   }
 
   ngAfterViewInit(): void {
-    this.drawTable();
+    this.initTable1();
+  this.initTable2();
   }
 
   toggleSearchPanel() {
@@ -205,68 +206,67 @@ export class OfficeSupplyRequestsComponent implements OnInit {
     });
   }
 
-  getOfficeSupplyRequest(): void {
-    this.isLoading = true;
-    this.lstDKVPP.getOfficeSupplyRequests(
-      this.searchParams.keyword,
-      this.searchParams.month,
-      0,
-      this.searchParams.departmentId
-    ).subscribe({
-      next: (res) => {
-        if (res && Array.isArray(res.data)) {
-          this.listDKVPP = res.data;
-          this.dataTable1 = this.listDKVPP;
-          if (this.table) {
-            this.table.replaceData(this.dataTable1);
-          }
-        } else {
-          this.listDKVPP = [];
-          this.dataTable1 = [];
-          if (this.table) {
-            this.table.replaceData([]);
-          }
-          this.notification.warning("Thông báo", "Không tìm thấy dữ liệu phù hợp");
+ getOfficeSupplyRequest(): void {
+  this.isLoading = true;
+  this.lstDKVPP.getOfficeSupplyRequests(
+    this.searchParams.keyword,
+    this.searchParams.month,
+    0,
+    this.searchParams.departmentId
+  ).subscribe({
+    next: (res) => {
+      if (res && Array.isArray(res.data)) {
+        this.listDKVPP = res.data;
+        this.dataTable1 = this.listDKVPP;
+        if (this.table) {
+          this.table.replaceData(this.dataTable1);
         }
-      },
-      error: (err) => {
-        console.error('Lỗi khi lấy dữ liệu:', err);
+      } else {
+        this.listDKVPP = [];
         this.dataTable1 = [];
         if (this.table) {
           this.table.replaceData([]);
         }
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
-      },
-      complete: () => {
-        this.isLoading = false;
+        this.notification.warning("Thông báo", "Không tìm thấy dữ liệu phù hợp");
       }
-    });
-  }
-  private drawTable(): void {
-    if (this.table) {
-      this.table.replaceData(this.dataTable1);
-    } else {
-      this.table = new Tabulator('#datatable1', {
-        data: this.dataTable1,
-        layout: 'fitDataFill',
-        height: '40vh',
-        pagination: true,
-        movableColumns: true,
-        resizableRows: true,
-        reactiveData: true,
-        rowHeader: {
-          headerSort: false,
-          resizable: false,
-          frozen: true,
-          formatter: "rowSelection",
-          headerHozAlign: "center",
-          hozAlign: "center",
-          titleFormatter: "rowSelection",
-          cellClick: (e, cell) => {
-            e.stopPropagation();
-          },
-        },
-        columns: [
+    },
+    error: () => {
+      this.dataTable1 = [];
+      if (this.table) {
+        this.table.replaceData([]);
+      }
+      this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
+    },
+    complete: () => {
+      this.isLoading = false;
+    }
+  });
+}
+
+  private initTable1(): void {
+  this.table = new Tabulator('#datatable1', {
+    data: this.dataTable1,
+    layout: 'fitDataFill',
+    height: '100%',
+    selectableRows: 1,
+    pagination: true,
+    movableColumns: true,
+    resizableRows: true,
+    reactiveData: true,
+    rowHeader: {
+      headerSort: false,
+      resizable: false,
+      frozen: true,
+      formatter: "rowSelection",
+      headerHozAlign: "center",
+      hozAlign: "center",
+      titleFormatter: "rowSelection",
+      cellClick: (e, cell) => {
+        e.stopPropagation();
+        cell.getRow().toggleSelect(); // tự toggle select, không gọi rowClick
+      },
+    },
+   columns: [
           {
             title: 'Admin duyệt',
             field: 'IsAdminApproved',
@@ -294,7 +294,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
             headerHozAlign: 'center',
             formatter: (cell) => {
               const value = cell.getValue();
-              return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy'):'';
+              return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
             }
           },
           { title: 'Họ tên TBP duyệt', field: 'FullNameApproved', hozAlign: 'left', headerHozAlign: 'center', width: 200 },
@@ -308,55 +308,40 @@ export class OfficeSupplyRequestsComponent implements OnInit {
             width: 200,
             formatter: (cell) => {
               const value = cell.getValue();
-              return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy'):'';
+              return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
             }
           }
         ]
-      });
+  });
 
-      this.table.on("rowClick", (e: MouseEvent, row: RowComponent) => {
-        const rowData = row.getData();
-        this.getDataOfficeSupplyRequestsDetail(rowData['ID']);
-      });
-    }
-
-    if (this.table2) {
-      this.table2.replaceData(this.dataTable2);
-    } else {
-      this.table2 = new Tabulator('#datatable2', {
-        data: this.dataTable2,
-        layout: 'fitDataFill',
-        height: "43vh",
-        pagination: true,
-        movableColumns: true,
-        resizableRows: true,
-        reactiveData: true,
-        selectableRows: 1,
-        groupBy: "FullName",
-        groupHeader: function(value, count, data, group) {
-          const code = data[0]?.Code || '';
-          return "Nhân viên: " + code + " - " + value + " <span>(" + count + " items)</span>";
-        },
-        rowHeader: {
-          headerSort: false,
-          resizable: false,
-          frozen: true,
-          formatter: "rowSelection",
-          headerHozAlign: "center",
-          hozAlign: "center",
-          titleFormatter: "rowSelection",
-          cellClick: (e, cell) => {
-            e.stopPropagation();
-          },
-        },
-        columns: [
+  this.table.on("rowClick", (e: MouseEvent, row: RowComponent) => {
+    const rowData = row.getData();
+    this.getDataOfficeSupplyRequestsDetail(rowData['ID']);
+  });
+}
+private initTable2(): void {
+  this.table2 = new Tabulator('#datatable2', {
+    data: this.dataTable2,
+    layout: 'fitDataFill',
+    height: '100%',
+    pagination: true,
+    movableColumns: true,
+    resizableRows: true,
+    reactiveData: true,
+    selectableRows: 1,
+    groupBy: "FullName",
+    groupHeader: function (value, count, data, group) {
+      const code = data[0]?.Code || '';
+      return "Nhân viên: " + code + " - " + value + " <span>(" + count + " items)</span>";
+    },
+  columns: [
           {
             title: 'Văn phòng phẩm',
             field: 'OfficeSupplyName',
             hozAlign: 'left',
             headerHozAlign: 'center',
             width: 350,
-            frozen:true,
+            frozen: true,
             formatter: function (cell) {
               const value = cell.getValue();
               if (value === null || value === undefined) return '';
@@ -371,29 +356,31 @@ export class OfficeSupplyRequestsComponent implements OnInit {
           { title: 'SL thực tế', field: 'QuantityReceived', hozAlign: 'right', headerHozAlign: 'center' },
           { title: 'Vượt định mức', field: 'ExceedLimit', hozAlign: 'center', headerHozAlign: 'center' },
           { title: 'Lý do vượt định mức', field: 'ReasonExceedLimit', hozAlign: 'left', headerHozAlign: 'center' },
-          { title: 'Ghi chú', field: 'Note', hozAlign: 'left', headerHozAlign: 'center',   
-            width:250,
+          {
+            title: 'Ghi chú', field: 'Note', hozAlign: 'left', headerHozAlign: 'center',
+            width: 250,
             formatter: "textarea",
             formatterParams: {
-            maxHeight: 100
-          }, },
+              maxHeight: 100
+            },
+          },
         ]
-      });
-    }
-  }
-
-  getDataOfficeSupplyRequestsDetail(id: number): void {
-    this.lstDKVPP.getOfficeSupplyRequestsDetail(id).subscribe({
-      next: (res) => {
-        this.dataTable2 = res.data;
-        this.drawTable();
-      },
-      error: (err) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy chi tiết');
+  });
+}
+ 
+getDataOfficeSupplyRequestsDetail(id: number): void {
+  this.lstDKVPP.getOfficeSupplyRequestsDetail(id).subscribe({
+    next: (res) => {
+      this.dataTable2 = res.data;
+      if (this.table2) {
+        this.table2.replaceData(this.dataTable2); // chỉ update bảng 2
       }
-    });
-  }
-
+    },
+    error: () => {
+      this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy chi tiết');
+    }
+  });
+}
   pushSelectedList(): boolean {
     this.selectedList = [];
     var dataSelect = this.table.getSelectedData();
@@ -420,7 +407,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
       nzOnOk: () => {
         this.lstDKVPP.IsAdminApproved(ids).subscribe({
           next: (res) => {
-            this. getOfficeSupplyRequest();
+            this.getOfficeSupplyRequest();
             this.selectedList = [];
             this.notification.success('Thông báo', 'Duyệt thành công!');
           },
@@ -472,7 +459,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
     const ids = items.map(item => item.ID);
     this.lstDKVPP.UnAdminApproved(ids).subscribe({
       next: (res) => {
-        this. getOfficeSupplyRequest();
+        this.getOfficeSupplyRequest();
         this.selectedList = [];
         this.notification.success('Thông báo', 'Hủy duyệt thành công!');
       },
@@ -522,7 +509,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
     const ids = items.map(item => item.ID);
     this.lstDKVPP.IsApproved(ids).subscribe({
       next: (res) => {
-        this. getOfficeSupplyRequest();
+        this.getOfficeSupplyRequest();
         this.selectedList = [];
         this.notification.success('Thông báo', 'Duyệt thành công!');
       },
@@ -572,7 +559,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
     const ids = items.map(item => item.ID);
     this.lstDKVPP.UnIsApproved(ids).subscribe({
       next: (res) => {
-        this. getOfficeSupplyRequest();
+        this.getOfficeSupplyRequest();
         this.selectedList = [];
         this.notification.success('Thông báo', 'Hủy duyệt thành công!');
       },

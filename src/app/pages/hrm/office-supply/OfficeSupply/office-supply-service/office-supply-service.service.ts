@@ -24,7 +24,7 @@ export class OfficeSupplyService {
 
   // Thêm đơn vị
   addUnit(data: any): Observable<any> {
-    return this.httpclient.post<any>(`${this.url}save-data`, data);
+    return this.httpclient.post<any>(`${this.urlUnit}save-data`, data);
   }
 
   // Lấy dữ liệu theo ID
@@ -37,10 +37,10 @@ export class OfficeSupplyService {
     return this.httpclient.get<any>(`${this.url}get-office-supply-by-id?id=${id}`);
   }
 
-  // Thêm mới vật tư
-  adddata(data: any): Observable<any> {
-    return this.httpclient.post<any>(`${this.url}save-data`, data);
-  }
+    // Thêm mới vật tư
+    adddata(data: any): Observable<any> {
+      return this.httpclient.post<any>(`${this.url}save-data`, data);
+    }
 
   // Cập nhật vật tư
   updatedata(data: any): Observable<any> {

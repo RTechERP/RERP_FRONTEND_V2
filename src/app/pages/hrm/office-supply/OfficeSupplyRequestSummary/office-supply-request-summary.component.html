@@ -65,9 +65,10 @@
             <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()" class="btn">
               <i nz-icon nzType="search"></i>
             </button>
-            <button nz-button nzType="default" nzSize="small" (click)="exportToExcel()" class="btn fs-12">
-              <i nz-icon nzType="file-excel"></i> Xuất Excel
-            </button>
+       
+                <button nz-button nzType="default" nzSize="small" (click)="exportToExcel()" *hasPermission="'N2,N34,N1'">
+                            <img src="assets/icon/excel.png" alt="Xuất Excel" />Xuất Excel
+                        </button>
           </div>
         </div>
         <div class="card-body p-0 flex-grow-1 d-flex flex-column">

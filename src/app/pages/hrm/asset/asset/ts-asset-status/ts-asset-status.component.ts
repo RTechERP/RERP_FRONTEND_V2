@@ -33,6 +33,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification'
 import { log } from 'ng-zorro-antd/core/logger';
 import { TsAssetStatusFormComponent } from './ts-asset-status-form/ts-asset-status-form.component';
 import { AssetStatusService } from './ts-asset-status-service/ts-asset-status.service';
+import { HasPermissionDirective } from "../../../../../directives/has-permission.directive";
 @Component({
   standalone: true,
   imports: [
@@ -55,7 +56,8 @@ import { AssetStatusService } from './ts-asset-status-service/ts-asset-status.se
     NzTableModule,
     NzTabsModule,
     NgbModalModule,
-  ],
+    HasPermissionDirective
+],
   selector: 'app-ts-asset-status',
   templateUrl: './ts-asset-status.component.html',
   styleUrls: ['./ts-asset-status.component.css']

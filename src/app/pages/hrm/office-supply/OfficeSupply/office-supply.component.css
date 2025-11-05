@@ -96,3 +96,78 @@ nz-input-number {
 
 
 /* Optional: Đảm bảo vùng chứa progress bar có đủ không gian và nền rõ ràng */
+
+/* Responsive styles for mobile */
+@media (max-width: 768px) {
+  .card-header {
+    padding: 0.5rem !important;
+  }
+
+  .card-header .d-flex {
+    flex-wrap: wrap;
+    gap: 0.25rem !important;
+  }
+
+  .card-header button {
+    font-size: 0.7rem !important;
+    padding: 0.25rem 0.5rem;
+    flex: 1 1 auto;
+    min-width: calc(50% - 0.25rem);
+  }
+
+  .card-header nz-input-group {
+    width: 100% !important;
+    margin-top: 0.5rem;
+    order: 10;
+  }
+
+  #datatable {
+    font-size: 0.7rem;
+  }
+
+  .tabulator {
+    font-size: 0.7rem !important;
+  }
+
+  .tabulator-cell {
+    padding: 0.25rem !important;
+  }
+
+  .tabulator .tabulator-header {
+    font-size: 0.7rem;
+  }
+
+  /* Stack buttons vertically on very small screens */
+  @media (max-width: 480px) {
+    .card-header button {
+      min-width: 100%;
+      margin-bottom: 0.25rem;
+    }
+  }
+}
+
+/* Tablet responsive */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .card-header button {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+  }
+
+  #datatable {
+    font-size: 0.75rem;
+  }
+}
+
+/* Ensure table is responsive */
+.tabulator-table {
+  width: 100% !important;
+  overflow-x: auto;
+}
+
+@media (max-width: 768px) {
+  .tabulator-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}

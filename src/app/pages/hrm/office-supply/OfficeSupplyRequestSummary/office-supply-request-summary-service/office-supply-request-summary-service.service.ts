@@ -1,18 +1,18 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class OfficeSupplyRequestSummaryService {
 
-  private baseUrl = 'https://localhost:7187/api/OfficeSupplyRequests';
-
+  url = `${environment.host}api/OfficeSupplyRequests/`;
   constructor(private httpclient: HttpClient) { }
 
   getdataDepartment(): Observable<any> {
-    return this.httpclient.get<any>(`${this.baseUrl}/get-data-department`);
+    return this.httpclient.get<any>(`${this.url}get-data-department`);
   }
 
   getdataOfficeSupplyRequestSummary(departmentID: number, year: number, month: number, keyword: string): Observable<any> {
@@ -22,7 +22,7 @@ export class OfficeSupplyRequestSummaryService {
       month: month.toString(), 
       keyword: keyword.toString()   
   }
-    return this.httpclient.post<any>(`${this.baseUrl}/get-office-supply-request-summary`,params
+    return this.httpclient.post<any>(`${this.url}get-office-supply-request-summary`,params
       );
   }
 }

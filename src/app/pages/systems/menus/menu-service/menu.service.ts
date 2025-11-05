@@ -681,12 +681,22 @@ export class MenuService {
             comp: MeetingMinuteComponent,
           },
           {
-            kind: 'leaf',
-            key: 'ProjectLeaderProjectTypeComponent',
-            title: 'Leader kiểu dự án',
+            kind: 'group',
+            key: 'SettingLeader',
+            title: 'Cài đặt',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
-            comp: ProjectLeaderProjectTypeComponent,
+            children:
+            [
+              {
+                kind: 'leaf',
+                key: 'ProjectLeaderProjectTypeComponent',
+                title: 'Leader kiểu dự án',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: ProjectLeaderProjectTypeComponent,
+              },
+            ]
           },
         ],
       },

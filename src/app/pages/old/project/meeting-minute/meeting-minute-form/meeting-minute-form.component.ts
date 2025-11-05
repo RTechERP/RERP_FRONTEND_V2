@@ -1091,6 +1091,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
               field: 'UserTeamID',
               hozAlign: 'center',
               headerHozAlign: 'center',
+              editable: false, // 🔒 Không cho chỉnh sửa
               editor: this.createdControl(
                 SelectControlComponent,
                 this.injector,

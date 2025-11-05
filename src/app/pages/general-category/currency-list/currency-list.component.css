@@ -1,0 +1,11 @@
+.search-box {
+  padding: 4px 8px;
+  font-size: 14px;
+  max-width: 300px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+}
+
+.fs-12 {
+  font-size: 12px;
+}

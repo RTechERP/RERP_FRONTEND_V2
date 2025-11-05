@@ -54,7 +54,7 @@ import { OfficeSupplyRequestsComponent } from '../../../hrm/office-supply/Office
 import { OfficeSupplyRequestSummaryComponent } from '../../../hrm/office-supply/OfficeSupplyRequestSummary/office-supply-request-summary.component';
 import { VehicleRepairHistoryComponent } from '../../../hrm/propose-vehicle-repair/vehicle-repair-history/vehicle-repair-history/vehicle-repair-history.component';
 import { ProposeVehicleRepairComponent } from '../../../hrm/propose-vehicle-repair/propose-vehicle-repair/propose-vehicle-repair/propose-vehicle-repair.component';
-
+import { CustomerComponent } from '../../../old/VisionBase/customer/customer.component';
 @Injectable({
   providedIn: 'root',
 })

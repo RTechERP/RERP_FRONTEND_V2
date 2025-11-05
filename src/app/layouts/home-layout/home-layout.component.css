@@ -679,30 +679,28 @@ nz-carousel {
     width: 50% !important;
 } */
 
-.card-module{
-    transition: all 0.3s ease;
-    /* width: 40% !important; */
-    cursor: pointer;
-    padding: 1.5rem;
-    width: 80%;
+.card-module {
+  transition: all 0.3s ease;
+  /* width: 40% !important; */
+  cursor: pointer;
 }
-.card-module:hover{
-    transform: translateY(-4px);
-    /* background-color: pink; */
+.card-module:hover {
+  transform: translateY(-4px);
+  /* background-color: pink; */
 }
-.card-module >.card-body:hover{
-    background-color: darkgoldenrod;
+.card-module > .card-body:hover {
+  background-color: darkgoldenrod;
 }
 
-.bg-white{
-    opacity: 0 !important;
+.bg-white {
+  opacity: 0 !important;
 }
 
-::ng-deep .ant-radio-group{
-    display: none !important;
+::ng-deep .ant-radio-group {
+  display: none !important;
 }
 
-::ng-deep .ant-picker-calendar-header{
-    justify-content: space-between !important;
-    padding-top: 0 !important;
+::ng-deep .ant-picker-calendar-header {
+  justify-content: space-between !important;
+  padding-top: 0 !important;
 }

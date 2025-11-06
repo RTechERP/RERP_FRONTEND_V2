@@ -8,13 +8,13 @@
       <div class="row">
         <div class="col-md-6 pb-3">
           <nz-form-label class="fs-12">Mã<sup style="color: red;"> *</sup></nz-form-label>
-          <nz-form-control [nzValidateStatus]="validateForm.controls['Code']!" nzErrorTip="Vui lòng nhập mã">
+          <nz-form-control [nzValidateStatus]="validateForm.controls['Code']" nzErrorTip="Vui lòng nhập mã">
             <input nz-input formControlName="Code" placeholder="Nhập mã điều khoản" />
           </nz-form-control>
         </div>
         <div class="col-md-6 pb-3">
           <nz-form-label class="fs-12">Chú giải<sup style="color: red;"> *</sup></nz-form-label>
-          <nz-form-control [nzValidateStatus]="validateForm.controls['Note']!" nzErrorTip="Vui lòng nhập ghi chú">
+          <nz-form-control [nzValidateStatus]="validateForm.controls['Note']" nzErrorTip="Vui lòng nhập ghi chú">
             <textarea 
               nz-input 
               formControlName="Note" 
@@ -29,6 +29,6 @@
   </div>
   <div class="modal-footer">
     <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
-    <button class="fs-12 btn" nz-button nzType="primary" (click)="isCheckmode ? update() : add()">Lưu</button>
+    <button class="fs-12 btn" *hasPermission="'N22,N33,N35,N1'" nz-button nzType="primary" (click)="isCheckmode ? update() : add()">Lưu</button>
   </div>
 </div>

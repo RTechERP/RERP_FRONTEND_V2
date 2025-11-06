@@ -300,6 +300,19 @@ export class CurrencyListComponent implements OnInit {
   }
 
   onSearch(): void {
-    this.loadData({ code: this.searchText });
+    const keyword = (this.searchText || '').trim();
+    if (!this.currencyTable) return;
+
+    if (!keyword) {
+      this.currencyTable.clearFilter(false);
+    } else {
+      this.currencyTable.setFilter([
+        [
+          { field: 'Code', type: 'like', value: keyword },
+          { field: 'NameEnglist', type: 'like', value: keyword },
+          { field: 'NameVietNamese', type: 'like', value: keyword },
+        ]
+      ]);
+    }
   }
 }

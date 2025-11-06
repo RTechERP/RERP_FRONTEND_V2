@@ -138,18 +138,16 @@ export class RulePayComponent implements OnInit, AfterViewInit {
       data: this.dataTable,
       ...DEFAULT_TABLE_CONFIG,
       paginationMode: 'local',
+      layout: 'fitDataStretch',
       reactiveData: true,
       selectableRows: true,
       columns: [
-        { title: 'Mã', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: 350 },
-        { title: 'Chú giải', field: 'Note', hozAlign: 'left', headerHozAlign: 'center',width: 1000 }
+        { title: 'Mã', field: 'Code', width: 350, formatter:'textarea' },
+        { title: 'Chú giải', field: 'Note',formatter:'textarea'}
       ]
     });
 
-    // Event handlers
-    // this.table.on('rowClick', (e: any, row: any) => {
-    //   this.onRowClick(row);
-    // });
+  
 
     this.table.on('rowSelectionChanged', (data: any, rows: any) => {
       this.selectedList = rows.map((row: any) => row.getData());
@@ -200,6 +198,9 @@ export class RulePayComponent implements OnInit, AfterViewInit {
             if (response.status === 1) {
               this.notification.success('Thông báo', 'Xóa thành công!');
               this.getData();
+              this.selectedList = [];
+              this.selectAll = false;
+              this.searchText = '';
             } else {
               this.notification.error('Lỗi', response.message || 'Không thể xóa dữ liệu');
             }

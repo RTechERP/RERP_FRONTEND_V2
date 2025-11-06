@@ -1,0 +1,46 @@
+<div class="rule-pay-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="button-section">
+      <button  class="btn-add" *hasPermission="''" nz-button nzSize="small" nzType="default" (click)="openModalForNew()">
+        <nz-icon nzType="plus"></nz-icon>
+        Thêm mới
+      </button>
+      <button class="btn-edit" *hasPermission="''" nz-button nzSize="small" nzType="default" (click)="editItem()">
+        <nz-icon nzType="edit"></nz-icon>
+        Sửa 
+      </button>
+      <button class="btn-delete" *hasPermission="''" nz-button nzSize="small" nzType="default" (click)="delete()">
+        <nz-icon nzType="delete"></nz-icon>
+        Xóa 
+      </button>
+            <button class="btn-export" *hasPermission="''" nz-button nzSize="small" nzType="default" (click)="exportExcel()">
+        <nz-icon nzType="download"></nz-icon>
+        Xuất excel
+      </button>
+      
+     
+    </div>
+    
+    <div class="search-section">
+      <nz-input-group style="width: 200px;">
+        <input 
+          type="text" 
+          nz-input 
+          placeholder="Tìm kiếm" 
+          [(ngModel)]="searchText"
+          (keyup.enter)="search()"
+        />
+      </nz-input-group>
+ 
+    </div>
+  </div>
+
+  <!-- Table Section -->
+  <div class="table-container">
+    <div id="rule-pay-table"></div>
+  </div>
+</div>
+
+
+

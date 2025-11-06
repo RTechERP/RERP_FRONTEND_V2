@@ -7,40 +7,41 @@
   <form nz-form nzLayout="vertical" class="fs-7 mt-2 me-2">
     <nz-row [nzGutter]="24">
       <!-- Label row -->
-      <nz-col [nzSpan]="8">
-        <nz-form-label>Mã tài sản</nz-form-label>
+      <nz-col [nzSpan]="12">
+        <nz-form-label>Mã tài sản<span class="text-danger ps-1 me-1"> (*)
+                                        </span></nz-form-label>
       </nz-col>
-      <nz-col [nzSpan]="8">
+      <nz-col [nzSpan]="12">
         <nz-form-label>Mã NCC </nz-form-label>
       </nz-col>
-      <nz-col [nzSpan]="8">
-        <nz-form-label>STT </nz-form-label>
-      </nz-col>
+     
     </nz-row>
     <nz-row [nzGutter]="24" class="mb-3 me-1">
       <!-- Input row -->
-      <nz-col [nzSpan]="8">
+      <nz-col [nzSpan]="12">
         <nz-form-control>
           <input nz-input type="text" [(ngModel)]="dataInput.TSAssetCode" name="AssetCode" disabled />
         </nz-form-control>
       </nz-col>
-      <nz-col [nzSpan]="8">
+      <nz-col [nzSpan]="12">
         <nz-form-control>
           <input nz-input type="text" [(ngModel)]="dataInput.TSCodeNCC" name="TSCodeNCC" />
         </nz-form-control>
       </nz-col>
-      <nz-col [nzSpan]="8">
+      <!-- <nz-col [nzSpan]="8">
         <nz-form-control>
           <input nz-input type="text" name="STT" [(ngModel)]="dataInput.STT" disabled />
         </nz-form-control>
-      </nz-col>
+      </nz-col> -->
     </nz-row>
     <nz-row [nzGutter]="24">
       <nz-col [nzSpan]="12">
-        <nz-form-label>Chọn nhân viên</nz-form-label>
+        <nz-form-label>Người quản lí<span class="text-danger ps-1 me-1"> (*)
+                                        </span></nz-form-label>
       </nz-col>
       <nz-col [nzSpan]="12">
-        <nz-form-label>Phòng ban </nz-form-label>
+        <nz-form-label>Phòng ban <span class="text-danger ps-1 me-1"> (*)
+                                        </span></nz-form-label>
       </nz-col>
     </nz-row>
     <nz-row [nzGutter]="24" class="mb-3 me-1">
@@ -61,13 +62,17 @@
     </nz-row>
     <nz-row [nzGutter]="24">
       <nz-col [nzSpan]="8">
-        <nz-form-label>Loại tài sản <span class="text-danger">(*)</span></nz-form-label>
+        <nz-form-label>Loại tài sản <span class="text-danger">(*)</span><button nz-button nzSize="small" class="fs-12 button button-succes me-2"
+                                        title="Thêm loại sửa chữa" (click)="onAddTypeAsset()"><nz-icon nzType="plus" />
+                                    </button></nz-form-label>
       </nz-col>
       <nz-col [nzSpan]="8">
         <nz-form-label>Đơn vị tính <span class="text-danger">(*)</span></nz-form-label>
       </nz-col>
       <nz-col [nzSpan]="8">
-        <nz-form-label>Nguồn gốc <span class="text-danger">(*)</span></nz-form-label>
+        <nz-form-label>Nguồn gốc <span class="text-danger">(*)</span><button nz-button nzSize="small" class="fs-12 button button-succes me-2"
+                                        title="Thêm loại sửa chữa" (click)="addSource()"><nz-icon nzType="plus" />
+                                    </button></nz-form-label>
       </nz-col>
     </nz-row>
     <nz-row [nzGutter]="24" class="mb-3 me-1">
@@ -101,11 +106,13 @@
     </nz-row>
     <nz-row [nzGutter]="24">
       <nz-col [nzSpan]="12">
-        <nz-form-label>Tên tài sản</nz-form-label>
+        <nz-form-label>Tên tài sản<span class="text-danger ps-1 me-1"> (*)
+                                        </span></nz-form-label>
       </nz-col>
 
       <nz-col [nzSpan]="12">
-        <nz-form-label>Số Seri </nz-form-label>
+        <nz-form-label>Số Seri <span class="text-danger ps-1 me-1"> (*)
+                                        </span></nz-form-label>
       </nz-col>
     </nz-row>
     <nz-row [nzGutter]="24" class="mb-3 me-1">
@@ -184,24 +191,55 @@
           <label nz-checkbox name="isAllocation">Cấp phát</label>
         </nz-form-control>
       </nz-col>
-      <nz-col [nzSpan]="8">
-        <nz-form-control>
-          <input type="checkbox" [(ngModel)]="dataInput.WindowActiveStatus" class="form-check-input me-2" id="isAllocationCheck" name="isAllocation" />
-          <label nz-checkbox name="WindowActiveStatus">Active Windows</label>
-        </nz-form-control>
-      </nz-col>
-      <nz-col [nzSpan]="8">
-        <nz-form-control>
-          <input type="checkbox" [(ngModel)]="dataInput.OfficeActiveStatus" class="form-check-input me-2" id="isAllocationCheck" name="isAllocation" />
-          <label nz-checkbox name="OfficeActiveStatus">Active Office</label>
-        </nz-form-control>
-      </nz-col>
+    <nz-col [nzSpan]="8">
+  <nz-form-item>
+    <nz-form-label [nzSpan]="24" class="fs-12">Active Windows</nz-form-label>
+    <nz-form-control [nzSpan]="24">
+      <nz-select
+        class="w-100 fs-12"
+        nzSize="small"
+        nzAllowClear
+        nzPlaceHolder="Chọn trạng thái"
+        [(ngModel)]="dataInput.WindowActiveStatus"
+        name="WindowActiveStatus"
+      >
+        <nz-option
+          *ngFor="let s of activeStatusList"
+          [nzValue]="s.value"
+          [nzLabel]="s.label">
+        </nz-option>
+      </nz-select>
+    </nz-form-control>
+  </nz-form-item>
+</nz-col>
+
+<nz-col [nzSpan]="8">
+  <nz-form-item>
+    <nz-form-label [nzSpan]="24" class="fs-12">Active Office</nz-form-label>
+    <nz-form-control [nzSpan]="24">
+      <nz-select
+        class="w-100 fs-12"
+        nzSize="small"
+        nzAllowClear
+        nzPlaceHolder="Chọn trạng thái"
+        [(ngModel)]="dataInput.OfficeActiveStatus"
+        name="OfficeActiveStatus"
+      >
+        <nz-option
+          *ngFor="let s of activeStatusList"
+          [nzValue]="s.value"
+          [nzLabel]="s.label">
+        </nz-option>
+      </nz-select>
+    </nz-form-control>
+  </nz-form-item>
+</nz-col>
     </nz-row>
 
   </form>
 </div>
 
 <div class="modal-footer">
-  <button nz-button nzType="default" (click)="close()">Đóng</button>
+  <button nz-button nzDanger nzType="default" (click)="close()">Đóng</button>
   <button nz-button nzType="primary" (click)="saveAsset()">Lưu</button>
 </div>

@@ -12,7 +12,7 @@ import { VehicleRepairTypeComponent } from '../../../hrm/vehicle-repair/vehicle-
 import { VehicleRepairComponent } from '../../../hrm/vehicle-repair/vehicle-repair.component';
 import { TrainingRegistrationComponent } from '../../../training-registration/training-registration.component';
 import { ContractComponent } from '../../../old/contract/contract.component';
-import { CustomerComponent } from '../../../old/customer/customer.component';
+// import { CustomerComponent } from '../../../old/customer/customer.component';
 import { DayOffComponent } from '../../../old/day-off/day-off.component';
 import { DepartmentComponent } from '../../../old/department/department.component';
 import { EarlyLateComponent } from '../../../old/early-late/early-late.component';
@@ -692,12 +692,22 @@ export class MenuService {
             comp: MeetingMinuteComponent,
           },
           {
-            kind: 'leaf',
-            key: 'ProjectLeaderProjectTypeComponent',
-            title: 'Leader kiểu dự án',
+            kind: 'group',
+            key: 'SettingLeader',
+            title: 'Cài đặt',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
-            comp: ProjectLeaderProjectTypeComponent,
+            children:
+            [
+              {
+                kind: 'leaf',
+                key: 'ProjectLeaderProjectTypeComponent',
+                title: 'Leader kiểu dự án',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: ProjectLeaderProjectTypeComponent,
+              },
+            ]
           },
         ],
       },

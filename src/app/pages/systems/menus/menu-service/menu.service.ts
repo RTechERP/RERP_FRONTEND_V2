@@ -55,6 +55,7 @@ import { OfficeSupplyRequestSummaryComponent } from '../../../hrm/office-supply/
 import { VehicleRepairHistoryComponent } from '../../../hrm/propose-vehicle-repair/vehicle-repair-history/vehicle-repair-history/vehicle-repair-history.component';
 import { ProposeVehicleRepairComponent } from '../../../hrm/propose-vehicle-repair/propose-vehicle-repair/propose-vehicle-repair/propose-vehicle-repair.component';
 import { DailyReportHrComponent } from '../../../hrm/daily-report-hr/daily-report-hr.component';
+import { CustomerComponent } from '../../../old/customer/customer.component';
 
 @Injectable({
   providedIn: 'root',
@@ -351,7 +352,9 @@ export class MenuService {
                 key: 'OfficeSupplyRequestsComponent',
                 title: 'Đăng kí VPP',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission('N2,N34,N1,N54,N72,N70'),
+                isPermission: this.permissionService.hasPermission(
+                  'N2,N34,N1,N54,N72,N70'
+                ),
                 comp: OfficeSupplyRequestsComponent,
               },
               {
@@ -359,7 +362,8 @@ export class MenuService {
                 key: 'OfficeSupplyRequestSummaryComponent',
                 title: 'Tổng hợp VPP',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission('N2,N34,N1,N72'),
+                isPermission:
+                  this.permissionService.hasPermission('N2,N34,N1,N72'),
                 comp: OfficeSupplyRequestSummaryComponent,
               },
             ],
@@ -561,16 +565,16 @@ export class MenuService {
               //#endregion
             ],
           },
-          
+
           {
             kind: 'leaf',
             key: 'DailyReportHrComponent',
-            title: 'Báo cáo công việc', 
+            title: 'Báo cáo công việc',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
             comp: DailyReportHrComponent,
             //   icon: 'assets/icon/layers.png',
-          }
+          },
         ],
       },
       //#endregion
@@ -697,8 +701,7 @@ export class MenuService {
             title: 'Cài đặt',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
-            children:
-            [
+            children: [
               {
                 kind: 'leaf',
                 key: 'ProjectLeaderProjectTypeComponent',
@@ -707,7 +710,7 @@ export class MenuService {
                 isPermission: this.permissionService.hasPermission(''),
                 comp: ProjectLeaderProjectTypeComponent,
               },
-            ]
+            ],
           },
         ],
       },

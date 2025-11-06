@@ -55,6 +55,13 @@ import { OfficeSupplyRequestSummaryComponent } from '../../../hrm/office-supply/
 import { VehicleRepairHistoryComponent } from '../../../hrm/propose-vehicle-repair/vehicle-repair-history/vehicle-repair-history/vehicle-repair-history.component';
 import { ProposeVehicleRepairComponent } from '../../../hrm/propose-vehicle-repair/propose-vehicle-repair/propose-vehicle-repair/propose-vehicle-repair.component';
 import { DailyReportHrComponent } from '../../../hrm/daily-report-hr/daily-report-hr.component';
+import { EmployeePurchaseComponent } from '../../../purchase/employee-purchase/employee-purchase.component';
+import { RulePayComponent } from '../../../purchase/rulepay/rule-pay.component';
+import { CurrencyListComponent } from '../../../general-category/currency-list/currency-list.component';
+import { UnitCountComponent } from '../../../old/Sale/ProductSale/unit-count/unit-count.component';
+import { ProductLocationComponent } from '../../../general-category/product-location/product-location.component';
+import { FirmComponent } from '../../../general-category/firm/firm.component';
+import { CustomerComponent } from '../../../old/VisionBase/customer/customer.component';
 
 @Injectable({
   providedIn: 'root',
@@ -601,11 +608,85 @@ export class MenuService {
             comp: FactoryVisitRegistrationComponent,
             //   icon: 'assets/icon/layers.png',
           },
+                    {
+            kind: 'leaf',
+            key: 'UnitCountComponent',
+            title: 'ĐƠN VỊ TÍNH',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: UnitCountComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+          {
+            kind: 'leaf',
+            key: 'ProductLocationComponent',
+            title: 'VỊ TRÍ THIẾT BỊ',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: ProductLocationComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
         ],
       },
 
       //#endregion
-
+//#region menu Mua hàng
+{
+        kind: 'group',
+        key: 'purchase',
+        title: 'MUA HÀNG',
+        isOpen: true,
+        isPermission: this.permissionService.hasPermission(''),
+        icon: 'assets/icon/menu_categories_24.png',
+        children: [
+          {
+            kind: 'leaf',
+            key: 'EmployeePurchaseComponent',
+            title: 'NHÂN VIÊN MUA HÀNG',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: EmployeePurchaseComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+          {
+            kind: 'leaf',
+            key: 'RulePayComponent',
+            title: 'ĐIỀU KHOẢN THANH TOÁN',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: RulePayComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+          {
+            kind: 'leaf',
+            key: 'CurrencyListComponent',
+            title: 'TIỀN TỆ',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: CurrencyListComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+          {
+            kind: 'leaf',
+            key: 'UnitCountComponent',
+            title: 'ĐƠN VỊ TÍNH',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: UnitCountComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+          {
+            kind: 'leaf',
+            key: 'FirmComponent',
+            title: 'HÃNG',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: FirmComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+        ],
+      },
+//#endregion
       //#region menu dự án
       {
         kind: 'group',

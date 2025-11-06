@@ -80,11 +80,22 @@ export class CurrencyListComponent implements OnInit {
       layout: 'fitDataStretch',
       pagination: 'local',
       paginationSize: 30,
-      paginationSizeSelector: [5, 10, 20, 50, 100],
+      paginationSizeSelector: [10, 30, 50, 100, 500],
       reactiveData: true,
       selectableRows: 5,
       selectable: 10,
-      height: '100%',
+      langs: {
+    vi: {
+      pagination: {
+        first: '<<',
+        last: '>>',
+        prev: '<',
+        next: '>',
+      },
+    },
+  },
+  locale: 'vi',
+      height: '89vh',
       placeholder: 'Không có dữ liệu',
       columns: [
         {

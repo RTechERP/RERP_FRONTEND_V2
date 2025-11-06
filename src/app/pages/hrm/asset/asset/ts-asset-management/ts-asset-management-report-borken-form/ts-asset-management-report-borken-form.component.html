@@ -1,83 +1,88 @@
-
 <div class="modal-content">
 
- <div class="modal-header bg-primary p-2">
-  <h6 class="modal-title text-white" id="assetModalLabel">BÁO HỎNG TÀI SẢN</h6>
-  <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
-</div>
+  <div class="modal-header bg-primary p-2">
+    <h6 class="modal-title text-white" id="assetModalLabel">BÁO HỎNG TÀI SẢN</h6>
+    <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+  </div>
 
   <div class="modal-body">
     <form>
       <div class="row g-3">
         <!-- Phần trái: Thông tin tài sản -->
         <div class="col-md-6">
-          <h6>Thông tin tài sản</h6>
-          <div class="mb-3">
-            <label class="form-label">Mã NCC</label>
-            <input type="text" name="TSCodeNCC" [(ngModel)]="dataInput.TSCodeNCC" class="form-control" readonly>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Mã tài sản</label>
-            <input type="text" name="TSAssetCode" [(ngModel)]="dataInput.TSAssetCode" class="form-control" readonly>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Tên tài sản</label>
-            <input type="text" name="TSAssetName" [(ngModel)]="dataInput.TSAssetName" class="form-control" readonly>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Loại tài sản</label>
-            <input type="text" name="AssetType" [(ngModel)]="dataInput.AssetType" class="form-control" readonly>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Số Seri</label>
-            <input type="text" name="Seri" [(ngModel)]="dataInput.Seri" class="form-control" readonly>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Ngày mua</label>
-            <input type="date" name="DateBuy" [(ngModel)]="dataInput.DateBuy" class="form-control readonly" readonly />
-          </div>
+          <fieldset class="reset mt-2">
+            <legend class="reset fs-12 p-0">THÔNG TIN TÀI SẢN</legend>
+            <div class="mb-3">
+              <label class="form-label">Mã NCC</label>
+              <input type="text" name="TSCodeNCC" [(ngModel)]="dataInput.TSCodeNCC" class="form-control" readonly>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Mã tài sản</label>
+              <input type="text" name="TSAssetCode" [(ngModel)]="dataInput.TSAssetCode" class="form-control" readonly>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Tên tài sản</label>
+              <input type="text" name="TSAssetName" [(ngModel)]="dataInput.TSAssetName" class="form-control" readonly>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Loại tài sản</label>
+              <input type="text" name="AssetType" [(ngModel)]="dataInput.AssetType" class="form-control" readonly>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Số Seri</label>
+              <input type="text" name="Seri" [(ngModel)]="dataInput.Seri" class="form-control" readonly>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Ngày mua</label>
+              <input type="date" name="DateBuy" [(ngModel)]="dataInput.DateBuy" class="form-control readonly"
+                readonly />
+            </div>
 
-          <div class="mb-3">
-            <label class="form-label">Tình trạng</label>
-            <input type="text" name="Status" [(ngModel)]="dataInput.Status" class="form-control" readonly>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Mô tả chi tiết</label>
-            <input type="text" name="SpecificationsAsset" [(ngModel)]="dataInput.SpecificationsAsset"
-              class="form-control" readonly>
-          </div>
+            <div class="mb-3">
+              <label class="form-label">Tình trạng</label>
+              <input type="text" name="Status" [(ngModel)]="dataInput.Status" class="form-control" readonly>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Mô tả chi tiết</label>
+              <input type="text" name="SpecificationsAsset" [(ngModel)]="dataInput.SpecificationsAsset"
+                class="form-control" readonly>
+            </div>
+          </fieldset>
         </div>
         <!-- Phần phải: Thông tin nhân viên sử dụng và báo hỏng -->
         <div class="col-md-6">
-          <h6>Thông tin nhân viên sử dụng</h6>
-          <div class="mb-3">
-            <label class="form-label">Nhân viên</label>
-            <input type="text" name="EmployeeName" [(ngModel)]="dataInput.FullName" class="form-control" readonly>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Vị trí công việc</label>
-            <input type="text" name="Position" [(ngModel)]="dataInput.Name" class="form-control" readonly>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Phòng ban công tác</label>
-            <input type="text" name="DepartmentName" [(ngModel)]="dataInput.Name" class="form-control" readonly>
-          </div>
-          <h6 class="mt-3">Thông tin báo tài sản hỏng</h6>
-          <div class="mb-3">
-            <label class="form-label">Ngày báo hỏng (*)</label>
-            <input type="date" name="reportDate" [(ngModel)]="DateBrokenReport" class="form-control" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Lý do báo hỏng (*)</label>
-            <textarea class="form-control" name="reportErrorDescription" [(ngModel)]="Reason" rows="4"
-              required></textarea>
-          </div>
+          <fieldset class="reset mt-2">
+            <legend class="reset fs-12 p-0">THÔNG TIN NHÂN VIÊN SỬ DỤNG</legend>
+            <div class="mb-3">
+              <label class="form-label">Nhân viên</label>
+              <input type="text" name="EmployeeName" [(ngModel)]="dataInput.FullName" class="form-control" readonly>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Vị trí công việc</label>
+              <input type="text" name="Position" [(ngModel)]="dataInput.Name" class="form-control" readonly>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Phòng ban công tác</label>
+              <input type="text" name="DepartmentName" [(ngModel)]="dataInput.Name" class="form-control" readonly>
+            </div>
+            <h6 class="mt-3">Thông tin báo tài sản hỏng</h6>
+            <div class="mb-3">
+              <label class="form-label">Ngày báo hỏng  <span class="text-danger ps-1 me-1"> (*)
+                                    </span></label>
+              <input type="date" class="form-control" name="DateBrokenReport" [(ngModel)]="DateBrokenReport" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Lý do báo hỏng  <span class="text-danger ps-1 me-1"> (*)
+                                    </span></label>
+              <textarea class="form-control" name="Reason" [(ngModel)]="Reason" rows="4" required></textarea>
+            </div>
+          </fieldset>
         </div>
       </div>
     </form>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" (click)="close()">Đóng</button>
-    <button type="button" class="btn btn-primary" (click)="SaveAsset()">Gửi báo hỏng</button>
+    <button nz-button nzType="default" nzDanger (click)="close()">Đóng</button>
+    <button nz-button nzType="primary" (click)="SaveAsset()">Lưu dữ liệu</button>
   </div>
 </div>

@@ -249,10 +249,11 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit,AfterViewInit
 
         this.table = new Tabulator("#office-supply-request-summary-table", {
           data: this.datatable,
-          layout: 'fitDataStretch',
+          layout: 'fitColumns',
         height: '89vh',
         ...DEFAULT_TABLE_CONFIG,
         pagination: true,
+        paginationMode:'local',
         paginationSize: 50,
         paginationSizeSelector: [5, 10, 20, 50, 100],
         movableColumns: true,
@@ -272,7 +273,7 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit,AfterViewInit
         locale: 'vi',
       
           columnDefaults:{
-            // headerWordWrap: true,
+            headerWordWrap: true,
             headerVertical: false,
             headerHozAlign: "center",           
             minWidth: 100,
@@ -282,7 +283,7 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit,AfterViewInit
           },
           columns: [
             { 
-              title: "",
+              title: "Thông tin sản phẩm",
               frozen:true,
               columns:[
                 { title: "STT", field: "STT", hozAlign: "center", resizable: true
@@ -295,6 +296,7 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit,AfterViewInit
                   resizable: true,
                   variableHeight: true,
                   bottomCalc: "count",
+                  formatter: "textarea",
                   // frozen: true
                 },
               ]
@@ -325,6 +327,8 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit,AfterViewInit
                 { title: "Văn Phòng HP", field: "HP", hozAlign: "right",  resizable: true,
                   bottomCalc:"sum", bottomCalcFormatter: quantityFormatter, formatter: quantityFormatter },
                 { title: "Văn Phòng HCM", field: "HCM", hozAlign: "right", resizable: true,
+                  bottomCalc:"sum", bottomCalcFormatter: quantityFormatter, formatter: quantityFormatter },
+                    { title: "Lắp ráp", field: "LR", hozAlign: "right", resizable: true,
                   bottomCalc:"sum", bottomCalcFormatter: quantityFormatter, formatter: quantityFormatter },
               ],
             },
@@ -364,7 +368,7 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit,AfterViewInit
                 { 
                   title: "Ghi chú", 
                   field: "Note", 
-                 
+                 minWidth: 400,
                   resizable: true,
                   formatter: "textarea",
                   variableHeight: true

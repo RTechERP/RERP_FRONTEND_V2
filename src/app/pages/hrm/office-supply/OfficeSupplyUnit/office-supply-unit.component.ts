@@ -220,26 +220,30 @@ export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
       nzMaskClosable: true
     });
   }
-  openUnitModal() {
-    const modalRef = this.modalService.open(OfficeSupplyUnitDetailComponent, {
-      centered: true,
-      size: 'md',
-      backdrop: 'static',
-      keyboard: false
-    });
-    modalRef.componentInstance.isCheckmode = this.isCheckmode;
-    modalRef.componentInstance.selectedItem = this.selectedItem;
-    modalRef.result.then(
-      (result) => {
-        if (result === 'success') {
-          this.get();
-        }
-      },
-      (reason) => {
-        console.log('Modal dismissed:', reason);
+ openUnitModal() {
+  const modalRef = this.modalService.open(OfficeSupplyUnitDetailComponent, {
+    centered: true,
+    size: 'md',
+    backdrop: 'static',
+    keyboard: false
+  });
+
+  modalRef.componentInstance.isCheckmode = this.isCheckmode;
+  modalRef.componentInstance.selectedItem = this.selectedItem;
+  modalRef.componentInstance.reloadData.subscribe(() => {
+    this.get(); // reload bảng
+  });
+  modalRef.result.then(
+    (result) => {
+      if (result === 'success') {
+        this.get();
       }
-    );
-  }
+    },
+    (reason) => {
+      console.log('Modal dismissed:', reason);
+    }
+  );
+}
   openUnitModalForNewUnit() {
     this.isCheckmode = false;
     this.selectedItem = {};

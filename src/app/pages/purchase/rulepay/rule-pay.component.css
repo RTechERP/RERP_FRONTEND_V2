@@ -1,0 +1,238 @@
+.rule-pay-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  gap: 20px;
+}
+
+.search-section {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.button-section {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.button-section button {
+  font-size: 12px;
+  padding: 4px 8px;
+  height: 28px;
+  line-height: 1.2;
+}
+
+.button-section button nz-icon {
+  margin-right: 4px;
+}
+
+.table-container {
+  flex: 1;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.modal-form {
+}
+
+.form-row {
+  margin-bottom: 15px;
+}
+
+.form-label {
+  font-weight: 500;
+  margin-bottom: 5px;
+  display: block;
+}
+
+/* Custom styling for small buttons */
+.ant-btn-sm {
+  font-size: 12px;
+  padding: 4px 8px;
+  height: 28px;
+  line-height: 1.2;
+}
+
+.ant-btn-sm .anticon {
+  margin-right: 4px;
+  font-size: 12px;
+}
+
+/* Search section styling */
+.search-section .ant-input-group {
+  width: 200px;
+}
+
+.search-section .ant-checkbox-wrapper {
+  margin-right: 10px;
+}
+
+/* Custom search button styling */
+.search-button {
+  background-color: #1890ff !important;
+  border-color: #1890ff !important;
+  color: white !important;
+}
+
+.search-button:hover {
+  background-color: #40a9ff !important;
+  border-color: #40a9ff !important;
+}
+
+.search-button .anticon {
+  color: white !important;
+}
+
+/* Modal Action Buttons Styling */
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+}
+
+.save-close-btn {
+  background: #1890ff !important;
+  border-color: #1890ff !important;
+  color: white !important;
+  font-weight: 500;
+  height: 36px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.save-close-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.overlay-icon {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  font-size: 10px;
+  color: #ff4d4f;
+  background: white;
+  border-radius: 50%;
+  width: 12px;
+  height: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ff4d4f;
+}
+
+.save-close-btn:hover {
+  background: #40a9ff !important;
+  border-color: #40a9ff !important;
+}
+
+.save-close-btn:disabled {
+  background: #d9d9d9 !important;
+  border-color: #d9d9d9 !important;
+  color: #bfbfbf !important;
+}
+
+.save-add-btn {
+  background: white !important;
+  border-color: #d9d9d9 !important;
+  color: #595959 !important;
+  font-weight: 500;
+  height: 36px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.save-add-btn:hover {
+  background: #f5f5f5 !important;
+  border-color: #40a9ff !important;
+  color: #40a9ff !important;
+}
+
+.save-add-btn:disabled {
+  background: #f5f5f5 !important;
+  border-color: #d9d9d9 !important;
+  color: #bfbfbf !important;
+}
+
+/* Modal form styling */
+.modal-form {
+  padding: 0;
+  min-height: 300px;
+}
+
+/* Đảm bảo modal hiển thị đúng */
+.ant-modal-content {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.ant-modal-body {
+  padding: 24px;
+}
+
+/* Đảm bảo modal hiển thị trên cùng */
+.ant-modal {
+  z-index: 1000 !important;
+}
+
+.ant-modal-mask {
+  z-index: 999 !important;
+}
+
+/* Đảm bảo form hiển thị đúng */
+.modal-form {
+  padding: 0;
+  min-height: 300px;
+  display: block;
+}
+
+.modal-form .ant-form-item {
+  margin-bottom: 20px;
+}
+
+.modal-form .ant-form-item-label {
+  font-weight: 500;
+  color: #262626;
+}
+
+.modal-form .ant-input,
+.modal-form .ant-input-affix-wrapper {
+  border-radius: 6px;
+  border: 1px solid #d9d9d9;
+}
+
+.modal-form .ant-input:focus,
+.modal-form .ant-input-affix-wrapper:focus,
+.modal-form .ant-input:hover,
+.modal-form .ant-input-affix-wrapper:hover {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.modal-form textarea.ant-input {
+  resize: vertical;
+  min-height: 80px;
+} 

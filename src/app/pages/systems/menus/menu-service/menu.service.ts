@@ -12,7 +12,7 @@ import { VehicleRepairTypeComponent } from '../../../hrm/vehicle-repair/vehicle-
 import { VehicleRepairComponent } from '../../../hrm/vehicle-repair/vehicle-repair.component';
 import { TrainingRegistrationComponent } from '../../../training-registration/training-registration.component';
 import { ContractComponent } from '../../../old/contract/contract.component';
-import { CustomerComponent } from '../../../old/customer/customer.component';
+// import { CustomerComponent } from '../../../old/customer/customer.component';
 import { DayOffComponent } from '../../../old/day-off/day-off.component';
 import { DepartmentComponent } from '../../../old/department/department.component';
 import { EarlyLateComponent } from '../../../old/early-late/early-late.component';
@@ -54,6 +54,8 @@ import { OfficeSupplyRequestsComponent } from '../../../hrm/office-supply/Office
 import { OfficeSupplyRequestSummaryComponent } from '../../../hrm/office-supply/OfficeSupplyRequestSummary/office-supply-request-summary.component';
 import { VehicleRepairHistoryComponent } from '../../../hrm/propose-vehicle-repair/vehicle-repair-history/vehicle-repair-history/vehicle-repair-history.component';
 import { ProposeVehicleRepairComponent } from '../../../hrm/propose-vehicle-repair/propose-vehicle-repair/propose-vehicle-repair/propose-vehicle-repair.component';
+import { DailyReportHrComponent } from '../../../hrm/daily-report-hr/daily-report-hr.component';
+import { CustomerComponent } from '../../../old/customer/customer.component';
 
 @Injectable({
   providedIn: 'root',
@@ -350,7 +352,9 @@ export class MenuService {
                 key: 'OfficeSupplyRequestsComponent',
                 title: 'Đăng kí VPP',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
+                isPermission: this.permissionService.hasPermission(
+                  'N2,N34,N1,N54,N72,N70'
+                ),
                 comp: OfficeSupplyRequestsComponent,
               },
               {
@@ -358,7 +362,8 @@ export class MenuService {
                 key: 'OfficeSupplyRequestSummaryComponent',
                 title: 'Tổng hợp VPP',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
+                isPermission:
+                  this.permissionService.hasPermission('N2,N34,N1,N72'),
                 comp: OfficeSupplyRequestSummaryComponent,
               },
             ],
@@ -560,6 +565,16 @@ export class MenuService {
               //#endregion
             ],
           },
+
+          {
+            kind: 'leaf',
+            key: 'DailyReportHrComponent',
+            title: 'Báo cáo công việc',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: DailyReportHrComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
         ],
       },
       //#endregion
@@ -681,12 +696,21 @@ export class MenuService {
             comp: MeetingMinuteComponent,
           },
           {
-            kind: 'leaf',
-            key: 'ProjectLeaderProjectTypeComponent',
-            title: 'Leader kiểu dự án',
+            kind: 'group',
+            key: 'SettingLeader',
+            title: 'Cài đặt',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
-            comp: ProjectLeaderProjectTypeComponent,
+            children: [
+              {
+                kind: 'leaf',
+                key: 'ProjectLeaderProjectTypeComponent',
+                title: 'Leader kiểu dự án',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: ProjectLeaderProjectTypeComponent,
+              },
+            ],
           },
         ],
       },

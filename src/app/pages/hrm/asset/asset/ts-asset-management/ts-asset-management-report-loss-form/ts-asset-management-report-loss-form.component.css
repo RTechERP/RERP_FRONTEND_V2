@@ -88,3 +88,14 @@ legend {
   width: auto;
   padding: 0 8px;
 }
+.modal-body-scroll {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+@media (max-width: 576px) {
+  .modal-header,
+  .modal-footer {
+    padding: 0.5rem 0.75rem;
+  }
+}

@@ -43,7 +43,7 @@ import { HasPermissionDirective } from "../../../../../../directives/has-permiss
     NzButtonModule,
     NzModalModule,
     HasPermissionDirective
-]
+  ]
 })
 export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
   @Input() dataInput: any;
@@ -61,6 +61,7 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
   assetTable: Tabulator | null = null;
   constructor(private notification: NzNotificationService) { }
   ngAfterViewInit(): void {
+    this.drawTbSelectAsset();
   }
   ngOnInit() {
     this.dataInput.DateRecovery = this.formatDateForInput(this.dataInput.DateRecovery);//fomat lại ngày
@@ -97,7 +98,7 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
       keyword: ''
     };
     this.assetManagementPersonalService.getEmployee(request).subscribe((respon: any) => {
-      this.emPloyeeLists = respon.employees;
+      this.emPloyeeLists = respon.data;
       if (this.dataInput?.EmployeeID) {
         this.onEmployeeChange(this.dataInput.EmployeeID);
       }
@@ -113,7 +114,7 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
       this.drawTbSelectAsset();
     });
   }
-// Bắt sự kiện thay đổi nhân viên khi chọn
+  // Bắt sự kiện thay đổi nhân viên khi chọn
   onEmployeeChange(employeeID: number): void {
     const selectedEmp = this.emPloyeeLists.find(emp => emp.ID === employeeID);
     if (selectedEmp) {
@@ -154,7 +155,7 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
     }
   }
   drawTbSelectAsset() {
-    this.assetTable = new Tabulator('#tableAsset', {
+    this.assetTable = new Tabulator('#tableAsset11111', {
       height: "40vh",
       data: this.allocationDetailData,
       layout: "fitDataStretch",

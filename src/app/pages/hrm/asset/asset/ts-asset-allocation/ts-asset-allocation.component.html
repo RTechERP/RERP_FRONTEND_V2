@@ -1,5 +1,5 @@
 <ng-container class="w-100">
-  <nz-splitter style="height: 90vh; ">
+  <nz-splitter>
     <nz-splitter-panel *ngIf="isSearchVisible" [nzSize]="'20%'" [nzResizable]="false">
       <div class="card h-100 border-0 rounded-0">
         <!-- Header -->
@@ -35,8 +35,8 @@
             <nz-form-item class="mt-2">
               <nz-form-label class="fs-12" [nzSpan]="24">Chọn nhân viên</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <nz-select class="w-100 fs-12"     nzSize="small" nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên..."
-                  [(ngModel)]="employeeID" name="employeeID">
+                <nz-select class="w-100 fs-12" nzSize="small" nzShowSearch nzAllowClear
+                  nzPlaceHolder="Chọn nhân viên..." [(ngModel)]="employeeID" name="employeeID">
                   <nz-option *ngFor="let emp of emPloyeeLists" [nzLabel]="emp.Code + ' - ' + emp.FullName"
                     [nzValue]="emp.ID"></nz-option>
                 </nz-select>
@@ -76,46 +76,106 @@
             <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
               <nz-icon nzType="search" />
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onAddAllocation()">
-              <nz-icon nzType="plus" /> Thêm
+            <button class="fs-12 btn-add" nz-button nzType="default" nzSize="small" (click)="onAddAllocation()"
+              *hasPermission="'N23,N1'">
+              <img src="assets/icon/action_add_item_16.png" /> Thêm
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onEditAllocation()">
-              <nz-icon nzType="edit" nzTheme="fill" />Sửa
+            <button class="fs-12 btn-edit" nz-button nzType="default" nzSize="small" (click)="onEditAllocation()"
+              *hasPermission="'N23,N1'">
+              <img src="assets/icon/action_edit_item_16.png" />Sửa
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onDeleteAllocation()">
-              <nz-icon nzType="delete" nzTheme="fill" />Xóa
+            <button class="fs-12 btn-delete" nz-button nzType="default" nzSize="small" (click)="onDeleteAllocation()"
+              *hasPermission="'N23,N1'">
+              <img src="assets/icon/action_delete_item_16.png" />Xóa
             </button>
+            <div class="btn-group">
+              <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
+                [nzDropdownMenu]="menuPerspnal" *hasPermission="''">
+                <img src="assets/icon/action_confirm_tbp_16.png" />Cá nhân xác nhận
+                <i nz-icon nzType="down"></i>
+              </button>
+              <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="menuHR"
+                *hasPermission="'N23,N1'">
+                <img src="assets/icon/action_confirm_tbp_16.png" />HR xác nhận
+                <i nz-icon nzType="down"></i>
+              </button>
+              <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="menuKT"
+                *hasPermission="'N67,N1'">
+                <img src="assets/icon/action_confirm_tbp_16.png" />KT xác nhận
+                <i nz-icon nzType="down"></i>
+              </button>
+              <nz-dropdown-menu #menuPerspnal="nzDropdownMenu">
+                <ul nz-menu>
+                  <li nz-menu-item (click)="updateApprove(1)">
+                    <img src="assets/icon/action_approved_16.png" />
+                    <span class="ms-1">Cá nhân duyệt</span>
+                  </li>
+                  <li nz-menu-item (click)="updateApprove(2)">
+                    <img src="assets/icon/action_unapproved_16.png" />
+                    <span class="ms-1">Cá nhân hủy duyệt</span>
+                  </li>
 
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="updateApprove(1)">
-              <nz-icon nzType="check" nzTheme="outline"></nz-icon> Cá nhân duyệt
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="updateApprove(2)">
-              <nz-icon nzType="close" nzTheme="outline"></nz-icon> Cá nhân hủy duyệt
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="updateApprove(3)">
-              <nz-icon nzType="check" nzTheme="outline"></nz-icon> HR duyệt
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="updateApprove(4)">
-              <nz-icon nzType="close" nzTheme="outline"></nz-icon> HR hủy duyệt
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="updateApprove(5)">
-              <nz-icon nzType="check" nzTheme="outline"></nz-icon> KT duyệt
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="updateApprove(6)">
-              <nz-icon nzType="close" nzTheme="outline"></nz-icon> KT hủy duyệt
-            </button>
+                </ul>
+
+              </nz-dropdown-menu>
+              <nz-dropdown-menu #menuHR="nzDropdownMenu">
+                <ul nz-menu>
+                  <li nz-menu-item (click)="updateApprove(3)">
+                    <img src="assets/icon/action_approved_16.png" />
+                    <span class="ms-1">Cá nhân duyệt</span>
+                  </li>
+                  <li nz-menu-item (click)="updateApprove(4)">
+                    <img src="assets/icon/action_unapproved_16.png" />
+                    <span class="ms-1">Cá nhân hủy duyệt</span>
+                  </li>
+
+                </ul>
+
+              </nz-dropdown-menu>
+              <nz-dropdown-menu #menuKT="nzDropdownMenu">
+                <ul nz-menu>
+                  <li nz-menu-item (click)="updateApprove(5)">
+                    <img src="assets/icon/action_approved_16.png" />
+                    <span class="ms-1">Kế toán duyệt</span>
+                  </li>
+                  <li nz-menu-item (click)="updateApprove(6)">
+                    <img src="assets/icon/action_unapproved_16.png" />
+                    <span class="ms-1">Kế toán hủy duyệt</span>
+                  </li>
+
+                </ul>
+
+              </nz-dropdown-menu>
+
+            </div>
+
+
             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportAllocationAssetReport()">
-              <nz-icon nzType="file-excel" nzTheme="outline" /> Xuất Phiếu
+              <img src="assets/icon/import-excel.png" />Xuất Phiếu
             </button>
           </div>
         </div>
 
-        <nz-splitter style="height: 86vh;">
+        <nz-splitter>
           <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
-            <div id="datatableassetallocation" style="height: 100%;"></div>
+            <!-- bảng master cấp phát -->
+            <div #datatableAssetAllocation></div>
           </nz-splitter-panel>
+
           <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" [nzSize]="sizeTbDetail">
-            <div id="databledetailta" style="height: 100%; "></div>
+            <!-- bảng chi tiết -->
+
+            <ng-template #tabClose>
+              <button nz-button nzType="text" class="btn-close-panel" style="color: red;" (click)="closePanel()">
+                <i nz-icon nzType="close"></i>
+              </button>
+            </ng-template>
+            <nz-tabset style=" padding-left: 10px !important;" [nzTabBarExtraContent]="tabClose">
+
+              <nz-tab nzTitle="Thông tin sử dụng tài sản">
+                <div #datatableAllocationDetail></div>
+              </nz-tab>
+            </nz-tabset>
           </nz-splitter-panel>
         </nz-splitter>
       </div>

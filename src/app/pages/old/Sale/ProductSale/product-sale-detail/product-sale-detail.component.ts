@@ -19,6 +19,7 @@ import { ProductsaleServiceService } from '../product-sale-service/product-sale-
 import { FirmDetailComponent } from '../firm-detail/firm-detail.component';
 import { LocationDetailComponent } from '../location-detail/location-detail.component';
 import { UnitCountDetailComponent } from '../unit-count-detail/unit-count-detail.component';
+import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 
 interface ProductSale {
   Id?: number;
@@ -64,7 +65,8 @@ function noVietnameseValidator(control: AbstractControl): ValidationErrors | nul
     NzProgressModule,
     NzInputModule,
     NzFormModule,
-    NzInputNumberModule
+    NzInputNumberModule,
+    HasPermissionDirective
   ],
   templateUrl: './product-sale-detail.component.html',
   styleUrl: './product-sale-detail.component.css'

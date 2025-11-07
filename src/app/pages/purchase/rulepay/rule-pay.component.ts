@@ -39,7 +39,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
     NzProgressModule,
     NzInputNumberModule,
     NzCheckboxModule
-    ,HasPermissionDirective
+    , HasPermissionDirective
   ],
   templateUrl: './rule-pay.component.html',
   styleUrl: './rule-pay.component.css'
@@ -73,7 +73,7 @@ export class RulePayComponent implements OnInit, AfterViewInit {
     private modalService: NgbModal,
     private fb: FormBuilder,
     private rulePayService: RulePayService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.getData();
@@ -94,7 +94,7 @@ export class RulePayComponent implements OnInit, AfterViewInit {
     const cachedData = localStorage.getItem('rulePayData');
     const lastFetchTime = localStorage.getItem('rulePayLastFetch');
     const currentTime = new Date().getTime();
-    
+
     // Nếu có dữ liệu cache và chưa quá 5 phút, sử dụng cache
     if (cachedData && lastFetchTime && (currentTime - parseInt(lastFetchTime)) < 300000) {
       try {
@@ -136,20 +136,19 @@ export class RulePayComponent implements OnInit, AfterViewInit {
   drawTable(): void {
     this.table = new Tabulator('#rule-pay-table', {
       data: this.dataTable,
-      ...DEFAULT_TABLE_CONFIG,
+       ...DEFAULT_TABLE_CONFIG,
       paginationMode: 'local',
-      reactiveData: true,
-      selectableRows: true,
+      paginationSize: 50,
+      paginationSizeSelector: [10, 30, 50, 100, 300, 500],
+      layout: 'fitDataStretch',
+      
       columns: [
-        { title: 'Mã', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: 350 },
-        { title: 'Chú giải', field: 'Note', hozAlign: 'left', headerHozAlign: 'center',width: 1000 }
+        { title: 'Mã', field: 'Code', width: 350, formatter: 'textarea' },
+        { title: 'Chú giải', field: 'Note', formatter: 'textarea' }
       ]
     });
 
-    // Event handlers
-    // this.table.on('rowClick', (e: any, row: any) => {
-    //   this.onRowClick(row);
-    // });
+
 
     this.table.on('rowSelectionChanged', (data: any, rows: any) => {
       this.selectedList = rows.map((row: any) => row.getData());
@@ -200,6 +199,9 @@ export class RulePayComponent implements OnInit, AfterViewInit {
             if (response.status === 1) {
               this.notification.success('Thông báo', 'Xóa thành công!');
               this.getData();
+              this.selectedList = [];
+              this.selectAll = false;
+              this.searchText = '';
             } else {
               this.notification.error('Lỗi', response.message || 'Không thể xóa dữ liệu');
             }
@@ -226,7 +228,7 @@ export class RulePayComponent implements OnInit, AfterViewInit {
       this.notification.warning('Thông báo', 'Vui lòng chỉ chọn 1 dữ liệu để sửa!');
       return;
     }
-    
+
     this.newRulePay = { ...this.selectedList[0] };
     this.isCheckmode = true;
     this.openModal();
@@ -277,7 +279,7 @@ export class RulePayComponent implements OnInit, AfterViewInit {
         index + 1,
         row.Code,
         row.Note
-      ];  
+      ];
       worksheet.addRow(rowData);
     });
 

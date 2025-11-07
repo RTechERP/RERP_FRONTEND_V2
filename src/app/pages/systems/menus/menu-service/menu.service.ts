@@ -93,6 +93,7 @@ export class MenuService {
       {
         kind: 'group',
         key: 'crm',
+        stt: 1,
         title: 'CRM',
         isOpen: true,
         isPermission: true,
@@ -113,6 +114,7 @@ export class MenuService {
       {
         kind: 'group',
         key: 'warehouse',
+        stt: 3,
         title: 'KHO',
         isOpen: true,
         isPermission: this.permissionService.hasPermission(''),
@@ -144,6 +146,7 @@ export class MenuService {
       {
         kind: 'group',
         key: 'hrm',
+        stt: 2,
         title: 'HRM',
         isOpen: true,
         isPermission: this.permissionService.hasPermission(''),
@@ -612,7 +615,7 @@ export class MenuService {
             comp: FactoryVisitRegistrationComponent,
             //   icon: 'assets/icon/layers.png',
           },
-                    {
+          {
             kind: 'leaf',
             key: 'UnitCountComponent',
             title: 'ĐƠN VỊ TÍNH',
@@ -634,8 +637,8 @@ export class MenuService {
       },
 
       //#endregion
-//#region menu Mua hàng
-{
+      //#region menu Mua hàng
+      {
         kind: 'group',
         key: 'purchase',
         title: 'MUA HÀNG',
@@ -690,7 +693,7 @@ export class MenuService {
           },
         ],
       },
-//#endregion
+      //#endregion
       //#region menu dự án
       {
         kind: 'group',
@@ -804,6 +807,7 @@ export class MenuService {
 
 type BaseItem = {
   key: string;
+  stt?: number;
   title: string;
   isOpen: boolean;
   icon?: string | null; // tùy chọn

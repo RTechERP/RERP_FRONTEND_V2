@@ -65,6 +65,7 @@ import {
   MenuItem,
   MenuService,
 } from '../../pages/systems/menus/menu-service/menu.service';
+import { NOTIFICATION_TITLE } from '../../app.config';
 
 interface dynamicApps {
   MenuName: string;
@@ -252,10 +253,13 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
     private appUserService: AppUserService,
     private menuService: MenuService
   ) {
-    this.menus = this.menuService.getMenus();
+    this.menus = this.menuService
+      .getMenus()
+      .sort((a, b) => (a.stt ?? 1) - (b.stt ?? 1));
   }
 
   ngOnInit(): void {
+    console.log('this.menus', this.menus);
     this.setResponsivePageSize();
     this.getMenuParents();
     // this.generateCalendarDays();
@@ -301,62 +305,62 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
     // TODO: điều hướng/đánh dấu đã đọc...
   }
   notifItems: NotifyItem[] = [
-    // {
-    //   id: 1,
-    //   title: 'Phiếu xe #A123 đã duyệt',
-    //   detail: 'Xe VP Hà Nội',
-    //   time: '09:12',
-    //   group: 'today',
-    //   icon: 'car',
-    // },
-    // {
-    //   id: 1,
-    //   title: 'Phiếu xe #A123 đã duyệt',
-    //   detail: 'Xe VP Hà Nội',
-    //   time: '09:12',
-    //   group: 'today',
-    //   icon: 'car',
-    // },
-    // {
-    //   id: 1,
-    //   title: 'Phiếu xe #A123 đã duyệt',
-    //   detail: 'Xe VP Hà Nội',
-    //   time: '09:12',
-    //   group: 'today',
-    //   icon: 'car',
-    // },
-    // {
-    //   id: 1,
-    //   title: 'Phiếu xe #A123 đã duyệt',
-    //   detail: 'Xe VP Hà Nội',
-    //   time: '09:12',
-    //   group: 'today',
-    //   icon: 'car',
-    // },
-    // {
-    //   id: 1,
-    //   title: 'Phiếu xe #A123 đã duyệt',
-    //   detail: 'Xe VP Hà Nội',
-    //   time: '09:12',
-    //   group: 'today',
-    //   icon: 'car',
-    // },
-    // {
-    //   id: 1,
-    //   title: 'Phiếu xe #A123 đã duyệt',
-    //   detail: 'Xe VP Hà Nội',
-    //   time: '09:12',
-    //   group: 'today',
-    //   icon: 'car',
-    // },
-    // {
-    //   id: 1,
-    //   title: 'Phiếu xe #A123 đã duyệt',
-    //   detail: 'Xe VP Hà Nội',
-    //   time: '09:12',
-    //   group: 'today',
-    //   icon: 'car',
-    // },
+    {
+      id: 1,
+      title: 'Phiếu xe #A123 đã duyệt',
+      detail: 'Xe VP Hà Nội',
+      time: '09:12',
+      group: 'today',
+      icon: 'car',
+    },
+    {
+      id: 1,
+      title: 'Phiếu xe #A123 đã duyệt',
+      detail: 'Xe VP Hà Nội',
+      time: '09:12',
+      group: 'today',
+      icon: 'car',
+    },
+    {
+      id: 1,
+      title: 'Phiếu xe #A123 đã duyệt',
+      detail: 'Xe VP Hà Nội',
+      time: '09:12',
+      group: 'today',
+      icon: 'car',
+    },
+    {
+      id: 1,
+      title: 'Phiếu xe #A123 đã duyệt',
+      detail: 'Xe VP Hà Nội',
+      time: '09:12',
+      group: 'today',
+      icon: 'car',
+    },
+    {
+      id: 1,
+      title: 'Phiếu xe #A123 đã duyệt',
+      detail: 'Xe VP Hà Nội',
+      time: '09:12',
+      group: 'today',
+      icon: 'car',
+    },
+    {
+      id: 1,
+      title: 'Phiếu xe #A123 đã duyệt',
+      detail: 'Xe VP Hà Nội',
+      time: '09:12',
+      group: 'today',
+      icon: 'car',
+    },
+    {
+      id: 1,
+      title: 'Phiếu xe #A123 đã duyệt',
+      detail: 'Xe VP Hà Nội',
+      time: '09:12',
+      group: 'today',
+      icon: 'car',
+    },
   ];
 
   getMenuParents(): void {
@@ -550,21 +554,14 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
       Router: router,
     };
 
-    // const url = `http://localhost:19028${router}`;
     const url = `http://113.190.234.64:8081${router}`;
-    // console.log('router:',url);
     this.homepageService.gotoOldLink(data).subscribe({
       next: (response) => {
-        // console.log('response:',response);
-        // console.log('router next:',url);
         window.open(url, '_blank');
-        // window.location.href = url;
       },
       error: (err) => {
-        console.log('err:', err);
-        //  console.log('err status:',err.status);
-        //  window.open(url,'_blank');
-        // window.location.href = url;
+        // console.log('err:', err);
+        this.notification.error(NOTIFICATION_TITLE.error, err.message);
       },
     });
   }

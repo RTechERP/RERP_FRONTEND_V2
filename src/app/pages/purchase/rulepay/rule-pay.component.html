@@ -1,46 +1,42 @@
-<div class="rule-pay-container">
-  <!-- Header Section -->
-  <div class="header-section">
-    <div class="button-section">
-      <button  class="btn-add" *hasPermission="''" nz-button nzSize="small" nzType="default" (click)="openModalForNew()">
-        <nz-icon nzType="plus"></nz-icon>
-        Thêm mới
-      </button>
-      <button class="btn-edit" *hasPermission="''" nz-button nzSize="small" nzType="default" (click)="editItem()">
-        <nz-icon nzType="edit"></nz-icon>
-        Sửa 
-      </button>
-      <button class="btn-delete" *hasPermission="''" nz-button nzSize="small" nzType="default" (click)="delete()">
-        <nz-icon nzType="delete"></nz-icon>
-        Xóa 
-      </button>
-            <button class="btn-export" *hasPermission="''" nz-button nzSize="small" nzType="default" (click)="exportExcel()">
-        <nz-icon nzType="download"></nz-icon>
-        Xuất excel
-      </button>
-      
-     
-    </div>
-    
-    <div class="search-section">
-      <nz-input-group style="width: 200px;">
-        <input 
-          type="text" 
-          nz-input 
-          placeholder="Tìm kiếm" 
-          [(ngModel)]="searchText"
-          (keyup.enter)="search()"
-        />
-      </nz-input-group>
- 
+
+  <div class="card border-1 m-0 p-1 rounded-0 w-100" style="max-width: 100%;">
+    <div class="rule-pay-container card-header m-0 p-1">
+      <!-- Header Section -->
+      <div class=" d-flex justify-content-between align-items-center">
+        <div class="button-section">
+          <button class="btn-add me-2" *hasPermission="'N22,N33,N35,N1'" nz-button nzSize="small" nzType="default"
+            (click)="openModalForNew()">
+            <img src="assets/icon/action_add_item_16.png" />
+            Thêm
+          </button>
+          <button class="btn-edit me-2" *hasPermission="'N22,N33,N35,N1'" nz-button nzSize="small" nzType="default"
+            (click)="editItem()">
+            <img src="assets/icon/action_edit_item_16.png" />
+            Sửa
+          </button>
+          <button class="btn-delete me-2" *hasPermission="'N22,N33,N35,N1'" nz-button nzSize="small" nzType="default"
+            (click)="delete()">
+            <img src="assets/icon/action_delete_item_16.png" />
+            Xóa
+          </button>
+          <button class="btn-export me-2" *hasPermission="'N22,N33,N35,N1'" nz-button nzSize="small" nzType="default"
+            (click)="exportExcel()">
+            <img src="assets/icon/action_export_excel_16.png" />
+            Xuất excel
+          </button>
+
+
+        </div>
+
+        <div class="search-section float-end fs-12 mb-2">
+          <input type="text" nz-input (input)="search()" (ngModelChange)="search()" placeholder="Tìm kiếm"
+            [(ngModel)]="searchText" (keyup.enter)="search()" />
+        </div>
+      </div>
+
+      <!-- Table Section -->
+      <div class="table-container card-body m-0 p-1">
+        <div id="rule-pay-table"></div>
+      </div>
     </div>
   </div>
-
-  <!-- Table Section -->
-  <div class="table-container">
-    <div id="rule-pay-table"></div>
-  </div>
-</div>
-
-
-

@@ -490,24 +490,20 @@ export class EmployeePurchaseComponent
     ];
 
     this.tb_employeePurchase = new Tabulator(container, {
-      height: '100%',
+      height: '89vh',
       layout: 'fitColumns',
       locale: 'vi',
       pagination: true,
-      paginationSize: 100,
-      paginationSizeSelector: [100, 200, 300, 500, 1000],
+      paginationSize: 30,
+      paginationSizeSelector: [10,30, 50, 100, 500],
       paginationButtonCount: 5,
       langs: {
         vi: {
           pagination: {
             first: '<<',
-            first_title: 'Trang đầu',
             last: '>>',
-            last_title: 'Trang cuối',
             prev: '<',
-            prev_title: 'Trang trước',
             next: '>',
-            next_title: 'Trang sau',
           },
         },
       },

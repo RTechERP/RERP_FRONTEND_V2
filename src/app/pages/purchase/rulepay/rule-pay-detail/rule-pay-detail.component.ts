@@ -8,6 +8,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { RulePayService, RulePay } from '../rule-pay.service';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 
 @Component({
   selector: 'app-rule-pay-detail',
@@ -18,7 +19,8 @@ import { RulePayService, RulePay } from '../rule-pay.service';
     NzIconModule,
     NzButtonModule,
     NzInputModule,
-    NzFormModule
+    NzFormModule,
+    HasPermissionDirective
   ],
   templateUrl: './rule-pay-detail.component.html',
   styleUrl: './rule-pay-detail.component.css'
@@ -74,11 +76,14 @@ export class RulePayDetailComponent implements OnInit, AfterViewInit, OnChanges 
   }
 
   add(): void {
-    this.validateForm.markAllAsTouched();
     if (this.validateForm.invalid) {
-      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin!');
-      return;
-    }
+    Object.values(this.validateForm.controls).forEach(c => {
+      c.markAsTouched();
+      c.updateValueAndValidity({ onlySelf: true });
+    });
+    this.notification.warning('Cảnh báo', 'Vui lòng điền đủ thông tin bắt buộc');
+    return;
+  }
     const now = new Date();
     const formData = this.validateForm.value;
     const payload = {
@@ -99,24 +104,27 @@ export class RulePayDetailComponent implements OnInit, AfterViewInit, OnChanges 
         this.activeModal.close('success');
       },
       error: (err) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi thêm dữ liệu!');
+        this.notification.error('Thông báo', err.error?.message || 'Có lỗi xảy ra khi thêm dữ liệu!');
       }
     });
   }
 
   update(): void {
-    this.validateForm.markAllAsTouched();
-    if (this.validateForm.invalid) {
-      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin!');
-      return;
-    }
+if (this.validateForm.invalid) {
+    Object.values(this.validateForm.controls).forEach(c => {
+      c.markAsTouched();
+      c.updateValueAndValidity({ onlySelf: true });
+    });
+    this.notification.warning('Cảnh báo', 'Vui lòng điền đủ thông tin bắt buộc');
+    return;
+  }
     const now = new Date();
     const formData = this.validateForm.value;
     console.log('Form data for update:', formData);
     console.log('Current form values:', this.validateForm.getRawValue());
     
     if (!this.newRulePay.ID) {
-      this.notification.error('Lỗi', 'Không tìm thấy ID để cập nhật');
+      this.notification.error('Lỗi',  'Không tìm thấy ID để cập nhật');
       return;
     }
     const payload = {
@@ -139,7 +147,7 @@ export class RulePayDetailComponent implements OnInit, AfterViewInit, OnChanges 
       },
       error: (err) => {
         console.error('Error updating:', err);
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi cập nhật dữ liệu!');
+        this.notification.error('Thông báo', err.error?.message || 'Có lỗi xảy ra khi cập nhật dữ liệu!');
       }
     });
   }

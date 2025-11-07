@@ -85,13 +85,19 @@ function formatDateCell(cell: CellComponent): string {
     NzSelectModule,
     NzTableModule,
     NzTabsModule,
-    NgbModalModule, HasPermissionDirective
+    NgbModalModule,
+    HasPermissionDirective
   ],
   selector: 'app-ts-asset-management',
   templateUrl: './ts-asset-management.component.html',
   styleUrls: ['./ts-asset-management.component.css'],
 })
 export class TsAssetManagementComponent implements OnInit, AfterViewInit {
+  @ViewChild('datatableManagement', { static: false })
+  datatableManagementRef!: ElementRef;
+
+  @ViewChild('datatableEmployee', { static: false })
+  datatableEmployeeRef!: ElementRef;
   constructor(
     private notification: NzNotificationService,
     private assetManagementService: AssetsManagementService,
@@ -130,6 +136,10 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     this.getStatus();
     this.getDepartment();
   }
+  closePanel() {
+    this.sizeTbDetail = '0';
+  }
+
   getAssetmanagement() {
     const statusString =
       this.status.length > 0 ? this.status.join(',') : '0,1,2,3,4,5,6,7,8';
@@ -218,401 +228,466 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     this.getAssetmanagement();
   }
   public drawTable(): void {
+    if (!this.datatableManagementRef) {
+      return;
+    }
+
     if (this.assetTable) {
       this.assetTable.setData(this.assetData);
-    } else {
-      this.assetTable = new Tabulator('#datatablemanagement', {
-        data: this.assetData,
-       
-        ...DEFAULT_TABLE_CONFIG,
- selectableRows: 1,
-        paginationMode: 'local',
-        // layout: "fitDataFill",
-        // pagination: true,
-        // selectableRows: 1,
-        // height: '83vh',
-        // movableColumns: true,
-        // paginationSize: 30,
-        // paginationSizeSelector: [5, 10, 20, 50, 100],
-        // reactiveData: true,
-        // placeholder: 'Không có dữ liệu',
-        // dataTree: true,
-        // addRowPos: "bottom",
-        columnDefaults: {
-          headerWordWrap: false,
-          headerVertical: false,
-          headerHozAlign: 'center',
-          minWidth: 80,
-          hozAlign: 'left',
-          vertAlign: 'middle',
-          resizable: true,
-          
-        },
-        columns: [
-
-          {
-            title: 'Name',
-            field: 'Name',
-            hozAlign: 'center',
-            width: 70,
-            headerHozAlign: 'center',
-            visible: false,
-            fozen: true,
-          },
-          {
-            title: 'STT',
-            field: 'STT',
-            hozAlign: 'center',
-            width: 70,
-            headerHozAlign: 'center',
-            bottomCalc: 'count',
-            fozen: true,
-          },
-          {
-            title: 'UnitID',
-            field: 'UnitID',
-            hozAlign: 'center',
-            width: 70,
-            visible: false,
-            headerHozAlign: 'center',
-            fozen: true,
-          },
-          {
-            title: 'TSAssetID',
-            field: 'TSAssetID',
-            hozAlign: 'center',
-            width: 70,
-            visible: false,
-            headerHozAlign: 'center',
-            fozen: true,
-          },
-          {
-            title: 'SourceID',
-            field: 'SourceID',
-            hozAlign: 'center',
-            width: 70,
-            visible: false,
-            headerHozAlign: 'center',
-            fozen: true,
-          },
-          {
-            title: 'DepartmentID',
-            field: 'DepartmentID',
-            hozAlign: 'center',
-            visible: false,
-            width: 70,
-            headerHozAlign: 'center',
-            fozen: true,
-          },
-          {
-            title: 'ID',
-            field: 'ID',
-            hozAlign: 'center',
-            width: 70,
-            visible: false,
-            headerHozAlign: 'center',
-            fozen: true,
-          },
-          {
-            title: 'Mã tài sản',
-            field: 'TSAssetCode',
-            headerHozAlign: 'center',
-            hozAlign: 'left',
-            fozen: true,
-          },
-          {
-            title: 'Tên tài sản',
-            field: 'TSAssetName',
-            headerHozAlign: 'center',
-            width: 200,
-            // hozAlign: 'left',
-            formatter: 'textarea',
-            fozen: true,
-          },
-          {
-            title: 'Seri',
-            field: 'Seri',
-            hozAlign: 'left',
-          },
-          {
-            title: 'Đơn vị',
-            field: 'UnitName',
-            formatter: function (
-              cell: any,
-              formatterParams: any,
-              onRendered: any
-            ) {
-              let value = cell.getValue() || '';
-              return value;
-            },
-            headerHozAlign: 'center',
-            hozAlign: 'left',
-          },
-          {
-            title: 'Thông số',
-            field: 'SpecificationsAsset',
-            headerHozAlign: 'center',
-            width: 200,
-            // hozAlign: 'left',
-            formatter: 'textarea',
-          },
-          {
-            title: 'Ngày mua',
-            field: 'DateBuy',
-            headerHozAlign: 'center',
-            hozAlign: 'center',
-            formatter: formatDateCell,
-          },
-          {
-            title: 'Ngày hiệu lực',
-            field: 'DateEffect',
-            formatter: formatDateCell,
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'Bảo hành (tháng)',
-            field: 'Insurance',
-            headerHozAlign: 'center',
-            hozAlign: 'right',
-          },
-          {
-            title: 'Loại tài sản',
-            field: 'AssetType',
-            formatter: function (
-              cell: any,
-              formatterParams: any,
-              onRendered: any
-            ) {
-              let value = cell.getValue() || '';
-              return value;
-            },
-            headerHozAlign: 'center',
-            hozAlign: 'left',
-          },
-          {
-            title: 'Phòng ban',
-            field: 'Name',
-            hozAlign: 'left',
-          },
-          {
-            title: 'Trạng thái',
-            field: 'Status',
-            formatter: (cell: CellComponent) => {
-              const val = cell.getValue() as string;
-              const el = cell.getElement();
-              el.style.backgroundColor = '';
-              el.style.color = '';
-              if (val === 'Chưa sử dụng') {
-                el.style.backgroundColor = '#AAAAAA';
-                el.style.outline = '1px solid #EEEE';
-                el.style.color = '#fff';
-                  el.style.borderRadius = '20px';
-               
-              } else if (val === 'Đang sử dụng') {
-                el.style.backgroundColor = '#b4ecb4ff';
-                el.style.color = '#2cb55aff';
-                el.style.outline = '1px solid #e0e0e0';
-                   el.style.borderRadius = '20px';
-              } else if (val === 'Đã thu hồi') {
-                el.style.backgroundColor = '#FFCCCC';
-                el.style.color = '#000000';
-                   el.style.borderRadius = '20px';
-                el.style.outline = '1px solid #e0e0e0';
-              } else if (val === 'Mất') {
-                el.style.backgroundColor = '#fbc4c4ff';
-                el.style.color = '#d40000ff';
-                   el.style.borderRadius = '20px';
-                el.style.outline = '1px solid #e0e0e0';
-              } else if (val === 'Hỏng') {
-                el.style.backgroundColor = '#cadfffff';
-                el.style.color = '#4147f2ff';
-                el.style.outline = '1px solid #e0e0e0';
-                   el.style.borderRadius = '20px';
-              } else if (val === 'Thanh lý') {
-                el.style.backgroundColor = '#d4fbffff';
-                el.style.color = '#08aabfff';
-                   el.style.borderRadius = '20px';
-                el.style.outline = '1px solidrgb(196, 35, 35)';
-              } else if (val === 'Đề nghị thanh lý') {
-                el.style.backgroundColor = '#fde3c1ff';
-                el.style.color = '#f79346ff';
-                   el.style.borderRadius = '20px';
-                el.style.outline = '1px solidrgb(20, 177, 177)';
-              } 
-               else if (val === 'Sữa chữa, Bảo dưỡng') {
-                el.style.backgroundColor = '#bcaa93ff';
-                el.style.color = '#c37031ff';
-                   el.style.borderRadius = '20px';
-                el.style.outline = '1px solidrgb(20, 177, 177)';
-              } 
-              else {
-                el.style.backgroundColor = '#e0e0e0';
-                   el.style.borderRadius = '20px';
-              }
-              return val; // vẫn hiển thị chữ
-            },
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'Mã NCC',
-            field: 'TSCodeNCC',
-            hozAlign: 'left',
-          },
-          {
-            title: 'Nguồn gốc',
-            field: 'SourceName',
-            formatter: function (
-              cell: any,
-              formatterParams: any,
-              onRendered: any
-            ) {
-              let value = cell.getValue() || '';
-              return value;
-            },
-            headerHozAlign: 'center',
-            hozAlign: 'left',
-          },
-          {
-            title: 'Người quản lý',
-            field: 'FullName',
-            headerHozAlign: 'center',
-            hozAlign: 'left',
-          },
-          // {
-          //   title: 'Người tạo',
-          //   field: 'CreatedBy',
-          //   headerHozAlign: 'center',
-          //   hozAlign: 'left',
-          // },
-          // {
-          //   title: 'Ngày tạo',
-          //   field: 'CreatedDate',
-          //   headerHozAlign: 'center',
-          //   hozAlign: 'left',
-          // },
-          // {
-          //   title: 'Người cập nhật',
-          //   field: 'UpdatedBy',
-          //   headerHozAlign: 'center',
-          //   hozAlign: 'left',
-          // },
-          // {
-          //   title: 'Ngày cập nhật',
-          //   field: 'UpdatedDate',
-          //   headerHozAlign: 'center',
-          //   hozAlign: 'left',
-          //   formatter: formatDateCell,
-          // },
-          {
-            title: 'Cấp Phát',
-            field: 'IsAllocation',
-            formatter: (cell: CellComponent) =>
-              cell.getValue() ? 'Có' : 'Không',
-            HeaderhozAlign: 'center',
-          },
-          {
-            title: 'Office Active',
-            field: 'OfficeActiveStatusText',
-            HeaderhozAlign: 'center',
-            hozAlign: 'right',
-          },
-          {
-            title: 'Windows Active',
-            field: 'WindowActiveStatusText',
-            HeaderhozAlign: 'center',
-            hozAlign: 'right',
-          },
-          {
-            title: 'Mô tả chi tiết',
-            field: 'SpecificationsAsset',
-            HeaderhozAlign: 'center',
-            hozAlign: 'left',
-            formatter:'textarea'
-          },
-          {
-            title: 'Ghi chú',
-            field: 'Note',
-            hozAlign: 'left',
-          },
-        ] as any[],
-      });
-      this.assetTable.on('rowClick', (evt, row: RowComponent) => {
-        const rowData = row.getData();
-        const ID = rowData['ID'];
-        this.assetManagementService
-          .getAssetAllocationDetail(ID)
-          .subscribe((respon) => {
-            this.assetManagementDetail = respon.data.assetsAllocation;
-            this.drawEmployeeTable();
-          });
-      });
-      this.assetTable.on('rowClick', (e: UIEvent, row: RowComponent) => {
-        this.selectedRow = row.getData();
-        this.sizeTbDetail = null;
-      });
+      return;
     }
+
+    this.assetTable = new Tabulator(this.datatableManagementRef.nativeElement, {
+      data: this.assetData,
+      ...DEFAULT_TABLE_CONFIG,
+      selectableRows: 1,
+      paginationMode: 'local',
+      // layout: "fitDataFill",
+      // pagination: true,
+      // selectableRows: 1,
+      // height: '83vh',
+      // movableColumns: true,
+      // paginationSize: 30,
+      // paginationSizeSelector: [5, 10, 20, 50, 100],
+      // reactiveData: true,
+      // placeholder: 'Không có dữ liệu',
+      // dataTree: true,
+      // addRowPos: "bottom",
+      columnDefaults: {
+        headerWordWrap: false,
+        headerVertical: false,
+        headerHozAlign: 'center',
+        minWidth: 80,
+        hozAlign: 'left',
+        vertAlign: 'middle',
+        resizable: true,
+
+      },
+      columns: [
+
+        {
+          title: 'Name',
+          field: 'Name',
+          hozAlign: 'center',
+          width: 70,
+          headerHozAlign: 'center',
+          visible: false,
+          fozen: true,
+        },
+        {
+          title: 'STT',
+          field: 'STT',
+          hozAlign: 'center',
+          width: 70,
+          headerHozAlign: 'center',
+          bottomCalc: 'count',
+          fozen: true,
+        },
+        {
+          title: 'UnitID',
+          field: 'UnitID',
+          hozAlign: 'center',
+          width: 70,
+          visible: false,
+          headerHozAlign: 'center',
+          fozen: true,
+        },
+        {
+          title: 'TSAssetID',
+          field: 'TSAssetID',
+          hozAlign: 'center',
+          width: 70,
+          visible: false,
+          headerHozAlign: 'center',
+          fozen: true,
+        },
+        {
+          title: 'SourceID',
+          field: 'SourceID',
+          hozAlign: 'center',
+          width: 70,
+          visible: false,
+          headerHozAlign: 'center',
+          fozen: true,
+        },
+        {
+          title: 'DepartmentID',
+          field: 'DepartmentID',
+          hozAlign: 'center',
+          visible: false,
+          width: 70,
+          headerHozAlign: 'center',
+          fozen: true,
+        },
+        {
+          title: 'ID',
+          field: 'ID',
+          hozAlign: 'center',
+          width: 70,
+          visible: false,
+          headerHozAlign: 'center',
+          fozen: true,
+        },
+        {
+          title: 'Mã tài sản',
+          field: 'TSAssetCode',
+          headerHozAlign: 'center',
+          hozAlign: 'left',
+          fozen: true,
+        },
+        {
+          title: 'Tên tài sản',
+          field: 'TSAssetName',
+          headerHozAlign: 'center',
+          width: 200,
+          // hozAlign: 'left',
+          formatter: 'textarea',
+          fozen: true,
+        },
+        {
+          title: 'Seri',
+          field: 'Seri',
+          hozAlign: 'left',
+        },
+        {
+          title: 'Đơn vị',
+          field: 'UnitName',
+          formatter: function (
+            cell: any,
+            formatterParams: any,
+            onRendered: any
+          ) {
+            let value = cell.getValue() || '';
+            return value;
+          },
+          headerHozAlign: 'center',
+          hozAlign: 'left',
+        },
+        {
+          title: 'Thông số',
+          field: 'SpecificationsAsset',
+          headerHozAlign: 'center',
+          width: 200,
+          // hozAlign: 'left',
+          formatter: 'textarea',
+        },
+        {
+          title: 'Ngày mua',
+          field: 'DateBuy',
+          headerHozAlign: 'center',
+          hozAlign: 'center',
+          formatter: formatDateCell,
+        },
+        {
+          title: 'Ngày hiệu lực',
+          field: 'DateEffect',
+          formatter: formatDateCell,
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Bảo hành (tháng)',
+          field: 'Insurance',
+          headerHozAlign: 'center',
+          hozAlign: 'right',
+        },
+        {
+          title: 'Loại tài sản',
+          field: 'AssetType',
+          formatter: function (
+            cell: any,
+            formatterParams: any,
+            onRendered: any
+          ) {
+            let value = cell.getValue() || '';
+            return value;
+          },
+          headerHozAlign: 'center',
+          hozAlign: 'left',
+        },
+        {
+          title: 'Phòng ban',
+          field: 'Name',
+          hozAlign: 'left',
+        },
+        {
+          title: 'Trạng thái',
+          field: 'Status',
+          formatter: (cell: CellComponent) => {
+            const val = cell.getValue() as string;
+            const el = cell.getElement();
+            el.style.backgroundColor = '';
+            el.style.color = '';
+            if (val === 'Chưa sử dụng') {
+              el.style.backgroundColor = '#AAAAAA';
+              el.style.outline = '1px solid #EEEE';
+              el.style.color = '#fff';
+              el.style.borderRadius = '5px';
+
+            } else if (val === 'Đang sử dụng') {
+              el.style.backgroundColor = '#b4ecb4ff';
+              el.style.color = '#2cb55aff';
+              el.style.outline = '1px solid #e0e0e0';
+              el.style.borderRadius = '5px';
+            } else if (val === 'Đã thu hồi') {
+              el.style.backgroundColor = '#FFCCCC';
+              el.style.color = '#000000';
+              el.style.borderRadius = '5px';
+              el.style.outline = '1px solid #e0e0e0';
+            } else if (val === 'Mất') {
+              el.style.backgroundColor = '#fbc4c4ff';
+              el.style.color = '#d40000ff';
+              el.style.borderRadius = '5px';
+              el.style.outline = '1px solid #e0e0e0';
+            } else if (val === 'Hỏng') {
+              el.style.backgroundColor = '#cadfffff';
+              el.style.color = '#4147f2ff';
+              el.style.outline = '1px solid #e0e0e0';
+              el.style.borderRadius = '5px';
+            } else if (val === 'Thanh lý') {
+              el.style.backgroundColor = '#d4fbffff';
+              el.style.color = '#08aabfff';
+              el.style.borderRadius = '5px';
+              el.style.outline = '1px solidrgb(196, 35, 35)';
+            } else if (val === 'Đề nghị thanh lý') {
+              el.style.backgroundColor = '#fde3c1ff';
+              el.style.color = '#f79346ff';
+              el.style.borderRadius = '5px';
+              el.style.outline = '1px solidrgb(20, 177, 177)';
+            }
+            else if (val === 'Sữa chữa, Bảo dưỡng') {
+              el.style.backgroundColor = '#bcaa93ff';
+              el.style.color = '#c37031ff';
+              el.style.borderRadius = '5px';
+              el.style.outline = '1px solidrgb(20, 177, 177)';
+            }
+            else {
+              el.style.backgroundColor = '#e0e0e0';
+              el.style.borderRadius = '5px';
+            }
+            return val; // vẫn hiển thị chữ
+          },
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Mã NCC',
+          field: 'TSCodeNCC',
+          hozAlign: 'left',
+        },
+        {
+          title: 'Nguồn gốc',
+          field: 'SourceName',
+          formatter: function (
+            cell: any,
+            formatterParams: any,
+            onRendered: any
+          ) {
+            let value = cell.getValue() || '';
+            return value;
+          },
+          headerHozAlign: 'center',
+          hozAlign: 'left',
+        },
+        {
+          title: 'Người quản lý',
+          field: 'FullName',
+          headerHozAlign: 'center',
+          hozAlign: 'left',
+        },
+        // {
+        //   title: 'Người tạo',
+        //   field: 'CreatedBy',
+        //   headerHozAlign: 'center',
+        //   hozAlign: 'left',
+        // },
+        // {
+        //   title: 'Ngày tạo',
+        //   field: 'CreatedDate',
+        //   headerHozAlign: 'center',
+        //   hozAlign: 'left',
+        // },
+        // {
+        //   title: 'Người cập nhật',
+        //   field: 'UpdatedBy',
+        //   headerHozAlign: 'center',
+        //   hozAlign: 'left',
+        // },
+        // {
+        //   title: 'Ngày cập nhật',
+        //   field: 'UpdatedDate',
+        //   headerHozAlign: 'center',
+        //   hozAlign: 'left',
+        //   formatter: formatDateCell,
+        // },
+        {
+          title: 'Cấp Phát',
+          field: 'IsAllocation',
+          formatter: (cell: CellComponent) =>
+            cell.getValue() ? 'Có' : 'Không',
+          HeaderhozAlign: 'center',
+        },
+        {
+          title: 'Office Active',
+          field: 'OfficeActiveStatusText',
+          HeaderhozAlign: 'center',
+          hozAlign: 'right',
+        },
+        {
+          title: 'Windows Active',
+          field: 'WindowActiveStatusText',
+          HeaderhozAlign: 'center',
+          hozAlign: 'right',
+        },
+        {
+          title: 'OfficeActiveStatus',
+          field: 'OfficeActiveStatus',
+          HeaderhozAlign: 'center',
+          hozAlign: 'right',
+          visible: false,
+
+        },
+        {
+          title: 'WindowActiveStatus',
+          field: 'WindowActiveStatus',
+          HeaderhozAlign: 'center',
+          hozAlign: 'right',
+          visible: false,
+        },
+        {
+          title: 'Mô tả chi tiết',
+          field: 'SpecificationsAsset',
+          HeaderhozAlign: 'center',
+          hozAlign: 'left',
+          formatter: 'textarea'
+        },
+        {
+          title: 'Ghi chú',
+          field: 'Note',
+          hozAlign: 'left',
+
+        },
+      ] as any[],
+    });
+
+    this.assetTable.on('rowClick', (evt, row: RowComponent) => {
+      const rowData = row.getData();
+      const ID = rowData['ID'];
+      this.assetManagementService
+        .getAssetAllocationDetail(ID)
+        .subscribe((respon) => {
+          this.assetManagementDetail = respon.data.assetsAllocation;
+          this.drawEmployeeTable();
+        });
+    });
+
+    this.assetTable.on('rowClick', (e: UIEvent, row: RowComponent) => {
+      this.selectedRow = row.getData();
+      this.sizeTbDetail = null;
+    });
   }
   private drawEmployeeTable(): void {
+    if (!this.datatableEmployeeRef) {
+      return;
+    }
+
     if (this.assetDetailtable) {
       this.assetDetailtable.setData(this.assetManagementDetail);
-    } else {
-      this.assetDetailtable = new Tabulator('#datatableemployee', {
-        data: this.assetManagementDetail,
-        layout: 'fitDataStretch',
-        paginationSize: 5,
-        movableColumns: true,
-        reactiveData: true,
-        columns: [
-          {
-            title: 'Trạng thái',
-            field: 'Status',
-            formatter: (cell) => {
-              const val = cell.getValue() as string;
-              const el = cell.getElement();
-              el.style.backgroundColor = '';
-              el.style.color = '';
-              if (val === 'Chưa sử dụng') {
-                el.style.backgroundColor = '#33CC99';
-                el.style.color = '#fff';
-                el.style.outline = '#000000';
-              } else if (val === 'Đang sử dụng') {
-                el.style.backgroundColor = '#FFCC00';
-                el.style.color = '#000000';
-                el.style.outline = '#000000';
-              } else if (val === 'Đã thu hồi') {
-                el.style.backgroundColor = '#FFCCCC';
-                el.style.color = '#000000';
-                el.style.outline = '#000000';
-              } else {
-                el.style.backgroundColor = '#e0e0e0';
-              }
-              return val;
-            },
-          },
-          { title: 'Mã NV', field: 'Code', headerHozAlign: 'center' },
-          { title: 'Họ và tên', field: 'FullName', headerHozAlign: 'center' },
-          { title: 'Phòng ban', field: 'dpmName', headerHozAlign: 'center' },
-          { title: 'Chức vụ', field: 'CVName', headerHozAlign: 'center' },
-          {
-            title: 'Ngày cập nhật',
-            field: 'UpdatedDate',
-            headerHozAlign: 'center',
-            formatter: formatDateCell,
-            hozAlign: 'center',
-          },
-          {
-            title: 'Ngày tạo',
-            field: 'CreatedDate',
-            headerHozAlign: 'center',
-            formatter: formatDateCell,
-            hozAlign: 'center',
-          },
-          { title: 'Ghi chú', field: 'Note', headerHozAlign: 'center' },
-        ],
-      });
+      return;
     }
+
+    this.assetDetailtable = new Tabulator(this.datatableEmployeeRef.nativeElement, {
+      data: this.assetManagementDetail,
+      ...DEFAULT_TABLE_CONFIG,
+      layout: 'fitData',
+     height:'83vh',
+      paginationSize: 10,
+      paginationMode:'local',
+      movableColumns: true,
+      reactiveData: true,
+      columns: [
+        {
+          title: 'Trạng thái',
+          field: 'Status',
+          formatter: (cell: CellComponent) => {
+            const val = cell.getValue() as string;
+            const el = cell.getElement();
+            el.style.backgroundColor = '';
+            el.style.color = '';
+            if (val === 'Chưa sử dụng') {
+              el.style.backgroundColor = '#AAAAAA';
+              el.style.outline = '1px solid #EEEE';
+              el.style.color = '#fff';
+              el.style.borderRadius = '5px';
+
+            } else if (val === 'Đang sử dụng') {
+              el.style.backgroundColor = '#b4ecb4ff';
+              el.style.color = '#2cb55aff';
+              el.style.outline = '1px solid #e0e0e0';
+              el.style.borderRadius = '5px';
+            } else if (val === 'Đã thu hồi') {
+              el.style.backgroundColor = '#FFCCCC';
+              el.style.color = '#000000';
+              el.style.borderRadius = '5px';
+              el.style.outline = '1px solid #e0e0e0';
+            } else if (val === 'Mất') {
+
+              el.style.backgroundColor = '#fbc4c4ff';
+              el.style.color = '#d40000ff';
+              el.style.borderRadius = '5px';
+              el.style.outline = '1px solid #e0e0e0';
+            } else if (val === 'Hỏng') {
+              el.style.backgroundColor = '#cadfffff';
+              el.style.color = '#4147f2ff';
+              el.style.outline = '1px solid #e0e0e0';
+              el.style.borderRadius = '5px';
+            } else if (val === 'Đã thanh lý') {
+              el.style.backgroundColor = '#d4fbffff';
+              el.style.color = '#08aabfff';
+              el.style.borderRadius = '5px';
+              el.style.outline = '1px solidrgb(196, 35, 35)';
+            } else if (val === 'Đề nghị thanh lí  ') {
+              el.style.backgroundColor = '#fde3c1ff';
+              el.style.color = '#f79346ff';
+              el.style.borderRadius = '5px';
+              el.style.outline = '1px solidrgb(20, 177, 177)';
+            }
+            else if (val === 'Sữa chữa, Bảo dưỡng') {
+              el.style.backgroundColor = '#bcaa93ff';
+              el.style.color = '#c37031ff';
+              el.style.borderRadius = '5px';
+              el.style.outline = '1px solidrgb(20, 177, 177)';
+            }
+            else {
+              el.style.backgroundColor = '#e0e0e0';
+              el.style.borderRadius = '5px';
+            }
+            return val; // vẫn hiển thị chữ
+          },
+          headerHozAlign: 'center',
+        },
+        { title: 'Mã NV', field: 'Code', headerHozAlign: 'center' },
+        { title: 'Họ và tên', field: 'FullName', headerHozAlign: 'center' },
+        { title: 'Phòng ban', field: 'dpmName', headerHozAlign: 'center' },
+        { title: 'Chức vụ', field: 'CVName', headerHozAlign: 'center' },
+        {
+          title: 'Ngày cập nhật',
+          field: 'UpdatedDate',
+          headerHozAlign: 'center',
+          formatter: formatDateCell,
+          hozAlign: 'center',
+        },
+        {
+          title: 'Ngày tạo',
+          field: 'CreatedDate',
+          headerHozAlign: 'center',
+          formatter: formatDateCell,
+          hozAlign: 'center',
+        },
+        { title: 'Ghi chú', field: 'Note', headerHozAlign: 'center', width: 300, formatter: 'textarea' },
+      ],
+    });
   }
+
   getSelectedIds(): number[] {
     if (this.assetTable) {
       const selectedRows = this.assetTable.getSelectedData();
@@ -642,43 +717,43 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       },
     });
   }
- onAddAsset() {
-  const initialData = {
-    ID: 0,
-    TSAssetCode: '',
-    TSAssetName: '',
-    DepartmentID: null,
-    EmployeeID: null,
-    SourceID: null,
-    UnitID: null,
-    StatusID: null,
-    DateBuy: '',
-    DateEffect: '',
-    Note: '',
-    Insurance: '',
-    Seri: '',
-    SpecificationsAsset: '',
-    TSCodeNCC: '',
-    WindowActiveStatus: null,
-    OfficeActiveStatus: null,
-    STT: null,
-    // cái gì cần default nữa thì add vào
-  };
+  onAddAsset() {
+    const initialData = {
+      ID: 0,
+      TSAssetCode: '',
+      TSAssetName: '',
+      DepartmentID: null,
+      EmployeeID: null,
+      SourceID: null,
+      UnitID: null,
+      StatusID: null,
+      DateBuy: '',
+      DateEffect: '',
+      Note: '',
+      Insurance: '',
+      Seri: '',
+      SpecificationsAsset: '',
+      TSCodeNCC: '',
+      WindowActiveStatus: null,
+      OfficeActiveStatus: null,
+      STT: null,
+      // cái gì cần default nữa thì add vào
+    };
 
-  const modalRef = this.ngbModal.open(TsAssetManagementFormComponent, {
-    size: 'xl',
-    backdrop: 'static',
-    keyboard: false,
-    centered: true,
-  });
+    const modalRef = this.ngbModal.open(TsAssetManagementFormComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+    });
 
-  modalRef.componentInstance.dataInput = initialData;
+    modalRef.componentInstance.dataInput = initialData;
 
-  modalRef.result.then(
-    () => this.getAssetmanagement(),
-    () => {}
-  );
-}
+    modalRef.result.then(
+      () => this.getAssetmanagement(),
+      () => { }
+    );
+  }
   onEitAsset() {
     const selected = this.assetTable?.getSelectedData();
     if (!selected || selected.length === 0) {
@@ -716,6 +791,16 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       return;
     }
     const selectedAssets = { ...selected[0] };
+
+    if (selectedAssets.StatusID == 7 || selectedAssets.Status === 'Thanh lý') {
+      this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đã thanh lí, không thể báo mất!`);
+      return;
+
+    }
+    if (selectedAssets.StatusID == 4 || selectedAssets.Status === 'Mất') {
+      this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đã mất, không thể báo mất!`);
+      return;
+    }
     const modalRef = this.ngbModal.open(
       TsAssetManagementReportLossFormComponent,
       {
@@ -741,22 +826,17 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     if (!selected || selected.length === 0) {
       this.notification.warning(
         'Thông báo',
-        'Vui lòng chọn một tài sản để báo mất!'
+        'Vui lòng chọn một tài sản để báo hỏng!'
       );
       return;
     }
     const selectedAssets = { ...selected[0] };
-    if (
-      selectedAssets.StatusID === 7 ||
-      selectedAssets.Status === 'Đề nghị thanh lí' ||
-      selectedAssets.StatusID === 4 ||
-      selectedAssets.Status === 'Mất' ||
-      selectedAssets.StatusID === 6
-    ) {
-      this.notification.warning(
-        'Thông báo',
-        'Tài sản này không thể đề nghị thanh lý vì đã bị mất hoặc đã đề nghị thanh lý!'
-      );
+    if (selectedAssets.StatusID == 4 || selectedAssets.Status === 'Mất') {
+      this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đã mất, không thể sửa chữa bảo dưỡng!`);
+      return;
+    }
+    if (selectedAssets.StatusID == 7 || selectedAssets.Status === 'Thanh lý') {
+      this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đã thanh lí, không thể sửa chữa bảo dưỡng!`);
       return;
     }
     const modalRef = this.ngbModal.open(TsAssetRepairFormComponent, {
@@ -781,11 +861,15 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     if (!selected || selected.length === 0) {
       this.notification.warning(
         'Thông báo',
-        'Vui lòng chọn một tài sản để báo mất!'
+        'Vui lòng chọn một tài sản để đưa vào sử dụng lại!'
       );
       return;
     }
     const selectedAssets = { ...selected[0] };
+    if (selectedAssets.StatusID == 4 || selectedAssets.Status === 'Mất') {
+      this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đã mất, không thể đưa vào sử dụng lại!`);
+      return;
+    }
     if (selectedAssets.StatusID != 3) {
       this.notification.warning(
         'Thông báo',
@@ -822,13 +906,21 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     if (!selected || selected.length === 0) {
       this.notification.warning(
         'Thông báo',
-        'Vui lòng chọn một đơn vị để sửa!'
+        'Vui lòng chọn một đơn vị để báo hỏng!'
       );
       return;
     }
     const selectedAssets = { ...selected[0] };
-      if (selectedAssets.StatusID ==4) {
+    if (selectedAssets.StatusID == 4) {
       this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đã mất, không thể báo hỏng!`);
+      return;
+    }
+    if (selectedAssets.StatusID == 3 || selectedAssets.Status == "Hỏng") {
+      this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đã báo hỏng, không thể báo hỏng!`);
+      return;
+    }
+    if (selectedAssets.StatusID == 7 || selectedAssets.Status == "Thanh lý") {
+      this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đã thanh lí, không thể báo hỏng!`);
       return;
     }
     const modalRef = this.ngbModal.open(
@@ -860,7 +952,12 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       );
       return;
     }
+
     const selectedAssets = { ...selected[0] };
+    if (selectedAssets.StatusID == 6 || selectedAssets.Status == "Thanh lý") {
+      this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đã thanh lí!`);
+      return;
+    }
     if (
       selectedAssets.StatusID != 7 ||
       selectedAssets.Status != 'Đề nghị thanh lý'
@@ -871,7 +968,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       );
       return;
     }
-     
+
     const modalRef = this.ngbModal.open(TsAssetLiquidationComponent, {
       size: 'xl',
       backdrop: 'static',
@@ -901,22 +998,22 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     }
     const selectedAssets = { ...selected[0] };
     if (
-      selectedAssets.StatusID === 7 ||
-      selectedAssets.Status === 'Đề nghị thanh lí' 
-    
+      selectedAssets.StatusID === 6 ||
+      selectedAssets.Status === 'Đề nghị thanh lí'
+
     ) {
-         this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đã đề nghị thanh lí!`);
+      this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đã đề nghị thanh lí!`);
 
       return;
     }
-      if (
-   
+    if (
+
       selectedAssets.StatusID === 4 ||
       selectedAssets.Status === 'Mất'
     ) {
       this.notification.warning(
         'Thông báo',
-       `Tài sản có mã "${selectedAssets.TSAssetCode}"đã mất, không thể đề nghị thanh lí!`
+        `Tài sản có mã "${selectedAssets.TSAssetCode}"đã mất, không thể đề nghị thanh lí!`
       );
       return;
     }
@@ -948,7 +1045,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
   async exportToExcelAdvanced() {
     if (!this.assetTable) return;
 
-    const selectedData = [...this.assetData]; // ✅ Dữ liệu gốc, bỏ getRows()
+    const selectedData = [...this.assetData];
 
     console.log('selectedData:', selectedData);
 
@@ -1047,5 +1144,5 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       }
     });
   }
-   
+
 }

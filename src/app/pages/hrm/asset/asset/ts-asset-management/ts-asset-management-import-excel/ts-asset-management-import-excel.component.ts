@@ -25,7 +25,32 @@ import { TypeAssetsService } from '../../ts-asset-type/ts-asset-type-service/ts-
 import { AssetsService } from '../../ts-asset-source/ts-asset-source-service/ts-asset-source.service';
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
-  return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
+  if (!val) return '';
+
+  // Nếu là Date JS
+  if (val instanceof Date) {
+    const dt = DateTime.fromJSDate(val);
+    return dt.isValid ? dt.toFormat('dd/MM/yyyy') : '';
+  }
+
+  // Nếu là string
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+
+    // Thử ISO trước
+    let dt = DateTime.fromISO(trimmed);
+    if (dt.isValid) return dt.toFormat('dd/MM/yyyy');
+
+    // Thử dạng d/M/yyyy
+    dt = DateTime.fromFormat(trimmed, 'd/M/yyyy');
+    if (dt.isValid) return dt.toFormat('dd/MM/yyyy');
+
+    // Không phải date → trả nguyên text, KHÔNG "Invalid"
+    return trimmed;
+  }
+
+  // Các kiểu khác bỏ qua
+  return '';
 }
 function getCellText(cell: ExcelJS.Cell): string {
   const v = cell.value as any;
@@ -71,9 +96,27 @@ function normalizeCellValue(v: any): string {
 }
 function formatDate(value: any): string | null {
   if (!value) return null;
-  // Cố gắng parse theo định dạng dd/M/yyyy hoặc dd/MM/yyyy
-  const date = DateTime.fromFormat(value.trim(), 'd/M/yyyy');
-  return date.isValid ? date.toISODate() : null;
+
+  // Nếu là Date JS
+  if (value instanceof Date) {
+    const dt = DateTime.fromJSDate(value);
+    return dt.isValid ? dt.toISODate() : null;
+  }
+
+  // Chuẩn hóa về string
+  const str = String(value).trim();
+  if (!str) return null;
+
+  // Thử dd/M/yyyy
+  let dt = DateTime.fromFormat(str, 'd/M/yyyy');
+  if (dt.isValid) return dt.toISODate();
+
+  // Thử ISO (2024-01-01)
+  dt = DateTime.fromISO(str);
+  if (dt.isValid) return dt.toISODate();
+
+  // Không parse được thì trả null
+  return null;
 }
 @Component({
   standalone: true,
@@ -176,7 +219,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
           { title: 'Thời gian bảo hành (tháng)', field: 'Insurance', hozAlign: 'right' },
           { title: 'Hiệu lực từ', field: 'DateEffect', hozAlign: 'center', formatter: formatDateCell },
           { title: 'Ghi chú', field: 'Note', hozAlign: 'left' },
-       
+
         ],
       });
     } else {
@@ -301,33 +344,29 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
 
       const headerRow = worksheet.getRow(headerRowIndex);
       const headers: string[] = [];
-   headerRow.eachCell((cell, colNumber) => {
-  headers[colNumber - 1] = getCellText(cell); 
-});
+      headerRow.eachCell((cell, colNumber) => {
+        headers[colNumber - 1] = getCellText(cell);
+      });
 
       const columns: ColumnDefinition[] = [
         { title: headers[0] || 'STT', field: 'STT', hozAlign: 'center', headerHozAlign: 'center', width: 70 },
         { title: headers[1] || 'Mã tài sản', field: 'TSAssetCode', hozAlign: 'left', headerHozAlign: 'center' },
         { title: headers[2] || 'Tên tài sản', field: 'TSAssetName', hozAlign: 'left', headerHozAlign: 'center' },
         { title: headers[3] || 'Mã loại tài sản', field: 'AssetCode', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[4] || 'Tên loại', field: 'AssetType', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[5] || 'Mã nguồn gốc tài sản', field: 'SourceCode', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[6] || 'Tên nguồn gốc', field: 'SourceName', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[7] || 'Mã nhà cung cấp', field: 'TSCodeNCC', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[8] || 'Mô tả chi tiết (Model, thông số kỹ thuật…)', field: 'SpecificationsAsset', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[9] || 'Số seri', field: 'Seri', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[10] || 'Đơn vị tính', field: 'UnitName', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[11] || 'Số lượng', field: 'Quantity', hozAlign: 'right', headerHozAlign: 'center' },
-        { title: headers[12] || 'Trạng thái', field: 'Status', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[13] || 'Mã phòng ban', field: 'DepartmentCode', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[14] || 'Tên phòng ban', field: 'DepartmentName', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[15] || 'Mã nhân viên', field: 'EmployeeCode', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[16] || 'Người sử dụng', field: 'EmployeeName', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[17] || 'Thời gian ghi tăng', field: 'DateBuy', hozAlign: 'center', headerHozAlign: 'center', formatter: formatDateCell },
-        { title: headers[18] || 'Thời gian bảo hành (tháng)', field: 'Insurance', hozAlign: 'right', headerHozAlign: 'center' },
-        { title: headers[19] || 'Hiệu lực từ', field: 'DateEffect', hozAlign: 'center', headerHozAlign: 'center', formatter: formatDateCell },
-        { title: headers[20] || 'Ghi chú', field: 'Note', hozAlign: 'left', headerHozAlign: 'center' },
-    
+        { title: headers[4] || 'Mã nguồn gốc tài sản', field: 'SourceCode', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[5] || 'Mã nhà cung cấp', field: 'TSCodeNCC', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[6] || 'Mô tả chi tiết (Model, thông số kỹ thuật…)', field: 'SpecificationsAsset', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[7] || 'Số seri', field: 'Seri', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[8] || 'Đơn vị tính', field: 'UnitName', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[9] || 'Số lượng', field: 'Quantity', hozAlign: 'right', headerHozAlign: 'center' },
+        { title: headers[10] || 'Tình trạng', field: 'Status', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[11] || 'Mã phòng ban', field: 'DepartmentCode', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[12] || 'Mã nhân viên', field: 'EmployeeCode', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[13] || 'Người sử dụng', field: 'EmployeeName', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[14] || 'Thời gian ghi tăng', field: 'DateBuy', hozAlign: 'center', headerHozAlign: 'center', formatter: formatDateCell },
+        { title: headers[15] || 'Thời gian bảo hành (tháng)', field: 'Insurance', hozAlign: 'right', headerHozAlign: 'center' },
+        { title: headers[16] || 'Hiệu lực từ', field: 'DateEffect', hozAlign: 'center', headerHozAlign: 'center', formatter: formatDateCell },
+        { title: headers[17] || 'Ghi chú', field: 'Note', hozAlign: 'left', headerHozAlign: 'center' },
       ];
 
       if (this.tableExcel) {
@@ -349,27 +388,29 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
           if (!isEmptyRow) {
             const rowData: any = {
               STT: getCellText(row.getCell(1)),
-              TSAssetCode: getCellText(row.getCell(2)),
-              TSAssetName: getCellText(row.getCell(3)),
-              AssetCode: getCellText(row.getCell(4)),
-              AssetType: getCellText(row.getCell(5)),
-              SourceCode: getCellText(row.getCell(6)),
-              SourceName: getCellText(row.getCell(7)),
-              TSCodeNCC: getCellText(row.getCell(8)),
-              SpecificationsAsset: getCellText(row.getCell(9)),
-              Seri: getCellText(row.getCell(10)),
-              UnitName: getCellText(row.getCell(11)),
-              Quantity: getCellText(row.getCell(12)),
-              Status: getCellText(row.getCell(13)),
-              DepartmentCode: getCellText(row.getCell(14)),
-              DepartmentName: getCellText(row.getCell(15)),
-              EmployeeCode: getCellText(row.getCell(16)),
-              EmployeeName: getCellText(row.getCell(17)),
-              DateBuy: getCellText(row.getCell(18)),
-              Insurance: getCellText(row.getCell(19)),
-              DateEffect: getCellText(row.getCell(20)),
-              Note: getCellText(row.getCell(21)),
-            
+              TSAssetCode: getCellText(row.getCell(2)),   // Mã tài sản
+              TSAssetName: getCellText(row.getCell(3)),   // Tên tài sản
+
+              AssetCode: getCellText(row.getCell(4)),     // Mã loại tài sản
+
+              SourceCode: getCellText(row.getCell(5)),    // Mã nguồn gốc tài sản
+              TSCodeNCC: getCellText(row.getCell(6)),     // Mã nhà cung cấp
+
+              SpecificationsAsset: getCellText(row.getCell(7)), // Mô tả chi tiết
+              Seri: getCellText(row.getCell(8)),                // Số seri
+
+              UnitName: getCellText(row.getCell(9)),      // Đơn vị tính
+              Quantity: getCellText(row.getCell(10)),     // Số lượng
+              Status: getCellText(row.getCell(11)),       // Tình trạng
+
+              DepartmentCode: getCellText(row.getCell(12)), // Mã phòng ban
+              EmployeeCode: getCellText(row.getCell(13)),   // Mã nhân viên
+              EmployeeName: getCellText(row.getCell(14)),   // Người sử dụng
+
+              DateBuy: getCellText(row.getCell(15)),     // Thời gian ghi tăng
+              Insurance: getCellText(row.getCell(16)),   // Thời gian bảo hành (Tháng)
+              DateEffect: getCellText(row.getCell(17)),  // Hiệu lực từ
+              Note: getCellText(row.getCell(18)),        // Ghi chú
             };
             data.push(rowData);
             validRecords++;
@@ -434,7 +475,8 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
 
     const validDataToSave = this.dataTableExcel.filter(row => {
       const stt = row.STT;
-      return typeof stt === 'number' || (typeof stt === 'string' && !isNaN(parseFloat(stt)) && isFinite(parseFloat(stt)));
+      return typeof stt === 'number'
+        || (typeof stt === 'string' && !isNaN(parseFloat(stt)) && isFinite(parseFloat(stt)));
     });
 
     if (validDataToSave.length === 0) {
@@ -442,72 +484,106 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       this.displayProgress = 0;
       this.displayText = `0/${this.totalRowsAfterFileRead} bản ghi`;
       return;
-    } ``
+    }
+
     this.processedRowsForSave = 0;
     const totalAssetsToSave = validDataToSave.length;
     this.displayText = `Đang lưu: 0/${totalAssetsToSave} bản ghi`;
     this.displayProgress = 0;
 
-    const assetsDataToSave = validDataToSave.map(row => {
-      return {
-        tSAssetManagements: [{
-          ID: 0,
-          STT: row.STT,
-          TSAssetCode: row.TSAssetCode || '',
-          TSAssetName: row.TSAssetName || '',
-          IsAllocation: false,
-          UnitID: this.getUnitIdByName(row.UnitName),
-          Seri: row.Seri || '',
-          SpecificationsAsset: row.SpecificationsAsset || '',
-          DateBuy: formatDate(row.DateBuy),
-          DateEffect: formatDate(row.DateEffect),
-          Insurance: row.Insurance || 0,
-          TSCodeNCC: row.TSCodeNCC || '',
-          OfficeActiveStatus: 0,
-          WindowActiveStatus: 0,
-          Note: row.Note || '',
-          StatusID: 1,
-          SourceID: this.getSourceIdByName(row.SourceName),
-          TSAssetID: this.getTypeIdByName(row.AssetType),
-          Status: "Chưa sử dụng",
-          EmployeeID: this.getEmployeeIDByName(row.FullName),
-          SupplierID: 0,
-          DepartmentID: this.getDepartmentIDByName(row.Name),
-        }]
-      };
-    });
+    let assetsDataToSave: any[] = [];
+
+    try {
+      assetsDataToSave = validDataToSave.map(row => {
+        return {
+          tSAssetManagements: [{
+            ID: 0,
+            STT: row.STT,
+            TSAssetCode: row.TSAssetCode || '',
+            TSAssetName: row.TSAssetName || '',
+            IsAllocation: false,
+            UnitID: this.getUnitIdByName(row.UnitName),
+            Seri: row.Seri || '',
+            SpecificationsAsset: row.SpecificationsAsset || '',
+            DateBuy: formatDate(row.DateBuy),
+            DateEffect: formatDate(row.DateEffect),
+            Insurance: row.Insurance || 0,
+            TSCodeNCC: row.TSCodeNCC || '',
+            OfficeActiveStatus: 0,
+            WindowActiveStatus: 0,
+            Note: row.Note || '',
+            StatusID: 1,
+            SourceID: this.getSourceIdByName(row.SourceCode),
+            TSAssetID: this.getTypeIdByName(row.AssetType),
+            Status: 'Chưa sử dụng',
+            // LƯU Ý: cột trong dataTableExcel là EmployeeName, DepartmentName
+            EmployeeID: this.getEmployeeIDByName(row.EmployeeName),
+            SupplierID: 0,
+            DepartmentID: this.getDepartmentIDByName(row.DepartmentName),
+          }]
+        };
+      });
+    } catch (e) {
+      console.error('Lỗi khi map dữ liệu từ Excel sang payload API:', e, validDataToSave);
+      this.notification.error('Thông báo', 'Lỗi khi lưu dữ liệu.');
+      return;
+    }
+
     let successCount = 0;
     let errorCount = 0;
     let completedRequests = 0;
+
     const saveAssetWithDelay = (index: number) => {
       if (index >= assetsDataToSave.length) {
         this.showSaveSummary(successCount, errorCount, totalAssetsToSave);
         return;
       }
+
       const asset = assetsDataToSave[index];
+
       setTimeout(() => {
         this.assetsManagementService.saveDataAsset(asset).subscribe({
           next: (response: any) => {
-            if (response.status === 1) {
+            // Trường hợp backend trả 200 nhưng status != 1 coi như lỗi nghiệp vụ
+            if (response?.status === 1) {
               successCount++;
-              console.log(asset);
             } else {
               errorCount++;
-              console.error(`Lỗi khi lưu tài sản ${index + 1}:`, response.message);
+              const msg =
+                response?.message ||
+                response?.error?.message ||
+                `Lỗi khi lưu tài sản STT ${asset.tSAssetManagements[0]?.STT ?? index + 1}`;
+              console.error(`Lỗi khi lưu tài sản ${index + 1}:`, msg, response);
             }
+
             completedRequests++;
-            this.processedRowsForSave = completedRequests;
             this.displayProgress = Math.round((completedRequests / totalAssetsToSave) * 100);
             this.displayText = `Đang lưu: ${completedRequests}/${totalAssetsToSave} bản ghi`;
+
             saveAssetWithDelay(index + 1);
           },
-          error: (err) => {
+          error: (err: any) => {
             errorCount++;
-            console.error(`Lỗi API khi lưu tài sản ${index + 1}:`, err);
+
+            const backendMsg =
+              err?.error?.message ||   // message backend tự trả về
+              err?.error?.title ||     // một số lỗi ASP.NET để ở title
+              err?.message ||          // message của HttpErrorResponse
+              `Lỗi khi lưu tài sản STT ${asset.tSAssetManagements[0]?.STT ?? index + 1}`;
+
+            console.error(
+              `Lỗi API khi lưu tài sản ${index + 1}:`,
+              backendMsg,
+              err
+            );
+
+            // >>> HIỂN THỊ LÊN NOTIFICATION Ở ĐÂY <<<
+            this.notification.error('Thông báo', backendMsg);
+
             completedRequests++;
-            this.processedRowsForSave = completedRequests;
             this.displayProgress = Math.round((completedRequests / totalAssetsToSave) * 100);
             this.displayText = `Đang lưu: ${completedRequests}/${totalAssetsToSave} bản ghi`;
+
             saveAssetWithDelay(index + 1);
           }
         });
@@ -515,6 +591,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
     };
     saveAssetWithDelay(0);
   }
+
   showSaveSummary(successCount: number, errorCount: number, totalProducts: number) {
     console.log('--- Hiển thị tóm tắt kết quả lưu ---');
     console.log(`Tổng sản phẩm: ${totalProducts}, Thành công: ${successCount}, Thất bại: ${errorCount}`);
@@ -535,8 +612,8 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
   }
 
   // Hàm helper để lấy ID của hãng từ tên
-  private getSourceIdByName(sourceName: string): number {
-    const source = this.listSourceAsset.find(s => s.SourceName === sourceName);
+  private getSourceIdByName(sourceCode: string): number {
+    const source = this.listSourceAsset.find(s => s.SourceCode === sourceCode);
     return source ? source.ID : 0;
   }
   // Hàm helper để lấy ID của ProductGroup từ tên
@@ -575,7 +652,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       keyword: ''
     };
     this.tsAssetManagementPersonalService.getEmployee(request).subscribe((respon: any) => {
-      this.emPloyeeLists = respon.employees;
+      this.emPloyeeLists = respon.data;
     });
     this.assetsManagementService.getAssetAllocationDetail(1).subscribe({
       next: (res: any) => {

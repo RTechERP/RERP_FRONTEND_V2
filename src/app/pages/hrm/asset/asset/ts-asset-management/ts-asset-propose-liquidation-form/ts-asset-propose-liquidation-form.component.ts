@@ -48,22 +48,42 @@ export class TsAssetProposeLiquidationFormComponent implements OnInit, AfterView
   ngOnInit() {
     this.dateLiquidation = DateTime.now().toFormat('yyyy-MM-dd');
   }
+
   ngAfterViewInit(): void {
     this.loadAsset();
     this.getListEmployee();
   }
-  formatDateForInput(dateString: string): string {
-    if (!dateString) return '';
-    return DateTime.fromISO(dateString).toFormat('yyyy-MM-dd');
+  formatDateForInput(value: any): string {
+    if (!value) return '';
+
+    // Nếu là Date
+    if (value instanceof Date) {
+      const dt = DateTime.fromJSDate(value);
+      return dt.isValid ? dt.toFormat('yyyy-MM-dd') : '';
+    }
+
+    const str = String(value).trim();
+    if (!str) return '';
+
+    // Thử ISO: 2024-10-01T00:00:00, 2024-10-01, 2024-10-01T00:00:00+07:00,...
+    let dt = DateTime.fromISO(str);
+    if (dt.isValid) return dt.toFormat('yyyy-MM-dd');
+
+    // Thử dd/MM/yyyy
+    dt = DateTime.fromFormat(str, 'dd/MM/yyyy');
+    if (dt.isValid) return dt.toFormat('yyyy-MM-dd');
+
+    // Không parse được thì trả rỗng
+    return '';
   }
   getListEmployee() {
-     const request = {
+    const request = {
       status: 0,
       departmentid: 0,
       keyword: ''
     };
     this.assetManagementPersonalService.getEmployee(request).subscribe((respon: any) => {
-      this.emPloyeeLists = respon.employees;
+      this.emPloyeeLists = respon.data;
     });
   }
   private loadAsset() {
@@ -87,11 +107,35 @@ export class TsAssetProposeLiquidationFormComponent implements OnInit, AfterView
     });
 
   }
+  private validateForm(): boolean {
+
+
+    // Check ngày báo sửa
+    if (!this.dateLiquidation || this.dateLiquidation.trim() === '') {
+      this.notification.error('Thông báo', 'Vui lòng chọn ngày đề nghị thanh lý.');
+      return false;
+    }
+
+    // Check lý do sửa chữa
+    if (!this.reason || this.reason.trim() === '') {
+      this.notification.error('Thông báo', 'Vui lòng nhập lí do đề nghị thanh lý.');
+      return false;
+    }
+    if (!this.employeeIDLiqui || this.employeeIDLiqui == 0) {
+      this.notification.error('Thông báo', 'Vui lòng chọn nhân viên đề nghị thanh lí.');
+      return false;
+    }
+
+    return true;
+  }
   close() {
     this.closeModal.emit();
     this.activeModal.dismiss('cancel');
   }
   saveLiquidation() {
+    if (!this.validateForm()) {
+      return;
+    }
     const payloadLiqui = {
       tSLiQuidationAsset: {
         ID: 0,

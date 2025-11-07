@@ -52,8 +52,9 @@ export class TsAssetManagementReportLossFormComponent implements OnInit, AfterVi
   constructor(private notification: NzNotificationService) { }
   assetData: any[] = [];
   emPloyeeLists: any[] = [];
-  dateLostReport: DateTime = DateTime.now();
-  reason: string = "";
+dateLostReport: string = DateTime.now().toISODate(); // 'yyyy-MM-dd'
+reason: string = '';
+
   ngAfterViewInit(): void {
   }
   ngOnInit() {
@@ -85,7 +86,23 @@ export class TsAssetManagementReportLossFormComponent implements OnInit, AfterVi
     });
 
   }
+  private validateForm(): boolean {
+  if (!this.dateLostReport || this.dateLostReport.trim() === '') {
+    this.notification.error('Thông báo', 'Vui lòng chọn ngày báo mất.');
+    return false;
+  }
+
+  if (!this.reason || this.reason.trim() === '') {
+    this.notification.error('Thông báo', 'Vui lòng nhập lý do báo mất.');
+    return false;
+  }
+
+  return true;
+}
   saveAsset() {
+      if (!this.validateForm()) {
+    return;
+  }
     const payloadAsset = {
       tSLostReportAsset: {
         ID: 0,
@@ -114,7 +131,7 @@ export class TsAssetManagementReportLossFormComponent implements OnInit, AfterVi
     }
     this.assetService.saveDataAsset(payloadAsset).subscribe({
       next: () => {
-        this.notification.success("Thông báo", "Thành công");
+        this.notification.success("Thông báo", "Báo mất tài sản thành công");
         this.loadAsset();
         this.formSubmitted.emit();
         this.activeModal.close(true);

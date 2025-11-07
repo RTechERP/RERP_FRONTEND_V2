@@ -240,12 +240,12 @@
         <div class="col-xl-6 col-md-12 col-sm-12 col-12">
             <div class="row">
 
-                <div class="col-xl-6 col-md-12 col-sm-12 col-12 p-2">
+                <div class="col-xl-6 col-md-12 col-sm-12 col-12 pt-2">
                     <div class="card mb-2">
                         <div class="card-header">
                             <h5 class="card-title m-0 text-uppercase fw-bold">Thông báo</h5>
                         </div>
-                        <div class="card-body p-1" style="height: 320px; overflow: auto;">
+                        <div class="card-body" style="height: 320px; overflow: auto;">
                             <nz-list nzItemLayout="vertical">
                                 @for (item of notifItems; track item) {
                                 <nz-list-item>
@@ -265,7 +265,7 @@
                     </div>
 
                 </div>
-                <div class="col-xl-6 col-md-12 col-sm-12 col-12 p-2">
+                <div class="col-xl-6 col-md-12 col-sm-12 col-12 pt-2">
                     <div class="card mb-2">
                         <div class="card-header">
                             <h5 class="card-title m-0 text-uppercase fw-bold">Lịch làm việc</h5>
@@ -287,13 +287,13 @@
 
                 </div>
 
-                <div class="col-xl-6 col-md-12 col-sm-12 col-12">
-                    <div class="card mb-0">
+                <div class="col-xl-6 col-md-12 col-sm-12 col-12 pt-2">
+                    <div class="card mb-2">
                         <div class="card-header">
                             <h5 class="card-title m-0 text-uppercase fw-bold">Nghỉ</h5>
                         </div>
-                        <div class="card-body p-1" style="height: 230px; overflow: auto;">
-                            <nz-tabset>
+                        <div class="card-body p-1" style="height: 27rem; overflow: auto;">
+                            <nz-tabset style="font-size: 12px;">
                                 <nz-tab [nzTitle]="titleTemplateOnleave">
                                     <nz-collapse>
                                         @for (panel of employeeOnleaves; track panel) {
@@ -342,12 +342,12 @@
                     </div>
 
                 </div>
-                <div class="col-xl-6 col-md-12 col-sm-12 col-12">
-                    <div class="card mb-0">
+                <div class="col-xl-6 col-md-12 col-sm-12 col-12 pt-2">
+                    <div class="card mb-2">
                         <div class="card-header">
                             <h5 class="card-title m-0 text-uppercase fw-bold">truy cập nhanh</h5>
                         </div>
-                        <div class="card-body p-1" style="height: 230px; overflow: auto;">
+                        <div class="card-body p-1" style="height: 27rem; overflow: auto;">
 
                             <nz-list nzItemLayout="vertical">
                                 <nz-list-item>
@@ -369,6 +369,15 @@
                                         </nz-list-item-meta-title>
                                     </nz-list-item-meta>
                                 </nz-list-item>
+                                <nz-list-item>
+                                    <nz-list-item-meta class="m-0">
+                                        <nz-list-item-meta-avatar [nzSrc]=""></nz-list-item-meta-avatar>
+                                        <nz-list-item-meta-title>
+                                            <a href="file://///192.168.1.190/Accountant" target="_blank">Mở thư mục kế
+                                                toán</a>
+                                        </nz-list-item-meta-title>
+                                    </nz-list-item-meta>
+                                </nz-list-item>
                             </nz-list>
                         </div>
                     </div>
@@ -377,41 +386,30 @@
             </div>
 
         </div>
-        <div class="col-xl-6 col-md-12 col-sm-12 col-12 p-2">
+        <div class="col-xl-6 col-md-12 col-sm-12 col-12 pt-2">
 
             <div class="card mb-0">
                 <div class="card-header">
-                    <h5 class="card-title m-0 text-uppercase fw-bold">Thông báo</h5>
+                    <h5 class="card-title m-0 text-uppercase fw-bold">chức năng</h5>
                 </div>
-                <div class="card-body" style="height: 83.7vh; overflow: auto;">
-                    <div class="row">
+                <div class="card-body" style="height: 50.05rem; overflow: auto;">
 
-                        @for (m of menus; track m.key) {
-                        <!-- <div class="col-xl-3 col-md-3 col-sm-6 col-6 d-flex justify-content-center align-items-center"
-                    *ngIf="m.isPermission">
-                    <div class="card card-module border-0 p-4" (click)="openModule(m.key)">
-                        <div class="card-img d-flex justify-content-center">
-                            <img [src]="m.icon?.replace('24','64')" class="card-img-top img-fluid shadow p-3 rounded"
-                                alt="">
-                        </div>
-                        <h5 class="card-title text-center text-uppercase mt-2">{{m.title}}</h5>
-                    </div>
-                </div> -->
-
-
-                        <div class="col-xl-3 col-md-12 col-sm-12 col-12">
-                            <div class="card mb-4" (click)="openModule(m.key)">
-                                <img [src]="m.icon?.replace('24','64')" class="card-img-top p-3" alt="...">
-                                <div class="card-body">
-                                    <p class="card-text text-center text-uppercase ">{{m.title}}</p>
+                    <div class="gutter-example">
+                        <div nz-row [nzGutter]="[16, 16]">
+                            @for (m of menus; track $index) {
+                            <div nz-col class="gutter-row" [nzXs]="12" [nzMd]="8" [nzLg]="6"
+                                (click)="openModule(m.key)">
+                                <div class="grid-config text-center py-2 shadow">
+                                    <img [src]="m.icon?.replace('24','64')" alt="">
+                                    <p class="m-0 mt-2 fw-bold">{{m.title}}</p>
                                 </div>
                             </div>
+                            }
+
+
                         </div>
-                        }
-
-
-
                     </div>
+
                 </div>
             </div>
 

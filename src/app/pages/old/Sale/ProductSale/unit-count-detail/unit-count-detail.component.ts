@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import { RowComponent } from 'tabulator-tables';
 import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -14,12 +13,13 @@ import { NzProgressModule } from 'ng-zorro-antd/progress';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
-import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { ProductsaleServiceService } from '../product-sale-service/product-sale-service.service';
+
 interface UnitCount {
-  ID?: number,
-  UnitCode: string,
-  UnitName: string,
+  ID?: number;
+  UnitCode: string;
+  UnitName: string;
 }
 
 // Custom validator để kiểm tra ký tự tiếng Việt
@@ -27,22 +27,22 @@ function noVietnameseValidator(control: AbstractControl): ValidationErrors | nul
   if (!control.value) {
     return null; // Không validate nếu giá trị rỗng
   }
-  
-  // Regex để kiểm tra ký tự tiếng Việt
+
   const vietnameseRegex = /[àáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵÀÁẢÃẠÂẦẤẨẪẬĂẰẮẲẴẶÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴđĐ]/i;
-  
+
   if (vietnameseRegex.test(control.value)) {
     return { vietnameseChars: true };
   }
-  
+
   return null;
 }
+
 @Component({
   selector: 'app-unit-count-detail',
-  standalone:true,
+  standalone: true,
   imports: [
-    CommonModule, 
-    FormsModule, 
+    CommonModule,
+    FormsModule,
     ReactiveFormsModule,
     NzSelectModule,
     NzSplitterModule,
@@ -57,68 +57,108 @@ function noVietnameseValidator(control: AbstractControl): ValidationErrors | nul
   styleUrl: './unit-count-detail.component.css'
 })
 export class UnitCountDetailComponent implements OnInit, AfterViewInit {
-  newUnitCount: UnitCount={
+  // giữ cả ID
+  newUnitCount: UnitCount = {
     UnitName: '',
     UnitCode: '',
-  }
+  };
+
   @Input() listProductGroupcbb: any[] = [];
-  
+  @Input() unitCount: UnitCount | null = null; // nhận input có thể có ID
   formGroup: FormGroup;
 
   constructor(
     private notification: NzNotificationService,
     private fb: FormBuilder,
     public activeModal: NgbActiveModal,
-    private modalService: NgbModal,
     private productsaleService: ProductsaleServiceService
-  ) { 
+  ) {
     this.formGroup = this.fb.group({
-      UnitCode: ['', [Validators.required, noVietnameseValidator]],
+      UnitCode: ['', [Validators.required]],
       UnitName: ['', [Validators.required]]
     });
   }
 
   ngOnInit(): void {
-    // Patch form values from input data
-    this.formGroup.patchValue({
-      UnitCode: this.newUnitCount.UnitCode || '',
-      UnitName: this.newUnitCount.UnitName || ''
-    });
-  }
-
-  ngAfterViewInit(): void {
-    
-  }
-  addNewLocation(){
-    this.trimAllStringControls();
-    if (this.formGroup.invalid) {
-      this.formGroup.markAllAsTouched();
-      return;
+    // Nếu component nhận dữ liệu unitCount (tức là sửa), patch form và giữ ID
+    if (this.unitCount) {
+      this.newUnitCount.ID = this.unitCount.ID;
+      this.formGroup.patchValue({
+        UnitCode: this.unitCount.UnitCode || '',
+        UnitName: this.unitCount.UnitName || ''
+      });
+    } else {
+      // mặc định (thêm mới)
+      this.formGroup.patchValue({
+        UnitCode: this.newUnitCount.UnitCode || '',
+        UnitName: this.newUnitCount.UnitName || ''
+      });
     }
-
-    const formValue = this.formGroup.getRawValue();
-    const payload = [{   
-        UnitCode: formValue.UnitCode,
-        UnitName: formValue.UnitName,
-    }];
-    console.log("p", payload)
-    this.productsaleService.saveDataUnitCount(payload).subscribe({
-      next: (res) => {
-        if (res.status === 1) {
-          this.notification.success('Thông báo', 'Thêm mới thành công!');
-          this.closeModal();
-        } else {
-          this.notification.warning('Thông báo', res.message || 'Không thể thêm đơn vị tính!');
-        }
-      },
-      error: (err) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi thêm mới!');
-        console.error(err);
-      }
-    });
   }
-  closeModal() {
-    this.activeModal.dismiss(true);
+
+  ngAfterViewInit(): void { }
+
+  // unify: dùng 1 method save cho cả create/update
+  saveUnitCount(): void {
+if (this.formGroup.invalid) {
+    Object.values(this.formGroup.controls).forEach(c => {
+      c.markAsTouched();
+      c.updateValueAndValidity({ onlySelf: true });
+    });
+    this.notification.warning('Cảnh báo', 'Vui lòng điền đủ thông tin bắt buộc');
+    return;
+  }
+    const formValue = this.formGroup.getRawValue();
+    const payload: any = {
+      UnitCode: formValue.UnitCode,
+      UnitName: formValue.UnitName
+    };
+
+    // Nếu có ID -> update, ngược lại -> create
+    if (this.newUnitCount.ID && this.newUnitCount.ID > 0) {
+      // giả sử API update nhận (id, payload) hoặc payload chứa ID
+      payload.ID = this.newUnitCount.ID;
+      const payloadList = [payload];
+      console.log('Update payload:', payloadList);
+      
+      this.productsaleService.saveDataUnitCount(payloadList).subscribe({
+        next: (res) => {
+          if (res.status === 1) {
+            this.notification.success('Thông báo', 'Cập nhật thành công!');
+            this.closeModal('updated');
+          } else {
+            this.notification.warning('Thông báo', res.message || 'Không thể cập nhật đơn vị tính!');
+          }
+        },
+        error: (err) => {
+          const apiMessage = err.error?.message || 'Có lỗi xảy ra khi cập nhật!';
+          this.notification.error('Thông báo', apiMessage);
+        }
+      });
+    } else {
+      // create
+      const createPayload = [payload]; // theo dạng API bạn dùng trước đó
+      console.log('Create payload:', createPayload);
+      this.productsaleService.saveDataUnitCount(createPayload).subscribe({
+        next: (res) => {
+          if (res.status === 1) {
+            this.notification.success('Thông báo', 'Thêm mới thành công!');
+            this.closeModal('updated');
+          } else {
+            this.notification.warning('Thông báo', res.message.message || 'Không thể thêm đơn vị tính!');
+          }
+        },
+        error: (err) => {
+          const apiMessage = err.error?.message || 'Có lỗi xảy ra khi thêm mới!';
+          this.notification.error('Thông báo', apiMessage);
+        }
+      });
+    }
+  }
+
+  // Đóng modal và trả về giá trị cho component cha
+  closeModal(result?: any) {
+    this.activeModal.close(result);
   }
 
   // Hàm để lấy error message cho UnitCode
@@ -127,9 +167,6 @@ export class UnitCountDetailComponent implements OnInit, AfterViewInit {
     if (control?.invalid && (control?.dirty || control?.touched)) {
       if (control.errors?.['required']) {
         return 'Vui lòng nhập mã đơn vị!';
-      }
-      if (control.errors?.['vietnameseChars']) {
-        return 'Mã đơn vị không được chứa ký tự tiếng Việt!';
       }
     }
     return undefined;

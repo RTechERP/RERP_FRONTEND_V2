@@ -14,6 +14,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { TbProductRtcService } from '../tb-product-rtc-service/tb-product-rtc.service';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 
 @Component({
   standalone: true,
@@ -29,7 +30,8 @@ import { TbProductRtcService } from '../tb-product-rtc-service/tb-product-rtc.se
     NzInputModule,
     NzButtonModule,
     NzModalModule,
-    NzFormModule
+    NzFormModule,
+    HasPermissionDirective
   ],
   selector: 'app-tb-product-group-rtc-form',
   templateUrl: './tb-product-group-rtc-form.component.html',

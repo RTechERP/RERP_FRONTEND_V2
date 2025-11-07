@@ -23,6 +23,8 @@ export class ProjectService {
     this.apiUrl + 'synthesisofgeneratedmaterials/';
   private urlProjectSynthesisDepartment =
     this.apiUrl + 'projectsynthesisdepartment/';
+    private urlProjectPartlistPriceRequest =
+    this.apiUrl + 'projectpartlistpricerequest/';
   constructor(
     private http: HttpClient,
     private notification: NzNotificationService
@@ -812,7 +814,7 @@ export class ProjectService {
   //cho leader kiểu dự án
   // Project Tree Folder API
   saveProjectTreeFolder(data: any): Observable<any> {
-    return this.http.post<any>(this.urlProject + 'save-project-tree-folder', data);
+    return this.http.post<any>(this.urlProject + 'save-folder-project', data);
   }
      // lấy danh sách leader của loại dự án
      getEmployeeProjectType(projectTypeId: any): Observable<any> {
@@ -856,4 +858,37 @@ export class ProjectService {
 
     return this.http.post(`${this.urlProjectSummary}get-projects`, filter);
   }
+  //#region Lịch sử giá
+  getSupplierSales(): Observable<any> {
+    return this.http.get<any>(
+      this.urlProjectPartlistPriceRequest + `get-supplier-sale`
+    );
+  }
+
+  getPriceHistoryPartlist(data: any): Observable<any> {
+    return this.http.get<any>(this.urlProjectPartlistPriceRequest + `get-price-history-partlist`, {
+      params: data,
+    });
+  }
+  //#endregion
+  //#region kiểu dự án
+  getFolderByProjectType(projectTypeID:number):Observable<any>{
+    return this.http.get<any>(this.urlProject+`getfoldersbyprojecttypes/${projectTypeID}`)
+  }
+  getAPIProjectTypes():Observable<any>{
+    return this.http.get<any>(this.urlProject+`get-project-types`)
+  }
+  saveProjectType(payload:any):Observable<any>{
+    return this.http.post<any>(this.urlProject + `saveprojecttype`, payload)
+  }
+  getParentProjectTypes():Observable<any>{//lấy kiểu dự án cha 
+    return this.http.get<any>(this.urlProject + `get-parent-project-types`)
+  }
+  getProjectTypeByID(projectTypeID:number):Observable<any>{//lấy kiểu dự án theo id 
+    return this.http.get<any>(this.urlProject+`get-project-types/${projectTypeID}`)
+  }
+  deleteProjectFolder(payload:any):Observable<any>{
+    return this.http.post<any>(this.urlProject + `delete-project-folder`, payload)
+  }
+    //#end
 }

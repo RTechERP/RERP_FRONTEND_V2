@@ -1,3 +1,18 @@
+/* Make embedded nz-select fill Tabulator editor cell */
+:host ::ng-deep .tabulator-cell .ant-select,
+:host ::ng-deep .tabulator-cell .ant-select-selector {
+  width: 100% !important;
+  display: block;
+}
+
+:host ::ng-deep .tabulator-cell .ant-select-selector {
+  min-height: 28px;
+  align-items: center;
+}
+
+:host ::ng-deep .tabulator-cell .ant-select .ant-select-selection-search-input {
+  width: 100% !important;
+}
 .required-label::after {
   content: ' *';
   color: red;
@@ -43,6 +58,7 @@
 .ant-splitter {
   height: 100% !important;
 }
+ 
 
 
 

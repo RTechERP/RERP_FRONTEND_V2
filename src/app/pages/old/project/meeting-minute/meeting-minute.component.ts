@@ -107,7 +107,14 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
   styleUrl: './meeting-minute.component.css',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
+
 export class MeetingMinuteComponent implements OnInit, AfterViewInit {
+  //@ViewChild('file_table') fileTableContainer!: ElementRef;
+
+  @ViewChild('fileTableContainer', { static: false }) fileTableContainer!: ElementRef;
+
+  FileTable: Tabulator | null = null;
+
   newMeetingMinutes: MeetingMinutes = {
     STT: 0,
     ProjectCode: '',
@@ -165,6 +172,9 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
   customerContentTable: Tabulator | null = null;
   customerContentData: any[] = [];
 
+  
+  FileData: any[] = [];
+
   isCheckmode: boolean = false;
 
   @ViewChild('employeeContentTable', { static: true }) tableRef!: ElementRef;
@@ -178,24 +188,25 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit(): void {
-    this.getMeetingTypeGroup();
-    this.getMeetingMinutes();
+    // Điều chỉnh date range trước (từ ngày = 1 tháng trước)
     const startDate = this.searchParams.DateStart;
     startDate.setMonth(startDate.getMonth() - 1);
-    const endDate = this.searchParams.DateEnd;
-    const startDateConverted = this.toLocalISOString(startDate);
+    
+    this.getMeetingTypeGroup();
+    // getMeetingMinutes() sẽ được gọi sau khi table đã được khởi tạo trong ngAfterViewInit()
   }
 
   ngAfterViewInit(): void {
+    // Khởi tạo các bảng trước
     this.draw_MeetingMinutesTable();
     this.draw_employeeTable();
-    //this.draw_employeeContentTable();
+    
+    // Sau khi table đã sẵn sàng, gọi getMeetingMinutes() để load dữ liệu
     setTimeout(() => {
+      this.getMeetingMinutes();
       this.onTabChange(0);
     }, 100);
   }
-
-
   onTabChange(index: number) {
     this.activeTab = index;
     // Initialize tables when tabs become active
@@ -222,20 +233,29 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
   }
 
   onMainTabChange(index: number) {
-    // 0: Nhân viên, 1: Khách hàng
+    console.log('onMainTabChange:', index);
     setTimeout(() => {
       if (index === 0) {
-        // Ensure employee base table exists when switching back
-        if (!this.employeeTable) {
-          this.draw_employeeTable();
-        }
+        if (!this.employeeTable) this.draw_employeeTable();
       } else if (index === 1) {
-        // Ensure customer base table is initialized when Khách hàng tab activates
-        this.draw_customerTable();
+        if (!this.customerTable) this.draw_customerTable();
+      } else if (index === 2) {
+        // ===> Khi tab “File đính kèm” được chọn
+        if (this.fileTableContainer?.nativeElement) {
+          if (!this.FileTable) {
+            console.log('Đang vẽ bảng file...');
+            this.draw_fileTable(this.fileTableContainer.nativeElement);
+          } else {
+            this.FileTable.redraw(true);
+          }
+        } else {
+          console.warn('⚠️ fileTableContainer chưa sẵn sàng.');
+        }
       }
-      this.cdr.detectChanges();
-    }, 100);
+    }, 300);
   }
+  
+  
 
   getMeetingType() {
     this.meetingMinuteService
@@ -256,7 +276,7 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
         return 'Nội bộ';
       default:
         return 'Khác';
-    }
+    }                                                                   
   }
 
   toLocalISOString(date: Date | string): string {
@@ -308,6 +328,7 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
       .subscribe((response: any) => {
         this.meetingMinutesData = response.data?.asset || [];
         if (this.meetingMinutesTable) {
+          this.MeetingMinutesID=this.meetingMinutesData[0].ID;
           this.meetingMinutesTable.setData(this.meetingMinutesData);
         } else {
           this.draw_MeetingMinutesTable();
@@ -338,7 +359,8 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
         console.log('Response từ server:', response);
 
         // Dữ liệu nhân viên
-        this.employeeData = response.data?.employeeDetails || [];
+        this.employeeData = response.data?.empDetail || [];
+        console.log('Dữ liệu nhân viên:', this.employeeData);
         if (this.employeeTable) {
           this.employeeTable.setData(this.employeeData);
         } else {
@@ -346,7 +368,8 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
         }
 
         // Dữ liệu nội dung nhân viên
-        this.employeeContentData = response.data?.employeeAttendance || [];
+        this.employeeContentData = response.data?.empContent || [];
+        console.log('Dữ liệu nội dung nhân viên:', this.employeeContentData);
         if (this.employeeContentTable) {
           this.employeeContentTable.setData(this.employeeContentData);
         } else {
@@ -356,7 +379,7 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
         }
 
         // Dữ liệu khách hàng
-        this.customerData = response.data?.customerAttendance || [];
+        this.customerData = response.data?.cusDetail || [];
         if (this.customerTable) {
           this.customerTable.setData(this.customerData);
         } else {
@@ -364,13 +387,21 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
         }
 
         // Dữ liệu nội dung khách hàng
-        this.customerContentData = response.data?.customerDetails || [];
+        this.customerContentData = response.data?.cusContent || [];
         if (this.customerContentTable) {
           this.customerContentTable.setData(this.customerContentData);
         } else {
           // Bảng sẽ được vẽ khi user click vào tab "Nội dung" của khách hàng
           // Thông qua onCustomerTabChange method
         }
+        //dữ liệu file
+        this.FileData = response.data?.file || [];
+        if(this.FileTable){
+          this.FileTable.setData(this.FileData);
+        }else{
+          this.draw_fileTable(this.fileTableContainer.nativeElement);
+        }
+        
         
       });
   }
@@ -407,13 +438,20 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
 
     modalRef.result
       .then((result) => {
-        if (result == true) {
-          this.getMeetingMinutes();
-          //  this.getKPICriteriaDetailByID();
-          this.draw_MeetingMinutesTable();
+        // Luôn reload dữ liệu sau khi modal đóng
+        this.getMeetingMinutes();
+        // Nếu có dòng được chọn, load lại chi tiết
+        if (this.MeetingMinutesID) {
+          this.getMeetingMinutesDetailsByID(this.MeetingMinutesID);
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        // Ngay cả khi modal bị hủy (ESC hoặc click outside), vẫn reload dữ liệu
+        this.getMeetingMinutes();
+        if (this.MeetingMinutesID) {
+          this.getMeetingMinutesDetailsByID(this.MeetingMinutesID);
+        }
+      });
   }
 
   onDeleteMeetingMinutes() {
@@ -471,14 +509,8 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
     console.log('Export Excel');
 
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Danh sách biên bản cuộc họp');
 
     // === Định nghĩa style ===
-    const titleStyle: Partial<ExcelJS.Style> = {
-      font: { bold: true, size: 16, color: { argb: 'FF000000' } },
-      alignment: { horizontal: 'center', vertical: 'middle' },
-    };
-
     const headerStyle: Partial<ExcelJS.Style> = {
       font: { bold: true, size: 12, color: { argb: 'FFFFFFFF' } },
       fill: {
@@ -506,65 +538,28 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
       },
     };
 
-    // === Tiêu đề chính ===
-    worksheet.mergeCells('A1:J1');
-    const mainTitle = worksheet.getCell('A1');
-    mainTitle.value = 'DANH SÁCH BIÊN BẢN CUỘC HỌP';
-    mainTitle.style = titleStyle;
-
-    // === Ngày xuất file ===
-    worksheet.mergeCells('A2:J2');
-    const dateCell = worksheet.getCell('A2');
-    dateCell.value = `Ngày xuất: ${new Date().toLocaleDateString('vi-VN')}`;
-    dateCell.style = {
-      font: { italic: true, size: 11 },
-      alignment: { horizontal: 'center' },
-    };
-
-    let currentRow = 4;
-
-    // === Hàm appendTable ===
-    const appendTable = (title: string, table: any, data: any[]) => {
-      console.log(
-        `Processing table: ${title}, Data length: ${data?.length ?? 0}`
-      ); // Debugging log
+    // === Hàm xuất từng bảng vào worksheet riêng ===
+    const exportTableToWorksheet = (title: string, table: any, data: any[]) => {
+      console.log(`Processing worksheet: ${title}, Data length: ${data?.length ?? 0}`);
       if (!table || !data || !Array.isArray(data) || data.length === 0) {
-        console.warn(
-          `Skipping table "${title}" due to missing table or empty data`
-        );
-        return; // Skip if table or data is invalid
+        console.warn(`Skipping worksheet "${title}" do thiếu bảng hoặc dữ liệu rỗng`);
+        return;
       }
 
-      // Section title
-      worksheet.mergeCells(`A${currentRow}:J${currentRow}`);
-      const titleCell = worksheet.getCell(`A${currentRow}`);
-      titleCell.value = `=== ${title} ===`;
-      titleCell.style = {
-        font: { bold: true, size: 13, color: { argb: 'FF000000' } },
-        alignment: { horizontal: 'left' },
-      };
-      currentRow += 2;
+      const ws = workbook.addWorksheet(title);
 
       // Header
       const columns = table.getColumns().slice(1);
-      const headers = [
-        'STT',
-        ...columns.map((col: any) => col.getDefinition().title),
-      ];
-      const headerRow = worksheet.addRow(headers);
-
-      // Style header
+      const headers = ['STT', ...columns.map((col: any) => col.getDefinition().title)];
+      const headerRow = ws.addRow(headers);
       headers.forEach((_, idx) => {
         const cell = headerRow.getCell(idx + 1);
         cell.style = headerStyle;
       });
-      currentRow++;
 
       // Định dạng cột
-      const columnWidths: number[] = headers.map(() => 10); // Độ rộng tối thiểu
-      worksheet.columns = headers.map((_, index) => ({
-        width: 10, // Độ rộng mặc định
-      }));
+      const columnWidths: number[] = headers.map(() => 10);
+      ws.columns = headers.map(() => ({ width: 10 }));
 
       // Data
       data.forEach((row: any, index: number) => {
@@ -574,56 +569,42 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
             const field = col.getField();
             let value = row[field];
 
-            // Robust date handling
             if (typeof value === 'string' && value.match(/\d{4}-\d{2}-\d{2}/)) {
               try {
-                const parsedDate = parseISO(value); // Use date-fns for parsing
+                const parsedDate = parseISO(value);
                 if (isValid(parsedDate)) {
                   return format(parsedDate, 'dd/MM/yyyy');
                 }
               } catch (error) {
-                console.warn(
-                  `Invalid date format for value: ${value} in field: ${field}`
-                );
+                console.warn(`Invalid date format for value: ${value} in field: ${field}`);
               }
             }
-            // Format boolean
             if (field === 'IsApproved') {
               value = value === true ? '✓' : '';
             }
-            return value || ''; // Fallback to empty string for null/undefined
+            return value || '';
           }),
         ];
 
-        const dataRow = worksheet.addRow(rowData);
-
-        // Style và tính toán độ rộng cột
+        const dataRow = ws.addRow(rowData);
         rowData.forEach((value, idx) => {
           const cell = dataRow.getCell(idx + 1);
-          cell.style =
-            typeof value === 'object' && value.style ? value.style : cellStyle;
-
-          // Tính độ rộng cột dựa trên nội dung
-          const contentLength = String(
-            value && typeof value === 'object' ? value.value : value
-          ).length;
-          columnWidths[idx] = Math.max(
-            columnWidths[idx],
-            Math.min(contentLength + 2, 50)
-          );
+          cell.style = typeof value === 'object' && value.style ? value.style : cellStyle;
+          const contentLength = String(value && typeof value === 'object' ? value.value : value).length;
+          columnWidths[idx] = Math.max(columnWidths[idx], Math.min(contentLength + 2, 50));
         });
-        currentRow++;
       });
 
-      // Áp dụng độ rộng cột
-      worksheet.columns.forEach((column, index) => {
+      // Áp dụng độ rộng cột và chiều cao hàng
+      ws.columns.forEach((column, index) => {
         column.width = columnWidths[index];
       });
-
-      currentRow += 2; // Dòng trống
+      ws.eachRow((row) => {
+        row.height = 25;
+      });
     };
 
-    // === Gọi appendTable cho từng bảng ===
+    // === Danh sách bảng cần xuất thành từng sheet ===
     const tables = [
       {
         title: 'Biên bản họp',
@@ -650,18 +631,14 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
         table: this.customerContentTable,
         data: this.customerContentTable?.getData() ?? [],
       },
+      {
+        title: 'File đính kèm',
+        table: this.FileTable,
+        data: this.FileTable?.getData?.() ?? this.FileData ?? [],
+      },
     ];
 
-    tables.forEach(({ title, table, data }) => {
-      appendTable(title, table, data);
-    });
-
-    // === Căn chỉnh chiều cao hàng ===
-    worksheet.eachRow((row, rowNumber) => {
-      if (rowNumber > 2) {
-        row.height = 25; // Chiều cao mặc định cho các hàng
-      }
-    });
+    tables.forEach(({ title, table, data }) => exportTableToWorksheet(title, table, data));
 
     // === Xuất file ===
     try {
@@ -672,9 +649,7 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
 
       const link = document.createElement('a');
       link.href = window.URL.createObjectURL(blob);
-      link.download = `DanhSachBienBanCuocHop_${new Date()
-        .toISOString()
-        .slice(0, 10)}.xlsx`;
+      link.download = `DanhSachBienBanCuocHop_${new Date().toISOString().slice(0, 10)}.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -684,6 +659,70 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
     }
   }
 
+  
+  draw_fileTable(container: HTMLElement) {
+    if (!container) {
+      console.warn('⚠️ fileTableContainer chưa sẵn sàng để vẽ bảng.');
+      return;
+    }
+    // Tính toán chiều cao dựa trên container
+    const containerHeight = container.clientHeight || container.offsetHeight || 200;
+    
+    // BƯỚC 1: Dữ liệu ban đầu là mảng rỗng
+      this.FileTable = new Tabulator(container,{
+        ...DEFAULT_TABLE_CONFIG,
+        data: this.FileData,
+        pagination:false,
+        layout: 'fitColumns',
+        selectableRows: 1,
+        height: containerHeight > 0 ? containerHeight : '100%',
+        movableColumns: true,
+        reactiveData: true,
+        placeholder: 'Không có dữ liệu',
+        addRowPos: 'bottom',
+        history: true,
+        columns: [
+          {
+            title: 'Tên File',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            field: 'FileName',
+            widthGrow: 1,
+            formatter: (cell: any) => {
+              const value = cell.getValue();
+              // Hiển thị tên file với tooltip nếu quá dài
+              if (value && value.length > 50) {
+                return `<span title="${value}" style="display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${value}</span>`;
+              }
+              return value || '';
+            },
+          },
+        ],
+      });
+      this.FileTable.on('cellClick', (e: any, cell: any) => {
+        const rowData = cell.getRow().getData();
+        const value = rowData['ServerPath'];
+        this.meetingMinuteService.downloadFile(value).subscribe((res: any) => {
+          const url = window.URL.createObjectURL(new Blob([res]));
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = value;
+          a.click();
+        });
+      });
+      // Resize bảng khi container thay đổi kích thước
+      const resizeObserver = new ResizeObserver(() => {
+        if (this.FileTable && container) {
+          const newHeight = container.clientHeight || container.offsetHeight;
+          if (newHeight > 0) {
+            this.FileTable.setHeight(newHeight);
+            this.FileTable.redraw(true);
+          }
+        }
+      });
+      
+      resizeObserver.observe(container);
+    }
   private draw_MeetingMinutesTable(): void {
     if (this.meetingMinutesTable) {
       this.meetingMinutesTable.setData(this.meetingMinutesData);
@@ -692,32 +731,39 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
         ...DEFAULT_TABLE_CONFIG,
         data: this.meetingMinutesData,
         layout: 'fitDataStretch',
-        pagination:false,
+        columnHeaderVertAlign: "bottom",
+        responsiveLayout: "collapse",
+        pagination:true,
+        paginationMode:'local',
         selectableRows: 1,
-        height: '40vh',
-        movableColumns: true,
-        reactiveData: true,
+        height: '100%',
         placeholder: 'Không có dữ liệu',
-        addRowPos: 'bottom',
-        history: true,
-        rowHeader: {
-          headerSort: false,
-          resizable: false,
-          frozen: true,
-          formatter: 'rowSelection',
-          headerHozAlign: 'center',
-          hozAlign: 'center',
-          titleFormatter: 'rowSelection',
-          cellClick: (e: any, cell: any) => {
-            e.stopPropagation();
-          },
-        },
+      
+        movableColumns: true,
+        resizableRows: true,
+        reactiveData: true,
+     
+
+        // rowHeader: {
+        //   headerSort: false,
+        //   resizable: false,
+        //   frozen: true,
+        //   formatter: 'rowSelection',
+        //   headerHozAlign: 'center',
+
+        //   hozAlign: 'center',
+        //   titleFormatter: 'rowSelection',
+        //   cellClick: (e: any, cell: any) => {
+        //     e.stopPropagation();
+        //   },
+        // },
         columns: [
           {
             title: 'STT',
             hozAlign: 'center',
             headerHozAlign: 'center',
             field: 'STT',
+           
           },
           { title: 'Mã dự án', field: 'ProjectCode', headerHozAlign: 'center' },
           {
@@ -740,7 +786,7 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
             field: 'DateStart',
             hozAlign: 'left',
             headerHozAlign: 'center',
-            width: 150,
+          
             formatter: (cell: any) => {
               const value = cell.getValue();
               return value
@@ -753,7 +799,7 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
             field: 'DateEnd',
             hozAlign: 'left',
             headerHozAlign: 'center',
-            width: 150,
+           
             formatter: (cell: any) => {
               const value = cell.getValue();
               return value
@@ -768,6 +814,10 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
           },
         ],
       });
+      this.meetingMinutesTable.on("columnMoved", () => {
+        this.meetingMinutesTable!.redraw(true);
+      });
+      
       this.meetingMinutesTable.on(
         'rowClick',
         (e: UIEvent, row: RowComponent) => {
@@ -804,9 +854,10 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
       this.employeeTable = new Tabulator('#Employee', {
         data: this.employeeData,
         layout: 'fitDataStretch',
+     
         // pagination: true,
         selectableRows: 1,
-        height: '40vh',
+         height: '100%',
         movableColumns: true,
         // paginationSize: 30,
         // paginationSizeSelector: [5, 10, 20, 50, 100],
@@ -831,7 +882,7 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
             title: 'Mã nhân viên',
             hozAlign: 'center',
             headerHozAlign: 'center',
-            field: 'Code',
+            field: 'EmployeeCode',
           },
           {
             title: 'Tên nhân viên',
@@ -840,7 +891,7 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
           },
           {
             title: 'Team',
-            field: 'Name',
+            field: 'UserTeamName',
             headerHozAlign: 'center',
           },
           {
@@ -880,7 +931,7 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
         data: this.employeeContentData,
         layout: 'fitDataStretch',
         selectableRows: 1,
-        height: '40vh',
+        height: '100%',
         movableColumns: true,
         reactiveData: true,
         placeholder: 'Không có dữ liệu',
@@ -962,7 +1013,7 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
         layout: 'fitDataStretch',
         // pagination: true,
         selectableRows: 1,
-        height: '40vh',
+         height: '100%',
         movableColumns: true,
         // paginationSize: 30,
         // paginationSizeSelector: [5, 10, 20, 50, 100],
@@ -1022,7 +1073,7 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
         layout: 'fitDataStretch',
         // pagination: true,
         selectableRows: 1,
-        height: '40vh',
+         height: '100%',
         movableColumns: true,
         // paginationSize: 30,
         // paginationSizeSelector: [5, 10, 20, 50, 100],

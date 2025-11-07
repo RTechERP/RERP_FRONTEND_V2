@@ -1,0 +1,94 @@
+/* ProductLocation Form Component Styles */
+.modal-header {
+  border-bottom: 1px solid #e9ecef;
+  padding: 1rem;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-footer {
+  border-top: 1px solid #e9ecef;
+  padding: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  opacity: 0.5;
+}
+
+.btn-close:hover {
+  opacity: 1;
+}
+
+/* Responsive styles */
+.modal-body {
+  padding: 1rem;
+}
+
+/* Modal Header */
+.modal-header {
+  background-color: #007bff; /* Màu xanh primary */
+  color: #fff;
+  text-transform: uppercase;
+  padding: 0.5rem 1rem;
+}
+
+/* Thanh công cụ */
+.toolbar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Form */
+nz-form-item {
+  margin-bottom: 1rem;
+}
+
+nz-form-label {
+  font-weight: 500;
+}
+
+.ant-input, .ant-select {
+  border-radius: 4px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .toolbar {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .modal-body {
+    padding: 0.5rem;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+nz-form-label {
+  font-weight: 500;
+}
+
+.ant-input, .ant-select, .ant-input-number {
+  border-radius: 4px;
+}

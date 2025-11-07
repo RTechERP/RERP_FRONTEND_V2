@@ -37,6 +37,7 @@ import { TbProductGroupRtcFormComponent } from '../tb-product-group-rtc-form/tb-
 import { FirmDetailComponent } from '../../Sale/ProductSale/firm-detail/firm-detail.component';
 import { LocationDetailComponent } from '../../Sale/ProductSale/location-detail/location-detail.component';
 import { UnitCountDetailComponent } from '../../Sale/ProductSale/unit-count-detail/unit-count-detail.component';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 @Component({
   standalone: true,
   selector: 'app-tb-product-rtc-form',
@@ -54,9 +55,9 @@ import { UnitCountDetailComponent } from '../../Sale/ProductSale/unit-count-deta
     NzGridModule,
     NzDatePickerModule,
     NzIconModule,
-    NzInputModule,
+    NzInputModule,  
     NzButtonModule,
-    NzModalModule,
+    NzModalModule, HasPermissionDirective
   ],
 })
 export class TbProductRtcFormComponent implements OnInit, AfterViewInit {

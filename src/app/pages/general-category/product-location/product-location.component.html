@@ -1,0 +1,45 @@
+<div class="d-flex align-items-center mb-3" style="width: 100%;">
+  <div class="card border-1 rounded-0 w-100" style="max-width: 100%;">
+    <div class="card-header bg-white p-2">
+      <div class="d-flex align-items-center justify-content-between">
+        <!-- Nhóm nút bên trái -->
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn-add" *hasPermission="'N27,N1'" nz-button nzType="default" nzSize="small" (click)="onAddProductLocation()">
+            <nz-icon nzType="plus"  /> Thêm
+          </button>
+          <button class="btn-edit" nz-button nzType="default" *hasPermission="'N27,N1'" nzSize="small" (click)="onEditProductLocation()">
+            <nz-icon nzType="edit" nzTheme="fill" /> Sửa
+          </button>
+          <button class="btn-delete" nz-button nzType="default" nzSize="small" (click)="onDeleteProductLocation()" *hasPermission="'N27,N1'">
+            <nz-icon nzType="delete" nzTheme="fill" /> Xóa
+          </button>
+        </div>
+        
+        <!-- Ô tìm kiếm bên phải -->
+        <div class="position-relative" style="width: 300px;">
+          <input 
+            type="text" 
+            class="form-control form-control-sm" 
+            placeholder="Nhập từ khóa..." 
+            [(ngModel)]="searchText"
+            (input)="onSearch()"
+            (keyup.enter)="onSearch()"
+            style="padding-right: 30px;"
+          />
+          <span 
+            *ngIf="searchText" 
+            class="position-absolute"
+            style="right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; z-index: 10; color: #999;"
+            (click)="onClearSearch()"
+          >
+            <nz-icon nzType="close" />
+          </span>
+        </div>
+      </div>
+    </div>
+   
+    <div class="card-body p-2" style="height: 900px;">
+      <div id="dataProductLocation" style="width: 100%; height: 100%;"></div>
+    </div>
+  </div>
+</div>

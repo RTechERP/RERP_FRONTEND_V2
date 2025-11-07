@@ -58,6 +58,7 @@ import { TsAssetReuseFormComponent } from './ts-asset-reuse-form/ts-asset-reuse-
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { count } from 'rxjs';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
+import { TsAssetSourceFormComponent } from '../ts-asset-source/ts-asset-source-form/ts-asset-source-form.component';
 
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
@@ -84,7 +85,7 @@ function formatDateCell(cell: CellComponent): string {
     NzSelectModule,
     NzTableModule,
     NzTabsModule,
-    NgbModalModule,HasPermissionDirective
+    NgbModalModule, HasPermissionDirective
   ],
   selector: 'app-ts-asset-management',
   templateUrl: './ts-asset-management.component.html',
@@ -222,9 +223,9 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     } else {
       this.assetTable = new Tabulator('#datatablemanagement', {
         data: this.assetData,
-        selectableRows:true,
+       
         ...DEFAULT_TABLE_CONFIG,
-      
+ selectableRows: 1,
         paginationMode: 'local',
         // layout: "fitDataFill",
         // pagination: true,
@@ -237,17 +238,18 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
         // placeholder: 'Không có dữ liệu',
         // dataTree: true,
         // addRowPos: "bottom",
-         columnDefaults: {
-    headerWordWrap: false,
-    headerVertical: false,
-    headerHozAlign: 'center',
-    minWidth: 80,
-    hozAlign: 'left',
-    vertAlign: 'middle',
-    resizable: true,
-  },
+        columnDefaults: {
+          headerWordWrap: false,
+          headerVertical: false,
+          headerHozAlign: 'center',
+          minWidth: 80,
+          hozAlign: 'left',
+          vertAlign: 'middle',
+          resizable: true,
+          
+        },
         columns: [
-         
+
           {
             title: 'Name',
             field: 'Name',
@@ -264,7 +266,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             width: 70,
             headerHozAlign: 'center',
             bottomCalc: 'count',
-               fozen: true,
+            fozen: true,
           },
           {
             title: 'UnitID',
@@ -273,7 +275,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             width: 70,
             visible: false,
             headerHozAlign: 'center',
-               fozen: true,
+            fozen: true,
           },
           {
             title: 'TSAssetID',
@@ -282,7 +284,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             width: 70,
             visible: false,
             headerHozAlign: 'center',
-               fozen: true,
+            fozen: true,
           },
           {
             title: 'SourceID',
@@ -291,7 +293,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             width: 70,
             visible: false,
             headerHozAlign: 'center',
-               fozen: true,
+            fozen: true,
           },
           {
             title: 'DepartmentID',
@@ -300,7 +302,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             visible: false,
             width: 70,
             headerHozAlign: 'center',
-               fozen: true,
+            fozen: true,
           },
           {
             title: 'ID',
@@ -309,14 +311,14 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             width: 70,
             visible: false,
             headerHozAlign: 'center',
-               fozen: true,
+            fozen: true,
           },
           {
             title: 'Mã tài sản',
             field: 'TSAssetCode',
             headerHozAlign: 'center',
             hozAlign: 'left',
-               fozen: true,
+            fozen: true,
           },
           {
             title: 'Tên tài sản',
@@ -325,7 +327,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             width: 200,
             // hozAlign: 'left',
             formatter: 'textarea',
-               fozen: true,
+            fozen: true,
           },
           {
             title: 'Seri',
@@ -402,35 +404,51 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
               el.style.backgroundColor = '';
               el.style.color = '';
               if (val === 'Chưa sử dụng') {
-                el.style.backgroundColor = '#00CC00';
-                el.style.outline = '1px solid #e0e0e0';
+                el.style.backgroundColor = '#AAAAAA';
+                el.style.outline = '1px solid #EEEE';
                 el.style.color = '#fff';
+                  el.style.borderRadius = '20px';
+               
               } else if (val === 'Đang sử dụng') {
-                el.style.backgroundColor = '#FFCC00';
-                el.style.color = '#000000';
+                el.style.backgroundColor = '#b4ecb4ff';
+                el.style.color = '#2cb55aff';
                 el.style.outline = '1px solid #e0e0e0';
+                   el.style.borderRadius = '20px';
               } else if (val === 'Đã thu hồi') {
                 el.style.backgroundColor = '#FFCCCC';
                 el.style.color = '#000000';
+                   el.style.borderRadius = '20px';
                 el.style.outline = '1px solid #e0e0e0';
               } else if (val === 'Mất') {
-                el.style.backgroundColor = '#BB0000';
-                el.style.color = '#000000';
+                el.style.backgroundColor = '#fbc4c4ff';
+                el.style.color = '#d40000ff';
+                   el.style.borderRadius = '20px';
                 el.style.outline = '1px solid #e0e0e0';
               } else if (val === 'Hỏng') {
-                el.style.backgroundColor = '#FFCCCC';
-                el.style.color = '#000000';
+                el.style.backgroundColor = '#cadfffff';
+                el.style.color = '#4147f2ff';
                 el.style.outline = '1px solid #e0e0e0';
+                   el.style.borderRadius = '20px';
               } else if (val === 'Thanh lý') {
-                el.style.backgroundColor = '#CD3278';
-                el.style.color = '#000000';
+                el.style.backgroundColor = '#d4fbffff';
+                el.style.color = '#08aabfff';
+                   el.style.borderRadius = '20px';
                 el.style.outline = '1px solidrgb(196, 35, 35)';
               } else if (val === 'Đề nghị thanh lý') {
-                el.style.backgroundColor = '#00FFFF';
-                el.style.color = '#000000';
+                el.style.backgroundColor = '#fde3c1ff';
+                el.style.color = '#f79346ff';
+                   el.style.borderRadius = '20px';
                 el.style.outline = '1px solidrgb(20, 177, 177)';
-              } else {
+              } 
+               else if (val === 'Sữa chữa, Bảo dưỡng') {
+                el.style.backgroundColor = '#bcaa93ff';
+                el.style.color = '#c37031ff';
+                   el.style.borderRadius = '20px';
+                el.style.outline = '1px solidrgb(20, 177, 177)';
+              } 
+              else {
                 el.style.backgroundColor = '#e0e0e0';
+                   el.style.borderRadius = '20px';
               }
               return val; // vẫn hiển thị chữ
             },
@@ -461,33 +479,33 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             headerHozAlign: 'center',
             hozAlign: 'left',
           },
+          // {
+          //   title: 'Người tạo',
+          //   field: 'CreatedBy',
+          //   headerHozAlign: 'center',
+          //   hozAlign: 'left',
+          // },
+          // {
+          //   title: 'Ngày tạo',
+          //   field: 'CreatedDate',
+          //   headerHozAlign: 'center',
+          //   hozAlign: 'left',
+          // },
+          // {
+          //   title: 'Người cập nhật',
+          //   field: 'UpdatedBy',
+          //   headerHozAlign: 'center',
+          //   hozAlign: 'left',
+          // },
+          // {
+          //   title: 'Ngày cập nhật',
+          //   field: 'UpdatedDate',
+          //   headerHozAlign: 'center',
+          //   hozAlign: 'left',
+          //   formatter: formatDateCell,
+          // },
           {
-            title: 'Người tạo',
-            field: 'CreatedBy',
-            headerHozAlign: 'center',
-            hozAlign: 'left',
-          },
-          {
-            title: 'Ngày tạo',
-            field: 'CreatedDate',
-            headerHozAlign: 'center',
-            hozAlign: 'left',
-          },
-          {
-            title: 'Người cập nhật',
-            field: 'UpdatedBy',
-            headerHozAlign: 'center',
-            hozAlign: 'left',
-          },
-          {
-            title: 'Ngày cập nhật',
-            field: 'UpdatedDate',
-            headerHozAlign: 'center',
-            hozAlign: 'left',
-            formatter: formatDateCell,
-          },
-          {
-            title: 'Is Allocation',
+            title: 'Cấp Phát',
             field: 'IsAllocation',
             formatter: (cell: CellComponent) =>
               cell.getValue() ? 'Có' : 'Không',
@@ -495,13 +513,13 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
           },
           {
             title: 'Office Active',
-            field: 'OfficeActiveStatus',
+            field: 'OfficeActiveStatusText',
             HeaderhozAlign: 'center',
             hozAlign: 'right',
           },
           {
             title: 'Windows Active',
-            field: 'WindowActiveStatus',
+            field: 'WindowActiveStatusText',
             HeaderhozAlign: 'center',
             hozAlign: 'right',
           },
@@ -510,6 +528,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             field: 'SpecificationsAsset',
             HeaderhozAlign: 'center',
             hozAlign: 'left',
+            formatter:'textarea'
           },
           {
             title: 'Ghi chú',
@@ -623,25 +642,43 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       },
     });
   }
-  onAddAsset() {
-    const modalRef = this.ngbModal.open(TsAssetManagementFormComponent, {
-      size: 'xl',
-      backdrop: 'static',
-      keyboard: false,
-      centered: true,
-    });
+ onAddAsset() {
+  const initialData = {
+    ID: 0,
+    TSAssetCode: '',
+    TSAssetName: '',
+    DepartmentID: null,
+    EmployeeID: null,
+    SourceID: null,
+    UnitID: null,
+    StatusID: null,
+    DateBuy: '',
+    DateEffect: '',
+    Note: '',
+    Insurance: '',
+    Seri: '',
+    SpecificationsAsset: '',
+    TSCodeNCC: '',
+    WindowActiveStatus: null,
+    OfficeActiveStatus: null,
+    STT: null,
+    // cái gì cần default nữa thì add vào
+  };
 
-    modalRef.componentInstance.dataInput = this.modalData;
-    modalRef.result.then(
-      (result) => {
-        console.log('Modal closed with result:', result);
-        this.getAssetmanagement();
-      },
-      (dismissed) => {
-        console.log('Modal dismissed');
-      }
-    );
-  }
+  const modalRef = this.ngbModal.open(TsAssetManagementFormComponent, {
+    size: 'xl',
+    backdrop: 'static',
+    keyboard: false,
+    centered: true,
+  });
+
+  modalRef.componentInstance.dataInput = initialData;
+
+  modalRef.result.then(
+    () => this.getAssetmanagement(),
+    () => {}
+  );
+}
   onEitAsset() {
     const selected = this.assetTable?.getSelectedData();
     if (!selected || selected.length === 0) {
@@ -653,7 +690,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     }
     const selectedAssets = { ...selected[0] };
     const modalRef = this.ngbModal.open(TsAssetManagementFormComponent, {
-      size: 'lg',
+      size: 'xl ',
       backdrop: 'static',
       keyboard: false,
       centered: true,
@@ -790,6 +827,10 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       return;
     }
     const selectedAssets = { ...selected[0] };
+      if (selectedAssets.StatusID ==4) {
+      this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đã mất, không thể báo hỏng!`);
+      return;
+    }
     const modalRef = this.ngbModal.open(
       TsAssetManagementReportBorkenFormComponent,
       {
@@ -830,6 +871,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       );
       return;
     }
+     
     const modalRef = this.ngbModal.open(TsAssetLiquidationComponent, {
       size: 'xl',
       backdrop: 'static',
@@ -860,13 +902,21 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     const selectedAssets = { ...selected[0] };
     if (
       selectedAssets.StatusID === 7 ||
-      selectedAssets.Status === 'Đề nghị thanh lí' ||
+      selectedAssets.Status === 'Đề nghị thanh lí' 
+    
+    ) {
+         this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đã đề nghị thanh lí!`);
+
+      return;
+    }
+      if (
+   
       selectedAssets.StatusID === 4 ||
       selectedAssets.Status === 'Mất'
     ) {
       this.notification.warning(
         'Thông báo',
-        'Tài sản này không thể đề nghị thanh lý vì đã bị mất hoặc đã đề nghị thanh lý!'
+       `Tài sản có mã "${selectedAssets.TSAssetCode}"đã mất, không thể đề nghị thanh lí!`
       );
       return;
     }
@@ -997,4 +1047,5 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       }
     });
   }
+   
 }

@@ -111,7 +111,7 @@ const payloadLiqui = {
       tSAllocationEvictionAssets: [{
         ID: 0,
         AssetManagementID: this.dataInput.ID,
-        EmployeeID: this.employeeIDLiqui,
+        EmployeeID: this.dataInput.EmployeeID,
         ChucVuID: 30,
         Status: "Đã thanh lý",
         StatusID: 6,

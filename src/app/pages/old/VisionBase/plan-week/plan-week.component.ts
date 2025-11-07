@@ -54,10 +54,12 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 
 import { PlanWeekService } from './plan-week-services/plan-week.service';
 import { Title } from '@angular/platform-browser';
 import { PlanWeekDetailComponent } from '../plan-week-detail/plan-week-detail/plan-week-detail.component';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 
 @Component({
   selector: 'app-plan-week',
@@ -87,6 +89,7 @@ import { PlanWeekDetailComponent } from '../plan-week-detail/plan-week-detail/pl
     NzCheckboxModule,
     CommonModule,
     NzTreeSelectModule,
+    HasPermissionDirective,
   ],
   templateUrl: './plan-week.component.html',
   styleUrl: './plan-week.component.css',
@@ -289,7 +292,8 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        const errorMessage = error?.error?.message || error?.message || 'Không thể tải dữ liệu';
+        this.notification.error('Lỗi', errorMessage);
       },
     });
   }
@@ -304,7 +308,8 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        const errorMessage = error?.error?.message || error?.message || 'Không thể tải dữ liệu';
+        this.notification.error('Lỗi', errorMessage);
       },
     });
   }
@@ -319,7 +324,8 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        const errorMessage = error?.error?.message || error?.message || 'Không thể tải dữ liệu';
+        this.notification.error('Lỗi', errorMessage);
       },
     });
   }
@@ -346,7 +352,8 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
           }
         },
         error: (error) => {
-          this.notification.error('Lỗi', error);
+          const errorMessage = error?.error?.message || error?.message || 'Không thể tải dữ liệu';
+          this.notification.error('Lỗi', errorMessage);
         },
       });
   }
@@ -387,19 +394,21 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
       this.notification.info('Thông báo', 'Vui lòng chọn đúng ô ngày cần xóa');
       return;
     }
+    const dateFromField = new Date(this.selectedField as string);
+
+    const UserID = this.selectedId
+    const DatePlan = dateFromField
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: 'Bạn có chắc chắn muốn xóa kế hoạch tuần của người này?',
+      nzContent: `Bạn có chắc chắn muốn xóa kế hoạch ngày ${dateFromField.toLocaleDateString()} của ${this.selectedRow?.FullName}?`,
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
-        const dateFromField = new Date(this.selectedField as string);
         if (isNaN(dateFromField.getTime())) {
           this.notification.error('Lỗi', 'Không xác định được ngày từ cột đã chọn');
           return;
         }
-        const UserID = this.selectedId
-        const DatePlan = dateFromField
+
         this.planWeekService.delete(UserID, DatePlan).subscribe({
           next: (sv) => {
             if (sv.status === 1) {
@@ -415,8 +424,10 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
               this.notification.error('Lỗi', sv.message || 'Không thể lưu');
             }
           },
-          error: (err) =>
-            this.notification.error('Lỗi', 'Không thể lưu: ' + err.message)
+          error: (err) => {
+            const errorMessage = err?.error?.message || err?.message || 'Không thể xóa dữ liệu';
+            this.notification.error('Lỗi', errorMessage);
+          }
         });
       },
     });
@@ -469,13 +480,28 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `KeHoachTuan${this.filters.startDate} - ${this.filters.endDate}.xlsx`;
+
+    const formatDate = (date: Date): string => {
+      const d = new Date(date);
+      const day = d.getDate().toString().padStart(2, '0');
+      const month = (d.getMonth() + 1).toString().padStart(2, '0');
+      const year = d.getFullYear();
+      return `${day}/${month}/${year}`;
+    };
+    
+    const start = formatDate(this.filters.startDate);
+    const end = formatDate(this.filters.endDate);
+    
+    link.download = `KeHoachTuan_${start} - ${end}.xlsx`;
+    
     link.click();
     window.URL.revokeObjectURL(url);
   }
 
   initMainTable(): void {
     this.tb_MainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
+      ...DEFAULT_TABLE_CONFIG,
+      paginationMode: 'local',
       layout: 'fitColumns',
       height: '89vh',
       selectableRows: 1,
@@ -491,6 +517,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
         headerHozAlign: 'center',
         minWidth: 60,
         resizable: true,
+        cssClass: 'tabulator-cell-wrap',
       },
       autoColumnsDefinitions: (definitions: any[] = []) =>
         definitions.map((def: any) => {
@@ -498,7 +525,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
             return { ...def, visible: false };
           }
           if (def.field === 'UserID') {
-            return { ...def, visible: true };
+            return { ...def, visible: false };
           }
           if (def.field === 'FullName') {
             return { ...def, title: 'Họ tên' };

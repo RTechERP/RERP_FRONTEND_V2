@@ -55,12 +55,13 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 
-import { CustomerServiceService } from './customer-service/customer-service.service';
+import { CustomerServiceService } from '../customer/customer-service/customer-service.service';
 import { group } from '@angular/animations';
-import { ViewPokhService } from '../../view-pokh/view-pokh/view-pokh.service';
+import { ViewPokhService } from '../../../old/view-pokh/view-pokh/view-pokh.service';
 import { CustomerDetailComponent } from '../customer-detail/customer-detail.component';
-import { CustomerMajorComponent } from '../customer-major/customer-major/customer-major.component';
+import { CustomerMajorComponent } from '../customer-specialization/customer-major/customer-major.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 // import { CustomerComponent } from '../../customer/customer.component';
 @Component({
   selector: 'app-customer',
@@ -90,6 +91,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
     NzCheckboxModule,
     CommonModule,
     NzTreeSelectModule,
+    HasPermissionDirective,
   ],
   templateUrl: './customer.component.html',
   styleUrl: './customer.component.css',
@@ -135,6 +137,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   isEditMode: boolean = false;
   filterTeamData: any[] = [];
   filterSaleUserData: any[] = [];
+  selectedIds: number[] = []; // Danh sách ID các dòng được chọn
 
   filters: any = {
     teamId: 0,
@@ -163,7 +166,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
 
   getTeamData(): void {
     this.viewPokhService.loadGroupSale().subscribe({
-      next: (response) => {
+      next: (response: any) => {
         if (response.status === 1) {
           this.filterTeamData = response.data;
         } else {
@@ -173,7 +176,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
           );
         }
       },
-      error: (error) => {
+      error: (error: any) => {
         // this.notification.error(
         //   'Thông báo',
         //   'Lỗi kết nối khi tải tệp POKH: ' + error
@@ -293,49 +296,129 @@ export class CustomerComponent implements OnInit, AfterViewInit {
     );
   }
 
-  onDelete() {
-    const selectedRows = this.tb_MainTable?.getSelectedData();
-      if (!selectedRows || selectedRows.length === 0) {
-        this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một khách hàng để xóa!');
-        return;
-      }
-      const isDeleted = selectedRows.map((item: any) => item.ID);
-    
-      // Tạo chuỗi tên khách hàng
-      let nameDisplay = '';
-      selectedRows.forEach((item: any, index: number) => {
-        nameDisplay += item.CustomerName + ',';
+  async exportExcel() {
+    const table = this.tb_MainTable;
+    if (!table) return;
+
+    const data = table.getData();
+    if (!data || data.length === 0) {
+      this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Danh sách dự án');
+
+    const columns = table.getColumns();
+    // Bỏ qua cột đầu tiên
+    const filteredColumns = columns.slice(1);
+    const headers = filteredColumns.map(
+      (col: any) => col.getDefinition().title
+    );
+    worksheet.addRow(headers);
+
+    data.forEach((row: any) => {
+      const rowData = filteredColumns.map((col: any) => {
+        const field = col.getField();
+        let value = row[field];
+
+        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+          value = new Date(value);
+        }
+
+        return value;
       });
-    
-      if (selectedRows.length > 10) {
-        if (nameDisplay.length > 10) {
-          nameDisplay = nameDisplay.slice(0, 10) + '...';
+
+      worksheet.addRow(rowData);
+    });
+
+    // Format cột có giá trị là Date
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return; // bỏ qua tiêu đề
+      row.eachCell((cell, colNumber) => {
+        if (cell.value instanceof Date) {
+          cell.numFmt = 'dd/mm/yyyy'; // hoặc 'yyyy-mm-dd'
         }
-        nameDisplay += ` và ${selectedRows.length - 1} khách hàng khác`;
-      } else {
-        if (nameDisplay.length > 20) {
-          nameDisplay = nameDisplay.slice(0, 20) + '...';
-        }
-      }
-    
-      // Hiển thị confirm
-      this.modal.confirm({
-        nzTitle: 'Xác nhận xóa',
-        nzContent: `Bạn có chắc chắn muốn xóa khách hàng <b>[${nameDisplay}]</b> không?`,
-        nzOkText: 'Đồng ý',
-        nzCancelText: 'Hủy',
-        nzOkDanger: true,
-        nzOnOk: () => {
-         
-        const payload = {
-          isDeleted: isDeleted
-        };
-        console.log("payload: ", payload);
-        this.customerService.save(payload).subscribe({
+      });
+    });
+
+    // Tự động căn chỉnh độ rộng cột
+    worksheet.columns.forEach((column: any) => {
+      let maxLength = 10;
+      column.eachCell({ includeEmpty: true }, (cell: any) => {
+        const cellValue = cell.value ? cell.value.toString() : '';
+        // Giới hạn độ dài tối đa của cell là 50 ký tự
+        maxLength = Math.min(Math.max(maxLength, cellValue.length + 2), 50);
+        cell.alignment = { wrapText: true, vertical: 'middle' };
+      });
+      // Giới hạn độ rộng cột tối đa là 30
+      column.width = Math.min(maxLength, 30);
+    });
+
+    // Thêm bộ lọc cho toàn bộ cột (từ A1 đến cột cuối cùng)
+    worksheet.autoFilter = {
+      from: {
+        row: 1,
+        column: 1,
+      },
+      to: {
+        row: 1,
+        column: filteredColumns.length,
+      },
+    };
+
+    // Xuất file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+
+    const formattedDate = new Date()
+      .toISOString()
+      .slice(2, 10)
+      .split('-')
+      .reverse()
+      .join('');
+
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = `DanhSachKhachHang.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(link.href);
+  }
+
+
+  onDelete() {
+    if ( this.selectedIds.length <= 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một khách hàng để xóa!');
+      return;
+    }
+    this.modal.confirm({
+      nzTitle: 'Xác nhận xóa',
+      nzContent: 'Bạn có chắc chắn muốn xóa các khách hàng này?',
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        // const payload = {
+        //   Customer: {
+        //     ID: this.selectedId ?? 0,
+        //     IsDeleted: true,
+        //     CustomerCode: this.selectedRow?.CustomerCode ?? '',
+        //     CustomerName: this.selectedRow?.CustomerName ?? '',
+        //   },
+        //   CustomerContacts: [],
+        //   AddressStocks: [],
+        //   CustomerEmployees: [],
+        //   BusinessFieldID: 0,
+        // };
+
+        this.customerService.deleteMultiple(this.selectedIds).subscribe({
           next: (res: any) => {
             if (res?.status === 1) {
               this.notification.success('Thông báo', 'Xóa thành công');
-              this.initMainTable();
+              this.tb_MainTable.setData(null, true);
             } else {
               this.notification.error(
                 'Lỗi',
@@ -435,7 +518,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   initMainTable(): void {
     this.tb_MainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
-      selectableRows:1,
+      selectableRows: true,
       paginationMode: 'remote',
       //   layout: 'fitDataFill',
       //   height: '90%',
@@ -513,7 +596,20 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         },
         { title: 'Đầu mối gửi check chứng từ', field: 'CheckVoucher' },
         { title: 'Đầu mối gửi chứng từ bản cứng', field: 'HardCopyVoucher' },
-        { title: 'Ngày chốt công nợ', field: 'ClosingDateDebt' },
+        { 
+          title: 'Ngày chốt công nợ', 
+          field: 'ClosingDateDebt',
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (!value) return '';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          }
+        },
         { title: 'Công nợ', field: 'Debt' },
         {
           title: 'Địa chỉ giao hàng',
@@ -525,7 +621,16 @@ export class CustomerComponent implements OnInit, AfterViewInit {
     this.tb_MainTable.on('dataLoading',()=>{
       this.tb_MainTable.deselectRow();
       this.sizeTbDetail='0';
+      this.selectedIds = []; 
     });
+    
+    // Event listener để cập nhật danh sách ID khi có thay đổi selection
+    this.tb_MainTable.on('rowSelectionChanged', () => {
+      const selectedRows = this.tb_MainTable.getSelectedData();
+      this.selectedIds = selectedRows.map((row: any) => row.ID);
+      console.log('Selected IDs:', this.selectedIds);
+    });
+    
     this.tb_MainTable.on(
       'rowDblClick',
       (e: any, row: RowComponent) => {
@@ -552,7 +657,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         data: this.customerContactData,
         ...DEFAULT_TABLE_CONFIG,
         layout:"fitColumns",
-       
+        rowHeader: false,
         // selectableRows: 1,
         pagination: false,
         // paginationSize: 100,
@@ -586,7 +691,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         data: this.addressStockData,
         ...DEFAULT_TABLE_CONFIG,
         layout:"fitColumns",
-       
+        rowHeader: false,
         // selectableRows: 1,
         pagination: true,
         // paginationSize: 100,
@@ -613,9 +718,9 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       data: this.employeeSaleData,
       ...DEFAULT_TABLE_CONFIG,
       layout:"fitColumns",
-      height: '90%',
       //   selectableRows: 1,
       pagination: false,
+      rowHeader: false,
       columns: [
         { title: 'ID', field: 'ID', visible: false },
         { title: 'Nhân viên Sale', field: 'FullName' },

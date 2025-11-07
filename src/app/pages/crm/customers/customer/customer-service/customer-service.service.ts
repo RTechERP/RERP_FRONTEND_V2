@@ -68,7 +68,7 @@ export class CustomerServiceService {
   }
 
   save(payload: any): Observable<any> {
-    return this.http.post<any>(this._url+'save-data-old', payload);
+    return this.http.post<any>(this._url+'save-data', payload);
   }
 
   getDetail(id: number): Observable<any> {
@@ -77,5 +77,8 @@ export class CustomerServiceService {
         id: id,
       },
     });
+  }
+  deleteMultiple(ids:any): Observable<any> {
+    return this.http.post<any>(this._url + 'delete-multiple', ids);
   }
 }

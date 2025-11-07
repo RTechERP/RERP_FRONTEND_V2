@@ -7,13 +7,13 @@
 <ng-container class="w-100">
     <div class="card-header bg-white p-1" style="overflow-x: auto;">
         <div class="d-flex gap-1">
-            <button class=" btn-add" nz-button nzType="default" nzSize="small" (click)="openCustomerMajorDetail()">
+            <button class=" btn-add" nz-button nzType="default" nzSize="small" (click)="openCustomerMajorDetail()" *hasPermission="'N27,N31,N36,N1'">
                 <img src="assets/icon/action_add_item_16.png"> Thêm
             </button>
-            <button class=" btn-edit" nz-button nzType="default" nzSize="small" (click)="onEdit()">
+            <button class=" btn-edit" nz-button nzType="default" nzSize="small" (click)="onEdit()" *hasPermission="'N27,N31,N1'">
                 <img src="assets/icon/action_edit_item_16.png" alt="Sửa " /> Sửa
             </button>
-            <button class=" btn-delete" nz-button nzType="default" nzSize="small" (click)="onDelete()">
+            <button class=" btn-delete" nz-button nzType="default" nzSize="small" (click)="onDelete()" *hasPermission="'N27,N31,N1'">
                 <img src="assets/icon/action_delete_item_16.png" alt="Xóa" /> Xóa
             </button>
             <div style="display: flex; width: 30%;" class="ms-auto">

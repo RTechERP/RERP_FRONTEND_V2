@@ -23,12 +23,8 @@ export class PlanWeekService {
 
   getEmployees(status: number): Observable<any> {
     return this.http.get<any>(
-      'https://localhost:7187/api/Employee/get-employees',
-      {
-        params: {
-          status: status.toString(),
-        },
-      }
+      environment.host + 'api/Employee/get-employees',
+      { params: { status: status.toString() } }
     );
   }
 

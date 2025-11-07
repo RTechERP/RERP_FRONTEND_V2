@@ -46,7 +46,7 @@ import { PermissionService } from '../../../../services/permission.service';
 import { ProjectLeaderProjectTypeComponent } from '../../../old/project/project-leader-project-type/project-leader-project-type.component';
 import { MeetingMinuteComponent } from '../../../old/project/meeting-minute/meeting-minute.component';
 import { ProjectNewComponent } from '../../../old/project/project-new/project-new.component';
-import { CustomerComponent } from '../../../old/VisionBase/customer/customer.component';
+import { CustomerComponent } from '../../../crm/customers/customer/customer.component';
 import { PlanWeekComponent } from '../../../old/VisionBase/plan-week/plan-week.component';
 import { TsAssetTypeComponent } from '../../../hrm/asset/asset/ts-asset-type/ts-asset-type.component';
 import { TsAssetSourceComponent } from '../../../hrm/asset/asset/ts-asset-source/ts-asset-source.component';
@@ -64,7 +64,7 @@ import { CurrencyListComponent } from '../../../general-category/currency-list/c
 import { UnitCountComponent } from '../../../old/Sale/ProductSale/unit-count/unit-count.component';
 import { ProductLocationComponent } from '../../../general-category/product-location/product-location.component';
 import { FirmComponent } from '../../../general-category/firm/firm.component';
-import { CustomerComponent } from '../../../old/customer/customer.component';
+import { FollowProjectBaseComponent } from '../../../old/VisionBase/kho-base/follow-project-base/follow-project-base.component';
 
 @Injectable({
   providedIn: 'root',
@@ -820,8 +820,16 @@ export class MenuService {
             key: 'PlanWeekComponent',
             title: 'Kế hoạch tuần',
             isOpen: true,
-            isPermission: this.permissionService.hasPermission(""),
+            isPermission: this.permissionService.hasPermission("'N1,N27,N53,N31,N69'"),
             comp: PlanWeekComponent
+          },
+          {
+            kind: 'leaf',
+            key: 'FollowProjectBaseComponent',
+            title: 'Follow dự án',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(""),
+            comp: FollowProjectBaseComponent
           }
         ]
       }

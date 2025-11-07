@@ -96,7 +96,7 @@ export class TsAssetProposeLiquidationFormComponent implements OnInit, AfterView
       tSLiQuidationAsset: {
         ID: 0,
         AssetManagementID: this.dataInput.ID,
-        EmployeeID: this.employeeIDLiqui,
+        EmployeeID: this.dataInput.EmployeeID,
         IsApproved: false,
         DateSuggest: DateTime.now().toISO(),
         DateLiquidation: this.dateLiquidation,
@@ -104,7 +104,7 @@ export class TsAssetProposeLiquidationFormComponent implements OnInit, AfterView
       },
       tSAssetManagements: [{
         ID: this.dataInput.ID,
-        EmployeeID: this.employeeIDLiqui,
+        EmployeeID: this.dataInput.EmployeeID,
         DepartmentID: this.dataInput.DepartmentID,
         Status: "Đề nghị thanh lí",
         StatusID: 7
@@ -112,7 +112,7 @@ export class TsAssetProposeLiquidationFormComponent implements OnInit, AfterView
       tSAllocationEvictionAssets: [{
         ID: 0,
         AssetManagementID: this.dataInput.ID,
-        EmployeeID: this.employeeIDLiqui,
+        EmployeeID: this.dataInput.EmployeeID,
         ChucVuID: 30,
         Status: "Đề nghị thanh lí",
         StatusID: 7,

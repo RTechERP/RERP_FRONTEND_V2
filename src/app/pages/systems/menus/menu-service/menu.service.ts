@@ -88,7 +88,7 @@ export class MenuService {
         key: 'crm',
         title: 'CRM',
         isOpen: true,
-        isPermission: this.permissionService.hasPermission(''),
+        isPermission: true,
         icon: 'assets/icon/menu_crm_24.png',
         children: [
           {

@@ -55,10 +55,11 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
-import { SelectControlComponent } from '../../../select-control/select-control.component';
+import { SelectControlComponent } from '../../../../old/select-control/select-control.component';
 
 import { CustomerServiceService } from '../../customer/customer-service/customer-service.service';
 import { CustomerMajorService } from '../customer-major-service/customer-major.service';
+import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 @Component({
   selector: 'app-customer-major',
   imports: [
@@ -88,6 +89,7 @@ import { CustomerMajorService } from '../customer-major-service/customer-major.s
     NzFormModule,
     CommonModule,
     NzTreeSelectModule,
+    HasPermissionDirective,
   ],
   templateUrl: './customer-major-detail.component.html',
   styleUrl: './customer-major-detail.component.css',
@@ -101,7 +103,6 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
 
   Code: any = '';
   Name: any = '';
-  STT: number = 0;
   majorData: any[] = [];
 
   constructor(
@@ -136,7 +137,9 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
             this.loadDetail(this.EditID);
           } else {
             this.majorData = response.data;
-            this.STT = this.majorData.length + 1;
+            this.formGroup.patchValue({
+              STT: this.majorData.length + 1
+            });
           }
         } else {
           this.notification.error('Lỗi', response.message);
@@ -159,10 +162,6 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
             Name: response.data.Name
           });
 
-          // Giữ lại các biến cũ cho tương thích
-          this.STT = response.data.STT;
-          this.Code = response.data.Code;
-          this.Name = response.data.Name;
         } else {
           this.notification.error('Lỗi', response.message);
         }
@@ -186,16 +185,21 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
     // Lấy giá trị từ form controls
     const formValues = this.formGroup.value;
     
-    const model = {
+    const model: any = {
       STT: formValues.STT,
       Code: formValues.Code,
       Name: formValues.Name,
     };
+    
+    if (this.isEditMode && this.EditID) {
+      model.ID = this.EditID;
+    }
+    
     this.customerMajorService.save(model).subscribe({
       next: (res: any) => {
         if (res?.status === 1) {
           this.notification.success('Thông báo', 'Lưu thành công');
-          this.activeModal.dismiss(true);
+          this.activeModal.close(true);
         } else {
           this.notification.error(
             'Lỗi',

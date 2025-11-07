@@ -55,11 +55,12 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
-import { SelectControlComponent } from '../../select-control/select-control.component';
+import { SelectControlComponent } from '../../../old/select-control/select-control.component';
 
 import { CustomerServiceService } from '../customer/customer-service/customer-service.service';
-import { CustomerMajorDetailComponent } from '../customer-major/customer-major-detail/customer-major-detail.component';
+import { CustomerMajorDetailComponent } from '../customer-specialization/customer-major-detail/customer-major-detail.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 
 @Component({
   selector: 'app-customer-detail',
@@ -90,6 +91,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
     NzFormModule,
     CommonModule,
     NzTreeSelectModule,
+    HasPermissionDirective,
   ],
   templateUrl: './customer-detail.component.html',
   styleUrl: './customer-detail.component.css',
@@ -134,7 +136,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
     customerCode: '',
     customerShortName: '',
     taxCode: '',
-    customerType: '',
+    customerType: 0,
     isBigAccount: false,
     businessField: 0,
     debt: '',
@@ -160,6 +162,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private modalService: NgbModal,
     private modal: NzModalService,
+    // private customerService: CustomerServiceService,
     private customerService: CustomerServiceService,
     public activeModal: NgbActiveModal,
     private injector: EnvironmentInjector,
@@ -212,13 +215,11 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
       size: 'm',
     });
-    modalRef.result.catch(
-      (result) => {
-        if (result == true) {
-          this.loadCustomerSpecialization();
-        }
-      },
-    );
+    modalRef.closed.subscribe((result) => {
+      if (result === true) {
+        this.loadCustomerSpecialization();
+      }
+    });
   }
 
   loadDetailEditMode(id: number) {
@@ -517,9 +518,10 @@ if (this.tb_AddressTable) {
 
    // Lấy giá trị từ form controls, bao gồm cả các trường disabled
   const formValues = this.formGroup.getRawValue(); // Sử dụng getRawValue thay vì value
-
+    const isEditing = this.isEditMode && !!this.EditID && this.EditID > 0;
     const customer = {
-      ID: this.EditID ?? 0,
+
+      ID: isEditing ? this.EditID : 0,
       Province: formValues.province ?? '',
       CustomerCode: formValues.provinceCode + '-' + formValues.customerCode,
       CustomerName: formValues.fullName ?? '',

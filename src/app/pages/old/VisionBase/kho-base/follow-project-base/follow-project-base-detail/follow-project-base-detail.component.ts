@@ -314,7 +314,7 @@ export class FollowProjectBaseDetailComponent implements OnInit {
       dateDoneSale: this.FollowProject.DateDoneSale,
       dateWillDoSale: this.FollowProject.DateWillDoSale
     }, { emitEvent: true });
-    this.onProjectChange();
+    // this.onProjectChange();
 
   }
   getFollowProjectBaseDetail(followProjectBaseID: number, projectID: number) {

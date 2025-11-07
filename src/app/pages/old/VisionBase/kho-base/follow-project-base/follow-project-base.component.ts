@@ -36,6 +36,7 @@ import { group } from '@angular/animations';
 import { NzTreeNodeOptions } from 'ng-zorro-antd/tree';
 import { FollowProjectBaseDetailComponent } from './follow-project-base-detail/follow-project-base-detail.component';
 import { ImportExcelComponent } from './import-excel/import-excel.component';
+import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 
 @Component({
   selector: 'app-follow-project-base',
@@ -63,6 +64,7 @@ import { ImportExcelComponent } from './import-excel/import-excel.component';
     NzTreeSelectModule,
     NzModalModule,
     CommonModule,
+    HasPermissionDirective,
 
   ],
 })
@@ -257,6 +259,7 @@ export class FollowProjectBaseComponent implements OnInit {
           headerHozAlign: 'center',
           hozAlign: 'center',
           headerSort: false,
+          formatter:"color",
           columns: [
             {
               title: 'ID', field: 'ID', headerHozAlign: 'center', hozAlign: 'right', visible: false, headerSort: false,
@@ -448,7 +451,7 @@ export class FollowProjectBaseComponent implements OnInit {
     this.tb_followProjectBody.on('rowSelected', (row: any) => {
       this.selectedFollowProject.add(row.getData());
       this.getFollowProjectBaseDetail(row.getData().ID, row.getData().ProjectID);
-      this.sizeTbDetail = '150px';
+      this.sizeTbDetail = '0%';
     });
 
     // Lắng nghe sự kiện bỏ chọn
@@ -663,11 +666,76 @@ export class FollowProjectBaseComponent implements OnInit {
       return;
     }
     if (action == 'exportexcel') {
+      this.exportExcelFromAPI();
+      return;
+    }
+    if (action == 'exportexcelclient') {
       this.exportExcel();
       return;
     }
   }
-    //#region xuất excel
+    //#region xuất excel từ API backend
+    exportExcelFromAPI() {
+      // Lấy thông tin từ các filter hiện tại
+      const selectedRow = Array.from(this.selectedFollowProject)[0];
+      const followProjectBaseID = selectedRow?.ID || 0;
+      const projectID = selectedRow?.ProjectID || 0;
+      
+      // Tạo fileNameElement từ các filter giống Winform
+      let fileNameElement = '';
+      if (this.user && this.user > 0) {
+        const userObj = this.users.find(u => u.ID === this.user);
+        fileNameElement = userObj?.FullName || '';
+      } else if (this.pm && this.pm > 0) {
+        const pmObj = this.employees.flatMap(e => e.options).find((o: any) => o.item.ID === this.pm);
+        fileNameElement = pmObj?.item?.FullName || '';
+      } else if (this.customerID && this.customerID > 0) {
+        const customerObj = this.customers.find(c => c.ID === this.customerID);
+        fileNameElement = customerObj?.CustomerName || '';
+      }
+
+      const params = {
+        followProjectBaseID: followProjectBaseID,
+        projectID: projectID,
+        userID: this.user,
+        customerID: this.customerID,
+        pm: this.pm,
+        warehouseID: this.warehouseID,
+        filterText: this.filterText,
+        fileNameElement: fileNameElement
+      };
+
+      this.notification.info('Thông báo', 'Đang xuất file Excel...', { nzDuration: 2000 });
+
+      this.khoBaseService.exportFollowProjectBaseExcel(params).subscribe({
+        next: (blob: Blob) => {
+          // Tạo URL và download file
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          
+          // Tên file từ server hoặc tạo mới
+          const fileName = `FollowProject_${fileNameElement}_${new Date().toISOString().slice(2, 10).split('-').reverse().join('')}.xlsx`;
+          link.download = fileName;
+          
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          // Giải phóng URL
+          window.URL.revokeObjectURL(url);
+          
+          this.notification.success('Thông báo', 'Xuất Excel thành công!');
+        },
+        error: (err: any) => {
+          console.error('Export error:', err);
+          this.notification.error('Thông báo', 'Lỗi khi xuất Excel: ' + (err.error?.message || err.message || 'Vui lòng thử lại'));
+        }
+      });
+    }
+    //#endregion
+
+    //#region xuất excel từ client (phương án dự phòng)
     async exportExcel() {
       const table = this.tb_followProjectBody;
       if (!table) return;

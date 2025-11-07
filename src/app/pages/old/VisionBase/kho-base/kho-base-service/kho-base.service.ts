@@ -4,12 +4,13 @@ import { Observable } from 'rxjs';
 import { HttpParams } from '@angular/common/http';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
-
+import { environment } from '../../../../../../environments/environment';
 @Injectable({
   providedIn: 'root'
 })
 export class KhoBaseService {
-  private apiUrl = 'https://localhost:7187/api/';
+  // private apiUrl = 'https://localhost:7187/api/';
+  private _url = environment.host + 'api/';
 
   constructor(
     private http: HttpClient,
@@ -24,119 +25,149 @@ export class KhoBaseService {
 
   getGroupSaleUser(params: any): Observable<any> {
     return this.http.get<any>(
-      this.apiUrl + `followprojectbase/getgroupsalesuser`,
+      this._url + `followprojectbase/getgroupsalesuser`,
       params
     );
   }
   getProjects(): Observable<any> {
     return this.http.get<any>(
-      this.apiUrl + `followprojectbase/getprojects`,
+      this._url + `followprojectbase/getprojects`,
     );
   }
   getPM(): Observable<any> {
     return this.http.get<any>(
-      this.apiUrl + `followprojectbase/getpm`,
+      this._url + `followprojectbase/getpm`,
     );
   }
   getCustomers(): Observable<any> {
     return this.http.get<any>(
-      this.apiUrl + `followprojectbase/getcustomers`,
+      this._url + `followprojectbase/getcustomers`,
     );
   }
   getProjectStatus(): Observable<any> {
     return this.http.get<any>(
-      this.apiUrl + `followprojectbase/getprojectstatus`,
+      this._url + `followprojectbase/getprojectstatus`,
     );
   }
   getFirmBase(): Observable<any> {
     return this.http.get<any>(
-      this.apiUrl + `followprojectbase/getfirmbase`,
+      this._url + `followprojectbase/getfirmbase`,
     );
   }
   getProjectTypeBase(): Observable<any> {
     return this.http.get<any>(
-      this.apiUrl + `followprojectbase/getprojecttypebase`,
+      this._url + `followprojectbase/getprojecttypebase`,
     );
   }
 
   getUsers(): Observable<any> {
     return this.http.get<any>(
-      this.apiUrl + `followprojectbase/getusers`,
+      this._url + `followprojectbase/getusers`,
     );
   }
   getEmployee(status: number): Observable<any> {
     return this.http.get<any>(
-      this.apiUrl + `followprojectbase/getemployee?status=${status}`,
+      this._url + `followprojectbase/getemployee?status=${status}`,
 
     );
   }
   getProjectByID(id: number): Observable<any> {
     return this.http.get<any>(
-      this.apiUrl + `followprojectbase/getprojectbyid?id=${id}`,
+      this._url + `followprojectbase/getprojectbyid?id=${id}`,
 
     );
   }
   getFollowProjectBaseDetail(followProjectBaseID: number, projectID: number): Observable<any> {
     return this.http.get<any>(
-      this.apiUrl + `followprojectbase/getfollowprojectbasedetail?followProjectBaseID=${followProjectBaseID}&projectID=${projectID}`,
+      this._url + `followprojectbase/getfollowprojectbasedetail?followProjectBaseID=${followProjectBaseID}&projectID=${projectID}`,
 
     );
   }
   getCustomerBase(): Observable<any> {
     return this.http.get<any>(
-      this.apiUrl + `followprojectbase/getcustomerbase`,
+      this._url + `followprojectbase/getcustomerbase`,
 
     );
   }
   getAPIFollowProjectBase() {
-    return this.apiUrl + `followprojectbase/getfollowprojectbase`
+    return this._url + `followprojectbase/getfollowprojectbase`
   };
   getUpdateProject(ProjectStatusBaseID: number, ProjectID: number, LoginName: string): Observable<any> {
     return this.http.get<any>(
-      this.apiUrl + `followprojectbase/getupdateproject?ProjectStatusBaseID=${ProjectStatusBaseID}&ProjectID=${ProjectID}&LoginName=${LoginName}`,
+      this._url + `followprojectbase/getupdateproject?ProjectStatusBaseID=${ProjectStatusBaseID}&ProjectID=${ProjectID}&LoginName=${LoginName}`,
 
     );
   }
   getCheckExistFirmBase(firmBaseCode: string): Observable<any> {
     return this.http.get<any>(
-      this.apiUrl + `followprojectbase/getcheckexistfirmbase?firmBaseCode=${firmBaseCode}`,
+      this._url + `followprojectbase/getcheckexistfirmbase?firmBaseCode=${firmBaseCode}`,
 
     );
   };
   getCheckExistProjectTypeBase(projectTypeBaseCode: string): Observable<any> {
     return this.http.get<any>(
-      this.apiUrl + `followprojectbase/getcheckexistprojecttypebase?projectTypeBaseCode=${projectTypeBaseCode}`,
+      this._url + `followprojectbase/getcheckexistprojecttypebase?projectTypeBaseCode=${projectTypeBaseCode}`,
     );
   };
   
   postSaveFollowProjectBase(data: any): Observable<any> {
     return this.http.post<any>(
-      this.apiUrl + `followprojectbase/savefollowprojectbase`,
+      this._url + `followprojectbase/savefollowprojectbase`,
       data
     );
   }
   postSaveProjectStatusLog(data: any): Observable<any> {
     return this.http.post<any>(
-      this.apiUrl + `followprojectbase/saveprojectstatuslog`,
+      this._url + `followprojectbase/saveprojectstatuslog`,
       data
     );
   }
   postSaveFirmBase(data: any): Observable<any> {
     return this.http.post<any>(
-      this.apiUrl + `followprojectbase/savefirmbase`,
+      this._url + `followprojectbase/savefirmbase`,
       data
     );
   }
   postSaveProjectTypeBase(data: any): Observable<any> {
     return this.http.post<any>(
-      this.apiUrl + `followprojectbase/saveprojecttypebase`,
+      this._url + `followprojectbase/saveprojecttypebase`,
       data
     );
   }
   postImportExcel(data: any[]): Observable<any> {
     return this.http.post<any>(
-      this.apiUrl + `followprojectbase/importexcel`,
+      this._url + `followprojectbase/importexcel`,
       data
+    );
+  }
+
+  // Export Excel Follow Project Base
+  exportFollowProjectBaseExcel(params: {
+    followProjectBaseID?: number,
+    projectID?: number,
+    userID?: number,
+    customerID?: number,
+    pm?: number,
+    warehouseID?: number,
+    filterText?: string,
+    fileNameElement?: string
+  }): Observable<Blob> {
+    const httpParams = new HttpParams()
+      .set('followProjectBaseID', (params.followProjectBaseID || 0).toString())
+      .set('projectID', (params.projectID || 0).toString())
+      .set('userID', (params.userID || 0).toString())
+      .set('customerID', (params.customerID || 0).toString())
+      .set('pm', (params.pm || 0).toString())
+      .set('warehouseID', (params.warehouseID || 1).toString())
+      .set('filterText', params.filterText || '')
+      .set('fileNameElement', params.fileNameElement || '');
+
+    return this.http.get(
+      this._url + `followprojectbase/exportfollowprojectbase`,
+      {
+        params: httpParams,
+        responseType: 'blob'
+      }
     );
   }
   createdDataGroup(items: any[], groupByField: string): any[] {

@@ -235,6 +235,7 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
       }));
     if (DATA.length === 0) {
       this.notification.info('Thông báo', 'Không có thay đổi để lưu');
+      this.activeModal.close({ success: false, reloadData: false });
       return;
     }
     this.planWeekService.save(DATA).subscribe({
@@ -244,13 +245,16 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
           this.UserID = 0;
           this.isEditMode = false;
           this.activeModal.close({ success: true, reloadData: true });
+        } else {
+          this.notification.error(
+            'Lỗi',
+            response?.message || 'Không thể lưu dữ liệu'
+          );
         }
+        
       },
       error: (error: any) => {
-        this.notification.error(
-          'Lỗi',
-          'Không thể lưu dữ liệu: ' + error.message
-        );
+        this.notification.error('Lỗi', error?.error?.message || 'Không thể lưu dữ liệu');
       },
     });
   }
@@ -311,25 +315,27 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
           field: 'actions',
           hozAlign: 'center',
           width: 50,
-          formatter: (cell: any) => {
-            return `<i class="bi bi-trash3 text-danger delete-btn" style="font-size:15px; cursor: pointer;"></i>`;
+          headerSort: false,
+          formatter: (_cell: any) => {
+            return `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`;
           },
-          cellClick: (e: any, cell: any) => {
-            if ((e.target as HTMLElement).classList.contains('delete-btn')) {
-              this.modal.confirm({
-                nzTitle: 'Xác nhận xóa',
-                nzContent: 'Bạn có chắc chắn muốn xóa dòng này?',
-                nzOkText: 'Đồng ý',
-                nzCancelText: 'Hủy',
-                nzOnOk: () => {
-                  const row = cell.getRow();
-                  row.update({
-                    ContentPlan: '',
-                    Result: '',
-                  });
-                },
-              });
-            }
+          cellClick: (_e: any, cell: any) => {
+            this.modal.confirm({
+              nzTitle: 'Xác nhận xóa',
+              nzContent: 'Bạn có chắc chắn muốn xóa dòng này?',
+              nzOkText: 'Đồng ý',
+              nzCancelText: 'Hủy',
+              nzOnOk: () => {
+                const row = cell.getRow();
+                const data = row.getData();
+                data.IsDeleted = true;
+                data._dirty = true;
+                row.update({
+                  ContentPlan: '',
+                  Result: '',
+                });
+              },
+            });
           },
         });
 

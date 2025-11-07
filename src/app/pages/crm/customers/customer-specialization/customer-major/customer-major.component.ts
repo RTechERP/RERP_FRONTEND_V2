@@ -54,12 +54,13 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
-import { SelectControlComponent } from '../../../select-control/select-control.component';
+import { SelectControlComponent } from '../../../../old/select-control/select-control.component';
 
 import { CustomerMajorService } from '../customer-major-service/customer-major.service';
 import { CustomerMajorDetailComponent } from '../customer-major-detail/customer-major-detail.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
+import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 @Component({
   selector: 'app-customer-major',
   imports: [
@@ -88,6 +89,7 @@ import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
     NzCheckboxModule,
     CommonModule,
     NzTreeSelectModule,
+    HasPermissionDirective,
   ],
   templateUrl: './customer-major.component.html',
   styleUrl: './customer-major.component.css',

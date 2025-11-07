@@ -14,12 +14,9 @@
           </button>
         </div>
         <div class="d-flex align-items-center gap-2">
-          <nz-input-group [nzSuffix]="suffixIconSearch">
+          <nz-input-group >
             <input type="text" nz-input placeholder="Nhập từ khóa" [(ngModel)]="searchText" (input)="onSearch()" />
           </nz-input-group>
-          <ng-template #suffixIconSearch>
-            <nz-icon nzType="search"></nz-icon>
-          </ng-template>
         </div>
       </div>
     </div>

@@ -12,7 +12,7 @@ import { VehicleRepairTypeComponent } from '../../../hrm/vehicle-repair/vehicle-
 import { VehicleRepairComponent } from '../../../hrm/vehicle-repair/vehicle-repair.component';
 import { TrainingRegistrationComponent } from '../../../training-registration/training-registration.component';
 import { ContractComponent } from '../../../old/contract/contract.component';
-// import { CustomerComponent } from '../../../old/customer/customer.component';
+import { CustomerComponent } from '../../../old/customer/customer.component';
 import { DayOffComponent } from '../../../old/day-off/day-off.component';
 import { DepartmentComponent } from '../../../old/department/department.component';
 import { EarlyLateComponent } from '../../../old/early-late/early-late.component';
@@ -55,6 +55,8 @@ import { OfficeSupplyRequestSummaryComponent } from '../../../hrm/office-supply/
 import { VehicleRepairHistoryComponent } from '../../../hrm/propose-vehicle-repair/vehicle-repair-history/vehicle-repair-history/vehicle-repair-history.component';
 import { ProposeVehicleRepairComponent } from '../../../hrm/propose-vehicle-repair/propose-vehicle-repair/propose-vehicle-repair/propose-vehicle-repair.component';
 import { DailyReportHrComponent } from '../../../hrm/daily-report-hr/daily-report-hr.component';
+import { PriceHistoryPartlistComponent } from '../../../old/project/price-history-partlist/price-history-partlist.component';
+import { ProjectTypeComponent } from '../../../old/project/project-type/project-type.component';
 
 @Injectable({
   providedIn: 'root',
@@ -692,13 +694,29 @@ export class MenuService {
             comp: MeetingMinuteComponent,
           },
           {
+            kind: 'leaf',
+            key: 'PriceHistoryPartlistComponent',
+            title: 'Lịch sử giá',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission('N38,N1,N79,N13,N82'),
+            comp: PriceHistoryPartlistComponent,
+          },
+          {
             kind: 'group',
-            key: 'SettingLeader',
+            key: 'SettingProject',
             title: 'Cài đặt',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
             children:
             [
+              {
+                kind: 'leaf',
+                key: 'ProjectTypeComponent',
+                title: 'Kiểu dự án',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission('N1'),
+                comp: ProjectTypeComponent,
+              },
               {
                 kind: 'leaf',
                 key: 'ProjectLeaderProjectTypeComponent',

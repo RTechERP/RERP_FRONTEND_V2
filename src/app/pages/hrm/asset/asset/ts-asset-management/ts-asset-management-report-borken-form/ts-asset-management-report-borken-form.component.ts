@@ -40,8 +40,8 @@ export class TsAssetManagementReportBorkenFormComponent implements OnInit {
   constructor(private notification: NzNotificationService) { }
   assetData: any[] = [];
   emPloyeeLists: any[] = [];
-  DateBrokenReport: DateTime = DateTime.now();
-  Reason: string = "";
+DateBrokenReport: string = DateTime.now().toFormat('yyyy-MM-dd');
+Reason: string = '';
   ngOnInit() {
     this.loadAsset();
     this.dataInput.DateBuy = this.formatDateForInput(this.dataInput.DateBuy);
@@ -69,7 +69,35 @@ export class TsAssetManagementReportBorkenFormComponent implements OnInit {
       }
     });
   }
+   private validateForm(): boolean {
+  // Check tài sản đã mất
+  if (this.dataInput?.StatusID === 4) {
+    this.notification.error(
+      'Thông báo',
+      `Tài sản có mã "${this.dataInput?.TSAssetCode || ''}" đã mất, không thể sửa chữa/bảo dưỡng.`
+    );
+    return false;
+  }
+
+  // Check ngày báo sửa
+  if (!this.DateBrokenReport || this.DateBrokenReport.trim() === '') {
+    this.notification.error('Thông báo', 'Vui lòng chọn ngày báo sửa.');
+    return false;
+  }
+
+  // Check lý do sửa chữa
+  if (!this.Reason || this.Reason.trim() === '') {
+    this.notification.error('Thông báo', 'Vui lòng nhập lý do sửa chữa.');
+    return false;
+  }
+
+  return true;
+}
+
   SaveAsset() {
+     if (!this.validateForm()) {
+    return;
+  }
     const payloadAsset =
     {
       tSReportBrokenAsset: {

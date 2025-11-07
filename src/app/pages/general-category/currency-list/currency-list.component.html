@@ -14,7 +14,7 @@
         <button class="btn-delete" nz-button nzType="default" nzSize="small" (click)="onDeleteMultiple()">
           <nz-icon nzType="delete" nzTheme="fill" /> Xóa
         </button>
-        <input type="text" class="search-box ms-auto" placeholder="Tìm kiếm..." [(ngModel)]="searchText" (ngModelChange)="onSearch()"/>
+        <input type="text" nz-input class="search-box ms-auto" placeholder="Nhập từ khóa..." [(ngModel)]="searchText" (ngModelChange)="onSearch()"/>
       </div>
     </div>
     <div class="card-body p-2" style="height: calc(100vh - 50px);">

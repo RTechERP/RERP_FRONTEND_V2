@@ -8,7 +8,7 @@
             <div class="row">
                 <div class="col-md-12 pb-3">
                     <nz-form-label class="fs-12">Mã đơn vị<span class="text-danger ps-1 me-1"> * </span></nz-form-label>
-                    <nz-form-control [nzErrorTip]="getUnitCodeError()">
+                    <nz-form-control [nzErrorTip]="'Vui lòng nhập mã đơn vị!'">
                         <input nz-input formControlName="UnitCode" class="fs-12 w-100"
                             nzSize="default" nzPlaceHolder="Nhập mã đơn vị" />
                     </nz-form-control>
@@ -17,7 +17,7 @@
             <div class="row">
                 <div class="col-md-12 pb-3">
                     <nz-form-label class="fs-12">Tên đơn vị<span class="text-danger ps-1 me-1"> * </span></nz-form-label>
-                    <nz-form-control [nzErrorTip]="getUnitNameError()">
+                    <nz-form-control [nzErrorTip]="'Vui lòng nhập tên đơn vị!'">
                         <input nz-input formControlName="UnitName" class="fs-12 w-100"
                             nzSize="default" nzPlaceHolder="Nhập tên đơn vị" />
                     </nz-form-control>
@@ -27,6 +27,6 @@
     </div>
     <div class="modal-footer">
         <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
-        <button class="fs-12 btn" nz-button nzType="primary" (click)="addNewLocation()">Lưu</button>
+        <button class="fs-12 btn" nz-button nzType="primary" (click)="saveUnitCount()">Lưu</button>
     </div>
 </div>

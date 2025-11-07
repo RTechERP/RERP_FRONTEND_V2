@@ -17,6 +17,7 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ProductsaleServiceService } from '../product-sale-service/product-sale-service.service';
 import { cbbDataGroupService } from '../../../../../services/cbbDataGroup.service';
+import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 
 interface ProductGroup {
   ID?: number;
@@ -41,7 +42,8 @@ interface ProductGroup {
     NzProgressModule,
     NzInputModule,
     NzFormModule,
-    NzInputNumberModule
+    NzInputNumberModule,
+    HasPermissionDirective
   ],
   templateUrl: './product-group-detail.component.html',
   styleUrl: './product-group-detail.component.css'

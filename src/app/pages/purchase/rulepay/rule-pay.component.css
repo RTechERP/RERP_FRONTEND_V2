@@ -33,16 +33,16 @@
   line-height: 1.2;
 }
 
-.button-section button nz-icon {
+/* .button-section button nz-icon {
   margin-right: 4px;
-}
+} */
 
 .table-container {
   flex: 1;
   background: white;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .modal-form {
@@ -66,10 +66,10 @@
   line-height: 1.2;
 }
 
-.ant-btn-sm .anticon {
+/* .ant-btn-sm .anticon {
   margin-right: 4px;
   font-size: 12px;
-}
+} */
 
 /* Search section styling */
 .search-section .ant-input-group {
@@ -235,4 +235,4 @@
 .modal-form textarea.ant-input {
   resize: vertical;
   min-height: 80px;
-} 
+}

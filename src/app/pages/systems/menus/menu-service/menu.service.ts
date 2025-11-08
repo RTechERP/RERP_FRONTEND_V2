@@ -93,9 +93,10 @@ export class MenuService {
       {
         kind: 'group',
         key: 'crm',
+        stt: 1,
         title: 'CRM',
         isOpen: true,
-        isPermission: this.permissionService.hasPermission(''),
+        isPermission: true,
         icon: 'assets/icon/menu_crm_24.png',
         children: [
           {
@@ -113,6 +114,7 @@ export class MenuService {
       {
         kind: 'group',
         key: 'warehouse',
+        stt: 3,
         title: 'KHO',
         isOpen: true,
         isPermission: this.permissionService.hasPermission(''),
@@ -144,6 +146,7 @@ export class MenuService {
       {
         kind: 'group',
         key: 'hrm',
+        stt: 2,
         title: 'HRM',
         isOpen: true,
         isPermission: this.permissionService.hasPermission(''),
@@ -171,7 +174,7 @@ export class MenuService {
                 key: 'TsAssetManagementComponent',
                 title: 'Danh sách tài sản',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
+                isPermission: this.permissionService.hasPermission('N23,N52,N1,N36,N34'),
                 comp: TsAssetManagementComponent,
                 //   icon: 'assets/icon/layers.png',
               },
@@ -612,7 +615,7 @@ export class MenuService {
             comp: FactoryVisitRegistrationComponent,
             //   icon: 'assets/icon/layers.png',
           },
-                    {
+          {
             kind: 'leaf',
             key: 'UnitCountComponent',
             title: 'ĐƠN VỊ TÍNH',
@@ -634,8 +637,8 @@ export class MenuService {
       },
 
       //#endregion
-//#region menu Mua hàng
-{
+      //#region menu Mua hàng
+      {
         kind: 'group',
         key: 'purchase',
         title: 'MUA HÀNG',
@@ -690,7 +693,7 @@ export class MenuService {
           },
         ],
       },
-//#endregion
+      //#endregion
       //#region menu dự án
       {
         kind: 'group',
@@ -804,6 +807,7 @@ export class MenuService {
 
 type BaseItem = {
   key: string;
+  stt?: number;
   title: string;
   isOpen: boolean;
   icon?: string | null; // tùy chọn

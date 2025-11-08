@@ -1,55 +1,110 @@
-
 <div class="modal-content">
-    <div class="modal-header bg-primary text-uppercase py-2 ">
-     <h6 class="modal-title text-white" id="ExcelModalLabel">NHẬP DỮ LIỆU EXCEL</h6>
-      <button type="button" class="btn-close" (click)="closeExcelModal()" aria-label="Close"></button>
-    </div>
-    <div class="modal-body">
-      <div class="d-flex gap-2 align-items-center p-2">
-        <div class="flex-grow-1">
-          <div class="progress-wrapper">
-            <div style="text-align: center;" class="progress-text">{{ formatProgressText(displayProgress) }}</div>
-            <nz-progress
-              [nzPercent]="displayProgress"
-              [nzStrokeColor]="{ '0%': '#108ee9', '100%': '#87d068' }"
-              [nzShowInfo]="false"
-            ></nz-progress>
+  <div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white" id="ExcelModalLabel">NHẬP DỮ LIỆU EXCEL</h6>
+    <button type="button" class="btn-close" (click)="closeExcelModal()" aria-label="Close"></button>
+  </div>
+
+  <div class="modal-body modal-body-scroll">
+    <!-- Progress -->
+    <div class="d-flex flex-column flex-sm-row gap-2 align-items-stretch p-2">
+      <div class="flex-grow-1">
+        <div class="progress-wrapper">
+          <div class="progress-text text-center">
+            {{ formatProgressText(displayProgress) }}
           </div>
+          <nz-progress
+            [nzPercent]="displayProgress"
+            [nzStrokeColor]="{ '0%': '#108ee9', '100%': '#87d068' }"
+            [nzShowInfo]="false"
+          ></nz-progress>
         </div>
       </div>
-      <form class="needs-validation" novalidate>
-        <div class="d-flex flex-column gap-2 p-2">
-          <div class="d-flex gap-2 align-items-center">
-            <div class="d-flex align-items-center gap-2" style="flex: 2;">
-              <label class="mb-0 fs-12" style="white-space: nowrap;">Đường dẫn:</label>
-              <div class="d-flex gap-2 flex-grow-1">
-                <input nz-input [style.width.%]="100" class="fs-12" name="path" id="pathInput" [(ngModel)]="filePath" [disabled]="true">
-                <input type="file" class="d-none fs-12" id="fileInput" accept=".xlsx,.xls" (change)="onFileSelected($event)">
-                <button type="button" class="btn btn-warning  btn-sm" (click)="openFileExplorer()" style="height: auto;">
-                  <i class="fas fa-folder-open"></i>
-                </button>
-              </div>
-            </div>
-            <div class="d-flex align-items-center gap-2" style="flex: 1;">
-              <label class="mb-0 fs-12" style="white-space: nowrap;">Tên Sheet:</label>
-              <select class="form-select form-select-sm fs-12" name="sheet" id="sheetSelect" [(ngModel)]="selectedSheet" (change)="onSheetChange()">
-                <option value="">Chọn Sheet</option>
-                <option *ngFor="let sheet of excelSheets" [value]="sheet">{{sheet}}</option>
-              </select>
+    </div>
+
+    <form class="needs-validation" novalidate>
+      <!-- Đường dẫn + Sheet -->
+      <div class="d-flex flex-column gap-2 p-2">
+        <div class="d-flex flex-column flex-lg-row gap-2 align-items-stretch">
+
+          <!-- Đường dẫn -->
+          <div class="d-flex flex-column flex-lg-row align-items-stretch gap-2 flex-lg-2 w-100">
+            <label class="mb-0 fs-12 flex-shrink-0" style="white-space: nowrap;">
+              Đường dẫn:
+            </label>
+            <div class="d-flex flex-row gap-2 flex-grow-1">
+              <input
+                nz-input
+                class="fs-12 flex-grow-1"
+                name="path"
+                id="pathInput"
+                [(ngModel)]="filePath"
+                [disabled]="true"
+              />
+              <input
+                type="file"
+                class="d-none fs-12"
+                id="fileInput"
+                accept=".xlsx,.xls"
+                (change)="onFileSelected($event)"
+              />
+              <button
+                type="button"
+                class="btn btn-warning btn-sm"
+                (click)="openFileExplorer()"
+                style="height: auto;"
+              >
+                <i class="fas fa-folder-open"></i>
+              </button>
             </div>
           </div>
-        </div>
-        <div class="card-body p-2">
-          <div id="datatableExcel" style="height: 300px; overflow-y: auto;">
+
+          <!-- Sheet -->
+          <div class="d-flex flex-column flex-lg-row align-items-stretch gap-2 flex-lg-1 w-100">
+            <label class="mb-0 fs-12 flex-shrink-0" style="white-space: nowrap;">
+              Tên Sheet:
+            </label>
+            <select
+              class="form-select form-select-sm fs-12 flex-grow-1"
+              name="sheet"
+              id="sheetSelect"
+              [(ngModel)]="selectedSheet"
+              (change)="onSheetChange()"
+            >
+              <option value="">Chọn Sheet</option>
+              <option *ngFor="let sheet of excelSheets" [value]="sheet">
+                {{ sheet }}
+              </option>
+            </select>
           </div>
+
         </div>
-        <div class="modal-footer">
-           <button class="fs-12 btn" nz-button nzDanger  (click)="closeExcelModal()">Đóng</button>
-          <button  class="fs-12 btn" nz-button >
-            <a href="assets/templateForm/KiemKeTaiSanTemplateImport.xlsx" download="KiemKeTaiSanTemplateImport.xlsx" style="text-decoration: none; color: inherit;"><nz-icon nzType="download" nzTheme="outline" /> Mẫu</a>
-          </button>
-          <button class="fs-12 btn" nz-button nzType="primary" (click)="saveExcelData()">Lưu</button>   
-        </div>
-      </form>
-    </div>   
+      </div>
+
+      <!-- Bảng preview -->
+      <div class="card-body p-2">
+        <div id="datatableExcel" style="height: 300px; overflow-y: auto;"></div>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer flex-wrap gap-2">
+        <button class="fs-12 btn" nz-button nzDanger (click)="closeExcelModal()">
+          Đóng
+        </button>
+
+        <button class="fs-12 btn" nz-button type="button">
+          <a
+            href="assets/templateForm/KiemKeTaiSanTemplateImport.xlsx"
+            download="KiemKeTaiSanTemplateImport.xlsx"
+            style="text-decoration: none; color: inherit;"
+          >
+            <nz-icon nzType="download" nzTheme="outline"></nz-icon> Mẫu
+          </a>
+        </button>
+
+        <button class="fs-12 btn" nz-button nzType="primary" type="button" (click)="saveExcelData()">
+          Lưu
+        </button>
+      </div>
+    </form>
   </div>
+</div>

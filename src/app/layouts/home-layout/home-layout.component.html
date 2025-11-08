@@ -203,13 +203,12 @@
 
 
 
-<nav class="navbar navbar-light bg-light">
+<nav class="navbar navbar-light bg-light fixed-top">
     <div class="container-fluid">
         <a class="navbar-brand p-0" href="#" style="width: 5%;">
             <img src="assets/images/RTC_image.png" alt="" width="100%" class="d-inline-block align-text-top">
 
         </a>
-
 
 
         <div class="d-flex">
@@ -245,7 +244,7 @@
                         <div class="card-header">
                             <h5 class="card-title m-0 text-uppercase fw-bold">Thông báo</h5>
                         </div>
-                        <div class="card-body" style="height: 320px; overflow: auto;">
+                        <div class="card-body" style="height: 22rem; overflow: auto;">
                             <nz-list nzItemLayout="vertical">
                                 @for (item of notifItems; track item) {
                                 <nz-list-item>
@@ -270,7 +269,7 @@
                         <div class="card-header">
                             <h5 class="card-title m-0 text-uppercase fw-bold">Lịch làm việc</h5>
                         </div>
-                        <div class="card-body p-1" style="height: 320px; overflow: auto;">
+                        <div class="card-body" style="height: 22rem; overflow: auto;">
                             <nz-calendar [nzFullscreen]="false" [(ngModel)]="today" [nzCustomHeader]=""
                                 [nzDateFullCell]="dateCell" (nzSelectChange)="onValueChange($event)"
                                 (nzPanelChange)="onPanelChange($event)">
@@ -292,7 +291,7 @@
                         <div class="card-header">
                             <h5 class="card-title m-0 text-uppercase fw-bold">Nghỉ</h5>
                         </div>
-                        <div class="card-body p-1" style="height: 27rem; overflow: auto;">
+                        <div class="card-body" style="height: 27rem; overflow: auto;">
                             <nz-tabset style="font-size: 12px;">
                                 <nz-tab [nzTitle]="titleTemplateOnleave">
                                     <nz-collapse>
@@ -369,15 +368,7 @@
                                         </nz-list-item-meta-title>
                                     </nz-list-item-meta>
                                 </nz-list-item>
-                                <nz-list-item>
-                                    <nz-list-item-meta class="m-0">
-                                        <nz-list-item-meta-avatar [nzSrc]=""></nz-list-item-meta-avatar>
-                                        <nz-list-item-meta-title>
-                                            <a href="file://///192.168.1.190/Accountant" target="_blank">Mở thư mục kế
-                                                toán</a>
-                                        </nz-list-item-meta-title>
-                                    </nz-list-item-meta>
-                                </nz-list-item>
+
                             </nz-list>
                         </div>
                     </div>
@@ -392,7 +383,7 @@
                 <div class="card-header">
                     <h5 class="card-title m-0 text-uppercase fw-bold">chức năng</h5>
                 </div>
-                <div class="card-body" style="height: 50.05rem; overflow: auto;">
+                <div class="card-body" style="height: 52.05rem; overflow: auto;">
 
                     <div class="gutter-example">
                         <div nz-row [nzGutter]="[16, 16]">

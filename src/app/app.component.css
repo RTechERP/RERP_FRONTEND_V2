@@ -227,34 +227,34 @@ nz-sider {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   text-decoration: none;
-  color: #464646;
-  font-size: 14px;
-  padding: 10px;
+  color: #000000;
+  font-size: 12px;
   border-radius: 8px;
   transition: background 0.2s ease;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  font-weight: bold;
+  height: 100px;
 }
 
 .app-launcher a img {
-  width: 42px;
-  height: 42px;
-  margin-bottom: 6px;
+  width: 50%;
 }
 
 .app-launcher a:hover {
-  background: #e8f0fe;
-  /* màu nền khi hover */
-  color: #1a73e8;
+  background: #23458a;
+  color: #fff;
 }
 
 .app-launcher a:hover img {
   transform: scale(1.08);
-  /* icon phóng nhẹ */
 }
 
 .app-launcher-inner a.active {
-  background: #e6f4ff;
+  background: #1890ff;
+  color: #fff;
 }
 
 .notif-dropdown {

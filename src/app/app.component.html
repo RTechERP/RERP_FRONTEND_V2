@@ -72,7 +72,7 @@
                 </div>
                 <div class="header-trigger">
                     <button nz-button nz-dropdown [nzDropdownMenu]="appmenu" nzPlacement="bottomRight" nzType="text"
-                        class=" text-light">
+                        class=" text-light" nzTrigger="click">
                         <nz-icon nzType="appstore" nzTheme="outline" />
                     </button>
 
@@ -80,6 +80,7 @@
                         <div class="app-launcher">
                             <div class="app-launcher-inner">
                                 @for (m of menus; track m.key) {
+
                                 <a (click)="toggleMenu(m.key)" [class.active]="isMenuOpen(m.key)"
                                     *ngIf="m.isPermission">
                                     <img [src]="m.icon?.replace('24','64')" />

@@ -71,11 +71,12 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
     NzSpinModule,
     NzTreeSelectModule,
     NzModalModule,
-    CommonModule,HasPermissionDirective
+    CommonModule,
+    HasPermissionDirective,
   ],
   templateUrl: './project.component.html',
   styleUrl: './project.component.css',
-//   encapsulation: ViewEncapsulation.None,
+  //   encapsulation: ViewEncapsulation.None,
 })
 export class ProjectComponent implements OnInit, AfterViewInit {
   // Khai báo format ngày giờ
@@ -823,20 +824,21 @@ export class ProjectComponent implements OnInit, AfterViewInit {
   //#region xử lý bảng kiểu dự án
   drawTbProjectTypeLinks(container: HTMLElement) {
     this.tb_projectTypeLinks = new Tabulator(container, {
-      columnDefaults: {
-        headerWordWrap: true,
-        headerVertical: false,
-        headerHozAlign: 'center',
-        minWidth: 60,
-        hozAlign: 'left',
-        vertAlign: 'middle',
-        resizable: true,
-      },
-      height: '80vh',
-      dataTree: true,
-      dataTreeStartExpanded: true,
-      layout: 'fitDataStretch',
-      locale: 'vi',
+      ...DEFAULT_TABLE_CONFIG,
+      //   columnDefaults: {
+      //     headerWordWrap: true,
+      //     headerVertical: false,
+      //     headerHozAlign: 'center',
+      //     minWidth: 60,
+      //     hozAlign: 'left',
+      //     vertAlign: 'middle',
+      //     resizable: true,
+      //   },
+      //   height: '80vh',
+      //   dataTree: true,
+      //   dataTreeStartExpanded: true,
+      //   layout: 'fitDataStretch',
+      //   locale: 'vi',
       columns: [
         {
           title: 'Chọn',
@@ -1269,7 +1271,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
   //#endregion
 
   //#region đóng panel
-  closePanel(){
+  closePanel() {
     this.sizeTbDetail = '0';
   }
   //#endregion

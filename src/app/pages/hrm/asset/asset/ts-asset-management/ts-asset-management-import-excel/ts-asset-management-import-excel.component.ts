@@ -323,6 +323,16 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       reader.readAsArrayBuffer(file); // Bắt đầu đọc file ngay lập tức
     }
   }
+  private normalizeHeader(value: any): string {
+  if (value == null) return '';
+
+  return value
+    .toString()
+    .toLowerCase()
+    .replace(/\u00A0/g, ' ')   // thay non-breaking space thành space thường
+    .replace(/\s+/g, ' ')      // gộp tất cả khoảng trắng (space, \n, \t, ...) thành 1 space
+    .trim();
+}
   async readExcelData(workbook: ExcelJS.Workbook, sheetName: string) {
     console.log(`Bắt đầu đọc dữ liệu từ sheet: "${sheetName}"`);
     try {
@@ -347,7 +357,32 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       headerRow.eachCell((cell, colNumber) => {
         headers[colNumber - 1] = getCellText(cell);
       });
+const requiredHeaders = [
+  'stt',
+  'mã tài sản',
+  'tên tài sản',
+  'mã loại',
+  'nguồn gốc',
+  'đơn vị',
+  'số lượng'
+];
 
+const normalizedHeaders = headers.map(h => this.normalizeHeader(h));
+
+const isHeaderValid = requiredHeaders.every(req => {
+  const normReq = this.normalizeHeader(req);
+  return normalizedHeaders.some(h => h.includes(normReq));
+});
+
+if (!isHeaderValid) {
+  console.warn('Header không hợp lệ:', headers, normalizedHeaders);
+  this.notification.error(
+    'Thông báo',
+    'File Excel không đúng mẫu biên bản tài sản. Vui lòng kiểm tra lại tiêu đề các cột.'
+  );
+  this.resetExcelImportState();
+  return;
+}
       const columns: ColumnDefinition[] = [
         { title: headers[0] || 'STT', field: 'STT', hozAlign: 'center', headerHozAlign: 'center', width: 70 },
         { title: headers[1] || 'Mã tài sản', field: 'TSAssetCode', hozAlign: 'left', headerHozAlign: 'center' },
@@ -368,7 +403,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
         { title: headers[16] || 'Hiệu lực từ', field: 'DateEffect', hozAlign: 'center', headerHozAlign: 'center', formatter: formatDateCell },
         { title: headers[17] || 'Ghi chú', field: 'Note', hozAlign: 'left', headerHozAlign: 'center' },
       ];
-
+   
       if (this.tableExcel) {
         this.tableExcel.setColumns(columns);
       }

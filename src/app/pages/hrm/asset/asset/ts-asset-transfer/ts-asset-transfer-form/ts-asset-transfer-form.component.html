@@ -110,11 +110,15 @@
       <button nz-button nzType="dashed">+ Thêm dòng</button>
     </nz-col>
   </nz-row>
-     <nz-row class="mt-3 me-2">
-      <nz-col [nzSpan]="24" class="mt-3 me-2">
-        <div id="dataAssetTranferDetail1" style="height: 100%;"></div>
-      </nz-col>
-    </nz-row>
+<nz-row class="mt-3 me-2">
+  <nz-col [nzSpan]="24" class="mt-3 me-2">
+    <div
+      #assetTranferTable
+    
+   
+    ></div>
+  </nz-col>
+</nz-row>
 </div>
 <div class="modal-footer">
   <button nz-button nzType="default" (click)="close()">Đóng</button>

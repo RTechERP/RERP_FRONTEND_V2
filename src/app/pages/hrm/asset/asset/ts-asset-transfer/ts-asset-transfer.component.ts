@@ -27,13 +27,14 @@ declare var bootstrap: any;
 // @ts-ignore
 import { saveAs } from 'file-saver';
 
-
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { TsAssetManagementPersonalService } from '../../../../old/ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
 import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification'
 import { TsAssetTransferFormComponent } from './ts-asset-transfer-form/ts-asset-transfer-form.component';
 import { TsAssetTransferService } from './ts-asset-transfer-service/ts-asset-transfer.service';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
+import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
@@ -62,7 +63,8 @@ function formatDateCell(cell: CellComponent): string {
     NzSelectModule,
     NzTableModule,
     NzTabsModule,
-    NgbModalModule,HasPermissionDirective
+    NzDropDownModule,
+    NgbModalModule, HasPermissionDirective
   ]
 })
 export class TsAssetTransferComponent implements OnInit, AfterViewInit {
@@ -71,6 +73,11 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
     private tsAssetTransferService: TsAssetTransferService,
     private TsAssetManagementPersonalService: TsAssetManagementPersonalService
   ) { }
+  @ViewChild('dataAssetTranfer', { static: false })
+  dataAssetTranferEl!: ElementRef<HTMLDivElement>;
+
+  @ViewChild('dataAssetTranferDetail', { static: false })
+  dataAssetTranferDetailEl!: ElementRef<HTMLDivElement>;
   private ngbModal = inject(NgbModal);
   emPloyeeLists: any[] = [];
   modalData: any = [];
@@ -124,13 +131,13 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
     });
   }
   getListEmployee() {
-      const request = {
+    const request = {
       status: 0,
       departmentid: 0,
       keyword: ''
     };
     this.TsAssetManagementPersonalService.getEmployee(request).subscribe((respon: any) => {
-      this.emPloyeeLists = respon.employees;
+      this.emPloyeeLists = respon.data;
       console.log(this.emPloyeeLists);
     });
   }
@@ -151,20 +158,15 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
       this.assetTranferTable.setData(this.assetTranferData)
     }
     else {
-      this.assetTranferTable = new Tabulator('#dataAssetTranfer', {
+      this.assetTranferTable = new Tabulator(this.dataAssetTranferEl.nativeElement, {
         data: this.assetTranferData,
+        ...DEFAULT_TABLE_CONFIG,
+        paginationMode: 'local',
         layout: "fitDataStretch",
-        pagination: true,
-        selectableRows: 5,
+
+        selectableRows: 1,
         height: '83vh',
-        movableColumns: true,
-        paginationSize: 35,
-        paginationSizeSelector: [5, 10, 20, 50, 100],
-        reactiveData: true,
-        placeholder: 'Không có dữ liệu',
-        dataTree: true,
-        addRowPos: "bottom",
-        history: true,
+
         columns: [
           {
             title: '',
@@ -262,6 +264,11 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
         const rowData = row.getData();
         const id = rowData['ID'];
 
+        // set row đang chọn
+        this.selectedRow = rowData;
+        this.sizeTbDetail = null;
+
+        // load detail
         this.tsAssetTransferService.getAssetTranferDetail(id).subscribe(res => {
           const details = Array.isArray(res.data.assetTransferDetail)
             ? res.data.assetTransferDetail
@@ -270,17 +277,13 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
           this.drawDetail();
         });
       });
-      this.assetTranferTable.on('rowClick', (e: UIEvent, row: RowComponent) => {
-        this.selectedRow = row.getData();
-        this.sizeTbDetail = null;
-      });
     }
   }
   private drawDetail(): void {
     if (this.assetTranferDetailTable) {
       this.assetTranferDetailTable.setData(this.assetTranferDetailData);
     } else {
-      this.assetTranferDetailTable = new Tabulator('#dataAssetTranferDetail', {
+      this.assetTranferDetailTable = new Tabulator(this.dataAssetTranferDetailEl.nativeElement, {
         data: this.assetTranferDetailData,
         layout: "fitDataStretch",
         paginationSize: 5,

@@ -63,6 +63,7 @@ import { UnitCountComponent } from '../../../old/Sale/ProductSale/unit-count/uni
 import { ProductLocationComponent } from '../../../general-category/product-location/product-location.component';
 import { FirmComponent } from '../../../general-category/firm/firm.component';
 import { CustomerComponent } from '../../../old/customer/customer.component';
+import { PayrollComponent } from '../../../hrm/payroll/payroll/payroll.component';
 
 @Injectable({
   providedIn: 'root',
@@ -570,6 +571,16 @@ export class MenuService {
                 isOpen: true,
                 isPermission: false,
                 comp: OfficeSupplyComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+
+              {
+                kind: 'leaf',
+                key: 'PayrollComponent',
+                title: 'Bảng lương',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission('N2,N1,N52'),
+                comp: PayrollComponent,
                 //   icon: 'assets/icon/layers.png',
               },
               //#endregion

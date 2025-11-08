@@ -1,86 +1,168 @@
-<!----Modal báo mất--->
-
+<!-- Modal sửa chữa bảo dưỡng -->
 <div class="modal-content">
-
   <div class="modal-header bg-primary p-2">
-    <h6 class="modal-title text-white" id="assetModalLabel">SỦA CHỮA BẢO DƯỠNG</h6>
+    <h6 class="modal-title text-white" id="assetModalLabel">SỬA CHỮA BẢO DƯỠNG</h6>
     <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
   </div>
-  <div class="modal-body">
 
-
+  <div class="modal-body modal-body-scroll">
     <form>
       <div class="row g-3">
         <!-- Phần trái: Thông tin tài sản -->
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
           <h6>Thông tin tài sản</h6>
+
           <div class="mb-3">
             <label class="form-label">Mã NCC</label>
-            <input type="text" name="TSCodeNCC" [(ngModel)]="dataInput.TSCodeNCC" class="form-control" readonly>
+            <input
+              type="text"
+              name="TSCodeNCC"
+              [(ngModel)]="dataInput.TSCodeNCC"
+              class="form-control"
+              readonly
+            />
           </div>
+
           <div class="mb-3">
             <label class="form-label">Mã tài sản</label>
-            <input type="text" name="TSAssetCode" [(ngModel)]="dataInput.TSAssetCode" class="form-control" readonly>
+            <input
+              type="text"
+              name="TSAssetCode"
+              [(ngModel)]="dataInput.TSAssetCode"
+              class="form-control"
+              readonly
+            />
           </div>
+
           <div class="mb-3">
             <label class="form-label">Tên tài sản</label>
-            <input type="text" [(ngModel)]="dataInput.TSAssetName" name="TSAssetName" class="form-control" readonly>
+            <input
+              type="text"
+              [(ngModel)]="dataInput.TSAssetName"
+              name="TSAssetName"
+              class="form-control"
+              readonly
+            />
           </div>
+
           <div class="mb-3">
             <label class="form-label">Loại tài sản</label>
-            <input type="text" [(ngModel)]="dataInput.AssetType" name="AssetType" class="form-control" readonly>
+            <input
+              type="text"
+              [(ngModel)]="dataInput.AssetType"
+              name="AssetType"
+              class="form-control"
+              readonly
+            />
           </div>
+
           <div class="mb-3">
             <label class="form-label">Số Seri</label>
-            <input type="text" name="Seri" [(ngModel)]="dataInput.Seri" class="form-control" readonly>
+            <input
+              type="text"
+              name="Seri"
+              [(ngModel)]="dataInput.Seri"
+              class="form-control"
+              readonly
+            />
           </div>
+
           <div class="mb-3">
             <label class="form-label">Ngày mua</label>
-            <input type="date" [(ngModel)]="dataInput.DateBuy" class="form-control" readonly />
+            <input
+              type="date"
+              class="form-control"
+              [value]="formatDateForInput(dataInput?.DateBuy)"
+              readonly
+            />
           </div>
+
           <div class="mb-3">
             <label class="form-label">Tình trạng</label>
-            <input type="text" name="Status" [(ngModel)]="dataInput.Status" class="form-control" readonly>
+            <input
+              type="text"
+              name="Status"
+              [(ngModel)]="dataInput.Status"
+              class="form-control"
+              readonly
+            />
           </div>
+
           <div class="mb-3">
             <label class="form-label">Mô tả chi tiết</label>
-            <input type="text" name="SpecificationsAsset" [(ngModel)]="dataInput.SpecificationsAsset"
-              class="form-control" readonly>
-          </div>
-        </div>
-        <!-- Phần phải: Thông tin nhân viên sử dụng và báo mất -->
-        <div class="col-md-6">
-          <h6 class="mt-3">Thông tin sửa chữa</h6>
-
-          <div class="mb-3">
-            <label class="form-label">Ngày đề nghị <span class="text-danger">(*)</span></label>
-            <input type="date" name="reportLossDate" [(ngModel)]="dateRepair" class="form-control" required>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Đơn vị sửa chữa bảo dưỡng <span class="text-danger">(*)</span></label>
-            <input type="text" class="form-control fs-12" placeholder="Nhập tên đơn vị sửa chữa..." [(ngModel)]="name"
-              name="repairUnitName" />
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Chi phí dự kiến (VNĐ) <span class="text-danger">(*)</span></label>
-            <input type="text" class="form-control fs-12" placeholder="Nhập chi phí dự kiến..."
-              [value]="formatCurrency(expectedCost)" (input)="onCostInput($event)" name="expectedCost" />
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">Lý do <span class="text-danger">(*)</span></label>
-            <textarea class="form-control" name="reportLossDescription" [(ngModel)]="reason" rows="4"
-              required></textarea>
+            <input
+              type="text"
+              name="SpecificationsAsset"
+              [(ngModel)]="dataInput.SpecificationsAsset"
+              class="form-control"
+              readonly
+            />
           </div>
         </div>
 
+        <!-- Phần phải: Thông tin sửa chữa -->
+        <div class="col-12 col-md-6">
+          <h6 class="mt-3 mt-md-0">Thông tin sửa chữa</h6>
+
+          <div class="mb-3">
+            <label class="form-label">
+              Ngày đề nghị <span class="text-danger">(*)</span>
+            </label>
+            <input
+              type="date"
+              name="reportLossDate"
+              [(ngModel)]="dateRepair"
+              class="form-control"
+              required
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">
+              Đơn vị sửa chữa bảo dưỡng <span class="text-danger">(*)</span>
+            </label>
+            <input
+              type="text"
+              class="form-control fs-12"
+              placeholder="Nhập tên đơn vị sửa chữa..."
+              [(ngModel)]="name"
+              name="repairUnitName"
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">
+              Chi phí dự kiến (VNĐ) <span class="text-danger">(*)</span>
+            </label>
+            <input
+              type="text"
+              class="form-control fs-12"
+              placeholder="Nhập chi phí dự kiến..."
+              [value]="formatCurrency(expectedCost)"
+              (input)="onCostInput($event)"
+              name="expectedCost"
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">
+              Lý do <span class="text-danger">(*)</span>
+            </label>
+            <textarea
+              class="form-control"
+              name="reportLossDescription"
+              [(ngModel)]="reason"
+              rows="4"
+              required
+            ></textarea>
+          </div>
+        </div>
       </div>
     </form>
   </div>
+
   <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" (click)="close()">Đóng</button>
-    <button type="button" class="btn btn-primary" (click)="saveRepairAsset()">Gửi đề nghị</button>
+    <button nz-button nzType="default" nzDanger (click)="close()">Đóng</button>
+    <button nz-button nzType="primary" (click)="saveRepairAsset()">Lưu dữ liệu</button>
   </div>
 </div>

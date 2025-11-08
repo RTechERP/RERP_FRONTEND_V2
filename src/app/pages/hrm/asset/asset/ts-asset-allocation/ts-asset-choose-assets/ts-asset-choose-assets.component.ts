@@ -99,7 +99,7 @@ export class TsAssetChooseAssetsComponent implements OnInit, AfterViewInit {
     if (this.assetTable) {
       this.assetTable.setData(this.AssetData);
     } else {
-      this.assetTable = new Tabulator('#datatablemanagement', {
+      this.assetTable = new Tabulator('#datatablemanagement1', {
         data: this.AssetData,
         layout: "fitDataFill",
         pagination: true,

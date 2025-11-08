@@ -256,9 +256,9 @@ button[nz-button] img {
   color: black;
 }
 
-/* .ant-splitter {
-  height: 93vh !important;
-} */
+.ant-splitter {
+  height: 95vh !important;
+}
 
 .tabulator {
   border: 1px solid #ddd;

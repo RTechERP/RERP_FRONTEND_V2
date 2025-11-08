@@ -174,7 +174,7 @@ export class MenuService {
                 key: 'TsAssetManagementComponent',
                 title: 'Danh sách tài sản',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
+                isPermission: this.permissionService.hasPermission('N23,N52,N1,N36,N34'),
                 comp: TsAssetManagementComponent,
                 //   icon: 'assets/icon/layers.png',
               },

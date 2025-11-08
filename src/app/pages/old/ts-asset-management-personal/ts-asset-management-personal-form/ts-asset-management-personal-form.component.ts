@@ -1,7 +1,22 @@
-import { Component, OnInit, Input, Output, EventEmitter, inject, Inject, EnvironmentInjector, ApplicationRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  Input,
+  Output,
+  EventEmitter,
+  inject,
+  Inject,
+  EnvironmentInjector,
+  ApplicationRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzSelectModule } from 'ng-zorro-antd/select';
@@ -15,7 +30,7 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzFloatButtonModule } from 'ng-zorro-antd/float-button';
 import { NzFlexModule } from 'ng-zorro-antd/flex';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
-import { NzNotificationService } from 'ng-zorro-antd/notification'
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { DateTime } from 'luxon';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import type { Editor } from 'tabulator-tables';
@@ -33,6 +48,7 @@ import { AssetAllocationService } from '../../../hrm/asset/asset/ts-asset-alloca
 import { TsAssetManagementPersonalService } from '../ts-asset-management-personal-service/ts-asset-management-personal.service';
 import { UnitService } from '../../../hrm/asset/asset/ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
 import { TsAssetManagementPersonalTypeFormComponent } from '../ts-asset-management-personal-type/ts-asset-management-personal-type-form/ts-asset-management-personal-type-form.component';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 @Component({
   standalone: true,
 
@@ -41,7 +57,9 @@ import { TsAssetManagementPersonalTypeFormComponent } from '../ts-asset-manageme
     CommonModule,
     FormsModule,
     NzTabsModule,
-    FormsModule, NzFlexModule, NzRadioModule,
+    FormsModule,
+    NzFlexModule,
+    NzRadioModule,
     NzSelectModule,
     NzGridModule,
     NzFloatButtonModule,
@@ -55,10 +73,11 @@ import { TsAssetManagementPersonalTypeFormComponent } from '../ts-asset-manageme
     NzFormModule,
     FormsModule,
     ReactiveFormsModule,
-    NzUploadModule
+    NzUploadModule,
+    HasPermissionDirective,
   ],
   templateUrl: './ts-asset-management-personal-form.component.html',
-  styleUrl: './ts-asset-management-personal-form.component.css'
+  styleUrl: './ts-asset-management-personal-form.component.css',
 })
 export class TsAssetManagementPersonalFormComponent implements OnInit {
   formGroup: FormGroup;
@@ -88,7 +107,6 @@ export class TsAssetManagementPersonalFormComponent implements OnInit {
     private tsAssetManagementPersonalService: TsAssetManagementPersonalService
   ) {
     this.formGroup = this.fb.group({
-
       UnitCountID: ['', [Validators.required]],
       TSTypeAssetPersonalID: ['', [Validators.required]],
       Quantity: ['', [Validators.required]],
@@ -100,7 +118,7 @@ export class TsAssetManagementPersonalFormComponent implements OnInit {
   private toDate(val: any): Date | null {
     if (!val) return null;
     if (val instanceof Date) return val;
-    if (typeof val === 'number') return new Date(val);                    // epoch ms
+    if (typeof val === 'number') return new Date(val); // epoch ms
     if (typeof val === 'string') {
       // ISO hoặc yyyy-MM-dd
       let d = DateTime.fromISO(val);
@@ -119,8 +137,8 @@ export class TsAssetManagementPersonalFormComponent implements OnInit {
       UnitCountID: d.UnitCountID ?? null,
       TSTypeAssetPersonalID: d.TSTypeAssetPersonalID ?? null,
       Quantity: d.Quantity ?? 1,
-      DateBuy: this.toDate(d.DateBuy),   // <-- quan trọng
-      Note: d.Note ?? ''
+      DateBuy: this.toDate(d.DateBuy), // <-- quan trọng
+      Note: d.Note ?? '',
     });
   }
   ngOnInit(): void {
@@ -131,7 +149,7 @@ export class TsAssetManagementPersonalFormComponent implements OnInit {
   }
   getEmployee() {
     const request = { status: 0, departmentid: 0, keyword: '' };
-    this.vehicleRepairService.getEmployee(request).subscribe(res => {
+    this.vehicleRepairService.getEmployee(request).subscribe((res) => {
       this.employeeList = res.data || [];
       const eId = this.formGroup.value?.EmployeeID;
       if (eId) {
@@ -140,12 +158,17 @@ export class TsAssetManagementPersonalFormComponent implements OnInit {
     });
   }
   blockE(event: KeyboardEvent) {
-  if (event.key === 'e' || event.key === 'E' || event.key === '+' || event.key === '-') {
-    event.preventDefault();
+    if (
+      event.key === 'e' ||
+      event.key === 'E' ||
+      event.key === '+' ||
+      event.key === '-'
+    ) {
+      event.preventDefault();
+    }
   }
-}
   private trimAllStringControls() {
-    Object.keys(this.formGroup.controls).forEach(k => {
+    Object.keys(this.formGroup.controls).forEach((k) => {
       const c = this.formGroup.get(k);
       const v = c?.value;
       if (typeof v === 'string') c!.setValue(v.trim(), { emitEvent: false });
@@ -161,30 +184,32 @@ export class TsAssetManagementPersonalFormComponent implements OnInit {
     this.tsAssetManagementPersonalService.getAssetType().subscribe({
       next: (res) => {
         this.assetType = res.data;
-
       },
       error: (err) => {
         console.error('Lỗi lấy loại tài sản:', err);
-      }
+      },
     });
   }
-   addType() {
-      const modalRef = this.ngbModal.open(TsAssetManagementPersonalTypeFormComponent, {
+  addType() {
+    const modalRef = this.ngbModal.open(
+      TsAssetManagementPersonalTypeFormComponent,
+      {
         size: 'md',
         backdrop: 'static',
         keyboard: false,
         centered: true,
-      });
-      modalRef.componentInstance.dataInput = null;
-      modalRef.result.then(
-        (result) => {
-          this.getAssetType();
-        },
-        (dismissed) => {
-          // console.log('Modal dismissed');
-        }
-      );
-    }
+      }
+    );
+    modalRef.componentInstance.dataInput = null;
+    modalRef.result.then(
+      (result) => {
+        this.getAssetType();
+      },
+      (dismissed) => {
+        // console.log('Modal dismissed');
+      }
+    );
+  }
   close() {
     this.closeModal.emit();
     this.activeModal.dismiss('cancel');
@@ -193,10 +218,14 @@ export class TsAssetManagementPersonalFormComponent implements OnInit {
     this.trimAllStringControls();
 
     if (this.formGroup.invalid) {
-      Object.values(this.formGroup.controls).forEach(c => {
-        c.markAsTouched(); c.updateValueAndValidity({ onlySelf: true });
+      Object.values(this.formGroup.controls).forEach((c) => {
+        c.markAsTouched();
+        c.updateValueAndValidity({ onlySelf: true });
       });
-      this.notification.warning('Cảnh báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
+      this.notification.warning(
+        'Cảnh báo',
+        'Vui lòng điền đầy đủ thông tin bắt buộc'
+      );
       return;
     }
     const formValue = this.formGroup.value;
@@ -205,28 +234,37 @@ export class TsAssetManagementPersonalFormComponent implements OnInit {
         ID: this.dataInput?.ID ?? 0,
         TSTypeAssetPersonalID: formValue.TSTypeAssetPersonalID,
         Note: formValue.Note,
-        DateBuy: formValue.DateBuy ? DateTime.fromJSDate(formValue.DateBuy).toISODate() : null,
+        DateBuy: formValue.DateBuy
+          ? DateTime.fromJSDate(formValue.DateBuy).toISODate()
+          : null,
         Quantity: formValue.Quantity,
         UnitCountID: formValue.UnitCountID,
-      }
-
-    }
-    this.tsAssetAllocationPersonalService.saveAssetAllocationPerson(payload).subscribe({
-      next: (response: any) => {
-        if (response?.status == 1) {
-          this.notification.success('Thành công', 'Lưu thông tin tài sản cá nhân thành công');
-          this.formSubmitted.emit();
-          this.activeModal.close('save');
-        } else {
-          this.notification.error('Lỗi', response?.message || 'Lưu thất bại');
-        }
       },
-      error: (err) => {
-        const msg = err?.error?.message || err?.message || err?.statusText || 'Lỗi khi lưu thông tin';
-        this.notification.error('Lỗi', msg);
-        console.error('Lỗi khi lưu:', err);
-      }
-    });
-
+    };
+    this.tsAssetAllocationPersonalService
+      .saveAssetAllocationPerson(payload)
+      .subscribe({
+        next: (response: any) => {
+          if (response?.status == 1) {
+            this.notification.success(
+              'Thành công',
+              'Lưu thông tin tài sản cá nhân thành công'
+            );
+            this.formSubmitted.emit();
+            this.activeModal.close('save');
+          } else {
+            this.notification.error('Lỗi', response?.message || 'Lưu thất bại');
+          }
+        },
+        error: (err) => {
+          const msg =
+            err?.error?.message ||
+            err?.message ||
+            err?.statusText ||
+            'Lỗi khi lưu thông tin';
+          this.notification.error('Lỗi', msg);
+          console.error('Lỗi khi lưu:', err);
+        },
+      });
   }
 }

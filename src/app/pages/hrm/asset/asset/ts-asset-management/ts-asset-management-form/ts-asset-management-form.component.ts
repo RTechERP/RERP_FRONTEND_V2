@@ -70,35 +70,56 @@ export class TsAssetManagementFormComponent implements OnInit, AfterViewInit {
   modalData: any = [];
   private ngbModal = inject(NgbModal);
   constructor(private notification: NzNotificationService) { }
-ngOnInit() {
-  this.getunit();
+  ngOnInit() {
+    console.log('dataInput raw = ', this.dataInput);
+    this.getunit();
 
-  const isEdit = !!this.dataInput && this.dataInput.ID > 0;
+    const isEdit = !!this.dataInput && this.dataInput.ID > 0;
 
-  // format lại ngày nếu có
-  if (this.dataInput.DateBuy) {
-    this.dataInput.DateBuy = this.formatDateForInput(this.dataInput.DateBuy);
+    // format lại ngày nếu có
+    if (this.dataInput.DateBuy) {
+      this.dataInput.DateBuy = this.formatDateForInput(this.dataInput.DateBuy);
+    }
+    if (this.dataInput.DateEffect) {
+      this.dataInput.DateEffect = this.formatDateForInput(this.dataInput.DateEffect);
+    }
+
+    // 🔥 Chuẩn hóa Office/Win Active khi sửa
+    if (isEdit) {
+      if (this.dataInput.OfficeActiveStatus !== null && this.dataInput.OfficeActiveStatus !== undefined) {
+        this.dataInput.OfficeActiveStatus = Number(this.dataInput.OfficeActiveStatus);
+      }
+
+      if (this.dataInput.WindowActiveStatus !== null && this.dataInput.WindowActiveStatus !== undefined) {
+        this.dataInput.WindowActiveStatus = Number(this.dataInput.WindowActiveStatus);
+      }
+    }
+
+    this.loadAsset();
+    this.getListEmployee();
+    this.getTypeAsset();
+    this.getSource();
+
+    // CHỈ gen mã khi thêm mới
+    if (!isEdit) {
+      this.generateTSAssetCode();
+    }
   }
-  if (this.dataInput.DateEffect) {
-    this.dataInput.DateEffect = this.formatDateForInput(this.dataInput.DateEffect);
-  }
-
-  this.loadAsset();
-  this.getListEmployee();
-  this.getTypeAsset();
-  this.getSource();
-
-  // CHỈ gen mã khi thêm mới
-  if (!isEdit) {
-    this.generateTSAssetCode();
-  }
-}
   ngAfterViewInit(): void {
   }
   formatDateForInput(dateString: string): string {
     if (!dateString) return '';
     return DateTime.fromISO(dateString).toFormat('yyyy-MM-dd');
   }
+  private toNumberOrZero(value: any): number {
+  if (value === null || value === undefined) return 0;
+
+  const str = String(value).trim();   // bỏ space
+  if (str === '') return 0;
+
+  const num = Number(str);
+  return Number.isNaN(num) ? 0 : num;
+}
   getListEmployee() {
     const request = {
       status: 0,
@@ -176,63 +197,63 @@ ngOnInit() {
     });
   }
   private validateForm(): boolean {
-  const d = this.dataInput || {};
+    const d = this.dataInput || {};
 
-  // 1. Mã tài sản
-  if (!d.TSAssetCode || String(d.TSAssetCode).trim() === '') {
-    this.notification.error('Thông báo', 'Mã tài sản không được để trống.');
-    return false;
+    // 1. Mã tài sản
+    if (!d.TSAssetCode || String(d.TSAssetCode).trim() === '') {
+      this.notification.error('Thông báo', 'Mã tài sản không được để trống.');
+      return false;
+    }
+
+    // 2. Người quản lý (EmployeeID)
+    if (!d.EmployeeID || d.EmployeeID === 0) {
+      this.notification.error('Thông báo', 'Vui lòng chọn người quản lý.');
+      return false;
+    }
+
+    // 3. Phòng ban (Name hoặc DepartmentID, tùy bạn dùng cái nào)
+    if (!d.Name || String(d.Name).trim() === '') {
+      this.notification.error('Thông báo', 'Phòng ban không được để trống.');
+      return false;
+    }
+
+    // 4. Loại tài sản
+    if (!d.TSAssetID || d.TSAssetID === 0) {
+      this.notification.error('Thông báo', 'Vui lòng chọn loại tài sản.');
+      return false;
+    }
+
+    // 5. Đơn vị tính
+    if (!d.UnitID || d.UnitID === 0) {
+      this.notification.error('Thông báo', 'Vui lòng chọn đơn vị tính.');
+      return false;
+    }
+
+    // 6. Nguồn gốc
+    if (!d.SourceID || d.SourceID === 0) {
+      this.notification.error('Thông báo', 'Vui lòng chọn nguồn gốc.');
+      return false;
+    }
+
+    // 7. Tên tài sản
+    if (!d.TSAssetName || String(d.TSAssetName).trim() === '') {
+      this.notification.error('Thông báo', 'Tên tài sản không được để trống.');
+      return false;
+    }
+
+    // 8. Số Seri
+    if (!d.Seri || String(d.Seri).trim() === '') {
+      this.notification.error('Thông báo', 'Số Seri không được để trống.');
+      return false;
+    }
+
+    return true;
   }
-
-  // 2. Người quản lý (EmployeeID)
-  if (!d.EmployeeID || d.EmployeeID === 0) {
-    this.notification.error('Thông báo', 'Vui lòng chọn người quản lý.');
-    return false;
-  }
-
-  // 3. Phòng ban (Name hoặc DepartmentID, tùy bạn dùng cái nào)
-  if (!d.Name || String(d.Name).trim() === '') {
-    this.notification.error('Thông báo', 'Phòng ban không được để trống.');
-    return false;
-  }
-
-  // 4. Loại tài sản
-  if (!d.TSAssetID || d.TSAssetID === 0) {
-    this.notification.error('Thông báo', 'Vui lòng chọn loại tài sản.');
-    return false;
-  }
-
-  // 5. Đơn vị tính
-  if (!d.UnitID || d.UnitID === 0) {
-    this.notification.error('Thông báo', 'Vui lòng chọn đơn vị tính.');
-    return false;
-  }
-
-  // 6. Nguồn gốc
-  if (!d.SourceID || d.SourceID === 0) {
-    this.notification.error('Thông báo', 'Vui lòng chọn nguồn gốc.');
-    return false;
-  }
-
-  // 7. Tên tài sản
-  if (!d.TSAssetName || String(d.TSAssetName).trim() === '') {
-    this.notification.error('Thông báo', 'Tên tài sản không được để trống.');
-    return false;
-  }
-
-  // 8. Số Seri
-  if (!d.Seri || String(d.Seri).trim() === '') {
-    this.notification.error('Thông báo', 'Số Seri không được để trống.');
-    return false;
-  }
-
-  return true;
-}
 
   saveAsset() {
-  if (!this.validateForm()) {
-    return;
-  }
+    if (!this.validateForm()) {
+      return;
+    }
 
     const ID = this.dataInput.ID;
 
@@ -253,8 +274,10 @@ ngOnInit() {
           SpecificationsAsset: this.dataInput.SpecificationsAsset,
           SupplierID: this.dataInput.SupplierID,
           DateBuy: this.dataInput.DateBuy,
-          Insurance: this.dataInput.Insurance,
-          DateEffect: this.dataInput.DateEffect,
+    Insurance: Number(String(this.dataInput.Insurance).replace(/\D+/g, '') || 0),
+          DateEffect: this.dataInput.DateEffect
+            ? this.dataInput.DateEffect
+            : DateTime.now().toFormat('yyyy-MM-dd'),
           Status: this.dataInput.Status,
           UnitID: this.dataInput.UnitID,
           TSCodeNCC: this.dataInput.TSCodeNCC,

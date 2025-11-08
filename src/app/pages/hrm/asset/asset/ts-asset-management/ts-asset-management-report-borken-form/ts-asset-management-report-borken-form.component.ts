@@ -81,13 +81,13 @@ Reason: string = '';
 
   // Check ngày báo sửa
   if (!this.DateBrokenReport || this.DateBrokenReport.trim() === '') {
-    this.notification.error('Thông báo', 'Vui lòng chọn ngày báo sửa.');
+    this.notification.error('Thông báo', 'Vui lòng chọn ngày báo hỏng.');
     return false;
   }
 
   // Check lý do sửa chữa
   if (!this.Reason || this.Reason.trim() === '') {
-    this.notification.error('Thông báo', 'Vui lòng nhập lý do sửa chữa.');
+    this.notification.error('Thông báo', 'Vui lòng nhập lý do báo hỏng.');
     return false;
   }
 

@@ -25,7 +25,7 @@
   padding: 0;
 
   font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 12px !important;
+  /* font-size: 12px !important; */
 }
 
 .custom-customer-modal .ant-modal-header {
@@ -54,10 +54,10 @@
   color: #fff;
 }
 
-.custom-customer-modal .ant-modal-close .anticon,
+/* .custom-customer-modal .ant-modal-close .anticon,
 .custom-customer-modal .ant-modal-close .ant-modal-close-x {
   font-size: 18px;
-}
+} */
 
 /* button.ant-btn.btn-add{
   background-color:#00c010 !important;
@@ -256,9 +256,9 @@ button[nz-button] img {
   color: black;
 }
 
-.ant-splitter {
+/* .ant-splitter {
   height: 93vh !important;
-}
+} */
 
 .tabulator {
   border: 1px solid #ddd;

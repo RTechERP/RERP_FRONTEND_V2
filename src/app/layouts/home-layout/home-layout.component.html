@@ -1,6 +1,6 @@
 <!-- <router-outlet></router-outlet> -->
 
-<div class="homepage-container w-100 px-3 px-md-4 py-3 py-md-4 pb-5 pb-md-4">
+<!-- <div class="homepage-container w-100 px-3 px-md-4 py-3 py-md-4 pb-5 pb-md-4">
     <div class="home-topbar d-flex align-items-center gap-2 gap-md-3 mb-3 mb-md-4">
         <div class="d-flex align-items-center gap-2">
             <div class="brand-logo c-img">
@@ -77,7 +77,6 @@
                                     (nzPanelChange)="onPanelChange($event)">
                                 </nz-calendar>
 
-                                <!-- Template custom cho từng ô ngày -->
                                 <ng-template #dateCell let-date>
                                     <div class="custom-date-cell"
                                         [ngClass]="{holiday: isHoliday(date) || isSaturday(date)}">
@@ -153,7 +152,6 @@
                                         <nz-list-item-meta class="m-0">
                                             <nz-list-item-meta-avatar [nzSrc]=""></nz-list-item-meta-avatar>
                                             <nz-list-item-meta-title>
-                                                <!-- <a href="">{{ item.title }}</a> -->
                                                 <a (click)="goToOldLink('/baocaocongviec')" target="_blank">Báo
                                                     cáo
                                                     công việc</a>
@@ -199,6 +197,223 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div> -->
+
+
+
+<nav class="navbar navbar-light bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand p-0" href="#" style="width: 5%;">
+            <img src="assets/images/RTC_image.png" alt="" width="100%" class="d-inline-block align-text-top">
+
+        </a>
+
+
+
+        <div class="d-flex">
+
+            <!-- <form class="d-flex">
+                    <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                    <button class="btn btn-outline-success" type="submit">Search</button>
+                </form> -->
+            <app-app-notifycation-dropdown [items]="notifItems" (itemClick)="onPick($event)">
+                <button nz-button nzType="text" class="text-light fs-7" trigger>
+                    <nz-badge [nzOverflowCount]="9" [nzCount]="notifItems.length + 67" class="fs-7">
+                        <img src="assets/icon/notification_home.png">
+                    </nz-badge>
+                </button>
+            </app-app-notifycation-dropdown>
+
+            <app-app-user-dropdown>
+                <button nz-button nzType="text" trigger>
+                    <img src="assets/icon/user.png">
+                </button>
+            </app-app-user-dropdown>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-xl-6 col-md-12 col-sm-12 col-12">
+            <div class="row">
+
+                <div class="col-xl-6 col-md-12 col-sm-12 col-12 pt-2">
+                    <div class="card mb-2">
+                        <div class="card-header">
+                            <h5 class="card-title m-0 text-uppercase fw-bold">Thông báo</h5>
+                        </div>
+                        <div class="card-body" style="height: 320px; overflow: auto;">
+                            <nz-list nzItemLayout="vertical">
+                                @for (item of notifItems; track item) {
+                                <nz-list-item>
+                                    <nz-list-item-meta class="m-0">
+                                        <nz-list-item-meta-avatar [nzSrc]="item.icon"></nz-list-item-meta-avatar>
+                                        <nz-list-item-meta-title>
+                                            <a href="">{{ item.title }}</a>
+                                        </nz-list-item-meta-title>
+                                        <nz-list-item-meta-description>
+                                            {{ item.detail }}
+                                        </nz-list-item-meta-description>
+                                    </nz-list-item-meta>
+                                </nz-list-item>
+                                }
+                            </nz-list>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-xl-6 col-md-12 col-sm-12 col-12 pt-2">
+                    <div class="card mb-2">
+                        <div class="card-header">
+                            <h5 class="card-title m-0 text-uppercase fw-bold">Lịch làm việc</h5>
+                        </div>
+                        <div class="card-body p-1" style="height: 320px; overflow: auto;">
+                            <nz-calendar [nzFullscreen]="false" [(ngModel)]="today" [nzCustomHeader]=""
+                                [nzDateFullCell]="dateCell" (nzSelectChange)="onValueChange($event)"
+                                (nzPanelChange)="onPanelChange($event)">
+                            </nz-calendar>
+
+                            <ng-template #dateCell let-date>
+                                <div class="custom-date-cell"
+                                    [ngClass]="{holiday: isHoliday(date) || isSaturday(date)}">
+                                    {{ date.getDate() }}
+                                </div>
+                            </ng-template>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="col-xl-6 col-md-12 col-sm-12 col-12 pt-2">
+                    <div class="card mb-2">
+                        <div class="card-header">
+                            <h5 class="card-title m-0 text-uppercase fw-bold">Nghỉ</h5>
+                        </div>
+                        <div class="card-body p-1" style="height: 27rem; overflow: auto;">
+                            <nz-tabset style="font-size: 12px;">
+                                <nz-tab [nzTitle]="titleTemplateOnleave">
+                                    <nz-collapse>
+                                        @for (panel of employeeOnleaves; track panel) {
+                                        <nz-collapse-panel class="fw-bold"
+                                            [nzHeader]="panel.DepartmentName + ' (' + panel.Employees.length + ')'"
+                                            [nzActive]="true">
+
+                                            <nz-list nzSize="small" class="fw-normal ">
+                                                @for (item of panel.Employees; track item;let i = $index) {
+                                                <nz-list-item>{{i + 1}}. {{
+                                                    item.EmployeeLeave}}{{item.TimeOnLeaveText}}</nz-list-item>
+                                                }
+                                            </nz-list>
+                                        </nz-collapse-panel>
+                                        }
+                                    </nz-collapse>
+                                </nz-tab>
+                                <nz-tab [nzTitle]="titleTemplateWFH">
+                                    <nz-collapse>
+                                        @for (panel of employeeWfhs; track panel) {
+                                        <nz-collapse-panel class="fw-bold"
+                                            [nzHeader]="panel.DepartmentName + ' (' + panel.Employees.length + ')'"
+                                            [nzActive]="true">
+
+                                            <nz-list nzSize="small" class="fw-normal">
+                                                @for (item of panel.Employees; track item;let i = $index) {
+                                                <nz-list-item>{{i + 1}}. {{ item.EmployeeName
+                                                    }}{{item.TimeWFHText}}{{item.IsApprovedBGDText}}</nz-list-item>
+
+                                                }
+                                            </nz-list>
+                                        </nz-collapse-panel>
+                                        }
+                                    </nz-collapse>
+                                </nz-tab>
+                            </nz-tabset>
+
+                            <ng-template class="panel-title" #titleTemplateOnleave>
+                                NGHỈ PHÉP {{totalEmployeeOnleave == 0 ? '':`(${totalEmployeeOnleave})`}} -
+                                {{today|date:'dd/MM/yyyy' }}
+                            </ng-template>
+                            <ng-template class="panel-title" #titleTemplateWFH>WFH {{totalEmployeeWfh == 0 ?
+                                '':`(${totalEmployeeWfh})`}} - {{ today |
+                                date:'dd/MM/yyyy' }}</ng-template>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-xl-6 col-md-12 col-sm-12 col-12 pt-2">
+                    <div class="card mb-2">
+                        <div class="card-header">
+                            <h5 class="card-title m-0 text-uppercase fw-bold">truy cập nhanh</h5>
+                        </div>
+                        <div class="card-body p-1" style="height: 27rem; overflow: auto;">
+
+                            <nz-list nzItemLayout="vertical">
+                                <nz-list-item>
+                                    <nz-list-item-meta class="m-0">
+                                        <nz-list-item-meta-avatar [nzSrc]=""></nz-list-item-meta-avatar>
+                                        <nz-list-item-meta-title>
+                                            <a (click)="goToOldLink('/baocaocongviec')" target="_blank">Báo
+                                                cáo
+                                                công việc</a>
+                                        </nz-list-item-meta-title>
+                                    </nz-list-item-meta>
+                                </nz-list-item>
+                                <nz-list-item>
+                                    <nz-list-item-meta class="m-0">
+                                        <nz-list-item-meta-avatar [nzSrc]=""></nz-list-item-meta-avatar>
+                                        <nz-list-item-meta-title>
+                                            <a (click)="goToOldLink('/lamthem')" target="_blank">Làm
+                                                thêm</a>
+                                        </nz-list-item-meta-title>
+                                    </nz-list-item-meta>
+                                </nz-list-item>
+                                <nz-list-item>
+                                    <nz-list-item-meta class="m-0">
+                                        <nz-list-item-meta-avatar [nzSrc]=""></nz-list-item-meta-avatar>
+                                        <nz-list-item-meta-title>
+                                            <a href="file://///192.168.1.190/Accountant" target="_blank">Mở thư mục kế
+                                                toán</a>
+                                        </nz-list-item-meta-title>
+                                    </nz-list-item-meta>
+                                </nz-list-item>
+                            </nz-list>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+        <div class="col-xl-6 col-md-12 col-sm-12 col-12 pt-2">
+
+            <div class="card mb-0">
+                <div class="card-header">
+                    <h5 class="card-title m-0 text-uppercase fw-bold">chức năng</h5>
+                </div>
+                <div class="card-body" style="height: 50.05rem; overflow: auto;">
+
+                    <div class="gutter-example">
+                        <div nz-row [nzGutter]="[16, 16]">
+                            @for (m of menus; track $index) {
+                            <div nz-col class="gutter-row" [nzXs]="12" [nzMd]="8" [nzLg]="6"
+                                (click)="openModule(m.key)">
+                                <div class="grid-config text-center py-2 shadow">
+                                    <img [src]="m.icon?.replace('24','64')" alt="">
+                                    <p class="m-0 mt-2 fw-bold">{{m.title}}</p>
+                                </div>
+                            </div>
+                            }
+
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+
         </div>
     </div>
 </div>

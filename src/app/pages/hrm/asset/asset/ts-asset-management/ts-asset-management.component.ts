@@ -599,9 +599,9 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       data: this.assetManagementDetail,
       ...DEFAULT_TABLE_CONFIG,
       layout: 'fitData',
-     height:'83vh',
+      height: '83vh',
       paginationSize: 10,
-      paginationMode:'local',
+      paginationMode: 'local',
       movableColumns: true,
       reactiveData: true,
       columns: [
@@ -866,17 +866,17 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       return;
     }
     const selectedAssets = { ...selected[0] };
-    if (selectedAssets.StatusID == 4 || selectedAssets.Status === 'Mất') {
-      this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đã mất, không thể đưa vào sử dụng lại!`);
+    if (selectedAssets.StatusID != 5) {
+      this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đang ở trạng thái ${selectedAssets.Status}, không thể đưa vào sử dụng lại!`);
       return;
     }
-    if (selectedAssets.StatusID != 3) {
-      this.notification.warning(
-        'Thông báo',
-        'Tài sản này không sửa chữa bảo dưỡng, không thể sử dụng lại!'
-      );
-      return;
-    }
+    // if (selectedAssets.StatusID != 3) {
+    //   this.notification.warning(
+    //     'Thông báo',
+    //     'Tài sản này không sửa chữa bảo dưỡng, không thể sử dụng lại!'
+    //   );
+    //   return;
+    // }
     this.assetManagementService
       .getAssetRepair(selectedAssets.ID)
       .subscribe((respon) => {
@@ -998,12 +998,15 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     }
     const selectedAssets = { ...selected[0] };
     if (
-      selectedAssets.StatusID === 6 ||
-      selectedAssets.Status === 'Đề nghị thanh lí'
-
+      selectedAssets.StatusID === 6
     ) {
-      this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đã đề nghị thanh lí!`);
-
+      this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đã thanh lý, không thể đề nghị thanh lý!`);
+      return;
+    }
+      if (
+      selectedAssets.StatusID === 7
+    ) {
+      this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đã đề nghị thanh lý, không thể đề nghị thanh lý!`);
       return;
     }
     if (

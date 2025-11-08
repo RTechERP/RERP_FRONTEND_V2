@@ -35,6 +35,7 @@ function formatDateCell(cell: CellComponent): string {
 // @ts-ignore
 import { saveAs } from 'file-saver';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
+import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 @Component({
   standalone: true,
   imports: [
@@ -143,7 +144,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       keyword: ''
     };
     this.TsAssetManagementPersonalService.getEmployee(request).subscribe((respon: any) => {
-      this.emPloyeeLists = respon.employees;
+      this.emPloyeeLists = respon.data;
       console.log(this.emPloyeeLists);
     });
   }
@@ -155,18 +156,12 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       this.recoveryTable = new Tabulator('#datatablerecovery', {
         data: this.assetRecoveryData,
         layout: 'fitDataFill',
-        locale: 'vi',
+        ...DEFAULT_TABLE_CONFIG,
         pagination: true,
-        selectableRows: 5,
-        height: '83vh',
-        movableColumns: true,
-        paginationSize: 50,
-        paginationSizeSelector: [5, 10, 20, 50, 100],
-        reactiveData: true,
-        placeholder: 'Không có dữ liệu',
-        dataTree: true,
-        addRowPos: "bottom",
-        history: true,
+        selectableRows: 1,
+        height: '87vh',
+     
+    
         columns: [
           {
             title: 'STT',
@@ -240,6 +235,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
             title: 'Thu hồi từ',
             field: 'EmployeeReturnID',
             headerHozAlign: 'center',
+            visible:false
           },
           {
             title: 'Phòng ban',
@@ -259,6 +255,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
           {
             title: 'Người thu hồi',
             field: 'EmployeeRecoveryID',
+            visible:false,
             headerHozAlign: 'center',
           },
           {
@@ -294,7 +291,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
         this.sizeTbDetail = null;
       });
     }
-  }
+  } 
   private drawDetail(): void {
     const cols: ColumnDefinition[] = [
       {

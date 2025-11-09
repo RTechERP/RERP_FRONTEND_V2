@@ -63,6 +63,10 @@ import { UnitCountComponent } from '../../../old/Sale/ProductSale/unit-count/uni
 import { ProductLocationComponent } from '../../../general-category/product-location/product-location.component';
 import { FirmComponent } from '../../../general-category/firm/firm.component';
 import { CustomerComponent } from '../../../old/customer/customer.component';
+import { InventoryComponent } from '../../../old/Sale/Inventory/inventory.component';
+import { InventoryBorrowNCCComponent } from '../../../old/Sale/Inventory/Modal/inventory-borrow-ncc/inventory-borrow-ncc.component';
+import { BillImportComponent } from '../../../old/Sale/BillImport/bill-import.component';
+import { BillExportComponent } from '../../../old/Sale/BillExport/bill-export.component';
 
 @Injectable({
   providedIn: 'root',
@@ -139,6 +143,47 @@ export class MenuService {
               this.permissionService.hasPermission('N26,N1,N36,N73,N30'),
             comp: TbProductRtcComponent /* không icon */,
           },
+          {
+            kind: 'group',
+            key: 'Sale',
+            title: 'Phòng Sale',
+            isOpen: true,
+            isPermission:
+              this.permissionService.hasPermission('N26,N1,N36,N73,N30'),
+              icon: 'assets/icon/menu_sale_24.png',
+            children: [
+              {
+                kind: 'leaf',
+                key: 'InventoryComponent',
+                title: 'TỒN KHO',
+                isOpen: true,
+                isPermission:
+                  this.permissionService.hasPermission(''),
+                comp: InventoryComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+              {
+                kind: 'leaf',
+                key: 'BillImportComponent',
+                title: 'PHIẾU NHẬP',
+                isOpen: true,
+                isPermission:
+                  this.permissionService.hasPermission(''),
+                comp: BillImportComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+              {
+                kind: 'leaf',
+                key: 'BillExportComponent',
+                title: 'PHIẾU XUẤT',
+                isOpen: true,
+                isPermission:
+                  this.permissionService.hasPermission(''),
+                comp: BillExportComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+            ]
+          }
         ],
       },
       //#endregion

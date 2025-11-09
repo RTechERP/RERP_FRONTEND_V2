@@ -35,8 +35,4 @@ deleteFirm(ids: number[]): Observable<any> {
     }
     return this.http.get<any>(`${this.apiUrl}/check-code`, { params });
   }
-
-  deleteMultipleFirms(ids: number[]): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/delete-multiple`, ids);
-  }
 }

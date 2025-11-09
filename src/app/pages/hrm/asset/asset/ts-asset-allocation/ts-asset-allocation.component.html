@@ -1,6 +1,6 @@
-<ng-container class="w-100">
+<ng-container class="w-100" >
   <nz-splitter>
-    <nz-splitter-panel *ngIf="isSearchVisible" [nzSize]="'20%'" [nzResizable]="false">
+    <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
       <div class="card h-100 border-0 rounded-0">
         <!-- Header -->
         <div class="card-header bg-white p-1">
@@ -69,8 +69,8 @@
         </div>
       </div>
     </nz-splitter-panel>
-    <nz-splitter-panel [nzSize]="isSearchVisible ? '80%' : '100%'">
-      <div class="card  border-0 rounded-0">
+    <nz-splitter-panel nzDefaultSize="100%">
+      <div class="card h-100 border-0 rounded-0">
         <div class="card-header  bg-white p-1">
           <div class="d-flex h-40  gap-1">
             <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
@@ -122,11 +122,11 @@
                 <ul nz-menu>
                   <li nz-menu-item (click)="updateApprove(3)">
                     <img src="assets/icon/action_approved_16.png" />
-                    <span class="ms-1">Cá nhân duyệt</span>
+                    <span class="ms-1">HR duyệt</span>
                   </li>
                   <li nz-menu-item (click)="updateApprove(4)">
                     <img src="assets/icon/action_unapproved_16.png" />
-                    <span class="ms-1">Cá nhân hủy duyệt</span>
+                    <span class="ms-1">HR hủy duyệt</span>
                   </li>
 
                 </ul>
@@ -155,7 +155,7 @@
         </div>
 
         <nz-splitter>
-          <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
+          <nz-splitter-panel nzSize="" [nzCollapsible]="true" nzResizable="true">
             <!-- bảng master cấp phát -->
             <div #datatableAssetAllocation></div>
           </nz-splitter-panel>
@@ -170,7 +170,7 @@
             </ng-template>
             <nz-tabset style=" padding-left: 10px !important;" [nzTabBarExtraContent]="tabClose">
 
-              <nz-tab nzTitle="Thông tin sử dụng tài sản">
+              <nz-tab [nzTitle]="detailTabTitle">
                 <div #datatableAllocationDetail></div>
               </nz-tab>
             </nz-tabset>

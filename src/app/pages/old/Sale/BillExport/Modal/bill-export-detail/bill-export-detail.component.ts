@@ -22,7 +22,6 @@ import {
 } from '@angular/core';
 import { NgbActiveModal, NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import * as bootstrap from 'bootstrap';
 import { Observable, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
@@ -50,7 +49,8 @@ import { SelectControlComponent } from '../select-control/select-control.compone
 import { ProjectComponent } from '../../../../project/project.component';
 import { HistoryDeleteBillComponent } from '../history-delete-bill/history-delete-bill.component';
 import { BillImportServiceService } from '../../../BillImport/bill-import-service/bill-import-service.service';
-import { BillImportChoseSerialComponent } from '../bill-import-chose-serial/bill-import-chose-serial/bill-import-chose-serial.component';
+import { BillImportChoseSerialComponent } from '../../../../bill-import-technical/bill-import-chose-serial/bill-import-chose-serial.component';
+import { DEFAULT_TABLE_CONFIG } from '../../../../../../tabulator-default.config';
 
 interface ProductSale {
   Id?: number;
@@ -133,9 +133,9 @@ export class BillExportDetailComponent implements OnInit, AfterViewInit, OnDestr
   @Input() isCheckmode: any;
   @Input() selectedList: any[] = [];
   @Input() id: number = 0;
-  @Input()
-  wareHouseCode: string = 'HN';
 
+  @Input() wareHouseCode: string = 'HN  ';
+  
   cbbStatus: any = [
     { ID: 0, Name: 'Mượn' },
     { ID: 1, Name: 'Tồn Kho' },
@@ -537,7 +537,8 @@ export class BillExportDetailComponent implements OnInit, AfterViewInit, OnDestr
       }
       return;
     }
-    this.billExportService.getProductOption('HN', ID).subscribe({
+    // truyền đúng tham số theo BE: warehouseCode + productGroupID
+    this.billExportService.getOptionProduct('HN', ID).subscribe({
       next: (res: any) => {
         const productData = res.data;
         if (Array.isArray(productData)) {
@@ -580,8 +581,8 @@ export class BillExportDetailComponent implements OnInit, AfterViewInit, OnDestr
     this.billExportService.getNewCodeBillExport(this.newBillExport.Status).subscribe({
       next: (res: any) => {
         console.log('New code received:', res);
-        this.newBillExport.Code = res.data;
-        this.validateForm.patchValue({ Code: res.data });
+        this.newBillExport.Code = res?.data ?? '';
+        this.validateForm.patchValue({ Code: this.newBillExport.Code });
       },
       error: (err: any) => {
         console.error(err);
@@ -597,7 +598,7 @@ export class BillExportDetailComponent implements OnInit, AfterViewInit, OnDestr
   getDataCbbSupplierSale() {
     this.billExportService.getCbbSupplierSale().subscribe({
       next: (res: any) => {
-        this.dataCbbSupplier = res.data;
+        this.dataCbbSupplier = Array.isArray(res?.data) ? res.data : [];
       },
       error: (err: any) => {
         this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
@@ -608,7 +609,7 @@ export class BillExportDetailComponent implements OnInit, AfterViewInit, OnDestr
   getDataCbbUser() {
     this.billExportService.getCbbUser().subscribe({
       next: (res: any) => {
-        this.dataCbbUser = res.data;
+        this.dataCbbUser = Array.isArray(res?.data) ? res.data : [];
       },
       error: (err: any) => {
         this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
@@ -619,7 +620,7 @@ export class BillExportDetailComponent implements OnInit, AfterViewInit, OnDestr
   getDataCbbSender() {
     this.billExportService.getCbbSender().subscribe({
       next: (res: any) => {
-        this.dataCbbSender = res.data;
+        this.dataCbbSender = Array.isArray(res?.data) ? res.data : [];
       },
       error: (err: any) => {
         this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
@@ -641,8 +642,10 @@ export class BillExportDetailComponent implements OnInit, AfterViewInit, OnDestr
   getDataCbbCustomer() {
     this.billExportService.getCbbCustomer().subscribe({
       next: (res: any) => {
-        this.dataCbbCustomer = res.data;
-        console.log('d', this.dataCbbCustomer);
+        console.log('Raw response:', res);
+        
+        this.dataCbbCustomer = res.data.data;
+        console.log('dataCbbCustomer:', this.dataCbbCustomer);
       },
       error: () => {
         this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
@@ -683,7 +686,7 @@ export class BillExportDetailComponent implements OnInit, AfterViewInit, OnDestr
   getDataCbbProductGroup() {
     this.billExportService.getCbbProductGroup().subscribe({
       next: (res: any) => {
-        this.dataCbbProductGroup = res.data;
+        this.dataCbbProductGroup = Array.isArray(res?.data) ? res.data : [];
       },
       error: (err: any) => {
         this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
@@ -836,6 +839,18 @@ export class BillExportDetailComponent implements OnInit, AfterViewInit, OnDestr
         resizableRows: true,
         reactiveData: true,
         selectableRows: 1,
+        // ...DEFAULT_TABLE_CONFIG,
+          langs: {
+          vi: {
+            pagination: {
+              first: '<<',
+              last: '>>',
+              prev: '<',
+              next: '>',
+            },
+          },
+        },
+        locale: 'vi',
         columns: [
           {
             title: '',

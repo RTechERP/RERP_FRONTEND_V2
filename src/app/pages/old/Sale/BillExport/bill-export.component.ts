@@ -1,7 +1,6 @@
-import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, Input } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import * as bootstrap from 'bootstrap';
 
 import { CommonModule } from '@angular/common';
 import {
@@ -29,8 +28,6 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { BillExportService } from './bill-export-service/bill-export.service';
-import { IS_ADMIN } from '../../../../../app.config';
-import { DEPARTMENTID } from '../../../../../app.config';
 import { DateTime } from 'luxon';
 import { BillExportDetailComponent } from './Modal/bill-export-detail/bill-export-detail.component';
 import { HistoryDeleteBillComponent } from './Modal/history-delete-bill/history-delete-bill.component';
@@ -38,6 +35,7 @@ import { BillExportSyntheticComponent } from './Modal/bill-export-synthetic/bill
 import { ScanBillComponent } from './Modal/scan-bill/scan-bill.component';
 import { BillDocumentExportComponent } from './Modal/bill-document-export/bill-document-export.component';
 import { ActivatedRoute } from '@angular/router';
+import { AppUserService } from '../../../../services/app-user.service';
 interface BillExport {
   Id?: number;
   TypeBill: boolean;
@@ -83,7 +81,7 @@ interface BillExport {
   styleUrl: './bill-export.component.css',
 })
 export class BillExportComponent implements OnInit, AfterViewInit {
-  wareHouseCode: string = "HN";
+  @Input() warehouseCode: string = "HN";
   dataProductGroup: any[] = [];
   data: any[] = [];
   sizeSearch: string = '0';
@@ -146,14 +144,15 @@ export class BillExportComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private modal: NzModalService,
     private modalService: NgbModal,
-    private route: ActivatedRoute // hỡ trợ router
+    private route: ActivatedRoute // hỡ trợ router,
+    ,private appUserService: AppUserService
   ) { }
   ngOnInit(): void {
     // Đọc wareHouseCode từ query params
    // Đọc wareHouseCode từ query params
    this.route.queryParams.subscribe(params => {
-    this.wareHouseCode = params['wareHouseCode'] || '';
-    console.log('wareHouseCode in BillExportComponent:', this.wareHouseCode);
+    this.warehouseCode = params['warehouseCode'] || '';
+    console.log('warehouseCode in BillExportComponent:', this.warehouseCode);
   });
     this.getProductGroup();
   }
@@ -185,7 +184,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
     this.searchParams.listproductgroupID = selected.join(',');
   }
   getProductGroup() {
-    this.billExportService.getProductGroup(IS_ADMIN, DEPARTMENTID).subscribe({
+    this.billExportService.getProductGroup(this.appUserService.isAdmin, this.appUserService.departmentID||0).subscribe({
       next: (res) => {
         if (res?.data && Array.isArray(res.data)) {
           this.dataProductGroup = res.data;
@@ -365,7 +364,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.newBillExport = this.newBillExport;
     modalRef.componentInstance.isCheckmode = this.isCheckmode;
     modalRef.componentInstance.id = this.id;
-    modalRef.componentInstance.wareHouseCode = this.wareHouseCode;
+    modalRef.componentInstance.warehouseCode = this.warehouseCode;
 
     modalRef.result.catch((result) => {
       if (result == true) {
@@ -553,7 +552,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
       this.table_billExport = new Tabulator('#table_billExport', {
         data: this.dataTableBillExport,
         layout: 'fitDataFill',
-        height: '80vh',
+        height: '92vh',
         pagination: true,
         selectableRows: 1,
         movableColumns: true,
@@ -754,8 +753,8 @@ export class BillExportComponent implements OnInit, AfterViewInit {
     } else {
       this.table_billExportDetail = new Tabulator('#table_billexportdetail', {
         data: this.dataTableBillExportDetail,
-        layout: 'fitDataFill',
-        height: '80vh',
+        layout: 'fitDataStretch',
+        height: '92vh',
         pagination: true,
         movableColumns: true,
         resizableRows: true,
@@ -1008,7 +1007,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
       keyboard: false,
     });
-
+    modalRef.componentInstance.warehouseCode = this.warehouseCode;
     modalRef.result.catch((result) => {
       if (result == true) {
         // this.id=0;
@@ -1025,7 +1024,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
       keyboard: false,
     });
-
+    modalRef.componentInstance.warehouseCode = this.warehouseCode;  
     modalRef.result.catch((result) => {
       if (result == true) {
         this.id = 0;

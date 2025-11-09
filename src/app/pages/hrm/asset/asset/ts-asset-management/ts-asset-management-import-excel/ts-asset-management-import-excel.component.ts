@@ -23,6 +23,7 @@ import { TsAssetManagementPersonalService } from '../../../../../old/ts-asset-ma
 import { UnitService } from '../../ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
 import { TypeAssetsService } from '../../ts-asset-type/ts-asset-type-service/ts-asset-type.service';
 import { AssetsService } from '../../ts-asset-source/ts-asset-source-service/ts-asset-source.service';
+import { DEFAULT_TABLE_CONFIG } from '../../../../../../tabulator-default.config';
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   if (!val) return '';
@@ -174,13 +175,9 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       this.tableExcel = new Tabulator('#datatableExcel', {
         data: this.dataTableExcel,
         layout: 'fitDataFill',
-        height: '400px',
-        pagination: true,
-        paginationSize: 50,
-        movableColumns: true,
-        resizableRows: true,
-        reactiveData: true,
-        selectableRows: 10,
+    ...DEFAULT_TABLE_CONFIG,
+    height:'40vh',
+    paginationMode:'local',
         columns: [
           { title: 'STT', field: 'STT', hozAlign: 'center', width: 70 },
           { title: 'Mã tài sản', field: 'TSAssetCode', hozAlign: 'left' },
@@ -378,7 +375,7 @@ if (!isHeaderValid) {
   console.warn('Header không hợp lệ:', headers, normalizedHeaders);
   this.notification.error(
     'Thông báo',
-    'File Excel không đúng mẫu biên bản tài sản. Vui lòng kiểm tra lại tiêu đề các cột.'
+    'File Excel không đúng mẫu biên bản tài sản. Vui lòng tải xuống mẫu xuất để có mẫu nhập excel.'
   );
   this.resetExcelImportState();
   return;
@@ -502,130 +499,138 @@ if (!isHeaderValid) {
       }
     }
   }
-  async saveExcelData() {
-    if (!this.dataTableExcel || this.dataTableExcel.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu để lưu!');
-      return;
-    }
+ async saveExcelData() {
+  if (!this.dataTableExcel || this.dataTableExcel.length === 0) {
+    this.notification.warning('Thông báo', 'Không có dữ liệu để lưu!');
+    return;
+  }
 
-    const validDataToSave = this.dataTableExcel.filter(row => {
-      const stt = row.STT;
-      return typeof stt === 'number'
-        || (typeof stt === 'string' && !isNaN(parseFloat(stt)) && isFinite(parseFloat(stt)));
-    });
+  const validDataToSave = this.dataTableExcel.filter(row => {
+    const stt = row.STT;
+    return typeof stt === 'number'
+      || (typeof stt === 'string' && !isNaN(parseFloat(stt)) && isFinite(parseFloat(stt)));
+  });
 
-    if (validDataToSave.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu hợp lệ (STT là số) để lưu!');
-      this.displayProgress = 0;
-      this.displayText = `0/${this.totalRowsAfterFileRead} bản ghi`;
-      return;
-    }
-
-    this.processedRowsForSave = 0;
-    const totalAssetsToSave = validDataToSave.length;
-    this.displayText = `Đang lưu: 0/${totalAssetsToSave} bản ghi`;
+  if (validDataToSave.length === 0) {
+    this.notification.warning('Thông báo', 'Không có dữ liệu hợp lệ (STT là số) để lưu!');
     this.displayProgress = 0;
+    this.displayText = `0/${this.totalRowsAfterFileRead} bản ghi`;
+    return;
+  }
 
-    let assetsDataToSave: any[] = [];
+  const totalAssetsToSave = validDataToSave.length;
 
-    try {
-      assetsDataToSave = validDataToSave.map(row => {
-        return {
-          tSAssetManagements: [{
-            ID: 0,
-            STT: row.STT,
-            TSAssetCode: row.TSAssetCode || '',
-            TSAssetName: row.TSAssetName || '',
-            IsAllocation: false,
-            UnitID: this.getUnitIdByName(row.UnitName),
-            Seri: row.Seri || '',
-            SpecificationsAsset: row.SpecificationsAsset || '',
-            DateBuy: formatDate(row.DateBuy),
-            DateEffect: formatDate(row.DateEffect),
-            Insurance: row.Insurance || 0,
-            TSCodeNCC: row.TSCodeNCC || '',
-            OfficeActiveStatus: 0,
-            WindowActiveStatus: 0,
-            Note: row.Note || '',
-            StatusID: 1,
-            SourceID: this.getSourceIdByName(row.SourceCode),
-            TSAssetID: this.getTypeIdByName(row.AssetType),
-            Status: 'Chưa sử dụng',
-            // LƯU Ý: cột trong dataTableExcel là EmployeeName, DepartmentName
-            EmployeeID: this.getEmployeeIDByName(row.EmployeeName),
-            SupplierID: 0,
-            DepartmentID: this.getDepartmentIDByName(row.DepartmentName),
-          }]
-        };
-      });
-    } catch (e) {
-      console.error('Lỗi khi map dữ liệu từ Excel sang payload API:', e, validDataToSave);
-      this.notification.error('Thông báo', 'Lỗi khi lưu dữ liệu.');
-      return;
-    }
+  // cập nhật progress bar
+  this.displayProgress = 10;
+  this.displayText = `Đang chuẩn bị dữ liệu: ${totalAssetsToSave} bản ghi`;
 
-    let successCount = 0;
-    let errorCount = 0;
-    let completedRequests = 0;
+  // notification tiến trình (1 cái duy nhất, update theo nzKey)
+  const notifKey = 'asset-import-progress';
+  this.notification.info(
+    'Đang lưu dữ liệu',
+    `Đang gửi ${totalAssetsToSave} bản ghi lên server...`,
+    { nzKey: notifKey, nzDuration: 0 }
+  );
 
-    const saveAssetWithDelay = (index: number) => {
-      if (index >= assetsDataToSave.length) {
-        this.showSaveSummary(successCount, errorCount, totalAssetsToSave);
-        return;
+  let payload: any;
+  try {
+    payload = {
+      tSAssetManagements: validDataToSave.map(row => ({
+        ID: 0,
+        STT: row.STT,
+        TSAssetCode: row.TSAssetCode || '',
+        TSAssetName: row.TSAssetName || '',
+        IsAllocation: false,
+        UnitID: this.getUnitIdByName(row.UnitName),
+        Seri: row.Seri || '',
+        SpecificationsAsset: row.SpecificationsAsset || '',
+        DateBuy: formatDate(row.DateBuy),
+        DateEffect: formatDate(row.DateEffect),
+        Insurance: row.Insurance || 0,
+        TSCodeNCC: row.TSCodeNCC || '',
+        OfficeActiveStatus: 0,
+        WindowActiveStatus: 0,
+        Note: row.Note || '',
+        StatusID: 1,
+        SourceID: this.getSourceIdByName(row.SourceCode),
+        TSAssetID: this.getTypeIdByName(row.AssetType),
+        Status: 'Chưa sử dụng',
+        EmployeeID: this.getEmployeeIDByName(row.EmployeeName),
+        SupplierID: 0,
+        DepartmentID: this.getDepartmentIDByName(row.DepartmentName),
+      }))
+    };
+  } catch (e) {
+    console.error('Lỗi khi map dữ liệu từ Excel sang payload API:', e, validDataToSave);
+    this.notification.error('Thông báo', 'Lỗi khi chuẩn bị dữ liệu để lưu.');
+    return;
+  }
+
+  // gửi 1 lần duy nhất
+  this.displayProgress = 30;
+  this.displayText = `Đang gửi ${totalAssetsToSave} bản ghi...`;
+
+  this.assetsManagementService.saveDataAsset(payload).subscribe({
+    next: (response: any) => {
+      // giả sử backend: status = 1 là ok, còn lại là lỗi
+      let successCount = 0;
+      let errorCount = 0;
+
+      if (response?.status === 1) {
+        successCount = totalAssetsToSave;
+        errorCount = 0;
+      } else {
+        successCount = 0;
+        errorCount = totalAssetsToSave;
       }
 
-      const asset = assetsDataToSave[index];
+      this.displayProgress = 100;
+      this.displayText = `Đã xử lý ${totalAssetsToSave}/${totalAssetsToSave} bản ghi`;
 
-      setTimeout(() => {
-        this.assetsManagementService.saveDataAsset(asset).subscribe({
-          next: (response: any) => {
-            // Trường hợp backend trả 200 nhưng status != 1 coi như lỗi nghiệp vụ
-            if (response?.status === 1) {
-              successCount++;
-            } else {
-              errorCount++;
-              const msg =
-                response?.message ||
-                response?.error?.message ||
-                `Lỗi khi lưu tài sản STT ${asset.tSAssetManagements[0]?.STT ?? index + 1}`;
-              console.error(`Lỗi khi lưu tài sản ${index + 1}:`, msg, response);
-            }
+      this.notification.remove(notifKey);
 
-            completedRequests++;
-            this.displayProgress = Math.round((completedRequests / totalAssetsToSave) * 100);
-            this.displayText = `Đang lưu: ${completedRequests}/${totalAssetsToSave} bản ghi`;
+      if (response?.status === 1) {
+        this.notification.success(
+          'Thông báo',
+          `Đã lưu ${successCount}/${totalAssetsToSave} bản ghi thành công`
+        );
+      } else {
+        const backendMsg =
+          response?.message ||
+          response?.error?.message ||
+          'Lưu dữ liệu thất bại.';
 
-            saveAssetWithDelay(index + 1);
-          },
-          error: (err: any) => {
-            errorCount++;
+        this.notification.error(
+          'Thông báo',
+          `${backendMsg} (thất bại ${errorCount}/${totalAssetsToSave} bản ghi)`
+        );
+      }
 
-            const backendMsg =
-              err?.error?.message ||   // message backend tự trả về
-              err?.error?.title ||     // một số lỗi ASP.NET để ở title
-              err?.message ||          // message của HttpErrorResponse
-              `Lỗi khi lưu tài sản STT ${asset.tSAssetManagements[0]?.STT ?? index + 1}`;
+      // nếu muốn vẫn đóng modal sau khi lưu xong:
+      this.closeExcelModal();
+    },
+    error: (err: any) => {
+      console.error('Lỗi API khi lưu danh sách tài sản:', err);
 
-            console.error(
-              `Lỗi API khi lưu tài sản ${index + 1}:`,
-              backendMsg,
-              err
-            );
+      const backendMsg =
+        err?.error?.message ||
+        err?.error?.title ||
+        err?.message ||
+        'Lưu dữ liệu thất bại.';  
 
-            // >>> HIỂN THỊ LÊN NOTIFICATION Ở ĐÂY <<<
-            this.notification.error('Thông báo', backendMsg);
+      this.displayProgress = 100;
+      this.displayText = `Lỗi khi lưu ${totalAssetsToSave} bản ghi`;
 
-            completedRequests++;
-            this.displayProgress = Math.round((completedRequests / totalAssetsToSave) * 100);
-            this.displayText = `Đang lưu: ${completedRequests}/${totalAssetsToSave} bản ghi`;
-
-            saveAssetWithDelay(index + 1);
-          }
-        });
-      }, 5);
-    };
-    saveAssetWithDelay(0);
-  }
+      this.notification.remove(notifKey);
+      this.notification.error(
+        'Thông báo',
+        `${backendMsg} (thất bại ${totalAssetsToSave}/${totalAssetsToSave} bản ghi)`
+      );
+      // tùy mày: có thể KHÔNG đóng modal để xem lại dữ liệu
+      // this.closeExcelModal();
+    }
+  });
+}
 
   showSaveSummary(successCount: number, errorCount: number, totalProducts: number) {
     console.log('--- Hiển thị tóm tắt kết quả lưu ---');

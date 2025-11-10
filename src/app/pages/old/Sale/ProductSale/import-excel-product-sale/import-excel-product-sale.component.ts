@@ -52,6 +52,11 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
   totalRowsAfterFileRead: number = 0; // Tổng số dòng dữ liệu hợp lệ sau khi đọc file
   processedRowsForSave: number = 0; // Số dòng đã được xử lý khi lưu vào DB
 
+  // Chặn đóng modal khi đang xử lý
+  isReadingFile: boolean = false;
+  isSavingData: boolean = false;
+  get isBusy(): boolean { return this.isReadingFile || this.isSavingData; }
+
   constructor(
     private notification: NzNotificationService,
     private modalService: NgbModal,
@@ -338,6 +343,22 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
         }
     }
   }
+  downloadTemplate() {
+  this.productsaleService.getTemplateExcel().subscribe({
+    next: (blob: Blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'MAU-VT-Sale.xlsx';
+      a.click();
+      window.URL.revokeObjectURL(url);
+    },
+    error: (err) => {
+      console.error('Lỗi tải template Excel:', err);
+    }
+  });
+}
+
   saveExcelData() {
 
     if (!this.dataTableExcel || this.dataTableExcel.length === 0) {
@@ -427,8 +448,8 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
 
         if (processedData.length === 0) {
           this.notification.info('Thông báo', 'Không có sản phẩm hợp lệ để tiến hành lưu.');
+          this.isSavingData = false;
           this.closeExcelModal();
-          console.log('Không có sản phẩm nào để lưu sau xử lý map.');
           return;
         }
 
@@ -586,6 +607,11 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
   }
 
   closeExcelModal() {
+    // Chặn đóng khi đang đọc/lưu
+    if (this.isBusy) {
+      this.notification.warning('Thông báo', 'Đang nhập dữ liệu, vui lòng đợi hoàn tất!');
+      return;
+    }
     this.modalService.dismissAll(true);
   }
 }

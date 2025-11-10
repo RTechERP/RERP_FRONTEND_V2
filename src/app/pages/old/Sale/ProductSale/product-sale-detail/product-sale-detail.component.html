@@ -10,7 +10,7 @@
             <nz-form-label class="fs-12">Mã kho<span class="text-danger ps-1 me-1"> * </span></nz-form-label>
             <nz-form-control [nzSpan]="24" [nzErrorTip]="formGroup.get('ProductGroupID')?.invalid && (formGroup.get('ProductGroupID')?.dirty || formGroup.get('ProductGroupID')?.touched)
             ? 'Vui lòng chọn kho!'
-            : undefined">
+            : ''">
               <nz-input-group required nzSearch nzSize="default" class="w-100">
                 <nz-select
                   formControlName="ProductGroupID"
@@ -43,7 +43,7 @@
             </button> 
             <nz-form-control [nzSpan]="24" [nzErrorTip]="formGroup.get('Unit')?.invalid && (formGroup.get('Unit')?.dirty || formGroup.get('Unit')?.touched)
             ? 'Vui lòng chọn đơn vị!'
-            : undefined">
+            : ''">
               <nz-input-group required  nzSearch nzSize="default" class="w-100">
                 <nz-select
                   formControlName="Unit"
@@ -88,7 +88,7 @@
             <nz-form-label class="fs-12">Tên thiết bị<span class="text-danger ps-1 me-1"> * </span></nz-form-label>
             <nz-form-control [nzErrorTip]="formGroup.get('ProductName')?.invalid && (formGroup.get('ProductName')?.dirty || formGroup.get('ProductName')?.touched)
             ? 'Vui lòng nhập tên thiết bị!'
-            : undefined">
+            : ''">
                 <input nz-input formControlName="ProductName" placeholder="Vui lòng nhập tên thiết bị"  />
             </nz-form-control>
           </div>
@@ -107,7 +107,7 @@
                             </button>
             <nz-form-control [nzSpan]="24" [nzErrorTip]="formGroup.get('LocationID')?.invalid && (formGroup.get('LocationID')?.dirty || formGroup.get('LocationID')?.touched)
             ? 'Vui lòng chọn vị trí!'
-            : undefined">
+            : ''">
               <nz-input-group required nzSearch nzSize="default" class="w-100" >
                 <nz-select
                   formControlName="LocationID"
@@ -166,7 +166,9 @@
         <div class="row">
           <div class="col-md-12">
               <nz-form-label class="fs-12">Ghi chú</nz-form-label>
-              <nz-form-control>
+              <nz-form-control [nzErrorTip]="formGroup.get('Note')?.invalid && (formGroup.get('Note')?.dirty || formGroup.get('Note')?.touched)
+            ? 'Ghí chú không quá 500 kí tự!'
+            : ''">
                   <textarea nz-input placeholder="Ghi chú" formControlName="Note"></textarea>
               </nz-form-control>      
         </div>

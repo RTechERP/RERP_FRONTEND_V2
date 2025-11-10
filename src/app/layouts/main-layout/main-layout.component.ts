@@ -23,7 +23,7 @@ import { ProjectComponent } from '../../pages/old/project/project.component';
 // import { EmployeePayrollComponent } from '../../pages/hrm/employee/employee-payroll/employee-payroll/employee-payroll.component';
 // import { CustomerComponent } from '../../pages/customer/customer.component';
 import { TbProductRtcComponent } from '../../pages/old/tb-product-rtc/tb-product-rtc.component';
-import { CustomerComponent } from '../../pages/old/VisionBase/customer/customer.component';
+import { CustomerComponent } from '../../pages/crm/customers/customer/customer.component';
 // import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
 
 

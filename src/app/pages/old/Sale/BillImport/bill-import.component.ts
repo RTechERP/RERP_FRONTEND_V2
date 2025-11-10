@@ -29,8 +29,7 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { BillImportServiceService } from './bill-import-service/bill-import-service.service';
-import { IS_ADMIN } from '../../../../app.config';
-import { DEPARTMENTID } from '../../../../app.config';
+import { AppUserService } from '../../../../services/app-user.service';
 import { DateTime } from 'luxon';
 import { HistoryDeleteBillComponent } from '../BillExport/Modal/history-delete-bill/history-delete-bill.component';
 import { BillImportDetailComponent } from './Modal/bill-import-detail/bill-import-detail.component';
@@ -86,7 +85,8 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     private billImportService: BillImportServiceService,
     private notification: NzNotificationService,
     private modal: NzModalService,
-    private modalService: NgbModal
+    private modalService: NgbModal,
+    private appUserService: AppUserService
   ) {}
 
   newBillImport: BillImport = {
@@ -210,7 +210,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     this.searchParams.listproductgroupID = selected.join(',');
   }
   getProductGroup() {
-    this.billImportService.getProductGroup(IS_ADMIN, DEPARTMENTID).subscribe({
+    this.billImportService.getProductGroup(this.appUserService.isAdmin,this.appUserService.departmentID??0).subscribe({
       next: (res) => {
         if (res?.data && Array.isArray(res.data)) {
           this.dataProductGroup = res.data;
@@ -341,20 +341,13 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     const dateEnd = DateTime.fromJSDate(new Date(this.searchParams.dateEnd));
     this.billImportService
       .getBillImport(
-        this.searchParams.listproductgroupID,
-        this.searchParams.status,
-        dateStart,
-        dateEnd,
-        this.searchParams.keyword,
-        this.checked,
-        this.searchParams.pageNumber,
-        this.searchParams.pageSize,
-        this.searchParams.warehousecode
+        this.searchParams
       )
       .subscribe({
         next: (res) => {
           if (res.status === 1) {
             this.dataTableBillImport = res.data;
+            console.log('>>> Kết quả getBillImport:', res.data);
             if (this.table_billImport) {
               this.table_billImport.replaceData(this.dataTableBillImport);
             } else {
@@ -599,6 +592,16 @@ export class BillImportComponent implements OnInit, AfterViewInit {
       },
     });
   }
+openFolderTree(){
+
+}
+
+deleteAttachment(){
+
+}
+addAttachment(){
+
+}
   //vẽ bảng
   drawTable() {
     const rowMenu = [
@@ -666,8 +669,8 @@ export class BillImportComponent implements OnInit, AfterViewInit {
       this.table_billImport = new Tabulator('#table_billImport', {
         ...DEFAULT_TABLE_CONFIG,
         data: this.dataTableBillImport,
+        height: '90vh',
         layout: 'fitDataFill',
-        height: '80vh',
         pagination: true,
         selectableRows: 1,
         movableColumns: true,
@@ -689,7 +692,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
             headerMenu: headerMenu,
           },
           {
-            title: 'Ngày nhận',
+            title: 'Ngày nhận / Hủy',
             field: 'DateStatus',
             hozAlign: 'center',
             headerHozAlign: 'center',
@@ -793,6 +796,268 @@ export class BillImportComponent implements OnInit, AfterViewInit {
             headerHozAlign: 'center',
             headerMenu: headerMenu,
           },
+
+          // ====== Bổ sung đầy đủ các cột yêu cầu ======
+          {
+            title: 'TotalPage',
+            field: 'TotalPage',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+            visible: false,
+            headerMenu: headerMenu,
+          },
+          {
+            title: 'RowNum',
+            field: 'RowNum',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+            visible: false,
+            headerMenu: headerMenu,
+          },
+          {
+            title: 'ID',
+            field: 'ID',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+            visible: false,
+            headerMenu: headerMenu,
+          },
+          {
+            title: 'BillType',
+            field: 'BillType',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+            visible: false,
+            headerMenu: headerMenu,
+          },
+          {
+            title: 'GroupID',
+            field: 'GroupID',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+            visible: false,
+            headerMenu: headerMenu,
+          },
+          {
+            title: 'SupplierID',
+            field: 'SupplierID',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+            visible: false,
+            headerMenu: headerMenu,
+          },
+          {
+            title: 'Người giao / Người trả',
+            field: 'DeliverID',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+            visible: false,
+            headerMenu: headerMenu,
+          },
+          {
+            title: 'ReciverID',
+            field: 'ReciverID',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+            visible: false,
+            headerMenu: headerMenu,
+          },
+          {
+            title:'Người giao',
+            field:'FullNameSender',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            headerMenu: headerMenu,
+          },
+          {
+            title: 'KhoTypeID',
+            field: 'KhoTypeID',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+            visible: false,
+            headerMenu: headerMenu,
+          },
+          {
+            title: 'Ngày tạo',
+            field: 'CreatedDate',
+            hozAlign: 'center',
+            headerHozAlign: 'center',
+            formatter: (cell) => {
+              const v = cell.getValue();
+              return v ? DateTime.fromISO(v).isValid ? DateTime.fromISO(v).toFormat('dd/MM/yyyy HH:mm') : (DateTime.fromSQL(v).isValid ? DateTime.fromSQL(v).toFormat('dd/MM/yyyy HH:mm') : v) : '';
+            },
+            headerMenu: headerMenu,
+          },
+          {
+            title: 'UpdatedDate',
+            field: 'UpdatedDate',
+            hozAlign: 'center',
+            headerHozAlign: 'center',
+            visible: false,
+            formatter: (cell) => {
+              const v = cell.getValue();
+              return v ? DateTime.fromISO(v).isValid ? DateTime.fromISO(v).toFormat('dd/MM/yyyy HH:mm') : (DateTime.fromSQL(v).isValid ? DateTime.fromSQL(v).toFormat('dd/MM/yyyy HH:mm') : v) : '';
+            },
+            headerMenu: headerMenu,
+          },
+          {
+            title:'Người tạo',
+            field: 'CreatedBy',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            headerMenu: headerMenu,
+          },
+          {
+            title: 'UpdatedBy',
+            field: 'UpdatedBy',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            visible: false,
+            headerMenu: headerMenu,
+          },
+          {
+            title: 'UnApprove',
+            field: 'UnApprove',
+            hozAlign: 'center',
+            headerHozAlign: 'center',
+            visible: false,
+            formatter: (cell) => {
+              const v = cell.getValue();
+              return `<input type="checkbox" ${v ? 'checked' : ''} disabled />`;
+            },
+            headerMenu: headerMenu,
+          },
+          {
+            title: 'PTNB',
+            field: 'PTNB',
+            hozAlign: 'center',
+            headerHozAlign: 'center',
+            formatter: (cell) => {
+              const v = cell.getValue();
+              return `<input type="checkbox" ${v ? 'checked' : ''} disabled />`;
+            },
+            visible: false,
+            headerMenu: headerMenu,
+          },
+          {
+            title: 'WarehouseID',
+            field: 'WarehouseID',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+            visible: false,
+            headerMenu: headerMenu,
+          },
+          {
+            title: 'BillTypeNew',
+            field: 'BillTypeNew',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+            visible: false,
+            headerMenu: headerMenu,
+          },
+          {
+            title: 'BillDocumentImportType',
+            field: 'BillDocumentImportType',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+            visible: false,
+            headerMenu: headerMenu,
+          },
+          // DateRequestImport đã có ở trên
+          {
+            title: 'RulePayID',
+            field: 'RulePayID',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+            visible: false,
+            headerMenu: headerMenu,
+          },
+          {
+            title: 'IsDeleted',
+            field: 'IsDeleted',
+            hozAlign: 'center',
+            headerHozAlign: 'center',
+            visible: false,
+            formatter: (cell) => {
+              const v = cell.getValue();
+              return `<input type="checkbox" ${v ? 'checked' : ''} disabled />`;
+            },
+            headerMenu: headerMenu,
+          },
+          {
+            title: 'BillExportID',
+            field: 'BillExportID',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+            visible: false,
+            headerMenu: headerMenu,
+          },
+          {
+            title: 'StatusDocumentImport',
+            field: 'StatusDocumentImport',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+            visible: false,
+            headerMenu: headerMenu,
+          },
+          // BillTypeText đã có ở trên
+          // Code đã có ở trên
+          // DepartmentName đã có ở trên
+          {
+            title: 'Overdue QC',
+            field: 'Overdue',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            visible: false,
+            headerMenu: headerMenu,
+          },
+          {
+            title: 'Tình trạng hồ sơ',
+            field: 'IsSuccessText',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            headerMenu: headerMenu,
+          },
+          {
+            title: 'Người nhận / Hủy CT',
+            field: 'DoccumentReceiver',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            headerMenu: headerMenu,
+          },
+          {
+            title: 'DoccumentReceiverID',
+            field: 'DoccumentReceiverID',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+            visible: false,
+            headerMenu: headerMenu,
+          },
+          {
+            title: 'CurrencyList',
+            field: 'CurrencyList',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            visible: false,
+            headerMenu: headerMenu,
+          },
+          {
+            title: 'VAT',
+            field: 'VAT',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+            visible: false,
+            headerMenu: headerMenu,
+          },
+          {
+            title: 'PONCCCodeList',
+            field: 'PONCCCodeList',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            visible: false,
+            headerMenu: headerMenu,
+          },
+          // ====== Hết phần bổ sung ======
         ],
       });
 
@@ -823,7 +1088,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
         ...DEFAULT_TABLE_CONFIG,
         data: this.dataTableBillImportDetail,
         layout: 'fitDataFill',
-        height: '80vh',
+        height: '90vh',
         pagination: true,
         movableColumns: true,
         resizableRows: true,

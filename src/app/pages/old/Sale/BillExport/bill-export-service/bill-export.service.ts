@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { DateTime } from 'luxon';
 import { environment } from '../../../../../../environments/environment';
@@ -10,13 +10,12 @@ import { environment } from '../../../../../../environments/environment';
 export class BillExportService {
   constructor(private http: HttpClient) {}
 
-  getProductGroup(isadmin: boolean, deparmentID: number): Observable<any> {
-    const params: any = {
+  getProductGroup(isadmin: boolean, departmentID: number): Observable<any> {
+    const params = {
       isAdmin: isadmin.toString(),
-      deparmentID: deparmentID.toString(),
+      departmentID: departmentID.toString(), // đúng tên param theo BE
     };
-
-    return this.http.get(environment.host + `api/BillExport`, params);
+    return this.http.get(`${environment.host}api/BillExport`, { params });
   }
   getBillExport(
     khoType: any,
@@ -66,21 +65,23 @@ export class BillExportService {
   getCbbSender() {
     return this.http.get(environment.host + `api/users/cbb-sender`);
   }
-  getCbbCustomer() {
-    const params: any = {
-      groupId: '0',
-      employeeId: '0',
-      filterText: '',
-      pageNumber: '1',
-      pageSize: '10000',
-    };
-    return this.http.get(environment.host + `api/customer`, { params });
-  }
+    getCbbCustomer() {
+  const paramsCB = {
+    groupId: '0',
+    employeeId: '0',
+    filterText: '',
+    page: '1',
+    size: '100000', // chú ý: backend nhận 'page' và 'size' chứ không phải 'pageNumber'/'pageSize'
+  };
+
+  return this.http.get(`${environment.host}api/customer/get-data-by-procedure`, { params: paramsCB });
+}
+
   getCbbAddressStock(id: number) {
-    const params: any = { customerID: id };
+    const params: any = { customerID: id.toString() };
     return this.http.get(
-      environment.host + `api/addressstock/get-by-customerid`,
-      params
+      `${environment.host}api/addressstock/get-by-customerid`,
+      { params }
     );
   }
   getCbbSupplierSale() {
@@ -96,7 +97,8 @@ export class BillExportService {
   }
   getNewCodeBillExport(billType: number) {
     return this.http.get<any>(
-      environment.host + `api/billexport/get-bill-code?billTypeId=${billType}`
+      `${environment.host}api/billexport/get-bill-code`,
+      { params: { billTypeId: billType.toString() } }
     );
   }
   getOptionProject() {
@@ -145,9 +147,15 @@ export class BillExportService {
       params
     );
   }
-  getOptionProduct(id: number) {
+  getOptionProduct(warehouseCode: string, productGroupID: number) {
+    const code = (warehouseCode ?? '').trim() || 'HN';
+    const params = new HttpParams()
+      .set('warehouseCode', code)
+      .set('productGroupID', String(productGroupID ?? 0));
+
     return this.http.get<any>(
-      environment.host + `api/billexport/get-product?id=${id}`
+      environment.host + 'api/billexport/get-product',
+      { params }
     );
   }
   export(id: number, type: number): Observable<Blob> {

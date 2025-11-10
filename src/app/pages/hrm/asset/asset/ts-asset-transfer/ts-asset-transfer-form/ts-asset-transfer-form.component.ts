@@ -6,7 +6,9 @@ import {
   Output,
   EventEmitter,
   inject,
-  AfterViewInit
+  AfterViewInit,
+  ViewChild,
+  ElementRef
 } from '@angular/core';
 import { DateTime } from 'luxon';
 import { CommonModule } from '@angular/common';
@@ -55,12 +57,15 @@ import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 export class TsAssetTransferFormComponent implements OnInit {
   @Input() dataInput: any;
   modalData: any = [];
+  @ViewChild('assetTranferTable', { static: false })
+  assetTranferTableRef!: ElementRef;
   private ngbModal = inject(NgbModal);
   @Output() closeModal = new EventEmitter<void>();
   @Output() formSubmitted = new EventEmitter<void>();
   constructor(private notification: NzNotificationService) { }
   public activeModal = inject(NgbActiveModal);
   assetTranferData: any[] = [];
+  private isViewInitialized = false;
   assetTranferDetailData: any[] = [];
   assetTranferDetailTable: Tabulator | null = null;
   emPloyeeLists: any[] = [];
@@ -70,12 +75,17 @@ export class TsAssetTransferFormComponent implements OnInit {
     this.dataInput.TranferDate = this.dataInput.TranferDate
       ? this.formatDateForInput(this.dataInput.TranferDate)
       : DateTime.now().toISODate();
-    console.log(this.dataInput.TranferDate);
-    console.log('dataInput nhận được:', this.dataInput);
+
     this.getTranferAsset();
     this.getAssetTranferDetail();
     this.getTranferCode();
     this.getListEmployee();
+  }
+
+  ngAfterViewInit(): void {
+    this.isViewInitialized = true;
+    // nếu data đã về rồi thì vẽ luôn
+    this.drawDetail();
   }
   getTranferAsset() {
     const request = {
@@ -108,42 +118,50 @@ export class TsAssetTransferFormComponent implements OnInit {
     });
   }
   private drawDetail(): void {
+    if (!this.isViewInitialized || !this.assetTranferTableRef) {
+      return;
+    }
+
     if (this.assetTranferDetailTable) {
       this.assetTranferDetailTable.setData(this.assetTranferDetailData);
     } else {
-      this.assetTranferDetailTable = new Tabulator('#dataAssetTranferDetail1', {
-        data: this.assetTranferDetailData,
-        layout: "fitDataStretch",
-        paginationSize: 5,
-        height: '23vh',
-        movableColumns: true,
-        reactiveData: true,
-        columns: [
-          { title: 'AssetManagementID', field: 'AssetManagementID', hozAlign: 'center', width: 60, visible:false },
-          { title: 'TSTranferAssetID', field: 'TSTranferAssetID', hozAlign: 'center', width: 60 , visible:false},
-          { title: 'ID', field: 'ID', hozAlign: 'center', width: 60, visible:false },
-          {title: 'STT',hozAlign: 'center',width: 60,formatter: "rownum"},
-          { title: 'Mã tài sản', field: 'TSCodeNCC' },
-          { title: 'Số lượng', field: 'Quantity', hozAlign: 'center' },
-          { title: 'Tên tài sản', field: 'TSAssetName' },
-          { title: 'Đơn vị', field: 'UnitName', hozAlign: 'center' },
-          { title: 'Ghi chú', field: 'Note' }
-        ]
-      });
+      this.assetTranferDetailTable = new Tabulator(
+        this.assetTranferTableRef.nativeElement,
+        {
+          data: this.assetTranferDetailData,
+          layout: 'fitDataStretch',
+          paginationSize: 5,
+          height: '23vh',
+          movableColumns: true,
+          reactiveData: true,
+          columns: [
+            { title: 'AssetManagementID', field: 'AssetManagementID', hozAlign: 'center', width: 60, visible: false },
+            { title: 'TSTranferAssetID', field: 'TSTranferAssetID', hozAlign: 'center', width: 60, visible: false },
+            { title: 'ID', field: 'ID', hozAlign: 'center', width: 60, visible: false },
+            { title: 'STT', hozAlign: 'center', width: 60, formatter: 'rownum' },
+            { title: 'Mã tài sản', field: 'TSCodeNCC' },
+            { title: 'Số lượng', field: 'Quantity', hozAlign: 'center' },
+            { title: 'Tên tài sản', field: 'TSAssetName' },
+            { title: 'Đơn vị', field: 'UnitName', hozAlign: 'center' },
+            { title: 'Ghi chú', field: 'Note' }
+          ]
+        }
+      );
     }
   }
+
   close() {
     this.closeModal.emit();
     this.activeModal.dismiss('cancel');
   }
   getListEmployee() {
-     const request = {
+    const request = {
       status: 0,
       departmentid: 0,
       keyword: ''
     };
     this.assetManagementPersonalService.getEmployee(request).subscribe((respon: any) => {
-      this.emPloyeeLists = respon.employees;
+      this.emPloyeeLists = respon.data;
       console.log(this.emPloyeeLists);
       if (this.dataInput?.EmployeeReturnID) {
         this.onEmployeeDeliverChange(this.dataInput.EmployeeReturnID);
@@ -159,9 +177,9 @@ export class TsAssetTransferFormComponent implements OnInit {
       this.dataInput.DeliverID = emp.ID;
       this.dataInput.DepartmentDeliver = emp.DepartmentName;;
       this.dataInput.PossitionDeliver = emp.ChucVuHD;
-      this.dataInput.FromChucVuID=emp.ChucVuHDID;
-      this.dataInput.FromDepartmentID=emp.DepartmentID;
-  
+      this.dataInput.FromChucVuID = emp.ChucVuHDID;
+      this.dataInput.FromDepartmentID = emp.DepartmentID;
+
     }
   }
   onEmployeeReceiverChange(id: number): void {
@@ -170,8 +188,8 @@ export class TsAssetTransferFormComponent implements OnInit {
       this.dataInput.ReceiverID = emp.ID;
       this.dataInput.DepartmentReceiver = emp.DepartmentName;
       this.dataInput.PossitionReceiver = emp.ChucVuHD;
-      this.dataInput.ToChucVuID=emp.ChucVuHDID;
-      this.dataInput.ToDepartmentID=emp.DepartmentID;
+      this.dataInput.ToChucVuID = emp.ChucVuHDID;
+      this.dataInput.ToDepartmentID = emp.DepartmentID;
     }
   }
   getTranferCode() {
@@ -195,7 +213,7 @@ export class TsAssetTransferFormComponent implements OnInit {
     });
     modalRef.componentInstance.dataInput1 = {
       DeliverID: this.dataInput.DeliverID,
-      ReceiverID:this.dataInput.ReceiverID,
+      ReceiverID: this.dataInput.ReceiverID,
       TranferID: this.dataInput.ID
     };
     modalRef.componentInstance.formSubmitted.subscribe((selectedAssets: any[]) => {
@@ -209,29 +227,28 @@ export class TsAssetTransferFormComponent implements OnInit {
       console.log('Modal dismissed');
     });
   }
-  saveTranfer()
-  {
-      if (!this.assetTranferDetailTable) {
+  saveTranfer() {
+    if (!this.assetTranferDetailTable) {
       console.warn('assetTable chưa được khởi tạo!');
       return;
     }
-     const selectedAssets = this.assetTranferDetailTable.getData();
-         const payloadTransfer = {
+    const selectedAssets = this.assetTranferDetailTable.getData();
+    const payloadTransfer = {
       tSTranferAsset: {
         ID: this.dataInput.ID || 0,
-        AssetManagementID:0,
+        AssetManagementID: 0,
         CodeReport: this.dataInput.CodeReport,
         TranferDate: this.dataInput.TranferDate,
         DeliverID: this.dataInput.DeliverID,
         ReceiverID: this.dataInput.ReceiverID,
-        FromDepartmentID:this.dataInput.FromDepartmentID,
-        ToDepartmentID:this.dataInput.ToDepartmentID,
-        FromChucVuID:this.dataInput.FromChucVuID,
-        ToChucVuID:this.dataInput.ToChucVuID,
+        FromDepartmentID: this.dataInput.FromDepartmentID,
+        ToDepartmentID: this.dataInput.ToDepartmentID,
+        FromChucVuID: this.dataInput.FromChucVuID,
+        ToChucVuID: this.dataInput.ToChucVuID,
         Reason: this.dataInput.Reason,
         IsApproveAccountant: false,
         IsApprovedPersonalProperty: false,
-        IsApproved:false
+        IsApproved: false
       },
       tSTranferAssetDetails: selectedAssets.map((item, index) =>
       ({
@@ -259,6 +276,5 @@ export class TsAssetTransferFormComponent implements OnInit {
     });
 
   }
-   resetModal()
-   {}
+  resetModal() { }
 }

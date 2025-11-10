@@ -35,7 +35,7 @@ function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
 }
-
+import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 @Component({
   standalone: true,
   selector: 'app-ts-asset-choose-assets',
@@ -58,7 +58,8 @@ export class TsAssetChooseAssetsComponent implements OnInit, AfterViewInit {
   @Input() dataInput: any;
   @Output() closeModal = new EventEmitter<void>();
   @Output() formSubmitted = new EventEmitter<any[]>();
-
+  searchKeyword = '';
+  private searchSubject = new Subject<string>();
   constructor(private notification: NzNotificationService) { } 
   private assetService = inject(AssetsManagementService);
   private assetManagementPersonalService = inject(TsAssetManagementPersonalService);
@@ -71,6 +72,17 @@ export class TsAssetChooseAssetsComponent implements OnInit, AfterViewInit {
   private assetAllocationService = inject(AssetAllocationService);
   AssetData: any[] = [];
   ngOnInit() {
+     this.searchSubject
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged()
+      )
+      .subscribe((keyword) => {
+        this.applyFilter(keyword);
+      });
+  }
+    onSearchChange(value: string) {
+    this.searchSubject.next(value || '');
   }
   ngAfterViewInit(): void {
     this.getAssetmanagement();
@@ -94,6 +106,37 @@ export class TsAssetChooseAssetsComponent implements OnInit, AfterViewInit {
       error: (err) => {
         console.error('Lỗi khi lấy dữ liệu tài sản:', err);
       }
+    });
+  }
+    private applyFilter(keyword: string): void {
+    if (!this.assetTable) return;
+
+    const kw = (keyword || '').toLowerCase().trim();
+
+    if (!kw) {
+      // clear filter khi ô search trống
+      this.assetTable.clearFilter(true);
+      return;
+    }
+
+    this.assetTable.setFilter((data: any) => {
+      // các field muốn search
+      const fields = [
+        'TSAssetCode',
+        'TSAssetName',
+        'Seri',
+        'TSCodeNCC',
+        'SpecificationsAsset',
+        'SourceName',
+        'FullName',
+        'Name',      // phòng ban
+        'Note'
+      ];
+
+      return fields.some((f) => {
+        const v = (data[f] ?? '').toString().toLowerCase();
+        return v.includes(kw);
+      });
     });
   }
   public drawTable(): void {

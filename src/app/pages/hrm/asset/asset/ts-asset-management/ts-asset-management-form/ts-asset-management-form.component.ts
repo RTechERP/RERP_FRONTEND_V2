@@ -21,6 +21,7 @@ import { TsAssetSourceFormComponent } from '../../ts-asset-source/ts-asset-sourc
 import { TsAssetStatusFormComponent } from '../../ts-asset-status/ts-asset-status-form/ts-asset-status-form.component';
 import { TyAssetTypeFormComponent } from '../../ts-asset-type/ts-asset-type-form/ts-asset-type-form.component';
 import { NOTIFICATION_TITLE } from '../../../../../../app.config';
+import { HasPermissionDirective } from '../../../../../../directives/has-permission.directive';
 @Component({
   standalone: true,
   selector: 'app-ts-asset-management-form',
@@ -37,6 +38,7 @@ import { NOTIFICATION_TITLE } from '../../../../../../app.config';
     NzInputModule,
     NzButtonModule,
     NzModalModule,
+    HasPermissionDirective
   ]
 })
 export class TsAssetManagementFormComponent implements OnInit, AfterViewInit {

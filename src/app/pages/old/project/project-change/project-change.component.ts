@@ -8,6 +8,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 @Component({
   selector: 'app-project-change',
   imports: [FormsModule, NzSelectModule, NzGridModule, NzButtonModule],
@@ -74,7 +75,7 @@ export class ProjectChangeComponent implements OnInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -118,7 +119,7 @@ export class ProjectChangeComponent implements OnInit {
         },
         error: (error: any) => {
           const msg = error.message || 'Lỗi không xác định';
-          this.notification.error('Thông báo', msg);
+          this.notification.error(NOTIFICATION_TITLE.error, msg);
           console.error('Lỗi:', error.error);
         },
       });

@@ -6,6 +6,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 import { environment } from '../../../../../environments/environment';
 import { DateTime } from 'luxon';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 // import { HOST } from '../../../../app.config';
 @Injectable({
   providedIn: 'root',
@@ -582,7 +583,7 @@ export class ProjectService {
     if (!data) {
       if (!data || data.length === 0) {
         if (!data || data.length === 0) {
-          this.notification.error('Thông báo', 'Không có dữ liệu để xuất!');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất!');
           return;
         }
       }

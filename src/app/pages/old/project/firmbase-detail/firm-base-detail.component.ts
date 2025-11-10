@@ -16,6 +16,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ProjectService } from '../project-service/project.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 interface FirmBase {
   ID?: number,
   FirmCode: string,
@@ -121,11 +122,11 @@ export class FirmBaseDetailComponent {
           this.notification.success('Thông báo', 'Thêm mới thành công!');
           this.closeModal();
         } else {
-          this.notification.warning('Thông báo', res.message || 'Không thể thêm hãng!');
+          this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể thêm hãng!');
         }
       },
       error: (err) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi thêm mới!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi thêm mới!');
         console.error(err);
       }
     });

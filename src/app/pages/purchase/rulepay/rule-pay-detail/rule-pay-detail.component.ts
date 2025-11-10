@@ -9,6 +9,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { RulePayService, RulePay } from '../rule-pay.service';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-rule-pay-detail',
@@ -81,7 +82,7 @@ export class RulePayDetailComponent implements OnInit, AfterViewInit, OnChanges 
       c.markAsTouched();
       c.updateValueAndValidity({ onlySelf: true });
     });
-    this.notification.warning('Cảnh báo', 'Vui lòng điền đủ thông tin bắt buộc');
+    this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đủ thông tin bắt buộc');
     return;
   }
     const now = new Date();
@@ -104,7 +105,7 @@ export class RulePayDetailComponent implements OnInit, AfterViewInit, OnChanges 
         this.activeModal.close('success');
       },
       error: (err) => {
-        this.notification.error('Thông báo', err.error?.message || 'Có lỗi xảy ra khi thêm dữ liệu!');
+        this.notification.error(NOTIFICATION_TITLE.error, err.error?.message || 'Có lỗi xảy ra khi thêm dữ liệu!');
       }
     });
   }
@@ -115,7 +116,7 @@ if (this.validateForm.invalid) {
       c.markAsTouched();
       c.updateValueAndValidity({ onlySelf: true });
     });
-    this.notification.warning('Cảnh báo', 'Vui lòng điền đủ thông tin bắt buộc');
+    this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đủ thông tin bắt buộc');
     return;
   }
     const now = new Date();
@@ -124,7 +125,7 @@ if (this.validateForm.invalid) {
     console.log('Current form values:', this.validateForm.getRawValue());
     
     if (!this.newRulePay.ID) {
-      this.notification.error('Lỗi',  'Không tìm thấy ID để cập nhật');
+      this.notification.error(NOTIFICATION_TITLE.error,  'Không tìm thấy ID để cập nhật');
       return;
     }
     const payload = {
@@ -147,7 +148,7 @@ if (this.validateForm.invalid) {
       },
       error: (err) => {
         console.error('Error updating:', err);
-        this.notification.error('Thông báo', err.error?.message || 'Có lỗi xảy ra khi cập nhật dữ liệu!');
+        this.notification.error(NOTIFICATION_TITLE.error, err.error?.message || 'Có lỗi xảy ra khi cập nhật dữ liệu!');
       }
     });
   }

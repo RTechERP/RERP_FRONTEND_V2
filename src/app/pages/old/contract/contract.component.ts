@@ -13,6 +13,7 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NgIf } from '@angular/common';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-contract',
@@ -88,7 +89,7 @@ export class ContractComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Không thể tải danh sách hợp đồng: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách hợp đồng: ' + error.message);
         this.isLoading = false;
       }
     });
@@ -99,23 +100,23 @@ export class ContractComponent implements OnInit {
       if (this.isEditMode) {
         this.contractService.saveContract(this.contractForm.value).subscribe({
           next: (response) => {
-            this.notification.success('Thành công', 'Cập nhật hợp đồng thành công');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật hợp đồng thành công');
             this.closeModal();
             this.loadContracts();
           },
           error: (response) => {
-            this.notification.error('Lỗi', 'Cập nhật hợp đồng thất bại: ' + response.error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật hợp đồng thất bại: ' + response.error.message);
           }
         });
       } else {
         this.contractService.saveContract(this.contractForm.value).subscribe({
           next: (response) => {
-            this.notification.success('Thành công', 'Thêm hợp đồng mới thành công');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Thêm hợp đồng mới thành công');
             this.closeModal();
             this.loadContracts();
           },
           error: (response) => {
-            this.notification.error('Lỗi', 'Thêm hợp đồng mới thất bại: ' + response.error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Thêm hợp đồng mới thất bại: ' + response.error.message);
           }
         });
       }
@@ -126,7 +127,7 @@ export class ContractComponent implements OnInit {
           control.updateValueAndValidity({ onlySelf: true });
         }
       });
-      this.notification.warning('Cảnh báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin bắt buộc');
     }
   }
 
@@ -145,7 +146,7 @@ export class ContractComponent implements OnInit {
   openEditModal() {
     const selectedRows = this.tabulator.getSelectedRows();
     if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn hợp đồng cần sửa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn hợp đồng cần sửa');
       return;
     }
 
@@ -172,7 +173,7 @@ export class ContractComponent implements OnInit {
   openDeleteModal() {
     const selectedRows = this.tabulator.getSelectedRows();
     if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn hợp đồng cần xóa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn hợp đồng cần xóa');
       return;
     }
 
@@ -189,11 +190,11 @@ export class ContractComponent implements OnInit {
           IsDeleted: true
         }).subscribe({
           next: (response) => {
-            this.notification.success('Thành công', 'Xóa hợp đồng thành công');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Xóa hợp đồng thành công');
             this.loadContracts();
           },
           error: (error) => {
-            this.notification.error('Lỗi', 'Xóa hợp đồng thất bại: ' + error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Xóa hợp đồng thất bại: ' + error.message);
           }
         });
       },

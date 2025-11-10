@@ -25,6 +25,7 @@ import { TsAssetManagementPersonalService } from '../../../../../old/ts-asset-ma
 import { UnitService } from '../../ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
 import { TypeAssetsService } from '../../ts-asset-type/ts-asset-type-service/ts-asset-type.service';
 import { AssetsService } from '../../ts-asset-source/ts-asset-source-service/ts-asset-source.service';
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 @Component({
   standalone: true,
   imports: [
@@ -88,12 +89,12 @@ reason: string = '';
   }
   private validateForm(): boolean {
   if (!this.dateLostReport || this.dateLostReport.trim() === '') {
-    this.notification.error('Thông báo', 'Vui lòng chọn ngày báo mất.');
+    this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn ngày báo mất.');
     return false;
   }
 
   if (!this.reason || this.reason.trim() === '') {
-    this.notification.error('Thông báo', 'Vui lòng nhập lý do báo mất.');
+    this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng nhập lý do báo mất.');
     return false;
   }
 
@@ -131,7 +132,7 @@ reason: string = '';
     }
     this.assetService.saveDataAsset(payloadAsset).subscribe({
       next: () => {
-        this.notification.success("Thông báo", "Báo mất tài sản thành công");
+        this.notification.success(NOTIFICATION_TITLE.success, "Báo mất tài sản thành công");
         this.loadAsset();
         this.formSubmitted.emit();
         this.activeModal.close(true);

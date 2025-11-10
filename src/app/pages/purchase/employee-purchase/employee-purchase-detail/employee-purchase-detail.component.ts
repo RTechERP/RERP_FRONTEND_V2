@@ -22,6 +22,7 @@ import {
   EmployeeDto,
   TaxCompanyDto,
 } from '../employee-purchase-service/employee-purchase.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-employee-purchase-detail',
@@ -215,7 +216,7 @@ export class EmployeePurchaseDetailComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Load employees error:', error);
-        this.notification.error('Lỗi', 'Không thể tải danh sách nhân viên');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách nhân viên');
         this.employees = [];
       },
     });
@@ -245,7 +246,7 @@ export class EmployeePurchaseDetailComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Load companies error:', error);
-        this.notification.error('Lỗi', 'Không thể tải danh sách công ty');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách công ty');
         this.companyList = [];
       },
     });
@@ -460,7 +461,7 @@ export class EmployeePurchaseDetailComponent implements OnInit, OnDestroy {
       formValues.telephone.trim() &&
       !this.isValidPhone(formValues.telephone.trim())
     ) {
-      this.notification.error('Lỗi', 'Định dạng số điện thoại không hợp lệ');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Định dạng số điện thoại không hợp lệ');
       return;
     }
 

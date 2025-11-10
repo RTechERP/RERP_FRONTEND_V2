@@ -9,6 +9,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-customer-specialization-form',
@@ -130,7 +131,7 @@ export class CustomerSpecializationFormComponent implements OnInit {
   openDeleteModal() {
     const selectedRows = this.tabulator.getSelectedRows();
     if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn ngành nghề cần xóa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ngành nghề cần xóa');
       return;
     }
     const selectedSpecialization = selectedRows[0].getData();
@@ -147,11 +148,11 @@ export class CustomerSpecializationFormComponent implements OnInit {
           IsDeleted: true
         }).subscribe({
           next: (response) => {
-            this.notification.success('Thành công', 'Xóa ngành nghề thành công');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Xóa ngành nghề thành công');
             this.loadCustomerSpecialization();
           },
           error: (error) => {
-            this.notification.error('Lỗi', 'Xóa ngành nghề thất bại: ' + error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Xóa ngành nghề thất bại: ' + error.message);
           }
         });
       },
@@ -161,7 +162,7 @@ export class CustomerSpecializationFormComponent implements OnInit {
 
   onSubmit(form: any) {
     if (form.invalid) {
-      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin trước khi lưu');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin trước khi lưu');
       return;
     }
     if (this.isEditMode) {
@@ -169,7 +170,7 @@ export class CustomerSpecializationFormComponent implements OnInit {
         next: (response) => {
           this.closeModal();
           this.loadCustomerSpecialization();
-          this.notification.success('Thành công', 'Cập nhật ngành nghề thành công');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật ngành nghề thành công');
         },
         error: (error) => {
           this.notification.error('Thất bại', 'Cập nhật ngành nghề thất bại: ' + error.message);
@@ -180,7 +181,7 @@ export class CustomerSpecializationFormComponent implements OnInit {
         next: (response) => {
           this.closeModal();
           this.loadCustomerSpecialization();
-          this.notification.success('Thành công', 'Thêm ngành nghề thành công');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Thêm ngành nghề thành công');
         },
         error: (error) => {
           this.notification.error('Thất bại', 'Thêm ngành nghề thất bại: ' + error.message);
@@ -194,7 +195,7 @@ export class CustomerSpecializationFormComponent implements OnInit {
   //     this.customerService.deleteCustomerSpecialization(this.selectedSpecializationId).subscribe({
   //       next: (response) => {
   //         this.loadCustomerSpecialization();
-  //         this.notification.success('Thành công', 'Xóa ngành nghề thành công');
+  //         this.notification.success(NOTIFICATION_TITLE.success, 'Xóa ngành nghề thành công');
   //       },
   //       error: (response) => {
   //         this.notification.error('Thất bại', 'Xóa ngành nghề thất bại: ' + response.error.message);

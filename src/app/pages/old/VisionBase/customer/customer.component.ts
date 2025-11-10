@@ -61,6 +61,7 @@ import { ViewPokhService } from '../../view-pokh/view-pokh/view-pokh.service';
 import { CustomerDetailComponent } from '../customer-detail/customer-detail.component';
 import { CustomerMajorComponent } from '../customer-major/customer-major/customer-major.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 // import { CustomerComponent } from '../../customer/customer.component';
 @Component({
   selector: 'app-customer',
@@ -296,7 +297,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   onDelete() {
     const selectedRows = this.tb_MainTable?.getSelectedData();
       if (!selectedRows || selectedRows.length === 0) {
-        this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một khách hàng để xóa!');
+        this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một khách hàng để xóa!');
         return;
       }
       const isDeleted = selectedRows.map((item: any) => item.ID);
@@ -356,7 +357,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   // onDelete() {
   //   const selectedRows = this.tb_MainTable?.getSelectedData();
   //   if (!selectedRows || selectedRows.length === 0) {
-  //     this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một khách hàng để xóa!');
+  //     this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một khách hàng để xóa!');
   //     return;
   //   }
   
@@ -406,15 +407,15 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   //         .then((results) => {
   //           const allSuccess = results.every((res: any) => res?.status === 'Success');
   //           if (allSuccess) {
-  //             this.notification.success('Thành công', 'Đã xóa khách hàng thành công!');
+  //             this.notification.success(NOTIFICATION_TITLE.success, 'Đã xóa khách hàng thành công!');
   //             this.initMainTable(); 
   //           } else {
-  //             this.notification.warning('Thông báo', 'Không thể xóa một số khách hàng!');
+  //             this.notification.warning(NOTIFICATION_TITLE.warning, 'Không thể xóa một số khách hàng!');
   //           }
   //         })
   //         .catch((err) => {
   //           console.error('Lỗi xóa:', err);
-  //           this.notification.error('Lỗi', err?.message || 'Có lỗi xảy ra khi xóa khách hàng!');
+  //           this.notification.error(NOTIFICATION_TITLE.error, err?.message || 'Có lỗi xảy ra khi xóa khách hàng!');
   //         });
   //     },
   //   });
@@ -423,7 +424,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   onEdit(): void {
     const selectedRows = this.tb_MainTable?.getSelectedData();
     if (!selectedRows || selectedRows.length === 0 || selectedRows.length > 1) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một khách hàng để sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một khách hàng để sửa!');
       return;
     }
     this.selectedId = selectedRows[0].ID;

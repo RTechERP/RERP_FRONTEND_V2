@@ -18,6 +18,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { DayOffService } from '../day-off-service/day-off.service';
 import { EmployeeService } from '../../employee/employee-service/employee.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-day-off-import-excel',
@@ -107,7 +108,7 @@ export class DayOffImportExcelComponent implements OnInit, AfterViewInit{
     if (this.table) {
       this.table.import("xlsx", [".xlsx", ".csv", ".ods"], "buffer");
     } else {
-      this.notification.warning('Thông báo', 'Bảng chưa được khởi tạo!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Bảng chưa được khởi tạo!');
     }
   }
 
@@ -127,7 +128,7 @@ export class DayOffImportExcelComponent implements OnInit, AfterViewInit{
         console.log('Phần mở rộng:', fileExtension); // Log để kiểm tra
 
         if (fileExtension !== 'xlsx' && fileExtension !== 'xls') {
-            this.notification.warning('Thông báo', 'Vui lòng chọn tệp Excel (.xlsx hoặc .xls)!');
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn tệp Excel (.xlsx hoặc .xls)!');
             input.value = ''; // Xóa input để có thể chọn lại file
             this.resetExcelImportState(); // Reset trạng thái khi có lỗi định dạng
             return;
@@ -199,12 +200,12 @@ export class DayOffImportExcelComponent implements OnInit, AfterViewInit{
 
                 } else {
                     console.warn('File Excel không chứa bất kỳ sheet nào.'); // Log
-                    this.notification.warning('Thông báo', 'File Excel không có sheet nào!');
+                    this.notification.warning(NOTIFICATION_TITLE.warning, 'File Excel không có sheet nào!');
                     this.resetExcelImportState();
                 }
             } catch (error) {
                 console.error('Lỗi khi đọc tệp Excel trong FileReader.onload:', error); // Log chi tiết lỗi
-                this.notification.error('Thông báo', 'Không thể đọc tệp Excel. Vui lòng đảm bảo tệp không bị hỏng và đúng định dạng.');
+                this.notification.error(NOTIFICATION_TITLE.error, 'Không thể đọc tệp Excel. Vui lòng đảm bảo tệp không bị hỏng và đúng định dạng.');
                 this.resetExcelImportState(); // Reset trạng thái khi có lỗi
             }
             input.value = ''; // Xóa input để có thể chọn lại cùng file
@@ -239,7 +240,7 @@ private formatCellValue(value: any): string {
           await workbook.xlsx.load(data);
           await this.readExcelData(workbook, this.selectedSheet); // Bổ sung gọi hàm đọc dữ liệu
         } catch (error) {
-          this.notification.error('Thông báo', 'Không thể đọc dữ liệu từ sheet đã chọn!');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể đọc dữ liệu từ sheet đã chọn!');
           this.resetExcelImportState();
         }
       };
@@ -288,7 +289,7 @@ private formatCellValue(value: any): string {
 
   saveExcelData() {
     if (!this.dataTableExcel || this.dataTableExcel.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu để lưu!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để lưu!');
       return;
     }
 
@@ -299,7 +300,7 @@ private formatCellValue(value: any): string {
     });
 
     if (validDataToSave.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu hợp lệ (STT là số) để lưu!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu hợp lệ (STT là số) để lưu!');
       this.displayProgress = 0;
       this.displayText = `0/${this.totalRowsAfterFileRead} bản ghi`;
       return;
@@ -385,7 +386,7 @@ private formatCellValue(value: any): string {
         saveProductWithDelay(0);
       },
       error: (err: any) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi kiểm tra dữ liệu từ database!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi kiểm tra dữ liệu từ database!');
         this.displayText = 'Lỗi kiểm tra dữ liệu!';
         this.displayProgress = 0;
       }
@@ -396,9 +397,9 @@ private formatCellValue(value: any): string {
     if (errorCount === 0) {
       this.notification.success('Thông báo', `Đã lưu ${successCount} bản ghi thành công`);
     } else if (successCount === 0) {
-      this.notification.error('Thông báo', `Lưu thất bại ${errorCount}/${total} bản ghi`);
+      this.notification.error(NOTIFICATION_TITLE.error, `Lưu thất bại ${errorCount}/${total} bản ghi`);
     } else {
-      this.notification.warning('Thông báo', `Đã lưu ${successCount} bản ghi thành công, ${errorCount} bản ghi thất bại`);
+      this.notification.warning(NOTIFICATION_TITLE.warning, `Đã lưu ${successCount} bản ghi thành công, ${errorCount} bản ghi thất bại`);
     }
     this.closeExcelModal();
   }
@@ -492,7 +493,7 @@ private formatCellValue(value: any): string {
         }
       } catch (error) {
         console.error('Lỗi khi đọc dữ liệu từ sheet trong readExcelData:', error); // Log chi tiết lỗi
-        this.notification.error('Thông báo', 'Không thể đọc dữ liệu từ sheet! Vui lòng kiểm tra định dạng dữ liệu.');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể đọc dữ liệu từ sheet! Vui lòng kiểm tra định dạng dữ liệu.');
         this.resetExcelImportState(); // Reset trạng thái khi có lỗi
       }
     }

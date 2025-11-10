@@ -27,6 +27,7 @@ import { ProductLocationService } from './product-location-service/product-locat
 import { ProductLocationFormComponent } from './product-location-form/product-location-form.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-product-location',
@@ -87,12 +88,12 @@ export class ProductLocationComponent implements OnInit, AfterViewInit {
           this.filteredProductLocationData = [...this.productLocationData];
           this.drawTable();
         } else {
-          this.notification.warning('Thông báo', response.message || 'Không thể tải dữ liệu');
+          this.notification.warning(NOTIFICATION_TITLE.warning, response.message || 'Không thể tải dữ liệu');
         }
       },
       error: (error) => {
         console.error('Error loading product locations:', error);
-        this.notification.error('Lỗi', 'Có lỗi xảy ra khi tải dữ liệu');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi tải dữ liệu');
       }
     });
   }
@@ -149,11 +150,11 @@ export class ProductLocationComponent implements OnInit, AfterViewInit {
   onEditProductLocation(): void {
     const selected = this.productLocationTable?.getSelectedData();
     if (!selected || selected.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một vị trí để sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một vị trí để sửa!');
       return;
     }
     if (selected.length > 1) {
-      this.notification.warning('Thông báo', 'Vui lòng chỉ chọn một vị trí để sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chỉ chọn một vị trí để sửa!');
       return;
     }
     const selectedProductLocation = { ...selected[0] };
@@ -178,7 +179,7 @@ export class ProductLocationComponent implements OnInit, AfterViewInit {
   onDeleteProductLocation() {
     const selected = this.productLocationTable?.getSelectedData();
     if (!selected || selected.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn vị trí để xóa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn vị trí để xóa!');
       return;
     }
 
@@ -194,7 +195,7 @@ export class ProductLocationComponent implements OnInit, AfterViewInit {
         this.productLocationService.deleteProductLocation(selected[0].ID).subscribe({
           next: (res) => {
             if (res.status === 1) {
-              this.notification.success("Thông báo", "Xóa thành công");
+              this.notification.success(NOTIFICATION_TITLE.success, "Xóa thành công");
               setTimeout(() => this.resetSearchAndReload(), 100);
             } else {
               this.notification.warning("Thông báo", "Xóa thất bại");

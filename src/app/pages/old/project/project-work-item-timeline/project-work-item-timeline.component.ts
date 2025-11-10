@@ -37,6 +37,7 @@ import { Title } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-project-work-item-timeline',
@@ -141,7 +142,7 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -154,7 +155,7 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -442,7 +443,7 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
     const columns = table.getColumns();
     console.log(columns);
     if (!data || data.length === 0) {
-      this.notification.error('Thông báo', 'Không có dữ liệu để xuất!');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất!');
       return;
     }
     this.isExport = true;

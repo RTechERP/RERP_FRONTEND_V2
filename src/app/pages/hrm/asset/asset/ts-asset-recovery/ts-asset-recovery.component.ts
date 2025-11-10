@@ -35,6 +35,7 @@ function formatDateCell(cell: CellComponent): string {
 // @ts-ignore
 import { saveAs } from 'file-saver';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   standalone: true,
   imports: [
@@ -347,12 +348,12 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
     };
     this.assetsRecoveryService.saveAssetRecovery(payloadRecovery).subscribe({
       next: () => {
-        this.notification.success('Thành công', 'Xóa biên bản thành công!');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Xóa biên bản thành công!');
         this.getRecovery();
       },
       error: (err) => {
         console.error('Lỗi khi xóa:', err);
-        this.notification.warning('Lỗi', 'Lỗi kết nối máy chủ!');
+        this.notification.warning(NOTIFICATION_TITLE.error, 'Lỗi kết nối máy chủ!');
       }
     });
   }
@@ -480,7 +481,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
   onEditRecovery() {
     const selected = this.recoveryTable?.getSelectedData();
     if (!selected || selected.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một đơn vị để sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một đơn vị để sửa!');
       return;
     }
     const selectedAssets = { ...selected[0] };
@@ -505,7 +506,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
     const selectedDetail = this.recoveryDetailTable?.getData();
     const selectedRecovery = this.recoveryTable?.getSelectedData()?.[0];
     if (!selectedDetail || selectedDetail.length === 0) {
-      this.notification.warning('Cảnh báo', 'Không có dữ liệu để duyệt.');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để duyệt.');
       return;
     }
     const payloadRecovery = {
@@ -542,7 +543,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu xuất Excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu xuất Excel!');
       return;
     }
 
@@ -629,7 +630,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
     const details = this.recoveryDetailTable?.getData();
 
     if (!selectedMaster || !details || details.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu để xuất Excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất Excel!');
       return;
     }
     const payload = {
@@ -663,7 +664,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
         saveAs(blob, fileName); // 🟢 Lưu file Excel
       },
       error: (err) => {
-        this.notification.error('Lỗi', 'Không thể xuất file!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xuất file!');
         console.error(err);
       }
     });

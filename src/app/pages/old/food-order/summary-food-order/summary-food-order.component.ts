@@ -25,6 +25,7 @@ import { DepartmentServiceService } from '../../department/department-service/de
 import { EmployeeService } from '../../employee/employee-service/employee.service';
 import { FoodOrderService } from '../food-order-service/food-order.service';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-summary-food-order',
@@ -132,7 +133,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit{
         console.log(this.departmentList);
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách phòng ban: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách phòng ban: ' + error.message);
       }
     });
   }
@@ -143,7 +144,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit{
         this.employeeList = data.data;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách nhân viên: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách nhân viên: ' + error.message);
       }
     })
   }
@@ -158,7 +159,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit{
 
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách đặt cơm: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách đặt cơm: ' + error.message);
         this.isLoading = false;
       }
     })
@@ -173,7 +174,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit{
         this.isLoading = false;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách báo cáo cơm ca: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách báo cáo cơm ca: ' + error.message);
         this.isLoading = false;
       }
     })

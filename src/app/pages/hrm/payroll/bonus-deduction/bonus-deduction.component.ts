@@ -40,6 +40,7 @@ import { ProjectService } from '../../../old/project/project-service/project.ser
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { BonusDeductionDetailComponent } from './bonus-deduction-detail/bonus-deduction-detail.component';
 import { ImportExcelComponent } from './import-excel/import-excel.component';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 @Component({
   selector: 'app-bonus-deduction',
   imports: [
@@ -310,7 +311,7 @@ export class BonusDeductionComponent implements OnInit {
     debugger
     if (this.selectedEmployeePayrollBonusDeuctions.size === 0) {
       let message = action === 'update' ? 'Sửa' : 'Xoá';
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn 1 nhân viên để ' + message + '!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 nhân viên để ' + message + '!');
       return;
     }
 

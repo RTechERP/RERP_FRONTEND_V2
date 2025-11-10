@@ -12,6 +12,7 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NgIf } from '@angular/common';
 import { OverTimeService } from '../over-time-service/over-time.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-over-time-type',
@@ -71,7 +72,7 @@ export class OverTimeTypeComponent implements OnInit, AfterViewInit{
         this.isLoading = false;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Không thể tải danh sách loại làm thêm: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách loại làm thêm: ' + error.message);
         this.isLoading = false;
       }
     });
@@ -116,7 +117,7 @@ export class OverTimeTypeComponent implements OnInit, AfterViewInit{
   openEditModal() {
     const selectedRows = this.tabulator.getSelectedRows();
     if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn kiểu làm thêm cần sửa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn kiểu làm thêm cần sửa');
       return;
     }
 
@@ -144,7 +145,7 @@ export class OverTimeTypeComponent implements OnInit, AfterViewInit{
   openDeleteModal() {
     const selectedRows = this.tabulator.getSelectedRows();
     if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn kiểu làm thêm cần xóa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn kiểu làm thêm cần xóa');
       return;
     }
 
@@ -161,11 +162,11 @@ export class OverTimeTypeComponent implements OnInit, AfterViewInit{
           IsDeleted: true
         }).subscribe({
           next: (response) => {
-            this.notification.success('Thành công', 'Xóa kiểu làm thêm thành công');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Xóa kiểu làm thêm thành công');
             this.loadOverTimeType();
           },
           error: (error) => {
-            this.notification.error('Lỗi', 'Xóa kiểu làm thêm thất bại: ' + error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Xóa kiểu làm thêm thất bại: ' + error.message);
           }
         });
       },
@@ -178,12 +179,12 @@ export class OverTimeTypeComponent implements OnInit, AfterViewInit{
       
         this.overTimeService.saveEmployeeTypeOverTime(this.overTimeTypeForm.value).subscribe({
           next: (response) => {
-            this.notification.success('Thành công', 'Lưu kiểu làm thêm mới thành công');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Lưu kiểu làm thêm mới thành công');
             this.closeModal();
             this.loadOverTimeType();
           },
           error: (response) => {
-            this.notification.error('Lỗi', 'Lưu kiểu làm thêm mới thất bại: ' + response.error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Lưu kiểu làm thêm mới thất bại: ' + response.error.message);
           }
         });
     } else {
@@ -193,7 +194,7 @@ export class OverTimeTypeComponent implements OnInit, AfterViewInit{
           control.updateValueAndValidity({ onlySelf: true });
         }
       });
-      this.notification.warning('Cảnh báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin bắt buộc');
     }
   }
 }

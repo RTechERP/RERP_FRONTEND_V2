@@ -37,6 +37,7 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { VehicleManagementFormComponent } from '../vehicle-management-form/vehicle-management-form.component';
 import { VehicleCategoryFormComponent } from './vehicle-category-form/vehicle-category-form.component';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-vehicle-category',
@@ -105,7 +106,7 @@ export class VehicleCategoryComponent implements OnInit {
 
   onDeleteVehicle() {
     if (!this.selectedID || this.selectedID === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn loại xe để xóa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn loại xe để xóa!');
       return;
     }
 
@@ -132,12 +133,12 @@ export class VehicleCategoryComponent implements OnInit {
                 );
                 setTimeout(() => this.getVehicleCategory(), 100);
               } else {
-                this.notification.warning('Thông báo', 'Thất bại');
+                this.notification.warning(NOTIFICATION_TITLE.warning, 'Thất bại');
               }
             },
             error: (err) => {
               console.error(err);
-              this.notification.warning('Thông báo', 'Lỗi kết nối');
+              this.notification.warning(NOTIFICATION_TITLE.warning, 'Lỗi kết nối');
             },
           });
       },

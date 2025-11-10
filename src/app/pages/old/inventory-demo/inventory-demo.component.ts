@@ -192,7 +192,7 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
     const selectedData = this.productTable?.getSelectedData()[0];
 
     if (!selectedData) {
-      this.notification.warning('Thông báo', "Vui lòng chọn một dòng để cập nhật mã QR!");
+      this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn một dòng để cập nhật mã QR!");
       return;
     }
 

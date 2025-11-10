@@ -44,6 +44,7 @@ import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { AuthService } from '../../../../auth/auth.service';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-project-survey',
@@ -150,7 +151,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
     },
     error: (error: any) => {
       const msg = error.message || 'Lỗi không xác định';
-      this.notification.error('Thông báo', msg);
+      this.notification.error(NOTIFICATION_TITLE.error, msg);
       console.error('Lỗi:', error.error);
     },
   })
@@ -167,7 +168,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -180,7 +181,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -768,7 +769,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
     const data = table.getData();
     if (!data || data.length === 0) {
       if (!data || data.length === 0) {
-        this.notification.error('Thông báo', 'Không có dữ liệu để xuất!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất!');
         return;
       }
     }
@@ -1002,7 +1003,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });

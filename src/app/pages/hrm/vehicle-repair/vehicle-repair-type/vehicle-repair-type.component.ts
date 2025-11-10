@@ -39,6 +39,7 @@ import {
 } from 'tabulator-tables';
 import { VehicleRepairTypeFormComponent } from './vehicle-repair-type-form/vehicle-repair-type-form.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   standalone: true,
@@ -163,7 +164,7 @@ export class VehicleRepairTypeComponent implements OnInit, AfterViewInit {
   editType() {
     const rows = this.vehicleRepairTypeTable?.getSelectedRows() ?? [];
     if (rows.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một loại để sửa.');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một loại để sửa.');
       return;
     }
     const rowData = rows[0].getData(); // <— lấy data, KHÔNG spread mảng
@@ -192,7 +193,7 @@ export class VehicleRepairTypeComponent implements OnInit, AfterViewInit {
     const rows = this.vehicleRepairTypeTable?.getSelectedRows() ?? [];
     const selectedRows = this.vehicleRepairTypeTable?.getSelectedData() ?? [];
     if (rows.length === 0 || selectedRows.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một loại để xóa.');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một loại để xóa.');
       return;
     }
 
@@ -218,11 +219,11 @@ export class VehicleRepairTypeComponent implements OnInit, AfterViewInit {
 
         this.VehicleRepairService.saveData(payload).subscribe({
           next: () => {
-            this.notification.success('Thành công', 'Xóa loại thành công');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Xóa loại thành công');
             this.getRepairType();
           },
           error: () => {
-            this.notification.error('Lỗi', 'Xóa loại thất bại');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Xóa loại thất bại');
           },
         });
       },

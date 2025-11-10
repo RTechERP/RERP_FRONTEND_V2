@@ -15,6 +15,7 @@ import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { TbProductRtcService } from '../tb-product-rtc-service/tb-product-rtc.service';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   standalone: true,
@@ -90,20 +91,20 @@ export class TbProductGroupRtcFormComponent implements OnInit, AfterViewInit {
           {
             if(payload.productGroupRTC.ID <=0)
               {
-                this.notification.success('Thành công', 'Thêm mới thành công!');
+                this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công!');
               }else
               {
-                this.notification.success('Thành công', 'Cập nhật thành công!');
+                this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công!');
               }
               this.formSubmitted.emit();
               this.activeModal.close(true);
          }else 
          {
-          this.notification.warning('Thông báo', res.message || 'Không thể cập nhật sản phẩm!');
+          this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể cập nhật sản phẩm!');
          }
       },
       error: () => {
-        this.notification.error('Lỗi', 'Không thể lưu nhóm TB');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lưu nhóm TB');
       }
     });
   }

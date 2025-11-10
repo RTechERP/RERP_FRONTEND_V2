@@ -56,6 +56,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 
 import { HandoverMinutesDetailService } from '../handover-minutes-detail/handover-minutes-detail/handover-minutes-detail.service';
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-handover-minutes',
@@ -500,11 +501,11 @@ export class HandoverMinutesDetailComponent implements OnInit, AfterViewInit {
   //#region Xử lý dữ liệu
   validateForm(): boolean {
     if (this.formData.dateMinutes < 0) {
-      this.notification.warning('Thông báo', 'Xin hãy chọn ngày nhập.');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Xin hãy chọn ngày nhập.');
       return false;
     }
     if (!this.formData.employeeId) {
-      this.notification.warning('Thông báo', 'Xin hãy chọn nhân viên.');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Xin hãy chọn nhân viên.');
       return false;
     }
     if (!this.formData.employeePhone) {
@@ -515,7 +516,7 @@ export class HandoverMinutesDetailComponent implements OnInit, AfterViewInit {
       return false;
     }
     if (!this.formData.customerId) {
-      this.notification.warning('Thông báo', 'Xin hãy chọn khách hàng.');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Xin hãy chọn khách hàng.');
       return false;
     }
     if (!this.formData.customerContact) {
@@ -533,11 +534,11 @@ export class HandoverMinutesDetailComponent implements OnInit, AfterViewInit {
       return false;
     }
     if (!this.formData.customerAddress) {
-      this.notification.warning('Thông báo', 'Xin hãy nhập địa chỉ khách hàng');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Xin hãy nhập địa chỉ khách hàng');
       return false;
     }
     if (!this.formData.receiver) {
-      this.notification.warning('Thông báo', 'Xin hãy điền người nhận');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Xin hãy điền người nhận');
       return false;
     }
     if (!this.formData.receiverPhone) {
@@ -548,7 +549,7 @@ export class HandoverMinutesDetailComponent implements OnInit, AfterViewInit {
       return false;
     }
     if (!this.formData.adminWarehouse) {
-      this.notification.warning('Thông báo', 'Xin hãy điền thủ kho');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Xin hãy điền thủ kho');
       return false;
     }
     return true;

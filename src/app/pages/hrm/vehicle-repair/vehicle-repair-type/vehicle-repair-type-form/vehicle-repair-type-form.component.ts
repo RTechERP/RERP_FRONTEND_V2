@@ -14,6 +14,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { VehicleRepairService } from '../../vehicle-repair-service/vehicle-repair.service';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   standalone:true,
   selector: 'app-vehicle-repair-type-form',
@@ -97,17 +98,17 @@ ngAfterViewInit(): void {
       next: () => {
         if(this.dataInput.ID>0)
         {
-              this.notification.success('Thành công', 'Sửa loại thành công');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Sửa loại thành công');
         }
         else
         {
-           this.notification.success('Thành công', 'Thêm loại thành công');
+           this.notification.success(NOTIFICATION_TITLE.success, 'Thêm loại thành công');
         }
         this.formSubmitted.emit();
         this.activeModal.close(true);
       },
       error: () => {
-        this.notification.error('Lỗi', 'Không thể lưu nhóm TB');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lưu nhóm TB');
       }
     });
   }

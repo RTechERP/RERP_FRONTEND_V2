@@ -61,6 +61,7 @@ import { WarehouseReleaseRequestComponent } from '../warehouse-release-request/w
 import { FollowProductReturnComponent } from '../follow-product-return/follow-product-return.component';
 import { PoRequestBuyComponent } from '../po-request-buy/po-request-buy.component';
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-pokh',
@@ -502,7 +503,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           const POKHFiles$ = this.POKHService.getPOKHFile(id).pipe(
             map((res) => (res.status === 1 ? res.data : [])),
             catchError((err) => {
-              this.notification.error('Thông báo', 'Lỗi tải POKHFile: ' + err);
+              this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi tải POKHFile: ' + err);
               return of([]);
             })
           );
@@ -697,7 +698,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     this.isCopy = false;
   }
   handleError(error: any) {
-    this.notification.error('Thông báo', 'Có lỗi xảy ra: ' + error.message);
+    this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra: ' + error.message);
   }
   //#endregion
   //#region : Hàm xử lý upload files
@@ -718,7 +719,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           console.log('Upload files thành công');
         },
         error: (error) => {
-          this.notification.error('Thông báo', 'Lỗi upload files: ' + error);
+          this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi upload files: ' + error);
         },
       });
     }
@@ -870,7 +871,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   //#region : Hàm xử lý xuất excel Phiếu
   async exportMainTableToExcel() {
     if (!this.tb_POKH) {
-      this.notification.error('Lỗi', 'Không có dữ liệu để xuất Excel');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất Excel');
       return;
     }
 
@@ -1220,7 +1221,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         this.calculateTotalIterative();
       }
     } catch (error) {
-      this.notification.error('Lỗi', 'Lỗi:' + error);
+      this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi:' + error);
     }
   }
   private convertToTreeData(flatData: any[]): any[] {
@@ -1358,15 +1359,15 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
 
   validateForm(): boolean {
     if (this.poFormData.status < 0) {
-      this.notification.error('Thông báo', 'Xin hãy chọn trạng thái.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Xin hãy chọn trạng thái.');
       return false;
     }
     if (!this.poFormData.poType) {
-      this.notification.error('Thông báo', 'Xin hãy chọn loại PO.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Xin hãy chọn loại PO.');
       return false;
     }
     if (!this.poFormData.poCode) {
-      this.notification.error('Thông báo', 'Xin hãy nhập mã PO.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Xin hãy nhập mã PO.');
       return false;
     }
     return true;
@@ -1505,7 +1506,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   }
   openPOCodeModal() {
     if (!this.selectedCustomer) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn khách hàng trước!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn khách hàng trước!');
       return;
     }
 
@@ -2254,7 +2255,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         this.notification.success('Thông báo', 'Copy thành công!');
         // Có thể load lại danh sách hoặc chuyển sang bản ghi mới
       } else {
-        this.notification.error('Thông báo', 'Copy thất bại: ' + res.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Copy thất bại: ' + res.message);
       }
     });
   }

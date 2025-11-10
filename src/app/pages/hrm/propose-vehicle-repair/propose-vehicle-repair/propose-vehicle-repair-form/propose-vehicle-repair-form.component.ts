@@ -57,6 +57,7 @@ type ProposeDetail = {
 };
 import { ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   standalone: true,
   selector: 'app-propose-vehicle-repair-form',
@@ -405,7 +406,7 @@ private getNccDetails(): ProposeDetail[] {
         // nếu đang ở tab 2 rồi thì cập nhật luôn
         if (this.activeTab === 1) this.ensureNccTableReady();
       },
-      error: (err) => this.notification.error('Lỗi', err?.error?.message || 'Không lấy được chi tiết')
+      error: (err) => this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Không lấy được chi tiết')
     });
   }
 
@@ -542,7 +543,7 @@ private getNccDetails(): ProposeDetail[] {
         return false;
       }
       if (!d.GaraName || d.GaraName.trim() === '') {
-        this.notification.warning('Cảnh báo', `Dòng ${d.STT}: Tên NCC không được để trống`);
+        this.notification.warning(NOTIFICATION_TITLE.warning, `Dòng ${d.STT}: Tên NCC không được để trống`);
         return false;
       }
     }
@@ -596,14 +597,14 @@ addType() {
     return;
   }
 
-  this.notification.warning('Cảnh báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
+  this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin bắt buộc');
   return;
 }
 
 
     const details = this.getNccDetails();
     if (details.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng thêm ít nhất 1 dòng NCC đề xuất');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng thêm ít nhất 1 dòng NCC đề xuất');
       return;
     }
     if (!this.validateNccDetails(details)) return;
@@ -642,12 +643,12 @@ addType() {
     this.proposeVehicleRepairService.saveData(payload).subscribe({
       next: (res: any) => {
         if (res?.status == 1) {
-          this.notification.success('Thành công', 'Lưu thông tin đề xuất thành công');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thông tin đề xuất thành công');
           this.formSubmitted.emit();
           this.activeModal.close('save');
-        } else this.notification.error('Lỗi', res?.message || 'Lưu thất bại');
+        } else this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Lưu thất bại');
       },
-      error: (res) => this.notification.error('Lỗi', res?.error?.message)
+      error: (res) => this.notification.error(NOTIFICATION_TITLE.error, res?.error?.message)
     });
   }
 }

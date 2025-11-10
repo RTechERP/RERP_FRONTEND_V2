@@ -28,6 +28,7 @@ export class TeamServiceService {
   getEmployees(): Observable<any> {
     return this.http.get(this.apiUrl + 'Employee');
   }
+  
   getProjectTypes(): Observable<any> {
     return this.http.get(this.apiUrl + 'ProjectType');
   }

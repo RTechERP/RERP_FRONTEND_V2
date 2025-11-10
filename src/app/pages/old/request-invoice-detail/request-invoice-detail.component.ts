@@ -56,6 +56,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
 import { RequestInvoiceDetailService } from './request-invoice-detail-service/request-invoice-detail-service.service';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-request-invoice-detail',
@@ -304,7 +305,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
         }
       },
       error: (err) => {
-        this.notification.error('Lỗi', 'Không thể lưu dữ liệu!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lưu dữ liệu!');
       },
     });
   }
@@ -313,7 +314,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
     if (this.files.length > 0) {
       this.uploadFiles(ID);
     }
-    this.notification.success('Thành công', 'Lưu dữ liệu thành công');
+    this.notification.success(NOTIFICATION_TITLE.success, 'Lưu dữ liệu thành công');
     this.selectedId = 0;
     this.activeModal.close({
       success: true,
@@ -338,7 +339,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
           console.log('Upload files thành công');
         },
         error: (error) => {
-          this.notification.error('Thông báo', 'Lỗi upload files: ' + error);
+          this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi upload files: ' + error);
         },
       });
     }

@@ -31,6 +31,7 @@ import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
 import { ProjectChangeComponent } from '../project-change/project-change.component';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-project-list-work-report',
@@ -247,7 +248,7 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });

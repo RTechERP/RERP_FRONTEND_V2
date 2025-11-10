@@ -1,27 +1,31 @@
-<h6 class="mt-1">Chức vụ nội bộ</h6>
-<ng-container class="w-100">
-    <div class="card h-100 border-0 rounded-0">
-        <div class="card-header bg-white p-2">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="d-flex gap-2">
-                    <button nz-button nzType="default" nzSize="small" (click)="openAddModal()" *hasPermission="'N2,N1'"
-                        style="font-size: 0.75rem; font-weight: bold;">
-                        <nz-icon nzType="plus" /> Thêm
-                    </button>
-                    <button nz-button nzType="default" nzSize="small" (click)="openEditModal()" *hasPermission="'N2,N1'"
-                        style="font-size: 0.75rem; font-weight: bold;">
-                        <nz-icon nzType="edit" /> Sửa
-                    </button>
-                    <button nz-button nzType="default" nzSize="small" (click)="openDeleteModal()"
-                        *hasPermission="'N2,N1'" style="font-size: 0.75rem; font-weight: bold;">
-                        <nz-icon nzType="delete" /> Xóa
-                    </button>
-                </div>
+<div class="card border-0 rounded-0">
+    <div class="text-light border-bottom p-2" style="background-color: #23458a; font-size: 1rem;">
+        Chức vụ nội bộ
+    </div>
+    <div class="card-header bg-white p-2">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex gap-2">
+                <button class="fs-12 btn-add" nz-button nzType="default" nzSize="small" (click)="openAddModal()"
+                    *hasPermission="'N2,N1'">
+                    <img src="assets/icon/action_add_item_16.png" alt="Thêm " /> Thêm
+                </button>
+                <button class="fs-12 btn-edit" nz-button nzType="default" nzSize="small" (click)="openEditModal()"
+                    *hasPermission="'N2,N1'">
+                    <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />Sửa
+                </button>
+                <button class="fs-12 btn-delete" nz-button nzType="default" nzSize="small" (click)="openDeleteModal()"
+                    *hasPermission="'N2,N1'">
+                    <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />Xóa
+                </button>
+            </div>
+            <div class="d-flex align-items-center">
+                <input nz-input placeholder="Tìm kiếm..." style="width: 20vw;" (input)="onSearchEmployee($event)" />
             </div>
         </div>
-        <div class="card-body p-0 position-relative">
-            <div *ngIf="isLoading">
-                <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
+    </div>
+    <div class="card-body p-0 position-relative">
+        <div *ngIf="isLoading">
+            <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
             position: 'absolute',
             top: '0',
             left: '0',
@@ -33,26 +37,27 @@
             alignItems: 'center',
             justifyContent: 'center'
           }"></nz-spin>
-            </div>
-            <div id="position-internal-table"></div>
         </div>
+        <div id="position-internal-table"></div>
     </div>
-</ng-container>
+</div>
 
 <nz-modal [(nzVisible)]="isVisible" [nzTitle]="isEditMode ? 'Sửa chức vụ nội bộ' : 'Thêm chức vụ nội bộ mới'"
-    (nzOnCancel)="handleCancel()" (nzOnOk)="handleOk()" [nzOkText]="'Lưu'" [nzCancelText]="'Hủy'"
+    (nzOnCancel)="handleCancel()" (nzOnOk)="handleOk()" [nzOkText]="'Lưu'" [nzCancelText]="'Đóng'"
     [nzOkLoading]="isSubmitting">
     <ng-container *nzModalContent>
         <form nz-form [formGroup]="positionForm" (ngSubmit)="onSubmit()">
-            <nz-form-item>
-                <nz-form-label [nzSpan]="24">Mã chức vụ <sup class="text-danger mx-1"> (*)</sup></nz-form-label>
+            <nz-form-item class="mb-1">
+                <nz-form-label class="pb-0" [nzSpan]="24">Mã chức vụ <sup
+                        class="text-danger ps-1">*</sup></nz-form-label>
                 <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập mã chức vụ">
                     <input nz-input formControlName="Code" placeholder="Nhập mã chức vụ" />
                 </nz-form-control>
             </nz-form-item>
 
-            <nz-form-item>
-                <nz-form-label [nzSpan]="24">Tên chức vụ <sup class="text-danger"> (*)</sup></nz-form-label>
+            <nz-form-item class="mb-1">
+                <nz-form-label class="pb-0" [nzSpan]="24">Tên chức vụ <sup
+                        class="text-danger ps-1">*</sup></nz-form-label>
                 <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập tên chức vụ">
                     <input nz-input formControlName="Name" placeholder="Nhập tên chức vụ" />
                 </nz-form-control>

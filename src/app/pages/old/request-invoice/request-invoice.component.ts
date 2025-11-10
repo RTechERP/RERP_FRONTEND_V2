@@ -57,6 +57,7 @@ import * as ExcelJS from 'exceljs';
 import { RequestInvoiceService } from './request-invoice-service/request-invoice-service.service';
 import { RequestInvoiceDetailService } from '../request-invoice-detail/request-invoice-detail-service/request-invoice-detail-service.service';
 import { RequestInvoiceDetailComponent } from '../request-invoice-detail/request-invoice-detail.component';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-request-invoice',
@@ -165,11 +166,11 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
             this.mainTable.setData(this.data);
           }
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -187,17 +188,17 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
             this.fileTable.setData(this.dataFile);
           }
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
   onEdit() {
     if (!this.selectedId) {
-      this.notification.error('Lỗi', 'Vui lòng chọn bản ghi cần sửa');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn bản ghi cần sửa');
       return;
     }
     this.RequestInvoiceService.getDetail(this.selectedId).subscribe({
@@ -242,11 +243,11 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
             }
           );
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -303,7 +304,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
         }).subscribe({
           next: (response) => {
             if (response.status === 1) {
-              this.notification.success('Thành công', 'Xóa dữ liệu thành công');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Xóa dữ liệu thành công');
               this.loadMainData(
                 this.filters.startDate,
                 this.filters.endDate,
@@ -317,7 +318,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
             }
           },
           error: (err) => {
-            this.notification.error('Lỗi', 'Không thể xóa dữ liệu!');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xóa dữ liệu!');
           },
         });
       },

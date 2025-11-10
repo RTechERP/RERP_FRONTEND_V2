@@ -37,6 +37,7 @@ import { Title } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-synthesis-of-generated-materials',
@@ -316,7 +317,7 @@ export class SynthesisOfGeneratedMaterialsComponent
 
     let datatable = this.tb_synthesisOfGeneratedMaterials.getData();
     if (!datatable || datatable.length === 0) {
-      this.notification.error('Thông báo', 'Không có dữ liệu để xuất excel!');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất excel!');
       return;
     }
     this.projectService.exportExcel(

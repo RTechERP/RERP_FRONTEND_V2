@@ -28,6 +28,7 @@ import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { SummaryFoodOrderComponent } from "./summary-food-order/summary-food-order.component";
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-food-order',
@@ -160,7 +161,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
         console.log('Employee list:', this.employeeList); // Debug log
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách nhân viên: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách nhân viên: ' + error.message);
       }
     });
   }
@@ -326,7 +327,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
     const selectedRowsHN = this.foodOrderHNTabulator.getSelectedRows();
     const selectedRowsĐP = this.foodOrderĐPTabulator.getSelectedRows();
     if (selectedRowsHN.length === 0 && selectedRowsĐP.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn đơn đặt cần sửa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đơn đặt cần sửa');
       return;
     }
     // Check if any selected row is approved
@@ -334,7 +335,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
       (selectedRowsHN.length > 0 && selectedRowsHN[0].getData()['IsApproved'] === true) ||
       (selectedRowsĐP.length > 0 && selectedRowsĐP[0].getData()['IsApproved'] === true)
     ) {
-      this.notification.warning('Cảnh báo', 'Đơn đặt cơm đã được duyệt. Vui lòng hủy duyệt trước khi sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Đơn đặt cơm đã được duyệt. Vui lòng hủy duyệt trước khi sửa!');
       return;
     }
     if(selectedRowsHN.length > 0) {
@@ -379,7 +380,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
           control.updateValueAndValidity({ onlySelf: true });
         }
       });
-      this.notification.warning('Cảnh báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
     }
 
@@ -388,7 +389,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
     // Find the selected employee to get EmployeeID
     const selectedEmployee = this.employeeList.find(emp => emp.value === formData.FullName);
     if (!selectedEmployee) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn nhân viên');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn nhân viên');
       return;
     }
 
@@ -405,7 +406,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
 
     this.foodOrderService.saveEmployeeFoodOrder(foodOrderData).subscribe({
       next: (response) => {
-          this.notification.success('Thành công', 
+          this.notification.success(NOTIFICATION_TITLE.success, 
           formData.ID === 0 ? 'Thêm đơn đặt cơm thành công' : 'Cập nhật đơn đặt cơm thành công');
           
           this.closeModal();
@@ -426,7 +427,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
       },
       error: (error) => {
         console.error('Error saving food order:', error);
-        this.notification.error('Lỗi', 'Có lỗi xảy ra khi lưu đơn đặt cơm');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lưu đơn đặt cơm');
       }
     });
   }
@@ -438,7 +439,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
     const selectedRowsĐP = this.foodOrderĐPTabulator.getSelectedRows();
     
     if (selectedRowsHN.length === 0 && selectedRowsĐP.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn đơn đặt cần xóa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đơn đặt cần xóa');
       return;
     }
 
@@ -458,14 +459,14 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
     }
 
     if (foodOrdersToDelete.length === 0) {
-      this.notification.error('Lỗi', 'Không tìm thấy đơn đặt cần xóa');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không tìm thấy đơn đặt cần xóa');
       return;
     }
 
     // Check if any selected food order is approved
     const approvedOrders = foodOrdersToDelete.filter(fo => fo.IsApproved === true);
     if (approvedOrders.length > 0) {
-      this.notification.warning('Cảnh báo', `Có đơn đặt cơm đã được duyệt. Vui lòng hủy duyệt trước khi xóa!`);
+      this.notification.warning(NOTIFICATION_TITLE.warning, `Có đơn đặt cơm đã được duyệt. Vui lòng hủy duyệt trước khi xóa!`);
       return;
     }
     
@@ -487,11 +488,11 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
           };
           return this.foodOrderService.saveEmployeeFoodOrder(deleteData).subscribe({
             next: (response) => {
-              this.notification.success('Thành công', 'Xóa đơn đặt cơm thành công');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Xóa đơn đặt cơm thành công');
               this.loadFoodOrder();
             },
             error: (error) => {
-              this.notification.error('Lỗi', 'Xóa đơn đặt cơm thất bại: ' + error.message);
+              this.notification.error(NOTIFICATION_TITLE.error, 'Xóa đơn đặt cơm thất bại: ' + error.message);
             }
           })
         });
@@ -508,7 +509,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
     const selectedRowsHN = this.foodOrderHNTabulator.getSelectedRows();
     const selectedRowsĐP = this.foodOrderĐPTabulator.getSelectedRows();
     if (selectedRowsHN.length === 0 && selectedRowsĐP.length === 0) {
-      this.notification.warning('Cảnh báo', `Vui lòng chọn đơn đặt cần ${approvedText}`);
+      this.notification.warning(NOTIFICATION_TITLE.warning, `Vui lòng chọn đơn đặt cần ${approvedText}`);
       return;
     }
 
@@ -539,11 +540,11 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
     
         Promise.all(updatePromises)
           .then(() => {
-            this.notification.success('Thành công', `${approvedText.charAt(0).toUpperCase() + approvedText.slice(1)} đơn đặt cơm thành công!`);
+            this.notification.success(NOTIFICATION_TITLE.success, `${approvedText.charAt(0).toUpperCase() + approvedText.slice(1)} đơn đặt cơm thành công!`);
             this.loadFoodOrder();
           })
           .catch((error) => {
-            this.notification.error('Lỗi', `Cập nhật đơn đặt cơm thất bại: ${error.message}`);
+            this.notification.error(NOTIFICATION_TITLE.error, `Cập nhật đơn đặt cơm thất bại: ${error.message}`);
           });
       }
     })

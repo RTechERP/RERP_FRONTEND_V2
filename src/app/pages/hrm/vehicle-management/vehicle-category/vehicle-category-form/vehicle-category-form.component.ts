@@ -31,6 +31,7 @@ import { NzTableComponent } from "ng-zorro-antd/table";
 import { DateTime } from 'luxon';
 import type { Editor } from 'tabulator-tables';
 import { NzModalService } from 'ng-zorro-antd/modal';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 
 @Component({
@@ -95,15 +96,15 @@ export class VehicleCategoryFormComponent implements OnInit {
   }
   validateInput(): boolean {
     if (!this.VehicleCategoryCode || this.VehicleCategoryCode.trim().length === 0) {
-      this.notification.warning('Lỗi', "Mã loại xe không được để trống!");
+      this.notification.warning(NOTIFICATION_TITLE.error, "Mã loại xe không được để trống!");
       return false;
     }
     if (!this.VehicleCategoryName || this.VehicleCategoryName.trim().length === 0) {
-      this.notification.warning('Lỗi', "Tên loại xe không được để trống!");
+      this.notification.warning(NOTIFICATION_TITLE.error, "Tên loại xe không được để trống!");
       return false;
     }
     if (this.STT == null || this.STT! <= this.maxSTT!) {
-      this.notification.warning('Lỗi', `Số thứ tự phải lớn hơn ${this.maxSTT}!`);
+      this.notification.warning(NOTIFICATION_TITLE.error, `Số thứ tự phải lớn hơn ${this.maxSTT}!`);
       return false;
     }
     return true;

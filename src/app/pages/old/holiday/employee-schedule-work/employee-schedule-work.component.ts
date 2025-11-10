@@ -24,6 +24,7 @@ import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { filter } from 'rxjs';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 
 @Component({
@@ -203,7 +204,7 @@ export class EmployeeScheduleWorkComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Không thể tải dữ liệu lịch làm việc');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu lịch làm việc');
         console.error('Error loading holidays:', error);
       }
     });
@@ -232,7 +233,7 @@ export class EmployeeScheduleWorkComponent implements OnInit {
     });
 
     if (updatedData.length === 0) {
-      this.notification.warning('Thông báo', 'Không có thay đổi nào để lưu');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có thay đổi nào để lưu');
       return;
     }
 
@@ -255,11 +256,11 @@ export class EmployeeScheduleWorkComponent implements OnInit {
     // Thực hiện lưu tất cả
     Promise.all(savePromises)
       .then(() => {
-        this.notification.success('Thành công', 'Cập nhật lịch làm việc thành công');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật lịch làm việc thành công');
         this.loadScheduleWork(); // Tải lại dữ liệu
       })
       .catch((response) => {
-        this.notification.error('Lỗi', 'Cập nhật lịch làm việc thất bại: ' + response.error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật lịch làm việc thất bại: ' + response.error.message);
       });
   }
 
@@ -314,11 +315,11 @@ export class EmployeeScheduleWorkComponent implements OnInit {
   
         Promise.all(updatePromises)
           .then(() => {
-            this.notification.success('Thành công', `${approvedText.charAt(0).toUpperCase() + approvedText.slice(1)} lịch làm việc thành công!`);
+            this.notification.success(NOTIFICATION_TITLE.success, `${approvedText.charAt(0).toUpperCase() + approvedText.slice(1)} lịch làm việc thành công!`);
             this.loadScheduleWork();
           })
           .catch((error) => {
-            this.notification.error('Lỗi', `Cập nhật lịch làm việc thất bại: ${error.message}`);
+            this.notification.error(NOTIFICATION_TITLE.error, `Cập nhật lịch làm việc thất bại: ${error.message}`);
           });
       }
     });

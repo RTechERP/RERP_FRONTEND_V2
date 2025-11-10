@@ -102,7 +102,7 @@ export class InventoryBorrowNCCComponent implements OnInit, AfterViewInit {
         console.log("hhdhdhdhd", this.cbbSupplierSale);
       },
       error: (err: any) => {
-        this.notification.error('Lỗi', 'Không thể tải dữ liệu nhà cung cấp');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu nhà cung cấp');
       }
     });
   }
@@ -132,7 +132,7 @@ export class InventoryBorrowNCCComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err: any) => {
-        this.notification.error('Lỗi', 'Không thể tải dữ liệu inventoryborrow!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu inventoryborrow!');
       }
     });
   }
@@ -146,7 +146,7 @@ export class InventoryBorrowNCCComponent implements OnInit, AfterViewInit {
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu xuất excel!');
       return;
     }
 

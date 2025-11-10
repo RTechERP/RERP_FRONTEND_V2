@@ -7,6 +7,7 @@ import { UserService } from '../services/user.service';
 import { PermissionService } from '../services/permission.service';
 import { environment } from '../../environments/environment';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NOTIFICATION_TITLE } from '../app.config';
 // import { HOST } from '../app.config';
 
 @Injectable({
@@ -37,14 +38,14 @@ export class AuthService {
             },
             error: (error) => {
               console.error('getCurrentUser error after login:', error);
-              this.notification.error('Thông báo', error.message, {});
+              this.notification.error(NOTIFICATION_TITLE.error, error.message, {});
             },
           });
         }
       }),
       catchError((error) => {
         console.error('Login error:', error);
-        this.notification.error('Thông báo', error.message, {});
+        this.notification.error(NOTIFICATION_TITLE.error, error.message, {});
         throw error;
       })
     );

@@ -21,6 +21,7 @@ import type { Editor } from 'tabulator-tables';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { VehicleCategoryFormComponent } from '../vehicle-category/vehicle-category-form/vehicle-category-form.component';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 
 @Component({
@@ -121,7 +122,7 @@ export class VehicleManagementFormComponent implements OnInit {
 
     modalRef.result.then(
       (result) => {
-        this.notification.success("Thông báo", "Tạo sản phẩm thành công");
+        this.notification.success(NOTIFICATION_TITLE.success, "Tạo sản phẩm thành công");
         setTimeout(() => this.getVehicleCategory(), 100);
       },
       () => {
@@ -149,44 +150,44 @@ export class VehicleManagementFormComponent implements OnInit {
 
   validateForm(): boolean {
     if (!this.employeeID) {
-      this.notification.warning('Lỗi', 'Vui lòng chọn nhân viên lái xe!');
+      this.notification.warning(NOTIFICATION_TITLE.error, 'Vui lòng chọn nhân viên lái xe!');
       return false;
     }
     if (!this.STT) {
-      this.notification.warning('Lỗi', 'Vui lòng nhập số thứ tự!');
+      this.notification.warning(NOTIFICATION_TITLE.error, 'Vui lòng nhập số thứ tự!');
       return false;
     }
     if (this.STT! <= this.maxSTT!) {
-      this.notification.warning('Lỗi', `Số thứ tự phải lớn hơn ${this.maxSTT}!`);
+      this.notification.warning(NOTIFICATION_TITLE.error, `Số thứ tự phải lớn hơn ${this.maxSTT}!`);
       return false;
     }
     if (!this.vehicleCategoryID) {
-      this.notification.warning('Lỗi', 'Vui lòng chọn loại xe!');
+      this.notification.warning(NOTIFICATION_TITLE.error, 'Vui lòng chọn loại xe!');
       return false;
     }
     if (!this.carName.trim()) {
-      this.notification.warning('Lỗi', 'Vui lòng nhập tên xe!');
+      this.notification.warning(NOTIFICATION_TITLE.error, 'Vui lòng nhập tên xe!');
       return false;
     }
     if (!this.licensePlates.trim()) {
-      this.notification.warning('Lỗi', 'Vui lòng nhập biển số xe!');
+      this.notification.warning(NOTIFICATION_TITLE.error, 'Vui lòng nhập biển số xe!');
       return false;
     }
     if (!this.slots || this.slots <= 0) {
-      this.notification.warning('Lỗi', 'Vui lòng nhập số chỗ ngồi hợp lệ!');
+      this.notification.warning(NOTIFICATION_TITLE.error, 'Vui lòng nhập số chỗ ngồi hợp lệ!');
       return false;
     }
     const regexPatternLicensePlate = /^\d{2}-?\s?[A-Z0-9]{1,2}[-\s]\d{3}\.\d{2}$/;
 
     if (!regexPatternLicensePlate.test(this.licensePlates.trim())) {
-      this.notification.warning('Lỗi', "Biển số xe không đúng định dạng. VD: 89F-118.52 hoặc 89-F1 118.52!");
+      this.notification.warning(NOTIFICATION_TITLE.error, "Biển số xe không đúng định dạng. VD: 89F-118.52 hoặc 89-F1 118.52!");
       return false;
     }
     // 2. Kiểm tra trùng biển số
       const exists = this.vehicleManagementList.some((x: any) => x.LicensePlate.toLowerCase() === this.licensePlates.toLowerCase());
       const vehicleId = this.dataInput?.ID || 0;
       if (exists && (vehicleId == 0)) {
-        this.notification.warning('Lỗi',
+        this.notification.warning(NOTIFICATION_TITLE.error,
           `Biển số xe "${this.licensePlates}" đã tồn tại, vui lòng nhập biển khác!`);
           return false;
       }

@@ -57,6 +57,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { WarehouseReleaseRequestService } from './warehouse-release-request/warehouse-release-request.service';
 import { CustomerPartService } from '../customer-part/customer-part/customer-part.service';
 import { RequestInvoiceDetailService } from '../request-invoice-detail/request-invoice-detail-service/request-invoice-detail-service.service';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 interface BillExportDetail {
   ProductID: number;
@@ -194,7 +195,7 @@ export class WarehouseReleaseRequestComponent implements OnInit {
         cell.setValue(Number(value));
 
         if (!Number.isInteger(value)) {
-          this.notification.warning('Thông báo', 'Vui lòng nhập số nguyên');
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập số nguyên');
           cell.setValue(0);
           return;
         }
@@ -608,7 +609,7 @@ export class WarehouseReleaseRequestComponent implements OnInit {
             cell.setValue(Number(value));
 
             if (!Number.isInteger(value)) {
-              this.notification.warning('Thông báo', 'Vui lòng nhập số nguyên');
+              this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập số nguyên');
               cell.setValue(0);
               return;
             }

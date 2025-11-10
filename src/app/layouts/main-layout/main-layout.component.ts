@@ -186,7 +186,7 @@ export class MainLayoutComponent implements OnInit {
 //       },
 //       error: (err) => {
 //         // console.log(err);
-//         // this.notification.error('Thông báo', err.error.message);
+//         // this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
 //       },
 //     });
 //   }

@@ -243,7 +243,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
         );
       },
       error: (err) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy chi tiết');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy chi tiết');
       },
     });
   }
@@ -254,7 +254,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
           this.selectBillImport = res.data;
           console.log('seelct:', this.selectBillImport);
         } else {
-          this.notification.warning('Thông báo', res.message || 'Lỗi');
+          this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Lỗi');
         }
       },
     });
@@ -328,7 +328,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
         },
         error: (err) => {
           const errorMsg = err?.error?.message || 'Có lỗi xảy ra!';
-          this.notification.error('Thông báo', errorMsg);
+          this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
         },
       });
     }
@@ -365,7 +365,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
           }
         },
         error: (err) => {
-          this.notification.error('Lỗi', 'Không thể tải dữ liệu phiếu xuất');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu phiếu xuất');
         },
       });
   }
@@ -377,7 +377,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu xuất excel!');
       return;
     }
 
@@ -477,13 +477,13 @@ export class BillImportComponent implements OnInit, AfterViewInit {
   //Xuất Excel theo mẫu
   onExportExcel() {
     if (!this.id || this.id === 0) {
-      this.notification.error('Lỗi', 'Vui lòng chọn bản ghi cần xuất file');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn bản ghi cần xuất file');
       return;
     }
 
     const selectedHandover = this.data.find((item) => item.ID === this.id);
     if (!selectedHandover) {
-      this.notification.error('Lỗi', 'Không tìm thấy bản ghi được chọn');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không tìm thấy bản ghi được chọn');
       return;
     }
 
@@ -508,7 +508,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
         window.URL.revokeObjectURL(url);
       },
       error: (err) => {
-        this.notification.error('Lỗi', 'Có lỗi xảy ra khi xuất file.');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xuất file.');
         console.error(err);
       },
     });
@@ -557,7 +557,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
   //xoa phieu nhap
   deleteBillImport() {
     if (!this.data) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn 1 phiếu muốn xóa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 phiếu muốn xóa!');
       return;
     }
     if (this.data[0].Status == true) {
@@ -586,7 +586,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
               this.notification.success('Thông báo', 'Xóa thành công!');
               this.loadDataBillImport();
             } else {
-              this.notification.warning('Thông báo', 'Xóa thất bại!');
+              this.notification.warning(NOTIFICATION_TITLE.warning, 'Xóa thất bại!');
             }
           },
           error: (err: any) => {

@@ -15,6 +15,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { ProductsaleServiceService } from '../product-sale-service/product-sale-service.service';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 interface UnitCount {
   ID?: number;
@@ -105,7 +106,7 @@ if (this.formGroup.invalid) {
       c.markAsTouched();
       c.updateValueAndValidity({ onlySelf: true });
     });
-    this.notification.warning('Cảnh báo', 'Vui lòng điền đủ thông tin bắt buộc');
+    this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đủ thông tin bắt buộc');
     return;
   }
     const formValue = this.formGroup.getRawValue();
@@ -127,12 +128,12 @@ if (this.formGroup.invalid) {
             this.notification.success('Thông báo', 'Cập nhật thành công!');
             this.closeModal('updated');
           } else {
-            this.notification.warning('Thông báo', res.message || 'Không thể cập nhật đơn vị tính!');
+            this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể cập nhật đơn vị tính!');
           }
         },
         error: (err) => {
           const apiMessage = err.error?.message || 'Có lỗi xảy ra khi cập nhật!';
-          this.notification.error('Thông báo', apiMessage);
+          this.notification.error(NOTIFICATION_TITLE.error, apiMessage);
         }
       });
     } else {
@@ -145,12 +146,12 @@ if (this.formGroup.invalid) {
             this.notification.success('Thông báo', 'Thêm mới thành công!');
             this.closeModal('updated');
           } else {
-            this.notification.warning('Thông báo', res.message.message || 'Không thể thêm đơn vị tính!');
+            this.notification.warning(NOTIFICATION_TITLE.warning, res.message.message || 'Không thể thêm đơn vị tính!');
           }
         },
         error: (err) => {
           const apiMessage = err.error?.message || 'Có lỗi xảy ra khi thêm mới!';
-          this.notification.error('Thông báo', apiMessage);
+          this.notification.error(NOTIFICATION_TITLE.error, apiMessage);
         }
       });
     }

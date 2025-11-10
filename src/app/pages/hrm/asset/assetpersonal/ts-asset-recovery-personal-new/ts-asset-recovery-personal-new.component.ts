@@ -29,6 +29,7 @@ import { TsAssetRecoveryPersonalService } from '../../../../old/ts-asset-recover
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { DisablePermissionDirective } from '../../../../../directives/disable-permission.directive';
 import { HasPermissionDirective } from "../../../../../directives/has-permission.directive";
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   selector: 'app-ts-asset-recovery-personal-new',
  standalone: true,
@@ -274,15 +275,15 @@ getAssetRecoveryPersonals() {
   validateRecoveryForm(): boolean {
     let isValid = true;
     if (!this.recoveryDate) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn ngày thu hồi!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ngày thu hồi!');
       isValid = false;
     }
     if (!this.employeeReturnID) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn nhân viên thu hồi từ!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn nhân viên thu hồi từ!');
       isValid = false;
     }
     if (!this.employeeRecoveryID) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn người thu hồi!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn người thu hồi!');
       isValid = false;
     }
     return isValid;
@@ -342,7 +343,7 @@ getAssetRecoveryPersonals() {
     console.log(payload);
     this.tsAssetAllocationPersonalService.saveAssetAllocationPerson(payload).subscribe({
       next: (res) => {
-        if (res.status === 1) { this.notification.success("Thông báo", "Lưu thành công"); this.formNote = "", this.closeModal(); this.getAssetRecoveryPersonals(); }
+        if (res.status === 1) { this.notification.success(NOTIFICATION_TITLE.success, "Lưu thành công"); this.formNote = "", this.closeModal(); this.getAssetRecoveryPersonals(); }
         else this.notification.warning("Thông báo", "Lưu thất bại");
       },
       error: () => this.notification.warning("Thông báo", "Lỗi kết nối máy chủ")
@@ -659,7 +660,7 @@ getAssetRecoveryPersonals() {
     this.tsAssetAllocationPersonalService.SaveApprove(updatePayload).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success("Thông báo", "Thành công");
+          this.notification.success(NOTIFICATION_TITLE.success, "Thành công");
           this.tbAssetRecoveryPersonal?.setData();
         } else {
           this.notification.warning("Thông báo", "Thất bại");
@@ -703,7 +704,7 @@ getAssetRecoveryPersonals() {
     this.tsAssetAllocationPersonalService.SaveApprovePerson(updatePayload).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success("Thông báo", "Thành công");
+          this.notification.success(NOTIFICATION_TITLE.success, "Thành công");
           this.tbAssetRecoveryPersonal?.setData();
         } else {
           this.notification.warning("Thông báo", "Thất bại");

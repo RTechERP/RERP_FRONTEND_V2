@@ -17,6 +17,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 interface newOfficeSupplyUnit {
   ID?: number;
   Name: string;
@@ -184,7 +185,7 @@ export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
     const rows = this.table?.getSelectedData?.() || [];
     this.selectedList = rows;
     if (this.selectedList.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất 1 đơn vị để xóa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất 1 đơn vị để xóa');
       return;
     }
 
@@ -208,7 +209,7 @@ export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
           const fail = results.length - ok;
 
           if (ok > 0) this.notification.success('Thông báo', `Xóa thành công ${ok} đơn vị`);
-          if (fail > 0) this.notification.error('Thông báo', `Xóa lỗi ${fail} đơn vị`);
+          if (fail > 0) this.notification.error(NOTIFICATION_TITLE.error, `Xóa lỗi ${fail} đơn vị`);
 
           this.get();
           this.selectedList = [];
@@ -255,7 +256,7 @@ export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
 
     const rows = this.table?.getSelectedData?.() || [];
     if (rows.length !== 1) {
-      this.notification.warning('Thông báo', rows.length === 0 ? 'Chọn 1 dòng để sửa' : 'Chỉ chọn 1 dòng để sửa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, rows.length === 0 ? 'Chọn 1 dòng để sửa' : 'Chỉ chọn 1 dòng để sửa');
       return;
     }
 

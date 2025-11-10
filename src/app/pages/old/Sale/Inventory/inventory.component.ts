@@ -182,11 +182,11 @@ export class InventoryComponent implements OnInit, AfterViewInit {
   //           this.dataUpdate = Array.isArray(res.data) ? res.data[0] : res.data;
   //           this.openModalProductInventory();
   //         } else {
-  //           this.notification.warning('Thông báo', res.message || 'Không thể lấy thông tin vật tư!');
+  //           this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể lấy thông tin vật tư!');
   //         }
   //       },
   //       error: (err) => {
-  //         this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy thông tin!');
+  //         this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy thông tin!');
   //         console.error(err);
   //       }
   //     });
@@ -329,7 +329,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu xuất excel!');
       return;
     }
 

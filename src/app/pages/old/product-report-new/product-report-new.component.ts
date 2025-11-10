@@ -129,7 +129,7 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
       this.billImportTechnicalService.getBillImportByCode(this.billImportCode).subscribe((response: any) => {
         const selectedRow = response.master?.[0];
         if (!selectedRow) {
-          this.notification.error('Lỗi', 'Không tìm thấy biên bản trong hệ thống!');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không tìm thấy biên bản trong hệ thống!');
           return;
         }
         const modalRef = this.ngbModal.open(BillImportTechnicalFormComponent, {
@@ -148,7 +148,7 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
       this.billExportTechnicalService.getBillExportByCode(this.billExportCode).subscribe((response: any) => {
         const selectedRow = response.master?.[0];
         if (!selectedRow) {
-          this.notification.error('Lỗi', 'Không tìm thấy biên bản trong hệ thống!');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không tìm thấy biên bản trong hệ thống!');
           return;
         }
         const modalRef = this.ngbModal.open(BillExportTechnicalFormComponent, {
@@ -161,7 +161,7 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
         modalRef.componentInstance.dataEdit = selectedRow;
       });
     } else {
-      this.notification.error('Lỗi', 'Không xác định được loại phiếu!');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không xác định được loại phiếu!');
     }
   },
 }

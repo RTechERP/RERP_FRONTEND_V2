@@ -75,6 +75,7 @@ interface Employee {
 
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 @Component({
   selector: 'app-meeting-minute',
   standalone: true,
@@ -422,7 +423,7 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
     this.isCheckmode = isEditmode;
     console.log('is', this.isCheckmode);
     if (this.isCheckmode == true && this.MeetingMinutesID === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn 1 bản ghi để sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 bản ghi để sửa!');
       return;
     }
     const modalRef = this.modalService.open(MeetingMinuteFormComponent, {
@@ -497,7 +498,7 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
             }
           },
           error: (err) => {
-            this.notification.error('Thông báo', 'Có lỗi xảy ra khi xóa!');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xóa!');
             console.error(err);
           },
         });

@@ -22,6 +22,7 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 @Component({
   selector: 'app-office-supply-request-summary',
   standalone: true,
@@ -144,7 +145,7 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit,AfterViewInit
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu xuất excel!');
       return;
     }
 

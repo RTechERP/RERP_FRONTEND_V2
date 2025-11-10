@@ -15,6 +15,7 @@ import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { PositionServiceService } from '../position-service/position-service.service';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-position-internal',
@@ -32,7 +33,7 @@ import { HasPermissionDirective } from '../../../../directives/has-permission.di
     NzSwitchModule,
     NzNotificationModule,
     NzSpinModule,
-    NgIf,HasPermissionDirective
+    NgIf, HasPermissionDirective
   ],
   standalone: true
 })
@@ -80,274 +81,160 @@ export class PositionInternalComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách chức vụ nội bộ: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách chức vụ nội bộ: ' + error.message);
       }
+    });
+  }
+
+  onSearchEmployee(event: any) {
+    const keyword = event.target.value.toLowerCase();
+    if (keyword != "") {
+      this.tabulator.setFilter([
+        [
+          { field: 'PriorityOrder', type: 'like', value: keyword },
+          { field: 'Code', type: 'like', value: keyword },
+          { field: 'Name', type: 'like', value: keyword },
+        ]
+      ], 'or'); // 'or' để tìm ở bất kỳ cột nào
+    } else {
+      // Xóa filter, load lại dữ liệu
+      this.initializeTable();
+      this.loadPositionInternal();
+      // hoặc this.loadPositionContract(); nếu muốn reload từ server
+    }
+  }
+
+  updatePriority(priority: Number) {
+    const selectedRows = this.tabulator.getSelectedRows();
+    if (selectedRows.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn chức vụ nội bộ cần cập nhật");
+      return;
+    }
+
+    // Lấy toàn bộ data của các dòng được chọn
+    const positions = selectedRows.map(row => row.getData());
+
+    // Chuẩn bị danh sách để gửi lên service
+    const payload = positions.map(pos => ({
+      ID: pos['ID'],
+      PriorityOrder: priority,
+      Code: pos['Code'],
+      Name: pos['Name'],
+      IsBusinessCost: pos['IsBusinessCost'],
+    }));
+
+    // Gọi service để cập nhật nhiều record cùng lúc
+    this.positionService.changeStatusPositionInternal(payload).subscribe(() => {
+      this.notification.success(NOTIFICATION_TITLE.success, "Cập nhật thành công");
+      this.loadPositionInternal();
+    });
+  }
+
+  updateIsBusinessCost(isBusinessCost: boolean) {
+    const selectedRows = this.tabulator.getSelectedRows();
+    if (selectedRows.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn chức vụ nội bộ cần cập nhật");
+      return;
+    }
+
+    // Lấy toàn bộ data của các dòng được chọn
+    const positions = selectedRows.map(row => row.getData());
+
+    // Chuẩn bị danh sách để gửi lên service
+    const payload = positions.map(pos => ({
+      ID: pos['ID'],
+      PriorityOrder: pos['PriorityOrder'],
+      Code: pos['Code'],
+      Name: pos['Name'],
+      IsBusinessCost: isBusinessCost,
+    }));
+
+    // Gọi service để cập nhật nhiều record cùng lúc
+    this.positionService.changeStatusPositionInternal(payload).subscribe(() => {
+      this.notification.success(NOTIFICATION_TITLE.success, "Cập nhật thành công");
+      this.loadPositionInternal();
     });
   }
 
   private initializeTable(): void {
     this.tabulator = new Tabulator('#position-internal-table', {
       data: this.positionInternals,
-      layout: 'fitDataFill',
+      layout: 'fitDataStretch',
       selectableRows: true,
       rowHeader: { formatter: "rowSelection", titleFormatter: "rowSelection", headerSort: false, width: 50, frozen: true, headerHozAlign: "center", hozAlign: "center" },
       responsiveLayout: true,
-      height: '80vh',
+      height: '85vh',
       rowContextMenu: [
         {
           label: 'Có hưởng CTP',
           action: () => {
-            const selectedRows = this.tabulator.getSelectedRows();
-            if (selectedRows.length === 0) {
-              this.notification.warning('Cảnh báo', "Vui lòng chọn chức vụ nội bộ cần cập nhật");
-              return;
-            }
-            const position = selectedRows[0].getData();
-            console.log(position);
-            this.positionInternal.ID = position['ID'];
-            this.positionInternal.PriorityOrder = position['PriorityOrder'];
-            this.positionInternal.Code = position['Code'];
-            this.positionInternal.Name = position['Name'];
-            this.positionInternal.IsBusinessCost = true;
-            this.positionService.savePositionInternal(this.positionInternal).subscribe(() => {
-              this.notification.success('Thành công', "Cập nhật thành công");
-              this.loadPositionInternal();
-            });
+            this.updateIsBusinessCost(true);
           }
         },
         {
           label: 'Không hưởng CTP',
           action: () => {
-            const selectedRows = this.tabulator.getSelectedRows();
-            if (selectedRows.length === 0) {
-              this.notification.warning('Cảnh báo', "Vui lòng chọn chức vụ nội bộ cần cập nhật");
-              return;
-            }
-            const position = selectedRows[0].getData();
-            this.positionInternal.ID = position['ID'];
-            this.positionInternal.PriorityOrder = position['PriorityOrder'];
-            this.positionInternal.Code = position['Code'];
-            this.positionInternal.Name = position['Name'];
-            this.positionInternal.IsBusinessCost = false;
-            this.positionService.savePositionInternal(this.positionInternal).subscribe(() => {
-              this.notification.success('Thành công', "Cập nhật thành công");
-              this.loadPositionInternal();
-            });
+            this.updateIsBusinessCost(false);
           }
         },
         {
           label: 'Mức độ ưu tiên 1',
           action: () => {
-            const selectedRows = this.tabulator.getSelectedRows();
-            if (selectedRows.length === 0) {
-              this.notification.warning('Cảnh báo', "Vui lòng chọn chức vụ nội bộ cần cập nhật");
-              return;
-            }
-            const position = selectedRows[0].getData();
-            this.positionInternal.ID = position['ID'];
-            this.positionInternal.PriorityOrder = 1;
-            this.positionInternal.Code = position['Code'];
-            this.positionInternal.Name = position['Name'];
-            this.positionInternal.IsBusinessCost = position['IsBusinessCost'];
-            this.positionService.savePositionInternal(this.positionInternal).subscribe(() => {
-              this.notification.success('Thành công', "Cập nhật thành công");
-              this.loadPositionInternal();
-            });
+            this.updatePriority(1);
           }
         },
         {
           label: 'Mức độ ưu tiên 2',
           action: () => {
-            const selectedRows = this.tabulator.getSelectedRows();
-            if (selectedRows.length === 0) {
-              this.notification.warning('Cảnh báo', "Vui lòng chọn chức vụ nội bộ cần cập nhật");
-              return;
-            }
-            const position = selectedRows[0].getData();
-            this.positionInternal.ID = position['ID'];
-            this.positionInternal.PriorityOrder = 2;
-            this.positionInternal.Code = position['Code'];
-            this.positionInternal.Name = position['Name'];
-            this.positionInternal.IsBusinessCost = position['IsBusinessCost'];
-            this.positionService.savePositionInternal(this.positionInternal).subscribe(() => {
-              this.notification.success('Thành công', "Cập nhật thành công");
-              this.loadPositionInternal();
-            });
+            this.updatePriority(2);
           }
         },
         {
           label: 'Mức độ ưu tiên 3',
           action: () => {
-            const selectedRows = this.tabulator.getSelectedRows();
-            if (selectedRows.length === 0) {
-              this.notification.warning('Cảnh báo', "Vui lòng chọn chức vụ nội bộ cần cập nhật");
-
-              return;
-            }
-            const position = selectedRows[0].getData();
-            this.positionInternal.ID = position['ID'];
-            this.positionInternal.PriorityOrder = 3;
-            this.positionInternal.Code = position['Code'];
-            this.positionInternal.Name = position['Name'];
-            this.positionInternal.IsBusinessCost = position['IsBusinessCost'];
-            this.positionService.savePositionInternal(this.positionInternal).subscribe(() => {
-              this.notification.success('Thành công', "Cập nhật thành công");
-
-              this.loadPositionInternal();
-            });
+            this.updatePriority(3);
           }
         },
         {
           label: 'Mức độ ưu tiên 4',
           action: () => {
-            const selectedRows = this.tabulator.getSelectedRows();
-            if (selectedRows.length === 0) {
-              this.notification.warning('Cảnh báo', "Vui lòng chọn chức vụ nội bộ cần cập nhật");
-              return;
-            }
-            const position = selectedRows[0].getData();
-            this.positionInternal.ID = position['ID'];
-            this.positionInternal.PriorityOrder = 4;
-            this.positionInternal.Code = position['Code'];
-            this.positionInternal.Name = position['Name'];
-            this.positionInternal.IsBusinessCost = position['IsBusinessCost'];
-            this.positionService.savePositionInternal(this.positionInternal).subscribe(() => {
-              this.notification.success('Thành công', "Cập nhật thành công");
-
-              this.loadPositionInternal();
-            });
+            this.updatePriority(4);
           }
         },
         {
           label: 'Mức độ ưu tiên 5',
           action: () => {
-            const selectedRows = this.tabulator.getSelectedRows();
-            if (selectedRows.length === 0) {
-              this.notification.warning('Cảnh báo', "Vui lòng chọn chức vụ nội bộ cần cập nhật");
-
-              return;
-            }
-            const position = selectedRows[0].getData();
-            this.positionInternal.ID = position['ID'];
-            this.positionInternal.PriorityOrder = 5;
-            this.positionInternal.Code = position['Code'];
-            this.positionInternal.Name = position['Name'];
-            this.positionInternal.IsBusinessCost = position['IsBusinessCost'];
-            this.positionService.savePositionInternal(this.positionInternal).subscribe(() => {
-              this.notification.success('Thành công', "Cập nhật thành công");
-
-              this.loadPositionInternal();
-            });
+            this.updatePriority(5);
           }
         },
         {
           label: 'Mức độ ưu tiên 6',
           action: () => {
-            const selectedRows = this.tabulator.getSelectedRows();
-            if (selectedRows.length === 0) {
-              this.notification.warning('Cảnh báo', "Vui lòng chọn chức vụ nội bộ cần cập nhật");
-
-              return;
-            }
-            const position = selectedRows[0].getData();
-            this.positionInternal.ID = position['ID'];
-            this.positionInternal.PriorityOrder = 6;
-            this.positionInternal.Code = position['Code'];
-            this.positionInternal.Name = position['Name'];
-            this.positionInternal.IsBusinessCost = position['IsBusinessCost'];
-            this.positionService.savePositionInternal(this.positionInternal).subscribe(() => {
-              this.notification.success('Thành công', "Cập nhật thành công");
-
-              this.loadPositionInternal();
-            });
+            this.updatePriority(6);
           }
         },
         {
           label: 'Mức độ ưu tiên 7',
           action: () => {
-            const selectedRows = this.tabulator.getSelectedRows();
-            if (selectedRows.length === 0) {
-              this.notification.warning('Cảnh báo', "Vui lòng chọn chức vụ nội bộ cần cập nhật");
-
-              return;
-            }
-            const position = selectedRows[0].getData();
-            this.positionInternal.ID = position['ID'];
-            this.positionInternal.PriorityOrder = 7;
-            this.positionInternal.Code = position['Code'];
-            this.positionInternal.Name = position['Name'];
-            this.positionInternal.IsBusinessCost = position['IsBusinessCost'];
-            this.positionService.savePositionInternal(this.positionInternal).subscribe(() => {
-              this.notification.success('Thành công', "Cập nhật thành công");
-
-              this.loadPositionInternal();
-            });
+            this.updatePriority(7);
           }
         },
         {
           label: 'Mức độ ưu tiên 8',
           action: () => {
-            const selectedRows = this.tabulator.getSelectedRows();
-            if (selectedRows.length === 0) {
-              this.notification.warning('Cảnh báo', "Vui lòng chọn chức vụ nội bộ cần cập nhật");
-
-              return;
-            }
-            const position = selectedRows[0].getData();
-            this.positionInternal.ID = position['ID'];
-            this.positionInternal.PriorityOrder = 8;
-            this.positionInternal.Code = position['Code'];
-            this.positionInternal.Name = position['Name'];
-            this.positionInternal.IsBusinessCost = position['IsBusinessCost'];
-            this.positionService.savePositionInternal(this.positionInternal).subscribe(() => {
-              this.notification.success('Thành công', "Cập nhật thành công");
-
-              this.loadPositionInternal();
-            });
+            this.updatePriority(8);
           }
         },
         {
           label: 'Mức độ ưu tiên 9',
           action: () => {
-            const selectedRows = this.tabulator.getSelectedRows();
-            if (selectedRows.length === 0) {
-              this.notification.warning('Cảnh báo', "Vui lòng chọn chức vụ nội bộ cần cập nhật");
-
-              return;
-            }
-            const position = selectedRows[0].getData();
-            this.positionInternal.ID = position['ID'];
-            this.positionInternal.PriorityOrder = 9;
-            this.positionInternal.Code = position['Code'];
-            this.positionInternal.Name = position['Name'];
-            this.positionInternal.IsBusinessCost = position['IsBusinessCost'];
-            this.positionService.savePositionInternal(this.positionInternal).subscribe(() => {
-              this.notification.success('Thành công', "Cập nhật thành công");
-
-              this.loadPositionInternal();
-            });
+            this.updatePriority(9);
           }
         },
         {
           label: 'Mức độ ưu tiên 10',
           action: () => {
-            const selectedRows = this.tabulator.getSelectedRows();
-            if (selectedRows.length === 0) {
-              this.notification.warning('Cảnh báo', "Vui lòng chọn chức vụ nội bộ cần cập nhật");
-
-              return;
-            }
-            const position = selectedRows[0].getData();
-            this.positionInternal.ID = position['ID'];
-            this.positionInternal.PriorityOrder = 10;
-            this.positionInternal.Code = position['Code'];
-            this.positionInternal.Name = position['Name'];
-            this.positionInternal.IsBusinessCost = position['IsBusinessCost'];
-            this.positionService.savePositionInternal(this.positionInternal).subscribe(() => {
-              this.notification.success('Thành công', "Cập nhật thành công");
-
-              this.loadPositionInternal();
-            });
+            this.updatePriority(10);
           }
         },
         {
@@ -356,23 +243,7 @@ export class PositionInternalComponent implements OnInit {
             ...Array.from({ length: 10 }, (_, i) => ({
               label: `Mức độ ưu tiên ${i + 11}`,
               action: () => {
-                const selectedRows = this.tabulator.getSelectedRows();
-                if (selectedRows.length === 0) {
-                  this.notification.warning('Cảnh báo', "Vui lòng chọn chức vụ nội bộ cần cập nhật");
-
-                  return;
-                }
-                const position = selectedRows[0].getData();
-                this.positionInternal.ID = position['ID'];
-                this.positionInternal.PriorityOrder = i + 11;
-                this.positionInternal.Code = position['Code'];
-                this.positionInternal.Name = position['Name'];
-                this.positionInternal.IsBusinessCost = position['IsBusinessCost'];
-                this.positionService.savePositionInternal(this.positionInternal).subscribe(() => {
-                  this.notification.success('Thành công', "Cập nhật thành công");
-
-                  this.loadPositionInternal();
-                });
+                this.updatePriority(i + 11);
               }
             }))
           ]
@@ -380,9 +251,9 @@ export class PositionInternalComponent implements OnInit {
 
       ],
       columns: [
-        { title: 'Mức độ ưu tiên', field: 'PriorityOrder', hozAlign: 'right', headerHozAlign: 'center', width: '17vw' },
-        { title: 'Mã chức vụ', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: '25vw' },
-        { title: 'Tên chức vụ', field: 'Name', hozAlign: 'left', headerHozAlign: 'center', width: '37vw' },
+        { title: 'Mức độ ưu tiên', field: 'PriorityOrder', hozAlign: 'center', headerHozAlign: 'center', width: 100, headerWordWrap: true },
+        { title: 'Mã chức vụ', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: 120 },
+        { title: 'Tên chức vụ', field: 'Name', hozAlign: 'left', headerHozAlign: 'center', width: 350, formatter:'textarea' },
         {
           title: 'Hưởng CTP',
           field: 'IsBusinessCost',
@@ -394,7 +265,8 @@ export class PositionInternalComponent implements OnInit {
             allowTruthy: true,
             tickElement: '<i class="fas fa-check"></i>',
             crossElement: ''
-          }
+          },
+          width: 60
         },
       ],
       pagination: true,
@@ -429,8 +301,8 @@ export class PositionInternalComponent implements OnInit {
 
   openEditModal() {
     const selectedRows = this.tabulator.getSelectedRows();
-    if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn chức vụ nội bộ cần sửa');
+    if (selectedRows.length != 1) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 chức vụ nội bộ cần sửa');
       return;
     }
     this.isEditMode = true;
@@ -441,12 +313,12 @@ export class PositionInternalComponent implements OnInit {
 
   openDeleteModal() {
     const selectedRows = this.tabulator.getSelectedRows();
-    if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn chức vụ nội bộ cần xóa');
+    if (selectedRows.length != 1) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 chức vụ nội bộ cần xóa');
       return;
     }
     // const idsToDelete = selectedRows.map(row => row.getData()['ID']);
-    
+
     // this.modal.confirm({
     //   nzTitle: 'Xác nhận xóa',
     //   nzContent: `Bạn có chắc chắn muốn xóa ${idsToDelete.length} chức vụ nội bộ đã chọn?`,
@@ -457,10 +329,10 @@ export class PositionInternalComponent implements OnInit {
     //     Promise.all(idsToDelete.map(id =>
     //       this.positionService.deletePositionInternal(id).toPromise()
     //     )).then(() => {
-    //       this.notification.success('Thành công', 'Đã xóa thành công các chức vụ nội bộ đã chọn');
+    //       this.notification.success(NOTIFICATION_TITLE.success, 'Đã xóa thành công các chức vụ nội bộ đã chọn');
     //       this.loadPositionInternal();
     //     }).catch(() => {
-    //       this.notification.error('Lỗi', 'Có lỗi xảy ra khi xóa');
+    //       this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xóa');
     //     });
     //   },
     //   nzCancelText: 'Hủy'
@@ -471,8 +343,8 @@ export class PositionInternalComponent implements OnInit {
     this.modal.confirm({
       nzTitle: "Xác nhận xóa",
       nzContent: `Bạn có chắc chắn muốn xóa chức vụ nội bộ đã chọn không?`,
-      nzOkText:"Xóa",
-      nzOkType:'primary',
+      nzOkText: "Xóa",
+      nzOkType: 'primary',
       nzOkDanger: true,
       nzOnOk: () => {
         this.positionService.savePositionInternal({
@@ -480,11 +352,11 @@ export class PositionInternalComponent implements OnInit {
           IsDeleted: true
         }).subscribe({
           next: (response) => {
-            this.notification.success('Thành công', 'Xóa chức vụ nội bộ thành công');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Xóa chức vụ nội bộ thành công');
             this.loadPositionInternal();
           },
           error: (error) => {
-            this.notification.error('Lỗi', 'Xóa chức vụ nội bộ thất bại: ' + error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Xóa chức vụ nội bộ thất bại: ' + error.message);
           }
         });
       },
@@ -500,7 +372,7 @@ export class PositionInternalComponent implements OnInit {
           control.updateValueAndValidity({ onlySelf: true });
         }
       });
-      this.notification.warning('Cảnh báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
     }
 
@@ -509,12 +381,12 @@ export class PositionInternalComponent implements OnInit {
 
     this.positionService.savePositionInternal(formData).subscribe({
       next: () => {
-        this.notification.success('Thành công', this.isEditMode ? 'Cập nhật chức vụ nội bộ thành công' : 'Thêm mới chức vụ nội bộ thành công');
+        this.notification.success(NOTIFICATION_TITLE.success, this.isEditMode ? 'Cập nhật chức vụ nội bộ thành công' : 'Thêm mới chức vụ nội bộ thành công');
         this.closeModal();
         this.loadPositionInternal();
       },
       error: (error) => {
-        this.notification.error('Lỗi', (this.isEditMode ? 'Cập nhật' : 'Thêm mới') + ' chức vụ nội bộ thất bại: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, (this.isEditMode ? 'Cập nhật' : 'Thêm mới') + ' chức vụ nội bộ thất bại: ' + error.message);
       },
       complete: () => {
         this.isSubmitting = false;

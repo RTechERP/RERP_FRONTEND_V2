@@ -23,6 +23,7 @@ import { TsAssetManagementPersonalService } from '../../../../../old/ts-asset-ma
 import { UnitService } from '../../ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
 import { TypeAssetsService } from '../../ts-asset-type/ts-asset-type-service/ts-asset-type.service';
 import { AssetsService } from '../../ts-asset-source/ts-asset-source-service/ts-asset-source.service';
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   if (!val) return '';
@@ -234,7 +235,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
     if (this.table) {
       this.table.import("xlsx", [".xlsx", ".csv", ".ods"], "buffer");
     } else {
-      this.notification.warning('Thông báo', 'Bảng chưa được khởi tạo!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Bảng chưa được khởi tạo!');
     }
   }
   openFileExplorer() {
@@ -249,7 +250,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       console.log('File đã chọn:', file.name); // Log để kiểm tra
       console.log('Phần mở rộng:', fileExtension); // Log để kiểm tra
       if (fileExtension !== 'xlsx' && fileExtension !== 'xls') {
-        this.notification.warning('Thông báo', 'Vui lòng chọn tệp Excel (.xlsx hoặc .xls)!');
+        this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn tệp Excel (.xlsx hoặc .xls)!');
         input.value = ''; // Xóa input để có thể chọn lại file
         this.resetExcelImportState(); // Reset trạng thái khi có lỗi định dạng
         return;
@@ -310,12 +311,12 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
             }
           } else {
             console.warn('File Excel không chứa bất kỳ sheet nào.'); // Log
-            this.notification.warning('Thông báo', 'File Excel không có sheet nào!');
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'File Excel không có sheet nào!');
             this.resetExcelImportState();
           }
         } catch (error) {
           console.error('Lỗi khi đọc tệp Excel trong FileReader.onload:', error); // Log chi tiết lỗi
-          this.notification.error('Thông báo', 'Không thể đọc tệp Excel. Vui lòng đảm bảo tệp không bị hỏng và đúng định dạng.');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể đọc tệp Excel. Vui lòng đảm bảo tệp không bị hỏng và đúng định dạng.');
           this.resetExcelImportState(); // Reset trạng thái khi có lỗi
         }
         input.value = ''; // Xóa input để có thể chọn lại cùng file
@@ -435,7 +436,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       console.log(`Đã load ${validRecords} bản ghi hợp lệ.`);
     } catch (error) {
       console.error('Lỗi khi đọc dữ liệu từ sheet:', error);
-      this.notification.error('Thông báo', 'Không thể đọc dữ liệu từ sheet!');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không thể đọc dữ liệu từ sheet!');
       this.resetExcelImportState();
     }
   }
@@ -459,7 +460,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
             console.log('Dữ liệu đã được đọc lại sau khi thay đổi sheet.'); // Log
           } catch (error) {
             console.error('Lỗi khi đọc tệp Excel khi thay đổi sheet:', error);
-            this.notification.error('Thông báo', 'Không thể đọc dữ liệu từ sheet đã chọn!');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Không thể đọc dữ liệu từ sheet đã chọn!');
             this.resetExcelImportState(); // Reset trạng thái khi có lỗi
           }
         };
@@ -469,7 +470,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
   }
   async saveExcelData() {
     if (!this.dataTableExcel || this.dataTableExcel.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu để lưu!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để lưu!');
       return;
     }
 
@@ -480,7 +481,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
     });
 
     if (validDataToSave.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu hợp lệ (STT là số) để lưu!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu hợp lệ (STT là số) để lưu!');
       this.displayProgress = 0;
       this.displayText = `0/${this.totalRowsAfterFileRead} bản ghi`;
       return;
@@ -525,7 +526,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       });
     } catch (e) {
       console.error('Lỗi khi map dữ liệu từ Excel sang payload API:', e, validDataToSave);
-      this.notification.error('Thông báo', 'Lỗi khi lưu dữ liệu.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi lưu dữ liệu.');
       return;
     }
 
@@ -578,7 +579,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
             );
 
             // >>> HIỂN THỊ LÊN NOTIFICATION Ở ĐÂY <<<
-            this.notification.error('Thông báo', backendMsg);
+            this.notification.error(NOTIFICATION_TITLE.error, backendMsg);
 
             completedRequests++;
             this.displayProgress = Math.round((completedRequests / totalAssetsToSave) * 100);
@@ -599,9 +600,9 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
     if (errorCount === 0) {
       this.notification.success('Thông báo', `Đã lưu ${successCount} sản phẩm thành công`);
     } else if (successCount === 0) {
-      this.notification.error('Thông báo', `Lưu thất bại ${errorCount}/${totalProducts} sản phẩm`);
+      this.notification.error(NOTIFICATION_TITLE.error, `Lưu thất bại ${errorCount}/${totalProducts} sản phẩm`);
     } else {
-      this.notification.warning('Thông báo', `Đã lưu ${successCount} sản phẩm thành công, ${errorCount} sản phẩm thất bại`);
+      this.notification.warning(NOTIFICATION_TITLE.warning, `Đã lưu ${successCount} sản phẩm thành công, ${errorCount} sản phẩm thất bại`);
     }
     this.closeExcelModal();
   }

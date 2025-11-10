@@ -14,6 +14,7 @@ import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { OfficeSupplyService } from '../office-supply-service/office-supply-service.service';
 import { OfficeSupplyUnitDetailComponent } from '../../OfficeSupplyUnit/office-supply-unit-detail/office-supply-unit-detail.component';
 import { OfficeSupplyUnitService } from '../../OfficeSupplyUnit/office-supply-unit-service/office-supply-unit-service.service';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 interface Product {
   ID?: number;
@@ -170,7 +171,7 @@ clearSupplyUnit() {
 
     if (this.validateForm.invalid) {
       this.markFormTouched();
-      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
     }
 
@@ -182,7 +183,7 @@ clearSupplyUnit() {
         this.activeModal.close('success');
       },
       error: () => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi thêm dữ liệu!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi thêm dữ liệu!');
       }
     });
   }
@@ -192,7 +193,7 @@ clearSupplyUnit() {
 
     if (this.validateForm.invalid) {
       this.markFormTouched();
-      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
     }
 
@@ -204,7 +205,7 @@ clearSupplyUnit() {
         this.activeModal.close('success');
       },
       error: () => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi cập nhật dữ liệu!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi cập nhật dữ liệu!');
       }
     });
   }

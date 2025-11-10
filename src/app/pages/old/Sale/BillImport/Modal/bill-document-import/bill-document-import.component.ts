@@ -155,7 +155,7 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err) => {
-        this.notification.error('Lỗi', 'Lỗi khi lấy chứng từ');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi lấy chứng từ');
         console.error('Lỗi khi lấy chứng từ', err);
       },
     });
@@ -174,7 +174,7 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
           }
         },
         error: (err) => {
-          this.notification.error('Lỗi', 'Lỗi khi lấy lịch sử chứng từ');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi lấy lịch sử chứng từ');
           console.error('Lỗi khi lấy lịch sử chứng từ', err);
         },
       });
@@ -256,7 +256,7 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
     this.billImportService.saveBillDocumentImport(changedData).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success('Thành công', 'Dữ liệu đã được lưu.');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Dữ liệu đã được lưu.');
           this.flag = true;
           this.getBillDocumentImport(); // load lại bảng + reset cờ _edited
           this.dataSaved.emit();
@@ -271,7 +271,7 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
         const errorMsg = err.error?.errors
           ? Object.values(err.error.errors).flat().join('; ')
           : err.error?.error || 'Có lỗi xảy ra khi lưu dữ liệu.';
-        this.notification.error('Lỗi', errorMsg);
+        this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
         console.error('Lỗi khi lưu dữ liệu:', err);
       },
     });

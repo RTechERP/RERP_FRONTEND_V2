@@ -25,6 +25,7 @@ import { ImportExcelComponent } from './import-excel/import-excel.component';
 import { OfficeSupplyService } from './office-supply-service/office-supply-service.service';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 
 interface Unit {
@@ -267,7 +268,7 @@ export class OfficeSupplyComponent implements OnInit, AfterViewInit {
 
   add(): void {
     if (!this.newProduct.CodeNCC || !this.newProduct.NameNCC || !this.newProduct.Price || !this.newProduct.SupplyUnitID) {
-      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin!');
       return;
     }
     this.lstVPP.adddata(this.newProduct).subscribe({
@@ -287,7 +288,7 @@ export class OfficeSupplyComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi thêm dữ liệu!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi thêm dữ liệu!');
       }
     });
   }
@@ -300,7 +301,7 @@ export class OfficeSupplyComponent implements OnInit, AfterViewInit {
     });
     const ids = this.selectedList.map(item => item.ID);
     if (ids.length == 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn 1 sản phẩm để xóa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 sản phẩm để xóa!');
       return;
     }
 
@@ -317,7 +318,7 @@ export class OfficeSupplyComponent implements OnInit, AfterViewInit {
             this.selectedList = [];
           },
           error: (err: any) => {
-            this.notification.error('Thông báo', 'Có lỗi xảy ra khi xóa dữ liệu!');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xóa dữ liệu!');
           }
         });
       }
@@ -490,11 +491,11 @@ export class OfficeSupplyComponent implements OnInit, AfterViewInit {
     const ids = this.selectedList.map(item => item.ID);
     this.isCheckmode = true;
     if (this.selectedList.length == 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn 1 sản phẩm để sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 sản phẩm để sửa!');
       this.selectedList = [];
       return;
     } else if (this.selectedList.length > 1) {
-      this.notification.warning('Thông báo', 'Vui lòng chỉ chọn 1 sản phẩm để sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chỉ chọn 1 sản phẩm để sửa!');
       this.selectedList = [];
       return;
     } else {
@@ -513,7 +514,7 @@ export class OfficeSupplyComponent implements OnInit, AfterViewInit {
   // Thêm đơn vị tính
   //   addNewUnit(): void {
   //     if (!this.newUnit.Name) {
-  //       this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin đơn vị!');
+  //       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin đơn vị!');
   //       return;
   //     }
   //     this.lstVPP.addUnit(this.newUnit).subscribe({
@@ -524,7 +525,7 @@ export class OfficeSupplyComponent implements OnInit, AfterViewInit {
   //         this.getUnits(); 
   //       },
   //       error: (error: any) => {
-  //         this.notification.error('Thông báo', 'Có lỗi xảy ra khi thêm đơn vị!');
+  //         this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi thêm đơn vị!');
   //       }
   //     });
   //   }
@@ -544,7 +545,7 @@ export class OfficeSupplyComponent implements OnInit, AfterViewInit {
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu xuất excel!');
       return;
     }
 
@@ -645,12 +646,12 @@ export class OfficeSupplyComponent implements OnInit, AfterViewInit {
     const dataSelect = this.table.getSelectedData();
 
     if (!dataSelect || dataSelect.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn 1 sản phẩm để sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 sản phẩm để sửa!');
       return;
     }
 
     if (dataSelect.length > 1) {
-      this.notification.warning('Thông báo', 'Vui lòng chỉ chọn 1 sản phẩm để sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chỉ chọn 1 sản phẩm để sửa!');
       return;
     }
 

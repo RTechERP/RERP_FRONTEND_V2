@@ -194,7 +194,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       },
       error: (err: any) => {
         console.error(err);
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy mã phiếu');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy mã phiếu');
       }
     });
   }
@@ -302,7 +302,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
             const productCode = rowData['ProductCode'];
             const serialIDsRaw = rowData['SerialIDs'];
             if (quantity <= 0) {
-              this.notification.warning('Cảnh báo', 'Vui lòng nhập số lượng lớn hơn 0 trước khi chọn Serial!');
+              this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập số lượng lớn hơn 0 trước khi chọn Serial!');
               return;
             }
             if (serialIDsRaw) {
@@ -394,7 +394,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
           control.updateValueAndValidity({ onlySelf: true });
         }
       });
-      this.notification.warning('Cảnh báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
     }
     const formValue = this.formDeviceInfo.value;
@@ -469,13 +469,13 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     this.billImportTechnicalService.saveData(payload).subscribe({
       next: (response: any) => {
    
-        this.notification.success('Thành công', 'Lưu phiếu thành công');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Lưu phiếu thành công');
         this.formSubmitted.emit();
         this.activeModal.close();
       },
       error: (error: any) => {
         console.error('Lỗi khi lưu dữ liệu:', error);
-        this.notification.error('Lỗi', 'Không thể lưu phiếu, vui lòng thử lại sau');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lưu phiếu, vui lòng thử lại sau');
       }
     });
 

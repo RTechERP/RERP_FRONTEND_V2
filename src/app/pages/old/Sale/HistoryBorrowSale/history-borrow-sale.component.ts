@@ -134,7 +134,7 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
         this.cbbEmployee = res.data;
       },
       error: (err: any) => {
-        this.notification.error('Lỗi', 'Không thể tải dữ liệu nhân viên');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu nhân viên');
       },
     });
   }
@@ -144,7 +144,7 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
         this.cbbProductGroup = res.data;
       },
       error: (err: any) => {
-        this.notification.error('Lỗi', 'Không thể tải dữ liệu kho');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu kho');
       },
     });
   }
@@ -281,7 +281,7 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu xuất excel!');
       return;
     }
 
@@ -400,12 +400,12 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
           this.data = [];
           this.loadData();
         } else {
-          this.notification.error('Thông báo', res.message || 'Có lỗi xảy ra!');
+          this.notification.error(NOTIFICATION_TITLE.error, res.message || 'Có lỗi xảy ra!');
         }
       },
       error: (err) => {
         const errorMsg = err?.error?.message || 'Có lỗi xảy ra!';
-        this.notification.error('Thông báo', errorMsg);
+        this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
       },
     });
   }

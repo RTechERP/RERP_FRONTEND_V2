@@ -33,6 +33,7 @@ import { debounce } from 'rxjs';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { VehicleRepairComponentFormComponent } from './vehicle-repair-component-form/vehicle-repair-component-form.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 @Component({
   standalone: true,
   imports: [
@@ -146,7 +147,7 @@ selectedRow: any = null;
 private openPreviewByRow(d: any) {
   const full = d?.FilePath || d?.FullPath || '';
   if (!full) {
-    this.notification.warning('Thông báo', 'Không có FilePath');
+    this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có FilePath');
     return;
   }
   const url = this.VehicleRepairService.buildPreviewUrl(full);
@@ -295,7 +296,7 @@ private openPreviewByRow(d: any) {
   deleteVehicleRepair() {
     const selectedIds = this.getSelectedIds();
     if (!selectedIds.length) {
-      this.notification.warning('Cảnh báo', 'Chưa chọn dòng để xóa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Chưa chọn dòng để xóa');
       return;
     }
     const selectedRow = this.vehicleRepairTable?.getSelectedData()?.[0];
@@ -319,14 +320,14 @@ private openPreviewByRow(d: any) {
           next: (res) => {
             if(res.status=1)
             {
-            this.notification.success('Thành công', 'Xóa lịch sử sửa chữa thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Xóa lịch sử sửa chữa thành công!');
 
             }
             this.vehicleRepairTable?.setData();
             this.drawTable();
           },
           error: (res) => {
-            this.notification.warning('Lỗi', res.message);
+            this.notification.warning(NOTIFICATION_TITLE.error, res.message);
           }
         });
       }
@@ -335,13 +336,13 @@ private openPreviewByRow(d: any) {
   // editVehicleRepair() {
   //   // const selectedRow = this.vehicleRepairTable?.getSelectedData()?.[0];
   //   // if (!selectedRow) {
-  //   //   this.notification.warning('Cảnh báo', 'Chọn 1 dòng để sửa');
+  //   //   this.notification.warning(NOTIFICATION_TITLE.warning, 'Chọn 1 dòng để sửa');
   //   //   return;
   //   // }
   //     if (this.selectedRow == null) {
   //     const selected = this.vehicleRepairTable?.getSelectedData();
   //     if (!selected || selected.length === 0) {
-  //       this.notification.warning('Thông báo', 'Vui lòng chọn một dòng  để sửa!');
+  //       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một dòng  để sửa!');
   //       return;
   //     }
   //     this.selectedRow = { ...selected[0] };
@@ -362,7 +363,7 @@ private openPreviewByRow(d: any) {
   editVehicleRepair() {
   const selected = this.vehicleRepairTable?.getSelectedData() || [];
   if (!selected.length) {
-    this.notification.warning('Thông báo', 'Vui lòng chọn một dòng để sửa!');
+    this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một dòng để sửa!');
     return;
   }
   const rowData = { ...selected[0] };

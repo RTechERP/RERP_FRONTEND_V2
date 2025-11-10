@@ -46,6 +46,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { inject } from '@angular/core';
 import { VehicleRepairComponentFormComponent } from '../vehicle-repair/vehicle-repair-component-form/vehicle-repair-component-form.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-vehicle-management',
@@ -246,7 +247,7 @@ export class VehicleManagementComponent implements AfterViewInit {
   }
   onDeleteVehicle() {
     if (!this.selectedID || this.selectedID === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn xe để xóa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn xe để xóa!');
       return;
     }
 
@@ -272,12 +273,12 @@ export class VehicleManagementComponent implements AfterViewInit {
               );
               setTimeout(() => this.getVehicleManagement(), 100);
             } else {
-              this.notification.warning('Thông báo', 'Thất bại');
+              this.notification.warning(NOTIFICATION_TITLE.warning, 'Thất bại');
             }
           },
           error: (err) => {
             console.error(err);
-            this.notification.warning('Thông báo', 'Lỗi kết nối');
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Lỗi kết nối');
           },
         });
       },

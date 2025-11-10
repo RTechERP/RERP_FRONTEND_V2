@@ -52,6 +52,7 @@ import { VehicleRepairService } from '../../../vehicle-repair/vehicle-repair-ser
 import { VehicleRepairHistoryService } from '../vehicle-repair-history-service/vehicle-repair-history-service.service';
 import { VehicleRepairComponentFormComponent } from '../../../vehicle-repair/vehicle-repair-component-form/vehicle-repair-component-form.component';
 import { VehicleRepairHistoryFormComponent } from '../vehicle-repair-history-form/vehicle-repair-history-form.component';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   standalone: true,
   selector: 'app-vehicle-repair-history',
@@ -250,7 +251,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
  private openPreviewByRow(d: any) {
   const full = d?.FilePath || d?.ServerPath || '';
   if (!full) {
-    this.notification.warning('Thông báo', 'Không có FilePath');
+    this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có FilePath');
     return;
   }
   const url = this.VehicleRepairService.buildPreviewUrl(full);
@@ -425,7 +426,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
   }
   onDeleteVehicle() {
     if (!this.selectedID || this.selectedID === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn xe để xóa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn xe để xóa!');
       return;
     }
 
@@ -451,12 +452,12 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
               );
               setTimeout(() => this.getVehicleManagement(), 100);
             } else {
-              this.notification.warning('Thông báo', 'Thất bại');
+              this.notification.warning(NOTIFICATION_TITLE.warning, 'Thất bại');
             }
           },
           error: (err) => {
             console.error(err);
-            this.notification.warning('Thông báo', 'Lỗi kết nối');
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Lỗi kết nối');
           },
         });
       },
@@ -636,7 +637,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
   private detailCache = new Map<number, any[]>();
   editProposeVehicleRepair() {
     const sel = this.vehicleRepairHistoryTable?.getSelectedData() || [];
-    if (!sel.length) { this.notification.warning('Thông báo', 'Chọn một dòng để sửa'); return; }
+    if (!sel.length) { this.notification.warning(NOTIFICATION_TITLE.warning, 'Chọn một dòng để sửa'); return; }
 
     const rowData = { ...sel[0] };
     const details = this.detailCache.get(rowData.ID) || null;
@@ -659,20 +660,20 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
           })
           .catch(() => { });
       },
-      error: () => this.notification.error('Lỗi', 'Không lấy được danh sách file')
+      error: () => this.notification.error(NOTIFICATION_TITLE.error, 'Không lấy được danh sách file')
     });
   }
   async exportAllVehicles_ByTemplateRow5() {
     const vehicles = this.vehicleMnagemens || [];
     if (!vehicles.length) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu xe');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu xe');
       return;
     }
 
     const templateUrl = 'assets/templateForm/MauTheoDoiXe.xlsx';
     const tmplWb = await this.loadTemplate(templateUrl);
     const tmpl = tmplWb.getWorksheet('Template') ?? tmplWb.worksheets[0];
-    if (!tmpl) { this.notification.error('Lỗi', 'Không thấy sheet Template'); return; }
+    if (!tmpl) { this.notification.error(NOTIFICATION_TITLE.error, 'Không thấy sheet Template'); return; }
 
     const outWb = new ExcelJS.Workbook();
 

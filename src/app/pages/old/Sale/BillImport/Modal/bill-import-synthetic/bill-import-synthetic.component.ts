@@ -149,7 +149,7 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu xuất excel!');
       return;
     }
 
@@ -314,7 +314,7 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
           }
         },
         error: (err) => {
-          this.notification.error('Lỗi', 'Không thể tải dữ liệu phiếu xuất');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu phiếu xuất');
         },
       });
   }

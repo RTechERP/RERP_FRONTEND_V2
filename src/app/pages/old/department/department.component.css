@@ -40,3 +40,16 @@ nz-form-label .ant-form-item-label {
 .cdk-overlay-container {
   z-index: 9999 !important;
 }
+
+::ng-deep .ant-modal-header{
+  background-color: #0d6efd !important;
+}
+
+::ng-deep .ant-modal-header .ng-star-inserted{
+  color: white;
+}
+
+::ng-deep .ant-modal-footer .ant-btn:not(.ant-btn-primary) {
+  border-color: red;        /* viền đỏ */
+  color: red;             /* chữ trắng */
+}

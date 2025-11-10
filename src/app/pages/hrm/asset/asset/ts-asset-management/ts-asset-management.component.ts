@@ -59,6 +59,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { count } from 'rxjs';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { TsAssetSourceFormComponent } from '../ts-asset-source/ts-asset-source-form/ts-asset-source-form.component';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
@@ -707,13 +708,13 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     console.log('payload', asset);
     this.assetManagementService.saveDataAsset(asset).subscribe({
       next: () => {
-        this.notification.success('Thành công', 'Xóa biên bản thành công!');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Xóa biên bản thành công!');
         this.getAssetmanagement();
         this.drawTable();
       },
       error: (err) => {
         console.error('Lỗi khi xóa:', err);
-        this.notification.warning('Lỗi', 'Lỗi kết nối máy chủ!');
+        this.notification.warning(NOTIFICATION_TITLE.error, 'Lỗi kết nối máy chủ!');
       },
     });
   }
@@ -793,12 +794,12 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     const selectedAssets = { ...selected[0] };
 
     if (selectedAssets.StatusID == 7 || selectedAssets.Status === 'Thanh lý') {
-      this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đã thanh lí, không thể báo mất!`);
+      this.notification.warning(NOTIFICATION_TITLE.warning, `Tài sản có mã "${selectedAssets.TSAssetCode}" đã thanh lí, không thể báo mất!`);
       return;
 
     }
     if (selectedAssets.StatusID == 4 || selectedAssets.Status === 'Mất') {
-      this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đã mất, không thể báo mất!`);
+      this.notification.warning(NOTIFICATION_TITLE.warning, `Tài sản có mã "${selectedAssets.TSAssetCode}" đã mất, không thể báo mất!`);
       return;
     }
     const modalRef = this.ngbModal.open(
@@ -832,11 +833,11 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     }
     const selectedAssets = { ...selected[0] };
     if (selectedAssets.StatusID == 4 || selectedAssets.Status === 'Mất') {
-      this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đã mất, không thể sửa chữa bảo dưỡng!`);
+      this.notification.warning(NOTIFICATION_TITLE.warning, `Tài sản có mã "${selectedAssets.TSAssetCode}" đã mất, không thể sửa chữa bảo dưỡng!`);
       return;
     }
     if (selectedAssets.StatusID == 7 || selectedAssets.Status === 'Thanh lý') {
-      this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đã thanh lí, không thể sửa chữa bảo dưỡng!`);
+      this.notification.warning(NOTIFICATION_TITLE.warning, `Tài sản có mã "${selectedAssets.TSAssetCode}" đã thanh lí, không thể sửa chữa bảo dưỡng!`);
       return;
     }
     const modalRef = this.ngbModal.open(TsAssetRepairFormComponent, {
@@ -867,7 +868,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     }
     const selectedAssets = { ...selected[0] };
     if (selectedAssets.StatusID == 4 || selectedAssets.Status === 'Mất') {
-      this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đã mất, không thể đưa vào sử dụng lại!`);
+      this.notification.warning(NOTIFICATION_TITLE.warning, `Tài sản có mã "${selectedAssets.TSAssetCode}" đã mất, không thể đưa vào sử dụng lại!`);
       return;
     }
     if (selectedAssets.StatusID != 3) {
@@ -912,15 +913,15 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     }
     const selectedAssets = { ...selected[0] };
     if (selectedAssets.StatusID == 4) {
-      this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đã mất, không thể báo hỏng!`);
+      this.notification.warning(NOTIFICATION_TITLE.warning, `Tài sản có mã "${selectedAssets.TSAssetCode}" đã mất, không thể báo hỏng!`);
       return;
     }
     if (selectedAssets.StatusID == 3 || selectedAssets.Status == "Hỏng") {
-      this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đã báo hỏng, không thể báo hỏng!`);
+      this.notification.warning(NOTIFICATION_TITLE.warning, `Tài sản có mã "${selectedAssets.TSAssetCode}" đã báo hỏng, không thể báo hỏng!`);
       return;
     }
     if (selectedAssets.StatusID == 7 || selectedAssets.Status == "Thanh lý") {
-      this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đã thanh lí, không thể báo hỏng!`);
+      this.notification.warning(NOTIFICATION_TITLE.warning, `Tài sản có mã "${selectedAssets.TSAssetCode}" đã thanh lí, không thể báo hỏng!`);
       return;
     }
     const modalRef = this.ngbModal.open(
@@ -955,7 +956,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
 
     const selectedAssets = { ...selected[0] };
     if (selectedAssets.StatusID == 6 || selectedAssets.Status == "Thanh lý") {
-      this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đã thanh lí!`);
+      this.notification.warning(NOTIFICATION_TITLE.warning, `Tài sản có mã "${selectedAssets.TSAssetCode}" đã thanh lí!`);
       return;
     }
     if (
@@ -1002,7 +1003,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       selectedAssets.Status === 'Đề nghị thanh lí'
 
     ) {
-      this.notification.warning('Thông báo', `Tài sản có mã "${selectedAssets.TSAssetCode}" đã đề nghị thanh lí!`);
+      this.notification.warning(NOTIFICATION_TITLE.warning, `Tài sản có mã "${selectedAssets.TSAssetCode}" đã đề nghị thanh lí!`);
 
       return;
     }

@@ -33,6 +33,7 @@ import { TsAssetChooseAssetsComponent } from '../../ts-asset-allocation/ts-asset
 import { right } from '@popperjs/core';
 import { AssetsRecoveryService } from '../ts-asset-recovery-service/ts-asset-recovery.service';
 import { TsAssetRecoveryByEmployeeComponent } from '../ts-asset-recovery-by-employee/ts-asset-recovery-by-employee.component';
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
@@ -239,14 +240,14 @@ export class TsAssetRecoveryFormComponent implements OnInit, AfterViewInit {
     console.log(payloadRecovery);
     this.assetsRecoveryService.saveAssetRecovery(payloadRecovery).subscribe({
       next: () => {
-        this.notification.success("Thông báo", "Thành công");
+        this.notification.success(NOTIFICATION_TITLE.success, "Thành công");
         this.getRecovery();
         this.resetModal();
         this.formSubmitted.emit();
         this.activeModal.close(true);
       },
       error: () => {
-        this.notification.success("Thông báo", "Lỗi");
+        this.notification.success(NOTIFICATION_TITLE.success, "Lỗi");
         console.error('Lỗi khi lưu đơn vị!');
       }
     });

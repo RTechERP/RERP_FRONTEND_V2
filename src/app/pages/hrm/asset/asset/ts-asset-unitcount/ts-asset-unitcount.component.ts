@@ -199,12 +199,12 @@ export class TsAssetUnitcountComponent implements OnInit, AfterViewInit {
           this.notification.success('Thông báo', 'Thành công');
           setTimeout(() => this.getunit(), 100);
         } else {
-          this.notification.warning('Thông báo', 'Thất bại');
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Thất bại');
         }
       },
       error: (err) => {
         console.error(err);
-        this.notification.warning('Thông báo', 'Lỗi kết nối');
+        this.notification.warning(NOTIFICATION_TITLE.warning, 'Lỗi kết nối');
       },
     });
   }

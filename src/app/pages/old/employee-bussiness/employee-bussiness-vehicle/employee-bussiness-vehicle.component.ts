@@ -13,6 +13,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { EmployeeBussinessService } from '../employee-bussiness-service/employee-bussiness.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-employee-bussiness-vehicle',
@@ -76,7 +77,7 @@ export class EmployeeBussinessVehicleComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách loại phụ cấp phương tiện: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách loại phụ cấp phương tiện: ' + error.message);
       }
     });
   }
@@ -119,7 +120,7 @@ export class EmployeeBussinessVehicleComponent implements OnInit {
   openEditModal() {
     const selectedRows = this.tabulator.getSelectedRows();
     if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn loại phụ cấp phương tiện cần sửa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn loại phụ cấp phương tiện cần sửa');
       return;
     }
     this.selectedEmployeeBussinessVehicle = selectedRows[0].getData();
@@ -130,7 +131,7 @@ export class EmployeeBussinessVehicleComponent implements OnInit {
   openDeleteModal() {
     const selectedRows = this.tabulator.getSelectedRows();
     if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn loại phụ cấp phương tiện cần xóa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn loại phụ cấp phương tiện cần xóa');
       return;
     }
     const selectedEmployeeBussinessVehicle = selectedRows[0].getData();
@@ -148,11 +149,11 @@ export class EmployeeBussinessVehicleComponent implements OnInit {
           IsDeleted: true
         }).subscribe({
           next: (response) => {
-            this.notification.success('Thành công', 'Xóa loại phụ cấp phương tiện thành công');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Xóa loại phụ cấp phương tiện thành công');
             this.loadEmployeeBussinessVehicle();
           },
           error: (error) => {
-            this.notification.error('Lỗi', 'Xóa loại phụ cấp phương tiện thất bại: ' + error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Xóa loại phụ cấp phương tiện thất bại: ' + error.message);
           }
         });
       },
@@ -176,12 +177,12 @@ export class EmployeeBussinessVehicleComponent implements OnInit {
 
     this.employeeBussinessService.saveEmployeeVehicleBussiness(formData).subscribe({
       next: () => {
-        this.notification.success('Thành công', 'Cập nhật loại phụ cấp phương tiện thành công');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật loại phụ cấp phương tiện thành công');
         this.closeModal();
         this.loadEmployeeBussinessVehicle();
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Cập nhật loại phụ cấp phương tiện thất bại: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật loại phụ cấp phương tiện thất bại: ' + error.message);
       },
       complete: () => {
         this.isSubmitting = false;

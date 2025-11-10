@@ -578,7 +578,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       },
       error: (error) => {
         console.error('Lỗi khi lưu dữ liệu:', error);
-        this.notification.error('Thông báo', 'Lỗi khi lưu dữ liệu.');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi lưu dữ liệu.');
         // Swal.fire('Thông báo', 'Không thể lưu dữ liệu.', 'error');
       },
     });
@@ -1557,7 +1557,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
         error: (error) => {
           const errMsg =
             error?.error?.message || error?.message || 'Đã xảy ra lỗi!';
-          this.notification.warning('Thông báo', errMsg);
+          this.notification.warning(NOTIFICATION_TITLE.warning, errMsg);
         },
       });
     });

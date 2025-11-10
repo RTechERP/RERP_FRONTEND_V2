@@ -56,6 +56,7 @@ import dayjs from 'dayjs';
 import { forkJoin, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 interface MeetingMinutes {
   STT: number;
@@ -250,7 +251,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
         // Load detail if edit mode - after options are loaded
         if (this.isCheckmode === true) {
           if (!this.MeetingMinutesID) {
-            this.notification.warning('Thông báo', 'Thiếu ID biên bản họp!');
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Thiếu ID biên bản họp!');
             return;
           }
           this.loadDetailEditMode(this.MeetingMinutesID);
@@ -261,7 +262,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
         // Still try to load detail even if options fail
         if (this.isCheckmode === true) {
           if (!this.MeetingMinutesID) {
-            this.notification.warning('Thông báo', 'Thiếu ID biên bản họp!');
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Thiếu ID biên bản họp!');
             return;
           }
           this.loadDetailEditMode(this.MeetingMinutesID);
@@ -276,11 +277,11 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
         if (response.status === 1) {
           this.projectData = response.data || [];
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -413,7 +414,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
         },
         error: (err) => {
           console.error('Lỗi load data:', err);
-        this.notification.error('Thông báo', 'Lỗi khi load dữ liệu biên bản họp!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi load dữ liệu biên bản họp!');
         },
       });
   }
@@ -880,7 +881,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             this.performSave(formValues, employeeAttendance, customerAttendance, employeeDetails, customerDetails);
         },
         error: (err) => {
-            this.notification.error('Lỗi', 'Upload file thất bại!');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Upload file thất bại!');
         },
       });
     } else {
@@ -945,7 +946,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
           }
         },
         error: (err) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lưu!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lưu!');
         console.error('Lỗi khi lưu:', err);
         },
       });

@@ -62,6 +62,7 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { saveAs } from 'file-saver';
 import { HandoverRejectreasonFormComponent } from './handover-rejectreason-form/handover-rejectreason-form.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 interface Handover {
   ID: number;
@@ -570,7 +571,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
 
     modalRef.afterClose.subscribe((reason: string) => {
       if (!reason) {
-        this.notification.warning('Thông báo', 'Bạn phải nhập lý do để hủy duyệt!');
+        this.notification.warning(NOTIFICATION_TITLE.warning, 'Bạn phải nhập lý do để hủy duyệt!');
         return;
       }
       this.approveAction(handoverId, stt, status, null, reason.trim());
@@ -620,17 +621,17 @@ approveAction(
         if (status === 1) {
           this.notification.success('Thông báo', 'Đã duyệt thành công!');
         } else if (status === 2) {
-          this.notification.warning('Thông báo', 'Đã hủy duyệt thành công!');
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Đã hủy duyệt thành công!');
         }
       } else if (res?.status === 0 && res?.message) {
-        this.notification.error('Thông báo', res.message);
+        this.notification.error(NOTIFICATION_TITLE.error, res.message);
       } else {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi duyệt!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi duyệt!');
       }
     },
     error: (err) => {
       const msg = err?.error?.message || 'Có lỗi xảy ra!';
-      this.notification.error('Thông báo', msg);
+      this.notification.error(NOTIFICATION_TITLE.error, msg);
     },
   });
 }
@@ -638,7 +639,7 @@ approveAction(
   onAddHandover(isEditmode: boolean): void {
     this.isCheckmode = isEditmode;
     if (this.isCheckmode == true && this.HandoverID === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn 1 bản ghi để sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 bản ghi để sửa!');
       return;
     }
 
@@ -737,7 +738,7 @@ approveAction(
             }
           },
           error: (err) => {
-            this.notification.error('Thông báo', 'Có lỗi xảy ra khi xóa!');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xóa!');
           },
         });
       },

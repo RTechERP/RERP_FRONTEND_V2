@@ -289,7 +289,7 @@ export class IssueSolutionDetailComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err) => {
-        this.notification.error('Lỗi', 'Không thể lấy dữ liệu!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lấy dữ liệu!');
       },
     });
   }
@@ -307,7 +307,7 @@ export class IssueSolutionDetailComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err) => {
-        this.notification.error('Lỗi', 'Không thể lấy dữ liệu!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lấy dữ liệu!');
       },
     });
   }
@@ -325,7 +325,7 @@ export class IssueSolutionDetailComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err) => {
-        this.notification.error('Lỗi', 'Không thể lấy dữ liệu!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lấy dữ liệu!');
       },
     });
   }
@@ -343,7 +343,7 @@ export class IssueSolutionDetailComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err) => {
-        this.notification.error('Lỗi', 'Không thể lấy dữ liệu!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lấy dữ liệu!');
       },
     });
   }
@@ -361,7 +361,7 @@ export class IssueSolutionDetailComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err) => {
-        this.notification.error('Lỗi', 'Không thể lấy dữ liệu!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lấy dữ liệu!');
       },
     });
   }
@@ -379,7 +379,7 @@ export class IssueSolutionDetailComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err) => {
-        this.notification.error('Lỗi', 'Không thể lấy dữ liệu!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lấy dữ liệu!');
       },
     });
   }
@@ -397,7 +397,7 @@ export class IssueSolutionDetailComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err) => {
-        this.notification.error('Lỗi', 'Không thể lấy dữ liệu!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lấy dữ liệu!');
       },
     });
   }
@@ -415,7 +415,7 @@ export class IssueSolutionDetailComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err) => {
-        this.notification.error('Lỗi', 'Không thể lấy dữ liệu!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lấy dữ liệu!');
       },
     });
   }
@@ -493,19 +493,19 @@ export class IssueSolutionDetailComponent implements OnInit, AfterViewInit {
             this.handleSuccess(response);
           } else {
             this.notification.error(
-              'Lỗi',
+              NOTIFICATION_TITLE.error,
               response.message || 'Lưu dữ liệu thất bại!'
             );
           }
         },
         error: (err: any) => {
-          this.notification.error('Lỗi', 'Không thể lưu dữ liệu!');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lưu dữ liệu!');
         },
       });
     } else {
       // Hiển thị lỗi validation
       this.markAllFieldsAsTouched();
-      this.notification.error('Lỗi', 'Vui lòng kiểm tra lại thông tin!');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng kiểm tra lại thông tin!');
     }
   }
 

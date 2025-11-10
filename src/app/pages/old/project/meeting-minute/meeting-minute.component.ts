@@ -488,7 +488,7 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
         this.meetingMinuteService.saveData(payloads).subscribe({
           next: (res) => {
             if (res.status === 1) {
-              this.notification.success('Thông báo', 'Đã xóa thành công!');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Đã xóa thành công!');
               this.getMeetingMinutes();
             } else {
               this.notification.warning(

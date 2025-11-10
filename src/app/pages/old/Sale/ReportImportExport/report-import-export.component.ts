@@ -244,8 +244,7 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err) => {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Có lỗi xảy ra khi lấy thông tin!'
         );
         console.error(err);

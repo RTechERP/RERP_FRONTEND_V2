@@ -96,10 +96,10 @@ private trimAllStringControls() {
       next: (res: any) => {
         if (res?.status === 1) {
           if (this.isCheckmode) {
-            this.notification.success('Thông báo', 'Cập nhật thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công!');
             this.activeModal.close('success');
           } else {
-            this.notification.success('Thông báo', 'Thêm thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Thêm thành công!');
             this.reloadData.emit();
             this.selectedItem = null;
 

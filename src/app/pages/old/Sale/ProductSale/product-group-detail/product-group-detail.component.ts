@@ -177,7 +177,7 @@ export class ProductGroupDetailComponent implements OnInit, AfterViewInit {
       this.productsaleService.savedataProductGroup(payload).subscribe({
         next: (res) => {
           if (res.status === 1) {
-            this.notification.success('Thông báo', 'Cập nhật thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công!');
             this.activeModal.dismiss(true);
             this.id = payload.Productgroup.ID;
           } else {
@@ -210,7 +210,7 @@ export class ProductGroupDetailComponent implements OnInit, AfterViewInit {
       this.productsaleService.savedataProductGroup(payload).subscribe({
         next: (res) => {
           if (res.status === 1) {
-            this.notification.success('Thông báo', 'Thêm mới thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công!');
             this.activeModal.dismiss(true);
           } else {
             this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể thêm nhóm!');

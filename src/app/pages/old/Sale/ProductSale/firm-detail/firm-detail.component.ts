@@ -116,7 +116,7 @@ export class FirmDetailComponent implements OnInit, AfterViewInit {
     this.productsaleService.saveDataFirm(payload).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success('Thông báo', 'Thêm mới thành công!');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công!');
           this.closeModal();
         } else {
           this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể thêm hãng!');

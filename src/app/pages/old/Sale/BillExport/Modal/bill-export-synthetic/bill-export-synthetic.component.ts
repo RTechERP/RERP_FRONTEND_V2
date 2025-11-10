@@ -47,6 +47,7 @@ import {
 import { SelectControlComponent } from '../select-control/select-control.component';
 import { ProjectComponent } from '../../../../project/project.component';
 import { HistoryDeleteBillComponent } from '../history-delete-bill/history-delete-bill.component';
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 @Component({
   selector: 'app-bill-export-synthetic',
   standalone: true,

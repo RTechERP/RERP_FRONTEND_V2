@@ -288,11 +288,11 @@ export class CustomerPartComponent implements OnInit, AfterViewInit {
     this.customePartService.saveCustomerPart(saveData).subscribe(
       (response) => {
         if (response.status === 1) {
-          this.notification.success('Thông báo', 'Lưu thành công');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thành công');
           this.activeModal.close(true);
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi lưu: ' + response.message
           );
         }

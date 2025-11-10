@@ -1304,7 +1304,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
     } catch (error) {
       console.error(error);
       this.notification.error(
-        'Thông báo',
+       NOTIFICATION_TITLE.error,
         'Đã xảy ra lỗi khi xuất Excel. Vui lòng thử lại sau.'
       );
     }
@@ -1662,8 +1662,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       },
       ajaxError: function (xhr: any, textStatus: any, errorThrown: any) {
         console.error('Lỗi AJAX:', textStatus, errorThrown);
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại sau.'
         );
       },

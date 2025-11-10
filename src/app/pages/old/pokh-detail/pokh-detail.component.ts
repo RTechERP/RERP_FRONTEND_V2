@@ -307,14 +307,13 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           this.dataPOTypes = response.data;
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải loại PO: ' + response.message
           );
         }
       },
       error: (error) => {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Lỗi kết nối khi tải loại PO: ' + error
         );
       },
@@ -328,14 +327,13 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         } else {
           this.dataParts = []; // Xóa mảng parts khi có lỗi
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải phòng ban: ' + response.message
           );
         }
       },
       error: (error: any) => {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Lỗi kết nối khi tải phòng ban: ' + error
         );
       },
@@ -348,14 +346,13 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           this.dataCurrencies = response.data;
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải loại tiền: ' + response.message
           );
         }
       },
       error: (error) => {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Lỗi kết nối khi tải loại tiền: ' + error
         );
       },
@@ -371,14 +368,13 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           this.tb_POKHProduct.setData(this.dataPOKHProduct);
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải chi tiết POKH: ' + response.message
           );
         }
       },
       error: (error) => {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Lỗi kết nối khi tải chi tiết POKH: ' + error
         );
       },
@@ -392,7 +388,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           this.tb_POKHFile.setData(this.dataPOKHFiles);
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải tệp POKH: ' + response.message
           );
         }
@@ -418,14 +414,13 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           }
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải sản phẩm: ' + response.message
           );
         }
       },
       error: (error: any) => {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Lỗi kết nối khi tải sản phẩm: ' + error
         );
       },
@@ -590,14 +585,13 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           );
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải dữ liệu POKH chính: ' + response.message
           );
         }
       },
       (error) => {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Lỗi kết nối khi tải dữ liệu POKH chính: ' + error
         );
       }
@@ -685,7 +679,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     if (this.dataPOKHDetailFile.length > 0 || this.deletedFileIds.length > 0) {
       this.uploadFiles(pokhId);
     }
-    this.notification.success('Thông báo', 'Lưu thành công');
+    this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thành công');
     this.closeModal();
 
     // Cập nhật endDate lên 1 ngày hoặc 1 giờ so với hiện tại
@@ -1268,8 +1262,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Lỗi kết nối khi tạo mã PO: ' + error
         );
       },
@@ -1544,7 +1537,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         const fileObj = file as File;
         if (fileObj.size > MAX_FILE_SIZE) {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             `File ${fileObj.name} vượt quá giới hạn dung lượng cho phép (50MB)`
           );
           return;
@@ -2252,7 +2245,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     // Gọi API copy-dto
     this.POKHService.copyFromDTO(dto).subscribe((res) => {
       if (res.status === 1) {
-        this.notification.success('Thông báo', 'Copy thành công!');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Copy thành công!');
         // Có thể load lại danh sách hoặc chuyển sang bản ghi mới
       } else {
         this.notification.error(NOTIFICATION_TITLE.error, 'Copy thất bại: ' + res.message);

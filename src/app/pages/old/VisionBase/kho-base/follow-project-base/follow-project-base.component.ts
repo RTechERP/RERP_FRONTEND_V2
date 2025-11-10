@@ -37,6 +37,7 @@ import { NzTreeNodeOptions } from 'ng-zorro-antd/tree';
 import { FollowProjectBaseDetailComponent } from './follow-project-base-detail/follow-project-base-detail.component';
 import { ImportExcelComponent } from './import-excel/import-excel.component';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 @Component({
   selector: 'app-follow-project-base',
@@ -725,7 +726,7 @@ export class FollowProjectBaseComponent implements OnInit {
           // Giải phóng URL
           window.URL.revokeObjectURL(url);
           
-          this.notification.success('Thông báo', 'Xuất Excel thành công!');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Xuất Excel thành công!');
         },
         error: (err: any) => {
           console.error('Export error:', err);

@@ -39,6 +39,7 @@ import { InventoryService } from './inventory-service/inventory.service';
 import { InventoryBorrowNCCComponent } from './Modal/inventory-borrow-ncc/inventory-borrow-ncc.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 interface ProductGroup {
   ID?: number;
@@ -170,11 +171,11 @@ export class InventoryComponent implements OnInit, AfterViewInit {
   //   this.selectedList = dataSelect; // Cập nhật lại selectedList với dữ liệu mới nhất
   //   const ids = this.selectedList.map(item => item.ProductSaleID);
   //   if (ids.length == 0) {
-  //     this.notification.warning("Thông báo", "Vui lòng chọn ít nhất 1 sản phẩm để sửa!");
+  //     this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn ít nhất 1 sản phẩm để sửa!");
   //     return;
   //   }
   //   if (ids.length > 1) {
-  //     this.notification.warning("Thông báo", "Vui lòng chỉ chọn 1 sản phẩm để sửa!");
+  //     this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chỉ chọn 1 sản phẩm để sửa!");
   //     return;
   //   }
   //   else {

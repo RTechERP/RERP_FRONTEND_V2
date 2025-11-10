@@ -110,7 +110,7 @@ export class VehicleManagementComponent implements AfterViewInit {
       },
       error: (response: any) => {
         console.error('Lỗi:', response.error.message);
-          this.notification.error('Lỗi', response.error.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.error.message);
       },
     });
   }
@@ -198,7 +198,7 @@ export class VehicleManagementComponent implements AfterViewInit {
 
     modalRef.result.then(
       (result) => {
-        this.notification.success('Thông báo', 'Tạo sản phẩm thành công');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Tạo sản phẩm thành công');
         setTimeout(() => this.getVehicleManagement(), 100);
       },
       () => {
@@ -232,7 +232,7 @@ export class VehicleManagementComponent implements AfterViewInit {
     modalRef.result.then(
       (result) => {
         this.notification.success(
-          'Thông báo',
+          NOTIFICATION_TITLE.success,
           'Sửa lĩnh vực dựa án thành công'
         );
         setTimeout(() => this.getVehicleManagement(), 100);

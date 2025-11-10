@@ -227,7 +227,7 @@ export class TsAssetTypeComponent implements OnInit, AfterViewInit {
       this.typeAssetService.SaveData(payloadTypeAsset).subscribe({
         next: (res) => {
           if (res.status === 1) {
-            this.notification.success('Thông báo', 'Xóa thành công');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Xóa thành công');
             setTimeout(() => this.getTypeAsset(), 100);
           } else {
             this.notification.warning(NOTIFICATION_TITLE.warning, 'Xóa thất bại');

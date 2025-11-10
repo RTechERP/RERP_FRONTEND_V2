@@ -60,11 +60,8 @@ import { CustomerMajorService } from '../customer-major-service/customer-major.s
 import { CustomerMajorDetailComponent } from '../customer-major-detail/customer-major-detail.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
-<<<<<<< HEAD:src/app/pages/old/VisionBase/customer-major/customer-major/customer-major.component.ts
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
-=======
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
->>>>>>> 5f94c36de4edfaa15e0ea34bf0dd2be91e663215:src/app/pages/crm/customers/customer-specialization/customer-major/customer-major.component.ts
 @Component({
   selector: 'app-customer-major',
   imports: [
@@ -183,21 +180,21 @@ export class CustomerMajorComponent implements OnInit, AfterViewInit {
         this.customerMajorService.save(model).subscribe({
           next: (res: any) => {
             if (res?.status === 1) {
-              this.notification.success('Thông báo', 'Xóa thành công');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Xóa thành công');
               if (this.tb_MainTable) {
                 this.keyword='';
                 this.loadData();
               }
             } else {
               this.notification.error(
-                'Lỗi',
+                NOTIFICATION_TITLE.error,
                 res?.message || 'Không thể xóa dữ liệu'
               );
             }
           },
           error: (err: any) => {
             this.notification.error(
-              'Lỗi',
+              NOTIFICATION_TITLE.error,
               err?.message || 'Không thể xóa dữ liệu'
             );
           },

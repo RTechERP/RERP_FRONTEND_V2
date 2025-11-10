@@ -395,7 +395,7 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
 
     if (blocked.length) {
       this.notification.warning(
-        'Cảnh báo',
+       NOTIFICATION_TITLE.warning,
         `Không thể xóa các đề xuất đã có chi tiết được vớt sang theo dõi`
       );
     }

@@ -144,7 +144,7 @@ export class MeetingTypeFormComponent implements OnInit, AfterViewInit {
     this.meetingminuteService.saveMeetingType(payload).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success('Thông báo', 'Thêm mới thành công!');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công!');
           this.closeModal();
         }else if(res.status === 2) {
           this.notification.warning(NOTIFICATION_TITLE.warning, 'Mã loại cuộc họp đã tồn tại!');

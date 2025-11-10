@@ -517,7 +517,7 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
     console.log(`Tổng sản phẩm: ${totalProducts}, Thành công: ${successCount}, Thất bại: ${errorCount}`);
 
     if (errorCount === 0) {
-      this.notification.success('Thông báo', `Đã lưu ${successCount} sản phẩm thành công`);
+      this.notification.success(NOTIFICATION_TITLE.success, `Đã lưu ${successCount} sản phẩm thành công`);
     } else if (successCount === 0) {
         this.notification.error(NOTIFICATION_TITLE.error, `Lưu thất bại ${errorCount}/${totalProducts} sản phẩm`);
     } else {
@@ -609,7 +609,7 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
   closeExcelModal() {
     // Chặn đóng khi đang đọc/lưu
     if (this.isBusy) {
-      this.notification.warning('Thông báo', 'Đang nhập dữ liệu, vui lòng đợi hoàn tất!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Đang nhập dữ liệu, vui lòng đợi hoàn tất!');
       return;
     }
     this.modalService.dismissAll(true);

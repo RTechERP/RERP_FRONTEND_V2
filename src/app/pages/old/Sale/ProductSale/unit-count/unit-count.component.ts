@@ -188,7 +188,7 @@ export class UnitCountComponent implements OnInit, AfterViewInit {
         this.productsaleService.saveDataUnitCount(payload).subscribe({
           next: (res) => {
             if (res.status === 1) {
-              this.notification.success('Thông báo', 'Xóa đơn vị tính thành công!');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Xóa đơn vị tính thành công!');
               this.loadUnitCount();
             } else {
               this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể xóa đơn vị tính!');

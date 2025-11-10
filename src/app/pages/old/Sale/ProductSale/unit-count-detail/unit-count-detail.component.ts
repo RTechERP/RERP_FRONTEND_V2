@@ -125,7 +125,7 @@ if (this.formGroup.invalid) {
       this.productsaleService.saveDataUnitCount(payloadList).subscribe({
         next: (res) => {
           if (res.status === 1) {
-            this.notification.success('Thông báo', 'Cập nhật thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công!');
             this.closeModal('updated');
           } else {
             this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể cập nhật đơn vị tính!');
@@ -143,7 +143,7 @@ if (this.formGroup.invalid) {
       this.productsaleService.saveDataUnitCount(createPayload).subscribe({
         next: (res) => {
           if (res.status === 1) {
-            this.notification.success('Thông báo', 'Thêm mới thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công!');
             this.closeModal('updated');
           } else {
             this.notification.warning(NOTIFICATION_TITLE.warning, res.message.message || 'Không thể thêm đơn vị tính!');

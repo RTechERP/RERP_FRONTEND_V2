@@ -588,8 +588,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
       }),
       catchError((err: any) => {
         console.error(err);
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Có lỗi xảy ra khi lấy danh sách nhân viên'
         );
         this.employeeOptions = [];
@@ -686,8 +685,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
       }),
       catchError((err: any) => {
         console.error(err);
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Có lỗi xảy ra khi lấy danh sách dự án'
         );
         this.userTeamOptions = [];
@@ -732,7 +730,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
         error: (err: any) => {
           console.error(err);
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Có lỗi xảy ra khi lấy danh sách dự án'
           );
           this.projectProblemOptions = [

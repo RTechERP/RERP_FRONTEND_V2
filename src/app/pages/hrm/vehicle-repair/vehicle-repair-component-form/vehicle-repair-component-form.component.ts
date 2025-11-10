@@ -353,7 +353,7 @@ export class VehicleRepairComponentFormComponent implements OnInit {
         c.updateValueAndValidity({ onlySelf: true });
       });
       this.notification.warning(
-        'Cảnh báo',
+       NOTIFICATION_TITLE.warning,
         'Vui lòng điền đầy đủ thông tin bắt buộc'
       );
       return;

@@ -477,7 +477,7 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
           },
           (error) => {
             this.notification.error(
-              'Lỗi',
+              NOTIFICATION_TITLE.error,
               'Không thể kiểm tra trạng thái phê duyệt: ' + error.message
             );
           }
@@ -569,7 +569,7 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
     this.trainingRegistrationService.saveData(payload).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success('Thông báo', 'Đã xóa đăng ký đào tạo.');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Đã xóa đăng ký đào tạo.');
           // Refresh lại dữ liệu
           this.getData();
         } else {
@@ -577,8 +577,7 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err) => {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Xóa thất bại: ' + (err.error?.message || err.message)
         );
       },

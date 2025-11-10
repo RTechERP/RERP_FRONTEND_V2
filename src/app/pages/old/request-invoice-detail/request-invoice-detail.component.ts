@@ -364,7 +364,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
         const fileObj = file as File;
         if (fileObj.size > MAX_FILE_SIZE) {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             `File ${fileObj.name} vượt quá giới hạn dung lượng cho phép (50MB)`
           );
           return;

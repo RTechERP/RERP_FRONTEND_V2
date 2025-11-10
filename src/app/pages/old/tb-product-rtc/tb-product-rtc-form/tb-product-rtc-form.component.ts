@@ -465,7 +465,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
         }
       });
       this.notification.warning(
-        'Cảnh báo',
+       NOTIFICATION_TITLE.warning,
         'Vui lòng điền đầy đủ thông tin bắt buộc'
       );
       return;
@@ -493,7 +493,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
             this.saveProductData();
           } else {
             this.notification.error(
-              'Lỗi',
+              NOTIFICATION_TITLE.error,
               res.Message || 'Upload ảnh thất bại!'
             );
           }

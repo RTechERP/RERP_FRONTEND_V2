@@ -212,7 +212,7 @@ saveData() {
     this.firmService.saveFirm(firmData).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success('Thông báo', 'Lưu dữ liệu thành công!');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Lưu dữ liệu thành công!');
           this.activeModal.close('success');
         } else {
           this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Lưu dữ liệu thất bại!');

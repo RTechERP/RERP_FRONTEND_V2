@@ -633,7 +633,7 @@ export class ProjectPartlistPriceRequestFormComponent
     this.priceRequestService.saveData(this.lstSave).subscribe({
       next: (response) => {
         console.log('Server response:', response); // Debug log
-        this.notification.success('Thông báo', 'Lưu dữ liệu thành công!');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Lưu dữ liệu thành công!');
         this.formSubmitted.emit();
         this.activeModal.close('saved'); // Đóng modal với kết quả
       },

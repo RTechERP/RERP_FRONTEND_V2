@@ -200,7 +200,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
           this.dataDeparment = res.data;
         } else {
           this.dataDeparment = [];
-          this.notification.warning("Thông báo", "Phản hồi không chứa danh sách");
+          this.notification.warning(NOTIFICATION_TITLE.warning, "Phản hồi không chứa danh sách");
         }
       },
       error: (err) => {
@@ -237,7 +237,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
           if (this.table) {
             this.table.replaceData([]);
           }
-          this.notification.warning("Thông báo", "Không tìm thấy dữ liệu phù hợp");
+          this.notification.warning(NOTIFICATION_TITLE.warning, "Không tìm thấy dữ liệu phù hợp");
         }
       },
       error: () => {
@@ -431,7 +431,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
           next: (res) => {
             this.getOfficeSupplyRequest();
             this.selectedList = [];
-            this.notification.success('Thông báo', 'Duyệt thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Duyệt thành công!');
           },
           error: (error: any) => {
             this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi duyệt!');
@@ -483,7 +483,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
       next: (res) => {
         this.getOfficeSupplyRequest();
         this.selectedList = [];
-        this.notification.success('Thông báo', 'Hủy duyệt thành công!');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Hủy duyệt thành công!');
       },
       error: (error: any) => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi hủy duyệt!');
@@ -533,7 +533,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
       next: (res) => {
         this.getOfficeSupplyRequest();
         this.selectedList = [];
-        this.notification.success('Thông báo', 'Duyệt thành công!');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Duyệt thành công!');
       },
       error: (error: any) => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi duyệt!');
@@ -583,7 +583,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
       next: (res) => {
         this.getOfficeSupplyRequest();
         this.selectedList = [];
-        this.notification.success('Thông báo', 'Hủy duyệt thành công!');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Hủy duyệt thành công!');
       },
       error: (error: any) => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi hủy duyệt!');

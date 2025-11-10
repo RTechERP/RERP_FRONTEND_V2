@@ -51,6 +51,7 @@ import { HistoryDeleteBillComponent } from '../history-delete-bill/history-delet
 import { BillImportServiceService } from '../../../BillImport/bill-import-service/bill-import-service.service';
 import { BillImportChoseSerialComponent } from '../../../../bill-import-technical/bill-import-chose-serial/bill-import-chose-serial.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 
 interface ProductSale {
   Id?: number;
@@ -813,7 +814,7 @@ export class BillExportDetailComponent implements OnInit, AfterViewInit, OnDestr
         if (Array.isArray(serials) && serials.length > 0) {
           const serialsID = serials.map(s => s.ID).join(',');
           row.update({ SerialNumber: serialsID });
-          this.notification.success('Thông báo','Cập nhật serial thành công!');
+          this.notification.success(NOTIFICATION_TITLE.success,'Cập nhật serial thành công!');
         } else {
           this.notification.error(NOTIFICATION_TITLE.error,'Dữ liệu serial không hợp lệ!');
         }
@@ -1105,7 +1106,7 @@ export class BillExportDetailComponent implements OnInit, AfterViewInit, OnDestr
       this.billExportService.saveBillExport(payload).subscribe({
         next: (res: any) => {
           if (res.status === 1) {
-            this.notification.success('Thông báo', 'Cập nhật thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công!');
             this.closeModal();
           }else {
             this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể cập nhật phiếu xuất!');
@@ -1157,7 +1158,7 @@ export class BillExportDetailComponent implements OnInit, AfterViewInit, OnDestr
       this.billExportService.saveBillExport(payload).subscribe({
         next: (res) => {
           if (res.status === 1) {
-            this.notification.success('Thông báo', 'Thêm mới thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công!');
             this.closeModal();
           } else {
             this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể thêm phiếu xuất!');

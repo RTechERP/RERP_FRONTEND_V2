@@ -644,7 +644,7 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
 
         if (count > 1) {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             `Nhân viên dòng ${stt} đã tồn tại vui lòng kiểm tra lại!`,
             {
               nzStyle: { fontSize: '0.75rem' },
@@ -655,7 +655,7 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
 
         if (!employeeId || employeeId <= 0) {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             `Vui lòng chọn nhân viên dòng ${stt}!`,
             {
               nzStyle: { fontSize: '0.75rem' },
@@ -666,7 +666,7 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
 
         if (!projectTypeId || projectTypeId <= 0) {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             `Vui lòng chọn kiểu dự án dòng ${stt}!`,
             {
               nzStyle: { fontSize: '0.75rem' },

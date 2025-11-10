@@ -198,12 +198,12 @@ export class ProductLocationComponent implements OnInit, AfterViewInit {
               this.notification.success(NOTIFICATION_TITLE.success, "Xóa thành công");
               setTimeout(() => this.resetSearchAndReload(), 100);
             } else {
-              this.notification.warning("Thông báo", "Xóa thất bại");
+              this.notification.warning(NOTIFICATION_TITLE.warning, "Xóa thất bại");
             }
           },
           error: (err) => {
             console.error(err);
-            this.notification.warning("Thông báo", "Lỗi kết nối");
+            this.notification.warning(NOTIFICATION_TITLE.warning, "Lỗi kết nối");
           }
         });
       }

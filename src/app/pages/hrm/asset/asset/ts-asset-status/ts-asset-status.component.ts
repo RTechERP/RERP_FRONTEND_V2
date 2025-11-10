@@ -182,12 +182,12 @@ export class TsAssetStatusComponent implements OnInit, AfterViewInit {
           this.notification.success(NOTIFICATION_TITLE.success, "Thành công");
           setTimeout(() => this.getAssetStatus(), 100);
         } else {
-          this.notification.warning("Thông báo", "Thất bại");
+          this.notification.warning(NOTIFICATION_TITLE.warning, "Thất bại");
         }
       },
       error: (err) => {
         console.error(err);
-        this.notification.warning("Thông báo", "Lỗi kết nối");
+        this.notification.warning(NOTIFICATION_TITLE.warning, "Lỗi kết nối");
       }
     });
   }

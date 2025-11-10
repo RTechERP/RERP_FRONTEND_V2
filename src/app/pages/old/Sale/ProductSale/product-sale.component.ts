@@ -419,7 +419,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
         },
         error: (err) => {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Có lỗi xảy ra khi lấy thông tin!'
           );
           console.error(err);
@@ -470,7 +470,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
         this.productsaleSV.saveDataProductSale(payloads).subscribe({
           next: (res) => {
             if (res.status === 1) {
-              this.notification.success('Thông báo', 'Đã xóa thành công!');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Đã xóa thành công!');
               // this.id = 0; // Set to 0 to trigger selection of first record in GetProductGroup
               // this.getProductGroup();
               this.idSale = 0;

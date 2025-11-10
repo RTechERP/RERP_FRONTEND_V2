@@ -212,7 +212,7 @@ export class VehicleCategoryComponent implements OnInit {
 
     modalRef.result.then(
       (result) => {
-        this.notification.success('Thông báo', 'Tạo sản phẩm thành công');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Tạo sản phẩm thành công');
         setTimeout(() => this.getVehicleCategory(), 100);
       },
       () => {
@@ -246,7 +246,7 @@ export class VehicleCategoryComponent implements OnInit {
     modalRef.result.then(
       (result) => {
         this.notification.success(
-          'Thông báo',
+          NOTIFICATION_TITLE.success,
           'Sửa lĩnh vực dựa án thành công'
         );
         setTimeout(() => this.getVehicleCategory(), 100);

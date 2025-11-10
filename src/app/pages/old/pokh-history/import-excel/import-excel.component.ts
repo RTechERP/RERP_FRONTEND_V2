@@ -444,7 +444,7 @@ export class ImportExcelComponent implements OnInit, AfterViewInit {
         if (response.status === 1) {
           this.displayText = `Đã lưu ${processedData.length} bản ghi thành công`;
           this.displayProgress = 100;
-          this.notification.success('Thông báo', `Đã lưu ${processedData.length} bản ghi thành công`);
+          this.notification.success(NOTIFICATION_TITLE.success, `Đã lưu ${processedData.length} bản ghi thành công`);
         } else {
           this.displayText = 'Lưu thất bại!';
           this.displayProgress = 0;

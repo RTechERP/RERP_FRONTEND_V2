@@ -943,7 +943,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
     const selectedRows = this.tabulator.getSelectedRows();
     if (selectedRows.length === 0) {
       this.notification.warning(
-        'Cảnh báo',
+       NOTIFICATION_TITLE.warning,
         'Vui lòng chọn khách hàng cần chỉnh sửa'
       );
       return;
@@ -1150,7 +1150,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         }
       });
       this.notification.warning(
-        'Cảnh báo',
+       NOTIFICATION_TITLE.warning,
         'Vui lòng điền đầy đủ thông tin bắt buộc'
       );
       return;
@@ -1224,8 +1224,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       if (this.isEditMode) {
         this.customerService.saveCustomer(customerData).subscribe({
           next: (response) => {
-            this.notification.success(
-              'Thành công',
+            this.notification.success(NOTIFICATION_TITLE.success,
               'Cập nhật khách hàng thành công'
             );
             this.closeModal();
@@ -1233,7 +1232,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
           },
           error: (error) => {
             this.notification.error(
-              'Lỗi',
+              NOTIFICATION_TITLE.error,
               'Cập nhật khách hàng thất bại: ' + error.message
             );
           },
@@ -1244,8 +1243,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       } else {
         this.customerService.saveCustomer(customerData).subscribe({
           next: (response) => {
-            this.notification.success(
-              'Thành công',
+            this.notification.success(NOTIFICATION_TITLE.success,
               'Tạo khách hàng mới thành công'
             );
             this.closeModal();
@@ -1253,7 +1251,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
           },
           error: (error) => {
             this.notification.error(
-              'Lỗi',
+              NOTIFICATION_TITLE.error,
               'Tạo khách hàng mới thất bại: ' + error.message
             );
           },
@@ -1320,7 +1318,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       error: (error) => {
         // console.error('Error loading employees:', error);
         this.notification.error(
-          'Lỗi',
+          NOTIFICATION_TITLE.error,
           'Lỗi khi tải danh sách nhân viên: ' + error.message
         );
       },

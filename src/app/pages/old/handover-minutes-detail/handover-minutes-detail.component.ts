@@ -405,7 +405,7 @@ export class HandoverMinutesDetailComponent implements OnInit, AfterViewInit {
         if (response.status === 1) {
           // Đánh dấu tab hiện tại đã được lưu
           this.savedTabs.add(this.activeTabIndex);
-          this.notification.success('Thông báo', 'Lưu biên bản thành công!');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Lưu biên bản thành công!');
 
           // Kiểm tra nếu tất cả các tab đã được lưu thì mới đóng modal
           if (this.savedTabs.size === this.groupedData.length) {

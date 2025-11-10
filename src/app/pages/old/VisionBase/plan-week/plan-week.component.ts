@@ -295,7 +295,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
       error: (error) => {
         this.notification.error(NOTIFICATION_TITLE.error, error);
         const errorMessage = error?.error?.message || error?.message || 'Không thể tải dữ liệu';
-        this.notification.error('Lỗi', errorMessage);
+        this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
       },
     });
   }
@@ -312,7 +312,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
       error: (error) => {
         this.notification.error(NOTIFICATION_TITLE.error, error);
         const errorMessage = error?.error?.message || error?.message || 'Không thể tải dữ liệu';
-        this.notification.error('Lỗi', errorMessage);
+        this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
       },
     });
   }
@@ -329,7 +329,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
       error: (error) => {
         this.notification.error(NOTIFICATION_TITLE.error, error);
         const errorMessage = error?.error?.message || error?.message || 'Không thể tải dữ liệu';
-        this.notification.error('Lỗi', errorMessage);
+        this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
       },
     });
   }
@@ -358,7 +358,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
         error: (error) => {
           this.notification.error(NOTIFICATION_TITLE.error, error);
           const errorMessage = error?.error?.message || error?.message || 'Không thể tải dữ liệu';
-          this.notification.error('Lỗi', errorMessage);
+          this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
         },
       });
   }
@@ -410,14 +410,14 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
       nzCancelText: 'Hủy',
       nzOnOk: () => {
         if (isNaN(dateFromField.getTime())) {
-          this.notification.error('Lỗi', 'Không xác định được ngày từ cột đã chọn');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không xác định được ngày từ cột đã chọn');
           return;
         }
 
         this.planWeekService.delete(UserID, DatePlan).subscribe({
           next: (sv) => {
             if (sv.status === 1) {
-              this.notification.success('Thông báo', 'Xóa thành công');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Xóa thành công');
               this.loadMainData(
                 this.filters.startDate,
                 this.filters.endDate,
@@ -426,12 +426,12 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
                 this.filters.teamId
               );
             } else {
-              this.notification.error('Lỗi', sv.message || 'Không thể lưu');
+              this.notification.error(NOTIFICATION_TITLE.error, sv.message || 'Không thể lưu');
             }
           },
           error: (err) => {
             const errorMessage = err?.error?.message || err?.message || 'Không thể xóa dữ liệu';
-            this.notification.error('Lỗi', errorMessage);
+            this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
           }
         });
       },

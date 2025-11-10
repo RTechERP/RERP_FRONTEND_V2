@@ -373,7 +373,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
               next: (res) => {
                 modalRef.updateConfig({ nzOkLoading: false });
                 if (res.status === 1) {
-                  this.notification.success('Thông báo', `${message} thành công ${count} bảng lương!`);
+                  this.notification.success(NOTIFICATION_TITLE.success, `${message} thành công ${count} bảng lương!`);
                   this.getPayrollReport();
                   this.selectedEmployeePayrollDetail.clear();
                   resolve();

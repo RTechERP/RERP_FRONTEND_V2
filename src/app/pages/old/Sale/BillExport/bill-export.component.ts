@@ -36,6 +36,7 @@ import { ScanBillComponent } from './Modal/scan-bill/scan-bill.component';
 import { BillDocumentExportComponent } from './Modal/bill-document-export/bill-document-export.component';
 import { ActivatedRoute } from '@angular/router';
 import { AppUserService } from '../../../../services/app-user.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 interface BillExport {
   Id?: number;
   TypeBill: boolean;
@@ -284,8 +285,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
         next: (res) => {
           console.log('Approval response:', res);
           if (res.status === 1) {
-            this.notification.success(
-              'Thông báo',
+            this.notification.success(NOTIFICATION_TITLE.success,
               res.message || 'Thành công!'
             );
             this.data = [];

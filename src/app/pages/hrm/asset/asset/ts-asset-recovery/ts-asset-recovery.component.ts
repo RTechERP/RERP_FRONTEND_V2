@@ -37,10 +37,10 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 // @ts-ignore
 import { saveAs } from 'file-saver';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
-import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../../../../auth/auth.service';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   standalone: true,
   imports: [
@@ -366,31 +366,15 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
     return [];
   }
   onDeleteRecovery() {
-    const selectedIds = this.getSelectedIds();
-    const payloadRecovery = {
-
-      tSAssetRecovery: {
-        ID: selectedIds[0],
-        IsDeleted: true
-      }
-    };
-    this.assetsRecoveryService.saveAssetRecovery(payloadRecovery).subscribe({
-      next: () => {
-        this.notification.success(NOTIFICATION_TITLE.success, 'Xóa biên bản thành công!');
-        this.getRecovery();
-      },
-      error: (err) => {
-        console.error('Lỗi khi xóa:', err);
-        this.notification.warning(NOTIFICATION_TITLE.error, 'Lỗi kết nối máy chủ!');
     if (!this.recoveryTable) {
-      this.notification.warning('Thông báo', 'Lỗi bảng, không thể thao tác');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Lỗi bảng, không thể thao tác');
       return;
     }
 
     const selectedRows = this.recoveryTable.getSelectedData() as any[];
 
     if (!selectedRows || selectedRows.length === 0) {
-      this.notification.warning('Thông báo', 'Chưa chọn biên bản để xóa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Chưa chọn biên bản để xóa!');
       return;
     }
 
@@ -450,7 +434,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
 
         return forkJoin(requests$).toPromise().then(() => {
           this.notification.success(
-            'Thành công',
+            NOTIFICATION_TITLE.success,
             `Đã xóa thành công các biên bản: ${codesText}`
           );
           this.getRecovery();
@@ -513,13 +497,13 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
 }
   updateApprove(action: 1 | 2 | 3 | 4 | 5 | 6) {
     if (!this.recoveryTable) {
-      this.notification.warning('Thông báo', 'Lỗi bảng, không thể thao tác');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Lỗi bảng, không thể thao tác');
       return;
     }
 
     const selectedRows = this.recoveryTable.getSelectedData();
     if (!selectedRows || selectedRows.length === 0) {
-      this.notification.warning('Thông báo', 'Chọn ít nhất 1 bản ghi để duyệt');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Chọn ít nhất 1 bản ghi để duyệt');
       return;
     }
 
@@ -638,7 +622,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
           .join(', ');
 
         this.notification.success(
-          'Thành công',
+          NOTIFICATION_TITLE.success,
           `Đã cập nhật thành công các biên bản: ${approvedCodes}`
         );
 
@@ -650,7 +634,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       error: (err: any) => {
         console.error('Lỗi updateApprove (nhiều)', err);
         const msg = err?.error?.message || 'Duyệt thất bại';
-        this.notification.error('Lỗi', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
       }
     });
   }
@@ -699,7 +683,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
     const selectedDetail = this.recoveryDetailTable?.getData();
     const selectedRecovery = this.recoveryTable?.getSelectedData()?.[0];
     if (!selectedDetail || selectedDetail.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để duyệt.');
+      this.notification.warning('Cảnh báo', 'Không có dữ liệu để duyệt.');
       return;
     }
     const payloadRecovery = {

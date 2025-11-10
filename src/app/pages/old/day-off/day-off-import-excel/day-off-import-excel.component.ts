@@ -395,7 +395,7 @@ private formatCellValue(value: any): string {
 
   private showSaveSummary(successCount: number, errorCount: number, total: number) {
     if (errorCount === 0) {
-      this.notification.success('Thông báo', `Đã lưu ${successCount} bản ghi thành công`);
+      this.notification.success(NOTIFICATION_TITLE.success, `Đã lưu ${successCount} bản ghi thành công`);
     } else if (successCount === 0) {
       this.notification.error(NOTIFICATION_TITLE.error, `Lưu thất bại ${errorCount}/${total} bản ghi`);
     } else {

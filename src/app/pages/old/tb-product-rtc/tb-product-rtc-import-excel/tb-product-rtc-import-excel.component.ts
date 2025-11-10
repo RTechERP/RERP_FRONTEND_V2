@@ -560,7 +560,7 @@ export class TbProductRtcImportExcelComponent implements OnInit {
   }
   showSaveSummary(successCount: number, errorCount: number, totalProducts: number) {
     if (errorCount === 0) {
-      this.notification.success('Thông báo', `Đã lưu ${successCount} sản phẩm thành công`);
+      this.notification.success(NOTIFICATION_TITLE.success, `Đã lưu ${successCount} sản phẩm thành công`);
       this.closeExcelModal(); // Chỉ đóng khi thành công hoàn toàn
     } else if (successCount === 0) {
       this.notification.error(NOTIFICATION_TITLE.error, `Lưu thất bại ${errorCount}/${totalProducts} sản phẩm`);

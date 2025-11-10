@@ -21,6 +21,7 @@ import { RowComponent } from 'tabulator-tables';
 import { SelectControlComponent } from '../select-control/select-control.component';
 import { ProductSaleDetailComponent } from '../../../ProductSale/product-sale-detail/product-sale-detail.component';
 import { BillExportService } from '../../bill-export-service/bill-export.service';
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 
 @Component({
   selector: 'app-bill-document-export',
@@ -162,7 +163,7 @@ export class BillDocumentExportComponent implements OnInit, AfterViewInit {
   
       // Kiểm tra nếu Status bị rỗng
       if (item.Status == null || item.Status === '' || item.Status==0) {
-        this.notification.warning("Thông báo", `Vui lòng chọn trạng thái chứng từ ${code}.`);
+        this.notification.warning(NOTIFICATION_TITLE.warning, `Vui lòng chọn trạng thái chứng từ ${code}.`);
   
         const row = this.table_billDocumentExport.getRow(item.ID);
         if (row) {
@@ -175,7 +176,7 @@ export class BillDocumentExportComponent implements OnInit, AfterViewInit {
   
       // Nếu trạng thái là 2 mà Note trống
       if (item.Status === 2 && (!item.Note || item.Note.trim() === '')) {
-        this.notification.warning("Thông báo", `Vui lòng nhập lý do hủy cho chứng từ ${code}.`);
+        this.notification.warning(NOTIFICATION_TITLE.warning, `Vui lòng nhập lý do hủy cho chứng từ ${code}.`);
   
         const row = this.table_billDocumentExport.getRow(item.ID);
         if (row) {

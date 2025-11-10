@@ -236,7 +236,7 @@ export class FirmComponent implements OnInit, AfterViewInit {
 
     this.firmService.deleteFirm(numberIds).subscribe({
       next: () => {
-        this.notification.success('Thông báo', 'Xóa thành công!');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Xóa thành công!');
         this.getFirms();
       },
       error: (err) => {

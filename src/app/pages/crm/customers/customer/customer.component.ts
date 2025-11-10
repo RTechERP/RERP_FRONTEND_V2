@@ -61,11 +61,8 @@ import { ViewPokhService } from '../../../old/view-pokh/view-pokh/view-pokh.serv
 import { CustomerDetailComponent } from '../customer-detail/customer-detail.component';
 import { CustomerMajorComponent } from '../customer-specialization/customer-major/customer-major.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
-<<<<<<< HEAD:src/app/pages/old/VisionBase/customer/customer.component.ts
 import { NOTIFICATION_TITLE } from '../../../../app.config';
-=======
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
->>>>>>> 5f94c36de4edfaa15e0ea34bf0dd2be91e663215:src/app/pages/crm/customers/customer/customer.component.ts
 // import { CustomerComponent } from '../../customer/customer.component';
 @Component({
   selector: 'app-customer',
@@ -131,7 +128,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     private customerService: CustomerServiceService,
     private viewPokhService: ViewPokhService
-  ) {}
+  ) { }
 
   customerContactData: any[] = [];
   addressStockData: any[] = [];
@@ -153,7 +150,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
     this.getEmployeeData();
     this.getTeamData();
   }
-  
+
 
   ngAfterViewInit(): void {
     this.initAddressTable();
@@ -175,7 +172,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
           this.filterTeamData = response.data;
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải tệp POKH: ' + response.message
           );
         }
@@ -196,7 +193,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
           this.filterSaleUserData = response.data;
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải tệp POKH: ' + response.message
           );
         }
@@ -234,14 +231,13 @@ export class CustomerComponent implements OnInit, AfterViewInit {
           this.tb_SaleTable.setData(this.employeeSaleData);
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải dữ liệu: ' + response.message
           );
         }
       },
       error: (error) => {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Lỗi kết nối khi tải dữ liệu: ' + error
         );
       },
@@ -268,7 +264,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
           if (this.tb_MainTable) {
             this.tb_MainTable.setData(null, true);
           }
-        }else{
+        } else {
           this.isEditMode = false;
         }
       },
@@ -277,13 +273,13 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       }
     );
   }
-  setDefautSearch(){
+  setDefautSearch() {
     this.filters.keyword = "";
     this.filters.userId = 0;
     this.filters.teamId = 0;
   }
-  closePanel(){
-    this.sizeTbDetail='0';
+  closePanel() {
+    this.sizeTbDetail = '0';
   }
 
   openMajorModal() {
@@ -293,34 +289,34 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       size: 'xl',
     });
     modalRef.result.then(
-      (result) => {},
+      (result) => { },
       (reason) => {
         console.log('Modal closed');
       }
     );
   }
 
-<<<<<<< HEAD:src/app/pages/old/VisionBase/customer/customer.component.ts
-  onDelete() {
-    const selectedRows = this.tb_MainTable?.getSelectedData();
-      if (!selectedRows || selectedRows.length === 0) {
-        this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một khách hàng để xóa!');
-        return;
-      }
-      const isDeleted = selectedRows.map((item: any) => item.ID);
-    
-      // Tạo chuỗi tên khách hàng
-      let nameDisplay = '';
-      selectedRows.forEach((item: any, index: number) => {
-        nameDisplay += item.CustomerName + ',';
-=======
+  // onDelete() {
+  //   const selectedRows = this.tb_MainTable?.getSelectedData();
+  //   if (!selectedRows || selectedRows.length === 0) {
+  //     this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một khách hàng để xóa!');
+  //     return;
+  //   }
+  //   const isDeleted = selectedRows.map((item: any) => item.ID);
+
+  //   // Tạo chuỗi tên khách hàng
+  //   let nameDisplay = '';
+  //   selectedRows.forEach((item: any, index: number) => {
+  //     nameDisplay += item.CustomerName + ',';
+  //   }
+  // }
   async exportExcel() {
     const table = this.tb_MainTable;
     if (!table) return;
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu xuất excel!');
       return;
     }
 
@@ -345,7 +341,6 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         }
 
         return value;
->>>>>>> 5f94c36de4edfaa15e0ea34bf0dd2be91e663215:src/app/pages/crm/customers/customer/customer.component.ts
       });
 
       worksheet.addRow(rowData);
@@ -410,8 +405,8 @@ export class CustomerComponent implements OnInit, AfterViewInit {
 
 
   onDelete() {
-    if ( this.selectedIds.length <= 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một khách hàng để xóa!');
+    if (this.selectedIds.length <= 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một khách hàng để xóa!');
       return;
     }
     this.modal.confirm({
@@ -436,18 +431,18 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         this.customerService.deleteMultiple(this.selectedIds).subscribe({
           next: (res: any) => {
             if (res?.status === 1) {
-              this.notification.success('Thông báo', 'Xóa thành công');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Xóa thành công');
               this.tb_MainTable.setData(null, true);
             } else {
               this.notification.error(
-                'Lỗi',
+                NOTIFICATION_TITLE.error,
                 res?.message || 'Không thể xóa dữ liệu'
               );
             }
           },
           error: (err: any) => {
             this.notification.error(
-              'Lỗi',
+              NOTIFICATION_TITLE.error,
               err?.message || 'Không thể xóa dữ liệu'
             );
           },
@@ -461,13 +456,13 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   //     this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một khách hàng để xóa!');
   //     return;
   //   }
-  
+
   //   // Tạo chuỗi tên khách hàng
   //   let nameDisplay = '';
   //   selectedRows.forEach((item: any, index: number) => {
   //     nameDisplay += item.CustomerName + ',';
   //   });
-  
+
   //   if (selectedRows.length > 10) {
   //     if (nameDisplay.length > 10) {
   //       nameDisplay = nameDisplay.slice(0, 10) + '...';
@@ -478,7 +473,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   //       nameDisplay = nameDisplay.slice(0, 20) + '...';
   //     }
   //   }
-  
+
   //   // Hiển thị confirm
   //   this.modal.confirm({
   //     nzTitle: 'Xác nhận xóa',
@@ -499,10 +494,10 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   //           CustomerEmployees: [],
   //           BusinessFieldID: 0,
   //         };
-  
+
   //         return this.customerService.save(payload).toPromise(); // Chuyển Observable thành Promise
   //       });
-  
+
   //       // Chạy tất cả các yêu cầu xóa
   //       Promise.all(deleteRequests)
   //         .then((results) => {
@@ -529,7 +524,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       return;
     }
     this.selectedId = selectedRows[0].ID;
-    this.isEditMode=true;
+    this.isEditMode = true;
     console.log(this.selectedId);
     this.openModal();
   }
@@ -592,8 +587,8 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       //     resizable: true,
       //   },
       columns: [
-        { title: 'ID', field: 'ID', visible: false ,frozen: true},
-        { title: 'Mã khách', field: 'CustomerCode',frozen: true  },
+        { title: 'ID', field: 'ID', visible: false, frozen: true },
+        { title: 'Mã khách', field: 'CustomerCode', frozen: true },
         { title: 'Tên kí hiệu', field: 'CustomerShortName', frozen: true, },
         {
           title: 'Tên khách',
@@ -615,8 +610,8 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         },
         { title: 'Đầu mối gửi check chứng từ', field: 'CheckVoucher' },
         { title: 'Đầu mối gửi chứng từ bản cứng', field: 'HardCopyVoucher' },
-        { 
-          title: 'Ngày chốt công nợ', 
+        {
+          title: 'Ngày chốt công nợ',
           field: 'ClosingDateDebt',
           formatter: (cell: any) => {
             const value = cell.getValue();
@@ -637,25 +632,25 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         },
       ],
     });
-    this.tb_MainTable.on('dataLoading',()=>{
+    this.tb_MainTable.on('dataLoading', () => {
       this.tb_MainTable.deselectRow();
-      this.sizeTbDetail='0';
-      this.selectedIds = []; 
+      this.sizeTbDetail = '0';
+      this.selectedIds = [];
     });
-    
+
     // Event listener để cập nhật danh sách ID khi có thay đổi selection
     this.tb_MainTable.on('rowSelectionChanged', () => {
       const selectedRows = this.tb_MainTable.getSelectedData();
       this.selectedIds = selectedRows.map((row: any) => row.ID);
       console.log('Selected IDs:', this.selectedIds);
     });
-    
+
     this.tb_MainTable.on(
       'rowDblClick',
       (e: any, row: RowComponent) => {
         const rowData = row.getData();
         this.selectedId = rowData['ID'];
-        this.isEditMode=true;
+        this.isEditMode = true;
         this.openModal();
       });
     this.tb_MainTable.on('rowClick', (e: any, row: RowComponent) => {
@@ -675,7 +670,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       {
         data: this.customerContactData,
         ...DEFAULT_TABLE_CONFIG,
-        layout:"fitColumns",
+        layout: "fitColumns",
         rowHeader: false,
         // selectableRows: 1,
         pagination: false,
@@ -709,7 +704,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       {
         data: this.addressStockData,
         ...DEFAULT_TABLE_CONFIG,
-        layout:"fitColumns",
+        layout: "fitColumns",
         rowHeader: false,
         // selectableRows: 1,
         pagination: true,
@@ -736,7 +731,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
     this.tb_SaleTable = new Tabulator(this.tb_SaleTableElement.nativeElement, {
       data: this.employeeSaleData,
       ...DEFAULT_TABLE_CONFIG,
-      layout:"fitColumns",
+      layout: "fitColumns",
       //   selectableRows: 1,
       pagination: false,
       rowHeader: false,

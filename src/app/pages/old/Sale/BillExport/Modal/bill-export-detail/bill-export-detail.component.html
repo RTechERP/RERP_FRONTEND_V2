@@ -15,12 +15,13 @@
     </button>
   </div>
 
-  <form nz-form [nzLayout]="'horizontal'" class="mt-2" [formGroup]="validateForm">
-    <div class="row gx-2">
-      <div class="col-md-4">
+  <form nz-form [nzLayout]="'vertical'" [nzNoColon]="true" class="mt-2" [formGroup]="validateForm">
+    <!-- Hàng 1: Số phiếu | Người nhận | Ngày xuất -->
+    <div nz-row [nzGutter]="16">
+      <div nz-col nzSpan="8">
         <nz-form-item>
-          <nz-form-label [nzSpan]="6" class="fs-12" nzRequired>Số phiếu</nz-form-label>
-          <nz-form-control [nzSpan]="18" [nzErrorTip]="codeError">
+          <nz-form-label class="fs-12">Số phiếu<span class="text-danger">*</span></nz-form-label>
+          <nz-form-control [nzErrorTip]="codeError">
             <input nz-input nzSize="default" formControlName="Code" readonly />
             <ng-template #codeError let-control>
               <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">
@@ -31,10 +32,10 @@
         </nz-form-item>
       </div>
 
-      <div class="col-md-4">
+      <div nz-col nzSpan="8">
         <nz-form-item>
-          <nz-form-label [nzSpan]="6" class="fs-12" nzRequired>Người nhận</nz-form-label>
-          <nz-form-control [nzSpan]="18" [nzErrorTip]="userIdError">
+          <nz-form-label class="fs-12">Người nhận<span class="text-danger">*</span></nz-form-label>
+          <nz-form-control [nzErrorTip]="userIdError">
             <nz-select nzSize="default" formControlName="UserID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn người nhận">
               <nz-option *ngFor="let id of dataCbbUser" [nzValue]="id.ID" [nzLabel]="id.FullName"></nz-option>
             </nz-select>
@@ -50,10 +51,46 @@
         </nz-form-item>
       </div>
 
-      <div class="col-md-4">
+      <div nz-col nzSpan="8">
         <nz-form-item>
-          <nz-form-label [nzSpan]="6" class="fs-12" nzRequired>Người giao</nz-form-label>
-          <nz-form-control [nzSpan]="18" [nzErrorTip]="senderIdError">
+          <nz-form-label class="fs-12">Ngày xuất<span class="text-danger">*</span></nz-form-label>
+          <nz-form-control [nzErrorTip]="creatDateError">
+            <nz-date-picker nzSize="default" formControlName="CreatDate" [nzFormat]="dateFormat" class="w-100"></nz-date-picker>
+            <ng-template #creatDateError let-control>
+              <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">
+                Vui lòng chọn ngày xuất!
+              </ng-container>
+            </ng-template>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+
+    <!-- Hàng 2: Khách hàng | Người giao | Ngày yêu cầu -->
+    <div nz-row [nzGutter]="16">
+      <div nz-col nzSpan="8">
+        <nz-form-item>
+          <nz-form-label class="fs-12">Khách hàng<span class="text-danger">*</span></nz-form-label>
+          <nz-form-control [nzErrorTip]="customerIdError">
+            <nz-select nzSize="default" formControlName="CustomerID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn khách hàng" (ngModelChange)="changeCustomer()">
+              <nz-option *ngFor="let id of dataCbbCustomer" [nzValue]="id.ID" [nzLabel]="id.CustomerCode + ' - ' + id.CustomerName"></nz-option>
+            </nz-select>
+            <ng-template #customerIdError let-control>
+              <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">
+                Vui lòng chọn khách hàng!
+              </ng-container>
+              <ng-container *ngIf="control.hasError('min') && (control.dirty || control.touched)">
+                Khách hàng không hợp lệ!
+              </ng-container>
+            </ng-template>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <div nz-col nzSpan="8">
+        <nz-form-item>
+          <nz-form-label class="fs-12">Người giao<span class="text-danger">*</span></nz-form-label>
+          <nz-form-control [nzErrorTip]="senderIdError">
             <nz-select nzSize="default" formControlName="SenderID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn người giao">
               <nz-option *ngFor="let id of dataCbbSender" [nzValue]="id.ID" [nzLabel]="id.FullName"></nz-option>
             </nz-select>
@@ -69,43 +106,22 @@
         </nz-form-item>
       </div>
 
-      <div class="col-md-4">
+      <div nz-col nzSpan="8">
         <nz-form-item>
-          <nz-form-label [nzSpan]="6" class="fs-12" nzRequired>Khách hàng</nz-form-label>
-          <nz-form-control [nzSpan]="18" [nzErrorTip]="customerIdError">
-            <nz-select nzSize="default" formControlName="CustomerID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn khách hàng" (ngModelChange)="changeCustomer()">
-              <nz-option *ngFor="let id of dataCbbCustomer" [nzValue]="id.ID" [nzLabel]="id.CustomerName"></nz-option>
-            </nz-select>
-            <ng-template #customerIdError let-control>
-              <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">
-                Vui lòng chọn khách hàng!
-              </ng-container>
-              <ng-container *ngIf="control.hasError('min') && (control.dirty || control.touched)">
-                Khách hàng không hợp lệ!
-              </ng-container>
-            </ng-template>
+          <nz-form-label class="fs-12">Ngày yêu cầu</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker nzSize="default" formControlName="RequestDate" [nzFormat]="dateFormat" class="w-100"></nz-date-picker>
           </nz-form-control>
         </nz-form-item>
       </div>
+    </div>
 
-      <div class="col-md-8">
+    <!-- Hàng 3: Loại kho | Trạng thái | Loại hàng -->
+    <div nz-row [nzGutter]="16">
+      <div nz-col nzSpan="8">
         <nz-form-item>
-          <nz-form-label [nzSpan]="2" class="fs-12" nzRequired>Địa chỉ</nz-form-label>
-          <nz-form-control [nzSpan]="23" [nzErrorTip]="addressError">
-            <input nz-input nzSize="default" formControlName="Address" readonly />
-            <ng-template #addressError let-control>
-              <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">
-                Vui lòng nhập địa chỉ!
-              </ng-container>
-            </ng-template>
-          </nz-form-control>
-        </nz-form-item>
-      </div>
-
-      <div class="col-md-4">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="6" class="fs-12" nzRequired>Loại kho</nz-form-label>
-          <nz-form-control [nzSpan]="18" [nzErrorTip]="khoTypeIdError">
+          <nz-form-label class="fs-12">Loại kho<span class="text-danger">*</span></nz-form-label>
+          <nz-form-control [nzErrorTip]="khoTypeIdError">
             <nz-select nzSize="default" formControlName="KhoTypeID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn kho" (ngModelChange)="changeProductGroup($event)">
               <nz-option *ngFor="let id of dataCbbProductGroup" [nzValue]="id.ID" [nzLabel]="id.ProductGroupName"></nz-option>
             </nz-select>
@@ -121,10 +137,10 @@
         </nz-form-item>
       </div>
 
-      <div class="col-md-4">
+      <div nz-col nzSpan="8">
         <nz-form-item>
-          <nz-form-label [nzSpan]="6" class="fs-12" nzRequired>Trạng thái</nz-form-label>
-          <nz-form-control [nzSpan]="18" [nzErrorTip]="statusError">
+          <nz-form-label class="fs-12">Trạng thái<span class="text-danger">*</span></nz-form-label>
+          <nz-form-control [nzErrorTip]="statusError">
             <nz-select nzSize="default" formControlName="Status" nzShowSearch nzAllowClear nzPlaceHolder="Chọn trạng thái" (ngModelChange)="changeStatus()">
               <nz-option *ngFor="let id of cbbStatus" [nzValue]="id.ID" [nzLabel]="id.Name"></nz-option>
             </nz-select>
@@ -137,10 +153,10 @@
         </nz-form-item>
       </div>
 
-      <div class="col-md-4">
+      <div nz-col nzSpan="8">
         <nz-form-item>
-          <nz-form-label [nzSpan]="6" class="fs-12" nzRequired>Loại hàng</nz-form-label>
-          <nz-form-control [nzSpan]="18" [nzErrorTip]="productTypeError">
+          <nz-form-label class="fs-12">Loại hàng</nz-form-label>
+          <nz-form-control [nzErrorTip]="productTypeError">
             <nz-select nzSize="default" formControlName="ProductType" nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại hàng">
               <nz-option *ngFor="let id of cbbProductType" [nzValue]="id.ID" [nzLabel]="id.Name"></nz-option>
             </nz-select>
@@ -155,34 +171,14 @@
           </nz-form-control>
         </nz-form-item>
       </div>
+    </div>
 
-      <div class="col-md-4">
+    <!-- Hàng 4: Nhà cung cấp | Địa chỉ -->
+    <div nz-row [nzGutter]="16">
+      <div nz-col nzSpan="12">
         <nz-form-item>
-          <nz-form-label [nzSpan]="6" class="fs-12" nzRequired>Ngày xuất</nz-form-label>
-          <nz-form-control [nzSpan]="18" [nzErrorTip]="creatDateError">
-            <nz-date-picker nzSize="default" formControlName="CreatDate" [nzFormat]="dateFormat" class="w-100"></nz-date-picker>
-            <ng-template #creatDateError let-control>
-              <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">
-                Vui lòng chọn ngày xuất!
-              </ng-container>
-            </ng-template>
-          </nz-form-control>
-        </nz-form-item>
-      </div>
-
-      <div class="col-md-4">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="6" class="fs-12">Ngày yêu cầu</nz-form-label>
-          <nz-form-control [nzSpan]="18">
-            <nz-date-picker nzSize="default" formControlName="RequestDate" [nzFormat]="dateFormat" class="w-100"></nz-date-picker>
-          </nz-form-control>
-        </nz-form-item>
-      </div>
-
-      <div class="col-md-4">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="8" class="fs-12" nzRequired >Nhà cung cấp</nz-form-label>
-          <nz-form-control [nzSpan]="18" [nzErrorTip]="SupplierError">
+          <nz-form-label class="fs-12">Nhà cung cấp<span class="text-danger">*</span></nz-form-label>
+          <nz-form-control [nzErrorTip]="SupplierError">
             <nz-select nzSize="default" formControlName="SupplierID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhà cung cấp">
               <nz-option *ngFor="let id of dataCbbSupplier" [nzValue]="id.ID" [nzLabel]="id.NameNCC"></nz-option>
               <ng-template #SupplierError let-control>
@@ -194,6 +190,20 @@
                 </ng-container>
               </ng-template>
             </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <div nz-col nzSpan="12">
+        <nz-form-item>
+          <nz-form-label class="fs-12">Địa chỉ<span class="text-danger">*</span></nz-form-label>
+          <nz-form-control [nzErrorTip]="addressError">
+            <input nz-input nzSize="default" formControlName="Address" />
+            <ng-template #addressError let-control>
+              <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">
+                Vui lòng nhập địa chỉ!
+              </ng-container>
+            </ng-template>
           </nz-form-control>
         </nz-form-item>
       </div>

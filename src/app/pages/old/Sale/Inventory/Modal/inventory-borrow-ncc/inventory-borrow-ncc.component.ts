@@ -1,7 +1,7 @@
 import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import * as bootstrap from 'bootstrap';
+
 
 import { CommonModule } from '@angular/common';
 import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
@@ -24,6 +24,7 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { InventoryService } from '../../inventory-service/inventory.service';
 import { DateTime } from 'luxon';
+import { DEFAULT_TABLE_CONFIG } from '../../../../../../tabulator-default.config';
 
 @Component({
   selector: 'app-inventory-borrow-ncc',
@@ -316,8 +317,6 @@ export class InventoryBorrowNCCComponent implements OnInit, AfterViewInit {
 
     this.table = new Tabulator('#table_InventoryBorrowNCC', {
       data: this.dataTable,
-      layout: 'fitDataFill',
-      height: "65vh",
       pagination: true,
       paginationSize: 50,
       movableColumns: true,
@@ -325,6 +324,10 @@ export class InventoryBorrowNCCComponent implements OnInit, AfterViewInit {
       reactiveData: true,
       selectableRows: true,
       // rowContextMenu: rowMenu,
+      ...DEFAULT_TABLE_CONFIG,
+      paginationMode: 'local',
+      layout: 'fitDataFill',
+      height: "76vh",
       columnDefaults: {
         resizable: true,
       },

@@ -65,7 +65,6 @@ import { UnitCountComponent } from '../../../old/Sale/ProductSale/unit-count/uni
 import { ProductLocationComponent } from '../../../general-category/product-location/product-location.component';
 import { FirmComponent } from '../../../general-category/firm/firm.component';
 import { FollowProjectBaseComponent } from '../../../old/VisionBase/kho-base/follow-project-base/follow-project-base.component';
-import { CustomerComponent } from '../../../old/customer/customer.component';
 import { InventoryComponent } from '../../../old/Sale/Inventory/inventory.component';
 import { InventoryBorrowNCCComponent } from '../../../old/Sale/Inventory/Modal/inventory-borrow-ncc/inventory-borrow-ncc.component';
 import { BillImportComponent } from '../../../old/Sale/BillImport/bill-import.component';
@@ -153,15 +152,14 @@ export class MenuService {
             isOpen: true,
             isPermission:
               this.permissionService.hasPermission('N26,N1,N36,N73,N30'),
-              icon: 'assets/icon/menu_sale_24.png',
+            icon: 'assets/icon/menu_sale_24.png',
             children: [
               {
                 kind: 'leaf',
                 key: 'InventoryComponent',
                 title: 'TỒN KHO',
                 isOpen: true,
-                isPermission:
-                  this.permissionService.hasPermission(''),
+                isPermission: this.permissionService.hasPermission(''),
                 comp: InventoryComponent,
                 //   icon: 'assets/icon/layers.png',
               },
@@ -170,8 +168,7 @@ export class MenuService {
                 key: 'BillImportComponent',
                 title: 'PHIẾU NHẬP',
                 isOpen: true,
-                isPermission:
-                  this.permissionService.hasPermission(''),
+                isPermission: this.permissionService.hasPermission(''),
                 comp: BillImportComponent,
                 //   icon: 'assets/icon/layers.png',
               },
@@ -180,13 +177,12 @@ export class MenuService {
                 key: 'BillExportComponent',
                 title: 'PHIẾU XUẤT',
                 isOpen: true,
-                isPermission:
-                  this.permissionService.hasPermission(''),
+                isPermission: this.permissionService.hasPermission(''),
                 comp: BillExportComponent,
                 //   icon: 'assets/icon/layers.png',
               },
-            ]
-          }
+            ],
+          },
         ],
       },
       //#endregion
@@ -222,7 +218,8 @@ export class MenuService {
                 key: 'TsAssetManagementComponent',
                 title: 'Danh sách tài sản',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission('N23,N52,N1,N36,N34'),
+                isPermission:
+                  this.permissionService.hasPermission('N23,N52,N1,N36,N34'),
                 comp: TsAssetManagementComponent,
                 //   icon: 'assets/icon/layers.png',
               },
@@ -847,45 +844,46 @@ export class MenuService {
         ],
       },
       //#endregion
-    
-  //#region Phòng sale
-  {
-    kind: 'group',
-    key: 'SALE',
-    title: 'PHÒNG SALE',
-    isOpen: true,
-    isPermission: this.permissionService.hasPermission(""),
-    icon: 'assets/icon/menu_project_24.png',
-    children: [
+
+      //#region Phòng sale
       {
         kind: 'group',
-        key: 'ProjectComponent',
-        title: 'Vision Base',
+        key: 'SALE',
+        title: 'PHÒNG SALE',
         isOpen: true,
-        isPermission: this.permissionService.hasPermission(""),
+        isPermission: this.permissionService.hasPermission(''),
+        icon: 'assets/icon/menu_project_24.png',
         children: [
           {
-            kind: 'leaf',
-            key: 'PlanWeekComponent',
-            title: 'Kế hoạch tuần',
+            kind: 'group',
+            key: 'ProjectComponent',
+            title: 'Vision Base',
             isOpen: true,
-            isPermission: this.permissionService.hasPermission("'N1,N27,N53,N31,N69'"),
-            comp: PlanWeekComponent
+            isPermission: this.permissionService.hasPermission(''),
+            children: [
+              {
+                kind: 'leaf',
+                key: 'PlanWeekComponent',
+                title: 'Kế hoạch tuần',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(
+                  "'N1,N27,N53,N31,N69'"
+                ),
+                comp: PlanWeekComponent,
+              },
+              {
+                kind: 'leaf',
+                key: 'FollowProjectBaseComponent',
+                title: 'Follow dự án',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: FollowProjectBaseComponent,
+              },
+            ],
           },
-          {
-            kind: 'leaf',
-            key: 'FollowProjectBaseComponent',
-            title: 'Follow dự án',
-            isOpen: true,
-            isPermission: this.permissionService.hasPermission(""),
-            comp: FollowProjectBaseComponent
-          }
-        ]
-      }
-      
-    ],
-  },
-];
+        ],
+      },
+    ];
 
     return menus;
   }

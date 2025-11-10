@@ -286,7 +286,6 @@ export class OfficeSupplyRequestsComponent implements OnInit {
           hozAlign: 'center',
           headerHozAlign: 'center',
           formatter: (cell) => `<input type="checkbox" ${(['true', true, 1, '1'].includes(cell.getValue()) ? 'checked' : '')} onclick="return false;">`
-
         },
         {
           title: 'TBP duyệt',

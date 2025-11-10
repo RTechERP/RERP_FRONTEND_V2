@@ -75,3 +75,17 @@
       height: 24px;
       line-height: 22px;
   }
+
+/* Hiển thị burger trên màn hình nhỏ, ẩn dải nút */
+.action-burger { display: none; }
+@media (max-width: 768px) {
+  .action-bar { display: none !important; }
+  .action-burger { display: inline-flex; }
+}
+
+/* Menu burger có thanh cuộn khi danh sách dài */
+:host ::ng-deep .ant-dropdown-menu {
+  max-height: 70vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}

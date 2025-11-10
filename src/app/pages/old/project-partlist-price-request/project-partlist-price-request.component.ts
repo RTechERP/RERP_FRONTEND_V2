@@ -48,12 +48,10 @@ import {
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzModalModule } from 'ng-zorro-antd/modal';
-import { USER_NAME } from '../../../app.config';
-import { EMPLOYEE_ID } from '../../../app.config';
-import { ISADMIN } from '../../../app.config';
 import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { AppUserService } from '../../../services/app-user.service';
 
 @Component({
   selector: 'app-project-partlist-price-request',
@@ -112,6 +110,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   injector = inject(EnvironmentInjector);
   appRef = inject(ApplicationRef);
   private ngbModal = inject(NgbModal);
+  appUserService = inject(AppUserService);
 
   constructor() {}
 
@@ -258,7 +257,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           return {
             ID: data['ID'],
             IsDeleted: true,
-            UpdatedBy: LOGIN_NAME,
+            UpdatedBy: this.appUserService.loginName,
             UpdatedDate: new Date().toISOString(),
           };
         });
@@ -627,7 +626,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       'TotalDayLeadTime',
       'TotalPriceExchange',
     ];
-    if (!IS_ADMIN) {
+    if (!this.appUserService.isAdmin) {
       validFields.push('QuoteEmployeeID');
       validFields.push('UpdatedBy');
     }
@@ -693,7 +692,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
 
       // Sử dụng định dạng ISO chuẩn cho UpdatedDate
       filteredItem.UpdatedDate = DateTime.local().toISO();
-      filteredItem.UpdatedBy = !IS_ADMIN ? LOGIN_NAME : '';
+      filteredItem.UpdatedBy = !this.appUserService.isAdmin ? this.appUserService.loginName : '';
       return filteredItem;
     });
 
@@ -896,9 +895,9 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       // Cập nhật dữ liệu
       Object.assign(rowData, {
         StatusRequest: status,
-        UpdatedBy: LOGIN_NAME,
+        UpdatedBy: this.appUserService.loginName,
         UpdatedDate: new Date(),
-        QuoteEmployeeID: !IS_ADMIN ? EMPLOYEE_ID : rowData['QuoteEmployeeID'],
+        QuoteEmployeeID: !this.appUserService.isAdmin ? this.appUserService.employeeID : rowData['QuoteEmployeeID'],
         DatePriceQuote:
           status === 2
             ? new Date()
@@ -952,8 +951,8 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           return {
             ID: Number(rowData['ID']),
             IsCheckPrice: isCheckPrice,
-            QuoteEmployeeID: isCheckPrice ? EMPLOYEE_ID : 0,
-            UpdatedBy: LOGIN_NAME,
+            QuoteEmployeeID: isCheckPrice ? this.appUserService.employeeID : 0,
+            UpdatedBy: this.appUserService.loginName,
             UpdatedDate: DateTime.local().toJSDate(),
           };
         });

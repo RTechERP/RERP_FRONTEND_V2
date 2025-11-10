@@ -8,6 +8,7 @@
 /* Bôi màu cho tab thêm ngon hehehe */
 ::ng-deep .app-header-tabs > .ant-tabs .ant-tabs-tab .ant-tabs-tab-btn {
   color: #c6c6c6;
+  text-transform: uppercase;
 }
 
 ::ng-deep
@@ -415,9 +416,8 @@ nz-sider {
 } */
 
 ::ng-deep .ant-menu {
-  /* font-size: 0.75rem !important; */
+  font-size: 0.75rem !important;
   text-transform: uppercase;
-  width: 150px;
 }
 
 ::ng-deep .ant-menu-inline.ant-menu-root .ant-menu-item {
@@ -442,7 +442,11 @@ nz-sider {
   /* background-color: #1a73e8; */
   height: 40px !important;
 }
-
-/* ::ng-deep .ant-layout-sider-collapsed .sidebar-logo .img-logo{
-    width: 100% !important;
+/* ::ng-deep .ant-menu-submenu-title,
+.ant-menu-item {
+  padding: 0 16px !important;
 } */
+
+:ng-deep .ant-menu-submenu .ant-menu-item {
+  padding: 0 16px !important;
+}

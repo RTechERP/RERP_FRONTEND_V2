@@ -36,10 +36,15 @@ export const APP_LOGIN_NAME = 'admin';
 export const EMPLOYEE_ID = 0;
 export const ISADMIN = true;
 export const USER_NAME = 'ADMINSW';
-// export const HOST = 'https://localhost:44365/';
+export const HOST = 'https://localhost:7187/';
 // export const HOST = 'http://10.20.29.65:8088/rerpapi/';
 // export const HOST = 'http://192.168.1.2:8088/api/';
 export const DEPARTMENTID = 6;
 export const IS_ADMIN = true;
 export const LOGIN_NAME = 'ADMINSW';
 export const SERVER_PATH = 'D:/LeTheAnh/RTC/UPLOADFILE/TrainingRegistration/';
+export const NOTIFICATION_TITLE = {
+  error: 'Lỗi',
+  success: 'Thông báo',
+  warning: 'Thông báo',
+};

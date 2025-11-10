@@ -1,0 +1,47 @@
+<div class="modal-dialog-scrollable">
+  <div class="modal-header bg-primary align-items-center ps-3">
+    <div class="d-flex align-items-center">
+      <h6 class="text-light text-uppercase m-0 fw-bold">Chi tiết loại dự án</h6>
+    </div>
+  </div>
+
+  <div class="modal-body p-2" style="max-height: 70vh; overflow-y: auto;">
+    <form nz-form [formGroup]="validateForm" class="container-fluid">
+      <!-- Hàng đầu tiên -->
+      <div nz-row [nzGutter]="16" class="mb-3">
+        <div nz-col [nzSpan]="24">
+          <nz-form-item>
+            <nz-form-label [nzSpan]="24" class="fw-semibold">
+              Mã loại dự án
+              <span class="text-danger">(*)</span>
+            </nz-form-label>
+            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập mã loại dự án!">
+              <input nz-input formControlName="ProjectTypeCode" name="ProjectTypeCode" placeholder="Nhập mã loại dự án" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col [nzSpan]="24">
+          <nz-form-item>
+            <nz-form-label [nzSpan]="24" class="fw-semibold">
+              Tên loại dự án
+              <span class="text-danger">(*)</span>
+            </nz-form-label>
+            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập tên loại dự án!">
+              <input nz-input formControlName="ProjectTypeName" name="ProjectTypeName" placeholder="Nhập tên loại dự án" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+    </form>
+
+    <div class="modal-footer">
+      <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()" >
+        Đóng
+      </button>
+      <button nz-button nzType="primary" (click)="onSubmit()" [disabled]="isSubmitting || !validateForm.valid" 
+        [nzLoading]="isSubmitting">
+        <i class="fas fa-save me-1"></i>
+        Lưu
+      </button>
+    </div>
+  </div>

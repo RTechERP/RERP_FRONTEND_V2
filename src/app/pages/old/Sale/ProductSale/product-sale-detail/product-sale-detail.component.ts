@@ -20,6 +20,7 @@ import { FirmDetailComponent } from '../firm-detail/firm-detail.component';
 import { LocationDetailComponent } from '../location-detail/location-detail.component';
 import { UnitCountDetailComponent } from '../unit-count-detail/unit-count-detail.component';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 interface ProductSale {
   Id?: number;
@@ -205,7 +206,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
     this.trimAllStringControls();
     if (this.formGroup.invalid) {
       this.formGroup.markAllAsTouched();
-      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin bắt buộc!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin bắt buộc!');
       return;
     }
 
@@ -251,11 +252,11 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
             this.activeModal.dismiss(true);
        
           } else {
-            this.notification.warning('Thông báo', res.message || 'Không thể cập nhật sản phẩm!');
+            this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể cập nhật sản phẩm!');
           }
         },
         error: (err) => {
-          this.notification.error('Thông báo', 'Có lỗi xảy ra khi cập nhật!');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi cập nhật!');
           console.error(err);
         }
       });
@@ -290,11 +291,11 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
             this.notification.success('Thông báo',  'Thêm mới thành công!');
             this.activeModal.dismiss(true);
           } else {
-            this.notification.warning('Thông báo', res.message || 'Không thể thêm sản phẩm!');
+            this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể thêm sản phẩm!');
           }
         },
         error: (err) => {
-          this.notification.error('Thông báo', 'Có lỗi xảy ra khi thêm mới!');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi thêm mới!');
           console.error(err);
         }
       });

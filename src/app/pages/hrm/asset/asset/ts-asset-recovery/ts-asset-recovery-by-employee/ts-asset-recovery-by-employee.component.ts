@@ -4,6 +4,7 @@ import { DateTime } from 'luxon';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { TabulatorFull as Tabulator, CellComponent, ColumnDefinition, RowComponent } from 'tabulator-tables';
 import { AssetsRecoveryService } from '../ts-asset-recovery-service/ts-asset-recovery.service';
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
@@ -114,7 +115,7 @@ export class TsAssetRecoveryByEmployeeComponent implements OnInit, AfterViewInit
   selectAssets() {
     const selectedRows = this.assetByEmployeeTb?.getSelectedData() || [];
     if (selectedRows.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một tài sản.');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một tài sản.');
       return;
     }
     const newRows = selectedRows.map(row => ({

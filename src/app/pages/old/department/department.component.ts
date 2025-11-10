@@ -23,6 +23,8 @@ import { DepartmentServiceService } from './department-service/department-servic
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { HasPermissionDirective } from "../../../directives/has-permission.directive";
+import { EmployeeService } from '../employee/employee-service/employee.service';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-department',
@@ -42,9 +44,8 @@ import { HasPermissionDirective } from "../../../directives/has-permission.direc
     ReactiveFormsModule,
     NgIf,
     NzSpinModule,
-    HasPermissionDirective
-],
-  standalone: true,
+    HasPermissionDirective,
+  ],
 })
 export class DepartmentComponent implements OnInit {
   private tabulator!: Tabulator;
@@ -57,10 +58,10 @@ export class DepartmentComponent implements OnInit {
   departmentForm!: FormGroup;
   employeeList: any[] = [];
   searchText: string = '';
-
   isLoading = false;
 
   constructor(
+    private employeeService: EmployeeService,
     private departmentService: DepartmentServiceService,
     private fb: FormBuilder,
     private modal: NzModalService,
@@ -91,10 +92,8 @@ export class DepartmentComponent implements OnInit {
     this.tabulator = new Tabulator('#tb_department', {
       data: this.departments,
       ...DEFAULT_TABLE_CONFIG,
-      //   layout: 'fitColumns',
-      //   responsiveLayout: true,
-      //   selectableRows: 1,
-      //   height: '100%',
+      layout: 'fitDataStretch',
+      selectableRows: 1,
       columns: [
         {
           title: 'STT',
@@ -132,6 +131,15 @@ export class DepartmentComponent implements OnInit {
       ],
     });
 
+    this.tabulator.on('rowClick', (e: any, row: any) => {
+      const clickedField = e.target.closest('.tabulator-cell')?.getAttribute('tabulator-field');
+      if (clickedField !== 'select') {
+        // Bỏ chọn hết và chọn row hiện tại
+        this.tabulator.deselectRow();
+        row.select();
+      }
+    });
+
     this.tabulator.on('rowClick', (e: UIEvent, row: RowComponent) => {
       this.selectedDepartment = row.getData();
     });
@@ -154,19 +162,15 @@ export class DepartmentComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        this.notification.error(
-          'Lỗi',
-          'Lỗi khi tải danh sách phòng ban: ' + error.message
-        );
+        this.notification.error(NOTIFICATION_TITLE.error, error.message);
         this.isLoading = false;
       },
     });
   }
 
   loadEmployees() {
-    this.departmentService.getEmployees().subscribe({
+    this.employeeService.getEmployees().subscribe({
       next: (data) => {
-        // Format employee data for select options
         this.employeeList = data.data.map((employee: any) => ({
           value: Number(employee.ID),
           label: `${employee.Code} - ${employee.FullName}`,
@@ -175,10 +179,7 @@ export class DepartmentComponent implements OnInit {
         console.log('Employee list:', this.employeeList); // Debug log
       },
       error: (error) => {
-        this.notification.error(
-          'Lỗi',
-          'Lỗi khi tải danh sách nhân viên: ' + error.message
-        );
+        this.notification.error(NOTIFICATION_TITLE.error, error.message);
       },
     });
   }
@@ -215,10 +216,7 @@ export class DepartmentComponent implements OnInit {
   openEditModal() {
     const selectedRows = this.tabulator.getSelectedRows();
     if (selectedRows.length === 0) {
-      this.notification.warning(
-        'Cảnh báo',
-        'Vui lòng chọn phòng ban cần chỉnh sửa'
-      );
+      this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn phòng ban cần sửa!");
       return;
     }
     this.isEditMode = true;
@@ -228,12 +226,13 @@ export class DepartmentComponent implements OnInit {
     this.departmentForm.reset();
 
     // Set form values with proper type conversion
+    debugger
     this.departmentForm.patchValue({
       ID: this.selectedDepartment.ID,
       STT: this.selectedDepartment.STT,
       Code: this.selectedDepartment.Code,
       Name: this.selectedDepartment.Name,
-      Status: Number(this.selectedDepartment.Status),
+      Status: this.selectedDepartment.Status,
       Email: this.selectedDepartment.Email || '',
       HeadofDepartment: Number(this.selectedDepartment.HeadofDepartment), // Convert to number
     });
@@ -245,7 +244,7 @@ export class DepartmentComponent implements OnInit {
   openDeleteModal() {
     const selectedRows = this.tabulator.getSelectedRows();
     if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn phòng ban cần xóa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn phòng ban cần xóa');
       return;
     }
     this.selectedDepartment = selectedRows[0].getData();
@@ -265,15 +264,12 @@ export class DepartmentComponent implements OnInit {
       .deleteDepartment(this.selectedDepartment.ID)
       .subscribe({
         next: () => {
-          this.notification.success('Thành công', 'Xóa phòng ban thành công');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Xóa phòng ban thành công');
           this.loadDepartments();
           this.selectedDepartment = null;
         },
-        error: (response) => {
-          this.notification.error(
-            'Lỗi',
-            'Xóa phòng ban thất bại: ' + response.error.message
-          );
+        error: (error) => {
+          this.notification.error(NOTIFICATION_TITLE.error, error.message);
         },
       });
   }
@@ -287,7 +283,7 @@ export class DepartmentComponent implements OnInit {
         }
       });
       this.notification.warning(
-        'Cảnh báo',
+        NOTIFICATION_TITLE.warning,
         'Vui lòng điền đầy đủ thông tin bắt buộc'
       );
       return;
@@ -300,7 +296,7 @@ export class DepartmentComponent implements OnInit {
       this.departmentService.createDepartment(formData).subscribe({
         next: () => {
           this.notification.success(
-            'Thành công',
+            NOTIFICATION_TITLE.success,
             'Cập nhật phòng ban thành công'
           );
           this.closeModal();
@@ -308,7 +304,7 @@ export class DepartmentComponent implements OnInit {
         },
         error: (error) => {
           this.notification.error(
-            'Lỗi',
+            NOTIFICATION_TITLE.error,
             'Cập nhật phòng ban thất bại: ' + error.message
           );
         },
@@ -319,7 +315,7 @@ export class DepartmentComponent implements OnInit {
     } else {
       this.departmentService.createDepartment(formData).subscribe({
         next: () => {
-          this.notification.success('Thành công', 'Thêm phòng ban thành công');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Thêm phòng ban thành công');
           this.closeModal();
           this.loadDepartments();
         },

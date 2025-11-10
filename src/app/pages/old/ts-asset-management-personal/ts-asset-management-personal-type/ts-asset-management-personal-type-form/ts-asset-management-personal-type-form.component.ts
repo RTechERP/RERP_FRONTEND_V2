@@ -32,6 +32,7 @@ import { TsAssetAllocationPersonalService } from '../../../ts-asset-allocation-p
 import { AssetAllocationService } from '../../../../hrm/asset/asset/ts-asset-allocation/ts-asset-allocation-service/ts-asset-allocation.service';
 import { TsAssetManagementPersonalService } from '../../ts-asset-management-personal-service/ts-asset-management-personal.service';
 import { UnitService } from '../../../../hrm/asset/asset/ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 @Component({
   standalone: true,
@@ -176,7 +177,7 @@ export class TsAssetManagementPersonalTypeFormComponent {
       Object.values(this.formGroup.controls).forEach(c => {
         c.markAsTouched(); c.updateValueAndValidity({ onlySelf: true });
       });
-      this.notification.warning('Cảnh báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
     }
     const formValue = this.formGroup.value;
@@ -194,16 +195,16 @@ export class TsAssetManagementPersonalTypeFormComponent {
     this.tsAssetAllocationPersonalService.saveAssetAllocationPerson(payload).subscribe({
       next: (response: any) => {
         if (response?.status == 1) {
-          this.notification.success('Thành công', 'Lưu thông tin tài sản cá nhân thành công');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thông tin tài sản cá nhân thành công');
           this.formSubmitted.emit();
           this.activeModal.close('save');
         } else {
-          this.notification.error('Lỗi', response?.message || 'Lưu thất bại');
+          this.notification.error(NOTIFICATION_TITLE.error, response?.message || 'Lưu thất bại');
         }
       },
       error: (err) => {
         const msg = err?.error?.message || err?.message || err?.statusText || 'Lỗi khi lưu thông tin';
-        this.notification.error('Lỗi', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi khi lưu:', err);
       }
     });

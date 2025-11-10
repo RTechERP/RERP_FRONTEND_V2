@@ -13,6 +13,7 @@ import { EmployeeService } from '../employee-service/employee.service';
 import { NzOptionComponent, NzSelectModule } from 'ng-zorro-antd/select';
 import { DepartmentServiceService } from '../../department/department-service/department-service.service';
 import { CommonModule } from '@angular/common';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-employee-team',
@@ -97,7 +98,7 @@ export class EmployeeTeamComponent implements OnInit {
         this.tabulator.setData(this.employeeTeam);
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Không thể tải danh sách team phòng ban: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách team phòng ban: ' + error.message);
       }
     })
   }
@@ -112,7 +113,7 @@ export class EmployeeTeamComponent implements OnInit {
         console.log(this.departmentList);
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách phòng ban: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách phòng ban: ' + error.message);
       }
     });
   }
@@ -121,12 +122,12 @@ export class EmployeeTeamComponent implements OnInit {
     if (this.employeeTeamForm.valid) {
         this.employeeService.saveEmployeeTeam(this.employeeTeamForm.value).subscribe({
           next: (response) => {
-            this.notification.success('Thành công', 'Cập nhật team phòng ban thành công');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật team phòng ban thành công');
             this.closeModal();
             this.loadEmployeeTeam();
           },
           error: (error) => {
-            this.notification.error('Lỗi', 'Cập nhật team phòng ban thất bại: ' + error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật team phòng ban thất bại: ' + error.message);
           }
         });
     } else {
@@ -136,7 +137,7 @@ export class EmployeeTeamComponent implements OnInit {
           control.updateValueAndValidity({ onlySelf: true });
         }
       });
-      this.notification.warning('Cảnh báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin bắt buộc');
     }
   }
 
@@ -159,7 +160,7 @@ export class EmployeeTeamComponent implements OnInit {
   openEditModal() {
     const selectedRows = this.tabulator.getSelectedRows();
     if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn team phòng ban cần sửa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn team phòng ban cần sửa');
       return;
     }
 
@@ -187,7 +188,7 @@ export class EmployeeTeamComponent implements OnInit {
   openDeleteModal() {
     const selectedRows = this.tabulator.getSelectedRows();
     if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn team phòng ban cần xóa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn team phòng ban cần xóa');
       return;
     }
 
@@ -204,11 +205,11 @@ export class EmployeeTeamComponent implements OnInit {
           IsDeleted: 1
         }).subscribe({
           next: (response) => {
-            this.notification.success('Thành công', 'Xóa team phòng ban thành công');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Xóa team phòng ban thành công');
             this.loadEmployeeTeam();
           },
           error: (error) => {
-            this.notification.error('Lỗi', 'Xóa team phòng ban thất bại: ' + error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Xóa team phòng ban thất bại: ' + error.message);
           }
         });
       },

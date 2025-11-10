@@ -55,6 +55,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 
 import { PokhService } from '../pokh/pokh-service/pokh.service';
 import { PoRequestBuyService } from './po-request-buy/po-request-buy.service';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 @Component({
   selector: 'app-po-request-buy',
   imports: [
@@ -208,7 +209,7 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
   }
   saveData(): void {
     if (!this.selectedEmployee) {
-      this.notification.error('Thông báo', 'Vui lòng chọn người yêu cầu!');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn người yêu cầu!');
       return;
     }
     if (!this.selectedRows || this.selectedRows.length === 0) {
@@ -247,11 +248,11 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
           );
           this.closeModal();
         } else {
-          this.notification.error('Thông báo', res?.message || 'Lưu thất bại!');
+          this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Lưu thất bại!');
         }
       },
       error: (err) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lưu dữ liệu!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lưu dữ liệu!');
       },
     });
   }

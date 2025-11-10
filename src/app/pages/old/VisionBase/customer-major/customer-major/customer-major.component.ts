@@ -60,6 +60,7 @@ import { CustomerMajorService } from '../customer-major-service/customer-major.s
 import { CustomerMajorDetailComponent } from '../customer-major-detail/customer-major-detail.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   selector: 'app-customer-major',
   imports: [
@@ -131,7 +132,7 @@ export class CustomerMajorComponent implements OnInit, AfterViewInit {
   onEdit(): void {
     const selectedRows = this.tb_MainTable?.getSelectedData();
     if (!selectedRows || selectedRows.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một ngành nghề để sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một ngành nghề để sửa!');
       return;
     }
       this.selectedId = selectedRows[0].ID;
@@ -148,11 +149,11 @@ export class CustomerMajorComponent implements OnInit, AfterViewInit {
             this.tb_MainTable.setData(this.data);
           }
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
 
@@ -161,7 +162,7 @@ export class CustomerMajorComponent implements OnInit, AfterViewInit {
   onDelete() {
     const selectedRows = this.tb_MainTable?.getSelectedData();
     if (!selectedRows || selectedRows.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một ngành nghề để xóa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một ngành nghề để xóa!');
       return;
     }
     this.modal.confirm({
@@ -237,11 +238,11 @@ export class CustomerMajorComponent implements OnInit, AfterViewInit {
             this.tb_MainTable.setData(this.data);
           }
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }

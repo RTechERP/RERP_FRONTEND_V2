@@ -35,6 +35,7 @@ import { NgbActiveModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { ProjectLeaderProjectTypeDetailComponent } from './project-leader-project-type-detail/project-leader-project-type-detail.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 
 @Component({
@@ -335,7 +336,7 @@ export class ProjectLeaderProjectTypeComponent implements OnInit {
     const selectedRows = this.tb_projectLeaderProjectTypeLinks.getSelectedData();
   
     if (!selectedRows || selectedRows.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn leader để xóa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn leader để xóa!');
       return;
     }
   
@@ -355,12 +356,12 @@ export class ProjectLeaderProjectTypeComponent implements OnInit {
         // Gọi API 1 lần, truyền list object
         this.projectService.saveemployeeprojecttype(payload).subscribe({
           next: (res) => {
-            this.notification.success('Thành công', `Đã xóa ${selectedRows.length} leader thành công!`);
+            this.notification.success(NOTIFICATION_TITLE.success, `Đã xóa ${selectedRows.length} leader thành công!`);
             this.getProjectLeaderProjectTypeLinks(this.projectTypeId);
           },
           error: (error) => {
             console.error('Lỗi khi xóa leader:', error);
-            this.notification.error('Lỗi', 'Không thể xóa leader, vui lòng thử lại!');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xóa leader, vui lòng thử lại!');
           }
         });
       }
@@ -369,7 +370,7 @@ export class ProjectLeaderProjectTypeComponent implements OnInit {
 
   openModalAddLeaders() {
     if (this.projectTypeId === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn kiểu dự án để thêm leader!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn kiểu dự án để thêm leader!');
       return;
     }
     this.selectedDepartment = 0;
@@ -454,7 +455,7 @@ export class ProjectLeaderProjectTypeComponent implements OnInit {
   onAddLeaders() {
     const selected = this.selectedEmployee.size;
     if (!selected || selected === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn nhân viên để thêm!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn nhân viên để thêm!');
       return;
     }
 
@@ -517,12 +518,12 @@ export class ProjectLeaderProjectTypeComponent implements OnInit {
               const failed = results.filter(r => !r.success).map(r => r.id);
 
               if (successCount > 0) {
-                this.notification.success('Thành công', `Đã thêm ${successCount} nhân viên thành công!`);
+                this.notification.success(NOTIFICATION_TITLE.success, `Đã thêm ${successCount} nhân viên thành công!`);
                 this.getProjectLeaderProjectTypeLinks(this.projectTypeId);
               }
 
               if (failed.length > 0) {
-                this.notification.error('Lỗi', `Không thể thêm các nhân viên: ${failed.join(', ')}`);
+                this.notification.error(NOTIFICATION_TITLE.error, `Không thể thêm các nhân viên: ${failed.join(', ')}`);
               }
 
               this.selectedEmployee.clear();
@@ -531,7 +532,7 @@ export class ProjectLeaderProjectTypeComponent implements OnInit {
           },
           error: (error) => {
             console.error('Lỗi khi kiểm tra nhân viên:', error);
-            this.notification.error('Lỗi', 'Không thể kiểm tra nhân viên, vui lòng thử lại sau!');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Không thể kiểm tra nhân viên, vui lòng thử lại sau!');
           }
         });
       }

@@ -7,27 +7,22 @@ import { environment } from '../../../../../environments/environment';
   providedIn: 'root',
 })
 export class DepartmentServiceService {
-  //   private _url = 'https://localhost:7187/api/';
-  private _url = environment.host + 'api/';
+  private _url = environment.host + 'api/Department/';
   constructor(private http: HttpClient) {}
 
   getDepartments(): Observable<any> {
-    return this.http.get<any>(this._url + 'Department/get-all');
+    return this.http.get<any>(this._url + 'get-all');
   }
 
   getDepartmentById(id: number): Observable<any> {
-    return this.http.get<any>(this._url + 'Department/' + id);
+    return this.http.get<any>(this._url + `id=${id}`);
   }
 
   createDepartment(department: any): Observable<any> {
-    return this.http.post<any>(this._url + 'Department', department);
+    return this.http.post<any>(this._url + 'save', department);
   }
 
   deleteDepartment(id: number): Observable<any> {
-    return this.http.get<any>(this._url + 'Department/' + id);
-  }
-
-  getEmployees(): Observable<any> {
-    return this.http.get<any>(this._url + 'Employee');
+    return this.http.get<any>(this._url + `deleted?id=${id}`);
   }
 }

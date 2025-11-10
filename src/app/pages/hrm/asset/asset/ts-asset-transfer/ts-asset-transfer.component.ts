@@ -34,6 +34,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification'
 import { TsAssetTransferFormComponent } from './ts-asset-transfer-form/ts-asset-transfer-form.component';
 import { TsAssetTransferService } from './ts-asset-transfer-service/ts-asset-transfer.service';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
@@ -319,13 +320,13 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
     };
     this.tsAssetTransferService.saveData(payloadTranfer).subscribe({
       next: () => {
-        this.notification.success('Thành công', 'Xóa biên bản thành công!');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Xóa biên bản thành công!');
         this.getTranferAsset();
         this.drawTable();
       },
       error: (err) => {
         console.error('Lỗi khi xóa:', err);
-        this.notification.warning('Lỗi', 'Lỗi kết nối máy chủ!');
+        this.notification.warning(NOTIFICATION_TITLE.error, 'Lỗi kết nối máy chủ!');
       }
     });
   }
@@ -435,7 +436,7 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
     const selectedDetail = this.assetTranferDetailTable?.getData();
     const selectedTranfer = this.assetTranferTable?.getSelectedData()?.[0];
     if (!selectedDetail || selectedDetail.length === 0) {
-      this.notification.warning('Cảnh báo', 'Không có dữ liệu để duyệt.');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để duyệt.');
       return;
     }
     const payloadTranfer = {
@@ -488,7 +489,7 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
   onEditTranfer() {
     const selected = this.assetTranferTable?.getSelectedData();
     if (!selected || selected.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một đơn vị để sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một đơn vị để sửa!');
       return;
     }
     const selectedAssets = { ...selected[0] };
@@ -515,7 +516,7 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu để xuất Excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất Excel!');
       return;
     }
 
@@ -596,7 +597,7 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
     const details = this.assetTranferDetailTable?.getData();
 
     if (!selectedMaster || !details || details.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu để xuất Excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất Excel!');
       return;
     }
     const payload = {
@@ -629,7 +630,7 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
         saveAs(blob, fileName); // 🟢 Lưu file Excel
       },
       error: (err) => {
-        this.notification.error('Lỗi', 'Không thể xuất file!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xuất file!');
         console.error(err);
       }
     });

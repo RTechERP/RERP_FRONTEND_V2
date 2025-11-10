@@ -30,6 +30,7 @@ import { OverTimeDetailComponent } from "./over-time-detail/over-time-detail.com
 import { OverTimeTypeComponent } from "./over-time-type/over-time-type.component";
 import { SummaryOverTimeComponent } from './summary-over-time/summary-over-time.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 
 @Component({
@@ -246,13 +247,13 @@ export class OverTimeComponent implements OnInit, AfterViewInit{
   openEditModal() {
     const selectedRows = this.tabulator.getSelectedRows();
     if(selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn đăng ký làm thêm cần chỉnh sửa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đăng ký làm thêm cần chỉnh sửa');
       return;
     }
     if (
       (selectedRows.length > 0 && selectedRows[0].getData()['IsApprovedHR'] === true && selectedRows[0].getData()['IsApproved'] === true)
     ) {
-      this.notification.warning('Cảnh báo', 'Đăng ký đã được duyệt. Vui lòng hủy duyệt trước khi sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Đăng ký đã được duyệt. Vui lòng hủy duyệt trước khi sửa!');
       return;
     }
 
@@ -272,11 +273,11 @@ export class OverTimeComponent implements OnInit, AfterViewInit{
           const modal = new (window as any).bootstrap.Modal(document.getElementById('overTimeModal'));
           modal.show();
         } else {
-          this.notification.warning('Thông báo', response.message || 'Không tìm thấy dữ liệu chi tiết');
+          this.notification.warning(NOTIFICATION_TITLE.warning, response.message || 'Không tìm thấy dữ liệu chi tiết');
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Không thể tải dữ liệu chi tiết');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu chi tiết');
       }
     });
   }
@@ -285,7 +286,7 @@ export class OverTimeComponent implements OnInit, AfterViewInit{
     const selectedRows = this.tabulator.getSelectedRows() || [];
     
     if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn đăng ký nghỉ cần xóa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đăng ký nghỉ cần xóa');
       return;
     }
   
@@ -310,7 +311,7 @@ export class OverTimeComponent implements OnInit, AfterViewInit{
     );
   
     if (validRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Không có bản ghi nào hợp lệ để xóa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có bản ghi nào hợp lệ để xóa');
       return;
     }
   
@@ -469,7 +470,7 @@ export class OverTimeComponent implements OnInit, AfterViewInit{
     const selectedRows = this.tabulator.getSelectedRows() || [];
     
     if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn đăng ký nghỉ cần duyệt');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đăng ký nghỉ cần duyệt');
       return;
     }
   
@@ -495,7 +496,7 @@ export class OverTimeComponent implements OnInit, AfterViewInit{
     }
   
     // if (validRows.length === 0) {
-    //   this.notification.warning('Cảnh báo', 'Không có dòng nào phù hợp để thực hiện thao tác');
+    //   this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dòng nào phù hợp để thực hiện thao tác');
     //   return;
     // }
   

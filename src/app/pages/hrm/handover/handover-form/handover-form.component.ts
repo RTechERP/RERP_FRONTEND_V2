@@ -47,6 +47,7 @@ import { forkJoin } from 'rxjs';
 import { HandoverService } from '../handover-service/handover.service';
 import { HandoverComponent } from '../handover.component';
 import { SelectControlComponent } from '../../../old/select-control/select-control.component';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 interface Handover {
   STT: number;
@@ -568,7 +569,7 @@ const selectedEmployee = this.cbbEmployeeGroup
 
   loadHandoverData() {
     if (!this.HandoverID) {
-      this.notification.warning('Thông báo', 'Thiếu ID handover !');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Thiếu ID handover !');
       return;
     }
 
@@ -735,7 +736,7 @@ const selectedEmployee = this.cbbEmployeeGroup
       },
 
       error: (err) => {
-        this.notification.error('Thông báo', 'Lỗi khi load dữ liệu biên bản!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi load dữ liệu biên bản!');
       },
     });
   }
@@ -804,7 +805,7 @@ const selectedEmployee = this.cbbEmployeeGroup
 //       this.handoverWorkTable?.addRow(uploadedFile);
 //     }
 //     if (info.file.status === 'error') {
-//       this.notification.error('Thông báo', 'Có lỗi xảy ra khi upload!');
+//       this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi upload!');
 //     }
 //   }
 
@@ -852,7 +853,7 @@ uploadFileForRow(rowData: any) {
                 `Upload thành công file: ${uploaded.OriginalFileName}`
               );
             } else {
-              this.notification.error('Thông báo', 'Upload thất bại');
+              this.notification.error(NOTIFICATION_TITLE.error, 'Upload thất bại');
             }
           },
           error: (err) => {
@@ -1245,7 +1246,7 @@ uploadFileForRow(rowData: any) {
           }
         },
         error: (err) => {
-          this.notification.error('Thông báo', 'Có lỗi xảy ra khi cập nhật!');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi cập nhật!');
         },
       });
     } else {
@@ -1376,7 +1377,7 @@ uploadFileForRow(rowData: any) {
           }
         },
         error: (err) => {
-          this.notification.error('Thông báo', 'Có lỗi xảy ra khi thêm mới!');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi thêm mới!');
         },
       });
     }

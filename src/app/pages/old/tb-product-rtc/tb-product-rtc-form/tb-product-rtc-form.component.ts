@@ -38,6 +38,7 @@ import { FirmDetailComponent } from '../../Sale/ProductSale/firm-detail/firm-det
 import { LocationDetailComponent } from '../../Sale/ProductSale/location-detail/location-detail.component';
 import { UnitCountDetailComponent } from '../../Sale/ProductSale/unit-count-detail/unit-count-detail.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 @Component({
   standalone: true,
   selector: 'app-tb-product-rtc-form',
@@ -273,7 +274,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
   validateField(fieldName: string) {
     const value = this.dataInput[fieldName];
     if (!value || value.toString().trim() === '') {
-      this.notification.error('Lỗi', `${fieldName} không được để trống`);
+      this.notification.error(NOTIFICATION_TITLE.error, `${fieldName} không được để trống`);
     }
   }
   getProductCode() {
@@ -501,7 +502,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
           }
         },
         error: (err) => {
-          this.notification.error('Lỗi', 'Upload ảnh thất bại: ' + err.message);
+          this.notification.error(NOTIFICATION_TITLE.error, 'Upload ảnh thất bại: ' + err.message);
         },
       });
     } else {
@@ -588,11 +589,11 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
           );
           this.activeModal.close({ refresh: true });
         } else {
-          this.notification.error('Lỗi', res.message || 'Lưu dữ liệu thất bại');
+          this.notification.error(NOTIFICATION_TITLE.error, res.message || 'Lưu dữ liệu thất bại');
         }
       },
       error: (err) => {
-        this.notification.error('Lỗi', 'Không thể lưu dữ liệu: ' + err.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lưu dữ liệu: ' + err.message);
       },
     });
   }

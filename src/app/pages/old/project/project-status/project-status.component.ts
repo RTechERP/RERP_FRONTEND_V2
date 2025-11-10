@@ -10,6 +10,7 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { ProjectFormPriorityDetailComponent } from '../project-form-priority-detail/project-form-priority-detail.component';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { DateTime } from 'luxon';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-project-status',
@@ -192,7 +193,7 @@ export class ProjectStatusComponent implements OnInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -260,7 +261,7 @@ export class ProjectStatusComponent implements OnInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });

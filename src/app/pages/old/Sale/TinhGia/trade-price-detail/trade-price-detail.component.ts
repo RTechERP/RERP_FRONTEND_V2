@@ -59,6 +59,7 @@ import { CustomerPartService } from '../../../customer-part/customer-part/custom
 import { TradePriceService } from '../trade-price/trade-price/trade-price.service';
 import { RequestInvoiceDetailService } from '../../../request-invoice-detail/request-invoice-detail-service/request-invoice-detail-service.service';
 import { pl_PL } from 'ng-zorro-antd/i18n';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   standalone: true,
   selector: 'app-trade-price-detail',
@@ -177,7 +178,7 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -392,7 +393,7 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
     // Gọi service để lưu dữ liệu
     this.tradePriceService.saveData(PAYLOAD).subscribe({
       next: (response: any) => {
-        this.notification.success('Thành công', 'Lưu dữ liệu thành công!');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Lưu dữ liệu thành công!');
         this.activeModal.close({ success: true, reloadData: true });
       },
       error: (error: any) => {

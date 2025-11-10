@@ -25,6 +25,7 @@ import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { EmployeeService } from '../../employee/employee-service/employee.service';
 import { OverTimeService } from '../over-time-service/over-time.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 @Component({
   selector: 'app-over-time-detail',
   templateUrl: './over-time-detail.component.html',
@@ -350,12 +351,12 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit{
           try {
             const date = new Date(value);
             if (isNaN(date.getTime())) {
-              this.notification.warning('Lỗi', 'Vui lòng nhập thời gian đúng định dạng');
+              this.notification.warning(NOTIFICATION_TITLE.error, 'Vui lòng nhập thời gian đúng định dạng');
               cell.setValue('');
               return;
             }
           } catch (error) {
-            this.notification.warning('Lỗi', 'Định dạng thời gian không hợp lệ');
+            this.notification.warning(NOTIFICATION_TITLE.error, 'Định dạng thời gian không hợp lệ');
             cell.setValue('');
             return;
           }
@@ -368,7 +369,7 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit{
             const startTime = new Date(rowData.TimeStart);
             const endTime = new Date(rowData.EndTime);
             if (startTime >= endTime) {
-              this.notification.warning('Lỗi', 'Thời gian kết thúc phải sau thời gian bắt đầu');
+              this.notification.warning(NOTIFICATION_TITLE.error, 'Thời gian kết thúc phải sau thời gian bắt đầu');
               cell.setValue('');
               return;
             }
@@ -418,10 +419,10 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit{
       next: (response) => {
         this.employeeOverTimeDetail.emit();
         this.closeModal();
-        this.notification.success('Thành công', 'Cập nhật đăng ký làm thêm thành công');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật đăng ký làm thêm thành công');
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Cập nhật đăng ký làm thêm thất bại');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật đăng ký làm thêm thất bại');
 
       }
     })
@@ -438,13 +439,13 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit{
   checkValidate(): boolean {
     // Kiểm tra nhân viên
     if (!this.searchForm.value.employeeId || this.searchForm.value.employeeId <= 0) {
-      this.notification.warning('Lỗi', 'Vui lòng nhập Họ tên!');
+      this.notification.warning(NOTIFICATION_TITLE.error, 'Vui lòng nhập Họ tên!');
       return false;
     }
 
     // Kiểm tra người duyệt
     if (!this.searchForm.value.approverId || this.searchForm.value.approverId <= 0) {
-      this.notification.warning('Lỗi', 'Vui lòng nhập Người duyệt!');
+      this.notification.warning(NOTIFICATION_TITLE.error, 'Vui lòng nhập Người duyệt!');
       return false;
     }
 
@@ -465,31 +466,31 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit{
       const id = row.ID || 0;
 
       if (!timeStart || isNaN(timeStart.getTime())) {
-        this.notification.warning('Lỗi', `Vui lòng nhập Thời gian bắt đầu [STT: ${stt}]!`);
+        this.notification.warning(NOTIFICATION_TITLE.error, `Vui lòng nhập Thời gian bắt đầu [STT: ${stt}]!`);
         return false;
       }
       if (!endTime || isNaN(endTime.getTime())) {
-        this.notification.warning('Lỗi', `Vui lòng nhập Thời gian kết thúc [STT: ${stt}]!`);
+        this.notification.warning(NOTIFICATION_TITLE.error, `Vui lòng nhập Thời gian kết thúc [STT: ${stt}]!`);
         return false;
       }
       if ((endTime.getTime() - timeStart.getTime()) <= 0) {
-        this.notification.warning('Lỗi', `Thời gian kết thúc phải lớn hơn thời gian bắt đầu [STT: ${stt}]!`);
+        this.notification.warning(NOTIFICATION_TITLE.error, `Thời gian kết thúc phải lớn hơn thời gian bắt đầu [STT: ${stt}]!`);
         return false;
       }
       if (!location || location <= 0) {
-        this.notification.warning('Lỗi', `Vui lòng nhập Địa điểm [STT: ${stt}]!`);
+        this.notification.warning(NOTIFICATION_TITLE.error, `Vui lòng nhập Địa điểm [STT: ${stt}]!`);
         return false;
       }
       if (!type || type <= 0) {
-        this.notification.warning('Lỗi', `Vui lòng nhập Loại [STT: ${stt}]!`);
+        this.notification.warning(NOTIFICATION_TITLE.error, `Vui lòng nhập Loại [STT: ${stt}]!`);
         return false;
       }
       if (!reason) {
-        this.notification.warning('Lỗi', `Vui lòng nhập Lý do [STT: ${stt}]!`);
+        this.notification.warning(NOTIFICATION_TITLE.error, `Vui lòng nhập Lý do [STT: ${stt}]!`);
         return false;
       }
       if (id > 0 && !reasonEdit) {
-        this.notification.warning('Lỗi', `Vui lòng nhập Lý do sửa [STT: ${stt}]!`);
+        this.notification.warning(NOTIFICATION_TITLE.error, `Vui lòng nhập Lý do sửa [STT: ${stt}]!`);
         return false;
       }
     }

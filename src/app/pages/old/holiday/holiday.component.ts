@@ -29,6 +29,7 @@ import { EmployeeScheduleWorkComponent } from './employee-schedule-work/employee
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-holiday',
@@ -86,7 +87,7 @@ export class HolidayComponent implements OnInit, AfterViewInit {
             }
           },
           error: (error) => {
-            this.notification.error('Lỗi', 'Không thể tải dữ liệu ngày lễ');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu ngày lễ');
             console.error('Error loading holidays:', error);
             // Reset checkbox on error
             this.viewAll.setValue(false, { emitEvent: false });
@@ -211,7 +212,7 @@ export class HolidayComponent implements OnInit, AfterViewInit {
         this.isLoading = false;
       },
       error: (error) => {
-        this.notification.error('Lỗi', error.error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
         console.error('Error loading holidays:', error);
       },
     });
@@ -237,7 +238,7 @@ export class HolidayComponent implements OnInit, AfterViewInit {
   openEditModal() {
     const selectedRows = this.holidayTabulator.getSelectedRows();
     if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn ngày nghỉ cần sửa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ngày nghỉ cần sửa');
       return;
     }
 
@@ -284,7 +285,7 @@ export class HolidayComponent implements OnInit, AfterViewInit {
 
       this.holidayService.saveHoliday(formData).subscribe({
         next: (response) => {
-          this.notification.success('Thành công', 'Lưu ngày nghỉ thành công');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Lưu ngày nghỉ thành công');
           this.closeModal();
           this.loadHolidays();
         },
@@ -309,7 +310,7 @@ export class HolidayComponent implements OnInit, AfterViewInit {
   openDeleteModal() {
     const selectedRows = this.holidayTabulator.getSelectedRows();
     if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn ngày nghỉ cần xóa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ngày nghỉ cần xóa');
       return;
     }
     this.selectedHoliday = selectedRows[0].getData();
@@ -335,7 +336,7 @@ export class HolidayComponent implements OnInit, AfterViewInit {
       })
       .subscribe({
         next: () => {
-          this.notification.success('Thành công', 'Xóa ngày nghỉ thành công');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Xóa ngày nghỉ thành công');
           this.loadHolidays();
           this.selectedHoliday = null;
         },

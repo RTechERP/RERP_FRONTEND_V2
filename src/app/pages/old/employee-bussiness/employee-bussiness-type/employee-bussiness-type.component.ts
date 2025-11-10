@@ -13,6 +13,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { EmployeeBussinessService } from '../employee-bussiness-service/employee-bussiness.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-employee-bussiness-type',
@@ -74,7 +75,7 @@ export class EmployeeBussinessTypeComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách loại phụ cấp công tác: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách loại phụ cấp công tác: ' + error.message);
       }
     });
   }
@@ -117,7 +118,7 @@ export class EmployeeBussinessTypeComponent implements OnInit {
   openEditModal() {
     const selectedRows = this.tabulator.getSelectedRows();
     if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn loại phụ cấp công tác cần sửa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn loại phụ cấp công tác cần sửa');
       return;
     }
     this.selectedEmployeeBussinessType = selectedRows[0].getData();
@@ -128,7 +129,7 @@ export class EmployeeBussinessTypeComponent implements OnInit {
   openDeleteModal() {
     const selectedRows = this.tabulator.getSelectedRows();
     if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn loại phụ cấp công tác cần xóa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn loại phụ cấp công tác cần xóa');
       return;
     }
     const selectedEmployeeBussinessType = selectedRows[0].getData();
@@ -146,11 +147,11 @@ export class EmployeeBussinessTypeComponent implements OnInit {
           IsDeleted: true
         }).subscribe({
           next: (response) => {
-            this.notification.success('Thành công', 'Xóa loại phụ cấp công tác thành công');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Xóa loại phụ cấp công tác thành công');
             this.loadEmployeeBussinessType();
           },
           error: (error) => {
-            this.notification.error('Lỗi', 'Xóa loại phụ cấp công tác thất bại: ' + error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Xóa loại phụ cấp công tác thất bại: ' + error.message);
           }
         });
       },
@@ -174,12 +175,12 @@ export class EmployeeBussinessTypeComponent implements OnInit {
 
     this.employeeBussinessService.saveEmployeeTypeBussiness(formData).subscribe({
       next: () => {
-        this.notification.success('Thành công', 'Cập nhật loại phụ cấp công tác thành công');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật loại phụ cấp công tác thành công');
         this.closeModal();
         this.loadEmployeeBussinessType();
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Cập nhật loại phụ cấp công tác thất bại: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật loại phụ cấp công tác thất bại: ' + error.message);
       },
       complete: () => {
         this.isSubmitting = false;

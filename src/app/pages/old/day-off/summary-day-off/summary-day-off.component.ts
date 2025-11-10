@@ -23,6 +23,7 @@ import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { DayOffService } from '../day-off-service/day-off.service';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 
 @Component({
@@ -96,7 +97,7 @@ export class SummaryDayOffComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải  danh sách ')
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải  danh sách ')
       }
       
     })

@@ -37,6 +37,7 @@ import { ProjectChangeComponent } from '../project-change/project-change.compone
 import { ProjectStatusComponent } from '../project-status/project-status.component';
 import { ProjectEmployeeComponent } from '../project-employee/project-employee.component';
 import { CommonModule } from '@angular/common';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 @Component({
   selector: 'app-project-synthesis-department',
   imports: [
@@ -153,7 +154,7 @@ export class ProjectSynthesisDepartmentComponent
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -166,7 +167,7 @@ export class ProjectSynthesisDepartmentComponent
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });

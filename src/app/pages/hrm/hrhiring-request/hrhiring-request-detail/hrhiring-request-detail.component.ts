@@ -22,6 +22,7 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 // Services
 import { HrhiringRequestService } from '../hrhiring-request-service/hrhiring-request.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-hrhiring-request-detail',
@@ -192,7 +193,7 @@ export class HrhiringRequestDetailComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading departments:', error);
-        this.notification.error('Lỗi', 'Không thể tải danh sách phòng ban');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách phòng ban');
       },
     });
 
@@ -209,7 +210,7 @@ export class HrhiringRequestDetailComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading positions:', error);
-        this.notification.error('Lỗi', 'Không thể tải danh sách vị trí');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách vị trí');
       },
     });
   }
@@ -953,7 +954,7 @@ if(value>this.form.value.AgeMax){
       error: (error) => {
         this.isSaving = false;
         console.error('Save error details:', error);
-        this.notification.error('Lỗi', 'Có lỗi xảy ra khi lưu dữ liệu!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lưu dữ liệu!');
       },
     });
   }

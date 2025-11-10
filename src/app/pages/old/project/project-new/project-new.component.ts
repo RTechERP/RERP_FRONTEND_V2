@@ -47,6 +47,7 @@ import { CommonModule } from '@angular/common';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { ProjectService } from '../project-service/project.service';
 import { NzFormModule } from 'ng-zorro-antd/form'; 
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 @Component({
   selector: 'app-project-new',
   standalone: true,
@@ -211,7 +212,7 @@ getUserTeam() {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });

@@ -372,11 +372,11 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
           this.validateForm.patchValue(this.newBillImport); // Đồng bộ dữ liệu vào form
           this.changeProductGroup(this.newBillImport.KhoTypeID);
         } else {
-          this.notification.warning('Thông báo', res.message || 'Không thể lấy thông tin phiếu nhập!');
+          this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể lấy thông tin phiếu nhập!');
         }
       },
       error: (err) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy thông tin!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy thông tin!');
         console.error(err);
       }
     });
@@ -405,7 +405,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
       },
       error: (err) => {
         console.error(err);
-        this.notification.error('Thông báo', 'Có lỗi khi lấy thông tin sản phẩm!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi khi lấy thông tin sản phẩm!');
       }
     });
   }
@@ -467,7 +467,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
             }, 100);
           }
         } else {
-          this.notification.warning('Thông báo', res.message || 'Không có dữ liệu chi tiết phiếu xuất!');
+          this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không có dữ liệu chi tiết phiếu xuất!');
           this.dataTableBillImportDetail = [];
           if (this.table_billImportDetail) {
             this.table_billImportDetail.replaceData([]);
@@ -475,7 +475,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
         }
       },
       error: (err) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy thông tin chi tiết phiếu xuất!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy thông tin chi tiết phiếu xuất!');
         console.error(err);
         this.dataTableBillImportDetail = [];
         if (this.table_billImportDetail) {
@@ -497,7 +497,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
         }
       },
       error: (err) => {
-        this.notification.error('Lỗi', 'Không thể tải dữ liệu documentImport');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu documentImport');
       }
     });
   }
@@ -507,7 +507,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
         this.dataCbbProductGroup = res.data;
       },
       error: (err: any) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy dữ liệu');
       }
     });
 
@@ -518,7 +518,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
         this.dataCbbRulePay = res.data;
       },
       error: (err: any) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy dữ liệu');
       }
     });
   }
@@ -529,7 +529,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
         this.dataCbbDeliver = this.dataCbbReciver;
       },
       error: (err: any) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy dữ liệu');
       }
     });
   }
@@ -539,7 +539,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
         this.dataCbbSupplier = res.data;
       },
       error: (err: any) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy dữ liệu');
       }
     });
   }
@@ -552,7 +552,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
       },
       error: (err: any) => {
         console.error(err);
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi mã phiếu');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi mã phiếu');
       }
     });
   }
@@ -576,7 +576,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
       },
       error: (err: any) => {
         console.error(err);
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy danh sách dự án');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy danh sách dự án');
         this.projectOptions = [];
       }
 
@@ -655,7 +655,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
     console.log('saveDataBillImport called');
 
     if (!this.validateForm.valid) {
-      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin bắt buộc và kiểm tra lỗi!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin bắt buộc và kiểm tra lỗi!');
       this.validateForm.markAllAsTouched(); // Đánh dấu tất cả control là touched
       Object.values(this.validateForm.controls).forEach((control) => {
         if (control.invalid) {
@@ -668,7 +668,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
 
     const billImportDetailsFromTable = this.table_billImportDetail?.getData();
     if (!billImportDetailsFromTable || billImportDetailsFromTable.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng thêm ít nhất một sản phẩm vào bảng!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng thêm ít nhất một sản phẩm vào bảng!');
       return;
     }
 
@@ -713,7 +713,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
           this.notification.success('Thông báo', this.isCheckmode ? 'Cập nhật thành công!' : 'Thêm mới thành công!');
           this.closeModal();
         } else {
-          this.notification.warning('Thông báo', res.message || (this.isCheckmode ? 'Cập nhật thất bại!' : 'Thêm mới thất bại!'));
+          this.notification.warning(NOTIFICATION_TITLE.warning, res.message || (this.isCheckmode ? 'Cập nhật thất bại!' : 'Thêm mới thất bại!'));
         }
       },
       error: (err: any) => {
@@ -722,7 +722,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
         if (err.error && err.error.message) {
           errorMessage += ' Chi tiết: ' + err.error.message;
         }
-        this.notification.error('Thông báo', errorMessage);
+        this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
       }
     });
   }
@@ -869,7 +869,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
           console.log('productOptions:', this.productOptions); // Log để kiểm tra
         } else {
           this.productOptions = [];
-          this.notification.warning('Thông báo', 'Dữ liệu sản phẩm không hợp lệ!');
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Dữ liệu sản phẩm không hợp lệ!');
         }
         if (this.createImport == true) {
           //this.getBillExportDetailConvert();
@@ -880,7 +880,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
       },
       error: (err) => {
         console.error(err);
-        this.notification.error('Thông báo', 'Có lỗi khi tải danh sách sản phẩm!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi khi tải danh sách sản phẩm!');
         this.productOptions = [];
       }
     });
@@ -912,7 +912,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
           row.update({ SerialNumber: serialsID });
           this.notification.success('Thông báo', 'Cập nhật serial thành công!');
         } else {
-          this.notification.error('Thông báo', 'Dữ liệu serial không hợp lệ!');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Dữ liệu serial không hợp lệ!');
         }
       },
       (reason) => {
@@ -1098,7 +1098,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
               const type = 1; // dành cho phiếu nhập
 
               if (quantity <= 0) {
-                this.notification.warning('Cảnh báo', 'Vui lòng nhập số lượng xuất lớn hơn 0 trước khi chọn Serial!');
+                this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập số lượng xuất lớn hơn 0 trước khi chọn Serial!');
                 return;
               }
 
@@ -1127,13 +1127,13 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
                       }));
                       this.openSerialModal(rowData, row, quantity, productCode, existingSerials);
                     } else {
-                      this.notification.error('Lỗi', 'Không tải được serial!');
+                      this.notification.error(NOTIFICATION_TITLE.error, 'Không tải được serial!');
                       console.error('Lỗi response:', res);
                       this.openSerialModal(rowData, row, quantity, productCode, []);
                     }
                   },
                   error: (err:any) => {
-                    this.notification.error('Lỗi', 'Lỗi khi tải serial!');
+                    this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải serial!');
                     console.error('Lỗi API:', err);
                     this.openSerialModal(rowData, row, quantity, productCode, []);
                   }

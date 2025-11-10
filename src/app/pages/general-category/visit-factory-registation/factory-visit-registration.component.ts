@@ -40,6 +40,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { DateTime } from 'luxon';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-factory-visit-registration',
@@ -813,7 +814,7 @@ export class FactoryVisitRegistrationComponent
         .createRegistration(this.registrationForm, detailsPayload)
         .subscribe({
           next: (newRegistration) => {
-            this.notification.success('Thành công', 'Tạo đăng ký thành công');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Tạo đăng ký thành công');
             this.isRegistrationModalVisible = false;
             this.loadData();
 
@@ -829,10 +830,10 @@ export class FactoryVisitRegistrationComponent
   private handleValidationError(error: any, action: string): void {
     if (error.error && error.error.title) {
       // Error với title từ backend
-      this.notification.error('Lỗi', error.error.title);
+      this.notification.error(NOTIFICATION_TITLE.error, error.error.title);
     } else if (error.error && error.error.message) {
       // Error với message từ backend
-      this.notification.error('Lỗi', error.error.message);
+      this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
     } else if (error.status) {
       // HTTP status errors
       let message = '';
@@ -856,9 +857,9 @@ export class FactoryVisitRegistrationComponent
         default:
           message = `Lỗi HTTP ${error.status}`;
       }
-      this.notification.error('Lỗi', message);
+      this.notification.error(NOTIFICATION_TITLE.error, message);
     } else if (error.message) {
-      this.notification.error('Lỗi', error.message);
+      this.notification.error(NOTIFICATION_TITLE.error, error.message);
     } else {
       this.notification.error(
         'Lỗi',
@@ -887,7 +888,7 @@ export class FactoryVisitRegistrationComponent
 
   deleteRegistration(): void {
     if (!this.selectedRegistration) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn một đăng ký để xóa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một đăng ký để xóa');
       return;
     }
 
@@ -901,7 +902,7 @@ export class FactoryVisitRegistrationComponent
           .deleteRegistration(this.selectedRegistration.id)
           .subscribe({
             next: () => {
-              this.notification.success('Thành công', 'Xóa đăng ký thành công');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Xóa đăng ký thành công');
               this.loadData();
               this.selectedRegistration = null;
               this.participants = [];
@@ -910,7 +911,7 @@ export class FactoryVisitRegistrationComponent
               }
             },
             error: (error) => {
-              this.notification.error('Lỗi', 'Có lỗi xảy ra khi xóa đăng ký');
+              this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xóa đăng ký');
             },
           });
       },
@@ -965,7 +966,7 @@ export class FactoryVisitRegistrationComponent
 
   openParticipantModal(): void {
     if (!this.selectedRegistration) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn một đăng ký trước');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một đăng ký trước');
       return;
     }
     this.selectedParticipant = null;

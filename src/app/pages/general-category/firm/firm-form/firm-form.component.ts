@@ -13,6 +13,7 @@ import { HasPermissionDirective } from '../../../../directives/has-permission.di
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-firm-form',
@@ -120,7 +121,7 @@ saveData() {
 
   // Nếu mã trống thì báo lỗi trước
   if (!firmCode) {
-    this.notification.warning('Thông báo', 'Vui lòng nhập mã hãng!');
+    this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập mã hãng!');
     codeCtrl?.markAsTouched();
     return;
   }
@@ -130,7 +131,7 @@ saveData() {
     next: (res: any) => {
       const exists = res?.exists === true || res?.data === true || res === true;
       if (exists) {
-        this.notification.warning('Thông báo', 'Mã hãng đã tồn tại. Vui lòng nhập mã khác!');
+        this.notification.warning(NOTIFICATION_TITLE.warning, 'Mã hãng đã tồn tại. Vui lòng nhập mã khác!');
         codeCtrl?.setErrors({ codeExists: true });
         codeCtrl?.markAsTouched();
         return;
@@ -142,7 +143,7 @@ saveData() {
           const control = this.firmForm.get(key);
           control?.markAsTouched();
         });
-        this.notification.warning('Thông báo', 'Vui lòng nhập đầy đủ thông tin!');
+        this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập đầy đủ thông tin!');
         return;
       }
 
@@ -151,7 +152,7 @@ saveData() {
     },
     error: (err: any) => {
       console.error('Lỗi kiểm tra mã hãng:', err);
-      this.notification.error('Thông báo', 'Đã xảy ra lỗi khi kiểm tra mã hãng!');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Đã xảy ra lỗi khi kiểm tra mã hãng!');
     }
   });
 }
@@ -164,7 +165,7 @@ saveData() {
 
   //   // Ưu tiên thông báo lỗi trùng mã
   //   if (codeCtrl?.errors?.['codeExists']) {
-  //     this.notification.warning('Thông báo', 'Mã hãng đã tồn tại. Vui lòng nhập mã khác!');
+  //     this.notification.warning(NOTIFICATION_TITLE.warning, 'Mã hãng đã tồn tại. Vui lòng nhập mã khác!');
   //     return;
   //   }
 
@@ -174,7 +175,7 @@ saveData() {
   //       const control = this.firmForm.get(key);
   //       control?.markAsTouched();
   //     });
-  //     this.notification.warning('Thông báo', 'Vui lòng nhập đầy đủ thông tin!');
+  //     this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập đầy đủ thông tin!');
   //     return;
   //   }
 
@@ -187,14 +188,14 @@ saveData() {
   //     next: (res: any) => {
   //       const exists = res?.exists === true || res?.data === true || res === true;
   //       if (exists) {
-  //         this.notification.warning('Thông báo', 'Mã hãng đã tồn tại. Vui lòng nhập mã khác!');
+  //         this.notification.warning(NOTIFICATION_TITLE.warning, 'Mã hãng đã tồn tại. Vui lòng nhập mã khác!');
   //         return;
   //       }
   //       this.saveFirmData(formValues);
   //     },
   //     error: (err: any) => {
   //       console.error('Lỗi kiểm tra mã hãng:', err);
-  //       this.notification.error('Thông báo', 'Đã xảy ra lỗi khi kiểm tra mã hãng!');
+  //       this.notification.error(NOTIFICATION_TITLE.error, 'Đã xảy ra lỗi khi kiểm tra mã hãng!');
   //     }
   //   });
   // }
@@ -214,13 +215,13 @@ saveData() {
           this.notification.success('Thông báo', 'Lưu dữ liệu thành công!');
           this.activeModal.close('success');
         } else {
-          this.notification.warning('Thông báo', res.message || 'Lưu dữ liệu thất bại!');
+          this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Lưu dữ liệu thất bại!');
         }
       },
       
       error: (err) => {
         console.error(err);
-        this.notification.warning('Thông báo', 'Lỗi kết nối!');
+        this.notification.warning(NOTIFICATION_TITLE.warning, 'Lỗi kết nối!');
       }
     });
   }
@@ -231,7 +232,7 @@ saveData() {
         const control = this.firmForm.get(key);
         control?.markAsTouched();
       });
-      this.notification.warning('Thông báo', 'Vui lòng nhập đầy đủ thông tin!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập đầy đủ thông tin!');
       return false;
     }
     return true;
@@ -251,7 +252,7 @@ saveData() {
       next: (res: any) => {
         const exists = res?.exists === true || res?.data === true || res === true;
         if (exists) {
-          this.notification.warning('Thông báo', 'Mã đã tồn tại, vui lòng kiểm tra lại!');
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Mã đã tồn tại, vui lòng kiểm tra lại!');
           callback(false);
         } else {
           callback(true);

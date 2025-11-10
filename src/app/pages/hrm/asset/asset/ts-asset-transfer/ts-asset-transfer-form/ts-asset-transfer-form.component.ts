@@ -33,6 +33,7 @@ import { TsAssetChooseAssetsComponent } from '../../ts-asset-allocation/ts-asset
 import { right } from '@popperjs/core';
 import { TsAssetTransferService } from '../ts-asset-transfer-service/ts-asset-transfer.service';
 import { TsAssetTranferChoseAssetComponent } from '../ts-asset-tranfer-chose-asset/ts-asset-tranfer-chose-asset.component';
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 @Component({
   standalone: true,
   selector: 'app-ts-asset-transfer-form',
@@ -245,14 +246,14 @@ export class TsAssetTransferFormComponent implements OnInit {
     console.log(payloadTransfer);
     this.tsAssetTransferService.saveData(payloadTransfer).subscribe({
       next: () => {
-        this.notification.success("Thông báo", "Thành công");
+        this.notification.success(NOTIFICATION_TITLE.success, "Thành công");
         this.getTranferAsset();
         this.resetModal();
         this.formSubmitted.emit();
         this.activeModal.close(true);
       },
       error: () => {
-        this.notification.success("Thông báo", "Lỗi");
+        this.notification.success(NOTIFICATION_TITLE.success, "Lỗi");
         console.error('Lỗi khi lưu đơn vị!');
       }
     });

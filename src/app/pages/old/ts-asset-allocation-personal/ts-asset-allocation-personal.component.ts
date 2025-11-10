@@ -40,6 +40,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { DisablePermissionDirective } from '../../../directives/disable-permission.directive';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 @Component({
   standalone: true,
   imports: [
@@ -666,7 +667,7 @@ export class TsAssetAllocationPersonalComponent
   validateAllocationForm(): boolean {
     let isValid = true;
     if (!this.allocationDate) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn ngày cấp!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ngày cấp!');
       isValid = false;
     }
     if (!this.employeeID) {
@@ -730,12 +731,12 @@ export class TsAssetAllocationPersonalComponent
           this.closeModal();
           this.getAssetAllocationPersonals();
         } else {
-          this.notification.warning('Thông báo', 'Lưu thất bại');
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Lưu thất bại');
         }
       },
       error: (err) => {
         console.error(err);
-        this.notification.warning('Thông báo', 'Lỗi kết nối máy chủ');
+        this.notification.warning(NOTIFICATION_TITLE.warning, 'Lỗi kết nối máy chủ');
       },
     });
   }
@@ -748,7 +749,7 @@ export class TsAssetAllocationPersonalComponent
       | 'PERSONAL_CANCEL'
   ): boolean {
     if (!this.tbAssetAllocationPersonal) {
-      this.notification.warning('Thông báo', 'Chọn một hàng để duyệt');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Chọn một hàng để duyệt');
       return false;
     }
     const selectedRow = this.tbAssetAllocationPersonal.getSelectedData();
@@ -860,12 +861,12 @@ export class TsAssetAllocationPersonalComponent
           this.notification.success('Thông báo', 'Thành công');
           setTimeout(() => this.getAssetAllocationPersonals(), 100);
         } else {
-          this.notification.warning('Thông báo', 'Thất bại');
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Thất bại');
         }
       },
       error: (res) => {
         console.error(res);
-        this.notification.warning('Thông báo', res.error.message);
+        this.notification.warning(NOTIFICATION_TITLE.warning, res.error.message);
       },
     });
   }
@@ -952,12 +953,12 @@ export class TsAssetAllocationPersonalComponent
           this.notification.success('Thông báo', 'Thành công');
           setTimeout(() => this.getAssetAllocationPersonals(), 100);
         } else {
-          this.notification.warning('Thông báo', 'Thất bại');
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Thất bại');
         }
       },
       error: (res) => {
         console.error(res);
-        this.notification.warning('Thông báo', res.error.message);
+        this.notification.warning(NOTIFICATION_TITLE.warning, res.error.message);
       },
     });
   }

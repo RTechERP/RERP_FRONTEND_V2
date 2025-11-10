@@ -34,6 +34,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 
 import * as ExcelJS from 'exceljs';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 @Component({
   selector: 'app-daily-report-hr',
   standalone: true,
@@ -159,7 +160,7 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
       },
       error: (err: any) => {
         console.error(err);
-        this.notification.error('Lỗi', err.error?.message || 'Không tải được dữ liệu');
+        this.notification.error(NOTIFICATION_TITLE.error, err.error?.message || 'Không tải được dữ liệu');
       }
     });
   }
@@ -357,7 +358,7 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
   }
 
   if (!hasData) {
-    this.notification.warning('Thông báo', 'Không có dữ liệu để xuất excel!');
+    this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất excel!');
     return;
   }
 

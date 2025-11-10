@@ -14,6 +14,7 @@ import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { PositionServiceService } from '../position-service/position-service.service';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-position-contract',
@@ -30,7 +31,7 @@ import { HasPermissionDirective } from '../../../../directives/has-permission.di
     NzInputModule,
     NzNotificationModule,
     NzSpinModule,
-    NgIf,HasPermissionDirective
+    NgIf, HasPermissionDirective
   ],
   standalone: true
 })
@@ -58,8 +59,8 @@ export class PositionContractComponent implements OnInit {
     this.positionForm = this.fb.group({
       ID: [0],
       PriorityOrder: [0],
-      Code: ['',[Validators.required]],
-      Name: ['',[Validators.required]],
+      Code: ['', [Validators.required]],
+      Name: ['', [Validators.required]],
       IsBusinessCost: [false]
     });
   }
@@ -78,274 +79,151 @@ export class PositionContractComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách chức vụ theo hợp đồng: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách chức vụ theo hợp đồng: ' + error.message);
       }
+    });
+  }
+  onSearchEmployee(event: any) {
+    const keyword = event.target.value.toLowerCase();
+    if (keyword != "") {
+      this.tabulator.setFilter('or'); // 'or' để tìm ở bất kỳ cột nào
+    } else {
+      this.initializeTable();
+      this.loadPositionContract();
+    }
+  }
+
+  updatePriority(priority: Number) {
+    const selectedRows = this.tabulator.getSelectedRows();
+    if (selectedRows.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn chức vụ nội bộ cần cập nhật");
+      return;
+    }
+
+    // Lấy toàn bộ data của các dòng được chọn
+    const positions = selectedRows.map(row => row.getData());
+
+    // Chuẩn bị danh sách để gửi lên service
+    const payload = positions.map(pos => ({
+      ID: pos['ID'],
+      PriorityOrder: priority,
+      Code: pos['Code'],
+      Name: pos['Name'],
+      IsBusinessCost: pos['IsBusinessCost'],
+    }));
+
+    // Gọi service để cập nhật nhiều record cùng lúc
+    this.positionService.changeStatusPositionContract(payload).subscribe(() => {
+      this.notification.success(NOTIFICATION_TITLE.success, "Cập nhật thành công");
+      this.loadPositionContract();
+    });
+  }
+
+  updateIsBusinessCost(isBusinessCost: boolean) {
+    const selectedRows = this.tabulator.getSelectedRows();
+    if (selectedRows.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn chức vụ nội bộ cần cập nhật");
+      return;
+    }
+
+    // Lấy toàn bộ data của các dòng được chọn
+    const positions = selectedRows.map(row => row.getData());
+
+    // Chuẩn bị danh sách để gửi lên service
+    const payload = positions.map(pos => ({
+      ID: pos['ID'],
+      PriorityOrder: pos['PriorityOrder'],
+      Code: pos['Code'],
+      Name: pos['Name'],
+      IsBusinessCost: isBusinessCost,
+    }));
+
+    // Gọi service để cập nhật nhiều record cùng lúc
+    this.positionService.changeStatusPositionContract(payload).subscribe(() => {
+      this.notification.success(NOTIFICATION_TITLE.success, "Cập nhật thành công");
+      this.loadPositionContract();
     });
   }
 
   private initializeTable(): void {
     this.tabulator = new Tabulator('#position-contract-table', {
       data: this.positionContracts,
-      layout: 'fitDataFill',
+      layout: 'fitDataStretch',
       selectableRows: true,
       rowHeader: { formatter: "rowSelection", titleFormatter: "rowSelection", headerSort: false, width: 50, frozen: true, headerHozAlign: "center", hozAlign: "center" },
       responsiveLayout: true,
-      height: '80vh',
+      height: '85vh',
       rowContextMenu: [
         {
           label: 'Có hưởng CTP',
           action: () => {
-            const selectedRows = this.tabulator.getSelectedRows();
-            if (selectedRows.length === 0) {
-              this.notification.warning('Cảnh báo', "Vui lòng chọn chức vụ theo hợp đồng cần cập nhật");
-              return;
-            }
-            const position = selectedRows[0].getData();
-            console.log(position);
-            this.positionContract.ID = position['ID'];
-            this.positionContract.PriorityOrder = position['PriorityOrder'];
-            this.positionContract.Code = position['Code'];
-            this.positionContract.Name = position['Name'];
-            this.positionContract.IsBusinessCost = true;
-            this.positionService.savePositionContract(this.positionContract).subscribe(() => {
-              this.notification.success('Thành công', "Cập nhật thành công");
-              this.loadPositionContract();
-            });
+            this.updateIsBusinessCost(true);
           }
         },
         {
           label: 'Không hưởng CTP',
           action: () => {
-            const selectedRows = this.tabulator.getSelectedRows();
-            if (selectedRows.length === 0) {
-              this.notification.warning('Cảnh báo', "Vui lòng chọn chức vụ theo hợp đồng cần cập nhật");
-              return;
-            }
-            const position = selectedRows[0].getData();
-            this.positionContract.ID = position['ID'];
-            this.positionContract.PriorityOrder = position['PriorityOrder'];
-            this.positionContract.Code = position['Code'];
-            this.positionContract.Name = position['Name'];
-            this.positionContract.IsBusinessCost = false;
-            this.positionService.savePositionContract(this.positionContract).subscribe(() => {
-              this.notification.success('Thành công', "Cập nhật thành công");
-              this.loadPositionContract();
-            });
+            this.updateIsBusinessCost(false);
           }
         },
         {
           label: 'Mức độ ưu tiên 1',
           action: () => {
-            const selectedRows = this.tabulator.getSelectedRows();
-            if (selectedRows.length === 0) {
-              this.notification.warning('Cảnh báo', "Vui lòng chọn chức vụ theo hợp đồng cần cập nhật");
-              return;
-            }
-            const position = selectedRows[0].getData();
-            this.positionContract.ID = position['ID'];
-            this.positionContract.PriorityOrder = 1;
-            this.positionContract.Code = position['Code'];
-            this.positionContract.Name = position['Name'];
-            this.positionContract.IsBusinessCost = position['IsBusinessCost'];
-            this.positionService.savePositionContract(this.positionContract).subscribe(() => {
-              this.notification.success('Thành công', "Cập nhật thành công");
-              this.loadPositionContract();
-            });
+            this.updatePriority(1);
           }
         },
         {
           label: 'Mức độ ưu tiên 2',
           action: () => {
-            const selectedRows = this.tabulator.getSelectedRows();
-            if (selectedRows.length === 0) {
-              this.notification.warning('Cảnh báo', "Vui lòng chọn chức vụ theo hợp đồng cần cập nhật");
-              return;
-            }
-            const position = selectedRows[0].getData();
-            this.positionContract.ID = position['ID'];
-            this.positionContract.PriorityOrder = 2;
-            this.positionContract.Code = position['Code'];
-            this.positionContract.Name = position['Name'];
-            this.positionContract.IsBusinessCost = position['IsBusinessCost'];
-            this.positionService.savePositionContract(this.positionContract).subscribe(() => {
-              this.notification.success('Thành công', "Cập nhật thành công");
-              this.loadPositionContract();
-            });
+            this.updatePriority(2);
           }
         },
         {
           label: 'Mức độ ưu tiên 3',
           action: () => {
-            const selectedRows = this.tabulator.getSelectedRows();
-            if (selectedRows.length === 0) {
-              this.notification.warning('Cảnh báo', "Vui lòng chọn chức vụ theo hợp đồng cần cập nhật");
-
-              return;
-            }
-            const position = selectedRows[0].getData();
-            this.positionContract.ID = position['ID'];
-            this.positionContract.PriorityOrder = 3;
-            this.positionContract.Code = position['Code'];
-            this.positionContract.Name = position['Name'];
-            this.positionContract.IsBusinessCost = position['IsBusinessCost'];
-            this.positionService.savePositionContract(this.positionContract).subscribe(() => {
-              this.notification.success('Thành công', "Cập nhật thành công");
-
-              this.loadPositionContract();
-            });
+            this.updatePriority(3);
           }
         },
         {
           label: 'Mức độ ưu tiên 4',
           action: () => {
-            const selectedRows = this.tabulator.getSelectedRows();
-            if (selectedRows.length === 0) {
-              this.notification.warning('Cảnh báo', "Vui lòng chọn chức vụ theo hợp đồng cần cập nhật");
-              return;
-            }
-            const position = selectedRows[0].getData();
-            this.positionContract.ID = position['ID'];
-            this.positionContract.PriorityOrder = 4;
-            this.positionContract.Code = position['Code'];
-            this.positionContract.Name = position['Name'];
-            this.positionContract.IsBusinessCost = position['IsBusinessCost'];
-            this.positionService.savePositionContract(this.positionContract).subscribe(() => {
-              this.notification.success('Thành công', "Cập nhật thành công");
-
-              this.loadPositionContract();
-            });
+            this.updatePriority(4);
           }
         },
         {
           label: 'Mức độ ưu tiên 5',
           action: () => {
-            const selectedRows = this.tabulator.getSelectedRows();
-            if (selectedRows.length === 0) {
-              this.notification.warning('Cảnh báo', "Vui lòng chọn chức vụ theo hợp đồng cần cập nhật");
-
-              return;
-            }
-            const position = selectedRows[0].getData();
-            this.positionContract.ID = position['ID'];
-            this.positionContract.PriorityOrder = 5;
-            this.positionContract.Code = position['Code'];
-            this.positionContract.Name = position['Name'];
-            this.positionContract.IsBusinessCost = position['IsBusinessCost'];
-            this.positionService.savePositionContract(this.positionContract).subscribe(() => {
-              this.notification.success('Thành công', "Cập nhật thành công");
-
-              this.loadPositionContract();
-            });
+            this.updatePriority(5);
           }
         },
         {
           label: 'Mức độ ưu tiên 6',
           action: () => {
-            const selectedRows = this.tabulator.getSelectedRows();
-            if (selectedRows.length === 0) {
-              this.notification.warning('Cảnh báo', "Vui lòng chọn chức vụ theo hợp đồng cần cập nhật");
-
-              return;
-            }
-            const position = selectedRows[0].getData();
-            this.positionContract.ID = position['ID'];
-            this.positionContract.PriorityOrder = 6;
-            this.positionContract.Code = position['Code'];
-            this.positionContract.Name = position['Name'];
-            this.positionContract.IsBusinessCost = position['IsBusinessCost'];
-            this.positionService.savePositionContract(this.positionContract).subscribe(() => {
-              this.notification.success('Thành công', "Cập nhật thành công");
-
-              this.loadPositionContract();
-            });
+            this.updatePriority(6);
           }
         },
         {
           label: 'Mức độ ưu tiên 7',
           action: () => {
-            const selectedRows = this.tabulator.getSelectedRows();
-            if (selectedRows.length === 0) {
-              this.notification.warning('Cảnh báo', "Vui lòng chọn chức vụ theo hợp đồng cần cập nhật");
-
-              return;
-            }
-            const position = selectedRows[0].getData();
-            this.positionContract.ID = position['ID'];
-            this.positionContract.PriorityOrder = 7;
-            this.positionContract.Code = position['Code'];
-            this.positionContract.Name = position['Name'];
-            this.positionContract.IsBusinessCost = position['IsBusinessCost'];
-            this.positionService.savePositionContract(this.positionContract).subscribe(() => {
-              this.notification.success('Thành công', "Cập nhật thành công");
-
-              this.loadPositionContract();
-            });
+            this.updatePriority(7);
           }
         },
         {
           label: 'Mức độ ưu tiên 8',
           action: () => {
-            const selectedRows = this.tabulator.getSelectedRows();
-            if (selectedRows.length === 0) {
-              this.notification.warning('Cảnh báo', "Vui lòng chọn chức vụ theo hợp đồng cần cập nhật");
-
-              return;
-            }
-            const position = selectedRows[0].getData();
-            this.positionContract.ID = position['ID'];
-            this.positionContract.PriorityOrder = 8;
-            this.positionContract.Code = position['Code'];
-            this.positionContract.Name = position['Name'];
-            this.positionContract.IsBusinessCost = position['IsBusinessCost'];
-            this.positionService.savePositionContract(this.positionContract).subscribe(() => {
-              this.notification.success('Thành công', "Cập nhật thành công");
-
-              this.loadPositionContract();
-            });
+            this.updatePriority(8);
           }
         },
         {
           label: 'Mức độ ưu tiên 9',
           action: () => {
-            const selectedRows = this.tabulator.getSelectedRows();
-            if (selectedRows.length === 0) {
-              this.notification.warning('Cảnh báo', "Vui lòng chọn chức vụ theo hợp đồng cần cập nhật");
-
-              return;
-            }
-            const position = selectedRows[0].getData();
-            this.positionContract.ID = position['ID'];
-            this.positionContract.PriorityOrder = 9;
-            this.positionContract.Code = position['Code'];
-            this.positionContract.Name = position['Name'];
-            this.positionContract.IsBusinessCost = position['IsBusinessCost'];
-            this.positionService.savePositionContract(this.positionContract).subscribe(() => {
-              this.notification.success('Thành công', "Cập nhật thành công");
-
-              this.loadPositionContract();
-            });
+            this.updatePriority(9);
           }
         },
         {
           label: 'Mức độ ưu tiên 10',
           action: () => {
-            const selectedRows = this.tabulator.getSelectedRows();
-            if (selectedRows.length === 0) {
-              this.notification.warning('Cảnh báo', "Vui lòng chọn chức vụ theo hợp đồng cần cập nhật");
-
-              return;
-            }
-            const position = selectedRows[0].getData();
-            this.positionContract.ID = position['ID'];
-            this.positionContract.PriorityOrder = 10;
-            this.positionContract.Code = position['Code'];
-            this.positionContract.Name = position['Name'];
-            this.positionContract.IsBusinessCost = position['IsBusinessCost'];
-            this.positionService.savePositionContract(this.positionContract).subscribe(() => {
-              this.notification.success('Thành công', "Cập nhật thành công");
-
-              this.loadPositionContract();
-            });
+            this.updatePriority(10);
           }
         },
         {
@@ -354,23 +232,7 @@ export class PositionContractComponent implements OnInit {
             ...Array.from({ length: 10 }, (_, i) => ({
               label: `Mức độ ưu tiên ${i + 11}`,
               action: () => {
-                const selectedRows = this.tabulator.getSelectedRows();
-                if (selectedRows.length === 0) {
-                  this.notification.warning('Cảnh báo', "Vui lòng chọn chức vụ theo hợp đồng cần cập nhật");
-
-                  return;
-                }
-                const position = selectedRows[0].getData();
-                this.positionContract.ID = position['ID'];
-                this.positionContract.PriorityOrder = i + 11;
-                this.positionContract.Code = position['Code'];
-                this.positionContract.Name = position['Name'];
-                this.positionContract.IsBusinessCost = position['IsBusinessCost'];
-                this.positionService.savePositionContract(this.positionContract).subscribe(() => {
-                  this.notification.success('Thành công', "Cập nhật thành công");
-
-                  this.loadPositionContract();
-                });
+                this.updatePriority(i + 11);
               }
             }))
           ]
@@ -378,9 +240,9 @@ export class PositionContractComponent implements OnInit {
 
       ],
       columns: [
-        { title: 'Mức độ ưu tiên', field: 'PriorityOrder', hozAlign: 'right', headerHozAlign: 'center', width: '17vw' },
-        { title: 'Mã chức vụ', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: '25vw' },
-        { title: 'Tên chức vụ', field: 'Name', hozAlign: 'left', headerHozAlign: 'center', width: '37vw' },
+        { title: 'Mức độ ưu tiên', field: 'PriorityOrder', hozAlign: 'center', headerHozAlign: 'center', width: 100, headerWordWrap: true },
+        { title: 'Mã chức vụ', field: 'Code', hozAlign: 'left', headerHozAlign: 'center', width: 120 },
+        { title: 'Tên chức vụ', field: 'Name', hozAlign: 'left', headerHozAlign: 'center', width: 350, formatter:'textarea' },
         {
           title: 'Hưởng CTP',
           field: 'IsBusinessCost',
@@ -392,7 +254,8 @@ export class PositionContractComponent implements OnInit {
             allowTruthy: true,
             tickElement: '<i class="fas fa-check"></i>',
             crossElement: ''
-          }
+          },
+          width: 60
         },
       ],
       pagination: true,
@@ -427,8 +290,8 @@ export class PositionContractComponent implements OnInit {
 
   openEditModal() {
     const selectedRows = this.tabulator.getSelectedRows();
-    if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn chức vụ theo hợp đồng cần sửa');
+    if (selectedRows.length != 1) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 chức vụ theo hợp đồng cần sửa');
       return;
     }
     this.isEditMode = true;
@@ -439,13 +302,13 @@ export class PositionContractComponent implements OnInit {
 
   openDeleteModal() {
     const selectedRows = this.tabulator.getSelectedRows();
-    if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn chức vụ theo hợp đồng cần xóa');
+    if (selectedRows.length != 1) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 chức vụ theo hợp đồng cần xóa');
       return;
     }
     const selectedPositionContract = selectedRows[0].getData();
 
-    
+
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
       nzContent: `Bạn có chắc chắn muốn xóa chức vụ theo hợp đồng đã chọn?`,
@@ -458,11 +321,11 @@ export class PositionContractComponent implements OnInit {
           IsDeleted: true
         }).subscribe({
           next: (response) => {
-            this.notification.success('Thành công', 'Xóa chức vụ theo hợp đồng thành công');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Xóa chức vụ theo hợp đồng thành công');
             this.loadPositionContract();
           },
           error: (error) => {
-            this.notification.error('Lỗi', 'Xóa chức vụ theo hợp đồng thất bại: ' + error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Xóa chức vụ theo hợp đồng thất bại: ' + error.message);
           }
         });
       },
@@ -486,12 +349,12 @@ export class PositionContractComponent implements OnInit {
 
     this.positionService.savePositionContract(formData).subscribe({
       next: () => {
-        this.notification.success('Thành công', this.isEditMode ? 'Cập nhật chức vụ theo hợp đồng thành công' : 'Thêm mới chức vụ theo hợp đồng thành công');
+        this.notification.success(NOTIFICATION_TITLE.success, this.isEditMode ? 'Cập nhật chức vụ theo hợp đồng thành công' : 'Thêm mới chức vụ theo hợp đồng thành công');
         this.closeModal();
         this.loadPositionContract();
       },
       error: (error) => {
-        this.notification.error('Lỗi', (this.isEditMode ? 'Cập nhật' : 'Thêm mới') + ' chức vụ theo hợp đồng thất bại: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, (this.isEditMode ? 'Cập nhật' : 'Thêm mới') + ' chức vụ theo hợp đồng thất bại: ' + error.message);
       },
       complete: () => {
         this.isSubmitting = false;

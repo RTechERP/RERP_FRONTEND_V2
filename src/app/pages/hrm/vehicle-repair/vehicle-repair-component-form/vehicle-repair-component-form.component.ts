@@ -45,6 +45,7 @@ import { VehicleRepairTypeFormComponent } from '../vehicle-repair-type/vehicle-r
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { TbProductRtcService } from '../../../old/tb-product-rtc/tb-product-rtc-service/tb-product-rtc.service';
 import { NzUploadFile } from 'ng-zorro-antd/upload';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 export function phoneVNValidator(): ValidatorFn {
   const regex = /^(0|\+84)(\d{9})$/; // bắt đầu bằng 0 hoặc +84 và theo sau 9 số
   return (control: AbstractControl): ValidationErrors | null => {
@@ -359,7 +360,7 @@ export class VehicleRepairComponentFormComponent implements OnInit {
     }
 
     if (!this.selectedFile) {
-      this.notification.warning('Cảnh báo', 'Chưa chọn file hóa đơn');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Chưa chọn file hóa đơn');
       return;
     }
 
@@ -426,7 +427,7 @@ export class VehicleRepairComponentFormComponent implements OnInit {
                 err?.message ||
                 err?.statusText ||
                 'Lỗi khi lưu thông tin';
-              this.notification.error('Lỗi', msg);
+              this.notification.error(NOTIFICATION_TITLE.error, msg);
               console.error('Lỗi khi lưu:', err);
             },
           });

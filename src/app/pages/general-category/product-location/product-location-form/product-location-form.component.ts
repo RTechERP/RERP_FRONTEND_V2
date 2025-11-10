@@ -10,6 +10,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { ProductLocationService } from '../product-location-service/product-location.service';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-product-location-form',
@@ -121,15 +122,15 @@ export class ProductLocationFormComponent implements OnInit {
       this.productLocationService.saveProductLocation(formData).subscribe({
         next: (response: any) => {
           if (response.status === 1) {
-            this.notification.success('Thành công', response.message || 'Lưu vị trí sản phẩm thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, response.message || 'Lưu vị trí sản phẩm thành công!');
             this.activeModal.close(true);
           } else {
-            this.notification.warning('Thông báo', response.message || 'Có lỗi xảy ra khi lưu vị trí sản phẩm');
+            this.notification.warning(NOTIFICATION_TITLE.warning, response.message || 'Có lỗi xảy ra khi lưu vị trí sản phẩm');
           }
         },
         error: (error) => {
           console.error('Error saving product location:', error);
-          this.notification.error('Lỗi', error.error?.message || 'Có lỗi xảy ra khi lưu vị trí sản phẩm');
+          this.notification.error(NOTIFICATION_TITLE.error, error.error?.message || 'Có lỗi xảy ra khi lưu vị trí sản phẩm');
         }
       });
     } else {
@@ -140,7 +141,7 @@ export class ProductLocationFormComponent implements OnInit {
           control.updateValueAndValidity({ onlySelf: true });
         }
       });
-      this.notification.warning('Thông báo', 'Vui lòng kiểm tra và điền đầy đủ thông tin bắt buộc!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng kiểm tra và điền đầy đủ thông tin bắt buộc!');
     }
   }
 

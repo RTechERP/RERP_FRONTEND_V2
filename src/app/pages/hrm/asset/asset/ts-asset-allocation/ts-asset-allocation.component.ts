@@ -37,6 +37,7 @@ function formatDateCell(cell: CellComponent): string {
 import { saveAs } from 'file-saver';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   standalone: true,
   imports: [
@@ -300,7 +301,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
   onEditAllocation() {
     const selected = this.allocationTable?.getSelectedData();
     if (!selected || selected.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một đơn vị để sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một đơn vị để sửa!');
       return;
     }
     const selectedAssets = { ...selected[0] };
@@ -337,13 +338,13 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
     };
     this.assetAllocationService.saveData(payloadAllocation).subscribe({
       next: () => {
-        this.notification.success('Thành công', 'Xóa biên bản thành công!');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Xóa biên bản thành công!');
         this.getAllocation();
         this.drawTable();
       },
       error: (err) => {
 
-        this.notification.warning('Lỗi', 'Lỗi kết nối máy chủ!');
+        this.notification.warning(NOTIFICATION_TITLE.error, 'Lỗi kết nối máy chủ!');
       }
     });
   }
@@ -455,7 +456,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
     const selectedDetail = this.allocationDetailTable?.getData();
     console.log(selectedDetail);
     if (!selectedDetail || selectedDetail.length === 0) {
-      this.notification.warning('Cảnh báo', 'Không có dữ liệu để duyệt.');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để duyệt.');
       return;
     }
     const payloadOnApprove = {
@@ -485,11 +486,11 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
     console.log(payloadOnApprove);
     this.assetAllocationService.saveData(payloadOnApprove).subscribe({
       next: () => {
-        this.notification.success("Thông báo", "Thành công");
+        this.notification.success(NOTIFICATION_TITLE.success, "Thành công");
         this.getAllocation();
       },
       error: () => {
-        this.notification.success("Thông báo", "Lỗi");
+        this.notification.error(NOTIFICATION_TITLE.error, "Lỗi");
         console.error('Lỗi khi lưu đơn vị!');
       }
     });
@@ -501,7 +502,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu để xuất Excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất Excel!');
       return;
     }
 
@@ -580,7 +581,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
     const details = this.allocationDetailTable?.getData();
 
     if (!selectedMaster || !details || details.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu để xuất Excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất Excel!');
       return;
     }
 
@@ -625,7 +626,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
         saveAs(blob, fileName);
       },
       error: (res: any) => {
-        this.notification.error('Lỗi', res.error?.message || 'Không thể xuất file!');
+        this.notification.error(NOTIFICATION_TITLE.error, res.error?.message || 'Không thể xuất file!');
         console.error(res);
       }
     });

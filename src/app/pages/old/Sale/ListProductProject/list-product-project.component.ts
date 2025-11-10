@@ -117,7 +117,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
         this.cbbProject = res.data;
       },
       error: (err) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dự án');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy dự án');
       },
     });
   }
@@ -129,7 +129,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu xuất excel!');
       return;
     }
 

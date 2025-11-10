@@ -34,6 +34,7 @@ import { right } from '@popperjs/core';
 import { AssetsRecoveryService } from '../../ts-asset-recovery/ts-asset-recovery-service/ts-asset-recovery.service';
 import { ro_RO } from 'ng-zorro-antd/i18n';
 import { TsAssetTransferService } from '../ts-asset-transfer-service/ts-asset-transfer.service';
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
@@ -142,7 +143,7 @@ this.drawTBAsset();
   selectAssets() {
   const selectedRows = this.assetByEmployeeTb?.getSelectedData() || [];
   if (selectedRows.length === 0) {
-    this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một tài sản.');
+    this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một tài sản.');
     return;
   }
   const newRows = selectedRows.map(row => ({

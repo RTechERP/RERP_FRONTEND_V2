@@ -50,6 +50,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NgIf } from '@angular/common';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { HasPermissionDirective } from "../../../directives/has-permission.directive";
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-customer',
@@ -1064,7 +1065,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       },
       error: (error) => {
         console.error('Error loading customer data:', error);
-        this.notification.error('Lỗi', 'Không thể tải dữ liệu khách hàng');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu khách hàng');
       },
     });
   }
@@ -1331,7 +1332,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   openDeleteModal() {
     const selectedRows = this.tabulator.getSelectedRows();
     if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn khách hàng cần xóa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn khách hàng cần xóa');
       return;
     }
 
@@ -1353,7 +1354,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
     if (customerId) {
       this.customerService.deleteCustomer(customerId).subscribe({
         next: (response) => {
-          this.notification.success('Thành công', 'Xóa khách hàng thành công');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Xóa khách hàng thành công');
           this.loadCustomers();
         },
         error: (error) => {
@@ -1423,7 +1424,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         },
         error: (error) => {
           console.error('Error searching customers:', error);
-          this.notification.error('Lỗi', 'Không thể tìm kiếm khách hàng');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tìm kiếm khách hàng');
         },
       });
   }

@@ -36,6 +36,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { TsAssetManagementPersonalFormComponent } from './ts-asset-management-personal-form/ts-asset-management-personal-form.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 @Component({
   selector: 'app-ts-asset-management-personal',
   standalone: true,
@@ -171,7 +172,7 @@ export class TsAssetManagementPersonalComponent
   editAssetPersonal() {
     const selected = this.tableAssetManagementPersonal?.getSelectedData() || [];
     if (!selected.length) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một dòng để sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một dòng để sửa!');
       return;
     }
     const rowData = { ...selected[0] };
@@ -196,7 +197,7 @@ export class TsAssetManagementPersonalComponent
   deleteAssetPersonal() {
     const selected = this.tableAssetManagementPersonal?.getSelectedData() || [];
     if (selected.length !== 1) {
-      this.notification.warning('Thông báo', 'Chọn đúng một dòng để xóa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Chọn đúng một dòng để xóa');
       return;
     }
     const { ID, Code } = selected[0];
@@ -216,13 +217,13 @@ export class TsAssetManagementPersonalComponent
           .toPromise()
           .then((res: any) => {
             if (res?.status === 1) {
-              this.notification.success('Thành công', 'Đã xóa');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Đã xóa');
               this.getAssetManagementPersonal();
             } else {
-              this.notification.error('Lỗi', res?.message || 'Xóa thất bại');
+              this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Xóa thất bại');
             }
           })
-          .catch(() => this.notification.error('Lỗi', 'Không gọi được API'));
+          .catch(() => this.notification.error(NOTIFICATION_TITLE.error, 'Không gọi được API'));
       },
     });
   }

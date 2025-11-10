@@ -38,6 +38,7 @@ import { VehicleRepairHistoryService } from '../../vehicle-repair-history/vehicl
 import { VehicleRepairComponentFormComponent } from '../../../vehicle-repair/vehicle-repair-component-form/vehicle-repair-component-form.component';
 import { ProposeVehicleRepairFormComponent } from '../propose-vehicle-repair-form/propose-vehicle-repair-form.component';
 import { NzModalModule } from 'ng-zorro-antd/modal';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   standalone: true,
   imports: [
@@ -371,7 +372,7 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
   deleteSelectedProposals() {
     const ids = this.getSelectedIds();
     if (!ids.length) {
-      this.notification.warning('Cảnh báo', 'Chưa chọn dòng để xóa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Chưa chọn dòng để xóa');
       return;
     }
      const detailCalls = ids.map(id =>
@@ -423,10 +424,10 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
           const fail = results.filter(r => !r.ok).map(r => r.id);
 
           if (okCount) {
-            this.notification.success('Thành công', `Đã xóa ${okCount}/${ids.length} đề xuất.`);
+            this.notification.success(NOTIFICATION_TITLE.success, `Đã xóa ${okCount}/${ids.length} đề xuất.`);
           }
           if (fail.length) {
-            this.notification.warning('Cảnh báo', `Không xóa được ID: ${fail.join(', ')}`);
+            this.notification.warning(NOTIFICATION_TITLE.warning, `Không xóa được ID: ${fail.join(', ')}`);
           }
 
           this.vehicleRepairTable?.deselectRow();
@@ -439,7 +440,7 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
 
   editProposeVehicleRepair() {
     const sel = this.vehicleRepairTable?.getSelectedData() || [];
-    if (!sel.length) { this.notification.warning('Thông báo', 'Chọn một dòng để sửa'); return; }
+    if (!sel.length) { this.notification.warning(NOTIFICATION_TITLE.warning, 'Chọn một dòng để sửa'); return; }
     const rowData = { ...sel[0] };
     const details = this.detailCache.get(rowData.ID) || null;
 
@@ -530,11 +531,11 @@ private hasOtherApproved(detailId: number): boolean {
 }
 // approveSelectedDetail() {
 //   if (!this.selectedDetailRow) {
-//     this.notification.warning('Cảnh báo', 'Chọn một dòng chi tiết để phê duyệt');
+//     this.notification.warning(NOTIFICATION_TITLE.warning, 'Chọn một dòng chi tiết để phê duyệt');
 //     return;
 //   }
 //   if (!this.currentUser?.EmployeeID) {
-//     this.notification.error('Lỗi', 'Không lấy được thông tin người dùng hiện tại');
+//     this.notification.error(NOTIFICATION_TITLE.error, 'Không lấy được thông tin người dùng hiện tại');
 //     return;
 //   }
 
@@ -545,7 +546,7 @@ private hasOtherApproved(detailId: number): boolean {
 //     return;
 //   }
 //   if (this.hasOtherApproved(detailId)) {
-//     this.notification.warning('Cảnh báo', 'Đã có 1 mục được duyệt. Hãy hủy duyệt mục đó trước');
+//     this.notification.warning(NOTIFICATION_TITLE.warning, 'Đã có 1 mục được duyệt. Hãy hủy duyệt mục đó trước');
 //     return;
 //   }
 
@@ -565,7 +566,7 @@ private hasOtherApproved(detailId: number): boolean {
 //     nzOnOk: () =>
 //       this.proposeVehicleRepairService.saveApprove(payloadApprove).toPromise().then((res: any) => {
 //         if (res?.status === 1) {
-//           this.notification.success('Thành công', 'Đã phê duyệt');
+//           this.notification.success(NOTIFICATION_TITLE.success, 'Đã phê duyệt');
 //           const masterId = this.selectedRow?.ID;
 //           if (masterId) {
 //             this.proposeVehicleRepairService.getProposeVehicleRepairDetail(masterId).subscribe(r => {
@@ -574,21 +575,21 @@ private hasOtherApproved(detailId: number): boolean {
 //             });
 //           }
 //         } else {
-//           this.notification.warning('Cảnh báo', res?.error.message || 'Không phê duyệt được');
+//           this.notification.warning(NOTIFICATION_TITLE.warning, res?.error.message || 'Không phê duyệt được');
 //         }
 //       })
 //   });
 // }
 approveSelectedDetail() {
-  if (!this.selectedDetailRow) { this.notification.warning('Cảnh báo','Chọn một dòng chi tiết để phê duyệt'); return; }
-  if (!this.currentUser?.EmployeeID) { this.notification.error('Lỗi','Không lấy được thông tin người dùng hiện tại'); return; }
+  if (!this.selectedDetailRow) { this.notification.warning(NOTIFICATION_TITLE.warning,'Chọn một dòng chi tiết để phê duyệt'); return; }
+  if (!this.currentUser?.EmployeeID) { this.notification.error(NOTIFICATION_TITLE.error,'Không lấy được thông tin người dùng hiện tại'); return; }
 
   const detail = this.selectedDetailRow;
   const master = this.selectedRow; // dòng master đang chọn
   const detailId = detail.ID;
   const alreadyApproved = detail.IsApprove === true || detail.IsApprove === 1;
   if (alreadyApproved) { this.notification.info('Thông báo','Dòng này đã được phê duyệt'); return; }
-  if (this.hasOtherApproved(detailId)) { this.notification.warning('Cảnh báo','Đã có 1 mục được duyệt. Hãy hủy duyệt mục đó trước'); return; }
+  if (this.hasOtherApproved(detailId)) { this.notification.warning(NOTIFICATION_TITLE.warning,'Đã có 1 mục được duyệt. Hãy hủy duyệt mục đó trước'); return; }
 
   const payloadApprove = [{ ID: detailId, IsApprove: 1, ApproveID: this.currentUser.EmployeeID, DateApprove: new Date().toISOString() }];
 
@@ -600,7 +601,7 @@ approveSelectedDetail() {
     nzOnOk: async () => {
       try {
         const res = await this.proposeVehicleRepairService.saveApprove(payloadApprove).toPromise();
-        if (res?.status !== 1) { this.notification.warning('Cảnh báo', res?.error?.message || 'Không phê duyệt được'); return; }
+        if (res?.status !== 1) { this.notification.warning(NOTIFICATION_TITLE.warning, res?.error?.message || 'Không phê duyệt được'); return; }
 
         // 1) refresh detail list UI
         if (master?.ID) {
@@ -644,19 +645,19 @@ approveSelectedDetail() {
         };
         const saveRes = await this.vehicleRepairHistoryService.saveData(dto).toPromise();
         if (saveRes?.status === 1) {
-          this.notification.success('Thành công', 'Đã phê duyệt và lưu theo dõi');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Đã phê duyệt và lưu theo dõi');
         } else {
-          this.notification.warning('Cảnh báo', saveRes?.error.message || 'Lưu theo dõi thất bại');
+          this.notification.warning(NOTIFICATION_TITLE.warning, saveRes?.error.message || 'Lưu theo dõi thất bại');
         }
       } catch (err:any) {
-        this.notification.error('Lỗi', err?.error?.message || 'Có lỗi khi phê duyệt/lưu theo dõi');
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Có lỗi khi phê duyệt/lưu theo dõi');
       }
     }
   });
 }
 unapproveSelectedDetail() {
   if (!this.selectedDetailRow) {
-    this.notification.warning('Cảnh báo', 'Chọn một dòng chi tiết để hủy duyệt');
+    this.notification.warning(NOTIFICATION_TITLE.warning, 'Chọn một dòng chi tiết để hủy duyệt');
     return;
   }
   const detailId = this.selectedDetailRow.ID;
@@ -683,7 +684,7 @@ const payload = [
     nzOnOk: () =>
       this.proposeVehicleRepairService.saveApprove(payload).toPromise().then((res: any) => {
         if (res?.status === 1) {
-          this.notification.success('Thành công', 'Đã hủy duyệt');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Đã hủy duyệt');
           const masterId = this.selectedRow?.ID;
           if (masterId) {
             this.proposeVehicleRepairService.getProposeVehicleRepairDetail(masterId).subscribe(r => {
@@ -692,7 +693,7 @@ const payload = [
             });
           }
         } else {
-          this.notification.warning('Cảnh báo', res?.message || 'Không hủy duyệt được');
+          this.notification.warning(NOTIFICATION_TITLE.warning, res?.message || 'Không hủy duyệt được');
         }
       })
   });

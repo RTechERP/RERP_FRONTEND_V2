@@ -40,6 +40,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { DisablePermissionDirective } from '../../../directives/disable-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-hrhiring-request',
@@ -214,7 +215,7 @@ export class HrhiringRequestComponent
         }
       },
       error: () => {
-        this.notification.error('Lỗi', 'Không thể tải danh sách phòng ban');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách phòng ban');
       },
     });
   }
@@ -232,7 +233,7 @@ export class HrhiringRequestComponent
         }
       },
       error: () => {
-        this.notification.error('Lỗi', 'Không thể tải danh sách chức vụ');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách chức vụ');
       },
     });
   }
@@ -421,7 +422,7 @@ export class HrhiringRequestComponent
       selectedRows.length > 0 ? selectedRows[0] : this.selectedHRHIRING;
 
     if (!selectedRow) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một dòng để sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một dòng để sửa!');
       return;
     }
 
@@ -510,7 +511,7 @@ export class HrhiringRequestComponent
       selectedRows.length > 0 ? selectedRows[0] : this.selectedHRHIRING;
 
     if (!selectedRow) {
-      this.notification.error('Thông báo', 'Vui lòng chọn 1 dòng để xóa!');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn 1 dòng để xóa!');
       return;
     }
 
@@ -1401,34 +1402,34 @@ export class HrhiringRequestComponent
       this.service.approvedTBP(approveds).subscribe({
         next: (response: any) => {
           console.log(response);
-          this.notification.success('Thành công', response.message);
+          this.notification.success(NOTIFICATION_TITLE.success, response.message);
         },
         error: (err) => {
           console.log(err);
-          this.notification.error('Lỗi', err.error.message);
+          this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
         },
       });
     } else if (step == 2) {
       this.service.approvedHR(approveds).subscribe({
         next: (response: any) => {
           console.log(response);
-          this.notification.success('Thành công', response.message);
+          this.notification.success(NOTIFICATION_TITLE.success, response.message);
         },
         error: (err) => {
           console.log(err);
           console.log('err.status:', err.status),
-            this.notification.error('Lỗi', err.error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
         },
       });
     } else {
       this.service.approvedBGD(approveds).subscribe({
         next: (response: any) => {
           console.log(response);
-          this.notification.success('Thành công', response.message);
+          this.notification.success(NOTIFICATION_TITLE.success, response.message);
         },
         error: (err) => {
           console.log(err);
-          this.notification.error('Lỗi', err.error.message);
+          this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
         },
       });
     }

@@ -29,6 +29,7 @@ import { EmployeeBussinessService } from './employee-bussiness-service/employee-
 import { EmployeeBussinessDetailComponent } from './employee-bussiness-detail/employee-bussiness-detail.component';
 import { EmployeeBussinessBonusComponent } from "./employee-bussiness-bonus/employee-bussiness-bonus.component";
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-employee-bussiness',
@@ -278,7 +279,7 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit{
   openEditModal() {
     const selectedRows = this.tabulator.getSelectedRows();
     if(selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn đăng ký làm thêm cần chỉnh sửa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đăng ký làm thêm cần chỉnh sửa');
       return;
     }
   }
@@ -286,7 +287,7 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit{
   openDeleteModal() {
     const selectedRows = this.tabulator.getSelectedRows();
     if(selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn đăng ký làm thêm cần xóa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đăng ký làm thêm cần xóa');
       return;
     }
   }
@@ -294,7 +295,7 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit{
   approved(isApproved: boolean, isTBP: boolean) {
     const selectedRows = this.tabulator.getSelectedRows();
     if(selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn đăng ký làm thêm cần duyệt');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đăng ký làm thêm cần duyệt');
       return;
     }
   }

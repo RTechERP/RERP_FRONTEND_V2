@@ -37,6 +37,7 @@ import {
 import { EmployeePurchaseDetailComponent } from './employee-purchase-detail/employee-purchase-detail.component';
 import { PermissionService } from '../../../services/permission.service';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-employee-purchase',
@@ -168,7 +169,7 @@ export class EmployeePurchaseComponent
       },
       error: (error) => {
         console.error('Load employees error:', error);
-        this.notification.error('Lỗi', 'Không thể tải danh sách nhân viên');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách nhân viên');
         this.allEmployeeList = [];
         this.employees = [];
       },
@@ -256,7 +257,7 @@ export class EmployeePurchaseComponent
       },
       error: (error) => {
         console.error('Load company list error:', error);
-        this.notification.error('Lỗi', 'Không thể tải danh sách công ty');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách công ty');
         this.companyList = [];
       },
     });
@@ -359,7 +360,7 @@ export class EmployeePurchaseComponent
   // ✅ Update editEmployeePurchase - sử dụng NgbModal giống meeting-type
   editEmployeePurchase(): void {
     if (!this.selectedEmployee) {
-      this.notification.error('Thông báo', 'Vui lòng chọn nhân viên cần sửa!');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn nhân viên cần sửa!');
       return;
     }
 

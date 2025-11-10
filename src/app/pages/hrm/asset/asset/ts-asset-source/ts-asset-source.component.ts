@@ -43,6 +43,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { log } from 'ng-zorro-antd/core/logger';
 import { AssetsService } from './ts-asset-source-service/ts-asset-source.service';
 import { TsAssetSourceFormComponent } from './ts-asset-source-form/ts-asset-source-form.component';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   standalone: true,
   imports: [
@@ -169,7 +170,7 @@ export class TsAssetSourceComponent implements OnInit, AfterViewInit {
   onEdit(): void {
     const selected = this.assetSourceTable?.getSelectedData();
     if (!selected || selected.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một loại tài sản để sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một loại tài sản để sửa!');
       return;
     }
     const selecteStatus = { ...selected[0] };
@@ -193,7 +194,7 @@ export class TsAssetSourceComponent implements OnInit, AfterViewInit {
   onDeleted() {
     const selected = this.assetSourceTable?.getSelectedData();
     if (!selected?.length) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn loại tài sản để xóa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn loại tài sản để xóa!');
       return;
     }
 
@@ -215,12 +216,12 @@ export class TsAssetSourceComponent implements OnInit, AfterViewInit {
               this.notification.success('Thông báo', 'Thành công');
               this.getAssetSource();
             } else {
-              this.notification.warning('Thông báo', 'Thất bại');
+              this.notification.warning(NOTIFICATION_TITLE.warning, 'Thất bại');
             }
           },
           error: (err) => {
             console.error(err);
-            this.notification.warning('Thông báo', 'Lỗi kết nối');
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Lỗi kết nối');
           }
         });
       }

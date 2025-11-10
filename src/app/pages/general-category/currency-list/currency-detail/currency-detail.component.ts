@@ -10,6 +10,7 @@ import { CurrencyService } from '../currency.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { Router } from '@angular/router';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-currency-detail',
@@ -114,7 +115,7 @@ export class CurrencyDetailComponent implements OnInit {
           control.updateValueAndValidity({ onlySelf: true });
         }
       });
-      this.notification.error('Lỗi', 'Vui lòng nhập đầy đủ các trường bắt buộc!');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng nhập đầy đủ các trường bắt buộc!');
       return;
     }
 
@@ -141,7 +142,7 @@ export class CurrencyDetailComponent implements OnInit {
         this.router.navigate(['/currency']);
       },
       error: () => {
-        this.notification.error('Lỗi', 'Có lỗi xảy ra khi lưu dữ liệu');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lưu dữ liệu');
       }
     });
   }

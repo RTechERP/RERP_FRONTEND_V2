@@ -18,6 +18,7 @@ import { EmployeeService } from '../employee-service/employee.service';
 import { ContractServiceService } from '../../contract/contract-service/contract-service.service';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { DateTime } from 'luxon';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-employee-contract',
@@ -112,7 +113,7 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
         this.initFormSearch();
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách nhân viên: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách nhân viên: ' + error.message);
       }
     });
   }
@@ -123,7 +124,7 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
         this.contractTypeList = data.data;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách loại hợp đồng: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách loại hợp đồng: ' + error.message);
       }
     })
   }
@@ -138,7 +139,7 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
         this.tabulatorEmployeeContract.setData(this.employeeContractList);
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải hợp đồng nhân viên: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải hợp đồng nhân viên: ' + error.message);
       }
     });
   }
@@ -166,7 +167,7 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
   openEditModal() {
     const selectedRows = this.tabulatorEmployeeContract.getSelectedRows();
     if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn hợp đồng lao động cần chỉnh sửa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn hợp đồng lao động cần chỉnh sửa');
       return;
     }
     this.selectedContract = selectedRows[0].getData();
@@ -250,19 +251,19 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
           control.updateValueAndValidity();
         }
       });
-      this.notification.error('Lỗi', 'Vui lòng điền đầy đủ thông tin bắt buộc');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
     }
 
     const formData = this.employeeContractForm.value;
     this.employeeService.saveEmployeeContract(formData).subscribe({
       next: () => {
-        this.notification.success('Thành công', 'Cập nhật hợp đồng lao động thành công');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật hợp đồng lao động thành công');
         this.closeModal();
         this.loadEmployeeContract(this.selectedEmployee.ID);
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Cập nhật phòng ban thất bại: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật phòng ban thất bại: ' + error.message);
       }
     });
   }
@@ -279,7 +280,7 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
   openDeleteModal() {
     const selectedRows = this.tabulatorEmployeeContract.getSelectedRows();
     if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn hợp đồng lao động cần xóa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn hợp đồng lao động cần xóa');
       return;
     }
 
@@ -296,11 +297,11 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
           IsDelete: true
         }).subscribe({
           next: (response) => {
-            this.notification.success('Thành công', 'Xóa hợp đồng lao động thành công');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Xóa hợp đồng lao động thành công');
             this.loadEmployeeContract(this.selectedEmployee.ID);
           },
           error: (error) => {
-            this.notification.error('Lỗi', 'Xóa hợp đồng lao động thất bại: ' + error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Xóa hợp đồng lao động thất bại: ' + error.message);
           }
         });
       },
@@ -322,7 +323,7 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
       },
       error: (error) => {
         console.error('Error searching employee contracts:', error);
-        this.notification.error('Lỗi', 'Không thể tìm kiếm hợp đồng lao động');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tìm kiếm hợp đồng lao động');
       }
     });
   }
@@ -330,14 +331,14 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
   printContract() {
     const selectedRows = this.tabulatorEmployeeContract.getSelectedRows();
     if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn hợp đồng lao động cần in');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn hợp đồng lao động cần in');
       return;
     }
 
     const selectedContract = selectedRows[0].getData();
     
     if (selectedContract['StatusSign'] !== 2) {
-      this.notification.warning('Cảnh báo', 'Chỉ có thể in hợp đồng đã được ký');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Chỉ có thể in hợp đồng đã được ký');
       return;
     }
     
@@ -390,21 +391,21 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
               document.body.removeChild(link);
               window.URL.revokeObjectURL(url);
   
-              this.notification.success('Thành công', 'In hợp đồng lao động thành công');
+              this.notification.success(NOTIFICATION_TITLE.success, 'In hợp đồng lao động thành công');
             },
             error: (err) => {
               this.isPrinting = false;
-              this.notification.error('Lỗi', 'Không thể tạo file Word: ' + err.message);
+              this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tạo file Word: ' + err.message);
             }
           });
         } else {
-          this.notification.error('Lỗi', 'Không nhận được dữ liệu hợp đồng từ server');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không nhận được dữ liệu hợp đồng từ server');
         }
       },
       error: (error) => {
         this.isPrinting = false;
         console.error('Error printing contract:', error);
-        this.notification.error('Lỗi', 'Không thể in hợp đồng lao động: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể in hợp đồng lao động: ' + error.message);
       }
     });
   }

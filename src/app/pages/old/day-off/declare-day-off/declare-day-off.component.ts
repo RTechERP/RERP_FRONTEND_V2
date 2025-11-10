@@ -25,6 +25,7 @@ import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { DayOffImportExcelComponent } from '../day-off-import-excel/day-off-import-excel.component';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-declare-day-off',
@@ -83,7 +84,7 @@ export class DeclareDayOffComponent implements OnInit {
         this.employeeList = data.data || data;
       },
       error: () => {
-        this.notification.error('Lỗi', 'Không thể tải danh sách nhân viên');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách nhân viên');
       }
     });
   }
@@ -97,7 +98,7 @@ export class DeclareDayOffComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách khai báo ngày phép');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách khai báo ngày phép');
       }
     })
   }
@@ -155,7 +156,7 @@ export class DeclareDayOffComponent implements OnInit {
   openEditModal() {
     const selectedRows = this.tabulator.getSelectedRows();
     if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn khai báo cần sửa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn khai báo cần sửa');
       return;
     }
     this.isEditMode = true;
@@ -170,7 +171,7 @@ export class DeclareDayOffComponent implements OnInit {
   openDeleteModal() {
     const selectedRows = this.tabulator.getSelectedRows();
     if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn khai báo cần xóa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn khai báo cần xóa');
       return;
     }
     this.selectedDeclare = selectedRows[0].getData();
@@ -191,12 +192,12 @@ export class DeclareDayOffComponent implements OnInit {
       IsDeleted: true
     }).subscribe({
       next: () => {
-        this.notification.success('Thành công', 'Xóa khai báo ngày phép thành công');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Xóa khai báo ngày phép thành công');
         this.loadDeclareDayOff();
         this.selectedDeclare = null;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Xóa khai báo ngày phép thất bại: ' + (error?.message || ''));
+        this.notification.error(NOTIFICATION_TITLE.error, 'Xóa khai báo ngày phép thất bại: ' + (error?.message || ''));
       }
     });
   }
@@ -209,7 +210,7 @@ export class DeclareDayOffComponent implements OnInit {
           control.updateValueAndValidity({ onlySelf: true });
         }
       });
-      this.notification.warning('Cảnh báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
     }
     const formData = {
@@ -217,12 +218,12 @@ export class DeclareDayOffComponent implements OnInit {
     };
     this.dayOffService.saveEmployeeOnLeaveMaster(formData).subscribe({
       next: () => {
-        this.notification.success('Thành công', 'Lưu khai báo ngày phép thành công');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Lưu khai báo ngày phép thành công');
         this.closeModal();
         this.loadDeclareDayOff();
       },
       error: (response) => {
-        this.notification.error('Lỗi', 'Lưu khai báo ngày phép thất bại: ' + (response.error?.message || ''));
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lưu khai báo ngày phép thất bại: ' + (response.error?.message || ''));
       }
     });
   }

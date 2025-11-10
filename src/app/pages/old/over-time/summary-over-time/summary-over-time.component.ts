@@ -26,6 +26,7 @@ import { EmployeeService } from '../../employee/employee-service/employee.servic
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { OverTimeService } from '../over-time-service/over-time.service';
 import { FoodOrderService } from '../../food-order/food-order-service/food-order.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-summary-over-time',
@@ -117,7 +118,7 @@ export class SummaryOverTimeComponent implements OnInit, AfterViewInit{
           console.log(this.departmentList);
         },
         error: (error) => {
-          this.notification.error('Lỗi', 'Lỗi khi tải danh sách phòng ban: ' + error.message);
+          this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách phòng ban: ' + error.message);
         }
       });
     }
@@ -128,7 +129,7 @@ export class SummaryOverTimeComponent implements OnInit, AfterViewInit{
           this.employeeList = data.data;
         },
         error: (error) => {
-          this.notification.error('Lỗi', 'Lỗi khi tải danh sách nhân viên: ' + error.message);
+          this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách nhân viên: ' + error.message);
         }
       })
     }
@@ -142,7 +143,7 @@ export class SummaryOverTimeComponent implements OnInit, AfterViewInit{
           this.isLoading = false;
         },
         error: (error) => {
-          this.notification.error('Lỗi', 'Lỗi khi tải danh sách báo cáo làm thêm: ' + error.message);
+          this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách báo cáo làm thêm: ' + error.message);
           this.isLoading = false;
         }
       })

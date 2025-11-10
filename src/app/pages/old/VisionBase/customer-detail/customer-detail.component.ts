@@ -60,6 +60,7 @@ import { SelectControlComponent } from '../../select-control/select-control.comp
 import { CustomerServiceService } from '../customer/customer-service/customer-service.service';
 import { CustomerMajorDetailComponent } from '../customer-major/customer-major-detail/customer-major-detail.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-customer-detail',
@@ -285,11 +286,11 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
 
           this.tb_SaleTable.replaceData(this.customerSaleTableData);
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -361,11 +362,11 @@ if (this.tb_AddressTable) {
         if (response.status === 1) {
           this.majorData = response.data;
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -407,11 +408,11 @@ if (this.tb_AddressTable) {
         if (response.status === 1) {
           this.businessFieldData = response.data;
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -422,11 +423,11 @@ if (this.tb_AddressTable) {
         if (response.status === 1) {
           this.provincesData = response.data;
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -564,7 +565,7 @@ if (this.tb_AddressTable) {
         }
       },
       error: (err: any) => {
-        this.notification.error('Lỗi', err?.message || 'Không thể lưu dữ liệu');
+        this.notification.error(NOTIFICATION_TITLE.error, err?.message || 'Không thể lưu dữ liệu');
       },
     });
   }

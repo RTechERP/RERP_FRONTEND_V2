@@ -40,6 +40,7 @@ import { ProjectService } from '../../../old/project/project-service/project.ser
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { ImportExcelComponent } from './import-excel/import-excel.component';
 import { EditDetailComponent } from './edit-detail/edit-detail.component';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-payroll-report',
@@ -195,7 +196,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
             this.isLoadTable = false;
           }
           else {
-            this.notification.error('Lỗi', 'Không lấy được dữ liệu');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Không lấy được dữ liệu');
           }
         },
         error: (err) => {
@@ -234,14 +235,14 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                   this.getPayrollReport();
                   this.selectedEmployeePayrollDetail.clear();
                 } else {
-                  this.notification.error('Lỗi', 'Không lấy được dữ liệu');
+                  this.notification.error(NOTIFICATION_TITLE.error, 'Không lấy được dữ liệu');
                   modalRef.updateConfig({ nzOkLoading: false });
                   reject();
                 }
               },
               error: (err) => {
                 console.error('API error:', err);
-                this.notification.error('Lỗi', 'Không cập nhật được dữ liệu');
+                this.notification.error(NOTIFICATION_TITLE.error, 'Không cập nhật được dữ liệu');
                 modalRef.updateConfig({ nzOkLoading: false });
                 reject();
               }
@@ -312,10 +313,10 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                   modalRef.updateConfig({ nzOkLoading: false });
                   const hasError = responses.some(res => res.status !== 1);
                   if (hasError) {
-                    this.notification.error('Lỗi', 'Một số bảng lương không cập nhật được');
+                    this.notification.error(NOTIFICATION_TITLE.error, 'Một số bảng lương không cập nhật được');
                     reject(); // giữ modal mở để thử lại
                   } else {
-                    this.notification.success('Thành công', 'Đã cập nhật bảng lương thành công');
+                    this.notification.success(NOTIFICATION_TITLE.success, 'Đã cập nhật bảng lương thành công');
                     this.getPayrollReport();
                     this.selectedEmployeePayrollDetail.clear();
                     resolve(); // đóng modal
@@ -323,7 +324,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                 },
                 error: (err) => {
                   console.error('API error:', err);
-                  this.notification.error('Lỗi', 'Không cập nhật được dữ liệu');
+                  this.notification.error(NOTIFICATION_TITLE.error, 'Không cập nhật được dữ liệu');
                   modalRef.updateConfig({ nzOkLoading: false });
                   reject();
                 }
@@ -351,7 +352,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
     let message = isPublish ? "Công bố" : "Hủy công bố";
 
     if (count === 0) {
-      this.notification.warning('Thông báo', 'Không có bản ghi hợp lệ để ' + message.toLowerCase() + '!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có bản ghi hợp lệ để ' + message.toLowerCase() + '!');
       return;
     }
 
@@ -377,13 +378,13 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
                   this.selectedEmployeePayrollDetail.clear();
                   resolve();
                 } else {
-                  this.notification.error('Lỗi', 'Không lấy được dữ liệu');
+                  this.notification.error(NOTIFICATION_TITLE.error, 'Không lấy được dữ liệu');
                   reject();
                 }
               },
               error: (err) => {
                 console.error('API error:', err);
-                this.notification.error('Lỗi', 'Không cập nhật được dữ liệu');
+                this.notification.error(NOTIFICATION_TITLE.error, 'Không cập nhật được dữ liệu');
                 modalRef.updateConfig({ nzOkLoading: false });
                 reject();
               }
@@ -395,7 +396,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
 
   importExcel() {
     if(this.payrollId == null || this.payrollId < 0){
-      this.notification.warning('Cảnh báo', `Chưa có bảng lương tháng ${this.month} năm ${this.year.getFullYear()}.
+      this.notification.warning(NOTIFICATION_TITLE.warning, `Chưa có bảng lương tháng ${this.month} năm ${this.year.getFullYear()}.
       Vui lòng thêm mới trước khi nhập excel!`);
       return;
     }

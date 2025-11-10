@@ -58,6 +58,7 @@ import { QuotationKhDetailServiceService } from './quotation-kh-detail-service/q
 import { CustomerPartService } from '../customer-part/customer-part/customer-part.service';
 import { PokhService } from '../pokh/pokh-service/pokh.service';
 import { RequestInvoiceDetailService } from '../request-invoice-detail/request-invoice-detail-service/request-invoice-detail-service.service';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-quotation-kh-detail',
@@ -291,18 +292,18 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
     this.quotationKhDetailService.save(PAYLOAD).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success('Thành công', 'Lưu dữ liệu thành công');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Lưu dữ liệu thành công');
           // Đóng modal và trả về kết quả để reload data ở component cha
           this.activeModal.close({
             success: true,
             reloadData: true,
           });
         } else {
-          this.notification.error('Lỗi', res.message);
+          this.notification.error(NOTIFICATION_TITLE.error, res.message);
         }
       },
       error: (err) => {
-        this.notification.error('Lỗi', err);
+        this.notification.error(NOTIFICATION_TITLE.error, err);
       },
     });
   }
@@ -756,7 +757,7 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
         }
       }
     } catch (error) {
-      this.notification.error('Lỗi', 'Lỗi:' + error);
+      this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi:' + error);
     }
   }
 

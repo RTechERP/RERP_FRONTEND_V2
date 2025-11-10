@@ -22,6 +22,15 @@ export class PositionServiceService {
   savePositionInternal(data: any): Observable<any> {
     return this.http.post<any>(this._url + 'Position/position-internal', data);
   }
+
+  changeStatusPositionInternal(data: any): Observable<any> {
+    return this.http.post<any>(this._url + 'Position/change-status-position-internal', data);
+  }
+
+  changeStatusPositionContract(data: any): Observable<any> {
+    return this.http.post<any>(this._url + 'Position/change-status-position-contract', data);
+  }
+
   deletePositionContract(id: number): Observable<any> {
     return this.http.delete<any>(
       this._url + 'Position/position-contract/' + id

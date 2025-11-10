@@ -130,7 +130,7 @@ export class FirmManagementDetailComponent implements OnInit, AfterViewInit {
       },
       error: (err: any) => {
         console.error(err);
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy danh sách phim');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy danh sách phim');
       }
     });
   }
@@ -152,7 +152,7 @@ export class FirmManagementDetailComponent implements OnInit, AfterViewInit {
       },
       error: (err: any) => {
         console.error(err);
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy danh sách dự án');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy danh sách dự án');
         this.unitOption = [];
       },
     });
@@ -311,7 +311,7 @@ export class FirmManagementDetailComponent implements OnInit, AfterViewInit {
       Object.values(this.formDeviceInfo.controls).forEach(c => {
         if (c.invalid) { c.markAsTouched(); c.updateValueAndValidity({ onlySelf: true }); }
       });
-      this.notification.warning('Cảnh báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
     }
 
@@ -339,13 +339,13 @@ export class FirmManagementDetailComponent implements OnInit, AfterViewInit {
     };
     this.filmManagementService.saveData(payload).subscribe({
       next: () => {
-        this.notification.success('Thành công', 'Lưu phiếu thành công');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Lưu phiếu thành công');
         this.formSubmitted.emit();
         this.activeModal.close();
       },
       error: (error: any) => {
         console.error('Lỗi khi lưu dữ liệu:', error);
-        this.notification.error('Lỗi', 'Không thể lưu phiếu, vui lòng thử lại sau');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lưu phiếu, vui lòng thử lại sau');
       }
     });
   }

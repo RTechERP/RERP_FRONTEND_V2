@@ -61,6 +61,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { DateTime } from 'luxon';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 interface Unit {
   Code: string;
@@ -204,7 +205,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
       },
       error: (err) => {
         console.error('Lỗi khi lấy đơn vị tính:', err);
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy danh sách phòng ban');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy danh sách phòng ban');
       }
     });
   }
@@ -244,7 +245,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
         if (this.table) {
           this.table.replaceData([]);
         }
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy dữ liệu');
       },
       complete: () => {
         this.isLoading = false;
@@ -398,7 +399,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
         }
       },
       error: () => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy chi tiết');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy chi tiết');
       }
     });
   }
@@ -409,7 +410,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
       this.selectedList.push(row);
     });
     if (this.selectedList.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất 1 người đăng ký để duyệt/hủy duyệt!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất 1 người đăng ký để duyệt/hủy duyệt!');
       return false;
     }
     return true;
@@ -433,7 +434,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
             this.notification.success('Thông báo', 'Duyệt thành công!');
           },
           error: (error: any) => {
-            this.notification.error('Thông báo', 'Có lỗi xảy ra khi duyệt!');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi duyệt!');
           }
         });
       }
@@ -449,7 +450,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
     const cannotUnapproveItems = this.selectedList.filter(item => item.IsApproved);
 
     if (canUnapproveItems.length === 0) {
-      this.notification.error('Thông báo', 'VPP đã được TBP duyệt không thể hủy duyệt!');
+      this.notification.error(NOTIFICATION_TITLE.error, 'VPP đã được TBP duyệt không thể hủy duyệt!');
       return;
     }
 
@@ -485,7 +486,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
         this.notification.success('Thông báo', 'Hủy duyệt thành công!');
       },
       error: (error: any) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi hủy duyệt!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi hủy duyệt!');
       }
     });
   }
@@ -499,7 +500,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
     const unapprovedItems = this.selectedList.filter(item => !item.IsAdminApproved);
 
     if (approvedItems.length === 0) {
-      this.notification.error('Thông báo', 'VPP đã chọn chưa được admin duyệt, không thể duyệt!');
+      this.notification.error(NOTIFICATION_TITLE.error, 'VPP đã chọn chưa được admin duyệt, không thể duyệt!');
       return;
     }
 
@@ -535,7 +536,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
         this.notification.success('Thông báo', 'Duyệt thành công!');
       },
       error: (error: any) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi duyệt!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi duyệt!');
       }
     });
   }
@@ -549,7 +550,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
     const cannotUnapproveItems = this.selectedList.filter(item => !item.IsAdminApproved);
 
     if (canUnapproveItems.length === 0) {
-      this.notification.error('Thông báo', 'Không có VPP nào được admin duyệt để hủy duyệt!');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không có VPP nào được admin duyệt để hủy duyệt!');
       return;
     }
 
@@ -585,7 +586,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
         this.notification.success('Thông báo', 'Hủy duyệt thành công!');
       },
       error: (error: any) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi hủy duyệt!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi hủy duyệt!');
       }
     });
   }

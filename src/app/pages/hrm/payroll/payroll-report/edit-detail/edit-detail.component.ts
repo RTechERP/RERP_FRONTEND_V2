@@ -38,6 +38,7 @@ import { NzInputNumberModule } from "ng-zorro-antd/input-number";
 import { forkJoin } from 'rxjs';
 import { PayrollService } from '../../payroll.service';
 import { ProjectService } from '../../../../old/project/project-service/project.service';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 @Component({
   selector: 'app-edit-detail',
@@ -212,7 +213,7 @@ export class EditDetailComponent implements OnInit {
 
         }
         else {
-          this.notification.error('Lỗi', 'Không cập nhật được dữ liệu');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không cập nhật được dữ liệu');
         }
       },
       error: (err) => {

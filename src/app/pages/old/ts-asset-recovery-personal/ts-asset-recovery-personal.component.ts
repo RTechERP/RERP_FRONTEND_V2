@@ -400,7 +400,7 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
   validateRecoveryForm(): boolean {
     let isValid = true;
     if (!this.recoveryDate) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn ngày thu hồi!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ngày thu hồi!');
       isValid = false;
     }
     if (!this.employeeReturnID) {
@@ -411,7 +411,7 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
       isValid = false;
     }
     if (!this.employeeRecoveryID) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn người thu hồi!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn người thu hồi!');
       isValid = false;
     }
     return isValid;
@@ -482,10 +482,10 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
             this.notification.success('Thông báo', 'Lưu thành công');
             (this.formNote = ''), this.closeModal();
             this.getAssetRecoveryPersonals();
-          } else this.notification.warning('Thông báo', 'Lưu thất bại');
+          } else this.notification.warning(NOTIFICATION_TITLE.warning, 'Lưu thất bại');
         },
         error: () =>
-          this.notification.warning('Thông báo', 'Lỗi kết nối máy chủ'),
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Lỗi kết nối máy chủ'),
       });
   }
 
@@ -805,7 +805,7 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
       | 'PERSONAL_CANCEL'
   ): boolean {
     if (!this.tbAssetRecoveryPersonal) {
-      this.notification.warning('Thông báo', 'Chọn một hàng để duyệt');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Chọn một hàng để duyệt');
       return false;
     }
     const selectedRow = this.tbAssetRecoveryPersonal.getSelectedData();
@@ -931,12 +931,12 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
           this.notification.success('Thông báo', 'Thành công');
           this.tbAssetRecoveryPersonal?.setData();
         } else {
-          this.notification.warning('Thông báo', 'Thất bại');
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Thất bại');
         }
       },
       error: (res) => {
         console.error(res);
-        this.notification.warning('Thông báo', res.error.message);
+        this.notification.warning(NOTIFICATION_TITLE.warning, res.error.message);
       },
     });
   }
@@ -1031,12 +1031,12 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
             this.notification.success('Thông báo', 'Thành công');
             this.tbAssetRecoveryPersonal?.setData();
           } else {
-            this.notification.warning('Thông báo', 'Thất bại');
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Thất bại');
           }
         },
         error: (res) => {
           console.error(res);
-          this.notification.warning('Thông báo', res.error.message);
+          this.notification.warning(NOTIFICATION_TITLE.warning, res.error.message);
         },
       });
   }

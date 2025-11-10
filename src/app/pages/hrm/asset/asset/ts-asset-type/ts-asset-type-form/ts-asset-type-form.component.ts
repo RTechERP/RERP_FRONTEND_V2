@@ -13,6 +13,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { TypeAssetsService } from '../ts-asset-type-service/ts-asset-type.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 @Component({
   standalone: true,
   imports: [
@@ -58,7 +59,7 @@ saveAssetType() {
   const type = this.assetType?.trim();
 
   if (!code || !type) {
-    this.notification.warning('Cảnh báo', 'Vui lòng nhập đầy đủ mã và tên loại tài sản');
+    this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập đầy đủ mã và tên loại tài sản');
     return;
   }
 
@@ -75,14 +76,14 @@ saveAssetType() {
   this.typeAssetService.SaveData(payloadType).subscribe({
     next: (res: any) => {
       if (res?.status === 1) {
-        this.notification.success('Thành công', 'Lưu loại tài sản thành công');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Lưu loại tài sản thành công');
         this.loadAssetType();
         this.formSubmitted.emit();
         this.activeModal.close(true);
       }
     },
     error: (res: any) => {
-      this.notification.error('Lỗi', res?.error?.message || 'Không thể lưu loại tài sản');
+      this.notification.error(NOTIFICATION_TITLE.error, res?.error?.message || 'Không thể lưu loại tài sản');
     }
   });
 }

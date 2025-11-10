@@ -240,7 +240,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
           }
         },
         error: (err) => {
-          this.notification.error('Lỗi', 'Không thể tải dữ liệu phiếu xuất');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu phiếu xuất');
         },
       });
   }
@@ -253,7 +253,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
         );
       },
       error: (err) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy chi tiết');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy chi tiết');
       },
     });
   }
@@ -301,7 +301,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
         },
         error: (err) => {
           const errorMsg = err?.error?.message || 'Có lỗi xảy ra!';
-          this.notification.error('Thông báo', errorMsg);
+          this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
         },
       });
     }
@@ -339,7 +339,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
             },
             error: (err) => {
               const errorMsg = err?.error?.message || 'Có lỗi xảy ra!';
-              this.notification.error('Thông báo', errorMsg);
+              this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
             },
           });
         },
@@ -381,7 +381,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
           this.selectBillExport = res.data;
           console.log('seelct:', this.selectBillExport);
         } else {
-          this.notification.warning('Thông báo', res.message || 'Lỗi');
+          this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Lỗi');
         }
       },
     });
@@ -393,7 +393,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
     }
     const selected = this.data[0];
     if (selected?.IsApproved === true) {
-      this.notification.warning('Thông báo', 'Phiếu đã được duyệt không thể xóa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Phiếu đã được duyệt không thể xóa!');
       return;
     }
 
@@ -428,7 +428,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
               }
             },
             error: (err) => {
-              this.notification.error('Thông báo', 'Có lỗi xảy ra khi xóa!');
+              this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xóa!');
               console.error(err);
             },
           });
@@ -870,7 +870,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu xuất excel!');
       return;
     }
 
@@ -969,7 +969,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
   //#endregion
   onExportGroupItem(type: number) {
     if (!this.id || this.id == 0) {
-      this.notification.error('Lỗi', 'Vui lòng chọn bản ghi cần xuất file');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn bản ghi cần xuất file');
       return;
     }
     const selectedHandover = this.data.find((item) => item.ID === this.id);
@@ -994,7 +994,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
         window.URL.revokeObjectURL(url);
       },
       error: (err) => {
-        this.notification.error('Lỗi', 'Có lỗi xảy ra khi xuất file.');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xuất file.');
         console.error(err);
       },
     });

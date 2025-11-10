@@ -20,6 +20,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { PokhHistoryServiceService } from '../pokh-history-service/pokh-history-service.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-import-excel',
@@ -104,7 +105,7 @@ export class ImportExcelComponent implements OnInit, AfterViewInit {
     if (this.table) {
       this.table.import("xlsx", [".xlsx", ".csv", ".ods"], "buffer");
     } else {
-      this.notification.warning('Thông báo', 'Bảng chưa được khởi tạo!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Bảng chưa được khởi tạo!');
     }
   }
 
@@ -124,7 +125,7 @@ export class ImportExcelComponent implements OnInit, AfterViewInit {
         console.log('Phần mở rộng:', fileExtension);
 
         if (fileExtension !== 'xlsx' && fileExtension !== 'xls') {
-            this.notification.warning('Thông báo', 'Vui lòng chọn tệp Excel (.xlsx hoặc .xls)!');
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn tệp Excel (.xlsx hoặc .xls)!');
             input.value = '';
             this.resetExcelImportState();
             return;
@@ -192,12 +193,12 @@ export class ImportExcelComponent implements OnInit, AfterViewInit {
 
                 } else {
                     console.warn('File Excel không chứa bất kỳ sheet nào.');
-                    this.notification.warning('Thông báo', 'File Excel không có sheet nào!');
+                    this.notification.warning(NOTIFICATION_TITLE.warning, 'File Excel không có sheet nào!');
                     this.resetExcelImportState();
                 }
             } catch (error) {
                 console.error('Lỗi khi đọc tệp Excel trong FileReader.onload:', error);
-                this.notification.error('Thông báo', 'Không thể đọc tệp Excel. Vui lòng đảm bảo tệp không bị hỏng và đúng định dạng.');
+                this.notification.error(NOTIFICATION_TITLE.error, 'Không thể đọc tệp Excel. Vui lòng đảm bảo tệp không bị hỏng và đúng định dạng.');
                 this.resetExcelImportState();
             }
             input.value = '';
@@ -320,7 +321,7 @@ export class ImportExcelComponent implements OnInit, AfterViewInit {
 
     } catch (error) {
       console.error('Lỗi khi đọc dữ liệu từ sheet trong readExcelData:', error);
-      this.notification.error('Thông báo', 'Không thể đọc dữ liệu từ sheet! Vui lòng kiểm tra định dạng dữ liệu.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không thể đọc dữ liệu từ sheet! Vui lòng kiểm tra định dạng dữ liệu.');
       this.resetExcelImportState();
     }
   }
@@ -366,7 +367,7 @@ export class ImportExcelComponent implements OnInit, AfterViewInit {
           console.log('Dữ liệu đã được đọc lại sau khi thay đổi sheet.');
         } catch (error) {
           console.error('Lỗi khi đọc tệp Excel khi thay đổi sheet:', error);
-          this.notification.error('Thông báo', 'Không thể đọc dữ liệu từ sheet đã chọn!');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể đọc dữ liệu từ sheet đã chọn!');
           this.resetExcelImportState();
         }
       };
@@ -380,7 +381,7 @@ export class ImportExcelComponent implements OnInit, AfterViewInit {
     console.log('Dữ liệu Excel hiện tại (trước lọc):', this.dataTableExcel);
 
     if (!this.dataTableExcel || this.dataTableExcel.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu để lưu!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để lưu!');
       console.log('Không có dữ liệu để lưu.');
       return;
     }
@@ -447,14 +448,14 @@ export class ImportExcelComponent implements OnInit, AfterViewInit {
         } else {
           this.displayText = 'Lưu thất bại!';
           this.displayProgress = 0;
-          this.notification.error('Thông báo', response.message || 'Lưu thất bại!');
+          this.notification.error(NOTIFICATION_TITLE.error, response.message || 'Lưu thất bại!');
         }
         this.closeExcelModal();
       },
       error: (err: any) => {
         this.displayText = 'Có lỗi khi lưu!';
         this.displayProgress = 0;
-        this.notification.error('Thông báo', 'Có lỗi khi lưu dữ liệu!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi khi lưu dữ liệu!');
         this.closeExcelModal();
       }
     });

@@ -29,6 +29,7 @@ import { DepartmentServiceService } from '../department/department-service/depar
 import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-early-late',
@@ -136,7 +137,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
         this.approverList = data.data;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách người duyệt: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách người duyệt: ' + error.message);
       }
     })
   }
@@ -295,14 +296,14 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
   openEditModal() {
       const selectedRows = this.tabulator.getSelectedRows();
       if (selectedRows.length === 0) {
-        this.notification.warning('Cảnh báo', 'Vui lòng chọn đăng ký đi muộn - về sớm cần sửa');
+        this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đăng ký đi muộn - về sớm cần sửa');
         return;
       }
 
       if (
         (selectedRows.length > 0 && selectedRows[0].getData()['IsApprovedTP'] === true && selectedRows[0].getData()['IsApproved'] === true)
       ) {
-        this.notification.warning('Cảnh báo', 'Đăng ký đã được duyệt. Vui lòng hủy duyệt trước khi sửa!');
+        this.notification.warning(NOTIFICATION_TITLE.warning, 'Đăng ký đã được duyệt. Vui lòng hủy duyệt trước khi sửa!');
         return;
       }
 
@@ -332,14 +333,14 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
   openDeleteModal() {
     const selectedRows = this.tabulator.getSelectedRows();
     if (selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn ngày đăng ký cần xóa');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ngày đăng ký cần xóa');
       return;
     }
 
     if (
       (selectedRows.length > 0 && selectedRows[0].getData()['IsApprovedTP'] === true && selectedRows[0].getData()['IsApproved'] === true)
     ) {
-      this.notification.warning('Cảnh báo', 'Đăng ký đã được duyệt. Vui lòng hủy duyệt trước khi xóa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Đăng ký đã được duyệt. Vui lòng hủy duyệt trước khi xóa!');
       return;
     }
 
@@ -358,11 +359,11 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
             IsDeleted: true
           }).subscribe({
             next: (response) => {
-              this.notification.success('Thành công', 'Xóa ngày đã đăng ký thành công');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Xóa ngày đã đăng ký thành công');
               this.loadEarlyLate();
             },
             error: (error) => {
-              this.notification.error('Lỗi', 'Xóa ngày đã đăng ký thất bại: ' + error.message);
+              this.notification.error(NOTIFICATION_TITLE.error, 'Xóa ngày đã đăng ký thất bại: ' + error.message);
             }
           });
         }
@@ -486,7 +487,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
           control.updateValueAndValidity({ onlySelf: true });
         }
       });
-      this.notification.warning('Cảnh báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
     }
 
@@ -501,13 +502,13 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
     const endDate = new Date(formData.DateEnd);
 
     if (isNaN(startDate.getTime())) {
-      this.notification.error('Lỗi', 'Ngày bắt đầu không hợp lệ. Vui lòng kiểm tra lại.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Ngày bắt đầu không hợp lệ. Vui lòng kiểm tra lại.');
       this.earlyLateForm.get('StartDate')?.markAsTouched();
       return;
     }
 
     if (isNaN(endDate.getTime())) {
-      this.notification.error('Lỗi', 'Ngày kết thúc không hợp lệ. Vui lòng kiểm tra lại.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Ngày kết thúc không hợp lệ. Vui lòng kiểm tra lại.');
       this.earlyLateForm.get('EndDate')?.markAsTouched();
       return;
     }
@@ -540,7 +541,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
 
     if (formData.ID && formData.ID > 0) {
       if (!formData.ReasonHREdit || formData.ReasonHREdit.trim() === '') {
-        this.notification.warning('Cảnh báo', 'Khi sửa thông tin ngày đăng ký, vui lòng nhập lý do sửa');
+        this.notification.warning(NOTIFICATION_TITLE.warning, 'Khi sửa thông tin ngày đăng ký, vui lòng nhập lý do sửa');
         this.earlyLateForm.get('ReasonHREdit')?.markAsTouched();
         return;
       }
@@ -551,12 +552,12 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
 
     this.earlyLateService.saveEmployeeEarlyLate(formData).subscribe({
       next: () => {
-        this.notification.success('Thành công', 'Lưu đăng ký thành công');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Lưu đăng ký thành công');
         this.closeModal();
         this.loadEarlyLate();
       },
       error: (response) => {
-        this.notification.error('Lỗi', 'Lưu đăng ký thất bại: ' + response.error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lưu đăng ký thất bại: ' + response.error.message);
       },
     });
   }
@@ -610,7 +611,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
                 IsApprovedTP: true
               }).subscribe({
                 next: (response) => {
-                  this.notification.success('Thành công', 'TBP duyệt khai báo thành công');
+                  this.notification.success(NOTIFICATION_TITLE.success, 'TBP duyệt khai báo thành công');
                   this.loadEarlyLate();
                 },
                 error: (error) => {
@@ -626,7 +627,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
   isApproveHR() {
     const selectedRows = this.tabulator.getSelectedRows();
     if(selectedRows.length <= 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn nhân viên cần duyệt');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn nhân viên cần duyệt');
       return;
     }
 
@@ -643,7 +644,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
     
           let isApprovedTP = data['IsApprovedTP'];
           if(!isApprovedTP) {
-            this.notification.warning('Thông báo', 'TBP chưa duyệt. Vui lòng kiểm tra lại!');
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'TBP chưa duyệt. Vui lòng kiểm tra lại!');
             return;
           }
     
@@ -652,7 +653,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
             IsApproved: true
           }).subscribe({
             next: (response) => {
-              this.notification.success('Thành công', 'HR duyệt khai báo thành công');
+              this.notification.success(NOTIFICATION_TITLE.success, 'HR duyệt khai báo thành công');
               this.loadEarlyLate();
             },
             error: (error) => {
@@ -669,7 +670,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
   isDisapproveHR() {
     const selectedRows = this.tabulator.getSelectedRows();
     if(selectedRows.length <= 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn nhân viên cần duyệt');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn nhân viên cần duyệt');
       return;
     }
 
@@ -690,7 +691,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
             IsApproved: false
           }).subscribe({
             next: (response) => {
-              this.notification.success('Thành công', 'HR hủy duyệt khai báo thành công');
+              this.notification.success(NOTIFICATION_TITLE.success, 'HR hủy duyệt khai báo thành công');
               this.loadEarlyLate();
             },
             error: (error) => {

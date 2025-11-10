@@ -25,6 +25,7 @@ import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { EmployeeService } from '../../employee/employee-service/employee.service';
 import { EmployeeBussinessService } from '../employee-bussiness-service/employee-bussiness.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 @Component({
   selector: 'app-employee-bussiness-detail',
   templateUrl: './employee-bussiness-detail.component.html',
@@ -311,12 +312,12 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit{
           try {
             const date = new Date(value);
             if (isNaN(date.getTime())) {
-              this.notification.warning('Lỗi', 'Vui lòng nhập thời gian đúng định dạng');
+              this.notification.warning(NOTIFICATION_TITLE.error, 'Vui lòng nhập thời gian đúng định dạng');
               cell.setValue('');
               return;
             }
           } catch (error) {
-            this.notification.warning('Lỗi', 'Định dạng thời gian không hợp lệ');
+            this.notification.warning(NOTIFICATION_TITLE.error, 'Định dạng thời gian không hợp lệ');
             cell.setValue('');
             return;
           }
@@ -329,7 +330,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit{
             const startTime = new Date(rowData.TimeStart);
             const endTime = new Date(rowData.EndTime);
             if (startTime >= endTime) {
-              this.notification.warning('Lỗi', 'Thời gian kết thúc phải sau thời gian bắt đầu');
+              this.notification.warning(NOTIFICATION_TITLE.error, 'Thời gian kết thúc phải sau thời gian bắt đầu');
               cell.setValue('');
               return;
             }
@@ -381,10 +382,10 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit{
       next: (response) => {
         this.employeeBussinessData.emit();
         this.closeModal();
-        this.notification.success('Thành công', 'Cập nhật đăng ký công tác thành công');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật đăng ký công tác thành công');
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Cập nhật đăng ký công tác thất bại');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật đăng ký công tác thất bại');
       }
     })
   }

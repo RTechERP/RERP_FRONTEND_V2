@@ -12,6 +12,7 @@ import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { AppUserService } from '../../../services/app-user.service';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 @Component({
   selector: 'app-currency-list',
   templateUrl: './currency-list.component.html',
@@ -177,9 +178,9 @@ export class CurrencyListComponent implements OnInit {
 
   handleCurrencySaved(event: any): void {
     if (event.mode === 'add') {
-      this.notification.success('Thành công', 'Thêm mới thành công');
+      this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công');
     } else {
-      this.notification.success('Thành công', 'Cập nhật thành công');
+      this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công');
     }
     this.loadData();
     this.showForm = false;
@@ -197,7 +198,7 @@ export class CurrencyListComponent implements OnInit {
 
   instance.saved.subscribe((event: { mode: 'add' | 'edit' }) => {
     if (event.mode === 'add') {
-      this.notification.success('Thành công', 'Thêm mới thành công');
+      this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công');
     }
     this.loadData();
   });
@@ -213,7 +214,7 @@ export class CurrencyListComponent implements OnInit {
   const rowData = this.selectedCurrency || this.currencyTable?.getSelectedData()?.[0];
 
   if (!rowData) {
-    this.notification.warning('Thông báo', 'Vui lòng chọn một tiền tệ để sửa!');
+    this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một tiền tệ để sửa!');
     return;
   }
 

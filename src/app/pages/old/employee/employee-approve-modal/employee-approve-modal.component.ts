@@ -16,6 +16,7 @@ import { TabulatorFull as Tabulator, RowComponent } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { EmployeeService } from '../employee-service/employee.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-employee-approve-modal',
@@ -61,7 +62,7 @@ export class EmployeeApproveModalComponent implements OnInit {
         this.employeeTabulator.setData(this.employeeList);
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách nhân viên: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách nhân viên: ' + error.message);
       }
     });
   }
@@ -102,7 +103,7 @@ export class EmployeeApproveModalComponent implements OnInit {
 addEmployeeApprove() {
   const selectedRows = this.employeeTabulator.getSelectedRows();
   if(selectedRows.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn người duyệt cần thêm');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn người duyệt cần thêm');
       return;
   }
   
@@ -118,7 +119,7 @@ addEmployeeApprove() {
           
           // Hiển thị message từ response của backend
           const message = response?.message || 'Thêm người duyệt thành công';
-          this.notification.success('Thành công', message);
+          this.notification.success(NOTIFICATION_TITLE.success, message);
       },
       error: (error) => {
           // Xử lý error response từ backend
@@ -130,7 +131,7 @@ addEmployeeApprove() {
               errorMessage = error.message;
           }
           
-          this.notification.error('Lỗi', errorMessage);
+          this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
       }
   });
 }
@@ -162,10 +163,10 @@ addEmployeeApprove() {
             next: () => {
               // this.closeEmployeeModal();
               this.employeeAdded.emit();
-              this.notification.success('Thành công', 'Xóa người duyệt thành công');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Xóa người duyệt thành công');
             },
             error: (error) => {
-              this.notification.error('Lỗi', 'Xóa người duyệt thất bại: ' + error.message);
+              this.notification.error(NOTIFICATION_TITLE.error, 'Xóa người duyệt thất bại: ' + error.message);
             }
           });
         });

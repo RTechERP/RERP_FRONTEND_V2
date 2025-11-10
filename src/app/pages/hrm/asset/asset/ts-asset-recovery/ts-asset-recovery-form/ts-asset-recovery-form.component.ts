@@ -112,7 +112,7 @@ export class TsAssetRecoveryFormComponent implements OnInit, AfterViewInit {
       keyword: ''
     };
     this.assetManagementPersonalService.getEmployee(request).subscribe((respon: any) => {
-      this.emPloyeeLists = respon.employees;
+      this.emPloyeeLists = respon.data;
       console.log(this.emPloyeeLists);
       if (this.dataInput?.EmployeeReturnID) {
         this.onEmployeeReturnChange(this.dataInput.EmployeeReturnID);

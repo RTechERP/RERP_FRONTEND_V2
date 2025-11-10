@@ -18,30 +18,26 @@ export class BillImportServiceService {
 
     return this.http.get(environment.host + `api/BillExport`, params);
   }
-  getBillImport(
-    khoType: any,
-    status: number,
-    dateStart: DateTime,
-    dateEnd: DateTime,
-    filterText: string,
-    checkedAll: boolean,
-    pageNumber: number,
-    pageSize: number,
-    warehousecode: string
-  ): Observable<any> {
+  getBillImport(searchParams: any): Observable<any> {
     const params: any = {
-      KhoType: khoType,
-      Status: status,
-      DateStart: dateStart?.toISO() || new Date().toISOString(),
-      DateEnd: dateEnd?.toISO() || new Date().toISOString(),
-      FilterText: filterText.trim(),
-      PageNumber: pageNumber.toString(),
-      PageSize: pageSize.toString(),
-      WarehouseCode: warehousecode.trim(),
-      checkedAll: checkedAll,
+      KhoType: searchParams.listproductgroupID.toString(),
+      Status: searchParams.status,
+      DateStart:
+        typeof searchParams.dateStart === 'string'
+          ? new Date(searchParams.dateStart).toISOString()
+          : (searchParams.dateStart?.toISOString() || new Date().toISOString()),
+      DateEnd:
+        typeof searchParams.dateEnd === 'string'
+          ? new Date(searchParams.dateEnd).toISOString()
+          : (searchParams.dateEnd?.toISOString() || new Date().toISOString()),
+      // GỬI ĐÚNG TÊN THUỘC TÍNH: checkedAll
+      CheckedAll: searchParams.checkAll,
+      WarehouseCode: searchParams.warehousecode.trim(),
+      FilterText: (searchParams.keyword || '').trim(),
+      PageNumber: searchParams.pageNumber,
+      PageSize: searchParams.pageSize,
     };
-
-    return this.http.post(environment.host + `api/BillImport`, params);
+    return this.http.post(environment.host + `api/BillImport/get-all`, params);
   }
   getBillImportDetail(billID: number): Observable<any> {
     return this.http.get(
@@ -158,6 +154,34 @@ export class BillImportServiceService {
     return this.http.get<any>(
       environment.host +
         `api/billimport/get-product?warehouseID=${warehouseID}&ProductGroupID=${productGroupID}`
+    );
+  }
+  convertImportToExport(billImportId: number): Observable<any> {
+    return this.http.post(
+      environment.host + `api/billexport/convert-from-import?billImportId=${billImportId}`,
+      {}
+    );
+  }
+
+  uploadAttachment(billImportId: number, file: File): Observable<any> {
+    const form = new FormData();
+    form.append('BillImportID', billImportId.toString());
+    form.append('file', file);
+    return this.http.post(
+      environment.host + `api/billimport/attachments/upload`,
+      form
+    );
+  }
+
+  deleteAttachment(attachmentId: number): Observable<any> {
+    return this.http.delete(
+      environment.host + `api/billimport/attachments/${attachmentId}`
+    );
+  }
+
+  getAttachmentTree(billImportId: number): Observable<any> {
+    return this.http.get(
+      environment.host + `api/billimport/attachments/tree?billImportId=${billImportId}`
     );
   }
 }

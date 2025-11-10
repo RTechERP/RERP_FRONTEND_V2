@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 import { environment } from '../../../../../environments/environment';
+import { AppUserService } from '../../../../services/app-user.service';
 // import { HOST } from '../../../../app.config';
 
 @Injectable({
@@ -11,7 +12,13 @@ import { environment } from '../../../../../environments/environment';
 export class HrhiringRequestService {
   private apiUrl = environment.host + 'api/HrHiringRequest/';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private appUserService: AppUserService) {
+    this.GlobalEmployeeId = this.appUserService.employeeID || 0;
+    this.LoginName = this.appUserService.loginName || '';
+    this.ISADMIN = this.appUserService.isAdmin || false;
+    this.GlobalDepartmentId = this.appUserService.departmentID || 0;
+    
+  }
 
   GlobalEmployeeId: number = 78;
   LoginName: string = 'ADMIN';

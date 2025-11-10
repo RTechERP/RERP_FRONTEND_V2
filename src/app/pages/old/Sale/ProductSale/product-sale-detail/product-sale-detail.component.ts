@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit, ViewChild, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
+import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { RowComponent } from 'tabulator-tables';
@@ -21,13 +21,15 @@ import { LocationDetailComponent } from '../location-detail/location-detail.comp
 import { UnitCountDetailComponent } from '../unit-count-detail/unit-count-detail.component';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { FirmFormComponent } from '../../../../general-category/firm/firm-form/firm-form.component';
+import { ProductLocationFormComponent } from '../../../../general-category/product-location/product-location-form/product-location-form.component';
 
 interface ProductSale {
   Id?: number;
   ProductCode: string;
   ProductName: string;
   Maker: string;
-  AddressBox:string;
+  AddressBox: string;
   Unit: string;
   NumberInStoreDauky: number;
   NumberInStoreCuoiKy: number;
@@ -42,22 +44,42 @@ function noVietnameseValidator(control: AbstractControl): ValidationErrors | nul
   if (!control.value) {
     return null; // Không validate nếu giá trị rỗng
   }
-  
+
   // Regex để kiểm tra ký tự tiếng Việt
   const vietnameseRegex = /[àáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵÀÁẢÃẠÂẦẤẨẪẬĂẰẮẲẴẶÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴđĐ]/i;
-  
+
   if (vietnameseRegex.test(control.value)) {
     return { vietnameseChars: true };
   }
-  
+
   return null;
+}
+
+// Validator: kiểm tra value có nằm trong list theo key
+function inIdListValidator(getList: () => any[], idKey: string): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const value = control.value;
+    if (value === null || value === undefined || value === '') return null; // required sẽ xử lý rỗng
+    const list = getList() || [];
+    const exists = list.some(item => item && item[idKey] === value);
+    return exists ? null : { notInOptions: true };
+  };
+}
+function inStringListValidator(getList: () => any[], key: string): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const value = control.value;
+    if (!value) return null; // required sẽ xử lý rỗng
+    const list = getList() || [];
+    const exists = list.some(item => item && item[key] === value);
+    return exists ? null : { notInOptions: true };
+  };
 }
 @Component({
   selector: 'app-product-sale-detail',
   standalone: true,
   imports: [
-    CommonModule, 
-    FormsModule, 
+    CommonModule,
+    FormsModule,
     ReactiveFormsModule,
     NzSelectModule,
     NzSplitterModule,
@@ -78,7 +100,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
     ProductName: '',
     Maker: '',
     Unit: '',
-    AddressBox:'',
+    AddressBox: '',
     NumberInStoreDauky: 0,
     NumberInStoreCuoiKy: 0,
     ProductGroupID: 0,
@@ -86,20 +108,20 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
     FirmID: 0,
     Note: ''
   };
-   //list lấy dữ liệu đơn vị productsale
-   listUnitCount: any[] = [];
+  //list lấy dữ liệu đơn vị productsale
+  listUnitCount: any[] = [];
 
-   //list lấy dữ liệu nhóm kho 
-   listProductGroupcbb: any[] = [];
-   listLocation:any[]=[];
-   listFirm: any[] = [];
+  //list lấy dữ liệu nhóm kho 
+  listProductGroupcbb: any[] = [];
+  listLocation: any[] = [];
+  listFirm: any[] = [];
 
   @Input() isCheckmode: boolean = false;
   @Input() selectedList: any[] = [];
   @Input() id: number = 0;
 
   formGroup: FormGroup;
-  
+
 
   constructor(
     private notification: NzNotificationService,
@@ -107,26 +129,26 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
     public activeModal: NgbActiveModal,
     private modalService: NgbModal,
     private productsaleService: ProductsaleServiceService,
-  ) { 
+  ) {
     this.formGroup = this.fb.group({
       ProductGroupID: [null, [Validators.required]],
-      Unit: ['', [Validators.required]],
-      ProductCode: ['',[Validators.required, noVietnameseValidator]],
+      Unit: ['', [Validators.required, inStringListValidator(() => this.listUnitCount, 'UnitCode')]],
+      ProductCode: ['', [Validators.required, noVietnameseValidator]],
       ProductName: ['', [Validators.required]],
-      NumberInStoreDauky: [{value: 0, disabled: true}],
-      NumberInStoreCuoiKy: [{value: 0, disabled: true}],
-      LocationID: [null, [Validators.required]],
-      Maker: ['', [Validators.required]],
-      Note: ['']
+      NumberInStoreDauky: [{ value: 0, disabled: true }],
+      NumberInStoreCuoiKy: [{ value: 0, disabled: true }],
+      LocationID: [null, [Validators.required, inIdListValidator(() => this.listLocation, 'ID')]],
+      Maker: ['', [Validators.required, inStringListValidator(() => this.listFirm, 'FirmName')]],
+      Note: ['',[Validators.maxLength(500)]]
     });
   }
 
   ngOnInit(): void {
     this.getDataProductGroupcbb();
     this.getDataUnitCount();
-    this.getDataLocation(0); 
+    this.getDataLocation(0);
     this.getDataFirm();
-    
+
     // Patch form values from input data
     this.formGroup.patchValue({
       ProductGroupID: this.newProductSale.ProductGroupID || null,
@@ -141,13 +163,14 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
     });
   }
   ngAfterViewInit(): void {
-  
+
   }
   getDataUnitCount() {
     this.productsaleService.getdataUnitCount().subscribe({
       next: (res) => {
         if (res?.data) {
           this.listUnitCount = Array.isArray(res.data) ? res.data : [];
+          this.formGroup.get('Unit')?.updateValueAndValidity({ onlySelf: true });
           console.log('don vi tinh', this.listUnitCount);
         }
       }, error: (err) => {
@@ -167,42 +190,50 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
       }
     });
   }
-  getDataFirm(){
+  getDataFirm() {
     //lấy dữ liệu hãng
     this.productsaleService.getDataFirm().subscribe({
-      next:(res)=>{
+      next: (res) => {
         if (res?.data) {
           this.listFirm = Array.isArray(res.data) ? res.data : [];
+          this.formGroup.get('Maker')?.updateValueAndValidity({ onlySelf: true });
+          console.log('hãng', this.listFirm);
         }
       },
       error: (err) => {
         console.error('Lỗi khi lấy dữ liệu', err);
-      } });
+      }
+    });
   }
-  getDataLocation(id:number){
+  getDataLocation(id: number) {
     this.productsaleService.getDataLocation(id).subscribe({
-      next:(res)=>{
+      next: (res) => {
         if (res?.data) {
           this.listLocation = Array.isArray(res.data) ? res.data : [];
+          this.formGroup.get('LocationID')?.updateValueAndValidity({ onlySelf: true });
+          console.log('kho', this.listLocation);
         }
       },
       error: (err) => {
         console.error('Lỗi khi lấy dữ liệu', err);
-      } });
+      }
+    });
   }
-  changeProductGroup(){
+  changeProductGroup() {
     const id = this.formGroup.get('ProductGroupID')?.value;
     this.productsaleService.getDataLocation(id).subscribe({
-      next:(res)=>{
+      next: (res) => {
         if (res?.data) {
-          this.listLocation= Array.isArray(res.data) ? res.data : [];
+          this.listLocation = Array.isArray(res.data) ? res.data : [];
+          this.formGroup.get('LocationID')?.updateValueAndValidity({ onlySelf: true });
         }
-      },  error: (err) => {
+      }, error: (err) => {
         console.error('Lỗi khi lấy dữ liệu', err);
-      } });
+      }
+    });
   }
 
-  saveDataProductSale(){
+  saveDataProductSale() {
     this.trimAllStringControls();
     if (this.formGroup.invalid) {
       this.formGroup.markAllAsTouched();
@@ -211,17 +242,17 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
     }
 
     const formValue = this.formGroup.getRawValue(); // Sử dụng getRawValue() để lấy cả disabled controls
-    
+
     // Tìm FirmID dựa trên Maker được chọn
     const selectedFirm = this.listFirm.find((f: any) => f.FirmName === formValue.Maker);
     const firmId = selectedFirm ? selectedFirm.ID : 0;
-    
+
     const location = this.listLocation.find((p: any) => p.ID === formValue.LocationID);
     const addressbox = location ? location.LocationName : '';
 
     if (this.isCheckmode == true) {
       // Update existing product sale
-    
+
       const payload = [{
         ProductSale: {
           //ID: this.selectedList[0].ID,
@@ -250,7 +281,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
           if (res.status === 1) {
             this.notification.success('Thông báo', 'Cập nhật thành công!');
             this.activeModal.dismiss(true);
-       
+
           } else {
             this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể cập nhật sản phẩm!');
           }
@@ -284,11 +315,11 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
           Note: formValue.Note,
         }
       }];
-    console.log("payload",payload);
+      console.log("payload", payload);
       this.productsaleService.saveDataProductSale(payload).subscribe({
         next: (res) => {
           if (res.status === 1) {
-            this.notification.success('Thông báo',  'Thêm mới thành công!');
+            this.notification.success('Thông báo', 'Thêm mới thành công!');
             this.activeModal.dismiss(true);
           } else {
             this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể thêm sản phẩm!');
@@ -320,35 +351,30 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
   }
 
   //hàm gọi modal firm
-  openModalFirmDetail(){
-    const modalRef = this.modalService.open(FirmDetailComponent, {
+  openModalFirmDetail() {
+    const modalRef = this.modalService.open(FirmFormComponent, {
       centered: true,
       backdrop: 'static',
       keyboard: false
     });
 
-    modalRef.result.catch(
-      (result) => {
-        if (result == true) {
-        this.getDataFirm()
-        }
-      },
-    );
+    modalRef.result.finally(() => {
+      this.getDataFirm();
+    });
   }
   // hàm gọi modal location
-  openModalLocationDetail(){
-    const modalRef = this.modalService.open(LocationDetailComponent, {
+  openModalLocationDetail() {
+    const modalRef = this.modalService.open(ProductLocationFormComponent, {
       centered: true,
       backdrop: 'static',
       keyboard: false
     });
-    modalRef.componentInstance.listProductGroupcbb= this.listProductGroupcbb;
-    modalRef.result.catch(
-      (result) => {
-        if (result == true) {
-        this.getDataLocation(0);
-        }
-      },
+    modalRef.componentInstance.listProductGroupcbb = this.listProductGroupcbb;
+    modalRef.result.finally(
+      () => {
+        const groupId = this.formGroup.get('ProductGroupID')?.value ?? 0;
+        this.getDataLocation(groupId);
+      }
     );
   }
   private trimAllStringControls() {
@@ -358,18 +384,16 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
       if (typeof v === 'string') c!.setValue(v.trim(), { emitEvent: false });
     });
   }
-   // hàm gọi modal unitcount
-   openModalUnitCountDetail(){
+  // hàm gọi modal unitcount
+  openModalUnitCountDetail() {
     const modalRef = this.modalService.open(UnitCountDetailComponent, {
       centered: true,
       backdrop: 'static',
       keyboard: false
     });
-    modalRef.result.catch(
-      (result) => {
-        if (result == true) {
-        this.productsaleService.getdataUnitCount();
-        }
+    modalRef.result.finally(
+      () => {
+        this.getDataUnitCount();
       },
     );
   }

@@ -23,6 +23,7 @@ import { NzModalModule } from 'ng-zorro-antd/modal';
 import { TsAssetManagementPersonalService } from '../../../../../old/ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
 import { AssetAllocationService } from '../ts-asset-allocation-service/ts-asset-allocation.service';
 import { Tabulator } from 'tabulator-tables';
+import { AuthService } from '../../../../../../auth/auth.service';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { TsAssetChooseAssetsComponent } from '../ts-asset-choose-assets/ts-asset-choose-assets.component';
 import { HasPermissionDirective } from "../../../../../../directives/has-permission.directive";
@@ -60,17 +61,27 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
   allocationDetailData: any[] = [];
   modalData: any = [];
   assetTable: Tabulator | null = null;
-  constructor(private notification: NzNotificationService) { }
+  currentUser: any[] = [];
+
+  constructor(private notification: NzNotificationService,
+    private authService: AuthService
+  ) { }
   ngAfterViewInit(): void {
     this.drawTbSelectAsset();
   }
   ngOnInit() {
     this.dataInput.DateRecovery = this.formatDateForInput(this.dataInput.DateRecovery);//fomat lại ngày
     this.getAllocation();
+    this.getCurrentUser();
     this.getListEmployee();
     this.generateAllocationCode();
     this.getAllocationDetail();
 
+  }
+  getCurrentUser() {
+    this.authService.getCurrentUser().subscribe((res: any) => {
+      this.currentUser = res.data;
+    });
   }
   formatDateForInput(dateString: string): string {
     if (!dateString) return '';

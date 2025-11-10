@@ -31,7 +31,7 @@ import { log } from 'ng-zorro-antd/core/logger';
 import { NzFormModule } from 'ng-zorro-antd/form';
 export const SERVER_PATH = `D:/RTC/`;
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, AbstractControl, ValidatorFn } from '@angular/forms';
 import { ReactiveFormsModule } from '@angular/forms';
 import { TbProductGroupRtcFormComponent } from '../tb-product-group-rtc-form/tb-product-group-rtc-form.component';
 import { FirmDetailComponent } from '../../Sale/ProductSale/firm-detail/firm-detail.component';
@@ -131,18 +131,17 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
   }
   initForm() {
     this.formDeviceInfo = new FormBuilder().group({
-      ProductGroupRTCID: [null, Validators.required],
+      ProductGroupRTCID: [null, [Validators.required, this.inIdListValidator(() => this.productGroupData)]],
       ProductName: ['', Validators.required],
       PartNumber: ['', Validators.required],
       ProductCode: ['', Validators.required],
       SerialNumber: ['', Validators.required],
       Serial: ['', Validators.required],
       SLKiemKe: ['', Validators.required],
-      FirmID: [null, Validators.required],
-      UnitCountID: [null, Validators.required],
+      FirmID: [null, [Validators.required, this.inIdListValidator(() => this.firmData)]],
+      UnitCountID: [null, [Validators.required, this.inIdListValidator(() => this.unitData)]],
       CreateDate: [this.CreateDate, Validators.required],
       CodeHCM: [''],
-
       BorrowCustomer: [false],
       Note: [''],
       Resolution: [''],
@@ -166,8 +165,7 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       OutputValue: [''],
       CurrentIntensityMax: [''],
       Size: [''],
-
-      ProductLocationID: [null, Validators.required],
+      ProductLocationID: [null, [Validators.required, this.inIdListValidator(() => this.locationData)]],
       NumberInStore: [{ value: null, disabled: true }],
       LocationImg: [null],
     });
@@ -202,7 +200,6 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
   getGroup() {
     this.tbProductRtcService.getProductRTCGroup().subscribe((resppon: any) => {
       this.productGroupData = resppon.data;
-
       // Bảo vệ khi dataInput là null hoặc thiếu ProductGroupRTCID
       const incomingID = +this.dataInput?.ProductGroupRTCID;
       if (!incomingID) return;
@@ -605,13 +602,9 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       centered: true,
     });
     modalRef.componentInstance.dataInput = this.modalData;
-    modalRef.result.then(
-      (result) => {
-        this.getGroup();
-      },
-      (dismissed) => {
-        console.log('Modal dismissed');
-      }
+    modalRef.result.finally(()=>{
+      this.getGroup();
+    }
     );
   }
   //hàm gọi modal firm
@@ -622,12 +615,9 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       keyboard: false
     });
 
-    modalRef.result.catch(
-      (result) => {
-        if (result == true) {
-        this.getFirm()
+    modalRef.result.finally(()=>{
+          this.getFirm()
         }
-      },
     );
   }
   // hàm gọi modal location
@@ -638,12 +628,9 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       keyboard: false
     });
     modalRef.componentInstance.listProductGroupcbb= this.productGroupData;
-    modalRef.result.catch(
-      (result) => {
-        if (result == true) {
+    modalRef.result.finally(()=>{
         this.getLocation();
-        }
-      },
+        } 
     );
   }
    // hàm gọi modal unitcount
@@ -653,12 +640,9 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
       keyboard: false
     });
-    modalRef.result.catch(
-      (result) => {
-        if (result == true) {
-        this.getunit();
+    modalRef.result.finally(()=>{
+          this.getunit();
         }
-      },
     );
    }
    // hàm xóa ảnh
@@ -667,5 +651,52 @@ export class TbProductRtcFormComponent implements OnInit, AfterViewInit {
       LocationImg: null
     });
     this.previewImageUrl = null;
+  }
+
+  private inIdListValidator = (
+    listGetter: () => Array<{ ID: number }>
+  ): ValidatorFn => {
+    return (control: AbstractControl) => {
+      const value = control.value;
+      if (value === null || value === undefined || value === '') {
+        return null; // để Validators.required xử lý null/empty
+      }
+      const list = listGetter() || [];
+      const found = list.some((item) => item?.ID === value);
+      return found ? null : { notInOptions: true };
+    };
+  };
+
+  private isIdInList(id: any, list: Array<{ ID: number }>): boolean {
+    if (id === null || id === undefined || id === '') return false;
+    return Array.isArray(list) && list.some((item) => item?.ID === id);
+  }
+
+  getGroupError(): string {
+    const c = this.formDeviceInfo.get('ProductGroupRTCID');
+    if (c?.hasError('required')) return 'Chọn nhóm';
+    if (c?.hasError('notInOptions')) return 'Giá trị không có trong danh sách nhóm';
+    return '';
+  }
+
+  getLocationError(): string {
+    const c = this.formDeviceInfo.get('ProductLocationID');
+    if (c?.hasError('required')) return 'Chọn vị trí';
+    if (c?.hasError('notInOptions')) return 'Giá trị không có trong danh sách vị trí';
+    return '';
+  }
+
+  getFirmError(): string {
+    const c = this.formDeviceInfo.get('FirmID');
+    if (c?.hasError('required')) return 'Vui lòng chọn hãng';
+    if (c?.hasError('notInOptions')) return 'Giá trị không có trong danh sách hãng';
+    return '';
+  }
+
+  getUnitError(): string {
+    const c = this.formDeviceInfo.get('UnitCountID');
+    if (c?.hasError('required')) return 'Vui lòng chọn đơn vị tính';
+    if (c?.hasError('notInOptions')) return 'Giá trị không có trong danh sách đơn vị tính';
+    return '';
   }
 }

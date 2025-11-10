@@ -138,7 +138,7 @@ export class RulePayComponent implements OnInit, AfterViewInit {
     this.table = new Tabulator('#rule-pay-table', {
       data: this.dataTable,
        ...DEFAULT_TABLE_CONFIG,
-      paginationMode: 'local',
+      paginationMode: 'local',  
       paginationSize: 50,
       paginationSizeSelector: [10, 30, 50, 100, 300, 500],
       layout: 'fitDataStretch',

@@ -114,11 +114,17 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
       this.drawTable();
     });
   }
-  getListEmployee() {
-    this.TsAssetManagementPersonalService.getListEmployee().subscribe((respon: any) => {
-      this.emPloyeeLists = respon.employees;
-      console.log(this.emPloyeeLists);
-    });
+getListEmployee() {
+    const request = {
+      status: 0,
+      departmentid: 0,
+      keyword: '',
+    };
+    this.TsAssetManagementPersonalService
+      .getEmployee(request)
+      .subscribe((respon: any) => {
+        this.emPloyeeLists = respon.data;
+      });
   }
   getProjectAjaxParams() {
     return {

@@ -101,15 +101,16 @@ export class VehicleManagementComponent implements AfterViewInit {
     this.getVehicleManagement();
   }
 
-  async getVehicleManagement() {
+  getVehicleManagement() {
     this.VehicleManagementService.getVehicleManagement().subscribe({
       next: (response: any) => {
         console.log('tb_vehicleManagement', response.data);
         this.vehicleMnagemens = response.data;
         this.drawTbVehicle();
       },
-      error: (error) => {
-        console.error('Lỗi:', error);
+      error: (response: any) => {
+        console.error('Lỗi:', response.error.message);
+          this.notification.error('Lỗi', response.error.message);
       },
     });
   }

@@ -8,7 +8,6 @@ import {
 } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import * as bootstrap from 'bootstrap';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { CommonModule } from '@angular/common';
 import {
@@ -36,8 +35,7 @@ import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { BillExportService } from '../../bill-export-service/bill-export.service';
 import { ProductsaleServiceService } from '../../../ProductSale/product-sale-service/product-sale-service.service';
-import { IS_ADMIN } from '../../../../../../app.config';
-import { DEPARTMENTID } from '../../../../../../app.config';
+import { AppUserService } from '../../../../../../services/app-user.service';
 import { DateTime } from 'luxon';
 // Thêm các import này vào đầu file
 import {
@@ -80,6 +78,7 @@ import { firstValueFrom } from 'rxjs';
   styleUrl: './scan-bill.component.css',
 })
 export class ScanBillComponent implements OnInit, AfterViewInit {
+  @Input() warehouseCode: string = "HN";
   searchParams = {
     keyword: '',
   };

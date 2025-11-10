@@ -33,6 +33,9 @@ function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
 }
+import { forkJoin } from 'rxjs';
+import { AuthService } from '../../../../../auth/auth.service';
+import { Observable } from 'rxjs';
 // @ts-ignore
 import { saveAs } from 'file-saver';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
@@ -69,12 +72,13 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
 export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
   @ViewChild('datatableAssetAllocation', { static: false })
   datatableAssetAllocationRef!: ElementRef;
-
+  public detailTabTitle: string = 'Thông tin biên bản cấp phát:';
   @ViewChild('datatableAllocationDetail', { static: false })
   datatableAllocationDetailRef!: ElementRef;
   constructor(private notification: NzNotificationService,
     private assetAllocationService: AssetAllocationService,
     private TsAssetManagementPersonalService: TsAssetManagementPersonalService,
+    private authService: AuthService
   ) { }
   selectedRow: any = "";
   sizeTbDetail: any = '0';
@@ -97,15 +101,16 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
     { ID: 0, Name: 'Chưa duyệt' },
     { ID: 1, Name: 'Đã duyệt' }
   ];
+  currentUser: any[] = [];
   selectedApproval: number | null = null; // gán từ combobox
-
+  sizeSearch: string = '0';
 
   ngOnInit() {
   }
   ngAfterViewInit(): void {
     this.getAllocation();
     this.getListEmployee();
-
+    this.getCurrentUser();
   }
   getAllocation(): void {
     let statusString = '-1';
@@ -127,7 +132,11 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
       this.drawTable();
     });
   }
-
+  getCurrentUser() {
+    this.authService.getCurrentUser().subscribe((res: any) => {
+      this.currentUser = res.data;
+    });
+  }
   getListEmployee() {
     const request = {
       status: 0,
@@ -148,9 +157,10 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
     this.getAllocation();
   }
 
-  toggleSearchPanel(): void {
-    this.isSearchVisible = !this.isSearchVisible;
+  toggleSearchPanel() {
+    this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
   }
+
   //Vẽ bảng master cấp phát
   public drawTable(): void {
     // đảm bảo view đã có element
@@ -168,20 +178,20 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
       {
         data: this.assetAllocationData,
         ...DEFAULT_TABLE_CONFIG,
-        paginationMode: 'local',
-        layout: 'fitDataStretch',
-        selectableRows: 1,
+
         columns: [
 
           {
             title: 'STT',
             formatter: 'rownum',
             hozAlign: 'center',
+
             headerHozAlign: 'center',
             width: 60,
             frozen: true,
+
           },
-          { title: 'ID', field: 'ID', visible: false },
+          { title: 'ID', field: 'ID', visible: false, frozen: true, width: 60, },
           {
             title: 'Cá Nhân Duyệt',
             field: 'IsApprovedPersonalProperty',
@@ -189,7 +199,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
             ,
             hozAlign: 'center',
             headerHozAlign: 'center',
-
+            frozen: true, width: 100,
           },
           {
             title: 'HR Duyệt',
@@ -198,7 +208,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
             ,
             hozAlign: 'center',
             headerHozAlign: 'center',
-
+            frozen: true, width: 100,
           },
           {
             title: 'KT Duyệt',
@@ -206,33 +216,38 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
             formatter: (cell) => `<input type="checkbox" ${(['true', true, 1, '1'].includes(cell.getValue()) ? 'checked' : '')} onclick="return false;">`
             ,
             hozAlign: 'center',
-            headerHozAlign: 'center',
-
+            headerHozAlign: 'center', width: 100,
+            frozen: true,
 
           },
-          { title: 'Mã', field: 'Code' },
+          { title: 'Mã', field: 'Code', frozen: true, width: 200, },
           {
             title: 'Ngày mượn',
             field: 'DateAllocation',
             hozAlign: 'center',
             headerHozAlign: 'center',
 
-            formatter: formatDateCell,
+            formatter: formatDateCell, width: 160,
           },
           {
-            title: 'Người mượn', field: 'EmployeeName',
+            title: 'Cấp phát cho', field: 'EmployeeName', width: 260,
             headerHozAlign: 'center'
           },
-          { title: 'Phòng ban', field: 'Department' },
-          { title: 'Vị trí ', field: 'Possition' },
-          { title: 'Ghi chú', field: 'Note' }
+          {
+            title: 'Cấp phát cho', field: 'EmployeeID',
+            headerHozAlign: 'center',
+            visible: false
+          },
+          { title: 'Phòng ban', width: 160, field: 'Department' },
+          { title: 'Vị trí ', width: 160, field: 'Possition' },
+          { title: 'Ghi chú', width: 460, field: 'Note' }
         ],
       });
     this.allocationTable.on('rowClick', (evt, row: RowComponent) => {
       const rowData = row.getData();
       this.selectedRow = rowData;
       this.sizeTbDetail = null;
-
+      this.detailTabTitle = `Thông tin biên bản cấp phát: ${rowData['Code']}`;
       const id = rowData['ID'];
       this.assetAllocationService.getAssetAllocationDetail(id).subscribe(res => {
         const details = Array.isArray(res.data.assetsAllocationDetail)
@@ -262,10 +277,10 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
       {
         data: this.allocationDetailData,
         ...DEFAULT_TABLE_CONFIG,
-        layout: 'fitDataStretch',
+        layout: 'fitColumns',
         paginationSize: 5,
-        paginationMode:'local',
-        height: '83vh',
+        paginationMode: 'local',
+        height: '82vh',
         movableColumns: true,
         reactiveData: true,
         columns: [
@@ -329,14 +344,53 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
     return [];
   }
   onDeleteAllocation() {
-    const selectedIds = this.getSelectedIds();
-    const payloadAllocation = {
+    const selectedRows = this.allocationTable?.getSelectedData() || [];
+
+    if (selectedRows.length === 0) {
+      this.notification.warning('Cảnh báo', 'Chưa chọn biên bản để xóa!');
+      return;
+    }
+
+    // Những cái đã KT duyệt
+    const locked = selectedRows.filter(x =>
+      ['true', true, 1, '1'].includes(x.IsApproveAccountant)
+    );
+
+    // Những cái được phép xóa
+    const deletable = selectedRows.filter(x =>
+      !['true', true, 1, '1'].includes(x.IsApproveAccountant)
+    );
+
+    if (deletable.length === 0) {
+      const lockedCodes = locked.map(x => x.Code).join(', ');
+      this.notification.warning(
+        'Không thể xóa',
+        `Tất cả các biên bản đã được kế toán duyệt, không thể xóa. Danh sách: ${lockedCodes}`
+      );
+      return;
+    }
+
+    // Nếu có cái không xóa được thì báo trước
+    if (locked.length > 0) {
+      const lockedCodes = locked.map(x => x.Code).join(', ');
+      this.notification.warning(
+        'Một phần không được xóa',
+        `Các biên bản sau đã được kế toán duyệt, không thể xóa: ${lockedCodes}`
+      );
+    }
+
+    const payloads = deletable.map(x => ({
       tSAssetAllocation: {
-        ID: selectedIds[0],
+        ID: x.ID,
         IsDeleted: true
       }
-    };
-    this.assetAllocationService.saveData(payloadAllocation).subscribe({
+    }));
+
+    const requests = payloads.map(p =>
+      this.assetAllocationService.saveData(p)
+    );
+
+    forkJoin(requests).subscribe({
       next: () => {
         this.notification.success(NOTIFICATION_TITLE.success, 'Xóa biên bản thành công!');
         this.getAllocation();
@@ -348,6 +402,8 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
       }
     });
   }
+
+
   validateApprove(number: 1 | 2 | 3 | 4 | 5 | 6): boolean {
     if (!this.allocationTable) {
       this.notification.warning("Thông báo", "Chọn một biên bản để duyệt");
@@ -384,74 +440,151 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
     }
     return true;
   }
-  updateApprove(number: 1 | 2 | 3 | 4 | 5 | 6) {
-    if (!this.validateApprove(number)) return;
+  updateApprove(action: 1 | 2 | 3 | 4 | 5 | 6) {
     if (!this.allocationTable) {
-      this.notification.warning("Thông báo", `Chọn một biên bản để thao tác`);
+      this.notification.warning('Thông báo', 'Lỗi bảng, không thể thao tác');
       return;
     }
-    const selectedRow = this.allocationTable.getSelectedData()?.[0];
-    if (!selectedRow) {
-      this.notification.warning("Thông báo", "Chưa chọn biên bản để duyệt");
+
+    // 1. Lấy tất cả hàng đã chọn
+    const selectedRows = this.allocationTable.getSelectedData();
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning('Thông báo', 'Chưa chọn biên bản để duyệt');
       return;
     }
-    const ID = selectedRow.ID;
-    const code = selectedRow.Code || 'Biên bản';
-    let updateApprove: {
-      tSAssetAllocation: {
-        ID: number,
-        IsDeleted?: boolean,
-        Status?: number,
-        IsApproveAccountant?: boolean,
-        IsApprovedPersonalProperty?: boolean,
-        DateApproveAccountant?: string,
-        DateApprovedPersonalProperty?: string,
-        DateApprovedHR?: string
+
+    // 2. Phân loại hàng hợp lệ và không hợp lệ
+    const validRows: any[] = [];
+    const invalidRows: { row: any, message: string }[] = [];
+
+    selectedRows.forEach(row => {
+      let isValid = true;
+      let message = '';
+
+      // Logic kiểm tra (tương tự hàm validateApprove cũ)
+      switch (action) {
+        case 2: // Hủy cá nhân
+          if (row.Status == 1) {
+            isValid = false;
+            message = `Biên bản ${row.Code} đã được HR duyệt, không thể hủy`;
+          }
+          break;
+        case 3: // HR duyệt
+          if (row.IsApprovedPersonalProperty != true) {
+            isValid = false;
+            message = `Biên bản ${row.Code} chưa được cá nhân duyệt, HR không thể duyệt!`;
+          }
+          break;
+        case 4: // Hủy HR
+          if (row.IsApproveAccountant == true) {
+            isValid = false;
+            message = `Biên bản ${row.Code} đã được Kế toán duyệt, không thể hủy`;
+          }
+          break;
+        case 5: // KT duyệt
+          if (row.Status != 1) {
+            isValid = false;
+            message = `Biên bản ${row.Code} chưa được HR duyệt, Kế Toán không thể duyệt!`;
+          }
+          break;
+        // case 1 (Duyệt cá nhân) và case 6 (Hủy KT) không có điều kiện
       }
-    } = { tSAssetAllocation: { ID } };
-    const currentDate = new Date().toISOString();
-    switch (number) {
-      case 1:
-        updateApprove.tSAssetAllocation.IsApprovedPersonalProperty = true;
-        updateApprove.tSAssetAllocation.DateApprovedPersonalProperty = currentDate;
-        break;
-      case 2:
-        updateApprove.tSAssetAllocation.IsApprovedPersonalProperty = false;
-        updateApprove.tSAssetAllocation.DateApprovedPersonalProperty = currentDate;
-        break;
-      case 3:
-        this.saveOnApprove();
-        updateApprove.tSAssetAllocation.Status = 1;
-        updateApprove.tSAssetAllocation.DateApprovedHR = currentDate;
-        break;
-      case 4:
-        updateApprove.tSAssetAllocation.Status = 0;
-        updateApprove.tSAssetAllocation.DateApprovedHR = currentDate;
-        break;
-      case 5:
-        this.saveOnApprove();
-        updateApprove.tSAssetAllocation.IsApproveAccountant = true;
-        updateApprove.tSAssetAllocation.DateApproveAccountant = currentDate;
-        break;
-      case 6:
-        updateApprove.tSAssetAllocation.IsApproveAccountant = false;
-        updateApprove.tSAssetAllocation.DateApproveAccountant = currentDate;
-        break;
-      default:
-        this.notification.error("Lỗi", "Hành động không hợp lệ");
-        return;
+
+      if (isValid) {
+        validRows.push(row);
+      } else {
+        invalidRows.push({ row, message });
+      }
+    });
+
+    // 3. Thông báo cho các hàng không hợp lệ (nếu có)
+    if (invalidRows.length > 0) {
+      const invalidCodes = invalidRows.map(item => item.row.Code).join(', ');
+      // (Tùy chọn) Bạn có thể hiển thị chi tiết lỗi bằng cách join item.message
+      this.notification.warning(
+        'Một số biên bản không hợp lệ',
+        `Các biên bản sau bị bỏ qua: ${invalidCodes}`
+      );
     }
-    this.assetAllocationService.saveData(updateApprove).subscribe({
+
+    // 4. Nếu không có hàng nào hợp lệ thì dừng
+    if (validRows.length === 0) {
+      this.notification.error('Thất bại', 'Không có biên bản nào hợp lệ để thực hiện.');
+      return;
+    }
+
+    // 5. Xử lý nghiệp vụ đặc biệt (action 5)
+    // Chỉ chạy saveOnApprove nếu hàng được click cuối cùng (selectedRow)
+    // nằm trong danh sách hợp lệ.
+    if (action === 5) {
+      const lastSelectedIsValid = validRows.some(
+        row => row.ID === this.selectedRow?.ID
+      );
+      if (lastSelectedIsValid) {
+        this.saveOnApprove();
+      }
+    }
+
+    const currentDate = new Date().toISOString();
+
+    // 6. Tạo payloads CHỈ TỪ các hàng hợp lệ
+    const payloads = validRows.map(row => {
+      const ID = row.ID;
+      const updatePayload: {
+        tSAssetAllocation: {
+          ID: number;
+          Status?: number;
+          IsApproveAccountant?: boolean;
+          IsApprovedPersonalProperty?: boolean;
+          DateApproveAccountant?: string;
+          DateApprovedPersonalProperty?: string;
+          DateApprovedHR?: string;
+        };
+      } = { tSAssetAllocation: { ID } };
+
+      switch (action) {
+        case 1: updatePayload.tSAssetAllocation.IsApprovedPersonalProperty = true; updatePayload.tSAssetAllocation.DateApprovedPersonalProperty = currentDate; break;
+        case 2: updatePayload.tSAssetAllocation.IsApprovedPersonalProperty = false; updatePayload.tSAssetAllocation.DateApprovedPersonalProperty = currentDate; break;
+        case 3: updatePayload.tSAssetAllocation.Status = 1; updatePayload.tSAssetAllocation.DateApprovedHR = currentDate; break;
+        case 4: updatePayload.tSAssetAllocation.Status = 0; updatePayload.tSAssetAllocation.DateApprovedHR = currentDate; break;
+        case 5: updatePayload.tSAssetAllocation.IsApproveAccountant = true; updatePayload.tSAssetAllocation.DateApproveAccountant = currentDate; break;
+        case 6: updatePayload.tSAssetAllocation.IsApproveAccountant = false; updatePayload.tSAssetAllocation.DateApproveAccountant = currentDate; break;
+      }
+      return updatePayload;
+    });
+
+    // 7. Tạo mảng requests
+    const requests$ = payloads.map(payload => {
+      if (action === 1 || action === 2) {
+        return this.assetAllocationService.saveAppropvePersonal(payload);
+      } else if (action === 5 || action === 6) {
+        return this.assetAllocationService.saveAppropveAccountant(payload);
+      } else { // 3, 4
+        return this.assetAllocationService.saveData(payload);
+      }
+    });
+
+    // 8. Thực thi đồng loạt và thông báo
+    forkJoin(requests$).subscribe({
       next: () => {
-        this.notification.success("Thành công", `${code} đã được cập nhật thành công`);
+        const approvedCodes = validRows.map(x => x.Code).join(', ');
+        this.notification.success(
+          'Thành công',
+          `Đã cập nhật thành công các biên bản: ${approvedCodes}`
+        );
+
         this.getAllocation();
+        this.allocationDetailData = [];
+        this.drawDetail();
+        this.sizeTbDetail = '0';
       },
-      error: (err) => {
-        this.notification.error("Lỗi", `Cập nhật ${code} thất bại`);
+      error: (err: any) => {
+        console.error('Lỗi updateApprove (nhiều)', err);
+        const msg = err?.error?.message || 'Một số cập nhật thất bại';
+        this.notification.error('Lỗi', msg);
       }
     });
   }
-
   saveOnApprove() {
     const selectedDetail = this.allocationDetailTable?.getData();
     console.log(selectedDetail);
@@ -459,6 +592,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để duyệt.');
       return;
     }
+
     const payloadOnApprove = {
       tSAssetManagements: selectedDetail.map(item => ({
         ID: item.AssetManagementID,
@@ -466,7 +600,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
         StatusID: 2,
         Status: "Đang sử dụng",
         DepartmentID: item.DepartmentID || 0,
-        EmployeeID: item.EmployeeID,
+        EmployeeID: this.selectedRow.EmployeeID,
         TSAssetCode: item.TSAssetCode,
         TSAssetName: item.TSAssetName,
         Note: item.Note || '',
@@ -474,7 +608,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
       tSAllocationEvictionAssets: selectedDetail.map(item => ({
         ID: 0,
         AssetManagementID: item.AssetManagementID,
-        EmployeeID: item.EmployeeID,
+        EmployeeID: this.selectedRow.EmployeeID,
         ChucVuID: item.ChucVuHDID,
         DepartmentID: item.DepartmentID,
         DateAllocation: DateTime.now(),
@@ -484,7 +618,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
 
     };
     console.log(payloadOnApprove);
-    this.assetAllocationService.saveData(payloadOnApprove).subscribe({
+    this.assetAllocationService.saveAppropveAccountant(payloadOnApprove).subscribe({
       next: () => {
         this.notification.success(NOTIFICATION_TITLE.success, "Thành công");
         this.getAllocation();
@@ -633,5 +767,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
   }
   closePanel() {
     this.sizeTbDetail = '0';
+
+    this.detailTabTitle = 'Thông tin biên bản cấp phát';
   }
 }

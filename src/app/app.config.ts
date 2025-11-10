@@ -43,3 +43,8 @@ export const DEPARTMENTID = 6;
 export const IS_ADMIN = true;
 export const LOGIN_NAME = 'ADMINSW';
 export const SERVER_PATH = 'D:/LeTheAnh/RTC/UPLOADFILE/TrainingRegistration/';
+export const NOTIFICATION_TITLE = {
+  error: 'Lỗi',
+  success: 'Thông báo',
+  warning: 'Thông báo',
+};

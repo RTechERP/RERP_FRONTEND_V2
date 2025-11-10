@@ -85,6 +85,29 @@ export class TsAssetReuseFormComponent implements OnInit, AfterViewInit {
     });
 
   }
+  formatDateForInput(value: any): string {
+    if (!value) return '';
+
+    // Nếu là Date
+    if (value instanceof Date) {
+      const dt = DateTime.fromJSDate(value);
+      return dt.isValid ? dt.toFormat('yyyy-MM-dd') : '';
+    }
+
+    const str = String(value).trim();
+    if (!str) return '';
+
+    // Thử ISO: 2024-10-01T00:00:00, 2024-10-01, 2024-10-01T00:00:00+07:00,...
+    let dt = DateTime.fromISO(str);
+    if (dt.isValid) return dt.toFormat('yyyy-MM-dd');
+
+    // Thử dd/MM/yyyy
+    dt = DateTime.fromFormat(str, 'dd/MM/yyyy');
+    if (dt.isValid) return dt.toFormat('yyyy-MM-dd');
+
+    // Không parse được thì trả rỗng
+    return '';
+  }
   formatCurrency(value: number | null): string {
     if (value === null || isNaN(value)) return '';
     return value.toLocaleString('vi-VN'); // 600000 → 600.000
@@ -105,10 +128,43 @@ export class TsAssetReuseFormComponent implements OnInit, AfterViewInit {
       keyword: ''
     };
     this.assetManagementPersonalService.getEmployee(request).subscribe((respon: any) => {
-      this.emPloyeeLists = respon.employees;
+      this.emPloyeeLists = respon.data;
     });
   }
+  private validateForm(): boolean {
+
+
+    // Check ngày báo sửa
+    if (!this.dateRepair || this.dateRepair.trim() === '') {
+      this.notification.error('Thông báo', 'Vui lòng đưa vào sửa dụng lại.');
+      return false;
+    }
+
+    // Check lý do sửa chữa
+    if (!this.reason || this.reason.trim() === '') {
+      this.notification.error('Thông báo', 'Vui lòng nhập lí do đưa vào sử dụng lại.');
+      return false;
+    }
+   if (!this.actualCosts || this.actualCosts==0) {
+      this.notification.error('Thông báo', 'Vui lòng nhập chi phí thực tế.');
+      return false;
+    }
+    if (!this.contentRepair || this.contentRepair.trim() === '') {
+      this.notification.error('Thông báo', 'Vui lòng nhập nội dung sửa chữa.');
+      return false;
+    }
+        if (!this.dataInput1.Name || this.dataInput1.Name.trim() === '') {
+      this.notification.error('Thông báo', 'Vui lòng nhập đơn vị sửa chữa.');
+      return false;
+    }
+  
+
+    return true;
+  }
   saveRepairAsset() {
+     if (!this.validateForm()) {
+    return;
+  }
     const payloadRepair = {
       tSRepairAssets: [{
         ID: this.dataInput1.ID,

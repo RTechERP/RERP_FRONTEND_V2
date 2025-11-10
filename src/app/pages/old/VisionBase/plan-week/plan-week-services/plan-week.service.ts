@@ -23,12 +23,8 @@ export class PlanWeekService {
 
   getEmployees(status: number): Observable<any> {
     return this.http.get<any>(
-      'https://localhost:7187/api/Employee/get-employees',
-      {
-        params: {
-          status: status.toString(),
-        },
-      }
+      environment.host + 'api/Employee/get-employees',
+      { params: { status: status.toString() } }
     );
   }
 
@@ -69,4 +65,13 @@ export class PlanWeekService {
       String(date.getSeconds()).padStart(2, '0')
     );
   }
+
+  delete(userId: number, datePlan: Date): Observable<any>{
+    const dto = {
+      userId: userId,
+      datePlan: datePlan
+    };
+    return this.http.post<any>(this._url + 'delete', dto);
+  }
+
 }

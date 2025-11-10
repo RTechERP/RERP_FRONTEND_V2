@@ -14,7 +14,7 @@ import { TradePriceComponent } from './pages/old/Sale/TinhGia/trade-price/trade-
 import { QuotationSaleComponent } from './pages/old/Sale/TinhGia/quotation-sale/quotation-sale.component';
 import { ProjectMachinePriceComponent } from './pages/old/Sale/TinhGia/project-machine-price/project-machine-price.component';
 import { PlanWeekComponent } from './pages/old/VisionBase/plan-week/plan-week.component';
-import { CustomerComponent } from './pages/old/VisionBase/customer/customer.component';
+import { CustomerComponent } from './pages/crm/customers/customer/customer.component';
 
 import { ProjectListWorkReportComponent } from './pages/old/project/project-list-work-report/project-list-work-report.component';
 import { ProjectWorkCategoryComponent } from './pages/old/project/project-work-category/project-work-category.component';

@@ -12,6 +12,7 @@ export class AssetsRecoveryService {
   urlgetassetsrecoverydetail = `${environment.host}api/AssetsRecovery/get-asset-recovery-detail`;
   urlGetRecoveryByEmployee = `${environment.host}api/AssetsRecovery/get-recovery-by-employee`;
   urlSaveRecovery = `${environment.host}api/AssetsRecovery/save-data`;
+   url = `${environment.host}api/AssetsRecovery/`;
   constructor(private http: HttpClient) {}
   getAssetsRecovery(request: any): Observable<any> {
     return this.http.post<any>(this.urlgetassetsrecovery, request);
@@ -41,6 +42,12 @@ export class AssetsRecoveryService {
   }
   saveAssetRecovery(assetrecovery: any): Observable<any> {
     return this.http.post<any>(this.urlSaveRecovery, assetrecovery);
+  }
+   saveDataPersonal(request: any) {
+    return this.http.post<any>(`${this.url + `save-data-personal`}`, request);
+  }
+  saveDataKT(request: any) {
+    return this.http.post<any>(`${this.url + `save-data-kt`}`, request);
   }
   exportRecoveryReport(request: any): Observable<Blob> {
     return this.http.post(

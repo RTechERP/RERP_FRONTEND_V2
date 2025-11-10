@@ -48,7 +48,6 @@ import { PermissionService } from '../../services/permission.service';
 import { HasPermissionDirective } from '../../directives/has-permission.directive';
 import { DisablePermissionDirective } from '../../directives/disable-permission.directive';
 import { DEFAULT_TABLE_CONFIG } from '../../tabulator-default.config';
-// import { log } from 'ng-zorro-antd/core/logger';
 
 @Component({
   selector: 'app-training-registration',

@@ -4,8 +4,8 @@
         <div class="card h-100 border-0 rounded-0">
           <div class="card-header bg-white p-1">
             <div class="d-flex gap-1">
-              <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="openModalProductGroup()">
-                <nz-icon nzType="edit" nzTheme="fill" /> Sửa nhóm TB
+              <button class="btn-add" nz-button nzType="default" nzSize="small" (click)="openModalProductGroup()">
+                <img src="assets/icon/action_add_item_16.png" alt="Thêm nhóm TB" /> Thêm nhóm TB
               </button>
               <!-- <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="updateProductSale()">
                 <nz-icon nzType="edit" nzTheme="fill" /> Sửa thiết bị
@@ -14,16 +14,16 @@
                 <nz-icon nzType="file-excel" nzTheme="outline" /> Nhập stock excel
               </button> -->
               <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
-                <nz-icon nzType="file-excel" nzTheme="outline" /> Xuất tồn kho
+                <img src="assets/icon/export_warehouse.png" alt="Xuất tồn kho" /> Xuất tồn kho
               </button>
               <button class="fs-12 btn" nz-button nzType="default" nzSize="small" >
-                <nz-icon nzType="file-excel" nzTheme="outline" /> Nhập kho
+                <img src="assets/icon/import_warehouse.png" alt="Nhập kho" /> Nhập kho
               </button>
               <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="openModalInventoryBorrowNCC()" >
-                <nz-icon nzType="file-excel" nzTheme="outline" /> Báo cáo NCC
+                <img src="assets/icon/report_ncc.png" alt="Báo cáo NCC" /> Báo cáo NCC 
               </button>
               <button class="fs-12 btn" nz-button nzType="default" nzSize="small">
-                <nz-icon nzType="file-excel" nzTheme="outline" /> Yêu cầu mượn
+                <img src="assets/icon/purchase_request.png" alt="Yêu cầu mượn" /> Yêu cầu mượn
               </button>
               <div style="display: flex; width: 40%;" class="ms-auto">      
                 <label nz-checkbox [(ngModel)]="searchParam.checkedStock" name="checkedStock"  (nzCheckedChange)="getAllProductSale()">Stock</label>
@@ -41,16 +41,16 @@
                 <nz-splitter nzLayout="vertical">
                     <!-- table productGroup -->
                   <nz-splitter-panel nzSize="70%">
-                    <div id="table_productgroup"></div>
+                    <div #tableProductGroup></div>
                   </nz-splitter-panel>
                   <!-- table productGroupWareHouse -->
                   <nz-splitter-panel>
-                    <div id="table_pgwarehouse"></div>
+                    <div #tablePGWarehouse></div>
                   </nz-splitter-panel>
                 </nz-splitter>
               </nz-splitter-panel>
               <nz-splitter-panel [nzCollapsible]="true" nzSize="70%">
-                <div id="table_inventory"></div>
+                <div #tableInventory></div>
               </nz-splitter-panel>
             </nz-splitter>
           </div>

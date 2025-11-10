@@ -9,7 +9,7 @@ import { environment } from '../../../../../../../environments/environment';
 })
 export class AssetsManagementService {
   urlGetAssets = `${environment.host}api/Assets/get-asset`;
-  urlDepartment = `${environment.host}api/Department/getall`;
+  urlDepartment = `${environment.host}api/Department/get-all`;
   constructor(private httpclient: HttpClient) {}
   saveDataAsset(assets: any): Observable<any> {
     const url = `${environment.host}api/Assets/save-data`;

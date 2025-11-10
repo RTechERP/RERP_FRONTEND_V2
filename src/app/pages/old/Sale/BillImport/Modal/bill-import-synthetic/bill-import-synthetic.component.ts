@@ -36,8 +36,7 @@ import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { BillImportServiceService } from '../../bill-import-service/bill-import-service.service';
 import { ProductsaleServiceService } from '../../../ProductSale/product-sale-service/product-sale-service.service';
-import { IS_ADMIN } from '../../../../../../app.config';
-import { DEPARTMENTID } from '../../../../../../app.config';
+import { AppUserService } from '../../../../../../services/app-user.service';
 import { DateTime } from 'luxon';
 // Thêm các import này vào đầu file
 import {
@@ -129,7 +128,8 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
-    private billExportService: BillExportService
+    private billExportService: BillExportService,
+    private appUserService: AppUserService
   ) {}
   ngOnInit(): void {
     this.getProductGroup();
@@ -245,7 +245,10 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
     window.URL.revokeObjectURL(link.href);
   }
   getProductGroup() {
-    this.billExportService.getProductGroup(IS_ADMIN, DEPARTMENTID).subscribe({
+    this.billExportService.getProductGroup(
+      this.appUserService.isAdmin,
+      this.appUserService.departmentID || 0
+    ).subscribe({
       next: (res) => {
         if (res?.data && Array.isArray(res.data)) {
           this.dataProductGroup = res.data;

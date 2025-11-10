@@ -853,6 +853,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
     this.billImportService.getProductOption(1, ID).subscribe({
       next: (res: any) => {
         const productData = res.data;
+        console.log('productData:', productData); // Log để kiểm tra
         if (Array.isArray(productData)) {
           this.productOptions = productData
             .filter(product => product.ID > 0)

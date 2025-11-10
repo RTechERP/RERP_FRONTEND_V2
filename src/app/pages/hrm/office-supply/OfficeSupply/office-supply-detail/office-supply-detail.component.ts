@@ -179,7 +179,7 @@ clearSupplyUnit() {
 
     this.officesupplyService.adddata(payload).subscribe({
       next: () => {
-        this.notification.success('Thông báo', 'Thêm thành công!');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Thêm thành công!');
         this.activeModal.close('success');
       },
       error: () => {
@@ -201,7 +201,7 @@ clearSupplyUnit() {
 
     this.officesupplyService.updatedata(payload).subscribe({
       next: () => {
-        this.notification.success('Thông báo', 'Cập nhật thành công!');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công!');
         this.activeModal.close('success');
       },
       error: () => {

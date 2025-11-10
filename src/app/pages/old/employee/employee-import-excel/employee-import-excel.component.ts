@@ -870,7 +870,7 @@ private formatCellValue(value: any): string {
   private showSaveSummary(successCount: number, errorCount: number, totalEmployees: number) {
 
     if (errorCount === 0) {
-      this.notification.success('Thông báo', `Đã lưu ${successCount} nhân viên thành công`);
+      this.notification.success(NOTIFICATION_TITLE.success, `Đã lưu ${successCount} nhân viên thành công`);
     } else if (successCount === 0) {
       this.notification.error(NOTIFICATION_TITLE.error, `Lưu thất bại ${errorCount}/${totalEmployees} nhân viên`);
     } else {

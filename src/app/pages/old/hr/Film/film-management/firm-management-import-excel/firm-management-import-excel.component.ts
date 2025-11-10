@@ -20,10 +20,11 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
-import { UnitService } from '../../../../ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
 export const SERVER_PATH = `D:\RTC_Sw\RTC\ProductRTC`;
 import { NzProgressModule } from 'ng-zorro-antd/progress';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';  
+import { UnitService } from '../../../../../hrm/asset/asset/ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 
 function formatDate(value: any): string | null {
   if (!value) return null;
@@ -465,7 +466,7 @@ ngOnInit() {
   }
   showSaveSummary(successCount: number, errorCount: number, totalProducts: number) {
     if (errorCount === 0) {
-      this.notification.success('Thông báo', `Đã lưu ${successCount} sản phẩm thành công`);
+      this.notification.success(NOTIFICATION_TITLE.success, `Đã lưu ${successCount} sản phẩm thành công`);
       this.closeExcelModal(); // Chỉ đóng khi thành công hoàn toàn
     } else if (successCount === 0) {
       this.notification.error(NOTIFICATION_TITLE.error, `Lưu thất bại ${errorCount}/${totalProducts} sản phẩm`);

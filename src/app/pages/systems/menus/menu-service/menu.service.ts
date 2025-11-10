@@ -46,7 +46,7 @@ import { PermissionService } from '../../../../services/permission.service';
 import { ProjectLeaderProjectTypeComponent } from '../../../old/project/project-leader-project-type/project-leader-project-type.component';
 import { MeetingMinuteComponent } from '../../../old/project/meeting-minute/meeting-minute.component';
 import { ProjectNewComponent } from '../../../old/project/project-new/project-new.component';
-import { CustomerComponent } from '../../../crm/customers/customer/customer.component';
+//import { CustomerComponent } from '../../../crm/customers/customer/customer.component';
 import { PlanWeekComponent } from '../../../old/VisionBase/plan-week/plan-week.component';
 import { TsAssetTypeComponent } from '../../../hrm/asset/asset/ts-asset-type/ts-asset-type.component';
 import { TsAssetSourceComponent } from '../../../hrm/asset/asset/ts-asset-source/ts-asset-source.component';

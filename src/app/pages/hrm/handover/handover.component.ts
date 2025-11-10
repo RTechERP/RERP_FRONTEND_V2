@@ -619,7 +619,7 @@ approveAction(
         }
 
         if (status === 1) {
-          this.notification.success('Thông báo', 'Đã duyệt thành công!');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Đã duyệt thành công!');
         } else if (status === 2) {
           this.notification.warning(NOTIFICATION_TITLE.warning, 'Đã hủy duyệt thành công!');
         }
@@ -728,7 +728,7 @@ approveAction(
         this.HandoverService.saveData(payloads).subscribe({
           next: (res) => {
             if (res.status === 1) {
-              this.notification.success('Thông báo', 'Đã xóa thành công!');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Đã xóa thành công!');
               this.getHandover();
             } else {
               this.notification.warning(
@@ -760,19 +760,18 @@ approveAction(
 
         if (!blob || blob.size === 0) {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Không có dữ liệu để xuất Excel!'
           );
           return;
         }
 
         saveAs(blob, fileName);
-        this.notification.success('Thông báo', 'Xuất Excel thành công!');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Xuất Excel thành công!');
       },
       error: (err) => {
         this.message.remove(loadingMsg);
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Xuất Excel thất bại! Vui lòng thử lại.'
         );
       },

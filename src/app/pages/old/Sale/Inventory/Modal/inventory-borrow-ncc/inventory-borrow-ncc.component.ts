@@ -25,6 +25,7 @@ import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { InventoryService } from '../../inventory-service/inventory.service';
 import { DateTime } from 'luxon';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 
 @Component({
   selector: 'app-inventory-borrow-ncc',

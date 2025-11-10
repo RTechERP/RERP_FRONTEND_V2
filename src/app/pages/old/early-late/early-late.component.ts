@@ -570,7 +570,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
   isApproveTBP() {
     const selectedRows = this.tabulator.getSelectedRows();
     if(selectedRows.length == 0) {
-      this.notification.warning("Thông báo", "Vui lòng chọn nhân viên để duyệt");
+      this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn nhân viên để duyệt");
       return ;
     } 
 

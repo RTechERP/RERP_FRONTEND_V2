@@ -616,7 +616,7 @@ export class WarehouseReleaseRequestComponent implements OnInit {
 
             if (value > quantityRemain) {
               this.notification.error(
-                'Lỗi',
+                NOTIFICATION_TITLE.error,
                 'Số lượng yêu cầu xuất không được lớn hơn số lượng còn lại'
               );
               cell.setValue(0);

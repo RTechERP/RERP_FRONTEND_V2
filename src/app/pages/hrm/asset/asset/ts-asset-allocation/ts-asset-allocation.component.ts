@@ -406,7 +406,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
 
   validateApprove(number: 1 | 2 | 3 | 4 | 5 | 6): boolean {
     if (!this.allocationTable) {
-      this.notification.warning("Thông báo", "Chọn một biên bản để duyệt");
+      this.notification.warning(NOTIFICATION_TITLE.warning, "Chọn một biên bản để duyệt");
       return false;
     }
     const selectRow = this.allocationTable.getSelectedData();
@@ -414,25 +414,25 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
       switch (number) {
         case 4:
           if (row.IsApproveAccountant == true) {
-            this.notification.warning("Thông báo", `Biên bản ${row.Code} đã được Kế toán duyệt, không thể hủy`);
+            this.notification.warning(NOTIFICATION_TITLE.warning, `Biên bản ${row.Code} đã được Kế toán duyệt, không thể hủy`);
             return false;
           }
           break;
         case 2:
           if (row.Status == 1) {
-            this.notification.warning("Thông báo", `Biên bản ${row.Code} đã được HR duyệt, không thể hủy`);
+            this.notification.warning(NOTIFICATION_TITLE.warning, `Biên bản ${row.Code} đã được HR duyệt, không thể hủy`);
             return false;
           }
           break;
         case 3:
           if (row.IsApprovedPersonalProperty != true) {
-            this.notification.warning("Thông báo", `Biên bản ${row.Code} chưa được cá nhân duyệt, HR không thể duyệt!`);
+            this.notification.warning(NOTIFICATION_TITLE.warning, `Biên bản ${row.Code} chưa được cá nhân duyệt, HR không thể duyệt!`);
             return false;
           }
           break;
         case 5:
           if (row.Status != 1) {
-            this.notification.warning("Thông báo", `Biên bản ${row.Code} chưa được HR duyệt, Kế Toán không thể duyệt!`);
+            this.notification.warning(NOTIFICATION_TITLE.warning, `Biên bản ${row.Code} chưa được HR duyệt, Kế Toán không thể duyệt!`);
             return false;
           }
           break;
@@ -442,14 +442,14 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
   }
   updateApprove(action: 1 | 2 | 3 | 4 | 5 | 6) {
     if (!this.allocationTable) {
-      this.notification.warning('Thông báo', 'Lỗi bảng, không thể thao tác');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Lỗi bảng, không thể thao tác');
       return;
     }
 
     // 1. Lấy tất cả hàng đã chọn
     const selectedRows = this.allocationTable.getSelectedData();
     if (!selectedRows || selectedRows.length === 0) {
-      this.notification.warning('Thông báo', 'Chưa chọn biên bản để duyệt');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Chưa chọn biên bản để duyệt');
       return;
     }
 
@@ -502,7 +502,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
       const invalidCodes = invalidRows.map(item => item.row.Code).join(', ');
       // (Tùy chọn) Bạn có thể hiển thị chi tiết lỗi bằng cách join item.message
       this.notification.warning(
-        'Một số biên bản không hợp lệ',
+        NOTIFICATION_TITLE.warning,
         `Các biên bản sau bị bỏ qua: ${invalidCodes}`
       );
     }
@@ -568,8 +568,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
     forkJoin(requests$).subscribe({
       next: () => {
         const approvedCodes = validRows.map(x => x.Code).join(', ');
-        this.notification.success(
-          'Thành công',
+        this.notification.success(NOTIFICATION_TITLE.success,
           `Đã cập nhật thành công các biên bản: ${approvedCodes}`
         );
 
@@ -581,7 +580,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
       error: (err: any) => {
         console.error('Lỗi updateApprove (nhiều)', err);
         const msg = err?.error?.message || 'Một số cập nhật thất bại';
-        this.notification.error('Lỗi', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
       }
     });
   }

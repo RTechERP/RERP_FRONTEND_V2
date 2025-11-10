@@ -665,7 +665,7 @@ export class FactoryVisitRegistrationComponent
   editRegistration(): void {
     if (!this.selectedRegistration) {
       this.notification.warning(
-        'Cảnh báo',
+        NOTIFICATION_TITLE.warning,
         'Vui lòng chọn một đăng ký để chỉnh sửa'
       );
       return;
@@ -769,7 +769,7 @@ export class FactoryVisitRegistrationComponent
     const clientErrors = this.validateRegistrationForm();
     if (clientErrors.length > 0) {
       clientErrors.forEach((msg) =>
-        this.notification.error('Lỗi nhập liệu', msg)
+        this.notification.error(NOTIFICATION_TITLE.error, msg)
       );
       return;
     }
@@ -789,7 +789,7 @@ export class FactoryVisitRegistrationComponent
         .subscribe({
           next: () => {
             this.notification.success(
-              'Thành công',
+              NOTIFICATION_TITLE.success,
               'Cập nhật đăng ký thành công'
             );
             this.isRegistrationModalVisible = false;
@@ -862,7 +862,7 @@ export class FactoryVisitRegistrationComponent
       this.notification.error(NOTIFICATION_TITLE.error, error.message);
     } else {
       this.notification.error(
-        'Lỗi',
+        NOTIFICATION_TITLE.error,
         `Có lỗi xảy ra khi ${action.toLowerCase()}`
       );
     }
@@ -878,7 +878,7 @@ export class FactoryVisitRegistrationComponent
       .subscribe({
         next: () => {
           this.notification.success(
-            'Thông báo',
+            NOTIFICATION_TITLE.success,
             'Email thông báo đã được gửi đến quản lý nhà máy'
           );
         },
@@ -921,7 +921,7 @@ export class FactoryVisitRegistrationComponent
   approveRegistration(): void {
     if (!this.selectedRegistration) {
       this.notification.warning(
-        'Cảnh báo',
+        NOTIFICATION_TITLE.warning,
         'Vui lòng chọn một đăng ký để duyệt'
       );
       return;
@@ -947,7 +947,7 @@ export class FactoryVisitRegistrationComponent
           .subscribe({
             next: () => {
               this.notification.success(
-                'Thành công',
+                NOTIFICATION_TITLE.success,
                 `${confirmText} đăng ký thành công`
               );
               this.loadData();
@@ -955,7 +955,7 @@ export class FactoryVisitRegistrationComponent
             },
             error: (error) => {
               this.notification.error(
-                'Lỗi',
+                NOTIFICATION_TITLE.error,
                 `Có lỗi xảy ra khi ${actionText} đăng ký`
               );
             },
@@ -998,8 +998,7 @@ export class FactoryVisitRegistrationComponent
 
     this.factoryVisitService.createParticipant(payload).subscribe({
       next: () => {
-        this.notification.success(
-          'Thành công',
+        this.notification.success(NOTIFICATION_TITLE.success,
           'Thêm người tham gia thành công'
         );
         this.isParticipantModalVisible = false;
@@ -1043,7 +1042,7 @@ export class FactoryVisitRegistrationComponent
 
     if (selectedIds.length === 0) {
       this.notification.warning(
-        'Cảnh báo',
+       NOTIFICATION_TITLE.warning,
         'Vui lòng chọn ít nhất một người tham gia để xóa'
       );
       return;
@@ -1057,8 +1056,7 @@ export class FactoryVisitRegistrationComponent
       nzOnOk: () => {
         this.factoryVisitService.deleteParticipants(selectedIds).subscribe({
           next: () => {
-            this.notification.success(
-              'Thành công',
+            this.notification.success(NOTIFICATION_TITLE.success,
               'Xóa người tham gia thành công'
             );
             this.loadParticipants(this.selectedRegistration.id);
@@ -1067,7 +1065,7 @@ export class FactoryVisitRegistrationComponent
           },
           error: () => {
             this.notification.error(
-              'Lỗi',
+              NOTIFICATION_TITLE.error,
               'Có lỗi xảy ra khi xóa người tham gia'
             );
           },

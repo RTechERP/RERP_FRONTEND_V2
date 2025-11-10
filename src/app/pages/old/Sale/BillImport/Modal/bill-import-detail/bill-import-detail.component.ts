@@ -55,6 +55,7 @@ import { SelectControlComponent } from '../../../BillExport/Modal/select-control
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { BillImportChoseSerialComponent } from '../../../../bill-import-technical/bill-import-chose-serial/bill-import-chose-serial.component';
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 interface ProductSale {
   Id?: number;
   ProductCode: string;
@@ -710,7 +711,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
     this.billImportService.saveBillImport(payload).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success('Thông báo', this.isCheckmode ? 'Cập nhật thành công!' : 'Thêm mới thành công!');
+          this.notification.success(NOTIFICATION_TITLE.success, this.isCheckmode ? 'Cập nhật thành công!' : 'Thêm mới thành công!');
           this.closeModal();
         } else {
           this.notification.warning(NOTIFICATION_TITLE.warning, res.message || (this.isCheckmode ? 'Cập nhật thất bại!' : 'Thêm mới thất bại!'));
@@ -911,7 +912,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
         if (Array.isArray(serials) && serials.length > 0) {
           const serialsID = serials.map(s => s.ID).join(',');
           row.update({ SerialNumber: serialsID });
-          this.notification.success('Thông báo', 'Cập nhật serial thành công!');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật serial thành công!');
         } else {
           this.notification.error(NOTIFICATION_TITLE.error, 'Dữ liệu serial không hợp lệ!');
         }

@@ -99,7 +99,7 @@ export class SearchProductSerialNumberComponent
       },
       error: (err: any) => {
         this.notification.error(
-          'Lỗi',
+          NOTIFICATION_TITLE.error,
           'Không thể tải dữ liệu lịch sử mượn/trả'
         );
         this.isLoading = false; // <-- Đổi thành false ở đây

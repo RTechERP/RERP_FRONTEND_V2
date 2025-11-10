@@ -312,7 +312,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
               );
             } else {
               this.notification.error(
-                'Lỗi',
+                NOTIFICATION_TITLE.error,
                 response.message || 'Xóa dữ liệu thất bại!'
               );
             }

@@ -34,11 +34,11 @@ import { NzNotificationService } from 'ng-zorro-antd/notification'
 import { TsAssetTransferFormComponent } from './ts-asset-transfer-form/ts-asset-transfer-form.component';
 import { TsAssetTransferService } from './ts-asset-transfer-service/ts-asset-transfer.service';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
-import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../../../../auth/auth.service';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
@@ -332,26 +332,15 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
     return [];
   }
   onDeleteAssetTranfer() {
-    const selectedIds = this.getSelectedIds();
-    const payloadTranfer = {
-
-      tSTranferAsset: {
-        ID: selectedIds[0],
-        IsDeleted: true
-      }
-    };
-    this.tsAssetTransferService.saveData(payloadTranfer).subscribe({
-      next: () => {
-        this.notification.success(NOTIFICATION_TITLE.success, 'Xóa biên bản thành công!');
   if (!this.assetTranferTable) {
-    this.notification.warning('Thông báo', 'Lỗi bảng, không thể thao tác');
+    this.notification.warning(NOTIFICATION_TITLE.warning, 'Lỗi bảng, không thể thao tác');
     return;
   }
 
   const selectedRows = this.assetTranferTable.getSelectedData() as any[];
 
   if (!selectedRows || selectedRows.length === 0) {
-    this.notification.warning('Thông báo', 'Chưa chọn biên bản để xóa!');
+    this.notification.warning(NOTIFICATION_TITLE.warning, 'Chưa chọn biên bản để xóa!');
     return;
   }
 
@@ -406,52 +395,11 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
       );
 
       return forkJoin(requests$).toPromise().then(() => {
-        this.notification.success(
-          'Thành công',
+        this.notification.success(NOTIFICATION_TITLE.success,
           `Đã xóa thành công các biên bản: ${codesText}`
         );
         this.getTranferAsset();
         this.drawTable();
-      },
-      error: (err) => {
-        console.error('Lỗi khi xóa:', err);
-        this.notification.warning(NOTIFICATION_TITLE.error, 'Lỗi kết nối máy chủ!');
-      }
-    });
-  }
-  validateApprove(number: 1 | 2 | 3 | 4 | 5 | 6): boolean {
-    if (!this.assetTranferTable) {
-      this.notification.warning("Thông báo", "Chọn một biên bản để duyệt");
-      return false;
-    }
-    const selectRow = this.assetTranferTable.getSelectedData();
-    for (const row of selectRow) {
-      switch (number) {
-        case 4:
-          if (row.IsApproveAccountant == true) {
-            this.notification.warning("Thông báo", `Biên bản ${row.CodeReport} đã được Kế toán duyệt, không thể hủy`);
-            return false;
-          }
-          break;
-        case 2:
-          if (row.IsApproved == true) {
-            this.notification.warning("Thông báo", `Biên bản ${row.CodeReport} đã được HR duyệt, không thể hủy`);
-            return false;
-          }
-          break;
-        case 3:
-          if (row.IsApprovedPersonalProperty != true) {
-            this.notification.warning("Thông báo", `Biên bản ${row.CodeReport} chưa được cá nhân duyệt, HR không thể duyệt!`);
-            return false;
-          }
-          break;
-        case 5:
-          if (row.IsApproved != true) {
-            this.notification.warning("Thông báo", `Biên bản ${row.CodeReport} chưa được HR duyệt, Kế Toán không thể duyệt!`);
-            return false;
-          }
-          break;
-      }
       }).catch(err => {
         console.error('Lỗi khi xóa nhiều:', err);
         this.notification.warning('Lỗi', 'Lỗi kết nối máy chủ!');
@@ -512,13 +460,13 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
   }
   updateApprove(action: 1 | 2 | 3 | 4 | 5 | 6) {
     if (!this.assetTranferTable) {
-      this.notification.warning('Thông báo', 'Lỗi bảng, không thể thao tác');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Lỗi bảng, không thể thao tác');
       return;
     }
 
     const selectedRows = this.assetTranferTable.getSelectedData();
     if (!selectedRows || selectedRows.length === 0) {
-      this.notification.warning('Thông báo', 'Chưa chọn biên bản để duyệt');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Chưa chọn biên bản để duyệt');
       return;
     }
 
@@ -636,8 +584,7 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
           .map(x => x.CodeReport ?? x.Code)
           .join(', ');
 
-        this.notification.success(
-          'Thành công',
+        this.notification.success(NOTIFICATION_TITLE.success,
           `Đã cập nhật thành công các biên bản: ${approvedCodes}`
         );
 
@@ -649,7 +596,7 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
       error: (err: any) => {
         console.error('Lỗi updateApprove (nhiều)', err);
         const msg = err?.error?.message || 'Một số cập nhật thất bại';
-        this.notification.error('Lỗi', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
       }
     });
   }
@@ -658,7 +605,7 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
     const selectedDetail = this.assetTranferDetailTable?.getData();
     const selectedTranfer = this.assetTranferTable?.getSelectedData()?.[0];
     if (!selectedDetail || selectedDetail.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để duyệt.');
+      this.notification.warning('Cảnh báo', 'Không có dữ liệu để duyệt.');
       return;
     }
     const payloadTranfer = {
@@ -864,4 +811,3 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
   }
 
 }
-

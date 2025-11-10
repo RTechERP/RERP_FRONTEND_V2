@@ -450,8 +450,7 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
           const failed = results.filter((r) => r.status === 'failed');
 
           if (success.length > 0) {
-            this.notification.success(
-              'Thành công',
+            this.notification.success(NOTIFICATION_TITLE.success,
               `Cập nhật thành công ${success.length} dự án.`
             );
           }
@@ -462,7 +461,7 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
               )
               .join('; ');
             this.notification.error(
-              'Lỗi',
+              NOTIFICATION_TITLE.error,
               `Bỏ qua ${skipped.length} dự án lí do: ${skippedDetails}`
             );
           }
@@ -476,7 +475,7 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
               )
               .join('; ');
             this.notification.error(
-              'Lỗi',
+              NOTIFICATION_TITLE.error,
               `Cập nhật thất bại ${failed.length} dự án lí do: ${failedDetails}`
             );
           }
@@ -591,8 +590,7 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
           const failed = results.filter((r) => r.status === 'failed');
 
           if (success.length > 0) {
-            this.notification.success(
-              'Thành công',
+            this.notification.success(NOTIFICATION_TITLE.success,
               `Cập nhật thành công ${success.length} dự án.`
             );
           }
@@ -603,7 +601,7 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
               )
               .join('; ');
             this.notification.error(
-              'Lỗi',
+              NOTIFICATION_TITLE.error,
               `Bỏ qua ${skipped.length} dự án lí do: ${skippedDetails}`
             );
           }
@@ -617,7 +615,7 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
               )
               .join('; ');
             this.notification.error(
-              'Lỗi',
+              NOTIFICATION_TITLE.error,
               `Cập nhật thất bại ${failed.length} dự án lí do: ${failedDetails}`
             );
           }
@@ -720,8 +718,7 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
           const failed = results.filter((r) => r.status === 'failed');
 
           if (success.length > 0) {
-            this.notification.success(
-              'Thành công',
+            this.notification.success(NOTIFICATION_TITLE.success,
               `Cập nhật thành công ${success.length} dự án.`
             );
           }
@@ -732,7 +729,7 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
               )
               .join('; ');
             this.notification.error(
-              'Lỗi',
+              NOTIFICATION_TITLE.error,
               `Bỏ qua ${skipped.length} dự án lí do: ${skippedDetails}`
             );
           }
@@ -746,7 +743,7 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
               )
               .join('; ');
             this.notification.error(
-              'Lỗi',
+              NOTIFICATION_TITLE.error,
               `Cập nhật thất bại ${failed.length} dự án lí do: ${failedDetails}`
             );
           }

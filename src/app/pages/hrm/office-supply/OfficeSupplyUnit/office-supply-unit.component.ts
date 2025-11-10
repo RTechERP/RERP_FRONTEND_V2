@@ -208,7 +208,7 @@ export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
           const ok = results.filter(r => r?.status === 1).length;
           const fail = results.length - ok;
 
-          if (ok > 0) this.notification.success('Thông báo', `Xóa thành công ${ok} đơn vị`);
+          if (ok > 0) this.notification.success(NOTIFICATION_TITLE.success, `Xóa thành công ${ok} đơn vị`);
           if (fail > 0) this.notification.error(NOTIFICATION_TITLE.error, `Xóa lỗi ${fail} đơn vị`);
 
           this.get();

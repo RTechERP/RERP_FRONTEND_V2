@@ -101,7 +101,7 @@ export class RulePayDetailComponent implements OnInit, AfterViewInit, OnChanges 
     };
     this.rulePayService.saveData(payload).subscribe({
       next: (res) => {
-        this.notification.success('Thông báo', 'Thêm thành công!');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Thêm thành công!');
         this.activeModal.close('success');
       },
       error: (err) => {
@@ -143,7 +143,7 @@ if (this.validateForm.invalid) {
     console.log('Update payload:', payload);
     this.rulePayService.saveData(payload).subscribe({
       next: (res) => {
-        this.notification.success('Thông báo', 'Cập nhật thành công!');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công!');
         this.activeModal.close('success');
       },
       error: (err) => {

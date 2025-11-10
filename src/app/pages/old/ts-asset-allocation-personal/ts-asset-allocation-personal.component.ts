@@ -588,7 +588,7 @@ export class TsAssetAllocationPersonalComponent
   //   const selectedAllocation = this.tbAssetAllocationPersonal?.getSelectedData()?.[0];
   //   const detailAllocation = this.tbAssetAllocationDetail?.getData() || [];
   //   if (!selectedAllocation) {
-  //     this.notification.warning("Thông báo", "Vui lòng chọn một bản ghi để sửa");
+  //     this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn một bản ghi để sửa");
   //     return;
   //   }
   //   if (this.tbAssetPersonModal) {
@@ -726,7 +726,7 @@ export class TsAssetAllocationPersonalComponent
     this.assetAllocationService.saveAssetAllocationPerson(payload).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success('Thông báo', 'Lưu thành công');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thành công');
           this.formNote = '';
           this.closeModal();
           this.getAssetAllocationPersonals();
@@ -858,7 +858,7 @@ export class TsAssetAllocationPersonalComponent
     this.assetAllocationService.SaveApprove(updatePayload).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success('Thông báo', 'Thành công');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Thành công');
           setTimeout(() => this.getAssetAllocationPersonals(), 100);
         } else {
           this.notification.warning(NOTIFICATION_TITLE.warning, 'Thất bại');
@@ -950,7 +950,7 @@ export class TsAssetAllocationPersonalComponent
     this.assetAllocationService.SaveApprovePerson(updatePayload).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success('Thông báo', 'Thành công');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Thành công');
           setTimeout(() => this.getAssetAllocationPersonals(), 100);
         } else {
           this.notification.warning(NOTIFICATION_TITLE.warning, 'Thất bại');

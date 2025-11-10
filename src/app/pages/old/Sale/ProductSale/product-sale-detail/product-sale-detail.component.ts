@@ -279,7 +279,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
       this.productsaleService.saveDataProductSale(payload).subscribe({
         next: (res) => {
           if (res.status === 1) {
-            this.notification.success('Thông báo', 'Cập nhật thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công!');
             this.activeModal.dismiss(true);
 
           } else {
@@ -319,7 +319,7 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
       this.productsaleService.saveDataProductSale(payload).subscribe({
         next: (res) => {
           if (res.status === 1) {
-            this.notification.success('Thông báo', 'Thêm mới thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công!');
             this.activeModal.dismiss(true);
           } else {
             this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể thêm sản phẩm!');

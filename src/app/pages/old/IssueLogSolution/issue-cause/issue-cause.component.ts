@@ -81,7 +81,7 @@ export class IssueCauseComponent implements OnInit, AfterViewInit {
 
   onEdit(): void {
     if(!this.selectedId) {
-      this.notification.error('Lỗi',"Vui lòng chọn bản ghi cần sửa");
+      this.notification.error(NOTIFICATION_TITLE.error,"Vui lòng chọn bản ghi cần sửa");
       return;
     }
     this.issueSolutionService.getIssueCauseDetail(this.selectedId).subscribe({
@@ -111,18 +111,18 @@ export class IssueCauseComponent implements OnInit, AfterViewInit {
             }
           );
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
 
   onDelete(): void {
     if(!this.selectedId) {
-      this.notification.error('Lỗi',"Vui lòng chọn bản ghi cần xóa");
+      this.notification.error(NOTIFICATION_TITLE.error,"Vui lòng chọn bản ghi cần xóa");
       return;
     }
     this.modal.confirm({
@@ -142,13 +142,13 @@ export class IssueCauseComponent implements OnInit, AfterViewInit {
               this.loadMainData();
             } else {
               this.notification.error(
-                'Lỗi',
+                NOTIFICATION_TITLE.error,
                 response.message || 'Xóa dữ liệu thất bại!'
               );
             }
           },
           error: (err: any) => {
-            this.notification.error('Lỗi', 'Không thể xóa dữ liệu!' + err);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xóa dữ liệu!' + err);
           },
         });
       },
@@ -184,7 +184,7 @@ export class IssueCauseComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }

@@ -398,7 +398,7 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         this.notification.error(
-          'Lỗi',
+          NOTIFICATION_TITLE.error,
           'Không thể lưu dữ liệu: ' + error.message
         );
       },

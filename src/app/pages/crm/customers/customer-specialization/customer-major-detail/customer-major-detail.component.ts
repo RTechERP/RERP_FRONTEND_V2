@@ -59,11 +59,8 @@ import { SelectControlComponent } from '../../../../old/select-control/select-co
 
 import { CustomerServiceService } from '../../customer/customer-service/customer-service.service';
 import { CustomerMajorService } from '../customer-major-service/customer-major.service';
-<<<<<<< HEAD:src/app/pages/old/VisionBase/customer-major/customer-major-detail/customer-major-detail.component.ts
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
-=======
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
->>>>>>> 5f94c36de4edfaa15e0ea34bf0dd2be91e663215:src/app/pages/crm/customers/customer-specialization/customer-major-detail/customer-major-detail.component.ts
 @Component({
   selector: 'app-customer-major',
   imports: [
@@ -202,7 +199,7 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
     this.customerMajorService.save(model).subscribe({
       next: (res: any) => {
         if (res?.status === 1) {
-          this.notification.success('Thông báo', 'Lưu thành công');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thành công');
           this.activeModal.close(true);
         } else {
           this.notification.error(

@@ -479,7 +479,7 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
       .subscribe({
         next: (res) => {
           if (res.status === 1) {
-            this.notification.success('Thông báo', 'Lưu thành công');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thành công');
             (this.formNote = ''), this.closeModal();
             this.getAssetRecoveryPersonals();
           } else this.notification.warning(NOTIFICATION_TITLE.warning, 'Lưu thất bại');
@@ -928,7 +928,7 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
     this.tsAssetAllocationPersonalService.SaveApprove(updatePayload).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success('Thông báo', 'Thành công');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Thành công');
           this.tbAssetRecoveryPersonal?.setData();
         } else {
           this.notification.warning(NOTIFICATION_TITLE.warning, 'Thất bại');
@@ -1028,7 +1028,7 @@ export class TsAssetRecoveryPersonalComponent implements OnInit, AfterViewInit {
       .subscribe({
         next: (res) => {
           if (res.status === 1) {
-            this.notification.success('Thông báo', 'Thành công');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Thành công');
             this.tbAssetRecoveryPersonal?.setData();
           } else {
             this.notification.warning(NOTIFICATION_TITLE.warning, 'Thất bại');

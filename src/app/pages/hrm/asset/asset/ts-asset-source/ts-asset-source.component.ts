@@ -213,7 +213,7 @@ export class TsAssetSourceComponent implements OnInit, AfterViewInit {
         this.assetSourceService.SaveData(payload).subscribe({
           next: (res) => {
             if (res?.status === 1) {
-              this.notification.success('Thông báo', 'Thành công');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Thành công');
               this.getAssetSource();
             } else {
               this.notification.warning(NOTIFICATION_TITLE.warning, 'Thất bại');

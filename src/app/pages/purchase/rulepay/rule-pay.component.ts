@@ -198,7 +198,7 @@ export class RulePayComponent implements OnInit, AfterViewInit {
         this.rulePayService.saveData({ DeleteIds: idsToDelete }).subscribe({
           next: (response) => {
             if (response.status === 1) {
-              this.notification.success('Thông báo', 'Xóa thành công!');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Xóa thành công!');
               this.getData();
               this.selectedList = [];
               this.selectAll = false;
@@ -299,7 +299,7 @@ export class RulePayComponent implements OnInit, AfterViewInit {
     link.click();
     window.URL.revokeObjectURL(url);
 
-    this.notification.success('Thông báo', 'Xuất Excel thành công!');
+    this.notification.success(NOTIFICATION_TITLE.success, 'Xuất Excel thành công!');
   }
 
   openModalForNew(): void {

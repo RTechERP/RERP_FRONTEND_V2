@@ -277,7 +277,7 @@ export class OfficeSupplyComponent implements OnInit, AfterViewInit {
           const newItem = Array.isArray(res.data) ? res.data[0] : res.data;
           this.lastAddedIdProduct = newItem.ID;
         }
-        this.notification.success('Thông báo', 'Thêm thành công!');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Thêm thành công!');
         this.closeModal();
         this.getAll();
 
@@ -313,7 +313,7 @@ export class OfficeSupplyComponent implements OnInit, AfterViewInit {
       nzOnOk: () => {
         this.lstVPP.deletedata(ids).subscribe({
           next: () => {
-            this.notification.success('Thông báo', 'Đã xóa thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Đã xóa thành công!');
             this.getAll();
             this.selectedList = [];
           },
@@ -519,7 +519,7 @@ export class OfficeSupplyComponent implements OnInit, AfterViewInit {
   //     }
   //     this.lstVPP.addUnit(this.newUnit).subscribe({
   //       next: (response: any) => {
-  //         this.notification.success('Thông báo', 'Thêm đơn vị thành công!');
+  //         this.notification.success(NOTIFICATION_TITLE.success, 'Thêm đơn vị thành công!');
   //         this.newUnit={ID:0,Name:''};
   //         this.closeUnitModal();
   //         this.getUnits(); 

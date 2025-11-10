@@ -31,7 +31,8 @@ import { FilmManagementService } from '../film-management-service/film-managemen
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { SelectControlComponent } from '../select-control/select-control.component';
-import { UnitService } from '../../../../ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
+import { UnitService } from '../../../../../hrm/asset/asset/ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
 @Component({
   standalone: true,
   imports: [

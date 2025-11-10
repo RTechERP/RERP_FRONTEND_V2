@@ -154,7 +154,7 @@ export class EmployeePurchaseDetailComponent implements OnInit, OnDestroy {
       error: (error) => {
         console.error('Load employee purchase detail error:', error);
         this.notification.error(
-          'Lỗi',
+          NOTIFICATION_TITLE.error,
           'Không thể tải thông tin nhân viên mua hàng'
         );
         this.loading = false;
@@ -538,7 +538,7 @@ export class EmployeePurchaseDetailComponent implements OnInit, OnDestroy {
         console.error('Save error:', error);
         this.saving = false;
         this.notification.error(
-          'Lỗi',
+          NOTIFICATION_TITLE.error,
           'Không thể lưu dữ liệu: ' + (error.message || 'Unknown error')
         );
       },

@@ -428,7 +428,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       },
       error: (error) => {
         this.notification.error(
-          'Lỗi',
+          NOTIFICATION_TITLE.error,
           'Lỗi khi tải danh sách phòng ban: ' + error.message
         );
       },
@@ -441,7 +441,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       },
       error: (error) => {
         this.notification.error(
-          'Lỗi',
+          NOTIFICATION_TITLE.error,
           'Lỗi khi tải danh sách chức vụ theo hợp đồng: ' + error.message
         );
       },
@@ -454,7 +454,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       },
       error: (error) => {
         this.notification.error(
-          'Lỗi',
+          NOTIFICATION_TITLE.error,
           'Lỗi khi tải danh sách chức vụ theo nội bộ: ' + error.message
         );
       },
@@ -2071,7 +2071,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
     const selectedRows = this.tabulatorEmployee.getSelectedRows();
     if (selectedRows.length === 0) {
       this.notification.warning(
-        'Cảnh báo',
+       NOTIFICATION_TITLE.warning,
         'Vui lòng chọn nhân viên cần chỉnh sửa'
       );
       return;
@@ -2227,7 +2227,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
     const selectedRows = this.tabulatorEmployee.getSelectedRows();
     if (selectedRows.length === 0) {
       this.notification.warning(
-        'Cảnh báo',
+       NOTIFICATION_TITLE.warning,
         'Vui lòng chọn nhân viên muốn xóa!'
       );
       return;
@@ -2339,7 +2339,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
     const selectedRows = this.tabulatorEmployee.getSelectedRows();
     if (selectedRows.length === 0) {
       this.notification.warning(
-        'Cảnh báo',
+       NOTIFICATION_TITLE.warning,
         'Vui lòng chọn nhân viên cần quản lý đăng nhập!'
       );
       return;
@@ -2358,7 +2358,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
     const selectedRows = this.tabulatorEmployee.getSelectedRows();
     if (selectedRows.length === 0) {
       this.notification.warning(
-        'Cảnh báo',
+       NOTIFICATION_TITLE.warning,
         'Vui lòng chọn nhân viên muốn xem hợp đồng lao động!'
       );
       return;

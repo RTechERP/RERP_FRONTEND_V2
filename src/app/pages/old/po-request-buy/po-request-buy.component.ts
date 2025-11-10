@@ -118,14 +118,13 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
           this.dataTable.setData(gridData);
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải chi tiết POKH: ' + response.message
           );
         }
       },
       error: (error) => {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Lỗi kết nối khi tải chi tiết POKH: ' + error
         );
       },
@@ -138,14 +137,13 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
           this.dataEmployee = response.data;
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải Employees: ' + response.message
           );
         }
       },
       error: (error) => {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Lỗi kết nối khi tải Employees: ' + error
         );
       },
@@ -158,14 +156,13 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
           this.dataDepartment = response.data;
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải Departments: ' + response.message
           );
         }
       },
       error: (error) => {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Lỗi kết nối khi tải Departments: ' + error
         );
       },
@@ -214,7 +211,7 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
     }
     if (!this.selectedRows || this.selectedRows.length === 0) {
       this.notification.error(
-        'Thông báo',
+       NOTIFICATION_TITLE.error,
         'Vui lòng chọn ít nhất một sản phẩm!'
       );
       return;

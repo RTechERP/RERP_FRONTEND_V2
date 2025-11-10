@@ -266,14 +266,13 @@ export class PokhComponent implements OnInit, AfterViewInit {
           this.dataPOTypes = response.data;
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải loại PO: ' + response.message
           );
         }
       },
       error: (error) => {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Lỗi kết nối khi tải loại PO: ' + error
         );
       },
@@ -290,14 +289,13 @@ export class PokhComponent implements OnInit, AfterViewInit {
           this.tb_POKHProduct.setData(this.dataPOKHProduct);
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải chi tiết POKH: ' + response.message
           );
         }
       },
       error: (error) => {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Lỗi kết nối khi tải chi tiết POKH: ' + error
         );
       },
@@ -311,7 +309,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
           this.tb_POKHFile.setData(this.dataPOKHFiles);
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải tệp POKH: ' + response.message
           );
         }
@@ -331,7 +329,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
           this.filterUserData = response.data;
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải tệp POKH: ' + response.message
           );
         }
@@ -351,7 +349,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
           this.filterEmployeeTeamSale = response.data;
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải tệp POKH: ' + response.message
           );
         }
@@ -371,14 +369,13 @@ export class PokhComponent implements OnInit, AfterViewInit {
           this.dataProducts = response.data;
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải sản phẩm: ' + response.message
           );
         }
       },
       error: (error: any) => {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Lỗi kết nối khi tải sản phẩm: ' + error
         );
       },
@@ -960,7 +957,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
         }).subscribe({
           next: (response) => {
             if (response.status === 1) {
-              this.notification.success('Thông báo', 'Xóa PO thành công');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Xóa PO thành công');
               this.loadPOKH();
               this.selectedRow = null;
               this.selectedId = 0;
@@ -992,7 +989,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
         const fileObj = file as File;
         if (fileObj.size > MAX_FILE_SIZE) {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             `File ${fileObj.name} vượt quá giới hạn dung lượng cho phép (50MB)`
           );
           return;

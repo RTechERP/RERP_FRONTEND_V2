@@ -241,7 +241,7 @@ export class CurrencyListComponent implements OnInit {
 
     if (!selected || selected.length === 0) {
       this.notification.error(
-        'Thông báo',
+       NOTIFICATION_TITLE.error,
         'Vui lòng chọn ít nhất một bản ghi cần xóa!',
         { nzStyle: { fontSize: '0.75rem' } }
       );
@@ -295,7 +295,7 @@ export class CurrencyListComponent implements OnInit {
         ).length;
 
         this.notification.success(
-          'Thông báo',
+          NOTIFICATION_TITLE.success,
           `Đã xóa ${successCount} bản ghi thành công!`,
           { nzStyle: { fontSize: '0.75rem' } }
         );
@@ -304,7 +304,7 @@ export class CurrencyListComponent implements OnInit {
       })
       .catch((error) => {
         this.notification.error(
-          'Lỗi',
+          NOTIFICATION_TITLE.error,
           'Không thể xóa: ' + (error.message || 'Unknown error'),
           { nzStyle: { fontSize: '0.75rem' } }
         );

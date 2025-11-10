@@ -449,7 +449,7 @@ export class HrhiringRequestComponent
       },
       error: (error) => {
         this.notification.error(
-          'Lỗi',
+          NOTIFICATION_TITLE.error,
           'Không thể tải dữ liệu: ' + (error.message || 'Unknown error')
         );
       },
@@ -535,19 +535,19 @@ export class HrhiringRequestComponent
     this.service.deleteHiringRequest(selectedRow.ID).subscribe({
       next: (response: any) => {
         if (response && response.status === 1) {
-          this.notification.success('Thông báo', 'Xóa yêu cầu thành công!');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Xóa yêu cầu thành công!');
           this.selectedHRHIRING = null;
           this.loadHrHiringRequestData();
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             response?.message || 'Xóa không thành công!'
           );
         }
       },
       error: (error) => {
         this.notification.error(
-          'Lỗi',
+          NOTIFICATION_TITLE.error,
           'Không thể xóa: ' + (error.message || 'Unknown error')
         );
       },
@@ -580,11 +580,11 @@ export class HrhiringRequestComponent
           this.pdfGeneratorService
             .generateHiringRequestPDF(response.data)
             .then(() => {
-              this.notification.success('Thông báo', 'Tạo PDF thành công!');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Tạo PDF thành công!');
             })
             .catch((error) => {
               this.notification.error(
-                'Lỗi',
+                NOTIFICATION_TITLE.error,
                 'Không thể tạo PDF: ' + error.message
               );
             });
@@ -597,7 +597,7 @@ export class HrhiringRequestComponent
       },
       error: (error) => {
         this.notification.error(
-          'Lỗi',
+          NOTIFICATION_TITLE.error,
           'Không thể tải dữ liệu: ' + (error.message || 'Unknown error')
         );
       },
@@ -673,7 +673,7 @@ export class HrhiringRequestComponent
       .subscribe({
         next: (response: any) => {
           if (response?.status === 1) {
-            this.notification.success('Thông báo', 'TBP duyệt thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, 'TBP duyệt thành công!');
             this.loadApprovalStatus(this.selectedHRHIRING.ID);
             this.loadHrHiringRequestData();
           } else {
@@ -725,7 +725,7 @@ export class HrhiringRequestComponent
       .subscribe({
         next: (response: any) => {
           if (response?.status === 1) {
-            this.notification.success('Thông báo', 'HCNS duyệt thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, 'HCNS duyệt thành công!');
             this.loadApprovalStatus(this.selectedHRHIRING.ID);
             this.loadHrHiringRequestData();
           } else {
@@ -777,7 +777,7 @@ export class HrhiringRequestComponent
       .subscribe({
         next: (response: any) => {
           if (response?.status === 1) {
-            this.notification.success('Thông báo', 'BGĐ duyệt thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, 'BGĐ duyệt thành công!');
             this.loadApprovalStatus(this.selectedHRHIRING.ID);
             this.loadHrHiringRequestData();
           } else {
@@ -830,8 +830,7 @@ export class HrhiringRequestComponent
       .subscribe({
         next: (response: any) => {
           if (response?.status === 1) {
-            this.notification.success(
-              'Thông báo',
+            this.notification.success(NOTIFICATION_TITLE.success,
               'Hủy duyệt HCNS thành công!'
             );
             this.loadApprovalStatus(this.selectedHRHIRING.ID);
@@ -887,7 +886,7 @@ export class HrhiringRequestComponent
       .subscribe({
         next: (response: any) => {
           if (response?.status === 1) {
-            this.notification.success('Thông báo', 'Hủy duyệt TBP thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Hủy duyệt TBP thành công!');
             this.loadApprovalStatus(this.selectedHRHIRING.ID);
             this.loadHrHiringRequestData();
           } else {
@@ -940,7 +939,7 @@ export class HrhiringRequestComponent
       .subscribe({
         next: (response: any) => {
           if (response?.status === 1) {
-            this.notification.success('Thông báo', 'Hủy duyệt BGĐ thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Hủy duyệt BGĐ thành công!');
             this.loadApprovalStatus(this.selectedHRHIRING.ID);
             this.loadHrHiringRequestData();
           } else {

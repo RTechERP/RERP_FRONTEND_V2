@@ -794,7 +794,7 @@ const selectedEmployee = this.cbbEmployeeGroup
 //     if (info.file.status === 'uploading') {
 //     }
 //     if (info.file.status === 'done') {
-//       this.notification.success('Thông báo', 'Upload file thành công!');
+//       this.notification.success(NOTIFICATION_TITLE.success, 'Upload file thành công!');
 
 //       const res = info.file.response;
 
@@ -1236,7 +1236,7 @@ uploadFileForRow(rowData: any) {
       this.handoverService.saveData(payload).subscribe({
         next: (res) => {
           if (res.status === 1) {
-            this.notification.success('Thông báo', 'Cập nhật thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công!');
             this.closeModal();
           } else {
             this.notification.warning(
@@ -1367,7 +1367,7 @@ uploadFileForRow(rowData: any) {
       this.handoverService.saveData(payload).subscribe({
         next: (res) => {
           if (res.status === 1) {
-            this.notification.success('Thông báo', 'Thêm mới thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công!');
             this.closeModal();
           } else {
             this.notification.warning(
@@ -1420,8 +1420,7 @@ uploadFileForRow(rowData: any) {
         }
       },
       error: (err: any) => {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Có lỗi xảy ra khi lấy danh sách nhân viên'
         );
         this.employeeOptions = [];

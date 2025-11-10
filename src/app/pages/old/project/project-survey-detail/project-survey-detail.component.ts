@@ -673,8 +673,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
       let de = DateTime.fromJSDate(new Date(this.dateEnd));
 
       if (ds > de) {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           `Ngày bắt đầu phải nhỏ hơn bằng ngày kết thúc!`,
           {
             nzStyle: { fontSize: '0.75rem' },
@@ -688,8 +687,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
         .diff(dateNow.startOf('day'), 'days').days;
 
       if (timeSpan < 1) {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           `Bạn không thể đăng ký trước ngày hiện tại!`,
           {
             nzStyle: { fontSize: '0.75rem' },
@@ -716,7 +714,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
           }
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             `Bạn phải đăng ký trước ít nhất 1 ngày!`,
             {
               nzStyle: { fontSize: '0.75rem' },
@@ -731,8 +729,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
         .filter((row) => row.Selected === true);
 
       if (prjTypeLinks.length == 0) {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           `Bạn phải chọn ít nhất 1 kiểu dự án đi khảo sát!`,
           {
             nzStyle: { fontSize: '0.75rem' },

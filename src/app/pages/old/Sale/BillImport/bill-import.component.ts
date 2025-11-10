@@ -38,6 +38,7 @@ import { BillDocumentImportComponent } from './Modal/bill-document-import/bill-d
 import { BillImportSyntheticComponent } from './Modal/bill-import-synthetic/bill-import-synthetic.component';
 import { ScanBillImportComponent } from './Modal/scan-bill-import/scan-bill-import.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 interface BillImport {
   Id?: number;
   BillImportCode: string;
@@ -312,8 +313,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
         next: (res) => {
           console.log('Approval response:', res);
           if (res.status === 1) {
-            this.notification.success(
-              'Thông báo',
+            this.notification.success(NOTIFICATION_TITLE.success,
               res.message || 'Thành công!'
             );
             this.data = [];
@@ -576,7 +576,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
         this.billImportService.saveBillImport(payload).subscribe({
           next: (res) => {
             if (res.status === 1) {
-              this.notification.success('Thông báo', 'Xóa thành công!');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Xóa thành công!');
               this.loadDataBillImport();
             } else {
               this.notification.warning(NOTIFICATION_TITLE.warning, 'Xóa thất bại!');

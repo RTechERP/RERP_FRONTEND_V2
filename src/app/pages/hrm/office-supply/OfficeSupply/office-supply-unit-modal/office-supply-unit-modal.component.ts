@@ -169,7 +169,7 @@ export class OfficeSupplyUnitModalComponent implements OnInit, AfterViewInit {
           if(response && response.data){
             const newItem = Array.isArray(response.data) ? response.data[0] : response.data;
           }
-          this.notification.success('Thông báo', 'Thêm mới thành công!');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công!');
           this.selectedItem = {};
           this.getUnit();
         
@@ -183,7 +183,7 @@ export class OfficeSupplyUnitModalComponent implements OnInit, AfterViewInit {
       // Nếu có ID, cập nhật
       this.officeSupplyService.updatedataUnit(this.selectedItem).subscribe({
         next: (response) => {
-          this.notification.success('Thông báo', 'Cập nhật thành công!');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công!');
           this.selectedItem = {};
           this.getUnit();
          

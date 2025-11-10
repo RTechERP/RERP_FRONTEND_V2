@@ -46,6 +46,8 @@ import { PermissionService } from '../../../../services/permission.service';
 import { ProjectLeaderProjectTypeComponent } from '../../../old/project/project-leader-project-type/project-leader-project-type.component';
 import { MeetingMinuteComponent } from '../../../old/project/meeting-minute/meeting-minute.component';
 import { ProjectNewComponent } from '../../../old/project/project-new/project-new.component';
+import { CustomerComponent } from '../../../crm/customers/customer/customer.component';
+import { PlanWeekComponent } from '../../../old/VisionBase/plan-week/plan-week.component';
 import { TsAssetTypeComponent } from '../../../hrm/asset/asset/ts-asset-type/ts-asset-type.component';
 import { TsAssetSourceComponent } from '../../../hrm/asset/asset/ts-asset-source/ts-asset-source.component';
 import { OfficeSupplyUnitComponent } from '../../../hrm/office-supply/OfficeSupplyUnit/office-supply-unit.component';
@@ -64,7 +66,11 @@ import { CurrencyListComponent } from '../../../general-category/currency-list/c
 import { UnitCountComponent } from '../../../old/Sale/ProductSale/unit-count/unit-count.component';
 import { ProductLocationComponent } from '../../../general-category/product-location/product-location.component';
 import { FirmComponent } from '../../../general-category/firm/firm.component';
-import { CustomerComponent } from '../../../old/customer/customer.component';
+import { FollowProjectBaseComponent } from '../../../old/VisionBase/kho-base/follow-project-base/follow-project-base.component';
+import { InventoryComponent } from '../../../old/Sale/Inventory/inventory.component';
+import { InventoryBorrowNCCComponent } from '../../../old/Sale/Inventory/Modal/inventory-borrow-ncc/inventory-borrow-ncc.component';
+import { BillImportComponent } from '../../../old/Sale/BillImport/bill-import.component';
+import { BillExportComponent } from '../../../old/Sale/BillExport/bill-export.component';
 
 @Injectable({
   providedIn: 'root',
@@ -95,9 +101,10 @@ export class MenuService {
       {
         kind: 'group',
         key: 'crm',
+        stt: 1,
         title: 'CRM',
         isOpen: true,
-        isPermission: this.permissionService.hasPermission(''),
+        isPermission: true,
         icon: 'assets/icon/menu_crm_24.png',
         children: [
           {
@@ -115,6 +122,7 @@ export class MenuService {
       {
         kind: 'group',
         key: 'warehouse',
+        stt: 3,
         title: 'KHO',
         isOpen: true,
         isPermission: this.permissionService.hasPermission(''),
@@ -139,6 +147,44 @@ export class MenuService {
               this.permissionService.hasPermission('N26,N1,N36,N73,N30'),
             comp: TbProductRtcComponent /* không icon */,
           },
+          {
+            kind: 'group',
+            key: 'Sale',
+            title: 'Phòng Sale',
+            isOpen: true,
+            isPermission:
+              this.permissionService.hasPermission('N26,N1,N36,N73,N30'),
+            icon: 'assets/icon/menu_sale_24.png',
+            children: [
+              {
+                kind: 'leaf',
+                key: 'InventoryComponent',
+                title: 'TỒN KHO',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: InventoryComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+              {
+                kind: 'leaf',
+                key: 'BillImportComponent',
+                title: 'PHIẾU NHẬP',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: BillImportComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+              {
+                kind: 'leaf',
+                key: 'BillExportComponent',
+                title: 'PHIẾU XUẤT',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: BillExportComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+            ],
+          },
         ],
       },
       //#endregion
@@ -146,6 +192,7 @@ export class MenuService {
       {
         kind: 'group',
         key: 'hrm',
+        stt: 2,
         title: 'HRM',
         isOpen: true,
         isPermission: this.permissionService.hasPermission(''),
@@ -173,7 +220,8 @@ export class MenuService {
                 key: 'TsAssetManagementComponent',
                 title: 'Danh sách tài sản',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
+                isPermission:
+                  this.permissionService.hasPermission('N23,N52,N1,N36,N34'),
                 comp: TsAssetManagementComponent,
                 //   icon: 'assets/icon/layers.png',
               },
@@ -614,7 +662,7 @@ export class MenuService {
             comp: FactoryVisitRegistrationComponent,
             //   icon: 'assets/icon/layers.png',
           },
-                    {
+          {
             kind: 'leaf',
             key: 'UnitCountComponent',
             title: 'ĐƠN VỊ TÍNH',
@@ -636,8 +684,8 @@ export class MenuService {
       },
 
       //#endregion
-//#region menu Mua hàng
-{
+      //#region menu Mua hàng
+      {
         kind: 'group',
         key: 'purchase',
         title: 'MUA HÀNG',
@@ -692,7 +740,7 @@ export class MenuService {
           },
         ],
       },
-//#endregion
+      //#endregion
       //#region menu dự án
       {
         kind: 'group',
@@ -814,6 +862,45 @@ export class MenuService {
         ],
       },
       //#endregion
+
+      //#region Phòng sale
+      {
+        kind: 'group',
+        key: 'SALE',
+        title: 'PHÒNG SALE',
+        isOpen: true,
+        isPermission: this.permissionService.hasPermission(''),
+        icon: 'assets/icon/menu_project_24.png',
+        children: [
+          {
+            kind: 'group',
+            key: 'ProjectComponent',
+            title: 'Vision Base',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            children: [
+              {
+                kind: 'leaf',
+                key: 'PlanWeekComponent',
+                title: 'Kế hoạch tuần',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(
+                  "'N1,N27,N53,N31,N69'"
+                ),
+                comp: PlanWeekComponent,
+              },
+              {
+                kind: 'leaf',
+                key: 'FollowProjectBaseComponent',
+                title: 'Follow dự án',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: FollowProjectBaseComponent,
+              },
+            ],
+          },
+        ],
+      },
     ];
 
     return menus;
@@ -822,6 +909,7 @@ export class MenuService {
 
 type BaseItem = {
   key: string;
+  stt?: number;
   title: string;
   isOpen: boolean;
   icon?: string | null; // tùy chọn

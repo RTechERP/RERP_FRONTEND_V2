@@ -6,6 +6,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 import { environment } from '../../../../../environments/environment';
 import { DateTime } from 'luxon';
+import { AppUserService } from '../../../../services/app-user.service';
 // import { HOST } from '../../../../app.config';
 @Injectable({
   providedIn: 'root',
@@ -27,11 +28,18 @@ export class ProjectService {
     this.apiUrl + 'projectpartlistpricerequest/';
   constructor(
     private http: HttpClient,
-    private notification: NzNotificationService
-  ) {}
+    private notification: NzNotificationService,
+    private appUserService: AppUserService
+  ) {
+    this.GlobalEmployeeId = this.appUserService.employeeID || 0;
+    this.LoginName = this.appUserService.loginName || '';
+    this.ISADMIN = this.appUserService.isAdmin || false;
+    this.GlobalDepartmentId = this.appUserService.departmentID || 0;
+  }
   GlobalEmployeeId: number = 78;
   LoginName: string = 'ADMIN';
   ISADMIN: boolean = true;
+  GlobalDepartmentId: number = 1;
   //save hãng 
   saveFirmBase(data:any): Observable<any>{
     return this.http.post<any>(`${this.urlProject}save-firm-base`, data);

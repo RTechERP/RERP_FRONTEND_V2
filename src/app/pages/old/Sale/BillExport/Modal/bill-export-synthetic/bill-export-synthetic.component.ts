@@ -8,7 +8,6 @@ import {
 } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import * as bootstrap from 'bootstrap';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { CommonModule } from '@angular/common';
 import {
@@ -36,8 +35,7 @@ import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { BillExportService } from '../../bill-export-service/bill-export.service';
 import { ProductsaleServiceService } from '../../../ProductSale/product-sale-service/product-sale-service.service';
-import { IS_ADMIN } from '../../../../../../app.config';
-import { DEPARTMENTID } from '../../../../../../app.config';
+import { AppUserService } from '../../../../../../services/app-user.service';
 import { DateTime } from 'luxon';
 // Thêm các import này vào đầu file
 import {
@@ -88,6 +86,7 @@ export class BillExportSyntheticComponent implements OnInit, AfterViewInit {
     { ID: 1, Name: 'Phiếu trả' },
     { ID: 3, Name: 'Phiếu mượn NCC' },
   ];
+  @Input() warehouseCode: string = 'HN';
 
   searchParams = {
     dateStart: new Date(new Date().setDate(new Date().getDate() - 2))
@@ -96,7 +95,7 @@ export class BillExportSyntheticComponent implements OnInit, AfterViewInit {
     dateEnd: new Date().toISOString().split('T')[0],
     listproductgroupID: '',
     status: -1,
-    warehousecode: 'HN',
+    warehousecode: this.warehouseCode,
     keyword: '',
     checkAll: false,
     pageNumber: 1,
@@ -113,7 +112,8 @@ export class BillExportSyntheticComponent implements OnInit, AfterViewInit {
     private productSaleService: ProductsaleServiceService,
     private notification: NzNotificationService,
     private injector: EnvironmentInjector,
-    private appRef: ApplicationRef
+    private appRef: ApplicationRef,
+    private appUserService: AppUserService
   ) {}
 
   ngOnInit(): void {
@@ -124,7 +124,7 @@ export class BillExportSyntheticComponent implements OnInit, AfterViewInit {
     this.drawTable();
   }
   getProductGroup() {
-    this.billExportService.getProductGroup(IS_ADMIN, DEPARTMENTID).subscribe({
+    this.billExportService.getProductGroup(this.appUserService.isAdmin,this.appUserService.departmentID??0).subscribe({
       next: (res) => {
         if (res?.data && Array.isArray(res.data)) {
           this.dataProductGroup = res.data;
@@ -183,7 +183,7 @@ export class BillExportSyntheticComponent implements OnInit, AfterViewInit {
         next: (res) => {
           if (res.status === 1) {
             this.dataTable = res.data;
-            console.log('jdjhdjd', this.dataTable);
+            console.log('dataSynthetic', this.dataTable);
             if (this.table) {
               this.table.replaceData(this.dataTable);
             }
@@ -262,7 +262,7 @@ export class BillExportSyntheticComponent implements OnInit, AfterViewInit {
       let maxLength = 10;
       column.eachCell({ includeEmpty: true }, (cell: any) => {
         const cellValue = cell.value ? cell.value.toString() : '';
-        // Giới hạn độ dài tối đa của cell là 50 ký tự
+        // Giới hạn độ dài tối đa của cell là 50 ký tựu
         maxLength = Math.min(Math.max(maxLength, cellValue.length + 2), 50);
         cell.alignment = { wrapText: true, vertical: 'middle' };
       });
@@ -368,6 +368,17 @@ export class BillExportSyntheticComponent implements OnInit, AfterViewInit {
         columnDefaults: {
           resizable: true,
         },
+          langs: {
+    vi: {
+      pagination: {
+        first: '<<',
+        last: '>>',
+        prev: '<',
+        next: '>',
+      },
+    },
+  },
+  locale: 'vi',
         columns: [
           {
             title: 'STT',

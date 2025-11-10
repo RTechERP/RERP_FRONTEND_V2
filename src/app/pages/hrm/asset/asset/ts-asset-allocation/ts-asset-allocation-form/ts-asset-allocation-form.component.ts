@@ -23,6 +23,7 @@ import { NzModalModule } from 'ng-zorro-antd/modal';
 import { TsAssetManagementPersonalService } from '../../../../../old/ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
 import { AssetAllocationService } from '../ts-asset-allocation-service/ts-asset-allocation.service';
 import { Tabulator } from 'tabulator-tables';
+import { AuthService } from '../../../../../../auth/auth.service';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { TsAssetChooseAssetsComponent } from '../ts-asset-choose-assets/ts-asset-choose-assets.component';
 import { HasPermissionDirective } from "../../../../../../directives/has-permission.directive";
@@ -43,7 +44,7 @@ import { HasPermissionDirective } from "../../../../../../directives/has-permiss
     NzButtonModule,
     NzModalModule,
     HasPermissionDirective
-]
+  ]
 })
 export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
   @Input() dataInput: any;
@@ -59,16 +60,27 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
   allocationDetailData: any[] = [];
   modalData: any = [];
   assetTable: Tabulator | null = null;
-  constructor(private notification: NzNotificationService) { }
+  currentUser: any[] = [];
+
+  constructor(private notification: NzNotificationService,
+    private authService: AuthService
+  ) { }
   ngAfterViewInit(): void {
+    this.drawTbSelectAsset();
   }
   ngOnInit() {
     this.dataInput.DateRecovery = this.formatDateForInput(this.dataInput.DateRecovery);//fomat lại ngày
     this.getAllocation();
+    this.getCurrentUser();
     this.getListEmployee();
     this.generateAllocationCode();
     this.getAllocationDetail();
 
+  }
+  getCurrentUser() {
+    this.authService.getCurrentUser().subscribe((res: any) => {
+      this.currentUser = res.data;
+    });
   }
   formatDateForInput(dateString: string): string {
     if (!dateString) return '';
@@ -97,7 +109,7 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
       keyword: ''
     };
     this.assetManagementPersonalService.getEmployee(request).subscribe((respon: any) => {
-      this.emPloyeeLists = respon.employees;
+      this.emPloyeeLists = respon.data;
       if (this.dataInput?.EmployeeID) {
         this.onEmployeeChange(this.dataInput.EmployeeID);
       }
@@ -113,7 +125,7 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
       this.drawTbSelectAsset();
     });
   }
-// Bắt sự kiện thay đổi nhân viên khi chọn
+  // Bắt sự kiện thay đổi nhân viên khi chọn
   onEmployeeChange(employeeID: number): void {
     const selectedEmp = this.emPloyeeLists.find(emp => emp.ID === employeeID);
     if (selectedEmp) {
@@ -154,7 +166,7 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
     }
   }
   drawTbSelectAsset() {
-    this.assetTable = new Tabulator('#tableAsset', {
+    this.assetTable = new Tabulator('#tableAsset11111', {
       height: "40vh",
       data: this.allocationDetailData,
       layout: "fitDataStretch",

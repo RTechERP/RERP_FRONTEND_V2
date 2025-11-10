@@ -1,134 +1,129 @@
 <div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0">
-        <h6 class="modal-title text-white">Tổng hợp chi tiết phiếu xuất</h6>
-        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
-      </div>
-      <div class="modal-body p-1 flex-grow-1 overflow-hidden">
-        <div class="d-flex gap-2 p-2 border-bottom">
-          <button class="fs-12 btn" nz-button nzType="default" nzSize="small" title="Xuất Excel" (click)="exportExcel()">
-            <nz-icon nzType="file-excel"></nz-icon> Xuất Excel
-          </button>
-        </div>   
-          <div class="tab-content">
-            <div class="d-flex gap-2 p-2 border-bottom">
-                <form nz-form nzLayout="inline" class="d-flex flex-wrap gap-2 align-items-end">
-                    <!-- Từ ngày -->
-                    <nz-form-item style="width: 160px; margin-bottom: 0;">
-                      <nz-form-label class="fs-12">Từ</nz-form-label>
-                      <nz-form-control>
-                        <nz-date-picker
-                          [nzFormat]="dateFormat"
-                          nzSize="small"
-                          [(ngModel)]="searchParams.dateStart"
-                          name="dateStart"
-                          [nzDisabled]="checked"
-                          class="w-100"
-                        ></nz-date-picker>
-                      </nz-form-control>
-                    </nz-form-item>
-                  
-                    <!-- Đến ngày -->
-                    <nz-form-item style="width: 160px; margin-bottom: 0;">
-                      <nz-form-label class="fs-12">Đến</nz-form-label>
-                      <nz-form-control>
-                        <nz-date-picker
-                          [nzFormat]="dateFormat"
-                          nzSize="small"
-                          [(ngModel)]="searchParams.dateEnd"
-                          name="dateEnd"
-                          [nzDisabled]="checked"
-                          class="w-100"
-                        ></nz-date-picker>
-                      </nz-form-control>
-                    </nz-form-item>
-                  
-                    <!-- Checkbox -->
-                    <nz-form-item class="mb-0">
-                      <nz-form-label class="fs-12 d-none"></nz-form-label>
-                      <nz-form-control>
-                        <label nz-checkbox [(ngModel)]="checked" name="checked" (ngModelChange)="onCheckboxChange()">
-                          Tất cả
-                        </label>
-                      </nz-form-control>
-                    </nz-form-item>
-                  
-                    <!-- Lọc kho -->
-                    <nz-form-item style="width: 220px; margin-bottom: 0;">
-                      <nz-form-label class="fs-12">Lọc kho</nz-form-label>
-                      <nz-form-control>
-                        <nz-select
-                          [(ngModel)]="selectedKhoTypes"
-                          (ngModelChange)="onKhoTypeChange($event)"
-                          [nzMode]="'multiple'"
-                          [nzPlaceHolder]="'Chọn nhóm kho'"
-                          [nzMaxTagCount]="1"
-                          nzSize="small"
-                          class="w-100"
-                          name="selectedKhoTypes"
-                        >
-                          <nz-option
-                            *ngFor="let item of dataProductGroup"
-                            [nzLabel]="item.ProductGroupName"
-                            [nzValue]="item.ID"
-                          ></nz-option>
-                        </nz-select>
-                      </nz-form-control>
-                    </nz-form-item>
-                  
-                    <!-- Lọc phiếu -->
-                    <nz-form-item style="width: 180x; margin-bottom: 0;">
-                      <nz-form-label class="fs-12">Lọc phiếu</nz-form-label>
-                      <nz-form-control>
-                        <nz-select
-                          nzShowSearch
-                          nzAllowClear
-                          nzSize="small"
-                          [(ngModel)]="searchParams.status"
-                          name="status"
-                          class="w-100"
-                        >
-                          <nz-option *ngFor="let item of cbbStatus" [nzValue]="item.ID" [nzLabel]="item.Name">
-                            <div class="d-flex align-items-center">
-                              <span class="me-2">{{ item.ID }}</span>
-                              <span>{{ item.Name }}</span>
-                            </div>
-                          </nz-option>
-                        </nz-select>
-                      </nz-form-control>
-                    </nz-form-item>
-                  
-                    <!-- Từ khóa -->
-                    <nz-form-item style="width: 170px; margin-bottom: 0;">
-                   
-                      <nz-form-control>
-                        <input
-                          nz-input
-                          placeholder="Nhập từ khóa"
-                          [(ngModel)]="searchParams.keyword"
-                          name="keyword"
-                          nzSize="small"
-                          class="w-100"
-                        />
-                      </nz-form-control>
-                    </nz-form-item>
-                  
-                    <!-- Nút tìm kiếm -->
-                    <nz-form-item style="width: 80px; margin-bottom: 0;">
-                      <nz-form-label class="fs-12 d-none"></nz-form-label>
-                      <nz-form-control>
-                        <button class="fs-12 btn w-100" nz-button nzType="default" nzSize="small" (click)="loadDataBillExportSynthetic()">
-                          Tìm kiếm
-                        </button>
-                      </nz-form-control>
-                    </nz-form-item>
-                  </form>
-                  
-                </div>
-            <div class="card-body w-100" style="overflow-x: auto;">
-              <div id="table_BillExportSynthetic" style="min-width: 100%;">
-              </div>
-            </div>
-          </div>     
-      </div>
-      <div class="modal-footer flex-shrink-0">
-        <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
-      </div>
+  <h6 class="modal-title text-white">Tổng hợp chi tiết phiếu xuất</h6>
+  <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+</div>
+<div class="modal-body p-1 flex-grow-1 overflow-hidden">
+  <div class="d-flex gap-2 p-2 border-bottom">
+    <button class="fs-12 btn" nz-button nzType="default" nzSize="small" title="Xuất Excel" (click)="exportExcel()">
+      <nz-icon nzType="file-excel"></nz-icon> Xuất Excel
+    </button>
+  </div>   
+    <div class="tab-content">
+      <div class="d-flex gap-2 p-2 border-bottom">
+        <form nz-form nzLayout="inline" class="filter-bar d-flex flex-wrap align-items-center">
+          <!-- Từ ngày -->
+          <nz-form-item class="filter-item filter-item--date">
+            <nz-form-control>
+              <nz-date-picker
+                [nzFormat]="dateFormat"
+                nzSize="small"
+                [(ngModel)]="searchParams.dateStart"
+                name="dateStart"
+                [nzDisabled]="checked"
+                nzPlaceHolder="Từ ngày"
+                class="w-100"
+              ></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+  
+          <!-- Đến ngày -->
+          <nz-form-item class="filter-item filter-item--date">
+            <nz-form-control>
+              <nz-date-picker
+                [nzFormat]="dateFormat"
+                nzSize="small"
+                [(ngModel)]="searchParams.dateEnd"
+                name="dateEnd"
+                [nzDisabled]="checked"
+                nzPlaceHolder="Đến ngày"
+                class="w-100"
+              ></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+  
+          <!-- Checkbox: Tất cả -->
+          <nz-form-item class="filter-item filter-item--auto mb-0">
+            <nz-form-control>
+              <label nz-checkbox [(ngModel)]="checked" name="checked" (ngModelChange)="onCheckboxChange()">
+                Tất cả
+              </label>
+            </nz-form-control>
+          </nz-form-item>
+  
+          <!-- Lọc kho -->
+          <nz-form-item class="filter-item filter-item--kho">
+            <nz-form-control>
+              <nz-select
+                [(ngModel)]="selectedKhoTypes"
+                (ngModelChange)="onKhoTypeChange($event)"
+                [nzMode]="'multiple'"
+                [nzPlaceHolder]="'Nhóm kho'"
+                [nzMaxTagCount]="1"
+                nzSize="small"
+                class="w-100"
+                name="selectedKhoTypes"
+              >
+                <nz-option
+                  *ngFor="let item of dataProductGroup"
+                  [nzLabel]="item.ProductGroupName"
+                  [nzValue]="item.ID"
+                ></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+  
+          <!-- Lọc phiếu -->
+          <nz-form-item class="filter-item filter-item--status">
+            <nz-form-control>
+              <nz-select
+                nzShowSearch
+                nzAllowClear
+                nzSize="small"
+                [(ngModel)]="searchParams.status"
+                name="status"
+                nzPlaceHolder="Trạng thái"
+                class="w-100"
+              >
+                <nz-option *ngFor="let item of cbbStatus" [nzValue]="item.ID" [nzLabel]="item.Name">
+                  <div class="d-flex align-items-center">
+                    <span class="me-2">{{ item.ID }}</span>
+                    <span>{{ item.Name }}</span>
+                  </div>
+                </nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+  
+          <!-- Từ khóa -->
+          <nz-form-item class="filter-item filter-item--keyword">
+            <nz-form-control>
+              <input
+                nz-input
+                placeholder="Từ khóa"
+                [(ngModel)]="searchParams.keyword"
+                name="keyword"
+                nzSize="small"
+                class="w-100"
+              />
+            </nz-form-control>
+          </nz-form-item>
+  
+          <!-- Nút tìm kiếm -->
+          <nz-form-item class="filter-item filter-item--button">
+            <nz-form-control>
+              <button class="fs-12 btn w-100" nz-button nzType="primary" nzSize="small" (click)="loadDataBillExportSynthetic()">
+                Tìm kiếm
+              </button>
+            </nz-form-control>
+          </nz-form-item>
+        </form>
+      </div>   
+        <div class="card-body w-100" style="overflow-x: auto;">
+          <div id="table_BillExportSynthetic" style="min-width: 100%;">
+          </div>
+        </div>
+      </div>     
+</div>
+<div class="modal-footer flex-shrink-0">
+  <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
+</div>

@@ -9,7 +9,7 @@ import { environment } from '../../../../../../../environments/environment';
 })
 export class TsAssetTransferService {
   private url = `${environment.host}api/AssetTranfer/`;
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
   getAssetTranferDetail(id: number): Observable<any> {
     const url = `${this.url + `get-asset-tranfer-detail`}?id=${id}`;
     return this.http.get<any>(url);
@@ -19,6 +19,13 @@ export class TsAssetTransferService {
   }
   saveData(request: any) {
     return this.http.post<any>(`${this.url + `save-data`}`, request);
+  }
+
+  saveDataPersonal(request: any) {
+    return this.http.post<any>(`${this.url + `save-data-personal`}`, request);
+  }
+  saveDataKT(request: any) {
+    return this.http.post<any>(`${this.url + `save-data-kt`}`, request);
   }
   getTranferCode(
     transferDate: string

@@ -39,8 +39,7 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { BillImportServiceService } from '../../bill-import-service/bill-import-service.service';
 import { ProductsaleServiceService } from '../../../ProductSale/product-sale-service/product-sale-service.service';
 import { HistoryDeleteBillComponent } from '../../../BillExport/Modal/history-delete-bill/history-delete-bill.component';
-import { IS_ADMIN } from '../../../../../../app.config';
-import { DEPARTMENTID } from '../../../../../../app.config';
+import { AppUserService } from '../../../../../../services/app-user.service';
 import { DateTime } from 'luxon';
 // Thêm các import này vào đầu file
 

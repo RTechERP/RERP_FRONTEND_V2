@@ -1,0 +1,12 @@
+.tabulator-col-group .tabulator-col-group-cols {
+    background-color: inherit !important;
+  }
+  
+  .tabulator-col-group .tabulator-col-title {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    color: black;
+  }
+  

@@ -70,7 +70,8 @@
             class="fs-12 button button-succes ms-2"
             type="button"
             title="Thêm loại sửa chữa"
-            (click)="onAddTypeAsset()">
+            (click)="onAddTypeAsset()"
+            *hasPermission="'N23,N1'">
             <nz-icon nzType="plus"></nz-icon>
           </button>
         </nz-form-label>
@@ -121,7 +122,8 @@
             class="fs-12 button button-succes ms-2"
             type="button"
             title="Thêm nguồn gốc"
-            (click)="addSource()">
+            (click)="addSource()" 
+               *hasPermission="'N23,N1'">
             <nz-icon nzType="plus"></nz-icon>
           </button>
         </nz-form-label>

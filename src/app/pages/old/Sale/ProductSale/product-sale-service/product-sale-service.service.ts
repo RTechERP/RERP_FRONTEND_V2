@@ -106,4 +106,16 @@ export class ProductsaleServiceService {
   checkProductSaleCodes(data: any) {
     return this.httpclient.post<any>(`${this.baseUrl}/check-codes`, data);
   }
+  getProductWareHouse(productgroupID: number) {
+    return this.httpclient.get<any>(
+      `${this.productgroupwarehouseUrl}/get-warehouse?groupid=` +
+        productgroupID
+    );
+  }
+  getTemplateExcel() {
+    return this.httpclient.get(`${this.baseUrl}/get-template-excel`, {
+      responseType: 'blob' // 
+    });
+  }
 }
+

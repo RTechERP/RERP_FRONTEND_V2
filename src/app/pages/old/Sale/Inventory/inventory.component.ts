@@ -4,11 +4,10 @@ import {
   AfterViewInit,
   ViewChild,
   NgZone,
+  ElementRef,
 } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import * as bootstrap from 'bootstrap';
-
 import { CommonModule } from '@angular/common';
 import {
   FormsModule,
@@ -35,10 +34,11 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { ProductSaleDetailComponent } from '../ProductSale/product-sale-detail/product-sale-detail.component';
 import { ProductGroupDetailComponent } from '../ProductSale/product-group-detail/product-group-detail.component';
 import { ImportExcelProductSaleComponent } from '../ProductSale/import-excel-product-sale/import-excel-product-sale.component';
-import { IS_ADMIN } from '../../../../../app.config';
+import { AppUserService } from '../../../../services/app-user.service';
 import { InventoryService } from './inventory-service/inventory.service';
-import { ProductSaleComponent } from '../ProductSale/product-sale.component';
 import { InventoryBorrowNCCComponent } from './Modal/inventory-borrow-ncc/inventory-borrow-ncc.component';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 
 interface ProductGroup {
   ID?: number;
@@ -81,6 +81,9 @@ interface ProductSale {
     NgbModule,
     ProductSaleDetailComponent,
     ImportExcelProductSaleComponent,
+    ProductGroupDetailComponent,
+    InventoryBorrowNCCComponent,
+    HasPermissionDirective,
   ],
   templateUrl: './inventory.component.html',
   styleUrl: './inventory.component.css',
@@ -93,7 +96,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
     private modalService: NgbModal,
     private modal: NzModalService,
     private zone: NgZone
-  ) {}
+  ) { }
 
   id: number = 0;
   listLocation: any[] = [];
@@ -103,7 +106,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
   wareHouseCode: string = 'HN';
   productGroupID: number = 0;
 
-  table_productgroup: any;
+  table_productgroupInven: any;
   dataProductGroup: any[] = [];
 
   table_pgwarehouse: any;
@@ -139,7 +142,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
     FirmID: 0,
     Note: '',
   };
-  ngOnInit(): void {}
+  ngOnInit(): void { }
   ngAfterViewInit(): void {
     this.drawTable_ProductGroup();
     this.drawTable_PGWareHouse();
@@ -150,9 +153,9 @@ export class InventoryComponent implements OnInit, AfterViewInit {
   openModalInventoryBorrowNCC() {
     const modalRef = this.modalService.open(InventoryBorrowNCCComponent, {
       centered: true,
-      size: 'lg',
       backdrop: 'static',
       keyboard: false,
+      size: 'xl',
     });
 
     modalRef.result.catch((result) => {
@@ -192,11 +195,11 @@ export class InventoryComponent implements OnInit, AfterViewInit {
   //     });
   //   }
   // }
-  openModalImportExcel() {}
+  openModalImportExcel() { }
   getAllProductSale() {
     this.getInventory();
   }
-  getdataFind() {}
+  getdataFind() { }
   //#region các hàm lấy dữ liệu và mở mđ ProductGroup
   getProductGroup() {
     this.productsaleSV
@@ -205,13 +208,14 @@ export class InventoryComponent implements OnInit, AfterViewInit {
         next: (res) => {
           if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
             this.dataProductGroup = res.data;
+            console.log('this.dataProductGroupAPI', this.dataProductGroup);
             // Chỉ gán ID nếu chưa có ID được chọn
             if (!this.productGroupID) {
               this.getDataProductGroupWareHouse(res.data[0].ID);
               this.getInventory();
             }
-            if (this.table_productgroup) {
-              this.table_productgroup.setData(this.dataProductGroup);
+            if (this.table_productgroupInven) {
+              this.table_productgroupInven.setData(this.dataProductGroup);
             } else {
               this.drawTable_ProductGroup();
             }
@@ -290,6 +294,8 @@ export class InventoryComponent implements OnInit, AfterViewInit {
         next: (res) => {
           if (res?.data && res.data.length > 0) {
             this.newProductGroup.EmployeeID = res.data[0].EmployeeID ?? 0;
+            console.log('this.newProductGroup.EmployeeID', this.newProductGroup.EmployeeID);
+            console.log('data', res.data);
           }
           this.newProductGroup.WareHouseID = 1;
           const modalRef = this.modalService.open(ProductGroupDetailComponent, {
@@ -429,18 +435,20 @@ export class InventoryComponent implements OnInit, AfterViewInit {
     window.URL.revokeObjectURL(link.href);
   }
   //vẽ bảng
+  @ViewChild('tableProductGroup') tableProductGroupRef!: ElementRef;
+  @ViewChild('tablePGWarehouse') tablePGWarehouseRef!: ElementRef;
+  @ViewChild('tableInventory') tableInventoryRef!: ElementRef;
   drawTable_ProductGroup() {
-    this.table_productgroup = new Tabulator('#table_productgroup', {
+    console.log('this.dataProductGroup', this.dataProductGroup);
+
+    this.table_productgroupInven = new Tabulator(this.tableProductGroupRef.nativeElement, {
       data: this.dataProductGroup,
       layout: 'fitDataFill',
-      height: '100%',
-      pagination: true,
-      paginationSize: 15,
-      selectableRows: 1,
 
-      movableColumns: true,
-      resizableRows: true,
-      reactiveData: true,
+      ...DEFAULT_TABLE_CONFIG,
+      paginationMode: 'local',
+      height: '60vh',
+      selectableRows: 1,
       columns: [
         {
           title: 'Mã nhóm',
@@ -448,7 +456,6 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           hozAlign: 'left',
           headerHozAlign: 'center',
           width: '50%',
-          headerFilter: true,
         },
         {
           title: 'Tên nhóm',
@@ -456,22 +463,28 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           hozAlign: 'left',
           headerHozAlign: 'center',
           width: '50%',
-          headerFilter: true,
         },
       ],
     });
 
-    this.table_productgroup.on(
-      'rowClick',
+    this.table_productgroupInven.on(
+      'rowSelected',
       (e: MouseEvent, row: RowComponent) => {
-        const rowData = row.getData();
+        const selectrow = this.table_productgroupInven.getSelectedRows();
+        if (selectrow.length === 0) {
+          this.productGroupID = 0;
+          return;
+        }
+        const rowData = selectrow[0].getData();
         this.productGroupID = rowData['ID'];
+        console.log('rowDataID', this.productGroupID);
+
         console.log('Selected ID:', this.productGroupID);
         this.getInventory();
         this.getDataProductGroupWareHouse(this.productGroupID);
       }
     );
-    this.table_productgroup.on('rowDblClick', (e: MouseEvent, row: any) => {
+    this.table_productgroupInven.on('rowDblClick', (e: MouseEvent, row: any) => {
       const rowData = row.getData();
 
       this.productGroupID = rowData['ID'];
@@ -479,17 +492,15 @@ export class InventoryComponent implements OnInit, AfterViewInit {
         this.openModalProductGroup();
       });
     });
-    this.table_productgroup.on('rowDeselected', (row: RowComponent) => {
-      // Khi một hàng bị bỏ chọn, kiểm tra xem còn hàng nào được chọn không
-      const selectedRows = this.table_productgroup.getSelectedRows();
+    this.table_productgroupInven.on('rowDeselected', (row: RowComponent) => {
+      const selectedRows = this.table_productgroupInven.getSelectedRows();
       if (selectedRows.length === 0) {
-        this.productGroupID = 0; // Reset id về 0 (hoặc null)
-        //   this.tableReport?.replaceData([]); // Xóa dữ liệu bảng chi tiết
+        this.productGroupID = 0;
       }
     });
   }
   drawTable_PGWareHouse() {
-    this.table_pgwarehouse = new Tabulator('#table_pgwarehouse', {
+    this.table_pgwarehouse = new Tabulator(this.tablePGWarehouseRef.nativeElement, {
       data: this.dataPGWareHouse || [],
       layout: 'fitDataFill',
       height: '100%',
@@ -498,6 +509,28 @@ export class InventoryComponent implements OnInit, AfterViewInit {
       movableColumns: true,
       resizableRows: true,
       reactiveData: true,
+      // ...DEFAULT_TABLE_CONFIG,
+        langs: {
+    vi: {
+      pagination: {
+        first: '<<',
+        last: '>>',
+        prev: '<',
+        next: '>',
+      },
+    },
+  },
+  columnDefaults: {
+    headerWordWrap: true,
+    headerVertical: false,
+    headerHozAlign: 'center',
+    minWidth: 60,
+    hozAlign: 'left',
+    vertAlign: 'middle',
+    resizable: true,
+  },
+  locale: 'vi',
+      paginationMode: 'local',
       columns: [
         {
           title: 'Kho',
@@ -518,27 +551,17 @@ export class InventoryComponent implements OnInit, AfterViewInit {
   }
 
   drawTable_Inventory() {
-    this.table_inventory = new Tabulator('#table_inventory', {
+    this.table_inventory = new Tabulator(this.tableInventoryRef.nativeElement, {
       data: this.dataInventory || [],
       layout: 'fitDataFill',
-      height: '84vh',
+      height: '89vh',
       pagination: true,
       paginationSize: 50,
       movableColumns: true,
       resizableRows: true,
       reactiveData: true,
-      rowHeader: {
-        headerSort: false,
-        resizable: false,
-        frozen: true,
-        formatter: 'rowSelection',
-        headerHozAlign: 'center',
-        hozAlign: 'center',
-        titleFormatter: 'rowSelection',
-        cellClick: (e, cell) => {
-          e.stopPropagation();
-        },
-      },
+      ...DEFAULT_TABLE_CONFIG,
+      paginationMode: 'local',
       columns: [
         {
           title: 'Tên nhóm',

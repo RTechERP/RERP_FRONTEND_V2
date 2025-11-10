@@ -1,4 +1,30 @@
-::ng-deep .ant-form-inline .ant-form-item {
-    margin-right: 4px !important; 
-    margin-bottom: 0 !important;  
-  }
+/* Chuẩn hóa thanh lọc theo UX ERP */
+.filter-bar {
+  gap: 8px;
+}
+.filter-bar .ant-form-item {
+  margin-bottom: 0;
+}
+.filter-item--date {
+  width: 160px;
+}
+.filter-item--kho {
+  width: 240px;
+}
+.filter-item--status {
+  width: 180px;
+}
+.filter-item--keyword {
+  width: 200px;
+}
+.filter-item--button {
+  width: 100px;
+}
+.filter-item--auto {
+  width: auto;
+}
+.filter-bar .ant-select,
+.filter-bar .ant-picker,
+.filter-bar input[nz-input] {
+  width: 100%;
+}

@@ -46,6 +46,8 @@ import { PermissionService } from '../../../../services/permission.service';
 import { ProjectLeaderProjectTypeComponent } from '../../../old/project/project-leader-project-type/project-leader-project-type.component';
 import { MeetingMinuteComponent } from '../../../old/project/meeting-minute/meeting-minute.component';
 import { ProjectNewComponent } from '../../../old/project/project-new/project-new.component';
+import { CustomerComponent } from '../../../crm/customers/customer/customer.component';
+import { PlanWeekComponent } from '../../../old/VisionBase/plan-week/plan-week.component';
 import { TsAssetTypeComponent } from '../../../hrm/asset/asset/ts-asset-type/ts-asset-type.component';
 import { TsAssetSourceComponent } from '../../../hrm/asset/asset/ts-asset-source/ts-asset-source.component';
 import { OfficeSupplyUnitComponent } from '../../../hrm/office-supply/OfficeSupplyUnit/office-supply-unit.component';
@@ -62,6 +64,7 @@ import { CurrencyListComponent } from '../../../general-category/currency-list/c
 import { UnitCountComponent } from '../../../old/Sale/ProductSale/unit-count/unit-count.component';
 import { ProductLocationComponent } from '../../../general-category/product-location/product-location.component';
 import { FirmComponent } from '../../../general-category/firm/firm.component';
+import { FollowProjectBaseComponent } from '../../../old/VisionBase/kho-base/follow-project-base/follow-project-base.component';
 import { CustomerComponent } from '../../../old/customer/customer.component';
 import { InventoryComponent } from '../../../old/Sale/Inventory/inventory.component';
 import { InventoryBorrowNCCComponent } from '../../../old/Sale/Inventory/Modal/inventory-borrow-ncc/inventory-borrow-ncc.component';
@@ -844,7 +847,45 @@ export class MenuService {
         ],
       },
       //#endregion
-    ];
+    
+  //#region Phòng sale
+  {
+    kind: 'group',
+    key: 'SALE',
+    title: 'PHÒNG SALE',
+    isOpen: true,
+    isPermission: this.permissionService.hasPermission(""),
+    icon: 'assets/icon/menu_project_24.png',
+    children: [
+      {
+        kind: 'group',
+        key: 'ProjectComponent',
+        title: 'Vision Base',
+        isOpen: true,
+        isPermission: this.permissionService.hasPermission(""),
+        children: [
+          {
+            kind: 'leaf',
+            key: 'PlanWeekComponent',
+            title: 'Kế hoạch tuần',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission("'N1,N27,N53,N31,N69'"),
+            comp: PlanWeekComponent
+          },
+          {
+            kind: 'leaf',
+            key: 'FollowProjectBaseComponent',
+            title: 'Follow dự án',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(""),
+            comp: FollowProjectBaseComponent
+          }
+        ]
+      }
+      
+    ],
+  },
+];
 
     return menus;
   }

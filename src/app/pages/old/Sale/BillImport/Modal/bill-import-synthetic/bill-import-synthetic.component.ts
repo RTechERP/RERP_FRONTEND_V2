@@ -46,7 +46,7 @@ import {
   createComponent,
 } from '@angular/core';
 import { SelectControlComponent } from '../../../BillExport/Modal/select-control/select-control.component';
-import { ProjectComponent } from '../../../../project/project.component';
+import { ProjectComponent } from '../../../../../project/project.component';
 import { HistoryDeleteBillComponent } from '../../../BillExport/Modal/history-delete-bill/history-delete-bill.component';
 import { BillExportService } from '../../../BillExport/bill-export-service/bill-export.service';
 interface data {

@@ -71,6 +71,11 @@ import { InventoryBorrowNCCComponent } from '../../../old/Sale/Inventory/Modal/i
 import { BillImportComponent } from '../../../old/Sale/BillImport/bill-import.component';
 import { BillExportComponent } from '../../../old/Sale/BillExport/bill-export.component';
 import { ProjectFieldComponent } from '../../../project/project-field/project-field/project-field.component';
+import { SupplierSaleComponentComponent } from '../../../old/supplier-sale-component/supplier-sale-component.component';
+import { QuotationKhComponent } from '../../../old/quotation-kh/quotation-kh.component';
+import { PokhKpiComponent } from '../../../old/pokh-kpi/pokh-kpi.component';
+import { PokhHistoryComponent } from '../../../old/pokh-history/pokh-history.component';
+import { PokhComponent } from '../../../old/pokh/pokh.component';
 
 @Injectable({
   providedIn: 'root',
@@ -113,8 +118,7 @@ export class MenuService {
             key: 'CustomerComponent',
             title: 'Khách hàng',
             isOpen: true,
-            isPermission:
-              this.permissionService.hasPermission('N1,N27,N53,N31,N69'),
+            isPermission: this.permissionService.hasPermission("N1,N27,N53,N31,N69"),
             comp: CustomerComponent,
           },
         ],
@@ -773,51 +777,61 @@ export class MenuService {
       //#endregion
       //#region menu dự án
       {
-        kind: 'leaf',
-        key: 'FactoryVisitRegistrationComponent',
-        title: 'THAM QUAN NHÀ MÁY',
+        kind: 'group',
+        key: 'project',
+        title: 'DANH MỤC CHUNG',
         isOpen: true,
-        isPermission: this.permissionService.hasPermission(""),
-        comp: FactoryVisitRegistrationComponent,
-        //   icon: 'assets/icon/layers.png',
-      },
-      {
-        kind: 'leaf',
-        key: 'CurrencyListComponent',
-        title: 'Tiền tệ',
-        isOpen: true,
-        isPermission: this.permissionService.hasPermission(""),
-        comp: CurrencyListComponent,
-      }
-      ,{
-        kind: 'leaf',
-        key: 'ProductLocationComponent',
-        title: 'Vị trí thiết bị',
-        isOpen: true,
-        isPermission: this.permissionService.hasPermission(""),
-        comp: ProductLocationComponent,
-      },{
+        isPermission: this.permissionService.hasPermission(''),
+        icon: 'assets/icon/menu_project_24.png',
+        children: [
+          
+          {
+            kind: 'leaf',
+            key: 'FactoryVisitRegistrationComponent',
+            title: 'THAM QUAN NHÀ MÁY',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(""),
+            comp: FactoryVisitRegistrationComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+          {
+            kind: 'leaf',
+            key: 'CurrencyListComponent',
+            title: 'Tiền tệ',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(""),
+            comp: CurrencyListComponent,
+          }
+          ,{
+            kind: 'leaf',
+            key: 'ProductLocationComponent',
+            title: 'Vị trí thiết bị',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(""),
+            comp: ProductLocationComponent,
+          },{
 
-        kind: 'leaf',
-          key: 'SupplierSaleComponent',
-          title: 'Nhà cung cấp',
-          isOpen: true,
-          isPermission: this.permissionService.hasPermission(""),
-          comp: SupplierSaleComponent,
-      },
-      {
-        kind: 'leaf',
-          key: 'FirmComponent',
-          title: 'Hãng',
-          isOpen: true,
-          isPermission: this.permissionService.hasPermission(""),
-          comp: FirmComponent,
-      },
+            kind: 'leaf',
+              key: 'SupplierSaleComponent',
+              title: 'Nhà cung cấp',
+              isOpen: true,
+              isPermission: this.permissionService.hasPermission(""),
+              comp: SupplierSaleComponentComponent,
+          },
+          {
+            kind: 'leaf',
+              key: 'FirmComponent',
+              title: 'Hãng',
+              isOpen: true,
+              isPermission: this.permissionService.hasPermission(""),
+              comp: FirmComponent,
+          },
 
     ],
   },
 
   //#endregion
+  {
         kind: 'group',
         key: 'project',
         title: 'DỰ ÁN',
@@ -954,6 +968,47 @@ export class MenuService {
         isPermission: this.permissionService.hasPermission(''),
         icon: 'assets/icon/menu_project_24.png',
         children: [
+          {
+            kind: 'group',
+            key: 'POKHComponent',
+            title: 'PO KHÁCH HÀNG',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            children: [
+              {
+                kind: 'leaf',
+                key: 'POKHComponent',
+                title: 'Danh sách PO KHÁCH HÀNG',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: PokhComponent,
+              },
+              {
+                kind: 'leaf',
+                key: 'QuotationKhComponent',
+                title: 'BÁO GIÁ KHÁCH HÀNG',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: QuotationKhComponent,
+              },
+              {
+                kind: 'leaf',
+                key: 'PokhKpiComponent',
+                title: 'XUẤT PO KHÁCH HÀNG CHI TIẾT',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: PokhKpiComponent,
+              },
+              {
+                kind: 'leaf',
+                key: 'POKHHistoryComponent',
+                title: 'LỊCH SỬ PO KHÁCH HÀNG',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: PokhHistoryComponent,
+              }
+            ],
+          },
           {
             kind: 'group',
             key: 'ProjectComponent',

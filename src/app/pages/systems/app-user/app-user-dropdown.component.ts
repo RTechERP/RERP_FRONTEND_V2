@@ -9,6 +9,8 @@ import { jwtDecode } from 'jwt-decode';
 import { Router } from '@angular/router';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { AuthService } from '../../../auth/auth.service';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 @Component({
   selector: 'app-app-user-dropdown',
   standalone: true,
@@ -27,7 +29,11 @@ export class AppUserDropdownComponent {
   employeeCode: string = '';
   fullName: string = '';
   positionName: string = '';
-  constructor(private auth: AuthService, private router: Router) {}
+  constructor(
+    private auth: AuthService,
+    private router: Router,
+    private notification: NzNotificationService
+  ) {}
   ngOnInit(): void {
     this.decodeToken();
   }
@@ -41,8 +47,9 @@ export class AppUserDropdownComponent {
         this.employeeCode = decoded.code;
         this.fullName = decoded.fullname;
         this.positionName = decoded.positionname;
-      } catch (error) {
+      } catch (error: any) {
         // console.error('Invalid token', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       }
     }
   }
@@ -50,4 +57,6 @@ export class AppUserDropdownComponent {
     this.auth.logout();
     this.router.navigateByUrl('/login', { replaceUrl: true });
   }
+
+  profile() {}
 }

@@ -103,6 +103,7 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
   employeeId: any;
   projectId: any;
   keyword: any;
+  IsLateActual: number = 0;
   //#endregion
   //#region Chạy khi mở
   ngOnInit(): void {}
@@ -167,6 +168,10 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
     this.employeeId = 0;
     this.projectId = 0;
     this.keyword = '';
+    this.IsLateActual = 0;
+    if (this.tb_projectItemlate) {
+      this.tb_projectItemlate.clearFilter();
+    }
   }
   //#endregion
   //#region Xử lý bảng hạng mục chậm tiến độ
@@ -176,7 +181,9 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
       //   layout: 'fitColumns',
 
       ...DEFAULT_TABLE_CONFIG,
-      pagination: false,
+      rowHeader:false,
+      pagination: true,
+      paginationMode:'local',
       groupBy: 'ProjectCode',
       groupHeader: function (value) {
         return value ? `Mã dự án ${value}` : `Chưa có mã dự án`;
@@ -300,12 +307,52 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
           hozAlign: 'center',
         },
         {
+          title: 'IsLateActual',
+          field: 'IsLateActual',
+          visible: false,
+          headerHozAlign: 'center',
+        },
+        {
           title: 'Trạng thái',
           field: 'IsLateActualText',
           width: 200,
           headerHozAlign: 'center',
+          formatter: function (cell, formatterParams, onRendered) {
+            const rowData = cell.getRow().getData();
+            const isLateActual = rowData['IsLateActual'];
+            const value = cell.getValue() || '';
+            let backgroundColor = '';
+            let textColor = '';
+            
+            if (isLateActual === 1 || isLateActual === '1') {
+              backgroundColor = '#ffd700'; // Màu vàng
+              textColor = '#000000';
+            } else if (isLateActual == 3 || isLateActual === '3') {
+              backgroundColor = 'orange'; // Màu cam
+              textColor = '#000000';
+            } else if (isLateActual == 2 || isLateActual === '2') {
+              backgroundColor = 'red'; // Màu đỏ
+              textColor = 'white';
+            }
+            
+            // Tô màu toàn bộ ô
+            if (onRendered) {
+              onRendered(function() {
+                const cellElement = cell.getElement();
+                if (cellElement && backgroundColor) {
+                  cellElement.style.backgroundColor = backgroundColor;
+                  cellElement.style.color = textColor;
+                }
+              });
+            }
+            
+            return value;
+          },
         },
       ],
+    });
+    this.tb_projectItemlate.on("pageLoaded", () => {
+      this.tb_projectItemlate.redraw();
     });
   }
   //#endregion
@@ -331,6 +378,8 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
         console.log(response.data.length);
         this.tb_projectItemlate.setData(response.data);
         this.isLoadTable = false;
+        // Áp dụng filter trạng thái sau khi load dữ liệu
+        this.getTrangThai();
       },
       error: (error) => {
         console.error('Lỗi:', error);
@@ -349,6 +398,25 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
       `HangMucCongViecChamTienDo_${date}`,
       'ProjectCode'
     );
+  }
+  //#endregion
+  //#region Xử lý trạng thái
+  getTrangThai() {
+    if (this.tb_projectItemlate) {
+      if (this.IsLateActual != 0) {
+        // Lọc dữ liệu theo IsLateActual
+        this.tb_projectItemlate.setFilter([
+          {
+            field: 'IsLateActual',
+            type: '=',
+            value: this.IsLateActual,
+          },
+        ]);
+      } else {
+        // Nếu không chọn trạng thái, hiển thị tất cả
+        this.tb_projectItemlate.clearFilter();
+      }
+    }
   }
   //#endregion
 }

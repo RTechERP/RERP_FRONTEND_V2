@@ -27,7 +27,7 @@ import { DateTime } from 'luxon';
 // Thêm các import này vào đầu file
 import { EnvironmentInjector, ApplicationRef, Type, createComponent } from '@angular/core';
 import { SelectControlComponent } from '../select-control/select-control.component';
-import { ProjectComponent } from '../../../../project/project.component';
+import { ProjectComponent } from '../../../../../project/project.component';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 @Component({
   selector: 'app-history-delete-bill',

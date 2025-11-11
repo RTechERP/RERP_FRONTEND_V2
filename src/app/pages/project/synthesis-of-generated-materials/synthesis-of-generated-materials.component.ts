@@ -135,7 +135,9 @@ export class SynthesisOfGeneratedMaterialsComponent
   drawTbSynthesisOfGeneratedMaterials(container: HTMLElement) {
     this.tb_synthesisOfGeneratedMaterials = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
-      pagination: false,
+      rowHeader: false,
+      pagination: true,
+      paginationMode: 'local',
       //   height: '100%',
       //   layout: 'fitColumns',
       //   pagination: true,

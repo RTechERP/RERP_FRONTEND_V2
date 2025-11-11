@@ -45,7 +45,7 @@ import {
   createComponent,
 } from '@angular/core';
 import { SelectControlComponent } from '../select-control/select-control.component';
-import { ProjectComponent } from '../../../../project/project.component';
+import { ProjectComponent } from '../../../../../project/project.component';
 import { HistoryDeleteBillComponent } from '../history-delete-bill/history-delete-bill.component';
 @Component({
   selector: 'app-bill-export-synthetic',

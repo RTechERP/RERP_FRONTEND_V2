@@ -170,7 +170,6 @@ export class PriceHistoryPartlistComponent implements OnInit, AfterViewInit{
   getSupplierSales() {
     this.projectService.getSupplierSales().subscribe({
       next: (response: any) => {
-        debugger
         this.suppliers = response.data;
       },
       error: (error) => {

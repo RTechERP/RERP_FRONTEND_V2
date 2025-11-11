@@ -6,7 +6,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 import { environment } from '../../../../environments/environment';
 import { DateTime } from 'luxon';
-import { AppUserService } from '../../../../services/app-user.service';
+import { AppUserService } from '../../../services/app-user.service';
 // import { HOST } from '../../../../app.config';
 @Injectable({
   providedIn: 'root',

@@ -1,96 +1,24 @@
 <nz-layout class="app-layout">
-    <nz-sider class="menu-sidebar" nzCollapsible nzWidth="256px" nzBreakpoint="md" [(nzCollapsed)]="isCollapsed"
+    <nz-sider class="menu-sidebar" nzCollapsible nzWidth="200px" nzBreakpoint="md" [(nzCollapsed)]="isCollapsed"
         [nzTrigger]="null" nzTheme="light">
         <div class="sidebar-logo d-flex justify-content-center align-items-center" nzTheme="light">
             <a routerLink="/home" class="text-center">
                 <!-- <img [src]="" alt="logo" class="img-logo" /> -->
                 <img [src]="isCollapsed ? 'assets/images/icon-logo-RTC-2023.png' : 'assets/images/logo-RTC-2023-1200-banchuan.png'"
-                    alt="">
+                    alt="" class="p-1">
                 <!-- <h1>RTC</h1> -->
             </a>
         </div>
 
 
-        <!-- <ul nz-menu nzTheme="light" nzMode="inline" [nzInlineCollapsed]="false">
-            <ng-container *ngFor="let m of menus">
-
-
-                <li nz-submenu *ngIf="isGroup(m) && m.isPermission && m.isOpen" [nzOpen]="true" [nzTitle]="groupTitle">
-                    <ng-template #groupTitle>
-                        <span class="menu-title">
-                            <span class="icon-slot icon-20">
-                                <img *ngIf="m.icon" [src]="m.icon" class="menu-icon" />
-                            </span>
-                            <span>{{ m.title.toUpperCase() }}</span>
-                        </span>
-                    </ng-template>
-
-                    <ul>
-                        <ng-container *ngFor="let c of (m.children || []); trackBy: trackKey">
-
-                            <li nz-submenu *ngIf="isGroup(c)&& c.isOpen &&c.isPermission" [nzOpen]="true"
-                                [nzTitle]="cTitle">
-                                <ng-template #cTitle>
-                                    <span class="menu-title">
-                                        <span class="icon-slot icon-14"><img *ngIf="c.icon" [src]="c.icon"
-                                                class="menu-icon-sm" /></span>
-                                        <span class="menu-label">{{ c.title?.charAt(0) | uppercase }}{{
-                                            c.title?.slice(1) | lowercase }}</span>
-                                    </span>
-                                </ng-template>
-
-                                <ul>
-                                    <ng-container *ngFor="let g of (c.children || []); trackBy: trackKey">
-
-
-                                        <ng-container *ngIf="isLeaf(g)&&g.isPermission==true">
-                                            <li nz-menu-item (click)="newTab(g.comp, g.title)" class="ps-4">
-                                                <span class="icon-slot icon-14"><img *ngIf="g.icon" [src]="g.icon"
-                                                        class="menu-icon-sm" /></span>
-                                                <span class="menu-label">{{ g.title?.charAt(0) | uppercase }}{{
-                                                    g.title?.slice(1) | lowercase }}</span>
-                                            </li>
-                                        </ng-container>
-
-
-                                    </ng-container>
-                                </ul>
-                            </li>
-                            <ng-container *ngIf="isLeaf(c)&& c.isOpen &&c.isPermission">
-                                <li nz-menu-item (click)="newTab(c.comp, c.title)" class="ps-4">
-                                    <span class="icon-slot icon-14"><img *ngIf="c.icon" [src]="c.icon"
-                                            class="menu-icon-sm" /></span>
-                                    <span class="menu-label">{{ c.title?.charAt(0) | uppercase }}{{ c.title?.slice(1) |
-                                        lowercase }}</span>
-                                </li>
-                            </ng-container>
-
-                        </ng-container>
-                    </ul>
-                </li>
-
-
-                <ng-container *ngIf="isLeaf(m) && m.isOpen&&m.isPermission">
-                    <li nz-menu-item (click)="newTab(m.comp, m.title)">
-                        <span class="icon-slot icon-20"><img *ngIf="m.icon" [src]="m.icon" class="menu-icon" /></span>
-                        <span class="menu-label">{{ m.title?.charAt(0) | uppercase }}{{ m.title?.slice(1) | lowercase
-                            }}</span>
-                    </li>
-                </ng-container>
-
-            </ng-container>
-        </ul> -->
-
-
-
         <ul nz-menu nzMode="inline">
             @for (m of menus; track m.key) {
 
-            <ng-template #nzTitle>
+            <ng-template #nzTitle style="padding: 0 16px;">
                 <img [src]="m.icon" class="menu-icon" width="10%" style="margin-right: 8px; vertical-align: middle;" />
                 <p class="m-0 fw-bold">{{ m.title }}</p>
             </ng-template>
-            <li nz-submenu [nzTitle]="nzTitle" *ngIf="isGroup(m) && m.isPermission && m.isOpen" nzIcon="">
+            <li nz-submenu [nzTitle]="nzTitle" *ngIf="isGroup(m) && m.isPermission && m.isOpen">
                 <ul>
                     @for (c1 of m.children; track c1.key) {
                     <li nz-menu-item *ngIf="isLeaf(c1) && c1.isPermission && c1.isOpen"

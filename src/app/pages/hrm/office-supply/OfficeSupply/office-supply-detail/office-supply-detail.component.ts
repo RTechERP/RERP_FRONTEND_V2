@@ -1,10 +1,6 @@
-import { Component, OnInit, AfterViewInit, ViewChild, Input } from '@angular/core';
+import { Component, OnInit, AfterViewInit, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { TabulatorFull as Tabulator } from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import { RowComponent } from 'tabulator-tables';
-import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
@@ -30,12 +26,13 @@ interface Product {
   RequestLimit: number;
   Type: number;
 }
+
 @Component({
   selector: 'app-office-supply-detail',
   standalone: true,
   imports: [
-    CommonModule, 
-    FormsModule, 
+    CommonModule,
+    FormsModule,
     ReactiveFormsModule,
     NzSelectModule,
     NzSplitterModule,
@@ -49,9 +46,9 @@ interface Product {
   templateUrl: './office-supply-detail.component.html',
   styleUrl: './office-supply-detail.component.css'
 })
-export class OfficeSupplyDetailComponent implements  OnInit, AfterViewInit {
-  @Input() newProduct!: Product;
-  @Input() isCheckmode: boolean = false;
+export class OfficeSupplyDetailComponent implements OnInit, AfterViewInit {
+  @Input() newProduct!: Product;          // data truyền vào khi sửa / thêm
+  @Input() isCheckmode: boolean = false;  // true = sửa, false = thêm
   @Input() listUnit: any[] = [];
   @Input() typeOptions: any[] = [];
 
@@ -66,11 +63,40 @@ export class OfficeSupplyDetailComponent implements  OnInit, AfterViewInit {
     private modalService: NgbModal
   ) { }
 
-  private initForm() {
-    this.validateForm = this.fb.group({
-      unitName: [null, [Validators.required]]
-    });
+ private initForm() {
+  if (!this.newProduct) {
+    this.newProduct = {
+      ID: 0,
+      CodeRTC: '',
+      CodeNCC: '',
+      NameRTC: '',
+      NameNCC: '',
+      SupplyUnitID: 0,
+      Price: 0,
+      RequestLimit: 0,
+      Type: 0
+    };
   }
+
+  this.validateForm = this.fb.group({
+    ID: [this.newProduct?.ID ?? 0],
+    CodeRTC: [{ value: this.newProduct?.CodeRTC || '', disabled: true }],
+    CodeNCC: [this.newProduct?.CodeNCC || '', [Validators.required, Validators.maxLength(100)]],
+    NameRTC: [this.newProduct?.NameRTC || '', [Validators.maxLength(200)]],
+    NameNCC: [this.newProduct?.NameNCC || '', [Validators.required, Validators.maxLength(200)]],
+    SupplyUnitID: [this.newProduct?.SupplyUnitID || null, [Validators.required, Validators.min(1)]],
+    Price: [this.newProduct?.Price ?? 0, [Validators.required, Validators.min(0)]],
+    RequestLimit: [this.newProduct?.RequestLimit ?? 0, [Validators.min(0)]],
+    Type: [
+      this.newProduct?.Type != null ? +this.newProduct.Type : null,
+      [Validators.required]
+    ]
+  });
+}
+
+clearSupplyUnit() {
+  this.validateForm.get('SupplyUnitID')?.setValue(null);
+}
   ngOnInit(): void {
     this.initForm();
   }
@@ -80,10 +106,10 @@ export class OfficeSupplyDetailComponent implements  OnInit, AfterViewInit {
       this.getUnits();
     }
   }
+
   getUnits(): void {
     this.officesupplyService.getUnit().subscribe({
       next: (res) => {
-        console.log('Danh sách đơn vị tính:', res);
         this.listUnit = Array.isArray(res?.data) ? res.data : [];
       },
       error: (err) => {
@@ -91,6 +117,7 @@ export class OfficeSupplyDetailComponent implements  OnInit, AfterViewInit {
       }
     });
   }
+
   addNewUnit() {
     const modalRef = this.modalService.open(OfficeSupplyUnitDetailComponent, {
       centered: true,
@@ -100,47 +127,83 @@ export class OfficeSupplyDetailComponent implements  OnInit, AfterViewInit {
     });
     modalRef.componentInstance.isCheckmode = false;
     modalRef.componentInstance.selectedItem = {};
-  
+
     modalRef.result.then(
       (result) => {
         if (result === 'success') {
-          this.getUnits(); // Refresh unit list
+          this.getUnits();
         }
       },
-      (reason) => {
-        console.log('Modal dismissed:', reason);
-      }
+      () => { }
     );
   }
 
+  private trimAllStringControls() {
+    Object.keys(this.validateForm.controls).forEach((k) => {
+      const c = this.validateForm.get(k);
+      const v = c?.value;
+      if (typeof v === 'string') {
+        c!.setValue(v.trim(), { emitEvent: false });
+      }
+    });
+  }
+
+  private markFormTouched() {
+    Object.values(this.validateForm.controls).forEach(c => {
+      c.markAsDirty();
+      c.markAsTouched();
+      c.updateValueAndValidity({ onlySelf: true });
+    });
+  }
+
+  private buildPayload(): Product {
+    const formValue = this.validateForm.getRawValue() as Product;
+    return {
+      ...this.newProduct,
+      ...formValue,
+      ID: formValue.ID ?? this.newProduct.ID ?? 0
+    };
+  }
+
   add(): void {
-    if (!this.newProduct.CodeNCC || !this.newProduct.NameNCC || !this.newProduct.Price || !this.newProduct.SupplyUnitID) {
-      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin!');
+    this.trimAllStringControls();
+
+    if (this.validateForm.invalid) {
+      this.markFormTouched();
+      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
     }
-    this.officesupplyService.adddata(this.newProduct).subscribe({
-      next: (res) => {
+
+    const payload = this.buildPayload();
+
+    this.officesupplyService.adddata(payload).subscribe({
+      next: () => {
         this.notification.success('Thông báo', 'Thêm thành công!');
         this.activeModal.close('success');
       },
-      error: (err) => {
+      error: () => {
         this.notification.error('Thông báo', 'Có lỗi xảy ra khi thêm dữ liệu!');
       }
     });
   }
 
   update(): void {
-    if (!this.newProduct.CodeNCC || !this.newProduct.NameNCC || !this.newProduct.Price || !this.newProduct.SupplyUnitID) {
-      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin!');
+    this.trimAllStringControls();
+
+    if (this.validateForm.invalid) {
+      this.markFormTouched();
+      this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
     }
-    console.log('Dữ liệu update:', this.newProduct);
-    this.officesupplyService.updatedata(this.newProduct).subscribe({
-      next: (res) => {
+
+    const payload = this.buildPayload();
+
+    this.officesupplyService.updatedata(payload).subscribe({
+      next: () => {
         this.notification.success('Thông báo', 'Cập nhật thành công!');
         this.activeModal.close('success');
       },
-      error: (err) => {
+      error: () => {
         this.notification.error('Thông báo', 'Có lỗi xảy ra khi cập nhật dữ liệu!');
       }
     });

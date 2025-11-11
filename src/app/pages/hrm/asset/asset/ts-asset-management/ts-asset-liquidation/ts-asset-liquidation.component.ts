@@ -16,8 +16,8 @@ import { AssetsManagementService } from '../ts-asset-management-service/ts-asset
 import { TsAssetManagementPersonalService } from '../../../../../old/ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
 
 @Component({
-  standalone:true,
-    imports: [
+  standalone: true,
+  imports: [
     CommonModule,
     FormsModule,
     NzTabsModule,
@@ -43,17 +43,17 @@ export class TsAssetLiquidationComponent implements OnInit, AfterViewInit {
   private assetManagementPersonalService = inject(TsAssetManagementPersonalService);
   assetData: any[] = [];
   emPloyeeLists: any[] = [];
-dateLiquidation:string="";
+  dateLiquidation: string = "";
   reason: string = "";
   employeeIDLiqui: number | null = null;
   ngOnInit() {
     this.dateLiquidation = DateTime.now().toFormat('yyyy-MM-dd');
   }
   ngAfterViewInit(): void {
-      this.loadAsset();
+    this.loadAsset();
     this.getListEmployee();
   }
-private loadAsset() {
+  private loadAsset() {
     const request = {
       filterText: '',
       pageNumber: 1,
@@ -74,23 +74,70 @@ private loadAsset() {
     });
 
   }
-   close() {
+  close() {
     this.closeModal.emit();
     this.activeModal.dismiss('cancel');
   }
-   getListEmployee() {
-     const request = {
+  getListEmployee() {
+    const request = {
       status: 0,
       departmentid: 0,
       keyword: ''
     };
     this.assetManagementPersonalService.getEmployee(request).subscribe((respon: any) => {
-      this.emPloyeeLists = respon.employees;
+      this.emPloyeeLists = respon.data;
     });
   }
-  saveLiquidation()
-{
-const payloadLiqui = {
+  formatDateForInput(value: any): string {
+    if (!value) return '';
+
+    // Nếu là Date
+    if (value instanceof Date) {
+      const dt = DateTime.fromJSDate(value);
+      return dt.isValid ? dt.toFormat('yyyy-MM-dd') : '';
+    }
+
+    const str = String(value).trim();
+    if (!str) return '';
+
+    // Thử ISO: 2024-10-01T00:00:00, 2024-10-01, 2024-10-01T00:00:00+07:00,...
+    let dt = DateTime.fromISO(str);
+    if (dt.isValid) return dt.toFormat('yyyy-MM-dd');
+
+    // Thử dd/MM/yyyy
+    dt = DateTime.fromFormat(str, 'dd/MM/yyyy');
+    if (dt.isValid) return dt.toFormat('yyyy-MM-dd');
+
+    // Không parse được thì trả rỗng
+    return '';
+  }
+  private validateForm(): boolean {
+
+
+    // Check ngày báo sửa
+    if (!this.dateLiquidation || this.dateLiquidation.trim() === '') {
+      this.notification.error('Thông báo', 'Vui lòng chọn ngày thanh lý.');
+      return false;
+    }
+
+    // Check lý do sửa chữa
+    if (!this.reason || this.reason.trim() === '') {
+      this.notification.error('Thông báo', 'Vui lòng nhập lí do  thanh lý.');
+      return false;
+    }
+    if (!this.employeeIDLiqui || this.employeeIDLiqui == 0) {
+      this.notification.error('Thông báo', 'Vui lòng chọn nhân viên thanh lí.');
+      return false;
+    }
+
+    return true;
+  }
+  saveLiquidation() {
+    if (!this.validateForm()) {
+      return;
+    }
+    const payloadLiqui = {
+
       tSLiQuidationAsset: {
         ID: 0,
         AssetManagementID: this.dataInput.ID,
@@ -104,14 +151,14 @@ const payloadLiqui = {
         ID: this.dataInput.ID,
         EmployeeID: this.employeeIDLiqui,
         DepartmentID: this.dataInput.DepartmentID,
-      
+
         StatusID: 6,
-          Status: "Đã thanh lý"
+        Status: "Đã thanh lý"
       }],
       tSAllocationEvictionAssets: [{
         ID: 0,
         AssetManagementID: this.dataInput.ID,
-        EmployeeID: this.employeeIDLiqui,
+        EmployeeID: this.dataInput.EmployeeID,
         ChucVuID: 30,
         Status: "Đã thanh lý",
         StatusID: 6,
@@ -121,16 +168,16 @@ const payloadLiqui = {
       }]
     };
     this.assetService.saveDataAsset(payloadLiqui).subscribe({
-      next: () => {
+      next: (res: any) => {
         this.notification.success("Thông báo", "Thành công");
         this.loadAsset();
         this.formSubmitted.emit();
         this.activeModal.close(true);
       },
-      error: () => {
-        this.notification.error("Thông báo", "Lỗi");
+      error: (res: any) => {
+        this.notification.error("Thông báo", res.error.message || "Lỗi");
         console.error('Lỗi khi lưu đơn vị!');
       }
     });
-}
+  }
 }

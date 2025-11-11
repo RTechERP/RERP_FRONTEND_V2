@@ -2,7 +2,7 @@ import { Component, OnInit, ViewEncapsulation,AfterViewInit } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OfficeSupplyRequestSummaryService } from './office-supply-request-summary-service/office-supply-request-summary-service.service';
-import { ColumnCalcsModule, Tabulator } from 'tabulator-tables';
+
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -17,7 +17,11 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { en_US, NzI18nService, zh_CN } from 'ng-zorro-antd/i18n';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import * as ExcelJS from 'exceljs';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 @Component({
   selector: 'app-office-supply-request-summary',
   standalone: true,
@@ -35,7 +39,8 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
     NzInputNumberModule,
     NzSelectModule,
     NzDatePickerModule,
-    NzSpinModule
+    NzSpinModule,
+    HasPermissionDirective
   ],
   templateUrl: './office-supply-request-summary.component.html',
   styleUrl: './office-supply-request-summary.component.css',
@@ -59,7 +64,8 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit,AfterViewInit
 
   constructor(
     private officeSupplyRequestSummaryService: OfficeSupplyRequestSummaryService,
-    private message: NzMessageService
+    private message: NzMessageService,
+     private notification: NzNotificationService,
   ) { }
 
   ngOnInit(): void {      
@@ -131,17 +137,99 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit,AfterViewInit
       }
     });
   }
-  exportToExcel() {
-    const now = new Date();
-    const dateStr = `${now.getDate()}-${now.getMonth() + 1}-${now.getFullYear()}`;
-    
-    if (this.table) {
-      this.table.download('xlsx', `TongHopVPP_T${this.searchParams.month}/${this.searchParams.year}_${dateStr}.xlsx`, { sheetName: 'Báo cáo VPP' });
-    } else {
-      this.message.error('Bảng chưa được khởi tạo!');
-    }
-  }
 
+  async exportToExcel() {
+    const table = this.table;
+    if (!table) return;
+
+    const data = table.getData();
+    if (!data || data.length === 0) {
+      this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
+      return;
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Danh sách dự án');
+
+    const columns = table.getColumns();
+    // Bỏ qua cột đầu tiên
+    const filteredColumns = columns.slice(1);
+    const headers = filteredColumns.map(
+      (col: any) => col.getDefinition().title
+    );
+    worksheet.addRow(headers);
+
+    data.forEach((row: any) => {
+      const rowData = filteredColumns.map((col: any) => {
+        const field = col.getField();
+        let value = row[field];
+
+        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+          value = new Date(value);
+        }
+
+        return value;
+      });
+
+      worksheet.addRow(rowData);
+    });
+
+    // Format cột có giá trị là Date
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return; // bỏ qua tiêu đề
+      row.eachCell((cell, colNumber) => {
+        if (cell.value instanceof Date) {
+          cell.numFmt = 'dd/mm/yyyy'; // hoặc 'yyyy-mm-dd'
+        }
+      });
+    });
+
+    // Tự động căn chỉnh độ rộng cột
+    worksheet.columns.forEach((column: any) => {
+      let maxLength = 10;
+      column.eachCell({ includeEmpty: true }, (cell: any) => {
+        const cellValue = cell.value ? cell.value.toString() : '';
+        // Giới hạn độ dài tối đa của cell là 50 ký tự
+        maxLength = Math.min(Math.max(maxLength, cellValue.length + 2), 50);
+        cell.alignment = { wrapText: true, vertical: 'middle' };
+      });
+      // Giới hạn độ rộng cột tối đa là 30
+      column.width = Math.min(maxLength, 30);
+    });
+
+    // Thêm bộ lọc cho toàn bộ cột (từ A1 đến cột cuối cùng)
+    worksheet.autoFilter = {
+      from: {
+        row: 1,
+        column: 1,
+      },
+      to: {
+        row: 1,
+        column: filteredColumns.length,
+      },
+    };
+
+    // Xuất file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+
+    const formattedDate = new Date()
+      .toISOString()
+      .slice(2, 10)
+      .split('-')
+      .reverse()
+      .join('');
+
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = `DanhSachTongHopVPP.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(link.href);
+  }
   private drawTable(): void {
     try {
       if (!this.table) {
@@ -161,15 +249,31 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit,AfterViewInit
 
         this.table = new Tabulator("#office-supply-request-summary-table", {
           data: this.datatable,
-          height: '80vh',
-          layout: "fitDataFill",
-          pagination: true,
-          paginationSize: 30,
-          movableColumns: true,
-          resizableRows: true,
-          
+          layout: 'fitColumns',
+        height: '89vh',
+        ...DEFAULT_TABLE_CONFIG,
+        pagination: true,
+        paginationMode:'local',
+        paginationSize: 50,
+        paginationSizeSelector: [5, 10, 20, 50, 100],
+        movableColumns: true,
+        resizableRows: true,
+        reactiveData: true,
+        selectableRows: 15,
+           langs: {
+          vi: {
+            pagination: {
+              first: '<<',
+              last: '>>',
+              prev: '<',
+              next: '>',
+            },
+          },
+        },
+        locale: 'vi',
+      
           columnDefaults:{
-            // headerWordWrap: true,
+            headerWordWrap: true,
             headerVertical: false,
             headerHozAlign: "center",           
             minWidth: 100,
@@ -179,19 +283,20 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit,AfterViewInit
           },
           columns: [
             { 
-              title: "",
+              title: "Thông tin sản phẩm",
               frozen:true,
               columns:[
-                { title: "STT", field: "STT", width: 45, hozAlign: "center", resizable: true
+                { title: "STT", field: "STT", hozAlign: "center", resizable: true
                   //  frozen: true 
                   },
                 { 
                   title: "Tên sản phẩm", 
                   field: "OfficeSupplyName", 
-                  width: 350,
+                 
                   resizable: true,
                   variableHeight: true,
                   bottomCalc: "count",
+                  formatter: "textarea",
                   // frozen: true
                 },
               ]
@@ -199,41 +304,43 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit,AfterViewInit
             {
               title: "Số lượng", 
               columns: [
-                { title: "Ban giám đốc", field: "GD", hozAlign: "right", width: 65, resizable: true, sorter:"number",headerFilterParams:{"tristate":true},
+                { title: "Ban giám đốc", field: "GD", hozAlign: "right", resizable: true, sorter:"number",headerFilterParams:{"tristate":true},
                   bottomCalc:"sum", bottomCalcFormatter: quantityFormatter, formatter: quantityFormatter },
-                { title: "HCNS", field: "HR", hozAlign: "right", width: 60, resizable: true, 
+                { title: "HCNS", field: "HR", hozAlign: "right",  resizable: true, 
                   bottomCalc:"sum", bottomCalcFormatter: quantityFormatter, formatter: quantityFormatter },
-                { title: "Kế toán", field: "KT", hozAlign: "right", width: 60, resizable: true,
+                { title: "Kế toán", field: "KT", hozAlign: "right",  resizable: true,
                   bottomCalc:"sum", bottomCalcFormatter: quantityFormatter, formatter: quantityFormatter },
-                { title: "Mua hàng", field: "MH", hozAlign: "right", width: 60, resizable: true,
+                { title: "Mua hàng", field: "MH", hozAlign: "right",  resizable: true,
                   bottomCalc:"sum", bottomCalcFormatter: quantityFormatter, formatter: quantityFormatter },
-                { title: "Phòng Marketing", field: "MKT", hozAlign: "right", width: 65, resizable: true,
+                { title: "Phòng Marketing", field: "MKT", hozAlign: "right", resizable: true,
                   bottomCalc:"sum", bottomCalcFormatter: quantityFormatter, formatter: quantityFormatter },
-                { title: "Kinh doanh", field: "KD", hozAlign: "right", width: 60, resizable: true,
+                { title: "Kinh doanh", field: "KD", hozAlign: "right",  resizable: true,
                   bottomCalc:"sum", bottomCalcFormatter: quantityFormatter, formatter: quantityFormatter },
-                { title: "Kỹ thuật", field: "KYTHUAT", hozAlign: "right", width: 60, resizable: true,
+                { title: "Kỹ thuật", field: "KYTHUAT", hozAlign: "right", resizable: true,
                   bottomCalc:"sum", bottomCalcFormatter: quantityFormatter, formatter: quantityFormatter },
-                { title: "Cơ khí- Thiết kế", field: "TKCK", hozAlign: "right", width: 65, resizable: true,
+                { title: "Cơ khí- Thiết kế", field: "TKCK", hozAlign: "right", resizable: true,
                   bottomCalc:"sum", bottomCalcFormatter: quantityFormatter, formatter: quantityFormatter },
-                { title: "AGV", field: "AGV", hozAlign: "right", width: 60, resizable: true,
+                { title: "AGV", field: "AGV", hozAlign: "right", resizable: true,
                   bottomCalc:"sum", bottomCalcFormatter: quantityFormatter, formatter: quantityFormatter },
-                { title: "Văn Phòng BN", field: "BN", hozAlign: "right", width: 65, resizable: true,
+                { title: "Văn Phòng BN", field: "BN", hozAlign: "right",  resizable: true,
                   bottomCalc:"sum", bottomCalcFormatter: quantityFormatter, formatter: quantityFormatter },
-                { title: "Văn Phòng HP", field: "HP", hozAlign: "right", width: 65, resizable: true,
+                { title: "Văn Phòng HP", field: "HP", hozAlign: "right",  resizable: true,
                   bottomCalc:"sum", bottomCalcFormatter: quantityFormatter, formatter: quantityFormatter },
-                { title: "Văn Phòng HCM", field: "HCM", hozAlign: "right", width: 65, resizable: true,
+                { title: "Văn Phòng HCM", field: "HCM", hozAlign: "right", resizable: true,
+                  bottomCalc:"sum", bottomCalcFormatter: quantityFormatter, formatter: quantityFormatter },
+                    { title: "Lắp ráp", field: "LR", hozAlign: "right", resizable: true,
                   bottomCalc:"sum", bottomCalcFormatter: quantityFormatter, formatter: quantityFormatter },
               ],
             },
             {
               title: "",
               columns: [
-                { title: "Tổng", field: "TotalQuantity", hozAlign: "right", width: 60, resizable: true,
+                { title: "Tổng", field: "TotalQuantity", hozAlign: "right", resizable: true,
                   bottomCalc:"sum", bottomCalcFormatter: quantityFormatter },
                 { 
                   title: "Đơn giá (VND)", 
                   field: "UnitPrice", 
-                  width: 88,
+                  
                   resizable: true,
                   hozAlign: "right",
                   formatter: "money",
@@ -244,7 +351,7 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit,AfterViewInit
                 { 
                   title: "Thành tiền (VND)", 
                   field: "TotalPrice", 
-                  width: 90,
+                
                   resizable: true,
                   hozAlign: "right",
                   formatter: "money",
@@ -261,7 +368,7 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit,AfterViewInit
                 { 
                   title: "Ghi chú", 
                   field: "Note", 
-                  width: 250,
+                 minWidth: 400,
                   resizable: true,
                   formatter: "textarea",
                   variableHeight: true

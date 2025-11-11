@@ -1,6 +1,6 @@
 <ng-container class="w-100">
-    <nz-splitter style="height: 90vh; ">
-        <nz-splitter-panel *ngIf="isSearchVisible" [nzSize]="'20%'" [nzResizable]="false">
+    <nz-splitter >
+        <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
             <div class="card h-100 border-0 rounded-0">
                 <!-- Header -->
                 <div class="card-header bg-white p-1">
@@ -76,58 +76,83 @@
             </div>
         </nz-splitter-panel>
 
-        <nz-splitter-panel [nzSize]="isSearchVisible ? '80%' : '100%'">
-            <div class="card  border-0 rounded-0">
+        <nz-splitter-panel nzDefaultSize="100%">
+            <div class="card h-100 border-0 rounded-0">
                 <div class="card-header  bg-white p-1">
                     <div class="d-flex h-40  gap-1">
                         <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
                             <nz-icon nzType="search" />
                         </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onAddAsset()">
-                            <nz-icon nzType="plus" /> Thêm
+
+                        <button class="btn-add" nz-button nzType="default" nzSize="small" (click)="onAddAsset()" *hasPermission="'N2,N23,N1'">
+                            <!-- <nz-icon nzType="plus" /> Thêm -->
+                            <img src="assets/icon/action_add_item_16.png" />Thêm mới
                         </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onEitAsset()">
-                            <nz-icon nzType="edit" nzTheme="fill" />Sửa
+                        <button class="btn-edit" nz-button nzType="default" nzSize="small" (click)="onEitAsset()" *hasPermission="'N2,N23,N1'">
+                            <img src="assets/icon/action_edit_item_16.png" />Sửa
                         </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onDeleteAsset()">
-                            <nz-icon nzType="delete" nzTheme="fill" />Xóa
-                        </button> <button class="fs-12" nz-button nzType="default" nzSize="small">
+                        <button class="btn-delete" nz-button nzType="default" nzSize="small" (click)="onDeleteAsset()" *hasPermission="'N2,N23,N1'">
+                            <img src="assets/icon/action_delete_item_16.png" />Xóa
                         </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onReportLoss()">
-                            <nz-icon nzType="loading" nzTheme="outline" /> Báo mất
+                           <span class="mx-2"
+                            style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
+                      <button nz-button nzType="default" nzSize="small" (click)="onReportLoss()" *hasPermission="'N2,N23,N1'">
+                            <img src="assets/icon/report-lost.png" />Báo mất
                         </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onReportBroken()">
-                            <nz-icon nzType="tool" nzTheme="outline" /> Báo hỏng
+
+                      
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onReportBroken()" *hasPermission="'N2,N23,N1'">
+                              <img src="assets/icon/reportbroken.png" />Báo hỏng
                         </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onRepaireAsset()">
-                            <nz-icon nzType="redo" nzTheme="outline" />Sửa chữa, bảo dưỡng
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onRepaireAsset()" *hasPermission="'N2,N23,N1'">
+                          <img src="assets/icon/repair-tools.png" />Sửa chữa, bảo dưỡng
                         </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onReuseAsset()">
-                            <nz-icon nzType="redo" nzTheme="outline" /> Đưa vào sử dụng lại
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onReuseAsset()" *hasPermission="'N2,N23,N1'">
+                           <img src="assets/icon/reuse.png" /> Đưa vào sử dụng lại
                         </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onReportLiquidation()">
-                            <nz-icon nzType="shopping-cart" nzTheme="outline" /> Đề nghị thanh lí
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onReportLiquidation()" *hasPermission="'N2,N23,N1'">
+                             <img src="assets/icon/liquidation-propose.png" /> Đề nghị thanh lí
                         </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onLiquidation()">
-                            <nz-icon nzType="shopping-cart" nzTheme="outline" />Thanh lí
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onLiquidation()" *hasPermission="'N2,N23,N1'">
+                               <img src="assets/icon/liquidation.png" /> Thanh lí
                         </button>
                         <button class="fs-12" nz-button nzType="default" nzSize="small"
-                            (click)="openModalImportExcel()">
-                            <nz-icon nzType="file-excel" nzTheme="outline" /> Nhập Excel
+                            (click)="openModalImportExcel()" *hasPermission="'N2,N23,N1'">
+                               <img src="assets/icon/excel.png" /> Nhập Excel
                         </button>
                         <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onExportExcel()">
-                            <nz-icon nzType="file-excel" nzTheme="outline" /> Xuất Excel
+                            <img src="assets/icon/import-excel.png" /> Xuất Excel
                         </button>
                     </div>
                 </div>
-                <nz-splitter style="height: 86vh;">
-                    <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
-                        <div id="datatablemanagement" style="height: 100%;"></div>
+                <nz-splitter >
+                    <nz-splitter-panel nzSize="" [nzCollapsible]="true" nzResizable="true">
+                       <div #datatableManagement></div>
                     </nz-splitter-panel>
-                    <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" [nzSize]="sizeTbDetail">
-                        <div id="datatableemployee" style="height: 100%; "></div>
-                    </nz-splitter-panel>
-                </nz-splitter>
+                    <!-- <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" [nzSize]="sizeTbDetail">
+                        <div id="datatableemployee" ></div>
+                    </nz-splitter-panel> -->
+                    <nz-splitter-panel [nzSize]="sizeTbDetail" [nzCollapsible]="true" nzResizable="true" >
+                            <ng-template #tabClose>
+                                <button
+                                  nz-button
+                                  nzType="text"
+                                  class="btn-close-panel"
+                                  style="color: red;"
+                                  (click)="closePanel()"
+                                >
+                                  <i nz-icon nzType="close"></i>
+                                </button>
+                              </ng-template>
+                            <nz-tabset style=" padding-left: 10px !important;" [nzTabBarExtraContent]="tabClose">
+                               
+                            <nz-tab [nzTitle]="detailTabTitle">
+                                   <div #datatableEmployee></div>
+                                </nz-tab>
+                            </nz-tabset>
+                           
+                        </nz-splitter-panel>
+                </nz-splitter>  
             </div>
         </nz-splitter-panel>
     </nz-splitter>

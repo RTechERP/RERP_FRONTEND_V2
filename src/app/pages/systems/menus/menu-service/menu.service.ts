@@ -209,14 +209,14 @@ export class MenuService {
           {
             kind: 'group',
             key: 'DanhSachTaiSan',
-            title: 'Tài sản',
+            title: 'Tài sản/công cụ dụng cụ',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
             children: [
               {
                 kind: 'leaf',
                 key: 'TsAssetManagementComponent',
-                title: 'Danh sách tài sản',
+                title: 'Tài sản',
                 isOpen: true,
                 isPermission:
                   this.permissionService.hasPermission('N23,N52,N1,N36,N34'),

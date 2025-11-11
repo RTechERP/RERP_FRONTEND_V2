@@ -16,7 +16,9 @@
         </div>
 
         <ul nz-menu>
-            <li nz-menu-item><img src="assets/icon/user-infomation.png" class="user-icon me-2" />Thông tin cá nhân</li>
+            <li nz-menu-item (click)="profile()">
+                <img src="assets/icon/user-infomation.png" class="user-icon me-2" />Thông tin cá nhân
+            </li>
             <li nz-menu-item> <img src="assets/icon/padlock.png" class="user-icon me-2" />Đổi mật khẩu</li>
             <li nz-menu-divider></li>
             <li nz-menu-item>

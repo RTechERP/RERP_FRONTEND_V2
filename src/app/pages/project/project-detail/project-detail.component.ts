@@ -477,7 +477,6 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   }
 
   getProjectCode() {
-    debugger
     if (this.customers.length <= 0) return;
     
     // Lấy giá trị từ form controls

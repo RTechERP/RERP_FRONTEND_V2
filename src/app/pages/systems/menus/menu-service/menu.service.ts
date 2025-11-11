@@ -81,9 +81,10 @@ export class MenuService {
     private permissionService: PermissionService
   ) {}
 
-  //   getMenus(id: number): Observable<any> {
-  //     return this.http.get<any>(this.apiUrl + `menus/${id}`);
-  //   }
+
+//   getMenus(id: number): Observable<any> {
+//     return this.http.get<any>(this.apiUrl + `menus/${id}`);
+//   }
 
   getMenus(): MenuItem[] {
     // this.menuService.getMenus(id).subscribe({
@@ -320,9 +321,38 @@ export class MenuService {
                   this.permissionService.hasPermission('N23,N52,N1,N67,N36'),
                 comp: TsAssetRecoveryPersonalNewComponent,
                 //   icon: 'assets/icon/layers.png',
-              },
-            ],
-          },
+            },
+        ]
+      },
+
+
+      {
+        kind: 'leaf',
+        key: 'VehicleRepairComponent',
+        title: 'Danh sách xe sửa chữa',
+        isOpen: true,
+        isPermission: this.permissionService.hasPermission(""),
+        comp: VehicleRepairComponent,
+        //   icon: 'assets/icon/layers.png',
+      },
+      {
+        kind: 'leaf',
+        key: 'VehicleRepairComponent',
+        title: 'Danh sách loại sửa chữa',
+        isOpen: true,
+        isPermission: this.permissionService.hasPermission(""),
+        comp: VehicleRepairTypeComponent,
+        //   icon: 'assets/icon/layers.png',
+      },
+      {
+        kind: 'leaf',
+        key: 'DepartmentComponent',
+        title: 'Phòng ban',
+        isOpen: true,
+        isPermission: this.permissionService.hasPermission("N2,N1"),
+        comp: DepartmentComponent,
+        //   icon: 'assets/icon/layers.png',
+      },
 
           {
             kind: 'group',
@@ -741,6 +771,51 @@ export class MenuService {
       //#endregion
       //#region menu dự án
       {
+        kind: 'leaf',
+        key: 'FactoryVisitRegistrationComponent',
+        title: 'THAM QUAN NHÀ MÁY',
+        isOpen: true,
+        isPermission: this.permissionService.hasPermission(""),
+        comp: FactoryVisitRegistrationComponent,
+        //   icon: 'assets/icon/layers.png',
+      },
+      {
+        kind: 'leaf',
+        key: 'CurrencyListComponent',
+        title: 'Tiền tệ',
+        isOpen: true,
+        isPermission: this.permissionService.hasPermission(""),
+        comp: CurrencyListComponent,
+      }
+      ,{
+        kind: 'leaf',
+        key: 'ProductLocationComponent',
+        title: 'Vị trí thiết bị',
+        isOpen: true,
+        isPermission: this.permissionService.hasPermission(""),
+        comp: ProductLocationComponent,
+      },{
+
+        kind: 'leaf',
+          key: 'SupplierSaleComponent',
+          title: 'Nhà cung cấp',
+          isOpen: true,
+          isPermission: this.permissionService.hasPermission(""),
+          comp: SupplierSaleComponent,
+      },
+      {
+        kind: 'leaf',
+          key: 'FirmComponent',
+          title: 'Hãng',
+          isOpen: true,
+          isPermission: this.permissionService.hasPermission(""),
+          comp: FirmComponent,
+      },
+
+    ],
+  },
+
+  //#endregion
         kind: 'group',
         key: 'project',
         title: 'DỰ ÁN',
@@ -887,6 +962,7 @@ export class MenuService {
 
     return menus;
   }
+
 }
 
 type BaseItem = {

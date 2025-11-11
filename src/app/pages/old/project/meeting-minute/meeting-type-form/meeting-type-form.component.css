@@ -1,0 +1,6 @@
+
+/* Fallback heights if nzSize isn't applied or overridden */
+input[nz-input],
+textarea[nz-input] {
+  line-height: 1.4;
+}

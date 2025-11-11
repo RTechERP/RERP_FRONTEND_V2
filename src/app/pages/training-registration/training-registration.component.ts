@@ -48,7 +48,6 @@ import { PermissionService } from '../../services/permission.service';
 import { HasPermissionDirective } from '../../directives/has-permission.directive';
 import { DisablePermissionDirective } from '../../directives/disable-permission.directive';
 import { DEFAULT_TABLE_CONFIG } from '../../tabulator-default.config';
-// import { log } from 'ng-zorro-antd/core/logger';
 
 @Component({
   selector: 'app-training-registration',
@@ -603,11 +602,10 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
   openTrainingFormModal(selectedData: any) {
     // Mở modal
     const modalRef = this.modalService.open(TrainingRegistrationFormComponent, {
-    //   size: 'xl',
-    fullscreen:true,
+      //   size: 'xl',
+      fullscreen: true,
       backdrop: 'static',
       keyboard: false,
-      
     });
 
     // Truyền dữ liệu vào modal (nếu sửa)

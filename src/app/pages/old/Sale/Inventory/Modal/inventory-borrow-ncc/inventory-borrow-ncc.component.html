@@ -2,9 +2,9 @@
     <h6 class="modal-title text-white">Tổng hợp chi tiết phiếu nhập</h6>
     <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
   </div>
-  <div class="modal-body p-1 flex-grow-1 overflow-hidden">
+  <div class="modal-body modalborrow p-1 flex-grow-1 overflow-hidden">
     <div class="d-flex gap-2 p-2 border-bottom">
-        <button class="fs-12 btn" nz-button nzType="default" nzSize="small" title="Xuất Excel" (click)="exportExcel()">
+        <button class="fs-12 btn" nz-button nzType="default" nzSize="small" title="Phiếu trả" (click)="exportExcel()">
             <nz-icon nzType="file-excel"></nz-icon> Thêm phiếu trả
           </button>
       <button class="fs-12 btn" nz-button nzType="default" nzSize="small" title="Xuất Excel" (click)="exportExcel()">
@@ -54,9 +54,7 @@
                 <nz-form-control>
                   <nz-select
                     [(ngModel)]="searchParams.supplierSaleID"
-                    [nzMode]="'multiple'"
                     [nzPlaceHolder]="'Chọn nhà cung cấp'"
-                    [nzMaxTagCount]="1"
                     nzSize="small"
                     class="w-100"
                     name="supplierSaleID"
@@ -113,4 +111,4 @@
   </div>
   <div class="modal-footer flex-shrink-0">
     <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
-  </div>
+</div>

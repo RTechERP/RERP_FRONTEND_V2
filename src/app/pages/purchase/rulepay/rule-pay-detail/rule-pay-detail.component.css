@@ -1,0 +1,34 @@
+.modal-dialog-scrollable {
+  max-height: 90vh;
+}
+
+.modal-header {
+  background-color: #1890ff !important;
+  color: white !important;
+}
+
+.modal-title {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.btn-close {
+  filter: invert(1);
+}
+
+.fs-12 {
+  font-size: 12px;
+}
+
+.pb-3 {
+  padding-bottom: 1rem;
+}
+
+.modal-footer {
+  border-top: 1px solid #dee2e6;
+  padding: 1rem;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}

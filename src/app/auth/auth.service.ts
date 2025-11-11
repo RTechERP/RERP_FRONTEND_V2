@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { UserService } from '../services/user.service';
 import { PermissionService } from '../services/permission.service';
 import { environment } from '../../environments/environment';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 // import { HOST } from '../app.config';
 
 @Injectable({
@@ -18,7 +19,8 @@ export class AuthService {
   constructor(
     private http: HttpClient,
     private userService: UserService,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private notification: NzNotificationService
   ) {}
 
   login(credentials: { loginname: string; password: string }): Observable<any> {
@@ -30,17 +32,19 @@ export class AuthService {
           // Gọi getCurrentUser ngay sau khi login thành công
           this.getCurrentUser().subscribe({
             next: (userResponse) => {
-            //   console.log('getCurrentUser success after login:', userResponse);
+              //   console.log('getCurrentUser success after login:', userResponse);
               this.permissionService.refreshPermissions();
             },
             error: (error) => {
               console.error('getCurrentUser error after login:', error);
+              this.notification.error('Thông báo', error.message, {});
             },
           });
         }
       }),
       catchError((error) => {
         console.error('Login error:', error);
+        this.notification.error('Thông báo', error.message, {});
         throw error;
       })
     );
@@ -50,7 +54,7 @@ export class AuthService {
     const token = this.getToken();
 
     if (!token) {
-    //   console.error('No token available for getCurrentUser');
+      //   console.error('No token available for getCurrentUser');
       return of(null);
     }
     // Sử dụng API key từ environment

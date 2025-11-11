@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import * as bootstrap from '@ng-bootstrap/ng-bootstrap';
@@ -29,7 +29,6 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { ProductSaleDetailComponent } from './product-sale-detail/product-sale-detail.component';
 import { ProductGroupDetailComponent } from './product-group-detail/product-group-detail.component';
 import { ImportExcelProductSaleComponent } from './import-excel-product-sale/import-excel-product-sale.component';
-import { ISADMIN } from '../../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 
@@ -81,6 +80,9 @@ interface ProductSale {
 })
 export class ProductSaleComponent implements OnInit, AfterViewInit {
   //VP tai dau
+    @ViewChild('tableProductGroup') tableProductGroupRef!: ElementRef;
+  @ViewChild('tablePGWarehouse') tablePGWarehouseRef!: ElementRef;
+  @ViewChild('tableProductSale') tableProductSaleRef!: ElementRef;
   wareHouseCode: string = 'HN';
   //biến liên quan đến dữ liệu và bảng của productSale
   table_productsale: any;
@@ -491,7 +493,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
 
   //#region  Vẽ 3 bảng
   drawTable_ProductGroup() {
-    this.table = new Tabulator('#table_productgroup', {
+    this.table = new Tabulator(this.tableProductGroupRef.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       data: this.dataProducGroup,
       height: '100%',
@@ -511,6 +513,13 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
 
       columns: [
         {
+          title: 'ID',
+          field: 'ID',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+          visible: false,
+        },
+        {
           title: 'Mã nhóm',
           field: 'ProductGroupID',
           hozAlign: 'left',
@@ -524,26 +533,32 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
           headerHozAlign: 'center',
           width: '70%',
         },
+        {
+          title: 'EmployeeID',
+          field: 'EmployeeID',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+          width: '30%',
+          visible: false,
+        }
       ],
     });
 
     this.table.on('rowClick', (e: MouseEvent, row: RowComponent) => {
-      // Nếu click vào cột checkbox thì bỏ qua
       const rowData = row.getData();
       this.dataDelete = rowData;
       this.id = rowData['ID'];
-      console.log('Selected ID:', this.id);
       this.getDataProductSaleByIDgroup(this.id);
       this.getDataProductGroupWareHouse(this.id);
     });
     this.table.on('rowDblClick', (e: MouseEvent, row: RowComponent) => {
       const rowData = row.getData();
-      this.id = rowData['ID']; // Make it an array with single item
+      this.id = rowData['ID'];
       this.openModalProductGroup(true);
     });
   }
   drawTable_PGWareHouse() {
-    this.table_pgwarehouse = new Tabulator('#table_pgwarehouse', {
+    this.table_pgwarehouse = new Tabulator(this.tablePGWarehouseRef.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       data: this.dataPGWareHouse || [],
       pagination: false,
@@ -567,12 +582,11 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     });
   }
   drawTable_ProductSale() {
-    this.table_productsale = new Tabulator('#table_productsale', {
+    this.table_productsale = new Tabulator(this.tableProductSaleRef.nativeElement, {
       data: this.dataProductSale,
       ...DEFAULT_TABLE_CONFIG,
       paginationMode: 'local',
       layout: 'fitDataStretch',
-      // selectableRows: true,
       columns: [
         {
           title: 'Tên nhóm',

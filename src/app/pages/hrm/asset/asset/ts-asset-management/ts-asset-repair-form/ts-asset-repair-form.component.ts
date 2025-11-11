@@ -51,10 +51,36 @@ export class TsAssetRepairFormComponent implements OnInit, AfterViewInit {
   public name: string = '';
   public expectedCost: number | null = null;
 
-  ngOnInit() {
-    this.dateRepair = DateTime.now().toFormat('yyyy-MM-dd');
-    this.dateLiquidation = DateTime.now().toFormat('yyyy-MM-dd');
+ ngOnInit() {
+  this.dateRepair = DateTime.now().toFormat('yyyy-MM-dd');
+  this.dateLiquidation = DateTime.now().toFormat('yyyy-MM-dd');
+}
+
+
+formatDateForInput(value: any): string {
+  if (!value) return '';
+
+  // Nếu là Date
+  if (value instanceof Date) {
+    const dt = DateTime.fromJSDate(value);
+    return dt.isValid ? dt.toFormat('yyyy-MM-dd') : '';
   }
+
+  const str = String(value).trim();
+  if (!str) return '';
+
+  // Thử ISO: 2024-10-01T00:00:00, 2024-10-01, 2024-10-01T00:00:00+07:00,...
+  let dt = DateTime.fromISO(str);
+  if (dt.isValid) return dt.toFormat('yyyy-MM-dd');
+
+  // Thử dd/MM/yyyy
+  dt = DateTime.fromFormat(str, 'dd/MM/yyyy');
+  if (dt.isValid) return dt.toFormat('yyyy-MM-dd');
+
+  // Không parse được thì trả rỗng
+  return '';
+}
+
   ngAfterViewInit(): void {
     this.loadAsset();
     this.getListEmployee();
@@ -80,6 +106,23 @@ export class TsAssetRepairFormComponent implements OnInit, AfterViewInit {
     });
 
   }
+    private validateForm(): boolean {
+
+  if (!this.dateRepair || this.dateRepair.trim() === '') {
+    this.notification.error('Thông báo', 'Vui lòng chọn ngày sửa chữa bảo dưỡng.');
+    return false;
+  }
+  if (!this.name || this.name.trim() === '') {
+    this.notification.error('Thông báo', 'Vui lòng nhập đơn vị sửa chữa.');
+    return false;
+  }
+    if (!this.expectedCost || this.expectedCost==0) {
+    this.notification.error('Thông báo', 'Vui lòng nhập lý chi phí dự kiến.');
+    return false;
+  }
+
+  return true;
+}
   // Định dạng số thành tiền tệ có dấu phẩy
   formatCurrency(value: number | null): string {
     if (value === null || isNaN(value)) return '';
@@ -102,10 +145,13 @@ export class TsAssetRepairFormComponent implements OnInit, AfterViewInit {
       keyword: ''
     };
     this.assetManagementPersonalService.getEmployee(request).subscribe((respon: any) => {
-      this.emPloyeeLists = respon.employees;
+      this.emPloyeeLists = respon.data;
     });
   }
   saveRepairAsset() {
+      if (!this.validateForm()) {
+    return;
+  }
     const payloadRepair = {
       tSRepairAssets:[ {
         ID: 0,

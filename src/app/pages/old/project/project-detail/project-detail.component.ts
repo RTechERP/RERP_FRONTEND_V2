@@ -34,7 +34,7 @@ import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/sign
 import { EnvironmentInjector } from '@angular/core';
 import { ProjectStatusDetailComponent } from '../project-status-detail/project-status-detail.component';
 import { SelectProjectEmployeeGroupComponent } from '../project-control/select-project-employee-group';
-import { CustomerDetailComponent } from '../../VisionBase/customer-detail/customer-detail.component';
+import { CustomerDetailComponent } from '../../../crm/customers/customer-detail/customer-detail.component';
 import { FirmBaseDetailComponent } from '../firmbase-detail/firm-base-detail.component';
 // THÊM DÒNG NÀY:
 import { combineLatest, debounceTime, distinctUntilChanged, filter } from 'rxjs';

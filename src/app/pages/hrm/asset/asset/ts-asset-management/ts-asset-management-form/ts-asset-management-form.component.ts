@@ -1,9 +1,9 @@
 import { NzNotificationService } from 'ng-zorro-antd/notification'
-import {Component,OnInit,Input,Output,EventEmitter,inject,AfterViewInit} from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, inject, AfterViewInit } from '@angular/core';
 import { DateTime } from 'luxon';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzGridModule } from 'ng-zorro-antd/grid';
@@ -17,6 +17,10 @@ import { TsAssetManagementPersonalService } from '../../../../../old/ts-asset-ma
 import { UnitService } from '../../ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
 import { TypeAssetsService } from '../../ts-asset-type/ts-asset-type-service/ts-asset-type.service';
 import { AssetsService } from '../../ts-asset-source/ts-asset-source-service/ts-asset-source.service';
+import { TsAssetSourceFormComponent } from '../../ts-asset-source/ts-asset-source-form/ts-asset-source-form.component';
+import { TsAssetStatusFormComponent } from '../../ts-asset-status/ts-asset-status-form/ts-asset-status-form.component';
+import { TyAssetTypeFormComponent } from '../../ts-asset-type/ts-asset-type-form/ts-asset-type-form.component';
+import { HasPermissionDirective } from '../../../../../../directives/has-permission.directive';
 @Component({
   standalone: true,
   selector: 'app-ts-asset-management-form',
@@ -33,6 +37,7 @@ import { AssetsService } from '../../ts-asset-source/ts-asset-source-service/ts-
     NzInputModule,
     NzButtonModule,
     NzModalModule,
+    HasPermissionDirective
   ]
 })
 export class TsAssetManagementFormComponent implements OnInit, AfterViewInit {
@@ -59,16 +64,48 @@ export class TsAssetManagementFormComponent implements OnInit, AfterViewInit {
   sourceData: any[] = [];
   typeData: any[] = [];
   maxSTT: number = 0;
+  activeStatusList = [
+    { value: 1, label: 'Chưa Active' },
+    { value: 2, label: 'Đã Active' },
+    { value: 3, label: 'Crack' }
+  ];
+  modalData: any = [];
+  private ngbModal = inject(NgbModal);
   constructor(private notification: NzNotificationService) { }
   ngOnInit() {
+    console.log('dataInput raw = ', this.dataInput);
     this.getunit();
-    this.dataInput.DateBuy = this.formatDateForInput(this.dataInput.DateBuy);
-    this.dataInput.DateEffect = this.formatDateForInput(this.dataInput.DateEffect);
+
+    const isEdit = !!this.dataInput && this.dataInput.ID > 0;
+
+    // format lại ngày nếu có
+    if (this.dataInput.DateBuy) {
+      this.dataInput.DateBuy = this.formatDateForInput(this.dataInput.DateBuy);
+    }
+    if (this.dataInput.DateEffect) {
+      this.dataInput.DateEffect = this.formatDateForInput(this.dataInput.DateEffect);
+    }
+
+    // 🔥 Chuẩn hóa Office/Win Active khi sửa
+    if (isEdit) {
+      if (this.dataInput.OfficeActiveStatus !== null && this.dataInput.OfficeActiveStatus !== undefined) {
+        this.dataInput.OfficeActiveStatus = Number(this.dataInput.OfficeActiveStatus);
+      }
+
+      if (this.dataInput.WindowActiveStatus !== null && this.dataInput.WindowActiveStatus !== undefined) {
+        this.dataInput.WindowActiveStatus = Number(this.dataInput.WindowActiveStatus);
+      }
+    }
+
     this.loadAsset();
-    this.generateTSAssetCode();
     this.getListEmployee();
     this.getTypeAsset();
     this.getSource();
+
+    // CHỈ gen mã khi thêm mới
+    if (!isEdit) {
+      this.generateTSAssetCode();
+    }
   }
   ngAfterViewInit(): void {
   }
@@ -76,6 +113,15 @@ export class TsAssetManagementFormComponent implements OnInit, AfterViewInit {
     if (!dateString) return '';
     return DateTime.fromISO(dateString).toFormat('yyyy-MM-dd');
   }
+  private toNumberOrZero(value: any): number {
+  if (value === null || value === undefined) return 0;
+
+  const str = String(value).trim();   // bỏ space
+  if (str === '') return 0;
+
+  const num = Number(str);
+  return Number.isNaN(num) ? 0 : num;
+}
   getListEmployee() {
     const request = {
       status: 0,
@@ -83,7 +129,8 @@ export class TsAssetManagementFormComponent implements OnInit, AfterViewInit {
       keyword: ''
     };
     this.assetManagementPersonalService.getEmployee(request).subscribe((respon: any) => {
-      this.emPloyeeLists = respon.employees;
+      this.emPloyeeLists = respon.data;
+      console.log('Emp', this.emPloyeeLists);
     });
   }
   getunit() {
@@ -142,18 +189,76 @@ export class TsAssetManagementFormComponent implements OnInit, AfterViewInit {
         console.log("Response:", response);
         this.assetData = response.data?.assets || [];
         this.maxSTT = response.data.total[0].MaxSTT;
-         if (!this.dataInput.STT) {
-      this.dataInput.STT = this.maxSTT;
-    }
+        if (!this.dataInput.STT) {
+          this.dataInput.STT = this.maxSTT;
+        }
       },
       error: (err) => {
         console.error('Lỗi khi lấy dữ liệu tài sản:', err);
       }
     });
   }
+  private validateForm(): boolean {
+    const d = this.dataInput || {};
+
+    // 1. Mã tài sản
+    if (!d.TSAssetCode || String(d.TSAssetCode).trim() === '') {
+      this.notification.error('Thông báo', 'Mã tài sản không được để trống.');
+      return false;
+    }
+
+    // 2. Người quản lý (EmployeeID)
+    if (!d.EmployeeID || d.EmployeeID === 0) {
+      this.notification.error('Thông báo', 'Vui lòng chọn người quản lý.');
+      return false;
+    }
+
+    // 3. Phòng ban (Name hoặc DepartmentID, tùy bạn dùng cái nào)
+    if (!d.Name || String(d.Name).trim() === '') {
+      this.notification.error('Thông báo', 'Phòng ban không được để trống.');
+      return false;
+    }
+
+    // 4. Loại tài sản
+    if (!d.TSAssetID || d.TSAssetID === 0) {
+      this.notification.error('Thông báo', 'Vui lòng chọn loại tài sản.');
+      return false;
+    }
+
+    // 5. Đơn vị tính
+    if (!d.UnitID || d.UnitID === 0) {
+      this.notification.error('Thông báo', 'Vui lòng chọn đơn vị tính.');
+      return false;
+    }
+
+    // 6. Nguồn gốc
+    if (!d.SourceID || d.SourceID === 0) {
+      this.notification.error('Thông báo', 'Vui lòng chọn nguồn gốc.');
+      return false;
+    }
+
+    // 7. Tên tài sản
+    if (!d.TSAssetName || String(d.TSAssetName).trim() === '') {
+      this.notification.error('Thông báo', 'Tên tài sản không được để trống.');
+      return false;
+    }
+
+    // 8. Số Seri
+    if (!d.Seri || String(d.Seri).trim() === '') {
+      this.notification.error('Thông báo', 'Số Seri không được để trống.');
+      return false;
+    }
+
+    return true;
+  }
+
   saveAsset() {
+    if (!this.validateForm()) {
+      return;
+    }
+
     const ID = this.dataInput.ID;
-    const OfficeActiveStatus = this.dataInput.OfficeActiveStatus;
+
     const payloadAsset = {
       tSAssetManagements: [
         {
@@ -171,13 +276,17 @@ export class TsAssetManagementFormComponent implements OnInit, AfterViewInit {
           SpecificationsAsset: this.dataInput.SpecificationsAsset,
           SupplierID: this.dataInput.SupplierID,
           DateBuy: this.dataInput.DateBuy,
-          Insurance: this.dataInput.Insurance,
-          DateEffect: this.dataInput.DateEffect,
+    Insurance: Number(String(this.dataInput.Insurance).replace(/\D+/g, '') || 0),
+          DateEffect: this.dataInput.DateEffect
+            ? this.dataInput.DateEffect
+            : DateTime.now().toFormat('yyyy-MM-dd'),
           Status: this.dataInput.Status,
           UnitID: this.dataInput.UnitID,
           TSCodeNCC: this.dataInput.TSCodeNCC,
-          OfficeActiveStatus,
-          WindowActiveStatus: this.dataInput.WindowActiveStatus,
+          OfficeActiveStatus:
+            this.dataInput.OfficeActiveStatus ?? null,
+          WindowActiveStatus:
+            this.dataInput.WindowActiveStatus ?? null,
           isDeleted: false,
           STT: this.dataInput.STT || this.maxSTT,
         }
@@ -198,5 +307,42 @@ export class TsAssetManagementFormComponent implements OnInit, AfterViewInit {
   close() {
     this.closeModal.emit();
     this.activeModal.dismiss('cancel');
+  }
+  addSource() {
+    const modalRef = this.ngbModal.open(TsAssetSourceFormComponent
+      , {
+        size: 'lg',
+        backdrop: 'static',
+        keyboard: false,
+        centered: true
+      });
+    modalRef.componentInstance.dataInput = this.modalData;
+    modalRef.result.then(
+      (result) => {
+        console.log('Modal closed with result:', result);
+        this.getSource();
+      },
+      (dismissed) => {
+
+      }
+    );
+  }
+  onAddTypeAsset() {
+    const modalRef = this.ngbModal.open(TyAssetTypeFormComponent, {
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+    });
+    modalRef.componentInstance.dataInput = this.modalData;
+    modalRef.result.then(
+      (result) => {
+        console.log('Modal closed with result:', result);
+        this.getTypeAsset();
+      },
+      (dismissed) => {
+        console.log('Modal dismissed');
+      }
+    );
   }
 }

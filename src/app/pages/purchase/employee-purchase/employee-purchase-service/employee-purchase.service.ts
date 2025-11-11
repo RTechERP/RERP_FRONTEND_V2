@@ -78,7 +78,7 @@ export interface ApiResponse<T> {
   providedIn: 'root',
 })
 export class EmployeePurchaseService {
-  private apiUrl = environment.apiUrl;
+  private apiUrl = environment.host + 'api';
   appUserService: AppUserService = inject(AppUserService);
   constructor(
     private http: HttpClient

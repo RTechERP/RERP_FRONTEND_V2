@@ -1,4 +1,4 @@
-  import { Component, OnInit, AfterViewInit, ViewChild, Input } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { TabulatorFull as Tabulator, CellComponent, ColumnDefinition } from 'tabulator-tables';
@@ -23,15 +23,101 @@ import { TsAssetManagementPersonalService } from '../../../../../old/ts-asset-ma
 import { UnitService } from '../../ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
 import { TypeAssetsService } from '../../ts-asset-type/ts-asset-type-service/ts-asset-type.service';
 import { AssetsService } from '../../ts-asset-source/ts-asset-source-service/ts-asset-source.service';
+import { DEFAULT_TABLE_CONFIG } from '../../../../../../tabulator-default.config';
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
-  return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
+  if (!val) return '';
+
+  // Nếu là Date JS
+  if (val instanceof Date) {
+    const dt = DateTime.fromJSDate(val);
+    return dt.isValid ? dt.toFormat('dd/MM/yyyy') : '';
+  }
+
+  // Nếu là string
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+
+    // Thử ISO trước
+    let dt = DateTime.fromISO(trimmed);
+    if (dt.isValid) return dt.toFormat('dd/MM/yyyy');
+
+    // Thử dạng d/M/yyyy
+    dt = DateTime.fromFormat(trimmed, 'd/M/yyyy');
+    if (dt.isValid) return dt.toFormat('dd/MM/yyyy');
+
+    // Không phải date → trả nguyên text, KHÔNG "Invalid"
+    return trimmed;
+  }
+
+  // Các kiểu khác bỏ qua
+  return '';
+}
+function getCellText(cell: ExcelJS.Cell): string {
+  const v = cell.value as any;
+  return normalizeCellValue(v);
+}
+
+function normalizeCellValue(v: any): string {
+  if (v == null) return '';
+
+  // primitive
+  if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
+    return String(v);
+  }
+
+  // Date
+  if (v instanceof Date) {
+    return DateTime.fromJSDate(v).toISODate() ?? '';
+    // hoặc: return DateTime.fromJSDate(v).toFormat('dd/MM/yyyy') ?? '';
+  }
+
+  // richText: { richText: [{ text: '...' }, ...] }
+  if (Array.isArray(v.richText)) {
+    return v.richText.map((rt: any) => rt.text ?? '').join('');
+  }
+
+  // object có text: { text: '...' }
+  if (v.text) {
+    return String(v.text);
+  }
+
+  // hyperlink: { text: '...', hyperlink: '...' }
+  if (v.hyperlink && v.text) {
+    return String(v.text);
+  }
+
+  // formula: { formula: '...', result: ... }
+  if (v.result !== undefined && v.result !== null) {
+    return normalizeCellValue(v.result); // xử lý lại y như trên, không toString thô
+  }
+
+  // fallback
+  return String(v);
 }
 function formatDate(value: any): string | null {
   if (!value) return null;
-  // Cố gắng parse theo định dạng dd/M/yyyy hoặc dd/MM/yyyy
-  const date = DateTime.fromFormat(value.trim(), 'd/M/yyyy');
-  return date.isValid ? date.toISODate() : null;
+
+  // Nếu là Date JS
+  if (value instanceof Date) {
+    const dt = DateTime.fromJSDate(value);
+    return dt.isValid ? dt.toISODate() : null;
+  }
+
+  // Chuẩn hóa về string
+  const str = String(value).trim();
+  if (!str) return null;
+
+  // Thử dd/M/yyyy
+  let dt = DateTime.fromFormat(str, 'd/M/yyyy');
+  if (dt.isValid) return dt.toISODate();
+
+  // Thử ISO (2024-01-01)
+  dt = DateTime.fromISO(str);
+  if (dt.isValid) return dt.toISODate();
+
+  // Không parse được thì trả null
+  return null;
 }
 @Component({
   standalone: true,
@@ -54,7 +140,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
   @Input() lastAddedIdProduct: number | null = null;
   @Input() searchText: string = '';
   @Input() id: number = 0;
-  emPloyeeLists:any[]=[];
+  emPloyeeLists: any[] = [];
   filePath: string = '';
   excelSheets: string[] = [];
   selectedSheet: string = '';
@@ -75,7 +161,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
     private unitService: UnitService,
     private soucerService: AssetsService,
     private typeAssetsService: TypeAssetsService,
-    private tsAssetManagementPersonalService:TsAssetManagementPersonalService,
+    private tsAssetManagementPersonalService: TsAssetManagementPersonalService,
   ) { }
   ngOnInit() {
 
@@ -85,203 +171,59 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
     this.drawtable();
   }
   drawtable() {
-    if (!this.tableExcel) { // Chỉ khởi tạo nếu chưa có
+    if (!this.tableExcel) {
       this.tableExcel = new Tabulator('#datatableExcel', {
-        data: this.dataTableExcel, // Dữ liệu ban đầu rỗng
+        data: this.dataTableExcel,
         layout: 'fitDataFill',
-        height: '300px',
-        selectableRows: 10,
-        pagination: true,
-        paginationSize: 50,
-        movableColumns: true,
-        resizableRows: true,
-        reactiveData: true,
-        autoColumns: true,
-        autoColumnsDefinitions: {
-          checkbox: {
-            title: '',
-            field: '',
-            formatter: 'rowSelection',
-            titleFormatter: 'rowSelection',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            headerSort: false,
-            width: 60,
-            cssClass: 'checkbox-center'
-          },
-          STT: {
-            title: 'STT',
-            field: 'STT',
-            hozAlign: 'center',
-            width: 70,
-            headerHozAlign: 'center'
-          },
-          TSAssetCode: {
-            title: 'Mã tài sản',
-            field: 'TSAssetCode',
-            hozAlign: 'left',
-            headerHozAlign: 'center'
-          },
-          TSAssetName: {
-            title: 'Tên tài sản',
-            field: 'TSAssetName',
-            hozAlign: 'left',
-            headerHozAlign: 'center'
-          },
-          Seri: {
-            title: 'Seri',
-            field: 'Seri',
-            hozAlign: 'left',
-            headerHozAlign: 'center'
-          },
-          UnitName: {
-            title: 'Đơn vị',
-            field: 'UnitName',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            formatter: (cell: any) => cell.getValue() || ''
-          },
-          SpecificationsAsset: {
-            title: 'Thông số',
-            field: 'SpecificationsAsset',
-            hozAlign: 'left',
-            headerHozAlign: 'center'
-          },
-          DateBuy: {
-            title: 'Ngày mua',
-            field: 'DateBuy',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            formatter: formatDateCell
-          },
-          DateEffect: {
-            title: 'Ngày hiệu lực',
-            field: 'DateEffect',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            formatter: formatDateCell
-          },
-          Insurance: {
-            title: 'Bảo hành (tháng)',
-            field: 'Insurance',
-            hozAlign: 'right',
-            headerHozAlign: 'center'
-          },
-          AssetType: {
-            title: 'Loại tài sản',
-            field: 'AssetType',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            formatter: (cell: any) => cell.getValue() || ''
-          },
-          DepartmentName: {
-            title: 'Phòng ban',
-            field: 'Name',
-            hozAlign: 'left',
-            headerHozAlign: 'center'
-          },
-          Status: {
+    ...DEFAULT_TABLE_CONFIG,
+    height:'40vh',
+    paginationMode:'local',
+        columns: [
+          { title: 'STT', field: 'STT', hozAlign: 'center', width: 70 },
+          { title: 'Mã tài sản', field: 'TSAssetCode', hozAlign: 'left' },
+          { title: 'Tên tài sản', field: 'TSAssetName', hozAlign: 'left' },
+          { title: 'Mã loại tài sản', field: 'AssetCode', hozAlign: 'left' },
+          { title: 'Tên loại', field: 'AssetType', hozAlign: 'left' },
+          { title: 'Mã nguồn gốc tài sản', field: 'SourceCode', hozAlign: 'left' },
+          { title: 'Tên nguồn gốc', field: 'SourceName', hozAlign: 'left' },
+          { title: 'Mã NCC', field: 'TSCodeNCC', hozAlign: 'left' },
+
+          { title: 'Mô tả chi tiết (Model, thông số kỹ thuật…)', field: 'SpecificationsAsset', hozAlign: 'left' },
+          { title: 'Seri', field: 'Seri', hozAlign: 'left' },
+          { title: 'Đơn vị tính', field: 'UnitName', hozAlign: 'left' },
+          { title: 'Số lượng', field: 'Quantity', hozAlign: 'right' },
+          {
             title: 'Trạng thái',
             field: 'Status',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            formatter: function (cell: any) {
-              const val = cell.getValue() as string;
+            hozAlign: 'center',
+            formatter: (cell: any) => {
+              const val = cell.getValue();
               const el = cell.getElement();
               el.style.backgroundColor = '';
               el.style.color = '';
-              if (val === 'Chưa sử dụng') {
-                el.style.backgroundColor = '#00CC00';
-                el.style.color = '#fff';
-              } else if (val === 'Đang sử dụng') {
-                el.style.backgroundColor = '#FFCC00';
-                el.style.color = '#000';
-              } else if (val === 'Đã thu hồi' || val === 'Hỏng') {
-                el.style.backgroundColor = '#FFCCCC';
-                el.style.color = '#000';
-              } else if (val === 'Mất') {
-                el.style.backgroundColor = '#BB0000';
-                el.style.color = '#000';
-              } else {
-                el.style.backgroundColor = '#e0e0e0';
-              }
-              el.style.outline = '1px solid #e0e0e0';
+              if (val === 'Chưa sử dụng') { el.style.backgroundColor = '#00CC00'; el.style.color = '#fff'; }
+              else if (val === 'Đang sử dụng') { el.style.backgroundColor = '#FFCC00'; el.style.color = '#000'; }
+              else if (val === 'Đã thu hồi' || val === 'Hỏng') { el.style.backgroundColor = '#FFCCCC'; }
+              else if (val === 'Mất') { el.style.backgroundColor = '#BB0000'; el.style.color = '#fff'; }
               return val;
             }
           },
-          TSCodeNCC: {
-            title: 'Mã NCC',
-            field: 'TSCodeNCC',
-            hozAlign: 'left',
-            headerHozAlign: 'center'
-          },
-          SourceName: {
-            title: 'Nguồn gốc',
-            field: 'SourceName',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            formatter: (cell: any) => cell.getValue() || ''
-          },
-          FullName: {
-            title: 'Người quản lý',
-            field: 'FullName',
-            hozAlign: 'left',
-            headerHozAlign: 'center'
-          },
-          CreatedBy: {
-            title: 'Người tạo',
-            field: 'CreatedBy',
-            hozAlign: 'left',
-            headerHozAlign: 'center'
-          },
-          CreatedDate: {
-            title: 'Ngày tạo',
-            field: 'CreatedDate',
-            hozAlign: 'left',
-            headerHozAlign: 'center'
-          },
-          UpdatedBy: {
-            title: 'Người cập nhật',
-            field: 'UpdatedBy',
-            hozAlign: 'left',
-            headerHozAlign: 'center'
-          },
-          UpdatedDate: {
-            title: 'Ngày cập nhật',
-            field: 'UpdatedDate',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            formatter: formatDateCell
-          },
-          IsAllocation: {
-            title: 'Is Allocation',
-            field: 'IsAllocation',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            formatter: (cell: any) => cell.getValue() ? 'Có' : 'Không'
-          },
-          OfficeActiveStatus: {
-            title: 'Office Active',
-            field: 'OfficeActiveStatus',
-            hozAlign: 'right',
-            headerHozAlign: 'center'
-          },
-          WindowActiveStatus: {
-            title: 'Windows Active',
-            field: 'WindowActiveStatus',
-            hozAlign: 'right',
-            headerHozAlign: 'center'
-          },
-          Note: {
-            title: 'Ghi chú',
-            field: 'Note',
-            hozAlign: 'left',
-            headerHozAlign: 'center'
-          }
-        }
+          { title: 'Mã phòng ban', field: 'DepartmentCode', hozAlign: 'left' },
+          { title: 'Tên phòng ban', field: 'DepartmentName', hozAlign: 'left' },
+          { title: 'Mã nhân viên', field: 'EmployeeCode', hozAlign: 'left' },
+          { title: 'Người sử dụng', field: 'EmployeeName', hozAlign: 'left' },
+          { title: 'Thời gian ghi tăng', field: 'DateBuy', hozAlign: 'center', formatter: formatDateCell },
+          { title: 'Thời gian bảo hành (tháng)', field: 'Insurance', hozAlign: 'right' },
+          { title: 'Hiệu lực từ', field: 'DateEffect', hozAlign: 'center', formatter: formatDateCell },
+          { title: 'Ghi chú', field: 'Note', hozAlign: 'left' },
+
+        ],
       });
+    } else {
+      this.tableExcel.replaceData(this.dataTableExcel);
     }
   }
+
   formatProgressText = (percent: number): string => {
     return this.displayText;
   }
@@ -378,94 +320,144 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       reader.readAsArrayBuffer(file); // Bắt đầu đọc file ngay lập tức
     }
   }
+  private normalizeHeader(value: any): string {
+  if (value == null) return '';
+
+  return value
+    .toString()
+    .toLowerCase()
+    .replace(/\u00A0/g, ' ')   // thay non-breaking space thành space thường
+    .replace(/\s+/g, ' ')      // gộp tất cả khoảng trắng (space, \n, \t, ...) thành 1 space
+    .trim();
+}
   async readExcelData(workbook: ExcelJS.Workbook, sheetName: string) {
     console.log(`Bắt đầu đọc dữ liệu từ sheet: "${sheetName}"`);
     try {
       const worksheet = workbook.getWorksheet(sheetName);
       if (!worksheet) throw new Error(`Sheet "${sheetName}" không tồn tại.`);
 
-      // Đọc header từ hàng thứ 2
-      const headerRow = worksheet.getRow(2);
+      // Tìm dòng header theo ô cột 1 = "STT"
+      let headerRowIndex = 0;
+      worksheet.eachRow((row, rowNumber) => {
+        const v = row.getCell(1).value;
+        if (!headerRowIndex && v && v.toString().trim().toUpperCase() === 'STT') {
+          headerRowIndex = rowNumber;
+        }
+      });
+
+      if (!headerRowIndex) {
+        throw new Error('Không tìm thấy dòng header có STT ở cột 1.');
+      }
+
+      const headerRow = worksheet.getRow(headerRowIndex);
       const headers: string[] = [];
       headerRow.eachCell((cell, colNumber) => {
-        headers[colNumber - 1] = cell.value?.toString() || '';
+        headers[colNumber - 1] = getCellText(cell);
       });
-      // Cột hiển thị theo thứ tự autoColumnsDefinitions
-      const columns = [
+const requiredHeaders = [
+  'stt',
+  'mã tài sản',
+  'tên tài sản',
+  'mã loại',
+  'nguồn gốc',
+  'đơn vị',
+  'số lượng'
+];
+
+const normalizedHeaders = headers.map(h => this.normalizeHeader(h));
+
+const isHeaderValid = requiredHeaders.every(req => {
+  const normReq = this.normalizeHeader(req);
+  return normalizedHeaders.some(h => h.includes(normReq));
+});
+
+if (!isHeaderValid) {
+  console.warn('Header không hợp lệ:', headers, normalizedHeaders);
+  this.notification.error(
+    'Thông báo',
+    'File Excel không đúng mẫu biên bản tài sản. Vui lòng tải xuống mẫu xuất để có mẫu nhập excel.'
+  );
+  this.resetExcelImportState();
+  return;
+}
+      const columns: ColumnDefinition[] = [
         { title: headers[0] || 'STT', field: 'STT', hozAlign: 'center', headerHozAlign: 'center', width: 70 },
         { title: headers[1] || 'Mã tài sản', field: 'TSAssetCode', hozAlign: 'left', headerHozAlign: 'center' },
         { title: headers[2] || 'Tên tài sản', field: 'TSAssetName', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[3] || 'Seri', field: 'Seri', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[4] || 'Đơn vị', field: 'UnitName', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[5] || 'Thông số', field: 'SpecificationsAsset', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[6] || 'Ngày mua', field: 'DateBuy', hozAlign: 'center', headerHozAlign: 'center', formatter: formatDateCell },
-        { title: headers[7] || 'Ngày hiệu lực', field: 'DateEffect', hozAlign: 'center', headerHozAlign: 'center', formatter: formatDateCell },
-        { title: headers[8] || 'Bảo hành (tháng)', field: 'Insurance', hozAlign: 'right', headerHozAlign: 'center' },
-        { title: headers[9] || 'Loại tài sản', field: 'AssetType', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[10] || 'Phòng ban', field: 'Name', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[11] || 'Trạng thái', field: 'Status', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[12] || 'Mã NCC', field: 'TSCodeNCC', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[13] || 'Nguồn gốc', field: 'SourceName', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[14] || 'Người quản lý', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[15] || 'Người tạo', field: 'CreatedBy', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[16] || 'Ngày tạo', field: 'CreatedDate', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[17] || 'Người cập nhật', field: 'UpdatedBy', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[18] || 'Ngày cập nhật', field: 'UpdatedDate', hozAlign: 'left', headerHozAlign: 'center', formatter: formatDateCell },
-        { title: headers[19] || 'Is Allocation', field: 'IsAllocation', hozAlign: 'center', headerHozAlign: 'center', formatter: (cell: any) => cell.getValue() ? 'Có' : 'Không' },
-        { title: headers[20] || 'Office Active', field: 'OfficeActiveStatus', hozAlign: 'right', headerHozAlign: 'center' },
-        { title: headers[21] || 'Windows Active', field: 'WindowActiveStatus', hozAlign: 'right', headerHozAlign: 'center' },
-        { title: headers[22] || 'Ghi chú', field: 'Note', hozAlign: 'left', headerHozAlign: 'center' }
+        { title: headers[3] || 'Mã loại tài sản', field: 'AssetCode', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[4] || 'Mã nguồn gốc tài sản', field: 'SourceCode', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[5] || 'Mã nhà cung cấp', field: 'TSCodeNCC', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[6] || 'Mô tả chi tiết (Model, thông số kỹ thuật…)', field: 'SpecificationsAsset', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[7] || 'Số seri', field: 'Seri', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[8] || 'Đơn vị tính', field: 'UnitName', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[9] || 'Số lượng', field: 'Quantity', hozAlign: 'right', headerHozAlign: 'center' },
+        { title: headers[10] || 'Tình trạng', field: 'Status', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[11] || 'Mã phòng ban', field: 'DepartmentCode', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[12] || 'Mã nhân viên', field: 'EmployeeCode', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[13] || 'Người sử dụng', field: 'EmployeeName', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[14] || 'Thời gian ghi tăng', field: 'DateBuy', hozAlign: 'center', headerHozAlign: 'center', formatter: formatDateCell },
+        { title: headers[15] || 'Thời gian bảo hành (tháng)', field: 'Insurance', hozAlign: 'right', headerHozAlign: 'center' },
+        { title: headers[16] || 'Hiệu lực từ', field: 'DateEffect', hozAlign: 'center', headerHozAlign: 'center', formatter: formatDateCell },
+        { title: headers[17] || 'Ghi chú', field: 'Note', hozAlign: 'left', headerHozAlign: 'center' },
       ];
-      if (this.tableExcel) this.tableExcel.setColumns(columns);
+   
+      if (this.tableExcel) {
+        this.tableExcel.setColumns(columns);
+      }
+
       const data: any[] = [];
       let validRecords = 0;
-      let foundFirstDataRow = false;
+
+      // Data bắt đầu từ hàng sau header
       worksheet.eachRow((row, rowNumber) => {
-        if (rowNumber > 1) {
+        if (rowNumber > headerRowIndex) {
           const firstCell = row.getCell(1).value;
-          const isEmptyRow = !firstCell || !row.getCell(2).value || !row.getCell(3).value;
+          const isEmptyRow =
+            !firstCell &&
+            !row.getCell(2).value &&
+            !row.getCell(3).value;
+
           if (!isEmptyRow) {
             const rowData: any = {
-              STT: row.getCell(1).value?.toString() || '',
-              TSAssetCode: row.getCell(2).value?.toString() || '',
-              TSAssetName: row.getCell(3).value?.toString() || '',
-              Seri: row.getCell(4).value?.toString() || '',
-              UnitName: row.getCell(5).value?.toString() || '',
-              SpecificationsAsset: row.getCell(6).value?.toString() || '',
-              DateBuy: row.getCell(7).value?.toString() || '',
-              DateEffect: row.getCell(8).value?.toString() || '',
-              Insurance: row.getCell(9).value?.toString() || '',
-              AssetType: row.getCell(10).value?.toString() || '',
-              Name: row.getCell(11).value?.toString() || '',
-              Status: row.getCell(12).value?.toString() || '',
-              TSCodeNCC: row.getCell(13).value?.toString() || '',
-              SourceName: row.getCell(14).value?.toString() || '',
-              FullName: row.getCell(15).value?.toString() || '',
-              CreatedBy: row.getCell(16).value?.toString() || '',
-              CreatedDate: row.getCell(17).value?.toString() || '',
-              UpdatedBy: row.getCell(18).value?.toString() || '',
-              UpdatedDate: row.getCell(19).value?.toString() || '',
-              IsAllocation: row.getCell(20).value?.toString()?.toLowerCase() === 'có',
-              OfficeActiveStatus: row.getCell(21).value?.toString() || '',
-              WindowActiveStatus: row.getCell(22).value?.toString() || '',
-              Note: row.getCell(23).value?.toString() || '',
+              STT: getCellText(row.getCell(1)),
+              TSAssetCode: getCellText(row.getCell(2)),   // Mã tài sản
+              TSAssetName: getCellText(row.getCell(3)),   // Tên tài sản
+
+              AssetCode: getCellText(row.getCell(4)),     // Mã loại tài sản
+
+              SourceCode: getCellText(row.getCell(5)),    // Mã nguồn gốc tài sản
+              TSCodeNCC: getCellText(row.getCell(6)),     // Mã nhà cung cấp
+
+              SpecificationsAsset: getCellText(row.getCell(7)), // Mô tả chi tiết
+              Seri: getCellText(row.getCell(8)),                // Số seri
+
+              UnitName: getCellText(row.getCell(9)),      // Đơn vị tính
+              Quantity: getCellText(row.getCell(10)),     // Số lượng
+              Status: getCellText(row.getCell(11)),       // Tình trạng
+
+              DepartmentCode: getCellText(row.getCell(12)), // Mã phòng ban
+              EmployeeCode: getCellText(row.getCell(13)),   // Mã nhân viên
+              EmployeeName: getCellText(row.getCell(14)),   // Người sử dụng
+
+              DateBuy: getCellText(row.getCell(15)),     // Thời gian ghi tăng
+              Insurance: getCellText(row.getCell(16)),   // Thời gian bảo hành (Tháng)
+              DateEffect: getCellText(row.getCell(17)),  // Hiệu lực từ
+              Note: getCellText(row.getCell(18)),        // Ghi chú
             };
             data.push(rowData);
-          }
-          if (typeof firstCell === 'number' && !isNaN(firstCell)) {
-            foundFirstDataRow = true;
-          }
-          if (foundFirstDataRow && !isEmptyRow) {
             validRecords++;
           }
         }
       });
+
       this.dataTableExcel = data;
       this.totalRowsAfterFileRead = validRecords;
       this.displayProgress = 0;
-      this.displayText = validRecords === 0
-        ? 'Không có dữ liệu hợp lệ trong sheet.'
-        : `0/${validRecords} bản ghi`;
+      this.displayText =
+        validRecords === 0
+          ? 'Không có dữ liệu hợp lệ trong sheet.'
+          : `0/${validRecords} bản ghi`;
+
       if (this.tableExcel) {
         this.tableExcel.replaceData(data);
       } else {
@@ -479,6 +471,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       this.resetExcelImportState();
     }
   }
+
   onSheetChange() {
     console.log('Sheet đã thay đổi thành:', this.selectedSheet);
     if (this.filePath) {
@@ -506,95 +499,139 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       }
     }
   }
-   async saveExcelData() {
-    if (!this.dataTableExcel || this.dataTableExcel.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu để lưu!');
-      return;
-    }
-
-    const validDataToSave = this.dataTableExcel.filter(row => {
-      const stt = row.STT;
-      return typeof stt === 'number' || (typeof stt === 'string' && !isNaN(parseFloat(stt)) && isFinite(parseFloat(stt)));
-    });
-
-    if (validDataToSave.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu hợp lệ (STT là số) để lưu!');
-      this.displayProgress = 0;
-      this.displayText = `0/${this.totalRowsAfterFileRead} bản ghi`;
-      return;
-    } ``
-    this.processedRowsForSave = 0;
-    const totalAssetsToSave = validDataToSave.length;
-    this.displayText = `Đang lưu: 0/${totalAssetsToSave} bản ghi`;
-    this.displayProgress = 0;
-
-    const assetsDataToSave = validDataToSave.map(row => {
-      return {
-        tSAssetManagements: [{
-          ID: 0,
-          STT: row.STT,
-          TSAssetCode: row.TSAssetCode || '',
-          TSAssetName: row.TSAssetName || '',
-          IsAllocation: false,
-          UnitID: this.getUnitIdByName(row.UnitName),
-          Seri: row.Seri || '',
-          SpecificationsAsset: row.SpecificationsAsset || '',
-          DateBuy: formatDate(row.DateBuy),
-          DateEffect: formatDate(row.DateEffect),
-          Insurance: row.Insurance || 0,
-          TSCodeNCC: row.TSCodeNCC || '',
-          OfficeActiveStatus: 0,
-          WindowActiveStatus: 0,
-          Note: row.Note || '',
-          StatusID: 1,
-          SourceID: this.getSourceIdByName(row.SourceName),
-          TSAssetID: this.getTypeIdByName(row.AssetType),
-          Status: "Chưa sử dụng",
-          EmployeeID:this.getEmployeeIDByName(row.FullName),
-          SupplierID:0,
-          DepartmentID:this.getDepartmentIDByName(row.Name),
-        }]
-      };
-    });
-    let successCount = 0;
-    let errorCount = 0;
-    let completedRequests = 0;
-    const saveAssetWithDelay = (index: number) => {
-      if (index >= assetsDataToSave.length) {
-        this.showSaveSummary(successCount, errorCount, totalAssetsToSave);
-        return;
-      }
-      const asset = assetsDataToSave[index];
-      setTimeout(() => {
-        this.assetsManagementService.saveDataAsset(asset).subscribe({
-          next: (response: any) => {
-            if (response.status === 1) {
-              successCount++;
-              console.log(asset);
-            } else {
-              errorCount++;
-              console.error(`Lỗi khi lưu tài sản ${index + 1}:`, response.message);
-            }
-            completedRequests++;
-            this.processedRowsForSave = completedRequests;
-            this.displayProgress = Math.round((completedRequests / totalAssetsToSave) * 100);
-            this.displayText = `Đang lưu: ${completedRequests}/${totalAssetsToSave} bản ghi`;
-            saveAssetWithDelay(index + 1);
-          },
-          error: (err) => {
-            errorCount++;
-            console.error(`Lỗi API khi lưu tài sản ${index + 1}:`, err);
-            completedRequests++;
-            this.processedRowsForSave = completedRequests;
-            this.displayProgress = Math.round((completedRequests / totalAssetsToSave) * 100);
-            this.displayText = `Đang lưu: ${completedRequests}/${totalAssetsToSave} bản ghi`;
-            saveAssetWithDelay(index + 1);
-          }
-        });
-      }, 5);
-    };
-    saveAssetWithDelay(0);
+ async saveExcelData() {
+  if (!this.dataTableExcel || this.dataTableExcel.length === 0) {
+    this.notification.warning('Thông báo', 'Không có dữ liệu để lưu!');
+    return;
   }
+
+  const validDataToSave = this.dataTableExcel.filter(row => {
+    const stt = row.STT;
+    return typeof stt === 'number'
+      || (typeof stt === 'string' && !isNaN(parseFloat(stt)) && isFinite(parseFloat(stt)));
+  });
+
+  if (validDataToSave.length === 0) {
+    this.notification.warning('Thông báo', 'Không có dữ liệu hợp lệ (STT là số) để lưu!');
+    this.displayProgress = 0;
+    this.displayText = `0/${this.totalRowsAfterFileRead} bản ghi`;
+    return;
+  }
+
+  const totalAssetsToSave = validDataToSave.length;
+
+  // cập nhật progress bar
+  this.displayProgress = 10;
+  this.displayText = `Đang chuẩn bị dữ liệu: ${totalAssetsToSave} bản ghi`;
+
+  // notification tiến trình (1 cái duy nhất, update theo nzKey)
+  const notifKey = 'asset-import-progress';
+  this.notification.info(
+    'Đang lưu dữ liệu',
+    `Đang gửi ${totalAssetsToSave} bản ghi lên server...`,
+    { nzKey: notifKey, nzDuration: 0 }
+  );
+
+  let payload: any;
+  try {
+    payload = {
+      tSAssetManagements: validDataToSave.map(row => ({
+        ID: 0,
+        STT: row.STT,
+        TSAssetCode: row.TSAssetCode || '',
+        TSAssetName: row.TSAssetName || '',
+        IsAllocation: false,
+        UnitID: this.getUnitIdByName(row.UnitName),
+        Seri: row.Seri || '',
+        SpecificationsAsset: row.SpecificationsAsset || '',
+        DateBuy: formatDate(row.DateBuy),
+        DateEffect: formatDate(row.DateEffect),
+        Insurance: row.Insurance || 0,
+        TSCodeNCC: row.TSCodeNCC || '',
+        OfficeActiveStatus: 0,
+        WindowActiveStatus: 0,
+        Note: row.Note || '',
+        StatusID: 1,
+        SourceID: this.getSourceIdByName(row.SourceCode),
+        TSAssetID: this.getTypeIdByName(row.AssetType),
+        Status: 'Chưa sử dụng',
+        EmployeeID: this.getEmployeeIDByName(row.EmployeeName),
+        SupplierID: 0,
+        DepartmentID: this.getDepartmentIDByName(row.DepartmentName),
+      }))
+    };
+  } catch (e) {
+    console.error('Lỗi khi map dữ liệu từ Excel sang payload API:', e, validDataToSave);
+    this.notification.error('Thông báo', 'Lỗi khi chuẩn bị dữ liệu để lưu.');
+    return;
+  }
+
+  // gửi 1 lần duy nhất
+  this.displayProgress = 30;
+  this.displayText = `Đang gửi ${totalAssetsToSave} bản ghi...`;
+
+  this.assetsManagementService.saveDataAsset(payload).subscribe({
+    next: (response: any) => {
+      // giả sử backend: status = 1 là ok, còn lại là lỗi
+      let successCount = 0;
+      let errorCount = 0;
+
+      if (response?.status === 1) {
+        successCount = totalAssetsToSave;
+        errorCount = 0;
+      } else {
+        successCount = 0;
+        errorCount = totalAssetsToSave;
+      }
+
+      this.displayProgress = 100;
+      this.displayText = `Đã xử lý ${totalAssetsToSave}/${totalAssetsToSave} bản ghi`;
+
+      this.notification.remove(notifKey);
+
+      if (response?.status === 1) {
+        this.notification.success(
+          'Thông báo',
+          `Đã lưu ${successCount}/${totalAssetsToSave} bản ghi thành công`
+        );
+      } else {
+        const backendMsg =
+          response?.message ||
+          response?.error?.message ||
+          'Lưu dữ liệu thất bại.';
+
+        this.notification.error(
+          'Thông báo',
+          `${backendMsg} (thất bại ${errorCount}/${totalAssetsToSave} bản ghi)`
+        );
+      }
+
+      // nếu muốn vẫn đóng modal sau khi lưu xong:
+      this.closeExcelModal();
+    },
+    error: (err: any) => {
+      console.error('Lỗi API khi lưu danh sách tài sản:', err);
+
+      const backendMsg =
+        err?.error?.message ||
+        err?.error?.title ||
+        err?.message ||
+        'Lưu dữ liệu thất bại.';  
+
+      this.displayProgress = 100;
+      this.displayText = `Lỗi khi lưu ${totalAssetsToSave} bản ghi`;
+
+      this.notification.remove(notifKey);
+      this.notification.error(
+        'Thông báo',
+        `${backendMsg} (thất bại ${totalAssetsToSave}/${totalAssetsToSave} bản ghi)`
+      );
+      // tùy mày: có thể KHÔNG đóng modal để xem lại dữ liệu
+      // this.closeExcelModal();
+    }
+  });
+}
+
   showSaveSummary(successCount: number, errorCount: number, totalProducts: number) {
     console.log('--- Hiển thị tóm tắt kết quả lưu ---');
     console.log(`Tổng sản phẩm: ${totalProducts}, Thành công: ${successCount}, Thất bại: ${errorCount}`);
@@ -615,8 +652,8 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
   }
 
   // Hàm helper để lấy ID của hãng từ tên
-  private getSourceIdByName(sourceName: string): number {
-    const source = this.listSourceAsset.find(s => s.SourceName === sourceName);
+  private getSourceIdByName(sourceCode: string): number {
+    const source = this.listSourceAsset.find(s => s.SourceCode === sourceCode);
     return source ? source.ID : 0;
   }
   // Hàm helper để lấy ID của ProductGroup từ tên
@@ -624,40 +661,38 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
     const type = this.listTypeAsset.find(t => t.TypeName === typeName);
     return type ? type.ID : 0;
   }
-  private getEmployeeIDByName(Name: string)
-  {
-  const emp = this.emPloyeeLists.find(t=>t.FullName==Name);
-  return emp?emp.ID:0;
+  private getEmployeeIDByName(Name: string) {
+    const emp = this.emPloyeeLists.find(t => t.FullName == Name);
+    return emp ? emp.ID : 0;
 
   }
-    private getDepartmentIDByName(dpmName: string)
-  {
-  const dpm = this.emPloyeeLists.find(t=>t.DepartmentName==dpmName);
-  return dpm?dpm.ID:0;
+  private getDepartmentIDByName(dpmName: string) {
+    const dpm = this.emPloyeeLists.find(t => t.DepartmentName == dpmName);
+    return dpm ? dpm.ID : 0;
 
   }
   // Hàm helper để lấy ID của Location từ tên
   // Hàm để lấy danh sách đơn vị, ProductGroup và Location
   private loadUnit() {
-   this.unitService.getUnit().subscribe((res: any) => {
+    this.unitService.getUnit().subscribe((res: any) => {
       this.listUnitCount = res.data;
       console.log(this.listUnitCount);
     });
-     this.soucerService.getAssets().subscribe((response: any) => {
+    this.soucerService.getAssets().subscribe((response: any) => {
       this.listSourceAsset = response.data;
       console.log(this.listSourceAsset);
     });
-     this.typeAssetsService.getTypeAssets().subscribe((resppon: any) => {
+    this.typeAssetsService.getTypeAssets().subscribe((resppon: any) => {
       this.listTypeAsset = resppon.data;
       console.log(this.listTypeAsset);
     });
-     const request = {
+    const request = {
       status: 0,
       departmentid: 0,
       keyword: ''
     };
-     this.tsAssetManagementPersonalService.getEmployee(request).subscribe((respon: any) => {
-      this.emPloyeeLists = respon.employees;
+    this.tsAssetManagementPersonalService.getEmployee(request).subscribe((respon: any) => {
+      this.emPloyeeLists = respon.data;
     });
     this.assetsManagementService.getAssetAllocationDetail(1).subscribe({
       next: (res: any) => {

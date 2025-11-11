@@ -94,4 +94,22 @@ export class MeetingMinuteService {
       data
     );
   }
+  uploadMultipleFiles(files: File[], subPath?: string): Observable<any> {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+    formData.append('key', 'MeetingMinutes');
+    if (subPath && subPath.trim()) {
+      formData.append('subPath', subPath.trim());
+    }
+    return this.http.post<any>(this.apiUrl +`home/upload-multiple`, formData);
+  }
+  //tải file
+  downloadFile(path: string): Observable<ArrayBuffer> {
+    return this.http.get<ArrayBuffer>(`${this.apiUrl}home/download`, {
+      params: { path },
+      responseType: 'arraybuffer' as 'json'
+    });
+  }
 }

@@ -26,6 +26,7 @@ import { UnitService } from '../../../hrm/asset/asset/ts-asset-unitcount/ts-asse
 export const SERVER_PATH = `D:\RTC_Sw\RTC\ProductRTC`;
 import { NzProgressModule } from 'ng-zorro-antd/progress';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';  
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 
 function formatDate(value: any): string | null {
   if (!value) return null;
@@ -44,6 +45,7 @@ function formatDate(value: any): string | null {
     NzInputModule,
     NzSelectModule,
     NzProgressModule
+    ,HasPermissionDirective
   ],
   selector: 'app-tb-product-rtc-import-excel',
   templateUrl: './tb-product-rtc-import-excel.component.html',

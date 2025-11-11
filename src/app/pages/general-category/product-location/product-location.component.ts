@@ -25,8 +25,8 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { ProductLocationService } from './product-location-service/product-location.service';
 import { ProductLocationFormComponent } from './product-location-form/product-location-form.component';
-import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 
 @Component({
   selector: 'app-product-location',
@@ -104,16 +104,18 @@ export class ProductLocationComponent implements OnInit, AfterViewInit {
       this.productLocationTable = new Tabulator('#dataProductLocation', {
         data: this.filteredProductLocationData,
         ...DEFAULT_TABLE_CONFIG,
-        paginationMode: 'local', // Override để sử dụng local pagination thay vì remote
+        paginationMode: 'local',
         layout: 'fitDataStretch',
+        
         groupBy: 'ProductGroupName',
+
         columns: [
           { title: 'ID', field: 'ID', headerHozAlign: 'center', width: 90, visible: false },
           // { title: 'STT', formatter: 'rownum', hozAlign: 'center', width: 100, headerHozAlign: 'center' },
-          { title: 'Mã vị trí', field: 'LocationCode', width:200, formatter: "textarea"},
-          { title: 'Tên vị trí', field: 'LocationName', width:200, formatter: "textarea"},
-          { title: 'Kho', field: 'ProductGroupName', width:200, formatter: "textarea", visible: false },
-          { title: 'Kho', field: 'ProductGroupID',visible: false },
+          { title: 'Mã vị trí', field: 'LocationCode', width: 200, formatter: "textarea" },
+          { title: 'Tên vị trí', field: 'LocationName', width: 200, formatter: "textarea" },
+          { title: 'Kho', field: 'ProductGroupName', width: 200, formatter: "textarea", visible: false },
+          { title: 'Kho', field: 'ProductGroupID', visible: false },
 
         ],
         rowClick: (e: MouseEvent, row: RowComponent) => {
@@ -212,7 +214,7 @@ export class ProductLocationComponent implements OnInit, AfterViewInit {
       this.filteredProductLocationData = [...this.productLocationData];
     } else {
       const searchTerm = this.searchText.toLowerCase().trim();
-      this.filteredProductLocationData = this.productLocationData.filter(item => 
+      this.filteredProductLocationData = this.productLocationData.filter(item =>
         (item.LocationCode && item.LocationCode.toLowerCase().includes(searchTerm)) ||
         (item.LocationName && item.LocationName.toLowerCase().includes(searchTerm)) ||
         (item.ProductGroupName && item.ProductGroupName.toLowerCase().includes(searchTerm))

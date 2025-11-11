@@ -37,8 +37,7 @@ import { RowComponent } from 'tabulator-tables';
 import { SelectControlComponent } from '../../../BillExport/Modal/select-control/select-control.component';
 import { ProductSaleDetailComponent } from '../../../ProductSale/product-sale-detail/product-sale-detail.component';
 import { BillImportServiceService } from '../../bill-import-service/bill-import-service.service';
-import { IS_ADMIN } from '../../../../../../app.config';
-import { DEPARTMENTID } from '../../../../../../app.config';
+import { AppUserService } from '../../../../../../services/app-user.service';   
 import { DateTime } from 'luxon';
 import { updateCSS } from 'ng-zorro-antd/core/util';
 
@@ -118,19 +117,20 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
     public activeModal: NgbActiveModal,
-    private modalServiceConfirm: NzModalService
+    private modalServiceConfirm: NzModalService,
+    private appUserService: AppUserService
   ) {}
 
   ngOnInit(): void {
-    if (IS_ADMIN) {
+    if (this.appUserService.isAdmin) {
       this.activeKT = true;
       this.activeHR = true;
       this.activePur = true;
-    } else if (DEPARTMENTID === 6) {
+    } else if (this.appUserService.departmentID === 6) {
       this.activeHR = true;
-    } else if (DEPARTMENTID === 5) {
+    } else if (this.appUserService.departmentID === 5) {
       this.activeKT = true;
-    } else if (DEPARTMENTID === 4) {
+    } else if (this.appUserService.departmentID === 4) {  
       this.activePur = true;
     }
     this.getBillDocumentImport();

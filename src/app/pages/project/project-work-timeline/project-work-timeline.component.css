@@ -31,3 +31,6 @@
 .tabulator-col.date-column {
   border-right: 1px solid #ddd !important;
 }
+.ant-splitter {
+  height: 93vh !important;
+}

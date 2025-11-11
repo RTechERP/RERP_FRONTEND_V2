@@ -347,7 +347,7 @@ export class ProjectTypeComponent implements OnInit, AfterViewInit {
     if (selectedIDs.length <= 0) {
       this.notification.error(
         '',
-        this.createdText('Vui lòng chọn ít nhất 1 dự án để xóa!'),
+        this.createdText('Vui lòng chọn ít nhất 1 kiểu dự án để xóa!'),
         {
           nzStyle: { fontSize: '0.75rem' },
         }
@@ -360,11 +360,11 @@ export class ProjectTypeComponent implements OnInit, AfterViewInit {
       ParentID: this.selectedParentProjectTypeId ?? '',
       ProjectTypeName: this.projectTypeName ?? '',
       ID: this.projectId ?? '',
-      isDelete: true,
+      IsDeleted: true,
     };
 
     this.modal.confirm({
-      nzTitle: this.createdText('Bạn có chắc muốn xóa dự án đã chọn?'),
+      nzTitle: this.createdText('Bạn có chắc muốn xóa kiểu dự án đã chọn?'),
       nzOkText: 'Xóa',
       nzOkType: 'primary',
       nzCancelText: 'Hủy',
@@ -372,13 +372,13 @@ export class ProjectTypeComponent implements OnInit, AfterViewInit {
       nzOnOk: () => {
         this.projectService.saveProjectType(dataSave).subscribe({
           next: (response: any) => {
-            this.notification.success('', this.createdText('Đã xóa dự án!'), {
+            this.notification.success('', this.createdText('Đã xóa kiểu dự án!'), {
               nzStyle: { fontSize: '0.75rem' },
             });
             this.searchProjects();
           },
           error: (error:any) => {
-            this.notification.error('', this.createdText('Lỗi xóa dự án!'), {
+            this.notification.error('', error.error.message, {
               nzStyle: { fontSize: '0.75rem' },
             });
             console.error('Lỗi:', error);
@@ -396,7 +396,7 @@ export class ProjectTypeComponent implements OnInit, AfterViewInit {
     if (selectedProjectIDs.length !== 1) {
       this.notification.error(
         '',
-        this.createdText('Vui lòng chọn 1 kiểu dự án trước!'),
+        this.createdText('Vui lòng chọn 1 kiểu dự án!'),
         {
           nzStyle: { fontSize: '0.75rem' },
         }

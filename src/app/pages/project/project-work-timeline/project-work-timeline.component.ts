@@ -18,7 +18,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import { OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { OnInit, AfterViewInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
 import { EnvironmentInjector } from '@angular/core';
@@ -36,6 +36,7 @@ import { ProjectService } from '../project-service/project.service';
 import { Title } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 @Component({
   selector: 'app-project-work-timeline',
   imports: [
@@ -66,7 +67,7 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
   templateUrl: './project-work-timeline.component.html',
   styleUrl: './project-work-timeline.component.css',
 })
-export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit {
+export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit, OnDestroy {
   //#region Khai báo các biến
   constructor(
     private injector: EnvironmentInjector,
@@ -108,6 +109,7 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit {
   dataName: any;
   cellValue: any = '';
   workContent: any = '';
+  private resizeListener?: () => void;
   //#endregion
 
   //#region Hàm chạy khi mở chương trình
@@ -120,9 +122,32 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit {
     this.getUserTeam();
 
     this.getDataWorkTimeline();
+    
+    // Thêm event listener cho window resize
+    this.resizeListener = () => {
+      if (this.tb_projectWorkTimeline) {
+        setTimeout(() => {
+          this.tb_projectWorkTimeline.redraw(true);
+        }, 100);
+      }
+    };
+    window.addEventListener('resize', this.resizeListener);
+  }
+
+  ngOnDestroy(): void {
+    // Xóa event listener khi component bị destroy
+    if (this.resizeListener) {
+      window.removeEventListener('resize', this.resizeListener);
+    }
   }
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+    // Redraw bảng sau khi thay đổi kích thước panel
+    if (this.tb_projectWorkTimeline) {
+      setTimeout(() => {
+        this.tb_projectWorkTimeline.redraw(true);
+      }, 200);
+    }
   }
 
   getEmployees() {
@@ -155,7 +180,6 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit {
   }
 
   getUserTeam() {
-    debugger
     this.teams = [];
     if (this.departmentId > 0) {
       this.projectService.getUserTeam(this.departmentId).subscribe({
@@ -172,9 +196,11 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit {
 
   getDataWorkTimeline() {
     this.isLoadTable = true;
-    this.drawTbProjectWorkTimeline(
-      this.tb_projectWorkTimelineContainer.nativeElement
-    );
+    setTimeout(() => {
+      this.drawTbProjectWorkTimeline(
+        this.tb_projectWorkTimelineContainer.nativeElement
+      );
+    }, 100);
 
     let data = {
       dateStart: this.dateStart
@@ -191,7 +217,13 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit {
 
     this.projectService.getDataWorkTimeline(data).subscribe({
       next: (response: any) => {
-        this.tb_projectWorkTimeline.setData(response.data);
+        if (this.tb_projectWorkTimeline) {
+          this.tb_projectWorkTimeline.setData(response.data);
+          // Redraw sau khi set data để đảm bảo hiển thị đúng
+          setTimeout(() => {
+            this.tb_projectWorkTimeline.redraw(true);
+          }, 100);
+        }
         this.isLoadTable = false;
       },
       error: (error) => {
@@ -306,6 +338,10 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit {
     }
 
     this.tb_projectWorkTimeline = new Tabulator(container, {
+      ...DEFAULT_TABLE_CONFIG,
+      rowHeader:false,
+      pagination: true,
+      paginationMode:'local',
       height: '100%',
       layout: 'fitColumns',
       locale: 'vi',
@@ -320,6 +356,16 @@ export class ProjectWorkTimelineComponent implements OnInit, AfterViewInit {
   renderHorizontal: "virtual",
   ajaxFiltering: false,
 
+    });
+    this.tb_projectWorkTimeline.on("pageLoaded", () => {
+      this.tb_projectWorkTimeline.redraw(true);
+    });
+    
+    // Redraw khi bảng được render xong
+    this.tb_projectWorkTimeline.on("tableBuilt", () => {
+      setTimeout(() => {
+        this.tb_projectWorkTimeline.redraw(true);
+      }, 100);
     });
   }
   //#endregion

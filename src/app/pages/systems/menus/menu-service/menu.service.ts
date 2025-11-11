@@ -71,7 +71,8 @@ import { InventoryBorrowNCCComponent } from '../../../old/Sale/Inventory/Modal/i
 import { BillImportComponent } from '../../../old/Sale/BillImport/bill-import.component';
 import { BillExportComponent } from '../../../old/Sale/BillExport/bill-export.component';
 import { ProjectFieldComponent } from '../../../project/project-field/project-field/project-field.component';
-
+import { LeaderProjectComponent } from '../../../project/leader-project/leader-project.component';
+import { SupplierSaleComponentComponent } from '../../../old/supplier-sale-component/supplier-sale-component.component';
 @Injectable({
   providedIn: 'root',
 })
@@ -772,52 +773,9 @@ export class MenuService {
       },
       //#endregion
       //#region menu dự án
-      {
-        kind: 'leaf',
-        key: 'FactoryVisitRegistrationComponent',
-        title: 'THAM QUAN NHÀ MÁY',
-        isOpen: true,
-        isPermission: this.permissionService.hasPermission(""),
-        comp: FactoryVisitRegistrationComponent,
-        //   icon: 'assets/icon/layers.png',
-      },
-      {
-        kind: 'leaf',
-        key: 'CurrencyListComponent',
-        title: 'Tiền tệ',
-        isOpen: true,
-        isPermission: this.permissionService.hasPermission(""),
-        comp: CurrencyListComponent,
-      }
-      ,{
-        kind: 'leaf',
-        key: 'ProductLocationComponent',
-        title: 'Vị trí thiết bị',
-        isOpen: true,
-        isPermission: this.permissionService.hasPermission(""),
-        comp: ProductLocationComponent,
-      },{
-
-        kind: 'leaf',
-          key: 'SupplierSaleComponent',
-          title: 'Nhà cung cấp',
-          isOpen: true,
-          isPermission: this.permissionService.hasPermission(""),
-          comp: SupplierSaleComponent,
-      },
-      {
-        kind: 'leaf',
-          key: 'FirmComponent',
-          title: 'Hãng',
-          isOpen: true,
-          isPermission: this.permissionService.hasPermission(""),
-          comp: FirmComponent,
-      },
-
-    ],
-  },
-
+ 
   //#endregion
+  {
         kind: 'group',
         key: 'project',
         title: 'DỰ ÁN',
@@ -936,9 +894,17 @@ export class MenuService {
                 key: 'ProjectFieldComponent',
                 title: 'Lĩnh vực dự án',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
+                isPermission: this.permissionService.hasPermission('N31,N1'),
                 comp: ProjectFieldComponent,
               },
+              {
+                kind: 'leaf',
+                key: 'LeaderProjectComponent',
+                title: 'Leader dự án',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: LeaderProjectComponent,
+              }
             ],
           },
         ],

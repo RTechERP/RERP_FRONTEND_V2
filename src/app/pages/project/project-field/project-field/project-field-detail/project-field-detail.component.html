@@ -1,0 +1,113 @@
+<div class="modal-dialog-scrollable">
+    <div class="modal-header bg-primary text-uppercase py-2">
+      <h6 class="modal-title text-white">Chi tiết lĩnh vực dự án</h6>
+      <button
+        type="button"
+        class="btn-close"
+        (click)="closeModal()"
+        aria-label="Close"
+      ></button>
+    </div>
+  
+    <div class="modal-body" style="max-height: 80vh !important; overflow-y: auto;">
+      <form nz-form [formGroup]="form" class="g-3 needs-validation was-validated">
+        <!-- Hàng 1: Mã loại cuộc họp + Nhóm -->
+        <div class="row">
+          <div class="col-md-6 pb-3">
+            <nz-form-label class="fs-12">
+              Mã lĩnh vực
+              <span class="text-danger ps-1 me-1">*</span>
+            </nz-form-label>
+            <nz-form-control
+              [nzErrorTip]="
+                form.get('Code')?.invalid &&
+                (form.get('Code')?.dirty || form.get('Code')?.touched)
+                  ? 'Vui lòng nhập mã lĩnh vực!'
+                  : undefined
+              "
+            >
+                <input
+                    nz-input
+                    formControlName="Code"
+                    placeholder="Nhập mã lĩnh vực"
+                    class="fs-12"
+                />
+            </nz-form-control>
+          </div>
+  
+          <div class="col-md-6 pb-3">
+            <nz-form-label class="fs-12">
+              STT
+              <span class="text-danger ps-1 me-1">*</span>
+            </nz-form-label>
+            <nz-form-control
+              [nzErrorTip]="
+                form.get('STT')?.invalid &&
+                (form.get('STT')?.dirty || form.get('STT')?.touched)
+                  ? 'Vui lòng nhập STT!'
+                  : undefined
+              "
+            >
+            <input
+            nz-input
+            formControlName="STT"
+            placeholder="Nhập STT"
+            class="fs-12"
+          />
+            </nz-form-control>
+          </div>
+        </div>
+  
+        <!-- Hàng 2: Tên loại cuộc họp -->
+        <div class="row">
+          <div class="col-md-12 pb-3">
+            <nz-form-label class="fs-12">
+              Tên lĩnh vực
+              <span class="text-danger ps-1 me-1">*</span>
+            </nz-form-label>
+            <nz-form-control
+              [nzErrorTip]="
+                form.get('Name')?.invalid &&
+                (form.get('Name')?.dirty || form.get('Name')?.touched)
+                  ? 'Vui lòng nhập tên lĩnh vực!'
+                  : undefined
+              "
+            >
+              <input
+                nz-input
+                formControlName="Name"
+                placeholder="Nhập tên lĩnh vực"
+                class="fs-12"
+              />
+            </nz-form-control>
+          </div>
+        </div>
+  
+        <!-- Hàng 3: Nội dung -->
+        <div class="row">
+          <div class="col-md-12 pb-3">
+            <nz-form-label class="fs-12">Ghi chú</nz-form-label>
+            <nz-form-control>
+              <textarea
+                nz-input
+                placeholder="Nhập ghi chú"
+                formControlName="Note"
+                class="fs-12"
+                rows="3"
+              ></textarea>
+            </nz-form-control>
+          </div>
+        </div>
+      </form>
+    </div>
+  
+    <div class="modal-footer">
+      <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">
+        Đóng
+      </button>
+      <button class="fs-12 btn" nz-button nzType="primary" (click)="saveData()">
+        Lưu
+      </button>
+    </div>
+  </div>
+  

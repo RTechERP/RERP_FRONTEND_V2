@@ -12,7 +12,6 @@ import { VehicleRepairTypeComponent } from '../../../hrm/vehicle-repair/vehicle-
 import { VehicleRepairComponent } from '../../../hrm/vehicle-repair/vehicle-repair.component';
 import { TrainingRegistrationComponent } from '../../../training-registration/training-registration.component';
 import { ContractComponent } from '../../../old/contract/contract.component';
-// import { CustomerComponent } from '../../../old/customer/customer.component';
 import { DayOffComponent } from '../../../old/day-off/day-off.component';
 import { DepartmentComponent } from '../../../old/department/department.component';
 import { EarlyLateComponent } from '../../../old/early-late/early-late.component';
@@ -24,13 +23,13 @@ import { HolidayComponent } from '../../../old/holiday/holiday.component';
 import { NightShiftComponent } from '../../../old/night-shift/night-shift.component';
 import { OverTimeComponent } from '../../../old/over-time/over-time.component';
 import { PositionsComponent } from '../../../old/positions/positions.component';
-import { ProjectItemLateComponent } from '../../../old/project/project-item-late/project-item-late.component';
-import { ProjectSurveyComponent } from '../../../old/project/project-survey/project-survey.component';
-import { ProjectWorkItemTimelineComponent } from '../../../old/project/project-work-item-timeline/project-work-item-timeline.component';
-import { ProjectWorkPropressComponent } from '../../../old/project/project-work-propress/project-work-propress.component';
-import { ProjectWorkTimelineComponent } from '../../../old/project/project-work-timeline/project-work-timeline.component';
-import { ProjectComponent } from '../../../old/project/project.component';
-import { SynthesisOfGeneratedMaterialsComponent } from '../../../old/project/synthesis-of-generated-materials/synthesis-of-generated-materials.component';
+import { ProjectItemLateComponent } from '../../../project/project-item-late/project-item-late.component';
+import { ProjectSurveyComponent } from '../../../project/project-survey/project-survey.component';
+import { ProjectWorkItemTimelineComponent } from '../../../project/project-work-item-timeline/project-work-item-timeline.component';
+import { ProjectWorkPropressComponent } from '../../../project/project-work-propress/project-work-propress.component';
+import { ProjectWorkTimelineComponent } from '../../../project/project-work-timeline/project-work-timeline.component';
+import { ProjectComponent } from '../../../project/project.component';
+import { SynthesisOfGeneratedMaterialsComponent } from '../../../project/synthesis-of-generated-materials/synthesis-of-generated-materials.component';
 import { ProductSaleComponent } from '../../../old/Sale/ProductSale/product-sale.component';
 import { TbProductRtcComponent } from '../../../old/tb-product-rtc/tb-product-rtc.component';
 import { TeamComponent } from '../../../old/team/team.component';
@@ -43,9 +42,9 @@ import { TsAssetRecoveryComponent } from '../../../hrm/asset/asset/ts-asset-reco
 import { TsAssetTransferComponent } from '../../../hrm/asset/asset/ts-asset-transfer/ts-asset-transfer.component';
 import { PermissionService } from '../../../../services/permission.service';
 // import { OfficeSupplyComponent } from '../../../old/OfficeSuppliesManagement/OfficeSupply/office-supply.component';
-import { ProjectLeaderProjectTypeComponent } from '../../../old/project/project-leader-project-type/project-leader-project-type.component';
-import { MeetingMinuteComponent } from '../../../old/project/meeting-minute/meeting-minute.component';
-import { ProjectNewComponent } from '../../../old/project/project-new/project-new.component';
+import { ProjectLeaderProjectTypeComponent } from '../../../project/project-leader-project-type/project-leader-project-type.component';
+import { MeetingMinuteComponent } from '../../../project/meeting-minute/meeting-minute.component';
+import { ProjectDepartmentSummaryComponent } from '../../../project/project-department-summary/project-department-summary.component';
 import { CustomerComponent } from '../../../crm/customers/customer/customer.component';
 import { PlanWeekComponent } from '../../../old/VisionBase/plan-week/plan-week.component';
 import { TsAssetTypeComponent } from '../../../hrm/asset/asset/ts-asset-type/ts-asset-type.component';
@@ -57,6 +56,8 @@ import { OfficeSupplyRequestSummaryComponent } from '../../../hrm/office-supply/
 import { VehicleRepairHistoryComponent } from '../../../hrm/propose-vehicle-repair/vehicle-repair-history/vehicle-repair-history/vehicle-repair-history.component';
 import { ProposeVehicleRepairComponent } from '../../../hrm/propose-vehicle-repair/propose-vehicle-repair/propose-vehicle-repair/propose-vehicle-repair.component';
 import { DailyReportHrComponent } from '../../../hrm/daily-report-hr/daily-report-hr.component';
+import { PriceHistoryPartlistComponent } from '../../../project/price-history-partlist/price-history-partlist.component';
+import { ProjectTypeComponent } from '../../../project/project-type/project-type.component';
 
 import { EmployeePurchaseComponent } from '../../../purchase/employee-purchase/employee-purchase.component';
 import { RulePayComponent } from '../../../purchase/rulepay/rule-pay.component';
@@ -69,6 +70,7 @@ import { InventoryComponent } from '../../../old/Sale/Inventory/inventory.compon
 import { InventoryBorrowNCCComponent } from '../../../old/Sale/Inventory/Modal/inventory-borrow-ncc/inventory-borrow-ncc.component';
 import { BillImportComponent } from '../../../old/Sale/BillImport/bill-import.component';
 import { BillExportComponent } from '../../../old/Sale/BillExport/bill-export.component';
+import { ProjectFieldComponent } from '../../../project/project-field/project-field/project-field.component';
 
 @Injectable({
   providedIn: 'root',
@@ -855,8 +857,15 @@ export class MenuService {
             title: 'Khảo sát dự án',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
-
             comp: ProjectSurveyComponent,
+          },
+          {
+            kind: 'leaf',
+            key: 'MeetingMinuteComponent',
+            title: 'Biên bản cuộc họp',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: MeetingMinuteComponent,
           },
           {
             kind: 'leaf',
@@ -889,23 +898,31 @@ export class MenuService {
             title: 'Tổng hợp dự án phòng ban',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
-            comp: ProjectNewComponent,
+            comp: ProjectDepartmentSummaryComponent,
           },
           {
             kind: 'leaf',
-            key: 'MeetingMinuteComponent',
-            title: 'Biên bản cuộc họp',
+            key: 'PriceHistoryPartlistComponent',
+            title: 'Lịch sử giá',
             isOpen: true,
-            isPermission: this.permissionService.hasPermission(''),
-            comp: MeetingMinuteComponent,
+            isPermission: this.permissionService.hasPermission('N38,N1,N79,N13,N82'),
+            comp: PriceHistoryPartlistComponent,
           },
           {
             kind: 'group',
-            key: 'SettingLeader',
+            key: 'SettingProject',
             title: 'Cài đặt',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
             children: [
+              {
+                kind: 'leaf',
+                key: 'ProjectTypeComponent',
+                title: 'Kiểu dự án',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission('N1'),
+                comp: ProjectTypeComponent,
+              },
               {
                 kind: 'leaf',
                 key: 'ProjectLeaderProjectTypeComponent',
@@ -913,6 +930,14 @@ export class MenuService {
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission(''),
                 comp: ProjectLeaderProjectTypeComponent,
+              },
+              {
+                kind: 'leaf',
+                key: 'ProjectFieldComponent',
+                title: 'Lĩnh vực dự án',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: ProjectFieldComponent,
               },
             ],
           },

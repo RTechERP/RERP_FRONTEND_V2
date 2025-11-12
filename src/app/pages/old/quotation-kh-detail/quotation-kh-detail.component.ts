@@ -58,6 +58,7 @@ import { QuotationKhDetailServiceService } from './quotation-kh-detail-service/q
 import { CustomerPartService } from '../customer-part/customer-part/customer-part.service';
 import { PokhService } from '../pokh/pokh-service/pokh.service';
 import { RequestInvoiceDetailService } from '../request-invoice-detail/request-invoice-detail-service/request-invoice-detail-service.service';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 
 @Component({
   selector: 'app-quotation-kh-detail',
@@ -86,6 +87,7 @@ import { RequestInvoiceDetailService } from '../request-invoice-detail/request-i
     NzSwitchModule,
     NzCheckboxModule,
     CommonModule,
+    HasPermissionDirective,
   ],
   templateUrl: './quotation-kh-detail.component.html',
   styleUrl: './quotation-kh-detail.component.css',
@@ -214,7 +216,7 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
       const tableData = detailItems.map((item: any, index: number) => ({
         ID: item.ID,
         STT: index + 1,
-        IsSelected: false,
+        IsSelected: item.IsSelected ?? false,
         ProductNewCode: item.ProductNewCode || '',
         ProductRTCCode: item.ProductID || '',
         ProductCode: item.ProductCode || '',
@@ -512,7 +514,7 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
     this.mainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
       data: this.data,
       layout: 'fitDataFill',
-      height: '60vh',
+      height: '45vh',
       pagination: true,
       paginationSize: 50,
       movableColumns: true,

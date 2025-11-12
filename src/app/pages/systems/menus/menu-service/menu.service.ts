@@ -76,8 +76,12 @@ import { PokhKpiComponent } from '../../../old/pokh-kpi/pokh-kpi.component';
 import { PokhHistoryComponent } from '../../../old/pokh-history/pokh-history.component';
 import { PokhComponent } from '../../../old/pokh/pokh.component';
 
-import { LeaderProjectComponent } from '../../../project/leader-project/leader-project.component';
 import { SupplierSaleComponentComponent } from '../../../old/supplier-sale-component/supplier-sale-component.component';
+import { AppUserService } from '../../../../services/app-user.service';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { LeaderProjectComponent } from '../../../project/leader-project/leader-project.component';
+
 @Injectable({
   providedIn: 'root',
 })
@@ -86,13 +90,14 @@ export class MenuService {
   //   private apiUrl = HOST + 'api/menu/';
   constructor(
     private http: HttpClient,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private appUserService: AppUserService,
+    private notification: NzNotificationService
   ) {}
 
-
-//   getMenus(id: number): Observable<any> {
-//     return this.http.get<any>(this.apiUrl + `menus/${id}`);
-//   }
+  //   getMenus(id: number): Observable<any> {
+  //     return this.http.get<any>(this.apiUrl + `menus/${id}`);
+  //   }
 
   getMenus(): MenuItem[] {
     // this.menuService.getMenus(id).subscribe({
@@ -119,7 +124,8 @@ export class MenuService {
             key: 'CustomerComponent',
             title: 'Khách hàng',
             isOpen: true,
-            isPermission: this.permissionService.hasPermission("N1,N27,N53,N31,N69"),
+            isPermission:
+              this.permissionService.hasPermission('N1,N27,N53,N31,N69'),
             comp: CustomerComponent,
           },
         ],
@@ -328,42 +334,41 @@ export class MenuService {
                   this.permissionService.hasPermission('N23,N52,N1,N67,N36'),
                 comp: TsAssetRecoveryPersonalNewComponent,
                 //   icon: 'assets/icon/layers.png',
-            },
-        ]
-      },
+              },
+            ],
+          },
 
-
-      {
-        kind: 'leaf',
-        key: 'VehicleRepairComponent',
-        title: 'Danh sách xe sửa chữa',
-        isOpen: true,
-        isPermission: this.permissionService.hasPermission(""),
-        comp: VehicleRepairComponent,
-        //   icon: 'assets/icon/layers.png',
-      },
-      {
-        kind: 'leaf',
-        key: 'VehicleRepairComponent',
-        title: 'Danh sách loại sửa chữa',
-        isOpen: true,
-        isPermission: this.permissionService.hasPermission(""),
-        comp: VehicleRepairTypeComponent,
-        //   icon: 'assets/icon/layers.png',
-      },
-      {
-        kind: 'leaf',
-        key: 'DepartmentComponent',
-        title: 'Phòng ban',
-        isOpen: true,
-        isPermission: this.permissionService.hasPermission("N2,N1"),
-        comp: DepartmentComponent,
-        //   icon: 'assets/icon/layers.png',
-      },
+          {
+            kind: 'leaf',
+            key: 'VehicleRepairComponent',
+            title: 'Danh sách xe sửa chữa',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: VehicleRepairComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+          {
+            kind: 'leaf',
+            key: 'VehicleRepairTypeComponent',
+            title: 'Danh sách loại sửa chữa',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: VehicleRepairTypeComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+          {
+            kind: 'leaf',
+            key: 'DepartmentComponent',
+            title: 'Phòng ban',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission('N2,N1'),
+            comp: DepartmentComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
 
           {
             kind: 'group',
-            key: 'VehicleRepairComponent121',
+            key: 'VehicleManagement',
             title: 'Quản lí xe',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
@@ -406,7 +411,7 @@ export class MenuService {
               },
               {
                 kind: 'leaf',
-                key: 'ProposeVehicleRepair',
+                key: 'ProposeVehicleRepairComponent',
                 title: 'Danh sách  đề xuất sửa chữa',
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission('N2,N34,N1'),
@@ -777,9 +782,60 @@ export class MenuService {
       },
       //#endregion
       //#region menu dự án
- 
-  //#endregion
-  {
+      {
+        kind: 'group',
+        key: 'generalCategory',
+        title: 'DANH MỤC CHUNG',
+        isOpen: true,
+        isPermission: this.permissionService.hasPermission(''),
+        icon: 'assets/icon/menu_project_24.png',
+        children: [
+          {
+            kind: 'leaf',
+            key: 'FactoryVisitRegistrationComponent',
+            title: 'THAM QUAN NHÀ MÁY',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: FactoryVisitRegistrationComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+          {
+            kind: 'leaf',
+            key: 'CurrencyListComponent',
+            title: 'Tiền tệ',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: CurrencyListComponent,
+          },
+          {
+            kind: 'leaf',
+            key: 'ProductLocationComponent',
+            title: 'Vị trí thiết bị',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: ProductLocationComponent,
+          },
+          {
+            kind: 'leaf',
+            key: 'SupplierSaleComponent',
+            title: 'Nhà cung cấp',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: SupplierSaleComponentComponent,
+          },
+          {
+            kind: 'leaf',
+            key: 'FirmComponent',
+            title: 'Hãng',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: FirmComponent,
+          },
+        ],
+      },
+
+      //#endregion
+      {
         kind: 'group',
         key: 'project',
         title: 'DỰ ÁN',
@@ -867,7 +923,8 @@ export class MenuService {
             key: 'PriceHistoryPartlistComponent',
             title: 'Lịch sử giá',
             isOpen: true,
-            isPermission: this.permissionService.hasPermission('N38,N1,N79,N13,N82'),
+            isPermission:
+              this.permissionService.hasPermission('N38,N1,N79,N13,N82'),
             comp: PriceHistoryPartlistComponent,
           },
           {
@@ -908,7 +965,7 @@ export class MenuService {
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission(''),
                 comp: LeaderProjectComponent,
-              }
+              },
             ],
           },
         ],
@@ -962,7 +1019,7 @@ export class MenuService {
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission(''),
                 comp: PokhHistoryComponent,
-              }
+              },
             ],
           },
           {
@@ -999,6 +1056,28 @@ export class MenuService {
     return menus;
   }
 
+  goToOldLink(router: String) {
+    let data: any = {
+      UserName: this.appUserService.loginName,
+      Password: this.appUserService.password,
+      Router: router,
+    };
+
+    const url = `http://113.190.234.64:8081${router}`;
+
+    const urlOld = 'http://113.190.234.64:8081/Home/LoginNew';
+    // console.log('gotoOldLink:',url);
+
+    return this.http.post<any>(url, data, { withCredentials: true }).subscribe({
+      next: (response) => {
+        window.open(url, '_blank');
+      },
+      error: (err) => {
+        // console.log('err:', err);
+        this.notification.error(NOTIFICATION_TITLE.error, err.message);
+      },
+    });
+  }
 }
 
 type BaseItem = {

@@ -72,11 +72,12 @@ import { AuthService } from '../../auth/auth.service';
     NzSpinModule,
     NzTreeSelectModule,
     NzModalModule,
-    CommonModule,HasPermissionDirective
+    CommonModule,
+    HasPermissionDirective,
   ],
   templateUrl: './project.component.html',
   styleUrl: './project.component.css',
-//   encapsulation: ViewEncapsulation.None,
+  //   encapsulation: ViewEncapsulation.None,
 })
 export class ProjectComponent implements OnInit, AfterViewInit {
   // Khai báo format ngày giờ
@@ -215,7 +216,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
         })),
       },
       {
-        label:  
+        label:
           '<span style="font-size: 0.75rem;"><img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" class="me-1" /> Xuất excel</span>',
         action: (e: any, row: any) => {
           this.exportExcel();
@@ -277,7 +278,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       //   layout: 'fitColumns',
 
       ...DEFAULT_TABLE_CONFIG,
-      rowHeader:false,
+      rowHeader: false,
       selectableRows: 1,
       height: '87vh',
       //   pagination: true,
@@ -1164,7 +1165,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
   getCurrentUser() {
     this.authService.getCurrentUser().subscribe((res: any) => {
       this.currentUser = res.data;
-      console.log("CurentUser:",this.currentUser);
+      console.log('CurentUser:', this.currentUser);
     });
   }
   setPersionalPriority(priority: number) {
@@ -1180,9 +1181,9 @@ export class ProjectComponent implements OnInit, AfterViewInit {
 
     const dataSave = {
       ID: 0,
-      UserID: this.currentUser?.EmployeeID ?? 0, 
-      ProjectID: selectedIDs[0],                 
-      Priotity: priority,                          
+      UserID: this.currentUser?.EmployeeID ?? 0,
+      ProjectID: selectedIDs[0],
+      Priotity: priority,
     };
     this.projectService.saveProjectPersonalPriority(dataSave).subscribe({
       next: (response: any) => {
@@ -1275,7 +1276,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
   //#endregion
 
   //#region đóng panel
-  closePanel(){
+  closePanel() {
     this.sizeTbDetail = '0';
   }
   //#endregion

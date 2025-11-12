@@ -24,7 +24,7 @@ export class ProjectService {
     this.apiUrl + 'synthesisofgeneratedmaterials/';
   private urlProjectSynthesisDepartment =
     this.apiUrl + 'projectsynthesisdepartment/';
-    private urlProjectPartlistPriceRequest =
+  private urlProjectPartlistPriceRequest =
     this.apiUrl + 'projectpartlistpricerequest/';
   constructor(
     private http: HttpClient,
@@ -40,8 +40,8 @@ export class ProjectService {
   LoginName: string = 'ADMIN';
   ISADMIN: boolean = true;
   GlobalDepartmentId: number = 1;
-  //save hãng 
-  saveFirmBase(data:any): Observable<any>{
+  //save hãng
+  saveFirmBase(data: any): Observable<any> {
     return this.http.post<any>(`${this.urlProject}save-firm-base`, data);
   }
   // Lấy danh sách thư mục dự án
@@ -303,7 +303,7 @@ export class ProjectService {
     let selected: any[] = [];
 
     data.forEach((row) => {
-        selected.push(row);
+      selected.push(row);
       if (row._children && Array.isArray(row._children)) {
         selected = selected.concat(
           this.getSelectedRowsRecursive(row._children)
@@ -428,6 +428,7 @@ export class ProjectService {
   }
 
   getUserTeam(departmentId: number): Observable<any> {
+    debugger;
     return this.http.get<any>(
       this.urlProjectWorkTimeline + `get-user-team?depID=${departmentId}`
     );
@@ -815,19 +816,20 @@ export class ProjectService {
   saveProjectTreeFolder(data: any): Observable<any> {
     return this.http.post<any>(this.urlProject + 'save-folder-project', data);
   }
-     // lấy danh sách leader của loại dự án
-     getEmployeeProjectType(projectTypeId: any): Observable<any> {
-      return this.http.get<any>(this.apiUrl + `Project/getemployeeprojecttype/${projectTypeId}`);
-    }
-       // lưu leader dự án
-  saveemployeeprojecttype(
-    employeeProjectType: any,
-  ): Observable<any> {
-    return this.http.post<any>(
-      this.apiUrl + `Project/saveemployeeprojecttype`,employeeProjectType
+  // lấy danh sách leader của loại dự án
+  getEmployeeProjectType(projectTypeId: any): Observable<any> {
+    return this.http.get<any>(
+      this.apiUrl + `Project/getemployeeprojecttype/${projectTypeId}`
     );
   }
-   // Chức năng người tham gia dự án theo departmentID
+  // lưu leader dự án
+  saveemployeeprojecttype(employeeProjectType: any): Observable<any> {
+    return this.http.post<any>(
+      this.apiUrl + `Project/saveemployeeprojecttype`,
+      employeeProjectType
+    );
+  }
+  // Chức năng người tham gia dự án theo departmentID
   getProjectEmployeefilter(departmentID: number): Observable<any> {
     return this.http.get<any>(
       this.apiUrl + `Project/get-project-employee-filter/${departmentID}`
@@ -836,14 +838,13 @@ export class ProjectService {
   //end
   //tổng hợp dự án
   getProjectSummary(
-    dateTimeS:DateTime,
-    dateTimeE:DateTime,
-    departmentID:number,
-    userID:number,
+    dateTimeS: DateTime,
+    dateTimeE: DateTime,
+    departmentID: number,
+    userID: number,
     projectTypeID: string,
     keyword: string,
-    userTeamID: number,
-    
+    userTeamID: number
   ): Observable<any> {
     const filter: any = {
       dateTimeS: dateTimeS?.toISO() || new Date().toISOString(),
@@ -851,14 +852,16 @@ export class ProjectService {
       keyword: keyword.trim(),
       userID: userID.toString(),
       projectTypeID: projectTypeID.trim(),
-      userTeamID:userTeamID.toString(),
+      userTeamID: userTeamID.toString(),
       departmentID: departmentID.toString(),
     };
 
     return this.http.post(`${this.urlProjectSummary}get-projects`, filter);
   }
   getProjectSituation(projectId: number): Observable<any> {
-    return this.http.get<any>(`${this.urlProjectSummary}get-project-current-situation/${projectId}`);
+    return this.http.get<any>(
+      `${this.urlProjectSummary}get-project-current-situation/${projectId}`
+    );
   }
   //#region Lịch sử giá
   getSupplierSales(): Observable<any> {
@@ -868,57 +871,83 @@ export class ProjectService {
   }
 
   getPriceHistoryPartlist(data: any): Observable<any> {
-    return this.http.get<any>(this.urlProjectPartlistPriceRequest + `get-price-history-partlist`, {
-      params: data,
-    });
+    return this.http.get<any>(
+      this.urlProjectPartlistPriceRequest + `get-price-history-partlist`,
+      {
+        params: data,
+      }
+    );
   }
   //#endregion
   //#region kiểu dự án
-  getFolderByProjectType(projectTypeID:number):Observable<any>{
-    return this.http.get<any>(this.urlProject+`getfoldersbyprojecttypes/${projectTypeID}`)
+  getFolderByProjectType(projectTypeID: number): Observable<any> {
+    return this.http.get<any>(
+      this.urlProject + `getfoldersbyprojecttypes/${projectTypeID}`
+    );
   }
-  getAPIProjectTypes():Observable<any>{
-    return this.http.get<any>(this.urlProject+`get-project-types`)
+  getAPIProjectTypes(): Observable<any> {
+    return this.http.get<any>(this.urlProject + `get-project-types`);
   }
-  saveProjectType(payload:any):Observable<any>{
-    return this.http.post<any>(this.urlProject + `saveprojecttype`, payload)
+  saveProjectType(payload: any): Observable<any> {
+    return this.http.post<any>(this.urlProject + `saveprojecttype`, payload);
   }
-  getParentProjectTypes():Observable<any>{//lấy kiểu dự án cha 
-    return this.http.get<any>(this.urlProject + `get-parent-project-types`)
+  getParentProjectTypes(): Observable<any> {
+    //lấy kiểu dự án cha
+    return this.http.get<any>(this.urlProject + `get-parent-project-types`);
   }
-  getProjectTypeByID(projectTypeID:number):Observable<any>{//lấy kiểu dự án theo id 
-    return this.http.get<any>(this.urlProject+`get-project-types/${projectTypeID}`)
+  getProjectTypeByID(projectTypeID: number): Observable<any> {
+    //lấy kiểu dự án theo id
+    return this.http.get<any>(
+      this.urlProject + `get-project-types/${projectTypeID}`
+    );
   }
-  deleteProjectFolder(payload:any):Observable<any>{
-    return this.http.post<any>(this.urlProject + `delete-project-folder`, payload)
+  deleteProjectFolder(payload: any): Observable<any> {
+    return this.http.post<any>(
+      this.urlProject + `delete-project-folder`,
+      payload
+    );
   }
-    //#end
+  //#end
 
-    //#region Tổng hợp nhân công
-    getProjectWorkerSynthetic(projectID:number, projectworkertypeID:number, keyword:string): Observable<any> {
-      const filter: any = {
-        projectID: projectID.toString(),
-        projectworkertypeID: projectworkertypeID.toString(),
-        keyword: keyword.trim(),
-      };
-      return this.http.post<any>(this.urlProjectSummary + `get-project-worker-synthetic`, filter);
-    }
-    getProjectCombobox(): Observable<any> {
-      return this.http.get<any>(this.urlProjectSummary + `get-combobox-project`);
-    }
-    getProjectWorkerType(): Observable<any> {
-      return this.http.get<any>(this.urlProjectSummary + `get-worker-type`);
-    }
-    //#endregion
-    //#region Danh sách báo cáo công việc
-    getProjectListWorkReport(projectId: number, keyword: string, page: number, size: number): Observable<any> {
-      const filter: any = {
-        projectId: projectId.toString()||0,
-        keyword: keyword.trim() ||'',
-        page: page.toString(),
-        size: size.toString(),
-      };
-      return this.http.get<any>(this.urlProject + `get-project-work-reports`, { params: filter });
-    }
-    //#endregion
+  //#region Tổng hợp nhân công
+  getProjectWorkerSynthetic(
+    projectID: number,
+    projectworkertypeID: number,
+    keyword: string
+  ): Observable<any> {
+    const filter: any = {
+      projectID: projectID.toString(),
+      projectworkertypeID: projectworkertypeID.toString(),
+      keyword: keyword.trim(),
+    };
+    return this.http.post<any>(
+      this.urlProjectSummary + `get-project-worker-synthetic`,
+      filter
+    );
+  }
+  getProjectCombobox(): Observable<any> {
+    return this.http.get<any>(this.urlProjectSummary + `get-combobox-project`);
+  }
+  getProjectWorkerType(): Observable<any> {
+    return this.http.get<any>(this.urlProjectSummary + `get-worker-type`);
+  }
+  //#endregion
+  //#region Danh sách báo cáo công việc
+  getProjectListWorkReport(
+    projectId: number,
+    keyword: string,
+    page: number,
+    size: number
+  ): Observable<any> {
+    const filter: any = {
+      projectId: projectId.toString() || 0,
+      keyword: keyword.trim() || '',
+      page: page.toString(),
+      size: size.toString(),
+    };
+    return this.http.get<any>(this.urlProject + `get-project-work-reports`, {
+      params: filter,
+    });
+  }
+  //#endregion
 }

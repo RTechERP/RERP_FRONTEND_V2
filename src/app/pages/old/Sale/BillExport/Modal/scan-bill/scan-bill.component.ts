@@ -78,7 +78,7 @@ import { firstValueFrom } from 'rxjs';
   styleUrl: './scan-bill.component.css',
 })
 export class ScanBillComponent implements OnInit, AfterViewInit {
-  @Input() warehouseCode: string = "HN";
+  @Input() warehouseCode: string = 'HN';
   searchParams = {
     keyword: '',
   };

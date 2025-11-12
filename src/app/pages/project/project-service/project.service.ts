@@ -144,7 +144,6 @@ export class ProjectService {
     shortName: string,
     projectType: number
   ): Observable<any> {
-    debugger
     return this.http.get<any>(
       this.urlProject +
         `get-project-code-modal?projectId=${projectId}&customerShortName=${shortName}&projectType=${projectType}`
@@ -180,7 +179,6 @@ export class ProjectService {
   }
   // Kiểm tra đã có mã dự án chưa
   checkProjectCode(projectId: number, projectCode: string): Observable<any> {
-    debugger
     return this.http.get<any>(
       this.urlProject +
         `check-project-code?id=${projectId}&projectCode=${projectCode}`
@@ -430,7 +428,6 @@ export class ProjectService {
   }
 
   getUserTeam(departmentId: number): Observable<any> {
-    debugger
     return this.http.get<any>(
       this.urlProjectWorkTimeline + `get-user-team?depID=${departmentId}`
     );

@@ -161,7 +161,6 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
   }
 
   getUserTeam() {
-    debugger
     this.teams = [];
     if (this.departmentId > 0) {
       this.projectService.getUserTeam(this.departmentId).subscribe({

@@ -53,3 +53,6 @@
   background: #e9ecef !important;
   font-weight: bold;
 }
+.ant-splitter {
+  height: 93vh !important;
+}

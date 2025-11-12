@@ -811,6 +811,7 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
             title: 'Địa điểm',
             field: 'Place',
             headerHozAlign: 'center',
+            resizable: false,
           },
         ],
       });
@@ -960,7 +961,7 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
           { title: 'Kết quả', field: 'DetailResult', headerHozAlign: 'center',  width: 200,  formatter:'textarea' },
           {
             title: 'Mã nhân viên',
-            field: 'EmployeeID',
+            field: 'EmployeeCode',
           
             headerHozAlign: 'center',
            

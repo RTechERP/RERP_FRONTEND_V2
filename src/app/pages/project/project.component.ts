@@ -279,6 +279,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       ...DEFAULT_TABLE_CONFIG,
       rowHeader:false,
       selectableRows: 1,
+      height: '87vh',
       //   pagination: true,
       //   paginationMode: 'remote',
       //   paginationSize: 100,

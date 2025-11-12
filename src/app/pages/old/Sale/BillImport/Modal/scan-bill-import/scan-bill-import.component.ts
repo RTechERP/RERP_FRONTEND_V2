@@ -43,7 +43,7 @@ import { AppUserService } from '../../../../../../services/app-user.service';
 import { DateTime } from 'luxon';
 // Thêm các import này vào đầu file
 
-import { ProjectComponent } from '../../../../project/project.component';
+import { ProjectComponent } from '../../../../../project/project.component';
 import { NgZone } from '@angular/core'; // Add this import
 import { firstValueFrom } from 'rxjs';
 

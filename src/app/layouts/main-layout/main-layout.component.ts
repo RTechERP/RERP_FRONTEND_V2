@@ -19,7 +19,7 @@ import { Type, Injector } from '@angular/core';
 // import { AppNotifycationDropdownComponent } from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
 // import { AppUserDropdownComponent } from '/pages/old/app/app-user-dropdown/app-user-dropdown.component';
 import { Title } from '@angular/platform-browser';
-import { ProjectComponent } from '../../pages/old/project/project.component';
+import { ProjectComponent } from '../../pages/project/project.component';
 // import { EmployeePayrollComponent } from '../../pages/hrm/employee/employee-payroll/employee-payroll/employee-payroll.component';
 // import { CustomerComponent } from '../../pages/customer/customer.component';
 import { TbProductRtcComponent } from '../../pages/old/tb-product-rtc/tb-product-rtc.component';

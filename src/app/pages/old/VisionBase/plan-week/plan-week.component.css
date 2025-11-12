@@ -67,4 +67,6 @@
   color: #1890ff;
   font-size: 14px;
 }
-
+.ant-splitter {
+  height: 89vh !important;
+}

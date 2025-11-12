@@ -1,38 +1,39 @@
 <ng-container class="w-100 h-100">
-  <nz-splitter class="h-100">
-    <nz-splitter-panel nzDefaultSize="100%">
-      <div class="card h-100 border-0 rounded-0 d-flex flex-column">
-        <div class="card-header bg-white p-1">
-          <div class="d-flex gap-1">
+    <nz-splitter class="h-100">
+        <nz-splitter-panel nzDefaultSize="100%">
+            <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+                <div class="card-header bg-white p-1">
+                    <div class="d-flex gap-1">
 
 
-            <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add" (click)="openUnitModalForNewUnit()" 
-              *hasPermission="'N2,N34,N1'">
-              <img src="assets/icon/action_add_item_16.png" alt="Thêm " />Thêm
-            </button>
-            <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="openUnitModalForUpdateUnit()"
-              *hasPermission="'N2,N34,N1'">
-              <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />Sửa
-            </button>
-            <button nz-button nzType="default" nzSize="small" class="btn-delete " (click)="deleteUnit()"
-              *hasPermission="'N2,N34,N1'">
-              <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />Xóa
-            </button>
-            <div style="display:flex;" class="ms-auto">
-              <input type="text" nzSize="small" [(ngModel)]="searchText" (ngModelChange)="onSearch()" name="keyword"
-                nz-input class="fs-12" style="width:250px; border:1px solid #d9d9d9; box-shadow:none;"
-                placeholder="Tìm kiếm" />
-              <button nz-button nzSize="small" (click)="onSearch()">
-                <nz-icon nzType="search"></nz-icon>
-              </button>
+                        <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add"
+                            (click)="openUnitModalForNewUnit()" *hasPermission="'N2,N34,N1'">
+                            <img src="assets/icon/action_add_item_16.png" alt="Thêm " />Thêm
+                        </button>
+                        <button nz-button nzType="default" nzSize="small" class="btn-edit"
+                            (click)="openUnitModalForUpdateUnit()" *hasPermission="'N2,N34,N1'">
+                            <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />Sửa
+                        </button>
+                        <button nz-button nzType="default" nzSize="small" class="btn-delete " (click)="deleteUnit()"
+                            *hasPermission="'N2,N34,N1'">
+                            <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />Xóa
+                        </button>
+                        <div style="display:flex;" class="ms-auto">
+                            <input type="text" nzSize="small" [(ngModel)]="searchText" (ngModelChange)="onSearch()"
+                                name="keyword" nz-input class="fs-12"
+                                style="width:250px; border:1px solid #d9d9d9; box-shadow:none;"
+                                placeholder="Tìm kiếm" />
+                            <button nz-button nzSize="small" (click)="onSearch()">
+                                <nz-icon nzType="search"></nz-icon>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="card-body p-0">
+                    <div id="datatableunit"></div>
+                </div>
             </div>
-          </div>
-
-        </div>
-        <div class="card-body p-0">
-          <div id="datatable"></div>
-        </div>
-      </div>
-    </nz-splitter-panel>
-  </nz-splitter>
+        </nz-splitter-panel>
+    </nz-splitter>
 </ng-container>

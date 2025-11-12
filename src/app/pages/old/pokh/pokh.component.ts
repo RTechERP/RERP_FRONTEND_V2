@@ -1203,6 +1203,16 @@ export class PokhComponent implements OnInit, AfterViewInit {
           field: 'ReceivedDatePO',
           sorter: 'date',
           width: 150,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (!value) return '';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          }
         },
         {
           title: 'Loại tiền',
@@ -1543,6 +1553,16 @@ export class PokhComponent implements OnInit, AfterViewInit {
           field: 'DeliveryRequestedDate',
           sorter: 'string',
           width: 200,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (!value) return '';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          }
         },
         {
           title: 'Thanh toán dự kiến',
@@ -1555,6 +1575,16 @@ export class PokhComponent implements OnInit, AfterViewInit {
           field: 'BillDate',
           sorter: 'string',
           width: 200,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (!value) return '';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          }
         },
         {
           title: 'Số hóa đơn',
@@ -1568,6 +1598,16 @@ export class PokhComponent implements OnInit, AfterViewInit {
           field: 'PayDate',
           sorter: 'string',
           width: 200,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (!value) return '';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          }
         },
         { title: 'Nhóm', field: 'GroupPO', sorter: 'string', width: 100 },
         {
@@ -1575,6 +1615,16 @@ export class PokhComponent implements OnInit, AfterViewInit {
           field: 'ActualDeliveryDate',
           sorter: 'string',
           width: 200,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (!value) return '';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          }
         },
         {
           title: 'Ngày tiền về',

@@ -81,4 +81,7 @@ export class CustomerServiceService {
   deleteMultiple(ids:any): Observable<any> {
     return this.http.post<any>(this._url + 'delete-multiple', ids);
   }
+  exportExcel(): Observable<Blob> {
+    return this.http.get(this._url + 'export-excel', { responseType: 'blob' });
+  }
 }

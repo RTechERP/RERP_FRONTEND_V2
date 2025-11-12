@@ -46,7 +46,7 @@ import {
   createComponent,
 } from '@angular/core';
 import { SelectControlComponent } from '../../../BillExport/Modal/select-control/select-control.component';
-import { ProjectComponent } from '../../../../project/project.component';
+import { ProjectComponent } from '../../../../../project/project.component';
 import { HistoryDeleteBillComponent } from '../../../BillExport/Modal/history-delete-bill/history-delete-bill.component';
 import { BillExportService } from '../../../BillExport/bill-export-service/bill-export.service';
 interface data {
@@ -245,23 +245,27 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
     window.URL.revokeObjectURL(link.href);
   }
   getProductGroup() {
-    this.billExportService.getProductGroup(
-      this.appUserService.isAdmin,
-      this.appUserService.departmentID || 0
-    ).subscribe({
-      next: (res) => {
-        if (res?.data && Array.isArray(res.data)) {
-          this.dataProductGroup = res.data;
-          console.log('>>> Kết quả getProductGroup:', res);
-          this.selectedKhoTypes = this.dataProductGroup.map((item) => item.ID);
-          this.searchParams.listproductgroupID =
-            this.selectedKhoTypes.join(',');
-        }
-      },
-      error: (err) => {
-        console.error('Lỗi khi lấy nhóm vật tư', err);
-      },
-    });
+    this.billExportService
+      .getProductGroup(
+        this.appUserService.isAdmin,
+        this.appUserService.departmentID || 0
+      )
+      .subscribe({
+        next: (res) => {
+          if (res?.data && Array.isArray(res.data)) {
+            this.dataProductGroup = res.data;
+            console.log('>>> Kết quả getProductGroup:', res);
+            this.selectedKhoTypes = this.dataProductGroup.map(
+              (item) => item.ID
+            );
+            this.searchParams.listproductgroupID =
+              this.selectedKhoTypes.join(',');
+          }
+        },
+        error: (err) => {
+          console.error('Lỗi khi lấy nhóm vật tư', err);
+        },
+      });
   }
   onKhoTypeChange(selected: number[]): void {
     this.selectedKhoTypes = selected;

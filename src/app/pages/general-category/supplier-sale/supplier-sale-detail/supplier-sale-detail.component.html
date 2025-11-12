@@ -1,0 +1,265 @@
+<div class="supplier-detail-container" *ngIf="isVisible">
+  <div class="supplier-detail-header">
+    <h3>{{ isEditMode ? 'Chỉnh sửa nhà cung cấp' : 'Thêm nhà cung cấp mới' }}</h3>
+    <button nz-button nzType="text" nzShape="circle" (click)="onCancel()">
+      <span nz-icon nzType="close"></span>
+    </button>
+  </div>
+
+  <nz-spin class="supplier-detail-content" [nzSpinning]="isLoading">
+    <nz-tabset [(nzSelectedIndex)]="selectedTabIndex">
+
+      <!-- Tab thông tin cơ bản -->
+      <nz-tab nzTitle="Thông tin cơ bản">
+        <form
+          nz-form
+          [formGroup]="supplierForm"
+          [nzLayout]="supplierForm.controls.formLayout.value"
+          nzLayout="vertical"
+          class="supplier-form"
+        >
+          <div nz-row [nzGutter]="16">
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+              <nz-form-item class="compact-form-item">
+                <nz-form-label [nzSpan]="isHorizontal ? 6 : null" [nzRequired]="true">Mã nhà cung cấp</nz-form-label>
+                <nz-form-control [nzSpan]="isHorizontal ? 18 : null" [nzErrorTip]="getFieldError(supplierForm, 'maNCC')">
+                  <input nz-input formControlName="maNCC" placeholder="Nhập mã nhà cung cấp" [class.error]="isFieldInvalid(supplierForm, 'maNCC')" />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+              <nz-form-item class="compact-form-item">
+                <nz-form-label [nzSpan]="isHorizontal ? 6 : null" [nzRequired]="true">Tên nhà cung cấp</nz-form-label>
+                <nz-form-control [nzSpan]="isHorizontal ? 18 : null" [nzErrorTip]="getFieldError(supplierForm, 'tenNCC')">
+                  <input nz-input formControlName="tenNCC" placeholder="Nhập tên nhà cung cấp" [class.error]="isFieldInvalid(supplierForm, 'tenNCC')" />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+  
+          <div nz-row [nzGutter]="16">
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+              <nz-form-item class="compact-form-item">
+                <nz-form-label [nzSpan]="isHorizontal ? 6 : null">Điện thoại</nz-form-label>
+                <nz-form-control [nzSpan]="isHorizontal ? 18 : null" [nzErrorTip]="getFieldError(supplierForm, 'phoneNCC')">
+                  <input nz-input formControlName="phoneNCC" placeholder="Nhập số điện thoại" [class.error]="isFieldInvalid(supplierForm, 'phoneNCC')" />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+              <nz-form-item class="compact-form-item">
+                <nz-form-label [nzSpan]="isHorizontal ? 6 : null">Email</nz-form-label>
+                <nz-form-control [nzSpan]="isHorizontal ? 18 : null" [nzErrorTip]="getFieldError(supplierForm, 'email')">
+                  <input nz-input formControlName="email" placeholder="Nhập email" [class.error]="isFieldInvalid(supplierForm, 'email')" />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+  
+          <div nz-row [nzGutter]="16">
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+              <nz-form-item class="compact-form-item">
+                <nz-form-label [nzSpan]="isHorizontal ? 6 : null">Fax</nz-form-label>
+                <nz-form-control [nzSpan]="isHorizontal ? 18 : null">
+                  <input nz-input formControlName="fax" placeholder="Nhập số fax" />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+              <nz-form-item class="compact-form-item">
+                <nz-form-label [nzSpan]="isHorizontal ? 6 : null">Website</nz-form-label>
+                <nz-form-control [nzSpan]="isHorizontal ? 18 : null">
+                  <input nz-input formControlName="website" placeholder="Nhập website" />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+  
+          <div nz-row [nzGutter]="16">
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="24" [nzXl]="24">
+              <nz-form-item class="compact-form-item">
+                <nz-form-label [nzSpan]="isHorizontal ? 3 : null">Địa chỉ</nz-form-label>
+                <nz-form-control [nzSpan]="isHorizontal ? 21 : null">
+                  <textarea nz-input formControlName="diaChi" placeholder="Nhập địa chỉ" rows="2"></textarea>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+  
+          <div nz-row [nzGutter]="16">
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+              <nz-form-item class="compact-form-item">
+                <nz-form-label [nzSpan]="isHorizontal ? 6 : null">Người đại diện</nz-form-label>
+                <nz-form-control [nzSpan]="isHorizontal ? 18 : null">
+                  <input nz-input formControlName="nguoiDaiDien" placeholder="Nhập tên người đại diện" />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+              <nz-form-item class="compact-form-item">
+                <nz-form-label [nzSpan]="isHorizontal ? 6 : null">Chức vụ</nz-form-label>
+                <nz-form-control [nzSpan]="isHorizontal ? 18 : null">
+                  <input nz-input formControlName="chucVu" placeholder="Nhập chức vụ" />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+  
+          <div nz-row [nzGutter]="16">
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+              <nz-form-item class="compact-form-item">
+                <nz-form-label [nzSpan]="isHorizontal ? 6 : null">Nhân viên phụ trách</nz-form-label>
+                <nz-form-control [nzSpan]="isHorizontal ? 18 : null">
+                  <nz-select formControlName="employeeId" nzPlaceHolder="Chọn nhân viên" nzAllowClear>
+                    <nz-option *ngFor="let emp of employees" [nzValue]="emp.ID" [nzLabel]="emp.FullName"></nz-option>
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+              <nz-form-item class="compact-form-item">
+                <nz-form-label [nzSpan]="isHorizontal ? 6 : null">Mã số thuế</nz-form-label>
+                <nz-form-control [nzSpan]="isHorizontal ? 18 : null">
+                  <input nz-input formControlName="maSoThue" placeholder="Nhập mã số thuế" />
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+  
+          <div nz-row [nzGutter]="16">
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="24" [nzXl]="24">
+              <nz-form-item class="compact-form-item">
+                <nz-form-label [nzSpan]="isHorizontal ? 3 : null">Ghi chú</nz-form-label>
+                <nz-form-control [nzSpan]="isHorizontal ? 21 : null">
+                  <textarea nz-input formControlName="ghiChu" placeholder="Nhập ghi chú" rows="3"></textarea>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+  
+          <div nz-row [nzGutter]="16">
+            <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+              <nz-form-item class="compact-form-item" style="margin-top: 22px;">
+                <nz-form-control>
+                  <label nz-checkbox formControlName="trangThai">Trạng thái hoạt động</label>
+                </nz-form-control>
+              </nz-form-item>
+            </div>
+          </div>
+        </form>
+      </nz-tab>
+  
+      <!-- Tab danh sách liên hệ -->
+      <nz-tab nzTitle="Danh sách liên hệ" [nzDisabled]="!isEditMode">
+        <div class="contact-section">
+          <!-- Form thêm/sửa liên hệ -->
+          <div class="contact-form-section">
+            <h4>{{ selectedContactIndex >= 0 ? 'Chỉnh sửa liên hệ' : 'Thêm liên hệ mới' }}</h4>
+
+            <div class="form-row">
+              <div class="form-col">
+                <nz-form-item>
+                  <nz-form-label [nzRequired]="true">Họ tên</nz-form-label>
+                  <nz-form-control [nzErrorTip]="getFieldError(contactForm, 'SupplierName')">
+                    <input 
+                      nz-input 
+                      formControlName="SupplierName" 
+                      placeholder="Nhập họ tên"
+                      [class.error]="isFieldInvalid(contactForm, 'SupplierName')"
+                    />
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+              <div class="form-col">
+                <nz-form-item>
+                  <nz-form-label>Điện thoại</nz-form-label>
+                  <nz-form-control [nzErrorTip]="getFieldError(contactForm, 'SupplierPhone')">
+                    <input 
+                      nz-input 
+                      formControlName="SupplierPhone" 
+                      placeholder="Nhập điện thoại"
+                      [class.error]="isFieldInvalid(contactForm, 'SupplierPhone')"
+                    />
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-col">
+                <nz-form-item>
+                  <nz-form-label>Email</nz-form-label>
+                  <nz-form-control [nzErrorTip]="getFieldError(contactForm, 'SupplierEmail')">
+                    <input 
+                      nz-input 
+                      formControlName="SupplierEmail" 
+                      placeholder="Nhập email"
+                      [class.error]="isFieldInvalid(contactForm, 'SupplierEmail')"
+                    />
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+              <div class="form-col">
+                <nz-form-item>
+                  <nz-form-label>Ghi chú</nz-form-label>
+                  <nz-form-control>
+                    <textarea 
+                      nz-input 
+                      formControlName="Describe" 
+                      placeholder="Nhập ghi chú"
+                      rows="2"
+                    ></textarea>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+            </div>
+
+            <div class="contact-form-actions">
+              <button 
+                nz-button 
+                nzType="primary" 
+                (click)="onSaveContact()"
+                [nzLoading]="isSaving"
+              >
+                {{ selectedContactIndex >= 0 ? 'Cập nhật' : 'Thêm mới' }}
+              </button>
+              <button 
+                nz-button 
+                nzType="default" 
+                (click)="onAddContact()"
+                *ngIf="selectedContactIndex >= 0"
+              >
+                Hủy
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Danh sách liên hệ -->
+        <div class="contact-list-section">
+          <h4>Danh sách liên hệ ({{ contacts.length }})</h4>
+          <div id="supplier-detail-contacts-table" style="height: 40vh;"></div>
+        </div>
+      </nz-tab>
+
+    </nz-tabset>
+  </nz-spin>
+
+  <div class="supplier-detail-footer">
+    <button 
+      nz-button 
+      nzType="primary" 
+      (click)="onSaveSupplier()"
+      [nzLoading]="isSaving"
+    >
+      {{ isEditMode ? 'Cập nhật' : 'Lưu' }}
+    </button>
+    <button 
+      nz-button 
+      nzType="default" 
+      (click)="onCancel()"
+    >
+      Hủy
+    </button>
+  </div>
+</div>

@@ -55,6 +55,8 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
+import { NzCollapseModule } from 'ng-zorro-antd/collapse';
+import { NzFormModule } from 'ng-zorro-antd/form';
 
 import { PlanWeekService } from '../../plan-week/plan-week-services/plan-week.service';
 
@@ -86,6 +88,8 @@ import { PlanWeekService } from '../../plan-week/plan-week-services/plan-week.se
     NzCheckboxModule,
     CommonModule,
     NzTreeSelectModule,
+    NzCollapseModule,
+    NzFormModule,
   ],
   templateUrl: './plan-week-detail.component.html',
   styleUrl: './plan-week-detail.component.css',
@@ -94,10 +98,10 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
   @Input() UserID!: number;
   @Input() isEditMode!: boolean;
 
-  @ViewChild('tb_MainTable', { static: false })
-  tb_MainTableElement!: ElementRef;
+  // @ViewChild('tb_MainTable', { static: false })
+  // tb_MainTableElement!: ElementRef;
 
-  private tb_MainTable!: Tabulator;
+  // private tb_MainTable!: Tabulator;
 
   filters: any = {
     startDate: new Date(),
@@ -135,11 +139,11 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.initMainTable();
+    // this.initMainTable(); // Đã comment vì không dùng Tabulator nữa
   }
 
   closeModal() {
-    this.activeModal.close();
+    this.activeModal.close({ success: false, reloadData: false });
   }
 
   increaseWeek(): void {
@@ -180,7 +184,7 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
         if (response.status === 1) {
           this.filterUserData = response.data;
 
-          if (this.isEditMode === true) {
+
             this.filters.userId = this.UserID;
             let user = this.filterUserData.find((x) => x.UserID == this.UserID);
             console.log('User:', user);
@@ -189,13 +193,7 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
               this.filters.endDate,
               this.filters.userId
             );
-          } else {
-            this.loadMainData(
-              this.filters.startDate,
-              this.filters.endDate,
-              this.filters.userId
-            );
-          }
+
         } else {
           this.notification.error('Lỗi', response.message);
         }
@@ -211,10 +209,10 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
       next: (response) => {
         if (response.status === 1) {
           this.mainData = response.data.data1;
-          if (this.tb_MainTable) {
-            this.tb_MainTable.setColumns([]);
-            this.tb_MainTable.setData(this.mainData);
-          }
+          // if (this.tb_MainTable) {
+          //   this.tb_MainTable.setColumns([]);
+          //   this.tb_MainTable.setData(this.mainData);
+          // }
         } else {
           this.notification.error('Lỗi', response.message);
         }
@@ -226,13 +224,22 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
   }
 
   saveAndClose() {
-    const DATA = this.tb_MainTable
-      .getData()
+    // const DATA = this.tb_MainTable
+    //   .getData()
+    //   .filter((row: any) => row?._dirty === true)
+    //   .map((row: any) => ({
+    //     ...row,
+    //     UserID: row?.UserID || this.filters.userId || this.UserID || 0,
+    //   }));
+
+    // Lấy data từ mainData thay vì từ Tabulator
+    const DATA = this.mainData
       .filter((row: any) => row?._dirty === true)
       .map((row: any) => ({
         ...row,
         UserID: row?.UserID || this.filters.userId || this.UserID || 0,
       }));
+      
     if (DATA.length === 0) {
       this.notification.info('Thông báo', 'Không có thay đổi để lưu');
       this.activeModal.close({ success: false, reloadData: false });
@@ -259,94 +266,122 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
     });
   }
 
-  initMainTable(): void {
-    this.tb_MainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
-      layout: 'fitColumns',
-      height: '75vh',
-      selectableRows: 1,
-      pagination: true,
-      paginationSize: 50,
-      movableColumns: true,
-      resizableRows: true,
-      reactiveData: true,
-      autoColumns: true,
-      columnDefaults: {
-        headerWordWrap: true,
-        headerVertical: false,
-        headerHozAlign: 'center',
-        minWidth: 60,
-        resizable: true,
-      },
-      autoColumnsDefinitions: (definitions: any[] = []) => {
-        const cols = definitions.map((def: any) => {
-          if (def.field === 'ID') {
-            return { ...def, visible: false };
-          }
-          if (def.field === 'UserID') {
-            return { ...def, visible: false };
-          }
-          if (def.field === 'DatePlan') {
-            return {
-              ...def,
-              title: 'Ngày',
-              formatter: (cell: any) => {
-                const value = cell.getValue();
-                if (!value) return '';
-                const date = new Date(value);
-                const dd = String(date.getDate()).padStart(2, '0');
-                const mm = String(date.getMonth() + 1).padStart(2, '0');
-                const yyyy = date.getFullYear();
-                return `${dd}/${mm}/${yyyy}`;
-              },
-              width: 100,
-            };
-          }
-          if (def.field === 'ContentPlan') {
-            return { ...def, title: 'Nội dung', editor: 'input' };
-          }
-          if (def.field === 'Result') {
-            return { ...def, title: 'Kết quả mong đợi', editor: 'input' };
-          }
-          return def;
-        });
+  // Comment lại initMainTable vì không dùng Tabulator nữa
+  // initMainTable(): void {
+  //   this.tb_MainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
+  //     layout: 'fitColumns',
+  //     height: '75vh',
+  //     selectableRows: 1,
+  //     movableColumns: true,
+  //     resizableRows: true,
+  //     reactiveData: true,
+  //     autoColumns: true,
+  //     columnDefaults: {
+  //       headerWordWrap: true,
+  //       headerVertical: false,
+  //       headerHozAlign: 'center',
+  //       minWidth: 60,
+  //       resizable: true,
+  //     },
+  //     autoColumnsDefinitions: (definitions: any[] = []) => {
+  //       const cols = definitions.map((def: any) => {
+  //         if (def.field === 'ID') {
+  //           return { ...def, visible: false };
+  //         }
+  //         if (def.field === 'UserID') {
+  //           return { ...def, visible: false };
+  //         }
+  //         if (def.field === 'DatePlan') {
+  //           return {
+  //             ...def,
+  //             title: 'Ngày',
+  //             formatter: (cell: any) => {
+  //               const value = cell.getValue();
+  //               if (!value) return '';
+  //               const date = new Date(value);
+  //               const dd = String(date.getDate()).padStart(2, '0');
+  //               const mm = String(date.getMonth() + 1).padStart(2, '0');
+  //               const yyyy = date.getFullYear();
+  //               return `${dd}/${mm}/${yyyy}`;
+  //             },
+  //             width: '10%',
+  //           };
+  //         }
+  //         if (def.field === 'ContentPlan') {
+  //           return { ...def, title: 'Nội dung', editor: 'textarea', width: '30%' };
+  //         }
+  //         if (def.field === 'Result') {
+  //           return { ...def, title: 'Kết quả mong đợi', editor: 'textarea', width: '30%' };
+  //         }
+  //         return def;
+  //       });
 
-        cols.unshift({
-          title: '',
-          field: 'actions',
-          hozAlign: 'center',
-          width: 50,
-          headerSort: false,
-          formatter: (_cell: any) => {
-            return `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`;
-          },
-          cellClick: (_e: any, cell: any) => {
-            this.modal.confirm({
-              nzTitle: 'Xác nhận xóa',
-              nzContent: 'Bạn có chắc chắn muốn xóa dòng này?',
-              nzOkText: 'Đồng ý',
-              nzCancelText: 'Hủy',
-              nzOnOk: () => {
-                const row = cell.getRow();
-                const data = row.getData();
-                data.IsDeleted = true;
-                data._dirty = true;
-                row.update({
-                  ContentPlan: '',
-                  Result: '',
-                });
-              },
-            });
-          },
-        });
+  //       cols.unshift({
+  //         title: '',
+  //         field: 'actions',
+  //         hozAlign: 'center',
+  //         width: 50,
+  //         headerSort: false,
+  //         formatter: (_cell: any) => {
+  //           return `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`;
+  //         },
+  //         cellClick: (_e: any, cell: any) => {
+  //           this.modal.confirm({
+  //             nzTitle: 'Xác nhận xóa',
+  //             nzContent: 'Bạn có chắc chắn muốn xóa dòng này?',
+  //             nzOkText: 'Đồng ý',
+  //             nzCancelText: 'Hủy',
+  //             nzOnOk: () => {
+  //               const row = cell.getRow();
+  //               const data = row.getData();
+  //               data.IsDeleted = true;
+  //               data._dirty = true;
+  //               row.update({
+  //                 ContentPlan: '',
+  //                 Result: '',
+  //               });
+  //             },
+  //           });
+  //         },
+  //       });
 
-        return cols;
+  //       return cols;
+  //     },
+  //   });
+  //   this.tb_MainTable.on('cellEdited', (cell: any) => {
+  //     const row = cell.getRow();
+  //     const data = row.getData();
+  //     data._dirty = true;
+  //     row.update(data);
+  //   });
+  // }
+
+  // Methods mới cho form dynamic
+  formatDate(date: any): string {
+    if (!date) return '';
+    const d = new Date(date);
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  }
+
+  onFieldChange(item: any): void {
+    item._dirty = true;
+  }
+
+  deleteItem(item: any): void {
+    this.modal.confirm({
+      nzTitle: 'Xác nhận xóa',
+      nzContent: 'Bạn có chắc chắn muốn xóa kế hoạch ngày ' + this.formatDate(item.DatePlan) + '?',
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        item.IsDeleted = true;
+        item._dirty = true;
+        item.ContentPlan = '';
+        item.Result = '';
       },
-    });
-    this.tb_MainTable.on('cellEdited', (cell: any) => {
-      const row = cell.getRow();
-      const data = row.getData();
-      data._dirty = true;
-      row.update(data);
     });
   }
 }

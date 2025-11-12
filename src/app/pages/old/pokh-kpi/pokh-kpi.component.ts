@@ -55,6 +55,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 
 import { PokhService } from '../pokh/pokh-service/pokh.service';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 
 @Component({
   selector: 'app-pokh-kpi',
@@ -83,6 +84,7 @@ import { PokhService } from '../pokh/pokh-service/pokh.service';
     NzSwitchModule,
     NzCheckboxModule,
     CommonModule,
+    HasPermissionDirective,
   ],
   templateUrl: './pokh-kpi.component.html',
   styleUrl: './pokh-kpi.component.css',
@@ -248,7 +250,26 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
     currentPageData.forEach((rowData) => {
       const row = columns.map((col) => {
         const field = col.getField();
+        const column = col.getDefinition();
         let value = rowData[field];
+        
+        // Format number for money columns
+        if (column.formatter === 'money' && value !== null && value !== undefined) {
+          // Convert to number if it's string
+          const numValue = typeof value === 'number' ? value : Number(value);
+          if (!isNaN(numValue)) {
+            value = numValue;
+          }
+        }
+        
+        // Format date columns - convert ISO string to Date object
+        if (field === 'ReceivedDatePO' && value) {
+          const date = new Date(value);
+          if (!isNaN(date.getTime())) {
+            value = date;
+          }
+        }
+        
         return value;
       });
       worksheet.addRow(row);
@@ -289,9 +310,30 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
     totalLabelCell.value = 'Tổng cộng';
     totalLabelCell.font = { bold: true };
 
-    // Auto-fit columns
-    worksheet.columns.forEach((column: any) => {
+    // Auto-fit columns and set format for money and date columns
+    worksheet.columns.forEach((column: any, index: number) => {
       column.width = 15;
+      
+      // Get column definition from Tabulator
+      const colDef = columns[index]?.getDefinition();
+      
+      // Apply number format to money columns
+      if (colDef?.formatter === 'money') {
+        worksheet.getColumn(index + 1).eachCell((cell, rowNumber) => {
+          if (rowNumber > 1 && typeof cell.value === 'number') {
+            cell.numFmt = '#,##0'; // Format with thousand separator
+          }
+        });
+      }
+      
+      // Apply date format to date columns
+      if (colDef?.field === 'ReceivedDatePO') {
+        worksheet.getColumn(index + 1).eachCell((cell, rowNumber) => {
+          if (rowNumber > 1 && cell.value instanceof Date) {
+            cell.numFmt = 'dd/mm/yyyy'; // Format as dd/MM/yyyy
+          }
+        });
+      }
     });
 
     // Generate Excel file
@@ -311,7 +353,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
   drawPOKHTable(): void {
     this.tb_POKH = new Tabulator(`#tb_POKH`, {
       layout: 'fitDataFill',
-      height: '91vh',
+      height: '89vh',
       selectableRows: true,
       pagination: true,
       paginationMode: 'remote',
@@ -392,7 +434,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
           </div>`;
           },
         },
-        { title: 'Số POKH', field: 'ID', sorter: 'number', width: 100 },
+        { title: 'Số POKH', field: 'ID', sorter: 'number', width: 100, visible: false },
         { title: 'Mã PO', field: 'POCode', sorter: 'string', width: 150 },
         {
           title: 'Khách hàng',
@@ -412,6 +454,11 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
           field: 'ReceivedDatePO',
           sorter: 'date',
           width: 150,
+          formatter: (cell) => {
+            const value = cell.getValue();
+            // Nếu có giá trị thì chuyển đổi ISO sang dạng dd/MM/yyyy
+            return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
+          },
         },
         {
           title: 'Loại tiền',
@@ -513,7 +560,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
       layout: 'fitDataFill',
       pagination: true,
       paginationSize: 50,
-      height: '88.5vh',
+      height: '85vh',
       movableColumns: true,
       resizableRows: true,
       columns: [
@@ -527,8 +574,23 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
         {
           title: 'Thành tiền trước VAT',
           field: 'IntoMoney',
-          sorter: 'string',
+          sorter: 'number',
           width: '25%',
+          formatter: 'money',
+          formatterParams: {
+            precision: 0,
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+          },
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
+          bottomCalcFormatterParams: {
+            precision: 0,
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+          },
         },
         {
           title: 'Người nhận hàng',

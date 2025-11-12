@@ -62,10 +62,10 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
     NzModalModule,
     CommonModule,
   ],
-  templateUrl: './price-history-partlist.component.html',
-  styleUrl: './price-history-partlist.component.css'
+  templateUrl: './leader-project.component.html',
+  styleUrl: './leader-project.component.css'
 })
-export class PriceHistoryPartlistComponent implements OnInit, AfterViewInit{
+export class LeaderProjectComponent implements OnInit, AfterViewInit{
 //#region Khai báo biến 
   constructor(
     private injector: EnvironmentInjector,
@@ -77,9 +77,9 @@ export class PriceHistoryPartlistComponent implements OnInit, AfterViewInit{
     private router: Router
   ) { }
 
-  @ViewChild('tb_priceHistory', { static: false })
-  tb_priceHistoryContainer!: ElementRef;
-  tb_priceHistory: any;
+  @ViewChild('tb_leaderProject', { static: false })
+  tb_leaderProjectContainer!: ElementRef;
+  tb_leaderProject: any;
 
   isLoadTable: any = false;
   sizeSearch: string = '0';
@@ -102,10 +102,10 @@ export class PriceHistoryPartlistComponent implements OnInit, AfterViewInit{
     this.getSupplierSales();
   }
   ngAfterViewInit(): void {
-    this.drawTbPriceHistory(
-      this.tb_priceHistoryContainer.nativeElement
+    this.drawTbLeaderProject(
+      this.tb_leaderProjectContainer.nativeElement
     );
-    this.getPriceHistoryPartlist();
+      this.getLeaderProject();
   }
   //#endregion
 
@@ -121,25 +121,25 @@ export class PriceHistoryPartlistComponent implements OnInit, AfterViewInit{
     this.keyword = '';
   }
 
-  async getPriceHistoryPartlist() {
-    this.isLoadTable = true;
-    let data = {
-      projectId: this.projectId ? this.projectId : 0,
-      supplierSaleId: this.supplierId ? this.supplierId : 0,
-      employeeRequestId: this.employeeRequestId ? this.employeeRequestId : 0,
-      keyword: this.keyword ? this.keyword : '',
-    };
+  async getLeaderProject() {
+    // this.isLoadTable = true;
+    // let data = {
+    //   projectId: this.projectId ? this.projectId : 0,
+    //   supplierSaleId: this.supplierId ? this.supplierId : 0,
+    //   employeeRequestId: this.employeeRequestId ? this.employeeRequestId : 0,
+    //   keyword: this.keyword ? this.keyword : '',
+    // };
 
-    this.projectService.getPriceHistoryPartlist(data).subscribe({
-      next: (response: any) => {
-        this.tb_priceHistory.setData(response.data);
-        this.isLoadTable = false;
-      },
-      error: (error) => {
-        console.error('Lỗi:', error);
-        this.isLoadTable = false;
-      },
-    });
+    // this.projectService.getLeaderProject(data).subscribe({
+    //   next: (response: any) => {
+    //     this.tb_leaderProject.setData(response.data);
+    //     this.isLoadTable = false;
+    //   },
+    //   error: (error) => {
+    //     console.error('Lỗi:', error);
+    //     this.isLoadTable = false;
+    //   },
+    // });
   }
 
   getProject() {
@@ -179,10 +179,10 @@ export class PriceHistoryPartlistComponent implements OnInit, AfterViewInit{
   }
 
   exportExcel() {
-    let table = this.tb_priceHistory;
+    let table = this.tb_leaderProject;
     if (!table) return;
 
-    let datatable = this.tb_priceHistory.getData();
+    let datatable = this.tb_leaderProject.getData();
     if (!datatable || datatable.length === 0) {
       this.notification.error('Thông báo', 'Không có dữ liệu để xuất excel!');
       return;
@@ -197,8 +197,8 @@ export class PriceHistoryPartlistComponent implements OnInit, AfterViewInit{
     );
   }
 
-  drawTbPriceHistory(container: HTMLElement) {
-    this.tb_priceHistory = new Tabulator(container, {
+  drawTbLeaderProject(container: HTMLElement) {
+    this.tb_leaderProject = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
       pagination: true,
       paginationMode:'local',
@@ -318,8 +318,8 @@ export class PriceHistoryPartlistComponent implements OnInit, AfterViewInit{
         },
       ],
     });
-    this.tb_priceHistory.on("pageLoaded", () => {
-      this.tb_priceHistory.redraw();
+    this.tb_leaderProject.on("pageLoaded", () => {
+      this.tb_leaderProject.redraw();
     });
     
   }

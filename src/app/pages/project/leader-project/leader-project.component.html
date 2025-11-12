@@ -17,61 +17,12 @@
             </button>
           </div>
         </div>
-        <div class="card-body">
-          <form nz-form nzLayout="vertical">
-            <nz-form-item>
-              <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
-              <nz-form-control [nzSpan]="24"
-                ><nz-date-picker
-                  name="dateStart"
-                  class="w-100"
-                  nzFormat="dd/MM/yyyy"
-                  [(ngModel)]="dateStart"
-                  nzAllowClear="false"
-                ></nz-date-picker>
-              </nz-form-control>
-            </nz-form-item>
-            <nz-form-item class="mt-2">
-              <nz-form-label class="fs-12" [nzSpan]="24"
-                >Đến ngày</nz-form-label
-              >
-              <nz-form-control [nzSpan]="24">
-                <nz-date-picker
-                  name="dateEnd"
-                  class="w-100"
-                  nzFormat="dd/MM/yyyy"
-                  [(ngModel)]="dateEnd"
-                  nzAllowClear="false"
-                ></nz-date-picker>
-              </nz-form-control>
-            </nz-form-item>
-            <nz-form-item>
-              <nz-form-label class="fs-12 d-flex align-items-center">
-                Dự án
-              </nz-form-label>
-              <nz-form-control [nzSpan]="24">
-                <nz-select
-                  name="projectId"
-                  class="w-100"
-                  nzShowSearch
-                  nzAllowClear
-                  nzPlaceHolder="Chọn dự án"
-                  [(ngModel)]="projectId"
-                >
-                  <!-- Nội dung option của bạn ở đây -->
-                  @for (item of projects; track $index) {
-                  <nz-option
-                    nzCustomContent="true"
-                    [nzLabel]="item.ProjectCode"
-                    [nzValue]="item.ID"
-                    >{{
-                      item.ProjectCode + " - " + item.ProjectName
-                    }}</nz-option
-                  >
-                  }
-                </nz-select>
-              </nz-form-control>
-            </nz-form-item>
+        <div class="card-body" (keydown.enter)="getLeaderProject()">
+          <form
+            nz-form
+            nzLayout="vertical"
+            (ngSubmit)="getLeaderProject()"
+          >
             <nz-form-item class="mt-2">
               <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
               <nz-form-control [nzSpan]="24">
@@ -94,7 +45,16 @@
           >
             Đặt lại
           </button>
-          <button nz-button nzType="primary" nzSize="small" (click)="getDataProjectSurvey()">Tìm kiếm</button>
+          <button
+            type="submit"
+            nz-button
+            nzType="primary"
+            nzSize="small"
+            (click)="getLeaderProject()"
+            (keyup.enter)="getLeaderProject()"
+          >
+            Tìm kiếm
+          </button>
         </div>
       </div>
     </nz-splitter-panel>
@@ -112,8 +72,22 @@
             >
               <nz-icon nzType="search" />
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
-              <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" class="me-1" />Xuất excel
+            <button
+              nz-button
+              nzSize="small"
+              class="fs-12 button button-succes btn-add"
+            >
+              <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " />
+              Thêm
+            </button>
+            <button
+              class="fs-12 btn-delete"
+              nz-button
+              nzType="default"
+              nzSize="small"
+              nzDanger
+            >
+              <img src="assets/icon/action_delete_item_16.png" alt="Xóa " /> Xóa
             </button>
           </div>
         </div>
@@ -139,7 +113,7 @@
               }"
             ></nz-spin>
           </div>
-          <div class="border" #tb_synthesisOfGeneratedMaterials></div>
+          <div class="border" #tb_leaderProject></div>
         </div>
       </div>
     </nz-splitter-panel>

@@ -53,6 +53,7 @@ import { ProjectListWorkReportComponent } from '../project-list-work-report/proj
 import { ProjectWorkTimelineComponent } from '../project-work-timeline/project-work-timeline.component';
 import { ProjectWorkPropressComponent } from '../project-work-propress/project-work-propress.component';
 import { WorkItemComponent } from '../work-item/work-item.component';
+import { ProjectWorkerComponent } from './project-department-summary-form/project-woker/project-worker.component';
 @Component({
   selector: 'app-project-new',
   standalone: true,
@@ -78,7 +79,8 @@ import { WorkItemComponent } from '../work-item/work-item.component';
     NzTreeSelectModule,
     NzModalModule,
     CommonModule,
-    NzFormModule
+    NzFormModule,
+    ProjectWorkerComponent
   ],
   templateUrl: './project-department-summary.component.html',
   styleUrl: './project-department-summary.component.css'
@@ -196,7 +198,6 @@ export class ProjectDepartmentSummaryComponent implements AfterViewInit {
   }
  
 getUserTeam() {
-  debugger
   this.teams = [];
   if (this.searchParams.departmentID > 0) {
     this.projectService.getUserTeam(this.searchParams.departmentID).subscribe({
@@ -1301,6 +1302,22 @@ getUserTeam() {
     const modalRef = this.modalService.open(WorkItemComponent, {
       centered: true,
       size: 'xl',
+    });
+    modalRef.componentInstance.projectId = this.projectId;
+    modalRef.result.then((result) => {
+      if (result == true) {
+        //this.searchProjects();
+      }
+    });
+  }
+  //#endregion
+  //#region Nhân công dự án
+  openProjectWorkerModal() {
+    const modalRef = this.modalService.open(ProjectWorkerComponent, {
+      centered: true,
+      backdrop: 'static',
+      keyboard: false,
+      windowClass: 'full-screen-modal',
     });
     modalRef.componentInstance.projectId = this.projectId;
     modalRef.result.then((result) => {

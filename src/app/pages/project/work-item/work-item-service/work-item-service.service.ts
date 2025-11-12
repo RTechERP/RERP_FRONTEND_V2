@@ -20,4 +20,16 @@ export class WorkItemServiceService {
   updateWorkItem(workItem: any): Observable<any> {
     return this.http.put<any>(this._url + 'WorkItem/update', workItem);
   }
+  // người giao việc 
+  cbbEmployeeRequest(): Observable<any> {
+    return this.http.get<any>(this._url + 'WorkItem/get-employee-request');
+  }
+  //loai du an
+  cbbTypeProject(): Observable<any> {
+    return this.http.get<any>(this._url + 'WorkItem/get-type-project-item');
+  }
+  //người phụ trách
+  cbbUser(): Observable<any> {
+    return this.http.get<any>(this._url + 'WorkItem/get-user');
+  }
 }

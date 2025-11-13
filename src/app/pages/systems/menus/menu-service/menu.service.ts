@@ -81,6 +81,7 @@ import { AppUserService } from '../../../../services/app-user.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { LeaderProjectComponent } from '../../../project/leader-project/leader-project.component';
+import { AgvProductComponent } from '../../../warehouse/agv/agv-product/agv-product.component';
 
 @Injectable({
   providedIn: 'root',
@@ -193,6 +194,26 @@ export class MenuService {
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission(''),
                 comp: BillExportComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+            ],
+          },
+
+          {
+            kind: 'group',
+            key: 'AGV',
+            title: 'AGV',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            icon: 'assets/icon/menu_sale_24.png',
+            children: [
+              {
+                kind: 'leaf',
+                key: 'AgvProductComponent',
+                title: 'Sản phẩm',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: AgvProductComponent,
                 //   icon: 'assets/icon/layers.png',
               },
             ],

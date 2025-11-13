@@ -33,18 +33,28 @@ import { TsAssetChooseAssetsComponent } from '../../ts-asset-allocation/ts-asset
 import { right } from '@popperjs/core';
 import { AssetsRecoveryService } from '../../ts-asset-recovery/ts-asset-recovery-service/ts-asset-recovery.service';
 import { ro_RO } from 'ng-zorro-antd/i18n';
+
 import { TsAssetTransferService } from '../ts-asset-transfer-service/ts-asset-transfer.service';
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
 }
 @Component({
+   imports:[
+   NzModalModule,
+    NzButtonModule,
+    FormsModule,
+    NzInputModule,
+    NzIconModule
+  ],
   selector: 'app-ts-asset-tranfer-chose-asset',
   templateUrl: './ts-asset-tranfer-chose-asset.component.html',
   styleUrls: ['./ts-asset-tranfer-chose-asset.component.css']
 })
 export class TsAssetTranferChoseAssetComponent implements OnInit {
+    searchText = '';
   @Input() dataInput1: any;
+  @Input() existingIds: number[] = [];
   @Output() closeModal = new EventEmitter<void>();
   @Output() formSubmitted = new EventEmitter<any[]>();
    public activeModal = inject(NgbActiveModal);
@@ -74,14 +84,28 @@ this.drawTBAsset();
     this.closeModal.emit();
     this.activeModal.dismiss('cancel');
   }
-  drawTBAsset() {
-    if (!this.assetByEmployeeTb) {
-      this.assetByEmployeeTb = new Tabulator('#dataTbRecoveryByEmployee1', {
-        data: this.assetByEmployeeData,
-        layout: "fitDataStretch",
-        reactiveData: true,
-        selectableRows: 5,
-        height: '50vh',
+
+ 
+drawTBAsset() {
+  if (this.assetByEmployeeTb) { this.assetByEmployeeTb.setData(this.assetByEmployeeData);   this.applyFilter(); return; }
+
+  const block = new Set((this.existingIds || []).map(Number));
+
+  this.assetByEmployeeTb = new Tabulator('#dataTbRecoveryByEmployee1', {
+    data: this.assetByEmployeeData,
+    layout: "fitDataStretch",
+    reactiveData: true,
+    selectableRows: true,
+    height: '50vh',
+    selectableRowsCheck: (row) => !block.has(Number(row.getData()['ID'])),
+    rowFormatter: (row) => {
+      if (block.has(Number(row.getData()['ID']))) {
+        const el = row.getElement();
+        el.style.opacity = '0.5';
+        el.style.pointerEvents = 'none';
+        el.title = 'Đã chọn trước đó';
+      }
+    },
         columns: [{
           title: '',
           field: '',
@@ -95,60 +119,89 @@ this.drawTBAsset();
         { title: 'STT', field: 'STT', hozAlign: 'center', width: 70},
         { title: 'ID', field: 'ID', hozAlign: 'center', width: 70 , visible:false},
         { title: 'Mã NCC', field: 'TSCodeNCC'},
-        { title: 'Tên tài sản', field: 'TSAssetName'},
+        { title: 'Tên tài sản', field: 'TSAssetName',formatter:'textarea'},
  
         {
-          title: 'Trạng thái', field: 'Status',
+          title: 'Trạng thái',
+          field: 'Status',
           formatter: (cell: CellComponent) => {
             const val = cell.getValue() as string;
             const el = cell.getElement();
             el.style.backgroundColor = '';
             el.style.color = '';
-            switch (val) {
-              case 'Chưa sử dụng':
-                el.style.backgroundColor = '#00CC00';
-                el.style.color = '#fff';
-                break;
-              case 'Đang sử dụng':
-                el.style.backgroundColor = '#FFCC00';
-                el.style.color = '#000';
-                break;
-              case 'Đã thu hồi':
-                el.style.backgroundColor = '#FFCCCC';
-                el.style.color = '#000';
-                break;
-              case 'Mất':
-                el.style.backgroundColor = '#BB0000';
-                el.style.color = '#000';
-                break;
-              case 'Hỏng':
-                el.style.backgroundColor = '#FFCCCC';
-                el.style.color = '#000';
-                break;
-              default:
-                el.style.backgroundColor = '#e0e0e0';
+            if (val === 'Chưa sử dụng') {
+              el.style.backgroundColor = '#AAAAAA';
+              el.style.outline = '1px solid #EEEE';
+              el.style.color = '#fff';
+              el.style.borderRadius = '5px';
+
+            } else if (val === 'Đang sử dụng') {
+              el.style.backgroundColor = '#b4ecb4ff';
+              el.style.color = '#2cb55aff';
+              el.style.outline = '1px solid #e0e0e0';
+              el.style.borderRadius = '5px';
+            } else if (val === 'Đã thu hồi') {
+              el.style.backgroundColor = '#FFCCCC';
+              el.style.color = '#000000';
+              el.style.borderRadius = '5px';
+              el.style.outline = '1px solid #e0e0e0';
+            } else if (val === 'Mất') {
+              el.style.backgroundColor = '#fbc4c4ff';
+              el.style.color = '#d40000ff';
+              el.style.borderRadius = '5px';
+              el.style.outline = '1px solid #e0e0e0';
+            } else if (val === 'Hỏng') {
+              el.style.backgroundColor = '#cadfffff';
+              el.style.color = '#4147f2ff';
+              el.style.outline = '1px solid #e0e0e0';
+              el.style.borderRadius = '5px';
+            } else if (val === 'Thanh lý') {
+              el.style.backgroundColor = '#d4fbffff';
+              el.style.color = '#08aabfff';
+              el.style.borderRadius = '5px';
+              el.style.outline = '1px solidrgb(196, 35, 35)';
+            } else if (val === 'Đề nghị thanh lý') {
+              el.style.backgroundColor = '#fde3c1ff';
+              el.style.color = '#f79346ff';
+              el.style.borderRadius = '5px';
+              el.style.outline = '1px solidrgb(20, 177, 177)';
             }
-            return val;
+            else if (val === 'Sữa chữa, Bảo dưỡng') {
+              el.style.backgroundColor = '#bcaa93ff';
+              el.style.color = '#c37031ff';
+              el.style.borderRadius = '5px';
+              el.style.outline = '1px solidrgb(20, 177, 177)';
+            }
+            else {
+              el.style.backgroundColor = '#e0e0e0';
+              el.style.borderRadius = '5px';
+            }
+            return val; // vẫn hiển thị chữ
           },
-       
+          headerHozAlign: 'center',
         },
+       //    { title: 'Đơn vị tính', field: 'UnitName'},
         { title: 'Số lượng', field: 'Quantity'},
         { title: 'Phòng ban', field: 'Name' },
         { title: 'Người quản lý', field: 'FullName'},
         { title: 'Ghi chú', field: 'Note' },]
       });
     }
-  }
+  
   selectAssets() {
-  const selectedRows = this.assetByEmployeeTb?.getSelectedData() || [];
-  if (selectedRows.length === 0) {
-    this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một tài sản.');
-    return;
-  }
-  const newRows = selectedRows.map(row => ({
+  const rows = this.assetByEmployeeTb?.getSelectedData() || [];
+  if (!rows.length) { this.notification.warning('Thông báo','Vui lòng chọn ít nhất một tài sản.'); return; }
+
+  const block = new Set((this.existingIds || []).map(Number));
+  const filtered = rows.filter(r => !block.has(Number(r.ID)));
+  const skipped = rows.length - filtered.length;
+  if (skipped>0) this.notification.warning('Thông báo', `Bỏ qua ${skipped} tài sản trùng.`);
+  if (!filtered.length) return;
+
+  const newRows = filtered.map(row => ({
     ID: 0,
-    AssetManagementID:row.ID,
-    TSTranferAssetID:this.dataInput1.ID,  
+    AssetManagementID: row.ID,
+    TSTranferAssetID: this.dataInput1.TranferID || 0,
     EmployeeID: row.EmployeeID,
     FullName: row.FullName,
     Name: row.Name,
@@ -157,10 +210,31 @@ this.drawTBAsset();
     STT: row.STT,
     Status: row.Status,
     TSAssetName: row.TSAssetName,
-    TSCodeNCC:row.TSCodeNCC,
+    TSCodeNCC: row.TSCodeNCC,
   }));
-  console.log("hàng đã chọn", newRows);
+
   this.formSubmitted.emit(newRows);
   this.activeModal.dismiss();
 }
+applyFilter() {
+  if (!this.assetByEmployeeTb) return;
+
+  const q = (this.searchText || '').trim().toLowerCase();
+  if (!q) {
+    this.assetByEmployeeTb.clearFilter(true);
+    return;
+  }
+
+  this.assetByEmployeeTb.setFilter((data: any) => {
+    return [
+      data.TSCodeNCC,
+      data.TSAssetName,
+      data.FullName,
+      data.Name
+    ]
+      .map(v => String(v ?? '').toLowerCase())
+      .some(v => v.includes(q));
+  });
+}
+
 }

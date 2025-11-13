@@ -10,7 +10,8 @@
       <div class="row g-3">
         <!-- Phần trái: Thông tin tài sản -->
         <div class="col-12 col-md-6">
-          <h6>Thông tin tài sản</h6>
+        <fieldset class="reset mt-2">
+            <legend class="reset fs-12 p-0">THÔNG TIN TÀI SẢN</legend>
 
           <div class="mb-3">
             <label class="form-label">Mã NCC</label>
@@ -98,11 +99,13 @@
               readonly
             />
           </div>
+          </fieldset>
         </div>
 
         <!-- Phần phải: Thông tin sửa chữa -->
         <div class="col-12 col-md-6">
-          <h6 class="mt-3 mt-md-0">Thông tin sửa chữa</h6>
+        <fieldset class="reset mt-2">
+            <legend class="reset fs-12 p-0">THÔNG TIN SỬA CHỮA</legend>
 
           <div class="mb-3">
             <label class="form-label">
@@ -156,6 +159,7 @@
               required
             ></textarea>
           </div>
+          </fieldset>
         </div>
       </div>
     </form>
@@ -163,6 +167,6 @@
 
   <div class="modal-footer">
     <button nz-button nzType="default" nzDanger (click)="close()">Đóng</button>
-    <button nz-button nzType="primary" (click)="saveRepairAsset()">Lưu dữ liệu</button>
+    <button nz-button nzType="primary" (click)="saveRepairAsset()">Lưu</button>
   </div>
 </div>

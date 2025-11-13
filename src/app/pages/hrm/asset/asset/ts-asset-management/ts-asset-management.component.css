@@ -30,3 +30,36 @@
 :host {
   font-size: 12px !important;
 }
+.navbar-toggler-icon {
+  border-radius: 0 !important;
+    width: 20px;
+  height: 20px;
+  background-size: 20px 20px;
+}
+.navbar-toggler {
+  border-radius: 0 !important;
+  padding: 3px 8px;
+}
+.navbar-toggler:focus,
+.navbar-toggler:active,
+.navbar-toggler:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1) !important; /* viền nhỏ nhẹ hơn */
+  border-color: transparent !important;
+}
+
+@media (max-width: 768px) {
+  .tabulator,
+  .tabulator-tableholder,
+  .tabulator-tableHolder {
+    overflow-x: auto !important;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+  }
+
+  /* Tránh bảng bị bóp hoặc tràn xấu */
+  .tabulator .tabulator-table {
+    min-width: 900px; /* đủ lớn để có thể kéo ngang */
+  }
+}

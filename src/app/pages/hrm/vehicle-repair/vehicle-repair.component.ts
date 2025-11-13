@@ -30,7 +30,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { VehicleManagementService } from '../vehicle-management/vehicle-management.service';
 import { filter, last } from 'rxjs';
 import { debounce } from 'rxjs';
-import { NzModalService } from 'ng-zorro-antd/modal';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { VehicleRepairComponentFormComponent } from './vehicle-repair-component-form/vehicle-repair-component-form.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 @Component({
@@ -56,7 +56,8 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
     NzTableModule,
     NzTabsModule,
     NgbModalModule,
-    HasPermissionDirective
+    HasPermissionDirective,
+    NzModalModule
 ],
   selector: 'app-vehicle-repair',
   templateUrl: './vehicle-repair.component.html',

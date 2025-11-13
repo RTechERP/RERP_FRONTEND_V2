@@ -86,7 +86,7 @@ export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
     if (this.table) {
       this.table.replaceData(this.dataTable);
     } else {
-      this.table = new Tabulator('#datatable', {
+      this.table = new Tabulator('#datatableunit', {
         layout: 'fitDataFill',
         height: '89vh',
         pagination: true,

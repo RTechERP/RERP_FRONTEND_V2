@@ -31,7 +31,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { VehicleManagementService } from '../../vehicle-management/vehicle-management.service';
 import { filter, last } from 'rxjs';
 import { debounce } from 'rxjs';
-import { NzModalService } from 'ng-zorro-antd/modal';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import {
   TabulatorFull as CellComponent,
   ColumnDefinition,
@@ -62,7 +62,8 @@ import { HasPermissionDirective } from '../../../../directives/has-permission.di
     NzSelectModule,
     NzTableModule,
     NzTabsModule,
-    NgbModalModule,HasPermissionDirective
+    NgbModalModule,HasPermissionDirective,
+    NzModalModule
   ],
   selector: 'app-vehicle-repair-type',
   templateUrl: './vehicle-repair-type.component.html',
@@ -118,6 +119,7 @@ export class VehicleRepairTypeComponent implements OnInit, AfterViewInit {
         data: this.repairTypes,
         ...DEFAULT_TABLE_CONFIG,
         paginationMode: 'local',
+        layout: 'fitDataStretch',
         columns: [
           {
             title: 'STT',

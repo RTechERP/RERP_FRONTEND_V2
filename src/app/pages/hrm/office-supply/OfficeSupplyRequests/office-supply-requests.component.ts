@@ -235,8 +235,7 @@ private officeSupplyRequestTable!: Tabulator;
       .getOfficeSupplyRequests(
         this.searchParams.keyword,
         this.searchParams.month,
-        0,
-        deptId
+        0
       )
       .subscribe({
         next: (res) => {

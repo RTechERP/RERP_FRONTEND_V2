@@ -1,0 +1,167 @@
+<div class="modal-dialog-scrollable">
+  <div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">Chi tiết giải pháp</h6>
+    <button
+      type="button"
+      class="btn-close"
+      (click)="closeModal()"
+      aria-label="Close"
+    ></button>
+  </div>
+
+  <div class="modal-body" style="max-height: 80vh !important; overflow-y: auto;">
+    <form nz-form [formGroup]="form" class="g-3 needs-validation was-validated">
+      <!-- Hàng 1: Giải pháp + Danh mục -->
+      <div class="row">
+        <div class="col-md-6 pb-3">
+          <nz-form-label class="fs-12">
+            Giải pháp
+            <span class="text-danger ps-1 me-1">*</span>
+          </nz-form-label>
+          <nz-form-control
+            [nzErrorTip]="
+              form.get('SolutionName')?.invalid &&
+              (form.get('SolutionName')?.dirty || form.get('SolutionName')?.touched)
+                ? 'Vui lòng nhập giải pháp!'
+                : undefined
+            "
+          >
+            <input
+              nz-input
+              formControlName="SolutionName"
+              placeholder="Nhập giải pháp"
+              class="fs-12"
+            />
+          </nz-form-control>
+        </div>
+
+        <div class="col-md-6 pb-3">
+          <nz-form-label class="fs-12">
+            Danh mục
+            <span class="text-danger ps-1 me-1">*</span>
+          </nz-form-label>
+          <nz-form-control
+            [nzErrorTip]="
+              form.get('CategoryID')?.invalid &&
+              (form.get('CategoryID')?.dirty || form.get('CategoryID')?.touched)
+                ? 'Vui lòng chọn danh mục!'
+                : undefined
+            "
+          >
+            <nz-input-group required nzSearch nzSize="default" class="w-100">
+              <nz-select
+                formControlName="CategoryID"
+                nzPlaceHolder="Chọn danh mục"
+                class="fs-12 w-100"
+                required
+                nzShowSearch
+                nzAllowClear
+              >
+                <nz-option [nzValue]="1" nzLabel="Danh mục 1"></nz-option>
+                <nz-option [nzValue]="2" nzLabel="Danh mục 2"></nz-option>
+              </nz-select>
+            </nz-input-group>
+          </nz-form-control>
+        </div>
+      </div>
+
+      <!-- Hàng 2: Mã phiên bản + STT + Sử dụng -->
+      <div class="row">
+        <div class="col-md-4 col-sm-12 pb-3">
+          <nz-form-label class="fs-12">
+            Mã phiên bản
+            <span class="text-danger ps-1 me-1">*</span>
+          </nz-form-label>
+          <nz-form-control
+            [nzErrorTip]="
+              form.get('VersionCode')?.invalid &&
+              (form.get('VersionCode')?.dirty || form.get('VersionCode')?.touched)
+                ? 'Vui lòng nhập mã phiên bản!'
+                : undefined
+            "
+          >
+            <input
+              nz-input
+              formControlName="VersionCode"
+              placeholder="Nhập mã phiên bản"
+              class="fs-12"
+            />
+          </nz-form-control>
+        </div>
+
+        <div class="col-md-4 col-sm-12 pb-3">
+          <nz-form-label class="fs-12">STT</nz-form-label>
+          <nz-form-control>
+            <input
+              nz-input
+              type="number"
+              formControlName="STT"
+              placeholder="Nhập STT"
+              class="fs-12"
+            />
+          </nz-form-control>
+        </div>
+
+        <div class="col-md-4 col-sm-12 pb-3">
+          <nz-form-label class="fs-12">Sử dụng</nz-form-label>
+          <nz-form-control>
+            <label nz-checkbox formControlName="IsUsed" class="fs-12">
+              Sử dụng
+            </label>
+          </nz-form-control>
+        </div>
+      </div>
+
+      <!-- Hàng 3: Trạng thái -->
+      <div class="row">
+        <div class="col-md-12 pb-3">
+          <nz-form-label class="fs-12">
+            Trạng thái
+            <span class="text-danger ps-1 me-1">*</span>
+          </nz-form-label>
+          <nz-form-control
+            [nzErrorTip]="
+              form.get('Status')?.invalid &&
+              (form.get('Status')?.dirty || form.get('Status')?.touched)
+                ? 'Vui lòng nhập trạng thái!'
+                : undefined
+            "
+          >
+            <input
+              nz-input
+              formControlName="Status"
+              placeholder="Nhập trạng thái"
+              class="fs-12"
+            />
+          </nz-form-control>
+        </div>
+      </div>
+
+      <!-- Hàng 4: Mô tả -->
+      <div class="row">
+        <div class="col-md-12 pb-3">
+          <nz-form-label class="fs-12">Mô tả</nz-form-label>
+          <nz-form-control>
+            <textarea
+              nz-input
+              placeholder="Nhập mô tả"
+              formControlName="Description"
+              class="fs-12"
+              rows="3"
+            ></textarea>
+          </nz-form-control>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal-footer">
+    <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">
+      Đóng
+    </button>
+    <button class="fs-12 btn" nz-button nzType="primary" (click)="saveData()">
+      Lưu
+    </button>
+  </div>
+</div>
+

@@ -59,7 +59,8 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { PlanWeekService } from './plan-week-services/plan-week.service';
 import { Title } from '@angular/platform-browser';
 import { PlanWeekDetailComponent } from '../plan-week-detail/plan-week-detail/plan-week-detail.component';
-import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive'; 
+import { AppUserService } from '../../../../services/app-user.service';
 
 @Component({
   selector: 'app-plan-week',
@@ -131,7 +132,8 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private modalService: NgbModal,
     private modal: NzModalService,
-    private planWeekService: PlanWeekService
+    private planWeekService: PlanWeekService,
+    private appUserService: AppUserService
   ) { }
 
   ngOnInit(): void {
@@ -228,13 +230,20 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
   }
 
   openPlanWeekDetailModal() {
+    let userid = 0;
+    if(this.isEditMode === true) {
+      userid = this.selectedId;
+    }
+    else{
+      userid = this.appUserService.id || 0;
+    }
     const modalRef = this.modalService.open(PlanWeekDetailComponent, {
       centered: true,
       backdrop: 'static',
       size: 'xl',
     });
     modalRef.componentInstance.isEditMode = this.isEditMode;
-    modalRef.componentInstance.UserID = this.selectedId;
+    modalRef.componentInstance.UserID = userid;
     modalRef.result.then(
       (result) => {
         if (result.success && result.reloadData) {
@@ -248,11 +257,24 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
             this.filters.teamId
           );
         }
+        else{
+          this.isEditMode = false;
+        }
       },
       (reason) => {
+        this.isEditMode = false;
         console.log('Modal closed');
       }
     );
+  }
+
+  onEdit(): void {
+    if (this.selectedId > 0) {
+      this.isEditMode = true;
+      this.openPlanWeekDetailModal();
+    } else {
+      this.notification.info('Thông báo', 'Không có dữ liệu bản ghi cần sửa!');
+    }
   }
 
   onDepartmentChange(value: any): void {
@@ -273,14 +295,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
     }
   }
 
-  onEdit(): void {
-    if (this.selectedId > 0) {
-      this.isEditMode = true;
-      this.openPlanWeekDetailModal();
-    } else {
-      this.notification.info('Thông báo', 'Vui lòng chọn 1 bản ghi cần sửa!');
-    }
-  }
+
 
   loadDepartment() {
     this.planWeekService.getDepartment().subscribe({

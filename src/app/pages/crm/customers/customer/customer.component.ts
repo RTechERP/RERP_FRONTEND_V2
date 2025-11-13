@@ -63,6 +63,7 @@ import { CustomerMajorComponent } from '../customer-specialization/customer-majo
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 // import { CustomerComponent } from '../../customer/customer.component';
+import { AppUserService } from '../../../../services/app-user.service';
 @Component({
   selector: 'app-customer',
   imports: [
@@ -297,97 +298,28 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   }
 
   async exportExcel() {
-    const table = this.tb_MainTable;
-    if (!table) return;
-
-    const data = table.getData();
-    if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
-      return;
-    }
-
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Danh sách dự án');
-
-    const columns = table.getColumns();
-    // Bỏ qua cột đầu tiên
-    const filteredColumns = columns.slice(1);
-    const headers = filteredColumns.map(
-      (col: any) => col.getDefinition().title
-    );
-    worksheet.addRow(headers);
-
-    data.forEach((row: any) => {
-      const rowData = filteredColumns.map((col: any) => {
-        const field = col.getField();
-        let value = row[field];
-
-        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
-          value = new Date(value);
-        }
-
-        return value;
-      });
-
-      worksheet.addRow(rowData);
-    });
-
-    // Format cột có giá trị là Date
-    worksheet.eachRow((row, rowNumber) => {
-      if (rowNumber === 1) return; // bỏ qua tiêu đề
-      row.eachCell((cell, colNumber) => {
-        if (cell.value instanceof Date) {
-          cell.numFmt = 'dd/mm/yyyy'; // hoặc 'yyyy-mm-dd'
-        }
-      });
-    });
-
-    // Tự động căn chỉnh độ rộng cột
-    worksheet.columns.forEach((column: any) => {
-      let maxLength = 10;
-      column.eachCell({ includeEmpty: true }, (cell: any) => {
-        const cellValue = cell.value ? cell.value.toString() : '';
-        // Giới hạn độ dài tối đa của cell là 50 ký tự
-        maxLength = Math.min(Math.max(maxLength, cellValue.length + 2), 50);
-        cell.alignment = { wrapText: true, vertical: 'middle' };
-      });
-      // Giới hạn độ rộng cột tối đa là 30
-      column.width = Math.min(maxLength, 30);
-    });
-
-    // Thêm bộ lọc cho toàn bộ cột (từ A1 đến cột cuối cùng)
-    worksheet.autoFilter = {
-      from: {
-        row: 1,
-        column: 1,
+    this.customerService.exportExcel().subscribe({
+      next: (response: Blob) => {
+        const blob = new Blob([response], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+        const url = window.URL.createObjectURL(blob);
+  
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `DanhSachKhachHang_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+  
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
       },
-      to: {
-        row: 1,
-        column: filteredColumns.length,
+      error: (error) => {
+        this.notification.error('Thông báo', 'Lỗi khi tải dữ liệu: ' + error.message);
       },
-    };
-
-    // Xuất file
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
-
-    const formattedDate = new Date()
-      .toISOString()
-      .slice(2, 10)
-      .split('-')
-      .reverse()
-      .join('');
-
-    const link = document.createElement('a');
-    link.href = window.URL.createObjectURL(blob);
-    link.download = `DanhSachKhachHang.xlsx`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(link.href);
   }
+  
 
 
   onDelete() {
@@ -520,6 +452,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       ...DEFAULT_TABLE_CONFIG,
       selectableRows: true,
       paginationMode: 'remote',
+      height: '89vh',
       //   layout: 'fitDataFill',
       //   height: '90%',
       //   selectableRows: 1,
@@ -640,7 +573,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         this.openModal();
       });
     this.tb_MainTable.on('rowClick', (e: any, row: RowComponent) => {
-      this.sizeTbDetail = '';
+      this.sizeTbDetail = '30%';
 
       const rowData = row.getData();
       this.selectedRow = rowData;
@@ -655,22 +588,8 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       this.tb_ContactTableElement.nativeElement,
       {
         data: this.customerContactData,
-        ...DEFAULT_TABLE_CONFIG,
         layout:"fitColumns",
-        rowHeader: false,
-        // selectableRows: 1,
-        pagination: false,
-        // paginationSize: 100,
-        // movableColumns: true,
-        // resizableRows: true,
-        // reactiveData: true,
-        // columnDefaults: {
-        //   headerWordWrap: true,
-        //   headerVertical: false,
-        //   headerHozAlign: 'center',
-        //   minWidth: 60,
-        //   resizable: true,
-        // },
+        height: '80vh',
         columns: [
           { title: 'ID', field: 'ID', visible: false },
           { title: 'Tên liên hệ', field: 'ContactName' },
@@ -689,22 +608,8 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       this.tb_AddressTableElement.nativeElement,
       {
         data: this.addressStockData,
-        ...DEFAULT_TABLE_CONFIG,
         layout:"fitColumns",
-        rowHeader: false,
-        // selectableRows: 1,
-        pagination: true,
-        // paginationSize: 100,
-        // movableColumns: true,
-        // resizableRows: true,
-        // reactiveData: true,
-        // columnDefaults: {
-        //   headerWordWrap: true,
-        //   headerVertical: false,
-        //   headerHozAlign: 'center',
-        //   minWidth: 60,
-        //   resizable: true,
-        // },
+        height: '80vh',
         columns: [
           { title: 'ID', field: 'ID', visible: false },
           { title: 'Địa chỉ giao hàng', field: 'Address' },
@@ -716,11 +621,8 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   initCustomerSaleTable(): void {
     this.tb_SaleTable = new Tabulator(this.tb_SaleTableElement.nativeElement, {
       data: this.employeeSaleData,
-      ...DEFAULT_TABLE_CONFIG,
       layout:"fitColumns",
-      //   selectableRows: 1,
-      pagination: false,
-      rowHeader: false,
+      height: '80vh',
       columns: [
         { title: 'ID', field: 'ID', visible: false },
         { title: 'Nhân viên Sale', field: 'FullName' },

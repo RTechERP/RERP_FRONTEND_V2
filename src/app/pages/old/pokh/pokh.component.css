@@ -51,3 +51,7 @@
   background: #ccc;
   border-radius: 2px;
 }
+
+.ant-splitter {
+  height: 92vh !important;
+}

@@ -17,7 +17,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { VehicleRepairService } from '../../vehicle-repair-service/vehicle-repair.service';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 @Component({
-  standalone:true,
+  standalone: true,
   selector: 'app-vehicle-repair-type-form',
   imports: [
     CommonModule,
@@ -37,85 +37,85 @@ import { HasPermissionDirective } from '../../../../../directives/has-permission
   templateUrl: './vehicle-repair-type-form.component.html',
   styleUrl: './vehicle-repair-type-form.component.css'
 })
-export class VehicleRepairTypeFormComponent implements OnInit,AfterViewInit {
-   constructor(
-      private fb: FormBuilder,
-      private notification: NzNotificationService,
-      private vehicleRepairService: VehicleRepairService
-    ) {
-      this.formGroup = this.fb.group({
-        RepairTypeName: [null, [Validators.required, Validators.maxLength(100)]],
-        RepairTypeCode: ['', [Validators.required, Validators.maxLength(100)]],
-        Note: ['', [Validators.required, Validators.maxLength(500)]]
-      });
-    }
-      public activeModal = inject(NgbActiveModal);
-
-    @Input() dataInput: any;
-  @Output() closeModal = new EventEmitter<void>();
-  @Output() formSubmitted = new EventEmitter<void>();
-    formGroup: FormGroup;
-ngOnInit(): void {
-  if (this.dataInput) {
-    this.formGroup.patchValue({
-      RepairTypeName: this.dataInput.RepairTypeName ?? '',
-      RepairTypeCode: this.dataInput.RepairTypeCode ?? '',
-      Note: this.dataInput.Note ?? ''
+export class VehicleRepairTypeFormComponent implements OnInit, AfterViewInit {
+  constructor(
+    private fb: FormBuilder,
+    private notification: NzNotificationService,
+    private vehicleRepairService: VehicleRepairService
+  ) {
+    this.formGroup = this.fb.group({
+      RepairTypeName: [null, [Validators.required, Validators.maxLength(100)]],
+      RepairTypeCode: ['', [Validators.required, Validators.maxLength(100)]],
+      Note: ['']
     });
   }
-}
-ngAfterViewInit(): void {
-  
-}
+  public activeModal = inject(NgbActiveModal);
+
+  @Input() dataInput: any;
+  @Output() closeModal = new EventEmitter<void>();
+  @Output() formSubmitted = new EventEmitter<void>();
+  formGroup: FormGroup;
+  ngOnInit(): void {
+    if (this.dataInput) {
+      this.formGroup.patchValue({
+        RepairTypeName: this.dataInput.RepairTypeName ?? '',
+        RepairTypeCode: this.dataInput.RepairTypeCode ?? '',
+        Note: this.dataInput.Note ?? ''
+      });
+    }
+  }
+  ngAfterViewInit(): void {
+
+  }
   close() {
     this.closeModal.emit();
     this.activeModal.dismiss('cancel');
   }
   private trimAllStringControls() {
-  Object.keys(this.formGroup.controls).forEach(k => {
-    const c = this.formGroup.get(k);
-    const v = c?.value;
-    if (typeof v === 'string') c!.setValue(v.trim(), { emitEvent: false });
-  });
-}
- save() {
-  this.trimAllStringControls();
-
-  if (this.formGroup.invalid) {
-    this.formGroup.markAllAsTouched();
-    return;
+    Object.keys(this.formGroup.controls).forEach(k => {
+      const c = this.formGroup.get(k);
+      const v = c?.value;
+      if (typeof v === 'string') c!.setValue(v.trim(), { emitEvent: false });
+    });
   }
+  save() {
+    this.trimAllStringControls();
 
-  const formValue = this.formGroup.value;
-
-  // Xác định đang sửa hay thêm mới
-  const isEdit = !!this.dataInput?.ID && this.dataInput.ID > 0;
-
-  const payload = {
-    vehicleRepairType: {
-      ID: this.dataInput?.ID || 0,
-      RepairTypeName: formValue.RepairTypeName,
-      RepairTypeCode: formValue.RepairTypeCode,
-      Note: formValue.Note
+    if (this.formGroup.invalid) {
+      this.formGroup.markAllAsTouched();
+      return;
     }
-  };
 
-  console.log('Payload', payload);
+    const formValue = this.formGroup.value;
 
-  this.vehicleRepairService.saveData(payload).subscribe({
-    next: () => {
-      if (isEdit) {
-        this.notification.success('Thành công', 'Sửa loại thành công');
-      } else {
-        this.notification.success('Thành công', 'Thêm loại thành công');
+    // Xác định đang sửa hay thêm mới
+    const isEdit = !!this.dataInput?.ID && this.dataInput.ID > 0;
+
+    const payload = {
+      vehicleRepairType: {
+        ID: this.dataInput?.ID || 0,
+        RepairTypeName: formValue.RepairTypeName,
+        RepairTypeCode: formValue.RepairTypeCode,
+        Note: formValue.Note
       }
-      this.formSubmitted.emit();
-      this.activeModal.close(true);
-    },
-    error: (res: any) => {
-      this.notification.error('Lỗi', res.error?.message || 'Có lỗi xảy ra');
-    }
-  });
-}
+    };
+
+    console.log('Payload', payload);
+
+    this.vehicleRepairService.saveData(payload).subscribe({
+      next: () => {
+        if (isEdit) {
+          this.notification.success('Thành công', 'Sửa loại thành công');
+        } else {
+          this.notification.success('Thành công', 'Thêm loại thành công');
+        }
+        this.formSubmitted.emit();
+        this.activeModal.close(true);
+      },
+      error: (res: any) => {
+        this.notification.error('Lỗi', res.error?.message || 'Có lỗi xảy ra');
+      }
+    });
+  }
 
 }

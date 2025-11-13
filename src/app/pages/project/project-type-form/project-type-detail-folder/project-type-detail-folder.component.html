@@ -1,0 +1,63 @@
+<div class="modal-dialog-scrollable">
+  <div class="modal-header bg-primary align-items-center ps-2">
+    <h6 class="modal-title text-white">
+     CHI TIẾT FOLDER
+    </h6>
+    <button
+    type="button"
+    class="btn-close"
+    (click)="closeModal()"
+    aria-label="Close"
+  ></button>
+  </div>
+
+  <div class="modal-body pt-0 pb-0 p-2 w-100">
+    <form nz-form [formGroup]="form" nzLayout="vertical">
+      <div nz-row [nzGutter]="12" class="pb-2">
+        <div nz-col [nzSpan]="24">
+          <!-- Parent folder -->
+          <nz-form-item class="pt-2">
+            <nz-form-label class="fs-12">
+              Folder cha <span class="text-danger ps-1">*</span>
+            </nz-form-label>
+            <nz-form-control [nzErrorTip]="
+                form.get('ParentID')?.invalid && (form.get('ParentID')?.dirty || form.get('ParentID')?.touched)
+                  ? 'Vui lòng chọn folder cha!'
+                  : undefined
+              ">
+              <nz-tree-select
+                style="width: 100%"
+                [nzNodes]="parentIDList"
+                formControlName="ParentID"
+                nzShowSearch
+                nzAllowClear
+                nzPlaceHolder="Chọn folder cha"
+                nzDefaultExpandAll
+              >
+              </nz-tree-select>
+            </nz-form-control>
+          </nz-form-item>
+
+          <!-- Folder name -->
+          <nz-form-item>
+            <nz-form-label class="fs-12">
+              Tên Folder <span class="text-danger ps-1">*</span>
+            </nz-form-label>
+            <nz-form-control [nzErrorTip]="
+                form.get('FolderName')?.invalid && (form.get('FolderName')?.dirty || form.get('FolderName')?.touched)
+                  ? 'Vui lòng nhập tên folder!(Lưu ý tên viết liền không dấu)'
+                  : undefined
+              ">
+              <input nz-input formControlName="FolderName" class="w-100" placeholder="Nhập tên folder" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal-footer bg-whitesmoke br p-1">
+    <button nz-button nzType="default" nzDanger (click)="activeModal.close()">Đóng</button>
+    <button nz-button nzType="primary" (click)="saveData()">Lưu</button>
+  </div>
+</div>

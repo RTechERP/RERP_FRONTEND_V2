@@ -45,7 +45,7 @@ import {
   createComponent,
 } from '@angular/core';
 import { SelectControlComponent } from '../select-control/select-control.component';
-import { ProjectComponent } from '../../../../project/project.component';
+import { ProjectComponent } from '../../../../../project/project.component';
 import { HistoryDeleteBillComponent } from '../history-delete-bill/history-delete-bill.component';
 import { NgZone } from '@angular/core'; // Add this import
 import { firstValueFrom } from 'rxjs';
@@ -78,7 +78,7 @@ import { firstValueFrom } from 'rxjs';
   styleUrl: './scan-bill.component.css',
 })
 export class ScanBillComponent implements OnInit, AfterViewInit {
-  @Input() warehouseCode: string = "HN";
+  @Input() warehouseCode: string = 'HN';
   searchParams = {
     keyword: '',
   };

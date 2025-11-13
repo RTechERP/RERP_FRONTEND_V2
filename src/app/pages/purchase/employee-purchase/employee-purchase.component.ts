@@ -490,7 +490,7 @@ export class EmployeePurchaseComponent
     ];
 
     this.tb_employeePurchase = new Tabulator(container, {
-      height: '89vh',
+      height: '90vh',
       layout: 'fitColumns',
       locale: 'vi',
       pagination: true,

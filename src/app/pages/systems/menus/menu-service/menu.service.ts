@@ -12,7 +12,6 @@ import { VehicleRepairTypeComponent } from '../../../hrm/vehicle-repair/vehicle-
 import { VehicleRepairComponent } from '../../../hrm/vehicle-repair/vehicle-repair.component';
 import { TrainingRegistrationComponent } from '../../../training-registration/training-registration.component';
 import { ContractComponent } from '../../../old/contract/contract.component';
-// import { CustomerComponent } from '../../../old/customer/customer.component';
 import { DayOffComponent } from '../../../old/day-off/day-off.component';
 import { DepartmentComponent } from '../../../old/department/department.component';
 import { EarlyLateComponent } from '../../../old/early-late/early-late.component';
@@ -24,13 +23,13 @@ import { HolidayComponent } from '../../../old/holiday/holiday.component';
 import { NightShiftComponent } from '../../../old/night-shift/night-shift.component';
 import { OverTimeComponent } from '../../../old/over-time/over-time.component';
 import { PositionsComponent } from '../../../old/positions/positions.component';
-import { ProjectItemLateComponent } from '../../../old/project/project-item-late/project-item-late.component';
-import { ProjectSurveyComponent } from '../../../old/project/project-survey/project-survey.component';
-import { ProjectWorkItemTimelineComponent } from '../../../old/project/project-work-item-timeline/project-work-item-timeline.component';
-import { ProjectWorkPropressComponent } from '../../../old/project/project-work-propress/project-work-propress.component';
-import { ProjectWorkTimelineComponent } from '../../../old/project/project-work-timeline/project-work-timeline.component';
-import { ProjectComponent } from '../../../old/project/project.component';
-import { SynthesisOfGeneratedMaterialsComponent } from '../../../old/project/synthesis-of-generated-materials/synthesis-of-generated-materials.component';
+import { ProjectItemLateComponent } from '../../../project/project-item-late/project-item-late.component';
+import { ProjectSurveyComponent } from '../../../project/project-survey/project-survey.component';
+import { ProjectWorkItemTimelineComponent } from '../../../project/project-work-item-timeline/project-work-item-timeline.component';
+import { ProjectWorkPropressComponent } from '../../../project/project-work-propress/project-work-propress.component';
+import { ProjectWorkTimelineComponent } from '../../../project/project-work-timeline/project-work-timeline.component';
+import { ProjectComponent } from '../../../project/project.component';
+import { SynthesisOfGeneratedMaterialsComponent } from '../../../project/synthesis-of-generated-materials/synthesis-of-generated-materials.component';
 import { ProductSaleComponent } from '../../../old/Sale/ProductSale/product-sale.component';
 import { TbProductRtcComponent } from '../../../old/tb-product-rtc/tb-product-rtc.component';
 import { TeamComponent } from '../../../old/team/team.component';
@@ -43,9 +42,9 @@ import { TsAssetRecoveryComponent } from '../../../hrm/asset/asset/ts-asset-reco
 import { TsAssetTransferComponent } from '../../../hrm/asset/asset/ts-asset-transfer/ts-asset-transfer.component';
 import { PermissionService } from '../../../../services/permission.service';
 // import { OfficeSupplyComponent } from '../../../old/OfficeSuppliesManagement/OfficeSupply/office-supply.component';
-import { ProjectLeaderProjectTypeComponent } from '../../../old/project/project-leader-project-type/project-leader-project-type.component';
-import { MeetingMinuteComponent } from '../../../old/project/meeting-minute/meeting-minute.component';
-import { ProjectNewComponent } from '../../../old/project/project-new/project-new.component';
+import { ProjectLeaderProjectTypeComponent } from '../../../project/project-leader-project-type/project-leader-project-type.component';
+import { MeetingMinuteComponent } from '../../../project/meeting-minute/meeting-minute.component';
+import { ProjectDepartmentSummaryComponent } from '../../../project/project-department-summary/project-department-summary.component';
 import { CustomerComponent } from '../../../crm/customers/customer/customer.component';
 import { PlanWeekComponent } from '../../../old/VisionBase/plan-week/plan-week.component';
 import { TsAssetTypeComponent } from '../../../hrm/asset/asset/ts-asset-type/ts-asset-type.component';
@@ -57,6 +56,8 @@ import { OfficeSupplyRequestSummaryComponent } from '../../../hrm/office-supply/
 import { VehicleRepairHistoryComponent } from '../../../hrm/propose-vehicle-repair/vehicle-repair-history/vehicle-repair-history/vehicle-repair-history.component';
 import { ProposeVehicleRepairComponent } from '../../../hrm/propose-vehicle-repair/propose-vehicle-repair/propose-vehicle-repair/propose-vehicle-repair.component';
 import { DailyReportHrComponent } from '../../../hrm/daily-report-hr/daily-report-hr.component';
+import { PriceHistoryPartlistComponent } from '../../../project/price-history-partlist/price-history-partlist.component';
+import { ProjectTypeComponent } from '../../../project/project-type/project-type.component';
 
 import { EmployeePurchaseComponent } from '../../../purchase/employee-purchase/employee-purchase.component';
 import { RulePayComponent } from '../../../purchase/rulepay/rule-pay.component';
@@ -69,6 +70,17 @@ import { InventoryComponent } from '../../../old/Sale/Inventory/inventory.compon
 import { InventoryBorrowNCCComponent } from '../../../old/Sale/Inventory/Modal/inventory-borrow-ncc/inventory-borrow-ncc.component';
 import { BillImportComponent } from '../../../old/Sale/BillImport/bill-import.component';
 import { BillExportComponent } from '../../../old/Sale/BillExport/bill-export.component';
+import { ProjectFieldComponent } from '../../../project/project-field/project-field/project-field.component';
+import { QuotationKhComponent } from '../../../old/quotation-kh/quotation-kh.component';
+import { PokhKpiComponent } from '../../../old/pokh-kpi/pokh-kpi.component';
+import { PokhHistoryComponent } from '../../../old/pokh-history/pokh-history.component';
+import { PokhComponent } from '../../../old/pokh/pokh.component';
+
+import { SupplierSaleComponentComponent } from '../../../old/supplier-sale-component/supplier-sale-component.component';
+import { AppUserService } from '../../../../services/app-user.service';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { LeaderProjectComponent } from '../../../project/leader-project/leader-project.component';
 
 @Injectable({
   providedIn: 'root',
@@ -78,7 +90,9 @@ export class MenuService {
   //   private apiUrl = HOST + 'api/menu/';
   constructor(
     private http: HttpClient,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private appUserService: AppUserService,
+    private notification: NzNotificationService
   ) {}
 
   //   getMenus(id: number): Observable<any> {
@@ -325,8 +339,36 @@ export class MenuService {
           },
 
           {
+            kind: 'leaf',
+            key: 'VehicleRepairComponent',
+            title: 'Danh sách xe sửa chữa',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: VehicleRepairComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+          {
+            kind: 'leaf',
+            key: 'VehicleRepairTypeComponent',
+            title: 'Danh sách loại sửa chữa',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: VehicleRepairTypeComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+          {
+            kind: 'leaf',
+            key: 'DepartmentComponent',
+            title: 'Phòng ban',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission('N2,N1'),
+            comp: DepartmentComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+
+          {
             kind: 'group',
-            key: 'VehicleRepairComponent121',
+            key: 'VehicleManagement',
             title: 'Quản lí xe',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
@@ -369,7 +411,7 @@ export class MenuService {
               },
               {
                 kind: 'leaf',
-                key: 'ProposeVehicleRepair',
+                key: 'ProposeVehicleRepairComponent',
                 title: 'Danh sách  đề xuất sửa chữa',
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission('N2,N34,N1'),
@@ -742,6 +784,59 @@ export class MenuService {
       //#region menu dự án
       {
         kind: 'group',
+        key: 'generalCategory',
+        title: 'DANH MỤC CHUNG',
+        isOpen: true,
+        isPermission: this.permissionService.hasPermission(''),
+        icon: 'assets/icon/menu_project_24.png',
+        children: [
+          {
+            kind: 'leaf',
+            key: 'FactoryVisitRegistrationComponent',
+            title: 'THAM QUAN NHÀ MÁY',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: FactoryVisitRegistrationComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+          {
+            kind: 'leaf',
+            key: 'CurrencyListComponent',
+            title: 'Tiền tệ',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: CurrencyListComponent,
+          },
+          {
+            kind: 'leaf',
+            key: 'ProductLocationComponent',
+            title: 'Vị trí thiết bị',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: ProductLocationComponent,
+          },
+          {
+            kind: 'leaf',
+            key: 'SupplierSaleComponent',
+            title: 'Nhà cung cấp',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: SupplierSaleComponentComponent,
+          },
+          {
+            kind: 'leaf',
+            key: 'FirmComponent',
+            title: 'Hãng',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: FirmComponent,
+          },
+        ],
+      },
+
+      //#endregion
+      {
+        kind: 'group',
         key: 'project',
         title: 'DỰ ÁN',
         isOpen: true,
@@ -780,8 +875,15 @@ export class MenuService {
             title: 'Khảo sát dự án',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
-
             comp: ProjectSurveyComponent,
+          },
+          {
+            kind: 'leaf',
+            key: 'MeetingMinuteComponent',
+            title: 'Biên bản cuộc họp',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: MeetingMinuteComponent,
           },
           {
             kind: 'leaf',
@@ -814,23 +916,32 @@ export class MenuService {
             title: 'Tổng hợp dự án phòng ban',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
-            comp: ProjectNewComponent,
+            comp: ProjectDepartmentSummaryComponent,
           },
           {
             kind: 'leaf',
-            key: 'MeetingMinuteComponent',
-            title: 'Biên bản cuộc họp',
+            key: 'PriceHistoryPartlistComponent',
+            title: 'Lịch sử giá',
             isOpen: true,
-            isPermission: this.permissionService.hasPermission(''),
-            comp: MeetingMinuteComponent,
+            isPermission:
+              this.permissionService.hasPermission('N38,N1,N79,N13,N82'),
+            comp: PriceHistoryPartlistComponent,
           },
           {
             kind: 'group',
-            key: 'SettingLeader',
+            key: 'SettingProject',
             title: 'Cài đặt',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
             children: [
+              {
+                kind: 'leaf',
+                key: 'ProjectTypeComponent',
+                title: 'Kiểu dự án',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission('N1'),
+                comp: ProjectTypeComponent,
+              },
               {
                 kind: 'leaf',
                 key: 'ProjectLeaderProjectTypeComponent',
@@ -838,6 +949,22 @@ export class MenuService {
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission(''),
                 comp: ProjectLeaderProjectTypeComponent,
+              },
+              {
+                kind: 'leaf',
+                key: 'ProjectFieldComponent',
+                title: 'Lĩnh vực dự án',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission('N31,N1'),
+                comp: ProjectFieldComponent,
+              },
+              {
+                kind: 'leaf',
+                key: 'LeaderProjectComponent',
+                title: 'Leader dự án',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: LeaderProjectComponent,
               },
             ],
           },
@@ -854,6 +981,47 @@ export class MenuService {
         isPermission: this.permissionService.hasPermission(''),
         icon: 'assets/icon/menu_project_24.png',
         children: [
+          {
+            kind: 'group',
+            key: 'POKHComponent',
+            title: 'PO KHÁCH HÀNG',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            children: [
+              {
+                kind: 'leaf',
+                key: 'POKHComponent',
+                title: 'Danh sách PO KHÁCH HÀNG',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: PokhComponent,
+              },
+              {
+                kind: 'leaf',
+                key: 'QuotationKhComponent',
+                title: 'BÁO GIÁ KHÁCH HÀNG',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: QuotationKhComponent,
+              },
+              {
+                kind: 'leaf',
+                key: 'PokhKpiComponent',
+                title: 'XUẤT PO KHÁCH HÀNG CHI TIẾT',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: PokhKpiComponent,
+              },
+              {
+                kind: 'leaf',
+                key: 'POKHHistoryComponent',
+                title: 'LỊCH SỬ PO KHÁCH HÀNG',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: PokhHistoryComponent,
+              },
+            ],
+          },
           {
             kind: 'group',
             key: 'ProjectComponent',
@@ -886,6 +1054,29 @@ export class MenuService {
     ];
 
     return menus;
+  }
+
+  goToOldLink(router: String) {
+    let data: any = {
+      UserName: this.appUserService.loginName,
+      Password: this.appUserService.password,
+      Router: router,
+    };
+
+    const url = `http://113.190.234.64:8081${router}`;
+
+    const urlOld = 'http://113.190.234.64:8081/Home/LoginNew';
+    // console.log('gotoOldLink:',url);
+
+    return this.http.post<any>(url, data, { withCredentials: true }).subscribe({
+      next: (response) => {
+        window.open(url, '_blank');
+      },
+      error: (err) => {
+        // console.log('err:', err);
+        this.notification.error(NOTIFICATION_TITLE.error, err.message);
+      },
+    });
   }
 }
 

@@ -1,7 +1,7 @@
-import { ProjectSurveyComponent } from './pages/old/project/project-survey/project-survey.component';
+import { ProjectSurveyComponent } from './pages/project/project-survey/project-survey.component';
 import { Routes } from '@angular/router';
 import { WelcomeComponent } from './pages/old/welcome/welcome.component';
-import { ProjectComponent } from './pages/old/project/project.component';
+import { ProjectComponent } from './pages/project/project.component';
 import { PokhComponent } from './pages/old/pokh/pokh.component';
 import { RequestInvoiceComponent } from './pages/old/request-invoice/request-invoice.component';
 import { ViewPokhComponent } from './pages/old/view-pokh/view-pokh.component';
@@ -16,14 +16,14 @@ import { ProjectMachinePriceComponent } from './pages/old/Sale/TinhGia/project-m
 import { PlanWeekComponent } from './pages/old/VisionBase/plan-week/plan-week.component';
 import { CustomerComponent } from './pages/crm/customers/customer/customer.component';
 
-import { ProjectListWorkReportComponent } from './pages/old/project/project-list-work-report/project-list-work-report.component';
-import { ProjectWorkCategoryComponent } from './pages/old/project/project-work-category/project-work-category.component';
-import { ProjectWorkPropressComponent } from './pages/old/project/project-work-propress/project-work-propress.component';
-import { ProjectWorkTimelineComponent } from './pages/old/project/project-work-timeline/project-work-timeline.component';
-import { ProjectItemLateComponent } from './pages/old/project/project-item-late/project-item-late.component';
-import { ProjectWorkItemTimelineComponent } from './pages/old/project/project-work-item-timeline/project-work-item-timeline.component';
-import { SynthesisOfGeneratedMaterialsComponent } from './pages/old/project/synthesis-of-generated-materials/synthesis-of-generated-materials.component';
-import { ProjectSynthesisDepartmentComponent } from './pages/old/project/project-synthesis-department/project-synthesis-department.component';
+import { ProjectListWorkReportComponent } from './pages/project/project-list-work-report/project-list-work-report.component';
+import { ProjectWorkCategoryComponent } from './pages/project/project-work-category/project-work-category.component';
+import { ProjectWorkPropressComponent } from './pages/project/project-work-propress/project-work-propress.component';
+import { ProjectWorkTimelineComponent } from './pages/project/project-work-timeline/project-work-timeline.component';
+import { ProjectItemLateComponent } from './pages/project/project-item-late/project-item-late.component';
+import { ProjectWorkItemTimelineComponent } from './pages/project/project-work-item-timeline/project-work-item-timeline.component';
+import { SynthesisOfGeneratedMaterialsComponent } from './pages/project/synthesis-of-generated-materials/synthesis-of-generated-materials.component';
+import { ProjectSynthesisDepartmentComponent } from './pages/project/project-synthesis-department/project-synthesis-department.component';
 import { LoginComponent } from './auth/login/login.component';
 import { authGuard } from './auth/auth.guard';
 import { AuthLayoutComponent } from './layouts/auth-layout/auth-layout.component';

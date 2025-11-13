@@ -580,8 +580,8 @@ private hasOtherApproved(detailId: number): boolean {
 //   });
 // }
 approveSelectedDetail() {
-  if (!this.selectedDetailRow) { this.notification.warning('Cảnh báo','Chọn một dòng chi tiết để phê duyệt'); return; }
-  if (!this.currentUser?.EmployeeID) { this.notification.error('Lỗi','Không lấy được thông tin người dùng hiện tại'); return; }
+  if (!this.selectedDetailRow) { this.notification.warning('Cảnh báo','Chọn một dòng nhà cung cấp đề xuất để phê duyệt'); return; }
+ // if (!this.currentUser?.EmployeeID) { this.notification.error('Lỗi','Không lấy được thông tin người dùng hiện tại'); return; }
 
   const detail = this.selectedDetailRow;
   const master = this.selectedRow; // dòng master đang chọn

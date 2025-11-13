@@ -94,7 +94,7 @@ export class MenuService {
     private permissionService: PermissionService,
     private appUserService: AppUserService,
     private notification: NzNotificationService
-  ) {}
+  ) { }
 
   //   getMenus(id: number): Observable<any> {
   //     return this.http.get<any>(this.apiUrl + `menus/${id}`);
@@ -403,31 +403,22 @@ export class MenuService {
                 comp: VehicleManagementComponent,
                 //   icon: 'assets/icon/layers.png',
               },
-              {
-                kind: 'leaf',
-                key: 'VehicleRepairComponent',
-                title: 'Danh sách xe sửa chữa',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: VehicleRepairComponent,
-                //   icon: 'assets/icon/layers.png',
-              },
+              // {
+              //   kind: 'leaf',
+              //   key: 'VehicleRepairComponent',
+              //   title: 'Danh sách xe sửa chữa',
+              //   isOpen: true,
+              //   isPermission: this.permissionService.hasPermission(''),
+              //   comp: VehicleRepairComponent,
+              //   //   icon: 'assets/icon/layers.png',
+              // },
               {
                 kind: 'leaf',
                 key: 'VehicleRepairTypeComponent',
                 title: 'Danh sách loại sửa chữa',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: VehicleRepairTypeComponent,
-                //   icon: 'assets/icon/layers.png',
-              },
-              {
-                kind: 'leaf',
-                key: 'VehicleRepairHistory',
-                title: 'Danh sách lịch sử sửa chữa',
-                isOpen: true,
                 isPermission: this.permissionService.hasPermission('N2,N34,N1'),
-                comp: VehicleRepairHistoryComponent,
+                comp: VehicleRepairTypeComponent,
                 //   icon: 'assets/icon/layers.png',
               },
               {
@@ -439,6 +430,16 @@ export class MenuService {
                 comp: ProposeVehicleRepairComponent,
                 //   icon: 'assets/icon/layers.png',
               },
+              {
+                kind: 'leaf',
+                key: 'VehicleRepairHistory',
+                title: 'Danh sách lịch sử sửa chữa',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission('N2,N34,N1'),
+                comp: VehicleRepairHistoryComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+
             ],
             //   icon: 'assets/icon/layers.png',
           },

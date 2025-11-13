@@ -212,8 +212,8 @@ button[nz-button] {
 }
 
 button[nz-button] img {
-  width: 16px;
-  height: 16px;
+  /* width: 16px;
+  height: 16px; */
   display: block;
 }
 
@@ -256,9 +256,9 @@ button[nz-button] img {
   color: black;
 }
 
-/* .ant-splitter {
-  height: 93vh !important;
-} */
+.ant-splitter {
+  height: 95vh !important;
+}
 
 .tabulator {
   border: 1px solid #ddd;
@@ -271,22 +271,17 @@ button[nz-button] img {
 .ant-collapse > .ant-collapse-item > .ant-collapse-header {
   padding-top: 5px;
   padding-bottom: 5px;
+  font-size: 12px !important;
+}
+
+.ant-list {
+  font-size: 12px !important;
 }
 
 .ant-carousel .slick-dots {
   display: none !important;
 }
-/* :host ::ng-deep nz-tabset.approval-tabs .ant-tabs-tab-btn {
-  opacity: 1 !important;
+
+.bell-icon:hover {
+  animation: ring 0.5s ease-in-out infinite;
 }
-:host
-  ::ng-deep
-  nz-tabset.approval-tabs
-  .ant-tabs-tab.ant-tabs-tab-active
-  .ant-tabs-tab-btn {
-  color: #1677ff !important;
-  font-weight: 600;
-}
-:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-ink-bar {
-  background: #1677ff !important;
-} */

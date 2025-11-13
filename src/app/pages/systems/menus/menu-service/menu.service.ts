@@ -81,6 +81,7 @@ import { AppUserService } from '../../../../services/app-user.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { LeaderProjectComponent } from '../../../project/leader-project/leader-project.component';
+import { AgvProductComponent } from '../../../warehouse/agv/agv-product/agv-product.component';
 
 @Injectable({
   providedIn: 'root',
@@ -93,7 +94,7 @@ export class MenuService {
     private permissionService: PermissionService,
     private appUserService: AppUserService,
     private notification: NzNotificationService
-  ) { }
+  ) {}
 
   //   getMenus(id: number): Observable<any> {
   //     return this.http.get<any>(this.apiUrl + `menus/${id}`);
@@ -197,6 +198,26 @@ export class MenuService {
               },
             ],
           },
+
+          {
+            kind: 'group',
+            key: 'AGV',
+            title: 'AGV',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            icon: 'assets/icon/menu_sale_24.png',
+            children: [
+              {
+                kind: 'leaf',
+                key: 'AgvProductComponent',
+                title: 'Sản phẩm',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: AgvProductComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+            ],
+          },
         ],
       },
       //#endregion
@@ -223,14 +244,14 @@ export class MenuService {
           {
             kind: 'group',
             key: 'DanhSachTaiSan',
-            title: 'Tài sản',
+            title: 'Tài sản/công cụ dụng cụ',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
             children: [
               {
                 kind: 'leaf',
                 key: 'TsAssetManagementComponent',
-                title: 'Danh sách tài sản',
+                title: 'Tài sản',
                 isOpen: true,
                 isPermission:
                   this.permissionService.hasPermission('N23,N52,N1,N36,N34'),
@@ -418,7 +439,6 @@ export class MenuService {
                 comp: VehicleRepairHistoryComponent,
                 //   icon: 'assets/icon/layers.png',
               },
-
             ],
             //   icon: 'assets/icon/layers.png',
           },
@@ -1069,15 +1089,17 @@ export class MenuService {
     const urlOld = 'http://113.190.234.64:8081/Home/LoginNew';
     // console.log('gotoOldLink:',url);
 
-    return this.http.post<any>(url, data, { withCredentials: true }).subscribe({
-      next: (response) => {
-        window.open(url, '_blank');
-      },
-      error: (err) => {
-        // console.log('err:', err);
-        this.notification.error(NOTIFICATION_TITLE.error, err.message);
-      },
-    });
+    return this.http
+      .post<any>(urlOld, data, { withCredentials: true })
+      .subscribe({
+        next: (response) => {
+          window.open(url, '_blank');
+        },
+        error: (err) => {
+          // console.log('err:', err);
+          this.notification.error(NOTIFICATION_TITLE.error, err.message);
+        },
+      });
   }
 }
 

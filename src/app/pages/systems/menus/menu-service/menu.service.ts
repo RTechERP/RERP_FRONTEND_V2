@@ -94,7 +94,7 @@ export class MenuService {
     private permissionService: PermissionService,
     private appUserService: AppUserService,
     private notification: NzNotificationService
-  ) { }
+  ) {}
 
   //   getMenus(id: number): Observable<any> {
   //     return this.http.get<any>(this.apiUrl + `menus/${id}`);
@@ -439,7 +439,6 @@ export class MenuService {
                 comp: VehicleRepairHistoryComponent,
                 //   icon: 'assets/icon/layers.png',
               },
-
             ],
             //   icon: 'assets/icon/layers.png',
           },
@@ -1090,15 +1089,17 @@ export class MenuService {
     const urlOld = 'http://113.190.234.64:8081/Home/LoginNew';
     // console.log('gotoOldLink:',url);
 
-    return this.http.post<any>(url, data, { withCredentials: true }).subscribe({
-      next: (response) => {
-        window.open(url, '_blank');
-      },
-      error: (err) => {
-        // console.log('err:', err);
-        this.notification.error(NOTIFICATION_TITLE.error, err.message);
-      },
-    });
+    return this.http
+      .post<any>(urlOld, data, { withCredentials: true })
+      .subscribe({
+        next: (response) => {
+          window.open(url, '_blank');
+        },
+        error: (err) => {
+          // console.log('err:', err);
+          this.notification.error(NOTIFICATION_TITLE.error, err.message);
+        },
+      });
   }
 }
 

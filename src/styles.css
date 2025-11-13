@@ -271,6 +271,11 @@ button[nz-button] img {
 .ant-collapse > .ant-collapse-item > .ant-collapse-header {
   padding-top: 5px;
   padding-bottom: 5px;
+  font-size: 12px !important;
+}
+
+.ant-list {
+  font-size: 12px !important;
 }
 
 .ant-carousel .slick-dots {

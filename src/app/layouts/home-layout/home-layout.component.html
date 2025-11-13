@@ -37,7 +37,7 @@
                 <div class="col-xl-6 col-md-12 col-sm-12 col-12 pt-2">
                     <div class="card mb-2">
                         <div class="card-header">
-                            <h5 class="card-title m-0 text-uppercase fw-bold py-2">Thông báo</h5>
+                            <h5 class="card-title m-0 text-uppercase fw-bold py-1">Thông báo</h5>
                         </div>
                         <div class="card-body" style="height: 22rem; overflow: auto;">
                             <nz-list nzItemLayout="vertical">
@@ -62,7 +62,7 @@
                 <div class="col-xl-6 col-md-12 col-sm-12 col-12 pt-2">
                     <div class="card mb-2">
                         <div class="card-header d-flex align-items-center">
-                            <h5 class="card-title m-0 text-uppercase fw-bold py-2">Lịch làm việc</h5>
+                            <h5 class="card-title m-0 text-uppercase fw-bold py-1">Lịch làm việc</h5>
                             <span class="badge bg-danger ms-auto">Ngày nghỉ</span>
                         </div>
                         <div class="card-body" style="height: 22rem; overflow: auto;">
@@ -85,12 +85,12 @@
                 <div class="col-xl-6 col-md-12 col-sm-12 col-12 pt-2">
                     <div class="card mb-2">
                         <div class="card-header">
-                            <h5 class="card-title m-0 text-uppercase fw-bold py-2">Nghỉ</h5>
+                            <h5 class="card-title m-0 text-uppercase fw-bold py-1">Nghỉ</h5>
                         </div>
-                        <div class="card-body" style="height: 23rem; overflow: auto;">
+                        <div class="card-body py-0 pe-0">
                             <nz-tabset style="font-size: 12px;">
                                 <nz-tab [nzTitle]="titleTemplateOnleave">
-                                    <nz-collapse>
+                                    <nz-collapse style="height: 22.7rem; overflow: auto;">
                                         @for (panel of employeeOnleaves; track panel) {
                                         <nz-collapse-panel class="fw-bold"
                                             [nzHeader]="panel.DepartmentName + ' (' + panel.Employees.length + ')'"
@@ -107,7 +107,7 @@
                                     </nz-collapse>
                                 </nz-tab>
                                 <nz-tab [nzTitle]="titleTemplateWFH">
-                                    <nz-collapse>
+                                    <nz-collapse style="height: 22.7rem; overflow: auto;">
                                         @for (panel of employeeWfhs; track panel) {
                                         <nz-collapse-panel class="fw-bold"
                                             [nzHeader]="panel.DepartmentName + ' (' + panel.Employees.length + ')'"
@@ -140,9 +140,9 @@
                 <div class="col-xl-6 col-md-12 col-sm-12 col-12 pt-2">
                     <div class="card mb-2">
                         <div class="card-header">
-                            <h5 class="card-title m-0 text-uppercase fw-bold py-2">truy cập nhanh</h5>
+                            <h5 class="card-title m-0 text-uppercase fw-bold py-1">truy cập nhanh</h5>
                         </div>
-                        <div class="card-body p-1" style="height: 23rem; overflow: auto;">
+                        <div class="card-body p-1" style="height: 24.5rem; overflow: auto;">
 
                             <nz-list nzItemLayout="vertical">
                                 <nz-list-item>
@@ -175,11 +175,11 @@
         </div>
         <div class="col-xl-6 col-md-12 col-sm-12 col-12 pt-2">
 
-            <div class="card mb-0">
+            <div class="card mb-3">
                 <div class="card-header">
-                    <h5 class="card-title m-0 text-uppercase fw-bold py-2">chức năng</h5>
+                    <h5 class="card-title m-0 text-uppercase fw-bold py-1">chức năng</h5>
                 </div>
-                <div class="card-body" style="height: 49.05rem; overflow: auto;">
+                <div class="card-body" style="height: 50.05rem; overflow: auto;">
 
                     <div class="gutter-example">
                         <div nz-row [nzGutter]="[16, 16]">

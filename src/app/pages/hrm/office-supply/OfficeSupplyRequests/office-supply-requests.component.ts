@@ -1,4 +1,10 @@
-import { Component, ElementRef, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnInit,
+  ViewChild,
+  ViewEncapsulation,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -139,9 +145,9 @@ interface Product {
 })
 export class OfficeSupplyRequestsComponent implements OnInit {
   @ViewChild('officeSupplyRequestTable', { static: false })
-officeSupplyRequestTableRef!: ElementRef;
+  officeSupplyRequestTableRef!: ElementRef;
 
-private officeSupplyRequestTable!: Tabulator;
+  private officeSupplyRequestTable!: Tabulator;
   table: any;
   table2: any;
   dataTable1: any[] = [];
@@ -186,7 +192,6 @@ private officeSupplyRequestTable!: Tabulator;
 
   ngOnInit(): void {
     this.getDataDeparment();
-    
   }
 
   ngAfterViewInit(): void {
@@ -223,7 +228,7 @@ private officeSupplyRequestTable!: Tabulator;
   }
 
   getOfficeSupplyRequest(): void {
-  this.isLoading = true;
+    this.isLoading = true;
 
     const deptId =
       this.searchParams.departmentId === null ||
@@ -235,8 +240,7 @@ private officeSupplyRequestTable!: Tabulator;
       .getOfficeSupplyRequests(
         this.searchParams.keyword,
         this.searchParams.month,
-        0,
-        deptId
+        0
       )
       .subscribe({
         next: (res) => {

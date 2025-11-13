@@ -8,12 +8,12 @@
   </div>
 
   <div class="modal-body">
-    <div class="card-body" style="margin-top:1rem;">
-      <div class="mb-3">
-        <input nz-input placeholder="Tìm theo mã, tên, seri, ghi chú..." [(ngModel)]="searchKeyword"
-          (ngModelChange)="onSearchChange($event)" />
-      </div>
+    <div class="mb-2">
+      <input nz-input class="w-100" [(ngModel)]="searchText" (ngModelChange)="applyFilter()"
+        placeholder="Tìm theo mã, tên tài sản, phòng ban, người quản lý..." />
+    </div>
 
+    <div class="card-body" style="margin-top:0.5rem;">
       <div class="mb-2 mt-2" id="datatablemanagement1"></div>
     </div>
   </div>

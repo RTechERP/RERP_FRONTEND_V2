@@ -13,7 +13,9 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzFormModule } from 'ng-zorro-antd/form';
+
 import { VehicleRepairService } from '../../vehicle-repair-service/vehicle-repair.service';
+import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 @Component({
   standalone:true,
   selector: 'app-vehicle-repair-type-form',
@@ -29,7 +31,8 @@ import { VehicleRepairService } from '../../vehicle-repair-service/vehicle-repai
     NzInputModule,
     NzButtonModule,
     NzModalModule,
-    NzFormModule
+    NzFormModule,
+    HasPermissionDirective
   ],
   templateUrl: './vehicle-repair-type-form.component.html',
   styleUrl: './vehicle-repair-type-form.component.css'
@@ -75,40 +78,44 @@ ngAfterViewInit(): void {
     if (typeof v === 'string') c!.setValue(v.trim(), { emitEvent: false });
   });
 }
-  save()
-  {
-    this.trimAllStringControls();
-      if (this.formGroup.invalid) {
-      this.formGroup.markAllAsTouched();
-      return;
-    }
-    const formValue = this.formGroup.value;
- const payload = {
-      vehicleRepairType: {
-        ID: this.dataInput?.ID || 0,
-       RepairTypeName:formValue.RepairTypeName,
-       RepairTypeCode:formValue.RepairTypeCode,
-       Note:formValue.Note
-      },
-   
-    };
-    console.log("Payload", payload);
-    this.vehicleRepairService.saveData(payload).subscribe({
-      next: () => {
-        if(this.dataInput.ID>0)
-        {
-              this.notification.success('Thành công', 'Sửa loại thành công');
-        }
-        else
-        {
-           this.notification.success('Thành công', 'Thêm loại thành công');
-        }
-        this.formSubmitted.emit();
-        this.activeModal.close(true);
-      },
-      error: () => {
-        this.notification.error('Lỗi', 'Không thể lưu nhóm TB');
-      }
-    });
+ save() {
+  this.trimAllStringControls();
+
+  if (this.formGroup.invalid) {
+    this.formGroup.markAllAsTouched();
+    return;
   }
+
+  const formValue = this.formGroup.value;
+
+  // Xác định đang sửa hay thêm mới
+  const isEdit = !!this.dataInput?.ID && this.dataInput.ID > 0;
+
+  const payload = {
+    vehicleRepairType: {
+      ID: this.dataInput?.ID || 0,
+      RepairTypeName: formValue.RepairTypeName,
+      RepairTypeCode: formValue.RepairTypeCode,
+      Note: formValue.Note
+    }
+  };
+
+  console.log('Payload', payload);
+
+  this.vehicleRepairService.saveData(payload).subscribe({
+    next: () => {
+      if (isEdit) {
+        this.notification.success('Thành công', 'Sửa loại thành công');
+      } else {
+        this.notification.success('Thành công', 'Thêm loại thành công');
+      }
+      this.formSubmitted.emit();
+      this.activeModal.close(true);
+    },
+    error: (res: any) => {
+      this.notification.error('Lỗi', res.error?.message || 'Có lỗi xảy ra');
+    }
+  });
+}
+
 }

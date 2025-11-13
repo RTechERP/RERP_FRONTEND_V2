@@ -114,14 +114,14 @@ export class TsAssetManagementFormComponent implements OnInit, AfterViewInit {
     return DateTime.fromISO(dateString).toFormat('yyyy-MM-dd');
   }
   private toNumberOrZero(value: any): number {
-  if (value === null || value === undefined) return 0;
+    if (value === null || value === undefined) return 0;
 
-  const str = String(value).trim();   // bỏ space
-  if (str === '') return 0;
+    const str = String(value).trim();   // bỏ space
+    if (str === '') return 0;
 
-  const num = Number(str);
-  return Number.isNaN(num) ? 0 : num;
-}
+    const num = Number(str);
+    return Number.isNaN(num) ? 0 : num;
+  }
   getListEmployee() {
     const request = {
       status: 0,
@@ -184,20 +184,33 @@ export class TsAssetManagementFormComponent implements OnInit, AfterViewInit {
       status: '0,1,2,3,4,5,6,7,8',
       department: '0,1,2,3,4,5,6,7,8,9'
     };
+
     this.assetService.getAsset(request).subscribe({
       next: (response: any) => {
-        console.log("Response:", response);
+        console.log('response getAsset = ', response);
         this.assetData = response.data?.assets || [];
-        this.maxSTT = response.data.total[0].MaxSTT;
-        if (!this.dataInput.STT) {
+
+        // đúng với API mới
+        const maxFromApi = response.data?.maxSTT ?? 0;
+
+        // nếu muốn STT mới = max hiện tại + 1
+        this.maxSTT = maxFromApi + 1;
+
+        const isEdit = !!this.dataInput && this.dataInput.ID > 0;
+
+        // chỉ set auto khi THÊM mới
+        if (!isEdit) {
           this.dataInput.STT = this.maxSTT;
         }
+
+        console.log('maxSTT API =', maxFromApi, 'STT gán cho form =', this.dataInput.STT);
       },
       error: (err) => {
         console.error('Lỗi khi lấy dữ liệu tài sản:', err);
       }
     });
   }
+
   private validateForm(): boolean {
     const d = this.dataInput || {};
 
@@ -263,6 +276,7 @@ export class TsAssetManagementFormComponent implements OnInit, AfterViewInit {
       tSAssetManagements: [
         {
           ID: ID || 0,
+          STT: this.dataInput.STT,
           Note: this.dataInput.Note,
           IsAllocation: this.dataInput.IsAllocation,
           StatusID: this.dataInput.StatusID,
@@ -276,7 +290,7 @@ export class TsAssetManagementFormComponent implements OnInit, AfterViewInit {
           SpecificationsAsset: this.dataInput.SpecificationsAsset,
           SupplierID: this.dataInput.SupplierID,
           DateBuy: this.dataInput.DateBuy,
-    Insurance: Number(String(this.dataInput.Insurance).replace(/\D+/g, '') || 0),
+          Insurance: Number(String(this.dataInput.Insurance).replace(/\D+/g, '') || 0),
           DateEffect: this.dataInput.DateEffect
             ? this.dataInput.DateEffect
             : DateTime.now().toFormat('yyyy-MM-dd'),
@@ -288,7 +302,7 @@ export class TsAssetManagementFormComponent implements OnInit, AfterViewInit {
           WindowActiveStatus:
             this.dataInput.WindowActiveStatus ?? null,
           isDeleted: false,
-          STT: this.dataInput.STT || this.maxSTT,
+
         }
       ]
     };
@@ -299,8 +313,8 @@ export class TsAssetManagementFormComponent implements OnInit, AfterViewInit {
         this.formSubmitted.emit();
         this.activeModal.close(true);
       },
-      error: () => {
-        this.notification.error("Thông báo", "Lỗi");
+      error: (res: any) => {
+        this.notification.error("Thông báo", res.error.message || "Lỗi");
       }
     });
   }

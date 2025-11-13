@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -138,6 +138,10 @@ interface Product {
   //encapsulation: ViewEncapsulation.None
 })
 export class OfficeSupplyRequestsComponent implements OnInit {
+  @ViewChild('officeSupplyRequestTable', { static: false })
+officeSupplyRequestTableRef!: ElementRef;
+
+private officeSupplyRequestTable!: Tabulator;
   table: any;
   table2: any;
   dataTable1: any[] = [];
@@ -182,12 +186,13 @@ export class OfficeSupplyRequestsComponent implements OnInit {
 
   ngOnInit(): void {
     this.getDataDeparment();
-    this.getOfficeSupplyRequest();
+    
   }
 
   ngAfterViewInit(): void {
     this.initTable1();
     this.initTable2();
+    this.getOfficeSupplyRequest();
   }
 
   toggleSearchPanel() {
@@ -218,7 +223,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
   }
 
   getOfficeSupplyRequest(): void {
-    this.isLoading = true;
+  this.isLoading = true;
 
     const deptId =
       this.searchParams.departmentId === null ||

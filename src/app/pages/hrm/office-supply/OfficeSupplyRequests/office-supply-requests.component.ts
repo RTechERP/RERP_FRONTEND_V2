@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -137,6 +137,10 @@ interface Product {
   //encapsulation: ViewEncapsulation.None
 })
 export class OfficeSupplyRequestsComponent implements OnInit {
+  @ViewChild('officeSupplyRequestTable', { static: false })
+officeSupplyRequestTableRef!: ElementRef;
+
+private officeSupplyRequestTable!: Tabulator;
   table: any;
   table2: any;
   dataTable1: any[] = [];
@@ -180,12 +184,13 @@ export class OfficeSupplyRequestsComponent implements OnInit {
 
   ngOnInit(): void {
     this.getDataDeparment();
-    this.getOfficeSupplyRequest();
+    
   }
 
   ngAfterViewInit(): void {
     this.initTable1();
     this.initTable2();
+    this.getOfficeSupplyRequest();
   }
 
   toggleSearchPanel() {
@@ -202,55 +207,50 @@ export class OfficeSupplyRequestsComponent implements OnInit {
           this.notification.warning("Thông báo", "Phản hồi không chứa danh sách");
         }
       },
-      error: (err) => {
-        console.error('Lỗi khi lấy đơn vị tính:', err);
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy danh sách phòng ban');
+      error: (res:any) => {
+        console.error('Lỗi khi lấy đơn vị tính:', res);
+        this.notification.error('Thông báo', res.error.message||'Có lỗi xảy ra khi lấy danh sách phòng ban');
       }
     });
   }
 
   getOfficeSupplyRequest(): void {
-    this.isLoading = true;
+  this.isLoading = true;
 
-    const deptId =
-      this.searchParams.departmentId === null || this.searchParams.departmentId === undefined
-        ? 0
-        : this.searchParams.departmentId;
+  const deptId =
+    this.searchParams.departmentId === null || this.searchParams.departmentId === undefined
+      ? 0
+      : this.searchParams.departmentId;
 
-    this.lstDKVPP.getOfficeSupplyRequests(
-      this.searchParams.keyword,
-      this.searchParams.month,
-      0,
+  this.lstDKVPP
+    .getOfficeSupplyRequests(
+      this.searchParams.keyword ?? '',
+      this.searchParams.month ?? new Date(),
       deptId
-    ).subscribe({
+    )
+    .subscribe({
       next: (res) => {
-        if (res && Array.isArray(res.data)) {
+        if (res?.status === 1 && Array.isArray(res.data)) {
           this.listDKVPP = res.data;
-          this.dataTable1 = this.listDKVPP;
-          if (this.table) {
-            this.table.replaceData(this.dataTable1);
-          }
+          this.dataTable1 = [...this.listDKVPP];
+          this.table?.replaceData(this.dataTable1);
         } else {
           this.listDKVPP = [];
           this.dataTable1 = [];
-          if (this.table) {
-            this.table.replaceData([]);
-          }
-          this.notification.warning("Thông báo", "Không tìm thấy dữ liệu phù hợp");
+          this.table?.replaceData([]);
+          this.notification.warning('Thông báo', 'Không tìm thấy dữ liệu phù hợp');
         }
       },
-      error: () => {
-        this.dataTable1 = [];
-        if (this.table) {
-          this.table.replaceData([]);
-        }
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
+      error: (err) => {
+        console.error(err);
+        this.table?.replaceData([]);
+        this.notification.error('Lỗi', 'Không thể tải dữ liệu, kiểm tra lại kết nối API');
       },
       complete: () => {
         this.isLoading = false;
-      }
+      },
     });
-  }
+}
 
 
   private initTable1(): void {

@@ -114,21 +114,28 @@ export class TsAssetRecoveryFormComponent implements OnInit, AfterViewInit {
       this.emPloyeeLists = respon.data;
       console.log(this.emPloyeeLists);
       if (this.dataInput?.EmployeeReturnID) {
-        this.onEmployeeReturnChange(this.dataInput.EmployeeReturnID);
+         this.onEmployeeReturnChange(this.dataInput.EmployeeReturnID, false);
       }
       if (this.dataInput?.EmployeeRecoveryID) {
         this.onEmployeeRecoveryChange(this.dataInput.EmployeeRecoveryID);
       }
     });
   }
-  onEmployeeReturnChange(id: number): void {
-    const emp = this.emPloyeeLists.find(x => x.ID === id);
-    if (emp) {
-      this.dataInput.EmployeeReturnID = emp.ID;
-      this.dataInput.DepartmentReturn = emp.DepartmentName;;
-      this.dataInput.PossitionReturn = emp.ChucVuHD;
-    }
+onEmployeeReturnChange(id: number, clearDetails: boolean = true): void {
+  if (clearDetails) this.resetDetails();
+
+  const emp = this.emPloyeeLists.find(x => x.ID === id);
+  if (emp) {
+    this.dataInput.EmployeeReturnID   = emp.ID;
+    this.dataInput.DepartmentReturn   = emp.DepartmentName;
+    this.dataInput.PossitionReturn    = emp.ChucVuHD;
+  } else {
+    // trường hợp user bấm clear trong nz-select
+    this.dataInput.EmployeeReturnID   = null;
+    this.dataInput.DepartmentReturn   = '';
+    this.dataInput.PossitionReturn    = '';
   }
+}
   onEmployeeRecoveryChange(id: number): void {
     const emp = this.emPloyeeLists.find(x => x.ID === id);
     if (emp) {
@@ -178,7 +185,7 @@ export class TsAssetRecoveryFormComponent implements OnInit, AfterViewInit {
         { title: 'Tên tài sản', field: 'TSAssetName' },
         { title: 'Số lượng', field: 'Quantity', headerHozAlign: 'center' },
         { title: 'Tình trạng', field: 'Status', headerHozAlign: 'center', visible: false },
-        { title: 'Ghi chú', field: 'Note' }
+        { title: 'Ghi chú', field: 'Note', editor:'input' }
       ]
     });
   }
@@ -186,32 +193,91 @@ export class TsAssetRecoveryFormComponent implements OnInit, AfterViewInit {
     this.closeModal.emit();
     this.activeModal.dismiss('cancel');
   }
-  onSelectAssetRecovery() {
-    const modalRef = this.ngbModal.open(TsAssetRecoveryByEmployeeComponent, {
-      size: 'lg',
-      backdrop: 'static',
-      keyboard: false,
-      centered: true
-    });
-    modalRef.componentInstance.dataInput1 = {
-      EmployeeReturnID: this.dataInput.EmployeeReturnID,
-      RecoverID: this.dataInput.ID
-    };
-    modalRef.componentInstance.formSubmitted.subscribe((selectedAssets: any[]) => {
-      if (selectedAssets && selectedAssets.length > 0) {
-        this.recoveryTable?.addData(selectedAssets);
-        this.getRecovery();
-      }
-    });
-    modalRef.result.catch(() => {
-      console.log('Modal dismissed');
-    });
+  private resetDetails(): void {
+  this.assetRecoveryDetailData = [];
+  if (this.recoveryTable) this.recoveryTable.setData([]);
+}
+ onSelectAssetRecovery() {
+  if (!this.dataInput?.EmployeeReturnID) {
+    this.notification.warning('Thông báo', 'Vui lòng chọn nhân viên trả tài sản trước khi chọn tài sản.');
+    return;
   }
-  saveRecovery() {
-    if (!this.recoveryTable) {
-      return;
+
+  const modalRef = this.ngbModal.open(TsAssetRecoveryByEmployeeComponent, {
+    size: 'lg',
+    backdrop: 'static',
+    keyboard: false,
+    centered: true
+  });
+
+  // Lấy các AssetManagementID đã có trong bảng chi tiết hiện tại
+  const existingIds: number[] = (this.recoveryTable?.getData() || [])
+    .map((r: any) => Number(r.AssetManagementID))
+    .filter((x: any) => Number.isFinite(x));
+
+  modalRef.componentInstance.dataInput1 = {
+    EmployeeReturnID: this.dataInput.EmployeeReturnID,
+    RecoverID: this.dataInput.ID || 0,
+    existingIds, // <-- truyền xuống modal
+  };
+
+  modalRef.componentInstance.formSubmitted.subscribe((selectedAssets: any[]) => {
+    if (!selectedAssets?.length) return;
+
+    // Lọc lần 2 ở cha để chắc chắn không trùng
+    const current = new Set(
+      (this.recoveryTable?.getData() || []).map((r: any) => Number(r.AssetManagementID))
+    );
+    const dedup = selectedAssets.filter(x => !current.has(Number(x.AssetManagementID)));
+
+    const skipped = selectedAssets.length - dedup.length;
+    if (skipped > 0) {
+      this.notification.warning('Thông báo', `Bỏ qua ${skipped} tài sản trùng.`);
     }
-    const selectedAssets = this.recoveryTable.getData();
+
+    if (dedup.length) this.recoveryTable?.addData(dedup);
+    this.getRecovery();
+  });
+
+  modalRef.result.catch(() => {});
+}
+
+  saveRecovery() {
+ if (!this.dataInput?.EmployeeRecoveryID) {
+    this.notification.warning('Thông báo', 'Vui lòng chọn người thu hồi.');
+    return;
+  }
+
+  if (!this.dataInput?.EmployeeReturnID) {
+    this.notification.warning('Thông báo', 'Vui lòng chọn nhân viên trả tài sản.');
+    return;
+  }
+
+  if (this.dataInput.EmployeeRecoveryID === this.dataInput.EmployeeReturnID) {
+    this.notification.warning('Thông báo', 'Người thu hồi và người bị thu hồi không được trùng nhau.');
+    return;
+  }
+
+  if (!this.dataInput?.DateRecovery) {
+    this.notification.warning('Thông báo', 'Vui lòng chọn ngày thu hồi.');
+    return;
+  }
+
+  if (!this.dataInput?.Note || this.dataInput.Note.trim() === '') {
+    this.notification.warning('Thông báo', 'Vui lòng nhập ghi chú.');
+    return;
+  }
+
+  if (!this.recoveryTable) {
+    this.notification.warning('Thông báo', 'Bảng chi tiết chưa khởi tạo.');
+    return;
+  }
+
+  const selectedAssets = this.recoveryTable.getData();
+  if (!selectedAssets || selectedAssets.length === 0) {
+    this.notification.warning('Thông báo', 'Chưa có tài sản trong danh sách.');
+    return;
+  }
     const payloadRecovery = {
       tSAssetRecovery: {
         ID: this.dataInput.ID || 0,
@@ -232,7 +298,7 @@ export class TsAssetRecoveryFormComponent implements OnInit, AfterViewInit {
         TSAssetRecoveryID: item.TSAssetRecoveryID || 0,
         AssetManagementID: item.AssetManagementID || 0,
         Quantity: item.Quantity || 1,
-        Note: ""
+        Note: item.Note||""
       }))
     };
 

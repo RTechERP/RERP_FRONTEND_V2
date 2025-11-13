@@ -8,7 +8,7 @@ import { environment } from '../../../../environments/environment';
 })
 export class VehicleManagementService {
   private host = environment.host + 'api/';
-  private url = `${this.host}api/vehiclemanagement/`;
+  private url = `${environment.host}api/vehiclemanagement/`;
   constructor(private http: HttpClient) {}
 
   getVehicleManagement() {

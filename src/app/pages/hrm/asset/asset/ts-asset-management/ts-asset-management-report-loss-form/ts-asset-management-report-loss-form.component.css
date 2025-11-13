@@ -102,3 +102,24 @@ legend {
 .fs-12 {
   font-size: 0.75rem;
 }
+:host {
+  font-size: 12px !important;
+}
+
+:host ::ng-deep .modal-content,
+:host ::ng-deep .modal-body,
+:host ::ng-deep .modal-footer,
+:host ::ng-deep .form-control,
+:host ::ng-deep .form-label,
+:host ::ng-deep legend,
+:host ::ng-deep label,
+:host ::ng-deep button,
+:host ::ng-deep input,
+:host ::ng-deep textarea,
+:host ::ng-deep nz-select,
+:host ::ng-deep .ant-select-selector,
+:host ::ng-deep .ant-select-item,
+:host ::ng-deep .ant-select-selection-item {
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+}

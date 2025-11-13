@@ -60,7 +60,7 @@
         <label for="departmentRecovery" class="fs-12">
           Phòng ban (Người thu hồi) <span style="color: red;">(*)</span>
         </label>
-        <input id="departmentRecovery" name="DepartmentRecovery" [(ngModel)]="dataInput.DepartmentRecovery" type="text" class="form-control form-control-sm fs-12" readonly />
+        <input id="departmentRecovery" name="DepartmentRecovery" [(ngModel)]="dataInput.DepartmentRecovery" type="text" class="form-control form-control-sm fs-12" disabled />
       </div>
     </div>
     <!-- Phòng ban (Thu hồi từ) -->
@@ -69,7 +69,7 @@
         <label for="departmentReturn" class="fs-12">
           Phòng ban (Thu hồi từ) <span style="color: red;">(*)</span>
         </label>
-        <input id="departmentReturn" name="departmentReturn"  [(ngModel)]="dataInput.DepartmentReturn"  type="text" class="form-control form-control-sm fs-12" readonly />
+        <input id="departmentReturn" name="departmentReturn"  [(ngModel)]="dataInput.DepartmentReturn"  type="text" class="form-control form-control-sm fs-12" disabled />
       </div>
     </div>
     <!-- Chức vụ (Người thu hồi) -->
@@ -78,7 +78,7 @@
         <label for="positionRecovery" class="fs-12">
           Chức vụ (Người thu hồi) <span style="color: red;">(*)</span>
         </label>
-        <input id="positionRecovery" name="positionRecovery" [(ngModel)]="dataInput.PossitionRecovery" type="text" class="form-control form-control-sm fs-12" readonly />
+        <input id="positionRecovery" name="positionRecovery" [(ngModel)]="dataInput.PossitionRecovery" type="text" class="form-control form-control-sm fs-12" disabled />
       </div>
     </div>
     <!-- Chức vụ (Thu hồi từ) -->
@@ -87,7 +87,7 @@
         <label for="positionReturn" class="fs-12">
           Chức vụ (Thu hồi từ) <span style="color: red;">(*)</span>
         </label>
-        <input id="positionReturn" type="text" name="positionReturn" [(ngModel)]="dataInput.PossitionReturn" class="form-control form-control-sm fs-12" readonly />
+        <input id="positionReturn" type="text" name="positionReturn" [(ngModel)]="dataInput.PossitionReturn" class="form-control form-control-sm fs-12" disabled />
       </div>
     </div>
     <!-- Lý do -->
@@ -117,6 +117,6 @@
     </nz-row>
 </div>
 <div class="modal-footer">
-  <button nz-button nzType="default" (click)="close()">Đóng</button>
-  <button nz-button nzType="primary" (click)="saveRecovery()">Lưu dữ liệu</button>
+  <button nz-button nzDanger nzType="default" (click)="close()">Đóng</button>
+  <button nz-button nzType="primary" (click)="saveRecovery()">Lưu</button>
 </div>

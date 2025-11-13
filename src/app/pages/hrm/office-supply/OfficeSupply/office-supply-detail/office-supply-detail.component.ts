@@ -212,4 +212,18 @@ clearSupplyUnit() {
   closeModal() {
     this.activeModal.dismiss('cancel');
   }
+ priceFormatter = (value: number | string | null): string => {
+  if (value == null || value === '') return '';
+  const num = typeof value === 'number' ? value : Number(value);
+  if (isNaN(num)) return '';
+
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + 'đ';
+}
+
+priceParser = (value: string): number => {
+  if (!value) return 0;
+  const cleaned = value.replace(/(,|đ|\s)/g, '');
+  const num = Number(cleaned);
+  return isNaN(num) ? 0 : num;
+};
 }

@@ -60,7 +60,7 @@
         <label for="DepartmentDeliver" class="fs-12">
          Từ phòng ban <span style="color: red;">(*)</span>
         </label>
-        <input id="DepartmentDeliver" name="DepartmentDeliver" [(ngModel)]="dataInput.DepartmentDeliver" type="text" class="form-control form-control-sm fs-12" readonly />
+        <input id="DepartmentDeliver" name="DepartmentDeliver" [(ngModel)]="dataInput.DepartmentDeliver" type="text" class="form-control form-control-sm fs-12" disabled />
       </div>
     </div>
     <!-- Đến phòng ban -->
@@ -69,7 +69,7 @@
         <label for="DepartmentReceiver" class="fs-12">
           Đến phòng ban <span style="color: red;">(*)</span>
         </label>
-        <input id="DepartmentReceiver" name="DepartmentReceiver"  [(ngModel)]="dataInput.DepartmentReceiver"  type="text" class="form-control form-control-sm fs-12" readonly />
+        <input id="DepartmentReceiver" name="DepartmentReceiver"  [(ngModel)]="dataInput.DepartmentReceiver"  type="text" class="form-control form-control-sm fs-12" disabled />
       </div>
     </div>
     <!-- Từ chức vụ -->
@@ -78,7 +78,7 @@
         <label for="PossitionDeliver" class="fs-12">
           Từ chức vụ <span style="color: red;">(*)</span>
         </label>
-        <input id="PossitionDeliver" name="PossitionDeliver" [(ngModel)]="dataInput.PossitionDeliver" type="text" class="form-control form-control-sm fs-12" readonly />
+        <input id="PossitionDeliver" name="PossitionDeliver" [(ngModel)]="dataInput.PossitionDeliver" type="text" class="form-control form-control-sm fs-12" disabled />
       </div>
     </div>
     <!-- Đến chức vụ -->
@@ -87,7 +87,7 @@
         <label for="PossitionReceiver" class="fs-12">
           Đến chức vụ <span style="color: red;">(*)</span>
         </label>
-        <input id="PossitionReceiver" type="text" name="PossitionReceiver" [(ngModel)]="dataInput.PossitionReceiver" class="form-control form-control-sm fs-12" readonly />
+        <input id="PossitionReceiver" type="text" name="PossitionReceiver" [(ngModel)]="dataInput.PossitionReceiver" class="form-control form-control-sm fs-12" disabled />
       </div>
     </div>
     <!-- Lý do -->
@@ -107,7 +107,7 @@
       <button nz-button nzType="dashed" class="me-2 mt-2" (click)="OpenModalAsset()" >
         <i class="fas fa-plus me-2"></i>Chọn tài sản
       </button>
-      <button nz-button nzType="dashed">+ Thêm dòng</button>
+   
     </nz-col>
   </nz-row>
 <nz-row class="mt-3 me-2">
@@ -121,6 +121,6 @@
 </nz-row>
 </div>
 <div class="modal-footer">
-  <button nz-button nzType="default" (click)="close()">Đóng</button>
-  <button nz-button nzType="primary" (click)="saveTranfer()">Lưu dữ liệu</button>
+  <button nz-button nzDanger nzType="default" (click)="close()">Đóng</button>
+  <button nz-button nzType="primary" (click)="saveTranfer()">Lưu</button>
 </div>

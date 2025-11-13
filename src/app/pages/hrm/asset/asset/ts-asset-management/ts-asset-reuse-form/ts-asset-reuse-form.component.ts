@@ -48,7 +48,7 @@ export class TsAssetReuseFormComponent implements OnInit, AfterViewInit {
   reason: string = "";
   employeeIDLiqui: number | null = null;
   dateRepair: string = '';
-  name: string = '';
+  repairUnitName: string = '';
   dateEndRepair: string = '';
   dateReuse: string = '';
   actualCosts: number | null = null
@@ -153,7 +153,7 @@ export class TsAssetReuseFormComponent implements OnInit, AfterViewInit {
       this.notification.error('Thông báo', 'Vui lòng nhập nội dung sửa chữa.');
       return false;
     }
-        if (!this.dataInput1.Name || this.dataInput1.Name.trim() === '') {
+        if (!this.dataInput1.repairUnitName || this.dataInput1.repairUnitName.trim() === '') {
       this.notification.error('Thông báo', 'Vui lòng nhập đơn vị sửa chữa.');
       return false;
     }

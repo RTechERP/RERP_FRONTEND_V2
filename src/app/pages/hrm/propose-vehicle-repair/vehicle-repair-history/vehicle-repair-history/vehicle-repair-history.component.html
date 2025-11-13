@@ -1,5 +1,5 @@
 <ng-container class="w-100">
-    <nz-splitter style="height: 80vh; ">
+    <nz-splitter>
         <nz-splitter-panel [nzSize]="'100%'">
             <div class="card  border-0 rounded-0">
                 <div class="card-header  bg-white p-1">
@@ -57,9 +57,9 @@
 
 
                 <nz-splitter class="split-responsive">
-                    <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
-                        <div id="tb_vehicleManagement"></div>
-                    </nz-splitter-panel>
+                <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
+  <div #tbVehicleManagement></div>
+</nz-splitter-panel>
 
                     <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" [nzSize]="sizeTbDetail">
                         <nz-tabset style="height: 100%;">

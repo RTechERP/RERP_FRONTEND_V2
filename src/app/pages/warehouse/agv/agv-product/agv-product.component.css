@@ -1,0 +1,50 @@
+/* Áp dụng cho mobile (hoặc breakpoint bạn muốn) */
+@media (max-width: 991.98px) {
+  /* Khi chưa show: ẩn mặc định */
+  #navbarTogglerDemo01.collapse {
+    display: none !important;
+    transition: none !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Khi đang trong quá trình collapsing (bootstrap) — làm cho nó hiển thị ngay như dropdown */
+  #navbarTogglerDemo01.collapsing {
+    display: block !important;
+    position: absolute !important;
+    right: 1rem !important;
+    top: 56px !important; /* điều chỉnh theo chiều cao navbar của bạn */
+    width: 240px !important; /* chiều rộng dropdown */
+    z-index: 1000 !important;
+    transition: none !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Khi đã show (thực tế là dropdown) */
+  #navbarTogglerDemo01.collapse.show {
+    display: block !important;
+    position: absolute !important;
+    right: 1rem !important;
+    top: 56px !important;
+    width: 240px !important;
+    z-index: 1000 !important;
+    border-radius: 0.5rem;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  }
+
+  /* Chuyển menu thành cột trong dropdown */
+  #navbarTogglerDemo01 .navbar-nav {
+    flex-direction: column !important;
+    padding: 0.5rem;
+  }
+
+  /* Tùy chỉnh form / input trong dropdown */
+  #navbarTogglerDemo01 .form-control {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+  #navbarTogglerDemo01 .btn {
+    width: 100%;
+  }
+}

@@ -336,10 +336,6 @@ nz-sider {
   /* giảm padding */
 }
 
-.bell-icon:hover {
-  animation: ring 0.5s ease-in-out infinite;
-}
-
 .user-icon {
   width: 24px;
   height: 24px;
@@ -446,7 +442,11 @@ nz-sider {
 .ant-menu-item {
   padding: 0 16px !important;
 } */
-
+/* 
 :ng-deep .ant-menu-submenu .ant-menu-item {
   padding: 0 16px !important;
-}
+} */
+
+/* ::ng-deep .ant-menu-inline.ant-menu-root .ant-menu-submenu-title {
+  padding-left: 0 !important;
+} */

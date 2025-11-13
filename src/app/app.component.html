@@ -1,5 +1,5 @@
 <nz-layout class="app-layout">
-    <nz-sider class="menu-sidebar" nzCollapsible nzWidth="200px" nzBreakpoint="md" [(nzCollapsed)]="isCollapsed"
+    <nz-sider class="menu-sidebar" nzCollapsible nzWidth="270px" nzBreakpoint="md" [(nzCollapsed)]="isCollapsed"
         [nzTrigger]="null" nzTheme="light">
         <div class="sidebar-logo d-flex justify-content-center align-items-center" nzTheme="light">
             <a routerLink="/home" class="text-center">
@@ -73,7 +73,7 @@
                 <div class="header-trigger">
                     <button nz-button nz-dropdown [nzDropdownMenu]="appmenu" nzPlacement="bottomRight" nzType="text"
                         class=" text-light" nzTrigger="click">
-                        <nz-icon nzType="appstore" nzTheme="outline" />
+                        <img src="assets/icon/app_store.svg" width="16">
                     </button>
 
                     <nz-dropdown-menu #appmenu="nzDropdownMenu">
@@ -94,13 +94,13 @@
                     <app-app-notifycation-dropdown [items]="notifItems" (itemClick)="onPick($event)">
                         <button nz-button nzType="text" class="text-light fs-7" trigger>
                             <nz-badge [nzOverflowCount]="9" [nzCount]="notifItems.length" class="fs-7">
-                                <img src="assets/icon/notification.png" class="bell-icon">
+                                <img src="assets/icon/notification_home.svg" width="16" class="bell-icon">
                             </nz-badge>
                         </button>
                     </app-app-notifycation-dropdown>
                     <app-app-user-dropdown>
                         <button nz-button nzType="text" trigger>
-                            <img src="assets/icon/user.png">
+                            <img src="assets/icon/user.svg" width="16">
                         </button>
                     </app-app-user-dropdown>
                 </div>

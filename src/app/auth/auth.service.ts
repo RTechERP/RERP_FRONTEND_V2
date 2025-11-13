@@ -32,7 +32,7 @@ export class AuthService {
           // Gọi getCurrentUser ngay sau khi login thành công
           this.getCurrentUser().subscribe({
             next: (userResponse) => {
-              //   console.log('getCurrentUser success after login:', userResponse);
+              console.log('getCurrentUser success after login:', userResponse);
               this.permissionService.refreshPermissions();
             },
             error: (error) => {

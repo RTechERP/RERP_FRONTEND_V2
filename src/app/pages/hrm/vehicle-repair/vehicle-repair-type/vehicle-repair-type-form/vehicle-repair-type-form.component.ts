@@ -1,5 +1,18 @@
-import { Component, OnInit, Input, Output, EventEmitter, inject, AfterViewInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import {
+  Component,
+  OnInit,
+  Input,
+  Output,
+  EventEmitter,
+  inject,
+  AfterViewInit,
+} from '@angular/core';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -32,10 +45,10 @@ import { HasPermissionDirective } from '../../../../../directives/has-permission
     NzButtonModule,
     NzModalModule,
     NzFormModule,
-    HasPermissionDirective
+    HasPermissionDirective,
   ],
   templateUrl: './vehicle-repair-type-form.component.html',
-  styleUrl: './vehicle-repair-type-form.component.css'
+  styleUrl: './vehicle-repair-type-form.component.css',
 })
 export class VehicleRepairTypeFormComponent implements OnInit, AfterViewInit {
   constructor(
@@ -118,4 +131,19 @@ export class VehicleRepairTypeFormComponent implements OnInit, AfterViewInit {
     });
   }
 
+    this.vehicleRepairService.saveData(payload).subscribe({
+      next: () => {
+        if (isEdit) {
+          this.notification.success('Thành công', 'Sửa loại thành công');
+        } else {
+          this.notification.success('Thành công', 'Thêm loại thành công');
+        }
+        this.formSubmitted.emit();
+        this.activeModal.close(true);
+      },
+      error: (res: any) => {
+        this.notification.error('Lỗi', res.error?.message || 'Có lỗi xảy ra');
+      },
+    });
+  }
 }

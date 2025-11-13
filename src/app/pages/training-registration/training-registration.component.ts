@@ -77,7 +77,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../tabulator-default.config';
     NzLayoutModule,
     NzCardModule,
     HasPermissionDirective,
-    DisablePermissionDirective, // Thêm directive mới
+    // DisablePermissionDirective, // Thêm directive mới
   ],
 })
 export class TrainingRegistrationComponent implements OnInit, AfterViewInit {

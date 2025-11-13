@@ -272,7 +272,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
         {
           data: this.vehicleRepairHistorys,
 
-          selectableRows: true,
+          selectableRows: 1,
           paginationMode: 'local',
           height: '80vh',
           columns: [
@@ -610,7 +610,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
   private detailCache = new Map<number, any[]>();
   editProposeVehicleRepair() {
     const sel = this.vehicleRepairHistoryTable?.getSelectedData() || [];
-    if (!sel.length) { this.notification.warning('Thông báo', 'Chọn một dòng nhà cung cấp đề xuất để bổ sung thông tin'); return; }
+    if (!sel.length) { this.notification.warning('Thông báo', 'Chọn một dòng nhà cung cấp trong danh sách lịch sử sửa chữa để bổ sung thông tin sửa chữa'); return; }
 
     const rowData = { ...sel[0] };
     const details = this.detailCache.get(rowData.ID) || null;
@@ -674,8 +674,6 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
       }
 
       // gom file theo ID history
-
-
       // sheet theo xe
       const wsName = this.safeSheetName(`${v?.VehicleName || 'Xe'} - ${v?.LicensePlate || v?.ID}`);
       const ws = outWb.addWorksheet(wsName);
@@ -717,9 +715,7 @@ const display = `${vehicleName}`.toUpperCase();
         { key: 'AddressGara' },
         { key: 'SDTGara' },
         { key: 'Note' },
-
       ];
-
       // chuẩn hóa data theo mapping
       const data = rows.map((r: any, i: number) => {
         const hid = Number(r?.ID ?? 0);

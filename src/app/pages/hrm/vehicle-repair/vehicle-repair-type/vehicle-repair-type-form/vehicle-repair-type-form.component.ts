@@ -59,7 +59,7 @@ export class VehicleRepairTypeFormComponent implements OnInit, AfterViewInit {
     this.formGroup = this.fb.group({
       RepairTypeName: [null, [Validators.required, Validators.maxLength(100)]],
       RepairTypeCode: ['', [Validators.required, Validators.maxLength(100)]],
-      Note: ['', [Validators.required, Validators.maxLength(500)]],
+      Note: ['']
     });
   }
   public activeModal = inject(NgbActiveModal);
@@ -73,17 +73,19 @@ export class VehicleRepairTypeFormComponent implements OnInit, AfterViewInit {
       this.formGroup.patchValue({
         RepairTypeName: this.dataInput.RepairTypeName ?? '',
         RepairTypeCode: this.dataInput.RepairTypeCode ?? '',
-        Note: this.dataInput.Note ?? '',
+        Note: this.dataInput.Note ?? ''
       });
     }
   }
-  ngAfterViewInit(): void {}
+  ngAfterViewInit(): void {
+
+  }
   close() {
     this.closeModal.emit();
     this.activeModal.dismiss('cancel');
   }
   private trimAllStringControls() {
-    Object.keys(this.formGroup.controls).forEach((k) => {
+    Object.keys(this.formGroup.controls).forEach(k => {
       const c = this.formGroup.get(k);
       const v = c?.value;
       if (typeof v === 'string') c!.setValue(v.trim(), { emitEvent: false });
@@ -107,11 +109,27 @@ export class VehicleRepairTypeFormComponent implements OnInit, AfterViewInit {
         ID: this.dataInput?.ID || 0,
         RepairTypeName: formValue.RepairTypeName,
         RepairTypeCode: formValue.RepairTypeCode,
-        Note: formValue.Note,
-      },
+        Note: formValue.Note
+      }
     };
 
     console.log('Payload', payload);
+
+    this.vehicleRepairService.saveData(payload).subscribe({
+      next: () => {
+        if (isEdit) {
+          this.notification.success('Thành công', 'Sửa loại thành công');
+        } else {
+          this.notification.success('Thành công', 'Thêm loại thành công');
+        }
+        this.formSubmitted.emit();
+        this.activeModal.close(true);
+      },
+      error: (res: any) => {
+        this.notification.error('Lỗi', res.error?.message || 'Có lỗi xảy ra');
+      }
+    });
+  }
 
     this.vehicleRepairService.saveData(payload).subscribe({
       next: () => {

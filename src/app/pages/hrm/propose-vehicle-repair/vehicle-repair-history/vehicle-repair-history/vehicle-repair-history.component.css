@@ -192,3 +192,7 @@
     flex-direction: row;
   }
 }
+::ng-deep .ant-tabs-tab-btn {
+  padding: 6px 12px !important;
+  
+}

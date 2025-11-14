@@ -329,7 +329,7 @@ export class MenuService {
               {
                 kind: 'leaf',
                 key: 'TsAssetManagementPersonalTypeComponent',
-                title: 'Loại tài sản cá nhân',
+                title: 'Loại tài sản',
                 isOpen: true,
                 isPermission:
                   this.permissionService.hasPermission('N23,N52,N1,N36,N34'),
@@ -339,7 +339,7 @@ export class MenuService {
               {
                 kind: 'leaf',
                 key: 'TsAssetAllocationPersonalComponent',
-                title: 'Cấp phát tài sản cá nhân',
+                title: 'Cấp phát',
                 isOpen: true,
                 isPermission:
                   this.permissionService.hasPermission('N23,N52,N1,N67,N36'),
@@ -349,7 +349,7 @@ export class MenuService {
               {
                 kind: 'leaf',
                 key: 'TsAssetRecoveryPersonalComponent',
-                title: 'Thu hồi tài sản cá nhân',
+                title: 'Thu hồi',
                 isOpen: true,
                 isPermission:
                   this.permissionService.hasPermission('N23,N52,N1,N67,N36'),
@@ -359,24 +359,24 @@ export class MenuService {
             ],
           },
 
-          {
-            kind: 'leaf',
-            key: 'VehicleRepairComponent',
-            title: 'Danh sách xe sửa chữa',
-            isOpen: true,
-            isPermission: this.permissionService.hasPermission(''),
-            comp: VehicleRepairComponent,
-            //   icon: 'assets/icon/layers.png',
-          },
-          {
-            kind: 'leaf',
-            key: 'VehicleRepairTypeComponent',
-            title: 'Danh sách loại sửa chữa',
-            isOpen: true,
-            isPermission: this.permissionService.hasPermission(''),
-            comp: VehicleRepairTypeComponent,
-            //   icon: 'assets/icon/layers.png',
-          },
+          //   {
+          //     kind: 'leaf',
+          //     key: 'VehicleRepairComponent',
+          //     title: 'Xe sửa chữa',
+          //     isOpen: true,
+          //     isPermission: this.permissionService.hasPermission(''),
+          //     comp: VehicleRepairComponent,
+          //     //   icon: 'assets/icon/layers.png',
+          //   },
+          //   {
+          //     kind: 'leaf',
+          //     key: 'VehicleRepairTypeComponent',
+          //     title: 'Loại sửa chữa',
+          //     isOpen: true,
+          //     isPermission: this.permissionService.hasPermission(''),
+          //     comp: VehicleRepairTypeComponent,
+          //     //   icon: 'assets/icon/layers.png',
+          //   },
           {
             kind: 'leaf',
             key: 'DepartmentComponent',
@@ -415,7 +415,7 @@ export class MenuService {
               {
                 kind: 'leaf',
                 key: 'VehicleRepairTypeComponent',
-                title: 'Danh sách loại sửa chữa',
+                title: 'Loại sửa chữa',
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission('N2,N34,N1'),
                 comp: VehicleRepairTypeComponent,
@@ -424,7 +424,7 @@ export class MenuService {
               {
                 kind: 'leaf',
                 key: 'ProposeVehicleRepairComponent',
-                title: 'Danh sách  đề xuất sửa chữa',
+                title: 'Đề xuất sửa chữa',
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission('N2,N34,N1'),
                 comp: ProposeVehicleRepairComponent,
@@ -433,7 +433,7 @@ export class MenuService {
               {
                 kind: 'leaf',
                 key: 'VehicleRepairHistory',
-                title: 'Danh sách lịch sử sửa chữa',
+                title: 'Lịch sử sửa chữa',
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission('N2,N34,N1'),
                 comp: VehicleRepairHistoryComponent,

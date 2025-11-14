@@ -28,7 +28,7 @@
   height: 100%;
 }
 
-.offcanvas-left.show+.project-container {
+.offcanvas-left.show + .project-container {
   margin-left: 300px;
   width: calc(100% - 300px);
 }
@@ -69,10 +69,14 @@
   color: #d9363e;
 }
 
-::ng-deep .ng-select.ng-select-multiple .ng-select-container .ng-value-container .ng-value {
+::ng-deep
+  .ng-select.ng-select-multiple
+  .ng-select-container
+  .ng-value-container
+  .ng-value {
   margin-top: 3px;
   margin-right: 1px;
-  font-size: .75rem;
+  font-size: 0.75rem;
   background-color: #fafafa;
   border: none;
   border-radius: 2px;
@@ -191,8 +195,4 @@
   .split-responsive {
     flex-direction: row;
   }
-}
-::ng-deep .ant-tabs-tab-btn {
-  padding: 6px 12px !important;
-  
 }

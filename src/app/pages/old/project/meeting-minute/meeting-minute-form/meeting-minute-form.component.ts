@@ -56,6 +56,7 @@ import dayjs from 'dayjs';
 import { forkJoin, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 interface MeetingMinutes {
   STT: number;
@@ -276,11 +277,11 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
         if (response.status === 1) {
           this.projectData = response.data || [];
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -880,7 +881,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             this.performSave(formValues, employeeAttendance, customerAttendance, employeeDetails, customerDetails);
         },
         error: (err) => {
-            this.notification.error('Lỗi', 'Upload file thất bại!');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Upload file thất bại!');
         },
       });
     } else {
@@ -1040,7 +1041,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             {
               title: 'Mã nhân viên',
               field: 'EmployeeID',
-            
+
               headerHozAlign: 'center',
             frozen: true,
               editor: this.createdControl(
@@ -1119,7 +1120,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             field: 'Section',
             headerHozAlign: 'center',
             editor: true,
-          
+
           },
         ],
       }
@@ -1334,7 +1335,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
                   field: 'EmployeeID',
                   hozAlign: 'left',
                   headerHozAlign: 'center',
-     
+
                   editor: this.createdControl(
                     SelectControlComponent,
                     this.injector,
@@ -1673,7 +1674,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
                       f['ServerPath'] === rowData['ServerPath'] &&
                       f['ID'] === rowData['ID']
                   );
-  
+
                   if (index > -1) {
                     const deletedFile = this.fileDatas[index];
                     if (deletedFile['ID']) {
@@ -1681,7 +1682,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
                     }
                     this.fileDatas.splice(index, 1);
                   }
-  
+
                   row.delete();
                 },
               });
@@ -1743,42 +1744,42 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
     fileInput.type = 'file';
     fileInput.multiple = false;
     fileInput.style.display = 'none';
-  
+
     const cleanup = () => {
       if (fileInput.parentNode) {
         fileInput.parentNode.removeChild(fileInput);
       }
     };
-  
+
     const handleFileChange = (event: Event) => {
       const target = event.target as HTMLInputElement;
       const files = target.files;
-  
+
       if (!files || files.length === 0) {
         cleanup();
         return;
       }
-  
+
       const file = files[0];
       const fileName = file.name;
-  
+
       // 1. Cập nhật dữ liệu trong Tabulator row
       row.update({
         FileName: fileName,
         File: file,
         // Không cần gán ID, OriginPath, ServerPath ở đây nếu chưa có
       });
-  
+
       // 2. Lấy dữ liệu hiện tại của row
       const rowData = row.getData();
-  
+
       // 3. Tìm index trong this.fileDatas (dùng findIndex để tránh lỗi reference)
       const index = this.fileDatas.findIndex(f =>
         f['ID'] === rowData['ID'] &&
         f['FileName'] === rowData['FileName'] &&
         f['ServerPath'] === rowData['ServerPath']
       );
-  
+
       if (index > -1) {
         // 4. Cập nhật trong mảng chính (giữ lại các trường cũ)
         this.fileDatas[index] = {
@@ -1791,19 +1792,19 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
       } else {
 
       }
-  
+
       cleanup();
     };
-  
+
     fileInput.addEventListener('change', handleFileChange);
-  
+
     // Xử lý khi người dùng hủy (click ngoài)
     fileInput.addEventListener('cancel', cleanup);
-  
+
     // Thêm vào DOM và kích hoạt click
     document.body.appendChild(fileInput);
     fileInput.click();
-  
+
     // Dọn dẹp sau 5 phút (tránh rò rỉ)
     setTimeout(cleanup, 300_000);
   }

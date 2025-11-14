@@ -67,6 +67,9 @@ import { InventoryComponent } from '../../../old/Sale/Inventory/inventory.compon
 import { InventoryBorrowNCCComponent } from '../../../old/Sale/Inventory/Modal/inventory-borrow-ncc/inventory-borrow-ncc.component';
 import { BillImportComponent } from '../../../old/Sale/BillImport/bill-import.component';
 import { BillExportComponent } from '../../../old/Sale/BillExport/bill-export.component';
+import { HistoryImportExportComponent } from '../../../old/Sale/HistoryImportExport/history-import-export.component';
+import { HistoryBorrowSaleComponent } from '../../../old/Sale/HistoryBorrowSale/history-borrow-sale.component';
+import { ReportImportExportComponent } from '../../../old/Sale/ReportImportExport/report-import-export.component';
 
 @Injectable({
   providedIn: 'root',
@@ -158,7 +161,7 @@ export class MenuService {
                 title: 'TỒN KHO',
                 isOpen: true,
                 isPermission:
-                  this.permissionService.hasPermission(''),
+                  this.permissionService.hasPermission('N27,N29,N31,N30,N1,N36'),
                 comp: InventoryComponent,
                 //   icon: 'assets/icon/layers.png',
               },
@@ -168,7 +171,7 @@ export class MenuService {
                 title: 'PHIẾU NHẬP',
                 isOpen: true,
                 isPermission:
-                  this.permissionService.hasPermission(''),
+                  this.permissionService.hasPermission('N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'),
                 comp: BillImportComponent,
                 //   icon: 'assets/icon/layers.png',
               },
@@ -178,8 +181,38 @@ export class MenuService {
                 title: 'PHIẾU XUẤT',
                 isOpen: true,
                 isPermission:
-                  this.permissionService.hasPermission(''),
+                  this.permissionService.hasPermission('N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'),
                 comp: BillExportComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+              {
+                kind: 'leaf',
+                key: 'HistoryImportExportComponent',
+                title: 'LỊCH SỬ NHẬP XUẤT',
+                isOpen: true,
+                isPermission:
+                  this.permissionService.hasPermission('N27,N29,N1,N36,N35'),
+                comp: HistoryImportExportComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+              {
+                kind: 'leaf',
+                key: 'HistoryBorrowSaleComponent',
+                title: 'LỊCH SỬ MƯỢN SẢN PHẨM',
+                isOpen: true,
+                isPermission:
+                  this.permissionService.hasPermission(''),
+                comp: HistoryBorrowSaleComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+              { 
+                kind: 'leaf',
+                key: 'ReportImportExportComponent',
+                title: 'BÁO CÁO NHẬP XUẤT',
+                isOpen: true,
+                isPermission:
+                  this.permissionService.hasPermission('N27,N29,N1,N36,N35'),
+                comp: ReportImportExportComponent,
                 //   icon: 'assets/icon/layers.png',
               },
             ]
@@ -665,7 +698,7 @@ export class MenuService {
             key: 'UnitCountComponent',
             title: 'ĐƠN VỊ TÍNH',
             isOpen: true,
-            isPermission: this.permissionService.hasPermission(''),
+            isPermission: this.permissionService.hasPermission('N27,N1'),
             comp: UnitCountComponent,
             //   icon: 'assets/icon/layers.png',
           },
@@ -689,14 +722,14 @@ export class MenuService {
         title: 'MUA HÀNG',
         isOpen: true,
         isPermission: this.permissionService.hasPermission(''),
-        icon: 'assets/icon/menu_categories_24.png',
+        icon: 'assets/icon/ic_purchase_100px.svg',
         children: [
           {
             kind: 'leaf',
             key: 'EmployeePurchaseComponent',
             title: 'NHÂN VIÊN MUA HÀNG',
             isOpen: true,
-            isPermission: this.permissionService.hasPermission(''),
+            isPermission: this.permissionService.hasPermission('N33,N1'),
             comp: EmployeePurchaseComponent,
             //   icon: 'assets/icon/layers.png',
           },
@@ -705,7 +738,7 @@ export class MenuService {
             key: 'RulePayComponent',
             title: 'ĐIỀU KHOẢN THANH TOÁN',
             isOpen: true,
-            isPermission: this.permissionService.hasPermission(''),
+            isPermission: this.permissionService.hasPermission('N22,N33,N35,N1'),
             comp: RulePayComponent,
             //   icon: 'assets/icon/layers.png',
           },
@@ -714,7 +747,7 @@ export class MenuService {
             key: 'CurrencyListComponent',
             title: 'TIỀN TỆ',
             isOpen: true,
-            isPermission: this.permissionService.hasPermission(''),
+            isPermission: this.permissionService.hasPermission('N33,N1'),
             comp: CurrencyListComponent,
             //   icon: 'assets/icon/layers.png',
           },
@@ -723,7 +756,7 @@ export class MenuService {
             key: 'UnitCountComponent',
             title: 'ĐƠN VỊ TÍNH',
             isOpen: true,
-            isPermission: this.permissionService.hasPermission(''),
+            isPermission: this.permissionService.hasPermission('N27,N1'),
             comp: UnitCountComponent,
             //   icon: 'assets/icon/layers.png',
           },
@@ -732,7 +765,7 @@ export class MenuService {
             key: 'FirmComponent',
             title: 'HÃNG',
             isOpen: true,
-            isPermission: this.permissionService.hasPermission(''),
+            isPermission: this.permissionService.hasPermission('N27,N31,N1,N35'),
             comp: FirmComponent,
             //   icon: 'assets/icon/layers.png',
           },

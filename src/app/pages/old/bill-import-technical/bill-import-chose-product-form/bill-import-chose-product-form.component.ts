@@ -230,7 +230,7 @@ export class BillImportChoseProductFormComponent implements OnInit, AfterViewIni
 }
   selectProducts() {
     if (!this.productTable) {
-      this.notification.error('Lỗi', 'Không tìm thấy bảng sản phẩm.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không tìm thấy bảng sản phẩm.');
       return;
     }
     const selectedRows = this.productTable.getSelectedData();

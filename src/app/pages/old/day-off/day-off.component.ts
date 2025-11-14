@@ -29,6 +29,7 @@ import { SummaryDayOffComponent } from './summary-day-off/summary-day-off.compon
 import { DeclareDayOffComponent } from './declare-day-off/declare-day-off.component';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { HasPermissionDirective } from "../../../directives/has-permission.directive";
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 
 @Component({
@@ -71,7 +72,7 @@ export class DayOffComponent implements OnInit, AfterViewInit{
   dayOffList: any[] = [];
 
   sizeSearch: string = '0';
-  sizeTbDetail: any ='0';  
+  sizeTbDetail: any ='0';
 
   isEditModal = false;
   isLoading = false;
@@ -137,11 +138,11 @@ export class DayOffComponent implements OnInit, AfterViewInit{
     this.dayOffService.getEmployeeOnLeave(this.searchForm.value).subscribe({
       next: (data) => {
         this.isLoading = false;
-        this.dayOffList = data.data; 
+        this.dayOffList = data.data;
         this.tabulator.setData(this.dayOffList);
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách ngày nghỉ của nhân viên: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách ngày nghỉ của nhân viên: ' + error.message);
       }
     })
   }
@@ -153,7 +154,7 @@ export class DayOffComponent implements OnInit, AfterViewInit{
         this.employeeList = data.data;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách nhân viên: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách nhân viên: ' + error.message);
       }
     })
   }
@@ -164,7 +165,7 @@ export class DayOffComponent implements OnInit, AfterViewInit{
         this.approverList = data.data;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách người duyệt: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách người duyệt: ' + error.message);
       }
     })
   }
@@ -176,31 +177,31 @@ export class DayOffComponent implements OnInit, AfterViewInit{
         console.log(this.departmentList);
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách phòng ban: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách phòng ban: ' + error.message);
       }
     });
   }
 
-  private initializeTable(): void { 
+  private initializeTable(): void {
     this.tabulator = new Tabulator('#tb_day_off', {
       data: this.dayOffList,
       layout: 'fitColumns',
       selectableRows: true,
       height: '85vh',
       rowHeader: {
-        formatter: "rowSelection", 
-        titleFormatter: "rowSelection", 
-        headerSort: false, 
-        width: 100, 
-        frozen: true, 
-        headerHozAlign: "center", 
+        formatter: "rowSelection",
+        titleFormatter: "rowSelection",
+        headerSort: false,
+        width: 100,
+        frozen: true,
+        headerHozAlign: "center",
         hozAlign: "center"
       },
       rowContextMenu: [
         {
           label: "TBP hủy duyệt hủy đăng ký",
           action: () => {
-            
+
           }
         },
         {
@@ -209,7 +210,7 @@ export class DayOffComponent implements OnInit, AfterViewInit{
 
           }
         }
-      
+
       ],
       groupBy: 'DepartmentName',
       groupHeader: function(value, count, data, group){
@@ -414,7 +415,7 @@ export class DayOffComponent implements OnInit, AfterViewInit{
               this.loadEmployeeOnLeave();
             },
             error: (error) => {
-              this.notification.error('Lỗi', 'Xóa ngày nghỉ đã đăng ký thất bại: ' + error.message);
+              this.notification.error(NOTIFICATION_TITLE.error, 'Xóa ngày nghỉ đã đăng ký thất bại: ' + error.message);
             }
           });
         }
@@ -481,7 +482,7 @@ export class DayOffComponent implements OnInit, AfterViewInit{
       formData.IsApprovedHR = false;
       formData.IsApprovedTP = false;
     }
-    
+
     this.dayOffService.saveEmployeeOnLeave(formData).subscribe({
         next: () => {
           this.notification.success('Thành công', 'Lưu ngày nghỉ thành công');
@@ -489,7 +490,7 @@ export class DayOffComponent implements OnInit, AfterViewInit{
           this.loadEmployeeOnLeave();
         },
         error: (response) => {
-          this.notification.error('Lỗi', 'Lưu ngày nghỉ thất bại: ' + response.error.message);
+          this.notification.error(NOTIFICATION_TITLE.error, 'Lưu ngày nghỉ thất bại: ' + response.error.message);
         },
       });
   }
@@ -648,7 +649,7 @@ export class DayOffComponent implements OnInit, AfterViewInit{
     }
 
     const approveText = isApproved ? 'duyệt' : 'hủy duyệt';
-    
+
     this.modal.confirm({
       nzTitle: 'Thông báo',
       nzContent: `Bạn có chắc muốn ${approveText} danh sách nhân viên đã chọn.\n${message}`,
@@ -681,7 +682,7 @@ export class DayOffComponent implements OnInit, AfterViewInit{
               this.loadEmployeeOnLeave();
             })
             .catch((error) => {
-              this.notification.error('Lỗi', `Cập nhật trạng thái duyệt thất bại: ${error.message}`);
+              this.notification.error(NOTIFICATION_TITLE.error, `Cập nhật trạng thái duyệt thất bại: ${error.message}`);
             });
         }
       }

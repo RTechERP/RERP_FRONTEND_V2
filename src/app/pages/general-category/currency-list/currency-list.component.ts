@@ -12,12 +12,14 @@ import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { AppUserService } from '../../../services/app-user.service';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+
 @Component({
   selector: 'app-currency-list',
   templateUrl: './currency-list.component.html',
   styleUrls: ['./currency-list.component.css'],
   standalone: true,
-  imports: [NzInputModule, FormsModule, CommonModule, NgbModule, NzModalModule,NzSplitterModule,NzIconModule, NzButtonModule],
+  imports: [NzInputModule, FormsModule, CommonModule, NgbModule, NzModalModule,NzSplitterModule,NzIconModule, NzButtonModule, HasPermissionDirective],
 })
 export class CurrencyListComponent implements OnInit {
   currencyData: any[] = [];
@@ -49,7 +51,9 @@ export class CurrencyListComponent implements OnInit {
       }
     });
   }
-
+  onRefresh(): void {
+    this.loadData();
+  }
   private drawCurrencyTable(): void {
     const normalize = (v: any) => {
         if (typeof v === 'number') return v;
@@ -72,8 +76,15 @@ export class CurrencyListComponent implements OnInit {
     };
     const formatNumber = (value: any) =>
         new Intl.NumberFormat('vi-VN', { useGrouping: true }).format(normalize(value));
-    const formatDate = (value: any) =>
-      value ? new Date(value).toLocaleDateString('vi-VN') : '';
+    const formatDate = (value: any) => {
+      if (!value) return '';
+      const date = value instanceof Date ? value : new Date(value);
+      if (isNaN(date.getTime())) return '';
+      const dd = String(date.getDate()).padStart(2, '0');
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const yyyy = date.getFullYear();
+      return `${dd}/${mm}/${yyyy}`;
+    };
 
     this.currencyTable = new Tabulator('#currency-table', {
       data: this.currencyData,
@@ -156,7 +167,7 @@ export class CurrencyListComponent implements OnInit {
           field: 'DateExpriedUnofficialQuota',
           formatter: (cell: CellComponent) => formatDate(cell.getValue()),
         },
-        { title: 'Ghi chú', field: 'Note' },
+        { title: 'Ghi chú', field: 'Note', width: 200 },
       ],
       rowSelectionChanged: (data: any[]) => {
         this.selectedCurrency = data.length === 1 ? data[0] : null;

@@ -55,6 +55,10 @@ import { SelectControlComponent } from '../../../BillExport/Modal/select-control
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { BillImportChoseSerialComponent } from '../../../../bill-import-technical/bill-import-chose-serial/bill-import-chose-serial.component';
+import { AppUserService } from '../../../../../../services/app-user.service';
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
+
+
 interface ProductSale {
   Id?: number;
   ProductCode: string;
@@ -117,12 +121,14 @@ interface BillImport {
 export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestroy {
 
   isVisible: boolean = true;
+  private warehouseIdHN: number = 0;
+  warehouses: any[] = [];
   table_billImportDetail: any;
   dataTableBillImportDetail: any[] = [];
   table_DocumnetImport: any;
   dataTableDocumnetImport: any[] = [];
 
-  WarehouseName = "HN";
+ @Input() WarehouseCode = "HN";
   isLoading: boolean = false;
   deletedDetailIds: number[] = [];
 
@@ -141,7 +147,8 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
   productOptions: any = [];
   projectOptions: any = [];
   billID: number = 0;
-  //tao phieu tra 
+  deliverID:number = 0;
+  //tao phieu tra
   @Input() createImport: any;
   @Input() dataHistory: any[] = [];
   //
@@ -152,7 +159,6 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
   cbbStatus: any = [
     { ID: 0, Name: "Phiếu nhập kho" },
     { ID: 1, Name: "Phiếu trả" },
-    //new {ID = 2, Name = "PTNB"},
     { ID: 3, Name: "Phiếu mượn NCC" },
     { ID: 4, Name: "Yêu cầu nhập kho" }
   ];
@@ -160,6 +166,8 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
     { ID: 1, Name: "Hàng thương mại" },
     { ID: 2, Name: "Hàng dự án" },
   ]
+    private initialBillTypeNew: number | null = null; // Thêm biến này
+  private isInitialLoad: boolean = true; // Cờ để biết có đang load lần đầu không
   dateFormat = 'dd/MM/yyyy';
   newProductSale: ProductSale = {
     ProductCode: '',
@@ -175,6 +183,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
     Note: '',
   };
   @Input() newBillImport: BillImport = {
+    Id: 0,
     BillImportCode: '',
     ReciverID: 0,
     Reciver: "",
@@ -204,13 +213,16 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
     public activeModal: NgbActiveModal,
-    private billExportService: BillExportService
+    private billExportService: BillExportService,
+    private appUserService: AppUserService
   ) {
     this.validateForm = this.fb.group({
-      BillImportCode: ['', [Validators.required]],
+      BillImportCode: [{ value: '', disabled: true }, [Validators.required,]],
       BillTypeNew: [0, [Validators.required]],
       ReciverID: [0, [Validators.required, Validators.min(1)]],
       WarehouseName: [{ value: 'HN', disabled: true }],
+      // Thêm WarehouseID để auto-binding dựa vào kho hoạt động đúng
+      WarehouseID: [0, [Validators.required, Validators.min(1)]],
       SupplierID: [0, [Validators.required, Validators.min(1)]],
       DeliverID: [0, [Validators.required, Validators.min(1)]],
       CreatDate: [null],
@@ -222,6 +234,108 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
 
   ngOnInit(): void {
     console.log('iddd', this.id);
+    this.billImportService.getWarehouse().subscribe((res: any) => {
+      const list = res.data || [];
+      this.warehouses = list;
+      console.log('list', list);
+
+      // Xác định kho hiện tại dựa trên mã WarehouseName (ví dụ: HN, HCM)
+      const currentWarehouse = list.find((item: any) =>
+
+        String(item.WarehouseCode).toUpperCase() === String(this.WarehouseCode).toUpperCase()
+      );
+      const currentId = currentWarehouse?.ID ?? 0;
+
+      // Lấy ID kho HN để phục vụ logic người giao ở HCM
+      const hnId = list.find((item: any) =>
+        String(item.WareHouseCode).toUpperCase().includes('HN')
+      )?.ID ?? 1;
+
+      console.log('WarehouseId', currentId);
+
+      // Set WarehouseID và hiển thị tên kho; đồng thời khóa control để người dùng không chỉnh
+      this.validateForm.controls['WarehouseID'].setValue(currentId);
+      this.validateForm.controls['WarehouseName'].setValue(currentWarehouse?.WarehouseName || this.WarehouseCode);
+      this.validateForm.controls['WarehouseID'].disable();
+
+      this.warehouseIdHN = hnId;
+      console.log('warehouseIdHN', hnId);
+
+      // Người giao mặc định là user hiện tại
+      this.validateForm.controls['DeliverID'].setValue(this.appUserService.id || 0);
+
+      // Áp dụng logic nhận/giao theo kho và NCC
+      this.updateReceiverDeliver();
+    });
+ // Theo dõi thay đổi BillTypeNew
+  this.validateForm.get('BillTypeNew')?.valueChanges
+    .pipe(takeUntil(this.destroy$))
+    .subscribe((newValue: number) => {
+      // // Bỏ qua lần đầu load dữ liệu
+      // if (this.isInitialLoad) {
+      //   this.isInitialLoad = false;
+      //   this.initialBillTypeNew = newValue;
+      //   return;
+      // }
+      // debugger
+      // // Chỉ gọi changeStatus khi người dùng chủ động thay đổi
+      // // VÀ giá trị mới khác với giá trị ban đầu
+      // if (!this.isCheckmode || newValue !== this.initialBillTypeNew) {
+      //   this.changeStatus();
+      // }
+      console.log('BillTypeNew changed:', newValue, 'isInitialLoad:', this.isInitialLoad, 'initial:', this.initialBillTypeNew, 'isCheckmode:', this.isCheckmode);  // THÊM: Để debug
+
+    if (this.isInitialLoad) {
+      this.isInitialLoad = false;
+      this.initialBillTypeNew = newValue;
+      console.log('Skipped as initial load');  // THÊM
+      return;
+    }
+
+    if (!this.isCheckmode || newValue !== this.initialBillTypeNew) {
+      console.log('Calling changeStatus');  // THÊM
+      this.changeStatus();
+    } else {
+      console.log('Skipped: same as initial in edit mode');  // THÊM
+    }
+    });
+    // Theo dõi thay đổi Loại kho và NCC để áp dụng lại logic
+    this.validateForm.get('KhoTypeID')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((productGroupId: number) =>{
+        this.changeProductGroup(productGroupId);
+        this.updateReceiverDeliver();
+      } );
+
+    this.validateForm.get('SupplierID')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() =>{
+        this.changeSuplierSale();
+        this.updateReceiverDeliver();
+      } );
+
+    this.validateForm.get('WarehouseID')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.updateReceiverDeliver();
+      });
+if (this.createImport) {
+  this.newBillImport.BillTypeNew = 1;
+  this.initialBillTypeNew = 1;
+  this.isInitialLoad = false;  // THÊM: Set false ngay để lần user change đầu gọi getNewCode
+  this.getNewCode();
+  this.patchNewBillImportFromHistory();
+}
+else if (this.isCheckmode && this.id > 0) {
+  this.getBillImportByID();
+}
+else if (!this.newBillImport.Id || this.newBillImport.Id === 0) {
+  this.initialBillTypeNew = 0;
+  this.isInitialLoad = false;  // THÊM: Set false để lần user change đầu gọi getNewCode
+  this.getNewCode();
+}
+
+
     this.getDataCbbProductGroup();
     this.getDataCbbRulePay();
     this.getDataCbbUser();
@@ -229,93 +343,93 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
     this.loadOptionProject();
     this.loadDocumentImport();
 
-    //trường hợp tạo phiếu trả
-    if (this.createImport == true) {
-      this.newBillImport.BillTypeNew = 1;
-      this.getNewCode();
-      console.log("mã phiếu mới: ", this.newBillImport.BillImportCode);
-      console.log("binh: ", this.dataHistory);
-      this.newBillImport.Deliver = this.dataHistory[0].FullName
-      this.newBillImport.DeliverID = this.dataHistory[0].UserID
-      this.newBillImport.KhoTypeID = this.dataHistory[0].ProductGroupID
-      this.newBillImport.KhoType = this.dataHistory[0].ProductGroupName
+    // //trường hợp tạo phiếu trả
+    // if (this.createImport == true) {
+    //   this.newBillImport.BillTypeNew = 1;
+    //   this.getNewCode();
+    //   console.log("mã phiếu mới: ", this.newBillImport.BillImportCode);
+    //   console.log("binh: ", this.dataHistory);
+    //   this.newBillImport.Deliver = this.dataHistory[0].FullName
+    //   this.newBillImport.DeliverID = this.dataHistory[0].UserID
+    //   this.newBillImport.KhoTypeID = this.dataHistory[0].ProductGroupID
+    //   this.newBillImport.KhoType = this.dataHistory[0].ProductGroupName
 
-      this.validateForm.patchValue(this.newBillImport);
-      this.changeProductGroup(this.newBillImport.KhoTypeID)    
-      ///map detail
-      this.dataTableBillImportDetail = this.dataHistory.map((item: any) => {
-        const productInfo = this.productOptions.find((p: any) => p.value === item.ProductID) || {};
-        // Nếu không tìm thấy sản phẩm, gọi getProductById để tải bổ sung
-        if (!productInfo.value && item.ProductID) {
-          this.getProductById(item.ProductID);
-        }
-        const projectInfo = this.projectOptions.find((p: any) => p.value === item.ProjectID) || {};
-        return {
-          ID: item.ID || 0,
-          POKHDetailID: item.POKHDetailID || 0,
-          ProductID: item.ProductID || 0,
-          ProductNewCode: item.ProductNewCode || productInfo.ProductNewCode || '',
-          ProductCode: item.ProductCode || productInfo.ProductCode || '',
-          ProductName: item.ProductName || productInfo.ProductName || '',
-          Unit: item.Unit || productInfo.Unit || '',
-          TotalInventory: item.TotalInventory || productInfo.TotalInventory || 0,
-          Qty: item.BorrowQty || 0,
-          QuantityRemain: item.QuantityRemain || 0,
-          ProjectID: item.ProjectID || 0,
-          ProjectCodeExport: item.ProjectCodeExport || projectInfo.ProjectCode || '',
-          ProjectNameText: item.ProjectNameText || projectInfo.label || '',
-          ProductFullName: item.ProductFullName || '',
-          Note: item.Note || '',
-          UnitPricePOKH: item.UnitPricePOKH || 0,
-          UnitPricePurchase: item.UnitPricePurchase || 0,
-          BillCode: item.BillCode || '',
-          Specifications: item.Specifications || '',
-          GroupExport: item.GroupExport || '',
-          UserReceiver: item.UserReceiver || '',
-          POKHID: item.POKHID || 0,
-          'Add Serial': item.SerialNumber || '',
-          ProductType: item.ProductType || 0,
-          IsInvoice: item.IsInvoice || false,
-          InvoiceNumber: item.InvoiceNumber || '',
-          SerialNumber: item.SerialNumber || '',
-          ReturnedStatus: item.ReturnedStatus || false,
-          ProjectPartListID: item.ProjectPartListID || 0,
-          TradePriceDetailID: item.TradePriceDetailID || 0,
-          BillImportDetailID: item.BillImportDetailID || 0,
-          ExpectReturnDate: item.ExpectReturnDate ? new Date(item.ExpectReturnDate) : new Date(),
-          InventoryProjectIDs: item.ProjectID ? [item.ProjectID] : [],
-        };
-      });
+    //   this.validateForm.patchValue(this.newBillImport);
+    //   this.changeProductGroup(this.newBillImport.KhoTypeID)
+    //   ///map detail
+    //   this.dataTableBillImportDetail = this.dataHistory.map((item: any) => {
+    //     const productInfo = this.productOptions.find((p: any) => p.value === item.ProductID) || {};
+    //     // Nếu không tìm thấy sản phẩm, gọi getProductById để tải bổ sung
+    //     if (!productInfo.value && item.ProductID) {
+    //       this.getProductById(item.ProductID);
+    //     }
+    //     const projectInfo = this.projectOptions.find((p: any) => p.value === item.ProjectID) || {};
+    //     return {
+    //       ID: item.ID || 0,
+    //       POKHDetailID: item.POKHDetailID || 0,
+    //       ProductID: item.ProductID || 0,
+    //       ProductNewCode: item.ProductNewCode || productInfo.ProductNewCode || '',
+    //       ProductCode: item.ProductCode || productInfo.ProductCode || '',
+    //       ProductName: item.ProductName || productInfo.ProductName || '',
+    //       Unit: item.Unit || productInfo.Unit || '',
+    //       TotalInventory: item.TotalInventory || productInfo.TotalInventory || 0,
+    //       Qty: item.BorrowQty || 0,
+    //       QuantityRemain: item.QuantityRemain || 0,
+    //       ProjectID: item.ProjectID || 0,
+    //       ProjectCodeExport: item.ProjectCodeExport || projectInfo.ProjectCode || '',
+    //       ProjectNameText: item.ProjectNameText || projectInfo.label || '',
+    //       ProductFullName: item.ProductFullName || '',
+    //       Note: item.Note || '',
+    //       UnitPricePOKH: item.UnitPricePOKH || 0,
+    //       UnitPricePurchase: item.UnitPricePurchase || 0,
+    //       BillCode: item.BillCode || '',
+    //       Specifications: item.Specifications || '',
+    //       GroupExport: item.GroupExport || '',
+    //       UserReceiver: item.UserReceiver || '',
+    //       POKHID: item.POKHID || 0,
+    //       'Add Serial': item.SerialNumber || '',
+    //       ProductType: item.ProductType || 0,
+    //       IsInvoice: item.IsInvoice || false,
+    //       InvoiceNumber: item.InvoiceNumber || '',
+    //       SerialNumber: item.SerialNumber || '',
+    //       ReturnedStatus: item.ReturnedStatus || false,
+    //       ProjectPartListID: item.ProjectPartListID || 0,
+    //       TradePriceDetailID: item.TradePriceDetailID || 0,
+    //       BillImportDetailID: item.BillImportDetailID || 0,
+    //       ExpectReturnDate: item.ExpectReturnDate ? new Date(item.ExpectReturnDate) : new Date(),
+    //       InventoryProjectIDs: item.ProjectID ? [item.ProjectID] : [],
+    //     };
+    //   });
 
-      if (this.table_billImportDetail) {
-        this.table_billImportDetail.replaceData(this.dataTableBillImportDetail);
-        setTimeout(() => {
-          this.table_billImportDetail.redraw(true);
-        }, 100);
-      }
-    }    
-    else if (this.isCheckmode) {
-      this.getBillImportByID();
-    } else {
-      this.getNewCode();
-      this.newBillImport = {
-        BillImportCode: '',
-        ReciverID: 0,
-        Reciver: '',
-        DeliverID: 0,
-        Deliver: '',
-        KhoType: '',
-        KhoTypeID: 0,
-        WarehouseID: 1,
-        BillTypeNew: 0,
-        SupplierID: 0,
-        Supplier: '',
-        CreatDate: null,
-        DateRequest: null,
-        RulePayID: 0,
-      };
-      this.validateForm.patchValue(this.newBillImport);
-    }
+    //   if (this.table_billImportDetail) {
+    //     this.table_billImportDetail.replaceData(this.dataTableBillImportDetail);
+    //     setTimeout(() => {
+    //       this.table_billImportDetail.redraw(true);
+    //     }, 100);
+    //   }
+    // }
+    // else if (this.isCheckmode) {
+    //   this.getBillImportByID();
+    // } else {
+    //   this.getNewCode();
+    //   this.newBillImport = {
+    //     BillImportCode: '',
+    //     ReciverID: 0,
+    //     Reciver: '',
+    //     DeliverID: 0,
+    //     Deliver: '',
+    //     KhoType: '',
+    //     KhoTypeID: 0,
+    //     WarehouseID: 1,
+    //     BillTypeNew: 0,
+    //     SupplierID: 0,
+    //     Supplier: '',
+    //     CreatDate: null,
+    //     DateRequest: null,
+    //     RulePayID: 0,
+    //   };
+    //   this.validateForm.patchValue(this.newBillImport);
+    // }
 
     // Theo dõi thay đổi form để đồng bộ với newBillImport
     this.validateForm.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((values) => {
@@ -330,6 +444,77 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
     this.destroy$.next();
     this.destroy$.complete();
   }
+
+  private patchNewBillImportFromHistory() {
+  if (!this.dataHistory || this.dataHistory.length === 0) return;
+
+  const firstHistory = this.dataHistory[0];
+
+  // Cập nhật thông tin phiếu mới dựa trên phiếu cũ
+  this.newBillImport.BillImportCode = ''; // sẽ tạo mã mới
+  this.newBillImport.Deliver = firstHistory.FullName;
+  this.newBillImport.DeliverID = firstHistory.UserID;
+  this.newBillImport.KhoTypeID = firstHistory.ProductGroupID;
+  this.newBillImport.KhoType = firstHistory.ProductGroupName;
+// SỬA: Patch mà không trigger valueChanges
+  this.validateForm.patchValue(this.newBillImport, { emitEvent: false });
+
+  // THÊM: Đảm bảo flag (dù đã set ở ngOnInit)
+  this.isInitialLoad = false;
+  // Patch vào form
+  // this.validateForm.patchValue(this.newBillImport);
+
+  // Map chi tiết sản phẩm từ dataHistory
+  this.dataTableBillImportDetail = this.dataHistory.map((item: any) => {
+    const productInfo = this.productOptions.find((p: any) => p.value === item.ProductID) || {};
+    const projectInfo = this.projectOptions.find((p: any) => p.value === item.ProjectID) || {};
+
+    return {
+      ID: item.ID || 0,
+      POKHDetailID: item.POKHDetailID || 0,
+      ProductID: item.ProductID || 0,
+      ProductNewCode: item.ProductNewCode || productInfo.ProductNewCode || '',
+      ProductCode: item.ProductCode || productInfo.ProductCode || '',
+      ProductName: item.ProductName || productInfo.ProductName || '',
+      Unit: item.Unit || productInfo.Unit || '',
+      TotalInventory: item.TotalInventory || productInfo.TotalInventory || 0,
+      Qty: item.BorrowQty || 0,
+      QuantityRemain: item.QuantityRemain || 0,
+      ProjectID: item.ProjectID || 0,
+      ProjectCodeExport: item.ProjectCodeExport || projectInfo.ProjectCode || '',
+      ProjectNameText: item.ProjectNameText || projectInfo.label || '',
+      ProductFullName: item.ProductFullName || '',
+      Note: item.Note || '',
+      UnitPricePOKH: item.UnitPricePOKH || 0,
+      UnitPricePurchase: item.UnitPricePurchase || 0,
+      BillCode: item.BillCode || '',
+      Specifications: item.Specifications || '',
+      GroupExport: item.GroupExport || '',
+      UserReceiver: item.UserReceiver || '',
+      POKHID: item.POKHID || 0,
+      'Add Serial': item.SerialNumber || '',
+      ProductType: item.ProductType || 0,
+      IsInvoice: item.IsInvoice || false,
+      InvoiceNumber: item.InvoiceNumber || '',
+      SerialNumber: item.SerialNumber || '',
+      ReturnedStatus: item.ReturnedStatus || false,
+      ProjectPartListID: item.ProjectPartListID || 0,
+      TradePriceDetailID: item.TradePriceDetailID || 0,
+      BillImportDetailID: item.BillImportDetailID || 0,
+      ExpectReturnDate: item.ExpectReturnDate ? new Date(item.ExpectReturnDate) : new Date(),
+      InventoryProjectIDs: item.ProjectID ? [item.ProjectID] : [],
+    };
+  });
+
+  // Load dữ liệu vào table nếu table đã khởi tạo
+  if (this.table_billImportDetail) {
+    this.table_billImportDetail.replaceData(this.dataTableBillImportDetail);
+    setTimeout(() => {
+      this.table_billImportDetail.redraw(true);
+    }, 100);
+  }
+}
+
   changeStatus() {
     this.getNewCode();
     const billTypeNew = this.validateForm.get('BillTypeNew')?.value;
@@ -346,6 +531,70 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
     this.validateForm.patchValue({
       RulePayID: specialSuppliers.includes(supplierId) ? 34 : 0
     });
+  }
+
+  /**
+   * LoadDataReciver - Giống WinForm frmBillImportDetail.cs lines 1850-1882
+   * Logic tự động set Receiver và Deliverer dựa trên Warehouse, KhoType, và Supplier
+   */
+  private updateReceiverDeliver(): void {
+    // Chỉ chạy khi tạo mới phiếu (giống WinForm: if (billImport.ID > 0) return;)
+    if (this.isCheckmode && this.id > 0) return;
+
+    const khoTypeId = this.validateForm.controls['KhoTypeID'].value || 0;
+    const warehouseId = this.validateForm.controls['WarehouseID'].value || 0;
+    const supplierId = this.validateForm.controls['SupplierID'].value || 0;
+
+    // Nếu chưa chọn kho type thì không làm gì
+    if (!khoTypeId || !warehouseId) return;
+
+    const isHCM = String(this.WarehouseCode).toUpperCase().includes('HCM');
+    const specialSuppliers = [1175, 16677]; // Giống WinForm line 1848
+
+    if (isHCM) {
+      // === LOGIC KHO HCM (WinForm lines 1868-1881) ===
+
+      // 1. Người nhận = user hiện tại (line 1870)
+      this.validateForm.controls['ReciverID'].setValue(this.appUserService.id || 0);
+
+      // 2. Người giao: Chỉ set nếu NCC thuộc nhóm đặc biệt
+      if (specialSuppliers.includes(supplierId) && this.warehouseIdHN) {
+        // Lấy mapping từ kho HN (warehouseID = 1) - line 1871-1873
+        this.productSaleService
+          .getdataProductGroupWareHouse(khoTypeId, this.warehouseIdHN)
+          .subscribe({
+            next: (res: any) => {
+              const userId = res?.data?.[0]?.UserID || 0;
+              this.validateForm.controls['DeliverID'].setValue(userId); // line 1878
+            },
+            error: () => {
+              this.validateForm.controls['DeliverID'].setValue(0);
+            }
+          });
+      } else {
+        // Nếu không phải NCC đặc biệt -> Người giao = 0 (line 1880)
+        this.validateForm.controls['DeliverID'].setValue(0);
+      }
+    } else {
+      // === LOGIC KHO HN hoặc kho khác (WinForm lines 1856-1865) ===
+
+      // Lấy mapping ProductGroupWarehouse cho kho hiện tại
+      this.productSaleService
+        .getdataProductGroupWareHouse(khoTypeId, warehouseId)
+        .subscribe({
+          next: (res: any) => {
+            const userId = res?.data?.[0]?.UserID || 0;
+            // Set Người nhận từ mapping (line 1863)
+            this.validateForm.controls['ReciverID'].setValue(userId);
+          },
+          error: () => {
+            this.validateForm.controls['ReciverID'].setValue(0);
+          }
+        });
+
+      // Người giao đã được set = Global.UserID ở ngOnInit (line 245)
+      // Không cần set lại ở đây
+    }
   }
   getBillImportByID() {
     this.billImportService.getBillImportByID(this.id).subscribe({
@@ -369,7 +618,15 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
             DateRequest: data.RequestDate ? new Date(data.RequestDate) : null,
             RulePayID: data.RulePayID,
           };
-          this.validateForm.patchValue(this.newBillImport); // Đồng bộ dữ liệu vào form
+// Lưu giá trị ban đầu của BillTypeNew
+        this.initialBillTypeNew = data.BillTypeNew;
+
+        // SỬA: Patch mà không trigger valueChanges
+        this.validateForm.patchValue(this.newBillImport, { emitEvent: false });
+
+        // THÊM: Set flag sau patch
+        this.isInitialLoad = false;
+          // this.validateForm.patchValue(this.newBillImport); // Đồng bộ dữ liệu vào form
           this.changeProductGroup(this.newBillImport.KhoTypeID);
         } else {
           this.notification.warning('Thông báo', res.message || 'Không thể lấy thông tin phiếu nhập!');
@@ -457,6 +714,13 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
               BillImportDetailID: item.BillImportDetailID || 0,
               ExpectReturnDate: item.ExpectReturnDate ? new Date(item.ExpectReturnDate) : new Date(),
               InventoryProjectIDs: item.ProjectID ? [item.ProjectID] : [],
+              DPO: item.DPO || 0,
+              DueDate: item.DueDate ? new Date(item.DueDate) : new Date(),
+              TaxReduction: item.TaxReduction || 0,
+              COFormE: item.COFormE || 0,
+              IsNotKeep: item.IsNotKeep || false,
+              POKHDetailQuantity: item.POKHDetailQuantity || 0,
+              ProjectIDKeep: item.ProjectIDKeep || 0,
             };
           });
 
@@ -497,7 +761,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
         }
       },
       error: (err) => {
-        this.notification.error('Lỗi', 'Không thể tải dữ liệu documentImport');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu documentImport');
       }
     });
   }
@@ -645,6 +909,11 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
         InventoryProjectID: row.InventoryProjectID || 0,
         DateSomeBill: row.DateSomeBill ? new Date(row.DateSomeBill).toISOString() : null,
         isDeleted: row.isDeleted || false,
+        DPO: row.DPO || 0,
+        DueDate: row.DueDate ? new Date(row.DueDate).toISOString() : new Date().toISOString(),
+        TaxReduction: row.TaxReduction || 0,
+        COFormE: row.COFormE || 0,
+        IsNotKeep: row.IsNotKeep || false,
         Unit: row.Unit || "PCS",
         CreatedBy: "system",
         UpdatedBy: "system",
@@ -672,7 +941,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
       return;
     }
 
-    const formValues = this.validateForm.value;
+    const formValues = this.validateForm.getRawValue();
 
     const payload = {
       billImport: {
@@ -682,12 +951,13 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
         Reciver: this.dataCbbReciver.find(item => item.ID === formValues.ReciverID)?.FullName || '',
         Deliver: this.dataCbbDeliver.find(item => item.ID === formValues.DeliverID)?.FullName || '',
         KhoType: this.dataCbbProductGroup.find(item => item.ID === formValues.KhoTypeID)?.ProductGroupName || '',
-        Supplier: this.dataCbbSupplier.find(item => item.ID === formValues.SupplierID)?.NameNCC || '',
+        GroupID: String(formValues.KhoTypeID || ''),
+        Suplier: this.dataCbbSupplier.find(item => item.ID === formValues.SupplierID)?.NameNCC || '',
         SupplierID: formValues.SupplierID,
         ReciverID: formValues.ReciverID,
         DeliverID: formValues.DeliverID,
         KhoTypeID: formValues.KhoTypeID,
-        WarehouseID: this.newBillImport.WarehouseID,
+        WarehouseID: formValues.WarehouseID || this.newBillImport.WarehouseID,
         CreatDate: formValues.CreatDate,
         DateRequestImport: formValues.DateRequest,
         UpdatedDate: new Date(),
@@ -701,6 +971,11 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
         IsDeleted: false,
         CreatedBy: 'system',
         UpdatedBy: 'system',
+        DPO: formValues.DPO || 0,
+        DueDate: formValues.DueDate ? new Date(formValues.DueDate).toISOString() : new Date().toISOString(),
+        TaxReduction: formValues.TaxReduction || 0,
+        COFormE: formValues.COFormE || 0,
+        IsNotKeep: formValues.IsNotKeep || false,
       },
       billImportDetail: this.mapTableDataToBillImportDetails(billImportDetailsFromTable),
       DeletedDetailIds: this.deletedDetailIds || [],
@@ -775,7 +1050,14 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
         UnitPricePurchase: 0,
         BillCode: '',
         ProjectCodeExport: '',
-        ProjectNameText: ''
+        ProjectNameText: '',
+        IsNotKeep: false,
+        SerialNumber: '',
+        DPO: 0,
+        TaxReduction: 0,
+        COFormE: 0,
+        ProjectID: 0,
+
       });
     }
   }
@@ -868,6 +1150,11 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
               ProductNewCode: product.ProductNewCode,
             }));
           console.log('productOptions:', this.productOptions); // Log để kiểm tra
+
+          // Redraw the table to update all existing rows with new product options
+          if (this.table_billImportDetail) {
+            this.table_billImportDetail.redraw(true);
+          }
         } else {
           this.productOptions = [];
           this.notification.warning('Thông báo', 'Dữ liệu sản phẩm không hợp lệ!');
@@ -922,7 +1209,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
     );
 
   }
-  //vẽ bảng 
+  //vẽ bảng
   drawTable() {
     this.isLoading = true; // Bắt đầu loading
     if (this.table_billImportDetail) {
@@ -989,8 +1276,11 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
                 return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted"></p> <i class="fas fa-angle-down"></i></div>';
               }
               const product = this.productOptions.find((p: any) => p.value === val);
-              const productcode = product ? product.ProductCode : val;
-              return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${productcode}</p> <i class="fas fa-angle-down"></i></div>`;
+              const productcode = product ? product.ProductCode : '';
+              const productnewcode = product ? product.ProductNewCode : '';
+              console.log('productnewcode',productnewcode);
+
+              return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${productnewcode} - ${productcode}</p> <i class="fas fa-angle-down"></i></div>`;
             },
             cellEdited: (cell) => {
               const row = cell.getRow();
@@ -1028,6 +1318,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
           { title: "Mã theo dự án", field: "ProjectPartListID", hozAlign: "left", headerHozAlign: "center", editor: 'input' },
           { title: "SL yêu cầu", field: "QtyRequest", hozAlign: "right", headerHozAlign: "center", editor: 'number' },
           { title: "SL thực tế", field: "Qty", hozAlign: "right", headerHozAlign: "center", editor: 'number' },
+          {title:"Không giữ", field:"IsNotKeep", hozAlign: "center", headerHozAlign: "center", editor: 'tickCross'},
           {
             title: "Mã dự án/Công ty", field: "ProjectID", hozAlign: "left", headerHozAlign: "center", width: 200,
             editor: this.createdControl(
@@ -1051,6 +1342,7 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
               // Tìm label tương ứng với value để hiển thị
               const project = this.projectOptions.find((p: any) => p.value === val);
               const ProjectCode = project ? project.ProjectCode : val;
+
               return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${ProjectCode}</p> <i class="fas fa-angle-down"></i></div>`;
             },
             cellEdited: (cell) => {
@@ -1065,18 +1357,26 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
               if (selectedProject) {
                 row.update({
                   'ProjectCodeExport': selectedProject.ProjectCode,
+                  'ProjectName': selectedProject.ProjectName,
                   InventoryProjectIDs: [newValue]
                 });
               }
             }
+          },
+          {
+            title:"Tên dự án/Công ty", field:"ProjectName", hozAlign: "left", headerHozAlign: "center",
           },
           { title: "Khách hàng", field: "Customer", hozAlign: "left", headerHozAlign: "center", editor: 'input' }, // Giả định có thêm trường Customer
           { title: "Đơn mua hàng", field: "BillCodePO", hozAlign: "left", headerHozAlign: "center", editor: 'input' },
           { title: "Ghi chú (PO)", field: "Note", hozAlign: "left", headerHozAlign: "center", editor: 'input' },
           { title: "Số hóa đơn", field: "SomeBill", hozAlign: "left", headerHozAlign: "center", editor: 'input' },
           { title: "Ngày hóa đơn", field: "DateSomeBill", hozAlign: "left", headerHozAlign: "center", formatter: "datetime", editor: 'input' },
+          {title:"Số ngày công nợ", field:"DPO", hozAlign: "right", headerHozAlign: "center", editor: 'number'},
+          {title:"Ngày tới hạn", field:"DueDate", hozAlign: "left", headerHozAlign: "center", formatter: "datetime", editor: 'input'},
+          {title:"Tiền thuế giảm", field:"TaxReduction", hozAlign: "right", headerHozAlign: "center", editor: 'number'},
+          {title:"Chi phí FE", field:"COFormE", hozAlign: "right", headerHozAlign: "center", editor: 'number'},
           { title: "Phiếu mượn", field: "CodeMaPhieuMuon", hozAlign: "left", headerHozAlign: "center", editor: 'input' },
-          { title: "Serial Number", field: "SerialNumber", hozAlign: "left", headerHozAlign: "center" },
+          { title: "Serial Number", field: "SerialNumber", hozAlign: "left", headerHozAlign: "center", visible: false },
           {
             title: "Add Serial",
             field: "addRow",
@@ -1128,13 +1428,13 @@ export class BillImportDetailComponent implements OnInit, AfterViewInit, OnDestr
                       }));
                       this.openSerialModal(rowData, row, quantity, productCode, existingSerials);
                     } else {
-                      this.notification.error('Lỗi', 'Không tải được serial!');
+                      this.notification.error(NOTIFICATION_TITLE.error, 'Không tải được serial!');
                       console.error('Lỗi response:', res);
                       this.openSerialModal(rowData, row, quantity, productCode, []);
                     }
                   },
                   error: (err:any) => {
-                    this.notification.error('Lỗi', 'Lỗi khi tải serial!');
+                    this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải serial!');
                     console.error('Lỗi API:', err);
                     this.openSerialModal(rowData, row, quantity, productCode, []);
                   }

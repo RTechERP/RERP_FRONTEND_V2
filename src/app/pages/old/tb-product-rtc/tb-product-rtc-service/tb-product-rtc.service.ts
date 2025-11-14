@@ -30,6 +30,9 @@ export class TbProductRtcService {
   saveData(payload: any): Observable<any> {
     return this.http.post(`${this.url + `save-data`}`, payload);
   }
+  saveDataExcel(payload: any): Observable<any> {
+    return this.http.post(`${this.url + `save-data-excel`}`, payload);
+  }
   uploadImage(file: File, path:string): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
@@ -38,5 +41,21 @@ export class TbProductRtcService {
   }
   getProductAjax(): string {
     return `${this.url}get-productRTC`;
+  }
+    // Thêm mới: upload-multiple với key PathProductRTC và subPath
+  uploadMultipleFiles(files: File[], subPath?: string): Observable<any> {
+    const formData = new FormData();
+    files.forEach((file) => formData.append('files', file));
+    formData.append('key', 'PathProductRTC');
+    if (subPath && subPath.trim()) {
+      formData.append('subPath', subPath.trim());
+    }
+    return this.http.post<any>(`${environment.host}api/Home/upload-multiple`, formData);
+  }
+  downloadFile(path: string): Observable<ArrayBuffer> {
+    return this.http.get<ArrayBuffer>(`${environment.host}api/Home/download`, {
+      params: { path },
+      responseType: 'arraybuffer' as 'json',
+    });
   }
 }

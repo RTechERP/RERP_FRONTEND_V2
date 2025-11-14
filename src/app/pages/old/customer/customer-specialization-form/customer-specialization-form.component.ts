@@ -9,6 +9,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-customer-specialization-form',
@@ -134,7 +135,7 @@ export class CustomerSpecializationFormComponent implements OnInit {
       return;
     }
     const selectedSpecialization = selectedRows[0].getData();
-    
+
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
       nzContent: 'Bạn có chắc chắn muốn xóa ngành nghề này không?',
@@ -151,7 +152,7 @@ export class CustomerSpecializationFormComponent implements OnInit {
             this.loadCustomerSpecialization();
           },
           error: (error) => {
-            this.notification.error('Lỗi', 'Xóa ngành nghề thất bại: ' + error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Xóa ngành nghề thất bại: ' + error.message);
           }
         });
       },

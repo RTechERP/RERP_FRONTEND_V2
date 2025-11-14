@@ -33,6 +33,7 @@ import { Router } from '@angular/router';
 import { ProjectService } from '../../project-service/project.service';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 @Component({
   selector: 'app-project-leader-project-type-detail',
@@ -70,10 +71,10 @@ export class ProjectLeaderProjectTypeDetailComponent implements OnInit {
     private notification: NzNotificationService,
     private modal: NzModalService,
     public activeModal: NgbActiveModal
-    
+
 
   ) { }
-  
+
   @ViewChild('tb_projectEmployeeLink', { static: false })
   tb_projectEmployeeLinkContainer!: ElementRef;
   tb_projectEmployeeLinks: any;
@@ -177,11 +178,11 @@ export class ProjectLeaderProjectTypeDetailComponent implements OnInit {
   getProjectEmployeefilter() {
     // Lưu lại danh sách ID đã chọn trước khi load lại dữ liệu
     const previouslySelected = new Set(this.selectedEmployee);
-  
+
     this.projectService.getProjectEmployeefilter(this.selectedDepartment).subscribe({
       next: (response: any) => {
         let data = response.data || [];
-  
+
         // Lọc theo từ khóa (nếu có)
         if (this.searchKeyword) {
           const keyword = this.searchKeyword.toLowerCase();
@@ -190,7 +191,7 @@ export class ProjectLeaderProjectTypeDetailComponent implements OnInit {
             item.Code.toLowerCase().includes(keyword)
           );
         }
-  
+
         // Gán dữ liệu mới cho bảng
         this.tb_projectEmployeeLinks.setData(data).then(() => {
           // Chọn lại các dòng theo ID (chỉ những ID còn tồn tại trong data sẽ được chọn)
@@ -207,10 +208,10 @@ export class ProjectLeaderProjectTypeDetailComponent implements OnInit {
         console.error('Lỗi:', error);
       },
     });
-  
+
     // Không re-bind events tại đây để tránh nhân bản listener
   }
-  
+
   getDepartment() {
     this.projectService.getDepartment().subscribe({
       next: (response: any) => {
@@ -289,13 +290,13 @@ onAddLeaders() {
             },
             error: (error) => {
               console.error('Lỗi khi thêm nhân viên:', error);
-              this.notification.error('Lỗi', 'Không thể thêm nhân viên, vui lòng thử lại!');
+              this.notification.error(NOTIFICATION_TITLE.error, 'Không thể thêm nhân viên, vui lòng thử lại!');
             }
           });
         },
         error: (error) => {
           console.error('Lỗi khi kiểm tra nhân viên:', error);
-          this.notification.error('Lỗi', 'Không thể kiểm tra nhân viên, vui lòng thử lại sau!');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể kiểm tra nhân viên, vui lòng thử lại sau!');
         }
       });
     }

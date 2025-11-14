@@ -75,3 +75,10 @@
       height: 24px;
       line-height: 22px;
   }
+  
+  :host ::ng-deep .ant-splitter-trigger,
+  :host ::ng-deep .ant-splitter-trigger-icon,
+  :host ::ng-deep .ant-splitter-trigger-bar {
+    display: none !important;
+    pointer-events: none !important;
+  }

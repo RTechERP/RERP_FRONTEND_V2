@@ -44,6 +44,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import { ProposeVehicleRepairService } from '../../propose-vehicle-repair/propose-vehicle-repair-service/propose-vehicle-repair.service';
 import { VehicleRepairHistoryService } from '../vehicle-repair-history-service/vehicle-repair-history-service.service';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   selector: 'app-vehicle-repair-history-form',
   standalone: true,
@@ -148,7 +149,7 @@ get existingFiles() { return this._existingFilesBuf; }
       { emitEvent: false }
     );
   }
-  
+
 ngAfterViewInit(): void {
   this.getRepairType();
   this.loadFileTable();
@@ -206,15 +207,15 @@ private hydrateExistingFiles() {
     return {
       uid: `srv_${id || idx}`,
       ID: id,
-      name: fileName,      
-      FileName: fileName, 
+      name: fileName,
+      FileName: fileName,
       ServerPath: serverPath,
       OriginName: originName,
-      status: 'done',     
+      status: 'done',
       isDeleted: false,
       IsDeleted: false,
-      originFile: null,   
-      file: null,         
+      originFile: null,
+      file: null,
       type: 'server'
     };
   };
@@ -248,7 +249,7 @@ onTabChange(i: number) {
   }
 }
   ngOnInit(): void {
-   
+
     this.getVehicle();
     this.getEmployee();
     if (this.dataInput) {
@@ -348,7 +349,7 @@ onTabChange(i: number) {
       if (vId) this.formGroup.get('VehicleManagementID')!.setValue(vId);
       if (eId) this.formGroup.get('EmployeeID')!.setValue(eId);
     });
-   
+
   }
   private trimAllStringControls() {
     Object.keys(this.formGroup.controls).forEach((k) => {
@@ -410,7 +411,7 @@ onTabChange(i: number) {
     () => {
       // chỉ chạy khi form con close(true)
       this.getRepairType();
-   
+
     },
     () => {
       // user bấm hủy -> không làm gì
@@ -459,9 +460,9 @@ onTabChange(i: number) {
   //         this.notification.success('Thành công', 'Lưu thông tin đề xuất thành công');
   //         this.formSubmitted.emit();
   //         this.activeModal.close('save');
-  //       } else this.notification.error('Lỗi', res?.message || 'Lưu thất bại');
+  //       } else this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Lưu thất bại');
   //     },
-  //     error: (res) => this.notification.error('Lỗi', res?.error?.message)
+  //     error: (res) => this.notification.error(NOTIFICATION_TITLE.error, res?.error?.message)
   //   });
   // }
     fileList: any[] = [];
@@ -559,7 +560,7 @@ updateFileTable() {
     });
     this.tryHydrateFiles();
   }
-  
+
 removeFile(rowData: any) {
   const uid = rowData?.uid ?? rowData?.file?.uid;
   const idx = this.fileList.findIndex((x: any) => x.uid === uid || x === rowData.file);
@@ -628,7 +629,7 @@ save() {
   this.vehicleRepairHistoryService.saveData(payloadMaster).subscribe({
     next: (res) => {
       if (res?.status !== 1) {
-        this.notification.error('Lỗi', res?.message || 'Lưu thất bại');
+        this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Lưu thất bại');
         return;
       }
 
@@ -661,10 +662,10 @@ save() {
               this.formSubmitted.emit();
               this.activeModal.close('save');
             } else {
-              this.notification.error('Lỗi', r2?.message || 'Cập nhật file thất bại');
+              this.notification.error(NOTIFICATION_TITLE.error, r2?.message || 'Cập nhật file thất bại');
             }
           },
-          error: (e) => this.notification.error('Lỗi', e?.error?.message || 'Cập nhật file thất bại')
+          error: (e) => this.notification.error(NOTIFICATION_TITLE.error, e?.error?.message || 'Cập nhật file thất bại')
         });
         return;
       }
@@ -676,7 +677,7 @@ save() {
       this.vehicleRepairHistoryService.uploadMultipleFiles(filesToUpload, subPath).subscribe({
         next: (uploadRes) => {
           if (uploadRes?.status !== 1 || !uploadRes?.data?.length) {
-            this.notification.error('Lỗi', uploadRes?.message || 'Upload file thất bại');
+            this.notification.error(NOTIFICATION_TITLE.error, uploadRes?.message || 'Upload file thất bại');
             return;
           }
 
@@ -739,16 +740,16 @@ console.log('Files meta payload:', [...filesMeta, ...deleted]);
                 this.formSubmitted.emit();
                 this.activeModal.close('save');
               } else {
-                this.notification.error('Lỗi', filesRes?.message || 'Lưu metadata file thất bại');
+                this.notification.error(NOTIFICATION_TITLE.error, filesRes?.message || 'Lưu metadata file thất bại');
               }
             },
-            error: (err) => this.notification.error('Lỗi', err?.error?.message || 'Lưu metadata file thất bại')
+            error: (err) => this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Lưu metadata file thất bại')
           });
         },
-        error: (err) => this.notification.error('Lỗi', err?.error?.message || 'Upload file thất bại')
+        error: (err) => this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Upload file thất bại')
       });
     },
-    error: (err) => this.notification.error('Lỗi', err?.error?.message || 'Lưu thất bại')
+    error: (err) => this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Lưu thất bại')
   });
 }
 

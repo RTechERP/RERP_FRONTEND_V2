@@ -75,11 +75,11 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
   warehouseID: number | null = null;
   selectedApproval: number | null = null;
   isSearchVisible: boolean = false;
-  //List  Dữ liệu phiếu xuất 
+  //List  Dữ liệu phiếu xuất
   billExportTechnicalData: any[] = [];
   // Bảng Tabulator của phiếu xuất
   billExportTechnicalTable: Tabulator | null = null;
-  //List Detail  Dữ liệu phiếu xuất 
+  //List Detail  Dữ liệu phiếu xuất
   billExportTechnicalDetailData: any[] = [];
   // Bảng Tabulator của chi tiết  phiếu xuất
   billExportTechnicalDetailTable: Tabulator | null = null;
@@ -371,7 +371,7 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
       }
     });
   }
-// Mở modal thêm  phiếu xuất 
+// Mở modal thêm  phiếu xuất
   openModalExportTechnical() {
     const modalRef = this.ngbModal.open(BillExportTechnicalFormComponent, {
       centered: true,
@@ -418,7 +418,7 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         console.error(err);
-        this.notification.error('Lỗi', 'Không thể xuất phiếu nhập kỹ thuật!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xuất phiếu nhập kỹ thuật!');
       }
     });
   }

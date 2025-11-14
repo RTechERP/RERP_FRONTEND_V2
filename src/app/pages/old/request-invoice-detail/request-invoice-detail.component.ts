@@ -56,6 +56,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
 import { RequestInvoiceDetailService } from './request-invoice-detail-service/request-invoice-detail-service.service';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-request-invoice-detail',
@@ -304,7 +305,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
         }
       },
       error: (err) => {
-        this.notification.error('Lỗi', 'Không thể lưu dữ liệu!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lưu dữ liệu!');
       },
     });
   }

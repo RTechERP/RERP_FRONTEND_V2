@@ -42,6 +42,13 @@ export class BillExportService {
 
     return this.http.post(environment.host + `api/BillExport`, params);
   }
+  recheckQty(details: any[]) {
+  return this.http.post<any>(
+    `${environment.host}api/billexport/recheck-qty`, 
+    details
+  );
+}
+
   getBillExportDetail(billID: number): Observable<any> {
     return this.http.get(
       environment.host + `api/BillExportDetail/BillExportID/${billID}`

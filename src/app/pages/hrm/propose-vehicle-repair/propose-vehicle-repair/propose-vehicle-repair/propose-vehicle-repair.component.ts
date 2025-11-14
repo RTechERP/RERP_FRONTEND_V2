@@ -38,6 +38,7 @@ import { VehicleRepairHistoryService } from '../../vehicle-repair-history/vehicl
 import { VehicleRepairComponentFormComponent } from '../../../vehicle-repair/vehicle-repair-component-form/vehicle-repair-component-form.component';
 import { ProposeVehicleRepairFormComponent } from '../propose-vehicle-repair-form/propose-vehicle-repair-form.component';
 import { NzModalModule } from 'ng-zorro-antd/modal';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   standalone: true,
   imports: [
@@ -265,7 +266,7 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
       this.proposeDetailTable = new Tabulator('#proposeVehicleRepairDetail',
         {
           data: this.proposeVehicleRepairDetailData,
-        
+
           selectableRows:1,
           paginationMode: 'local',
           columns: [
@@ -325,7 +326,7 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
           ]
         }
       );
-      
+
   this.proposeDetailTable.on('rowClick', (_e, row) => {
     this.selectedDetailRow = row.getData();
   });
@@ -534,7 +535,7 @@ private hasOtherApproved(detailId: number): boolean {
 //     return;
 //   }
 //   if (!this.currentUser?.EmployeeID) {
-//     this.notification.error('Lỗi', 'Không lấy được thông tin người dùng hiện tại');
+//     this.notification.error(NOTIFICATION_TITLE.error, 'Không lấy được thông tin người dùng hiện tại');
 //     return;
 //   }
 
@@ -581,7 +582,7 @@ private hasOtherApproved(detailId: number): boolean {
 // }
 approveSelectedDetail() {
   if (!this.selectedDetailRow) { this.notification.warning('Cảnh báo','Chọn một dòng chi tiết để phê duyệt'); return; }
-  if (!this.currentUser?.EmployeeID) { this.notification.error('Lỗi','Không lấy được thông tin người dùng hiện tại'); return; }
+  if (!this.currentUser?.EmployeeID) { this.notification.error(NOTIFICATION_TITLE.error,'Không lấy được thông tin người dùng hiện tại'); return; }
 
   const detail = this.selectedDetailRow;
   const master = this.selectedRow; // dòng master đang chọn
@@ -640,7 +641,7 @@ approveSelectedDetail() {
             UpdatedBy: null,
             IsDeleted: false
           },
-          vehicleRepairHistoryFiles: [] 
+          vehicleRepairHistoryFiles: []
         };
         const saveRes = await this.vehicleRepairHistoryService.saveData(dto).toPromise();
         if (saveRes?.status === 1) {
@@ -649,7 +650,7 @@ approveSelectedDetail() {
           this.notification.warning('Cảnh báo', saveRes?.error.message || 'Lưu theo dõi thất bại');
         }
       } catch (err:any) {
-        this.notification.error('Lỗi', err?.error?.message || 'Có lỗi khi phê duyệt/lưu theo dõi');
+        this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Có lỗi khi phê duyệt/lưu theo dõi');
       }
     }
   });

@@ -20,6 +20,7 @@ import { TeamServiceService } from './team-service/team-service.service';
 import { DepartmentServiceService } from '../department/department-service/department-service.service';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-team',
@@ -119,7 +120,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
         console.log(this.departmentList);
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách phòng ban: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách phòng ban: ' + error.message);
       }
     });
   }
@@ -141,7 +142,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
         this.teamList = treeData;
         this.flattenedTeamList = this.flattenTeamTree(treeData);
         this.teamTabulator.setData(this.teamList);
-        
+
         // Load employees for the first team if available
         if (this.teamList.length > 0) {
           this.loadUserTeam(this.teamList[0].ID, id);
@@ -151,7 +152,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách team: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách team: ' + error.message);
         this.teamList = [];
         this.flattenedTeamList = [];
         this.teamTabulator.setData([]);
@@ -190,7 +191,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
           this.isLoading = false;
         },
         error: (error) => {
-          this.notification.error('Lỗi', 'Lỗi khi tải danh sách team: ' + error.message);
+          this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách team: ' + error.message);
           this.teamList = [];
           this.flattenedTeamList = [];
           this.teamTabulator.setData([]);
@@ -208,7 +209,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
           this.isLoading = false;
         },
         error: (error) => {
-          this.notification.error('Lỗi', 'Lỗi khi tải danh sách team: ' + error.message);
+          this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách team: ' + error.message);
           this.teamList = [];
           this.flattenedTeamList = [];
           this.teamTabulator.setData([]);
@@ -227,7 +228,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
         this.isLoad = false;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách nhân viên: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách nhân viên: ' + error.message);
         this.isLoad = false;
       }
     });
@@ -239,7 +240,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
         this.employeeCombo = data.data;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách nhân viên: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách nhân viên: ' + error.message);
       }
     });
   }
@@ -253,7 +254,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách nhân viên: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách nhân viên: ' + error.message);
         this.employeeTeamList = [];
         if (this.employeeTeamTabulator) {
           this.employeeTeamTabulator.replaceData([]);
@@ -268,7 +269,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
         this.projectTypeList = data.data;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách loại dự án: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách loại dự án: ' + error.message);
       }
     });
   }
@@ -323,27 +324,27 @@ export class TeamComponent implements OnInit, AfterViewInit {
       dataTreeStartExpanded: true,
       dataTreeChildField: "children",
       columns: [
-        { 
-          title: 'Tên nhóm', 
-          field: 'Name', 
-          hozAlign: 'left', 
+        {
+          title: 'Tên nhóm',
+          field: 'Name',
+          hozAlign: 'left',
           headerHozAlign: 'center',
           formatter: "tree" as any
         },
-        { 
-          title: 'Trưởng nhóm', 
-          field: 'Leader', 
-          hozAlign: 'left', 
+        {
+          title: 'Trưởng nhóm',
+          field: 'Leader',
+          hozAlign: 'left',
           headerHozAlign: 'center',
           formatter: function(cell) {
             const value = cell.getValue();
             return value || '';
           }
         },
-        { 
-          title: 'Loại', 
-          field: 'TypeName', 
-          hozAlign: 'left', 
+        {
+          title: 'Loại',
+          field: 'TypeName',
+          hozAlign: 'left',
           headerHozAlign: 'center',
           formatter: function(cell) {
             const value = cell.getValue();
@@ -377,29 +378,29 @@ export class TeamComponent implements OnInit, AfterViewInit {
             this.openAddEmployeeModal();
           }
         }
-      
+
       ],
       rowHeader: {
-        formatter: "rowSelection", 
-        titleFormatter: "rowSelection", 
-        headerSort: false, 
-        width: 70, 
-        frozen: true, 
-        headerHozAlign: "center", 
+        formatter: "rowSelection",
+        titleFormatter: "rowSelection",
+        headerSort: false,
+        width: 70,
+        frozen: true,
+        headerHozAlign: "center",
         hozAlign: "center"
       },
       groupBy: "Team",
       columns: [
-        { 
-          title: 'Mã nhân viên', 
-          field: 'Code', 
-          hozAlign: 'left', 
+        {
+          title: 'Mã nhân viên',
+          field: 'Code',
+          hozAlign: 'left',
           headerHozAlign: 'center'
         },
-        { 
-          title: 'Tên nhân viên', 
-          field: 'FullName', 
-          hozAlign: 'left', 
+        {
+          title: 'Tên nhân viên',
+          field: 'FullName',
+          hozAlign: 'left',
           headerHozAlign: 'center'
         }
       ],
@@ -414,28 +415,28 @@ export class TeamComponent implements OnInit, AfterViewInit {
         responsiveLayout:true,
         selectableRows: true,
         rowHeader: {
-          formatter: "rowSelection", 
-          titleFormatter: "rowSelection", 
-          headerSort: false, 
-          width: 70, 
-          frozen: true, 
-          headerHozAlign: "center", 
+          formatter: "rowSelection",
+          titleFormatter: "rowSelection",
+          headerSort: false,
+          width: 70,
+          frozen: true,
+          headerHozAlign: "center",
           hozAlign: "center"
         },
         groupBy: "DepartmentName",
         height: '65vh',
         columns: [
-          { 
-            title: 'Mã nhân viên', 
-            field: 'Code', 
-            hozAlign: 'center', 
+          {
+            title: 'Mã nhân viên',
+            field: 'Code',
+            hozAlign: 'center',
             headerHozAlign: 'center',
             width: '20vw'
           },
-          { 
-            title: 'Tên nhân viên', 
-            field: 'FullName', 
-            hozAlign: 'center', 
+          {
+            title: 'Tên nhân viên',
+            field: 'FullName',
+            hozAlign: 'center',
             headerHozAlign: 'center',
             width: '70vw'
           }
@@ -510,7 +511,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
       return;
     }
     this.selectedTeamId = selectedRows[0].getData()['ID'];
-    
+
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
       nzContent: 'Bạn có chắc chắn muốn xóa team này không?',
@@ -530,7 +531,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
         this.loadTeams();
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Xóa team thất bại: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Xóa team thất bại: ' + error.message);
       }
     });
   }
@@ -558,7 +559,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
         this.loadTeams();
       },
       error: (error) => {
-        this.notification.error('Lỗi', (this.isEditMode ? 'Cập nhật' : 'Thêm') + ' team thất bại: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, (this.isEditMode ? 'Cập nhật' : 'Thêm') + ' team thất bại: ' + error.message);
       },
       complete: () => {
         this.isSubmitting = false;
@@ -582,7 +583,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
 
   openAddEmployeeModal() {
     const selectedRows = this.teamTabulator.getSelectedRows();
-  
+
     if(selectedRows.length === 0) {
       this.notification.warning('Cảnh báo', 'Vui lòng chọn team cần thêm nhân viên');
       return;
@@ -624,7 +625,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
         this.notification.success('Thành công', 'Thêm nhân viên vào team thành công');
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Thêm nhân viên vào team thất bại: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Thêm nhân viên vào team thất bại: ' + error.message);
       }
     });
   }
@@ -641,7 +642,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
       return;
     }
     const employeeIds = selectedRows.map(row => row.getData()['ID']);
-    
+
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
       nzContent: 'Bạn có chắc chắn muốn xóa nhân viên khỏi team này không?',
@@ -656,7 +657,7 @@ export class TeamComponent implements OnInit, AfterViewInit {
               this.notification.success('Thành công', 'Xóa nhân viên khỏi team thành công');
             },
             error: (error) => {
-              this.notification.error('Lỗi', 'Xóa nhân viên khỏi team thất bại: ' + error.message);
+              this.notification.error(NOTIFICATION_TITLE.error, 'Xóa nhân viên khỏi team thất bại: ' + error.message);
             }
           });
         });

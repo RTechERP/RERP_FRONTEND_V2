@@ -25,6 +25,7 @@ import { DepartmentServiceService } from '../../department/department-service/de
 import { EmployeeService } from '../../employee/employee-service/employee.service';
 import { FoodOrderService } from '../food-order-service/food-order.service';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-summary-food-order',
@@ -97,7 +98,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit{
       this.searchForm.get('month')?.valueChanges.subscribe(() => {
           this.onSearch();
       });
-      
+
       this.searchForm.get('year')?.valueChanges.subscribe(() => {
           this.onSearch();
       });
@@ -132,7 +133,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit{
         console.log(this.departmentList);
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách phòng ban: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách phòng ban: ' + error.message);
       }
     });
   }
@@ -143,7 +144,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit{
         this.employeeList = data.data;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách nhân viên: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách nhân viên: ' + error.message);
       }
     })
   }
@@ -158,7 +159,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit{
 
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách đặt cơm: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách đặt cơm: ' + error.message);
         this.isLoading = false;
       }
     })
@@ -173,7 +174,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit{
         this.isLoading = false;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách báo cáo cơm ca: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách báo cáo cơm ca: ' + error.message);
         this.isLoading = false;
       }
     })
@@ -205,12 +206,12 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit{
   private generateColumnsForMonth(month: number, year: number): any[] {
     const daysInMonth = new Date(year, month, 0).getDate();
     const columns = [];
-    
+
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month - 1, day);
       const dayOfWeek = this.getDayOfWeekName(date.getDay());
       const isWeekend = dayOfWeek === 'T7' || dayOfWeek === 'CN';
-      
+
       columns.push({
         title: dayOfWeek,
         columns: [{
@@ -234,7 +235,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit{
         },
       });
     }
-    
+
     // // Thêm cột tổng
     // columns.push({
     //   title: 'Tổng',
@@ -242,7 +243,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit{
     //   hozAlign: 'left',
     //   headerHozAlign: 'center'
     // });
-    
+
     return columns;
   }
 
@@ -258,9 +259,9 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit{
 private initializeOrderTabulator(container: HTMLElement): void {
   const month = this.searchForm.get('month')?.value;
   const year = this.searchForm.get('year')?.value || new Date().getFullYear();
-  
+
   const dynamicColumns = this.generateColumnsForMonth(month, year);
-  
+
   this.orderTabulator = new Tabulator(container, {
     data: this.foodOrderList,
     selectableRows: 1,
@@ -275,8 +276,8 @@ private initializeOrderTabulator(container: HTMLElement): void {
       { title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center'},
       { title: 'Tên nhân viên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center' },
       { title: 'Chức vụ', field: 'PositionName', hozAlign: 'left', headerHozAlign: 'center' },
-      { 
-        title: `BÁO CÁO ĐẶT CƠM THÁNG ${month}`, 
+      {
+        title: `BÁO CÁO ĐẶT CƠM THÁNG ${month}`,
         headerHozAlign: 'center',
         columns: dynamicColumns
       },
@@ -287,7 +288,7 @@ private initializeOrderTabulator(container: HTMLElement): void {
 
 
   private initializeReportTabulator(container: HTMLElement): void {
-    
+
     const month = this.searchForm.get('month')?.value;
     const year = this.searchForm.get('year')?.value || new Date().getFullYear();
     const dynamicColumns = this.generateColumnsForMonth(month, year);
@@ -337,7 +338,7 @@ private initializeOrderTabulator(container: HTMLElement): void {
   async exportToExcel() {
     const month = this.searchForm.get('month')?.value;
     const year = this.searchForm.get('year')?.value;
-    
+
     // Hàm lấy thứ trong tuần từ ngày cụ thể
     const getDayOfWeek = (day: number, month: number, year: number) => {
       const date = new Date(year, month - 1, day);
@@ -387,7 +388,7 @@ private initializeOrderTabulator(container: HTMLElement): void {
       row['Ghi chú'] = safe(item.Note);
       return row;
     });
-    
+
     const workbook = new ExcelJS.Workbook();
     const worksheetFoodOrder = workbook.addWorksheet('Báo cáo đặt cơm');
     const worksheetMealReport = workbook.addWorksheet('Báo cáo ăn ca');
@@ -430,7 +431,7 @@ private initializeOrderTabulator(container: HTMLElement): void {
     dayOfWeekRow.getCell(1).value = '';
     dayOfWeekRow.getCell(1).font = { name: 'Tahoma', size: 9, bold: true };
     dayOfWeekRow.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
-    
+
     // Bỏ qua 3 cột đầu (STT, Mã NV, Tên NV, Chức vụ)
     for (let i = 5; i <= 35; i++) {
       const day = i - 4;
@@ -447,7 +448,7 @@ private initializeOrderTabulator(container: HTMLElement): void {
     headerRow.values = [
       'STT', 'Mã NV', 'Tên nhân viên', 'Chức vụ',
       ...Array.from({length: 31}, (_, i) => i + 1),
-      'Ăn ca ngày', 'Ăn ca đêm', 'Tổng số ăn ca', 
+      'Ăn ca ngày', 'Ăn ca đêm', 'Tổng số ăn ca',
       'Ăn ca tại công ty', 'Thực tế được hưởng', 'Ghi chú'
     ];
 

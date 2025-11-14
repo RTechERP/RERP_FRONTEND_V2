@@ -61,6 +61,7 @@ import { WarehouseReleaseRequestComponent } from '../warehouse-release-request/w
 import { FollowProductReturnComponent } from '../follow-product-return/follow-product-return.component';
 import { PoRequestBuyComponent } from '../po-request-buy/po-request-buy.component';
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-pokh',
@@ -870,7 +871,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   //#region : Hàm xử lý xuất excel Phiếu
   async exportMainTableToExcel() {
     if (!this.tb_POKH) {
-      this.notification.error('Lỗi', 'Không có dữ liệu để xuất Excel');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất Excel');
       return;
     }
 
@@ -1220,7 +1221,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         this.calculateTotalIterative();
       }
     } catch (error) {
-      this.notification.error('Lỗi', 'Lỗi:' + error);
+      this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi:' + error);
     }
   }
   private convertToTreeData(flatData: any[]): any[] {

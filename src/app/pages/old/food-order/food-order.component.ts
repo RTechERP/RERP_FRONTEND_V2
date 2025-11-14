@@ -28,6 +28,7 @@ import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { SummaryFoodOrderComponent } from "./summary-food-order/summary-food-order.component";
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-food-order',
@@ -160,7 +161,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
         console.log('Employee list:', this.employeeList); // Debug log
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách nhân viên: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách nhân viên: ' + error.message);
       }
     });
   }
@@ -175,12 +176,12 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
       selectableRows: true,
       height: '85vh',
       rowHeader: {
-        formatter: "rowSelection", 
-        titleFormatter: "rowSelection", 
-        headerSort: false, 
-        width: 100, 
-        frozen: true, 
-        headerHozAlign: "center", 
+        formatter: "rowSelection",
+        titleFormatter: "rowSelection",
+        headerSort: false,
+        width: 100,
+        frozen: true,
+        headerHozAlign: "center",
         hozAlign: "center"
       },
       columns: [
@@ -209,7 +210,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
           hozAlign: 'left',
           headerHozAlign: 'center',
           width: 500
-        },  
+        },
         {
           title: 'Số lượng',
           field: 'Quantity',
@@ -227,7 +228,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
             return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
           }
         }
-       
+
       ],
       pagination: true,
       paginationSize: 100,
@@ -245,12 +246,12 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
       selectableRows: true,
       height: '85vh',
       rowHeader: {
-        formatter: "rowSelection", 
-        titleFormatter: "rowSelection", 
-        headerSort: false, 
-        width: 100, 
-        frozen: true, 
-        headerHozAlign: "center", 
+        formatter: "rowSelection",
+        titleFormatter: "rowSelection",
+        headerSort: false,
+        width: 100,
+        frozen: true,
+        headerHozAlign: "center",
         hozAlign: "center"
       },
       columns: [
@@ -296,7 +297,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
             const value = cell.getValue();
             return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
           }
-        }      
+        }
       ],
       pagination: true,
       paginationSize: 100,
@@ -384,7 +385,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
     }
 
     const formData = this.foodOrderForm.value;
-    
+
     // Find the selected employee to get EmployeeID
     const selectedEmployee = this.employeeList.find(emp => emp.value === formData.FullName);
     if (!selectedEmployee) {
@@ -405,13 +406,13 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
 
     this.foodOrderService.saveEmployeeFoodOrder(foodOrderData).subscribe({
       next: (response) => {
-          this.notification.success('Thành công', 
+          this.notification.success('Thành công',
           formData.ID === 0 ? 'Thêm đơn đặt cơm thành công' : 'Cập nhật đơn đặt cơm thành công');
-          
+
           this.closeModal();
           this.loadFoodOrder();
-          
-          // Reset form 
+
+          // Reset form
           this.foodOrderForm.reset({
             ID: 0,
             EmployeeID: null,
@@ -426,7 +427,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
       },
       error: (error) => {
         console.error('Error saving food order:', error);
-        this.notification.error('Lỗi', 'Có lỗi xảy ra khi lưu đơn đặt cơm');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lưu đơn đặt cơm');
       }
     });
   }
@@ -436,7 +437,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
   deleteFoodOrder() {
     const selectedRowsHN = this.foodOrderHNTabulator.getSelectedRows();
     const selectedRowsĐP = this.foodOrderĐPTabulator.getSelectedRows();
-    
+
     if (selectedRowsHN.length === 0 && selectedRowsĐP.length === 0) {
       this.notification.warning('Cảnh báo', 'Vui lòng chọn đơn đặt cần xóa');
       return;
@@ -444,13 +445,13 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
 
     // Collect all selected food orders
     const foodOrdersToDelete: any[] = [];
-    
+
     if (selectedRowsHN.length > 0) {
       selectedRowsHN.forEach(row => {
         foodOrdersToDelete.push(row.getData());
       });
     }
-    
+
     if (selectedRowsĐP.length > 0) {
       selectedRowsĐP.forEach(row => {
         foodOrdersToDelete.push(row.getData());
@@ -458,7 +459,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
     }
 
     if (foodOrdersToDelete.length === 0) {
-      this.notification.error('Lỗi', 'Không tìm thấy đơn đặt cần xóa');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không tìm thấy đơn đặt cần xóa');
       return;
     }
 
@@ -468,7 +469,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
       this.notification.warning('Cảnh báo', `Có đơn đặt cơm đã được duyệt. Vui lòng hủy duyệt trước khi xóa!`);
       return;
     }
-    
+
 
     // Show confirmation dialog
     const employeeNames = foodOrdersToDelete.map(fo => fo.FullName).join(', ');
@@ -491,7 +492,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
               this.loadFoodOrder();
             },
             error: (error) => {
-              this.notification.error('Lỗi', 'Xóa đơn đặt cơm thất bại: ' + error.message);
+              this.notification.error(NOTIFICATION_TITLE.error, 'Xóa đơn đặt cơm thất bại: ' + error.message);
             }
           })
         });
@@ -500,7 +501,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
     });
   }
   //#endregion
-  
+
   //#region Hàm duyệt
   approved(isApproved: boolean) {
     const approvedText = isApproved ? 'duyệt' : 'hủy duyệt';
@@ -526,24 +527,24 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
         for (const row of selectedRows) {
           const id = row['ID'];
           listID.push(id);
-    
+
           // Cập nhật trạng thái và người duyệt
           row['IsApproved'] = isApproved;
           // row['Approver'] = isApproved ? 368 : 0;
-    
+
           // Gọi API cập nhật từng dòng
           updatePromises.push(
             this.foodOrderService.saveEmployeeFoodOrder(row).toPromise()
           );
         }
-    
+
         Promise.all(updatePromises)
           .then(() => {
             this.notification.success('Thành công', `${approvedText.charAt(0).toUpperCase() + approvedText.slice(1)} đơn đặt cơm thành công!`);
             this.loadFoodOrder();
           })
           .catch((error) => {
-            this.notification.error('Lỗi', `Cập nhật đơn đặt cơm thất bại: ${error.message}`);
+            this.notification.error(NOTIFICATION_TITLE.error, `Cập nhật đơn đặt cơm thất bại: ${error.message}`);
           });
       }
     })
@@ -593,7 +594,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit{
         'Số lượng': safe(foodOrder.Quantity)
       };
     });
-    
+
     const workbook = new ExcelJS.Workbook();
     const worksheetHN = workbook.addWorksheet('VP Hà Nội');
     const worksheetĐP = workbook.addWorksheet('Xưởng Đan Phượng');

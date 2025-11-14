@@ -21,9 +21,9 @@
     <div nz-row [nzGutter]="16">
       <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="6">
         <nz-form-item>
-          <nz-form-label class="fs-12" nzRequired>Số phiếu</nz-form-label>
+          <nz-form-label class="fs-12" nzRequired >Số phiếu</nz-form-label>
           <nz-form-control [nzErrorTip]="billImportCodeError">
-            <input nz-input formControlName="BillImportCode" readonly />
+            <input  [disabled]="true" nz-input formControlName="BillImportCode" readonly />
             <ng-template #billImportCodeError let-control>
               <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">
                 Vui lòng nhập số phiếu!
@@ -42,7 +42,6 @@
               nzShowSearch
               nzAllowClear
               nzPlaceHolder="Chọn trạng thái"
-              (ngModelChange)="changeStatus()"
             >
               <nz-option *ngFor="let id of cbbStatus" [nzValue]="id.ID" [nzLabel]="id.Name"></nz-option>
             </nz-select>
@@ -60,12 +59,12 @@
         <nz-form-item>
           <nz-form-label class="fs-12" nzRequired>Loại kho</nz-form-label>
           <nz-form-control [nzErrorTip]="khoTypeIdError">
+            <!-- Loại kho -->
             <nz-select
               formControlName="KhoTypeID"
               nzShowSearch
               nzAllowClear
               nzPlaceHolder="Chọn loại kho"
-              (ngModelChange)="changeProductGroup($event)"
             >
               <nz-option *ngFor="let id of dataCbbProductGroup" [nzValue]="id.ID" [nzLabel]="id.ProductGroupName"></nz-option>
             </nz-select>
@@ -85,7 +84,10 @@
         <nz-form-item>
           <nz-form-label class="fs-12" nzRequired>Kho</nz-form-label>
           <nz-form-control>
-            <input nz-input formControlName="WarehouseName" />
+            <!-- Disable select, hiển thị WarehouseName, giá trị là WarehouseID -->
+            <nz-select formControlName="WarehouseID" nzShowSearch nzDisabled="true" nzPlaceHolder="Chọn kho">
+              <nz-option *ngFor="let wh of warehouses" [nzValue]="wh.ID" [nzLabel]="wh.WarehouseName"></nz-option>
+            </nz-select>
           </nz-form-control>
         </nz-form-item>
       </div>
@@ -166,7 +168,7 @@
               nzAllowClear
               nzPlaceHolder="Chọn người giao"
             >
-              <nz-option *ngFor="let id of dataCbbDeliver" [nzValue]="id.ID" [nzLabel]="id.FullName"></nz-option>
+              <nz-option *ngFor="let id of dataCbbDeliver"  [nzValue]="id.ID" [nzLabel]="id.FullName "></nz-option>
             </nz-select>
             <ng-template #deliverIdError let-control>
               <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">

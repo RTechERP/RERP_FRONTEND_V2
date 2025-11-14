@@ -10,6 +10,7 @@ import {
   createComponent,
   Output,
   EventEmitter,
+  ElementRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder } from '@angular/forms';
@@ -37,9 +38,10 @@ import { RowComponent } from 'tabulator-tables';
 import { SelectControlComponent } from '../../../BillExport/Modal/select-control/select-control.component';
 import { ProductSaleDetailComponent } from '../../../ProductSale/product-sale-detail/product-sale-detail.component';
 import { BillImportServiceService } from '../../bill-import-service/bill-import-service.service';
-import { AppUserService } from '../../../../../../services/app-user.service';   
+import { AppUserService } from '../../../../../../services/app-user.service';
 import { DateTime } from 'luxon';
 import { updateCSS } from 'ng-zorro-antd/core/util';
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 
 interface DocumentImportPoNCC {
   ID: number;
@@ -84,6 +86,9 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
   @Input() id: number = 0;
   @Input() code: string = '';
   @Output() dataSaved = new EventEmitter<void>(); // To notify parent to reload
+
+  @ViewChild('tableBillDocumentImport') tableBillDocumentImportRef!: ElementRef;
+  @ViewChild('tableBillDocumentImportLog') tableBillDocumentImportLogRef!: ElementRef;
 
   displayedData: any;
   flag: boolean = true;
@@ -130,7 +135,7 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
       this.activeHR = true;
     } else if (this.appUserService.departmentID === 5) {
       this.activeKT = true;
-    } else if (this.appUserService.departmentID === 4) {  
+    } else if (this.appUserService.departmentID === 4) {
       this.activePur = true;
     }
     this.getBillDocumentImport();
@@ -147,15 +152,17 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
       next: (res) => {
         if (res?.data && Array.isArray(res.data)) {
           this.displayedData = res.data;
+          console.log(res.data);
           this.dataBillDocumentImport = JSON.parse(JSON.stringify(res.data)); // bản sao để so sánh'
           this.table_billDocumentImport?.replaceData(this.displayedData);
           // this.dataBillDocumentImport = res.data;
           // this.table_billDocumentImport?.replaceData(this.dataBillDocumentImport);
-          this.getBillDocumentImportLog(this.id, res.data[0].DocumentImportID);
+          // this.getBillDocumentImportLog(this.id, res.data[0].DocumentImportID);
+
         }
       },
       error: (err) => {
-        this.notification.error('Lỗi', 'Lỗi khi lấy chứng từ');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi lấy chứng từ');
         console.error('Lỗi khi lấy chứng từ', err);
       },
     });
@@ -168,13 +175,15 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
         next: (res) => {
           if (res?.data && Array.isArray(res.data)) {
             this.dataBillDocumentImportLog = res.data;
+            console.log('datalog:',this.dataBillDocumentImportLog);
+
             this.table_billDocumentImportLog?.replaceData(
               this.dataBillDocumentImportLog
             );
           }
         },
         error: (err) => {
-          this.notification.error('Lỗi', 'Lỗi khi lấy lịch sử chứng từ');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi lấy lịch sử chứng từ');
           console.error('Lỗi khi lấy lịch sử chứng từ', err);
         },
       });
@@ -271,7 +280,7 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
         const errorMsg = err.error?.errors
           ? Object.values(err.error.errors).flat().join('; ')
           : err.error?.error || 'Có lỗi xảy ra khi lưu dữ liệu.';
-        this.notification.error('Lỗi', errorMsg);
+        this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
         console.error('Lỗi khi lưu dữ liệu:', err);
       },
     });
@@ -319,7 +328,7 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
 
     if (!this.table_billDocumentImport) {
       this.table_billDocumentImport = new Tabulator(
-        '#table_billDocumentImport',
+        this.tableBillDocumentImportRef.nativeElement,
         {
           index: 'ID',
           data: this.dataBillDocumentImport,
@@ -455,6 +464,9 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
 
       this.table_billDocumentImport.on('rowSelected', (row: RowComponent) => {
         const rowData = row.getData();
+        this.id = rowData['ID'];
+        console.log('documentimportid',this.id);
+
         this.documentImportID = rowData['DocumentImportID'];
         this.getBillDocumentImportLog(this.id, this.documentImportID);
       });
@@ -477,7 +489,7 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
 
     if (!this.table_billDocumentImportLog) {
       this.table_billDocumentImportLog = new Tabulator(
-        '#table_billDocumentImportLog',
+        this.tableBillDocumentImportLogRef.nativeElement,
         {
           index: 'ID',
           data: this.dataBillDocumentImportLog,

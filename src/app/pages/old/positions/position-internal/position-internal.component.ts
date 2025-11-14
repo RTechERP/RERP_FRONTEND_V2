@@ -15,6 +15,7 @@ import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { PositionServiceService } from '../position-service/position-service.service';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-position-internal',
@@ -80,7 +81,7 @@ export class PositionInternalComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách chức vụ nội bộ: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách chức vụ nội bộ: ' + error.message);
       }
     });
   }
@@ -446,7 +447,7 @@ export class PositionInternalComponent implements OnInit {
       return;
     }
     // const idsToDelete = selectedRows.map(row => row.getData()['ID']);
-    
+
     // this.modal.confirm({
     //   nzTitle: 'Xác nhận xóa',
     //   nzContent: `Bạn có chắc chắn muốn xóa ${idsToDelete.length} chức vụ nội bộ đã chọn?`,
@@ -460,7 +461,7 @@ export class PositionInternalComponent implements OnInit {
     //       this.notification.success('Thành công', 'Đã xóa thành công các chức vụ nội bộ đã chọn');
     //       this.loadPositionInternal();
     //     }).catch(() => {
-    //       this.notification.error('Lỗi', 'Có lỗi xảy ra khi xóa');
+    //       this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xóa');
     //     });
     //   },
     //   nzCancelText: 'Hủy'
@@ -484,7 +485,7 @@ export class PositionInternalComponent implements OnInit {
             this.loadPositionInternal();
           },
           error: (error) => {
-            this.notification.error('Lỗi', 'Xóa chức vụ nội bộ thất bại: ' + error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Xóa chức vụ nội bộ thất bại: ' + error.message);
           }
         });
       },
@@ -514,7 +515,7 @@ export class PositionInternalComponent implements OnInit {
         this.loadPositionInternal();
       },
       error: (error) => {
-        this.notification.error('Lỗi', (this.isEditMode ? 'Cập nhật' : 'Thêm mới') + ' chức vụ nội bộ thất bại: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, (this.isEditMode ? 'Cập nhật' : 'Thêm mới') + ' chức vụ nội bộ thất bại: ' + error.message);
       },
       complete: () => {
         this.isSubmitting = false;

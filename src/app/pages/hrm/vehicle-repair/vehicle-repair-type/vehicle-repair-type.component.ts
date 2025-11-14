@@ -39,6 +39,7 @@ import {
 } from 'tabulator-tables';
 import { VehicleRepairTypeFormComponent } from './vehicle-repair-type-form/vehicle-repair-type-form.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   standalone: true,
@@ -222,7 +223,7 @@ export class VehicleRepairTypeComponent implements OnInit, AfterViewInit {
             this.getRepairType();
           },
           error: () => {
-            this.notification.error('Lỗi', 'Xóa loại thất bại');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Xóa loại thất bại');
           },
         });
       },

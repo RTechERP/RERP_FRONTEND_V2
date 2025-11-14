@@ -13,6 +13,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { EmployeeBussinessService } from '../employee-bussiness-service/employee-bussiness.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-employee-bussiness-type',
@@ -74,7 +75,7 @@ export class EmployeeBussinessTypeComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách loại phụ cấp công tác: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách loại phụ cấp công tác: ' + error.message);
       }
     });
   }
@@ -133,7 +134,7 @@ export class EmployeeBussinessTypeComponent implements OnInit {
     }
     const selectedEmployeeBussinessType = selectedRows[0].getData();
 
-    
+
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
       nzContent: `Bạn có chắc chắn muốn xóa loại phụ cấp công tác đã chọn?`,
@@ -150,7 +151,7 @@ export class EmployeeBussinessTypeComponent implements OnInit {
             this.loadEmployeeBussinessType();
           },
           error: (error) => {
-            this.notification.error('Lỗi', 'Xóa loại phụ cấp công tác thất bại: ' + error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Xóa loại phụ cấp công tác thất bại: ' + error.message);
           }
         });
       },
@@ -179,7 +180,7 @@ export class EmployeeBussinessTypeComponent implements OnInit {
         this.loadEmployeeBussinessType();
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Cập nhật loại phụ cấp công tác thất bại: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật loại phụ cấp công tác thất bại: ' + error.message);
       },
       complete: () => {
         this.isSubmitting = false;

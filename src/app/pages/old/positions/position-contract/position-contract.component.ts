@@ -14,6 +14,7 @@ import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { PositionServiceService } from '../position-service/position-service.service';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-position-contract',
@@ -78,7 +79,7 @@ export class PositionContractComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách chức vụ theo hợp đồng: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách chức vụ theo hợp đồng: ' + error.message);
       }
     });
   }
@@ -445,7 +446,7 @@ export class PositionContractComponent implements OnInit {
     }
     const selectedPositionContract = selectedRows[0].getData();
 
-    
+
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
       nzContent: `Bạn có chắc chắn muốn xóa chức vụ theo hợp đồng đã chọn?`,
@@ -462,7 +463,7 @@ export class PositionContractComponent implements OnInit {
             this.loadPositionContract();
           },
           error: (error) => {
-            this.notification.error('Lỗi', 'Xóa chức vụ theo hợp đồng thất bại: ' + error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Xóa chức vụ theo hợp đồng thất bại: ' + error.message);
           }
         });
       },
@@ -491,7 +492,7 @@ export class PositionContractComponent implements OnInit {
         this.loadPositionContract();
       },
       error: (error) => {
-        this.notification.error('Lỗi', (this.isEditMode ? 'Cập nhật' : 'Thêm mới') + ' chức vụ theo hợp đồng thất bại: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, (this.isEditMode ? 'Cập nhật' : 'Thêm mới') + ' chức vụ theo hợp đồng thất bại: ' + error.message);
       },
       complete: () => {
         this.isSubmitting = false;

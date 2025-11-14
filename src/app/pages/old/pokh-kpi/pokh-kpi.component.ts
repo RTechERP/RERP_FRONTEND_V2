@@ -55,6 +55,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 
 import { PokhService } from '../pokh/pokh-service/pokh.service';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-pokh-kpi',
@@ -213,7 +214,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
   }
   async exportDetailTableToExcel() {
     if (!this.tb_Detail) {
-      this.notification.error('Lỗi', 'Không có dữ liệu để xuất Excel');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất Excel');
       return;
     }
 

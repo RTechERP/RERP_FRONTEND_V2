@@ -60,6 +60,7 @@ import { CustomerMajorService } from '../customer-major-service/customer-major.s
 import { CustomerMajorDetailComponent } from '../customer-major-detail/customer-major-detail.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   selector: 'app-customer-major',
   imports: [
@@ -113,7 +114,7 @@ export class CustomerMajorComponent implements OnInit, AfterViewInit {
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
     private customerMajorService: CustomerMajorService,
-    
+
   ) {}
 
   ngOnInit(): void {
@@ -148,11 +149,11 @@ export class CustomerMajorComponent implements OnInit, AfterViewInit {
             this.tb_MainTable.setData(this.data);
           }
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
 
@@ -237,11 +238,11 @@ export class CustomerMajorComponent implements OnInit, AfterViewInit {
             this.tb_MainTable.setData(this.data);
           }
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }

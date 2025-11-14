@@ -9,6 +9,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { RulePayService, RulePay } from '../rule-pay.service';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-rule-pay-detail',
@@ -122,9 +123,9 @@ if (this.validateForm.invalid) {
     const formData = this.validateForm.value;
     console.log('Form data for update:', formData);
     console.log('Current form values:', this.validateForm.getRawValue());
-    
+
     if (!this.newRulePay.ID) {
-      this.notification.error('Lỗi',  'Không tìm thấy ID để cập nhật');
+      this.notification.error(NOTIFICATION_TITLE.error,  'Không tìm thấy ID để cập nhật');
       return;
     }
     const payload = {

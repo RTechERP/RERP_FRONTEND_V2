@@ -146,7 +146,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
     this.getEmployeeData();
     this.getTeamData();
   }
-  
+
 
   ngAfterViewInit(): void {
     this.initAddressTable();
@@ -300,13 +300,13 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         return;
       }
       const isDeleted = selectedRows.map((item: any) => item.ID);
-    
+
       // Tạo chuỗi tên khách hàng
       let nameDisplay = '';
       selectedRows.forEach((item: any, index: number) => {
         nameDisplay += item.CustomerName + ',';
       });
-    
+
       if (selectedRows.length > 10) {
         if (nameDisplay.length > 10) {
           nameDisplay = nameDisplay.slice(0, 10) + '...';
@@ -317,7 +317,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
           nameDisplay = nameDisplay.slice(0, 20) + '...';
         }
       }
-    
+
       // Hiển thị confirm
       this.modal.confirm({
         nzTitle: 'Xác nhận xóa',
@@ -326,7 +326,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         nzCancelText: 'Hủy',
         nzOkDanger: true,
         nzOnOk: () => {
-         
+
         const payload = {
           isDeleted: isDeleted
         };
@@ -359,13 +359,13 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   //     this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một khách hàng để xóa!');
   //     return;
   //   }
-  
+
   //   // Tạo chuỗi tên khách hàng
   //   let nameDisplay = '';
   //   selectedRows.forEach((item: any, index: number) => {
   //     nameDisplay += item.CustomerName + ',';
   //   });
-  
+
   //   if (selectedRows.length > 10) {
   //     if (nameDisplay.length > 10) {
   //       nameDisplay = nameDisplay.slice(0, 10) + '...';
@@ -376,7 +376,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   //       nameDisplay = nameDisplay.slice(0, 20) + '...';
   //     }
   //   }
-  
+
   //   // Hiển thị confirm
   //   this.modal.confirm({
   //     nzTitle: 'Xác nhận xóa',
@@ -397,24 +397,24 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   //           CustomerEmployees: [],
   //           BusinessFieldID: 0,
   //         };
-  
+
   //         return this.customerService.save(payload).toPromise(); // Chuyển Observable thành Promise
   //       });
-  
+
   //       // Chạy tất cả các yêu cầu xóa
   //       Promise.all(deleteRequests)
   //         .then((results) => {
   //           const allSuccess = results.every((res: any) => res?.status === 'Success');
   //           if (allSuccess) {
   //             this.notification.success('Thành công', 'Đã xóa khách hàng thành công!');
-  //             this.initMainTable(); 
+  //             this.initMainTable();
   //           } else {
   //             this.notification.warning('Thông báo', 'Không thể xóa một số khách hàng!');
   //           }
   //         })
   //         .catch((err) => {
   //           console.error('Lỗi xóa:', err);
-  //           this.notification.error('Lỗi', err?.message || 'Có lỗi xảy ra khi xóa khách hàng!');
+  //           this.notification.error(NOTIFICATION_TITLE.error, err?.message || 'Có lỗi xảy ra khi xóa khách hàng!');
   //         });
   //     },
   //   });
@@ -552,7 +552,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         data: this.customerContactData,
         ...DEFAULT_TABLE_CONFIG,
         layout:"fitColumns",
-       
+
         // selectableRows: 1,
         pagination: false,
         // paginationSize: 100,
@@ -586,7 +586,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         data: this.addressStockData,
         ...DEFAULT_TABLE_CONFIG,
         layout:"fitColumns",
-       
+
         // selectableRows: 1,
         pagination: true,
         // paginationSize: 100,

@@ -503,7 +503,7 @@ getListEmployee() {
       },
       error: (err) => {
         console.error(err);
-        this.notification.error('Lỗi', 'Không thể xuất phiếu nhập kỹ thuật!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xuất phiếu nhập kỹ thuật!');
       }
     });
   }

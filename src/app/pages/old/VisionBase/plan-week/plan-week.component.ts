@@ -58,6 +58,7 @@ import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { PlanWeekService } from './plan-week-services/plan-week.service';
 import { Title } from '@angular/platform-browser';
 import { PlanWeekDetailComponent } from '../plan-week-detail/plan-week-detail/plan-week-detail.component';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-plan-week',
@@ -246,11 +247,11 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
         if (response.status === 1) {
           this.filterDepartmentData = response.data;
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -261,11 +262,11 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
         if (response.status === 1) {
           this.filterTeamData = this.transformFlatDataToTreeData(response.data);
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -276,11 +277,11 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
         if (response.status === 1) {
           this.filterUserData = response.data;
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -303,11 +304,11 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
               this.tb_MainTable.setData(this.mainData);
             }
           } else {
-            this.notification.error('Lỗi', response.message);
+            this.notification.error(NOTIFICATION_TITLE.error, response.message);
           }
         },
         error: (error) => {
-          this.notification.error('Lỗi', error);
+          this.notification.error(NOTIFICATION_TITLE.error, error);
         },
       });
   }
@@ -410,7 +411,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
 
   async exportMainTableToExcel() {
     if (!this.tb_MainTable) {
-      this.notification.error('Lỗi', 'Không có dữ liệu để xuất Excel');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất Excel');
       return;
     }
 

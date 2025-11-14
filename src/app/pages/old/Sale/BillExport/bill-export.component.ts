@@ -36,6 +36,10 @@ import { ScanBillComponent } from './Modal/scan-bill/scan-bill.component';
 import { BillDocumentExportComponent } from './Modal/bill-document-export/bill-document-export.component';
 import { ActivatedRoute } from '@angular/router';
 import { AppUserService } from '../../../../services/app-user.service';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzTabsModule } from 'ng-zorro-antd/tabs';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 interface BillExport {
   Id?: number;
   TypeBill: boolean;
@@ -76,12 +80,17 @@ interface BillExport {
     NzDatePickerModule,
     NzDropDownModule,
     NzMenuModule,
+    NzSpinModule,
+    NzTabsModule,
+    HasPermissionDirective
   ],
   templateUrl: './bill-export.component.html',
   styleUrl: './bill-export.component.css',
 })
+
 export class BillExportComponent implements OnInit, AfterViewInit {
   @Input() warehouseCode: string = "HN";
+    selectedRow: any = "";
   dataProductGroup: any[] = [];
   data: any[] = [];
   sizeSearch: string = '0';
@@ -96,6 +105,9 @@ export class BillExportComponent implements OnInit, AfterViewInit {
   id: number = 0;
   selectBillExport: any[] = [];
   billExportID : number =0;
+  isLoadTable: boolean = false;
+  isDetailLoad: boolean = false;
+
   newBillExport: BillExport = {
     TypeBill: false,
     Code: '',
@@ -122,7 +134,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
     { ID: 5, Name: 'Xuất trả NCC' },
     { ID: 6, Name: 'Yêu cầu xuất kho' },
   ];
-
+  sizeTbDetail: any = '0';
   searchParams = {
     dateStart: new Date(new Date().setMonth(new Date().getMonth() - 1))
       .toISOString()
@@ -209,6 +221,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
     });
   }
   loadDataBillExport() {
+    this.isLoadTable = true;
     const dateStart = DateTime.fromJSDate(
       new Date(this.searchParams.dateStart)
     );
@@ -236,23 +249,28 @@ export class BillExportComponent implements OnInit, AfterViewInit {
                 '>>> Bảng chưa tồn tại, dữ liệu sẽ được load khi drawTable() được gọi'
               );
             }
+            this.isLoadTable = false;
           }
         },
         error: (err) => {
-          this.notification.error('Lỗi', 'Không thể tải dữ liệu phiếu xuất');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu phiếu xuất');
+          this.isLoadTable = false;
         },
       });
   }
   getBillExportDetail(id: number) {
+    this.isDetailLoad = true;
     this.billExportService.getBillExportDetail(id).subscribe({
       next: (res) => {
         this.dataTableBillExportDetail = res.data;
         this.table_billExportDetail?.replaceData(
           this.dataTableBillExportDetail
         );
+        this.isDetailLoad = false;
       },
       error: (err) => {
         this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy chi tiết');
+        this.isDetailLoad = false;
       },
     });
   }
@@ -500,51 +518,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
         },
       },
     ];
-    var headerMenu = function (this: any) {
-      var menu = [];
-      var columns = this.getColumns();
-
-      for (let column of columns) {
-        //create checkbox element using font awesome icons
-        let icon = document.createElement('i');
-        icon.classList.add('fas');
-        icon.classList.add(
-          column.isVisible() ? 'fa-check-square' : 'fa-square'
-        );
-
-        //build label
-        let label = document.createElement('span');
-        let title = document.createElement('span');
-
-        title.textContent = ' ' + column.getDefinition().title;
-
-        label.appendChild(icon);
-        label.appendChild(title);
-
-        //create menu item
-        menu.push({
-          label: label,
-          action: function (e: any) {
-            //prevent menu closing
-            e.stopPropagation();
-
-            //toggle current column visibility
-            column.toggle();
-
-            //change menu item icon
-            if (column.isVisible()) {
-              icon.classList.remove('fa-square');
-              icon.classList.add('fa-check-square');
-            } else {
-              icon.classList.remove('fa-check-square');
-              icon.classList.add('fa-square');
-            }
-          },
-        });
-      }
-
-      return menu;
-    };
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
     if (this.table_billExport) {
       this.table_billExport.replaceData(this.dataTableBillExport);
@@ -583,7 +557,6 @@ export class BillExportComponent implements OnInit, AfterViewInit {
                 value === true ? 'checked' : ''
               } disabled />`;
             },
-            headerMenu: headerMenu,
           },
           {
             title: 'Ngày nhận',
@@ -596,7 +569,6 @@ export class BillExportComponent implements OnInit, AfterViewInit {
                 ? DateTime.fromISO(value).toFormat('dd/MM/yyyy')
                 : '';
             },
-            headerMenu: headerMenu,
           },
           {
             title: 'Trạng thái',
@@ -617,7 +589,6 @@ export class BillExportComponent implements OnInit, AfterViewInit {
                 ? DateTime.fromISO(value).toFormat('dd/MM/yyyy')
                 : '';
             },
-            headerMenu: headerMenu,
           },
           ///
           {
@@ -633,7 +604,6 @@ export class BillExportComponent implements OnInit, AfterViewInit {
             hozAlign: 'left',
             headerHozAlign: 'left',
             width: 200,
-            headerMenu: headerMenu,
             resizable: true,
             variableHeight: true,
             bottomCalc: 'count',
@@ -644,7 +614,6 @@ export class BillExportComponent implements OnInit, AfterViewInit {
             hozAlign: 'left',
             headerHozAlign: 'left',
             width: 200,
-            headerMenu: headerMenu,
           },
           {
             title: 'Tên NV',
@@ -652,7 +621,6 @@ export class BillExportComponent implements OnInit, AfterViewInit {
             hozAlign: 'left',
             headerHozAlign: 'left',
             width: 200,
-            headerMenu: headerMenu,
           },
           {
             title: 'Khách hàng',
@@ -660,7 +628,6 @@ export class BillExportComponent implements OnInit, AfterViewInit {
             hozAlign: 'left',
             headerHozAlign: 'center',
             width: 200,
-            headerMenu: headerMenu,
           },
           {
             title: 'Nhà cung cấp',
@@ -668,7 +635,6 @@ export class BillExportComponent implements OnInit, AfterViewInit {
             hozAlign: 'left',
             headerHozAlign: 'center',
             width: 200,
-            headerMenu: headerMenu,
           },
           {
             title: 'Địa chỉ',
@@ -676,7 +642,6 @@ export class BillExportComponent implements OnInit, AfterViewInit {
             hozAlign: 'left',
             headerHozAlign: 'center',
             width: 200,
-            headerMenu: headerMenu,
           },
           {
             title: 'Ngày xuất',
@@ -690,7 +655,6 @@ export class BillExportComponent implements OnInit, AfterViewInit {
                 ? DateTime.fromISO(value).toFormat('dd/MM/yyyy')
                 : '';
             },
-            headerMenu: headerMenu,
           },
           {
             title: 'Loại vật tư',
@@ -698,7 +662,6 @@ export class BillExportComponent implements OnInit, AfterViewInit {
             hozAlign: 'left',
             headerHozAlign: 'center',
             width: 200,
-            headerMenu: headerMenu,
           },
           {
             title: 'Kho',
@@ -706,7 +669,6 @@ export class BillExportComponent implements OnInit, AfterViewInit {
             hozAlign: 'left',
             headerHozAlign: 'center',
             width: 200,
-            headerMenu: headerMenu,
           },
           {
             title: 'Loại phiếu',
@@ -714,7 +676,6 @@ export class BillExportComponent implements OnInit, AfterViewInit {
             hozAlign: 'left',
             headerHozAlign: 'center',
             width: 200,
-            headerMenu: headerMenu,
           },
           {
             title: 'Người giao',
@@ -722,15 +683,24 @@ export class BillExportComponent implements OnInit, AfterViewInit {
             hozAlign: 'left',
             headerHozAlign: 'center',
             width: 200,
-            headerMenu: headerMenu,
           },
         ],
       });
+      if (isMobile) {
+        this.table_billExport.getColumns().forEach((col: any) => {
+
+          const def = col.getDefinition();
+          if (def && def.frozen === true) {
+            col.updateDefinition({ frozen: false });
+          }
+        });
+      }
 
       // THÊM SỰ KIỆN rowSelected VÀ rowDeselected
       this.table_billExport.on('rowSelected', (row: RowComponent) => {
         const rowData = row.getData();
         this.id = rowData['ID'];
+        this.sizeTbDetail = null;
         this.data = [rowData]; // Giả sử bạn luôn muốn this.data chứa mảng 1 phần tử
         this.getBillExportDetail(this.id);
         this.getBillExportByID(this.id);
@@ -968,7 +938,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
   //#endregion
   onExportGroupItem(type: number) {
     if (!this.id || this.id == 0) {
-      this.notification.error('Lỗi', 'Vui lòng chọn bản ghi cần xuất file');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn bản ghi cần xuất file');
       return;
     }
     const selectedHandover = this.data.find((item) => item.ID === this.id);
@@ -993,7 +963,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
         window.URL.revokeObjectURL(url);
       },
       error: (err) => {
-        this.notification.error('Lỗi', 'Có lỗi xảy ra khi xuất file.');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xuất file.');
         console.error(err);
       },
     });
@@ -1024,7 +994,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
       keyboard: false,
     });
-    modalRef.componentInstance.warehouseCode = this.warehouseCode;  
+    modalRef.componentInstance.warehouseCode = this.warehouseCode;
     modalRef.result.catch((result) => {
       if (result == true) {
         this.id = 0;
@@ -1033,4 +1003,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
     });
   }
   //#endregion
+   closePanel() {
+    this.sizeTbDetail = '0';
+  }
 }

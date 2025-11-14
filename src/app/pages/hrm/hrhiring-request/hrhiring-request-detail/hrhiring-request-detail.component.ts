@@ -22,6 +22,7 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 // Services
 import { HrhiringRequestService } from '../hrhiring-request-service/hrhiring-request.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-hrhiring-request-detail',
@@ -192,7 +193,7 @@ export class HrhiringRequestDetailComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading departments:', error);
-        this.notification.error('Lỗi', 'Không thể tải danh sách phòng ban');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách phòng ban');
       },
     });
 
@@ -209,7 +210,7 @@ export class HrhiringRequestDetailComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading positions:', error);
-        this.notification.error('Lỗi', 'Không thể tải danh sách vị trí');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách vị trí');
       },
     });
   }
@@ -335,26 +336,26 @@ export class HrhiringRequestDetailComponent implements OnInit {
 
   parseSalaryInput(value: string): number {
     if (!value || value.trim() === '') return 0;
-    
+
     // Loại bỏ tất cả ký tự không phải số
     const cleanValue = value.replace(/[^0-9]/g, '');
-    
+
     if (cleanValue === '') return 0;
-    
+
     const parsed = parseInt(cleanValue) || 0;
     return Math.max(0, parsed); // Đảm bảo không âm
   }
 
   validateNumberInput(event: KeyboardEvent,event1:any): void {
     const char = event.key;
-    
+
     // Cho phép: số (0-9), Backspace, Delete, Tab, Enter, Arrow keys
     const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
-    
+
     if (allowedKeys.includes(char)) {
       return; // Cho phép các phím điều khiển
     }
-    
+
     // Chỉ cho phép số (0-9)
     if (!/[0-9]/.test(char)) {
       event.preventDefault();
@@ -362,7 +363,7 @@ export class HrhiringRequestDetailComponent implements OnInit {
     }
     // const value = this.form.value.SalaryMin || 0;
     // console.log(value);
-    
+
     // event1.target.value = this.formatNumberEnUS(value);
   }
 
@@ -498,7 +499,7 @@ if(value>this.form.value.AgeMax){
   onMinSalaryInputChange(event: any): void {
     const rawValue = event.target.value.replace(/,/g, ''); // Loại bỏ dấu phẩy
     let numericValue = parseInt(rawValue) || 0;
-    
+
     if(numericValue>this.form.value.SalaryMax){
         numericValue = this.form.value.SalaryMax;
     }
@@ -508,9 +509,9 @@ if(value>this.form.value.AgeMax){
     } else if (numericValue > 100000000) {
       numericValue = 100000000;
     }
-    
+
     this.form.patchValue({ SalaryMin: numericValue });
-    
+
     // Format lại hiển thị
     event.target.value = this.formatNumberEnUS(numericValue);
   }
@@ -527,9 +528,9 @@ if(value>this.form.value.AgeMax){
     } else if (numericValue > 100000000) {
       numericValue = 100000000;
     }
-    
+
     this.form.patchValue({ SalaryMax: numericValue });
-    
+
     // Format lại hiển thị
     event.target.value = this.formatNumberEnUS(numericValue);
   }
@@ -556,7 +557,7 @@ if(value>this.form.value.AgeMax){
     } else if (numericValue > 65) {
       numericValue = 65;
     }
-    
+
     this.form.patchValue({ AgeMin: numericValue });
     event.target.value = this.formatNumberEnUS(numericValue);
   }
@@ -567,7 +568,7 @@ if(value>this.form.value.AgeMax){
     if(numericValue<this.form.value.AgeMin){
         numericValue = this.form.value.AgeMin
     }
-    
+
     // Validate range: 18 - 65
     if (isNaN(numericValue) || numericValue < 18) {
       numericValue = 18;
@@ -640,21 +641,21 @@ if(value>this.form.value.AgeMax){
   onSalaryPaste(event: ClipboardEvent): void {
     event.preventDefault();
     const clipboardData = event.clipboardData?.getData('text') || '';
-    
+
     // Chỉ cho phép paste nếu là số
     if (/^\d+$/.test(clipboardData)) {
       const target = event.target as HTMLInputElement;
       let numericValue = parseInt(clipboardData) || 0;
-      
+
       // Validate range: 0 - 100,000,000
       if (numericValue < 0) {
         numericValue = 0;
       } else if (numericValue > 100000000) {
         numericValue = 100000000;
       }
-      
+
       target.value = this.formatNumberEnUS(numericValue);
-      
+
       // Trigger input event để cập nhật form
       const inputEvent = new Event('input', { bubbles: true });
       target.dispatchEvent(inputEvent);
@@ -665,21 +666,21 @@ if(value>this.form.value.AgeMax){
   onAgePaste(event: ClipboardEvent): void {
     event.preventDefault();
     const clipboardData = event.clipboardData?.getData('text') || '';
-    
+
     // Chỉ cho phép paste nếu là số
     if (/^\d+$/.test(clipboardData)) {
       const target = event.target as HTMLInputElement;
       let numericValue = parseInt(clipboardData) || 18;
-      
+
       // Validate range: 18 - 65
       if (numericValue < 18) {
         numericValue = 18;
       } else if (numericValue > 65) {
         numericValue = 65;
       }
-      
+
       target.value = this.formatNumberEnUS(numericValue);
-      
+
       // Trigger input event để cập nhật form
       const inputEvent = new Event('input', { bubbles: true });
       target.dispatchEvent(inputEvent);
@@ -953,7 +954,7 @@ if(value>this.form.value.AgeMax){
       error: (error) => {
         this.isSaving = false;
         console.error('Save error details:', error);
-        this.notification.error('Lỗi', 'Có lỗi xảy ra khi lưu dữ liệu!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lưu dữ liệu!');
       },
     });
   }

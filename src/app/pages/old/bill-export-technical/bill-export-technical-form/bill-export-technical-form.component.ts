@@ -128,12 +128,12 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
       IsDeleted: [false],
     });
   }
-  //Hàm sinh code của phiếu xuất 
+  //Hàm sinh code của phiếu xuất
   getNewCode() {
     const billType = this.formDeviceInfo.get('BillType')?.value ?? 0;
     this.billExportTechnicalService.getBillCode(billType).subscribe({
       next: (res: any) => {
-     
+
         this.formDeviceInfo.patchValue({ Code: res.data });
       },
       error: (err: any) => {
@@ -146,14 +146,14 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
   getCustomer() {
     this.billImportTechnicalService.getCustomer().subscribe((res: any) => {
       this.customerList = res.data;
- 
+
     });
   }
   //Lấy thông tin nhà cung cấp
   getNCC() {
     this.billImportTechnicalService.getNCC().subscribe((res: any) => {
       this.nccList = res.data;
- 
+
     });
   }
   //Lấy danh sách nhân viên
@@ -164,7 +164,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
         label: e.FullName,
         value: e.ID
       }));
- 
+
       if (this.deviceTempTable) {
         this.deviceTempTable.setColumns(this.deviceTempTable.getColumnDefinitions()); // force update
       }
@@ -416,16 +416,16 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
     };
     this.billExportTechnicalService.saveData(payload).subscribe({
       next: (response: any) => {
-       
+
         this.notification.success('Thành công', 'Lưu phiếu thành công');
         this.formSubmitted.emit();
         this.activeModal.close();
       },
       error: (error: any) => {
-     
-        this.notification.error('Lỗi', 'Không thể lưu phiếu, vui lòng thử lại sau');
+
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lưu phiếu, vui lòng thử lại sau');
       }
     });
-   
+
   }
-}       
+}

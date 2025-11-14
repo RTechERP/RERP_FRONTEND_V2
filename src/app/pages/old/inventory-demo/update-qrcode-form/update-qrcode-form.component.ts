@@ -99,7 +99,7 @@ export class UpdateQrcodeFormComponent implements OnInit, AfterViewInit {
         this.activeModal.close(true);
       },
       error: () => {
-        this.notification.error('Lỗi', 'Không thể lưu dữ liệu QR Code');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lưu dữ liệu QR Code');
       }
     });
   }

@@ -25,12 +25,12 @@ export class HistoryImportExportService {
       DateStart: dateStart?.toISO() || new Date().toISOString(),
       DateEnd: dateEnd?.toISO() || new Date().toISOString(),
       FilterText: filterText.trim(),
-      PageNumber: pageNumber.toString(),
-      PageSize: pageSize.toString(),
+      PageNumber: pageNumber,
+      PageSize: pageSize,
       WarehouseCode: warehousecode.trim(),
       checkedAll: checkedAll,
     };
 
-    return this.http.post(environment.host + `api/historyImportExport`, params);
+    return this.http.post(environment.host + `api/HistoryImportExport`, params);
   }
 }

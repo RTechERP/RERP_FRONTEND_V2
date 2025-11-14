@@ -1,15 +1,10 @@
 nz-form-label {
   font-weight: 500;
-  font-size: 14px;
+  font-size: 12px;
 }
-
-nz-form-control {
-  margin-top: 4px;
-}
-
 input[nz-input],
 textarea[nz-input],
 nz-date-picker {
   width: 100%;
-  font-size: 14px;
+  font-size: 12px;
 }

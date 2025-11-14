@@ -35,6 +35,7 @@ function formatDateCell(cell: CellComponent): string {
 // @ts-ignore
 import { saveAs } from 'file-saver';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   standalone: true,
   imports: [
@@ -663,7 +664,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
         saveAs(blob, fileName); // 🟢 Lưu file Excel
       },
       error: (err) => {
-        this.notification.error('Lỗi', 'Không thể xuất file!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xuất file!');
         console.error(err);
       }
     });

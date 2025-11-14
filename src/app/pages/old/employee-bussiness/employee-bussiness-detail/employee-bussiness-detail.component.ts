@@ -25,6 +25,7 @@ import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { EmployeeService } from '../../employee/employee-service/employee.service';
 import { EmployeeBussinessService } from '../employee-bussiness-service/employee-bussiness.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 @Component({
   selector: 'app-employee-bussiness-detail',
   templateUrl: './employee-bussiness-detail.component.html',
@@ -164,7 +165,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit{
         } else {
           this.employeeTypeBussinessList = [];
         }
-      }, 
+      },
       error: (error) => {
         this.notification.warning("Lỗi", "Lỗi khi lấy danh sách loại công tác")
       }
@@ -178,7 +179,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit{
     }
   }
 
-  
+
   private initializeTabulator(): void {
     this.tabulator = new Tabulator('#tb_employee_bussiness_detail', {
       data:this.employeeBussinessDetail, // Initialize with empty array
@@ -212,21 +213,21 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit{
           headerHozAlign: 'center',
           width: 200,
         },
-        { 
+        {
           title: 'Loại',
-          field: 'TypeBusiness', 
-          editor: 'list', 
+          field: 'TypeBusiness',
+          editor: 'list',
           editorParams: {
             values: this.employeeTypeBussinessList
           },
-          
+
           formatter: (cell: any) => {
             const value = cell.getValue();
             const type = this.employeeTypeBussinessList.find((emp: any) => emp.value === value);
             return type ? type.label : value;
           },
-          hozAlign: 'left', 
-          headerHozAlign: 'center', 
+          hozAlign: 'left',
+          headerHozAlign: 'center',
           width: 350
         },
         {
@@ -254,11 +255,11 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit{
             return value === true || value === 'true' || value === 1 || value === '1';
           }
         },
-        { 
-          title: 'Phụ cấp ăn tối', 
-          field: 'OvernightType', 
-          hozAlign: 'left', 
-          headerHozAlign: 'center', 
+        {
+          title: 'Phụ cấp ăn tối',
+          field: 'OvernightType',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
           width: 300,
           editor: 'list',
           editorParams: {
@@ -294,7 +295,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit{
             return value === true || value === 'true' || value === 1 || value === '1';
           }
         },
-        
+
         { title: 'Phương tiện', field: 'VehicleName', editor: 'input', hozAlign: 'left', headerHozAlign: 'center', width: 500},
         { title: 'Lý do sửa', field: 'ReasonHREdit', editor: 'input', hozAlign: 'left', headerHozAlign: 'center',  width: 500},
         { title: 'Ghi chú', field: 'Note', editor: 'input', hozAlign: 'left', headerHozAlign: 'center',  width: 500},
@@ -305,7 +306,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit{
       this.tabulator.on('cellEdited', (cell:any) => {
         const value = cell.getValue();
         const field = cell.getField();
-        
+
         // Validation cho thời gian
         if ((field === 'TimeStart' || field === 'EndTime') && value) {
           try {
@@ -321,7 +322,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit{
             return;
           }
         }
-        
+
         // Validation cho thời gian kết thúc phải sau thời gian bắt đầu
         if (field === 'EndTime' || field === 'TimeStart') {
           const rowData = cell.getRow().getData();
@@ -335,7 +336,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit{
             }
           }
         }
-        
+
         this.employeeBussinessDetail = this.tabulator!.getData();
       });
       this.tabulator.on('dataChanged', () => {
@@ -384,7 +385,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit{
         this.notification.success('Thành công', 'Cập nhật đăng ký công tác thành công');
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Cập nhật đăng ký công tác thất bại');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật đăng ký công tác thất bại');
       }
     })
   }

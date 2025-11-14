@@ -12,6 +12,7 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NgIf } from '@angular/common';
 import { OverTimeService } from '../over-time-service/over-time.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-over-time-type',
@@ -71,7 +72,7 @@ export class OverTimeTypeComponent implements OnInit, AfterViewInit{
         this.isLoading = false;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Không thể tải danh sách loại làm thêm: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách loại làm thêm: ' + error.message);
         this.isLoading = false;
       }
     });
@@ -165,7 +166,7 @@ export class OverTimeTypeComponent implements OnInit, AfterViewInit{
             this.loadOverTimeType();
           },
           error: (error) => {
-            this.notification.error('Lỗi', 'Xóa kiểu làm thêm thất bại: ' + error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Xóa kiểu làm thêm thất bại: ' + error.message);
           }
         });
       },
@@ -175,7 +176,7 @@ export class OverTimeTypeComponent implements OnInit, AfterViewInit{
 
   onSubmit() {
     if (this.overTimeTypeForm.valid) {
-      
+
         this.overTimeService.saveEmployeeTypeOverTime(this.overTimeTypeForm.value).subscribe({
           next: (response) => {
             this.notification.success('Thành công', 'Lưu kiểu làm thêm mới thành công');
@@ -183,7 +184,7 @@ export class OverTimeTypeComponent implements OnInit, AfterViewInit{
             this.loadOverTimeType();
           },
           error: (response) => {
-            this.notification.error('Lỗi', 'Lưu kiểu làm thêm mới thất bại: ' + response.error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Lưu kiểu làm thêm mới thất bại: ' + response.error.message);
           }
         });
     } else {

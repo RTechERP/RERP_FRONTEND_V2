@@ -82,7 +82,7 @@ export class InventoryBorrowSupplierDemoComponent implements OnInit, AfterViewIn
     const now = DateTime.now();
     //gán dateStart và dateEnd mặc định là ngày đầu tháng và cuối tháng hiện tại
     this.dateStart = now.startOf('month').toJSDate();
-    this.dateEnd = now.endOf('month').toJSDate();    
+    this.dateEnd = now.endOf('month').toJSDate();
   }
   //lấy ds ncc
   getNCC() {
@@ -130,7 +130,7 @@ export class InventoryBorrowSupplierDemoComponent implements OnInit, AfterViewIn
             const selectedRow = response.master?.[0]; // Dữ liệu master từ API
 
             if (!selectedRow) {
-              this.notification.error('Lỗi', 'Không tìm thấy biên bản trong hệ thống!');
+              this.notification.error(NOTIFICATION_TITLE.error, 'Không tìm thấy biên bản trong hệ thống!');
               return;
             }
             const modalRef = this.ngbModal.open(BillImportTechnicalFormComponent, {
@@ -152,7 +152,7 @@ export class InventoryBorrowSupplierDemoComponent implements OnInit, AfterViewIn
             const selectedRow = response.master?.[0];
 
             if (!selectedRow) {
-              this.notification.error('Lỗi', 'Không tìm thấy biên bản trong hệ thống!');
+              this.notification.error(NOTIFICATION_TITLE.error, 'Không tìm thấy biên bản trong hệ thống!');
               return;
             }
             const modalRef = this.ngbModal.open(BillExportTechnicalFormComponent, {
@@ -199,7 +199,7 @@ export class InventoryBorrowSupplierDemoComponent implements OnInit, AfterViewIn
         });
       }
       return menu;
-    }; 
+    };
     this.productTable = new Tabulator('#dataTableProductInventoryDemo', {
       layout: "fitDataStretch",
       pagination: true,

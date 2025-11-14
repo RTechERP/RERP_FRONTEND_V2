@@ -37,6 +37,7 @@ function formatDateCell(cell: CellComponent): string {
 import { saveAs } from 'file-saver';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   standalone: true,
   imports: [
@@ -625,7 +626,7 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
         saveAs(blob, fileName);
       },
       error: (res: any) => {
-        this.notification.error('Lỗi', res.error?.message || 'Không thể xuất file!');
+        this.notification.error(NOTIFICATION_TITLE.error, res.error?.message || 'Không thể xuất file!');
         console.error(res);
       }
     });

@@ -1,8 +1,6 @@
-import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, Input } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import * as bootstrap from 'bootstrap';
-
 import { CommonModule } from '@angular/common';
 import {
   FormsModule,
@@ -28,10 +26,10 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
-import { IS_ADMIN } from '../../../../../app.config';
-import { DEPARTMENTID } from '../../../../../app.config';
 import { DateTime } from 'luxon';
 import { HistoryImportExportService } from './history-import-export-service/history-import-export.service';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 @Component({
   selector: 'app-history-import-export',
   standalone: true,
@@ -64,13 +62,14 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     private modalService: NgbModal
   ) {}
-
+@Input() warehouseCode: string = 'HN';
   cbbStatus: any = [
     { ID: -1, Name: '--Tất cả--' },
     { ID: 0, Name: 'Phiếu nhập' },
     { ID: 1, Name: 'Phiếu xuất' },
   ];
   dateFormat = 'dd/MM/yyyy';
+  disableSplit: boolean = true;
 
   table: any;
   dataTable: any[] = [];
@@ -106,7 +105,7 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
       keyword: '',
       group: 0,
       status: -1,
-      warehouseCode: 'HN',
+      warehouseCode: this.warehouseCode,
       pageNumber: 1,
       pageSize: 10000,
     };
@@ -250,7 +249,7 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
           }
         },
         error: (err: any) => {
-          this.notification.error('Lỗi', 'Không thể tải dữ liệu phiếu xuất');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu phiếu xuất');
         },
       });
   }
@@ -259,10 +258,13 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
     this.table = new Tabulator('#table_HistoryImportExport', {
       data: this.dataTable,
       layout: 'fitDataFill',
-      height: '80vh',
       reactiveData: true,
       movableColumns: true,
       resizableRows: true,
+      ...DEFAULT_TABLE_CONFIG,
+      height: '89vh',
+      pagination: true,
+      paginationMode: 'remote',
       columns: [
         {
           title: 'Trạng thái',

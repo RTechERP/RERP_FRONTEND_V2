@@ -22,7 +22,7 @@ import { Editor } from 'tabulator-tables';
 import { BillImportTechnicalService } from '../bill-import-technical-service/bill-import-technical.service';
 import { NzFormModule } from 'ng-zorro-antd/form'; //
 import { BillImportChoseSerialComponent } from '../bill-import-chose-serial/bill-import-chose-serial.component';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms'; 
+import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 
 @Component({
   standalone: true,
@@ -119,7 +119,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
   getCustomer() {
     this.billImportTechnicalService.getCustomer().subscribe((res: any) => {
       this.customerList = res.data;
-  
+
     });
   }
   getNCC() {
@@ -129,7 +129,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
   }
   getRulepay() {
     this.billImportTechnicalService.getRulepay().subscribe((res: any) => {
-      this.rulePayList = res.data; 
+      this.rulePayList = res.data;
     });
   }
   getListEmployee() {
@@ -139,7 +139,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         label: e.FullName,
         value: e.ID
       }));
-  
+
 
       if (this.deviceTempTable) {
         this.deviceTempTable.setColumns(this.deviceTempTable.getColumnDefinitions()); // force update
@@ -182,14 +182,14 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
   getDocumentImport() {
     this.billImportTechnicalService.getDocumentBillImport(1, 1).subscribe((respon: any) => {
       this.documentBillImport = respon.document;
-   
+
     });
   }
   getNewCode() {
     const billType = this.formDeviceInfo.get('BillTypeNew')?.value ?? 0;
     this.billImportTechnicalService.getBillCode(billType).subscribe({
       next: (res: any) => {
-    
+
         this.formDeviceInfo.patchValue({ BillCode: res.data });
       },
       error: (err: any) => {
@@ -370,7 +370,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       row.update(rowData);
     }).catch(() => { });
   }
-  // Thêm dòng mới vào bảng tạm 
+  // Thêm dòng mới vào bảng tạm
   addRow() {
     if (this.deviceTempTable) {
       const newRow = {
@@ -468,14 +468,14 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
 
     this.billImportTechnicalService.saveData(payload).subscribe({
       next: (response: any) => {
-   
+
         this.notification.success('Thành công', 'Lưu phiếu thành công');
         this.formSubmitted.emit();
         this.activeModal.close();
       },
       error: (error: any) => {
         console.error('Lỗi khi lưu dữ liệu:', error);
-        this.notification.error('Lỗi', 'Không thể lưu phiếu, vui lòng thử lại sau');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lưu phiếu, vui lòng thử lại sau');
       }
     });
 

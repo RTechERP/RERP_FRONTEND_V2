@@ -59,6 +59,7 @@ import { SelectControlComponent } from '../../../select-control/select-control.c
 
 import { CustomerServiceService } from '../../customer/customer-service/customer-service.service';
 import { CustomerMajorService } from '../customer-major-service/customer-major.service';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   selector: 'app-customer-major',
   imports: [
@@ -139,11 +140,11 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
             this.STT = this.majorData.length + 1;
           }
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -164,11 +165,11 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
           this.Code = response.data.Code;
           this.Name = response.data.Name;
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -185,7 +186,7 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
 
     // Lấy giá trị từ form controls
     const formValues = this.formGroup.value;
-    
+
     const model = {
       STT: formValues.STT,
       Code: formValues.Code,
@@ -204,7 +205,7 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err: any) => {
-        this.notification.error('Lỗi', err?.message || 'Không thể lưu dữ liệu');
+        this.notification.error(NOTIFICATION_TITLE.error, err?.message || 'Không thể lưu dữ liệu');
       },
     });
   }

@@ -34,6 +34,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification'
 import { TsAssetTransferFormComponent } from './ts-asset-transfer-form/ts-asset-transfer-form.component';
 import { TsAssetTransferService } from './ts-asset-transfer-service/ts-asset-transfer.service';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
@@ -629,7 +630,7 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
         saveAs(blob, fileName); // 🟢 Lưu file Excel
       },
       error: (err) => {
-        this.notification.error('Lỗi', 'Không thể xuất file!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xuất file!');
         console.error(err);
       }
     });

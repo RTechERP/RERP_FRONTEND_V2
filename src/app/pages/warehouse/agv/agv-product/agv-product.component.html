@@ -8,7 +8,10 @@
                         <span class="visually-hidden">(current)</span></a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Link</a>
+                    <button nz-button nzType="primary">
+                        <nz-icon nzType="search" />
+                        Search
+                    </button>
                 </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="dropdownId" data-bs-toggle="dropdown"
@@ -30,11 +33,42 @@
 </nav>
 
 
-<nz-splitter>
-    <nz-splitter-panel nzDefaultSize="40%" nzMin="20%" nzMax="70%">
-        <div class="box">First</div>
+<nz-splitter style="height: 87vh !important;">
+    <!--Panel TÌM KIẾM -->
+    <nz-splitter-panel [nzCollapsible]="true">
+        <nz-card nzTitle="TÌM KIẾM" [nzExtra]="extraTemplate" [nzActions]="[actionReset, actionSearch]">
+            <p>Card content</p>
+            <p>Card content</p>
+            <p>Card content</p>
+        </nz-card>
+        <ng-template #extraTemplate>
+            <a></a>
+        </ng-template>
+        <ng-template #actionReset>
+            <button nz-button nzType="default">
+                <nz-icon nzType="reload" />
+                Đặt lại
+            </button>
+        </ng-template>
+        <ng-template #actionSearch>
+            <button nz-button nzType="primary">
+                <nz-icon nzType="search" />
+                Tìm kiếm
+            </button>
+        </ng-template>
     </nz-splitter-panel>
-    <nz-splitter-panel>
-        <div class="box">Second</div>
+    <!--END PANEL TÌM KIẾM -->
+
+    <!-- START PANEL MASTER -->
+    <nz-splitter-panel [nzCollapsible]="true">
+        <div class="box">Panel 2</div>
     </nz-splitter-panel>
+
+    <!-- END PANEL MASTER -->
+
+    <!-- START PANEL DETAIL -->
+    <nz-splitter-panel [nzCollapsible]="true">
+        <div class="box">Panel 3</div>
+    </nz-splitter-panel>
+    <!-- END PANEL DETAIL -->
 </nz-splitter>

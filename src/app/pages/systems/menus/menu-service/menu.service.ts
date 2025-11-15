@@ -83,6 +83,8 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { LeaderProjectComponent } from '../../../project/leader-project/leader-project.component';
 import { AgvProductComponent } from '../../../warehouse/agv/agv-product/agv-product.component';
 
+import { MeetingMinuteTypeComponent } from '../../../project/meeting-minute/meeting-minute-type/meeting-minute-type.component';
+import { ProjectAgvSummaryComponent } from '../../../project/project-agv-summary/project-agv-summary.component';
 @Injectable({
   providedIn: 'root',
 })
@@ -933,6 +935,14 @@ export class MenuService {
           },
           {
             kind: 'leaf',
+            key: 'ProjectAgvSummaryComponent',
+            title: 'Tổng hợp dự án cơ khí - agv',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: ProjectAgvSummaryComponent,
+          },
+          {
+            kind: 'leaf',
             key: 'ProjectNewComponent',
             title: 'Tổng hợp dự án phòng ban',
             isOpen: true,
@@ -984,9 +994,17 @@ export class MenuService {
                 key: 'LeaderProjectComponent',
                 title: 'Leader dự án',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
+                isPermission: this.permissionService.hasPermission('N13,N1'),
                 comp: LeaderProjectComponent,
               },
+              {
+                kind: 'leaf',
+                key: 'MeetingMinuteTypeComponent',
+                title: 'Loại biên bản cuộc họp',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission('N13,N1'),
+                comp: MeetingMinuteTypeComponent,
+              }
             ],
           },
         ],

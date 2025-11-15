@@ -189,7 +189,7 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
         ? DateTime.fromJSDate(new Date(this.dateEnd)).toISO()
         : null,
       departmentId: this.departmentId ? this.departmentId : 0,
-      userTeamId: this.teamId ? this.teamId : 0,
+      userTeamId: this.teamId ? this.teamId : 9,
       employeeId: this.employeeId ? this.employeeId : 0,
       status: this.statusId,
     };

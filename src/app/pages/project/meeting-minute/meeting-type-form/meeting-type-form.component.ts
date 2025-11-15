@@ -74,6 +74,8 @@ interface MeetingType {
   styleUrl: './meeting-type-form.component.css',
 })
 export class MeetingTypeFormComponent implements OnInit, AfterViewInit {
+  @Input() meetingtype: any = null; 
+  meetingtypeID: number = 0;
   form!: FormGroup;
   ngOnInit(): void {
     this.newMeetingType = {
@@ -88,6 +90,7 @@ export class MeetingTypeFormComponent implements OnInit, AfterViewInit {
       TypeName: ['', [this.trimRequiredValidator]],
       TypeContent: [''],
     });
+    this.fillFormData();
   }
 
   ngAfterViewInit(): void {}
@@ -108,7 +111,7 @@ export class MeetingTypeFormComponent implements OnInit, AfterViewInit {
     private cdr: ChangeDetectorRef,
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
-    private fb: FormBuilder
+    private fb: FormBuilder,
   ) {}
 
   trimRequiredValidator = (control: any) => {
@@ -120,6 +123,19 @@ export class MeetingTypeFormComponent implements OnInit, AfterViewInit {
 
   closeModal() {
     this.activeModal.close(true);
+  }
+  fillFormData(): void {
+    if (!this.meetingtype) return;
+
+    const data = this.meetingtype;
+
+    this.meetingtypeID = data.ID
+    this.form.patchValue({
+      GroupID: data.GroupID,
+      TypeCode: data.TypeCode,
+      TypeName: data.TypeName,
+      TypeContent:data.TypeContent
+    });
   }
 
   saveData() {
@@ -134,16 +150,17 @@ export class MeetingTypeFormComponent implements OnInit, AfterViewInit {
       TypeName: typeof valueRaw.TypeName === 'string' ? valueRaw.TypeName.trim() : valueRaw.TypeName,
       TypeContent: typeof valueRaw.TypeContent === 'string' ? valueRaw.TypeContent.trim() : valueRaw.TypeContent,
     };
-    const payload = {
+    const payload = [{
+      ID : this.meetingtypeID ?? 0,
       GroupID: value.GroupID,
       TypeCode: value.TypeCode,
       TypeName: value.TypeName,
       TypeContent: value.TypeContent,
-    };
-    this.meetingminuteService.saveMeetingType(payload).subscribe({
+    }];
+    this.meetingminuteService.saveDataMeetingType(payload).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success('Thông báo', 'Thêm mới thành công!');
+          this.notification.success('Thông báo', 'Lưu dữ liệu thành công!');
           this.closeModal();
         }else if(res.status === 2) {
           this.notification.warning('Thông báo', 'Mã loại cuộc họp đã tồn tại!');
@@ -152,7 +169,7 @@ export class MeetingTypeFormComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi thêm mới!');
+        this.notification.error('Thông báo', err.message || 'Có lỗi xảy ra khi thêm mới!');
         console.error(err);
       },
     });

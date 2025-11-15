@@ -75,6 +75,7 @@ import { SelectControlComponent } from '../../old/Sale/BillExport/Modal/select-c
 })
 export class WorkItemComponent implements OnInit, AfterViewInit {
 @Input() projectId: number = 0;
+@Input() projectCode: string ='';
   constructor(
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
@@ -98,6 +99,10 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
   cbbTypeProject: any[] = []; // loại dự án
   cbbUser: any[] = []; // mã người yêu cầu
   cbbEmployee: any[] = []; // người phụ trách
+  nextRowId:number =0;
+
+  //tree
+  treeWorkItemData:any=[];
 
   ngOnInit(): void {
     this.dataStatus = [
@@ -211,25 +216,210 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
     this.isLoadTable = true;
     this.workItemService.getWorkItems(this.projectId).subscribe((response: any) => {
       if(response.status === 1){
-        this.dataTableWorkItem = response.data || [];
-        console.log('dataTableWorkItem', this.dataTableWorkItem);
-        // Log một vài record để kiểm tra field names
-        if (this.dataTableWorkItem.length > 0) {
-          console.log('Sample work item:', this.dataTableWorkItem[0]);
-          console.log('UserID value:', this.dataTableWorkItem[0]?.UserID);
-          console.log('TypeProjectItem value:', this.dataTableWorkItem[0]?.TypeProjectItem);
+        const flatData = response.data || [];
+        this.dataTableWorkItem = this.buildTree(flatData, 'ID', 'ParentID', '_children'); // Chuyển sang tree
+        console.log('Tree data:', this.dataTableWorkItem);
+  
+        if(this.tb_workItem){
+          this.tb_workItem.setData(this.dataTableWorkItem);
         }
-        this.tb_workItem.setData(this.dataTableWorkItem);
-      }else{
+      } else {
         this.notification.error('Lỗi', response.message);
       }
-      this.isLoadTable = false; 
+      this.isLoadTable = false;
     });
+  }
+  saveData(){
+    
+  }
+  addNewRow(): void {
+    // 1. Khởi tạo biến STT lớn nhất
+    let maxSTT = 0;
+  
+    // 2. Kiểm tra và lọc dữ liệu
+    if (this.dataTableWorkItem && this.dataTableWorkItem.length > 0) {
+      const sttValues = this.dataTableWorkItem
+        .map((item: any) => parseInt(item.STT, 10)) // Chuyển STT sang số nguyên (integer)
+        .filter(
+          // Lọc bỏ các giá trị không hợp lệ (NaN hoặc < 0 nếu STT luôn là số dương)
+          (stt: number) => !isNaN(stt) && stt > 0
+        );
+  
+      // 3. Tìm giá trị lớn nhất
+      if (sttValues.length > 0) {
+        maxSTT = Math.max(...sttValues);
+      }
+    }
+  
+    console.log("STT lớn nhất tìm được:", maxSTT);
+  
+    // 4. Giá trị STT mới sẽ là STT lớn nhất + 1
+    const newSTT = maxSTT + 1;
+    this.nextRowId = this.nextRowId -1
+    // 5. Tạo hàng mới
+    const newRow = {
+      ParentID: 0,
+      ID: this.nextRowId,
+      STT: newSTT, // <--- Gán STT mới cho hàng
+      IsApprovedText: 'Chờ duyệt kế hoạch',
+      // Sử dụng STT mới để tạo Code
+      Code: this.projectCode + '_' + (newSTT)
+    };
+  
+    // this.tb_workItem.addRow(newRow);
+    this.dataTableWorkItem.push(newRow);
+  }
+  addChildRow(): void {
+    debugger
+    // 1. Lấy ĐỐI TƯỢNG HÀNG (Row Component) đã chọn
+    // getSelectedRows() trả về mảng các đối tượng Row Component
+    const selectedRowComponents = this.tb_workItem?.getSelectedRows();
+    
+    if (!selectedRowComponents || selectedRowComponents.length !== 1) {
+        this.notification.warning('Thông báo', 'Vui lòng chọn duy nhất 1 hạng mục để thêm hạng mục con!');
+        return;
+    }
+    console.log('JHsghs', selectedRowComponents[0] )
+    
+    // Đối tượng hàng cha (Row Component)
+    const parentRow = selectedRowComponents[0];
+    
+    // Lấy dữ liệu (data) của hàng cha
+    const parentData = parentRow.getData();
+
+    // 2. Tính toán STT mới một cách chính xác
+    // Lấy tất cả các hàng con trực tiếp của hàng cha (trả về mảng Row Component)
+    const currentChildrenRows = parentRow.getTreeChildren(); 
+    
+    // STT mới = Số lượng con hiện tại + 1
+    const newSTT = currentChildrenRows.length + 1;
+
+    // 3. Chuẩn bị ID tạm thời (nếu chưa lưu)
+    // Nếu bạn sử dụng nextRowId để gán ID âm tạm thời
+    this.nextRowId = this.nextRowId ? this.nextRowId - 1 : -1;
+
+    // 4. Tạo đối tượng con
+    const childRowData = {
+        ID: this.nextRowId, // ID tạm thời
+        STT: newSTT, 
+        ParentID: parentData['ID'], // ID của cha
+        TypeProjectItem: parentData['TypeProjectItem'],
+        UserID: parentData['UserID'],
+        EmployeeIDRequest: parentData['EmployeeIDRequest'],
+        EmployeeRequestID: parentData['EmployeeRequestID'],
+        EmployeeRequestName: parentData['EmployeeRequestName'],
+        
+        // Code: Sử dụng Code của cha + STT con mới
+        Code: parentData['Code'] + '_' + newSTT, 
+        
+        IsApprovedText: 'Chờ duyệt kế hoạch',
+        _children: []
+    };
+    
+    // 5. Thêm hàng con và mở rộng cây
+    // Sử dụng phương thức addTreeChild() của Row Component
+    parentRow.addTreeChild(childRowData);
+    parentRow.treeExpand();
+    // Tùy chọn: Bỏ chọn hàng cha sau khi thêm con
+    parentRow.deselect(); 
+}
+  addChildrenRow(): void {
+    debugger
+    // 1. Lấy dữ liệu hàng cha đã chọn
+    const selectedRows = this.tb_workItem?.getSelectedData();
+    
+    if (!selectedRows || selectedRows.length !== 1) {
+        this.notification.warning('Thông báo', 'Vui lòng chọn duy nhất 1 hạng mục để thêm hạng mục con!');
+        return;
+    }
+
+    const selectedParent = selectedRows[0];
+    const parentID = selectedParent['ID']; 
+
+    // Đảm bảo hàng cha đã có ID (không phải hàng mới chưa lưu)
+    if (!parentID) {
+        this.notification.warning('Thông báo', 'Hạng mục cha chưa được lưu. Vui lòng lưu trước khi thêm con!');
+        return;
+    }
+
+    // 2. TÌM STT LỚN NHẤT CỦA CÁC HẠNG MỤC CON HIỆN TẠI
+    let maxSTT = 0;
+    if (this.dataTableWorkItem && this.dataTableWorkItem.length > 0) {
+        const sttValues = this.dataTableWorkItem
+            // Lọc các hạng mục con của cha đã chọn
+            .filter((item: any) => item.ParentID === parentID) 
+            .map((item: any) => parseInt(item.STT, 10))
+            .filter((stt: number) => !isNaN(stt) && stt > 0);
+
+        if (sttValues.length > 0) {
+            maxSTT = Math.max(...sttValues);
+        }
+    }
+    
+    const newSTT = maxSTT + 1;
+
+    // 3. TẠO DÒNG CON MỚI
+    const newRowData = {
+        ID: 0, // ID sẽ được sinh ra khi lưu
+        STT: newSTT, 
+        ParentID: parentID,
+        TypeProjectItem: selectedParent['TypeProjectItem'],
+        UserID: selectedParent['UserID'],
+        EmployeeIDRequest: selectedParent['EmployeeIDRequest'],
+        EmployeeRequestID: selectedParent['EmployeeRequestID'],
+        EmployeeRequestName: selectedParent['EmployeeRequestName'],
+        Code: selectedParent['Code'] + '_' + newSTT,
+        IsApprovedText: 'Chờ duyệt kế hoạch',
+        _children: [] // Khởi tạo mảng con rỗng cho Tabulator
+    };
+    
+    // 4. TÌM ĐỐI TƯỢNG HÀNG (ROW COMPONENT) VÀ THÊM CON
+    const parentRow = this.tb_workItem.getSelectedRows();
+    const parentRows = parentRow[0];
+    if (parentRows) {
+        // SỬ DỤNG PHƯƠNG THỨC CHUẨN CỦA TABULATOR CHO DỮ LIỆU CÂY
+        // Phương thức này vừa thêm vào giao diện, vừa cập nhật dữ liệu nền
+        parentRows.addTreeChild(newRowData);
+        
+        // CẬP NHẬT DỮ LIỆU NGUỒN: 
+        // Sau khi Tabulator xử lý, chúng ta cần cập nhật this.dataTableWorkItem 
+        // để lần sau tính toán STT đúng. Tuy nhiên, việc này phức tạp hơn 
+        // (cần chạy lại buildTree), nên ta chấp nhận chỉ cập nhật khi loadData().
+        // *Nếu bạn cần STT luôn đúng trong cùng 1 phiên, bạn cần lấy dữ liệu từ Tabulator:
+        // this.dataTableWorkItem = this.buildTree(this.tb_workItem.getData(), ...);*
+        
+    } else {
+        this.notification.error('Lỗi', 'Không tìm thấy hàng cha trong bảng Tabulator!');
+    }
+}
+  buildTree(data: any[], idField = 'ID', parentField = 'ParentID', childrenField = '_children') {
+    const tree: any[] = [];
+    const lookup: { [key: string]: any } = {};
+  
+    // Tạo lookup nhanh theo ID
+    data.forEach(item => {
+      lookup[item[idField]] = { ...item, [childrenField]: [] };
+    });
+  
+    // Duyệt data để gán con vào cha
+    data.forEach(item => {
+      const parentId = item[parentField];
+      if (parentId && lookup[parentId]) {
+        lookup[parentId][childrenField].push(lookup[item[idField]]);
+      } else {
+        tree.push(lookup[item[idField]]);
+      }
+    });
+  
+    return tree;
   }
   drawTbWorkItem(container: HTMLElement) {
     this.tb_workItem = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
-      data: this.dataTableWorkItem,
+      //data: this.dataTableWorkItem,
+      dataTree: true,
+        dataTreeStartExpanded: true,
+        dataTreeChildField: '_children', // Quan trọng: dùng _children
       paginationMode: 'local',
       layout: "fitDataStretch",
       selectableRows: 1,
@@ -258,7 +448,62 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
         }
       },
       columns: [
-        { title: "Tình trạng", field: "IsApprovedText", hozAlign: "center",  },
+        {
+          title: '',
+          field: 'addRow',
+          hozAlign: 'center',
+          width: 40,
+        frozen: true,
+          headerSort: false,
+          titleFormatter: () =>
+          `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
+          headerClick: () => {
+          this.addNewRow();
+        },
+        formatter: (cell) => {
+          const data = cell.getRow().getData();
+          let isDeleted = data['IsDeleted'];
+          return !isDeleted
+            ? `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`
+            : '';
+        },
+          cellClick: (e, cell) => {
+          let data = cell.getRow().getData();
+          let id = data['ID'];
+          let fullName = data['FullName'];
+          let isDeleted = data['IsDeleted'];
+          if (isDeleted) {
+            return;
+          }
+              this.modal.confirm({
+            nzTitle: `Bạn có chắc chắn muốn xóa nhân viên`,
+            nzContent: `${fullName}?`,
+            nzOkText: 'Xóa',
+            nzOkType: 'primary',
+                nzCancelText: 'Hủy',
+            nzOkDanger: true,
+                nzOnOk: () => {
+              // if (id > 0) {
+              //   if (!this.deletedIdsEmployeeDetail.includes(id))
+              //     this.deletedIdsEmployeeDetail.push(id);
+              //   this.tb_EmployeeDetailTable.deleteRow(cell.getRow());
+              // } else {
+              //   this.tb_EmployeeDetailTable.deleteRow(cell.getRow());
+              // }
+                },
+              });
+        },
+      },
+      {
+        title:'ID', field:'ID', visible: true
+      },
+      {
+        title:'STT', field:'STT',formatter:'rownum', visible: true
+      },
+      {
+        title:'ParentID', field:'ParentID', visible: true
+      },
+        { title: "Tình trạng", field: "IsApprovedText", hozAlign: "center",  width: 200,  },
         { title: "Mã", field: "Code", hozAlign: "center",  },
         { 
           title: "Kiểu", 

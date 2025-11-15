@@ -54,6 +54,7 @@ import { ProjectWorkTimelineComponent } from '../project-work-timeline/project-w
 import { ProjectWorkPropressComponent } from '../project-work-propress/project-work-propress.component';
 import { WorkItemComponent } from '../work-item/work-item.component';
 import { ProjectWorkerComponent } from './project-department-summary-form/project-woker/project-worker.component';
+import { ProjectPartListComponent } from './project-department-summary-form/project-part-list/project-part-list.component';
 @Component({
   selector: 'app-project-new',
   standalone: true,
@@ -89,6 +90,9 @@ export class ProjectDepartmentSummaryComponent implements AfterViewInit {
   @Input() value: string = '';
   @Output() valueChange = new EventEmitter<string>();
 
+  //0: phiên bản partlist, 1: phiên bản nhân công ( danh cho thêm sửa giải pháp)
+  typecheck: number = 0;
+  //
   selected = '';
   options = [
     { label: 'Mới', value: 'new' },
@@ -138,6 +142,7 @@ export class ProjectDepartmentSummaryComponent implements AfterViewInit {
   customerId: any;
   keyword: string = '';
   projectId: any = 0;
+  projectCode :any = '';
   currentUser: any = null;
   users:any;
   departments:any;
@@ -577,6 +582,8 @@ getUserTeam() {
       this.sizeTbDetail = null;
       var rowData = row.getData();
       this.projectId = rowData['ID'];
+
+      this.projectCode = rowData['ProjectCode'];
       this.getProjectWorkReports();
       this.getProjectTypeLinks();
       this.getProjectSituation();
@@ -1303,6 +1310,7 @@ getUserTeam() {
       centered: true,
       size: 'xl',
     });
+    modalRef.componentInstance.projectCode = this.projectCode;
     modalRef.componentInstance.projectId = this.projectId;
     modalRef.result.then((result) => {
       if (result == true) {
@@ -1320,6 +1328,7 @@ getUserTeam() {
       windowClass: 'full-screen-modal',
     });
     modalRef.componentInstance.projectId = this.projectId;
+    modalRef.componentInstance.projectCodex = this.tb_projects.getSelectedData()[0].ProjectCode;
     modalRef.result.then((result) => {
       if (result == true) {
         //this.searchProjects();
@@ -1327,5 +1336,22 @@ getUserTeam() {
     });
   }
   //#endregion
+  //#region Danh mục vật tư
+  openProjectPartListModal() {
+    const modalRef = this.modalService.open(ProjectPartListComponent, {
+      centered: true,
+      backdrop: 'static',
+      keyboard: false,
+      windowClass: 'full-screen-modal',
+    });
+    modalRef.componentInstance.projectId = this.projectId;
+    modalRef.componentInstance.projectCodex = this.tb_projects.getSelectedData()[0].ProjectCode;
+    modalRef.result.then((result) => {
+      if (result == true) {
+      //this.searchProjects();
+    }
+  });
 }
+}
+//#endregion
 

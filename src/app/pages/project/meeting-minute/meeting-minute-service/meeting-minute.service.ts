@@ -10,6 +10,7 @@ import { environment } from '../../../../../environments/environment';
 export class MeetingMinuteService {
    private apiUrl = environment.host + 'api/';
    private apiMeetingminutes = this.apiUrl +'meetingminutes/';
+   private apiMeetingtype = this.apiUrl +'meetingtype/';
   constructor(private http: HttpClient) {}
 
   getDataMeetingType(): Observable<any> {
@@ -112,4 +113,16 @@ export class MeetingMinuteService {
       responseType: 'arraybuffer' as 'json'
     });
   }
+  //get all meeting type
+  getAllMeetingType(): Observable<any> {
+    return this.http.get<any>(this.apiMeetingtype + `meetingtypes`);
+  }
+  //save meeting type
+  saveDataMeetingType(data: any): Observable<any> {
+    return this.http.post(
+      this.apiMeetingtype + `save-data`,
+      data
+    );
+  }
+  //delete meeting type
 }

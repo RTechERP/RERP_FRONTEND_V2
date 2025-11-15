@@ -5,7 +5,7 @@
     style="flex-shrink: 0"
   >
     <h6 class="text-light text-uppercase m-0" style="padding: 0 0.5rem">
-      Nhân công dự án
+      Nhân công dự án_{{ projectCodex }}
     </h6>
     <button
       type="button"
@@ -16,22 +16,24 @@
   </div>
 
   <!-- Modal Body -->
-  <div class="modal-body p-0">
-    <nz-splitter nzLayout="vertical" style="height: 100%">
-      <!-- Phần trên: 3 bảng ngang -->
-      <nz-splitter-panel nzDefaultSize="50%" nzMin="30%" nzMax="70%">
-        <nz-splitter nzDirection="horizontal" style="height: 100%">
-          <!-- Bảng 1 -->
+  <div class="modal-body p-0" style="overflow: hidden; min-height: 0;">
+    <nz-splitter nzLayout="horizontal" style="height: 100%; min-height: 0;">
+      <!-- Phần trái: 3 bảng dọc -->
+      <nz-splitter-panel nzDefaultSize="25%" nzMin="20%" nzMax="50%">
+        <nz-splitter nzLayout="vertical" style="height: 100%">
+          <!-- Bảng 1: Giải pháp -->
           <nz-splitter-panel nzDefaultSize="33.33%">
             <div class="card h-100 border-0 rounded-0 d-flex flex-column">
-              <div class="card-header bg-white p-1">
-                <p class="m-0">Giải pháp</p>
+              <div class="card-header bg-white p-1" style=" font-weight: bold !important; background-color: #efebebe7 !important;">
+                <p class="m-0" >Giải pháp</p>
               </div>
               <div class="card-header bg-white p-1 d-flex gap-1">
                 <button
                   nz-button
                   nzSize="small"
                   class="fs-12 button button-succes btn-add"
+                  (click)="openProjectSolutionDetail(false)"
+                  *hasPermission="'N13,N1,N27,N63'"
                 >
                   <img
                     src="assets/icon/action_add_item_16.png"
@@ -44,22 +46,23 @@
                   nz-button
                   nzType="default"
                   nzSize="small"
-                  nzD
+                  (click)="openProjectSolutionDetail(true)"
+                  *hasPermission="'N13,N1,N27,N63'"
                 >
                   <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />
                   Sửa
                 </button>
               </div>
-              <div class="card-body p-0 flex-grow-1 overflow-hidden">
-                <div #tb_solution style="width: 100%; height: 100%"></div>
+              <div class="card-body p-0 flex-grow-1 overflow-hidden" style="min-height: 0;">
+                <div #tb_solution style="width: 100%; height: 100%; min-height: 0;"></div>
               </div>
             </div>
           </nz-splitter-panel>
 
-          <!-- Bảng 2 -->
+          <!-- Bảng 2: Phiên bản giải pháp -->
           <nz-splitter-panel nzDefaultSize="33.33%">
             <div class="card h-100 border-0 rounded-0 d-flex flex-column">
-              <div class="card-header bg-white p-1">
+              <div class="card-header bg-white p-1" style=" font-weight: bold !important; background-color: #efebebe7 !important;">
                 <p class="m-0">Phiên bản giải pháp</p>
               </div>
               <div class="card-header bg-white p-1 d-flex gap-1">
@@ -67,7 +70,7 @@
                   nz-button
                   nzSize="small"
                   class="fs-12 button button-succes btn-add"
-                  (click)="openProjectSolutionVersionDetail()"
+                  (click)="openProjectSolutionVersionDetail(1, false)"
                 >
                   <img
                     src="assets/icon/action_add_item_16.png"
@@ -80,7 +83,7 @@
                   nz-button
                   nzType="default"
                   nzSize="small"
-                  nzD
+                  (click)="openProjectSolutionVersionDetail(1, true)"
                 >
                   <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />
                   Sửa
@@ -91,21 +94,34 @@
                   nzType="default"
                   nzSize="small"
                   nzDanger
+                  (click)="deleteProjectSolutionVersion(1)"
                 >
                   <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />
                   Xóa
                 </button>
+                <button
+                class="fs-12"
+                nz-button
+                nzType="default"
+                nzSize="small"
+                (click)="onExportExcelSolutionVersion()"
+              >
+                <img src="assets/icon/import-excel.png" /> Xuất Excel
+              </button>
               </div>
-              <div class="card-body p-0 flex-grow-1 overflow-hidden">
-                <div #tb_solutionVersion style="width: 100%; height: 100%"></div>
+              <div class="card-body p-0 flex-grow-1 overflow-hidden" style="min-height: 0;">
+                <div
+                  #tb_solutionVersion
+                  style="width: 100%; height: 100%; min-height: 0;"
+                ></div>
               </div>
             </div>
           </nz-splitter-panel>
 
-          <!-- Bảng 3 -->
+          <!-- Bảng 3: Phiên bản PO -->
           <nz-splitter-panel nzDefaultSize="33.33%">
             <div class="card h-100 border-0 rounded-0 d-flex flex-column">
-              <div class="card-header bg-white p-1 d-flex gap-1">
+              <div class="card-header bg-white p-1 d-flex gap-1" style=" font-weight: bold !important; background-color: #efebebe7 !important;">
                 <p class="m-0">Phiên bản PO</p>
               </div>
               <div class="card-header bg-white p-1 d-flex gap-1">
@@ -113,6 +129,7 @@
                   nz-button
                   nzSize="small"
                   class="fs-12 button button-succes btn-add"
+                  (click)="openProjectSolutionVersionDetail(2, false)"
                 >
                   <img
                     src="assets/icon/action_add_item_16.png"
@@ -125,7 +142,7 @@
                   nz-button
                   nzType="default"
                   nzSize="small"
-                  nzD
+                  (click)="openProjectSolutionVersionDetail(2, true)"
                 >
                   <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />
                   Sửa
@@ -136,23 +153,33 @@
                   nzType="default"
                   nzSize="small"
                   nzDanger
+                  (click)="deleteProjectSolutionVersion(2)"
                 >
                   <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />
                   Xóa
                 </button>
+                <button
+                  class="fs-12"
+                  nz-button
+                  nzType="default"
+                  nzSize="small"
+                  (click)="onExportExcelPOVersion()"
+                >
+                  <img src="assets/icon/import-excel.png" /> Xuất Excel
+                </button>
               </div>
-              <div class="card-body p-0 flex-grow-1 overflow-hidden">
-                <div #tb_POVersion style="width: 100%; height: 100%"></div>
+              <div class="card-body p-0 flex-grow-1 overflow-hidden" style="min-height: 0;">
+                <div #tb_POVersion style="width: 100%; height: 100%; min-height: 0;"></div>
               </div>
             </div>
           </nz-splitter-panel>
         </nz-splitter>
       </nz-splitter-panel>
 
-      <!-- Phần dưới: 1 bảng -->
-      <nz-splitter-panel nzDefaultSize="50%" nzMin="30%" nzMax="70%">
+      <!-- Phần phải: Bảng nhân công -->
+      <nz-splitter-panel nzDefaultSize="75%" nzMin="50%" nzMax="80%">
         <div class="card h-100 border-0 rounded-0 d-flex flex-column">
-          <div class="card-header bg-white p-1 d-flex gap-1">
+          <div class="card-header bg-white p-1 d-flex gap-1" style=" font-weight: bold !important; background-color: #efebebe7 !important;">
             <p class="m-0">Nhân công</p>
           </div>
 
@@ -161,6 +188,7 @@
               nz-button
               nzSize="small"
               class="fs-12 button button-succes btn-add"
+              (click)="openProjectWorkerDetail(false)"
             >
               <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " />
               Thêm
@@ -170,7 +198,7 @@
               nz-button
               nzType="default"
               nzSize="small"
-              nzD
+              (click)="openProjectWorkerDetail(true)"
             >
               <img src="assets/icon/action_edit_item_16.png" alt="Sửa" /> Sửa
             </button>
@@ -180,15 +208,114 @@
               nzType="default"
               nzSize="small"
               nzDanger
+              click
+              (click)="deleteProjectWorker()"
             >
               <img src="assets/icon/action_delete_item_16.png" alt="Xóa " /> Xóa
             </button>
-          </div>
-          <div class="card-body p-0 flex-grow-1 overflow-hidden">
+            <ng-container *hasPermission="'N38,N1'">
+              <button
+                class="fs-12"
+                nz-button
+                nzType="default"
+                nzSize="small"
+                nz-dropdown
+                [nzDropdownMenu]="menuTBP"
+                *ngIf="type == 2"
+              >
+                <img src="assets/icon/action_confirm_tbp_16.png" alt="TBP duyệt" /> TBP xác nhận
+                <i nz-icon nzType="down"></i>
+              </button>
+            </ng-container>
+            <nz-dropdown-menu #menuTBP="nzDropdownMenu">
+              <ul nz-menu>
+                <li nz-menu-item (click)="updateApprove(1)" *hasPermission="'N38,N1'">
+                  <img src="assets/icon/action_approved_16.png" />
+                  <span class="ms-1">TBP duyệt</span>
+                </li>
+                <li nz-menu-item (click)="updateApprove(2)" *hasPermission="'N38,N1'">
+                  <img src="assets/icon/action_unapproved_16.png" />
+                  <span class="ms-1">TBP hủy duyệt</span>
+                </li>
+              </ul>
+            </nz-dropdown-menu>
+            <button
+          class="fs-12"
+          nz-button
+          nzType="default"
+          nzSize="small"
+          (click)="openImportExcelProjectWorker()"
+        >
+          <img src="assets/icon/excel.png" /> Nhập Excel
+        </button>
+
+        <button
+          class="fs-12"
+          nz-button
+          nzType="default"
+          nzSize="small"
+          (click)="onExportExcel()"
+        >
+          <img src="assets/icon/import-excel.png" /> Xuất Excel
+        </button>
             <div
-              #tb_projectWorker
-              style="width: 100%; height: 100%"
-            ></div>
+              style="min-width: 400px"
+              class="d-flex gap-1 ms-auto align-items-center"
+            >
+              <label class="fs-12 mb-0">Trạng thái TBP</label>
+              <nz-select
+                name="IsLateActual"
+               
+                nzShowSearch
+                nzAllowClear
+                nzPlaceHolder="Chọn trạng thái"
+                nzSize="small"
+                [ngModel]="isApprovedTBP"
+                (ngModelChange)="isApprovedTBP = $event; searchDataProjectWorker()"
+              >
+                <nz-option [nzValue]="-1" nzLabel="--Tất cả--"></nz-option>
+                <nz-option [nzValue]="0" nzLabel="Chưa duyệt"></nz-option>
+                <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
+              </nz-select>
+
+              <label class="fs-12 mb-0">Trạng thái</label>
+              <nz-select
+                name="IsLateActual"
+               
+                nzShowSearch
+                nzAllowClear
+                nzPlaceHolder="Chọn trạng thái"
+                nzSize="small"
+                [ngModel]="isDeleted"
+                (ngModelChange)="isDeleted = $event; searchDataProjectWorker()"
+              >
+                <nz-option [nzValue]="-1" nzLabel="--Tất cả--"></nz-option>
+                <nz-option [nzValue]="0" nzLabel="Chưa xóa"></nz-option>
+                <nz-option [nzValue]="1" nzLabel="Đã xóa"></nz-option>
+              </nz-select>
+              <input
+                nz-input
+                nzSize="small"
+                placeholder="Nhập từ khóa"
+                style="width: 150px"
+                [ngModel]="keyword"
+                (ngModelChange)="keyword = $event; searchDataProjectWorker()"
+              />
+              <!-- <button
+                type="submit"
+                nz-button
+                nzType="primary"
+                nzSize="small"
+                (click)="searchDataProjectWorker()"
+                (keyup.enter)="searchDataProjectWorker()"
+              >
+                Tìm kiếm
+              </button> -->
+            </div>
+          </div>
+
+          <div class="card-body p-0 flex-grow-1 overflow-hidden" style="min-height: 0;">
+            <div #tb_projectWorker style="width: 100%; height: 100%; min-height: 0;"></div>
           </div>
         </div>
       </nz-splitter-panel>

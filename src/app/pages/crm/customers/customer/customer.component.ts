@@ -450,6 +450,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   initMainTable(): void {
     this.tb_MainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
+      layout: 'fitColumns',
       selectableRows: true,
       paginationMode: 'remote',
       height: '89vh',
@@ -513,6 +514,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
           title: 'Tên khách',
           field: 'CustomerName',
           formatter: 'textarea',
+          bottomCalc: 'count',
         },
         { title: 'Địa chỉ', field: 'Address', formatter: 'textarea' },
         { title: 'Mã số thuế', field: 'TaxCode' },

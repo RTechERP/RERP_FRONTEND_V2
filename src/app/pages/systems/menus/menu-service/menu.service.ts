@@ -84,6 +84,7 @@ import { FilmManagementComponent } from '../../../hrm/film-management/film-manag
 import { AgvProductComponent } from '../../../warehouse/agv/agv-product/agv-product.component';
 import { DocumentComponent } from '../../../hrm/document/document.component';
 import { VehicleBookingManagementComponent } from '../../../hrm/vehicle/vehicle-booking-management/vehicle-booking-management.component';
+import { ProtectgearComponent } from '../../../hrm/protectgear/protectgear/protectgear.component';
 
 @Injectable({
   providedIn: 'root',
@@ -724,6 +725,16 @@ export class MenuService {
             isOpen: true,
             isPermission: this.permissionService.hasPermission('N42,N2,N1'),
             comp: DailyReportHrComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+          
+          {
+            kind: 'leaf',
+            key: 'ProtectgearComponent',
+            title: 'Tủ đồ bảo hộ phòng sạch',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission('N42,N2,N1'),
+            comp: ProtectgearComponent,
             //   icon: 'assets/icon/layers.png',
           },
         ],

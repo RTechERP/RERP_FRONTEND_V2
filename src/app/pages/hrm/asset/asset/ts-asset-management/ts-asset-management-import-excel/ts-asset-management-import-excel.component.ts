@@ -502,6 +502,8 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
     }
   }
   nextCode: string = '';
+  // Cache để lưu code cao nhất đã dùng cho mỗi ngày trong session
+  private usedCodesCache = new Map<string, string>(); // key: date (YYYY-MM-DD), value: lastUsedCode
 
   private async getAssetCodeInfo(rawDate: string): Promise<{ code: string; maxSTT: number }> {
     try {
@@ -511,14 +513,61 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
         this.assetsManagementService.getAssetCode(iso)
       );
   
+      let apiCode = res?.data ?? '';
+      
+      console.log('🔍 API getAssetCode response:', {
+        date: iso,
+        apiCode: apiCode,
+        maxSTT: res?.maxSTT,
+        cachedCode: this.usedCodesCache.get(iso)
+      });
+  
+      // Kiểm tra xem có code đã dùng trong cache không
+      const cachedCode = this.usedCodesCache.get(iso);
+      if (cachedCode && apiCode) {
+        // So sánh code từ API vs code đã dùng trong cache
+        const apiNumber = this.extractCodeNumber(apiCode);
+        const cachedNumber = this.extractCodeNumber(cachedCode);
+        
+        if (cachedNumber >= apiNumber) {
+          // Cache có code cao hơn → dùng code tiếp theo từ cache
+          const nextCode = this.incrementCode(cachedCode);
+          console.log('⚠️ Cache có code cao hơn API. Dùng code từ cache:', {
+            apiCode,
+            cachedCode,
+            nextCode
+          });
+          apiCode = nextCode;
+        }
+      }
+  
       return {
-        code: res?.data ?? '',
+        code: apiCode,
         maxSTT: res?.maxSTT ?? 0
       };
     } catch (e) {
       console.error('Lỗi khi lấy mã tài sản (code + maxSTT):', e);
       return { code: '', maxSTT: 0 };
     }
+  }
+  
+  // Helper: Extract số từ code
+  private extractCodeNumber(code: string): number {
+    const match = code.match(/(\d+)$/);
+    return match ? parseInt(match[1], 10) : 0;
+  }
+  
+  // Helper: Tăng code lên 1
+  private incrementCode(code: string): string {
+    const match = code.match(/(\d+)$/);
+    if (!match) return code;
+    
+    const numberPart = match[1];
+    const prefix = code.slice(0, -numberPart.length);
+    const nextNumber = parseInt(numberPart, 10) + 1;
+    const padded = nextNumber.toString().padStart(numberPart.length, '0');
+    
+    return prefix + padded;
   }
   
   async generateTSAssetCode(rawDate: string): Promise<string> {
@@ -594,7 +643,10 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
   
     // 2) Lấy code + maxSTT từ group đầu tiên
     const [firstIsoDate, firstRows] = groupEntries[0];
+    
+    console.log('📅 Đang lấy code cho ngày:', firstIsoDate);
     const { code: firstBaseCode, maxSTT } = await this.getAssetCodeInfo(firstIsoDate);
+    console.log('✅ Code nhận được từ API:', firstBaseCode, '| maxSTT:', maxSTT);
   
     if (!firstBaseCode) {
       this.notification.error('Thông báo', 'Không lấy được mã tài sản từ server.');
@@ -603,11 +655,14 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
   
     let currentSTT = maxSTT; // DB hiện tại, sẽ ++ cho từng bản ghi
   
-    const processGroup = (rows: any[], baseCode: string) => {
+    const processGroup = (rows: any[], baseCode: string, groupOffset: number) => {
       rows.forEach((row, idx) => {
-        const code = this.buildAssetCode(baseCode, idx); // 0 -> baseCode, 1 -> +1,...
+        // Dùng groupOffset + idx để tính code cho group này
+        const code = this.buildAssetCode(baseCode, groupOffset + idx);
   
         currentSTT += 1; // STT: maxSTT + 1, +2, ...
+  
+        console.log(`Bản ghi: Code=${code}, STT=${currentSTT}, BaseCode=${baseCode}, Offset=${groupOffset + idx}`);
   
         tSAssetManagements.push({
           ID: 0,
@@ -636,8 +691,13 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       });
     };
   
+    // Track offset cho từng baseCode để tránh trùng lặp
+    const baseCodeOffsets = new Map<string, number>();
+    
     // 3) Xử lý group đầu tiên với baseCode + maxSTT vừa lấy
-    processGroup(firstRows, firstBaseCode);
+    baseCodeOffsets.set(firstBaseCode, 0);
+    processGroup(firstRows, firstBaseCode, 0);
+    baseCodeOffsets.set(firstBaseCode, firstRows.length); // Update offset sau khi xử lý
   
     // 4) Các group còn lại: chỉ cần code theo ngày, STT vẫn dùng currentSTT đang tăng dần
     for (let i = 1; i < groupEntries.length; i++) {
@@ -649,8 +709,27 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
         continue;
       }
   
-      processGroup(rows, baseCode);
+      // Lấy offset hiện tại cho baseCode này (nếu đã dùng trước đó)
+      const currentOffset = baseCodeOffsets.get(baseCode) || 0;
+      processGroup(rows, baseCode, currentOffset);
+      // Cập nhật offset cho baseCode này
+      baseCodeOffsets.set(baseCode, currentOffset + rows.length);
     }
+  
+    // Cập nhật cache với code cao nhất đã dùng
+    tSAssetManagements.forEach(item => {
+      if (item.TSAssetCode && item.DateBuy) {
+        const dateKey = formatDate(item.DateBuy) || '';
+        if (dateKey) {
+          const currentCached = this.usedCodesCache.get(dateKey);
+          if (!currentCached || this.extractCodeNumber(item.TSAssetCode) > this.extractCodeNumber(currentCached)) {
+            this.usedCodesCache.set(dateKey, item.TSAssetCode);
+          }
+        }
+      }
+    });
+    
+    console.log('💾 Cache sau khi xử lý:', Object.fromEntries(this.usedCodesCache));
   
     const payload = { tSAssetManagements };
   
@@ -660,13 +739,51 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
   
     this.assetsManagementService.saveDataAsset(payload).subscribe({
       next: (response: any) => {
+        console.log('=== Response từ API saveDataAsset ===', response);
+        console.log('response.status:', response?.status);
+        console.log('response.data:', response?.data);
+        
+        // Đếm số bản ghi có ID trong response (đã lưu thành công)
         let successCount = 0;
         let errorCount = 0;
-  
+        
+        // Backend trả về status chữ thường
         if (response?.status === 1) {
-          successCount = totalAssetsToSave;
-          errorCount = 0;
+          // Nếu API trả về status = 1, nghĩa là thành công
+          // Kiểm tra xem response.data có tSAssetManagements không
+          const assetData = response.data;
+          
+          if (assetData && assetData.tSAssetManagements && Array.isArray(assetData.tSAssetManagements)) {
+            console.log('Tìm thấy tSAssetManagements array:', assetData.tSAssetManagements);
+            console.log('Số phần tử:', assetData.tSAssetManagements.length);
+            
+            // Đếm số bản ghi có ID > 0 (đã được lưu vào DB)
+            const itemsWithId = assetData.tSAssetManagements.filter((item: any) => {
+              const hasValidId = item && item.ID && item.ID > 0;
+              if (!hasValidId) {
+                console.warn('Item không có ID hợp lệ:', item);
+              }
+              return hasValidId;
+            });
+            
+            successCount = itemsWithId.length;
+            errorCount = totalAssetsToSave - successCount;
+            
+            console.log('Số bản ghi có ID > 0:', successCount);
+            console.log('Chi tiết các ID:', itemsWithId.map((item: any) => item.ID));
+            console.log(`✅ Tổng kết: ${successCount}/${totalAssetsToSave} thành công, ${errorCount} thất bại`);
+          } else {
+            // Nếu API trả về status = 1 nhưng không có array chi tiết
+            // Có thể backend chưa trả về data đầy đủ, coi như tất cả thành công
+            console.warn('⚠️ API trả về status = 1 nhưng không có tSAssetManagements array');
+            console.log('Cấu trúc response.data:', assetData ? Object.keys(assetData) : 'null');
+            console.log('Coi như tất cả bản ghi đã lưu thành công');
+            successCount = totalAssetsToSave;
+            errorCount = 0;
+          }
         } else {
+          // Nếu status !== 1, coi như thất bại
+          console.error('❌ API trả về status !== 1:', response?.status);
           successCount = 0;
           errorCount = totalAssetsToSave;
         }
@@ -676,23 +793,38 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
   
         this.notification.remove(notifKey);
   
-        if (response?.status === 1) {
-          this.notification.success(
-            'Thông báo',
-            `Đã lưu ${successCount}/${totalAssetsToSave} bản ghi thành công`
-          );
+        // Hiển thị thông báo dựa trên số bản ghi có ID
+        if (successCount > 0) {
+          if (successCount === totalAssetsToSave) {
+            this.notification.success(
+              'Thông báo',
+              `Đã lưu ${successCount}/${totalAssetsToSave} bản ghi thành công`
+            );
+          } else {
+            this.notification.warning(
+              'Thông báo',
+              `Đã lưu ${successCount}/${totalAssetsToSave} bản ghi thành công. ${errorCount} bản ghi thất bại.`
+            );
+          }
         } else {
           const backendMsg =
             response?.message ||
+            response?.data?.message ||
             response?.error?.message ||
             'Lưu dữ liệu thất bại.';
   
           this.notification.error(
             'Thông báo',
-            `${backendMsg} (thất bại ${errorCount}/${totalAssetsToSave} bản ghi)`
+            `${backendMsg}`
           );
         }
   
+        // Refresh table nếu có ít nhất 1 bản ghi thành công
+        if (successCount > 0 && this.table) {
+          console.log('Refreshing table after successful import...');
+          this.table.replaceData();
+        }
+        
         this.closeExcelModal();
       },
       error: (err: any) => {

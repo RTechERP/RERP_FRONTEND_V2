@@ -226,7 +226,7 @@ currentUser: any = null;
           },
           { title: 'Mã', field: 'Code', frozen: true, width: 200, },
           {
-            title: 'Ngày mượn',
+            title: 'Ngày cấp phát',
             field: 'DateAllocation',
             hozAlign: 'center',
             headerHozAlign: 'center',
@@ -387,21 +387,21 @@ onAddAllocation() {
       return;
     }
 
-    // Những cái đã KT duyệt
+    // Những cái cá nhân duyêjt
     const locked = selectedRows.filter(x =>
-      ['true', true, 1, '1'].includes(x.IsApproveAccountant)
+      ['true', true, 1, '1'].includes(x.IsApprovedPersonalProperty)
     );
 
     // Những cái được phép xóa
     const deletable = selectedRows.filter(x =>
-      !['true', true, 1, '1'].includes(x.IsApproveAccountant)
+      !['true', true, 1, '1'].includes(x.IsApprovedPersonalProperty)
     );
 
     if (deletable.length === 0) {
       const lockedCodes = locked.map(x => x.Code).join(', ');
       this.notification.warning(
         'Không thể xóa',
-        `Tất cả các biên bản đã được kế toán duyệt, không thể xóa. Danh sách: ${lockedCodes}`
+        `Tất cả các biên bản đã được cá nhân duyệt, không thể xóa. Danh sách: ${lockedCodes}`
       );
       return;
     }
@@ -411,7 +411,7 @@ onAddAllocation() {
       const lockedCodes = locked.map(x => x.Code).join(', ');
       this.notification.warning(
         'Một phần không được xóa',
-        `Các biên bản sau đã được kế toán duyệt, không thể xóa: ${lockedCodes}`
+        `Biên bản sau đã được cá nhân duyệt, không thể xóa: ${lockedCodes}, vui lòng hủy duyệt trước khi xóa.`
       );
     }
 

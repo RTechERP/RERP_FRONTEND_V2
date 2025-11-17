@@ -16,11 +16,12 @@
         </nz-form-item>
       </nz-col>
       <!-- Nhà cung cấp -->
+    
       <nz-col [nzSpan]="14">
         <nz-form-item>
-          <nz-form-label>Tên phim<span style="color: red">(*)</span></nz-form-label>
-          <nz-form-control [nzErrorTip]="'Vui lòng nhập tên'">
-            <input nz-input formControlName="Name" name="Name" placeholder="Nhập tên phim"/>
+          <nz-form-label>Mã phim<span style="color: red">(*)</span></nz-form-label>
+          <nz-form-control [nzErrorTip]="'Vui lòng nhập mã phim'">
+            <input nz-input formControlName="Code" name="Code" placeholder="Nhập mã phim" />
           </nz-form-control>
         </nz-form-item>
       </nz-col>
@@ -44,9 +45,9 @@
     <nz-row [nzGutter]="24">
       <nz-col [nzSpan]="24">
         <nz-form-item>
-          <nz-form-label>Mã phim<span style="color: red">(*)</span></nz-form-label>
-          <nz-form-control [nzErrorTip]="'Vui lòng nhập mã phim'">
-            <input nz-input formControlName="Code" name="Code" placeholder="Nhập mã phim" />
+          <nz-form-label>Tên phim<span style="color: red">(*)</span></nz-form-label>
+          <nz-form-control [nzErrorTip]="'Vui lòng nhập tên'">
+            <input nz-input formControlName="Name" name="Name" placeholder="Nhập tên phim"/>
           </nz-form-control>
         </nz-form-item>
       </nz-col>

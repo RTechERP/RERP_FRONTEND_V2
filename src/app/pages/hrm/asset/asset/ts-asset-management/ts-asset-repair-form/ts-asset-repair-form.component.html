@@ -102,8 +102,44 @@
           </fieldset>
         </div>
 
-        <!-- Phần phải: Thông tin sửa chữa -->
+        <!-- Phần phải: Thông tin nhân viên và sửa chữa -->
         <div class="col-12 col-md-6">
+        <fieldset class="reset mt-2">
+            <legend class="reset fs-12 p-0">THÔNG TIN NHÂN VIÊN SỬ DỤNG</legend>
+
+          <div class="mb-3">
+            <label class="form-label">Nhân viên</label>
+            <input
+              type="text"
+              name="EmployeeName"
+              [(ngModel)]="dataInput.FullName"
+              class="form-control"
+              disabled
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Vị trí công việc</label>
+            <input
+              type="text"
+              name="Position"
+              [(ngModel)]="dataInput.PositionName"
+              class="form-control"
+              disabled
+            />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Phòng ban công tác</label>
+            <input
+              type="text"
+              name="DepartmentName"
+              [(ngModel)]="dataInput.Name"
+              class="form-control"
+              disabled
+            />
+          </div>
+          </fieldset>
         <fieldset class="reset mt-2">
             <legend class="reset fs-12 p-0">THÔNG TIN SỬA CHỮA</legend>
 

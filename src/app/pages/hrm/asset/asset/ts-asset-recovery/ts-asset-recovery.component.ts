@@ -381,12 +381,12 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
 
     // Những biên bản HR đã duyệt -> không được xóa
     const locked = selectedRows.filter(x =>
-      ['true', true, 1, '1'].includes(x.IsApproved) // hoặc IsApproveHR, tùy DB
+      ['true', true, 1, '1'].includes(x.IsApprovedPersonalProperty) // hoặc IsApproveHR, tùy DB
     );
 
     // Những biên bản được phép xóa
     const deletable = selectedRows.filter(x =>
-      !['true', true, 1, '1'].includes(x.IsApproved)
+      !['true', true, 1, '1'].includes(x.IsApprovedPersonalProperty)
     );
 
     // Không có cái nào xóa được
@@ -394,7 +394,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       const lockedCodes = locked.map(x => x.CodeReport ?? x.Code).join(', ');
       this.notification.warning(
         'Không thể xóa',
-        `Tất cả các biên bản đã được HR duyệt, không thể xóa. Danh sách: ${lockedCodes}`
+        `Biên bản đã được cá nhân duyệt, không thể xóa. Danh sách: ${lockedCodes}`
       );
       return;
     }
@@ -404,7 +404,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       const lockedCodes = locked.map(x => x.CodeReport ?? x.Code).join(', ');
       this.notification.warning(
         'Một số biên bản không được xóa',
-        `Các biên bản đã được HR duyệt sẽ không bị xóa: ${lockedCodes}`
+        `Biên bản đã được cá nhân duyệt sẽ không bị xóa: ${lockedCodes}`
       );
     }
 

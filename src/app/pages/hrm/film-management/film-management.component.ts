@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
-import { AfterViewInit, Component, OnInit, ViewEncapsulation, ViewChild, ElementRef, Input } from '@angular/core';
+import { AfterViewInit, Component, OnInit, OnDestroy, ViewEncapsulation, ViewChild, ElementRef, Input } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -32,7 +32,8 @@ import { NzModalModule } from 'ng-zorro-antd/modal';
 import { FilmManagementFormComponent } from './film-management-form/film-management-form.component';
 import { FilmManagementImportExcelComponent } from './film-management-import-excel/film-management-import-excel.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 @Component({
@@ -65,7 +66,7 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
   templateUrl: './film-management.component.html',
   styleUrls: ['./film-management.component.css']
 })
-export class FilmManagementComponent implements OnInit, AfterViewInit {
+export class FilmManagementComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('filmTableRef', { static: true }) filmTableRef!: ElementRef<HTMLDivElement>;
   @ViewChild('filmDetailTableRef', { static: true }) filmDetailTableRef!: ElementRef<HTMLDivElement>;
   private ngbModal = inject(NgbModal);
@@ -77,13 +78,31 @@ export class FilmManagementComponent implements OnInit, AfterViewInit {
   filmData: any[] = [];
   filmDetailData: any[] = [];
   filterText: string = "";
+  detailTabTitle: string = "Chi tiết phim";
+  private searchSubject = new Subject<string>();
+  
   constructor(private notification: NzNotificationService,
     private filmManagementService: FilmManagementService,
     private modal: NzModalService) { }
+  
   ngAfterViewInit(): void {
     this.drawTable();
   }
+  
   ngOnInit() {
+    // Setup debounce cho tìm kiếm
+    this.searchSubject.pipe(
+      debounceTime(500), // Đợi 500ms sau khi user ngừng gõ
+      distinctUntilChanged() // Chỉ thực hiện nếu giá trị thay đổi
+    ).subscribe(() => {
+      if (this.filmTable) {
+        this.filmTable.setData();
+      }
+    });
+  }
+  
+  ngOnDestroy() {
+    this.searchSubject.complete();
   }
   drawTable() {
     this.filmTable = new Tabulator(this.filmTableRef.nativeElement, {
@@ -113,9 +132,12 @@ export class FilmManagementComponent implements OnInit, AfterViewInit {
       responsiveLayout: "collapse",
       addRowPos: "bottom",
       history: true,
+      initialSort: [
+        { column: "STT", dir: "asc" }
+      ],
       columns: [
         { title: "ID", field: "ID", visible: false },
-        { title: "STT", field: "STT", hozAlign: "right", headerHozAlign: "center" , width:70},
+        { title: "STT", field: "STT", hozAlign: "right", headerHozAlign: "center", width: 70, sorter: "number" },
         { title: "Mã phim", field: "Code", hozAlign: "left", headerHozAlign: "center" },
         { title: "Tên phim", field: "Name", hozAlign: "left", headerHozAlign: "center" },
         {
@@ -132,6 +154,11 @@ export class FilmManagementComponent implements OnInit, AfterViewInit {
     this.filmTable.on('rowClick', (evt, row: RowComponent) => {
       const rowData = row.getData();
       const ID = rowData['ID'];
+      const filmCode = rowData['Code'] || '';
+      
+      // Cập nhật tiêu đề tab với mã phim
+      this.detailTabTitle = `Chi tiết phim: ${filmCode}`;
+      
       this.filmManagementService.getFilmDetail(ID).subscribe(respon => {
         this.filmDetailData = respon.data;
 
@@ -162,7 +189,7 @@ export class FilmManagementComponent implements OnInit, AfterViewInit {
             headerHozAlign: "center",
           
           },
-          { title: 'Nội dung công việc', field: 'WorkContent1', headerHozAlign: 'center' },
+          { title: 'Nội dung công việc', field: 'WorkContent', headerHozAlign: 'center' },
           { title: 'Đơn vị tính', field: 'UnitName', headerHozAlign: 'center' },
           { title: 'Năng xuất trung bình', field: 'PerformanceAVG', headerHozAlign: 'center' },
 
@@ -291,5 +318,19 @@ export class FilmManagementComponent implements OnInit, AfterViewInit {
       keyboard: false,
       centered: true,
     });
+  }
+
+  closePanel() {
+    this.sizeTbDetail = '0';
+    this.filmDetailData = [];
+    this.detailTabTitle = "Chi tiết phim"; // Reset lại tiêu đề
+    if (this.filmDetailTable) {
+      this.filmDetailTable.setData([]);
+    }
+  }
+
+  searchFilm() {
+    // Gọi subject để trigger debounce
+    this.searchSubject.next(this.filterText);
   }
 }

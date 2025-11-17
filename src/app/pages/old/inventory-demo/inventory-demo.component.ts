@@ -24,10 +24,11 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DateTime } from 'luxon';
 import { UpdateQrcodeFormComponent } from './update-qrcode-form/update-qrcode-form.component';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
-import { InventoryDemoService } from './inventory-demo-service/inventory-demo.service'; 
+import { InventoryDemoService } from './inventory-demo-service/inventory-demo.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TbProductRtcService } from '../tb-product-rtc/tb-product-rtc-service/tb-product-rtc.service';
 import { InventoryBorrowSupplierDemoComponent } from './inventory-borrow-supplier-demo/inventory-borrow-supplier-demo.component';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 
 @Component({
   standalone: true,
@@ -136,10 +137,11 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
     }
     else {
       this.productTable = new Tabulator('#dataTableProductInventory', {
+        ...DEFAULT_TABLE_CONFIG,
         layout: "fitDataStretch",
         pagination: true,
         selectableRows: 5,
-        height: '86vh',
+        height: '100%',
         movableColumns: true,
         paginationSize: 30,
         paginationSizeSelector: [5, 10, 20, 50, 100],

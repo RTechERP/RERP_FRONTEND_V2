@@ -60,7 +60,7 @@ export class BillDocumentExportComponent implements OnInit, AfterViewInit {
   bdeID: number = 0;
 
   flag: boolean=true;
-  
+
   cbbStatus: any = [
     { ID: 1, Name: "Đã nhận" },
     { ID: 2, Name: "Đã hủy nhận" },
@@ -124,7 +124,7 @@ export class BillDocumentExportComponent implements OnInit, AfterViewInit {
     }else{
       this.activeModal.dismiss(true);
     }
-    
+
   }
 
   createdControl(
@@ -159,34 +159,34 @@ export class BillDocumentExportComponent implements OnInit, AfterViewInit {
     debugger
     for (const item of updatedData) {
       const code = item.Code || '[Không có mã]';
-  
+
       // Kiểm tra nếu Status bị rỗng
       if (item.Status == null || item.Status === '' || item.Status==0) {
         this.notification.warning("Thông báo", `Vui lòng chọn trạng thái chứng từ ${code}.`);
-  
+
         const row = this.table_billDocumentExport.getRow(item.ID);
         if (row) {
           const cell = row.getCell('Status');
           if (cell) cell.edit(); // focus vào cell Status
         }
-  
+
         return;
       }
-  
+
       // Nếu trạng thái là 2 mà Note trống
       if (item.Status === 2 && (!item.Note || item.Note.trim() === '')) {
         this.notification.warning("Thông báo", `Vui lòng nhập lý do hủy cho chứng từ ${code}.`);
-  
+
         const row = this.table_billDocumentExport.getRow(item.ID);
         if (row) {
           const cell = row.getCell('Note');
           if (cell) cell.edit(); // focus vào cell Note
         }
-  
+
         return;
       }
     }
-  
+
     // Nếu không có lỗi, tiến hành gửi tất cả dữ liệu
     this.billExportService.saveDataBillDocumentExport(updatedData).subscribe({
       next: (res: any) => {
@@ -201,9 +201,9 @@ export class BillDocumentExportComponent implements OnInit, AfterViewInit {
       }
     });
   }
-  
-  
-  
+
+
+
 
   drawTable() {
     const formatDate = (cell: any) => {
@@ -218,7 +218,7 @@ export class BillDocumentExportComponent implements OnInit, AfterViewInit {
         index: "ID",
         data: this.dataBillDocumentExport,
         layout: "fitDataStretch",
-        height: "30vh",
+        height: "100%",
         reactiveData: true,
         resizableRows: true,
         selectableRows: 1,
@@ -265,7 +265,7 @@ export class BillDocumentExportComponent implements OnInit, AfterViewInit {
       this.table_billDocumentExport.on("cellEdited", (cell:any) => {
         this.flag = false; // Đánh dấu dữ liệu đã thay đổi
       });
-      
+
     } else {
       this.table_billDocumentExport.replaceData(this.dataBillDocumentExport);
     }
@@ -275,7 +275,7 @@ export class BillDocumentExportComponent implements OnInit, AfterViewInit {
         index: "ID",
         data: this.dataBillDocumentExportLog,
         layout: "fitDataStretch",
-        height: "30vh",
+        height: "100%",
         reactiveData: true,
         resizableRows: true,
         selectableRows: 1,

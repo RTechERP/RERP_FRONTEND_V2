@@ -1,0 +1,17 @@
+<div class="container-fluid overflow-auto" >
+  <div class="d-flex align-items-center gap-2 mt-1">
+    <button class="fs-12" nz-button nzType="primary" nzSize="small" (click)="exportExcel()">
+      Xuất Excel
+    </button>
+    <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="reset()">
+      <i nz-icon nzType="reload"></i>
+      Làm mới
+    </button>
+    <input class="fs-12" style="max-width: 12vw;" nz-input placeholder="Tìm kiếm" nzSize="small" [(ngModel)]="searchText" />
+  </div>
+  <div class="row col-12 mt-2 w-100">
+    <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải...">
+      <div #table></div>
+    </nz-spin>
+  </div>
+</div>

@@ -329,7 +329,7 @@ export class InventoryBorrowNCCComponent implements OnInit, AfterViewInit {
       ...DEFAULT_TABLE_CONFIG,
       paginationMode: 'local',
       layout: 'fitDataFill',
-      height: "76vh",
+      height: "83vh",
       columnDefaults: {
         resizable: true,
       },

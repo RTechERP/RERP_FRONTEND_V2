@@ -30,6 +30,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification'
 import { BillImportTechnicalFormComponent } from '../bill-import-technical/bill-import-technical-form/bill-import-technical-form.component';
 import { BillExportTechnicalFormComponent } from '../bill-export-technical/bill-export-technical-form/bill-export-technical-form.component';
 import { BillExportTechnicalService } from '../bill-export-technical/bill-export-technical-service/bill-export-technical.service';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 @Component({
   standalone: true,
   imports: [

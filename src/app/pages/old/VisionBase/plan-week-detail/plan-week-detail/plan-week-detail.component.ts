@@ -371,7 +371,11 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
     item._dirty = true;
   }
 
-  deleteItem(item: any): void {
+  deleteItem(item: any, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
       nzContent: 'Bạn có chắc chắn muốn xóa kế hoạch ngày ' + this.formatDate(item.DatePlan) + '?',

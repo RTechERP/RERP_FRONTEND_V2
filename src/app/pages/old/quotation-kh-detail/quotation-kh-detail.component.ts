@@ -45,7 +45,7 @@ import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/sign
 import { EnvironmentInjector } from '@angular/core';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DateTime } from 'luxon';
-import { FormGroup, FormBuilder } from '@angular/forms';
+import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -99,7 +99,7 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
 
   private mainTable!: Tabulator;
 
-  @Input() groupedData: any[] = []; // Dữ liệu từ component cha truyền vào
+  @Input() groupedData: any[] = []; 
   @Input() isEditMode: boolean = false;
 
   constructor(
@@ -109,9 +109,13 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
     private quotationKhDetailService: QuotationKhDetailServiceService,
     private customerPartService: CustomerPartService,
     private pokhService: PokhService,
-    private RIDService: RequestInvoiceDetailService
+    private RIDService: RequestInvoiceDetailService,
+    private fb: FormBuilder
   ) {}
 
+  quotationForm!: FormGroup;
+  isSubmitted: boolean = false;
+  
   formData: any = this.getDefaultFormData();
   data: any[] = [];
   customers: any[] = [];
@@ -137,6 +141,8 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
   ];
 
   ngOnInit(): void {
+    this.initForm();
+    this.setupFormSubscriptions();
     this.loadUsers();
     this.loadCustomer();
     this.loadProducts();
@@ -146,19 +152,85 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
       this.handleEditModeData();
     }
   }
+
+  //Setup hàm cho các trường form nếu có thay đổi
+  setupFormSubscriptions(): void {
+    this.quotationForm.get('customerId')?.valueChanges.subscribe((customerId) => {
+      if (customerId) {
+        this.onCustomerChange(customerId);
+      }
+    });
+
+    this.quotationForm.get('projectId')?.valueChanges.subscribe((projectId) => {
+      if (projectId) {
+        this.onProjectChange(projectId);
+      }
+    });
+
+    this.quotationForm.get('contactId')?.valueChanges.subscribe((contactId) => {
+      if (contactId) {
+        this.onContactChange(contactId);
+      }
+    });
+
+    this.quotationForm.get('comPercent')?.valueChanges.subscribe(() => {
+      this.onCommissionPercentChange();
+    });
+
+    this.quotationForm.get('comEnabled')?.valueChanges.subscribe(() => {
+      this.onCommissionEnabledChange();
+    });
+  }
+
+  initForm(): void {
+    this.quotationForm = this.fb.group({
+      id: [null],
+      status: [0, [Validators.required, Validators.min(0)]],
+      code: ['', [Validators.required]],
+      version: [''],
+      poCode: [''],
+      totalPrice: [0],
+      createDate: [new Date().toISOString().split('T')[0]],
+      projectId: [null],
+      userId: [null, [Validators.required, Validators.min(1)]],
+      comPercent: [0],
+      comMoney: [0],
+      comEnabled: [false],
+      quotationDate: [new Date().toISOString().split('T')[0]],
+      company: ['RTC'],
+      explanation: [''],
+      dateMinutes: [new Date().toISOString().split('T')[0]],
+      contactId: [null],
+      employeePhone: [''],
+      departmentName: [''],
+      customerId: [null, [Validators.required, Validators.min(1)]],
+      customerName: [''],
+      customerContact: [''],
+      customerPhone: [''],
+      customerAddress: [''],
+      receiver: [''],
+      receiverPhone: [''],
+      adminWarehouse: [null],
+    });
+  }
   ngAfterViewInit(): void {}
   closeModal() {
     this.activeModal.close();
+  }
+
+  get f() {
+    return this.quotationForm.controls;
   }
   handleEditModeData(): void {
     if (this.groupedData.length === 0) return;
 
     const firstGroup = this.groupedData[0];
     const mainData = firstGroup.MainData;
+    console.log(mainData);
     const detailItems = firstGroup.items || [];
 
-    // Đổ dữ liệu lên form
-    this.formData = {
+    // Đổ dữ liệu lên form 
+    this.quotationForm.patchValue({
       id: mainData.ID,
       status: mainData.Status,
       code: mainData.QuotationCode,
@@ -172,7 +244,7 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
       userId: mainData.UserID,
       comPercent: mainData.Commission ? mainData.Commission * 100 : 0,
       comMoney: mainData.ComMoney,
-      comEnabled: false, // Mặc định tắt, có thể điều chỉnh theo logic nghiệp vụ
+      comEnabled: false,
       quotationDate: mainData.QuotationDate
         ? mainData.QuotationDate.substring(0, 10)
         : new Date().toISOString().split('T')[0],
@@ -190,23 +262,21 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
       receiver: '',
       receiverPhone: '',
       adminWarehouse: null,
-    };
+    });
 
     // Load contact đúng của khách hàng và cập nhật lại các trường liên hệ
     if (mainData.CustomerID) {
       this.loadContact(mainData.CustomerID);
-      // Đợi contact load xong rồi gán lại các trường liên hệ
       setTimeout(() => {
         const contactItem = this.contact.find(
           (c: any) => c.ID === mainData.ContactID
         );
         if (contactItem) {
-          this.formData.contactId = contactItem.ID;
+          this.quotationForm.patchValue({ contactId: contactItem.ID }, { emitEvent: false });
         }
       }, 300);
     }
 
-    // Load project data nếu có projectId
     if (mainData.ProjectID) {
       setTimeout(() => {
         this.onProjectChange(mainData.ProjectID);
@@ -248,29 +318,75 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
       }
     }
   }
+  validateForm(): boolean {
+    this.isSubmitted = true;
+
+    Object.keys(this.quotationForm.controls).forEach(key => {
+      this.quotationForm.get(key)?.markAsTouched();
+    });
+
+    if (this.quotationForm.invalid) {
+      if (this.quotationForm.get('code')?.hasError('required')) {
+        this.notification.error('Lỗi', 'Vui lòng điền mã báo giá.');
+        return false;
+      }
+      if (this.quotationForm.get('customerId')?.hasError('required') || 
+          this.quotationForm.get('customerId')?.hasError('min')) {
+        this.notification.error('Lỗi', 'Vui lòng chọn một khách hàng.');
+        return false;
+      }
+      if (this.quotationForm.get('userId')?.hasError('required') || 
+          this.quotationForm.get('userId')?.hasError('min')) {
+        this.notification.error('Lỗi', 'Vui lòng chọn một người phụ trách.');
+        return false;
+      }
+      if (this.quotationForm.get('status')?.hasError('required')) {
+        this.notification.error('Lỗi', 'Vui lòng chọn trạng thái báo giá.');
+        return false;
+      }
+      return false;
+    }
+
+    const tableData = this.mainTable.getData();
+    for (let i = 0; i < tableData.length; i++) {
+      const code = tableData[i].ProductNewCode;
+      if (!code || code.trim() === '') {
+        this.notification.error('Lỗi', 'Mã nội bộ không thể để trống, vui lòng kiểm tra lại !');
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   saveAndClose() {
+    if (!this.validateForm()) {
+      return;
+    }
+
+    const formValue = this.quotationForm.value;
     const QUOTATION_KH = {
-      ID: this.formData.id,
-      QuotationCode: this.formData.code,
+      ID: formValue.id ?? 0,
+      QuotationCode: formValue.code,
       Version: '',
-      ProjectID: this.formData.projectId,
-      UserID: this.formData.userId,
-      POCode: this.formData.poCode,
-      CustomerID: this.formData.customerId,
-      Explanation: this.formData.explanation,
+      ProjectID: formValue.projectId,
+      UserID: formValue.userId,
+      POCode: formValue.poCode,
+      CustomerID: formValue.customerId,
+      Explanation: formValue.explanation,
       IsApproved: false,
-      TotalPrice: this.formData.totalPrice,
+      TotalPrice: formValue.totalPrice,
       CreatedDate: new Date(),
-      QuotationDate: this.formData.quotationDate,
-      Status: this.formData.status,
-      ContactID: this.formData.contactId,
+      QuotationDate: formValue.quotationDate,
+      Status: formValue.status,
+      ContactID: formValue.contactId,
       Month: new Date().getMonth() + 1,
       Year: new Date().getFullYear(),
       UserName: 0,
-      CreateDate: this.formData.createDate,
-      Commission: this.formData.comPercent / 100,
-      ComMoney: this.formData.comMoney,
-      Company: this.formData.company,
+      CreateDate: formValue.createDate,
+      Commission: formValue.comPercent / 100,
+      ComMoney: formValue.comMoney,
+      Company: formValue.company,
       IsMerge: false,
     };
 
@@ -295,7 +411,6 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
       next: (res) => {
         if (res.status === 1) {
           this.notification.success('Thành công', 'Lưu dữ liệu thành công');
-          // Đóng modal và trả về kết quả để reload data ở component cha
           this.activeModal.close({
             success: true,
             reloadData: true,
@@ -393,7 +508,7 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
       .subscribe(
         (response) => {
           if (response.status === 1) {
-            this.formData.code = response.data;
+            this.quotationForm.patchValue({ code: response.data }, { emitEvent: false });
           } else {
             this.notification.error(
               'Lỗi khi tải dữ liệu contact:',
@@ -427,16 +542,21 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
   //#endregion
   onCustomerChange(customerId: number, contactId?: number): void {
     this.selectedCustomer = this.customers.find((c) => c.ID === customerId);
-    this.formData.customerId = customerId;
-    this.loadCode(customerId, this.formData.createDate);
+    this.loadCode(customerId, this.quotationForm.get('createDate')?.value);
     this.loadContact(customerId);
-    this.formData.contactId = contactId ?? -1;
+    if (contactId !== undefined) {
+      this.quotationForm.patchValue({ contactId: contactId ?? -1 }, { emitEvent: false });
+    }
   }
+  
   onProjectChange(projectId: number): void {
     if (!projectId) return;
     const project = this.projects.find((p: any) => p.ID === projectId);
     if (project) {
-      this.formData.userId = project.UserID;
+      this.quotationForm.patchValue({ 
+        userId: project.UserID,
+        customerId: project.CustomerID 
+      }, { emitEvent: false });
       this.onCustomerChange(project.CustomerID, project.ContactID);
     }
   }
@@ -445,7 +565,7 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
     if (ITEM == null || ITEM == undefined) {
       return;
     } else {
-      this.formData.customerPhone = ITEM.ContactPhone;
+      this.quotationForm.patchValue({ customerPhone: ITEM.ContactPhone }, { emitEvent: false });
     }
   }
   getDefaultFormData(): any {
@@ -489,8 +609,10 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
     return Number(value.replace(/[^0-9-]/g, ''));
   };
   addNewRow(): void {
+    // Lấy dữ liệu hiện tại từ table để đảm bảo số lượng chính xác
+    const currentData = this.mainTable.getData();
     const newRow = {
-      STT: this.details.length + 1,
+      STT: currentData.length + 1,
       IsSelected: false,
       ProductNewCode: '',
       ProductCode: '',
@@ -509,6 +631,8 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
       GroupQuota: '',
     };
     this.mainTable.addRow(newRow);
+    // Cập nhật lại this.details sau khi thêm row
+    // this.details = this.mainTable.getData();
   }
 
   initMainTable(): void {
@@ -521,6 +645,27 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
       movableColumns: true,
       resizableRows: true,
       reactiveData: true,
+      sortMode: 'local',
+      langs: {
+        vi: {
+          pagination: {
+            first: '<<',
+            last: '>>',
+            prev: '<',
+            next: '>',
+          },
+        },
+      },
+      locale: 'vi',
+      columnDefaults: {
+        headerWordWrap: true,
+        headerVertical: false,
+        headerHozAlign: 'center',
+        minWidth: 60,
+        hozAlign: 'left',
+        vertAlign: 'middle',
+        resizable: true,
+      },
       columns: [
         {
           title: '',
@@ -796,26 +941,27 @@ export class QuotationKhDetailComponent implements OnInit, AfterViewInit {
       totalGiaNet += Number(row.GiaNet) || 0;
     });
 
-    // Cập nhật tổng tiền vào formData
-    this.formData.totalPrice = totalIntoMoney;
+    // Cập nhật tổng tiền vào form
+    this.quotationForm.patchValue({ totalPrice: totalIntoMoney }, { emitEvent: false });
 
     // Tính toán commission money
-    const comPercent = Number(this.formData.comPercent) || 0;
-    const comEnabled = this.formData.comEnabled;
+    const comPercent = Number(this.quotationForm.get('comPercent')?.value) || 0;
+    const comEnabled = this.quotationForm.get('comEnabled')?.value;
 
+    let comMoney = 0;
     if (comEnabled) {
       // Nếu commission được bật, tính dựa trên (total - gianet) * comPercent
-      this.formData.comMoney =
-        (totalIntoMoney - totalGiaNet) * (comPercent / 100);
+      comMoney = (totalIntoMoney - totalGiaNet) * (comPercent / 100);
     } else {
       // Nếu commission tắt, tính dựa trên total * comPercent
-      this.formData.comMoney = totalIntoMoney * (comPercent / 100);
+      comMoney = totalIntoMoney * (comPercent / 100);
     }
 
     // Format commission money để hiển thị
-    this.formData.comMoney = Number(this.formData.comMoney.toFixed(0));
+    this.quotationForm.patchValue({ comMoney: Number(comMoney.toFixed(0)) }, { emitEvent: false });
 
     console.log('Tổng thành tiền:', totalIntoMoney);
     console.log('Tổng giá NET:', totalGiaNet);
   }
+  
 }

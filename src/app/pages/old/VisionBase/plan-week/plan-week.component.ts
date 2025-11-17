@@ -534,6 +534,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
         resizable: true,
         cssClass: 'tabulator-cell-wrap',
       },
+      rowHeader:false,
       autoColumnsDefinitions: (definitions: any[] = []) =>
         definitions.map((def: any) => {
           if (def.field === 'ParentID') {
@@ -551,11 +552,11 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
           return def;
         }),
     });
-    this.tb_MainTable.on('rowClick', (e: any, row: RowComponent) => {
-      const rowData = row.getData();
-      this.selectedRow = rowData;
-      this.selectedId = rowData['UserID'];
-    });
+    // this.tb_MainTable.on('rowClick', (e: any, row: RowComponent) => {
+    //   const rowData = row.getData();
+    //   this.selectedRow = rowData;
+    //   this.selectedId = rowData['UserID'];
+    // });
     this.tb_MainTable.on('cellClick', (e: any, cell: any) => {
       const field = cell.getField();
       this.selectedField = field;
@@ -563,6 +564,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
       this.selectedRow = rowData;
       if (rowData && rowData['UserID']) {
         this.selectedId = rowData['UserID'];
+        console.log(this.selectedId);
       }
     });
   }

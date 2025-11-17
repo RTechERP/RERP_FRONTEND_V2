@@ -58,6 +58,7 @@ import { CustomerPartService } from '../customer-part/customer-part/customer-par
 import { PokhHistoryServiceService } from './pokh-history-service/pokh-history-service.service';
 import { ImportExcelComponent } from './import-excel/import-excel.component';
 import { NOTIFICATION_TITLE } from '../../../app.config';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 
 @Component({
   selector: 'app-pokh-history',
@@ -91,6 +92,8 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
   styleUrl: './pokh-history.component.css',
 })
 export class PokhHistoryComponent implements OnInit, AfterViewInit {
+  @ViewChild('tb_Table', { static: false }) tb_TableElement!: ElementRef;
+  
   private tb_Table!: Tabulator;
 
   customers: any[] = [];
@@ -143,6 +146,7 @@ export class PokhHistoryComponent implements OnInit, AfterViewInit {
       (response) => {
         if (response.status === 1) {
           this.customers = response.data;
+          console.log(this.customers,'customers');
           if (this.customerId > 0) {
             this.selectedCustomer = this.customers.find(
               (c) => c.ID === this.customerId
@@ -163,8 +167,16 @@ export class PokhHistoryComponent implements OnInit, AfterViewInit {
     keywords: string,
     startDate: Date,
     endDate: Date,
-    cusCode: string
+    cusId: number
   ): void {
+    let cusCode = "";
+    if (cusId && cusId !== 0) {
+      const customer = this.customers.find(c => c.ID === cusId);
+      if (customer) {
+        cusCode = customer.CustomerCode;
+      }
+    }
+
     this.POKHHistoryService.loadData(
       keywords,
       startDate,
@@ -233,30 +245,19 @@ export class PokhHistoryComponent implements OnInit, AfterViewInit {
       fgColor: { argb: 'FFE0E0E0' },
     };
 
-    // Get current page data
-    const currentPage = Number(this.tb_Table.getPage());
-    const pageSize = Number(this.tb_Table.getPageSize());
-    const startIndex = (currentPage - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-
-    // Get all data and slice for current page
     const allData = this.tb_Table.getData();
-    const currentPageData = allData.slice(startIndex, endIndex);
 
-    // Process rows with formatting
-    currentPageData.forEach((rowData, rowIndex) => {
+    allData.forEach((rowData, rowIndex) => {
       const row = worksheet.addRow(
         columns.map((col) => {
           const field = col.getField();
           let value = rowData[field];
 
-          // Format date columns
           if (
             columnFormats[field] &&
             columnFormats[field].includes('dd/mm/yyyy')
           ) {
             if (value && value !== '') {
-              // Convert string date to Date object if needed
               const dateValue =
                 typeof value === 'string' ? new Date(value) : value;
               if (dateValue instanceof Date && !isNaN(dateValue.getTime())) {
@@ -265,7 +266,6 @@ export class PokhHistoryComponent implements OnInit, AfterViewInit {
             }
           }
 
-          // Format number columns
           if (columnFormats[field] && columnFormats[field].includes('#,##0')) {
             if (value !== null && value !== undefined && value !== '') {
               const numValue =
@@ -282,7 +282,6 @@ export class PokhHistoryComponent implements OnInit, AfterViewInit {
         })
       );
 
-      // Apply formatting to each cell in the row
       row.eachCell((cell, colNumber) => {
         const column = columns[colNumber - 1];
         const field = column.getField();
@@ -298,49 +297,49 @@ export class PokhHistoryComponent implements OnInit, AfterViewInit {
     });
 
     // Add bottom calculations for money columns
-    const bottomCalcRow = worksheet.addRow(
-      columns.map((col) => {
-        const column = col.getDefinition();
-        const field = column.field as string;
-        if (column.bottomCalc) {
-          // Calculate total for current page only
-          let total = 0;
-          currentPageData.forEach((rowData) => {
-            const value = rowData[field];
-            if (typeof value === 'number') {
-              total += value;
-            } else if (!isNaN(Number(value))) {
-              total += Number(value);
-            }
-          });
-          return total;
-        }
-        return '';
-      })
-    );
+    // const bottomCalcRow = worksheet.addRow(
+    //   columns.map((col) => {
+    //     const column = col.getDefinition();
+    //     const field = column.field as string;
+    //     if (column.bottomCalc) {
+    //       // Calculate total for all data
+    //       let total = 0;
+    //       allData.forEach((rowData) => {
+    //         const value = rowData[field];
+    //         if (typeof value === 'number') {
+    //           total += value;
+    //         } else if (!isNaN(Number(value))) {
+    //           total += Number(value);
+    //         }
+    //       });
+    //       return total;
+    //     }
+    //     return '';
+    //   })
+    // );
 
-    // Style the bottom calc row
-    bottomCalcRow.font = { bold: true };
-    bottomCalcRow.fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFE0E0E0' },
-    };
+    // // Style the bottom calc row
+    // bottomCalcRow.font = { bold: true };
+    // bottomCalcRow.fill = {
+    //   type: 'pattern',
+    //   pattern: 'solid',
+    //   fgColor: { argb: 'FFE0E0E0' },
+    // };
 
-    // Add a label for the total row
-    const totalLabelCell = bottomCalcRow.getCell(1);
-    totalLabelCell.value = 'Tổng cộng';
-    totalLabelCell.font = { bold: true };
+    // // Add a label for the total row
+    // const totalLabelCell = bottomCalcRow.getCell(1);
+    // totalLabelCell.value = 'Tổng cộng';
+    // totalLabelCell.font = { bold: true };
 
-    // Apply number formatting to total row for money columns
-    bottomCalcRow.eachCell((cell, colNumber) => {
-      const column = columns[colNumber - 1];
-      const field = column.getField();
+    // // Apply number formatting to total row for money columns
+    // bottomCalcRow.eachCell((cell, colNumber) => {
+    //   const column = columns[colNumber - 1];
+    //   const field = column.getField();
 
-      if (columnFormats[field] && columnFormats[field].includes('#,##0')) {
-        cell.numFmt = columnFormats[field];
-      }
-    });
+    //   if (columnFormats[field] && columnFormats[field].includes('#,##0')) {
+    //     cell.numFmt = columnFormats[field];
+    //   }
+    // });
 
     // Auto-fit columns
     worksheet.columns.forEach((column: any) => {
@@ -355,22 +354,44 @@ export class PokhHistoryComponent implements OnInit, AfterViewInit {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `POKHHistory_List_Page_${currentPage}_${
+    link.download = `POKHHistory_List_${
       new Date().toISOString().split('T')[0]
     }.xlsx`;
     link.click();
     window.URL.revokeObjectURL(url);
   }
   initTable(): void {
-    this.tb_Table = new Tabulator(`#tb_Table`, {
-      data: this.mainData,
-      layout: 'fitDataFill',
+    if (!this.tb_TableElement) {
+      console.error('tb_Table element not found');
+      return;
+    }
+    this.tb_Table = new Tabulator(this.tb_TableElement.nativeElement, {
+      // ...DEFAULT_TABLE_CONFIG,
+      paginationMode: 'local',
       pagination: true,
-
-      paginationSize: 50,
+      paginationSize: 1000,
+      data: this.mainData,
       height: '88.5vh',
-      movableColumns: true,
-      resizableRows: true,
+      langs: {
+        vi: {
+          pagination: {
+            first: '<<',
+            last: '>>',
+            prev: '<',
+            next: '>',
+          },
+        },
+      },
+      locale: 'vi',
+      columnDefaults: {
+        headerWordWrap: true,
+        headerVertical: false,
+        headerHozAlign: 'center',
+        minWidth: 60,
+        hozAlign: 'left',
+        vertAlign: 'middle',
+        resizable: true,
+      },
       columns: [
         {
           title: 'Mã khách',
@@ -396,6 +417,7 @@ export class PokhHistoryComponent implements OnInit, AfterViewInit {
           field: 'ProductCode',
           sorter: 'string',
           width: 150,
+          formatter: 'textarea',
         },
         { title: 'Model', field: 'Model', sorter: 'string', width: 150 },
         { title: 'SL', field: 'Quantity', sorter: 'string', width: 150 },
@@ -518,7 +540,7 @@ export class PokhHistoryComponent implements OnInit, AfterViewInit {
           sorter: 'string',
           width: 150,
         },
-        { title: 'Công nợ', field: 'Dept', sorter: 'string', width: 150 },
+        { title: 'Công nợ', field: 'Dept', sorter: 'string', width: 150, formatter: 'textarea' },
         { title: 'Sale', field: 'Sale', sorter: 'string', width: 150 },
         { title: 'Pur', field: 'Pur', sorter: 'string', width: 150 },
       ],

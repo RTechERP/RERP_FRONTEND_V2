@@ -59,7 +59,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { PlanWeekService } from './plan-week-services/plan-week.service';
 import { Title } from '@angular/platform-browser';
 import { PlanWeekDetailComponent } from '../plan-week-detail/plan-week-detail/plan-week-detail.component';
-import { HasPermissionDirective } from '../../../../directives/has-permission.directive'; 
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { AppUserService } from '../../../../services/app-user.service';
 
 @Component({
@@ -303,7 +303,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
         if (response.status === 1) {
           this.filterDepartmentData = response.data;
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
@@ -319,7 +319,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
         if (response.status === 1) {
           this.filterTeamData = this.transformFlatDataToTreeData(response.data);
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
@@ -335,7 +335,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
         if (response.status === 1) {
           this.filterUserData = response.data;
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
@@ -363,7 +363,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
               this.tb_MainTable.setData(this.mainData);
             }
           } else {
-            this.notification.error('Lỗi', response.message);
+            this.notification.error(NOTIFICATION_TITLE.error, response.message);
           }
         },
         error: (error) => {
@@ -450,7 +450,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
 
   async exportMainTableToExcel() {
     if (!this.tb_MainTable) {
-      this.notification.error('Lỗi', 'Không có dữ liệu để xuất Excel');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất Excel');
       return;
     }
 
@@ -503,12 +503,12 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
       const year = d.getFullYear();
       return `${day}/${month}/${year}`;
     };
-    
+
     const start = formatDate(this.filters.startDate);
     const end = formatDate(this.filters.endDate);
-    
+
     link.download = `KeHoachTuan_${start} - ${end}.xlsx`;
-    
+
     link.click();
     window.URL.revokeObjectURL(url);
   }

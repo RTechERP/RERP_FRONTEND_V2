@@ -25,16 +25,16 @@
                 <nz-form-control [nzSpan]="24">
                   <nz-date-picker [nzFormat]="dateFormat" class="w-100" nzSize="small" [(ngModel)]="searchParams.dateEnd" name="dateEnd"></nz-date-picker>
                 </nz-form-control>
-              </nz-form-item>   
-                 
+              </nz-form-item>
+
               <nz-form-item class="mt-2">
                 <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
                 <nz-form-control [nzSpan]="24">
                     <input class="w-100" nz-input placeholder="Nhập từ khóa" [(ngModel)]="searchParams.keyword" name="keyword" nzSize="small" />
                 </nz-form-control>
               </nz-form-item>
-  
-             
+
+
             </form>
           </div>
           <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
@@ -45,10 +45,10 @@
       </nz-splitter-panel>
       <nz-splitter-panel nzDefaultSize="100%">
         <div class="card h-100 border-0 rounded-0">
-        
+
           <div class="card-body p-0">
             <nz-splitter>
-              <nz-splitter-panel>
+              <nz-splitter-panel style="height:90vh">
                 <nz-splitter nzLayout="vertical">
                     <!-- table productGroup -->
                   <nz-splitter-panel>
@@ -57,7 +57,7 @@
                   <!-- table productGroupWareHouse -->
                 </nz-splitter>
               </nz-splitter-panel>
-              <nz-splitter-panel [nzCollapsible]="true" nzSize="70%">
+              <nz-splitter-panel [nzCollapsible]="true" nzSize="70%" style="height:100vh">
                 <div class="card-header bg-white p-1">
                   <div class="d-flex gap-1">
                     <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">

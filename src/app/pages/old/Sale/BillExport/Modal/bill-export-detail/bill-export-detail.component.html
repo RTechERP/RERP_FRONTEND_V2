@@ -4,13 +4,13 @@
 </div>
 <div class="modal-body p-2 flex-grow-1 overflow-visible" style="overflow-y: unset;">
   <div class="d-flex gap-2 pb-2 border-bottom">
-    <button class="fs-12 btn" nz-button nzType="default" nzSize="small" title="Thêm sản phẩm" (click)="openModalNewProduct()">
+    <button class="fs-12 btn" nz-button nzType="default" nzSize="small" title="Thêm sản phẩm" *hasPermission="'N27,N1,N33,N34,N69'" (click)="openModalNewProduct()">
       <nz-icon nzType="file-text"></nz-icon> Thêm sản phẩm
     </button>
-    <button class="fs-12 btn" nz-button nzType="default" nzSize="small" title="Thêm dự án">
+    <button class="fs-12 btn" nz-button nzType="default" nzSize="small" *hasPermission="'N27,N1,N33,N34,N69'" title="Thêm dự án">
       <nz-icon nzType="exception"></nz-icon> Thêm dự án
     </button>
-    <button class="fs-12 btn" nz-button nzType="default" nzSize="small" title="Chọn PO">
+    <button class="fs-12 btn" nz-button nzType="default" nzSize="small" *hasPermission="'N27,N1,N33,N34,N69'" title="Chọn PO">
       <nz-icon nzType="file-excel"></nz-icon> Chọn PO
     </button>
   </div>
@@ -72,8 +72,8 @@
         <nz-form-item>
           <nz-form-label class="fs-12">Khách hàng<span class="text-danger">*</span></nz-form-label>
           <nz-form-control [nzErrorTip]="customerIdError">
-            <nz-select nzSize="default" formControlName="CustomerID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn khách hàng" (ngModelChange)="changeCustomer()">
-              <nz-option *ngFor="let id of dataCbbCustomer" [nzValue]="id.ID" [nzLabel]="id.CustomerCode + ' - ' + id.CustomerName"></nz-option>
+            <nz-select nzSize="default" formControlName="CustomerID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn khách hàng" >
+              <nz-option *ngFor="let id of dataCbbCustomer" [nzValue]="id.ID" [nzLabel]="id.CustomerShortName + ' - ' + id.CustomerName"></nz-option>
             </nz-select>
             <ng-template #customerIdError let-control>
               <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">
@@ -141,7 +141,7 @@
         <nz-form-item>
           <nz-form-label class="fs-12">Trạng thái<span class="text-danger">*</span></nz-form-label>
           <nz-form-control [nzErrorTip]="statusError">
-            <nz-select nzSize="default" formControlName="Status" nzShowSearch nzAllowClear nzPlaceHolder="Chọn trạng thái" (ngModelChange)="changeStatus()">
+            <nz-select nzSize="default" formControlName="Status" nzShowSearch nzAllowClear nzPlaceHolder="Chọn trạng thái" >
               <nz-option *ngFor="let id of cbbStatus" [nzValue]="id.ID" [nzLabel]="id.Name"></nz-option>
             </nz-select>
             <ng-template #statusError let-control>
@@ -180,7 +180,7 @@
           <nz-form-label class="fs-12">Nhà cung cấp<span class="text-danger">*</span></nz-form-label>
           <nz-form-control [nzErrorTip]="SupplierError">
             <nz-select nzSize="default" formControlName="SupplierID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhà cung cấp">
-              <nz-option *ngFor="let id of dataCbbSupplier" [nzValue]="id.ID" [nzLabel]="id.NameNCC"></nz-option>
+              <nz-option *ngFor="let id of dataCbbSupplier" [nzValue]="id.ID" [nzLabel]="id.CodeNCC +'-'+ id.NameNCC"></nz-option>
               <ng-template #SupplierError let-control>
                 <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">
                   Vui lòng chọn nhà cung cấp!
@@ -214,5 +214,5 @@
 
 <div class="modal-footer flex-shrink-0">
   <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
-  <button class="fs-12 btn" nz-button nzType="primary" (click)="saveDataBillExport()">Lưu</button>
+  <button class="fs-12 btn" nz-button nzType="primary" *hasPermission="'N27,N1,N33,N34,N69'" (click)="saveDataBillExport()">Lưu</button>
 </div>

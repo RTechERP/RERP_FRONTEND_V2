@@ -23,6 +23,7 @@ import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { DayOffService } from '../day-off-service/day-off.service';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 
 @Component({
@@ -96,9 +97,9 @@ export class SummaryDayOffComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải  danh sách ')
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải  danh sách ')
       }
-      
+
     })
   }
 
@@ -111,7 +112,7 @@ export class SummaryDayOffComponent implements OnInit {
   private initializeTabulator(): void {
     const month = this.searchForm.get('month')?.value;
     const year = this.searchForm.get('year')?.value || new Date().getFullYear();
-    
+
     this.tabulator = new Tabulator('#tb_summary_day_off', {
       data: this.summaryDayOff,
       selectableRows: 1,

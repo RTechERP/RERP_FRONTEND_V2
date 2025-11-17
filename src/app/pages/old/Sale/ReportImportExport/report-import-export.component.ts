@@ -7,8 +7,6 @@ import {
 } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import * as bootstrap from 'bootstrap';
-
 import { CommonModule } from '@angular/common';
 import {
   FormsModule,
@@ -31,7 +29,6 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
-import { IS_ADMIN } from '../../../../../app.config';
 import { ReportImportExportService } from './report-import-export-service/report-import-export.service';
 import { ProductsaleServiceService } from '../ProductSale/product-sale-service/product-sale-service.service';
 import { DateTime } from 'luxon';
@@ -490,7 +487,7 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
     this.tableProductgroup = new Tabulator('#table_productgroup', {
       data: this.dataProductGroup,
       layout: 'fitDataFill',
-      height: '65vh',
+      height: '100%',
       selectableRows: 1,
 
       movableColumns: true,
@@ -565,8 +562,8 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
     ];
     this.tableReport = new Tabulator('#table_productsale', {
       data: this.dataReport,
-      layout: 'fitDataFill',
-      height: '80vh',
+      layout: 'fitDataStretch',
+      height: '96%',
       selectableRows: 1,
       rowContextMenu: rowMenu,
 
@@ -583,13 +580,13 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
         },
         {
           title: 'Mã sản phẩm',
-          field: 'ProductNewCode',
+          field: 'ProductCode',
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'Mã nội bộ',
-          field: 'ProductCode',
+          field: 'ProductNewCode',
           hozAlign: 'left',
           headerHozAlign: 'center',
         },

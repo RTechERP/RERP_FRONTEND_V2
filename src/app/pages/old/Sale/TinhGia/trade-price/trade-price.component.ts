@@ -58,6 +58,7 @@ import { TradePriceDetailComponent } from '../trade-price-detail/trade-price-det
 import { RequestInvoiceDetailService } from '../../../request-invoice-detail/request-invoice-detail-service/request-invoice-detail-service.service';
 import { CustomerPartService } from '../../../customer-part/customer-part/customer-part.service';
 import { TradePriceService } from './trade-price/trade-price.service';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   selector: 'app-trade-price',
   imports: [
@@ -152,11 +153,11 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
         if (response.status === 1) {
           this.filterEmployeeData = response.data;
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -166,11 +167,11 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
         if (response.status === 1) {
           this.filterProjectData = response.data;
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -180,11 +181,11 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
         if (response.status === 1) {
           this.filterCustomerData = response.data;
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -206,11 +207,11 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
               this.tb_MainTable.setData(this.mainData);
             }
           } else {
-            this.notification.error('Lỗi', response.message);
+            this.notification.error(NOTIFICATION_TITLE.error, response.message);
           }
         },
         error: (error) => {
-          this.notification.error('Lỗi', error);
+          this.notification.error(NOTIFICATION_TITLE.error, error);
         },
       });
   }
@@ -226,11 +227,11 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
             this.tb_Detail.setData(this.dataDetail);
           }
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -262,7 +263,7 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
   }
   onEdit() {
     if (!this.selectedId) {
-      this.notification.error('Lỗi', 'Vui lòng chọn bản ghi cần sửa');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn bản ghi cần sửa');
       return;
     }
 
@@ -304,11 +305,11 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
             }
           );
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -356,7 +357,7 @@ export class TradePriceComponent implements OnInit, AfterViewInit {
               }
             },
             error: (err) => {
-              this.notification.error('Lỗi', 'Không thể xóa dữ liệu!');
+              this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xóa dữ liệu!');
             },
           });
       },

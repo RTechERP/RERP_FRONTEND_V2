@@ -57,6 +57,7 @@ import * as ExcelJS from 'exceljs';
 import { HandoverMinutesService } from './handover-minutes-service/handover-minutes-service.service';
 import { HandoverMinutesDetailService } from '../handover-minutes-detail/handover-minutes-detail/handover-minutes-detail.service';
 import { HandoverMinutesDetailComponent } from '../handover-minutes-detail/handover-minutes-detail.component';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 @Component({
   selector: 'app-handover-minutes',
   imports: [
@@ -159,11 +160,11 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
             this.mainTable.setData(this.data);
           }
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -176,11 +177,11 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
             this.detailTable.setData(this.dataDetail);
           }
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -217,7 +218,7 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
 
   onEdit() {
     if (!this.selectedId) {
-      this.notification.error('Lỗi', 'Vui lòng chọn bản ghi cần sửa');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn bản ghi cần sửa');
       return;
     }
 
@@ -261,11 +262,11 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
             }
           );
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -295,11 +296,11 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
                 this.filters.filterText
               );
             } else {
-              this.notification.error('Lỗi', response.message);
+              this.notification.error(NOTIFICATION_TITLE.error, response.message);
             }
           },
           error: (error) => {
-            this.notification.error('Lỗi', error);
+            this.notification.error(NOTIFICATION_TITLE.error, error);
           },
         });
       },
@@ -307,7 +308,7 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
   }
   onExport() {
     if (!this.selectedId) {
-      this.notification.error('Lỗi', 'Vui lòng chọn bản ghi cần xuất file');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn bản ghi cần xuất file');
       return;
     }
     const selectedHandover = this.data.find(
@@ -335,7 +336,7 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
         this.notification.success('Thành công', 'Đã xuất file thành công!');
       },
       error: () => {
-        this.notification.error('Lỗi', 'Có lỗi xảy ra khi xuất file.');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xuất file.');
       },
     });
   }

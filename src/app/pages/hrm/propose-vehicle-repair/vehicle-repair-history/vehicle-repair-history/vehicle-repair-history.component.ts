@@ -52,6 +52,7 @@ import { VehicleRepairService } from '../../../vehicle-repair/vehicle-repair-ser
 import { VehicleRepairHistoryService } from '../vehicle-repair-history-service/vehicle-repair-history-service.service';
 import { VehicleRepairComponentFormComponent } from '../../../vehicle-repair/vehicle-repair-component-form/vehicle-repair-component-form.component';
 import { VehicleRepairHistoryFormComponent } from '../vehicle-repair-history-form/vehicle-repair-history-form.component';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   standalone: true,
   selector: 'app-vehicle-repair-history',
@@ -633,7 +634,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
           })
           .catch(() => { });
       },
-      error: () => this.notification.error('Lỗi', 'Không lấy được danh sách file')
+      error: () => this.notification.error(NOTIFICATION_TITLE.error, 'Không lấy được danh sách file')
     });
   }
   async exportAllVehicles_ByTemplateRow5() {
@@ -646,7 +647,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
     const templateUrl = 'assets/templateForm/MauTheoDoiXe.xlsx';
     const tmplWb = await this.loadTemplate(templateUrl);
     const tmpl = tmplWb.getWorksheet('Template') ?? tmplWb.worksheets[0];
-    if (!tmpl) { this.notification.error('Lỗi', 'Không thấy sheet Template'); return; }
+    if (!tmpl) { this.notification.error(NOTIFICATION_TITLE.error, 'Không thấy sheet Template'); return; }
 
     const outWb = new ExcelJS.Workbook();
 

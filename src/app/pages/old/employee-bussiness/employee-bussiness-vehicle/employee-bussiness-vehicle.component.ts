@@ -13,6 +13,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { EmployeeBussinessService } from '../employee-bussiness-service/employee-bussiness.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-employee-bussiness-vehicle',
@@ -76,7 +77,7 @@ export class EmployeeBussinessVehicleComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách loại phụ cấp phương tiện: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách loại phụ cấp phương tiện: ' + error.message);
       }
     });
   }
@@ -135,7 +136,7 @@ export class EmployeeBussinessVehicleComponent implements OnInit {
     }
     const selectedEmployeeBussinessVehicle = selectedRows[0].getData();
 
-    
+
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
       nzContent: `Bạn có chắc chắn muốn xóa loại phụ cấp phương tiện đã chọn?`,
@@ -152,7 +153,7 @@ export class EmployeeBussinessVehicleComponent implements OnInit {
             this.loadEmployeeBussinessVehicle();
           },
           error: (error) => {
-            this.notification.error('Lỗi', 'Xóa loại phụ cấp phương tiện thất bại: ' + error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Xóa loại phụ cấp phương tiện thất bại: ' + error.message);
           }
         });
       },
@@ -181,7 +182,7 @@ export class EmployeeBussinessVehicleComponent implements OnInit {
         this.loadEmployeeBussinessVehicle();
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Cập nhật loại phụ cấp phương tiện thất bại: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật loại phụ cấp phương tiện thất bại: ' + error.message);
       },
       complete: () => {
         this.isSubmitting = false;

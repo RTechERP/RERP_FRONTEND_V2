@@ -18,12 +18,15 @@ import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { ReactiveFormsModule } from '@angular/forms';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { TbProductRtcFormComponent } from '../../tb-product-rtc/tb-product-rtc-form/tb-product-rtc-form.component';
-import { BillImportTechnicalService } from '../../bill-import-technical/bill-import-technical-service/bill-import-technical.service';
+import { TbProductRtcService } from '../../tb-product-rtc/tb-product-rtc-service/tb-product-rtc.service';
+// import { BillImportTechnicalService } from '../../bill-import-technical/bill-import-technical-service/bill-import-technical.service';
 import { BillExportTechnicalService } from '../bill-export-technical-service/bill-export-technical.service';
 import { NzFormModule } from 'ng-zorro-antd/form'; //
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { BillExportChoseSerialComponent } from '../bill-export-chose-serial/bill-export-chose-serial.component';
 import { BillImportChoseProductFormComponent } from '../../bill-import-technical/bill-import-chose-product-form/bill-import-chose-product-form.component';
+import { CustomerServiceService } from '../../customer/customer-service/customer-service.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 @Component({
   standalone: true,
   imports: [
@@ -56,14 +59,18 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
   public activeModal = inject(NgbActiveModal);
   deviceTempTable: Tabulator | null = null;
   selectedDevices: any[] = [];
+  productOptions: any[] = [];
+  productOptionsLoaded: boolean = false;
+  employeesLoaded: boolean = false;
   customerList: any[] = [];
   nccList: any[] = [];
   emPloyeeLists: any[] = [];
   employeeSelectOptions: { label: string, value: number }[] = [];
-  billImportTechnicalService = inject(BillImportTechnicalService);
+  // billImportTechnicalService = inject(BillImportTechnicalService);
   private ngbModal = inject(NgbModal);
   constructor(private billExportTechnicalService: BillExportTechnicalService,
-    private TsAssetManagementPersonalService: TsAssetManagementPersonalService) { }
+    private TsAssetManagementPersonalService: TsAssetManagementPersonalService,
+    private tbProductRtcService: TbProductRtcService) { }
   close() {
     this.closeModal.emit();
     this.activeModal.dismiss('cancel');
@@ -74,6 +81,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
     this.getCustomer();
     this.getListEmployee();
     this.getNCC();
+    this.getProductList();
     if (this.dataEdit) {
       this.formDeviceInfo.patchValue(this.dataEdit);
     } else if (this.dataInput) {
@@ -86,14 +94,76 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
   }
   ngAfterViewInit(): void {
     this.drawTableSelectedDevices(); // vẽ bảng rỗng trước
-    if (this.masterId) {
+    const injectedDetails = this.dataInput?.details;
+    if (Array.isArray(injectedDetails) && injectedDetails.length > 0) {
+      this.selectedDevices = this.normalizeDetails(injectedDetails);
+      if (this.deviceTempTable) {
+        this.deviceTempTable.setData(this.selectedDevices);
+      }
+    } else if (this.masterId) {
       this.billExportTechnicalService.getBillExportDetail(this.masterId).subscribe(res => {
-        this.selectedDevices = res.billDetail || [];
+        this.selectedDevices = this.normalizeDetails(res.billDetail || []);
         if (this.deviceTempTable) {
           this.deviceTempTable.setData(this.selectedDevices); // đổ lại dữ liệu
         }
       });
     }
+  }
+  normalizeDetails(rows: any[]): any[] {
+    const byCode = (code: string) => this.productOptions.find((p) => p.ProductCode === code);
+    const byRTC = (rtc: string) => this.productOptions.find((p) => p.ProductCodeRTC === rtc);
+    return (rows || []).map((r: any, idx: number) => {
+      const prod = r.ProductCode ? byCode(String(r.ProductCode)) : (r.ProductCodeRTC ? byRTC(String(r.ProductCodeRTC)) : null);
+      const productId = r.ProductID ?? prod?.ID ?? null;
+      return {
+        ID: r.ID ?? 0,
+        STT: r.STT ?? idx + 1,
+        ProductID: productId,
+        ProductCode: r.ProductCode ?? prod?.ProductCode ?? '',
+        ProductName: r.ProductName ?? prod?.ProductName ?? '',
+        ProductCodeRTC: r.ProductCodeRTC ?? prod?.ProductCodeRTC ?? '',
+        UnitName: r.UnitName ?? r.UnitCountName ?? '',
+        Quantity: r.Quantity ?? r.Qty ?? 1,
+        TotalQuantity: r.TotalQuantity ?? r.Qty ?? 1,
+        Maker: r.Maker ?? '',
+        WarehouseType: r.WarehouseType ?? '',
+        Note: r.Note ?? '',
+        InternalCode: r.InternalCode ?? '',
+        HistoryProductRTCID: r.HistoryProductRTCID ?? 0,
+        ProductRTCQRCodeID: r.ProductRTCQRCodeID ?? 0,
+        PONCCDetailID: r.PONCCDetailID ?? 0,
+      };
+    });
+  }
+  getProductList() {
+    const request = {
+      productGroupID: 0,
+      keyWord: '',
+      checkAll: 1,
+      warehouseID: 0,
+      productRTCID: 0,
+      productGroupNo: '',
+      page: 1,
+      size: 100000,
+    };
+    this.tbProductRtcService.getProductRTC(request).subscribe((response: any) => {
+      if (response && response.data) {
+        this.productOptions = response.data.products.map((p: any) => ({
+          ID: p.ID,
+          ProductCode: p.ProductCode,
+          ProductName: p.ProductName,
+          ProductCodeRTC: p.ProductCodeRTC,
+          Maker: p.Maker,
+          UnitCountID: p.UnitCountID,
+          UnitCountName: p.UnitCountName,
+          NumberInStore: p.NumberInStore,
+        }));
+        this.productOptionsLoaded = true;
+        if (this.deviceTempTable) {
+          this.deviceTempTable.setColumns(this.deviceTempTable.getColumnDefinitions());
+        }
+      }
+    });
   }
   // Hàm khởi tạo form
   initForm() {
@@ -117,23 +187,23 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
       CheckAddHistoryProductRTC: [null],
       ExpectedDate: [null, Validators.required],
       ProjectName: ['', Validators.required],
-      WarehouseID: [null],
+      WarehouseID: [0],
       CreatedBy: [''],
       CreatedDate: [null, Validators.required],
       UpdatedBy: [''],
       UpdatedDate: [null],
-      SupplierSaleID: [false, Validators.required],
+      SupplierSaleID: [0, Validators.required],
       BillDocumentExportType: [null],
       ApproverID: [54, Validators.required],
       IsDeleted: [false],
     });
   }
-  //Hàm sinh code của phiếu xuất 
+  //Hàm sinh code của phiếu xuất
   getNewCode() {
     const billType = this.formDeviceInfo.get('BillType')?.value ?? 0;
     this.billExportTechnicalService.getBillCode(billType).subscribe({
       next: (res: any) => {
-     
+
         this.formDeviceInfo.patchValue({ Code: res.data });
       },
       error: (err: any) => {
@@ -144,29 +214,35 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
   }
   //Lấy thông tin khách hàng
   getCustomer() {
-    this.billImportTechnicalService.getCustomer().subscribe((res: any) => {
-      this.customerList = res.data;
- 
+    this.billExportTechnicalService.getCustomers(1, 10000, '', 0, 0).subscribe((res: any) => {
+      this.customerList = res?.data?.data || res?.data || [];
+
     });
   }
   //Lấy thông tin nhà cung cấp
   getNCC() {
-    this.billImportTechnicalService.getNCC().subscribe((res: any) => {
-      this.nccList = res.data;
- 
+    this.billExportTechnicalService.getNCC().subscribe((res: any) => {
+      this.nccList = res?.data || [];
+
     });
   }
   //Lấy danh sách nhân viên
   getListEmployee() {
-    this.TsAssetManagementPersonalService.getListEmployee().subscribe((respon: any) => {
-      this.emPloyeeLists = respon.employees;
+        const request = {
+      status: 0,
+      departmentid: 0,
+      keyword: '',
+    };
+    this.billExportTechnicalService.getEmployees(request).subscribe((respon: any) => {
+      this.emPloyeeLists = respon?.data || respon?.employees || [];
       this.employeeSelectOptions = this.emPloyeeLists.map((e: any) => ({
         label: e.FullName,
         value: e.ID
       }));
- 
+
+      this.employeesLoaded = true;
       if (this.deviceTempTable) {
-        this.deviceTempTable.setColumns(this.deviceTempTable.getColumnDefinitions()); // force update
+        this.deviceTempTable.setColumns(this.deviceTempTable.getColumnDefinitions());
       }
     });
   }
@@ -199,7 +275,25 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
           cellClick: (e, cell) => { cell.getRow().delete(); },
         },
         { title: "STT", formatter: "rownum", hozAlign: "center", width: 60 },
-        { title: "Mã sản phẩm", field: "ProductCode" },
+        {
+          title: 'Mã sản phẩm',
+          field: 'ProductID',
+          width: 150,
+          editor: 'list',
+          editable: () => this.productOptionsLoaded,
+          editorParams: () => {
+            const values: any = {};
+            this.productOptions.forEach((p) => { values[p.ID] = p.ProductCode; });
+            return { values, autocomplete: true, listOnEmpty: true, freetext: false, allowEmpty: false, emptyValue: null };
+          },
+          formatter: (cell) => {
+            const productId = Number(cell.getValue());
+            const product = this.productOptions.find((p) => p.ID === productId);
+            return product ? product.ProductCode : '';
+          },
+          cellEdited: (cell) => { this.onProductSelected(cell); },
+        },
+        { title: "Mã sản phẩm", field: "ProductCode", visible: false },
         { title: "Mã nội bộ", field: "ProductCodeRTC", visible: false },
         { title: "Tên sản phẩm", field: "ProductName" },
         { title: "DVT", field: "UnitCountName" },
@@ -267,6 +361,20 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
         },
       ],
 
+    });
+  }
+  onProductSelected(cell: CellComponent) {
+    const productId = Number(cell.getValue());
+    const product = this.productOptions.find((p) => p.ID === productId);
+    if (!product) return;
+    const row = cell.getRow();
+    row.update({
+      ProductCode: product.ProductCode,
+      ProductName: product.ProductName,
+      ProductCodeRTC: product.ProductCodeRTC,
+      UnitCountName: product.UnitCountName,
+      UnitCountID: product.UnitCountID,
+      Maker: product.Maker,
     });
   }
   openSerialModal(
@@ -416,16 +524,16 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
     };
     this.billExportTechnicalService.saveData(payload).subscribe({
       next: (response: any) => {
-       
+
         this.notification.success('Thành công', 'Lưu phiếu thành công');
         this.formSubmitted.emit();
         this.activeModal.close();
       },
       error: (error: any) => {
-     
-        this.notification.error('Lỗi', 'Không thể lưu phiếu, vui lòng thử lại sau');
+
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lưu phiếu, vui lòng thử lại sau');
       }
     });
-   
+
   }
-}       
+}

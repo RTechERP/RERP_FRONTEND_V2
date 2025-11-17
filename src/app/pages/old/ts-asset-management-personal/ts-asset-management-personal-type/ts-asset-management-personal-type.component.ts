@@ -36,6 +36,7 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { TsAssetManagementPersonalTypeFormComponent } from './ts-asset-management-personal-type-form/ts-asset-management-personal-type-form.component';
 import { TsAssetManagementPersonalFormComponent } from '../ts-asset-management-personal-form/ts-asset-management-personal-form.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 @Component({
   standalone: true,
   selector: 'app-ts-asset-management-personal-type',
@@ -212,10 +213,10 @@ export class TsAssetManagementPersonalTypeComponent
               this.notification.success('Thành công', 'Đã xóa');
               this.getAssetType();
             } else {
-              this.notification.error('Lỗi', res?.message || 'Xóa thất bại');
+              this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Xóa thất bại');
             }
           })
-          .catch(() => this.notification.error('Lỗi', 'Không gọi được API'));
+          .catch(() => this.notification.error(NOTIFICATION_TITLE.error, 'Không gọi được API'));
       },
     });
   }

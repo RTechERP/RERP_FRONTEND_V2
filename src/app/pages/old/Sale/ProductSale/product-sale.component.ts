@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import * as bootstrap from '@ng-bootstrap/ng-bootstrap';
@@ -88,12 +88,14 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
   table_productsale: any;
   dataProductSale: any[] = [];
   listProductSale: any[] = [];
-
+ sizeSearch: string = '0';
+  sizeTbDetail: any = '0';
   // biến liên quan đến dữ liệu và bảng của productGroup
   table: any;
   listProductGroup: any[] = [];
   dataProducGroup: any[] = [];
-
+  isMobile: boolean = false;
+  sizeLeft: string = '25%';
   id: number = 0;
   // các biến truyền vào của hàm getDataProductSale
   idSale: number = 0;
@@ -155,7 +157,22 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     private modalService: NgbModal,
     private modal: NzModalService
   ) {}
-  ngOnInit(): void {}
+  @HostListener('window:resize')
+  onWindowResize() {
+    this.updateResponsiveFlags();
+    setTimeout(() => {
+      this.table_productsale?.redraw?.();
+      this.table?.redraw?.();
+      this.table_pgwarehouse?.redraw?.();
+    }, 0);
+  }
+  private updateResponsiveFlags(): void {
+    this.isMobile = window.matchMedia('(max-width: 768px)').matches;
+    this.sizeLeft = this.isMobile ? '100%' : '25%';
+  }
+  ngOnInit(): void {
+    this.updateResponsiveFlags();
+  }
   ngAfterViewInit(): void {
     this.drawTable_ProductGroup();
     this.drawTable_PGWareHouse();
@@ -409,21 +426,21 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
                   this.openModalProductSale(); // Vẫn mở modal ngay cả khi tải location thất bại
                 },
               });
-          } else {
-            this.notification.warning(
+            } else {
+              this.notification.warning(
+                'Thông báo',
+                res.message || 'Không thể lấy thông tin nhóm!'
+              );
+            }
+          },
+          error: (err) => {
+            this.notification.error(
               'Thông báo',
-              res.message || 'Không thể lấy thông tin nhóm!'
+              'Có lỗi xảy ra khi lấy thông tin!'
             );
-          }
-        },
-        error: (err) => {
-          this.notification.error(
-            'Thông báo',
-            'Có lỗi xảy ra khi lấy thông tin!'
-          );
-          console.error(err);
-        },
-      });
+            console.error(err);
+          },
+        });
     }
   }
   deleteProductSale() {
@@ -561,6 +578,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     this.table_pgwarehouse = new Tabulator(this.tablePGWarehouseRef.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       data: this.dataPGWareHouse || [],
+      layout: 'fitDataStretch',
       pagination: false,
       height: '100%',
       columns: [
@@ -577,6 +595,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
           hozAlign: 'left',
           headerHozAlign: 'center',
           width: '60%',
+          resizable: false,
         },
       ],
     });
@@ -637,6 +656,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
         {
           title: 'Ghi chú',
           field: 'Note',
+          width: 500,
           headerHozAlign: 'center',
           formatter: 'textarea',
         },

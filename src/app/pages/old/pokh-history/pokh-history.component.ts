@@ -57,6 +57,7 @@ import * as ExcelJS from 'exceljs';
 import { CustomerPartService } from '../customer-part/customer-part/customer-part.service';
 import { PokhHistoryServiceService } from './pokh-history-service/pokh-history-service.service';
 import { ImportExcelComponent } from './import-excel/import-excel.component';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 
 @Component({
@@ -209,7 +210,7 @@ export class PokhHistoryComponent implements OnInit, AfterViewInit {
   }
   async exportDetailTableToExcel() {
     if (!this.tb_Table) {
-      this.notification.error('Lỗi', 'Không có dữ liệu để xuất Excel');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất Excel');
       return;
     }
 

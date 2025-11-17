@@ -39,6 +39,7 @@ import {
 } from 'tabulator-tables';
 import { VehicleRepairTypeFormComponent } from './vehicle-repair-type-form/vehicle-repair-type-form.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   standalone: true,

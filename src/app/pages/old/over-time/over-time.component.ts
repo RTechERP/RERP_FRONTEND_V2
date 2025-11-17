@@ -30,6 +30,7 @@ import { OverTimeDetailComponent } from "./over-time-detail/over-time-detail.com
 import { OverTimeTypeComponent } from "./over-time-type/over-time-type.component";
 import { SummaryOverTimeComponent } from './summary-over-time/summary-over-time.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 
 @Component({
@@ -108,7 +109,7 @@ export class OverTimeComponent implements OnInit, AfterViewInit{
       IDApprovedTP: 0
     })
   }
-  
+
 
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
@@ -137,19 +138,19 @@ export class OverTimeComponent implements OnInit, AfterViewInit{
   }
 
 
-  private initializeTable(): void { 
+  private initializeTable(): void {
     this.tabulator = new Tabulator('#tb_over_time', {
       data: this.overTimeList,
       layout: 'fitColumns',
       selectableRows: true,
       height: '85vh',
       rowHeader: {
-        formatter: "rowSelection", 
-        titleFormatter: "rowSelection", 
-        headerSort: false, 
-        width: 60, 
-        frozen: true, 
-        headerHozAlign: "center", 
+        formatter: "rowSelection",
+        titleFormatter: "rowSelection",
+        headerSort: false,
+        width: 60,
+        frozen: true,
+        headerHozAlign: "center",
         hozAlign: "center"
       },
       groupBy: 'DepartmentName',
@@ -227,7 +228,7 @@ export class OverTimeComponent implements OnInit, AfterViewInit{
         {
           title: 'Lý do không đồng ý duyệt', field: 'ReasonDeciline', hozAlign:'left',headerHozAlign:'center', width: 500
         },
-      
+
       ],
       pagination: true,
       paginationSize: 100,
@@ -258,7 +259,7 @@ export class OverTimeComponent implements OnInit, AfterViewInit{
 
     const selectedOverTime = selectedRows[0].getData();
     this.selectedOverTime = selectedOverTime;
-    
+
     // Call API to get detail data
     const dateRegister = new Date(selectedOverTime['DateRegister']);
     const formattedDate = dateRegister.toLocaleDateString('en-CA');
@@ -276,44 +277,44 @@ export class OverTimeComponent implements OnInit, AfterViewInit{
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Không thể tải dữ liệu chi tiết');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu chi tiết');
       }
     });
   }
 
   openDeleteModal() {
     const selectedRows = this.tabulator.getSelectedRows() || [];
-    
+
     if (selectedRows.length === 0) {
       this.notification.warning('Cảnh báo', 'Vui lòng chọn đăng ký nghỉ cần xóa');
       return;
     }
-  
+
     const selectedData = selectedRows.map(row => row.getData());
-    
+
     // Kiểm tra xem có bản ghi nào đã được duyệt không
-    const approvedRecords = selectedData.filter(data => 
+    const approvedRecords = selectedData.filter(data =>
       (data['IsApproved'] == true && data['IsApprovedHR'] == true)
     );
-    
+
     if (approvedRecords.length > 0) {
       this.notification.warning(
-        'Cảnh báo', 
+        'Cảnh báo',
         `Có ${approvedRecords.length}/${selectedData.length} đăng ký đã được duyệt. Vui lòng hủy duyệt trước khi xóa!`
       );
       return;
     }
-  
+
     // Lọc các bản ghi hợp lệ để xóa (ID > 0 và chưa bị xóa)
-    const validRows = selectedData.filter(data => 
+    const validRows = selectedData.filter(data =>
       data['ID'] > 0 && !data['IsDeleted']
     );
-  
+
     if (validRows.length === 0) {
       this.notification.warning('Cảnh báo', 'Không có bản ghi nào hợp lệ để xóa');
       return;
     }
-  
+
     this.modal.confirm({
       nzTitle: "Xác nhận xóa",
       nzContent: `Bạn có chắc chắn muốn xóa ${validRows.length}/${selectedData.length} đăng ký làm thêm đã chọn không?`,
@@ -340,11 +341,11 @@ export class OverTimeComponent implements OnInit, AfterViewInit{
             IsDeleted: true,
           }))
         };
-  
+
         this.overTimeService.saveEmployeeOverTime(formData).subscribe({
           next: (response) => {
             this.notification.success(
-              'Thành công', 
+              'Thành công',
               `Xóa ${validRows.length} đăng ký làm thêm thành công`
             );
             this.loadEmployeeOverTime();
@@ -352,14 +353,14 @@ export class OverTimeComponent implements OnInit, AfterViewInit{
           error: (error) => {
             console.error('Error deleting overtime:', error);
             this.notification.error(
-              'Lỗi', 
+              'Lỗi',
               `Xóa đăng ký làm thêm thất bại: ${error.message || 'Vui lòng thử lại'}`
             );
           }
         });
       }
     });
-  } 
+  }
 
   async exportToExcel() {
     // Nhóm dữ liệu theo phòng ban
@@ -369,10 +370,10 @@ export class OverTimeComponent implements OnInit, AfterViewInit{
       acc[dept].push(item);
       return acc;
     }, {});
-  
+
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('DangKyLamThem');
-  
+
     const columns = [
       { header: '', key: 'TBP duyệt', width: 20 },
       { header: '', key: 'HR duyệt', width: 20 },
@@ -389,9 +390,9 @@ export class OverTimeComponent implements OnInit, AfterViewInit{
       { header: '', key: 'Lý do sửa', width: 30 },
       { header: '', key: 'Lý do không đồng ý duyệt', width: 30 }
     ];
-  
+
     worksheet.columns = columns;
-  
+
     // Thêm header một lần ở đầu file
     const headerRow = worksheet.addRow(columns.map(col => col.key));
     headerRow.eachCell((cell: ExcelJS.Cell) => {
@@ -404,7 +405,7 @@ export class OverTimeComponent implements OnInit, AfterViewInit{
       };
     });
     headerRow.height = 30;
-  
+
     let rowIndex = 2;
     for (const dept in grouped) {
       // Thêm dòng tiêu đề phòng ban
@@ -417,7 +418,7 @@ export class OverTimeComponent implements OnInit, AfterViewInit{
         fgColor: { argb: 'FFB7DEE8' }
       };
       deptRow.height = 25;
-  
+
       // Thêm dữ liệu nhân viên
       grouped[dept].forEach((item: any) => {
         const safe = (val: any) => (val && typeof val === 'object' && Object.keys(val).length === 0 ? '' : val);
@@ -447,7 +448,7 @@ export class OverTimeComponent implements OnInit, AfterViewInit{
         rowIndex++;
       });
     }
-  
+
     // Xuất file
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -467,16 +468,16 @@ export class OverTimeComponent implements OnInit, AfterViewInit{
 
   approved(isApproved: boolean, isTBP: boolean) {
     const selectedRows = this.tabulator.getSelectedRows() || [];
-    
+
     if (selectedRows.length === 0) {
       this.notification.warning('Cảnh báo', 'Vui lòng chọn đăng ký nghỉ cần duyệt');
       return;
     }
-  
+
     const selectedData = selectedRows.map(row => row.getData());
     let validRows: any[] = [];
     let message = '';
-  
+
     // Lọc các dòng hợp lệ theo từng trường hợp
     if (isTBP && isApproved) {
       // TBP duyệt - chỉ lấy các dòng có ID > 0
@@ -493,15 +494,15 @@ export class OverTimeComponent implements OnInit, AfterViewInit{
       // HR hủy duyệt - lấy tất cả các dòng có ID > 0
       validRows = selectedData.filter(data =>  data['ID'] > 0);
     }
-  
+
     // if (validRows.length === 0) {
     //   this.notification.warning('Cảnh báo', 'Không có dòng nào phù hợp để thực hiện thao tác');
     //   return;
     // }
-  
+
     const approveText = isApproved ? 'duyệt' : 'hủy duyệt';
     const roleText = isTBP ? 'TBP' : 'HR';
-    
+
     this.modal.confirm({
       nzTitle: 'Thông báo',
       nzContent: `Bạn có chắc muốn ${approveText} ${validRows.length}/${selectedData.length} đăng ký làm thêm đã chọn bằng quyền ${roleText}?\n${message}`,
@@ -527,7 +528,7 @@ export class OverTimeComponent implements OnInit, AfterViewInit{
               IsApprovedHR: item.IsApprovedHR,
               IsDeleted: item.IsDeleted
             };
-  
+
             // Cập nhật trạng thái duyệt theo role
             if (isTBP) {
               updateData.IsApproved = isApproved;
@@ -539,23 +540,23 @@ export class OverTimeComponent implements OnInit, AfterViewInit{
               //   updateData.ApprovedHRDate = new Date();
               // }
             }
-  
+
             return updateData;
           })
         };
-  
+
         this.overTimeService.saveEmployeeOverTime(formData).subscribe({
           next: (response) => {
             this.loadEmployeeOverTime();
             this.notification.success(
-              'Thành công', 
+              'Thành công',
               `${approveText.charAt(0).toUpperCase() + approveText.slice(1)} ${validRows.length} đăng ký làm thêm thành công`
             );
           },
           error: (error) => {
             console.error('Error updating overtime:', error);
             this.notification.error(
-              'Lỗi', 
+              'Lỗi',
               `Cập nhật đăng ký làm thêm thất bại: ${error.message || 'Vui lòng thử lại'}`
             );
           }

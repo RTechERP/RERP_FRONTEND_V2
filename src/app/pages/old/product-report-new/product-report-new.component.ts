@@ -30,6 +30,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification'
 import { BillImportTechnicalFormComponent } from '../bill-import-technical/bill-import-technical-form/bill-import-technical-form.component';
 import { BillExportTechnicalFormComponent } from '../bill-export-technical/bill-export-technical-form/bill-export-technical-form.component';
 import { BillExportTechnicalService } from '../bill-export-technical/bill-export-technical-service/bill-export-technical.service';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 @Component({
   standalone: true,
   imports: [
@@ -129,7 +130,7 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
       this.billImportTechnicalService.getBillImportByCode(this.billImportCode).subscribe((response: any) => {
         const selectedRow = response.master?.[0];
         if (!selectedRow) {
-          this.notification.error('Lỗi', 'Không tìm thấy biên bản trong hệ thống!');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không tìm thấy biên bản trong hệ thống!');
           return;
         }
         const modalRef = this.ngbModal.open(BillImportTechnicalFormComponent, {
@@ -148,7 +149,7 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
       this.billExportTechnicalService.getBillExportByCode(this.billExportCode).subscribe((response: any) => {
         const selectedRow = response.master?.[0];
         if (!selectedRow) {
-          this.notification.error('Lỗi', 'Không tìm thấy biên bản trong hệ thống!');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không tìm thấy biên bản trong hệ thống!');
           return;
         }
         const modalRef = this.ngbModal.open(BillExportTechnicalFormComponent, {
@@ -161,7 +162,7 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
         modalRef.componentInstance.dataEdit = selectedRow;
       });
     } else {
-      this.notification.error('Lỗi', 'Không xác định được loại phiếu!');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không xác định được loại phiếu!');
     }
   },
 }

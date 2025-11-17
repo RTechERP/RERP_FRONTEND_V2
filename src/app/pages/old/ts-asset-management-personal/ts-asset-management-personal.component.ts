@@ -36,6 +36,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { TsAssetManagementPersonalFormComponent } from './ts-asset-management-personal-form/ts-asset-management-personal-form.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 @Component({
   selector: 'app-ts-asset-management-personal',
   standalone: true,
@@ -219,10 +220,10 @@ export class TsAssetManagementPersonalComponent
               this.notification.success('Thành công', 'Đã xóa');
               this.getAssetManagementPersonal();
             } else {
-              this.notification.error('Lỗi', res?.message || 'Xóa thất bại');
+              this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Xóa thất bại');
             }
           })
-          .catch(() => this.notification.error('Lỗi', 'Không gọi được API'));
+          .catch(() => this.notification.error(NOTIFICATION_TITLE.error, 'Không gọi được API'));
       },
     });
   }

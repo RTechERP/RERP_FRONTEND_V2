@@ -64,6 +64,7 @@ import { FollowProductReturnComponent } from '../follow-product-return/follow-pr
 import { PoRequestBuyComponent } from '../po-request-buy/po-request-buy.component';
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
 import { PokhDetailComponent } from '../pokh-detail/pokh-detail.component';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { PoRequestPriceRtcComponent } from '../po-request-price-rtc/po-request-price-rtc.component';
 @Component({
@@ -429,7 +430,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
     // Kiểm tra trạng thái duyệt hiện tại
     const selectedPOKH = this.selectedRow;
     if (!selectedPOKH) {
-      this.notification.error('Lỗi', 'Không tìm thấy thông tin POKH');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không tìm thấy thông tin POKH');
       return;
     }
 
@@ -474,7 +475,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
               this.selectedId = 0;
               this.loadPOKH();
             } else {
-              this.notification.error('Lỗi', 'Có lỗi xảy ra khi xử lý POKH');
+              this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xử lý POKH');
             }
           },
           error: (error) => {
@@ -658,7 +659,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
   //#region : Hàm xử lý xuất excel Phiếu
   async exportMainTableToExcel() {
     if (!this.tb_POKH) {
-      this.notification.error('Lỗi', 'Không có dữ liệu để xuất Excel');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất Excel');
       return;
     }
 

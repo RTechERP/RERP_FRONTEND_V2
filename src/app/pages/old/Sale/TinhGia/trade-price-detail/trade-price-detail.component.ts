@@ -59,6 +59,7 @@ import { CustomerPartService } from '../../../customer-part/customer-part/custom
 import { TradePriceService } from '../trade-price/trade-price/trade-price.service';
 import { RequestInvoiceDetailService } from '../../../request-invoice-detail/request-invoice-detail-service/request-invoice-detail-service.service';
 import { pl_PL } from 'ng-zorro-antd/i18n';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   standalone: true,
   selector: 'app-trade-price-detail',
@@ -177,7 +178,7 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }

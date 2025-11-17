@@ -15,6 +15,7 @@ import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
+
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
@@ -27,6 +28,8 @@ import { saveAs } from 'file-saver';
 import { BillExportTechnicalFormComponent } from './bill-export-technical-form/bill-export-technical-form.component';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { BillExportTechnicalService } from './bill-export-technical-service/bill-export-technical.service';
+import { AppUserService } from '../../../services/app-user.service';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
@@ -61,6 +64,7 @@ function formatDateCell(cell: CellComponent): string {
 export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
   constructor(private notification: NzNotificationService,
     private billExportTechnicalService: BillExportTechnicalService,
+    private appUserService: AppUserService,
   ) { }
   private ngbModal = inject(NgbModal);
   selectedRow: any = "";
@@ -75,11 +79,11 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
   warehouseID: number | null = null;
   selectedApproval: number | null = null;
   isSearchVisible: boolean = false;
-  //List  Dữ liệu phiếu xuất 
+  //List  Dữ liệu phiếu xuất
   billExportTechnicalData: any[] = [];
   // Bảng Tabulator của phiếu xuất
   billExportTechnicalTable: Tabulator | null = null;
-  //List Detail  Dữ liệu phiếu xuất 
+  //List Detail  Dữ liệu phiếu xuất
   billExportTechnicalDetailData: any[] = [];
   // Bảng Tabulator của chi tiết  phiếu xuất
   billExportTechnicalDetailTable: Tabulator | null = null;
@@ -333,13 +337,17 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
   }
   onApprove() {
     const selectedIds = this.getSelectedIds();
-    let payload = {
-      billExportTechnical: {
-        ID: selectedIds[0],
-        Status: 1
-      }
-    };
-    this.billExportTechnicalService.saveData(payload).subscribe({
+    const selectedRow = this.billExportTechnicalTable?.getSelectedData()?.[0];
+    if (!selectedRow) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn biên bản cần duyệt!');
+      return;
+    }
+    const currentEmployeeID = this.appUserService.employeeID;
+    if (selectedRow.ApproverID && currentEmployeeID && selectedRow.ApproverID !== currentEmployeeID) {
+      this.notification.error('Lỗi', `Chỉ người duyệt được chỉ định (ID: ${selectedRow.ApproverID}) mới có quyền duyệt phiếu này!`);
+      return;
+    }
+    this.billExportTechnicalService.approveAction(selectedIds, 'approve').subscribe({
       next: () => {
         this.notification.success('Thành công', 'Duyệt biên bản thành công!');
         this.billExportTechnicalTable?.setData();
@@ -351,17 +359,16 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
     });
   }
   onUnApprove() {
-    // lọc theo ID anh Quìn
     const selectedIds = this.getSelectedIds();
-    let payload = {
-      billExportTechnical: {
-        ID: selectedIds[0],
-        Status: 0
-      }
-    };
-    this.billExportTechnicalService.saveData(payload).subscribe({
+    const currentEmployeeID = this.appUserService.employeeID;
+    const ALLOWED_UNAPPROVER_ID = 54;
+    if (currentEmployeeID !== ALLOWED_UNAPPROVER_ID) {
+      this.notification.error('Lỗi', `Chỉ người có ID ${ALLOWED_UNAPPROVER_ID} mới có quyền bỏ duyệt phiếu!`);
+      return;
+    }
+    this.billExportTechnicalService.approveAction(selectedIds, 'unapprove').subscribe({
       next: () => {
-        this.notification.success('Thành công', 'duyệt biên bản thành công!');
+        this.notification.success('Thành công', 'Bỏ duyệt biên bản thành công!');
         this.billExportTechnicalTable?.setData();
         this.drawTable();
       },
@@ -371,7 +378,7 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
       }
     });
   }
-// Mở modal thêm  phiếu xuất 
+// Mở modal thêm  phiếu xuất
   openModalExportTechnical() {
     const modalRef = this.ngbModal.open(BillExportTechnicalFormComponent, {
       centered: true,
@@ -392,9 +399,9 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
     const payload = {
       master: {
         ID: selectedMaster.ID,
-        Code: selectedMaster.BillCode,
-        CreatDate: selectedMaster.CreatDate,
-        Suplier: selectedMaster.Suplier,
+        Code: selectedMaster.Code,
+        CreatedDate: selectedMaster.CreatedDate,
+        SupplierName: selectedMaster.SupplierName,
         CustomerName: selectedMaster.CustomerName,
         Deliver: selectedMaster.Deliver,
         EmployeeReceiverName: selectedMaster.EmployeeReceiverName,
@@ -418,7 +425,7 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         console.error(err);
-        this.notification.error('Lỗi', 'Không thể xuất phiếu nhập kỹ thuật!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xuất phiếu nhập kỹ thuật!');
       }
     });
   }
@@ -443,5 +450,7 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
     });
     modalRef.componentInstance.masterId = selectedRow.ID; // Để form tự gọi chi tiết
     modalRef.componentInstance.dataEdit = selectedRow;
+    const currentDetails = this.billExportTechnicalDetailTable?.getData?.() || [];
+    modalRef.componentInstance.dataInput = { details: currentDetails };
   }
 }

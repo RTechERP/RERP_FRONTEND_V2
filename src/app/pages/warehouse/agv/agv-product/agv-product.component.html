@@ -35,7 +35,7 @@
 
 <nz-splitter style="height: 87vh !important;">
     <!--Panel TÌM KIẾM -->
-    <nz-splitter-panel [nzCollapsible]="true" nzSize="20%">
+    <nz-splitter-panel [nzCollapsible]="true" nzDefaultSize="20%">
         <nz-card nzTitle="TÌM KIẾM" [nzExtra]="extraTemplate" [nzActions]="[actionReset, actionSearch]">
             <p>Card content</p>
             <p>Card content</p>
@@ -62,14 +62,14 @@
     <!--END PANEL TÌM KIẾM -->
 
     <!-- START PANEL MASTER -->
-    <nz-splitter-panel [nzCollapsible]="true" nzSize="20%">
+    <nz-splitter-panel [nzCollapsible]="true" nzDefaultSize="20%">
         <div class="box" #tbl_AGVProductGroup></div>
     </nz-splitter-panel>
 
     <!-- END PANEL MASTER -->
 
     <!-- START PANEL DETAIL -->
-    <nz-splitter-panel [nzCollapsible]="true" nzSize="60%">
+    <nz-splitter-panel [nzCollapsible]="true" nzDefaultSize="60%">
         <div class="box" #tbl_AGVProduct></div>
     </nz-splitter-panel>
     <!-- END PANEL DETAIL -->

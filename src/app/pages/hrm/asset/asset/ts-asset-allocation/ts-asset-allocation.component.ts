@@ -981,6 +981,7 @@ validateApprove(
       TSAssetAllocationID: d.TSAssetAllocationID,
       AssetManagementID: d.AssetManagementID,
       Quantity: d.Quantity,
+      Status:d.Status,
       Note: d.Note,
       TSAssetName: d.TSAssetName,
       TSCodeNCC: d.TSCodeNCC,

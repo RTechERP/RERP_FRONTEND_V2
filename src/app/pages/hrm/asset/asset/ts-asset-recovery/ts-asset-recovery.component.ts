@@ -341,7 +341,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       { title: 'Tên tài sản', field: 'TSAssetName' },
       { title: 'Số lượng', field: 'Quantity', headerHozAlign: 'center' },
       { title: 'Đơn vị', field: 'UnitName', headerHozAlign: 'center' },
-      { title: 'Tình trạng', field: 'TinhTrang', headerHozAlign: 'center' },
+      { title: 'Tình trạng', field: 'Status', headerHozAlign: 'center', visible:false },
       { title: 'Ghi chú', field: 'Note' }
     ];
     if (this.recoveryDetailTable) {
@@ -1024,7 +1024,7 @@ if (invalidRows.length > 0) {
         TSAssetName: d.TSAssetName,
         TSCodeNCC: d.TSCodeNCC,
         UnitName: d.UnitName,
-        TinhTrang: d.TinhTrang,
+        Status: d.Status,
       }))
     };
     this.assetsRecoveryService.exportRecoveryReport(payload).subscribe({

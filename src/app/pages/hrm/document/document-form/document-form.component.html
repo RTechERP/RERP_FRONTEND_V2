@@ -1,0 +1,194 @@
+<div class="modal-header bg-primary p-2">
+  <h6 class="modal-title text-white" id="assetModalLabel">Chi tiết</h6>
+  <button
+    type="button"
+    class="btn-close"
+    aria-label="Close"
+    (click)="close()"
+  ></button>
+</div>
+<div class="modal-body">
+  <form nz-form [formGroup]="formGroup" nzLayout="vertical" class="fs-7 mt-2">
+    <nz-form-item>
+      <nz-form-label for="unitNameInput" class="form-label p-0"
+        >STT</nz-form-label
+      >
+          <nz-form-control
+        [nzSpan]="24"
+        [nzErrorTip]="
+          formGroup.get('Code')?.hasError('required') &&
+          (formGroup.get('Code')?.dirty || formGroup.get('Code')?.touched)
+            ? 'Vui lòng nhập mã văn bản!'
+            : formGroup.get('Code')?.hasError('maxlength')
+            ? 'Tên loại tối đa 100 ký tự!'
+            : undefined
+        "
+      >
+        <input
+          id="unitNameInput"
+          nz-input
+          name="STT"
+          placeholder="STT"
+          formControlName="STT"
+          readonly
+        />
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-label class="fs-12 p-0" [nzSpan]="24"
+        >Loại văn bản<span class="text-danger ps-1">(*) </span></nz-form-label
+      >
+      <nz-form-control [nzSpan]="24"
+        [nzErrorTip]="
+          formGroup.get('DocumentTypeID')?.hasError('required') &&
+          (formGroup.get('DocumentTypeID')?.dirty ||
+            formGroup.get('DocumentTypeID')?.touched)
+            ? 'Vui lòng chọn loại văn bản!'
+            : formGroup.get('DocumentTypeID')?.hasError('maxlength')
+            ? 'Tên loại tối đa 100 ký tự!'
+            : undefined
+        ">
+        <nz-select
+        formControlName="DocumentTypeID"
+          [nzPlaceHolder]="'Loại văn bản'"
+          style="width: 100%"
+          name="idDocumentType"
+          required
+        >
+          <nz-option
+            *ngFor="let item of documentTypeData"
+            [nzLabel]="item.Name"
+            [nzValue]="item.ID"
+          ></nz-option>
+        </nz-select>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item >
+      <nz-form-label for="unitNameInput" class="form-label p-0"
+        >Mã văn bản<span class="text-danger ps-1">(*) </span></nz-form-label
+      >
+      <nz-form-control
+        [nzSpan]="24"
+        [nzErrorTip]="
+          formGroup.get('Code')?.hasError('required') &&
+          (formGroup.get('Code')?.dirty || formGroup.get('Code')?.touched)
+            ? 'Vui lòng nhập mã văn bản!'
+            : formGroup.get('Code')?.hasError('maxlength')
+            ? 'Tên loại tối đa 100 ký tự!'
+            : undefined
+        "
+      >
+        <input
+          id="unitNameInput"
+          nz-input
+          name="Code"
+          placeholder="Nhập mã văn bản"
+          formControlName="Code"
+        />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label for="unitNameInput" class="form-label p-0"
+        >Tên văn bản<span class="text-danger ps-1">(*) </span></nz-form-label
+      >
+      <nz-form-control
+        [nzSpan]="24"
+        [nzErrorTip]="
+          formGroup.get('NameDocument')?.hasError('required') &&
+          (formGroup.get('NameDocument')?.dirty ||
+            formGroup.get('NameDocument')?.touched)
+            ? 'Vui lòng nhập tên văn bản!'
+            : formGroup.get('NameDocument')?.hasError('maxlength')
+            ? 'Tên loại tối đa 100 ký tự!'
+            : undefined
+        "
+      >
+        <input
+          id="unitNameInput"
+          nz-input
+          name="NameDocument"
+          placeholder="Nhập tên văn bản"
+          formControlName="NameDocument"
+        />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label class="fs-12 p-0" [nzSpan]="24">Phòng ban</nz-form-label>
+      <nz-form-control  [nzSpan]="24"
+        [nzErrorTip]="
+          formGroup.get('DepartmentID')?.hasError('required') &&
+          (formGroup.get('DepartmentID')?.dirty ||
+            formGroup.get('DepartmentID')?.touched)
+            ? 'Vui lòng chọn phòng ban!'
+            : undefined
+        ">
+        <nz-select
+        formControlName="DepartmentID"
+          [nzPlaceHolder]="'Chọn phòng ban'"
+          style="width: 100%"
+          name="DepartmentID"
+          required
+        >
+          <nz-option
+            *ngFor="let item of dataDepartment"
+            [nzLabel]="item.Name"
+            [nzValue]="item.ID"
+          ></nz-option>
+        </nz-select>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-label for="unitNameInput" class="form-label p-0"
+        >Ngày ban hành<span class="text-danger ps-1">(*) </span></nz-form-label
+      >
+      <nz-form-control
+        [nzSpan]="24"
+        [nzErrorTip]="
+          formGroup.get('DatePromulgate')?.invalid &&
+          (formGroup.get('DatePromulgate')?.dirty ||
+            formGroup.get('DatePromulgate')?.touched)
+            ? 'Vui lòng chọn ngày ban hành!'
+            : undefined
+        "
+      >
+        <input
+          nz-input
+          type="date"
+          name="DatePromulgate"
+          formControlName="DatePromulgate"
+        />
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item >
+      <nz-form-label for="unitNameInput" class="form-label p-0"
+        >Ngày hiệu lực<span class="text-danger ps-1">(*) </span></nz-form-label
+      >
+      <nz-form-control
+        [nzSpan]="24"
+        [nzErrorTip]="
+          formGroup.get('DateEffective')?.invalid &&
+          (formGroup.get('DateEffective')?.dirty ||
+            formGroup.get('DateEffective')?.touched)
+            ? 'Vui lòng chọn ngày hiệu lực!' 
+            : undefined
+        "
+      >
+        <input
+          nz-input
+          type="date"
+          name="DateEffective"
+          formControlName="DateEffective"
+        />
+      </nz-form-control>
+    </nz-form-item>
+    <div class="modal-footer">
+      <button nz-button nzType="default" (click)="close()">Đóng</button>
+      <button nz-button nzType="primary" (click)="saveDocument()">
+        Lưu dữ liệu
+      </button>
+    </div>
+  </form>
+</div>
+

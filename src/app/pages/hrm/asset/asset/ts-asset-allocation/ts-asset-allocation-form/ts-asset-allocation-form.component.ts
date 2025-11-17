@@ -48,6 +48,7 @@ import { HasPermissionDirective } from "../../../../../../directives/has-permiss
 })
 export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
   @Input() dataInput: any;
+  deletedDetailIds: number[] = [];
   @Output() closeModal = new EventEmitter<void>();
   @Output() formSubmitted = new EventEmitter<void>();
   private assetManagementPersonalService = inject(TsAssetManagementPersonalService);
@@ -102,16 +103,16 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
     });
   }
   // lấy danh sách nhân viên
-getListEmployee() {
-  const request = { status: 0, departmentid: 0, keyword: '' };
-  this.assetManagementPersonalService.getEmployee(request).subscribe((respon: any) => {
-    this.emPloyeeLists = respon.data;
-    if (this.dataInput?.EmployeeID) {
-      // không clear detail khi set giá trị lúc mở form
-      this.onEmployeeChange(this.dataInput.EmployeeID, false);
-    }
-  });
-}
+  getListEmployee() {
+    const request = { status: 0, departmentid: 0, keyword: '' };
+    this.assetManagementPersonalService.getEmployee(request).subscribe((respon: any) => {
+      this.emPloyeeLists = respon.data;
+      if (this.dataInput?.EmployeeID) {
+        // không clear detail khi set giá trị lúc mở form
+        this.onEmployeeChange(this.dataInput.EmployeeID, false);
+      }
+    });
+  }
   // Lấy cấp phát detail
   getAllocationDetail() {
     this.assetAllocationService.getAssetAllocationDetail(this.dataInput.ID).subscribe(res => {
@@ -123,25 +124,25 @@ getListEmployee() {
     });
   }
   private resetDetails(): void {
-  this.allocationDetailData = [];
-  if (this.assetTable) this.assetTable.setData([]);
-}
-  // Bắt sự kiện thay đổi nhân viên khi chọn
-// Bắt sự kiện thay đổi nhân viên khi chọn
-onEmployeeChange(employeeID: number, clearDetails: boolean = true): void {
-  if (clearDetails) this.resetDetails();
-
-  const selectedEmp = this.emPloyeeLists.find(emp => emp.ID === employeeID);
-  if (selectedEmp) {
-    this.dataInput.EmployeeID = selectedEmp.ID;
-    this.dataInput.Name = selectedEmp.DepartmentName;
-    this.dataInput.ChucVuHD = selectedEmp.ChucVuHD;
-  } else {
-    this.dataInput.EmployeeID = null;
-    this.dataInput.Name = '';
-    this.dataInput.ChucVuHD = '';
+    this.allocationDetailData = [];
+    if (this.assetTable) this.assetTable.setData([]);
   }
-}
+  // Bắt sự kiện thay đổi nhân viên khi chọn
+  // Bắt sự kiện thay đổi nhân viên khi chọn
+  onEmployeeChange(employeeID: number, clearDetails: boolean = true): void {
+    if (clearDetails) this.resetDetails();
+
+    const selectedEmp = this.emPloyeeLists.find(emp => emp.ID === employeeID);
+    if (selectedEmp) {
+      this.dataInput.EmployeeID = selectedEmp.ID;
+      this.dataInput.Name = selectedEmp.DepartmentName;
+      this.dataInput.ChucVuHD = selectedEmp.ChucVuHD;
+    } else {
+      this.dataInput.EmployeeID = null;
+      this.dataInput.Name = '';
+      this.dataInput.ChucVuHD = '';
+    }
+  }
 
   //Lấy code cấp phát
   generateAllocationCode() {
@@ -183,102 +184,131 @@ onEmployeeChange(employeeID: number, clearDetails: boolean = true): void {
           width: 40,
           headerSort: false,
           titleFormatter: () => `
-  <div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i> </div>`,
-          headerClick: () => { this.addRow(); },
-          formatter: () => `<i class="fas fa-times text-danger cursor-pointer" title="Xóa dòng"></i>`,
-          cellClick: (e, cell) => { cell.getRow().delete(); },
+    <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
+      <i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i>
+    </div>`,
+          formatter: () => `
+    <i class="fas fa-times text-danger cursor-pointer" title="Xóa dòng"></i>`,
+          cellClick: (e, cell) => {
+            const row = cell.getRow();
+            const data = row.getData();
+
+            // Nếu là dòng cũ đã có trong DB (có ID) thì lưu lại ID để gửi lên API
+            if (data['ID']) {
+              this.deletedDetailIds.push(data['ID']);
+            }
+
+            // Xóa khỏi bảng UI
+            row.delete();
+          },
         },
-        {
-          title: "",
-          formatter: "rowSelection",
-          titleFormatter: "rowSelection",
-          hozAlign: "center",
-          headerHozAlign: "center",
-          headerSort: false,
-          width: 40
-        },
+
         { title: 'AssetManagementID', field: 'AssetManagementID', hozAlign: 'center', width: 60, visible: false },
         { title: 'ID', field: 'ID', hozAlign: 'center', visible: false, headerHozAlign: 'center' },
         { title: 'STT', formatter: 'rownum', hozAlign: 'center', width: 60 },
         { title: "Mã tài sản", field: "TSCodeNCC", editor: "input", headerHozAlign: 'center' },
-        { title: "Tên tài sản", field: "TSAssetName", editor: "input", headerHozAlign: 'center' },
+        { title: "Tên tài sản", field: "TSAssetName", editor: "input", headerHozAlign: 'center', width:300,formatter:'textarea' },
         { title: "Số Lượng", field: "Quantity", editor: "input", headerHozAlign: 'center', hozAlign: "right" },
-        { title: "Ghi chú", field: "Note", editor: "input", headerHozAlign: 'center' }
+        { title: "Ghi chú", field: "Note", editor: "input", headerHozAlign: 'center',formatter:'textarea' }
       ]
     });
   }
   //Mở modal chọn tài sản, nhận tài sản đã chọn
-openModalAsset() {
-  const modalRef = this.ngbModal.open(TsAssetChooseAssetsComponent, {
-    size: 'xl',
-    backdrop: 'static',
-    keyboard: false,
-    centered: true,
-  });
+  openModalAsset() {
+    const modalRef = this.ngbModal.open(TsAssetChooseAssetsComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+    });
 
-  // ID đã có trong bảng cha
-  const existingIds = (this.assetTable?.getData() || []).map((r: any) => r.AssetManagementID);
+    // ID đã có trong bảng cha
+    const existingIds = (this.assetTable?.getData() || []).map((r: any) => r.AssetManagementID);
 
-  modalRef.componentInstance.dataInput = this.modalData;
-  modalRef.componentInstance.existingIds = existingIds; // <-- thêm dòng này
+    modalRef.componentInstance.dataInput = this.modalData;
+    modalRef.componentInstance.existingIds = existingIds; // <-- thêm dòng này
 
-  modalRef.componentInstance.formSubmitted.subscribe((selectedAssets: any[]) => {
-    if (!selectedAssets?.length) return;
+    modalRef.componentInstance.formSubmitted.subscribe((selectedAssets: any[]) => {
+      if (!selectedAssets?.length) return;
 
-    // Lọc lần nữa ở cha để tuyệt đối không trùng
-    const currentIds = new Set((this.assetTable?.getData() || []).map((r: any) => r.AssetManagementID));
-    const dedup = selectedAssets.filter(x => !currentIds.has(x.AssetManagementID));
+      // Lọc lần nữa ở cha để tuyệt đối không trùng
+      const currentIds = new Set((this.assetTable?.getData() || []).map((r: any) => r.AssetManagementID));
+      const dedup = selectedAssets.filter(x => !currentIds.has(x.AssetManagementID));
 
-    const skipped = selectedAssets.length - dedup.length;
-    if (skipped > 0) {
-      this.notification.warning('Thông báo', `Bỏ qua ${skipped} tài sản trùng.`);
+      const skipped = selectedAssets.length - dedup.length;
+      if (skipped > 0) {
+        this.notification.warning('Thông báo', `Bỏ qua ${skipped} tài sản trùng.`);
+      }
+
+      if (dedup.length && this.assetTable) this.assetTable.addData(dedup);
+      this.allocationDetailData.push(...dedup);
+    });
+
+    modalRef.result.catch(() => { });
+  }
+  private validateAllocation(): string | null {
+    // Nhân viên nhận tài sản
+    if (!this.dataInput?.EmployeeID) return 'Vui lòng chọn nhân viên nhận tài sản.';
+
+    // Ngày cấp phát
+    if (!this.dataInput?.DateAllocation) return 'Vui lòng chọn ngày cấp phát.';
+
+    // Bảng chi tiết
+    if (!this.assetTable) return 'Bảng chi tiết chưa khởi tạo.';
+
+    const rows = this.assetTable.getData();
+    if (!rows || rows.length === 0) return 'Chưa có tài sản trong danh sách.';
+
+    // Validate từng dòng
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      if (!r.AssetManagementID) return `Dòng ${i + 1}: thiếu AssetManagementID.`;
+      const qty = Number(r.Quantity ?? 0);
+      if (!Number.isFinite(qty) || qty <= 0) return `Dòng ${i + 1}: Số lượng phải > 0.`;
     }
 
-    if (dedup.length && this.assetTable) this.assetTable.addData(dedup);
-    this.allocationDetailData.push(...dedup);
-  });
+    // Không cho trùng tài sản cùng biên bản (nếu cần)
+    const ids = rows.map((r: any) => r.AssetManagementID);
+    const hasDup = ids.some((id, idx) => ids.indexOf(id) !== idx);
+    if (hasDup) return 'Danh sách tài sản có mục trùng.';
 
-  modalRef.result.catch(() => {});
-}
-  private validateAllocation(): string | null {
-  // Nhân viên nhận tài sản
-  if (!this.dataInput?.EmployeeID) return 'Vui lòng chọn nhân viên nhận tài sản.';
-
-  // Ngày cấp phát
-  if (!this.dataInput?.DateAllocation) return 'Vui lòng chọn ngày cấp phát.';
-
-  // Bảng chi tiết
-  if (!this.assetTable) return 'Bảng chi tiết chưa khởi tạo.';
-
-  const rows = this.assetTable.getData();
-  if (!rows || rows.length === 0) return 'Chưa có tài sản trong danh sách.';
-
-  // Validate từng dòng
-  for (let i = 0; i < rows.length; i++) {
-    const r = rows[i];
-    if (!r.AssetManagementID) return `Dòng ${i + 1}: thiếu AssetManagementID.`;
-    const qty = Number(r.Quantity ?? 0);
-    if (!Number.isFinite(qty) || qty <= 0) return `Dòng ${i + 1}: Số lượng phải > 0.`;
+    return null;
   }
-
-  // Không cho trùng tài sản cùng biên bản (nếu cần)
-  const ids = rows.map((r: any) => r.AssetManagementID);
-  const hasDup = ids.some((id, idx) => ids.indexOf(id) !== idx);
-  if (hasDup) return 'Danh sách tài sản có mục trùng.';
-
-  return null;
-}
 
   //Lưu cấp phát
   saveAllocation() {
-     const msg = this.validateAllocation();
-  if (msg) {
-    this.notification.warning('Thông báo', msg);
-    return;
-  }
+    const msg = this.validateAllocation();
+    if (msg) {
+      this.notification.warning('Thông báo', msg);
+      return;
+    }
 
-  if (!this.assetTable) return;
-  const selectedAssets = this.assetTable.getData();
+    if (!this.assetTable) return;
+    const rows = this.assetTable.getData();
+
+    const detailPayload = rows.map((item: any, index: number) => ({
+      ID: item.ID || 0,
+      TSAssetAllocationID: this.dataInput.ID || 0,
+      AssetManagementID: item.AssetManagementID,
+      STT: index + 1,
+      Quantity: item.Quantity || 1,
+      Note: item.Note || '',
+      EmployeeID: this.dataInput.EmployeeID,
+      IsDeleted: false
+    }));
+
+    // Thêm các dòng cần xóa (chỉ cần ID + IsDelete = true, các field khác backend có thể bỏ qua)
+    const deletedDetailsPayload = this.deletedDetailIds.map(id => ({
+      ID: id,
+      TSAssetAllocationID: this.dataInput.ID || 0,
+      AssetManagementID: 0,
+      STT: 0,
+      Quantity: 0,
+      Note: '',
+      EmployeeID: this.dataInput.EmployeeID,
+      IsDeleted: true
+    }));
+
     const payloadAllocation = {
       tSAssetAllocation: {
         ID: this.dataInput.ID || 0,
@@ -290,27 +320,22 @@ openModalAsset() {
         Status: 0,
         IsApprovedPersonalProperty: false
       },
-      tSAssetAllocationDetails: selectedAssets.map((item, index) => ({
-        ID: item.ID || 0,
-        TSAssetAllocationID: 0,
-        AssetManagementID: item.AssetManagementID,
-        STT: index + 1,
-        Quantity: item.Quantity || 1,
-        Note: item.Note || '',
-        EmployeeID: this.dataInput.EmployeeID
-      }))
-
+      tSAssetAllocationDetails: [
+        ...detailPayload,
+        ...deletedDetailsPayload
+      ]
     };
     console.log("payloadAllocation", payloadAllocation);
     this.assetAllocationService.saveData(payloadAllocation).subscribe({
       next: () => {
         this.notification.success("Thông báo", "Thành công");
+        this.deletedDetailIds = [];
         this.getAllocation();
         this.formSubmitted.emit();
         this.activeModal.close(true);
       },
-      error: () => {
-        this.notification.success("Thông báo", "Lỗi");
+      error: (res: any) => {
+        this.notification.success("Thông báo", res.error.message);
         console.error('Lỗi khi lưu đơn vị!');
       }
     });

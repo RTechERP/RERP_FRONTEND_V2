@@ -1,15 +1,6 @@
 .fs-12 {
   font-size: 0.75rem;
 }
-
-.reset {
-  all: revert;
-}
-
-.ant-splitter-panel{
-  position: relative;
-}
-
 .tabulator {
   font-size: 0.75rem;
   position: absolute;
@@ -71,11 +62,6 @@
 
 .tabulator .tabulator-row:hover {
   background-color: #f5f5f5;
-}
-
-/* Search input styling */
-.search-input-container {
-  position: relative;
 }
 
 

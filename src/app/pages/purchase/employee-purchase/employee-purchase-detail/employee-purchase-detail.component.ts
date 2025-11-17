@@ -22,6 +22,7 @@ import {
   EmployeeDto,
   TaxCompanyDto,
 } from '../employee-purchase-service/employee-purchase.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-employee-purchase-detail',
@@ -215,7 +216,7 @@ export class EmployeePurchaseDetailComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Load employees error:', error);
-        this.notification.error('Lỗi', 'Không thể tải danh sách nhân viên');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách nhân viên');
         this.employees = [];
       },
     });
@@ -245,7 +246,7 @@ export class EmployeePurchaseDetailComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Load companies error:', error);
-        this.notification.error('Lỗi', 'Không thể tải danh sách công ty');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách công ty');
         this.companyList = [];
       },
     });
@@ -254,7 +255,7 @@ export class EmployeePurchaseDetailComponent implements OnInit, OnDestroy {
   // ✅ Employee selection change handler
   onEmployeeChange(): void {
     const selectedEmployeeId = this.employeePurchaseForm.get('selectedEmployeeId')?.value;
-    
+
     if (selectedEmployeeId) {
       let selectedEmployee: any = null;
 
@@ -289,7 +290,7 @@ export class EmployeePurchaseDetailComponent implements OnInit, OnDestroy {
   // ✅ Company selection change handler
   onCompanyChange(): void {
     const selectedCompanyId = this.employeePurchaseForm.get('selectedCompanyId')?.value;
-    
+
     if (selectedCompanyId) {
       const selectedCompany = this.companyList.find(
         (c) => c.ID === selectedCompanyId
@@ -350,7 +351,7 @@ export class EmployeePurchaseDetailComponent implements OnInit, OnDestroy {
   private async checkDuplicateEmployee(): Promise<boolean> {
     const selectedEmployeeId = this.employeePurchaseForm.get('selectedEmployeeId')?.value;
     const selectedCompanyId = this.employeePurchaseForm.get('selectedCompanyId')?.value;
-    
+
     if (!selectedEmployeeId || !selectedCompanyId) return false;
 
     return new Promise((resolve) => {
@@ -384,11 +385,11 @@ export class EmployeePurchaseDetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  
+
   private checkDuplicateRealTime(): void {
     const selectedEmployeeId = this.employeePurchaseForm.get('selectedEmployeeId')?.value;
     const selectedCompanyId = this.employeePurchaseForm.get('selectedCompanyId')?.value;
-    
+
     if (!selectedEmployeeId || !selectedCompanyId) {
       this.clearDuplicateWarning();
       return;
@@ -421,7 +422,7 @@ export class EmployeePurchaseDetailComponent implements OnInit, OnDestroy {
     this.duplicateMessage = '';
   }
 
-  
+
   isFormValid(): boolean {
     return this.employeePurchaseForm.valid && !this.isDuplicateWarning;
   }
@@ -438,7 +439,7 @@ export class EmployeePurchaseDetailComponent implements OnInit, OnDestroy {
     return phoneRegex.test(cleanPhone);
   }
 
- 
+
   async saveEmployeePurchase(): Promise<void> {
     // Mark all fields as touched to show validation errors
     this.employeePurchaseForm.markAllAsTouched();
@@ -460,7 +461,7 @@ export class EmployeePurchaseDetailComponent implements OnInit, OnDestroy {
       formValues.telephone.trim() &&
       !this.isValidPhone(formValues.telephone.trim())
     ) {
-      this.notification.error('Lỗi', 'Định dạng số điện thoại không hợp lệ');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Định dạng số điện thoại không hợp lệ');
       return;
     }
 

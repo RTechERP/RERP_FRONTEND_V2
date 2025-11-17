@@ -32,6 +32,7 @@ import { TsAssetAllocationPersonalService } from '../../../ts-asset-allocation-p
 import { AssetAllocationService } from '../../../../hrm/asset/asset/ts-asset-allocation/ts-asset-allocation-service/ts-asset-allocation.service';
 import { TsAssetManagementPersonalService } from '../../ts-asset-management-personal-service/ts-asset-management-personal.service';
 import { UnitService } from '../../../../hrm/asset/asset/ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 @Component({
   standalone: true,
@@ -94,7 +95,7 @@ export class TsAssetManagementPersonalTypeFormComponent {
       YearValue: [null, Validators.required],
     });
   }
-  private toDate(val: any): Date | null { 
+  private toDate(val: any): Date | null {
     if (!val) return null;
     if (val instanceof Date) return val;
     if (typeof val === 'number') return new Date(val);                    // epoch ms
@@ -117,7 +118,7 @@ export class TsAssetManagementPersonalTypeFormComponent {
       Code: d.Code ?? null,
       YearValue: d.YearValue ?? 1,
       StandardAmount: d.StandardAmount??1
-     
+
     });
   }
   ngOnInit(): void {
@@ -164,7 +165,7 @@ export class TsAssetManagementPersonalTypeFormComponent {
   if (event.key === 'e' || event.key === 'E' || event.key === '+' || event.key === '-') {
     event.preventDefault();
   }
-} 
+}
   close() {
     this.closeModal.emit();
     this.activeModal.dismiss('cancel');
@@ -187,7 +188,7 @@ export class TsAssetManagementPersonalTypeFormComponent {
         Code: formValue.Code,
         YearValue: formValue.YearValue,
         StandardAmount: formValue.StandardAmount
-      
+
       }
 
     }
@@ -198,12 +199,12 @@ export class TsAssetManagementPersonalTypeFormComponent {
           this.formSubmitted.emit();
           this.activeModal.close('save');
         } else {
-          this.notification.error('Lỗi', response?.message || 'Lưu thất bại');
+          this.notification.error(NOTIFICATION_TITLE.error, response?.message || 'Lưu thất bại');
         }
       },
       error: (err) => {
         const msg = err?.error?.message || err?.message || err?.statusText || 'Lỗi khi lưu thông tin';
-        this.notification.error('Lỗi', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi khi lưu:', err);
       }
     });

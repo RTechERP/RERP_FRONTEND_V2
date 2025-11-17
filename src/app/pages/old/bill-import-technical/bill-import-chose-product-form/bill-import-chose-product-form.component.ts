@@ -28,6 +28,7 @@ import { BillImportTechnicalService } from '../bill-import-technical-service/bil
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 // @ts-ignore
 import { saveAs } from 'file-saver';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 @Component({
   standalone: true,
   imports: [
@@ -230,7 +231,7 @@ export class BillImportChoseProductFormComponent implements OnInit, AfterViewIni
 }
   selectProducts() {
     if (!this.productTable) {
-      this.notification.error('Lỗi', 'Không tìm thấy bảng sản phẩm.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không tìm thấy bảng sản phẩm.');
       return;
     }
     const selectedRows = this.productTable.getSelectedData();

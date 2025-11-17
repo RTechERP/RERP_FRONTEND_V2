@@ -23,7 +23,7 @@ import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { UnitService } from '../../../../ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
 export const SERVER_PATH = `D:\RTC_Sw\RTC\ProductRTC`;
 import { NzProgressModule } from 'ng-zorro-antd/progress';
-import { NzSplitterModule } from 'ng-zorro-antd/splitter';  
+import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 
 function formatDate(value: any): string | null {
   if (!value) return null;
@@ -92,13 +92,13 @@ ngOnInit() {
         reactiveData: true,
         autoColumns: true,
         autoColumnsDefinitions: {
-        
+
           STT: { title: "Mã sản phẩm", field: "ProductCode" },
           Code: { title: "Tên sản phẩm", field: "ProductName" },
           Name: { title: "ProductGroupName", field: "ProductGroupName", visible: false },
           RequestResult: { title: "Code RTC", field: "ProductCodeRTC" },
           UnitName: { title: "Vị trí", field: "LocationName" },
-          PerformanceAVG: { title: "FirmName", field: "FirmName" },       
+          PerformanceAVG: { title: "FirmName", field: "FirmName" },
         }
       });
     } else {
@@ -264,7 +264,7 @@ ngOnInit() {
           return val === 'true' || val === '1' || val === 'x';
         };
         const rowData = {
-       
+
           STT: getValue(1),
           Code: getValue(2),
           Name: getValue(3),
@@ -336,7 +336,7 @@ ngOnInit() {
     //   }));
     //   existingList = res?.products || [];
     // } catch (err) {
-    //   this.notification.error('Lỗi', 'Không thể lấy danh sách thiết bị để kiểm tra trùng');
+    //   this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lấy danh sách thiết bị để kiểm tra trùng');
     //   return;
     // }
 
@@ -448,7 +448,7 @@ ngOnInit() {
             saveOneByOne(index + 1);
           },
           error: (err) => {
-            this.notification.error('Lỗi', `Không thể lưu thiết bị: ${row.ProductCode}`);
+            this.notification.error(NOTIFICATION_TITLE.error, `Không thể lưu thiết bị: ${row.ProductCode}`);
             errorCount++;
             console.error(`Lỗi API khi lưu thiết bị ${index + 1}:`, err);
             completedRequests++;

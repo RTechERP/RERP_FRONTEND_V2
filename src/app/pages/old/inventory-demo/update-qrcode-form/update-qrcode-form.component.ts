@@ -14,6 +14,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { InventoryDemoService } from '../inventory-demo-service/inventory-demo.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 @Component({
   standalone: true,
   imports: [
@@ -99,7 +100,7 @@ export class UpdateQrcodeFormComponent implements OnInit, AfterViewInit {
         this.activeModal.close(true);
       },
       error: () => {
-        this.notification.error('Lỗi', 'Không thể lưu dữ liệu QR Code');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lưu dữ liệu QR Code');
       }
     });
   }

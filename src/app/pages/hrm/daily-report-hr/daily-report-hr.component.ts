@@ -34,6 +34,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 
 import * as ExcelJS from 'exceljs';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 @Component({
   selector: 'app-daily-report-hr',
   standalone: true,
@@ -87,7 +88,7 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
   private filmTable?: Tabulator;
   private driverTable?: Tabulator;
   private hrTable?: Tabulator;
-  
+
   ngAfterViewInit(): void {
     this.getEmployee();
   }
@@ -159,7 +160,7 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
       },
       error: (err: any) => {
         console.error(err);
-        this.notification.error('Lỗi', err.error?.message || 'Không tải được dữ liệu');
+        this.notification.error(NOTIFICATION_TITLE.error, err.error?.message || 'Không tải được dữ liệu');
       }
     });
   }
@@ -174,9 +175,9 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
 
     this.getDailyReportHr();
   }
- 
+
   private initOrUpdateTables(): void {
-  
+
     if (this.filmTable) {
       this.filmTable.setData(this.filmReport);
     } else {
@@ -246,11 +247,11 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
     } else {
       this.hrTable = new Tabulator('#hrReportTable', {
         data: this.hrReport,
-      
+
         ...DEFAULT_TABLE_CONFIG,
            layout: 'fitColumns',
      height: '83vh',
-     
+
         reactiveData: true,
         columnDefaults: {
           hozAlign: 'left',
@@ -278,7 +279,7 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
     }
   }
 
-  
+
     //#region xuất excel
  async onExportExcel() {
   const tables = [
@@ -375,5 +376,5 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
   window.URL.revokeObjectURL(link.href);
 }
 
-  
+
 }

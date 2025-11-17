@@ -40,6 +40,7 @@ import { Observable } from 'rxjs';
 import { saveAs } from 'file-saver';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   standalone: true,
   imports: [
@@ -845,7 +846,7 @@ validateApprove(
       this.assetAllocationService.saveAppropveAccountant(payloadOnApprove).subscribe({
         next: () => {
           const codes = masters.map(m => m.Code).join(', ');
-         
+
           this.getAllocation();
           this.allocationDetailData = [];
           this.sizeTbDetail = '0';
@@ -1001,10 +1002,7 @@ validateApprove(
         saveAs(blob, fileName);
       },
       error: (res: any) => {
-        this.notification.error(
-          'Lỗi',
-          res.error?.message || 'Không thể xuất file!'
-        );
+        this.notification.error(NOTIFICATION_TITLE.error, res.error?.message || 'Không thể xuất file!');
         console.error(res);
       }
     });

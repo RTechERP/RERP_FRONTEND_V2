@@ -38,6 +38,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../../../../auth/auth.service';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
@@ -703,7 +704,7 @@ private updateOnApproveMultiple(masters: any[]) {
           allAssetManagements.push({
             ID: safeAssetId,
             StatusID: 2,
-        
+
             DepartmentID: master.ToDepartmentID || 0,
             EmployeeID: master.ReceiverID,
             Node: `Đã điều chuyển cho ${master.ReceiverName}`,
@@ -809,7 +810,7 @@ onAddATranfer() {
   // ✅ luôn tạo object mới, không dùng lại this.modalData
   modalRef.componentInstance.dataInput = {
     ID: 0,
-    TranferDate: DateTime.now().toISODate(), 
+    TranferDate: DateTime.now().toISODate(),
     DeliverID: null,
     ReceiverID: null,
     FromDepartmentID: null,
@@ -997,7 +998,7 @@ onAddATranfer() {
         saveAs(blob, fileName); // 🟢 Lưu file Excel
       },
       error: (err) => {
-        this.notification.error('Lỗi', 'Không thể xuất file!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xuất file!');
         console.error(err);
       }
     });

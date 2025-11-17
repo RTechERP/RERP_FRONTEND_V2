@@ -26,6 +26,7 @@ import { EmployeeService } from '../../employee/employee-service/employee.servic
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { OverTimeService } from '../over-time-service/over-time.service';
 import { FoodOrderService } from '../../food-order/food-order-service/food-order.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-summary-over-time',
@@ -117,18 +118,18 @@ export class SummaryOverTimeComponent implements OnInit, AfterViewInit{
           console.log(this.departmentList);
         },
         error: (error) => {
-          this.notification.error('Lỗi', 'Lỗi khi tải danh sách phòng ban: ' + error.message);
+          this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách phòng ban: ' + error.message);
         }
       });
     }
-  
+
     loadEmployees() {
       this.employeeService.getEmployees().subscribe({
         next: (data: any) => {
           this.employeeList = data.data;
         },
         error: (error) => {
-          this.notification.error('Lỗi', 'Lỗi khi tải danh sách nhân viên: ' + error.message);
+          this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách nhân viên: ' + error.message);
         }
       })
     }
@@ -142,7 +143,7 @@ export class SummaryOverTimeComponent implements OnInit, AfterViewInit{
           this.isLoading = false;
         },
         error: (error) => {
-          this.notification.error('Lỗi', 'Lỗi khi tải danh sách báo cáo làm thêm: ' + error.message);
+          this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách báo cáo làm thêm: ' + error.message);
           this.isLoading = false;
         }
       })
@@ -222,7 +223,7 @@ export class SummaryOverTimeComponent implements OnInit, AfterViewInit{
       {header: '', key: 'Làm thêm đêm cuối tuần', width: 20},
       {header: '', key: 'Ghi chú', width: 20}
     );
-    
+
     worksheet.columns = Columns;
 
     // Thêm dòng thứ trong tuần (dòng 2)
@@ -247,7 +248,7 @@ export class SummaryOverTimeComponent implements OnInit, AfterViewInit{
     headerRow.values = [
       'STT', 'Mã NV', 'Tên nhân viên', 'Chức vụ',
       ...Array.from({length: 31}, (_, i) => i + 1),
-      'Làm thêm ngày thường', 'Làm thêm ngày cuối tuần', 'Làm thêm ngày lễ', 
+      'Làm thêm ngày thường', 'Làm thêm ngày cuối tuần', 'Làm thêm ngày lễ',
       'Làm thêm đêm ngày thường', 'Làm thêm đêm cuối tuần', 'Ghi chú'
     ];
 
@@ -312,12 +313,12 @@ export class SummaryOverTimeComponent implements OnInit, AfterViewInit{
   private generateColumnsForMonth(month: number, year: number): any[] {
     const daysInMonth = new Date(year, month, 0).getDate();
     const columns = [];
-    
+
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month - 1, day);
       const dayOfWeek = this.getDayOfWeekName(date.getDay());
       const isWeekend = dayOfWeek === 'T7' || dayOfWeek === 'CN';
-      
+
       columns.push({
         title: dayOfWeek,
         columns: [{
@@ -341,7 +342,7 @@ export class SummaryOverTimeComponent implements OnInit, AfterViewInit{
         },
       });
     }
-    
+
     // // Thêm cột tổng
     // columns.push({
     //   title: 'Tổng',
@@ -349,7 +350,7 @@ export class SummaryOverTimeComponent implements OnInit, AfterViewInit{
     //   hozAlign: 'left',
     //   headerHozAlign: 'center'
     // });
-    
+
     return columns;
   }
 
@@ -361,9 +362,9 @@ export class SummaryOverTimeComponent implements OnInit, AfterViewInit{
   private initializeTabulator(container: HTMLElement): void {
     const month = this.searchForm.get('month')?.value;
     const year = this.searchForm.get('year')?.value || new Date().getFullYear();
-    
+
     const dynamicColumns = this.generateColumnsForMonth(month, year);
-    
+
     this.tabulator = new Tabulator(container, {
       data: this.overTimeList,
       selectableRows: 1,
@@ -378,8 +379,8 @@ export class SummaryOverTimeComponent implements OnInit, AfterViewInit{
         { title: 'Mã nhân viên', field: 'Code', hozAlign: 'left', headerHozAlign: 'center'},
         { title: 'Tên nhân viên', field: 'FullName', hozAlign: 'left', headerHozAlign: 'center' },
         { title: 'Chức vụ', field: 'PositionName', hozAlign: 'left', headerHozAlign: 'center' },
-        { 
-          title: `BÁO CÁO LÀM THÊM THÁNG ${month}`, 
+        {
+          title: `BÁO CÁO LÀM THÊM THÁNG ${month}`,
           headerHozAlign: 'center',
           columns: dynamicColumns
         },

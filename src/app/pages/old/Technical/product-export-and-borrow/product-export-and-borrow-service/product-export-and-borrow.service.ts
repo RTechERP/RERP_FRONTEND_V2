@@ -20,4 +20,11 @@ export class ProductExportAndBorrowService {
   getProductExportAndBorrowAjax(): string {
     return `${this.url}get-product-export-and-borrow`;
   }
+getborrowReport(warehouseID: number): Observable<any> {
+  const params = new HttpParams().set('WarehouseID', warehouseID.toString());
+  return this.http.get<any>(`${this.url}get-borrow-report`, { params });
+}
+    getWarehouse(): Observable<any> {
+    return this.http.get(environment.host + `api/warehouse`);
+  }
 }

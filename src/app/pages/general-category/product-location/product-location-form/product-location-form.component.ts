@@ -10,6 +10,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { ProductLocationService } from '../product-location-service/product-location.service';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-product-location-form',
@@ -113,11 +114,11 @@ export class ProductLocationFormComponent implements OnInit {
       });
 
       const formData = this.productLocationForm.value;
-      
+
       // Debug: Log form data để kiểm tra ProductGroupID
       console.log('Form data before save:', formData);
       console.log('ProductGroupID value:', formData.ProductGroupID);
-      
+
       this.productLocationService.saveProductLocation(formData).subscribe({
         next: (response: any) => {
           if (response.status === 1) {
@@ -129,7 +130,7 @@ export class ProductLocationFormComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error saving product location:', error);
-          this.notification.error('Lỗi', error.error?.message || 'Có lỗi xảy ra khi lưu vị trí sản phẩm');
+          this.notification.error(NOTIFICATION_TITLE.error, error.error?.message || 'Có lỗi xảy ra khi lưu vị trí sản phẩm');
         }
       });
     } else {

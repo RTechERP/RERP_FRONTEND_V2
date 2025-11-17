@@ -46,6 +46,7 @@ import { DateTime } from 'luxon';
 import { ProjectComponent } from '../../../../../project/project.component';
 import { NgZone } from '@angular/core'; // Add this import
 import { firstValueFrom } from 'rxjs';
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 
 @Component({
   selector: 'app-scan-bill-import',
@@ -144,7 +145,7 @@ export class ScanBillImportComponent implements OnInit, AfterViewInit {
         },
         error: (err) => {
           console.error('Lỗi khi lấy phiếu xuất', err);
-          this.notification.error('Lỗi', 'Không thể lấy dữ liệu phiếu xuất!');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lấy dữ liệu phiếu xuất!');
         },
       });
   }
@@ -170,7 +171,7 @@ export class ScanBillImportComponent implements OnInit, AfterViewInit {
         const fullImport = fullResponse?.data;
 
         if (!fullImport || !fullImport.ID) {
-          this.notification.error('Lỗi', `Không tìm thấy phiếu ${row.Code}`);
+          this.notification.error(NOTIFICATION_TITLE.error, `Không tìm thấy phiếu ${row.Code}`);
           continue;
         }
 
@@ -190,7 +191,7 @@ export class ScanBillImportComponent implements OnInit, AfterViewInit {
         }
       } catch (error) {
         console.error(`Lỗi xử lý phiếu ${row.Code}:`, error);
-        this.notification.error('Lỗi', `Không thể xử lý phiếu ${row.Code}`);
+        this.notification.error(NOTIFICATION_TITLE.error, `Không thể xử lý phiếu ${row.Code}`);
       }
     }
 

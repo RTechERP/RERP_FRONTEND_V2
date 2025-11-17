@@ -3,6 +3,7 @@ import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 
 
+
 import { CommonModule } from '@angular/common';
 import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -25,6 +26,7 @@ import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { InventoryService } from '../../inventory-service/inventory.service';
 import { DateTime } from 'luxon';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 
 @Component({
   selector: 'app-inventory-borrow-ncc',
@@ -103,7 +105,7 @@ export class InventoryBorrowNCCComponent implements OnInit, AfterViewInit {
         console.log("hhdhdhdhd", this.cbbSupplierSale);
       },
       error: (err: any) => {
-        this.notification.error('Lỗi', 'Không thể tải dữ liệu nhà cung cấp');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu nhà cung cấp');
       }
     });
   }
@@ -133,7 +135,7 @@ export class InventoryBorrowNCCComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err: any) => {
-        this.notification.error('Lỗi', 'Không thể tải dữ liệu inventoryborrow!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu inventoryborrow!');
       }
     });
   }
@@ -327,7 +329,7 @@ export class InventoryBorrowNCCComponent implements OnInit, AfterViewInit {
       ...DEFAULT_TABLE_CONFIG,
       paginationMode: 'local',
       layout: 'fitDataFill',
-      height: "76vh",
+      height: "83vh",
       columnDefaults: {
         resizable: true,
       },

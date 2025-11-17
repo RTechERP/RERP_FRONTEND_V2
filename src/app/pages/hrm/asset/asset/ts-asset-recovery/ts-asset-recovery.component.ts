@@ -37,6 +37,7 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 // @ts-ignore
 import { saveAs } from 'file-saver';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../../../../auth/auth.service';
@@ -254,7 +255,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
             field: 'EmployeeReturnID',
             headerHozAlign: 'center',
             visible:false,
-           
+
             width: 160,
           },
           {
@@ -1033,7 +1034,7 @@ if (invalidRows.length > 0) {
         saveAs(blob, fileName); // 🟢 Lưu file Excel
       },
       error: (err) => {
-        this.notification.error('Lỗi', 'Không thể xuất file!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xuất file!');
         console.error(err);
       }
     });

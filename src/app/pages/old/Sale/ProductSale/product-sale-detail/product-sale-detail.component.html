@@ -3,23 +3,22 @@
         <h6 class="modal-title text-white" id="addProductSaleModalLabel">Thông tin vật tư</h6>
         <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
     </div>
-    <div class="modal-body">
+    <div class="modal-body" style="overflow: visible;">
       <form  nz-form [formGroup]="formGroup" class="g-3 needs-validation was-validated" >
         <div class="row">
           <div class="col-md-6 ">
             <nz-form-label class="fs-12">Mã kho<span class="text-danger ps-1 me-1"> * </span></nz-form-label>
             <nz-form-control [nzSpan]="24" [nzErrorTip]="formGroup.get('ProductGroupID')?.invalid && (formGroup.get('ProductGroupID')?.dirty || formGroup.get('ProductGroupID')?.touched)
-            ? 'Vui lòng chọn kho!'
-            : ''">
-              <nz-input-group required nzSearch nzSize="default" class="w-100">
+            ? 'Vui lòng chọn kho!' : ''">
+              <nz-input-group required nzSearch nzSize="default" class="w-100" style="min-width: 0;">
                 <nz-select
                   formControlName="ProductGroupID"
                   nzPlaceHolder="Chọn kho"
                   class="fs-12 w-100"
                   required
                   nzShowSearch
-                  nzAllowClear    
-                  (ngModelChange)="changeProductGroup()"                             
+                  nzAllowClear
+                  (ngModelChange)="changeProductGroup()"
                 >
                   <nz-option
                     *ngFor="let id of listProductGroupcbb"
@@ -37,13 +36,11 @@
                 title="Thêm nhóm"><nz-icon nzType="plus" /> </button>
         </nz-form-label> -->
           <div class="col-md-6 pb-3">
-            <nz-form-label class="fs-12">Đơn vị<span class="text-danger ps-1 me-1"> * </span></nz-form-label> 
+            <nz-form-label class="fs-12">Đơn vị<span class="text-danger ps-1 me-1"> * </span></nz-form-label>
             <button class="p-0 m-0 fs-12 h-auto" nz-button nzType="text" nzSize="small" title="Thêm đơn vị" (click)="openModalUnitCountDetail()">
               <i class="fas fa-plus"></i>
-            </button> 
-            <nz-form-control [nzSpan]="24" [nzErrorTip]="formGroup.get('Unit')?.invalid && (formGroup.get('Unit')?.dirty || formGroup.get('Unit')?.touched)
-            ? 'Vui lòng chọn đơn vị!'
-            : ''">
+            </button>
+            <nz-form-control [nzSpan]="24" [nzErrorTip]="formGroup.get('Unit')?.invalid && (formGroup.get('Unit')?.dirty || formGroup.get('Unit')?.touched) ? 'Vui lòng chọn đơn vị!' : ''">
               <nz-input-group required  nzSearch nzSize="default" class="w-100">
                 <nz-select
                   formControlName="Unit"
@@ -51,7 +48,7 @@
                   class="fs-12 w-100"
                   required
                   nzShowSearch
-                  nzAllowClear               
+                  nzAllowClear
                 >
                   <nz-option
                     *ngFor="let id of listUnitCount"
@@ -60,7 +57,7 @@
                   ></nz-option>
                 </nz-select>
               </nz-input-group>
-      
+
               <!-- <ng-template #unitCountIconButton>
                 <button nz-button nzType="default" nzSize="default" nzSearch (click)="openModalUnitCountDetail()" >
                   <nz-icon nzType="plus" nzTheme="outline" />
@@ -77,7 +74,7 @@
             </nz-form-control>
           </div>
           <div class="col-md-6 pb-3">
-            <nz-form-label class="fs-12">Tồn kho đầu kì</nz-form-label>  
+            <nz-form-label class="fs-12">Tồn kho đầu kì</nz-form-label>
             <nz-form-control [nzSpan]="24" nzErrorTip="">
               <nz-input-number formControlName="NumberInStoreDauky" [style.width.%]="100" nzMin="0.0" nzStep="0.1" />
             </nz-form-control>
@@ -89,13 +86,14 @@
             <nz-form-control [nzErrorTip]="formGroup.get('ProductName')?.invalid && (formGroup.get('ProductName')?.dirty || formGroup.get('ProductName')?.touched)
             ? 'Vui lòng nhập tên thiết bị!'
             : ''">
+            : ''">
                 <input nz-input formControlName="ProductName" placeholder="Vui lòng nhập tên thiết bị"  />
             </nz-form-control>
           </div>
           <div class="col-md-6 pb-3">
-            <nz-form-label class="fs-12">Tồn kho cuối kì</nz-form-label>  
+            <nz-form-label class="fs-12">Tồn kho cuối kì</nz-form-label>
             <nz-form-control [nzSpan]="24" nzErrorTip="">
-              <nz-input-number [style.width.%]="100" formControlName="NumberInStoreCuoiKy" nzMin="0.0" nzStep="0.1" nzSize="default" />              
+              <nz-input-number [style.width.%]="100" formControlName="NumberInStoreCuoiKy" nzMin="0.0" nzStep="0.1" nzSize="default" />
             </nz-form-control>
           </div>
         </div>
@@ -105,17 +103,16 @@
               <button class="p-0 m-0 fs-12 h-auto" nz-button nzType="text" nzSize="small" title="Thêm vị trí" (click)="openModalLocationDetail()">
                               <i class="fas fa-plus"></i>
                             </button>
-            <nz-form-control [nzSpan]="24" [nzErrorTip]="formGroup.get('LocationID')?.invalid && (formGroup.get('LocationID')?.dirty || formGroup.get('LocationID')?.touched)
-            ? 'Vui lòng chọn vị trí!'
-            : ''">
-              <nz-input-group required nzSearch nzSize="default" class="w-100" >
+            <nz-form-control [nzSpan]="24" [nzErrorTip]="formGroup.get('LocationID')?.invalid && (formGroup.get('LocationID')?.dirty || formGroup.get('LocationID')?.touched) ? 'Vui lòng chọn vị trí!' : ''">
+
+              <nz-input-group required nzSearch nzSize="default" class="w-100" style="min-width: 0;">
                 <nz-select
                   formControlName="LocationID"
                   nzPlaceHolder="Chọn vị trí"
                   class="fs-12 w-100"
                   required
                   nzShowSearch
-                  nzAllowClear               
+                  nzAllowClear
                 >
                   <nz-option
                     *ngFor="let id of listLocation"
@@ -132,13 +129,11 @@
             </nz-form-control>
           </div>
           <div class="col-md-6 pb-3">
-            <nz-form-label class="fs-12">Hãng<span class="text-danger ps-1 me-1"> * </span></nz-form-label>  
+            <nz-form-label class="fs-12">Hãng<span class="text-danger ps-1 me-1"> * </span></nz-form-label>
             <button class="p-0 m-0 fs-12 h-auto" nz-button nzType="text" nzSize="small" title="Thêm hãng" (click)="openModalFirmDetail()">
               <i class="fas fa-plus"></i>
             </button>
-            <nz-form-control [nzSpan]="24" [nzErrorTip]="formGroup.get('Maker')?.invalid && (formGroup.get('Maker')?.dirty || formGroup.get('Maker')?.touched)
-            ? 'Vui lòng chọn hãng!'
-            : undefined">
+            <nz-form-control [nzSpan]="24" [nzErrorTip]="formGroup.get('Maker')?.invalid && (formGroup.get('Maker')?.dirty || formGroup.get('Maker')?.touched) ? 'Vui lòng chọn hãng!' : undefined">
               <nz-input-group required nzSearch nzSize="default" class="w-100">
                 <nz-select
                   formControlName="Maker"
@@ -146,7 +141,7 @@
                   class="fs-12 w-100"
                   required
                   nzShowSearch
-                  nzAllowClear               
+                  nzAllowClear
                 >
                   <nz-option
                     *ngFor="let id of listFirm"
@@ -162,20 +157,20 @@
               </ng-template> -->
             </nz-form-control>
           </div>
-        </div>  
+        </div>
         <div class="row">
           <div class="col-md-12">
               <nz-form-label class="fs-12">Ghi chú</nz-form-label>
               <nz-form-control [nzErrorTip]="formGroup.get('Note')?.invalid && (formGroup.get('Note')?.dirty || formGroup.get('Note')?.touched)
-            ? 'Ghí chú không quá 500 kí tự!'
+            ? 'ghi chú không quá 500 kí tự!'
             : ''">
-                  <textarea nz-input placeholder="Ghi chú" formControlName="Note"></textarea>
-              </nz-form-control>      
+                  <textarea nz-input placeholder="Ghi chú" maxlength="500" resize="none" rows="3" formControlName="Note"></textarea>
+              </nz-form-control>
         </div>
       </div>
       </form>
     </div>
-    <div class="modal-footer">
+    <div class="modal-footer" style="margin-top: 10px;">
         <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
         <button tclass="fs-12 btn" nz-button nzType="primary" (click)="saveDataProductSale()"
             *hasPermission="'N27,N35,N1,N33,N34'">Lưu</button>

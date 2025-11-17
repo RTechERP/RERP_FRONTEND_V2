@@ -57,6 +57,7 @@ type ProposeDetail = {
 };
 import { ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   standalone: true,
   selector: 'app-propose-vehicle-repair-form',
@@ -405,7 +406,7 @@ private getNccDetails(): ProposeDetail[] {
         // nếu đang ở tab 2 rồi thì cập nhật luôn
         if (this.activeTab === 1) this.ensureNccTableReady();
       },
-      error: (err) => this.notification.error('Lỗi', err?.error?.message || 'Không lấy được chi tiết')
+      error: (err) => this.notification.error(NOTIFICATION_TITLE.error, err?.error?.message || 'Không lấy được chi tiết')
     });
   }
 
@@ -562,7 +563,7 @@ addType() {
     () => {
       // chỉ chạy khi form con close(true)
       this.getRepairType();
-     
+
     },
     () => {
       // user bấm hủy -> không làm gì
@@ -646,9 +647,9 @@ addType() {
           this.notification.success('Thành công', 'Lưu thông tin đề xuất thành công');
           this.formSubmitted.emit();
           this.activeModal.close('save');
-        } else this.notification.error('Lỗi', res?.message || 'Lưu thất bại');
+        } else this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Lưu thất bại');
       },
-      error: (res) => this.notification.error('Lỗi', res?.error?.message)
+      error: (res) => this.notification.error(NOTIFICATION_TITLE.error, res?.error?.message)
     });
   }
 }

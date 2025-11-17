@@ -56,6 +56,7 @@ import * as ExcelJS from 'exceljs';
 
 import { PokhService } from '../pokh/pokh-service/pokh.service';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 import { CustomerServiceService } from '../../crm/customers/customer/customer-service/customer-service.service';
 
@@ -244,7 +245,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
   }
   async exportDetailTableToExcel() {
     if (!this.tb_Detail) {
-      this.notification.error('Lỗi', 'Không có dữ liệu để xuất Excel');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất Excel');
       return;
     }
 
@@ -281,7 +282,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
         const field = col.getField();
         const column = col.getDefinition();
         let value = rowData[field];
-        
+
         // Format number for money columns
         if (column.formatter === 'money' && value !== null && value !== undefined) {
           // Convert to number if it's string
@@ -290,7 +291,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
             value = numValue;
           }
         }
-        
+
         // Format date columns - convert ISO string to Date object
         if (field === 'ReceivedDatePO' && value) {
           const date = new Date(value);
@@ -298,7 +299,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
             value = date;
           }
         }
-        
+
         return value;
       });
       worksheet.addRow(row);
@@ -342,10 +343,10 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
     // Auto-fit columns and set format for money and date columns
     worksheet.columns.forEach((column: any, index: number) => {
       column.width = 15;
-      
+
       // Get column definition from Tabulator
       const colDef = columns[index]?.getDefinition();
-      
+
       // Apply number format to money columns
       if (colDef?.formatter === 'money') {
         worksheet.getColumn(index + 1).eachCell((cell, rowNumber) => {
@@ -354,7 +355,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
           }
         });
       }
-      
+
       // Apply date format to date columns
       if (colDef?.field === 'ReceivedDatePO') {
         worksheet.getColumn(index + 1).eachCell((cell, rowNumber) => {

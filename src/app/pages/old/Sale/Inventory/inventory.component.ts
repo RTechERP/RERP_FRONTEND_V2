@@ -34,11 +34,13 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { ProductSaleDetailComponent } from '../ProductSale/product-sale-detail/product-sale-detail.component';
 import { ProductGroupDetailComponent } from '../ProductSale/product-group-detail/product-group-detail.component';
 import { ImportExcelProductSaleComponent } from '../ProductSale/import-excel-product-sale/import-excel-product-sale.component';
+
 import { AppUserService } from '../../../../services/app-user.service';
 import { InventoryService } from './inventory-service/inventory.service';
 import { InventoryBorrowNCCComponent } from './Modal/inventory-borrow-ncc/inventory-borrow-ncc.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+
 
 interface ProductGroup {
   ID?: number;

@@ -13,6 +13,7 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NgIf } from '@angular/common';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-contract',
@@ -88,7 +89,7 @@ export class ContractComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Không thể tải danh sách hợp đồng: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách hợp đồng: ' + error.message);
         this.isLoading = false;
       }
     });
@@ -104,7 +105,7 @@ export class ContractComponent implements OnInit {
             this.loadContracts();
           },
           error: (response) => {
-            this.notification.error('Lỗi', 'Cập nhật hợp đồng thất bại: ' + response.error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật hợp đồng thất bại: ' + response.error.message);
           }
         });
       } else {
@@ -115,7 +116,7 @@ export class ContractComponent implements OnInit {
             this.loadContracts();
           },
           error: (response) => {
-            this.notification.error('Lỗi', 'Thêm hợp đồng mới thất bại: ' + response.error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Thêm hợp đồng mới thất bại: ' + response.error.message);
           }
         });
       }
@@ -193,7 +194,7 @@ export class ContractComponent implements OnInit {
             this.loadContracts();
           },
           error: (error) => {
-            this.notification.error('Lỗi', 'Xóa hợp đồng thất bại: ' + error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Xóa hợp đồng thất bại: ' + error.message);
           }
         });
       },

@@ -413,7 +413,7 @@ export class FilmManagementImportExcelComponent implements OnInit, AfterViewInit
   }
   closeExcelModal() { this.modalService.dismissAll(true); }
 
-  private buildPayloadForApi(): any[] {
+  private buildPayloadForApi(startSTT: number): any[] {
     // Gom master theo STT|Ma|DauMuc|YeuCauKetQua
     const groups = new Map<string, FilmMaster>();
 
@@ -452,9 +452,9 @@ export class FilmManagementImportExcelComponent implements OnInit, AfterViewInit
     //   filmManagement: FilmManagement,
     //   filmManagementDetails: FilmManagementDetail[]
     // }
-    const dtos = Array.from(groups.values()).map(m => {
-      const sttNum =
-        /^\d+$/.test(String(m.STT)) ? Number(m.STT) : null;
+    const dtos = Array.from(groups.values()).map((m, index) => {
+      // Sử dụng STT max từ DB + index thay vì lấy từ Excel
+      const sttNum = startSTT + index;
 
       return {
         filmManagement: {
@@ -493,7 +493,21 @@ export class FilmManagementImportExcelComponent implements OnInit, AfterViewInit
       return;
     }
 
-    const dtoList = this.buildPayloadForApi();
+    // Lấy STT max từ DB
+    let maxSTT = 0;
+    try {
+      const response: any = await firstValueFrom(
+        this.filmService.getFilm({ keyWord: '', page: 1, size: 1 })
+      );
+      maxSTT = response?.maxSTT ?? response?.data?.maxSTT ?? 0;
+    } catch (err) {
+      console.error('Lỗi khi lấy STT max:', err);
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lấy STT max từ hệ thống.');
+      return;
+    }
+
+    // Build payload với STT bắt đầu từ maxSTT + 1
+    const dtoList = this.buildPayloadForApi(maxSTT + 1);
 
     if (!dtoList.length) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu hợp lệ để lưu.');
@@ -505,8 +519,17 @@ export class FilmManagementImportExcelComponent implements OnInit, AfterViewInit
       0
     );
 
-    this.beginSaving(totalDetails || 0);
+    // Đóng modal ngay lập tức
+    this.closeExcelModal();
 
+    // Hiển thị thông báo bắt đầu lưu
+    this.notification.info('Thông báo', `Đang lưu ${totalDetails} dòng chi tiết trong ${dtoList.length} đầu mục...`);
+
+    // Chạy async ở background
+    this.processDataInBackground(dtoList, totalDetails);
+  }
+
+  private async processDataInBackground(dtoList: any[], totalDetails: number): Promise<void> {
     // reset list mã trùng mỗi lần bấm lưu
     this.duplicateCodes = [];
     let savedDetails = 0; // Đếm số dòng detail lưu OK
@@ -520,9 +543,6 @@ export class FilmManagementImportExcelComponent implements OnInit, AfterViewInit
 
           // Lưu thành công => cộng vào savedDetails
           savedDetails += detailCount;
-
-          // tăng progress
-          this.tickSaving(detailCount);
         } catch (res: any) {
           const msg = res?.error?.message || '';
 
@@ -534,16 +554,11 @@ export class FilmManagementImportExcelComponent implements OnInit, AfterViewInit
               this.duplicateCodes.push(code);
             }
           }
-
-          // vẫn tăng progress cho số dòng detail của đầu mục này (đã xử lý nhưng fail)
-          this.tickSaving(detailCount);
           // KHÔNG return, KHÔNG notify ở đây để vòng for chạy hết
         }
       }
 
-      // Kết thúc vòng for: đảm bảo progress = 100%
-      this['setSavingProgress'](totalDetails, totalDetails); // gọi private trong class được
-
+      // Kết thúc vòng for: hiển thị kết quả
       if (this.duplicateCodes.length > 0) {
         const list = this.duplicateCodes.join(', ');
 
@@ -558,7 +573,7 @@ export class FilmManagementImportExcelComponent implements OnInit, AfterViewInit
           this.notification.warning(
             NOTIFICATION_TITLE.warning,
             `Đã lưu thành công ${savedDetails}/${totalDetails} dòng chi tiết. ` +
-            `Các mã sau đã tồn tại : ${list}`
+            `Các mã sau đã tồn tại: ${list}`
           );
         } else {
           // Trường hợp lý thuyết không xảy ra, nhưng cứ phòng
@@ -568,7 +583,6 @@ export class FilmManagementImportExcelComponent implements OnInit, AfterViewInit
           );
         }
       } else {
-      
         this.notification.success(
           NOTIFICATION_TITLE.success,
           `Đã lưu thành công ${savedDetails}/${totalDetails} dòng chi tiết trong ${dtoList.length} đầu mục.`
@@ -577,7 +591,7 @@ export class FilmManagementImportExcelComponent implements OnInit, AfterViewInit
 
     } catch (res: any) {
       console.error('Lỗi khi lưu dữ liệu Excel:', res);
-      // TH này là lỗi “ngoài luồng” (network, server crash...), cứ xem như fail toàn bộ
+      // TH này là lỗi "ngoài luồng" (network, server crash...), cứ xem như fail toàn bộ
       this.notification.error(
         NOTIFICATION_TITLE.error,
         res?.error?.message ||

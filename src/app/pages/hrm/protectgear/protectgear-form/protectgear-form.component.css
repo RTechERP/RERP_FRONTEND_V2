@@ -1,0 +1,31 @@
+.modal-header {
+  padding: 8px 16px;
+}
+
+.modal-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.fs-7 {
+  font-size: 12px;
+}
+
+.fs-12 {
+  font-size: 12px;
+}
+
+nz-form-label {
+  font-size: 12px;
+}
+
+.mobile-friendly {
+  overflow-x: hidden;
+}
+
+@media (max-width: 768px) {
+  .modal-body {
+    padding: 8px;
+  }
+}
+

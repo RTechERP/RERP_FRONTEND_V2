@@ -81,6 +81,7 @@ export class FilmManagementFormComponent implements OnInit, AfterViewInit {
     private unitService: UnitService
   ) { }
   ngAfterViewInit(): void {
+    // Load unit options trước, sau đó mới vẽ bảng
     this.getunit();
     this.getFilm();
   }
@@ -109,7 +110,7 @@ export class FilmManagementFormComponent implements OnInit, AfterViewInit {
       IsDeleted: d.IsDeleted ?? false,
     }));
 
-    this.drawTable();
+    // Không gọi drawTable() ở đây nữa, sẽ gọi sau khi getunit() xong
   }
   initForm() {
     this.formDeviceInfo = new FormBuilder().group({
@@ -168,11 +169,17 @@ export class FilmManagementFormComponent implements OnInit, AfterViewInit {
         } else {
           this.unitOption = [];
         }
+        
+        // Vẽ bảng sau khi đã có dữ liệu unitOption
+        this.drawTable();
       },
       error: (err: any) => {
         console.error(err);
         this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy danh sách dự án');
         this.unitOption = [];
+        
+        // Vẫn vẽ bảng dù có lỗi
+        this.drawTable();
       },
     });
   }
@@ -281,7 +288,68 @@ export class FilmManagementFormComponent implements OnInit, AfterViewInit {
             // },
           },
 
-          { title: 'Hiệu suất trung bình', field: 'PerformanceAVG', hozAlign: 'right', headerHozAlign: 'center', editor: 'input' },
+          { 
+            title: 'Hiệu suất trung bình', 
+            field: 'PerformanceAVG', 
+            hozAlign: 'right', 
+            headerHozAlign: 'center', 
+            editor: (cell, onRendered, success, cancel) => {
+              const input = document.createElement('input');
+              input.type = 'text';
+              input.style.width = '100%';
+              input.style.height = '100%';
+              input.style.border = 'none';
+              input.style.padding = '4px';
+              input.style.textAlign = 'right';
+              input.value = cell.getValue() || '';
+
+              // Chặn ngay khi gõ - chỉ cho phép số và dấu chấm
+              input.addEventListener('input', (e) => {
+                const target = e.target as HTMLInputElement;
+                let value = target.value;
+                
+                // Thay dấu phẩy thành dấu chấm ngay lập tức
+                value = value.replace(/,/g, '.');
+                
+                // Chỉ cho phép số, dấu chấm và dấu trừ ở đầu
+                value = value.replace(/[^\d.-]/g, '');
+                
+                // Chỉ cho phép 1 dấu chấm
+                const dotIndex = value.indexOf('.');
+                if (dotIndex !== -1) {
+                  value = value.slice(0, dotIndex + 1) + value.slice(dotIndex + 1).replace(/\./g, '');
+                }
+                
+                // Chỉ cho phép dấu trừ ở đầu
+                if (value.indexOf('-') > 0) {
+                  value = value.replace(/-/g, '');
+                }
+                
+                target.value = value;
+              });
+
+              input.addEventListener('blur', () => {
+                const numValue = parseFloat(input.value) || 0;
+                success(numValue);
+              });
+
+              input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                  const numValue = parseFloat(input.value) || 0;
+                  success(numValue);
+                } else if (e.key === 'Escape') {
+                  cancel(cell.getValue());
+                }
+              });
+
+              onRendered(() => {
+                input.focus();
+                input.select();
+              });
+
+              return input;
+            }
+          },
         ],
       });
     }

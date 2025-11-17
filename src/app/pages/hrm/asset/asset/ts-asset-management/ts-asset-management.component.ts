@@ -591,6 +591,22 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
           formatter: 'textarea'
         },
         {
+          title: 'Phòng ban',
+          field: 'Name',
+          HeaderhozAlign: 'center',
+          hozAlign: 'left',
+          formatter: 'textarea'
+          , visible: false
+        },
+        {
+          title: 'Vị trí`',
+          field: 'PositionName',
+          HeaderhozAlign: 'center',
+          hozAlign: 'left',
+          formatter: 'textarea'
+          , visible: false
+        },
+        {
           title: 'Ghi chú',
           field: 'Note',
           hozAlign: 'left',

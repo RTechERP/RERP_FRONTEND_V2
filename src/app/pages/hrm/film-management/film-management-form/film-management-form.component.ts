@@ -32,6 +32,8 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { SelectControlComponent } from '../../../old/select-control/select-control.component';
 import { UnitService } from '../../asset/asset/ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 @Component({
   standalone: true,
   imports: [
@@ -49,7 +51,8 @@ import { UnitService } from '../../asset/asset/ts-asset-unitcount/ts-asset-unit-
     NzButtonModule,
     NzModalModule,
     NzFormModule,
-    NzInputNumberModule
+    NzInputNumberModule,
+    HasPermissionDirective
   ],
   selector: 'app-film-management-form',
   templateUrl: './film-management-form.component.html',
@@ -332,25 +335,65 @@ export class FilmManagementFormComponent implements OnInit, AfterViewInit {
       return container;
     };
   }
-  async saveData() {
+ async saveData() {
+  // 1. Validate form master
   if (this.formDeviceInfo.invalid) {
     Object.values(this.formDeviceInfo.controls).forEach(c => {
-      if (c.invalid) { c.markAsTouched(); c.updateValueAndValidity({ onlySelf: true }); }
+      if (c.invalid) {
+        c.markAsTouched();
+        c.updateValueAndValidity({ onlySelf: true });
+      }
     });
     this.notification.warning('Cảnh báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
     return;
   }
 
-  const formValue = this.formDeviceInfo.value;
-
-  // Dữ liệu detail đang còn trên màn
+  // 2. Lấy dữ liệu chi tiết trên bảng
   const tableRows = this.deviceTempTable ? this.deviceTempTable.getData() : [];
 
-  // Gộp cả các dòng đã xóa (IsDeleted = true)
+  // 2.1. Bắt buộc phải có ít nhất 1 dòng chi tiết
+  if (!tableRows || tableRows.length === 0) {
+    this.notification.warning('Cảnh báo', 'Vui lòng thêm ít nhất 1 dòng nội dung công việc');
+    return;
+  }
+
+  // 2.2. Check từng dòng: WorkContent không được để trống (chỉ check dòng chưa xóa)
+  const invalidIndex = tableRows.findIndex((row: any) =>
+    !row.IsDeleted && (!row.WorkContent || row.WorkContent.toString().trim() === '')
+  );
+
+  if (invalidIndex !== -1) {
+    const rowNumber = invalidIndex + 1; // STT hiển thị
+
+    this.notification.warning(
+      'Cảnh báo',
+      `Vui lòng nhập "Nội dung công việc" cho dòng chi tiết số ${rowNumber}`
+    );
+
+    // Optional: highlight ô lỗi + scroll tới đó cho dễ nhìn
+    if (this.deviceTempTable) {
+      const rows = this.deviceTempTable.getRows();
+      const rowComp = rows[invalidIndex];
+      if (rowComp) {
+        const cell = rowComp.getCell('WorkContent');
+        if (cell) {
+          const el = cell.getElement();
+          el.classList.add('cell-error'); // class CSS tự định nghĩa
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    }
+
+    return; 
+  }
+
   const allRows = [
+
     ...tableRows,
     ...this.deletedRows
   ];
+
+  const formValue = this.formDeviceInfo.value;
 
   const payload = {
     filmManagement: {
@@ -362,24 +405,24 @@ export class FilmManagementFormComponent implements OnInit, AfterViewInit {
     },
     filmManagementDetails: allRows.map((row: any, idx: number) => ({
       ID: row.ID || 0,
-      STT: idx + 1,                         // hoặc giữ STT cũ nếu cần
+      STT: idx + 1,
       FilmManagementID: formValue.ID || 0,
       UnitID: row.Unit ?? null,
       PerformanceAVG: Number(row.PerformanceAVG) || 0,
       WorkContent: row.WorkContent || '',
-      IsDeleted: !!row.IsDeleted           // QUAN TRỌNG
+      IsDeleted: !!row.IsDeleted
     })),
   };
 
   this.filmManagementService.saveData(payload).subscribe({
     next: () => {
-      this.notification.success('Thành công', 'Lưu phiếu thành công');
+      this.notification.success(NOTIFICATION_TITLE.success, 'Lưu phiếu thành công');
       this.formSubmitted.emit();
       this.activeModal.close();
     },
-    error: (error: any) => {
-      console.error('Lỗi khi lưu dữ liệu:', error);
-      this.notification.error('Lỗi', 'Không thể lưu phiếu, vui lòng thử lại sau');
+    error: (res: any) => {
+      console.error('Lỗi khi lưu dữ liệu:', res);
+      this.notification.error(NOTIFICATION_TITLE.error, res.error.message);
     }
   });
 }

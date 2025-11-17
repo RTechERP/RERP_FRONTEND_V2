@@ -25,6 +25,7 @@ import { TsAssetManagementPersonalService } from '../../../../../old/ts-asset-ma
 import { UnitService } from '../../ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
 import { TypeAssetsService } from '../../ts-asset-type/ts-asset-type-service/ts-asset-type.service';
 import { AssetsService } from '../../ts-asset-source/ts-asset-source-service/ts-asset-source.service';
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 @Component({
   standalone: true,
   imports: [
@@ -109,7 +110,6 @@ reason: string = '';
         AssetManagementID: this.dataInput.ID,
         DateLostReport: this.dateLostReport,
         Reason: this.reason,
-
       },
       tSAssetManagements: [{
         ID: this.dataInput.ID,
@@ -126,7 +126,6 @@ reason: string = '';
         Status: 'Mất',
         StatusID: 4,
         Note: this.reason,
-        
       }]
     }
     this.assetService.saveDataAsset(payloadAsset).subscribe({
@@ -136,10 +135,9 @@ reason: string = '';
         this.formSubmitted.emit();
         this.activeModal.close(true);
       },
-      error: () => {
-        this.notification.error("Thông báo", "Lỗi");
-        console.error('Lỗi khi lưu đơn vị!');
-      }
+   error: (res: any) => {
+            this.notification.error(NOTIFICATION_TITLE.error, res.error.message);
+          }
     });
   }
   close() {

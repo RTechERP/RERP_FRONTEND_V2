@@ -14,6 +14,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { AssetsManagementService } from '../ts-asset-management-service/ts-asset-management.service';
 import { TsAssetManagementPersonalService } from '../../../../../old/ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 @Component({
   standalone: true,
   imports: [
@@ -172,10 +173,9 @@ export class TsAssetProposeLiquidationFormComponent implements OnInit, AfterView
         this.formSubmitted.emit();
         this.activeModal.close(true);
       },
-      error: () => {
-        this.notification.error("Thông báo", "Lỗi");
-        console.error('Lỗi khi lưu đơn vị!');
-      }
+      error: (res: any) => {
+               this.notification.error(NOTIFICATION_TITLE.error, res.error.message);
+             }
     });
   }
 }

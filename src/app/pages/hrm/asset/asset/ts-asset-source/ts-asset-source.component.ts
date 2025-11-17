@@ -41,6 +41,7 @@ import { TsAssetManagementPersonalService } from '../../../../old/ts-asset-manag
 import { updateCSS } from 'ng-zorro-antd/core/util';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { log } from 'ng-zorro-antd/core/logger';
+import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { AssetsService } from './ts-asset-source-service/ts-asset-source.service';
 import { TsAssetSourceFormComponent } from './ts-asset-source-form/ts-asset-source-form.component';
 @Component({
@@ -66,6 +67,7 @@ import { TsAssetSourceFormComponent } from './ts-asset-source-form/ts-asset-sour
     NzTabsModule,
     NgbModalModule,
     NzModalModule,
+    HasPermissionDirective
     // TsAssetSourceFormComponent,
   ],
   selector: 'app-ts-asset-source',

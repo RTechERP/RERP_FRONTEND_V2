@@ -39,7 +39,7 @@ export const SERVER_PATH = `D:/RTC_Sw/RTC/ProductRTC/`;
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { filter, distinctUntilChanged } from 'rxjs/operators';
-import { VehicleRepairService } from '../../../hrm/vehicle-repair/vehicle-repair-service/vehicle-repair.service';
+import { VehicleRepairService } from '../../../hrm/vehicle/vehicle-repair/vehicle-repair-service/vehicle-repair.service';
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { TbProductRtcService } from '../../../old/tb-product-rtc/tb-product-rtc-service/tb-product-rtc.service';
 import { NzUploadFile } from 'ng-zorro-antd/upload';

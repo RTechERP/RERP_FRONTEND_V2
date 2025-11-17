@@ -85,6 +85,7 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
   dataAssetTranferDetailEl!: ElementRef<HTMLDivElement>;
   private ngbModal = inject(NgbModal);
   emPloyeeLists: any[] = [];
+    deletedDetailIds: number[] = [];
   modalData: any = [];
   selectedRow: any = "";
   sizeTbDetail: any = '0';

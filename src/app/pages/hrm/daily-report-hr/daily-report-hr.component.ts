@@ -29,7 +29,7 @@ import { catchError, map } from 'rxjs/operators';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { DailyReportHrService } from './daily-report-hr-service/daily-report-hr.service';
-import { VehicleRepairService } from '../vehicle-repair/vehicle-repair-service/vehicle-repair.service';
+import { VehicleRepairService } from '../vehicle/vehicle-repair/vehicle-repair-service/vehicle-repair.service';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 

@@ -914,7 +914,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     const selectedAssets = this.getSingleSelectedAsset('đưa vào sử dụng lại');
     if (!selectedAssets) return;
 
-    if (selectedAssets.StatusID != 5) {
+    if (selectedAssets.StatusID != 3) {
       this.notification.warning(
         'Thông báo',
         `Tài sản có mã "${selectedAssets.TSAssetCode}" đang ở trạng thái ${selectedAssets.Status}, không thể đưa vào sử dụng lại!`

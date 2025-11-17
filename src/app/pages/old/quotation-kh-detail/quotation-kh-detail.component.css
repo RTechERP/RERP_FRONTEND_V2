@@ -50,3 +50,34 @@
   border-top-right-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
 }
+
+/* Validation error styles */
+.text-danger {
+  font-size: 11px;
+  display: block;
+  margin-top: 2px;
+  line-height: 1.2;
+}
+
+/* Label styles - ensure asterisk stays on same line */
+label.d-inline {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+label.d-inline .text-danger {
+  display: inline;
+  margin-top: 0;
+  margin-left: 2px;
+}
+
+.form-control.ng-invalid.ng-touched,
+::ng-deep .ant-select.ng-invalid.ng-touched .ant-select-selector {
+  border-color: #dc3545;
+}
+
+.form-control:focus.ng-invalid,
+::ng-deep .ant-select.ng-invalid .ant-select-selector:focus {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}

@@ -71,6 +71,7 @@ export class AgvProductComponent implements OnInit, AfterViewInit {
     this.tbl_AGVProductGroup = new Tabulator(
       this.tbl_AGVProductGroupRef.nativeElement,
       {
+        ...DEFAULT_TABLE_CONFIG,
         layout: 'fitDataStretch',
         height: '87vh',
         data: datasource,

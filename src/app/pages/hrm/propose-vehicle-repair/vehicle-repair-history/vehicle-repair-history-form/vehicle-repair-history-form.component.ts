@@ -500,10 +500,39 @@ updateFileTable() {
 }
    loadFileTable() {
     this.fileTable = new Tabulator(this.tbFileElement.nativeElement, {
-    ...DEFAULT_TABLE_CONFIG,
+     layout: 'fitDataStretch',
+
+  pagination: true,
+  paginationSize: 50,
+  paginationSizeSelector: [10, 30, 50, 100, 300, 500],
+  paginationMode: 'remote',
+  movableColumns: true,
+  resizableRows: true,
+  reactiveData: true,
+  //   selectableRows: 1,
+  langs: {
+    vi: {
+      pagination: {
+        first: '<<',
+        last: '>>',
+        prev: '<',
+        next: '>',
+      },
+    },
+  },
+  locale: 'vi',
+  columnDefaults: {
+    headerWordWrap: true,
+    headerVertical: false,
+    headerHozAlign: 'center',
+    minWidth: 60,
+    hozAlign: 'left',
+    vertAlign: 'middle',
+    resizable: true,
+  },
     height:'100%',
     minHeight:'42vh',
-      layout: 'fitDataStretch',
+
       columns: [
         {
           title: '',
@@ -582,11 +611,29 @@ private sanitizePath(s: string): string {
 }
 
 // yyyy/MM/LicensePlate_or_ID
-private buildSubPath(historyCodeOrId: string | number): string {
-  const year = new Date().getFullYear().toString();
-  const plate = this.sanitizePath(this.formGroup.get('LicensePlate')?.value || '');
-  const partPlate = plate ? plate : 'Unknown';
-  return [year, partPlate, historyCodeOrId?.toString()].join('/');
+private buildSubPath(): string {
+  const timeStart = this.formGroup.get('TimeStartRepair')?.value;
+  const vName = (this.formGroup.get('VehicleName')?.value || '').toString();
+  const plate = (this.formGroup.get('LicensePlate')?.value || '').toString();
+
+  // Năm lấy theo ngày sửa, fallback về năm hiện tại nếu rỗng
+  let year = new Date().getFullYear().toString();
+  let datePart = 'UnknownDate';
+
+  if (timeStart) {
+    const d = new Date(timeStart);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    year = yyyy.toString();
+    datePart = `${yyyy}-${mm}-${dd}`; // dạng yyyy-MM-dd
+  }
+
+  // Tên folder xe: "Tên xe - Biển số"
+  const vehicleRaw = `${vName} ${plate}`.trim() || 'UnknownVehicle';
+  const vehiclePart = this.sanitizePath(vehicleRaw); // clean ký tự bậy
+
+  return [year, vehiclePart, datePart].join('/');
 }
 save() {
   this.trimAllStringControls();
@@ -671,7 +718,7 @@ save() {
       }
 
       const filesToUpload: File[] = newFiles.map((f: any) => f.originFile as File);
-      const subPath = this.buildSubPath(historyCodeOrId);
+      const subPath = this.buildSubPath();
 
       // 3) Upload file vật lý
       this.vehicleRepairHistoryService.uploadMultipleFiles(filesToUpload, subPath).subscribe({

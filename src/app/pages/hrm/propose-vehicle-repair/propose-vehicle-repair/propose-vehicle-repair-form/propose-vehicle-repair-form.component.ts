@@ -467,7 +467,8 @@ private getNccDetails(): ProposeDetail[] {
   }
   getVehicle() {
     this.vehicleManagementService.getVehicleManagement().subscribe((res) => {
-      this.vehicleList = res.data || [];
+      var list: any = res.data;
+      this.vehicleList =list.filter((x:any)=>x.VehicleCategoryID===1);
       const vId = this.formGroup.value?.VehicleManagementID;
       if (vId) {
         this.formGroup

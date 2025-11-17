@@ -1,6 +1,6 @@
 <ng-container class="w-100">
     <nz-splitter >
-        <nz-splitter-panel *ngIf="isSearchVisible" [nzSize]="'20%'" [nzResizable]="false">
+        <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
             <div class="card h-100 border-0 rounded-0">
                 <!-- Header -->
                 <div class="card-header bg-white p-1">
@@ -76,57 +76,162 @@
             </div>
         </nz-splitter-panel>
 
-        <nz-splitter-panel [nzSize]="isSearchVisible ? '80%' : '100%'">
-            <div class="card  border-0 rounded-0">
+        <nz-splitter-panel nzDefaultSize="100%">
+            <div class="card h-100 border-0 rounded-0">
                 <div class="card-header  bg-white p-1">
-                    <div class="d-flex h-40  gap-1">
-                        <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
-                            <nz-icon nzType="search" />
-                        </button>
+                   <nav class="navbar navbar-expand-md navbar-light p-0">
+      <!-- Nút toggle hiện trên mobile -->
+      <button
+        class="navbar-toggler mb-2"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#assetToolbar"
+        aria-controls="assetToolbar"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon border-radius-0"></span>
+        <!-- Nếu chưa có icon thì dùng text -->
+        <!-- <span class="small">Menu</span> -->
+      </button>
 
-                        <button class="btn-add" nz-button nzType="default" nzSize="small" (click)="onAddAsset()" *hasPermission="'N2,N23,N1'">
-                            <!-- <nz-icon nzType="plus" /> Thêm -->
-                            <img src="assets/icon/action_add_item_16.png" />Thêm mới
-                        </button>
-                        <button class="btn-edit" nz-button nzType="default" nzSize="small" (click)="onEitAsset()" *hasPermission="'N2,N23,N1'">
-                            <img src="assets/icon/action_edit_item_16.png" />Sửa
-                        </button>
-                        <button class="btn-delete" nz-button nzType="default" nzSize="small" (click)="onDeleteAsset()" *hasPermission="'N2,N23,N1'">
-                            <img src="assets/icon/action_delete_item_16.png" />Xóa
-                        </button>
-                           <span class="mx-2"
-                            style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
-                      <button nz-button nzType="default" nzSize="small" (click)="onReportLoss()" *hasPermission="'N2,N23,N1'">
-                            <img src="assets/icon/report-lost.png" />Báo mất
-                        </button>
+      <!-- Phần button sẽ collapse trên mobile -->
+      <div class="collapse navbar-collapse" id="assetToolbar">
+        <div class="d-flex flex-wrap gap-1 align-items-center">
 
-                      
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onReportBroken()" *hasPermission="'N2,N23,N1'">
-                              <img src="assets/icon/reportbroken.png" />Báo hỏng
-                        </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onRepaireAsset()" *hasPermission="'N2,N23,N1'">
-                          <img src="assets/icon/repair-tools.png" />Sửa chữa, bảo dưỡng
-                        </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onReuseAsset()" *hasPermission="'N2,N23,N1'">
-                           <img src="assets/icon/reuse.png" /> Đưa vào sử dụng lại
-                        </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onReportLiquidation()" *hasPermission="'N2,N23,N1'">
-                             <img src="assets/icon/liquidation-propose.png" /> Đề nghị thanh lí
-                        </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onLiquidation()" *hasPermission="'N2,N23,N1'">
-                               <img src="assets/icon/liquidation.png" /> Thanh lí
-                        </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small"
-                            (click)="openModalImportExcel()" *hasPermission="'N2,N23,N1'">
-                               <img src="assets/icon/excel.png" /> Nhập Excel
-                        </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onExportExcel()">
-                            <img src="assets/icon/import-excel.png" /> Xuất Excel
-                        </button>
-                    </div>
+          <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
+            <nz-icon nzType="search"></nz-icon>
+          </button>
+
+          <button
+            class="btn-add"
+            nz-button
+            nzType="default"
+            nzSize="small"
+            (click)="onAddAsset()"
+            *hasPermission="'N2,N23,N1'"
+          >
+            <img src="assets/icon/action_add_item_16.png" /> Thêm mới
+          </button>
+
+          <button
+            class="btn-edit"
+            nz-button
+            nzType="default"
+            nzSize="small"
+            (click)="onEitAsset()"
+            *hasPermission="'N2,N23,N1'"
+          >
+            <img src="assets/icon/action_edit_item_16.png" /> Sửa
+          </button>
+
+          <button
+            class="btn-delete"
+            nz-button
+            nzType="default"
+            nzSize="small"
+            (click)="onDeleteAsset()"
+            *hasPermission="'N2,N23,N1'"
+          >
+            <img src="assets/icon/action_delete_item_16.png" /> Xóa
+          </button>
+
+          <span
+            class="mx-2"
+            style="display:inline-block;height:20px;border-left:1px solid #e5e5e5;align-self:center;"
+          ></span>
+
+          <button
+            nz-button
+            nzType="default"
+            nzSize="small"
+            (click)="onReportLoss()"
+            *hasPermission="'N2,N23,N1'"
+          >
+            <img src="assets/icon/report-lost.png" /> Báo mất
+          </button>
+
+          <button
+            class="fs-12"
+            nz-button
+            nzType="default"
+            nzSize="small"
+            (click)="onReportBroken()"
+            *hasPermission="'N2,N23,N1'"
+          >
+            <img src="assets/icon/reportbroken.png" /> Báo hỏng
+          </button>
+
+          <button
+            class="fs-12"
+            nz-button
+            nzType="default"
+            nzSize="small"
+            (click)="onRepaireAsset()"
+            *hasPermission="'N2,N23,N1'"
+          >
+            <img src="assets/icon/repair-tools.png" /> Sửa chữa, bảo dưỡng
+          </button>
+
+          <button
+            class="fs-12"
+            nz-button
+            nzType="default"
+            nzSize="small"
+            (click)="onReuseAsset()"
+            *hasPermission="'N2,N23,N1'"
+          >
+            <img src="assets/icon/reuse.png" /> Đưa vào sử dụng lại
+          </button>
+
+          <button
+            class="fs-12"
+            nz-button
+            nzType="default"
+            nzSize="small"
+            (click)="onReportLiquidation()"
+            *hasPermission="'N2,N23,N1'"
+          >
+            <img src="assets/icon/liquidation-propose.png" /> Đề nghị thanh lí
+          </button>
+
+          <button
+            class="fs-12"
+            nz-button
+            nzType="default"
+            nzSize="small"
+            (click)="onLiquidation()"
+            *hasPermission="'N2,N23,N1'"
+          >
+            <img src="assets/icon/liquidation.png" /> Thanh lí
+          </button>
+
+          <button
+            class="fs-12"
+            nz-button
+            nzType="default"
+            nzSize="small"
+            (click)="openModalImportExcel()"
+            *hasPermission="'N2,N23,N1'"
+          >
+            <img src="assets/icon/excel.png" /> Nhập Excel
+          </button>
+
+          <button
+            class="fs-12"
+            nz-button
+            nzType="default"
+            nzSize="small"
+            (click)="onExportExcel()"
+          >
+            <img src="assets/icon/import-excel.png" /> Xuất Excel
+          </button>
+        </div>
+      </div>
+    </nav>
                 </div>
-                <nz-splitter >
-                    <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
+                <nz-splitter [nzLayout]="isMobile? 'vertical':'horizontal'" >
+                    <nz-splitter-panel  nzSize="" [nzCollapsible]="true" nzResizable="true">
                        <div #datatableManagement></div>
                     </nz-splitter-panel>
                     <!-- <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" [nzSize]="sizeTbDetail">
@@ -136,7 +241,7 @@
                             <ng-template #tabClose>
                                 <button
                                   nz-button
-                                  nzType="text"
+                                  nzType="text" 
                                   class="btn-close-panel"
                                   style="color: red;"
                                   (click)="closePanel()"
@@ -146,7 +251,7 @@
                               </ng-template>
                             <nz-tabset style=" padding-left: 10px !important;" [nzTabBarExtraContent]="tabClose">
                                
-                                <nz-tab nzTitle="Thông tin sử dụng tài sản">
+                            <nz-tab [nzTitle]="detailTabTitle">
                                    <div #datatableEmployee></div>
                                 </nz-tab>
                             </nz-tabset>

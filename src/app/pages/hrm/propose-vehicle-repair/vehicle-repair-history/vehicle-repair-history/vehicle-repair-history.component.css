@@ -53,7 +53,7 @@
 }
 
 .btn {
-    font-weight: bold;
+  font-weight: bold;
   height: 2.5vh;
   font-size: 0.75rem;
   border: none;
@@ -69,22 +69,27 @@
   color: #d9363e;
 }
 
-::ng-deep .ng-select.ng-select-multiple .ng-select-container .ng-value-container .ng-value {
-    margin-top: 3px;
-    margin-right: 1px;
-    font-size: .75rem;
-    background-color: #fafafa;
-    border: none;
-    border-radius: 2px;
-    height: 24px;
-    line-height: 22px;
+::ng-deep
+  .ng-select.ng-select-multiple
+  .ng-select-container
+  .ng-value-container
+  .ng-value {
+  margin-top: 3px;
+  margin-right: 1px;
+  font-size: 0.75rem;
+  background-color: #fafafa;
+  border: none;
+  border-radius: 2px;
+  height: 24px;
+  line-height: 22px;
 }
 
 /* Chiều cao tổng thể */
 .split-responsive {
   height: calc(100vh - 100px);
   display: flex;
-  flex-direction: row; /* MẶC ĐỊNH: NẰM NGANG (desktop) */
+  flex-direction: row;
+  /* MẶC ĐỊNH: NẰM NGANG (desktop) */
 }
 
 /* Panel & bảng để Tabulator fit */
@@ -92,6 +97,7 @@
   display: flex;
   flex-direction: column;
 }
+
 #tb_vehicleManagement,
 #vehicleRepairHistoryTable,
 #vehicleRepairHistoryFileTable {
@@ -104,9 +110,12 @@
   .split-responsive {
     flex-direction: column !important;
   }
+
   .split-responsive nz-splitter-panel {
-    min-height: 45vh; /* mỗi panel ~ nửa màn hình */
+    min-height: 45vh;
+    /* mỗi panel ~ nửa màn hình */
   }
+
   #tb_vehicleManagement,
   #vehicleRepairHistoryTable,
   #vehicleRepairHistoryFileTable {
@@ -117,37 +126,73 @@
 /* Desktop rộng hơn: cứ nằm ngang */
 @media (min-width: 992px) {
   .split-responsive {
-    flex-direction: row; /* đảm bảo luôn ngang ở desktop */
+    flex-direction: row;
+    /* đảm bảo luôn ngang ở desktop */
   }
 }
-.split-responsive { height: calc(100vh - 100px); display:flex; }
-.split-responsive nz-splitter-panel { display:flex; flex-direction:column; flex:1 1 0; min-height:0; }
+
+.split-responsive {
+  height: calc(100vh - 100px);
+  display: flex;
+}
+
+.split-responsive nz-splitter-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+}
 
 /* Tabset fill 100% và nhường chỗ cho thanh tab */
 :host ::ng-deep .ant-tabs,
 :host ::ng-deep .ant-tabs-content-holder,
 :host ::ng-deep .ant-tabs-content,
-:host ::ng-deep .ant-tabs-tabpane { height:100%; display:flex; flex-direction:column; min-height:0; }
+:host ::ng-deep .ant-tabs-tabpane {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
 
 /* Vùng cuộn bên trong từng tab */
-.tab-scroll { flex:1 1 auto; min-height:0; overflow:auto; }
-.table-host { height:100%; }
+.tab-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.table-host {
+  height: 100%;
+}
 
 /* Bảng chính và bảng detail điền kín panel */
 #tb_vehicleManagement,
 #vehicleRepairHistoryTable,
-#vehicleRepairHistoryFileTable { flex:1 1 auto; min-height:360px; }
+#vehicleRepairHistoryFileTable {
+  flex: 1 1 auto;
+  min-height: 360px;
+}
 
 /* Mobile: xếp dọc, panel chia đều */
 @media (max-width: 768px) {
-  .split-responsive { flex-direction:column !important; }
-  .split-responsive nz-splitter-panel { min-height:auto; }
+  .split-responsive {
+    flex-direction: column !important;
+  }
+
+  .split-responsive nz-splitter-panel {
+    min-height: auto;
+  }
+
   #tb_vehicleManagement,
   #vehicleRepairHistoryTable,
-  #vehicleRepairHistoryFileTable { min-height:40vh; }
+  #vehicleRepairHistoryFileTable {
+    min-height: 40vh;
+  }
 }
 
 /* Desktop: giữ nằm ngang */
 @media (min-width: 992px) {
-  .split-responsive { flex-direction:row; }
+  .split-responsive {
+    flex-direction: row;
+  }
 }

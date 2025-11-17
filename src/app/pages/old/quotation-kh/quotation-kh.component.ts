@@ -61,6 +61,8 @@ import { CustomerPartService } from '../customer-part/customer-part/customer-par
 import { PokhComponent } from '../pokh/pokh.component';
 import { PokhDetailComponent } from '../pokh-detail/pokh-detail.component';
 import { NOTIFICATION_TITLE } from '../../../app.config';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 
 @Component({
   selector: 'app-quotation-kh',
@@ -89,6 +91,7 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
     NzSwitchModule,
     NzCheckboxModule,
     CommonModule,
+    HasPermissionDirective,
   ],
   templateUrl: './quotation-kh.component.html',
   styleUrl: './quotation-kh.component.css',
@@ -147,7 +150,8 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
   openModal() {
     const modalRef = this.modalService.open(QuotationKhDetailComponent, {
       centered: true,
-      windowClass: 'full-screen-modal',
+      // windowClass: 'full-screen-modal',
+      size: 'xl',
       backdrop: 'static',
     });
 
@@ -261,8 +265,8 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
     }
 
     const confirmMessage = isApprove
-      ? `Bạn có chắc chắn muốn DUYỆT - Báo giá ID: ${this.selectedId} ?`
-      : `Bạn có chắc chắn muốn HỦY DUYỆT - Báo giá ID: ${this.selectedId} ?`;
+      ? `Bạn có chắc chắn muốn DUYỆT - Báo giá này không ?`
+      : `Bạn có chắc chắn muốn HỦY DUYỆT - Báo giá này không ?`;
 
     this.modal.confirm({
       nzTitle: 'Xác nhận',
@@ -362,7 +366,8 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
           ];
           const modalRef = this.modalService.open(QuotationKhDetailComponent, {
             centered: true,
-            windowClass: 'full-screen-modal',
+            // windowClass: 'full-screen-modal',
+            size: 'xl',
             backdrop: 'static',
           });
           modalRef.componentInstance.groupedData = groupedData;
@@ -550,23 +555,9 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
   }
   initMainTable(): void {
     this.mainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
-      layout: 'fitDataFill',
-      height: '91vh',
+      ...DEFAULT_TABLE_CONFIG,
       selectableRows: 1,
-      pagination: true,
-      paginationSize: 50,
-      movableColumns: true,
-      resizableRows: true,
-      reactiveData: true,
-      columnDefaults: {
-        headerWordWrap: true,
-        headerVertical: false,
-        headerHozAlign: 'center',
-        minWidth: 60,
-        resizable: true,
-      },
-      paginationMode: 'remote',
-      paginationSizeSelector: [10, 30, 50, 100, 300],
+      height: '88vh',
       ajaxURL: this.quotationKhServices.getQuotationKHAjax(),
       ajaxParams: this.getQuotationKHAjaxParams(),
       ajaxResponse: (url, params, res) => {
@@ -577,23 +568,12 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
           last_page: res.data[0].TotalPage,
         };
       },
-      langs: {
-        vi: {
-          pagination: {
-            first: '<<',
-            last: '>>',
-            prev: '<',
-            next: '>',
-          },
-        },
-      },
-      locale: 'vi',
       columns: [
         {
           title: 'Duyệt',
           field: 'IsApproved',
           sorter: 'boolean',
-          width: 80,
+          width: 70,
           formatter: (cell) => {
             const checked = cell.getValue() ? 'checked' : '';
             return `<div style="text-align: center;">
@@ -742,12 +722,11 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
 
   initDetailTable(): void {
     this.detailTable = new Tabulator(this.tb_DetailTableElement.nativeElement, {
+      ...DEFAULT_TABLE_CONFIG,
+      height: '85vh',
       data: this.dataDetail,
-      layout: 'fitDataFill',
-      movableColumns: true,
-      height: '88vh',
-      resizableRows: true,
-      reactiveData: true,
+      rowHeader: false,
+
       columns: [
         {
           title: 'Mã nội bộ',

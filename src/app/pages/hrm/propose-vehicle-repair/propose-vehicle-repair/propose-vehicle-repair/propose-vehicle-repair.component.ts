@@ -587,6 +587,7 @@ approveSelectedDetail() {
   const detail = this.selectedDetailRow;
   const master = this.selectedRow; // dòng master đang chọn
   const detailId = detail.ID;
+  const detailNCC = detail.GaraName;
   const alreadyApproved = detail.IsApprove === true || detail.IsApprove === 1;
   if (alreadyApproved) { this.notification.info('Thông báo','Dòng này đã được phê duyệt'); return; }
   if (this.hasOtherApproved(detailId)) { this.notification.warning('Cảnh báo','Đã có 1 mục được duyệt. Hãy hủy duyệt mục đó trước'); return; }
@@ -595,7 +596,7 @@ approveSelectedDetail() {
 
   this.nzModal.confirm({
     nzTitle: 'Xác nhận phê duyệt',
-    nzContent: `Phê duyệt mục chi tiết #${detailId}?`,
+    nzContent: `Phê duyệt đề xuất sửa xe nhà cung cấp :${detailNCC}?`,
     nzOkText: 'Phê duyệt',
     nzCancelText: 'Hủy',
     nzOnOk: async () => {
@@ -614,7 +615,7 @@ approveSelectedDetail() {
         const dto = {
           vehicleRepairHistory: {
             ID: 0,
-            STT: 0, // server sẽ tự set nếu cần
+            STT: detail.STT, // server sẽ tự set nếu cần
             VehicleManagementID: master?.VehicleManagementID ?? 0,
             ProposeVehicleRepairID: master?.ID ?? 0,
             ProposeVehicleRepairDetailID: detail?.ID ?? 0,

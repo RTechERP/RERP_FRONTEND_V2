@@ -1,53 +1,53 @@
-<span nz-dropdown [nzDropdownMenu]="menu" nzPlacement="bottomRight">
-  <ng-content select="[trigger]"></ng-content>
+<span nz-dropdown [nzDropdownMenu]="menu" nzPlacement="bottomRight" nzTrigger="click">
+    <ng-content select="[trigger]"></ng-content>
 </span>
 
 <nz-dropdown-menu #menu="nzDropdownMenu">
-  <div class="notif-dropdown">
-    <div class="notif-header">
-      <strong>{{ title }}</strong>
-      <span class="notif-count " *ngIf="count>0">Bạn có {{ count }} thông báo mới</span>
+    <div class="notif-dropdown">
+        <div class="notif-header">
+            <strong>{{ title }}</strong>
+            <span class="notif-count " *ngIf="count>0">Bạn có {{ count }} thông báo mới</span>
+        </div>
+
+        <!-- PHẦN CUỘN -->
+        <div class="notif-body">
+            <ng-container *ngIf="today.length">
+                <div class="notif-section">Today</div>
+                <div class="notif-item" *ngFor="let n of today; trackBy: trackById" (click)="onPick(n)">
+                    <div class="notif-icon" *ngIf="n.icon"><nz-icon [nzType]="n.icon"></nz-icon></div>
+                    <div class="notif-lines">
+                        <div class="notif-title" [title]="n.title || n.text">{{ n.title || n.text }}</div>
+                        <div class="notif-detail" [title]="n.detail" *ngIf="n.detail">{{ n.detail }}</div>
+                    </div>
+                    <div class="notif-time">{{ n.time }}</div>
+                </div>
+            </ng-container>
+
+            <ng-container *ngIf="yesterday.length">
+                <div class="notif-section">Yesterday</div>
+                <div class="notif-item" *ngFor="let n of yesterday; trackBy: trackById" (click)="onPick(n)">
+                    <div class="notif-icon" *ngIf="n.icon"><nz-icon [nzType]="n.icon"></nz-icon></div>
+                    <div class="notif-lines">
+                        <div class="notif-title" [title]="n.title || n.text">{{ n.title || n.text }}</div>
+                        <div class="notif-detail" [title]="n.detail" *ngIf="n.detail">{{ n.detail }}</div>
+                    </div>
+                    <div class="notif-time">{{ n.time }}</div>
+                </div>
+            </ng-container>
+
+            <ng-container *ngIf="other.length">
+                <div class="notif-section">Earlier</div>
+                <div class="notif-item" *ngFor="let n of other; trackBy: trackById" (click)="onPick(n)">
+                    <div class="notif-icon" *ngIf="n.icon"><nz-icon [nzType]="n.icon"></nz-icon></div>
+                    <div class="notif-lines">
+                        <div class="notif-title" [title]="n.title || n.text">{{ n.title || n.text }}</div>
+                        <div class="notif-detail" [title]="n.detail" *ngIf="n.detail">{{ n.detail }}</div>
+                    </div>
+                    <div class="notif-time">{{ n.time }}</div>
+                </div>
+            </ng-container>
+        </div>
+
+        <div class="notif-footer">Xem tất cả</div>
     </div>
-
-    <!-- PHẦN CUỘN -->
-    <div class="notif-body">
-      <ng-container *ngIf="today.length">
-        <div class="notif-section">Today</div>
-        <div class="notif-item" *ngFor="let n of today; trackBy: trackById" (click)="onPick(n)">
-          <div class="notif-icon" *ngIf="n.icon"><nz-icon [nzType]="n.icon"></nz-icon></div>
-          <div class="notif-lines">
-            <div class="notif-title" [title]="n.title || n.text">{{ n.title || n.text }}</div>
-            <div class="notif-detail" [title]="n.detail" *ngIf="n.detail">{{ n.detail }}</div>
-          </div>
-          <div class="notif-time">{{ n.time }}</div>
-        </div>
-      </ng-container>
-
-      <ng-container *ngIf="yesterday.length">
-        <div class="notif-section">Yesterday</div>
-        <div class="notif-item" *ngFor="let n of yesterday; trackBy: trackById" (click)="onPick(n)">
-          <div class="notif-icon" *ngIf="n.icon"><nz-icon [nzType]="n.icon"></nz-icon></div>
-          <div class="notif-lines">
-            <div class="notif-title" [title]="n.title || n.text">{{ n.title || n.text }}</div>
-            <div class="notif-detail" [title]="n.detail" *ngIf="n.detail">{{ n.detail }}</div>
-          </div>
-          <div class="notif-time">{{ n.time }}</div>
-        </div>
-      </ng-container>
-
-      <ng-container *ngIf="other.length">
-        <div class="notif-section">Earlier</div>
-        <div class="notif-item" *ngFor="let n of other; trackBy: trackById" (click)="onPick(n)">
-          <div class="notif-icon" *ngIf="n.icon"><nz-icon [nzType]="n.icon"></nz-icon></div>
-          <div class="notif-lines">
-            <div class="notif-title" [title]="n.title || n.text">{{ n.title || n.text }}</div>
-            <div class="notif-detail" [title]="n.detail" *ngIf="n.detail">{{ n.detail }}</div>
-          </div>
-          <div class="notif-time">{{ n.time }}</div>
-        </div>
-      </ng-container>
-    </div>
-
-    <div class="notif-footer">Xem tất cả</div>
-  </div>
 </nz-dropdown-menu>

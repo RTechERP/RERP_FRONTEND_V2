@@ -251,7 +251,7 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
     private holidayService: HolidayServiceService,
     private router: Router,
     private appUserService: AppUserService,
-    private menuService: MenuService
+    public menuService: MenuService
   ) {
     this.menus = this.menuService
       .getMenus()
@@ -545,24 +545,5 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
   openModule(key: string) {
     localStorage.setItem('openMenuKey', key);
     this.router.navigate(['/app']); // hoặc route tới MainLayout
-  }
-
-  goToOldLink(router: String) {
-    let data: any = {
-      UserName: this.appUserService.loginName,
-      Password: this.appUserService.password,
-      Router: router,
-    };
-
-    const url = `http://113.190.234.64:8081${router}`;
-    this.homepageService.gotoOldLink(data).subscribe({
-      next: (response) => {
-        window.open(url, '_blank');
-      },
-      error: (err) => {
-        // console.log('err:', err);
-        this.notification.error(NOTIFICATION_TITLE.error, err.message);
-      },
-    });
   }
 }

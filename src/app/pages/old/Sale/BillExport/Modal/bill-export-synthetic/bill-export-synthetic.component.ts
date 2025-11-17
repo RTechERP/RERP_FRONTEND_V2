@@ -45,7 +45,7 @@ import {
   createComponent,
 } from '@angular/core';
 import { SelectControlComponent } from '../select-control/select-control.component';
-import { ProjectComponent } from '../../../../project/project.component';
+import { ProjectComponent } from '../../../../../project/project.component';
 import { HistoryDeleteBillComponent } from '../history-delete-bill/history-delete-bill.component';
 import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 @Component({
@@ -125,20 +125,27 @@ export class BillExportSyntheticComponent implements OnInit, AfterViewInit {
     this.drawTable();
   }
   getProductGroup() {
-    this.billExportService.getProductGroup(this.appUserService.isAdmin,this.appUserService.departmentID??0).subscribe({
-      next: (res) => {
-        if (res?.data && Array.isArray(res.data)) {
-          this.dataProductGroup = res.data;
-          console.log('>>> Kết quả getProductGroup:', res);
-          this.selectedKhoTypes = this.dataProductGroup.map((item) => item.ID);
-          this.searchParams.listproductgroupID =
-            this.selectedKhoTypes.join(',');
-        }
-      },
-      error: (err) => {
-        console.error('Lỗi khi lấy nhóm vật tư', err);
-      },
-    });
+    this.billExportService
+      .getProductGroup(
+        this.appUserService.isAdmin,
+        this.appUserService.departmentID ?? 0
+      )
+      .subscribe({
+        next: (res) => {
+          if (res?.data && Array.isArray(res.data)) {
+            this.dataProductGroup = res.data;
+            console.log('>>> Kết quả getProductGroup:', res);
+            this.selectedKhoTypes = this.dataProductGroup.map(
+              (item) => item.ID
+            );
+            this.searchParams.listproductgroupID =
+              this.selectedKhoTypes.join(',');
+          }
+        },
+        error: (err) => {
+          console.error('Lỗi khi lấy nhóm vật tư', err);
+        },
+      });
   }
   onKhoTypeChange(selected: number[]): void {
     this.selectedKhoTypes = selected;
@@ -369,17 +376,17 @@ export class BillExportSyntheticComponent implements OnInit, AfterViewInit {
         columnDefaults: {
           resizable: true,
         },
-          langs: {
-    vi: {
-      pagination: {
-        first: '<<',
-        last: '>>',
-        prev: '<',
-        next: '>',
-      },
-    },
-  },
-  locale: 'vi',
+        langs: {
+          vi: {
+            pagination: {
+              first: '<<',
+              last: '>>',
+              prev: '<',
+              next: '>',
+            },
+          },
+        },
+        locale: 'vi',
         columns: [
           {
             title: 'STT',

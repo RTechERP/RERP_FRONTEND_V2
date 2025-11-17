@@ -95,6 +95,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
     private vehicleRepairHistoryService: VehicleRepairHistoryService,
     private VehicleRepairService: VehicleRepairService
   ) { }
+  @ViewChild('tbVehicleManagement', { static: false }) tbVehicleManagementEl!: ElementRef;
   searchText: string = '';
   private ngbModal = inject(NgbModal);
   tb_vehicleManagement: Tabulator | null = null;
@@ -144,9 +145,12 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
     }
   }
   drawTbVehicle() {
-    this.tb_vehicleManagement = new Tabulator('#tb_vehicleManagement', {
+    if (!this.tbVehicleManagementEl) return;
+
+    this.tb_vehicleManagement = new Tabulator(this.tbVehicleManagementEl.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       layout: 'fitDataStretch',
+      height: '88vh',
       groupBy: 'VehicleCategoryText',
       selectableRows: 1,
       data: this.vehicleMnagemens,
@@ -160,11 +164,13 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
           title: 'Tên xe',
           field: 'VehicleName',
           headerHozAlign: 'center',
+          width: 200
         },
         {
           title: 'Biên số',
           field: 'LicensePlate',
           headerHozAlign: 'center',
+          width: 200
         },
         {
           title: 'Chỗ ngồi',
@@ -176,6 +182,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
           title: 'Lái xe',
           field: 'DriverName',
           headerHozAlign: 'center',
+          width: 200
         },
         {
           title: 'Liên hệ',
@@ -218,26 +225,26 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
         {
           data: this.vehicleRepairHistoryFile,
           height: '100%',
-            rowContextMenu: [
-      {
-        label: '🖼️ Preview file',
-        action: (_e, row) => this.openPreviewByRow(row.getData()),
-      }
-    ],
+          rowContextMenu: [
+            {
+              label: '🖼️ Preview file',
+              action: (_e, row) => this.openPreviewByRow(row.getData()),
+            }
+          ],
           minHeight: '42vh',
           paginationMode: 'local',
           columns: [
             { title: 'STT', formatter: 'rownum', hozAlign: 'center', width: 60 },
             {
-        title: 'File',
-        field: 'FileName',
-        minWidth: 180,
-        formatter: (cell) => {
-          const name = cell.getValue() || 'Preview';
-          return `<a href="javascript:void(0)" class="preview-link">${name}</a>`;
-        },
-        cellClick: (_e, cell) => this.openPreviewByRow(cell.getRow().getData()),
-      },
+              title: 'File',
+              field: 'FileName',
+              minWidth: 180,
+              formatter: (cell) => {
+                const name = cell.getValue() || 'Preview';
+                return `<a href="javascript:void(0)" class="preview-link">${name}</a>`;
+              },
+              cellClick: (_e, cell) => this.openPreviewByRow(cell.getRow().getData()),
+            },
             {
               title: 'Đường dẫn Server',
               field: 'ServerPath',
@@ -248,15 +255,15 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
       );
     }
   }
- private openPreviewByRow(d: any) {
-  const full = d?.FilePath || d?.ServerPath || '';
-  if (!full) {
-    this.notification.warning('Thông báo', 'Không có FilePath');
-    return;
+  private openPreviewByRow(d: any) {
+    const full = d?.FilePath || d?.ServerPath || '';
+    if (!full) {
+      this.notification.warning('Thông báo', 'Không có FilePath');
+      return;
+    }
+    const url = this.VehicleRepairService.buildPreviewUrl(full);
+    window.open(url, '_blank');
   }
-  const url = this.VehicleRepairService.buildPreviewUrl(full);
-  window.open(url, '_blank');
-}
   drawTableDetail() {
     if (this.vehicleRepairHistoryTable) {
       this.vehicleRepairHistoryTable.setData(this.vehicleRepairHistorys)
@@ -266,7 +273,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
         {
           data: this.vehicleRepairHistorys,
 
-          selectableRows: true,
+          selectableRows: 1,
           paginationMode: 'local',
           height: '80vh',
           columns: [
@@ -387,40 +394,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
       }
     );
   }
-  onEditVehicle() {
-    if (this.selectedRow == null) {
-      const selected = this.tb_vehicleManagement?.getSelectedData();
-      if (!selected || selected.length === 0) {
-        this.notification.warning(
-          'Thông báo',
-          'Vui lòng chọn một đơn vị để sửa!'
-        );
-        return;
-      }
-      this.selectedRow = { ...selected[0] };
-    }
 
-    const modalRef = this.modalService.open(VehicleManagementFormComponent, {
-      size: 'lg',
-      backdrop: 'static',
-      keyboard: false,
-      centered: true,
-    });
-    console.log(this.selectedRow);
-    modalRef.componentInstance.dataInput = this.selectedRow;
-    modalRef.result.then(
-      (result) => {
-        this.notification.success(
-          'Thông báo',
-          'Sửa lĩnh vực dựa án thành công'
-        );
-        setTimeout(() => this.getVehicleManagement(), 100);
-      },
-      () => {
-        console.log('Modal dismissed');
-      }
-    );
-  }
   createdText(text: String) {
     return `<span class="fs-12">${text}</span>`;
   }
@@ -637,7 +611,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
   private detailCache = new Map<number, any[]>();
   editProposeVehicleRepair() {
     const sel = this.vehicleRepairHistoryTable?.getSelectedData() || [];
-    if (!sel.length) { this.notification.warning('Thông báo', 'Chọn một dòng để sửa'); return; }
+    if (!sel.length) { this.notification.warning('Thông báo', 'Chọn một dòng nhà cung cấp trong danh sách lịch sử sửa chữa để bổ sung thông tin sửa chữa'); return; }
 
     const rowData = { ...sel[0] };
     const details = this.detailCache.get(rowData.ID) || null;
@@ -701,8 +675,6 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
       }
 
       // gom file theo ID history
-
-
       // sheet theo xe
       const wsName = this.safeSheetName(`${v?.VehicleName || 'Xe'} - ${v?.LicensePlate || v?.ID}`);
       const ws = outWb.addWorksheet(wsName);
@@ -715,7 +687,15 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
         '{{DriverName}}': v?.DriverName ?? '',
         '{{Phone}}': v?.PhoneNumber ?? ''
       });
+   const titleCell = ws.getCell('A1');  // đúng ô chứa dòng tiêu đề
+if (typeof titleCell.value === 'string') {
+  const vehicleName = v?.VehicleName || '';
+  const licensePlate = v?.LicensePlate || '';
 
+const display = `${vehicleName}`.toUpperCase();
+
+  titleCell.value = (titleCell.value as string).replace('XXX', display);
+}
       // mapping cột đúng thứ tự template. BẮT ĐẦU từ dòng 5.
       const START_ROW = 5;
       const columns: ColumnDef[] = [
@@ -736,9 +716,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
         { key: 'AddressGara' },
         { key: 'SDTGara' },
         { key: 'Note' },
-
       ];
-
       // chuẩn hóa data theo mapping
       const data = rows.map((r: any, i: number) => {
         const hid = Number(r?.ID ?? 0);
@@ -775,9 +753,24 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
   // ==== helpers ====
   private async loadTemplate(url: string): Promise<ExcelJS.Workbook> {
     const resp = await fetch(url);
+
+    if (!resp.ok) {
+      throw new Error(`Không tải được template: ${url} - status ${resp.status}`);
+    }
+
     const buf = await resp.arrayBuffer();
+    console.log('Template byteLength = ', buf.byteLength);
+
     const wb = new ExcelJS.Workbook();
-    await wb.xlsx.load(buf);
+    try {
+      await wb.xlsx.load(buf);
+    } catch (e) {
+      // debug xem có phải trả về HTML không
+      const text = new TextDecoder().decode(new Uint8Array(buf).slice(0, 200));
+      console.error('First 200 bytes of template:', text);
+      throw e;
+    }
+
     return wb;
   }
 

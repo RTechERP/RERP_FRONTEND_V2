@@ -175,6 +175,7 @@ export class CustomerMajorComponent implements OnInit, AfterViewInit {
       nzOnOk: () => {
         const model = {
           ID: this.selectedId,
+          Code: this.selectedRow.Code,
           IsDeleted: true,
         };
         this.customerMajorService.save(model).subscribe({

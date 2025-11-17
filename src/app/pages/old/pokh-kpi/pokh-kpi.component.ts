@@ -58,6 +58,8 @@ import { PokhService } from '../pokh/pokh-service/pokh.service';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 
+import { CustomerServiceService } from '../../crm/customers/customer/customer-service/customer-service.service';
+
 @Component({
   selector: 'app-pokh-kpi',
   imports: [
@@ -91,13 +93,18 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
   styleUrl: './pokh-kpi.component.css',
 })
 export class PokhKpiComponent implements OnInit, AfterViewInit {
+  @ViewChild('tb_POKH', { static: false }) tb_POKHElement!: ElementRef;
+  @ViewChild('tb_Detail', { static: false }) tb_DetailElement!: ElementRef;
+  
   tb_POKH!: Tabulator;
   tb_Detail!: Tabulator;
   sizeSearch: string = '0';
+  sizeTbDetail: string = '20%';
   selectedId: number = 0;
   selectedRow: any = null;
   filterEmployeeTeamSale: any[] = [];
   filterUserData: any[] = [];
+  customers: any[] = [];
   dataDetail: any[] = [];
   filters: any = {
     filterText: '',
@@ -118,6 +125,9 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
   }
+  closePanel() {
+    this.sizeTbDetail = '0';
+  }
   toggleSelectAll() {
     if (!this.tb_POKH) return;
     if (this.allSelected) {
@@ -132,7 +142,8 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
   }
   constructor(
     private POKHService: PokhService,
-    private notification: NzNotificationService
+    private notification: NzNotificationService,
+    private customerService: CustomerServiceService
   ) {}
   ngOnInit(): void {
     const endDate = new Date();
@@ -140,6 +151,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
     startDate.setMonth(endDate.getMonth() - 3);
     this.filters.startDate = startDate;
     this.filters.endDate = endDate;
+    this.loadFilterCustomers();
   }
   ngAfterViewInit(): void {
     this.drawPOKHTable();
@@ -151,6 +163,23 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
       // Gọi setData() với tham số true để force reload data từ server
       this.tb_POKH.setData(null, true);
     }
+  }
+
+  loadFilterCustomers(): void {
+    this.customerService.getCustomers().subscribe(
+      (response) => {
+        if (response.status === 1) {
+          this.customers = response.data;
+        } else {
+          this.notification.error('Lỗi khi tải khách hàng:', response.message);
+          return;
+        }
+      },
+      (error) => {
+        this.notification.error('Lỗi kết nối khi tải khách hàng:', error);
+        return;
+      }
+    );
   }
 
   loadPOKHKPIDetail(id: number): void {
@@ -352,9 +381,13 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
     window.URL.revokeObjectURL(url);
   }
   drawPOKHTable(): void {
-    this.tb_POKH = new Tabulator(`#tb_POKH`, {
+    if (!this.tb_POKHElement) {
+      console.error('tb_POKH element not found');
+      return;
+    }
+    this.tb_POKH = new Tabulator(this.tb_POKHElement.nativeElement, {
       layout: 'fitDataFill',
-      height: '89vh',
+      height: '88vh',
       selectableRows: true,
       pagination: true,
       paginationMode: 'remote',
@@ -556,7 +589,11 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
     });
   }
   initDetailTable(): void {
-    this.tb_Detail = new Tabulator(`#tb_Detail`, {
+    if (!this.tb_DetailElement) {
+      console.error('tb_Detail element not found');
+      return;
+    }
+    this.tb_Detail = new Tabulator(this.tb_DetailElement.nativeElement, {
       data: this.dataDetail,
       layout: 'fitDataFill',
       pagination: true,
@@ -564,12 +601,35 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
       height: '85vh',
       movableColumns: true,
       resizableRows: true,
+      langs: {
+        vi: {
+          pagination: {
+            first: '<<',
+            last: '>>',
+            prev: '<',
+            next: '>',
+          },
+        },
+      },
+      locale: 'vi',
+      reactiveData: true,
+      columnDefaults: {
+        headerWordWrap: true,
+        headerVertical: false,
+        headerHozAlign: 'center',
+        minWidth: 60,
+        resizable: true,
+      },
       columns: [
         {
           title: 'Ngày nhận PO',
           field: 'ReceivedDatePO',
           sorter: 'string',
           width: '25%',
+          formatter: (cell) => {
+            const value = cell.getValue();
+            return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
+          },
         },
         { title: 'Số POKH', field: 'PONumber', sorter: 'string', width: '25%' },
         {

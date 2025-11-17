@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { AgvProductComponent } from './agv-product.component';
+import { QuotationKhDataComponent } from './quotation-kh-data.component';
 
-describe('AgvProductComponent', () => {
-  let component: AgvProductComponent;
-  let fixture: ComponentFixture<AgvProductComponent>;
+describe('QuotationKhDataComponent', () => {
+  let component: QuotationKhDataComponent;
+  let fixture: ComponentFixture<QuotationKhDataComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AgvProductComponent]
+      imports: [QuotationKhDataComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(AgvProductComponent);
+    fixture = TestBed.createComponent(QuotationKhDataComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

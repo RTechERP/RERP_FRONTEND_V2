@@ -16,14 +16,17 @@ export class PokhHistoryServiceService {
     endDate: Date,
     cusCode: string
   ): Observable<any> {
-    return this.http.get<any>(this._url, {
-      params: {
-        keywords: keywords.toString(),
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
-        cusCode: cusCode.toString(),
-      },
-    });
+    const params: any = {
+      keywords: keywords.toString(),
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+    };
+    
+    if (cusCode && cusCode.trim() !== '') {
+      params.cusCode = cusCode.toString();
+    }
+
+    return this.http.get<any>(this._url, { params });
   }
   save(data: any): Observable<any> {
     return this.http.post<any>(this._url + 'save-data', data);

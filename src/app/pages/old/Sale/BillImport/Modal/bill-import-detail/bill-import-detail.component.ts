@@ -45,7 +45,7 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { ProductsaleServiceService } from '../../../ProductSale/product-sale-service/product-sale-service.service';
 import { DateTime } from 'luxon';
 // Thêm các import này vào đầu file
-import { ProjectComponent } from '../../../../project/project.component';
+import { ProjectComponent } from '../../../../../project/project.component';
 import { BillImportServiceService } from '../../bill-import-service/bill-import-service.service';
 import { BillExportService } from '../../../BillExport/bill-export-service/bill-export.service';
 import { BillImportComponent } from '../../bill-import.component';

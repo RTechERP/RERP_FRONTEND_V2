@@ -1,0 +1,27 @@
+<!-- handover-minutes.component.html -->
+<div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">CHI TIẾT NGUYÊN NHÂN BIỂU GHI NHẬN LỖI & PHƯƠNG ÁN KHẮC PHỤC</h6>
+    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+</div>
+
+<div class="modal-body">
+    <!-- Nội dung tab hiện tại -->
+    <div class="tab-content">
+        <form [formGroup]="form">
+            <div class="row g-1 mb-2">
+                <div class="col-md-12 mt-1 ">
+                    <label class="mb-0 fs-12">Mã nguyên nhân</label>
+                    <input nz-input class="form-control form-control-sm fs-12" rows="4" formControlName="IssueCauseCode">
+                </div>
+                <div class="col-md-12 mt-1 ">
+                    <label class="mb-0 fs-12">Mô tả nguyên nhân</label>
+                    <textarea class="form-control form-control-sm fs-12" rows="4" formControlName="IssueCauseText"></textarea>
+                </div>
+            </div>
+        </form>
+
+        <div class="modal-footer py-1">
+            <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
+            <button nz-button nzType="primary" nzSize="default" (click)="saveData()">Lưu</button>
+        </div>
+    </div>

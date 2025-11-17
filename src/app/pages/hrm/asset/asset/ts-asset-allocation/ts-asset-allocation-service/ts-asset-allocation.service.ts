@@ -17,6 +17,12 @@ export class AssetAllocationService {
   saveData(request: any) {
     return this.http.post<any>(`${this.url + `save-data`}`, request);
   }
+      saveAppropvePersonal(request: any) {
+      return this.http.post<any>(`${this.url + `save-appropve-personal`}`, request);
+    }
+    saveAppropveAccountant(request: any) {
+    return this.http.post<any>(`${this.url + `save-appropve-kt`}`, request);
+  }
   getAllocationCode(
     allocationDate: string
   ): Observable<{ status: number; data: string }> {

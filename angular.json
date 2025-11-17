@@ -73,7 +73,6 @@
               "extractLicenses": false,
               "sourceMap": true
             },
-
             "test": {
               "optimization": false,
               "extractLicenses": false,

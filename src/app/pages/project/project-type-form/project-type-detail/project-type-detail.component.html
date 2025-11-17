@@ -1,0 +1,78 @@
+<div class="modal-dialog-scrollable">
+  <div class="modal-header bg-primary align-items-center ps-2">
+    <h6 class="modal-title text-white">
+      Thông tin kiểu dự án
+    </h6>
+    <button
+      type="button"
+      class="btn-close"
+      (click)="closeModal()"
+      aria-label="Close"
+    ></button>
+  </div>
+
+  <div class="modal-body pt-0 pb-0 p-2 w-100" style="width: 20vw; min-height: 30vh">
+    <form nz-form [formGroup]="form" nzLayout="vertical">
+      <div nz-row [nzGutter]="12" class="pb-2">
+        <div nz-col [nzSpan]="24">
+          <!-- Parent -->
+          <nz-form-item class="pt-2">
+            <nz-form-label class="fs-12">
+              Kiểu dự án cha <span class="text-danger ps-1">*</span>
+            </nz-form-label>
+            <nz-form-control [nzErrorTip]="
+                form.get('ParentID')?.invalid && (form.get('ParentID')?.dirty || form.get('ParentID')?.touched)
+                  ? 'Vui lòng chọn kiểu dự án cha!'
+                  : undefined
+              ">
+              <nz-select
+                formControlName="ParentID"
+                class="w-100"
+                nzShowSearch
+                nzAllowClear
+                nzPlaceHolder="Chọn kiểu dự án cha"
+              >
+                <nz-option *ngFor="let item of parentProjectType" [nzLabel]="item.ProjectTypeName" [nzValue]="item.ID">
+                  {{ item.ProjectTypeName }}
+                </nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+
+          <!-- Code -->
+          <nz-form-item >
+            <nz-form-label class="fs-12">
+              Mã <span class="text-danger ps-1">*</span>
+            </nz-form-label>
+            <nz-form-control [nzErrorTip]="
+                form.get('ProjectTypeCode')?.invalid && (form.get('ProjectTypeCode')?.dirty || form.get('ProjectTypeCode')?.touched)
+                  ? 'Vui lòng nhập mã kiểu dự án!'
+                  : undefined
+              ">
+              <input nz-input formControlName="ProjectTypeCode" class="w-100" placeholder="Nhập mã kiểu dự án" />
+            </nz-form-control>
+          </nz-form-item>
+
+          <!-- Name -->
+          <nz-form-item>
+            <nz-form-label class="fs-12">
+              Tên kiểu dự án <span class="text-danger ps-1">*</span>
+            </nz-form-label>
+            <nz-form-control [nzErrorTip]="
+                form.get('ProjectTypeName')?.invalid && (form.get('ProjectTypeName')?.dirty || form.get('ProjectTypeName')?.touched)
+                  ? 'Vui lòng nhập tên kiểu dự án!'
+                  : undefined
+              ">
+              <input nz-input formControlName="ProjectTypeName" class="w-100" placeholder="Nhập tên kiểu dự án" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal-footer bg-whitesmoke br p-1">
+    <button nz-button nzType="default" nzDanger (click)="activeModal.close()">Đóng</button>
+    <button nz-button nzType="primary" (click)="saveData()">Lưu</button>
+  </div>
+</div>

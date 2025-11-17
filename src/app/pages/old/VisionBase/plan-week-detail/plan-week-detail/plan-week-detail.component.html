@@ -10,34 +10,34 @@
         <div class="row g-2 align-items-end">
   
           <div class="col-auto">
-            <button nz-button nzType="default" nzSize="default" (click)="decreaseWeek()" class="flex-1">
-                <nz-icon nzType="minus"></nz-icon>
+            <button nz-button nzType="default" nzSize="small" (click)="decreaseWeek()" class="flex-1">
+                <nz-icon nzType="left"></nz-icon>
             </button>
           </div>
   
-          <div class="col-md-4">
+          <div class="col">
             <label class="mb-0 fs-12">Từ ngày</label>
-            <nz-date-picker name="startDate" class="w-100" nzSize="default"
+            <nz-date-picker name="startDate" class="w-100" nzSize="small"
                             [(ngModel)]="filters.startDate" [nzDisabled]="true">
             </nz-date-picker>
           </div>
   
-          <div class="col-md-4">
+          <div class="col">
             <label class="mb-0 fs-12">Đến ngày</label>
-            <nz-date-picker name="endDate" class="w-100" nzSize="default"
+            <nz-date-picker name="endDate" class="w-100" nzSize="small"
                             [(ngModel)]="filters.endDate" [nzDisabled]="true">
             </nz-date-picker>
           </div>
-  
+
           <div class="col-auto">
-            <button nz-button nzType="default" nzSize="default" (click)="increaseWeek()" class="flex-1">
-                <nz-icon nzType="plus"></nz-icon>
+            <button nz-button nzType="default" nzSize="small" (click)="increaseWeek()" class="flex-1">
+                <nz-icon nzType="right"></nz-icon>
             </button>
           </div>
           
-          <div class="col-md-3">
+          <div class="col-12 col-md-3">
             <label class="mb-0 fs-12">Họ tên</label>
-            <nz-select [nzDisabled]="true" nzShowSearch nzAllowClear nzSize="default" class="w-100"
+            <nz-select [nzDisabled]="true" nzShowSearch nzAllowClear class="w-100" nzSize="small"
                        [(ngModel)]="filters.userId" name="userId">
               <nz-option *ngFor="let item of filterUserData"
                          [nzValue]="item.UserID"
@@ -48,8 +48,71 @@
         </div>
   
         <!-- Bảng sản phẩm chi tiết -->
-        <div class="row mt-3">
+        <!-- <div class="row mt-3">
           <div #tb_MainTable id="tb_MainTable"></div>
+        </div> -->
+
+        <!-- Form động theo dữ liệu -->
+        <div class="row mt-3">
+          <div class="col-12 mb-3">
+            <nz-collapse>
+              <nz-collapse-panel 
+                *ngFor="let item of mainData; let i = index"
+                [nzHeader]="'Ngày: ' + formatDate(item.DatePlan)"
+                [nzActive]="false"
+                [nzExtra]="extraTpl">
+                
+                <ng-template #extraTpl>
+                  <button 
+                    nz-button 
+                    nzType="text" 
+                    nzDanger 
+                    nzSize="small"
+                    (click)="deleteItem(item)"
+                    type="button"
+                    title="Xóa">
+                    <nz-icon nzType="delete"></nz-icon>
+                  </button>
+                </ng-template>
+
+                <form nz-form nzLayout="vertical" class="compact-form px-2">
+                  <nz-form-item class="mb-2">
+                    <nz-form-label class="mb-1 mt-2 ps-1">Nội dung</nz-form-label>
+                    <nz-form-control>
+                      <textarea 
+                        nz-input 
+                        rows="2" 
+                        [(ngModel)]="item.ContentPlan"
+                        [name]="'contentPlan_' + i"
+                        (ngModelChange)="onFieldChange(item)"
+                        placeholder="Nhập nội dung công việc">
+                      </textarea>
+                    </nz-form-control>
+                  </nz-form-item>
+
+                  <nz-form-item class="mb-0">
+                    <nz-form-label class="mb-1 ps-1">Kết quả mong đợi</nz-form-label>
+                    <nz-form-control class="mb-3">
+                      <textarea 
+                        nz-input 
+                        rows="2" 
+                        [(ngModel)]="item.Result"
+                        [name]="'result_' + i"
+                        (ngModelChange)="onFieldChange(item)"
+                        placeholder="Nhập kết quả mong đợi">
+                      </textarea>
+                    </nz-form-control>
+                  </nz-form-item>
+                </form>
+
+              </nz-collapse-panel>
+            </nz-collapse>
+
+            <div *ngIf="mainData.length === 0" class="text-center text-muted py-5">
+              <nz-icon nzType="inbox" nzTheme="outline" style="font-size: 48px;"></nz-icon>
+              <p class="mt-2">Không có dữ liệu</p>
+            </div>
+          </div>
         </div>
       </div>
     </form>

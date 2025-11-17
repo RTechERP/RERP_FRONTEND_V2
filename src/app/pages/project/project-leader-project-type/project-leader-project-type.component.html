@@ -1,0 +1,27 @@
+<ng-container class="w-100">
+  <div class="card h-100 border-0 rounded-0">
+    <div class="card-header bg-white p-1">
+      <div class="d-flex gap-1">  
+        <button  nz-button nzSize="small" class="fs-12 button button-succes btn-add"  (click)="openModalAddLeaders()">
+          <img src="assets/icon/action_add_item_16.png" alt="Thêm mới "  /> Thêm
+        </button>
+
+        <button class="fs-12 btn-delete" nz-button nzType="default" nzSize="small" nzDanger  (click)="onDeleteLeader()">
+          <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />Xóa
+        </button>
+      </div>
+    </div>
+
+    <div class="card-body p-0">
+      <nz-splitter>
+        <nz-splitter-panel  [nzSize]="" [nzCollapsible]="true" nzResizable="true">
+          <div #tb_projectTypeLink></div>
+        </nz-splitter-panel>
+        <nz-splitter-panel nzSize="" [nzCollapsible]="true" nzResizable="true">
+          <div #tb_projectLeaderProjectTypeLink></div>
+        </nz-splitter-panel>
+      </nz-splitter>
+    </div>
+  </div>
+
+</ng-container>

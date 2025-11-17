@@ -29,9 +29,9 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { VehicleRepairService } from '../vehicle-repair-service/vehicle-repair.service';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { VehicleManagementService } from '../../vehicle-management/vehicle-management.service';
-import { filter, last } from 'rxjs';
+import { filter, forkJoin, last } from 'rxjs';
 import { debounce } from 'rxjs';
-import { NzModalService } from 'ng-zorro-antd/modal';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import {
   TabulatorFull as CellComponent,
   ColumnDefinition,
@@ -63,7 +63,8 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     NzSelectModule,
     NzTableModule,
     NzTabsModule,
-    NgbModalModule,HasPermissionDirective
+    NgbModalModule,HasPermissionDirective,
+    NzModalModule
   ],
   selector: 'app-vehicle-repair-type',
   templateUrl: './vehicle-repair-type.component.html',
@@ -118,7 +119,9 @@ export class VehicleRepairTypeComponent implements OnInit, AfterViewInit {
       this.vehicleRepairTypeTable = new Tabulator('#vehicleRepairType', {
         data: this.repairTypes,
         ...DEFAULT_TABLE_CONFIG,
+          selectable: true,
         paginationMode: 'local',
+        layout: 'fitDataStretch',
         columns: [
           {
             title: 'STT',
@@ -189,44 +192,54 @@ export class VehicleRepairTypeComponent implements OnInit, AfterViewInit {
     return [];
   }
 
-  deleteType() {
-    const rows = this.vehicleRepairTypeTable?.getSelectedRows() ?? [];
-    const selectedRows = this.vehicleRepairTypeTable?.getSelectedData() ?? [];
-    if (rows.length === 0 || selectedRows.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một loại để xóa.');
-      return;
-    }
+ deleteType() {
+  if (!this.vehicleRepairTypeTable) return;
 
-    const rowData = selectedRows[0];
-    const selectedIds = this.getSelectedIds();
+  const selectedRows = this.vehicleRepairTypeTable.getSelectedData() ?? [];
 
-    this.nzModal.confirm({
-      nzTitle: 'Xác nhận xóa',
-      nzContent: `Bạn có chắc chắn muốn xóa loại <strong>"${
-        rowData.RepairTypeName || 'N/A'
-      }"</strong> không?`,
-      nzOkText: 'Xóa',
-      nzOkType: 'primary',
-      nzOkDanger: true,
-      nzCancelText: 'Hủy',
-      nzOnOk: () => {
+  if (!selectedRows.length) {
+    this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một loại để xóa.');
+    return;
+  }
+
+  const selectedIds = selectedRows.map((row: any) => row.ID);
+  const names = selectedRows.map((row: any) => row.RepairTypeName || 'N/A');
+
+  this.nzModal.confirm({
+    nzTitle: 'Xác nhận xóa',
+    nzContent: `
+      Bạn có chắc chắn muốn xóa <strong>${selectedRows.length}</strong> loại sửa chữa này không?<br/>
+      <span>${names.join(', ')}</span>
+    `,
+    nzOkText: 'Xóa',
+    nzOkType: 'primary',
+    nzOkDanger: true,
+    nzCancelText: 'Hủy',
+    nzOnOk: () => {
+      // Tạo list request
+      const requests = selectedIds.map((id) => {
         const payload = {
           vehicleRepairType: {
-            ID: selectedIds[0],
+            ID: id,
             IsDeleted: true,
           },
         };
+        return this.VehicleRepairService.saveData(payload);
+      });
 
-        this.VehicleRepairService.saveData(payload).subscribe({
-          next: () => {
-            this.notification.success('Thành công', 'Xóa loại thành công');
-            this.getRepairType();
-          },
-          error: () => {
-            this.notification.error(NOTIFICATION_TITLE.error, 'Xóa loại thất bại');
-          },
+      // Gọi song song
+      return forkJoin(requests).toPromise()
+        .then(() => {
+          this.notification.success(
+            'Thành công',
+            `Đã xóa ${selectedRows.length} loại sửa chữa.`
+          );
+          this.getRepairType();
+        })
+        .catch(() => {
+          this.notification.error('Lỗi', 'Xóa loại sửa chữa thất bại.');
         });
-      },
-    });
-  }
+    },
+  });
+}
 }

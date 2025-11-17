@@ -1,0 +1,86 @@
+/* Áp dụng cho mobile (hoặc breakpoint bạn muốn) */
+@media (max-width: 991.98px) {
+  /* Khi chưa show: ẩn mặc định */
+  #navbarTogglerDemo01.collapse {
+    display: none !important;
+    transition: none !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Khi đang trong quá trình collapsing (bootstrap) — làm cho nó hiển thị ngay như dropdown */
+  #navbarTogglerDemo01.collapsing {
+    display: block !important;
+    position: absolute !important;
+    right: 1rem !important;
+    top: 56px !important; /* điều chỉnh theo chiều cao navbar của bạn */
+    width: 240px !important; /* chiều rộng dropdown */
+    z-index: 1000 !important;
+    transition: none !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Khi đã show (thực tế là dropdown) */
+  #navbarTogglerDemo01.collapse.show {
+    display: block !important;
+    position: absolute !important;
+    right: 1rem !important;
+    top: 56px !important;
+    width: 240px !important;
+    z-index: 1000 !important;
+    border-radius: 0.5rem;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  }
+
+  /* Chuyển menu thành cột trong dropdown */
+  #navbarTogglerDemo01 .navbar-nav {
+    flex-direction: column !important;
+    padding: 0.5rem;
+  }
+
+  /* Tùy chỉnh form / input trong dropdown */
+  #navbarTogglerDemo01 .form-control {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+  #navbarTogglerDemo01 .btn {
+    width: 100%;
+  }
+}
+
+nz-card {
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+::ng-deep .ant-card-head {
+  position: sticky !important;
+  top: 0;
+  background-color: ghostwhite !important;
+  padding: 0 0.5rem !important;
+}
+
+::ng-deep .ant-card-head-title {
+  padding-top: 0.5rem !important;
+  padding-left: 0.5rem !important;
+}
+
+::ng-deep .ant-card-body {
+  height: 90% !important;
+  padding: 1rem !important;
+}
+
+::ng-deep .ant-card-actions {
+  position: sticky !important;
+  bottom: 0;
+  justify-content: end !important;
+  flex-wrap: wrap !important;
+  background-color: ghostwhite !important;
+}
+
+::ng-deep .ant-card-actions li {
+  width: auto !important;
+  margin: 5px 5px !important;
+}

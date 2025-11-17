@@ -79,6 +79,7 @@ import { NOTIFICATION_TITLE } from '../../app.config';
     NzLayoutModule,
     NzCardModule,
     HasPermissionDirective,
+    // DisablePermissionDirective, // Thêm directive mới
   ],
 })
 export class TrainingRegistrationComponent implements OnInit, AfterViewInit {

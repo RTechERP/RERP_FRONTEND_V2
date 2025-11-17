@@ -138,7 +138,7 @@
           </div>
         </div>
         <div class="card-body p-0">
-          <nz-splitter>
+          <nz-splitter [nzLayout]="'vertical'">
             <nz-splitter-panel [nzCollapsible]="false" nzResizable="true">
               <!-- <div id="table_billImport"></div> -->
               <div class="position-relative">
@@ -193,7 +193,7 @@
               </ng-template>
               <nz-tabset style=" padding-left: 10px !important;" [nzTabBarExtraContent]="tabClose">
 
-                <nz-tab nzTitle="Thông tin phiếu nhập">
+                <nz-tab  nzTitle="Thông tin phiếu nhập">
                   <div id="table_billimportdetail"></div>
                 </nz-tab>
               </nz-tabset>

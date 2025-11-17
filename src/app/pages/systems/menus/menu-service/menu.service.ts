@@ -1,3 +1,4 @@
+import { MaterialDetailOfProductRtcComponent } from './../../../old/inventory-demo/material-detail-of-product-rtc/material-detail-of-product-rtc.component';
 import { Injectable, Type } from '@angular/core';
 // import { HOST } from '../../../../app.config';
 import { HttpClient } from '@angular/common/http';
@@ -85,6 +86,15 @@ import { AgvProductComponent } from '../../../warehouse/agv/agv-product/agv-prod
 import { HistoryImportExportComponent } from '../../../old/Sale/HistoryImportExport/history-import-export.component';
 import { HistoryBorrowSaleComponent } from '../../../old/Sale/HistoryBorrowSale/history-borrow-sale.component';
 import { ReportImportExportComponent } from '../../../old/Sale/ReportImportExport/report-import-export.component';
+import { InventoryDemoComponent } from '../../../old/inventory-demo/inventory-demo.component';
+import { BillImportTechnicalComponent } from '../../../old/bill-import-technical/bill-import-technical.component';
+import { InventoryBorrowSupplierDemoComponent } from '../../../old/inventory-demo/inventory-borrow-supplier-demo/inventory-borrow-supplier-demo.component';
+import { ProductReportNewComponent } from '../../../old/product-report-new/product-report-new.component';
+import { ProductExportAndBorrowComponent } from '../../../old/Technical/product-export-and-borrow/product-export-and-borrow.component';
+import { ListProductProjectComponent } from '../../../old/Sale/ListProductProject/list-product-project.component';
+import { SearchProductSerialNumberComponent } from '../../../old/Sale/SearchProductSerialNumber/search-product-serial-number.component';
+import { BillExportTechnicalComponent } from '../../../old/bill-export-technical/bill-export-technical.component';
+import { BorrowReportComponent } from '../../../old/Technical/borrow-report/borrow-report.component';
 
 @Injectable({
   providedIn: 'root',
@@ -177,8 +187,9 @@ export class MenuService {
                 key: 'InventoryComponent',
                 title: 'TỒN KHO',
                 isOpen: true,
-                isPermission:
-                  this.permissionService.hasPermission('N27,N29,N31,N30,N1,N36'),
+                isPermission: this.permissionService.hasPermission(
+                  'N27,N29,N31,N30,N1,N36'
+                ),
                 comp: InventoryComponent,
                 //   icon: 'assets/icon/layers.png',
               },
@@ -187,8 +198,9 @@ export class MenuService {
                 key: 'BillImportComponent',
                 title: 'PHIẾU NHẬP',
                 isOpen: true,
-                isPermission:
-                  this.permissionService.hasPermission('N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'),
+                isPermission: this.permissionService.hasPermission(
+                  'N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'
+                ),
                 comp: BillImportComponent,
                 //   icon: 'assets/icon/layers.png',
               },
@@ -197,8 +209,9 @@ export class MenuService {
                 key: 'BillExportComponent',
                 title: 'PHIẾU XUẤT',
                 isOpen: true,
-                isPermission:
-                  this.permissionService.hasPermission('N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'),
+                isPermission: this.permissionService.hasPermission(
+                  'N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'
+                ),
                 comp: BillExportComponent,
                 //   icon: 'assets/icon/layers.png',
               },
@@ -217,8 +230,7 @@ export class MenuService {
                 key: 'HistoryBorrowSaleComponent',
                 title: 'LỊCH SỬ MƯỢN SẢN PHẨM',
                 isOpen: true,
-                isPermission:
-                  this.permissionService.hasPermission(''),
+                isPermission: this.permissionService.hasPermission(''),
                 comp: HistoryBorrowSaleComponent,
                 //   icon: 'assets/icon/layers.png',
               },
@@ -232,8 +244,95 @@ export class MenuService {
                 comp: ReportImportExportComponent,
                 //   icon: 'assets/icon/layers.png',
               },
-            ]
-          }
+              {
+                kind: 'leaf',
+                key: 'ListProductProjectComponent',
+                title: 'DANH SÁCH SẢN PHẨM THEO DỰ ÁN',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: ListProductProjectComponent,
+
+              },{
+                kind: 'leaf',
+                key: 'SearchProductSerialNumberComponent',
+                title: 'TRA CỨU SERIAL NUMBER',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: SearchProductSerialNumberComponent,
+              }
+            ],
+          },
+          {
+            kind: 'group',
+            key: 'Demo',
+            title: 'Phòng Kỹ Thuật',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            //   icon: 'assets/icon/layers.png',
+            children: [
+              {
+                kind: 'leaf',
+                key: 'InventoryDemoComponent',
+                title: 'TỒN KHO DEMO',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: InventoryDemoComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+
+              {
+                kind: 'leaf',
+                key: 'BillImportTechnicalComponent',
+                title: 'PHIẾU NHẬP KHO DEMO',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: BillImportTechnicalComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+              {
+                kind: 'leaf',
+                key: 'BillExportTechnicalComponent',
+                title: 'PHIẾU XUẤT KHO DEMO',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: BillExportTechnicalComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+              {
+                kind: 'leaf',
+                key: 'InventoryBorrowNCCComponent',
+                title: 'BÁO CÁO MƯỢN',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: InventoryBorrowNCCComponent,
+                //   icon: 'assets/icon/layers.png',
+              },{
+                kind: 'leaf',
+                key:'ProductReportNewRtcComponent',
+                title:'LỊCH SỬ NHÂP XUẤT',
+                isOpen:true,
+                isPermission:this.permissionService.hasPermission(''),
+                comp:ProductReportNewComponent,
+              },
+              {
+                kind: 'leaf',
+                key: 'ProductExportAndBorrowComponent',
+                title: 'DANH SÁCH SẢN PHẨM KHÔNG DÙNG',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: ProductExportAndBorrowComponent,
+              },
+              {
+                kind: 'leaf',
+                key: 'BorrowReportComponent',
+                title: 'BÁO CÁO MƯỢN NCC DEMO',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: BorrowReportComponent,
+
+              }
+            ],
+          },
         ],
       },
       //#endregion
@@ -784,7 +883,8 @@ export class MenuService {
             key: 'RulePayComponent',
             title: 'ĐIỀU KHOẢN THANH TOÁN',
             isOpen: true,
-            isPermission: this.permissionService.hasPermission('N22,N33,N35,N1'),
+            isPermission:
+              this.permissionService.hasPermission('N22,N33,N35,N1'),
             comp: RulePayComponent,
             //   icon: 'assets/icon/layers.png',
           },
@@ -811,7 +911,8 @@ export class MenuService {
             key: 'FirmComponent',
             title: 'HÃNG',
             isOpen: true,
-            isPermission: this.permissionService.hasPermission('N27,N31,N1,N35'),
+            isPermission:
+              this.permissionService.hasPermission('N27,N31,N1,N35'),
             comp: FirmComponent,
             //   icon: 'assets/icon/layers.png',
           },

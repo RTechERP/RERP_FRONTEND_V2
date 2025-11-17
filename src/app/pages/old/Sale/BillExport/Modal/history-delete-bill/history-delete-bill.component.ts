@@ -1,11 +1,4 @@
-import {
-  Component,
-  OnInit,
-  AfterViewInit,
-  ViewChild,
-  input,
-  Input,
-} from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, Input } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 // import * as bootstrap from 'bootstrap';
@@ -31,24 +24,22 @@ import { NzProgressModule } from 'ng-zorro-antd/progress';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
-import { ProductSaleDetailComponent } from '../../../ProductSale/product-sale-detail/product-sale-detail.component';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { BillExportService } from '../../bill-export-service/bill-export.service';
 import { ProductsaleServiceService } from '../../../ProductSale/product-sale-service/product-sale-service.service';
 import { DateTime } from 'luxon';
 // Thêm các import này vào đầu file
-import {
-  EnvironmentInjector,
-  ApplicationRef,
-  Type,
-  createComponent,
-} from '@angular/core';
-import { SelectControlComponent } from '../select-control/select-control.component';
-import { ProjectComponent } from '../../../../../project/project.component';
+import { EnvironmentInjector, ApplicationRef, Type, createComponent } from '@angular/core';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+
+
+import { ProductSaleDetailComponent } from '../../../ProductSale/product-sale-detail/product-sale-detail.component';
+import { SelectControlComponent } from '../select-control/select-control.component';
+import { ProjectComponent } from '../../../../project/project.component';
 @Component({
   selector: 'app-history-delete-bill',
+  standalone: true,
   imports: [
     CommonModule,
     FormsModule,
@@ -63,7 +54,6 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
     NzFormModule,
     NzInputNumberModule,
     NgbModule,
-    NzFormModule,
     NzDividerModule,
     NzDatePickerModule,
     SelectControlComponent,

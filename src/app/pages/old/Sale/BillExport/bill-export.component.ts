@@ -59,6 +59,7 @@ interface BillExport {
   CreatDate: Date | string;
   RequestDate: Date | string;
 }
+
 @Component({
   selector: 'app-bill-export',
   standalone: true,
@@ -82,7 +83,12 @@ interface BillExport {
     NzMenuModule,
     NzSpinModule,
     NzTabsModule,
-    HasPermissionDirective
+    HasPermissionDirective,
+    // BillExportDetailComponent,
+    HistoryDeleteBillComponent,
+    BillExportSyntheticComponent,
+    ScanBillComponent,
+    BillDocumentExportComponent
   ],
   templateUrl: './bill-export.component.html',
   styleUrl: './bill-export.component.css',
@@ -470,19 +476,33 @@ export class BillExportComponent implements OnInit, AfterViewInit {
 
   //mo modal billdocumentExport
   openModalBillDocumentExport() {
-    if (this.id == 0) {
+    let exportId = this.id;
+    let code = '';
+    debugger
+    if (!exportId || exportId === 0) {
+      const selectedRows = this.table_billExport?.getSelectedRows?.() || [];
+      if (selectedRows.length > 0) {
+        const rowData = selectedRows[0].getData();
+        exportId = rowData?.ID || 0;
+        code = rowData?.Code || '';
+      }
+    }
+    if (!exportId || exportId === 0) {
       this.notification.info('Thông báo', 'Vui lòng chọn 1 phiếu xuất!');
-      this.id = 0;
       return;
     }
-    const code = this.data[0].Code;
+    if (!code) {
+      const selected = this.data?.find?.((item) => item.ID === exportId);
+      code = selected?.Code || '';
+    }
+
     const modalRef = this.modalService.open(BillDocumentExportComponent, {
       centered: true,
       size: 'xl',
       backdrop: 'static',
       keyboard: false,
     });
-    modalRef.componentInstance.id = this.id;
+    modalRef.componentInstance.id = exportId;
     modalRef.componentInstance.code = code;
     modalRef.result.catch((result) => {
       if (result == true) {
@@ -937,24 +957,29 @@ export class BillExportComponent implements OnInit, AfterViewInit {
   }
   //#endregion
   onExportGroupItem(type: number) {
-    if (!this.id || this.id == 0) {
+    let exportId = this.id;
+    if (!exportId || exportId === 0) {
+      const selectedRows = this.table_billExport?.getSelectedRows?.() || [];
+      if (selectedRows.length > 0) {
+        const rowData = selectedRows[0].getData();
+        exportId = rowData?.ID || 0;
+      }
+    }
+    if (!exportId || exportId === 0) {
       this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn bản ghi cần xuất file');
       return;
     }
-    const selectedHandover = this.data.find((item) => item.ID === this.id);
-    this.billExportService.export(this.id, type).subscribe({
+
+    const selectedHandover = this.data.find((item) => item.ID === exportId);
+    this.billExportService.export(exportId, type).subscribe({
       next: (res) => {
         const url = window.URL.createObjectURL(res);
         const a = document.createElement('a');
         const now = new Date();
-        const dateString = `${now.getFullYear().toString().slice(-2)}-${(
-          now.getMonth() + 1
-        )
+        const dateString = `${now.getFullYear().toString().slice(-2)}-${(now.getMonth() + 1)
           .toString()
           .padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
-        const fileName = `${
-          selectedHandover?.Code || 'export'
-        }_${dateString}.xlsx`;
+        const fileName = `${selectedHandover?.Code || 'export'}_${dateString}.xlsx`;
         a.href = url;
         a.download = fileName;
         document.body.appendChild(a);

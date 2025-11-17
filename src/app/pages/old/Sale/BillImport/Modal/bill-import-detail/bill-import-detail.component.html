@@ -211,15 +211,15 @@
     </div>
   </form>
 
-  <nz-tabset nzSize="small" (nzSelectedIndexChange)="onTabChange($event)">
-    <nz-tab nzTitle="Danh sách sản phẩm">
-      <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải..." style="height: 100%; flex-grow: 1;">
-        <div id="table_BillImportDetails"></div>
+  <nz-tabset nzSize="small" [nzAnimated]="false" (nzSelectedIndexChange)="onTabChange($event)">
+    <nz-tab nzTitle="Danh sách sản phẩm" nzForceRender="true">
+      <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải..." style="height: 100%;">
+        <div id="table_BillImportDetails" style="height: 38vh;"></div>
       </nz-spin>
     </nz-tab>
-    <nz-tab nzTitle="Hồ sơ đi kèm">
-      <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải..." style="height: 100%; flex-grow: 1;">
-        <div id="table_DocumnetImport"></div>
+    <nz-tab nzTitle="Hồ sơ đi kèm" nzForceRender="true">
+      <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải..." style="height: 100%;">
+        <div id="table_DocumnetImport" style="height: 38vh;"></div>
       </nz-spin>
     </nz-tab>
   </nz-tabset>

@@ -190,9 +190,56 @@ export class BillImportComponent implements OnInit, AfterViewInit {
   }
   searchData() {
     this.loadDataBillImport();
-    // this.sizeSearch = '';
   }
-  convertExport(){}
+  convertExport(){
+    // Get selected rows from the table
+    const selectedRows = this.table_billImport?.getSelectedRows();
+
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.info('Thông báo', 'Vui lòng chọn ít nhất một phiếu nhập để chuyển đổi!');
+      return;
+    }
+
+    // Get the list of bill import IDs
+    const lstBillImportID: number[] = selectedRows.map((row: any) => {
+      const rowData = row.getData();
+      return rowData.ID;
+    }).filter((id: number) => id > 0);
+
+    if (lstBillImportID.length === 0) {
+      this.notification.warning('Thông báo', 'Không tìm thấy phiếu nhập hợp lệ để chuyển đổi!');
+      return;
+    }
+
+    // Get the first selected bill import for default values
+    const firstBillImport = selectedRows[0].getData();
+
+    // Import BillExportDetailComponent dynamically
+    import('../BillExport/Modal/bill-export-detail/bill-export-detail.component').then(m => {
+      const modalRef = this.modalService.open(m.BillExportDetailComponent, {
+        centered: true,
+        size: 'xl',
+        backdrop: 'static',
+        keyboard: false,
+      });
+
+      // Pass data to the modal matching the C# form logic
+      modalRef.componentInstance.lstBillImportID = lstBillImportID;
+      modalRef.componentInstance.wareHouseCode = this.wareHouseCode;
+      modalRef.componentInstance.billImport = firstBillImport;
+      modalRef.componentInstance.isAddExport = true;
+      modalRef.componentInstance.checkConvert = false;
+
+      modalRef.result.catch((result) => {
+        if (result === true) {
+          this.loadDataBillImport();
+        }
+      });
+    }).catch(err => {
+      console.error('Error loading BillExportDetailComponent:', err);
+      this.notification.error('Thông báo', 'Không thể mở form chuyển đổi phiếu xuất!');
+    });
+  }
 
   openModalBillImportDetail(ischeckmode: boolean) {
     this.isCheckmode = ischeckmode;
@@ -204,7 +251,6 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     console.log('is', this.isCheckmode);
     const modalRef = this.modalService.open(BillImportDetailComponent, {
       centered: true,
-      // windowClass: 'full-screen-modal',
       size: 'xl',
       backdrop: 'static',
       keyboard: false,
@@ -234,17 +280,14 @@ export class BillImportComponent implements OnInit, AfterViewInit {
           this.selectedKhoTypes = this.dataProductGroup.map((item) => item.ID);
           this.searchParams.listproductgroupID =
             this.selectedKhoTypes.join(',');
-          // Load data sau khi đã có product group
           this.loadDataBillImport();
         } else {
-          // Nếu không có data, vẫn load với listproductgroupID rỗng
           this.searchParams.listproductgroupID = '';
           this.loadDataBillImport();
         }
       },
       error: (err) => {
         console.error('Lỗi khi lấy nhóm vật tư', err);
-        // Vẫn load data ngay cả khi lỗi getProductGroup
         this.searchParams.listproductgroupID = '';
         this.loadDataBillImport();
       },
@@ -488,7 +531,6 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     window.URL.revokeObjectURL(link.href);
   }
   //#endregion
-  //Xuất Excel theo mẫu
   onExportExcel() {
     if (!this.id || this.id === 0) {
       this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn bản ghi cần xuất file');
@@ -528,7 +570,6 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     });
   }
 
-  // Xuất Excel KT (tương tự WinForm toolStripButton1_Click)
   onExportExcelKT() {
     if (!this.id || this.id === 0) {
       this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn bản ghi cần xuất file');
@@ -569,19 +610,32 @@ export class BillImportComponent implements OnInit, AfterViewInit {
   }
   //hồ sơ chứng từ
   openModalBillDocumentImport() {
-    if (this.id == 0) {
+    let importId = this.id;
+    let code = '';
+    if (!importId || importId === 0) {
+      const selectedRows = this.table_billImport?.getSelectedRows?.() || [];
+      if (selectedRows.length > 0) {
+        const rowData = selectedRows[0].getData();
+        importId = rowData?.ID || 0;
+        code = rowData?.BillImportCode || '';
+      }
+    }
+    if (!importId || importId === 0) {
       this.notification.info('Thông báo', 'Vui lòng chọn 1 phiếu nhập!');
-      this.id = 0;
       return;
     }
-    const code = this.data[0].BillImportCode;
+    if (!code) {
+      const selected = this.data?.[0];
+      code = selected?.BillImportCode || '';
+    }
+
     const modalRef = this.modalService.open(BillDocumentImportComponent, {
       centered: true,
       size: 'xl',
       backdrop: 'static',
       keyboard: false,
     });
-    modalRef.componentInstance.id = this.id;
+    modalRef.componentInstance.id = importId;
     modalRef.componentInstance.code = code;
     modalRef.result.catch((result) => {
       if (result == true) {
@@ -733,13 +787,25 @@ addAttachment(){
         ...DEFAULT_TABLE_CONFIG,
         data: this.dataTableBillImport,
         height: '90vh',
-        layout: 'fitDataFill',
+        layout: 'fitDataStretch',
         pagination: true,
         selectableRows: 1,
         movableColumns: true,
         resizableRows: true,
         reactiveData: true,
+        paginationMode: 'local',
         rowContextMenu: rowMenu,
+         langs: {
+    vi: {
+      pagination: {
+        first: '<<',
+        last: '>>',
+        prev: '<',
+        next: '>',
+      },
+    },
+  },
+  locale: 'vi',
         // rowHeader: {
         //   headerSort: false,
         //   resizable: false,
@@ -1168,8 +1234,8 @@ addAttachment(){
       this.table_billImportDetail = new Tabulator('#table_billimportdetail', {
         ...DEFAULT_TABLE_CONFIG,
         data: this.dataTableBillImportDetail,
-        layout: 'fitDataFill',
-        height: '90vh',
+        layout: 'fitDataStretch',
+        height: '39vh',
         pagination: true,
         movableColumns: true,
         resizableRows: true,
@@ -1230,6 +1296,7 @@ addAttachment(){
             field: 'DateSomeBill',
             hozAlign: 'left',
             headerHozAlign: 'center',
+            editor: 'datetime',
             formatter: (cell) => {
               const value = cell.getValue();
               return value

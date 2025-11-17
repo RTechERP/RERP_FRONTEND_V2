@@ -1,5 +1,14 @@
-import { NzNotificationService } from 'ng-zorro-antd/notification'
-import { Component, OnInit, Input, Output, EventEmitter, inject, AfterViewInit } from '@angular/core';
+import { log } from 'ng-zorro-antd/core/logger';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import {
+  Component,
+  OnInit,
+  Input,
+  Output,
+  EventEmitter,
+  inject,
+  AfterViewInit,
+} from '@angular/core';
 import { BillImportChoseProductFormComponent } from '../bill-import-chose-product-form/bill-import-chose-product-form.component';
 import { DateTime } from 'luxon';
 import { CommonModule } from '@angular/common';
@@ -14,7 +23,12 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { TsAssetManagementPersonalService } from '../../ts-asset-management-personal/ts-asset-management-personal-service/ts-asset-management-personal.service';
-import { TabulatorFull as Tabulator, CellComponent, ColumnDefinition, RowComponent } from 'tabulator-tables';
+import {
+  TabulatorFull as Tabulator,
+  CellComponent,
+  ColumnDefinition,
+  RowComponent,
+} from 'tabulator-tables';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { ReactiveFormsModule } from '@angular/forms';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
@@ -22,7 +36,17 @@ import { Editor } from 'tabulator-tables';
 import { BillImportTechnicalService } from '../bill-import-technical-service/bill-import-technical.service';
 import { NzFormModule } from 'ng-zorro-antd/form'; //
 import { BillImportChoseSerialComponent } from '../bill-import-chose-serial/bill-import-chose-serial.component';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import {
+  FormGroup,
+  FormBuilder,
+  Validators,
+  AbstractControl,
+  ValidationErrors,
+} from '@angular/forms';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { firstValueFrom } from 'rxjs';
+import { TbProductRtcService } from '../../tb-product-rtc/tb-product-rtc-service/tb-product-rtc.service';
+import { AppUserService } from '../../../../services/app-user.service';
 
 @Component({
   standalone: true,
@@ -43,18 +67,19 @@ import { FormGroup, FormBuilder, Validators } from '@angular/forms';
   ],
   selector: 'app-bill-import-technical-form',
   templateUrl: './bill-import-technical-form.component.html',
-  styleUrls: ['./bill-import-technical-form.component.css']
+  styleUrls: ['./bill-import-technical-form.component.css'],
 })
 export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
   // danh sách loại phiếu nhập kĩ thuật
   billType: any = [
-    { ID: 1, Name: "Mượn NCC" },
-    { ID: 2, Name: "Mua NCC" },
-    { ID: 3, Name: "Trả" },
-    { ID: 4, Name: "Nhập nội bộ" },
-    { ID: 5, Name: "Y/c nhập kho" },
-    { ID: 6, Name: "Nhập hàng bảo hành" },
-    { ID: 7, Name: "NCC tặng/cho" },
+    { ID: 0, Name: '--Chọn loại phiếu--' },
+    { ID: 1, Name: 'Mượn NCC' },
+    { ID: 2, Name: 'Mua NCC' },
+    { ID: 3, Name: 'Trả' },
+    { ID: 4, Name: 'Nhập nội bộ' },
+    { ID: 5, Name: 'Y/c nhập kho' },
+    { ID: 6, Name: 'Nhập hàng bảo hành' },
+    { ID: 7, Name: 'NCC tặng/cho' },
   ];
   @Input() masterId!: number;
   @Input() dataEdit: any;
@@ -62,7 +87,8 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
   formDeviceInfo!: FormGroup;
   @Output() closeModal = new EventEmitter<void>();
   @Output() formSubmitted = new EventEmitter<void>();
-  employeeSelectOptions: { label: string, value: number }[] = [];
+  @Input() warejouseID: number = 1;
+  employeeSelectOptions: { label: string; value: number }[] = [];
   // danh sách chứng từ
   documentBillImport: any[] = [];
   // Thiết bị được chọn
@@ -77,28 +103,59 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
   rulePayList: any[] = [];
   // Danh sách nhân viên
   emPloyeeLists: any[] = [];
+  // Danh sách sản phẩm cho select dropdown
+  productOptions: any[] = [];
+
+  // PHASE 6.3: Permission-related properties
+  isAdmin: boolean = false;
+  currentUserID: number = 0;
+  currentEmployeeID: number = 0;
+  currentDepartmentID: number = 0;
+  canEditRestrictedFields: boolean = false; // Can edit SomeBill, DateSomeBill, DPO, TaxReduction, COFormE
+  isFormDisabled: boolean = false; // Disable entire form when approved and not admin
+
   private ngbModal = inject(NgbModal);
   public activeModal = inject(NgbActiveModal);
-  constructor(private TsAssetManagementPersonalService: TsAssetManagementPersonalService,
+  constructor(
+    private TsAssetManagementPersonalService: TsAssetManagementPersonalService,
     private billImportTechnicalService: BillImportTechnicalService,
     private notification: NzNotificationService,
-  ) { }
+    private tbProductRtcService: TbProductRtcService,
+    private appUserService: AppUserService
+  ) {}
+
+  // PHASE 3.1: Custom validator - SupplierSaleID OR CustomerID must be filled
+  supplierOrCustomerValidator(
+    control: AbstractControl
+  ): ValidationErrors | null {
+    const parent = control.parent;
+    if (!parent) return null;
+
+    const supplierSaleID = parent.get('SupplierSaleID')?.value;
+    const customerID = parent.get('CustomerID')?.value;
+
+    if (!supplierSaleID && !customerID) {
+      return { supplierOrCustomerRequired: true };
+    }
+
+    return null;
+  }
   // Khởi tạo form
   initForm() {
     this.formDeviceInfo = new FormBuilder().group({
       ID: [null],
       BillCode: ['', Validators.required],
-      CreatDate: [null, Validators.required],
+      CreatDate: [new Date(), Validators.required],
       Deliver: ['', Validators.required],
       BillType: [null],
       WarehouseType: ['', Validators.required],
       DeliverID: [null, Validators.required],
       ReceiverID: [null, Validators.required],
-      WarehouseID: [1, Validators.required],
-      SupplierSaleID: [null, Validators.required],
-      RulePayID: [null, Validators.required],
-      CustomerID: [null, Validators.required],
-      ApproverID: [null, Validators.required],
+      WarehouseID: [this.warejouseID, Validators.required],
+      SupplierSaleID: [null, this.supplierOrCustomerValidator.bind(this)],
+      RulePayID: [34, Validators.required],
+      CustomerID: [null, this.supplierOrCustomerValidator.bind(this)],
+      ApproverID: [54, Validators.required],
       Receiver: [''],
       Status: [false],
       Suplier: [''],
@@ -109,61 +166,196 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       UpdatedBy: [''],
       UpdatedDate: [null],
       Image: [''],
-      BillTypeNew: [null],
+      BillTypeNew: [0, Validators.required],
       IsBorrowSupplier: [false],
       BillDocumentImportType: [null],
       DateRequestImport: [null],
       IsNormalize: [false],
     });
+
+    this.formDeviceInfo.get('SupplierSaleID')?.valueChanges.subscribe(() => {
+      this.formDeviceInfo
+        .get('CustomerID')
+        ?.updateValueAndValidity({ onlySelf: true, emitEvent: false });
+    });
+    this.formDeviceInfo.get('CustomerID')?.valueChanges.subscribe(() => {
+      this.formDeviceInfo
+        .get('SupplierSaleID')
+        ?.updateValueAndValidity({ onlySelf: true, emitEvent: false });
+    });
   }
   getCustomer() {
-    this.billImportTechnicalService.getCustomer().subscribe((res: any) => {
-      this.customerList = res.data;
-
-    });
+    this.billImportTechnicalService
+      .getCustomer(1, 10000, '', 0, 0)
+      .subscribe((res: any) => {
+        // API returns { status, data: { data: [], data1: [], data2: [] } }
+        this.customerList = res.data?.data || [];
+        console.log('Customer List:', this.customerList);
+      });
   }
   getNCC() {
     this.billImportTechnicalService.getNCC().subscribe((res: any) => {
-      this.nccList = res.data;
+      // API returns { status, data: [] } - using ApiResponseFactory
+      this.nccList = res.data || [];
+      console.log('NCC List:', this.nccList);
     });
   }
   getRulepay() {
     this.billImportTechnicalService.getRulepay().subscribe((res: any) => {
-      this.rulePayList = res.data;
+      // API returns { status, data: [] } - using ApiResponseFactory
+      this.rulePayList = res.data || [];
+      console.log('RulePay List:', this.rulePayList);
     });
   }
   getListEmployee() {
-    this.TsAssetManagementPersonalService.getListEmployee().subscribe((respon: any) => {
-      this.emPloyeeLists = respon.employees;
-      this.employeeSelectOptions = this.emPloyeeLists.map((e: any) => ({
-        label: e.FullName,
-        value: e.ID
-      }));
+    const request = {
+      status: 0,
+      departmentid: 0,
+      keyword: '',
+    };
+    this.TsAssetManagementPersonalService.getEmployee(request).subscribe(
+      (respon: any) => {
+        // API returns { status, data: [] } - using ApiResponseFactory
+        this.emPloyeeLists = respon.data || [];
+        console.log('Employee List:', this.emPloyeeLists);
 
+        this.employeeSelectOptions = this.emPloyeeLists.map((e: any) => ({
+          label: e.FullName,
+          value: e.ID,
+        }));
 
-      if (this.deviceTempTable) {
-        this.deviceTempTable.setColumns(this.deviceTempTable.getColumnDefinitions()); // force update
+        // Force update table columns to refresh employee dropdown
+        if (this.deviceTempTable) {
+          this.deviceTempTable.setColumns(
+            this.deviceTempTable.getColumnDefinitions()
+          );
+        }
       }
-    });
+    );
+  }
+
+  // Load danh sách sản phẩm cho select dropdown
+  getProductList() {
+    const request = {
+      productGroupID: 0,
+      keyWord: '',
+      checkAll: 1,
+      warehouseID: 0,
+      productRTCID: 0,
+      productGroupNo: '',
+      page: 1,
+      size: 100000, // Load tất cả sản phẩm
+    };
+
+    this.tbProductRtcService
+      .getProductRTC(request)
+      .subscribe((response: any) => {
+        if (response && response.data) {
+          this.productOptions = response.data.products.map((p: any) => ({
+            ID: p.ID,
+            ProductCode: p.ProductCode,
+            ProductName: p.ProductName,
+            ProductCodeRTC: p.ProductCodeRTC,
+            Maker: p.Maker,
+            UnitCountID: p.UnitCountID,
+            UnitCountName: p.UnitCountName,
+            NumberInStore: p.NumberInStore,
+          }));
+          console.log('product', this.productOptions);
+
+          if (this.deviceTempTable) {
+            this.deviceTempTable.redraw(true);
+          }
+          // Force update table columns nếu table đã được tạo
+          // if (this.deviceTempTable) {
+          //   this.deviceTempTable.setColumns(this.deviceTempTable.getColumnDefinitions());
+          // }
+        }
+      });
   }
 
   ngAfterViewInit(): void {
     this.drawTableSelectedDevices();
   }
+
+  // PHASE 6.3: Initialize user permissions
+  initializePermissions() {
+    const currentUser = this.appUserService.currentUser;
+    this.isAdmin = currentUser?.IsAdmin || false;
+    this.currentUserID = currentUser?.ID || 0;
+    this.currentEmployeeID = currentUser?.EmployeeID || 0;
+    this.currentDepartmentID = currentUser?.DepartmentID || 0;
+
+    console.log('User Permissions:', {
+      isAdmin: this.isAdmin,
+      userID: this.currentUserID,
+      employeeID: this.currentEmployeeID,
+      departmentID: this.currentDepartmentID,
+    });
+
+    // Apply permissions to form controls
+    this.applyFormPermissions();
+  }
+
+  // PHASE 6.3: Apply permissions to form fields using reactive form validation
+  applyFormPermissions() {
+    // Check if user can edit restricted fields (SomeBill, DateSomeBill, DPO, TaxReduction, COFormE)
+    // Only DeliverID or Admin can edit these fields
+    const deliverID = this.formDeviceInfo.get('DeliverID')?.value || 0;
+    this.canEditRestrictedFields = this.isAdmin || this.currentUserID === deliverID;
+
+    // Check if form should be disabled (approved bill and not admin)
+    const isApproved = this.formDeviceInfo.get('Status')?.value === true;
+    this.isFormDisabled = isApproved && !this.isAdmin;
+
+    console.log('Form Permissions:', {
+      deliverID: deliverID,
+      canEditRestrictedFields: this.canEditRestrictedFields,
+      isFormDisabled: this.isFormDisabled,
+      isApproved: isApproved
+    });
+
+    // Disable entire form if bill is approved and user is not admin
+    if (this.isFormDisabled) {
+      this.formDeviceInfo.disable();
+      console.log('Form disabled: Bill is approved and user is not admin');
+    } else {
+      this.formDeviceInfo.enable();
+
+      // BillCode is always read-only (auto-generated)
+      this.formDeviceInfo.get('BillCode')?.disable();
+    }
+
+    // Note: Grid column restrictions (SomeBill, DateSomeBill, DPO, TaxReduction, COFormE)
+    // will be handled in the Tabulator column definitions using canEditRestrictedFields flag
+  }
+
+  // PHASE 6.3: Update permissions when DeliverID changes
+  onDeliverIDChanged() {
+    this.applyFormPermissions();
+  }
+
   ngOnInit() {
     this.initForm();
+    this.initializePermissions();
     if (this.dataEdit) {
       this.formDeviceInfo.patchValue({
         ...this.dataEdit,
-        CreatDate: this.dataEdit?.CreatDate ? DateTime.fromISO(this.dataEdit.CreatDate).toJSDate() : null,
-        DateRequestImport: this.dataEdit?.DateRequestImport ? DateTime.fromISO(this.dataEdit.DateRequestImport).toJSDate() : null
+        CreatDate: this.dataEdit?.CreatDate
+          ? DateTime.fromISO(this.dataEdit.CreatDate).toJSDate()
+          : null,
+        DateRequestImport: this.dataEdit?.DateRequestImport
+          ? DateTime.fromISO(this.dataEdit.DateRequestImport).toJSDate()
+          : null,
       });
     }
     if (this.masterId) {
-      this.billImportTechnicalService.getBillImportDetail(this.masterId).subscribe(res => {
-        this.selectedDevices = res.billDetail || [];
-        this.drawTableSelectedDevices();
-      });
+      this.billImportTechnicalService
+        .getBillImportDetail(this.masterId)
+        .subscribe((res) => {
+          this.selectedDevices = res.billDetail || [];
+          this.drawTableSelectedDevices();
+        });
     }
     this.getNewCode();
     this.getRulepay();
@@ -171,6 +363,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     this.getCustomer();
     this.getDocumentImport();
     this.getListEmployee();
+    this.getProductList(); // Load danh sách sản phẩm
   }
   changeStatus() {
     this.getNewCode();
@@ -180,22 +373,22 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     this.activeModal.dismiss('cancel');
   }
   getDocumentImport() {
-    this.billImportTechnicalService.getDocumentBillImport(1, 1).subscribe((respon: any) => {
-      this.documentBillImport = respon.document;
-
-    });
+    this.billImportTechnicalService
+      .getDocumentBillImport(1, 1)
+      .subscribe((respon: any) => {
+        this.documentBillImport = respon.document;
+      });
   }
   getNewCode() {
     const billType = this.formDeviceInfo.get('BillTypeNew')?.value ?? 0;
     this.billImportTechnicalService.getBillCode(billType).subscribe({
       next: (res: any) => {
-
         this.formDeviceInfo.patchValue({ BillCode: res.data });
       },
       error: (err: any) => {
         console.error(err);
         this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy mã phiếu');
-      }
+      },
     });
   }
   openModalChoseProduct() {
@@ -205,21 +398,24 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       keyboard: false,
       centered: true,
     });
-    modalRef.componentInstance.formSubmitted.subscribe((selectedProducts: any[]) => {
-      this.selectedDevices = [...this.selectedDevices, ...selectedProducts];
+    modalRef.componentInstance.formSubmitted.subscribe(
+      (selectedProducts: any[]) => {
+        this.selectedDevices = [...this.selectedDevices, ...selectedProducts];
 
-      if (this.deviceTempTable) {
-        this.deviceTempTable.setData(this.selectedDevices);
+        if (this.deviceTempTable) {
+          this.deviceTempTable.setData(this.selectedDevices);
+        }
       }
-    });
+    );
   }
+  prevProductID: any = null;
   // Vẽ bảng tạm chọn thiết bị
   drawTableSelectedDevices() {
     this.deviceTempTable = new Tabulator('#deviceTempTable', {
       layout: 'fitColumns',
       data: this.selectedDevices,
       selectableRows: true,
-      height:'47vh',
+      height: '47vh',
       pagination: true,
       paginationSize: 10,
       paginationSizeSelector: [5, 10, 20, 50],
@@ -227,65 +423,250 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         headerWordWrap: true,
         headerVertical: false,
         headerHozAlign: 'center',
-        resizable: true
+        resizable: true,
       },
       columns: [
         {
-          title: "",
-          field: "addRow",
-          hozAlign: "center",
+          title: '',
+          field: 'addRow',
+          hozAlign: 'center',
           width: 40,
           headerSort: false,
           titleFormatter: () => `
   <div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i> </div>`,
-          headerClick: () => { this.addRow(); },
-          formatter: () => `<i class="fas fa-times text-danger cursor-pointer" title="Xóa dòng"></i>`,
-          cellClick: (e, cell) => { cell.getRow().delete(); },
-        },
-        { title: "STT", formatter: "rownum", hozAlign: "center", width: 60 },
-        { title: "Mã sản phẩm", field: "ProductCode" },
-        { title: "Tên sản phẩm", field: "ProductName" },
-        { title: "ProductID", field: "ProductID", visible: false },
-        { title: "Code RTC", field: "ProductCodeRTC", visible: false },
-        { title: "Đơn vị tính", field: "UnitCountName" },
-        {
-          title: "Người mượn",
-          field: "EmployeeIDBorrow",
-          editor: "select" as Editor,
-          editorParams: {
-            values: this.employeeSelectOptions
+          headerClick: () => {
+            this.addRow();
           },
-          formatter: (cell) => {
-            const val = cell.getValue();
-            const emp = this.employeeSelectOptions.find(e => e.value === val);
-            return emp ? emp.label : '';
-          }
+          formatter: () =>
+            `<i class="fas fa-times text-danger cursor-pointer" title="Xóa dòng"></i>`,
+          cellClick: (e, cell) => {
+            cell.getRow().delete();
+          },
         },
+        { title: 'STT', formatter: 'rownum', hozAlign: 'center', width: 60 },
         {
-          title: "DeadlineReturnNCC",
-          field: "DeadlineReturnNCC",
-          editor: "input",
-          editorParams: {
-            elementAttributes: {
-              type: "date"
+          title: 'Mã sản phẩm',
+          field: 'ProductID',
+          width: 150,
+          editor: 'list',
+          editorParams: () => {
+            // Tạo object với key là ID, value là ProductCode
+            const values: any = {};
+            this.productOptions.forEach((p) => {
+              values[p.ID] = p.ProductCode;
+            });
+            return {
+              values: values,
+              autocomplete: true,
+              listOnEmpty: true,
+              freetext: false,
+              allowEmpty: false,
+              emptyValue: null,
+            };
+          },
+          cellEditing: (cell) => {
+            if (cell.getField() === 'ProductID') {
+              this.prevProductID = cell.getValue(); // Lưu lại giá trị cũ
             }
           },
-          mutator: (value) => {
-            return value ? new Date(value).toISOString() : null;
+
+          formatter: (cell) => {
+            const productId = Number(cell.getValue());
+            const product = this.productOptions.find((p) => p.ID === productId);
+            return product ? product.ProductCode : '';
           },
+          cellEdited: (cell) => {
+            const newValue = cell.getValue();
+
+            if (!newValue) {
+              cell.setValue(this.prevProductID, true);
+              return;
+            }
+
+            this.onProductSelected(cell);
+          },
+        },
+        { title: 'Tên sản phẩm', field: 'ProductName', width: 200 },
+        { title: 'Mã nội bộ', field: 'ProductCodeRTC', width: 120 },
+        { title: 'Đơn vị tính', field: 'UnitCountName', width: 100 },
+        {
+          title: 'Số lượng',
+          field: 'Quantity',
+          editor: 'input',
+          width: 100,
+          editorParams: { elementAttributes: { type: 'number' } },
+          cellEdited: (cell) => this.onQuantityChanged(cell),
+        },
+        {
+          title: 'Tổng SL',
+          field: 'TotalQuantity',
+          width: 100,
+          hozAlign: 'right',
           formatter: (cell) => {
             const val = cell.getValue();
-            return val ? new Date(val).toLocaleDateString() : "";
-          }
+            return val ? val.toString() : '0';
+          },
         },
-        { title: "Số lượng", field: "Quantity", editor: "input" },
-        { title: "Ghi chú", field: "Note", editor: "input" },
-        { title: "Serial IDs", field: "SerialIDs" },
+        {
+          title: 'Đơn giá',
+          field: 'Price',
+          editor: 'input',
+          width: 120,
+          hozAlign: 'right',
+          editorParams: { elementAttributes: { type: 'number' } },
+          formatter: (cell) => {
+            const val = cell.getValue();
+            return val ? parseFloat(val).toLocaleString('vi-VN') : '0';
+          },
+          cellEdited: (cell) => this.onPriceChanged(cell),
+        },
+        {
+          title: 'Thành tiền',
+          field: 'TotalPrice',
+          width: 130,
+          hozAlign: 'right',
+          formatter: (cell) => {
+            const val = cell.getValue();
+            return val ? parseFloat(val).toLocaleString('vi-VN') : '0';
+          },
+        },
+        {
+          title: 'Hãng',
+          field: 'Maker',
+          editor: 'input',
+          width: 120,
+        },
+        {
+          title: 'Số chứng từ',
+          field: 'SomeBill',
+          editor: 'input',
+          width: 120,
+          editable: () => this.canEditRestrictedFields, // PHASE 6.3: Only DeliverID or Admin
+        },
+        {
+          title: 'Ngày chứng từ',
+          field: 'DateSomeBill',
+          editor: 'input',
+          width: 130,
+          editorParams: {
+            elementAttributes: { type: 'date' },
+          },
+          mutator: (value) => (value ? new Date(value).toISOString() : null),
+          formatter: (cell) => {
+            const val = cell.getValue();
+            return val ? new Date(val).toLocaleDateString('vi-VN') : '';
+          },
+          cellEdited: (cell) => this.onDateSomeBillChanged(cell),
+          editable: () => this.canEditRestrictedFields, // PHASE 6.3: Only DeliverID or Admin
+        },
+        {
+          title: 'DPO (ngày)',
+          field: 'DPO',
+          editor: 'input',
+          width: 100,
+          editorParams: { elementAttributes: { type: 'number' } },
+          cellEdited: (cell) => this.onDPOChanged(cell),
+          editable: () => this.canEditRestrictedFields, // PHASE 6.3: Only DeliverID or Admin
+        },
+        {
+          title: 'Hạn thanh toán',
+          field: 'DueDate',
+          width: 130,
+          formatter: (cell) => {
+            const val = cell.getValue();
+            return val ? new Date(val).toLocaleDateString('vi-VN') : '';
+          },
+        },
+        {
+          title: 'Giảm thuế',
+          field: 'TaxReduction',
+          editor: 'input',
+          width: 100,
+          hozAlign: 'right',
+          editorParams: { elementAttributes: { type: 'number' } },
+          formatter: (cell) => {
+            const val = cell.getValue();
+            return val ? parseFloat(val).toLocaleString('vi-VN') : '0';
+          },
+          editable: () => this.canEditRestrictedFields, // PHASE 6.3: Only DeliverID or Admin
+        },
+        {
+          title: 'C/O Form E',
+          field: 'COFormE',
+          editor: 'input',
+          width: 120,
+          editable: () => this.canEditRestrictedFields, // PHASE 6.3: Only DeliverID or Admin
+        },
+        {
+          title: 'Mã PO NCC',
+          field: 'BillCodePO',
+          width: 120,
+        },
+        {
+          title: 'Người mượn',
+          field: 'EmployeeIDBorrow',
+          editor: 'list',
+          width: 150,
+          editorParams: () => {
+            // Tạo object với key là ID, value là ProductCode
+            const values: any = {};
+            this.employeeSelectOptions.forEach((p) => {
+              values[p.value] = p.label;
+            });
+            return {
+              values: values,
+              autocomplete: true,
+              listOnEmpty: true,
+              freetext: false,
+              allowEmpty: false,
+              emptyValue: null,
+            };
+          },
+
+          formatter: (cell) => {
+            const val = Number(cell.getValue());
+            const emp = this.employeeSelectOptions.find(
+              (e) => Number(e.value) === val
+            );
+            return emp ? emp.label : '';
+          },
+
+          cellEdited: (cell) => this.onEmployeeBorrowChanged(cell),
+        },
+        {
+          title: 'Hạn trả NCC',
+          field: 'DeadlineReturnNCC',
+          editor: 'input',
+          width: 130,
+          editorParams: {
+            elementAttributes: { type: 'date' },
+          },
+          mutator: (value) => (value ? new Date(value).toISOString() : null),
+          formatter: (cell) => {
+            const val = cell.getValue();
+            return val ? new Date(val).toLocaleDateString('vi-VN') : '';
+          },
+          cellEdited: (cell) => this.onDeadlineReturnNCCChanged(cell),
+        },
+        { title: 'Ghi chú', field: 'Note', editor: 'input', width: 150 },
+        { title: 'Serial IDs', field: 'SerialIDs', visible: false },
+        {
+          title: 'HistoryProductRTCID',
+          field: 'HistoryProductRTCID',
+          visible: false,
+        },
+        {
+          title: 'ProductRTCQRCodeID',
+          field: 'ProductRTCQRCodeID',
+          visible: false,
+        },
+        { title: 'PONCCDetailID', field: 'PONCCDetailID', visible: false },
+        { title: 'ProjectID', field: 'ProjectID', visible: false },
         // Chọn serial
         {
-          title: "",
-          field: "addRow",
-          hozAlign: "center",
+          title: '',
+          field: 'addRow',
+          hozAlign: 'center',
           width: 40,
           headerSort: false,
           titleFormatter: () => `
@@ -302,7 +683,10 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
             const productCode = rowData['ProductCode'];
             const serialIDsRaw = rowData['SerialIDs'];
             if (quantity <= 0) {
-              this.notification.warning('Cảnh báo', 'Vui lòng nhập số lượng lớn hơn 0 trước khi chọn Serial!');
+              this.notification.warning(
+                'Cảnh báo',
+                'Vui lòng nhập số lượng lớn hơn 0 trước khi chọn Serial!'
+              );
               return;
             }
             if (serialIDsRaw) {
@@ -319,7 +703,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
                     if (res?.status === 1 && res.data) {
                       existingSerials.push({
                         ID: res.data.ID,
-                        Serial: res.data.SerialNumber || res.data.Serial || ''
+                        Serial: res.data.SerialNumber || res.data.Serial || '',
                       });
                     }
                   },
@@ -329,19 +713,24 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
                   complete: () => {
                     loadedCount++;
                     if (loadedCount === serialIDs.length) {
-
-                      this.openSerialModal(rowData, row, quantity, productCode, existingSerials);
+                      this.openSerialModal(
+                        rowData,
+                        row,
+                        quantity,
+                        productCode,
+                        existingSerials
+                      );
                     }
-                  }
+                  },
                 });
               });
             } else {
               this.openSerialModal(rowData, row, quantity, productCode, []);
             }
-          }
+          },
         },
       ],
-      placeholder: 'Chưa có thiết bị nào được chọn'
+      placeholder: 'Chưa có thiết bị nào được chọn',
     });
   }
   // Mở modal chọn serial
@@ -362,13 +751,15 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.productCode = productCode;
     modalRef.componentInstance.existingSerials = existingSerials;
 
-    modalRef.result.then((serials: { ID: number; Serial: string }[]) => {
-      const newSerial = serials.map(s => s.Serial).join(', ');
-      const serialIDs = serials.map(s => s.ID).join(', ');
-      rowData['Serial'] = newSerial;
-      rowData['SerialIDs'] = serialIDs;
-      row.update(rowData);
-    }).catch(() => { });
+    modalRef.result
+      .then((serials: { ID: number; Serial: string }[]) => {
+        const newSerial = serials.map((s) => s.Serial).join(', ');
+        const serialIDs = serials.map((s) => s.ID).join(', ');
+        rowData['Serial'] = newSerial;
+        rowData['SerialIDs'] = serialIDs;
+        row.update(rowData);
+      })
+      .catch(() => {});
   }
   // Thêm dòng mới vào bảng tạm
   addRow() {
@@ -379,25 +770,249 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         ProductName: '',
         NumberInStore: 1,
         Serial: '',
-        Note: ''
+        Note: '',
+        Quantity: 0,
+        Price: 0,
+        TotalPrice: 0,
+        TotalQuantity: 0,
       };
       this.selectedDevices.push(newRow);
       this.deviceTempTable.setData(this.selectedDevices);
     }
   }
+
+  onProductSelected(cell: CellComponent) {
+    const productId = Number(cell.getValue());
+    const product = this.productOptions.find((p) => p.ID === productId);
+
+    if (!product) return;
+
+    const row = cell.getRow();
+
+    row.update({
+      Maker: product.Maker,
+      UnitCountName: product.UnitCountName,
+      UnitCountID: product.UnitCountID,
+      ProductName: product.ProductName,
+      NumberInStore: product.NumberInStore,
+      ProductCodeRTC: product.ProductCodeRTC,
+    });
+  }
+
+  // PHASE 2.2: Calculation Logic - Calculate TotalPrice when Quantity or Price changes
+  onQuantityChanged(cell: CellComponent) {
+    const row = cell.getRow();
+    const data = row.getData();
+    const quantity = parseFloat(data['Quantity']) || 0;
+    const price = parseFloat(data['Price']) || 0;
+
+    // Calculate TotalPrice = Quantity * Price
+    data['TotalPrice'] = quantity * price;
+    data['TotalQuantity'] = quantity;
+
+    row.update(data);
+
+    // Recalculate totals for duplicate products
+    this.recheckQty();
+  }
+
+  onPriceChanged(cell: CellComponent) {
+    const row = cell.getRow();
+    const data = row.getData();
+    const quantity = parseFloat(data['Quantity']) || 0;
+    const price = parseFloat(data['Price']) || 0;
+
+    // Calculate TotalPrice = Quantity * Price
+    data['TotalPrice'] = quantity * price;
+
+    row.update(data);
+  }
+
+  // PHASE 2.2: Calculate DueDate = DateSomeBill + DPO days
+  onDateSomeBillChanged(cell: CellComponent) {
+    const row = cell.getRow();
+    const data = row.getData();
+
+    if (data['DateSomeBill'] && data['DPO']) {
+      const dateSomeBill = new Date(data['DateSomeBill']);
+      const dpo = parseInt(data['DPO']) || 0;
+
+      // Add DPO days to DateSomeBill
+      const dueDate = new Date(dateSomeBill);
+      dueDate.setDate(dueDate.getDate() + dpo);
+
+      data['DueDate'] = dueDate.toISOString();
+      row.update(data);
+    }
+  }
+
+  onDPOChanged(cell: CellComponent) {
+    const row = cell.getRow();
+    const data = row.getData();
+
+    if (data['DateSomeBill'] && data['DPO']) {
+      const dateSomeBill = new Date(data['DateSomeBill']);
+      const dpo = parseInt(data['DPO']) || 0;
+
+      // Add DPO days to DateSomeBill
+      const dueDate = new Date(dateSomeBill);
+      dueDate.setDate(dueDate.getDate() + dpo);
+
+      data['DueDate'] = dueDate.toISOString();
+      row.update(data);
+    }
+  }
+
+  // PHASE 2.3: Auto-fill logic - Fill deadline to all subsequent rows
+  onDeadlineReturnNCCChanged(cell: CellComponent) {
+    const row = cell.getRow();
+    const data = row.getData();
+    const currentIndex = row.getPosition() as number;
+    const deadline = data['DeadlineReturnNCC'];
+
+    if (!deadline) return;
+
+    // Fill down to all subsequent rows
+    const allRows = this.deviceTempTable?.getRows() || [];
+    for (let i = currentIndex; i < allRows.length; i++) {
+      const rowData = allRows[i].getData();
+      rowData['DeadlineReturnNCC'] = deadline;
+      allRows[i].update(rowData);
+    }
+  }
+
+  // PHASE 2.3: Auto-fill logic - Fill employee to all subsequent rows
+  onEmployeeBorrowChanged(cell: CellComponent) {
+    const row = cell.getRow();
+    const data = row.getData();
+    const currentIndex = row.getPosition() as number;
+    const employeeId = data['EmployeeIDBorrow'];
+
+    if (!employeeId) return;
+
+    // Fill down to all subsequent rows
+    const allRows = this.deviceTempTable?.getRows() || [];
+    for (let i = currentIndex; i < allRows.length; i++) {
+      const rowData = allRows[i].getData();
+      rowData['EmployeeIDBorrow'] = employeeId;
+      allRows[i].update(rowData);
+    }
+  }
+
+  // PHASE 2.2: RecheckQty - Recalculate TotalQuantity for duplicate products
+  recheckQty() {
+    if (!this.deviceTempTable) return;
+
+    const allRows = this.deviceTempTable.getRows();
+    const productQtyMap = new Map<number, number>();
+
+    // First pass: sum quantities by ProductID
+    allRows.forEach((row) => {
+      const data = row.getData();
+      const productId = data['ProductID'];
+      const quantity = parseFloat(data['Quantity']) || 0;
+
+      if (productId) {
+        const currentTotal = productQtyMap.get(productId) || 0;
+        productQtyMap.set(productId, currentTotal + quantity);
+      }
+    });
+
+    // Second pass: update TotalQuantity for all rows with same ProductID
+    allRows.forEach((row) => {
+      const data = row.getData();
+      const productId = data['ProductID'];
+
+      if (productId && productQtyMap.has(productId)) {
+        data['TotalQuantity'] = productQtyMap.get(productId);
+        row.update(data);
+      }
+    });
+  }
+  // PHASE 3.1: Validate BillCode uniqueness
+  async validateBillCodeUniqueness(): Promise<boolean> {
+    const billCode = this.formDeviceInfo.get('BillCode')?.value;
+    const currentID = this.formDeviceInfo.get('ID')?.value || 0;
+
+    if (!billCode) return true;
+
+    try {
+      const response: any = await firstValueFrom(
+        this.billImportTechnicalService.getBillImportByCode(billCode)
+      );
+      if (
+        response.status === 1 &&
+        response.master &&
+        response.master.length > 0
+      ) {
+        const existingBill = response.master[0];
+        // If editing and same ID, it's ok
+        if (currentID > 0 && existingBill.ID === currentID) {
+          return true;
+        }
+        // Otherwise it's a duplicate
+        this.notification.error(
+          'Lỗi',
+          `Mã phiếu "${billCode}" đã tồn tại. Vui lòng sử dụng mã khác.`
+        );
+        return false;
+      }
+      return true;
+    } catch (error) {
+      // If error (bill not found), it means it's unique
+      return true;
+    }
+  }
+
   // Lưu dữ liệu
   async saveData() {
+    // PHASE 3.1: Validate form
     if (this.formDeviceInfo.invalid) {
-      Object.values(this.formDeviceInfo.controls).forEach(control => {
+      Object.values(this.formDeviceInfo.controls).forEach((control) => {
         if (control.invalid) {
           control.markAsTouched();
           control.updateValueAndValidity({ onlySelf: true });
         }
       });
-      this.notification.warning('Cảnh báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
+
+      // Custom error messages
+      const supplierError = this.formDeviceInfo
+        .get('SupplierSaleID')
+        ?.hasError('supplierOrCustomerRequired');
+      const customerError = this.formDeviceInfo
+        .get('CustomerID')
+        ?.hasError('supplierOrCustomerRequired');
+
+      if (supplierError || customerError) {
+        this.notification.warning(
+          'Cảnh báo',
+          'Vui lòng chọn ít nhất một trong hai: Nhà cung cấp hoặc Khách hàng'
+        );
+        return;
+      }
+
+      this.notification.warning(
+        'Cảnh báo',
+        'Vui lòng điền đầy đủ thông tin bắt buộc'
+      );
+      return;
+    }
+
+    // PHASE 3.1: Validate BillCode uniqueness
+    const isUnique = await this.validateBillCodeUniqueness();
+    if (!isUnique) {
       return;
     }
     const formValue = this.formDeviceInfo.value;
+
+    // Borrow type validation: require EmployeeIDBorrow and DeadlineReturnNCC per row
+    if (formValue.BillTypeNew === 1) {
+      const invalidRow = this.selectedDevices.find((d: any) => !d.EmployeeIDBorrow || !d.DeadlineReturnNCC);
+      if (invalidRow) {
+        this.notification.warning('Cảnh báo', 'Đối với phiếu Mượn NCC, vui lòng nhập Người mượn và Hạn trả NCC cho từng dòng.');
+        return;
+      }
+    }
     const payload = {
       billImportTechnical: {
         ID: formValue.ID || 0,
@@ -420,10 +1035,10 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         IsBorrowSupplier: formValue.IsBorrowSupplier || 0,
         CustomerID: formValue.CustomerID || 0,
         BillDocumentImportType: formValue.BillDocumentImportType || 0,
-        DateRequestImport: formValue.CreatDate,
+        DateRequestImport: formValue.DateRequestImport,
         RulePayID: formValue.RulePayID,
         IsNormalize: formValue.IsNormalize || false,
-        ApproverID: formValue.ApproverID || 0
+        ApproverID: formValue.ApproverID || 0,
       },
       billImportDetailTechnicals: this.selectedDevices.map((device, index) => ({
         ID: device.ID || 0,
@@ -438,10 +1053,12 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         UnitCountName: device.UnitCountName || '',
         NumberInStore: device.NumberInStore || 1,
         Note: device.Note || '',
-        DeadlineReturnNCC: device.DeadlineReturnNCC ? DateTime.fromJSDate(new Date(device.DeadlineReturnNCC)).toISO() : null,
+        DeadlineReturnNCC: device.DeadlineReturnNCC
+          ? DateTime.fromJSDate(new Date(device.DeadlineReturnNCC)).toISO()
+          : null,
         LocationName: device.LocationName || '',
         Quantity: device.Quantity || 1,
-        TotalQuantity: device.Quantity || 1,
+        TotalQuantity: device.TotalQuantity || device.Quantity || 1,
         Price: device.Price || 0,
         TotalPrice: device.TotalPrice || 0,
         UnitID: device.UnitCountID || 0,
@@ -450,34 +1067,51 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         ProjectCode: device.ProjectCode || '',
         ProjectName: device.ProjectName || '',
         SomeBill: device.SomeBill || '',
-        ProductRTCQRCodeID: 0
+        DateSomeBill: device.DateSomeBill
+          ? DateTime.fromJSDate(new Date(device.DateSomeBill)).toISO()
+          : null,
+        DPO: device.DPO || 0,
+        DueDate: device.DueDate
+          ? DateTime.fromJSDate(new Date(device.DueDate)).toISO()
+          : null,
+        TaxReduction: device.TaxReduction || 0,
+        COFormE: device.COFormE || '',
+        Maker: device.Maker || '',
+        BillCodePO: device.BillCodePO || '',
+        PONCCDetailID: device.PONCCDetailID || 0,
+        HistoryProductRTCID: device.HistoryProductRTCID || 0,
+        ProductRTCQRCodeID: device.ProductRTCQRCodeID || 0,
+        EmployeeIDBorrow: device.EmployeeIDBorrow || 0,
       })),
-      billImportTechDetailSerials: this.selectedDevices.flatMap(device => {
-        const detailID = device.ID || 0;
-        const serialIDs = (device.SerialIDs || '')
-          .split(',')
-          .map((id: string) => parseInt(id.trim()))
-          .filter((id: number) => !isNaN(id) && id > 0);
-
-        return serialIDs.map((serialID: number) => ({
-          BillImportDetailID: detailID,
-          ID: serialID
-        }));
-      })
+      billImportTechDetailSerials: this.selectedDevices
+        .map((device, index) => {
+          const serialIDs = (device.SerialIDs || '')
+            .split(',')
+            .map((id: string) => parseInt(id.trim()))
+            .filter((id: number) => !isNaN(id) && id > 0);
+          const stt = device.STT ?? index + 1;
+          return serialIDs.map((serialID: number) => ({
+            ID: serialID || 0,
+            STT: stt,
+            WarehouseID: formValue.WarehouseID || 1,
+          }));
+        })
+        .flat(),
     };
 
     this.billImportTechnicalService.saveData(payload).subscribe({
       next: (response: any) => {
-
         this.notification.success('Thành công', 'Lưu phiếu thành công');
         this.formSubmitted.emit();
         this.activeModal.close();
       },
       error: (error: any) => {
         console.error('Lỗi khi lưu dữ liệu:', error);
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lưu phiếu, vui lòng thử lại sau');
-      }
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Không thể lưu phiếu, vui lòng thử lại sau'
+        );
+      },
     });
-
   }
 }

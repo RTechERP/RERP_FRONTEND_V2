@@ -17,7 +17,7 @@ export class BillImportServiceService {
       deparmentID: deparmentID.toString(),
     };
 
-    return this.http.get(environment.host + `api/BillExport`, params);
+    return this.http.get(environment.host + `api/BillExport/get-product-group`, params);
   }
   getBillImport(searchParams: any): Observable<any> {
     const params: any = {

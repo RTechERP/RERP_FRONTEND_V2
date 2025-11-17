@@ -580,13 +580,13 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
         },
         {
           title: 'Mã sản phẩm',
-          field: 'ProductNewCode',
+          field: 'ProductCode',
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'Mã nội bộ',
-          field: 'ProductCode',
+          field: 'ProductNewCode',
           hozAlign: 'left',
           headerHozAlign: 'center',
         },

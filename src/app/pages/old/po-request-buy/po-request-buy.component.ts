@@ -110,10 +110,11 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
     this.activeModal.close();
   }
   loadPOKHProducts(id: number = 0, idDetail: number = 0): void {
-    this.pokhService.getPOKHProduct(id, idDetail).subscribe({
+    this.PoRequestBuyService.getPOKHProduct(id, idDetail).subscribe({
       next: (response) => {
         if (response.status === 1) {
           const gridData = response.data;
+          console.log('gridData', gridData);
           this.dataTable.setData(gridData);
         } else {
           this.notification.error(
@@ -237,6 +238,8 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
       POKHDetailID: row.ID,
       UnitName: row.Unit,
       DateReceive: row.DeliveryRequestedDate,
+      ParentProductCode: row.ParentProductCode,
+      
     }));
     this.PoRequestBuyService.saveData(requestData).subscribe({
       next: (res) => {
@@ -341,6 +344,12 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
           sorter: 'number',
           width: 100,
         },
+        {
+          title: 'Mã cha',
+          field: 'ParentProductCode',
+          sorter: 'number',
+          width: 100,
+        },
         { title: 'Số lượng PO', field: 'Qty', sorter: 'number', width: 100 },
         {
           title: 'SL đã yêu cầu',
@@ -359,14 +368,14 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
           field: 'CurrencyRate',
           sorter: 'number',
           width: 100,
-          editor: 'input',
+          visible: false,
         },
         {
           title: 'CurrencyID',
           field: 'CurrencyID',
           sorter: 'number',
           width: 100,
-          editor: 'input',
+          visible: false,
         },
         {
           title: 'Kích thước phim cắt',

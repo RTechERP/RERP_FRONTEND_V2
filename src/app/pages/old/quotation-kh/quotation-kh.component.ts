@@ -157,6 +157,7 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
     modalRef.result.then(
       (result) => {
         if (result.success && result.reloadData) {
+          this.mainTable.setData();
         }
       },
       (reason) => {
@@ -567,6 +568,7 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
           last_page: res.data[0].TotalPage,
         };
       },
+      rowHeader: false,
       columns: [
         {
           title: 'Duyệt',

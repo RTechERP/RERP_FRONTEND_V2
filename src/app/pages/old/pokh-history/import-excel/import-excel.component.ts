@@ -79,8 +79,14 @@ export class ImportExcelComponent implements OnInit {
   }
 
   onFileChange(evt: any) {
-    this.resetPreview();
     const target: DataTransfer = <DataTransfer>evt.target;
+    if (!target.files || target.files.length === 0) {
+      if (this.selectedSheet && this.sheetNames.length > 0) {
+        return;
+      }
+      return;
+    }
+    this.resetPreview();
     if (target.files.length !== 1) return;
 
     const reader: FileReader = new FileReader();
@@ -157,7 +163,7 @@ export class ImportExcelComponent implements OnInit {
       data: this.tableData,
       layout: 'fitDataStretch',
       reactiveData: true,
-      height: '60vh',
+      height: '40vh',
       selectableRows: 1,
       responsiveLayout: false,
       pagination: false,
@@ -181,6 +187,9 @@ export class ImportExcelComponent implements OnInit {
 
     // Danh sách các field là DateTime
     const dateFields = ['PODate', 'DeliverDate', 'PaymentDate', 'BillDate', 'CreatedDate', 'UpdatedDate'];
+    
+    // Danh sách các field phải là String (backend yêu cầu)
+    const stringFields = ['Dept', 'Sale', 'Pur', 'BillNumber', 'CustomerCode', 'IndexCode', 'PONumber', 'ProductCode', 'Model', 'Unit'];
 
     // Map dữ liệu từ tiếng Việt sang tiếng Anh trước khi lưu
     const mappedData = this.tableData.map(row => {
@@ -208,6 +217,15 @@ export class ImportExcelComponent implements OnInit {
           }
         }
         
+        // Đảm bảo các field string luôn là string (không phải number, null, undefined)
+        if (stringFields.includes(mappedKey)) {
+          if (value === null || value === undefined) {
+            value = '';
+          } else {
+            value = String(value).trim();
+          }
+        }
+        
         newRow[mappedKey] = value;
       });
       
@@ -220,17 +238,13 @@ export class ImportExcelComponent implements OnInit {
     this.pokhHistoryService.save(mappedData).subscribe({
       next: (res: any) => {
         if (res.status === 1) {
-          const created = res?.created ?? 0;
-          const updated = res?.updated ?? 0;
-          const skipped = res?.skipped ?? 0;
           
           this.notification.success('Nhập dữ liệu thành công!',
-            `Tạo mới: ${created} • Cập nhật: ${updated} • Bỏ qua: ${skipped}`);
+            ``);
 
           this.modal.success({
             nzTitle: 'Hoàn tất nhập dữ liệu',
-            nzContent: `
-              <div>Tạo mới: <b>${created}</b> • Cập nhật: <b>${updated}</b> • Bỏ qua: <b>${skipped}</b></div>`,
+            nzContent: ``,
             nzOkText: 'Đóng',
             nzOnOk: () => this.activeModal.close('success'),
             nzWidth: 720

@@ -22,6 +22,14 @@ export class PoRequestBuyService {
       }
     );
   }
+  getPOKHProduct(id: number = 0, idDetail: number = 0): Observable<any> {
+    return this.http.get<any>(this._url + 'get-pokh-product', {
+      params: {
+        id: id.toString(),
+        idDetail: idDetail.toString(),
+      },
+    });
+  }
   getDepartments(): Observable<any> {
     return this.http.get<any>('https://localhost:7187/api/Department/get-all');
   }

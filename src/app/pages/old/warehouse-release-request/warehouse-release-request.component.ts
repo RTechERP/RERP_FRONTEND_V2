@@ -57,6 +57,8 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { WarehouseReleaseRequestService } from './warehouse-release-request/warehouse-release-request.service';
 import { CustomerPartService } from '../customer-part/customer-part/customer-part.service';
 import { RequestInvoiceDetailService } from '../request-invoice-detail/request-invoice-detail-service/request-invoice-detail-service.service';
+import { AppUserService } from '../../../services/app-user.service';
+import { BillExportDetailComponent } from '../Sale/BillExport/Modal/bill-export-detail/bill-export-detail.component';
 
 interface BillExportDetail {
   ProductID: number;
@@ -87,6 +89,11 @@ interface BillExportDetail {
   UnitPricePurchase: string;
   BillCode: string;
   UnitPricePOKH: string;
+  STT?: number;
+  ChildID?: string;
+  POKHDetailIDActual?: string;
+  PONumber?: string;
+  POCode?: string;
 }
 
 interface BillExport {
@@ -236,7 +243,8 @@ export class WarehouseReleaseRequestComponent implements OnInit {
     private notification: NzNotificationService,
     private CustomerPartService: CustomerPartService,
     private RequestInvoiceDetailService: RequestInvoiceDetailService,
-    private modalService: NgbModal
+    private modalService: NgbModal,
+    private appUserService: AppUserService
   ) {}
 
   ngOnInit(): void {
@@ -327,6 +335,9 @@ export class WarehouseReleaseRequestComponent implements OnInit {
       (response) => {
         if (response.status === 1) {
           this.gridData = response.data;
+          // Chuyển đổi dữ liệu từ flat sang nested structure cho dataTree
+          const treeData = this.convertToTreeData(this.gridData);
+          this.gridData = treeData;
           this.initWarehouseReleaseTable();
         } else {
           this.notification.error(
@@ -342,9 +353,42 @@ export class WarehouseReleaseRequestComponent implements OnInit {
       }
     );
   }
+
+  /**
+   * Chuyển đổi dữ liệu từ flat structure (có ParentID) sang nested structure (có _children)
+   * để Tabulator dataTree có thể hiển thị đúng
+   */
+  private convertToTreeData(flatData: any[]): any[] {
+    const treeData: any[] = [];
+    const map = new Map();
+
+    // Bước 1: Tạo map với key là ID của mỗi item và thêm _children rỗng
+    flatData.forEach((item) => {
+      map.set(item.POKHDetailID, { ...item, _children: [] });
+    });
+
+    // Bước 2: Xây dựng cấu trúc cây
+    flatData.forEach((item) => {
+      const node = map.get(item.POKHDetailID);
+      if (!item.ParentID || item.ParentID === 0 || item.ParentID === null) {
+        // Nếu là node gốc (không có parent)
+        treeData.push(node);
+      } else {
+        // Nếu là node con, thêm vào mảng _children của parent
+        const parent = map.get(item.ParentID);
+        if (parent) {
+          parent._children.push(node);
+        } else {
+          // Nếu không tìm thấy parent, thêm vào root
+          treeData.push(node);
+        }
+      }
+    });
+
+    return treeData;
+  }
   //#endregion
   onWarehouseSelect(warehouse: any): void {
-    // Lấy các dòng đã chọn từ bảng
     const selectedRows = this.table.getSelectedRows();
 
     if (selectedRows.length <= 0) {
@@ -355,94 +399,270 @@ export class WarehouseReleaseRequestComponent implements OnInit {
       return;
     }
 
-    // Hiển thị dialog xác nhận
-    if (
-      confirm(
-        `Bạn có chắc muốn yêu cầu xuất kho danh sách sản phẩm đã chọn từ [${warehouse.WarehouseName}] không?`
-      )
-    ) {
-      // Chuẩn bị dữ liệu chi tiết
-      const details: BillExportDetail[] = selectedRows.map((row) => {
-        const data = row.getData();
-        return {
-          ProductID: data['ProductID'],
-          Qty: data['QuantityRequestExport'] || 0,
-          ProjectID: data['ProjectID'],
-          Note: data['PONumber'],
-          ProductCode: data['ProductCode'],
-          ProductNewCode: data['ProductNewCode'],
-          ProductName: data['ProductName'],
-          Unit: data['Unit'],
-          ProductGroupName: data['ProductGroupName'],
-          ItemType: data['ItemType'],
-          ProjectNameText: data['ProjectName'],
-          ProjectCodeText: data['ProjectCode'],
-          ProjectCodeExport: data['ProjectCodeExport'],
-          productGroupID: data['productGroupID'],
-          POKHID: data['POKHID'],
-          POKHDetailID: data['POKHDetailID'],
-          UserReceiver: data['UserReceiver'],
-          QuantityRemain: data['QuantityRemain'],
-          CustomerID: data['CustomerID'],
-          KhoTypeID: data['KhoTypeID'],
-          UserID: data['UserID'],
-          IsMerge: data['IsMerge'],
-          ProductFullName: data['GuestCode'],
-          ParentID: data['ParentID'],
-          TotalInventory: data['TotalInventory'],
-          UnitPricePurchase: data['UnitPricePurchase'],
-          BillCode: data['BillCode'],
-          UnitPricePOKH: data['UnitPricePOKH'],
-        };
-      });
+    // Validate số lượng tồn kho trước khi hiển thị dialog xác nhận
+    this.isLoading = true;
+    const validateRequests = selectedRows.map((row) => {
+      const dataRow = row.getData();
+      return this.WRRService.validateKeep(
+        warehouse.ID,
+        Number(dataRow['ProductID']) || 0,
+        0, // projectID = 0 
+        Number(dataRow['POKHDetailID']) || 0,
+        0, // billExportDetailID = 0
+        dataRow['Unit'] || '',
+        Number(dataRow['QuantityRequestExport']) || 0,
+        dataRow['ProductNewCode'] || ''
+      ).pipe(
+        map((response) => ({
+          isValid: response.status === 1 && response.data?.IsValid === true,
+          productNewCode: response.data?.ProductNewCode || dataRow['ProductNewCode'] || '',
+          message: response.data?.Message || '',
+          dataRow: dataRow,
+        })),
+        catchError((error) => {
+          console.error('Lỗi khi validate keep:', error);
+          return of({
+            isValid: false,
+            productNewCode: dataRow['ProductNewCode'] || '',
+            message: 'Lỗi khi kiểm tra số lượng tồn kho',
+            dataRow: dataRow,
+          });
+        })
+      );
+    });
 
-      // Kiểm tra xem có nhiều khách hàng hoặc loại kho khác nhau không
-      const distinctValues = [
-        ...new Set(details.map((d) => `${d.CustomerID}-${d.KhoTypeID}`)),
-      ];
+    forkJoin(validateRequests).subscribe({
+      next: (validateResults) => {
+        this.isLoading = false;
 
-      if (distinctValues.length > 1) {
-        this.notification.info(
-          'Thông báo',
-          `Bạn chọn sản phẩm từ ${distinctValues.length} Khách hàng hoặc Loại kho.\nNên phần mềm sẽ tự động tạo ${distinctValues.length} phiếu xuất.`
-        );
-      }
+        // Thu thập danh sách sản phẩm không đủ số lượng
+        const productNewCodes: string[] = [];
+        validateResults.forEach((result) => {
+          if (!result.isValid) {
+            const productNewCode = result.productNewCode;
+            if (productNewCode && !productNewCodes.includes(productNewCode)) {
+              productNewCodes.push(productNewCode);
+            }
+          }
+        });
 
-      // Tạo dữ liệu master cho từng nhóm khách hàng/kho
-      this.billExports = distinctValues.map((value) => {
-        const [customerID, khoTypeID] = value.split('-');
-        const groupDetails = details.filter(
-          (d) =>
-            d.CustomerID.toString() === customerID &&
-            d.KhoTypeID.toString() === khoTypeID
-        );
+        // Hiển thị dialog xác nhận
+        if (
+          confirm(
+            `Bạn có chắc muốn yêu cầu xuất kho danh sách sản phẩm đã chọn từ [${warehouse.WarehouseName}] không?`
+          )
+        ) {
+          // Hiển thị cảnh báo về các sản phẩm không đủ số lượng
+          if (productNewCodes.length > 0) {
+            this.notification.warning(
+              'Thông báo',
+              `Các sản phẩm có mã nội bộ [${productNewCodes.join('; ')}] sẽ không được yêu cầu xuất kho vì không đủ số lượng!`
+            );
+          }
 
-        return {
-          CustomerID: parseInt(customerID),
-          UserID: groupDetails[0]?.UserID || 0,
-          KhoTypeID: parseInt(khoTypeID),
-          ProductType: 1,
-          IsMerge: groupDetails[0]?.IsMerge || false,
-          Status: 6,
-          RequestDate: new Date(),
-          WarehouseCode: warehouse.WarehouseCode,
-          Details: groupDetails,
-        };
-      });
+          // Chuẩn bị dữ liệu chi tiết (chỉ lấy những sản phẩm hợp lệ)
+          const details: BillExportDetail[] = [];
+          let stt = 0;
 
-      // Đóng modal hiện tại
-      this.activeModal.close();
+          for (let i = 0; i < validateResults.length; i++) {
+            const result = validateResults[i];
+            
+            if (!result.isValid) {
+              continue;
+            }
 
-      // // Mở modal mới với dữ liệu đã chuẩn bị
-      // const modalRef = this.modalService.open(WarehouseReleaseRequestComponent, {
-      //   centered: true,
-      //   backdrop: 'static',
-      //   windowClass: 'full-screen-modal',
-      // });
+            const dataRow = result.dataRow;
+            const productID = Number(dataRow['ProductID']) || 0;
+            const productNewCode = (dataRow['ProductNewCode'] || '').trim();
+            const quantityRemain = Number(dataRow['QuantityRemain']) || 0;
+            const quantityRequestExport = Number(dataRow['QuantityRequestExport']) || 0;
 
-      // // Truyền dữ liệu sang modal mới
-      // modalRef.componentInstance.billExports = this.billExports;
+            if (productID <= 0 || productNewCode === '' || quantityRemain <= 0 || quantityRequestExport <= 0) {
+              continue;
+            }
+
+            stt++;
+            details.push({
+              ProductID: productID,
+              Qty: quantityRequestExport,
+              ProjectID: Number(dataRow['ProjectID']) || 0,
+              Note: dataRow['PONumber'] || '',
+              ProductCode: dataRow['ProductCode'] || '',
+              ProductNewCode: productNewCode,
+              ProductName: dataRow['ProductName'] || '',
+              Unit: dataRow['Unit'] || '',
+              ProductGroupName: dataRow['ProductGroupName'] || '',
+              ItemType: dataRow['ItemType'] || '',
+              ProjectNameText: dataRow['ProjectName'] || '',
+              ProjectCodeText: dataRow['ProjectCode'] || '',
+              ProjectCodeExport: dataRow['ProjectCodeExport'] || '',
+              productGroupID: Number(dataRow['productGroupID']) || 0,
+              POKHID: Number(dataRow['POKHID']) || 0,
+              POKHDetailID: Number(dataRow['POKHDetailID']) || 0,
+              UserReceiver: dataRow['UserReceiver'] || '',
+              QuantityRemain: quantityRemain,
+              CustomerID: Number(dataRow['CustomerID']) || 0,
+              KhoTypeID: Number(dataRow['KhoTypeID']) || 0,
+              UserID: Number(dataRow['UserID']) || 0,
+              IsMerge: Boolean(dataRow['IsMerge']) || false,
+              ProductFullName: dataRow['GuestCode'] || '',
+              ParentID: dataRow['ParentID'] || '',
+              TotalInventory: dataRow['TotalInventory'] || '',
+              UnitPricePurchase: dataRow['UnitPricePurchase'] || '',
+              BillCode: dataRow['BillCode'] || '',
+              UnitPricePOKH: dataRow['UnitPricePOKH'] || '',
+              STT: stt,
+              ChildID: String(dataRow['POKHDetailID'] || ''),
+              PONumber: dataRow['PONumber'] || '',
+              POCode: dataRow['POCode'] || '',
+            });
+          }
+
+          if (details.length === 0) {
+            this.notification.warning(
+              'Thông báo',
+              'Không có sản phẩm nào hợp lệ để yêu cầu xuất kho!'
+            );
+            return;
+          }
+
+          // Kiểm tra xem có nhiều khách hàng hoặc loại kho khác nhau không
+          const distinctValues = [
+            ...new Set(details.map((d) => `${d.CustomerID}-${d.KhoTypeID}`)),
+          ];
+
+          if (distinctValues.length > 1) {
+            this.notification.info(
+              'Thông báo',
+              `Bạn chọn sản phẩm từ ${distinctValues.length} Khách hàng hoặc Loại kho.\nNên phần mềm sẽ tự động tạo ${distinctValues.length} phiếu xuất.`
+            );
+          }
+
+          // Tạo dữ liệu master cho từng nhóm khách hàng/kho
+          this.billExports = distinctValues.map((value) => {
+            const [customerID, khoTypeID] = value.split('-');
+            const groupDetails = details.filter(
+              (d) =>
+                d.CustomerID.toString() === customerID &&
+                d.KhoTypeID.toString() === khoTypeID
+            );
+
+            return {
+              CustomerID: parseInt(customerID),
+              UserID: this.appUserService.id || 0,
+              KhoTypeID: parseInt(khoTypeID),
+              ProductType: 1,
+              IsMerge: groupDetails[0]?.IsMerge || false,
+              Status: 6,
+              RequestDate: new Date(),
+              WarehouseCode: warehouse.WarehouseCode,
+              Details: groupDetails,
+            };
+          });
+
+          this.activeModal.close();
+
+          // Mở modal chi tiết cho từng bill export (tuần tự)
+          this.openBillExportDetailModals(0);
+        }
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.notification.error('Lỗi', 'Lỗi khi kiểm tra số lượng tồn kho: ' + error.message);
+      },
+    });
+  }
+
+  /**
+   * Mở modal chi tiết cho từng bill export tuần tự
+   * @param index - Index của bill export hiện tại trong mảng billExports
+   */
+  private openBillExportDetailModals(index: number): void {
+    if (index >= this.billExports.length) {
+      return;
     }
+
+    const billExport = this.billExports[index];
+    
+    const billExportForModal = {
+      TypeBill: false,
+      Code: '',
+      Address: '',
+      CustomerID: billExport.CustomerID,
+      UserID: billExport.UserID,
+      SenderID: 0,
+      WarehouseType: '',
+      GroupID: '',
+      KhoTypeID: billExport.KhoTypeID,
+      ProductType: billExport.ProductType,
+      AddressStockID: 0,
+      WarehouseID: 0,
+      Status: billExport.Status,
+      SupplierID: 0,
+      CreatDate: billExport.RequestDate,
+      RequestDate: billExport.RequestDate,
+    };
+
+    const modalRef = this.modalService.open(BillExportDetailComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+    });
+
+    // Truyền dữ liệu vào modal
+    modalRef.componentInstance.newBillExport = billExportForModal;
+    modalRef.componentInstance.isCheckmode = false;
+    modalRef.componentInstance.id = 0;
+    modalRef.componentInstance.wareHouseCode = billExport.WarehouseCode;
+
+    const detailsForModal = billExport.Details.map((detail: any) => ({
+      ID: 0,
+      POKHDetailID: detail.POKHDetailID || 0,
+      ProductID: detail.ProductID || 0,
+      ProductNewCode: detail.ProductNewCode || '',
+      ProductCode: detail.ProductCode || '',
+      ProductName: detail.ProductName || '',
+      Unit: detail.Unit || '',
+      TotalInventory: detail.TotalInventory || 0,
+      Qty: detail.Qty || 0,
+      QuantityRemain: detail.QuantityRemain || 0,
+      ProjectID: detail.ProjectID || 0,
+      ProjectCodeExport: detail.ProjectCodeExport || '',
+      ProjectNameText: detail.ProjectNameText || '',
+      ProductFullName: detail.ProductFullName || '',
+      Note: detail.Note || '',
+      UnitPricePOKH: detail.UnitPricePOKH || 0,
+      UnitPricePurchase: detail.UnitPricePurchase || 0,
+      BillCode: detail.BillCode || '',
+      UserReceiver: detail.UserReceiver || '',
+      POKHID: detail.POKHID || 0,
+    }));
+
+    setTimeout(() => {
+      modalRef.componentInstance.dataTableBillExportDetail = detailsForModal;
+      
+      if (modalRef.componentInstance.table_billExportDetail) {
+        modalRef.componentInstance.table_billExportDetail.replaceData(detailsForModal);
+      }
+    }, 200);
+
+    modalRef.result.then(
+      (result) => {
+        // Nếu modal đóng thành công, mở modal tiếp theo
+        if (result === true && index < this.billExports.length - 1) {
+          this.openBillExportDetailModals(index + 1);
+        } else if (result === true && index === this.billExports.length - 1) {
+
+        }
+      },
+      (dismissed) => {
+        // Modal bị dismiss, vẫn tiếp tục mở modal tiếp theo nếu có
+        if (index < this.billExports.length - 1) {
+          this.openBillExportDetailModals(index + 1);
+        }
+      }
+    );
   }
 
   onCustomerChange(event: any): void {
@@ -472,7 +692,9 @@ export class WarehouseReleaseRequestComponent implements OnInit {
       (response) => {
         if (response.status === 1) {
           let data = response.data;
-          this.table.setData(data);
+          // Chuyển đổi dữ liệu từ flat sang nested structure cho dataTree
+          const treeData = this.convertToTreeData(data);
+          this.table.setData(treeData);
         } else {
           this.notification.error(
             'Lỗi khi tải dữ liệu bảng:',
@@ -511,25 +733,63 @@ export class WarehouseReleaseRequestComponent implements OnInit {
   initWarehouseReleaseTable(): void {
     this.table = new Tabulator(this.tableElement.nativeElement, {
       data: this.gridData,
+      dataTree: true,
+      dataTreeStartExpanded: true,
+      dataTreeChildField: '_children',
+      dataTreeBranchElement: true,
+      dataTreeChildIndent: 15,
       height: '75vh',
       layout: 'fitColumns',
       reactiveData: true,
       resizableRows: true,
       movableColumns: true,
-      groupBy: 'PONumber',
       selectableRows: true,
       selectableRange: true,
       pagination: true,
-      paginationSize: 100,
+      paginationSize: 500,
+      langs: {
+        vi: {
+          pagination: {
+            first: '<<',
+            last: '>>',
+            prev: '<',
+            next: '>',
+          },
+        },
+      },
+      locale: 'vi',
+      columnDefaults: {
+        headerWordWrap: true,
+        headerVertical: false,
+        headerHozAlign: 'center',
+        minWidth: 60,
+        hozAlign: 'left',
+        vertAlign: 'middle',
+        resizable: true,
+      },
       columns: [
         {
           title: 'Chọn',
           field: 'IsSelected',
-          width: 10,
+          width: 20,
           hozAlign: 'center',
           formatter: 'rowSelection',
           titleFormatter: 'rowSelection',
           frozen: true,
+        },
+        {
+          title: 'ID',
+          field: 'POKHDetailID',
+          width: 120,
+          hozAlign: 'center',
+          visible: false,
+        },        
+        {
+          title: 'ID cha',
+          field: 'ParentID',
+          width: 120,
+          hozAlign: 'center',
+          visible: false,
         },
         {
           title: 'Trạng thái',
@@ -574,7 +834,7 @@ export class WarehouseReleaseRequestComponent implements OnInit {
         },
         {
           title: 'Mã theo khách',
-          field: 'ProductCode',
+          field: 'GuestCode',
           width: 150,
           hozAlign: 'center',
         },

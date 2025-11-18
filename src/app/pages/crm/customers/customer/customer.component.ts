@@ -150,7 +150,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
     this.getEmployeeData();
     this.getTeamData();
   }
-  
+
 
   ngAfterViewInit(): void {
     this.initAddressTable();
@@ -304,13 +304,13 @@ export class CustomerComponent implements OnInit, AfterViewInit {
           type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         });
         const url = window.URL.createObjectURL(blob);
-  
+
         const a = document.createElement('a');
         a.href = url;
         a.download = `DanhSachKhachHang_${new Date().toISOString().slice(0, 10)}.xlsx`;
         document.body.appendChild(a);
         a.click();
-  
+
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
       },
@@ -319,34 +319,48 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       },
     });
   }
-  
+
 
 
   onDelete() {
-    if ( this.selectedIds.length <= 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một khách hàng để xóa!');
-      return;
-    }
-    this.modal.confirm({
-      nzTitle: 'Xác nhận xóa',
-      nzContent: 'Bạn có chắc chắn muốn xóa các khách hàng này?',
-      nzOkText: 'Đồng ý',
-      nzCancelText: 'Hủy',
-      nzOnOk: () => {
-        // const payload = {
-        //   Customer: {
-        //     ID: this.selectedId ?? 0,
-        //     IsDeleted: true,
-        //     CustomerCode: this.selectedRow?.CustomerCode ?? '',
-        //     CustomerName: this.selectedRow?.CustomerName ?? '',
-        //   },
-        //   CustomerContacts: [],
-        //   AddressStocks: [],
-        //   CustomerEmployees: [],
-        //   BusinessFieldID: 0,
-        // };
+    const selectedRows = this.tb_MainTable?.getSelectedData();
+      if (!selectedRows || selectedRows.length === 0) {
+        this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một khách hàng để xóa!');
+        return;
+      }
+      const isDeleted = selectedRows.map((item: any) => item.ID);
 
-        this.customerService.deleteMultiple(this.selectedIds).subscribe({
+      // Tạo chuỗi tên khách hàng
+      let nameDisplay = '';
+      selectedRows.forEach((item: any, index: number) => {
+        nameDisplay += item.CustomerName + ',';
+      });
+
+      if (selectedRows.length > 10) {
+        if (nameDisplay.length > 10) {
+          nameDisplay = nameDisplay.slice(0, 10) + '...';
+        }
+        nameDisplay += ` và ${selectedRows.length - 1} khách hàng khác`;
+      } else {
+        if (nameDisplay.length > 20) {
+          nameDisplay = nameDisplay.slice(0, 20) + '...';
+        }
+      }
+
+      // Hiển thị confirm
+      this.modal.confirm({
+        nzTitle: 'Xác nhận xóa',
+        nzContent: `Bạn có chắc chắn muốn xóa khách hàng <b>[${nameDisplay}]</b> không?`,
+        nzOkText: 'Đồng ý',
+        nzCancelText: 'Hủy',
+        nzOkDanger: true,
+        nzOnOk: () => {
+
+        const payload = {
+          isDeleted: isDeleted
+        };
+        console.log("payload: ", payload);
+        this.customerService.save(payload).subscribe({
           next: (res: any) => {
             if (res?.status === 1) {
               this.notification.success('Thông báo', 'Xóa thành công');
@@ -374,13 +388,13 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   //     this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một khách hàng để xóa!');
   //     return;
   //   }
-  
+
   //   // Tạo chuỗi tên khách hàng
   //   let nameDisplay = '';
   //   selectedRows.forEach((item: any, index: number) => {
   //     nameDisplay += item.CustomerName + ',';
   //   });
-  
+
   //   if (selectedRows.length > 10) {
   //     if (nameDisplay.length > 10) {
   //       nameDisplay = nameDisplay.slice(0, 10) + '...';
@@ -391,7 +405,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   //       nameDisplay = nameDisplay.slice(0, 20) + '...';
   //     }
   //   }
-  
+
   //   // Hiển thị confirm
   //   this.modal.confirm({
   //     nzTitle: 'Xác nhận xóa',
@@ -412,24 +426,24 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   //           CustomerEmployees: [],
   //           BusinessFieldID: 0,
   //         };
-  
+
   //         return this.customerService.save(payload).toPromise(); // Chuyển Observable thành Promise
   //       });
-  
+
   //       // Chạy tất cả các yêu cầu xóa
   //       Promise.all(deleteRequests)
   //         .then((results) => {
   //           const allSuccess = results.every((res: any) => res?.status === 'Success');
   //           if (allSuccess) {
   //             this.notification.success('Thành công', 'Đã xóa khách hàng thành công!');
-  //             this.initMainTable(); 
+  //             this.initMainTable();
   //           } else {
   //             this.notification.warning('Thông báo', 'Không thể xóa một số khách hàng!');
   //           }
   //         })
   //         .catch((err) => {
   //           console.error('Lỗi xóa:', err);
-  //           this.notification.error('Lỗi', err?.message || 'Có lỗi xảy ra khi xóa khách hàng!');
+  //           this.notification.error(NOTIFICATION_TITLE.error, err?.message || 'Có lỗi xảy ra khi xóa khách hàng!');
   //         });
   //     },
   //   });
@@ -450,6 +464,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   initMainTable(): void {
     this.tb_MainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
+      layout: 'fitColumns',
       selectableRows: true,
       paginationMode: 'remote',
       height: '89vh',
@@ -513,6 +528,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
           title: 'Tên khách',
           field: 'CustomerName',
           formatter: 'textarea',
+          bottomCalc: 'count',
         },
         { title: 'Địa chỉ', field: 'Address', formatter: 'textarea' },
         { title: 'Mã số thuế', field: 'TaxCode' },
@@ -529,8 +545,8 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         },
         { title: 'Đầu mối gửi check chứng từ', field: 'CheckVoucher' },
         { title: 'Đầu mối gửi chứng từ bản cứng', field: 'HardCopyVoucher' },
-        { 
-          title: 'Ngày chốt công nợ', 
+        {
+          title: 'Ngày chốt công nợ',
           field: 'ClosingDateDebt',
           formatter: (cell: any) => {
             const value = cell.getValue();
@@ -554,16 +570,16 @@ export class CustomerComponent implements OnInit, AfterViewInit {
     this.tb_MainTable.on('dataLoading',()=>{
       this.tb_MainTable.deselectRow();
       this.sizeTbDetail='0';
-      this.selectedIds = []; 
+      this.selectedIds = [];
     });
-    
+
     // Event listener để cập nhật danh sách ID khi có thay đổi selection
     this.tb_MainTable.on('rowSelectionChanged', () => {
       const selectedRows = this.tb_MainTable.getSelectedData();
       this.selectedIds = selectedRows.map((row: any) => row.ID);
       console.log('Selected IDs:', this.selectedIds);
     });
-    
+
     this.tb_MainTable.on(
       'rowDblClick',
       (e: any, row: RowComponent) => {
@@ -589,7 +605,20 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       {
         data: this.customerContactData,
         layout:"fitColumns",
-        height: '80vh',
+
+        // selectableRows: 1,
+        pagination: false,
+        // paginationSize: 100,
+        // movableColumns: true,
+        // resizableRows: true,
+        // reactiveData: true,
+        // columnDefaults: {
+        //   headerWordWrap: true,
+        //   headerVertical: false,
+        //   headerHozAlign: 'center',
+        //   minWidth: 60,
+        //   resizable: true,
+        // },
         columns: [
           { title: 'ID', field: 'ID', visible: false },
           { title: 'Tên liên hệ', field: 'ContactName' },
@@ -609,7 +638,20 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       {
         data: this.addressStockData,
         layout:"fitColumns",
-        height: '80vh',
+
+        // selectableRows: 1,
+        pagination: true,
+        // paginationSize: 100,
+        // movableColumns: true,
+        // resizableRows: true,
+        // reactiveData: true,
+        // columnDefaults: {
+        //   headerWordWrap: true,
+        //   headerVertical: false,
+        //   headerHozAlign: 'center',
+        //   minWidth: 60,
+        //   resizable: true,
+        // },
         columns: [
           { title: 'ID', field: 'ID', visible: false },
           { title: 'Địa chỉ giao hàng', field: 'Address' },

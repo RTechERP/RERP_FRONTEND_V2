@@ -13,6 +13,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { AssetsService } from '../ts-asset-source-service/ts-asset-source.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 @Component({
    standalone: true,
     imports: [
@@ -82,7 +83,7 @@ export class TsAssetSourceFormComponent implements OnInit {
       }
     },
     error: (res: any) => {
-      this.notification.error('Lỗi', res?.error?.message || 'Không thể lưu loại tài sản');
+      this.notification.error(NOTIFICATION_TITLE.error, res?.error?.message || 'Không thể lưu loại tài sản');
     }
   });
 }
@@ -93,4 +94,3 @@ export class TsAssetSourceFormComponent implements OnInit {
      this.activeModal.dismiss('cancel');
    }
  }
- 

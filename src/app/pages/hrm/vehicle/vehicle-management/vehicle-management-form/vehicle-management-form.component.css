@@ -1,0 +1,107 @@
+.reset {
+    all: revert;
+}
+
+/* Set font-size 12px for entire modal */
+:host ::ng-deep > div {
+    font-size: 0.75rem !important;
+}
+
+:host ::ng-deep > div * {
+    font-size: 12px;
+}
+
+:host ::ng-deep .modal-header,
+:host ::ng-deep .modal-body,
+:host ::ng-deep .modal-footer,
+:host ::ng-deep nz-form-item,
+:host ::ng-deep nz-form-label,
+:host ::ng-deep nz-form-control,
+:host ::ng-deep input,
+:host ::ng-deep select,
+:host ::ng-deep button,
+:host ::ng-deep nz-select,
+:host ::ng-deep nz-option,
+:host ::ng-deep nz-input-number,
+:host ::ng-deep .ant-select-selection-item,
+:host ::ng-deep .ant-input {
+    font-size: 0.75rem;
+}
+
+.tabulator {
+  font-size: 0.75rem;
+  border: 1px solid !important;
+}
+
+.tabulator-cell {
+  padding: 0px;
+}
+
+.fs-12 {
+  font-size: 0.75rem;
+}
+.custom-border {
+  border: 1px ;  /* Màu viền mặc định của Ant Design */
+  border-radius: 4px;         /* Bo góc 4px */
+  padding: 16px;              /* Tạo khoảng đệm bên trong */
+  transition: all 0.3s;       /* Hiệu ứng mượt khi hover */
+
+}
+/* 
+.product-list-container {
+  margin: 16px;
+  padding: 16px;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+
+  .add-row-container {
+    margin-top: 16px;
+    text-align: center;
+  }
+
+  nz-table {
+    margin-top: 16px;
+  }
+} */
+.fullscreen-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  background: white; /* hoặc theo thiết kế của bạn */
+  z-index: 1050; /* cao hơn backdrop nếu cần */
+}
+#productTable, .tabulator {
+  width: 100% !important;
+  min-width: 0;
+}
+
+/* Fieldset và Legend styling */
+.fieldset-custom {
+  border: 1px solid #d9d9d9;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 10px;
+  font-size: 0.75rem;
+}
+
+.legend-custom {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0 8px;
+  width: auto;
+  border: none;
+  margin-bottom: 0;
+}
+
+.fieldset-custom legend {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0 8px;
+  width: auto;
+  border: none;
+  margin-bottom: 0;
+}

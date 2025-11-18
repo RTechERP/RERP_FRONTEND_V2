@@ -25,7 +25,7 @@
                     <nz-form-control [nzSpan]="24">
                       <nz-date-picker [nzFormat]="dateFormat" class="w-100" nzSize="small" [(ngModel)]="searchParams.dateEnd" name="dateEnd" [nzDisabled]="checked"></nz-date-picker>
                     </nz-form-control>
-                  </nz-form-item>   
+                  </nz-form-item>
                   <nz-form-item class="mt-2">
                     <nz-form-label class="fs-12" [nzSpan]="24">Trạng thái</nz-form-label>
                     <nz-form-control [nzSpan]="24">
@@ -39,17 +39,17 @@
                         </nz-option>
                       </nz-select>
                     </nz-form-control>
-                  </nz-form-item>   
+                  </nz-form-item>
                   <nz-form-item class="mt-2">
                     <nz-form-label class="fs-12" [nzSpan]="24">Lọc kho</nz-form-label>
                     <nz-form-control [nzSpan]="24">
                       <nz-select class="w-100" nzShowSearch nzAllowClear nzSize="small"
                          [(ngModel)]="searchParams.productGroupID" name="status">
-                        <nz-option *ngFor="let item of cbbProductGroup" [nzValue]="item.ID" [nzLabel]="item.ProductGroupName">             
+                        <nz-option *ngFor="let item of cbbProductGroup" [nzValue]="item.ID" [nzLabel]="item.ProductGroupName">
                         </nz-option>
                       </nz-select>
                     </nz-form-control>
-                  </nz-form-item>   
+                  </nz-form-item>
                   <nz-form-item class="mt-2">
                     <nz-form-label class="fs-12" [nzSpan]="24">Nhân viên</nz-form-label>
                     <nz-form-control [nzSpan]="24">
@@ -59,13 +59,13 @@
                         </nz-option>
                       </nz-select>
                     </nz-form-control>
-                  </nz-form-item>   
+                  </nz-form-item>
                   <nz-form-item class="mt-2">
                     <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
                     <nz-form-control [nzSpan]="24">
                         <input class="w-100" nz-input placeholder="Nhập từ khóa" [(ngModel)]="searchParams.keyword" name="keyword" nzSize="small" />
                     </nz-form-control>
-                  </nz-form-item>                
+                  </nz-form-item>
                 </form>
               </div>
               <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
@@ -75,7 +75,7 @@
             </div>
           </nz-splitter-panel>
       <nz-splitter-panel nzDefaultSize="100%">
-        <div class="card h-100 border-0 rounded-0">       
+        <div class="card h-100 border-0 rounded-0">
           <!-- Toolbar -->
           <div class="card-header bg-white p-2" style="overflow-x: auto;">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -96,15 +96,14 @@
                           <nz-icon nzType="file-excel" /> Xuất Excel
                         </button>
                 </div>
-              </div>     
+              </div>
           </div>
           <!-- Body chứa 2 bảng -->
-          <div class="card-body p-0 w-100">        
-              <div id="table_HistoryBorrowSale" style="height: 80vh;"></div>
+          <div class="card-body p-0 w-100">
+              <div id="table_HistoryBorrowSale"></div>
           </div>
-          
+
         </div>
       </nz-splitter-panel>
     </nz-splitter>
   </ng-container>
-  

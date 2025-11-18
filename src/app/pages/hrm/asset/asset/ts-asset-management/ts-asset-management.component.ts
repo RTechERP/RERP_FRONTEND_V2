@@ -591,6 +591,22 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
           formatter: 'textarea'
         },
         {
+          title: 'Phòng ban',
+          field: 'Name',
+          HeaderhozAlign: 'center',
+          hozAlign: 'left',
+          formatter: 'textarea'
+          , visible: false
+        },
+        {
+          title: 'Vị trí`',
+          field: 'PositionName',
+          HeaderhozAlign: 'center',
+          hozAlign: 'left',
+          formatter: 'textarea'
+          , visible: false
+        },
+        {
           title: 'Ghi chú',
           field: 'Note',
           hozAlign: 'left',
@@ -914,7 +930,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     const selectedAssets = this.getSingleSelectedAsset('đưa vào sử dụng lại');
     if (!selectedAssets) return;
 
-    if (selectedAssets.StatusID != 5) {
+    if (selectedAssets.StatusID != 3) {
       this.notification.warning(
         'Thông báo',
         `Tài sản có mã "${selectedAssets.TSAssetCode}" đang ở trạng thái ${selectedAssets.Status}, không thể đưa vào sử dụng lại!`

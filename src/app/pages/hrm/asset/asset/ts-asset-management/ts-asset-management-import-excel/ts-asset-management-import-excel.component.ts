@@ -15,7 +15,8 @@ import { NzProgressModule } from 'ng-zorro-antd/progress';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { DateTime } from 'luxon';
-
+import { firstValueFrom } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { AssetsManagementService } from '../ts-asset-management-service/ts-asset-management.service';
@@ -24,6 +25,7 @@ import { UnitService } from '../../ts-asset-unitcount/ts-asset-unit-service/ts-a
 import { TypeAssetsService } from '../../ts-asset-type/ts-asset-type-service/ts-asset-type.service';
 import { AssetsService } from '../../ts-asset-source/ts-asset-source-service/ts-asset-source.service';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   if (!val) return '';
@@ -159,6 +161,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
     private modalService: NgbModal,
     private assetsManagementService: AssetsManagementService,
     private unitService: UnitService,
+    private AssetsManagementService: AssetsManagementService,
     private soucerService: AssetsService,
     private typeAssetsService: TypeAssetsService,
     private tsAssetManagementPersonalService: TsAssetManagementPersonalService,
@@ -175,18 +178,18 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       this.tableExcel = new Tabulator('#datatableExcel', {
         data: this.dataTableExcel,
         layout: 'fitDataFill',
-    ...DEFAULT_TABLE_CONFIG,
-    height:'40vh',
-    paginationMode:'local',
+        ...DEFAULT_TABLE_CONFIG,
+        height: '40vh',
+        paginationMode: 'local',
         columns: [
           { title: 'STT', field: 'STT', hozAlign: 'center', width: 70 },
-          { title: 'Mã tài sản', field: 'TSAssetCode', hozAlign: 'left' },
+          { title: 'Mã tài sản', field: 'TSCodeNCC', hozAlign: 'left' },
           { title: 'Tên tài sản', field: 'TSAssetName', hozAlign: 'left' },
           { title: 'Mã loại tài sản', field: 'AssetCode', hozAlign: 'left' },
           { title: 'Tên loại', field: 'AssetType', hozAlign: 'left' },
           { title: 'Mã nguồn gốc tài sản', field: 'SourceCode', hozAlign: 'left' },
           { title: 'Tên nguồn gốc', field: 'SourceName', hozAlign: 'left' },
-          { title: 'Mã NCC', field: 'TSCodeNCC', hozAlign: 'left' },
+
 
           { title: 'Mô tả chi tiết (Model, thông số kỹ thuật…)', field: 'SpecificationsAsset', hozAlign: 'left' },
           { title: 'Seri', field: 'Seri', hozAlign: 'left' },
@@ -321,15 +324,15 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
     }
   }
   private normalizeHeader(value: any): string {
-  if (value == null) return '';
+    if (value == null) return '';
 
-  return value
-    .toString()
-    .toLowerCase()
-    .replace(/\u00A0/g, ' ')   // thay non-breaking space thành space thường
-    .replace(/\s+/g, ' ')      // gộp tất cả khoảng trắng (space, \n, \t, ...) thành 1 space
-    .trim();
-}
+    return value
+      .toString()
+      .toLowerCase()
+      .replace(/\u00A0/g, ' ')   // thay non-breaking space thành space thường
+      .replace(/\s+/g, ' ')      // gộp tất cả khoảng trắng (space, \n, \t, ...) thành 1 space
+      .trim();
+  }
   async readExcelData(workbook: ExcelJS.Workbook, sheetName: string) {
     console.log(`Bắt đầu đọc dữ liệu từ sheet: "${sheetName}"`);
     try {
@@ -354,53 +357,52 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       headerRow.eachCell((cell, colNumber) => {
         headers[colNumber - 1] = getCellText(cell);
       });
-const requiredHeaders = [
-  'stt',
-  'mã tài sản',
-  'tên tài sản',
-  'mã loại',
-  'nguồn gốc',
-  'đơn vị',
-  'số lượng'
-];
+      const requiredHeaders = [
+        'stt',
+        'mã tài sản',
+        'tên tài sản',
+        'mã loại',
+        'nguồn gốc',
+        'đơn vị',
+        'số lượng'
+      ];
 
-const normalizedHeaders = headers.map(h => this.normalizeHeader(h));
+      const normalizedHeaders = headers.map(h => this.normalizeHeader(h));
 
-const isHeaderValid = requiredHeaders.every(req => {
-  const normReq = this.normalizeHeader(req);
-  return normalizedHeaders.some(h => h.includes(normReq));
-});
+      const isHeaderValid = requiredHeaders.every(req => {
+        const normReq = this.normalizeHeader(req);
+        return normalizedHeaders.some(h => h.includes(normReq));
+      });
 
-if (!isHeaderValid) {
-  console.warn('Header không hợp lệ:', headers, normalizedHeaders);
-  this.notification.error(
-    'Thông báo',
-    'File Excel không đúng mẫu biên bản tài sản. Vui lòng tải xuống mẫu xuất để có mẫu nhập excel.'
-  );
-  this.resetExcelImportState();
-  return;
-}
+      if (!isHeaderValid) {
+        console.warn('Header không hợp lệ:', headers, normalizedHeaders);
+        this.notification.error(
+          'Thông báo',
+          'File Excel không đúng mẫu biên bản tài sản. Vui lòng tải xuống mẫu xuất để có mẫu nhập excel.'
+        );
+        this.resetExcelImportState();
+        return;
+      }
       const columns: ColumnDefinition[] = [
         { title: headers[0] || 'STT', field: 'STT', hozAlign: 'center', headerHozAlign: 'center', width: 70 },
-        { title: headers[1] || 'Mã tài sản', field: 'TSAssetCode', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[1] || 'Mã tài sản', field: 'TSCodeNCC', hozAlign: 'left', headerHozAlign: 'center' },
         { title: headers[2] || 'Tên tài sản', field: 'TSAssetName', hozAlign: 'left', headerHozAlign: 'center' },
         { title: headers[3] || 'Mã loại tài sản', field: 'AssetCode', hozAlign: 'left', headerHozAlign: 'center' },
         { title: headers[4] || 'Mã nguồn gốc tài sản', field: 'SourceCode', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[5] || 'Mã nhà cung cấp', field: 'TSCodeNCC', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[6] || 'Mô tả chi tiết (Model, thông số kỹ thuật…)', field: 'SpecificationsAsset', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[7] || 'Số seri', field: 'Seri', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[8] || 'Đơn vị tính', field: 'UnitName', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[9] || 'Số lượng', field: 'Quantity', hozAlign: 'right', headerHozAlign: 'center' },
-        { title: headers[10] || 'Tình trạng', field: 'Status', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[11] || 'Mã phòng ban', field: 'DepartmentCode', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[12] || 'Mã nhân viên', field: 'EmployeeCode', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[13] || 'Người sử dụng', field: 'EmployeeName', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[14] || 'Thời gian ghi tăng', field: 'DateBuy', hozAlign: 'center', headerHozAlign: 'center', formatter: formatDateCell },
-        { title: headers[15] || 'Thời gian bảo hành (tháng)', field: 'Insurance', hozAlign: 'right', headerHozAlign: 'center' },
-        { title: headers[16] || 'Hiệu lực từ', field: 'DateEffect', hozAlign: 'center', headerHozAlign: 'center', formatter: formatDateCell },
-        { title: headers[17] || 'Ghi chú', field: 'Note', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[5] || 'Mô tả chi tiết (Model, thông số kỹ thuật…)', field: 'SpecificationsAsset', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[6] || 'Số seri', field: 'Seri', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[7] || 'Đơn vị tính', field: 'UnitName', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[8] || 'Số lượng', field: 'Quantity', hozAlign: 'right', headerHozAlign: 'center' },
+        { title: headers[9] || 'Tình trạng', field: 'Status', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[10] || 'Mã phòng ban', field: 'DepartmentCode', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[11] || 'Mã nhân viên', field: 'EmployeeCode', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[12] || 'Người sử dụng', field: 'EmployeeName', hozAlign: 'left', headerHozAlign: 'center' },
+        { title: headers[13] || 'Thời gian ghi tăng', field: 'DateBuy', hozAlign: 'center', headerHozAlign: 'center', formatter: formatDateCell },
+        { title: headers[14] || 'Thời gian bảo hành (tháng)', field: 'Insurance', hozAlign: 'right', headerHozAlign: 'center' },
+        { title: headers[15] || 'Hiệu lực từ', field: 'DateEffect', hozAlign: 'center', headerHozAlign: 'center', formatter: formatDateCell },
+        { title: headers[16] || 'Ghi chú', field: 'Note', hozAlign: 'left', headerHozAlign: 'center' },
       ];
-   
+
       if (this.tableExcel) {
         this.tableExcel.setColumns(columns);
       }
@@ -420,29 +422,29 @@ if (!isHeaderValid) {
           if (!isEmptyRow) {
             const rowData: any = {
               STT: getCellText(row.getCell(1)),
-              TSAssetCode: getCellText(row.getCell(2)),   // Mã tài sản
+              TSCodeNCC: getCellText(row.getCell(2)),   // Mã tài sản
               TSAssetName: getCellText(row.getCell(3)),   // Tên tài sản
 
               AssetCode: getCellText(row.getCell(4)),     // Mã loại tài sản
 
               SourceCode: getCellText(row.getCell(5)),    // Mã nguồn gốc tài sản
-              TSCodeNCC: getCellText(row.getCell(6)),     // Mã nhà cung cấp
+              // Mã nhà cung cấp
 
-              SpecificationsAsset: getCellText(row.getCell(7)), // Mô tả chi tiết
-              Seri: getCellText(row.getCell(8)),                // Số seri
+              SpecificationsAsset: getCellText(row.getCell(6)), // Mô tả chi tiết
+              Seri: getCellText(row.getCell(7)),                // Số seri
 
-              UnitName: getCellText(row.getCell(9)),      // Đơn vị tính
-              Quantity: getCellText(row.getCell(10)),     // Số lượng
-              Status: getCellText(row.getCell(11)),       // Tình trạng
+              UnitName: getCellText(row.getCell(8)),      // Đơn vị tính
+              Quantity: getCellText(row.getCell(9)),     // Số lượng
+              Status: getCellText(row.getCell(10)),       // Tình trạng
 
-              DepartmentCode: getCellText(row.getCell(12)), // Mã phòng ban
-              EmployeeCode: getCellText(row.getCell(13)),   // Mã nhân viên
-              EmployeeName: getCellText(row.getCell(14)),   // Người sử dụng
+              DepartmentCode: getCellText(row.getCell(11)), // Mã phòng ban
+              EmployeeCode: getCellText(row.getCell(12)),   // Mã nhân viên
+              EmployeeName: getCellText(row.getCell(13)),   // Người sử dụng
 
-              DateBuy: getCellText(row.getCell(15)),     // Thời gian ghi tăng
-              Insurance: getCellText(row.getCell(16)),   // Thời gian bảo hành (Tháng)
-              DateEffect: getCellText(row.getCell(17)),  // Hiệu lực từ
-              Note: getCellText(row.getCell(18)),        // Ghi chú
+              DateBuy: getCellText(row.getCell(14)),     // Thời gian ghi tăng
+              Insurance: getCellText(row.getCell(15)),   // Thời gian bảo hành (Tháng)
+              DateEffect: getCellText(row.getCell(16)),  // Hiệu lực từ
+              Note: getCellText(row.getCell(17)),        // Ghi chú
             };
             data.push(rowData);
             validRecords++;
@@ -499,138 +501,353 @@ if (!isHeaderValid) {
       }
     }
   }
- async saveExcelData() {
-  if (!this.dataTableExcel || this.dataTableExcel.length === 0) {
-    this.notification.warning('Thông báo', 'Không có dữ liệu để lưu!');
-    return;
-  }
+  nextCode: string = '';
+  // Cache để lưu code cao nhất đã dùng cho mỗi ngày trong session
+  private usedCodesCache = new Map<string, string>(); // key: date (YYYY-MM-DD), value: lastUsedCode
 
-  const validDataToSave = this.dataTableExcel.filter(row => {
-    const stt = row.STT;
-    return typeof stt === 'number'
-      || (typeof stt === 'string' && !isNaN(parseFloat(stt)) && isFinite(parseFloat(stt)));
-  });
-
-  if (validDataToSave.length === 0) {
-    this.notification.warning('Thông báo', 'Không có dữ liệu hợp lệ (STT là số) để lưu!');
-    this.displayProgress = 0;
-    this.displayText = `0/${this.totalRowsAfterFileRead} bản ghi`;
-    return;
-  }
-
-  const totalAssetsToSave = validDataToSave.length;
-
-  // cập nhật progress bar
-  this.displayProgress = 10;
-  this.displayText = `Đang chuẩn bị dữ liệu: ${totalAssetsToSave} bản ghi`;
-
-  // notification tiến trình (1 cái duy nhất, update theo nzKey)
-  const notifKey = 'asset-import-progress';
-  this.notification.info(
-    'Đang lưu dữ liệu',
-    `Đang gửi ${totalAssetsToSave} bản ghi lên server...`,
-    { nzKey: notifKey, nzDuration: 0 }
-  );
-
-  let payload: any;
-  try {
-    payload = {
-      tSAssetManagements: validDataToSave.map(row => ({
-        ID: 0,
-        STT: row.STT,
-        TSAssetCode: row.TSAssetCode || '',
-        TSAssetName: row.TSAssetName || '',
-        IsAllocation: false,
-        UnitID: this.getUnitIdByName(row.UnitName),
-        Seri: row.Seri || '',
-        SpecificationsAsset: row.SpecificationsAsset || '',
-        DateBuy: formatDate(row.DateBuy),
-        DateEffect: formatDate(row.DateEffect),
-        Insurance: row.Insurance || 0,
-        TSCodeNCC: row.TSCodeNCC || '',
-        OfficeActiveStatus: 0,
-        WindowActiveStatus: 0,
-        Note: row.Note || '',
-        StatusID: 1,
-        SourceID: this.getSourceIdByName(row.SourceCode),
-        TSAssetID: this.getTypeIdByName(row.AssetType),
-        Status: 'Chưa sử dụng',
-        EmployeeID: this.getEmployeeIDByName(row.EmployeeName),
-        SupplierID: 0,
-        DepartmentID: this.getDepartmentIDByName(row.DepartmentName),
-      }))
-    };
-  } catch (e) {
-    console.error('Lỗi khi map dữ liệu từ Excel sang payload API:', e, validDataToSave);
-    this.notification.error('Thông báo', 'Lỗi khi chuẩn bị dữ liệu để lưu.');
-    return;
-  }
-
-  // gửi 1 lần duy nhất
-  this.displayProgress = 30;
-  this.displayText = `Đang gửi ${totalAssetsToSave} bản ghi...`;
-
-  this.assetsManagementService.saveDataAsset(payload).subscribe({
-    next: (response: any) => {
-      // giả sử backend: status = 1 là ok, còn lại là lỗi
-      let successCount = 0;
-      let errorCount = 0;
-
-      if (response?.status === 1) {
-        successCount = totalAssetsToSave;
-        errorCount = 0;
-      } else {
-        successCount = 0;
-        errorCount = totalAssetsToSave;
+  private async getAssetCodeInfo(rawDate: string): Promise<{ code: string; maxSTT: number }> {
+    try {
+      const iso = formatDate(rawDate) || new Date().toISOString().split('T')[0];
+  
+      const res: any = await firstValueFrom(
+        this.assetsManagementService.getAssetCode(iso)
+      );
+  
+      let apiCode = res?.data ?? '';
+      
+      console.log('🔍 API getAssetCode response:', {
+        date: iso,
+        apiCode: apiCode,
+        maxSTT: res?.maxSTT,
+        cachedCode: this.usedCodesCache.get(iso)
+      });
+  
+      // Kiểm tra xem có code đã dùng trong cache không
+      const cachedCode = this.usedCodesCache.get(iso);
+      if (cachedCode && apiCode) {
+        // So sánh code từ API vs code đã dùng trong cache
+        const apiNumber = this.extractCodeNumber(apiCode);
+        const cachedNumber = this.extractCodeNumber(cachedCode);
+        
+        if (cachedNumber >= apiNumber) {
+          // Cache có code cao hơn → dùng code tiếp theo từ cache
+          const nextCode = this.incrementCode(cachedCode);
+          console.log('⚠️ Cache có code cao hơn API. Dùng code từ cache:', {
+            apiCode,
+            cachedCode,
+            nextCode
+          });
+          apiCode = nextCode;
+        }
       }
+  
+      return {
+        code: apiCode,
+        maxSTT: res?.maxSTT ?? 0
+      };
+    } catch (e) {
+      console.error('Lỗi khi lấy mã tài sản (code + maxSTT):', e);
+      return { code: '', maxSTT: 0 };
+    }
+  }
+  
+  // Helper: Extract số từ code
+  private extractCodeNumber(code: string): number {
+    const match = code.match(/(\d+)$/);
+    return match ? parseInt(match[1], 10) : 0;
+  }
+  
+  // Helper: Tăng code lên 1
+  private incrementCode(code: string): string {
+    const match = code.match(/(\d+)$/);
+    if (!match) return code;
+    
+    const numberPart = match[1];
+    const prefix = code.slice(0, -numberPart.length);
+    const nextNumber = parseInt(numberPart, 10) + 1;
+    const padded = nextNumber.toString().padStart(numberPart.length, '0');
+    
+    return prefix + padded;
+  }
+  
+  async generateTSAssetCode(rawDate: string): Promise<string> {
+    const { code } = await this.getAssetCodeInfo(rawDate);
+    return code;
+  }
+  
+  private buildAssetCode(baseCode: string, offset: number): string {
+    if (!baseCode) return '';
 
-      this.displayProgress = 100;
-      this.displayText = `Đã xử lý ${totalAssetsToSave}/${totalAssetsToSave} bản ghi`;
+    const match = baseCode.match(/(\d+)$/);
+    if (!match) {
+      // Không tìm được phần số ở cuối thì trả luôn baseCode (hoặc xử lý khác tùy mày)
+      return baseCode;
+    }
 
-      this.notification.remove(notifKey);
+    const numberPart = match[1];                 // '00001'
+    const prefix = baseCode.slice(0, -numberPart.length); // 'TS01012025'
+    const current = parseInt(numberPart, 10);   // 1
+    const next = current + offset;              // + offset
+    const padded = next.toString().padStart(numberPart.length, '0');
 
-      if (response?.status === 1) {
-        this.notification.success(
-          'Thông báo',
-          `Đã lưu ${successCount}/${totalAssetsToSave} bản ghi thành công`
-        );
-      } else {
+    return prefix + padded;
+  }
+  async saveExcelData() {
+    if (!this.dataTableExcel || this.dataTableExcel.length === 0) {
+      this.notification.warning('Thông báo', 'Không có dữ liệu để lưu!');
+      return;
+    }
+  
+    const validDataToSave = this.dataTableExcel.filter(row => {
+      const stt = row.STT;
+      return typeof stt === 'number'
+        || (typeof stt === 'string' && !isNaN(parseFloat(stt)) && isFinite(parseFloat(stt)));
+    });
+  
+    if (validDataToSave.length === 0) {
+      this.notification.warning('Thông báo', 'Không có dữ liệu hợp lệ (STT là số) để lưu!');
+      this.displayProgress = 0;
+      this.displayText = `0/${this.totalRowsAfterFileRead} bản ghi`;
+      return;
+    }
+  
+    const totalAssetsToSave = validDataToSave.length;
+    this.displayProgress = 10;
+    this.displayText = `Đang chuẩn bị dữ liệu: ${totalAssetsToSave} bản ghi`;
+  
+    const notifKey = 'asset-import-progress';
+    this.notification.info(
+      'Đang lưu dữ liệu',
+      `Đang gửi ${totalAssetsToSave} bản ghi lên server...`,
+      { nzKey: notifKey, nzDuration: 0 }
+    );
+  
+    // 1) Group theo ngày ghi tăng (ISO)
+    const groups = new Map<string, any[]>();
+  
+    for (const row of validDataToSave) {
+      const iso = formatDate(row.DateBuy) || new Date().toISOString().split('T')[0];
+      if (!groups.has(iso)) {
+        groups.set(iso, []);
+      }
+      groups.get(iso)!.push(row);
+    }
+  
+    const groupEntries = Array.from(groups.entries());
+    if (groupEntries.length === 0) {
+      this.notification.warning('Thông báo', 'Không có dữ liệu hợp lệ để lưu!');
+      return;
+    }
+  
+    const tSAssetManagements: any[] = [];
+  
+    // 2) Lấy code + maxSTT từ group đầu tiên
+    const [firstIsoDate, firstRows] = groupEntries[0];
+    
+    console.log('📅 Đang lấy code cho ngày:', firstIsoDate);
+    const { code: firstBaseCode, maxSTT } = await this.getAssetCodeInfo(firstIsoDate);
+    console.log('✅ Code nhận được từ API:', firstBaseCode, '| maxSTT:', maxSTT);
+  
+    if (!firstBaseCode) {
+      this.notification.error('Thông báo', 'Không lấy được mã tài sản từ server.');
+      return;
+    }
+  
+    let currentSTT = maxSTT; // DB hiện tại, sẽ ++ cho từng bản ghi
+  
+    const processGroup = (rows: any[], baseCode: string, groupOffset: number) => {
+      rows.forEach((row, idx) => {
+        // Dùng groupOffset + idx để tính code cho group này
+        const code = this.buildAssetCode(baseCode, groupOffset + idx);
+  
+        currentSTT += 1; // STT: maxSTT + 1, +2, ...
+  
+        console.log(`Bản ghi: Code=${code}, STT=${currentSTT}, BaseCode=${baseCode}, Offset=${groupOffset + idx}`);
+  
+        tSAssetManagements.push({
+          ID: 0,
+          STT: currentSTT,
+          TSAssetCode: code || '',
+          TSAssetName: row.TSAssetName || '',
+          IsAllocation: false,
+          UnitID: this.getUnitIdByName(row.UnitName),
+          Seri: row.Seri || '',
+          SpecificationsAsset: row.SpecificationsAsset || '',
+          DateBuy: formatDate(row.DateBuy),
+          DateEffect: formatDate(row.DateEffect),
+          Insurance: row.Insurance || 0,
+          TSCodeNCC: row.TSCodeNCC || '',
+          OfficeActiveStatus: 0,
+          WindowActiveStatus: 0,
+          Note: row.Note || '',
+          StatusID: 1,
+          SourceID: this.getSourceIdByName(row.SourceCode),
+          TSAssetID: this.getTypeIdByName(row.AssetType),
+          Status: 'Chưa sử dụng',
+          EmployeeID: this.getEmployeeIDByName(row.EmployeeName),
+          SupplierID: 0,
+          DepartmentID: this.getDepartmentIDByName(row.DepartmentName),
+        });
+      });
+    };
+  
+    // Track offset cho từng baseCode để tránh trùng lặp
+    const baseCodeOffsets = new Map<string, number>();
+    
+    // 3) Xử lý group đầu tiên với baseCode + maxSTT vừa lấy
+    baseCodeOffsets.set(firstBaseCode, 0);
+    processGroup(firstRows, firstBaseCode, 0);
+    baseCodeOffsets.set(firstBaseCode, firstRows.length); // Update offset sau khi xử lý
+  
+    // 4) Các group còn lại: chỉ cần code theo ngày, STT vẫn dùng currentSTT đang tăng dần
+    for (let i = 1; i < groupEntries.length; i++) {
+      const [isoDate, rows] = groupEntries[i];
+      const baseCode = await this.generateTSAssetCode(isoDate); // chỉ lấy code, kệ maxSTT
+  
+      if (!baseCode) {
+        console.warn('Không lấy được mã tài sản cho ngày', isoDate);
+        continue;
+      }
+  
+      // Lấy offset hiện tại cho baseCode này (nếu đã dùng trước đó)
+      const currentOffset = baseCodeOffsets.get(baseCode) || 0;
+      processGroup(rows, baseCode, currentOffset);
+      // Cập nhật offset cho baseCode này
+      baseCodeOffsets.set(baseCode, currentOffset + rows.length);
+    }
+  
+    // Cập nhật cache với code cao nhất đã dùng
+    tSAssetManagements.forEach(item => {
+      if (item.TSAssetCode && item.DateBuy) {
+        const dateKey = formatDate(item.DateBuy) || '';
+        if (dateKey) {
+          const currentCached = this.usedCodesCache.get(dateKey);
+          if (!currentCached || this.extractCodeNumber(item.TSAssetCode) > this.extractCodeNumber(currentCached)) {
+            this.usedCodesCache.set(dateKey, item.TSAssetCode);
+          }
+        }
+      }
+    });
+    
+    console.log('💾 Cache sau khi xử lý:', Object.fromEntries(this.usedCodesCache));
+  
+    const payload = { tSAssetManagements };
+  
+    this.displayProgress = 30;
+    this.displayText = `Đang gửi ${totalAssetsToSave} bản ghi...`;
+    console.log('Payload import excel', payload);
+  
+    this.assetsManagementService.saveDataAsset(payload).subscribe({
+      next: (response: any) => {
+        console.log('=== Response từ API saveDataAsset ===', response);
+        console.log('response.status:', response?.status);
+        console.log('response.data:', response?.data);
+        
+        // Đếm số bản ghi có ID trong response (đã lưu thành công)
+        let successCount = 0;
+        let errorCount = 0;
+        
+        // Backend trả về status chữ thường
+        if (response?.status === 1) {
+          // Nếu API trả về status = 1, nghĩa là thành công
+          // Kiểm tra xem response.data có tSAssetManagements không
+          const assetData = response.data;
+          
+          if (assetData && assetData.tSAssetManagements && Array.isArray(assetData.tSAssetManagements)) {
+            console.log('Tìm thấy tSAssetManagements array:', assetData.tSAssetManagements);
+            console.log('Số phần tử:', assetData.tSAssetManagements.length);
+            
+            // Đếm số bản ghi có ID > 0 (đã được lưu vào DB)
+            const itemsWithId = assetData.tSAssetManagements.filter((item: any) => {
+              const hasValidId = item && item.ID && item.ID > 0;
+              if (!hasValidId) {
+                console.warn('Item không có ID hợp lệ:', item);
+              }
+              return hasValidId;
+            });
+            
+            successCount = itemsWithId.length;
+            errorCount = totalAssetsToSave - successCount;
+            
+            console.log('Số bản ghi có ID > 0:', successCount);
+            console.log('Chi tiết các ID:', itemsWithId.map((item: any) => item.ID));
+            console.log(`✅ Tổng kết: ${successCount}/${totalAssetsToSave} thành công, ${errorCount} thất bại`);
+          } else {
+            // Nếu API trả về status = 1 nhưng không có array chi tiết
+            // Có thể backend chưa trả về data đầy đủ, coi như tất cả thành công
+            console.warn('⚠️ API trả về status = 1 nhưng không có tSAssetManagements array');
+            console.log('Cấu trúc response.data:', assetData ? Object.keys(assetData) : 'null');
+            console.log('Coi như tất cả bản ghi đã lưu thành công');
+            successCount = totalAssetsToSave;
+            errorCount = 0;
+          }
+        } else {
+          // Nếu status !== 1, coi như thất bại
+          console.error('❌ API trả về status !== 1:', response?.status);
+          successCount = 0;
+          errorCount = totalAssetsToSave;
+        }
+  
+        this.displayProgress = 100;
+        this.displayText = `Đã xử lý ${totalAssetsToSave}/${totalAssetsToSave} bản ghi`;
+  
+        this.notification.remove(notifKey);
+  
+        // Hiển thị thông báo dựa trên số bản ghi có ID
+        if (successCount > 0) {
+          if (successCount === totalAssetsToSave) {
+            this.notification.success(
+              'Thông báo',
+              `Đã lưu ${successCount}/${totalAssetsToSave} bản ghi thành công`
+            );
+          } else {
+            this.notification.warning(
+              'Thông báo',
+              `Đã lưu ${successCount}/${totalAssetsToSave} bản ghi thành công. ${errorCount} bản ghi thất bại.`
+            );
+          }
+        } else {
+          const backendMsg =
+            response?.message ||
+            response?.data?.message ||
+            response?.error?.message ||
+            'Lưu dữ liệu thất bại.';
+  
+          this.notification.error(
+            'Thông báo',
+            `${backendMsg}`
+          );
+        }
+  
+        // Refresh table nếu có ít nhất 1 bản ghi thành công
+        if (successCount > 0 && this.table) {
+          console.log('Refreshing table after successful import...');
+          this.table.replaceData();
+        }
+        
+        this.closeExcelModal();
+      },
+      error: (err: any) => {
+        console.error('Lỗi API khi lưu danh sách tài sản:', err);
+  
         const backendMsg =
-          response?.message ||
-          response?.error?.message ||
+          err?.error?.message ||
+          err?.error?.title ||
+          err?.message ||
           'Lưu dữ liệu thất bại.';
-
+  
+        this.displayProgress = 100;
+        this.displayText = `Lỗi khi lưu ${totalAssetsToSave} bản ghi`;
+  
+        this.notification.remove(notifKey);
         this.notification.error(
           'Thông báo',
-          `${backendMsg} (thất bại ${errorCount}/${totalAssetsToSave} bản ghi)`
+          `${backendMsg} (thất bại ${totalAssetsToSave}/${totalAssetsToSave} bản ghi)`
         );
       }
-
-      // nếu muốn vẫn đóng modal sau khi lưu xong:
-      this.closeExcelModal();
-    },
-    error: (err: any) => {
-      console.error('Lỗi API khi lưu danh sách tài sản:', err);
-
-      const backendMsg =
-        err?.error?.message ||
-        err?.error?.title ||
-        err?.message ||
-        'Lưu dữ liệu thất bại.';  
-
-      this.displayProgress = 100;
-      this.displayText = `Lỗi khi lưu ${totalAssetsToSave} bản ghi`;
-
-      this.notification.remove(notifKey);
-      this.notification.error(
-        'Thông báo',
-        `${backendMsg} (thất bại ${totalAssetsToSave}/${totalAssetsToSave} bản ghi)`
-      );
-      // tùy mày: có thể KHÔNG đóng modal để xem lại dữ liệu
-      // this.closeExcelModal();
-    }
-  });
-}
+    });
+  }
+  
 
   showSaveSummary(successCount: number, errorCount: number, totalProducts: number) {
     console.log('--- Hiển thị tóm tắt kết quả lưu ---');

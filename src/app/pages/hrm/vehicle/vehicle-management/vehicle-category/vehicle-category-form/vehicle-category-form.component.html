@@ -1,0 +1,57 @@
+<div>
+    <!-- Header -->
+    <div class="modal-header bg-primary align-items-center ps-2">
+        <h6 class="text-light text-uppercase m-0" style="padding: 0, 5rem">
+            Quản lý chi tiết loại xe
+        </h6>
+        <button type="button" class="btn-close fs-12" aria-label="Close" (click)="close()"></button>
+    </div>
+    <!-- Body-->
+    <div class="modal-body">
+        <form [formGroup]="formGroup" nz-row [nzGutter]="16">
+            <nz-row [nzGutter]="16">
+                <nz-col [nzSpan]="12">
+                    <nz-form-item class="col-md-12">
+                        <nz-form-label [nzSpan]="24" class="fs-12">Mã loại xe<span class="text-danger ps-1"> (*) </span></nz-form-label>
+                        <nz-form-control [nzSpan]="24" [nzErrorTip]="
+                            formGroup.get('VehicleCategoryCode')?.hasError('required') && (formGroup.get('VehicleCategoryCode')?.dirty || formGroup.get('VehicleCategoryCode')?.touched)
+                                ? 'Mã loại xe không được để trống!'
+                                : (formGroup.get('VehicleCategoryCode')?.hasError('maxlength') ? 'Mã loại xe tối đa 100 ký tự!' : undefined)">
+                            <input nz-input placeholder="Nhập mã loại xe" formControlName="VehicleCategoryCode" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="6">
+                    <nz-form-item class="col-md-12">
+                        <nz-form-label [nzSpan]="24" class="fs-12">STT<span class="text-danger ps-1"> (*) </span></nz-form-label>
+                        <nz-form-control [nzSpan]="24" [nzErrorTip]="
+                            formGroup.get('STT')?.hasError('required') && (formGroup.get('STT')?.dirty || formGroup.get('STT')?.touched)
+                                ? 'Số thứ tự không được để trống!'
+                                : (formGroup.get('STT')?.hasError('min') ? 'Số thứ tự phải lớn hơn 0!' : (formGroup.get('STT')?.hasError('minValue') ? `Số thứ tự phải lớn hơn ${maxSTT}!` : undefined))">
+                            <nz-input-number formControlName="STT" [nzMin]="1" [nzMax]="100" [nzStep]="1" style="width: 100%;"></nz-input-number>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+            <nz-row [nzGutter]="16">
+                <nz-col [nzSpan]="24">
+                    <nz-form-item class="col-md-12">
+                        <nz-form-label [nzSpan]="24" class="fs-12">Tên loại xe<span class="text-danger ps-1"> (*) </span></nz-form-label>
+                        <nz-form-control [nzSpan]="24" [nzErrorTip]="
+                            formGroup.get('VehicleCategoryName')?.hasError('required') && (formGroup.get('VehicleCategoryName')?.dirty || formGroup.get('VehicleCategoryName')?.touched)
+                                ? 'Tên loại xe không được để trống!'
+                                : (formGroup.get('VehicleCategoryName')?.hasError('maxlength') ? 'Tên loại xe tối đa 100 ký tự!' : undefined)">
+                            <input nz-input placeholder="Nhập tên loại xe" formControlName="VehicleCategoryName" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+        </form>
+    </div>
+    <div class="modal-footer bg-whitesmoke br p-1">
+        <button nz-button nzType="default" nzDanger (click)="close()">
+            Đóng
+        </button>
+        <button nz-button nzType="primary" (click)="saveStatus()">Lưu</button>
+    </div>
+</div>

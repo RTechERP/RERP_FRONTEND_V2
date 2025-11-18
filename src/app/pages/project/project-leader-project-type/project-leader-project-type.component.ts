@@ -1,4 +1,13 @@
-import { Component, ElementRef, OnInit, ViewChild, AfterViewInit, AfterViewChecked, IterableDiffers, TemplateRef } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnInit,
+  ViewChild,
+  AfterViewInit,
+  AfterViewChecked,
+  IterableDiffers,
+  TemplateRef,
+} from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
@@ -35,7 +44,7 @@ import { NgbActiveModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { ProjectLeaderProjectTypeDetailComponent } from './project-leader-project-type-detail/project-leader-project-type-detail.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
-
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-project-leader-project-type',
@@ -63,19 +72,16 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
     NzSpinModule,
     NzTreeSelectModule,
     NzModalModule,
-    HasPermissionDirective
+    HasPermissionDirective,
   ],
 })
 export class ProjectLeaderProjectTypeComponent implements OnInit {
- constructor(
+  constructor(
     private projectService: ProjectService,
     private notification: NzNotificationService,
     private modal: NzModalService,
-    private modalService: NgbModal,
-
-
-
-  ) { }
+    private modalService: NgbModal
+  ) {}
   @ViewChild('tb_projectTypeLink', { static: false })
   tb_projectTypeLinkContainer!: ElementRef;
   @ViewChild('tb_projectLeaderProjectTypeLink', { static: false })
@@ -83,7 +89,8 @@ export class ProjectLeaderProjectTypeComponent implements OnInit {
   @ViewChild('tb_projectEmployeeLink', { static: false })
   tb_projectEmployeeLinkContainer!: ElementRef;
 
-  @ViewChild('modalTemplate', { static: true }) modalTemplate!: TemplateRef<any>;
+  @ViewChild('modalTemplate', { static: true })
+  modalTemplate!: TemplateRef<any>;
 
   tb_projectTypeLinks: any;
   tb_projectLeaderProjectTypeLinks: any;
@@ -98,26 +105,27 @@ export class ProjectLeaderProjectTypeComponent implements OnInit {
 
   ngAfterViewInit(): void {
     this.drawTbProjectTypeLinks(this.tb_projectTypeLinkContainer.nativeElement);
-    this.drawTbProjectLeaderProjectTypeLinks(this.tb_projectLeaderProjectTypeLinkContainer.nativeElement);
+    this.drawTbProjectLeaderProjectTypeLinks(
+      this.tb_projectLeaderProjectTypeLinkContainer.nativeElement
+    );
     this.getProjectTypeLinks();
     this.getProjectLeaderProjectTypeLinks(this.projectTypeId);
     this.getDepartment();
-  };
+  }
 
   drawTbProjectLeaderProjectTypeLinks(container: HTMLElement) {
     this.tb_projectLeaderProjectTypeLinks = new Tabulator(container, {
-    ...DEFAULT_TABLE_CONFIG,
+      ...DEFAULT_TABLE_CONFIG,
       layout: 'fitColumns',
       locale: 'vi',
-      rowHeader:false,
-      pagination:false,
+      rowHeader: false,
+      pagination: false,
       selectableRows: true, //make rows selectable
       groupBy: (data) => `Kiểu dự án: ${data.ProjectTypeName}`,
       groupHeader: function (value, count, data, group) {
         return `${value}`;
       },
       columns: [
-
         {
           title: '',
           field: '',
@@ -138,33 +146,30 @@ export class ProjectLeaderProjectTypeComponent implements OnInit {
           title: 'Leader dự án',
           field: 'FullName',
           headerHozAlign: 'left',
-
         },
       ],
-
     });
-
   }
   drawTbProjectEmployeeLinks(container: HTMLElement) {
     this.tb_projectEmployeeLinks = new Tabulator(container, {
-     ...DEFAULT_TABLE_CONFIG,
+      ...DEFAULT_TABLE_CONFIG,
       layout: 'fitColumns',
       locale: 'vi',
-      pagination:true,
-      paginationMode:'local',
+      pagination: true,
+      paginationMode: 'local',
       rowContextMenu: [
         {
           label: 'Chọn tất cả',
           action: (e, row) => {
             this.tb_projectEmployeeLinks.selectRow();
-          }
+          },
         },
         {
-          label: "Bỏ chọn tất cả",
+          label: 'Bỏ chọn tất cả',
           action: (e, row) => {
             this.tb_projectEmployeeLinks.deselectRow();
-          }
-        }
+          },
+        },
       ],
 
       selectableRows: true, //make rows selectable
@@ -192,12 +197,9 @@ export class ProjectLeaderProjectTypeComponent implements OnInit {
           title: 'Tên nhân viên',
           field: 'FullName',
           headerHozAlign: 'center',
-
         },
       ],
-
     });
-
   }
 
   refresh() {
@@ -211,12 +213,12 @@ export class ProjectLeaderProjectTypeComponent implements OnInit {
       },
       error: (error) => console.error('Lỗi:', error),
     });
-  
+
     // Làm mới bảng kiểu dự án (Tree)
     this.projectService.getProjectTypes().subscribe({
       next: (response: any) => {
         const data = this.projectService.setDataTree(response.data, 'ID');
-  
+
         // === Hàm đệ quy bỏ chọn tất cả node trong tree ===
         const deselectAllTreeRows = (rows: any[]) => {
           rows.forEach((row: any) => {
@@ -225,7 +227,7 @@ export class ProjectLeaderProjectTypeComponent implements OnInit {
             if (children?.length) deselectAllTreeRows(children);
           });
         };
-  
+
         // === Cập nhật lại dữ liệu ===
         this.tb_projectTypeLinks.replaceData(data).then(() => {
           // Chờ Tabulator render xong để bỏ chọn
@@ -240,9 +242,7 @@ export class ProjectLeaderProjectTypeComponent implements OnInit {
       error: (error) => console.error('Lỗi:', error),
     });
   }
-  
 
-  
   getProjectLeaderProjectTypeLinks(projectTypeId: number) {
     this.projectService.getEmployeeProjectType(projectTypeId).subscribe({
       next: (response: any) => {
@@ -255,18 +255,17 @@ export class ProjectLeaderProjectTypeComponent implements OnInit {
     });
 
     // Khi click vào row thì toggle chọn/bỏ chọn
-    this.tb_projectLeaderProjectTypeLinks.on("rowClick", (e: any, row: any) => {
-
+    this.tb_projectLeaderProjectTypeLinks.on('rowClick', (e: any, row: any) => {
       row.toggleSelect();
     });
 
     // Đồng bộ Set bằng các sự kiện chọn / bỏ chọn riêng biệt
-    this.tb_projectLeaderProjectTypeLinks.on("rowSelected", (row: any) => {
+    this.tb_projectLeaderProjectTypeLinks.on('rowSelected', (row: any) => {
       const id = row.getData().ID;
       this.selectedLeaderProjectType.add(id);
     });
 
-    this.tb_projectLeaderProjectTypeLinks.on("rowDeselected", (row: any) => {
+    this.tb_projectLeaderProjectTypeLinks.on('rowDeselected', (row: any) => {
       const id = row.getData().ID;
       this.selectedLeaderProjectType.delete(id);
     });
@@ -274,7 +273,7 @@ export class ProjectLeaderProjectTypeComponent implements OnInit {
   getProjectTypeLinks() {
     this.projectService.getProjectTypes().subscribe({
       next: (response: any) => {
-        let data = this.projectService.setDataTree(response.data, 'ID')
+        let data = this.projectService.setDataTree(response.data, 'ID');
         this.tb_projectTypeLinks.setData(data);
       },
       error: (error) => {
@@ -292,14 +291,14 @@ export class ProjectLeaderProjectTypeComponent implements OnInit {
         locale: 'vi',
         selectableRows: 1,
         reactiveData: false, // Giúp kiểm soát thay đổi dữ liệu rõ ràng hơn
-  
+
         columns: [
           {
             title: 'Chọn',
             field: 'Selected',
             headerHozAlign: 'center',
             hozAlign: 'center',
-            width: 70
+            width: 70,
           },
           {
             title: 'Kiểu dự án',
@@ -308,7 +307,7 @@ export class ProjectLeaderProjectTypeComponent implements OnInit {
           },
         ],
       });
-  
+
       // Gắn event click chọn kiểu dự án
       this.tb_projectTypeLinks.on('rowClick', (e: any, row: any) => {
         // Bỏ chọn các dòng khác trước
@@ -321,24 +320,24 @@ export class ProjectLeaderProjectTypeComponent implements OnInit {
       });
     }
   }
-  
+
   getSelectedProjectType() {
     const selectedRows = this.tb_projectTypeLinks.getSelectedData();
     if (selectedRows.length > 0) {
       return selectedRows[0].ID;
     }
     return null;
-    
   }
   onDeleteLeader() {
     // Lấy danh sách các dòng được chọn trong bảng Tabulator
-    const selectedRows = this.tb_projectLeaderProjectTypeLinks.getSelectedData();
-  
+    const selectedRows =
+      this.tb_projectLeaderProjectTypeLinks.getSelectedData();
+
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.warning('Thông báo', 'Vui lòng chọn leader để xóa!');
       return;
     }
-  
+
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
       nzContent: `Bạn có chắc chắn muốn xóa ${selectedRows.length} leader đã chọn?`,
@@ -347,42 +346,52 @@ export class ProjectLeaderProjectTypeComponent implements OnInit {
       nzOkDanger: true,
       nzOnOk: () => {
         // Chuẩn bị payload gửi sang API
-        const payload = selectedRows.map((row:any) => ({
+        const payload = selectedRows.map((row: any) => ({
           ID: row.ID,
-          IsDeleted: true
+          IsDeleted: true,
         }));
-  
+
         // Gọi API 1 lần, truyền list object
         this.projectService.saveemployeeprojecttype(payload).subscribe({
           next: (res) => {
-            this.notification.success('Thành công', `Đã xóa ${selectedRows.length} leader thành công!`);
+            this.notification.success(
+              'Thành công',
+              `Đã xóa ${selectedRows.length} leader thành công!`
+            );
             this.getProjectLeaderProjectTypeLinks(this.projectTypeId);
           },
           error: (error) => {
             console.error('Lỗi khi xóa leader:', error);
-            this.notification.error('Lỗi', 'Không thể xóa leader, vui lòng thử lại!');
-          }
+            this.notification.error(
+              NOTIFICATION_TITLE.error,
+              'Không thể xóa leader, vui lòng thử lại!'
+            );
+          },
         });
-      }
+      },
     });
   }
 
   openModalAddLeaders() {
     if (this.projectTypeId === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn kiểu dự án để thêm leader!');
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn kiểu dự án để thêm leader!'
+      );
       return;
     }
     this.selectedDepartment = 0;
     this.searchKeyword = '';
 
-    const modalRef = this.modalService.open(ProjectLeaderProjectTypeDetailComponent, {
-
-      size: 'xl',
-    });
+    const modalRef = this.modalService.open(
+      ProjectLeaderProjectTypeDetailComponent,
+      {
+        size: 'xl',
+      }
+    );
     modalRef.componentInstance.projectTypeId = this.projectTypeId;
     modalRef.result.then(
       (result) => {
-
         if (result === true) {
           this.getProjectLeaderProjectTypeLinks(this.projectTypeId);
         } else {
@@ -405,32 +414,40 @@ export class ProjectLeaderProjectTypeComponent implements OnInit {
   }
   // Lấy danh sách nhân viên theo departmentID
   getProjectEmployeefilter() {
-    this.projectService.getProjectEmployeefilter(this.selectedDepartment).subscribe({
-      next: (response: any) => {
-        let data = response.data;
-        if (this.searchKeyword) {
-          data = data.filter((item: any) => item.FullName.toLowerCase().includes(this.searchKeyword.toLowerCase()) || item.Code.toLowerCase().includes(this.searchKeyword.toLowerCase()));
-        }
-        this.tb_projectEmployeeLinks.setData(data);
-
-      },
-      error: (error) => {
-        console.error('Lỗi:', error);
-      },
-    });
+    this.projectService
+      .getProjectEmployeefilter(this.selectedDepartment)
+      .subscribe({
+        next: (response: any) => {
+          let data = response.data;
+          if (this.searchKeyword) {
+            data = data.filter(
+              (item: any) =>
+                item.FullName.toLowerCase().includes(
+                  this.searchKeyword.toLowerCase()
+                ) ||
+                item.Code.toLowerCase().includes(
+                  this.searchKeyword.toLowerCase()
+                )
+            );
+          }
+          this.tb_projectEmployeeLinks.setData(data);
+        },
+        error: (error) => {
+          console.error('Lỗi:', error);
+        },
+      });
     // Khi click vào row thì toggle chọn/bỏ chọn
-    this.tb_projectEmployeeLinks.on("rowClick", (e: any, row: any) => {
-
+    this.tb_projectEmployeeLinks.on('rowClick', (e: any, row: any) => {
       row.toggleSelect();
     });
 
     // Đồng bộ Set bằng các sự kiện chọn / bỏ chọn riêng biệt
-    this.tb_projectEmployeeLinks.on("rowSelected", (row: any) => {
+    this.tb_projectEmployeeLinks.on('rowSelected', (row: any) => {
       const id = row.getData().ID;
       this.selectedEmployee.add(id);
     });
 
-    this.tb_projectEmployeeLinks.on("rowDeselected", (row: any) => {
+    this.tb_projectEmployeeLinks.on('rowDeselected', (row: any) => {
       const id = row.getData().ID;
       this.selectedEmployee.delete(id);
     });
@@ -442,9 +459,8 @@ export class ProjectLeaderProjectTypeComponent implements OnInit {
         let data = response.data;
         this.departments = data.map((item: any) => ({
           title: item.Name,
-          value: item.ID
+          value: item.ID,
         }));
-
       },
       error: (error) => {
         console.error('Lỗi:', error);
@@ -454,7 +470,10 @@ export class ProjectLeaderProjectTypeComponent implements OnInit {
   onAddLeaders() {
     const selected = this.selectedEmployee.size;
     if (!selected || selected === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn nhân viên để thêm!');
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn nhân viên để thêm!'
+      );
       return;
     }
 
@@ -466,78 +485,96 @@ export class ProjectLeaderProjectTypeComponent implements OnInit {
       nzOkType: 'primary',
       nzOnOk: () => {
         // Lấy danh sách nhân viên đã tồn tại
-        this.projectService.getEmployeeProjectType(this.projectTypeId).subscribe({
-          next: (response: any) => {
-            const existingEmployeeIDs = response.data.map((item: any) => item.EmployeeID);
-            const newEmployeeIDs: number[] = [];
-            const duplicateEmployeeIDs: number[] = [];
-
-            this.selectedEmployee.forEach(id => {
-              if (existingEmployeeIDs.includes(id)) {
-                duplicateEmployeeIDs.push(id);
-              } else {
-                newEmployeeIDs.push(id);
-              }
-            });
-
-            // Thông báo nhân viên đã tồn tại
-            if (duplicateEmployeeIDs.length > 0) {
-              this.notification.warning(
-                'Thông báo',
-                `Các nhân viên sau đã tồn tại: ${duplicateEmployeeIDs.join(', ')}`
+        this.projectService
+          .getEmployeeProjectType(this.projectTypeId)
+          .subscribe({
+            next: (response: any) => {
+              const existingEmployeeIDs = response.data.map(
+                (item: any) => item.EmployeeID
               );
-            }
+              const newEmployeeIDs: number[] = [];
+              const duplicateEmployeeIDs: number[] = [];
 
-            if (newEmployeeIDs.length === 0) {
-              return;
-            }
+              this.selectedEmployee.forEach((id) => {
+                if (existingEmployeeIDs.includes(id)) {
+                  duplicateEmployeeIDs.push(id);
+                } else {
+                  newEmployeeIDs.push(id);
+                }
+              });
 
-            // Gọi API để thêm từng nhân viên mới
-            const addRequests = newEmployeeIDs.map(id => {
-              const data = {
-                ProjectTypeID: this.projectTypeId,
-                EmployeeID: id
-              };
-              return this.projectService.saveemployeeprojecttype(data).toPromise()
-                .then(() => ({
-                  id,
-                  success: true
-                }))
-                .catch(error => {
-                  console.error(`Lỗi khi thêm nhân viên ${id}:`, error);
-                  return {
+              // Thông báo nhân viên đã tồn tại
+              if (duplicateEmployeeIDs.length > 0) {
+                this.notification.warning(
+                  'Thông báo',
+                  `Các nhân viên sau đã tồn tại: ${duplicateEmployeeIDs.join(
+                    ', '
+                  )}`
+                );
+              }
+
+              if (newEmployeeIDs.length === 0) {
+                return;
+              }
+
+              // Gọi API để thêm từng nhân viên mới
+              const addRequests = newEmployeeIDs.map((id) => {
+                const data = {
+                  ProjectTypeID: this.projectTypeId,
+                  EmployeeID: id,
+                };
+                return this.projectService
+                  .saveemployeeprojecttype(data)
+                  .toPromise()
+                  .then(() => ({
                     id,
-                    success: false
-                  };
-                });
-            });
+                    success: true,
+                  }))
+                  .catch((error) => {
+                    console.error(`Lỗi khi thêm nhân viên ${id}:`, error);
+                    return {
+                      id,
+                      success: false,
+                    };
+                  });
+              });
 
-            Promise.all(addRequests).then(results => {
-              const successCount = results.filter(r => r.success).length;
-              const failed = results.filter(r => !r.success).map(r => r.id);
+              Promise.all(addRequests).then((results) => {
+                const successCount = results.filter((r) => r.success).length;
+                const failed = results
+                  .filter((r) => !r.success)
+                  .map((r) => r.id);
 
-              if (successCount > 0) {
-                this.notification.success('Thành công', `Đã thêm ${successCount} nhân viên thành công!`);
-                this.getProjectLeaderProjectTypeLinks(this.projectTypeId);
-              }
+                if (successCount > 0) {
+                  this.notification.success(
+                    'Thành công',
+                    `Đã thêm ${successCount} nhân viên thành công!`
+                  );
+                  this.getProjectLeaderProjectTypeLinks(this.projectTypeId);
+                }
 
-              if (failed.length > 0) {
-                this.notification.error('Lỗi', `Không thể thêm các nhân viên: ${failed.join(', ')}`);
-              }
+                if (failed.length > 0) {
+                  this.notification.error(
+                    NOTIFICATION_TITLE.error,
+                    `Không thể thêm các nhân viên: ${failed.join(', ')}`
+                  );
+                }
 
-              this.selectedEmployee.clear();
-              this.modal.closeAll();
-            });
-          },
-          error: (error) => {
-            console.error('Lỗi khi kiểm tra nhân viên:', error);
-            this.notification.error('Lỗi', 'Không thể kiểm tra nhân viên, vui lòng thử lại sau!');
-          }
-        });
-      }
+                this.selectedEmployee.clear();
+                this.modal.closeAll();
+              });
+            },
+            error: (error) => {
+              console.error('Lỗi khi kiểm tra nhân viên:', error);
+              this.notification.error(
+                NOTIFICATION_TITLE.error,
+                'Không thể kiểm tra nhân viên, vui lòng thử lại sau!'
+              );
+            },
+          });
+      },
     });
   }
 
-  ngOnInit() {
-  }
+  ngOnInit() {}
 }

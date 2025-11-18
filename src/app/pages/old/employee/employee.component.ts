@@ -61,6 +61,7 @@ import { EmployeeTeamComponent } from './employee-team/employee-team.component';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-employee',
@@ -313,7 +314,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     this.initForm();
     this.initSearchForm();
-   
+
     this.loadDepartments();
     this.loadPositionContract();
     this.loadPositionInternal();
@@ -405,7 +406,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       console.warn('Tabulator chưa được khởi tạo');
       return;
     }
-  
+
     this.isLoading = true;
     this.employeeService.getEmployees().subscribe({
       next: (data) => {
@@ -416,7 +417,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         this.isLoading = false;
-        this.notification.error('Lỗi', 'Không thể tải danh sách nhân viên');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách nhân viên');
       }
     });
   }
@@ -2376,12 +2377,12 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
   beforeUpload = (file: NzUploadFile): boolean => {
     const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
     if (!isJpgOrPng) {
-      this.notification.error('Lỗi', 'Chỉ hỗ trợ file JPG/PNG!');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Chỉ hỗ trợ file JPG/PNG!');
       return false;
     }
     const isLt2M = file.size! / 1024 / 1024 < 2;
     if (!isLt2M) {
-      this.notification.error('Lỗi', 'Kích thước ảnh phải nhỏ hơn 2MB!');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Kích thước ảnh phải nhỏ hơn 2MB!');
       return false;
     }
     return true;
@@ -2407,7 +2408,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
         });
         break;
       case 'error':
-        this.notification.error('Lỗi', 'Upload ảnh thất bại!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Upload ảnh thất bại!');
         break;
     }
   }
@@ -2423,7 +2424,7 @@ export class EmployeeComponent implements OnInit, AfterViewInit {
           control.updateValueAndValidity();
         }
       });
-      this.notification.error('Lỗi', 'Vui lòng điền đầy đủ thông tin bắt buộc');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
     }
 

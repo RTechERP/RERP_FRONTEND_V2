@@ -1,39 +1,11 @@
-/* Đảm bảo phần thân đúng layout */
-.layout-wrapper {
-    height: 100%;
-    display: flex;
-    overflow: hidden;
-    position: relative;
-  }
-  
-  /* Thẻ offcanvas */
-  .custom-offcanvas {
-    width: 300px;
-    position: absolute;
-    height: 100%;
-    transform: translateX(-100%);
-    transition: transform 0.2s ease;
-    z-index: 1;
-  }
-  
-  /* Khi show, trượt vào */
-  .offcanvas-left.show {
-    transform: translateX(0);
-  }
-  
-  .card {
+.card {
     height: 100%;
   }
   
   .row {
     height: 100%;
   }
-  
-  .offcanvas-left.show + .project-container {
-    margin-left: 300px;
-    width: calc(100% - 300px);
-  }
-  
+
   ::ng-deep ng-select .ng-value-container {
     display: flex !important;
     flex-wrap: nowrap !important;

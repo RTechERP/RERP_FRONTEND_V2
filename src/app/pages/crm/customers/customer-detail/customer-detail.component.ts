@@ -61,6 +61,7 @@ import { CustomerServiceService } from '../customer/customer-service/customer-se
 import { CustomerMajorDetailComponent } from '../customer-specialization/customer-major-detail/customer-major-detail.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-customer-detail',
@@ -122,7 +123,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
   listIdsContact: any[] = [];
   listIdsAdress: any[]=[];
   listIdsEmp: any[]=[];
-  
+
   dictCustomer: { [key: number]: string } = {};
 
   // Form validation
@@ -229,7 +230,7 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
           let province = this.provincesData.find(
             (x) => x.Code == response.data.provinceCode
           );
-          
+
           // Cập nhật form values
           this.formGroup.patchValue({
             fullName: response.data.model.CustomerName,
@@ -286,11 +287,11 @@ export class CustomerDetailComponent implements OnInit, AfterViewInit {
 
           this.tb_SaleTable.replaceData(this.customerSaleTableData);
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -362,11 +363,11 @@ if (this.tb_AddressTable) {
         if (response.status === 1) {
           this.majorData = response.data;
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -408,11 +409,11 @@ if (this.tb_AddressTable) {
         if (response.status === 1) {
           this.businessFieldData = response.data;
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -423,11 +424,11 @@ if (this.tb_AddressTable) {
         if (response.status === 1) {
           this.provincesData = response.data;
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -507,14 +508,14 @@ if (this.tb_AddressTable) {
       ID: r?.ID ?? 0,
       Address: r?.Address ?? '',
     }));
-  
+
   const customerEmployees = (saleRows || [])
     .filter((r: any) => r?.EmployeeID)
     .map((r: any) => ({
       ID: r?.ID ?? 0,
       EmployeeID: r?.EmployeeID ?? null,
     }));
-  
+
 
    // Lấy giá trị từ form controls, bao gồm cả các trường disabled
   const formValues = this.formGroup.getRawValue(); // Sử dụng getRawValue thay vì value
@@ -566,7 +567,7 @@ if (this.tb_AddressTable) {
         }
       },
       error: (err: any) => {
-        this.notification.error('Lỗi', err?.message || 'Không thể lưu dữ liệu');
+        this.notification.error(NOTIFICATION_TITLE.error, err?.message || 'Không thể lưu dữ liệu');
       },
     });
   }
@@ -576,7 +577,7 @@ if (this.tb_AddressTable) {
       console.warn('tb_DataTableElement chưa sẵn sàng');
       return;
     }
-  
+
     if (this.tb_DataTable) {
       this.tb_DataTable.destroy(); // Tránh khởi tạo lại
     }
@@ -596,7 +597,7 @@ if (this.tb_AddressTable) {
       selectableRows:1,
      layout:"fitColumns",
      pagination: false,
-     
+
       columns: [
         {
           title: '',
@@ -618,7 +619,7 @@ if (this.tb_AddressTable) {
               : '';
           },
           cellClick: (e, cell) => {
-            
+
             let data = cell.getRow().getData();
             console.log("hahah",data)
             let id = data['ID'];
@@ -661,7 +662,7 @@ if (this.tb_AddressTable) {
       console.warn('tb_DataTableElement chưa sẵn sàng');
       return;
     }
-  
+
     if (this.tb_AddressTable) {
       this.tb_AddressTable.destroy(); // Tránh khởi tạo lại
     }
@@ -669,7 +670,7 @@ if (this.tb_AddressTable) {
       this.tb_AddressTableElement.nativeElement,
       {
         ...DEFAULT_TABLE_CONFIG,
-      
+
         data: this.addressStockTableData,
         // layout: 'fitColumns',
         height: '100%',
@@ -739,14 +740,14 @@ if (this.tb_AddressTable) {
       console.warn('tb_SaleTableElement chưa sẵn sàng');
       return;
     }
-  
+
     if (this.tb_SaleTable) {
       this.tb_SaleTable.destroy(); // Tránh khởi tạo lại
     }
     this.tb_SaleTable = new Tabulator(this.tb_SaleTableElement.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       data: this.customerSaleTableData,
-     
+
       // layout: 'fitColumns',
        height: '100%',
        rowHeader: false,

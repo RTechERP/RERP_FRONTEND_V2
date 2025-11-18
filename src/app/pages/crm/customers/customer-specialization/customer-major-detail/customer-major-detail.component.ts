@@ -59,6 +59,7 @@ import { SelectControlComponent } from '../../../../old/select-control/select-co
 
 import { CustomerServiceService } from '../../customer/customer-service/customer-service.service';
 import { CustomerMajorService } from '../customer-major-service/customer-major.service';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 @Component({
   selector: 'app-customer-major',
@@ -119,7 +120,7 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
     this.formGroup = this.fb.group({
       STT: [0, [Validators.required, Validators.min(1)]],
       Code: ['', [Validators.required]],
-      Name: ['', [Validators.required]]
+      Name: ['', [Validators.required]],
     });
   }
 
@@ -138,15 +139,15 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
           } else {
             this.majorData = response.data;
             this.formGroup.patchValue({
-              STT: this.majorData.length + 1
+              STT: this.majorData.length + 1,
             });
           }
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -159,15 +160,14 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
           this.formGroup.patchValue({
             STT: response.data.STT,
             Code: response.data.Code,
-            Name: response.data.Name
+            Name: response.data.Name,
           });
-
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -184,17 +184,17 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
 
     // Lấy giá trị từ form controls
     const formValues = this.formGroup.value;
-    
+
     const model: any = {
       STT: formValues.STT,
       Code: formValues.Code,
       Name: formValues.Name,
     };
-    
+
     if (this.isEditMode && this.EditID) {
       model.ID = this.EditID;
     }
-    
+
     this.customerMajorService.save(model).subscribe({
       next: (res: any) => {
         if (res?.status === 1) {
@@ -208,14 +208,17 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err: any) => {
-        this.notification.error('Lỗi', err?.message || 'Không thể lưu dữ liệu');
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          err?.message || 'Không thể lưu dữ liệu'
+        );
       },
     });
   }
 
   //#region Validation methods
   private trimAllStringControls() {
-    Object.keys(this.formGroup.controls).forEach(k => {
+    Object.keys(this.formGroup.controls).forEach((k) => {
       const c = this.formGroup.get(k);
       const v = c?.value;
       if (typeof v === 'string') c!.setValue(v.trim(), { emitEvent: false });
@@ -254,9 +257,14 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
   validateForm(): boolean {
     this.trimAllStringControls();
     const requiredFields = ['STT', 'Code', 'Name'];
-    const invalidFields = requiredFields.filter(key => {
+    const invalidFields = requiredFields.filter((key) => {
       const control = this.formGroup.get(key);
-      return !control || control.invalid || control.value === '' || control.value == null;
+      return (
+        !control ||
+        control.invalid ||
+        control.value === '' ||
+        control.value == null
+      );
     });
     if (invalidFields.length > 0) {
       this.formGroup.markAllAsTouched();

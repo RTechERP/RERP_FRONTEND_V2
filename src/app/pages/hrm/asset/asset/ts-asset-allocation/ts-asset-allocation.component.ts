@@ -40,6 +40,7 @@ import { Observable } from 'rxjs';
 import { saveAs } from 'file-saver';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   standalone: true,
   imports: [
@@ -226,7 +227,7 @@ currentUser: any = null;
           },
           { title: 'Mã', field: 'Code', frozen: true, width: 200, },
           {
-            title: 'Ngày mượn',
+            title: 'Ngày cấp phát',
             field: 'DateAllocation',
             hozAlign: 'center',
             headerHozAlign: 'center',
@@ -387,21 +388,21 @@ onAddAllocation() {
       return;
     }
 
-    // Những cái đã KT duyệt
+    // Những cái cá nhân duyêjt
     const locked = selectedRows.filter(x =>
-      ['true', true, 1, '1'].includes(x.IsApproveAccountant)
+      ['true', true, 1, '1'].includes(x.IsApprovedPersonalProperty)
     );
 
     // Những cái được phép xóa
     const deletable = selectedRows.filter(x =>
-      !['true', true, 1, '1'].includes(x.IsApproveAccountant)
+      !['true', true, 1, '1'].includes(x.IsApprovedPersonalProperty)
     );
 
     if (deletable.length === 0) {
       const lockedCodes = locked.map(x => x.Code).join(', ');
       this.notification.warning(
         'Không thể xóa',
-        `Tất cả các biên bản đã được kế toán duyệt, không thể xóa. Danh sách: ${lockedCodes}`
+        `Tất cả các biên bản đã được cá nhân duyệt, không thể xóa. Danh sách: ${lockedCodes}`
       );
       return;
     }
@@ -411,7 +412,7 @@ onAddAllocation() {
       const lockedCodes = locked.map(x => x.Code).join(', ');
       this.notification.warning(
         'Một phần không được xóa',
-        `Các biên bản sau đã được kế toán duyệt, không thể xóa: ${lockedCodes}`
+        `Biên bản sau đã được cá nhân duyệt, không thể xóa: ${lockedCodes}, vui lòng hủy duyệt trước khi xóa.`
       );
     }
 
@@ -845,7 +846,7 @@ validateApprove(
       this.assetAllocationService.saveAppropveAccountant(payloadOnApprove).subscribe({
         next: () => {
           const codes = masters.map(m => m.Code).join(', ');
-         
+
           this.getAllocation();
           this.allocationDetailData = [];
           this.sizeTbDetail = '0';
@@ -981,6 +982,7 @@ validateApprove(
       TSAssetAllocationID: d.TSAssetAllocationID,
       AssetManagementID: d.AssetManagementID,
       Quantity: d.Quantity,
+      Status:d.Status,
       Note: d.Note,
       TSAssetName: d.TSAssetName,
       TSCodeNCC: d.TSCodeNCC,
@@ -1001,10 +1003,7 @@ validateApprove(
         saveAs(blob, fileName);
       },
       error: (res: any) => {
-        this.notification.error(
-          'Lỗi',
-          res.error?.message || 'Không thể xuất file!'
-        );
+        this.notification.error(NOTIFICATION_TITLE.error, res.error?.message || 'Không thể xuất file!');
         console.error(res);
       }
     });

@@ -39,7 +39,7 @@ export const SERVER_PATH = `D:/RTC_Sw/RTC/ProductRTC/`;
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { filter, distinctUntilChanged } from 'rxjs/operators';
-import { VehicleRepairService } from '../../../hrm/vehicle-repair/vehicle-repair-service/vehicle-repair.service';
+import { VehicleRepairService } from '../../../hrm/vehicle/vehicle-repair/vehicle-repair-service/vehicle-repair.service';
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { TbProductRtcService } from '../../../old/tb-product-rtc/tb-product-rtc-service/tb-product-rtc.service';
 import { NzUploadFile } from 'ng-zorro-antd/upload';
@@ -49,6 +49,7 @@ import { TsAssetManagementPersonalService } from '../ts-asset-management-persona
 import { UnitService } from '../../../hrm/asset/asset/ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
 import { TsAssetManagementPersonalTypeFormComponent } from '../ts-asset-management-personal-type/ts-asset-management-personal-type-form/ts-asset-management-personal-type-form.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 @Component({
   standalone: true,
 
@@ -253,7 +254,7 @@ export class TsAssetManagementPersonalFormComponent implements OnInit {
             this.formSubmitted.emit();
             this.activeModal.close('save');
           } else {
-            this.notification.error('Lỗi', response?.message || 'Lưu thất bại');
+            this.notification.error(NOTIFICATION_TITLE.error, response?.message || 'Lưu thất bại');
           }
         },
         error: (err) => {
@@ -262,7 +263,7 @@ export class TsAssetManagementPersonalFormComponent implements OnInit {
             err?.message ||
             err?.statusText ||
             'Lỗi khi lưu thông tin';
-          this.notification.error('Lỗi', msg);
+          this.notification.error(NOTIFICATION_TITLE.error, msg);
           console.error('Lỗi khi lưu:', err);
         },
       });

@@ -20,6 +20,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { RulePayDetailComponent } from './rule-pay-detail/rule-pay-detail.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-rule-pay',
@@ -123,12 +124,12 @@ export class RulePayComponent implements OnInit, AfterViewInit {
             this.table.replaceData(this.dataTable);
           }
         } else {
-          this.notification.error('Lỗi', response.message || 'Không thể tải dữ liệu');
+          this.notification.error(NOTIFICATION_TITLE.error, response.message || 'Không thể tải dữ liệu');
         }
       },
       error: (error) => {
         console.error('Error fetching data:', error);
-        this.notification.error('Lỗi', 'Không thể kết nối đến server');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể kết nối đến server');
       }
     });
   }
@@ -137,11 +138,11 @@ export class RulePayComponent implements OnInit, AfterViewInit {
     this.table = new Tabulator('#rule-pay-table', {
       data: this.dataTable,
        ...DEFAULT_TABLE_CONFIG,
-      paginationMode: 'local',  
-      paginationSize: 50,
+      paginationMode: 'local',
+      paginationSize: 10,
       paginationSizeSelector: [10, 30, 50, 100, 300, 500],
       layout: 'fitDataStretch',
-      
+
       columns: [
         { title: 'Mã', field: 'Code', width: 350, formatter: 'textarea' },
         { title: 'Chú giải', field: 'Note', formatter: 'textarea' }
@@ -203,12 +204,12 @@ export class RulePayComponent implements OnInit, AfterViewInit {
               this.selectAll = false;
               this.searchText = '';
             } else {
-              this.notification.error('Lỗi', response.message || 'Không thể xóa dữ liệu');
+              this.notification.error(NOTIFICATION_TITLE.error, response.message || 'Không thể xóa dữ liệu');
             }
           },
           error: (error) => {
             console.error('Error deleting data:', error);
-            this.notification.error('Lỗi', 'Không thể kết nối đến server');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Không thể kết nối đến server');
           }
         });
       }
@@ -312,4 +313,4 @@ export class RulePayComponent implements OnInit, AfterViewInit {
 
 
 
-} 
+}

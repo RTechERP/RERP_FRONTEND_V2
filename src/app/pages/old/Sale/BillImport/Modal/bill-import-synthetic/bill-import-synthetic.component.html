@@ -3,14 +3,9 @@
     <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
   </div>
   <div class="modal-body p-1 flex-grow-1 overflow-hidden">
-    <div class="d-flex gap-2 p-2 border-bottom">
-      <button class="fs-12 btn" nz-button nzType="default" nzSize="small" title="Xuất Excel" (click)="exportExcel()">
-        <nz-icon nzType="file-excel"></nz-icon> Xuất Excel
-      </button>
-    </div>   
-      <div class="tab-content">
         <div class="d-flex gap-2 p-2 border-bottom">
-            <form nz-form nzLayout="inline" class="d-flex flex-wrap gap-2 align-items-end">
+
+            <form nz-form nzLayout="vertical" class="d-flex flex-wrap gap-2">
                 <!-- Từ ngày -->
                 <nz-form-item style="width: 160px; margin-bottom: 0;">
                   <nz-form-label class="fs-12">Từ</nz-form-label>
@@ -25,7 +20,7 @@
                     ></nz-date-picker>
                   </nz-form-control>
                 </nz-form-item>
-              
+
                 <!-- Đến ngày -->
                 <nz-form-item style="width: 160px; margin-bottom: 0;">
                   <nz-form-label class="fs-12">Đến</nz-form-label>
@@ -40,17 +35,17 @@
                     ></nz-date-picker>
                   </nz-form-control>
                 </nz-form-item>
-              
+
                 <!-- Checkbox -->
                 <nz-form-item class="mb-0">
-                  <nz-form-label class="fs-12 d-none"></nz-form-label>
+                  <nz-form-label class="fs-12">&nbsp;</nz-form-label>
                   <nz-form-control>
                     <label nz-checkbox [(ngModel)]="checked" name="checked" (ngModelChange)="onCheckboxChange()">
                       Tất cả
                     </label>
                   </nz-form-control>
                 </nz-form-item>
-              
+
                 <!-- Lọc kho -->
                 <nz-form-item style="width: 220px; margin-bottom: 0;">
                   <nz-form-label class="fs-12">Lọc kho</nz-form-label>
@@ -73,9 +68,9 @@
                     </nz-select>
                   </nz-form-control>
                 </nz-form-item>
-              
+
                 <!-- Lọc phiếu -->
-                <nz-form-item style="width: 180x; margin-bottom: 0;">
+                <nz-form-item style="width: 180px; margin-bottom: 0;">
                   <nz-form-label class="fs-12">Lọc phiếu</nz-form-label>
                   <nz-form-control>
                     <nz-select
@@ -95,10 +90,10 @@
                     </nz-select>
                   </nz-form-control>
                 </nz-form-item>
-              
+
                 <!-- Từ khóa -->
                 <nz-form-item style="width: 170px; margin-bottom: 0;">
-               
+                  <nz-form-label class="fs-12">Từ khóa</nz-form-label>
                   <nz-form-control>
                     <input
                       nz-input
@@ -110,24 +105,31 @@
                     />
                   </nz-form-control>
                 </nz-form-item>
-              
+
                 <!-- Nút tìm kiếm -->
                 <nz-form-item style="width: 80px; margin-bottom: 0;">
-                  <nz-form-label class="fs-12 d-none"></nz-form-label>
+                  <nz-form-label class="fs-12">&nbsp;</nz-form-label>
                   <nz-form-control>
                     <button class="fs-12 btn w-100" nz-button nzType="default" nzSize="small" (click)="loadDataBillImportSynthetic()">
                       Tìm kiếm
                     </button>
                   </nz-form-control>
                 </nz-form-item>
+                <nz-form-item style="width: 80px; margin-bottom: 0;">
+                  <nz-form-label class="fs-12">&nbsp;</nz-form-label>
+                  <nz-form-control>
+                    <button class="fs-12 btn" nz-button nzType="default" nzSize="small" title="Xuất Excel" (click)="exportExcel()">
+                    <nz-icon nzType="file-excel"></nz-icon> Xuất Excel
+                  </button>
+                  </nz-form-control>
+                </nz-form-item>
               </form>
-              
+
             </div>
-        <div class="card-body w-100" >
-          <div id="table_BillImportSynthetic">
+        <div class="card-body w-100" style="height: 82vh;">
+          <div id="table_BillImportSynthetic" >
           </div>
         </div>
-      </div>     
   </div>
   <div class="modal-footer flex-shrink-0">
     <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>

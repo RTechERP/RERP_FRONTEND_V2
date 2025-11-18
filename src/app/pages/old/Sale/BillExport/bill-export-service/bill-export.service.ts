@@ -3,20 +3,23 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { DateTime } from 'luxon';
 import { environment } from '../../../../../../environments/environment';
-// import { HOST } from '../../../../../app.config';
+
 @Injectable({
   providedIn: 'root',
 })
 export class BillExportService {
   constructor(private http: HttpClient) {}
 
+  // Product Group - Using correct endpoint
   getProductGroup(isadmin: boolean, departmentID: number): Observable<any> {
     const params = {
       isAdmin: isadmin.toString(),
-      departmentID: departmentID.toString(), // đúng tên param theo BE
+      departmentID: departmentID.toString(),
     };
-    return this.http.get(`${environment.host}api/BillExport`, { params });
+    return this.http.get(`${environment.host}api/BillExport/get-product-group`, { params });
   }
+
+  // Get Bill Export List with pagination
   getBillExport(
     khoType: any,
     status: number,
@@ -39,104 +42,145 @@ export class BillExportService {
       WarehouseCode: warehousecode.trim(),
       checkedAll: checkedAll,
     };
-
     return this.http.post(environment.host + `api/BillExport`, params);
   }
-  getBillExportDetail(billID: number): Observable<any> {
-    return this.http.get(
-      environment.host + `api/BillExportDetail/BillExportID/${billID}`
+
+  // Recheck Quantity - Updated to use correct endpoint
+  recheckQty(details: any[]): Observable<any> {
+    return this.http.post<any>(
+      `${environment.host}api/billexport/recheck-qty`,
+      details
     );
   }
+
+  // Get Bill Export Detail - Using new endpoint
+  getBillExportDetail(billID: number): Observable<any> {
+    return this.http.get(
+      environment.host + `api/billexport/get-bill-detail/${billID}`
+    );
+  }
+
+  // Approved/Unapproved
   approved(data: any, approved: boolean): Observable<any> {
     return this.http.post(
       environment.host + `api/BillExport/approved?isapproved=${approved}`,
       data
     );
   }
-  shippedOut(data: any) {
+
+  // Shipped Out
+  shippedOut(data: any): Observable<any> {
     return this.http.post(
       environment.host + `api/BillExport/shipped-out`,
       data
     );
   }
-  getCbbUser() {
-    return this.http.get(environment.host + `api/users/cbb-user`);
-  }
-  getCbbSender() {
-    return this.http.get(environment.host + `api/users/cbb-sender`);
-  }
-    getCbbCustomer() {
-  const paramsCB = {
-    groupId: '0',
-    employeeId: '0',
-    filterText: '',
-    page: '1',
-    size: '100000', // chú ý: backend nhận 'page' và 'size' chứ không phải 'pageNumber'/'pageSize'
-  };
 
-  return this.http.get(`${environment.host}api/customer/get-data-by-procedure`, { params: paramsCB });
-}
+  // Get Users - Using new BillExport endpoint
+  getCbbUser(): Observable<any> {
+    return this.http.get(environment.host + `api/billexport/get-users`);
+  }
 
-  getCbbAddressStock(id: number) {
-    const params: any = { customerID: id.toString() };
+  // Get Senders - Using new BillExport endpoint
+  getCbbSender(): Observable<any> {
+    return this.http.get(environment.host + `api/billexport/get-senders`);
+  }
+
+  // Get Customers - Using new BillExport endpoint
+  getCbbCustomer(): Observable<any> {
+    return this.http.get(`${environment.host}api/billexport/get-customers`);
+  }
+
+  // Get Address Stock by Customer ID - Using new endpoint
+  getCbbAddressStock(id: number): Observable<any> {
     return this.http.get(
-      `${environment.host}api/addressstock/get-by-customerid`,
-      { params }
+      `${environment.host}api/billexport/get-address-stock/${id}`
     );
   }
-  getCbbSupplierSale() {
-    return this.http.get(environment.host + `api/suppliersale`);
+
+  // Get Supplier Sale - Using new endpoint
+  getCbbSupplierSale(): Observable<any> {
+    return this.http.get(environment.host + `api/billexport/get-suppliers`);
   }
-  getCustomerByID(id: number) {
+
+  // Get Customer by ID
+  getCustomerByID(id: number): Observable<any> {
     return this.http.get(environment.host + `api/customer/${id}`);
   }
-  getCbbProductGroup() {
+
+  // Get Product Groups
+  getCbbProductGroup(): Observable<any> {
     return this.http.get<any>(
       environment.host + `api/ProductGroup?isvisible=false`
     );
   }
-  getNewCodeBillExport(billType: number) {
+
+  // Get New Bill Code
+  getNewCodeBillExport(billType: number, billId?: number, currentStatus?: number, currentCode?: string): Observable<any> {
+    let params = new HttpParams().set('billTypeId', billType.toString());
+
+    if (billId && currentStatus !== undefined && currentCode) {
+      params = params
+        .set('billId', billId.toString())
+        .set('currentStatus', currentStatus.toString())
+        .set('currentCode', currentCode);
+    }
+
     return this.http.get<any>(
       `${environment.host}api/billexport/get-bill-code`,
-      { params: { billTypeId: billType.toString() } }
+      { params }
     );
   }
-  getOptionProject() {
+
+  // Get All Projects
+  getOptionProject(): Observable<any> {
     return this.http.get<any>(
       environment.host + `api/billexport/get-all-project`
     );
   }
-  saveBillExport(data: any) {
+
+  // Save Bill Export
+  saveBillExport(data: any): Observable<any> {
     return this.http.post<any>(
       environment.host + `api/billexport/save-data`,
       data
     );
   }
-  deleteBillExport(data: any) {
+
+  // Delete Bill Export
+  deleteBillExport(data: any): Observable<any> {
     return this.http.post<any>(
       environment.host + `api/billexport/delete-bill-export`,
       data
     );
   }
-  getBillExportByID(id: number) {
+
+  // Get Bill Export by ID
+  getBillExportByID(id: number): Observable<any> {
     return this.http.get<any>(environment.host + `api/billexport/${id}`);
   }
-  getHistoryDeleteBill(data: any) {
+
+  // Get History Delete Bill
+  getHistoryDeleteBill(data: any): Observable<any> {
     return this.http.post<any>(
       environment.host + `api/billexport/history-delete-bill`,
       data
     );
   }
-  getHistoryDeleteBillByID(id: number) {
+
+  // Get History Delete Bill by ID
+  getHistoryDeleteBillByID(id: number): Observable<any> {
     return this.http.get<any>(
       environment.host + `api/billexport/history-delete-bill/${id}`
     );
   }
+
+  // Get History Delete Bill by Bill Type
   getHistoryDeleteBillByBillType(
     billexportID: number,
     billimportID: number,
     billType: number
-  ) {
+  ): Observable<any> {
     const params: any = {
       billType: billType,
       billExportID: billexportID,
@@ -147,7 +191,8 @@ export class BillExportService {
       params
     );
   }
-  getOptionProduct(warehouseCode: string, productGroupID: number) {
+
+  getOptionProduct(warehouseCode: string, productGroupID: number): Observable<any> {
     const code = (warehouseCode ?? '').trim() || 'HN';
     const params = new HttpParams()
       .set('warehouseCode', code)
@@ -164,13 +209,13 @@ export class BillExportService {
       responseType: 'blob',
     });
   }
-
-  getBillExportQR(warehouseID: number, code: string) {
+  getBillExportQR(warehouseID: number, code: string): Observable<any> {
     return this.http.get<any>(
       environment.host +
         `api/billexport/scan?code=${code}&warehouseId=${warehouseID}`
     );
   }
+
   getBillExportSynthetic(
     khoType: any,
     status: number,
@@ -201,26 +246,92 @@ export class BillExportService {
       params
     );
   }
-  getBillDocumentExport(billID: number) {
+
+  getBillDocumentExport(billID: number): Observable<any> {
     return this.http.get<any>(
       environment.host + `api/billdocumentexport/get-by-billid/${billID}`
     );
   }
-  getBillDocumentExportLog(bdeID: number) {
+
+  getBillDocumentExportLog(bdeID: number): Observable<any> {
     return this.http.get<any>(
       environment.host + `api/billdocumentexportlog/get-by-bdeid/${bdeID}`
     );
   }
-  saveDataBillDocumentExport(data: any) {
+
+  saveDataBillDocumentExport(data: any): Observable<any> {
     return this.http.post<any>(
       environment.host + `api/billdocumentexport/save-data`,
       data
     );
   }
-getSerialByIDs(data:any): Observable<any>{
-  return this.http.post(
-    environment.host + `api/BillExport/bill-export-synthetic`,
-    data
-  );
-}
+  getSerialByIDs(data: any): Observable<any> {
+    return this.http.post(
+      environment.host + `api/BillExport/bill-export-synthetic`,
+      data
+    );
+  }
+
+  getBillImportDetailForConversion(billImportIds: number[]): Observable<any> {
+    return this.http.post(
+      environment.host + `api/billexport/get-bill-import-detail`,
+      billImportIds
+    );
+  }
+  getInventoryProject(
+    warehouseId: number,
+    productId: number,
+    projectId: number = 0,
+    pokhDetailId: number = 0,
+    billExportDetailId: number = 0
+  ): Observable<any> {
+    const params = new HttpParams()
+      .set('warehouseId', String(warehouseId))
+      .set('productId', String(productId))
+      .set('projectId', String(projectId))
+      .set('pokhDetailId', String(pokhDetailId))
+      .set('billExportDetailId', String(billExportDetailId));
+
+    return this.http.get(
+      environment.host + `api/billexport/get-inventory-project`,
+      { params }
+    );
+  }
+
+  // Get Product Group Warehouse
+  getProductGroupWarehouse(warehouseId: number, productGroupId: number): Observable<any> {
+    const params = new HttpParams()
+      .set('warehouseId', String(warehouseId))
+      .set('productGroupId', String(productGroupId));
+
+    return this.http.get(
+      environment.host + `api/billexport/get-product-group-warehouse`,
+      { params }
+    );
+  }
+
+  // Get All Warehouses
+  getWarehouses(): Observable<any> {
+    return this.http.get(environment.host + `api/billexport/get-warehouses`);
+  }
+
+  // Get Warehouse by Code
+  getWarehouseByCode(code: string): Observable<any> {
+    return this.http.get(
+      environment.host + `api/billexport/get-warehouse-by-code/${code}`
+    );
+  }
+
+  // Get Products by Project
+  getProductByProject(projectID: number, projectCode: string, warehouseCode: string): Observable<any> {
+    const filter = {
+      projectID: projectID,
+      projectCode: projectCode,
+      WarehouseCode: warehouseCode
+    };
+    return this.http.post(
+      environment.host + `api/billexport/get-product-project`,
+      filter
+    );
+  }
 }

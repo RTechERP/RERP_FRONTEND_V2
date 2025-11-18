@@ -6,210 +6,174 @@
       </div>
     </div>
     <div class="px-4 pt-3 pokh-modal-content">
-      <div class="d-flex gap-2 mb-3 flex-wrap">
-        <button nz-button nzType="default" nzSize="small">
-          <nz-icon nzType="user-add"></nz-icon> Thêm khách hàng
-        </button>
-        <button nz-button nzType="default" nzSize="small">
-          <nz-icon nzType="appstore-add"></nz-icon> Thêm sản phẩm mới
-        </button>
-        <button nz-button nzType="default" nzSize="small">
-          <nz-icon nzType="file-text"></nz-icon> Chọn báo giá
-        </button>
-        <button nz-button nzType="default" nzSize="small">
-          <nz-icon nzType="search"></nz-icon> Tìm kiếm kho
-        </button>
-        <button nz-button nzType="default" nzSize="small">
-          <nz-icon nzType="unordered-list"></nz-icon> Chọn partlist
-        </button>
-        <button nz-button nzType="default" nzSize="small">
-          <nz-icon nzType="file-excel"></nz-icon> Nhập Excel
-        </button>
-      </div>
-  
       <nz-tabset class="pokh-tabset">
         <nz-tab nzTitle="Chi tiết PO">
           <div class="p-3 pokh-tab-content">
-            <form nz-form nzLayout="horizontal" class="ant-advanced-search-form">
-              <div nz-row [nzGutter]="[16, 16]">
-                <!-- Row 1 -->
-                <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
-                  <nz-form-item>
-                    <nz-form-label [nzSm]="8" [nzXs]="24">Trạng thái</nz-form-label>
-                    <nz-form-control [nzSm]="16" [nzXs]="24">
-                      <nz-select nzShowSearch name="status" nzPlaceHolder="Chưa giao, chưa thanh toán" nzSize="default"
-                        class="w-100" nzDisabled="true" [(ngModel)]="poFormData.status">
-                        <nz-option *ngFor="let status of statusOptions" [nzValue]="status.value"
-                          [nzLabel]="status.label"></nz-option>
-                      </nz-select>
-                    </nz-form-control>
-                  </nz-form-item>
+            <form #pokhForm="ngForm">
+              <div class="container-fluid">
+                <div class="row g-3">
+                  <!-- Row 1 -->
+                  <div class="col-md-4">
+                    <label class="mb-1 fs-12">Trạng thái</label>
+                    <nz-select nzShowSearch nzPlaceHolder="Chưa giao, chưa thanh toán" nzSize="default"
+                      class="w-100" nzDisabled="true" name="status" [(ngModel)]="poFormData.status">
+                      <nz-option *ngFor="let status of statusOptions" [nzValue]="status.value"
+                        [nzLabel]="status.label"></nz-option>
+                    </nz-select>
+                  </div>
+
+                  <div class="col-md-4">
+                    <label class="mb-1 fs-12">Mã PO <span class="text-danger">*</span></label>
+                    <nz-input-group nzSearch nzSize="default" [nzAddOnAfter]="suffixIconButton_PONumber">
+                      <input name="poCode" placeholder="Mã PO" nz-input [(ngModel)]="poFormData.poCode" 
+                        required #poCode="ngModel" />
+                    </nz-input-group>
+                    <small class="text-danger d-block" *ngIf="(poCode.invalid && poCode.touched) || (isSubmitted && poCode.invalid)">
+                      Vui lòng nhập mã PO
+                    </small>
+                    <ng-template #suffixIconButton_PONumber>
+                      <button nz-button nzType="default" nzSize="default" nzSearch (click)="openPOCodeModal()">
+                        <nz-icon nzType="plus" nzTheme="outline" />
+                      </button>
+                    </ng-template>
+                  </div>
+
+                  <div class="col-md-4">
+                    <label class="mb-1 fs-12">Khách hàng</label>
+                    <nz-select nzShowSearch name="customerId" nzPlaceHolder="Chọn khách hàng" nzAllowClear
+                      nzSize="default" class="w-100" [(ngModel)]="selectedCustomer"
+                      (ngModelChange)="onCustomerChange($event)">
+                      <nz-option *ngFor="let customer of dataCustomers" [nzValue]="customer"
+                        [nzLabel]="customer.CustomerName">
+                      </nz-option>
+                    </nz-select>
+                  </div>
+
+                  <!-- Row 2 -->
+                  <div class="col-md-4">
+                    <label class="mb-1 fs-12">Sales phụ trách</label>
+                    <nz-select nzShowSearch name="userId" [(ngModel)]="poFormData.userId"
+                      nzPlaceHolder="Chọn người phụ trách" nzAllowClear nzSize="default" class="w-100">
+                      <nz-option *ngFor="let user of dataUsers" [nzValue]="user.ID" [nzLabel]="user.FullName">
+                      </nz-option>
+                    </nz-select>
+                  </div>
+
+                  <div class="col-md-4">
+                    <label class="mb-1 fs-12">Ngày PO</label>
+                    <nz-date-picker name="poDate" nzFormat="dd/MM/yyyy" nzPlaceHolder="dd/mm/yyyy" nzSize="default"
+                      class="w-100" [(ngModel)]="poFormData.poDate"></nz-date-picker>
+                  </div>
+
+                  <div class="col-md-4">
+                    <label class="mb-1 fs-12">Tổng tiền PO</label>
+                    <nz-input-number name="totalPO" nzPlaceHolder="0" [nzMin]="0" nzSize="default" class="w-100"
+                      [(ngModel)]="poFormData.totalPO" [nzFormatter]="formatCurrency" [nzParser]="parseCurrency"
+                      nzReadOnly="true">
+                    </nz-input-number>
+                  </div>
+
+                  <!-- Row 3 -->
+                  <div class="col-md-4">
+                    <label class="mb-1 fs-12">Dự án <span class="text-danger">*</span>
+                      <button class="p-0 m-0 px-1 fs-12 h-auto" nz-button nzType="text" nzSize="small"
+                      title="Thêm dự án">
+                      <i class="fas fa-plus"></i>
+                    </button>
+                    </label>
+                    <nz-select nzShowSearch name="projectId" nzPlaceHolder="Chọn dự án" nzAllowClear nzSize="default"
+                      class="w-100" [(ngModel)]="poFormData.projectId" required #projectId="ngModel">
+                      <nz-option *ngFor="let project of dataProjects" [nzValue]="project.ID"
+                        [nzLabel]="project.ProjectName" [nzTitle]="project.ProjectName">
+                      </nz-option>
+                    </nz-select>
+                    <small class="text-danger d-block" *ngIf="(projectId.invalid && projectId.touched) || (isSubmitted && (!poFormData.projectId || poFormData.projectId === 0))">
+                      Vui lòng chọn dự án
+                    </small>
+                  </div>
+
+                  <div class="col-md-4">
+                    <label class="mb-1 fs-12">Loại PO <span class="text-danger">*</span></label>
+                    <nz-select nzShowSearch name="poType" nzPlaceHolder="Chọn loại PO" nzAllowClear nzSize="default"
+                      class="w-100" [(ngModel)]="poFormData.poType" required #poType="ngModel">
+                      <nz-option *ngFor="let poType of dataPOTypes" [nzValue]="poType.ID"
+                        [nzLabel]="poType.MainIndex1"></nz-option>
+                    </nz-select>
+                    <small class="text-danger d-block" *ngIf="(poType.invalid && poType.touched) || (isSubmitted && (!poFormData.poType || poFormData.poType === 0))">
+                      Vui lòng chọn loại PO
+                    </small>
+                  </div>
+
+                  <div class="col-md-4">
+                    <label class="mb-1 fs-12">Bộ phận</label>
+                    <nz-select nzShowSearch name="departmentId" nzPlaceHolder="Chọn bộ phận" nzAllowClear
+                      nzSize="default" class="w-100" [(ngModel)]="poFormData.departmentId">
+                      <nz-option *ngFor="let part of dataParts" [nzValue]="part.ID"
+                        [nzLabel]="part.PartName"></nz-option>
+                    </nz-select>
+                  </div>
+
+                  <!-- Row 4 -->
+                  <div class="col-md-4">
+                    <label class="mb-1 fs-12">Loại tiền</label>
+                    <nz-select nzShowSearch name="currencyId" nzPlaceHolder="Chọn loại tiền" nzAllowClear
+                      nzSize="default" class="w-100" [(ngModel)]="poFormData.currencyId">
+                      <nz-option *ngFor="let currency of dataCurrencies" [nzValue]="currency.ID"
+                        [nzLabel]="currency.Code"></nz-option>
+                    </nz-select>
+                  </div>
+
+                  <div class="col-md-4">
+                    <label class="mb-1 fs-12">End User</label>
+                    <input name="endUser" nz-input type="text" nzPlaceHolder="Nhập end user" nzSize="default"
+                      class="w-100 form-control form-control-sm fs-12" [(ngModel)]="poFormData.endUser" />
+                  </div>
+
+                  <div class="col-md-4">
+                    <label class="mb-1 fs-12">Số POKH <span class="text-danger">*</span></label>
+                    <input name="poNumber" nz-input type="text" nzPlaceHolder="Nhập số POKH" nzSize="default"
+                      class="w-100 form-control form-control-sm fs-12" [(ngModel)]="poFormData.poNumber" 
+                      required #poNumber="ngModel" />
+                    <small class="text-danger d-block" *ngIf="(poNumber.invalid && poNumber.touched) || (isSubmitted && poNumber.invalid)">
+                      Vui lòng nhập số POKH
+                    </small>
+                  </div>
+
+                  <div class="col-md-4">
+                    <label class="mb-1 fs-12">% Chiết khấu</label>
+                    <nz-input-number name="discount" nzPlaceHolder="0" [nzMin]="0" nzSize="default" class="w-100"
+                      [(ngModel)]="poFormData.discount" (ngModelChange)="onDiscountChange()">
+                    </nz-input-number>
+                  </div>
+
+                  <div class="col-md-4">
+                    <label class="mb-1 fs-12">Tổng tiền sau chiết khấu</label>
+                    <nz-input-number name="totalMoneyDiscount" nzPlaceHolder="0" [nzMin]="0" nzSize="default" class="w-100"
+                      [(ngModel)]="poFormData.totalMoneyDiscount" [nzFormatter]="formatCurrency" [nzParser]="parseCurrency">
+                    </nz-input-number>
+                  </div>
+                  
+                  <div class="col-md-4">
+                    <label class="mb-1 fs-12 d-block" style="visibility: hidden;">Radio 1</label>
+                    <nz-radio-group class="mt-1" name="accountType" [(ngModel)]="poFormData.accountType">
+                      <label nz-radio [nzValue]="2">Big Account</label>
+                      <label nz-radio [nzValue]="1">Minor Account</label>
+                    </nz-radio-group>
+                  </div>
                 </div>
-  
-                <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
-                  <nz-form-item>
-                    <nz-form-label [nzSm]="8" [nzXs]="24">Mã PO</nz-form-label>
-                    <nz-form-control [nzSm]="16" [nzXs]="24">
-                      <nz-input-group nzSearch nzSize="default" [nzAddOnAfter]="suffixIconButton_PONumber">
-                        <input name="poCode" placeholder="Mã PO" nz-input [(ngModel)]="poFormData.poCode" />
-                      </nz-input-group>
-                      <ng-template #suffixIconButton_PONumber>
-                        <button nz-button nzType="default" nzSize="default" nzSearch (click)="openPOCodeModal()">
-                          <nz-icon nzType="plus" nzTheme="outline" />
-                        </button>
-                      </ng-template>
-                    </nz-form-control>
-                  </nz-form-item>
-                </div>
-  
-                <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
-                  <nz-form-item>
-                    <nz-form-label [nzSm]="8" [nzXs]="24">Khách hàng</nz-form-label>
-                    <nz-form-control [nzSm]="16" [nzXs]="24">
-                      <nz-select nzShowSearch name="customerId" nzPlaceHolder="Chọn khách hàng" nzAllowClear
-                        nzSize="default" class="w-100" [(ngModel)]="selectedCustomer"
-                        (ngModelChange)="onCustomerChange($event)">
-                        <nz-option *ngFor="let customer of dataCustomers" [nzValue]="customer"
-                          [nzLabel]="customer.CustomerName">
-                        </nz-option>
-                      </nz-select>
-                    </nz-form-control>
-                  </nz-form-item>
-                </div>
-  
-                <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
-                  <nz-form-item>
-                    <nz-form-label [nzSm]="8" [nzXs]="24">Sales phụ trách</nz-form-label>
-                    <nz-form-control [nzSm]="16" [nzXs]="24">
-                      <nz-select nzShowSearch name="userId" [(ngModel)]="poFormData.userId"
-                        nzPlaceHolder="Chọn người phụ trách" nzAllowClear nzSize="default" class="w-100">
-                        <nz-option *ngFor="let user of dataUsers" [nzValue]="user.ID" [nzLabel]="user.FullName">
-                        </nz-option>
-                      </nz-select>
-                    </nz-form-control>
-                  </nz-form-item>
-                </div>
-  
-                <!-- Row 2 -->
-                <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
-                  <nz-form-item>
-                    <nz-form-label [nzSm]="8" [nzXs]="24">Ngày PO</nz-form-label>
-                    <nz-form-control [nzSm]="16" [nzXs]="24">
-                      <nz-date-picker name="poDate" nzFormat="dd/MM/yyyy" nzPlaceHolder="dd/mm/yyyy" nzSize="default"
-                        class="w-100" [(ngModel)]="poFormData.poDate"></nz-date-picker>
-                    </nz-form-control>
-                  </nz-form-item>
-                </div>
-  
-                <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
-                  <nz-form-item>
-                    <nz-form-label [nzSm]="8" [nzXs]="24">Tổng tiền PO</nz-form-label>
-                    <nz-form-control [nzSm]="16" [nzXs]="24">
-                      <nz-input-number name="totalPO" nzPlaceHolder="0" [nzMin]="0" nzSize="default" class="w-100"
-                        [(ngModel)]="poFormData.totalPO" [nzFormatter]="formatCurrency" [nzParser]="parseCurrency"
-                        nzReadOnly="true">
-                      </nz-input-number>
-                    </nz-form-control>
-                  </nz-form-item>
-                </div>
-  
-                <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
-                  <nz-form-item>
-                    <nz-form-label [nzSm]="8" [nzXs]="24">Dự án</nz-form-label>
-                    <nz-form-control [nzSm]="16" [nzXs]="24">
-                      <nz-input-group nzSearch nzSize="default" [nzAddOnAfter]="suffixIconButton_ProjectName">
-                        <nz-select nzShowSearch name="projectId" nzPlaceHolder="Chọn dự án" nzAllowClear nzSize="default"
-                          class="w-100" [(ngModel)]="poFormData.projectId" style="max-width: 125px;">
-                          <nz-option *ngFor="let project of dataProjects" [nzValue]="project.ID"
-                            [nzLabel]="project.ProjectName" [nzTitle]="project.ProjectName">
-                            <div
-                              style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">
-                              {{project.ProjectName}}
-                            </div>
-                          </nz-option>
-                        </nz-select>
-                      </nz-input-group>
-                      <ng-template #suffixIconButton_ProjectName>
-                        <button nz-button nzType="default" nzSize="default" nzSearch>
-                          <nz-icon nzType="plus" nzTheme="outline" />
-                        </button>
-                      </ng-template>
-                    </nz-form-control>
-                  </nz-form-item>
-                </div> 
-  
-                <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
-                  <nz-form-item>
-                    <nz-form-label [nzSm]="8" [nzXs]="24">Loại PO</nz-form-label>
-                    <nz-form-control [nzSm]="16" [nzXs]="24">
-                      <nz-select nzShowSearch name="poType" nzPlaceHolder="Chọn loại PO" nzAllowClear nzSize="default"
-                        class="w-100" [(ngModel)]="poFormData.poType">
-                        <nz-option *ngFor="let poType of dataPOTypes" [nzValue]="poType.ID"
-                          [nzLabel]="poType.MainIndex1"></nz-option>
-                      </nz-select>
-                    </nz-form-control>
-                  </nz-form-item>
-                </div>
-  
-                <!-- Row 3 -->
-                <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
-                  <nz-form-item>
-                    <nz-form-label [nzSm]="8" [nzXs]="24">Bộ phận</nz-form-label>
-                    <nz-form-control [nzSm]="16" [nzXs]="24">
-                      <nz-select nzShowSearch name="departmentId" nzPlaceHolder="Chọn bộ phận" nzAllowClear
-                        nzSize="default" class="w-100" [(ngModel)]="poFormData.departmentId">
-                        <nz-option *ngFor="let part of dataParts" [nzValue]="part.ID"
-                          [nzLabel]="part.PartName"></nz-option>
-                      </nz-select>
-                    </nz-form-control>
-                  </nz-form-item>
-                </div>
-  
-                <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
-                  <nz-form-item>
-                    <nz-form-label [nzSm]="8" [nzXs]="24">Loại tiền</nz-form-label>
-                    <nz-form-control [nzSm]="16" [nzXs]="24">
-                      <nz-select nzShowSearch name="currencyId" nzPlaceHolder="Chọn loại tiền" nzAllowClear
-                        nzSize="default" class="w-100" [(ngModel)]="poFormData.currencyId">
-                        <nz-option *ngFor="let currency of dataCurrencies" [nzValue]="currency.ID"
-                          [nzLabel]="currency.Code"></nz-option>
-                      </nz-select>
-                    </nz-form-control>
-                  </nz-form-item>
-                </div>
-  
-                <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
-                  <nz-form-item>
-                    <nz-form-label [nzSm]="8" [nzXs]="24">End User</nz-form-label>
-                    <nz-form-control [nzSm]="16" [nzXs]="24">
-                      <input name="endUser" nz-input type="text" nzPlaceHolder="Nhập end user" nzSize="default"
-                        class="w-100" [(ngModel)]="poFormData.endUser" />
-                    </nz-form-control>
-                  </nz-form-item>
-                </div>
-  
-                <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8" [nzLg]="6">
-                  <nz-form-item>
-                    <nz-form-label [nzSm]="8" [nzXs]="24">Số POKH</nz-form-label>
-                    <nz-form-control [nzSm]="16" [nzXs]="24">
-                      <input name="poNumber" nz-input type="text" nzPlaceHolder="Nhập số POKH" nzSize="default"
-                        class="w-100" [(ngModel)]="poFormData.poNumber" />
-                    </nz-form-control>
-                  </nz-form-item>
-                </div>
-  
-                <!-- Ghi chú chiếm toàn bộ chiều rộng còn lại -->
-                <div nz-col [nzSpan]="24">
-                  <nz-form-item>
-                    <nz-form-label [nzSm]="5" [nzXs]="24">Ghi chú</nz-form-label>
-                    <nz-form-control [nzSm]="21" [nzXs]="10" class="d-flex align-items-start gap-2">
-                      <textarea name="note" nz-input rows="2" nzPlaceHolder="Nhập ghi chú" nzSize="default" class="w-100" 
+
+                <!-- Ghi chú chiếm toàn bộ chiều rộng -->
+                <div class="row g-3 mt-3">
+                  <div class="col-12">
+                    <label class="mb-1 fs-12">Ghi chú</label>
+                    <div class="d-flex align-items-start gap-2">
+                      <textarea name="note" nz-input rows="2" nzPlaceHolder="Nhập ghi chú" nzSize="default" class="w-100 form-control form-control-sm fs-12"
                         [(ngModel)]="poFormData.note"></textarea>
-                      <label name="isBigAccount" nz-checkbox [(ngModel)]="poFormData.isBigAccount">
+                      <label class="mt-1" name="isBigAccount" nz-checkbox [(ngModel)]="poFormData.isBigAccount">
                         <span>New Account</span>
                       </label>
-                    </nz-form-control>
-                  </nz-form-item>
+                    </div>
+                  </div>
                 </div>
               </div>
             </form>
@@ -228,12 +192,12 @@
           <div class="p-3 pokh-tab-content">
             <!-- Phần trên -->
             <div class="mb-4">
-              <h6 class="mb-3">Danh sách sản phẩm</h6>
-              <div class="d-flex justify-content-end gap-2 mb-3">
-                <button nz-button nzType="primary" nzSize="default" (click)="addNewRow()">
+              <h6 class="mb-2">Danh sách sản phẩm</h6>
+              <div class="d-flex justify-content-end gap-2 mb-2">
+                <button nz-button nzType="primary" nzSize="small" (click)="addNewRow()">
                   <nz-icon nzType="plus"></nz-icon> Thêm
                 </button>
-                <button nz-button nzType="default" nzSize="default" (click)="addChildRow()">
+                <button nz-button nzType="default" nzSize="small" (click)="addChildRow()">
                   <nz-icon nzType="plus"></nz-icon> Thêm con
                 </button>
               </div>
@@ -247,8 +211,8 @@
                 <nz-switch [(ngModel)]="isResponsibleUsersEnabled" [nzCheckedChildren]="checkedTemplate"
                   [nzUnCheckedChildren]="unCheckedTemplate" (ngModelChange)="toggleResponsibleUsers()"></nz-switch>
               </div>
-              <div class="d-flex justify-content-end mb-3" *ngIf="isResponsibleUsersEnabled">
-                <button nz-button nzType="default" nzSize="default" (click)="addRowDetailUser()">
+              <div class="d-flex justify-content-end mb-2" *ngIf="isResponsibleUsersEnabled">
+                <button nz-button nzType="default" nzSize="small" (click)="addRowDetailUser()">
                   <nz-icon nzType="plus"></nz-icon> Thêm người phụ trách
                 </button>
               </div>
@@ -261,8 +225,28 @@
       </nz-tabset>
     </div>
     <div class="modal-footer">
+      <div class="d-flex gap-2 flex-wrap me-auto">
+        <button nz-button nzType="default" nzSize="default">
+          <nz-icon nzType="user-add"></nz-icon> Thêm khách hàng
+        </button>
+        <button nz-button nzType="default" nzSize="default">
+          <nz-icon nzType="appstore-add"></nz-icon> Thêm sản phẩm mới
+        </button>
+        <button nz-button nzType="default" nzSize="default" (click)="openQuotationKhDataModal()">
+          <nz-icon nzType="file-text"></nz-icon> Chọn báo giá
+        </button>
+        <button nz-button nzType="default" nzSize="default">
+          <nz-icon nzType="search"></nz-icon> Tìm kiếm kho
+        </button>
+        <button nz-button nzType="default" nzSize="default">
+          <nz-icon nzType="unordered-list"></nz-icon> Chọn partlist
+        </button>
+        <button nz-button nzType="default" nzSize="default">
+          <nz-icon nzType="file-excel"></nz-icon> Nhập Excel
+        </button>
+      </div>
       <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
-      <button nz-button nzType="primary" nzSize="default" (click)="savePOKH()">Lưu</button>
+      <button nz-button nzType="primary" nzSize="default" (click)="savePOKH()" [disabled]="pokhForm.invalid && isSubmitted">Lưu</button>
     </div>
 
   

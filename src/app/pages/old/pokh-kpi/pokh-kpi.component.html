@@ -1,6 +1,9 @@
 <ng-container class="w-100">
     <div class="card-header bg-white p-1" style="overflow-x: auto;">
       <div class="d-flex gap-1">
+        <button style="min-width: 25px;" nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
+          <nz-icon nzType="search"></nz-icon>
+        </button>
         <button class="fs-12" nz-button nzType="default" nzSize="small" title="Xuất PO" (click)="exportDetailTableToExcel()">
           <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" /> Xuất Excel
         </button>
@@ -34,34 +37,6 @@
                         [(ngModel)]="filters.endDate"></nz-date-picker>
                     </nz-form-control>
                   </nz-form-item>
-                  <nz-form-item class="mt-2">
-                    <nz-form-label class="fs-12" [nzSpan]="24">Người phụ trách</nz-form-label>
-                    <nz-form-control [nzSpan]="24">
-                      <nz-select name="userId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
-                        nzPlaceHolder="Người phụ trách" [(ngModel)]="filters.userId">
-                        <nz-option *ngFor="let item of filterUserData" [nzValue]="item.ID"
-                        [nzLabel]="item.FullName"></nz-option>
-                      </nz-select>
-                    </nz-form-control>
-                  </nz-form-item>
-                  <nz-form-item class="mt-2">
-                    <nz-form-label class="fs-12" [nzSpan]="24">Nhóm</nz-form-label>
-                    <nz-form-control [nzSpan]="24">
-                      <nz-select name="employeeTeamSaleId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
-                        nzPlaceHolder="Nhóm" [(ngModel)]="filters.employeeTeamSaleId">
-                        <nz-option *ngFor="let item of filterEmployeeTeamSale" [nzValue]="item.ID"
-                        [nzLabel]="item.Name"></nz-option>
-                      </nz-select>
-                    </nz-form-control>
-                  </nz-form-item>
-                  <nz-form-item class="mt-2">
-                    <nz-form-label class="fs-12" [nzSpan]="24">Lọc</nz-form-label>
-                    <nz-form-control [nzSpan]="24">
-                      <nz-select name="status" class="w-100" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="Lọc"
-                        [(ngModel)]="filters.status">
-                      </nz-select>
-                    </nz-form-control>
-                  </nz-form-item>
                   <!-- <nz-form-item class="mt-2">
                     <nz-form-label class="fs-12" [nzSpan]="24">Lĩnh vực dự án</nz-form-label>
                     <nz-form-control [nzSpan]="24">
@@ -76,6 +51,8 @@
                     <nz-form-control [nzSpan]="24">
                       <nz-select name="customerId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
                         nzPlaceHolder="Khách hàng" [(ngModel)]="filters.customerId">
+                        <nz-option *ngFor="let item of customers" [nzValue]="item.ID"
+                        [nzLabel]="item.CustomerCode + ' - ' + item.CustomerName"></nz-option>
                       </nz-select>
                     </nz-form-control>
                   </nz-form-item>

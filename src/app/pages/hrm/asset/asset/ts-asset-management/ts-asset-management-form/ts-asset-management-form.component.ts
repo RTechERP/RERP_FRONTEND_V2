@@ -63,7 +63,7 @@ export class TsAssetManagementFormComponent implements OnInit, AfterViewInit {
   unitData: any[] = [];
   sourceData: any[] = [];
   typeData: any[] = [];
-  maxSTT: number = 0;
+  maxSTT: number = 0; 
   activeStatusList = [
     { value: 1, label: 'Chưa Active' },
     { value: 2, label: 'Đã Active' },

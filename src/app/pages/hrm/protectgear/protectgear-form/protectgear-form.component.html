@@ -1,0 +1,293 @@
+<div class="modal-header bg-primary p-2">
+  <h6 class="modal-title text-white" id="protectgearModalLabel">THÔNG TIN ĐỒ BẢO HỘ</h6>
+  <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+</div>
+
+<div class="modal-body p-1 mobile-friendly" style="max-height: 80vh;">
+  <div style="max-height: 76vh; overflow-y: auto; padding: 8px 12px; overflow-x: hidden;">
+    <form nz-form [formGroup]="formProtectgear" nzLayout="vertical" class="fs-7">
+      <nz-row [nzGutter]="8">
+        <!-- Cột input 16 span -->
+        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="16" [nzLg]="16" [nzXl]="16">
+          <!-- Hàng 1 -->
+          <nz-row [nzGutter]="8">
+            <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+              <nz-form-item>
+                <nz-form-label class="fs-12 d-flex align-items-center">
+                  Nhóm đồ bảo hộ <span class="text-danger ps-1 me-1"> * </span>
+                </nz-form-label>
+                <nz-form-control [nzErrorTip]="'Chọn nhóm đồ bảo hộ'">
+                  <nz-input-group required nzSearch nzSize="default" class="w-100">
+                    <nz-select
+                      nzSize="default"
+                      formControlName="ProductGroupRTCID"
+                      name="ProductGroupRTCID"
+                      nzPlaceHolder="Chọn nhóm"
+                      class="fs-12 w-100"
+                      required
+                      nzShowSearch
+                      nzAllowClear
+                    >
+                      <nz-option
+                        *ngFor="let item of productGroupData"
+                        [nzValue]="item.ID"
+                        [nzLabel]="item.ID + ' - ' + item.ProductGroupName"
+                      >
+                      </nz-option>  
+                    </nz-select>
+                  </nz-input-group>
+                </nz-form-control>
+              </nz-form-item>
+            </nz-col>
+            <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+              <nz-form-item>
+                <nz-form-label class="fs-12"> Vị trí </nz-form-label>
+                <nz-form-control [nzSpan]="24">
+                  <nz-input-group nzSearch nzSize="default" class="w-100">
+                    <nz-select
+                      nzSize="default"
+                      formControlName="ProductLocationID"
+                      name="ProductLocationID"
+                      nzPlaceHolder="Chọn vị trí"
+                      class="fs-12 w-100"
+                      nzShowSearch
+                      nzAllowClear
+                    >
+                      <nz-option
+                        *ngFor="let item of locationData"
+                        [nzValue]="item.ID"
+                        [nzLabel]="item.LocationCode + ' - ' + item.LocationName"
+                      >
+                      </nz-option>
+                    </nz-select>
+                  </nz-input-group>
+                </nz-form-control>
+              </nz-form-item>
+            </nz-col>
+          </nz-row>
+
+          <!-- Hàng 2 -->
+          <nz-row [nzGutter]="8">
+            <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+              <nz-form-item>
+                <nz-form-label required
+                  >Tên đồ bảo hộ<span class="text-danger ps-1 me-1"> * </span></nz-form-label
+                >
+                <nz-form-control [nzErrorTip]="'Vui lòng nhập tên đồ bảo hộ'">
+                  <input nz-input formControlName="ProductName" name="ProductName" />
+                </nz-form-control>
+              </nz-form-item>
+            </nz-col>
+            <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+              <nz-form-item>
+                <nz-form-label required
+                  >Mã sản phẩm<span class="text-danger ps-1 me-1"> * </span></nz-form-label
+                >
+                <nz-form-control
+                  [nzValidateStatus]="formProtectgear.get('ProductCode')!"
+                  [nzErrorTip]="'Không được để trống mã sản phẩm'"
+                >
+                  <input nz-input formControlName="ProductCode" />
+                </nz-form-control>
+              </nz-form-item>
+            </nz-col>
+          </nz-row>
+
+          <!-- Hàng 3 -->
+          <nz-row [nzGutter]="8">
+            <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+              <nz-form-item>
+                <nz-form-label class="fs-12 d-flex align-items-center">
+                  Hãng
+                </nz-form-label>
+                <nz-form-control [nzSpan]="24">
+                  <nz-input-group nzSearch nzSize="default" class="w-100">
+                    <nz-select
+                      nzSize="default"
+                      formControlName="FirmID"
+                      name="FirmID"
+                      nzPlaceHolder="Chọn hãng"
+                      class="fs-12 w-100"
+                      nzShowSearch
+                      nzAllowClear
+                    >
+                      <nz-option
+                        *ngFor="let item of firmData"
+                        [nzValue]="item.ID"
+                        [nzLabel]="item.FirmCode + ' - ' + item.FirmName"
+                      >
+                      </nz-option>
+                    </nz-select>
+                  </nz-input-group>
+                </nz-form-control>
+              </nz-form-item>
+            </nz-col>
+
+            <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+              <nz-form-item>
+                <nz-form-label class="fs-12 d-flex align-items-center">
+                  Đơn vị tính<span class="text-danger ps-1 me-1"> * </span>
+                </nz-form-label>
+                <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn đơn vị tính">
+                  <nz-input-group required nzSearch nzSize="default" class="w-100">
+                    <nz-select
+                      nzSize="default"
+                      formControlName="UnitCountID"
+                      name="UnitCountID"
+                      nzPlaceHolder="Chọn đơn vị tính"
+                      class="fs-12 w-100"
+                      required
+                      nzShowSearch
+                      nzAllowClear
+                    >
+                      <nz-option
+                        *ngFor="let item of unitData"
+                        [nzValue]="item.ID"
+                        [nzLabel]="item.ID + ' - ' + item.UnitName"
+                      >
+                      </nz-option>
+                    </nz-select>
+                  </nz-input-group>
+                </nz-form-control>
+              </nz-form-item>
+            </nz-col>
+          </nz-row>
+
+          <!-- Hàng 4 -->
+          <nz-row [nzGutter]="8">
+            <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+              <nz-form-item>
+                <nz-form-label>Size</nz-form-label>
+                <nz-form-control>
+                  <input nz-input nzSize="default" formControlName="Size" name="Size" />
+                </nz-form-control>
+              </nz-form-item>
+            </nz-col>
+
+            <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+              <nz-form-item>
+                <nz-form-label required
+                  >Ngày tạo<span class="text-danger ps-1 me-1"> * </span></nz-form-label
+                >
+                <nz-form-control [nzErrorTip]="'Vui lòng chọn ngày tạo'">
+                  <nz-date-picker
+                    formControlName="CreateDate"
+                    [(ngModel)]="CreateDate"
+                    name="CreateDate"
+                    nzFormat="dd/MM/yyyy"
+                    nzSize="default"
+                    style="width: 100%"
+                  >
+                  </nz-date-picker>
+                </nz-form-control>
+              </nz-form-item>
+            </nz-col>
+          </nz-row>
+        </nz-col>
+
+        <!-- Cột ảnh 8 span -->
+        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" [nzXl]="8">
+          <nz-form-item class="mb-3">
+            <nz-form-label>Ảnh</nz-form-label>
+            <nz-form-control>
+              <div style="display: flex; gap: 8px; align-items: center">
+                <nz-upload
+                  [nzShowUploadList]="false"
+                  [nzBeforeUpload]="handleBeforeUpload"
+                  [nzAccept]="'.jpg,.jpeg,.png'"
+                >
+                  <button nz-button nzType="default">
+                    <i nz-icon nzType="upload"></i> Tải ảnh lên
+                  </button>
+                </nz-upload>
+                <div style="flex: 1; position: relative">
+                  <input
+                    nz-input
+                    type="text"
+                    placeholder="Đường dẫn ảnh"
+                    formControlName="LocationImg"
+                    name="ImagePath"
+                    readonly
+                    style="padding-right: 30px"
+                  />
+                  <button
+                    *ngIf="previewImageUrl"
+                    type="button"
+                    style="
+                      position: absolute;
+                      right: 8px;
+                      top: 50%;
+                      transform: translateY(-50%);
+                      background: none;
+                      border: none;
+                      font-size: 16px;
+                      color: #999;
+                      cursor: pointer;
+                    "
+                    (click)="clearImage()"
+                  >
+                    <i nz-icon nzType="close-circle" nzTheme="fill"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div
+                style="
+                  width: 100%;
+                  height: 350px;
+                  border: 1px solid #d9d9d9;
+                  margin-top: 10px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  background-color: #f5f5f5;
+                "
+              >
+                <img
+                  *ngIf="previewImageUrl"
+                  [src]="previewImageUrl"
+                  alt="Ảnh đồ bảo hộ"
+                  style="max-width: 100%; max-height: 100%; object-fit: cover"
+                />
+                <span *ngIf="!previewImageUrl" style="color: #999">Chưa có ảnh</span>
+              </div>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+
+      <!-- Ghi chú -->
+      <nz-row [nzGutter]="8">
+        <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="24" [nzXl]="24">
+          <nz-form-item>
+            <nz-form-label>Ghi chú</nz-form-label>
+            <nz-form-control>
+              <textarea
+                nz-input
+                nzSize="default"
+                rows="3"
+                formControlName="Note"
+                name="Note"
+                style="height: 109px"
+              >
+              </textarea>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+    </form>
+  </div>
+</div>
+
+<div class="modal-footer">
+  <button nz-button nzType="default" nzDanger (click)="close()">Đóng</button>
+  <button
+    nz-button
+    nzType="primary"
+    (click)="saveData()"
+    *hasPermission="'N26,N38,N1,N73,N80'"
+  >
+    Lưu dữ liệu
+  </button>
+</div>
+

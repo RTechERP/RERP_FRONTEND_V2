@@ -11,19 +11,18 @@ import { VehicleManagementComponent } from '../../../hrm/vehicle-management/vehi
 import { VehicleRepairTypeComponent } from '../../../hrm/vehicle-repair/vehicle-repair-type/vehicle-repair-type.component';
 import { VehicleRepairComponent } from '../../../hrm/vehicle-repair/vehicle-repair.component';
 import { TrainingRegistrationComponent } from '../../../training-registration/training-registration.component';
-import { ContractComponent } from '../../../old/contract/contract.component';
+import { ContractComponent } from '../../../hrm/contract/contract.component';
 // import { CustomerComponent } from '../../../old/customer/customer.component';
-import { DayOffComponent } from '../../../old/day-off/day-off.component';
-import { DepartmentComponent } from '../../../old/department/department.component';
-import { EarlyLateComponent } from '../../../old/early-late/early-late.component';
+import { DayOffComponent } from '../../../hrm/day-off/day-off.component';
+import { DepartmentComponent } from '../../../hrm/department/department.component';
+import { EarlyLateComponent } from '../../../hrm/early-late/early-late.component';
 import { EmployeeAttendanceComponent } from '../../../old/employee-attendance/employee-attendance.component';
-import { EmployeeBussinessComponent } from '../../../old/employee-bussiness/employee-bussiness.component';
-import { EmployeeComponent } from '../../../old/employee/employee.component';
-import { FoodOrderComponent } from '../../../old/food-order/food-order.component';
-import { HolidayComponent } from '../../../old/holiday/holiday.component';
+import { EmployeeBussinessComponent } from '../../../hrm/employee-bussiness/employee-bussiness.component';
+import { EmployeeComponent } from '../../../hrm/employee/employee.component';
+import { HolidayComponent } from '../../../hrm/holiday/holiday.component';
 import { NightShiftComponent } from '../../../old/night-shift/night-shift.component';
-import { OverTimeComponent } from '../../../old/over-time/over-time.component';
-import { PositionsComponent } from '../../../old/positions/positions.component';
+import { OverTimeComponent } from '../../../hrm/over-time/over-time.component';
+import { PositionsComponent } from '../../../hrm/positions/positions.component';
 import { ProjectItemLateComponent } from '../../../old/project/project-item-late/project-item-late.component';
 import { ProjectSurveyComponent } from '../../../old/project/project-survey/project-survey.component';
 import { ProjectWorkItemTimelineComponent } from '../../../old/project/project-work-item-timeline/project-work-item-timeline.component';
@@ -33,7 +32,7 @@ import { ProjectComponent } from '../../../old/project/project.component';
 import { SynthesisOfGeneratedMaterialsComponent } from '../../../old/project/synthesis-of-generated-materials/synthesis-of-generated-materials.component';
 import { ProductSaleComponent } from '../../../old/Sale/ProductSale/product-sale.component';
 import { TbProductRtcComponent } from '../../../old/tb-product-rtc/tb-product-rtc.component';
-import { TeamComponent } from '../../../old/team/team.component';
+import { TeamComponent } from '../../../hrm/team/team.component';
 import { TsAssetAllocationPersonalComponent } from '../../../old/ts-asset-allocation-personal/ts-asset-allocation-personal.component';
 import { TsAssetAllocationComponent } from '../../../hrm/asset/asset/ts-asset-allocation/ts-asset-allocation.component';
 import { TsAssetManagementPersonalTypeComponent } from '../../../old/ts-asset-management-personal/ts-asset-management-personal-type/ts-asset-management-personal-type.component';
@@ -71,6 +70,8 @@ import { InventoryComponent } from '../../../old/Sale/Inventory/inventory.compon
 import { InventoryBorrowNCCComponent } from '../../../old/Sale/Inventory/Modal/inventory-borrow-ncc/inventory-borrow-ncc.component';
 import { BillImportComponent } from '../../../old/Sale/BillImport/bill-import.component';
 import { BillExportComponent } from '../../../old/Sale/BillExport/bill-export.component';
+import { EmployeeScheduleWorkComponent } from '../../../hrm/holiday/employee-schedule-work/employee-schedule-work.component';
+import { FoodOrderComponent } from '../../../hrm/food-order/food-order.component';
 
 @Injectable({
   providedIn: 'root',
@@ -81,7 +82,7 @@ export class MenuService {
   constructor(
     private http: HttpClient,
     private permissionService: PermissionService
-  ) {}
+  ) { }
 
   //   getMenus(id: number): Observable<any> {
   //     return this.http.get<any>(this.apiUrl + `menus/${id}`);
@@ -482,14 +483,15 @@ export class MenuService {
                 //   icon: 'assets/icon/layers.png',
               },
 
-              //   {
-              //     kind: 'leaf',
-              //     key: 'EmployeeScheduleWorkComponent',
-              //     title: 'Quá trình công tác',
-              //     isOpen: true,
-              //     comp: EmployeeScheduleWorkComponent,
-              //     //   icon: 'assets/icon/layers.png',
-              //   },
+              // {
+              //   kind: 'leaf',
+              //   key: 'EmployeeScheduleWorkComponent',
+              //   title: 'Quá trình công tác',
+              //   isOpen: true,
+              //   isPermission: this.permissionService.hasPermission('N2,N1'),
+              //   comp: EmployeeScheduleWorkComponent,
+              //   //   icon: 'assets/icon/layers.png',
+              // },
 
               {
                 kind: 'leaf',

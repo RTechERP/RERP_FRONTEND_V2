@@ -8,9 +8,8 @@ import { FactoryVisitRegistrationComponent } from '../../../general-category/vis
 import { TsAssetRecoveryPersonalNewComponent } from '../../../hrm/asset/assetpersonal/ts-asset-recovery-personal-new/ts-asset-recovery-personal-new.component';
 import { HandoverComponent } from '../../../hrm/handover/handover.component';
 import { HrhiringRequestComponent } from '../../../hrm/hrhiring-request/hrhiring-request.component';
-import { VehicleManagementComponent } from '../../../hrm/vehicle-management/vehicle-management.component';
-import { VehicleRepairTypeComponent } from '../../../hrm/vehicle-repair/vehicle-repair-type/vehicle-repair-type.component';
-import { VehicleRepairComponent } from '../../../hrm/vehicle-repair/vehicle-repair.component';
+import { VehicleManagementComponent } from '../../../hrm/vehicle/vehicle-management/vehicle-management.component';
+import { VehicleRepairTypeComponent } from '../../../hrm/vehicle/vehicle-repair/vehicle-repair-type/vehicle-repair-type.component';
 import { TrainingRegistrationComponent } from '../../../training-registration/training-registration.component';
 import { ContractComponent } from '../../../old/contract/contract.component';
 import { DayOffComponent } from '../../../old/day-off/day-off.component';
@@ -54,8 +53,8 @@ import { OfficeSupplyUnitComponent } from '../../../hrm/office-supply/OfficeSupp
 import { OfficeSupplyComponent } from '../../../hrm/office-supply/OfficeSupply/office-supply.component';
 import { OfficeSupplyRequestsComponent } from '../../../hrm/office-supply/OfficeSupplyRequests/office-supply-requests.component';
 import { OfficeSupplyRequestSummaryComponent } from '../../../hrm/office-supply/OfficeSupplyRequestSummary/office-supply-request-summary.component';
-import { VehicleRepairHistoryComponent } from '../../../hrm/propose-vehicle-repair/vehicle-repair-history/vehicle-repair-history/vehicle-repair-history.component';
-import { ProposeVehicleRepairComponent } from '../../../hrm/propose-vehicle-repair/propose-vehicle-repair/propose-vehicle-repair/propose-vehicle-repair.component';
+import { VehicleRepairHistoryComponent } from '../../../hrm/vehicle/propose-vehicle-repair/vehicle-repair-history/vehicle-repair-history/vehicle-repair-history.component';
+import { ProposeVehicleRepairComponent } from '../../../hrm/vehicle/propose-vehicle-repair/propose-vehicle-repair/propose-vehicle-repair/propose-vehicle-repair.component';
 import { DailyReportHrComponent } from '../../../hrm/daily-report-hr/daily-report-hr.component';
 import { PriceHistoryPartlistComponent } from '../../../project/price-history-partlist/price-history-partlist.component';
 import { ProjectTypeComponent } from '../../../project/project-type/project-type.component';
@@ -82,6 +81,7 @@ import { AppUserService } from '../../../../services/app-user.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { LeaderProjectComponent } from '../../../project/leader-project/leader-project.component';
+import { FilmManagementComponent } from '../../../hrm/film-management/film-management.component';
 import { AgvProductComponent } from '../../../warehouse/agv/agv-product/agv-product.component';
 import { HistoryImportExportComponent } from '../../../old/Sale/HistoryImportExport/history-import-export.component';
 import { HistoryBorrowSaleComponent } from '../../../old/Sale/HistoryBorrowSale/history-borrow-sale.component';
@@ -95,6 +95,9 @@ import { ListProductProjectComponent } from '../../../old/Sale/ListProductProjec
 import { SearchProductSerialNumberComponent } from '../../../old/Sale/SearchProductSerialNumber/search-product-serial-number.component';
 import { BillExportTechnicalComponent } from '../../../old/bill-export-technical/bill-export-technical.component';
 import { BorrowReportComponent } from '../../../old/Technical/borrow-report/borrow-report.component';
+import { DocumentComponent } from '../../../hrm/document/document.component';
+import { VehicleBookingManagementComponent } from '../../../hrm/vehicle/vehicle-booking-management/vehicle-booking-management.component';
+import { ProtectgearComponent } from '../../../hrm/protectgear/protectgear/protectgear.component';
 
 @Injectable({
   providedIn: 'root',
@@ -251,15 +254,15 @@ export class MenuService {
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission(''),
                 comp: ListProductProjectComponent,
-
-              },{
+              },
+              {
                 kind: 'leaf',
                 key: 'SearchProductSerialNumberComponent',
                 title: 'TRA CỨU SERIAL NUMBER',
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission(''),
                 comp: SearchProductSerialNumberComponent,
-              }
+              },
             ],
           },
           {
@@ -306,13 +309,14 @@ export class MenuService {
                 isPermission: this.permissionService.hasPermission(''),
                 comp: InventoryBorrowNCCComponent,
                 //   icon: 'assets/icon/layers.png',
-              },{
+              },
+              {
                 kind: 'leaf',
-                key:'ProductReportNewRtcComponent',
-                title:'LỊCH SỬ NHÂP XUẤT',
-                isOpen:true,
-                isPermission:this.permissionService.hasPermission(''),
-                comp:ProductReportNewComponent,
+                key: 'ProductReportNewRtcComponent',
+                title: 'LỊCH SỬ NHÂP XUẤT',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: ProductReportNewComponent,
               },
               {
                 kind: 'leaf',
@@ -329,8 +333,7 @@ export class MenuService {
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission(''),
                 comp: BorrowReportComponent,
-
-              }
+              },
             ],
           },
         ],
@@ -354,7 +357,16 @@ export class MenuService {
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
             comp: HrhiringRequestComponent,
-            //   icon: 'assets/icon/layers.png',
+            icon: 'assets/icon/hr_hiring_24.svg',
+          },
+          {
+            kind: 'leaf',
+            key: 'DocumentComponent',
+            title: 'Quản lí văn bản',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: DocumentComponent,
+            icon: 'assets/icon/hr_document_24.svg',
           },
           {
             kind: 'group',
@@ -362,6 +374,7 @@ export class MenuService {
             title: 'Tài sản/công cụ dụng cụ',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
+            icon: 'assets/icon/hr_asset_management_24.svg',
             children: [
               {
                 kind: 'leaf',
@@ -430,6 +443,7 @@ export class MenuService {
             isOpen: true,
             isPermission:
               this.permissionService.hasPermission('N23,N52,N1,N36,N34'),
+            icon: 'assets/icon/hr_asset_management_24.svg',
             children: [
               {
                 kind: 'leaf',
@@ -508,6 +522,7 @@ export class MenuService {
             title: 'Quản lí xe',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
+            icon: 'assets/icon/hr_vehicle_24.svg',
             children: [
               {
                 kind: 'leaf',
@@ -516,6 +531,16 @@ export class MenuService {
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission('N2,N34,N1'),
                 comp: VehicleManagementComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+              {
+                kind: 'leaf',
+                key: 'VehicleBookingManagementComponent',
+                title: 'Đặt xe',
+                isOpen: true,
+                isPermission:
+                  this.permissionService.hasPermission('N2,N34,N1,N68,N71'),
+                comp: VehicleBookingManagementComponent,
                 //   icon: 'assets/icon/layers.png',
               },
               // {
@@ -600,6 +625,15 @@ export class MenuService {
                 comp: OfficeSupplyRequestSummaryComponent,
               },
             ],
+          },
+          {
+            kind: 'leaf',
+            key: 'FilmManagement',
+            title: 'Quản lí Film',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission('N1,N44'),
+            comp: FilmManagementComponent,
+            //   icon: 'assets/icon/layers.png',
           },
           {
             kind: 'group',
@@ -804,8 +838,18 @@ export class MenuService {
             key: 'DailyReportHrComponent',
             title: 'Báo cáo công việc',
             isOpen: true,
-            isPermission: this.permissionService.hasPermission(''),
+            isPermission: this.permissionService.hasPermission('N42,N2,N1'),
             comp: DailyReportHrComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+
+          {
+            kind: 'leaf',
+            key: 'ProtectgearComponent',
+            title: 'Tủ đồ bảo hộ phòng sạch',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission('N42,N2,N1'),
+            comp: ProtectgearComponent,
             //   icon: 'assets/icon/layers.png',
           },
         ],

@@ -17,6 +17,9 @@ import { DateTime } from 'luxon';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { UnitService } from '../../asset/asset/ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
+import { FilmManagementService } from '../firm-management-service/film-management.service';
+import { firstValueFrom } from 'rxjs';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 /* ================= Types ================= */
 export interface FilmDetail {
@@ -58,7 +61,15 @@ function normalizeCellValue(v: any): string {
   if ((v as any)?.result != null) return normalizeCellValue((v as any).result);
   return String(v);
 }
+function parseRequestResult(raw: string | null | undefined): boolean {
+  if (!raw) return false;
+  const s = norm(raw); // dùng lại hàm norm ở trên
+  if (!s) return false;
 
+  // true nếu là 1, x, y, yes, true, có, bat buoc, ...
+  const trueList = ['1','có'];
+  return trueList.some(t => s === t || s.includes(t));
+}
 /** Parse number thông minh */
 function parseNumberSmart(raw: string | number | null | undefined): number | null {
   if (raw == null) return null;
@@ -123,7 +134,7 @@ function pickHeaderRow(ws: ExcelJS.Worksheet): number {
   }
   return bestRow;
 }
-function mapColumnsByAliases(headers: string[]): Record<'STT'|'Ma'|'DauMuc'|'YeuCau'|'NoiDung'|'DVT'|'NangSuat', number> {
+function mapColumnsByAliases(headers: string[]): Record<'STT' | 'Ma' | 'DauMuc' | 'YeuCau' | 'NoiDung' | 'DVT' | 'NangSuat', number> {
   const nh = headers.map(h => norm(h));
   const find = (list: string[]) => { for (let i = 0; i < nh.length; i++) if (list.some(a => nh[i]?.includes(a))) return i + 1; return 0; };
   const out = {
@@ -135,7 +146,7 @@ function mapColumnsByAliases(headers: string[]): Record<'STT'|'Ma'|'DauMuc'|'Yeu
     DVT: find(COL_ALIASES.DVT),
     NangSuat: find(COL_ALIASES.NangSuatTrungBinh)
   };
-  const fallback = [1,2,3,4,5,6,7];
+  const fallback = [1, 2, 3, 4, 5, 6, 7];
   (Object.keys(out) as Array<keyof typeof out>).forEach((k, i) => {
     if (!out[k] || out[k] < 1 || out[k] > headers.length) out[k] = fallback[i] as any;
   });
@@ -162,7 +173,7 @@ export class FilmManagementImportExcelComponent implements OnInit, AfterViewInit
   filePath = '';
   excelSheets: string[] = [];
   selectedSheet = '';
-
+  duplicateCodes: string[] = [];
   tableExcel: Tabulator | null = null;
   dataTableExcel: FilmFlatRow[] = [];
 
@@ -176,8 +187,9 @@ export class FilmManagementImportExcelComponent implements OnInit, AfterViewInit
   constructor(
     private notification: NzNotificationService,
     private modalService: NgbModal,
-    private unitService: UnitService
-  ) {}
+    private unitService: UnitService,
+    private filmService: FilmManagementService
+  ) { }
 
   ngOnInit() {
     this.getUnits();
@@ -401,12 +413,18 @@ export class FilmManagementImportExcelComponent implements OnInit, AfterViewInit
   }
   closeExcelModal() { this.modalService.dismissAll(true); }
 
-  /* ===== Build payload DB + Save ===== */
-  private buildPayloadForApi(): any {
+  private buildPayloadForApi(startSTT: number): any[] {
     // Gom master theo STT|Ma|DauMuc|YeuCauKetQua
     const groups = new Map<string, FilmMaster>();
+
     for (const r of this.dataTableExcel) {
-      const key = [String(r.STT ?? '').trim(), r.Ma?.trim() || '', r.DauMuc?.trim() || '', r.YeuCauKetQua?.trim() || ''].join('||');
+      const key = [
+        String(r.STT ?? '').trim(),
+        r.Ma?.trim() || '',
+        r.DauMuc?.trim() || '',
+        r.YeuCauKetQua?.trim() || ''
+      ].join('||');
+
       if (!groups.has(key)) {
         groups.set(key, {
           STT: r.STT ?? '',
@@ -416,6 +434,7 @@ export class FilmManagementImportExcelComponent implements OnInit, AfterViewInit
           Details: []
         });
       }
+
       const ns =
         typeof r.NangSuatTrungBinh === 'number'
           ? r.NangSuatTrungBinh
@@ -428,40 +447,160 @@ export class FilmManagementImportExcelComponent implements OnInit, AfterViewInit
       });
     }
 
-    // Map sang schema DB:
-    // FilmManagement: Code, Name, RequestResult
-    // FilmManagementDetail: WorkContent, PerformanceAVG, UnitID, STT
-    const masters = Array.from(groups.values()).map(m => ({
-      STT: /^\d+$/.test(String(m.STT)) ? Number(m.STT) : m.STT,
-      Code: m.Ma,
-      Name: m.DauMuc,
-      RequestResult: m.YeuCauKetQua,
-      Details: m.Details.map((d, i) => ({
-        STT: i + 1,
-        WorkContent: d.NoiDungCongViec,
-        PerformanceAVG: d.NangSuatTrungBinh,
-        UnitID: this.findUnitIdByName(d.DVT) ?? 0
-      }))
-    }));
+    // Map thành danh sách FilmMangementDTO gửi lên API:
+    // {
+    //   filmManagement: FilmManagement,
+    //   filmManagementDetails: FilmManagementDetail[]
+    // }
+    const dtos = Array.from(groups.values()).map((m, index) => {
+      // Sử dụng STT max từ DB + index thay vì lấy từ Excel
+      const sttNum = startSTT + index;
 
-    return { Masters: masters };
+      return {
+        filmManagement: {
+          ID: 0,                           // import => luôn thêm mới
+          STT: sttNum,
+          Code: m.Ma,
+          Name: m.DauMuc,
+          RequestResult: parseRequestResult(m.YeuCauKetQua),
+          IsDeleted: false,
+          CreatedDate: null,               // để repo xử lý nếu muốn
+          UpdatedDate: null,
+          CreatedBy: null,
+          UpdatedBy: null
+        } as any,
+        filmManagementDetails: m.Details.map((d, i) => ({
+          ID: 0,
+          STT: i + 1,
+          FilmManagementID: 0,             // backend sẽ gán sau khi insert master
+          UnitID: this.findUnitIdByName(d.DVT) ?? null,
+          PerformanceAVG: d.NangSuatTrungBinh ?? null,
+          WorkContent: d.NoiDungCongViec,
+          IsDeleted: false,
+          CreatedDate: null,
+          UpdatedDate: null,
+          CreatedBy: null,
+          UpdatedBy: null
+        }) as any)
+      };
+    });
+
+    return dtos;
   }
-
-  saveExcelData(): void {
+  async saveExcelData(): Promise<void> {
     if (!this.dataTableExcel.length) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu để lưu.');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để lưu.');
       return;
     }
-    const payloadForApi = this.buildPayloadForApi();
-    const total = (payloadForApi.Masters || []).reduce((acc: number, m: any) => acc + (m.Details?.length || 0), 0);
-    this.beginSaving(total || 0);
 
-    // Emit cho component cha tự gọi API:
-    this.submit.emit(payloadForApi);
+    // Lấy STT max từ DB
+    let maxSTT = 0;
+    try {
+      const response: any = await firstValueFrom(
+        this.filmService.getFilm({ keyWord: '', page: 1, size: 1 })
+      );
+      maxSTT = response?.maxSTT ?? response?.data?.maxSTT ?? 0;
+    } catch (err) {
+      console.error('Lỗi khi lấy STT max:', err);
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lấy STT max từ hệ thống.');
+      return;
+    }
 
-    // Nếu muốn gọi API trực tiếp thì thay thế trên bằng service.saveData(payloadForApi).subscribe(...)
-    this.endSaving(true);
-    this.notification.success('Thông báo', `Đã chuẩn bị ${(payloadForApi.Masters || []).length} nhóm master.`);
-    // this.closeExcelModal();
+    // Build payload với STT bắt đầu từ maxSTT + 1
+    const dtoList = this.buildPayloadForApi(maxSTT + 1);
+
+    if (!dtoList.length) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu hợp lệ để lưu.');
+      return;
+    }
+
+    const totalDetails = dtoList.reduce(
+      (acc: number, dto: any) => acc + (dto.filmManagementDetails?.length || 0),
+      0
+    );
+
+    // Đóng modal ngay lập tức
+    this.closeExcelModal();
+
+    // Hiển thị thông báo bắt đầu lưu
+    this.notification.info('Thông báo', `Đang lưu ${totalDetails} dòng chi tiết trong ${dtoList.length} đầu mục...`);
+
+    // Chạy async ở background
+    this.processDataInBackground(dtoList, totalDetails);
   }
+
+  private async processDataInBackground(dtoList: any[], totalDetails: number): Promise<void> {
+    // reset list mã trùng mỗi lần bấm lưu
+    this.duplicateCodes = [];
+    let savedDetails = 0; // Đếm số dòng detail lưu OK
+
+    try {
+      for (const dto of dtoList) {
+        const detailCount = dto.filmManagementDetails?.length || 0;
+
+        try {
+          await firstValueFrom(this.filmService.saveData(dto));
+
+          // Lưu thành công => cộng vào savedDetails
+          savedDetails += detailCount;
+        } catch (res: any) {
+          const msg = res?.error?.message || '';
+
+          // Parse lỗi dạng "Mã phim F001 đã tồn tại"
+          const match = msg.match(/Mã phim\s+(.+?)\s/);
+          if (match && match[1]) {
+            const code = match[1].trim();
+            if (!this.duplicateCodes.includes(code)) {
+              this.duplicateCodes.push(code);
+            }
+          }
+          // KHÔNG return, KHÔNG notify ở đây để vòng for chạy hết
+        }
+      }
+
+      // Kết thúc vòng for: hiển thị kết quả
+      if (this.duplicateCodes.length > 0) {
+        const list = this.duplicateCodes.join(', ');
+
+        if (savedDetails === 0) {
+          // Tất cả đều fail
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            `Mã phim: ${list} đã tồn tại, không thể lưu`
+          );
+        } else if (savedDetails < totalDetails) {
+          // Một phần thành công, một phần trùng
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            `Đã lưu thành công ${savedDetails}/${totalDetails} dòng chi tiết. ` +
+            `Các mã sau đã tồn tại: ${list}`
+          );
+        } else {
+          // Trường hợp lý thuyết không xảy ra, nhưng cứ phòng
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            `Đã lưu thành công ${savedDetails}/${totalDetails} dòng chi tiết.`
+          );
+        }
+      } else {
+        this.notification.success(
+          NOTIFICATION_TITLE.success,
+          `Đã lưu thành công ${savedDetails}/${totalDetails} dòng chi tiết trong ${dtoList.length} đầu mục.`
+        );
+      }
+
+    } catch (res: any) {
+      console.error('Lỗi khi lưu dữ liệu Excel:', res);
+      // TH này là lỗi "ngoài luồng" (network, server crash...), cứ xem như fail toàn bộ
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        res?.error?.message ||
+        res?.error?.title ||
+        'Lưu dữ liệu thất bại. Vui lòng thử lại.'
+      );
+    }
+  }
+
+
+
 }

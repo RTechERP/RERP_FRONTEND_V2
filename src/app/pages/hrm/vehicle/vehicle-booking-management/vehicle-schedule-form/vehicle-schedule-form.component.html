@@ -1,0 +1,143 @@
+<div class="modal-header bg-primary p-2">
+    <h6 class="modal-title text-white" id="vehicleScheduleModalLabel">Xếp xe</h6>
+    <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+</div>
+
+<div class="modal-body" style="max-height: 60vh; overflow-y: auto; overflow-x: hidden;">
+    <form nz-form [formGroup]="scheduleForm" nzLayout="vertical" class="fs-12 mt-1">
+        <!-- Fieldset: Thông tin xe -->
+        <fieldset class="reset mt-2">
+            <legend class="reset fs-12 ">Thông tin xe</legend>
+
+            <!-- Chủ động phương tiện -->
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <input type="checkbox" formControlName="checked" style="margin: 0;" />
+                <span>Chủ động phương tiện</span>
+            </div>
+            <!-- Xe phụ trách và Lái xe -->
+            <nz-row [nzGutter]="24">
+
+                <nz-col [nzSpan]="12">
+                    <nz-form-item>
+
+                        <nz-form-label>Xe phụ trách<span style="color: red">(*)</span></nz-form-label>
+                        <nz-form-control [nzErrorTip]="getVehicleTypeIDError(scheduleForm.get('vehicleTypeID')!)"
+                            [nzValidateStatus]="scheduleForm.get('vehicleTypeID')!">
+                            <nz-select formControlName="vehicleTypeID" nzShowSearch nzAllowClear
+                                nzPlaceHolder="Chọn loại xe..." (nzOpenChange)="onVehicleChange()"
+                                [nzDisabled]="checked">
+                                <ng-container *ngFor="let group of vehicleList">
+                                    <nz-option-group [nzLabel]="'-- Loại xe: ' + group.label">
+                                        <nz-option *ngFor="let option of group.options"
+                                            [nzLabel]="option.item.VehicleName +' - '+option.item.LicensePlate+' - '+option.item.DriverName"
+                                            [nzValue]="option.item.ID">
+                                        </nz-option>
+                                    </nz-option-group>
+                                </ng-container>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="12">
+                    <nz-form-item>
+                        <nz-form-label>Lái xe</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="employeeName" [disabled]="true" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+
+            <!-- Biển số và SDT liên hệ -->
+            <nz-row [nzGutter]="24">
+                <nz-col [nzSpan]="12">
+                    <nz-form-item>
+                        <nz-form-label>Biển số</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="licensePlates" [disabled]="true" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="12">
+                    <nz-form-item>
+                        <nz-form-label>SDT liên hệ</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="SDT" [disabled]="true" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+
+            <!-- Loại xe và Tiền chuyển xe -->
+            <nz-row [nzGutter]="24">
+                <nz-col [nzSpan]="12">
+                    <nz-form-item>
+                        <nz-form-label>Loại xe</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="vehicleType" [disabled]="true" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="12">
+                    <nz-form-item>
+                        <nz-form-label>Tiền chuyển xe</nz-form-label>
+                        <nz-form-control [nzErrorTip]="getPriceVehicleError(scheduleForm.get('priceVehicle')!)"
+                            [nzValidateStatus]="scheduleForm.get('priceVehicle')!">
+                            <nz-input-number formControlName="priceVehicle" [nzMin]="1" [nzMax]="1000000000"
+                                [nzStep]="1000" style="width: 100%;"></nz-input-number>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+        </fieldset>
+
+        <!-- Fieldset: Lịch trình -->
+        <fieldset class="reset mt-2">
+            <legend class="reset fs-12 p-0">Lịch trình</legend>
+
+            <!-- Thời gian xuất phát và Điểm xuất phát -->
+            <nz-row [nzGutter]="24">
+                <nz-col [nzSpan]="12">
+                    <nz-form-item>
+                        <nz-form-label>Thời gian xuất phát<span style="color: red">(*)</span></nz-form-label>
+                        <nz-form-control [nzErrorTip]="getTimeStartError(scheduleForm.get('timeStart')!)"
+                            [nzValidateStatus]="scheduleForm.get('timeStart')!">
+                            <nz-date-picker formControlName="timeStart" class="w-100" nzShowTime
+                                nzFormat="dd/MM/yyyy HH:mm:ss" nzAllowClear="false"></nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzSpan]="12">
+                    <nz-form-item>
+                        <nz-form-label>Điểm xuất phát<span style="color: red">(*)</span></nz-form-label>
+                        <nz-form-control [nzErrorTip]="getVPIDError(scheduleForm.get('VPID')!)"
+                            [nzValidateStatus]="scheduleForm.get('VPID')!">
+                            <nz-select formControlName="VPID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn VP ...">
+                                <nz-option *ngFor="let emp of vpList" [nzLabel]="emp.VPText"
+                                    [nzValue]="emp.VP"></nz-option>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+
+            <!-- Điểm xuất phát cụ thể -->
+            <nz-row [nzGutter]="24">
+                <nz-col [nzSpan]="24">
+                    <nz-form-item>
+                        <nz-form-label>Điểm xuất phát cụ thể</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="locationStart" placeholder="Nhập điểm xuất phát cụ thể" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+        </fieldset>
+    </form>
+</div>
+
+<!-- Footer nút -->
+<div class="modal-footer">
+    <button nz-button nzType="default" nzDanger (click)="close()">Đóng</button>
+    <button nz-button nzType="primary" (click)="saveStatus()">Lưu</button>
+</div>

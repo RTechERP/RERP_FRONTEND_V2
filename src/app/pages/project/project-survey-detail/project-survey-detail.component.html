@@ -6,20 +6,17 @@
     <button type="button" class="btn-close" (click)="activeModal.dismiss()" aria-label="Close"></button>
   </div>
 
-  <div
-    class="modal-body pt-0 pb-0 p-2 w-100 position-relative"
-    style="max-height: 80vh"
-  >
-    <fieldset class="reset m-0">
-      <legend class="reset fs-12 p-0">THÔNG TIN DỰ ÁN</legend>
+  <div class="modal-body pt-2 pb-0 p-2 w-100 position-relative" style="max-height: 80vh">
+    
+    <!-- THÔNG TIN DỰ ÁN -->
+    <fieldset class="reset m-0 mb-2">
+      <legend class="reset fs-12 p-0 mb-2">THÔNG TIN DỰ ÁN</legend>
       <form nz-form nzLayout="vertical" [formGroup]="validateForm">
         <nz-row [nzGutter]="8">
           <div nz-col [nzSpan]="8">
             <nz-form-item class="m-0">
-              <label class="fs-12 p-0">
-                Dự án <span class="text-danger fs-12">(*)</span>
-              </label>
-              <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn dự án!">
+              <label class="fs-12 p-0">Dự án <span class="text-danger fs-12">(*)</span></label>
+              <nz-form-control nzErrorTip="Vui lòng chọn dự án!">
                 <nz-select
                   name="projectId"
                   class="w-100"
@@ -28,28 +25,21 @@
                   nzPlaceHolder="Chọn dự án"
                   formControlName="projectId"
                   [(ngModel)]="projectId"
-                  (ngModelChange)="getDataByProjectId()"
-                >
-                  <!-- Nội dung option của bạn ở đây -->
+                  (ngModelChange)="getDataByProjectId()">
                   @for (item of projects; track $index) {
-                  <nz-option
-                    nzCustomContent="true"
-                    [nzLabel]="item.ProjectCode"
-
-                    [nzValue]="item.ID"
-                    >{{
-                      item.ProjectCode + " - " + item.ProjectName
-                    }}</nz-option
-                  >
+                  <nz-option nzCustomContent="true" [nzLabel]="item.ProjectCode" [nzValue]="item.ID">
+                    {{ item.ProjectCode + " - " + item.ProjectName }}
+                  </nz-option>
                   }
                 </nz-select>
               </nz-form-control>
             </nz-form-item>
           </div>
+
           <div nz-col [nzSpan]="8">
             <nz-form-item class="m-0">
-              <label class="fs-12 p-0"> Khách hàng </label>
-              <nz-form-control [nzSpan]="24">
+              <label class="fs-12 p-0">Khách hàng</label>
+              <nz-form-control>
                 <nz-select
                   name="customerId"
                   class="w-100"
@@ -58,28 +48,22 @@
                   nzPlaceHolder="Chọn khách hàng"
                   [ngModelOptions]="{ standalone: true }"
                   [(ngModel)]="customerId"
-                  nzDisabled=""
-                >
-                  <!-- Nội dung option của bạn ở đây -->
+                  nzDisabled="">
                   @for (item of customers; track $index) {
-                  <nz-option
-                    nzCustomContent="true"
-                    [nzLabel]="item.CustomerName"
-                    [nzValue]="item.ID"
-                    >{{
-                      item.CustomerCode + " - " + item.CustomerName
-                    }}</nz-option
-                  >
+                  <nz-option nzCustomContent="true" [nzLabel]="item.CustomerName" [nzValue]="item.ID">
+                    {{ item.CustomerCode + " - " + item.CustomerName }}
+                  </nz-option>
                   }
                 </nz-select>
               </nz-form-control>
             </nz-form-item>
           </div>
+
           <div nz-col [nzSpan]="8">
             <nz-form-item class="m-0">
-              <label class="fs-12 p-0"> End User </label>
-              <nz-form-control [nzSpan]="24"
-                ><nz-select
+              <label class="fs-12 p-0">End User</label>
+              <nz-form-control>
+                <nz-select
                   name="endUserId"
                   class="w-100"
                   nzShowSearch
@@ -87,53 +71,38 @@
                   nzPlaceHolder="Chọn end user"
                   [ngModelOptions]="{ standalone: true }"
                   [(ngModel)]="endUserId"
-                  nzDisabled=""
-                >
-                  <!-- Nội dung option của bạn ở đây -->
+                  nzDisabled="">
                   @for (item of customers; track $index) {
-                  <nz-option
-                    nzCustomContent="true"
-                    [nzLabel]="item.CustomerName"
-                    [nzValue]="item.ID"
-                    >{{
-                      item.CustomerCode + " - " + item.CustomerName
-                    }}</nz-option
-                  >
+                  <nz-option nzCustomContent="true" [nzLabel]="item.CustomerName" [nzValue]="item.ID">
+                    {{ item.CustomerCode + " - " + item.CustomerName }}
+                  </nz-option>
                   }
-                </nz-select></nz-form-control
-              >
+                </nz-select>
+              </nz-form-control>
             </nz-form-item>
           </div>
         </nz-row>
-        <nz-row [nzGutter]="12">
+
+        <nz-row [nzGutter]="8" class="mt-1">
           <div nz-col [nzSpan]="6">
-            <nz-form-item class="pt-1 m-0">
-              <label class="fs-12 p-0">
-                Người phụ trách (Sale)
-              </label>
-              <nz-form-control [nzSpan]="24">
+            <nz-form-item class="m-0">
+              <label class="fs-12 p-0">Sale</label>
+              <nz-form-control>
                 <nz-select
                   name="saleId"
                   class="w-100"
                   nzShowSearch
                   nzAllowClear
-                  nzPlaceHolder="Chọn phụ trách Sale"
+                  nzPlaceHolder="Chọn Sale"
                   [ngModelOptions]="{ standalone: true }"
                   [(ngModel)]="saleId"
-                  nzDisabled=""
-                >
-                  <!-- Nội dung option của bạn ở đây -->
+                  nzDisabled="">
                   @for (parent of employees; track $index) {
                   <nz-option-group [nzLabel]="parent.label">
                     @for (child of parent.options; track $index) {
-                    <nz-option
-                      nzCustomContent="true"
-                      [nzLabel]="child.item.FullName"
-                      [nzValue]="child.item.UserID"
-                      >{{
-                        child.item.Code + " - " + child.item.FullName
-                      }}</nz-option
-                    >
+                    <nz-option nzCustomContent="true" [nzLabel]="child.item.FullName" [nzValue]="child.item.UserID">
+                      {{ child.item.Code + " - " + child.item.FullName }}
+                    </nz-option>
                     }
                   </nz-option-group>
                   }
@@ -141,33 +110,26 @@
               </nz-form-control>
             </nz-form-item>
           </div>
+
           <div nz-col [nzSpan]="6">
-            <nz-form-item class="pt-1 m-0">
-              <label class="fs-12 p-0">
-                Người phụ trách (Kỹ thuật)
-              </label>
-              <nz-form-control [nzSpan]="24">
+            <nz-form-item class="m-0">
+              <label class="fs-12 p-0">Kỹ thuật</label>
+              <nz-form-control>
                 <nz-select
                   name="technicalId"
                   class="w-100"
                   nzShowSearch
                   nzAllowClear
-                  nzPlaceHolder="Chọn phụ trách kỹ thuật"
+                  nzPlaceHolder="Chọn kỹ thuật"
                   [ngModelOptions]="{ standalone: true }"
                   [(ngModel)]="technicalId"
-                  nzDisabled=""
-                >
+                  nzDisabled="">
                   @for (parent of employees; track $index) {
                   <nz-option-group [nzLabel]="parent.label">
                     @for (child of parent.options; track $index) {
-                    <nz-option
-                      nzCustomContent="true"
-                      [nzLabel]="child.item.FullName"
-                      [nzValue]="child.item.UserID"
-                      >{{
-                        child.item.Code + " - " + child.item.FullName
-                      }}</nz-option
-                    >
+                    <nz-option nzCustomContent="true" [nzLabel]="child.item.FullName" [nzValue]="child.item.UserID">
+                      {{ child.item.Code + " - " + child.item.FullName }}
+                    </nz-option>
                     }
                   </nz-option-group>
                   }
@@ -177,30 +139,24 @@
           </div>
 
           <div nz-col [nzSpan]="6">
-            <nz-form-item class="pt-1 m-0">
-              <label class="fs-12 p-0"> Pm </label>
-              <nz-form-control [nzSpan]="24">
+            <nz-form-item class="m-0">
+              <label class="fs-12 p-0">PM</label>
+              <nz-form-control>
                 <nz-select
                   name="pmId"
                   class="w-100"
                   nzShowSearch
                   nzAllowClear
-                  nzPlaceHolder="Chọn pm"
+                  nzPlaceHolder="Chọn PM"
                   [ngModelOptions]="{ standalone: true }"
                   [(ngModel)]="pmId"
-                  nzDisabled=""
-                >
+                  nzDisabled="">
                   @for (parent of employees; track $index) {
                   <nz-option-group [nzLabel]="parent.label">
                     @for (child of parent.options; track $index) {
-                    <nz-option
-                      nzCustomContent="true"
-                      [nzLabel]="child.item.FullName"
-                      [nzValue]="child.item.ID"
-                      >{{
-                        child.item.Code + " - " + child.item.FullName
-                      }}</nz-option
-                    >
+                    <nz-option nzCustomContent="true" [nzLabel]="child.item.FullName" [nzValue]="child.item.ID">
+                      {{ child.item.Code + " - " + child.item.FullName }}
+                    </nz-option>
                     }
                   </nz-option-group>
                   }
@@ -210,9 +166,9 @@
           </div>
 
           <div nz-col [nzSpan]="6">
-            <nz-form-item class="pt-1 m-0">
-              <label class="fs-12 p-0"> Trạng thái </label>
-              <nz-form-control [nzSpan]="24">
+            <nz-form-item class="m-0">
+              <label class="fs-12 p-0">Trạng thái</label>
+              <nz-form-control>
                 <nz-select
                   name="statusId"
                   class="w-100"
@@ -221,15 +177,11 @@
                   nzPlaceHolder="Chọn trạng thái"
                   [ngModelOptions]="{ standalone: true }"
                   [(ngModel)]="statusId"
-                  nzDisabled=""
-                >
+                  nzDisabled="">
                   @for (item of statuses; track $index) {
-                  <nz-option
-                    nzCustomContent="true"
-                    [nzLabel]="item.StatusName"
-                    [nzValue]="item.ID"
-                    >{{ item.StatusName }}</nz-option
-                  >
+                  <nz-option nzCustomContent="true" [nzLabel]="item.StatusName" [nzValue]="item.ID">
+                    {{ item.StatusName }}
+                  </nz-option>
                   }
                 </nz-select>
               </nz-form-control>
@@ -238,334 +190,242 @@
         </nz-row>
       </form>
     </fieldset>
-    <div nz-row class="pt-1">
-      <div nz-col [nzSpan]="24">
-        <fieldset class="reset m-0">
-          <legend class="reset fs-12 p-0">THÔNG TIN KHẢO SÁT</legend>
-          <form nz-form nzLayout="vertical" [formGroup]="validateForm">
-            <nz-row [nzGutter]="12">
-              <div nz-col [nzSpan]="12">
-                <nz-row [nzGutter]="12">
-                  <div nz-col [nzSpan]="12">
-                    <nz-form-item class="m-0">
-                      <label class="fs-12 p-0">
-                        Người yêu cầu
-                      </label>
-                      <nz-select
-                        name="userRequestId"
-                        class="w-100"
-                        nzShowSearch
-                        nzAllowClear
-                        nzPlaceHolder="Chọn người yêu cầu"
-                        [ngModelOptions]="{ standalone: true }"
-                        [(ngModel)]="userRequestId"
-                        [nzDisabled]="isAdmin"
-                      >
-                        @for (parent of employees; track $index) {
-                        <nz-option-group [nzLabel]="parent.label">
-                          @for (child of parent.options; track $index) {
-                          <nz-option
-                            nzCustomContent="true"
-                            [nzLabel]="child.item.FullName"
-                            [nzValue]="child.item.ID"
-                            >{{
-                              child.item.Code + " - " + child.item.FullName
-                            }}</nz-option
-                          >
-                          }
-                        </nz-option-group>
-                        }
-                      </nz-select>
 
-                      <label
-                        class="fs-12 pt-1"
-                        nz-checkbox
-                        name="isUrgent"
-                        [ngModelOptions]="{ standalone: true }"
-                        [(ngModel)]="isUrgent"
-                        (ngModelChange)="onUrgentChange($event)"
-                      >
-                        Khảo sát gấp
-                      </label>
-                    </nz-form-item>
-                  </div>
-                  <div nz-col [nzSpan]="12">
-                    <nz-form-item>
-                      <label class="fs-12 p-0">
-                        Leader
-                        <span *ngIf="isUrgent" class="text-danger"
-                          >(*)</span
-                        ></label
-                      >
-                      <nz-form-control
-                        [nzSpan]="24"
-                        nzErrorTip="Vui lòng chọn leader!"
-                      >
-                        <nz-select
-                          name="leaderId"
-                          class="w-100"
-                          nzShowSearch
-                          nzAllowClear
-                          nzPlaceHolder="Chọn leader"
-                          formControlName="leaderId"
-                          [(ngModel)]="leaderId"
-                        >
-                          @for (parent of employees; track $index) {
-                          <nz-option-group [nzLabel]="parent.label">
-                            @for (child of parent.options; track $index) {
-                            <nz-option
-                              nzCustomContent="true"
-                              [nzLabel]="child.item.FullName"
-                              [nzValue]="child.item.ID"
-                              >{{
-                                child.item.Code + " - " + child.item.FullName
-                              }}</nz-option
-                            >
-                            }
-                          </nz-option-group>
-                          }
-                        </nz-select>
-                      </nz-form-control>
-                    </nz-form-item>
-                  </div>
-                </nz-row>
-                <nz-row [nzGutter]="12">
-                  <div nz-col [nzSpan]="24">
-                    <nz-form-item class="pt-1 m-0">
-                      <label class="fs-12 p-0">
-                        Lý do gấp
-                        <span *ngIf="isUrgent" class="text-danger"
-                          >(*)</span
-                        ></label
-                      >
-                      <nz-form-control
-                        [nzSpan]="24"
-                        nzErrorTip="Vui lòng nhập lý do gấp!"
-                      >
-                        <textarea
-                          name="reasonUrgent"
-                          rows="2"
-                          nz-input
-                          placeholder="Nhập lý do gấp"
-                          formControlName="reasonUrgent"
-                          [(ngModel)]="reasonUrgent"
-                        ></textarea>
-                      </nz-form-control>
-                    </nz-form-item>
-                  </div>
-                </nz-row>
-                <nz-row [nzGutter]="12">
-                  <div nz-col [nzSpan]="24">
-                    <nz-form-item class="pt-1 m-0">
-                      <label class="fs-12 p-0">
-                        Địa chỉ
-                        <span class="text-danger">(*)</span></label
-                      >
-                      <nz-form-control
-                        [nzSpan]="24"
-                        nzErrorTip="Vui lòng nhập địa chỉ!"
-                      >
-                        <textarea
-                          name="address"
-                          rows="2"
-                          nz-input
-                          placeholder="Nhập địa chỉ"
-                          formControlName="address"
-                          [(ngModel)]="address"
-                        ></textarea>
-                      </nz-form-control>
-                    </nz-form-item>
-                  </div>
-                </nz-row>
-                <nz-row [nzGutter]="12">
-                  <div nz-col [nzSpan]="12">
-                    <nz-form-item class="pt-1 m-0">
-                      <label class="fs-12 p-0"
-                        >Tên khách hàng
-                        <span class="text-danger">(*)</span></label
-                      >
-                      <nz-form-control
-                        [nzSpan]="24"
-                        nzErrorTip="Vui lòng nhập tên khách hàng"
-                      >
-                        <input
-                          name="customerName"
-                          nz-input
-                          placeholder="Nhập tên khách hàng"
-                          formControlName="customerName"
-                          [(ngModel)]="customerName"
-                      /></nz-form-control>
-                    </nz-form-item>
-                  </div>
-                  <div nz-col [nzSpan]="12">
-                    <nz-form-item class="pt-1 m-0">
-                      <label class="fs-12 p-0"
-                        >SĐT khách hàng
-                        <span class="text-danger">(*)</span></label
-                      >
-                      <nz-form-control
-                        [nzSpan]="24"
-                        nzErrorTip="Vui lòng nhập sđt khách hàng"
-                      >
-                        <input
-                          name="customerPhoneNum"
-                          nz-input
-                          placeholder="Nhập SĐT khách hàng"
-                          formControlName="customerPhoneNum"
-                          [(ngModel)]="customerPhoneNum"
-                      /></nz-form-control>
-                    </nz-form-item>
-                  </div>
-                </nz-row>
-                <nz-row [nzGutter]="12">
-                  <div nz-col [nzSpan]="24">
-                    <nz-form-item class="pt-1 m-0">
-                      <label class="fs-12 p-0"> Ghi chú</label>
-                      <nz-form-control [nzSpan]="24">
-                        <textarea
-                          name="note"
-                          rows="2"
-                          nz-input
-                          placeholder="Nhập ghi chú"
-                          [(ngModel)]="note"
-                          [ngModelOptions]="{ standalone: true }"
-                        ></textarea>
-                      </nz-form-control>
-                    </nz-form-item>
-                  </div>
-                </nz-row>
-              </div>
-              <div nz-col [nzSpan]="12">
-                <nz-row [nzGutter]="12">
-                  <div nz-col [nzSpan]="24">
-                    <fieldset class="reset m-0">
-                      <legend
-                        class="reset w-auto border-bottom-0 text-dark p-0 m-0"
-                      >
-                        Ngày yêu cầu khảo sát
-                      </legend>
-                      <nz-row [nzGutter]="12">
-                        <div nz-col [nzSpan]="12">
-                          <nz-form-item class="m-0">
-                            <label class="fs-12 p-0"
-                              >Từ ngày</label
-                            >
-                            <nz-date-picker
-                              name="dateStart"
-                              class="w-100"
-                              nzFormat="dd/MM/yyyy"
-                              nzAllowClear="false"
-                              [ngModelOptions]="{ standalone: true }"
-                              [(ngModel)]="dateStart"
-                            ></nz-date-picker>
-                          </nz-form-item>
-                        </div>
-                        <div nz-col [nzSpan]="12">
-                          <nz-form-item class="m-0">
-                            <label class="fs-12 p-0"
-                              >Tới ngày</label
-                            >
-                            <nz-date-picker
-                              name="dateEnd"
-                              class="w-100"
-                              nzFormat="dd/MM/yyyy"
-                              nzAllowClear="false"
-                              [ngModelOptions]="{ standalone: true }"
-                              [(ngModel)]="dateEnd"
-                            ></nz-date-picker>
-                          </nz-form-item>
-                        </div>
-                      </nz-row>
-                    </fieldset>
-                  </div>
-                </nz-row>
-                <nz-row [nzGutter]="12">
-                  <div nz-col [nzSpan]="24">
-                    <nz-form-item class="pt-1 m-0">
-                      <label class="fs-12 p-0">
-                        Mô tả dự án
-                        <span class="text-danger">(*)</span></label
-                      >
-                      <nz-form-control
-                        [nzSpan]="24"
-                        nzErrorTip="Vui lòng nhập mô tả"
-                      >
-                        <textarea
-                          name="descripsion"
-                          rows="2"
-                          nz-input
-                          placeholder="Nhập mô tả"
-                          formControlName="descripsion"
-                          [(ngModel)]="descripsion"
-                        ></textarea>
-                      </nz-form-control>
-                    </nz-form-item>
-                  </div>
-                </nz-row>
-                <nz-row [nzGutter]="12" class="pt-1">
-                  <div nz-col [nzSpan]="24">
-                    <fieldset class="reset m-0">
-                      <legend
-                        class="reset w-auto border-bottom-0 text-dark p-0 m-0"
-                      >
-                        Tệp đính kèm
-                      </legend>
-                      <nz-form-item class="m-0">
-                        <nz-upload
-                          [(nzFileList)]="fileList"
-                          [nzBeforeUpload]="beforeUpload"
-                          [nzMultiple]="true"
-                          [nzShowUploadList]="false"
-                        >
-                          <button nz-button nzSize="small" class="fs-12">
-                            <nz-icon nzType="upload" />
-                            Chọn file mô tả dự án
-                          </button>
-                        </nz-upload>
-                      </nz-form-item>
-                      <nz-form-item
-                        class="pt-1 position-relative m-0"
-                        style="height: 12vh"
-                      >
-                        <div class="border" #tb_projectSurveyFile></div>
-                      </nz-form-item>
-                    </fieldset>
-                  </div>
-                </nz-row>
-              </div>
-            </nz-row>
-            <nz-row [nzGutter]="12" class="pt-2">
-              <div nz-col [nzSpan]="24">
-                <nz-form-item
-                  class="position-relative m-0"
-                  style="height: 18vh"
-                >
-                  <div class="border" #tb_projectSurveyDetail></div>
-                </nz-form-item>
-              </div>
-            </nz-row>
-          </form>
-        </fieldset>
+    <!-- THÔNG TIN KHẢO SÁT -->
+    <fieldset class="reset m-0">
+      <legend class="reset fs-12 p-0 mb-2">THÔNG TIN KHẢO SÁT</legend>
+      <form nz-form nzLayout="vertical" [formGroup]="validateForm">
+        
+        <nz-row [nzGutter]="8">
+          <div nz-col [nzSpan]="6">
+            <nz-form-item class="m-0">
+              <label class="fs-12 p-0">Người yêu cầu</label>
+              <nz-select
+                name="userRequestId"
+                class="w-100"
+                nzShowSearch
+                nzAllowClear
+                nzPlaceHolder="Chọn người yêu cầu"
+                [ngModelOptions]="{ standalone: true }"
+                [(ngModel)]="userRequestId"
+                [nzDisabled]="isAdmin">
+                @for (parent of employees; track $index) {
+                <nz-option-group [nzLabel]="parent.label">
+                  @for (child of parent.options; track $index) {
+                  <nz-option nzCustomContent="true" [nzLabel]="child.item.FullName" [nzValue]="child.item.ID">
+                    {{ child.item.Code + " - " + child.item.FullName }}
+                  </nz-option>
+                  }
+                </nz-option-group>
+                }
+              </nz-select>
+            </nz-form-item>
+          </div>
+
+          <div nz-col [nzSpan]="6">
+            <nz-form-item class="m-0">
+              <label class="fs-12 p-0">
+                Leader <span *ngIf="isUrgent" class="text-danger">(*)</span>
+              </label>
+              <nz-form-control nzErrorTip="Vui lòng chọn leader!">
+                <nz-select
+                  name="leaderId"
+                  class="w-100"
+                  nzShowSearch
+                  nzAllowClear
+                  nzPlaceHolder="Chọn leader"
+                  formControlName="leaderId"
+                  [(ngModel)]="leaderId">
+                  @for (parent of employees; track $index) {
+                  <nz-option-group [nzLabel]="parent.label">
+                    @for (child of parent.options; track $index) {
+                    <nz-option nzCustomContent="true" [nzLabel]="child.item.FullName" [nzValue]="child.item.ID">
+                      {{ child.item.Code + " - " + child.item.FullName }}
+                    </nz-option>
+                    }
+                  </nz-option-group>
+                  }
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+
+          <div nz-col [nzSpan]="6">
+            <nz-form-item class="m-0">
+              <label class="fs-12 p-0">Từ ngày</label>
+              <nz-date-picker
+                name="dateStart"
+                class="w-100"
+                nzFormat="dd/MM/yyyy"
+                nzAllowClear="false"
+                [ngModelOptions]="{ standalone: true }"
+                [(ngModel)]="dateStart">
+              </nz-date-picker>
+            </nz-form-item>
+          </div>
+
+          <div nz-col [nzSpan]="6">
+            <nz-form-item class="m-0">
+              <label class="fs-12 p-0">Tới ngày</label>
+              <nz-date-picker
+                name="dateEnd"
+                class="w-100"
+                nzFormat="dd/MM/yyyy"
+                nzAllowClear="false"
+                [ngModelOptions]="{ standalone: true }"
+                [(ngModel)]="dateEnd">
+              </nz-date-picker>
+            </nz-form-item>
+          </div>
+        </nz-row>
+
+        <nz-row [nzGutter]="8" class="mt-1">
+          <div nz-col [nzSpan]="6">
+            <nz-form-item class="m-0">
+              <label class="fs-12 p-0">
+                Tên khách hàng <span class="text-danger">(*)</span>
+              </label>
+              <nz-form-control nzErrorTip="Vui lòng nhập tên khách hàng">
+                <input
+                  name="customerName"
+                  nz-input
+                  placeholder="Nhập tên khách hàng"
+                  formControlName="customerName"
+                  [(ngModel)]="customerName" />
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+
+          <div nz-col [nzSpan]="6">
+            <nz-form-item class="m-0">
+              <label class="fs-12 p-0">
+                SĐT khách hàng <span class="text-danger">(*)</span>
+              </label>
+              <nz-form-control nzErrorTip="Vui lòng nhập sđt khách hàng">
+                <input
+                  name="customerPhoneNum"
+                  nz-input
+                  placeholder="Nhập SĐT"
+                  formControlName="customerPhoneNum"
+                  [(ngModel)]="customerPhoneNum" />
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+
+          <div nz-col [nzSpan]="12">
+            <nz-form-item class="m-0">
+              <label class="fs-12 p-0">
+                <label nz-checkbox name="isUrgent" [ngModelOptions]="{ standalone: true }" 
+                  [(ngModel)]="isUrgent" (ngModelChange)="onUrgentChange($event)">
+                  Khảo sát gấp
+                </label>
+                <span *ngIf="isUrgent" class="text-danger ms-2">- Lý do (*)</span>
+              </label>
+              <nz-form-control nzErrorTip="Vui lòng nhập lý do gấp!">
+                <input
+                  name="reasonUrgent"
+                  nz-input
+                  placeholder="Nhập lý do gấp"
+                  formControlName="reasonUrgent"
+                  [(ngModel)]="reasonUrgent" />
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </nz-row>
+
+        <nz-row [nzGutter]="8" class="mt-1">
+          <div nz-col [nzSpan]="12">
+            <nz-form-item class="m-0">
+              <label class="fs-12 p-0">
+                Địa chỉ <span class="text-danger">(*)</span>
+              </label>
+              <nz-form-control nzErrorTip="Vui lòng nhập địa chỉ!">
+                <textarea
+                  name="address"
+                  rows="2"
+                  nz-input
+                  placeholder="Nhập địa chỉ"
+                  formControlName="address"
+                  [(ngModel)]="address">
+                </textarea>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+
+          <div nz-col [nzSpan]="12">
+            <nz-form-item class="m-0">
+              <label class="fs-12 p-0">
+                Mô tả dự án <span class="text-danger">(*)</span>
+              </label>
+              <nz-form-control nzErrorTip="Vui lòng nhập mô tả">
+                <textarea
+                  name="descripsion"
+                  rows="2"
+                  nz-input
+                  placeholder="Nhập mô tả"
+                  formControlName="descripsion"
+                  [(ngModel)]="descripsion">
+                </textarea>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </nz-row>
+
+        <nz-row [nzGutter]="8" class="mt-1">
+          <div nz-col [nzSpan]="12">
+            <nz-form-item class="m-0">
+              <label class="fs-12 p-0">Ghi chú</label>
+              <nz-form-control>
+                <textarea
+                  name="note"
+                  rows="13"
+                  nz-input
+                  placeholder="Nhập ghi chú"
+                  [(ngModel)]="note"
+                  [ngModelOptions]="{ standalone: true }">
+                </textarea>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+
+          <div nz-col [nzSpan]="12">
+            <nz-form-item class="m-0">
+              <label class="fs-12 p-0">Tệp đính kèm 
+                <nz-upload
+                [(nzFileList)]="fileList"
+                [nzBeforeUpload]="beforeUpload"
+                [nzMultiple]="true"
+                [nzShowUploadList]="false">
+                <button nz-button nzSize="small" class="fs-12">
+                  <nz-icon nzType="upload" />
+                  Chọn file
+                </button>
+              </nz-upload>
+            </label>
+              <nz-form-control>
+              <div class="border mt-1" style="height: 60px !important; overflow-y: auto" #tb_projectSurveyFile></div>
+            </nz-form-control>
+          </nz-form-item>
+          </div>
+        </nz-row>
+      </form>
+    
+    </fieldset>
+    <nz-row [nzGutter]="8" class="mt-2">
+      <div nz-col [nzSpan]="24">
+        <nz-form-item class="m-0">
+          <div class="border" style="height: 40px" #tb_projectSurveyDetail></div>
+        </nz-form-item>
       </div>
-    </div>
+    </nz-row>
   </div>
 
   <div class="modal-footer bg-whitesmoke br p-1 d-flex align-items-center">
     <div class="d-flex align-items-center flex-wrap gap-1">
-      <button
-        nz-button
-        nzType="default"
-        nzDanger
-        (click)="activeModal.dismiss()"
-      >
+      <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">
         Đóng
       </button>
-      <button
-        nz-button
-        nzType="primary"
-        (click)="save()"
-        [disabled]="isDisSave"
-      >
+      <button nz-button nzType="primary" (click)="save()" [disabled]="isDisSave">
         Lưu
       </button>
     </div>

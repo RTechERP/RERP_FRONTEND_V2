@@ -9,41 +9,37 @@
       ></button>
     </div>
   
-    <div class="modal-body" style="max-height: 80vh !important; overflow-y: auto;">
+    <div class="modal-body" style="height: 50vh; overflow-y: auto;">
       <form nz-form [formGroup]="form" class="g-3 needs-validation was-validated">
-        <!-- Hàng 1: Giải pháp + Danh mục -->
+        <!-- Hàng 1: Danh mục -->
         <div class="row">
-          <div class="col-md-6 pb-3">
+          <div class="col-md-4 ">
             <nz-form-label class="fs-12">
               Giải pháp
               <span class="text-danger ps-1 me-1">*</span>
             </nz-form-label>
             <nz-form-control
               [nzErrorTip]="
-                form.get('ProjectTypeID')?.invalid &&
-                (form.get('ProjectTypeID')?.dirty || form.get('ProjectTypeID')?.touched)
-                  ? 'Vui lòng nhập giải pháp!'
+                form.get('ProjectSolutionID')?.invalid &&
+                (form.get('ProjectSolutionID')?.dirty || form.get('ProjectSolutionID')?.touched)
+                  ? 'Vui lòng chọn giải pháp!'
                   : undefined
               "
             >
-              <input
-                nz-input
-                formControlName="ProjectTypeID"
-                placeholder="Nhập giải pháp"
-                class="fs-12"
-              />
+                <nz-select nz-input formControlName="ProjectSolutionID" placeholder="Nhập giải pháp" class="fs-12 w-100" >
+                  <nz-option *ngFor="let projectSolution of cbbProjectSolution" [nzValue]="projectSolution.ID" [nzLabel]="projectSolution.CodeSolution"></nz-option>
+                </nz-select>
             </nz-form-control>
           </div>
-  
-          <div class="col-md-6 pb-3">
+          <div class="col-md-4 ">
             <nz-form-label class="fs-12">
               Danh mục
               <span class="text-danger ps-1 me-1">*</span>
             </nz-form-label>
             <nz-form-control
               [nzErrorTip]="
-                form.get('ProjectTypeName')?.invalid &&
-                (form.get('ProjectTypeName')?.dirty || form.get('ProjectTypeName')?.touched)
+                form.get('ProjectTypeID')?.invalid &&
+                (form.get('ProjectTypeID')?.dirty || form.get('ProjectTypeID')?.touched)
                   ? 'Vui lòng chọn danh mục!'
                   : undefined
               "
@@ -56,6 +52,7 @@
                   required
                   nzShowSearch
                   nzAllowClear
+                  (ngModelChange)="changeProjectTypeID()"
                 >
                   <nz-option *ngFor="let projectType of projectTypeList"
                    [nzValue]="projectType.ID" [nzLabel]="projectType.ProjectTypeName"></nz-option>
@@ -63,11 +60,32 @@
               </nz-input-group>
             </nz-form-control>
           </div>
+          <div class="col-md-4 pb-3">
+            <nz-form-label class="fs-12">
+              Trạng thái
+              <span class="text-danger ps-1 me-1">*</span>
+            </nz-form-label>
+            <nz-form-control
+              [nzErrorTip]="
+                form.get('SolutionTypeID')?.invalid &&
+                (form.get('SolutionTypeID')?.dirty || form.get('SolutionTypeID')?.touched)
+                  ? 'Vui lòng nhập trạng thái!'
+                  : undefined
+              "
+            >
+              <nz-select
+                formControlName="SolutionTypeID"
+                nzPlaceHolder="Chọn trạng thái"
+                class="fs-12 w-100"
+              >
+                <nz-option *ngFor="let status of cbbSolutionType" [nzValue]="status.ID" [nzLabel]="status.Name"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </div>
         </div>
-  
         <!-- Hàng 2: Mã phiên bản + STT + Sử dụng -->
         <div class="row">
-          <div class="col-md-4 col-sm-12 pb-3">
+          <div class="col-md-4 col-sm-12">
             <nz-form-label class="fs-12">
               Mã phiên bản
               <span class="text-danger ps-1 me-1">*</span>
@@ -89,65 +107,51 @@
             </nz-form-control>
           </div>
   
-          <div class="col-md-4 col-sm-12 pb-3">
+          <div class="col-md-4 col-sm-12 ">
             <nz-form-label class="fs-12">STT</nz-form-label>
             <nz-form-control>
-              <input
-                nz-input
-                type="number"
-                formControlName="STT"
-                placeholder="Nhập STT"
-                class="fs-12"
-              />
+              <nz-input-number
+              formControlName="STT"
+              [nzMin]="1"
+              [nzStep]="1"
+              [nzPlaceHolder]="'Nhập STT'"
+              class="fs-12 w-100"
+              (ngModelChange)="changeSTT()"
+            ></nz-input-number>
             </nz-form-control>
           </div>
   
-          <div class="col-md-4 col-sm-12 pb-3">
-            <nz-form-label class="fs-12">Sử dụng</nz-form-label>
-            <nz-form-control>
-              <label nz-checkbox formControlName="IsUsed" class="fs-12">
-                Sử dụng
-              </label>
-            </nz-form-control>
-          </div>
-        </div>
-  
-        <!-- Hàng 3: Trạng thái -->
-        <div class="row">
-          <div class="col-md-12 pb-3">
-            <nz-form-label class="fs-12">
-              Trạng thái
-              <span class="text-danger ps-1 me-1">*</span>
-            </nz-form-label>
-            <nz-form-control
-              [nzErrorTip]="
-                form.get('Status')?.invalid &&
-                (form.get('Status')?.dirty || form.get('Status')?.touched)
-                  ? 'Vui lòng nhập trạng thái!'
-                  : undefined
-              "
+          <div class="col-md-4 col-sm-12  align-items-center h-auto">
+            <nz-form-item>
+              <nz-form-label
+              class="fs-12 d-flex align-items-center"
+              [nzSpan]="24"
+              [style.visibility]="'hidden'"
             >
-              <input
-                nz-input
-                formControlName="Status"
-                placeholder="Nhập trạng thái"
-                class="fs-12"
-              />
-            </nz-form-control>
+            Sử dụng
+            </nz-form-label>
+              <!-- <div [style.visibility]="'hidden'">Big Account</div> -->
+            <!-- <label class="mb-0 fs-12 invisible">Big Account</label> -->
+                <label
+                  class="mb-0 fs-12 justify-content "
+                  nz-checkbox
+                  formControlName="IsActive"
+                  >Sử dụng</label
+                >
+              </nz-form-item>
           </div>
         </div>
-  
         <!-- Hàng 4: Mô tả -->
         <div class="row">
-          <div class="col-md-12 pb-3">
+          <div class="col-md-12">
             <nz-form-label class="fs-12">Mô tả</nz-form-label>
             <nz-form-control>
               <textarea
                 nz-input
                 placeholder="Nhập mô tả"
-                formControlName="Description"
+                formControlName="DescriptionVersion"
                 class="fs-12"
-                rows="3"
+                rows="10"
               ></textarea>
             </nz-form-control>
           </div>
@@ -160,7 +164,7 @@
         Đóng
       </button>
       <button class="fs-12 btn" nz-button nzType="primary" (click)="saveData()">
-        Lưu
+        Lưu haha
       </button>
     </div>
   </div>

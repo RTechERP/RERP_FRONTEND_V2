@@ -26,4 +26,10 @@ export class ProjectPartListService {
   saveProjectPartList(payload: any): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/save-data`, payload);
   }
+  approveProjectPartList(projectpartlistID: number[], approved: boolean): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/approvedTBP`, {
+      projectpartlistID: projectpartlistID,
+      approved: approved
+    });
+  }
 }

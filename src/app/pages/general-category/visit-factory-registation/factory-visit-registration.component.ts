@@ -1208,7 +1208,7 @@ export class FactoryVisitRegistrationComponent
       },
       allDaySlot: false,
       dayMaxEvents: false,
-      eventClick: (info) => {
+      eventClick: (info: any) => {
         // console.log('this.calendar.getEvents():', this.calendar.getEvents());
         // console.log(info, typeof info);
         const id = Number(info.event.id);
@@ -1236,7 +1236,7 @@ export class FactoryVisitRegistrationComponent
         info.el.style.borderColor = 'red';
       },
 
-      eventDidMount: (info) => {
+      eventDidMount: (info: any) => {
         this.eventElements.set(info.event.id, info.el);
       },
     });

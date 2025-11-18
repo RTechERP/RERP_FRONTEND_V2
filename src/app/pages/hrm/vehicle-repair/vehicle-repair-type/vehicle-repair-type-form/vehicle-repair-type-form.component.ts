@@ -68,19 +68,7 @@ export class VehicleRepairTypeFormComponent implements OnInit, AfterViewInit {
   @Input() dataInput: any;
   @Output() closeModal = new EventEmitter<void>();
   @Output() formSubmitted = new EventEmitter<void>();
-    formGroup: FormGroup;
-ngOnInit(): void {
-  if (this.dataInput) {
-    this.formGroup.patchValue({
-      RepairTypeName: this.dataInput.RepairTypeName ?? '',
-      RepairTypeCode: this.dataInput.RepairTypeCode ?? '',
-      Note: this.dataInput.Note ?? ''
-    });
-  }
-}
-ngAfterViewInit(): void {
 
-}
   formGroup: FormGroup;
   ngOnInit(): void {
     if (this.dataInput) {
@@ -123,7 +111,6 @@ ngAfterViewInit(): void {
         RepairTypeCode: formValue.RepairTypeCode,
         Note: formValue.Note,
       },
-
     };
 
     console.log('Payload', payload);
@@ -140,7 +127,10 @@ ngAfterViewInit(): void {
       },
 
       error: (res: any) => {
-        this.notification.error(NOTIFICATION_TITLE.error, res.error?.message || 'Có lỗi xảy ra');
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          res.error?.message || 'Có lỗi xảy ra'
+        );
       },
     });
   }

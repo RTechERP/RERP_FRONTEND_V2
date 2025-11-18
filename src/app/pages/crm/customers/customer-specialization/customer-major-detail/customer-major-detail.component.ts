@@ -120,7 +120,7 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
     this.formGroup = this.fb.group({
       STT: [0, [Validators.required, Validators.min(1)]],
       Code: ['', [Validators.required]],
-      Name: ['', [Validators.required]]
+      Name: ['', [Validators.required]],
     });
   }
 
@@ -139,7 +139,7 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
           } else {
             this.majorData = response.data;
             this.formGroup.patchValue({
-              STT: this.majorData.length + 1
+              STT: this.majorData.length + 1,
             });
           }
         } else {
@@ -160,9 +160,8 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
           this.formGroup.patchValue({
             STT: response.data.STT,
             Code: response.data.Code,
-            Name: response.data.Name
+            Name: response.data.Name,
           });
-
         } else {
           this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
@@ -185,8 +184,6 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
 
     // Lấy giá trị từ form controls
     const formValues = this.formGroup.value;
-
-    const model = {
 
     const model: any = {
       STT: formValues.STT,
@@ -211,14 +208,17 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err: any) => {
-        this.notification.error(NOTIFICATION_TITLE.error, err?.message || 'Không thể lưu dữ liệu');
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          err?.message || 'Không thể lưu dữ liệu'
+        );
       },
     });
   }
 
   //#region Validation methods
   private trimAllStringControls() {
-    Object.keys(this.formGroup.controls).forEach(k => {
+    Object.keys(this.formGroup.controls).forEach((k) => {
       const c = this.formGroup.get(k);
       const v = c?.value;
       if (typeof v === 'string') c!.setValue(v.trim(), { emitEvent: false });
@@ -257,9 +257,14 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
   validateForm(): boolean {
     this.trimAllStringControls();
     const requiredFields = ['STT', 'Code', 'Name'];
-    const invalidFields = requiredFields.filter(key => {
+    const invalidFields = requiredFields.filter((key) => {
       const control = this.formGroup.get(key);
-      return !control || control.invalid || control.value === '' || control.value == null;
+      return (
+        !control ||
+        control.invalid ||
+        control.value === '' ||
+        control.value == null
+      );
     });
     if (invalidFields.length > 0) {
       this.formGroup.markAllAsTouched();

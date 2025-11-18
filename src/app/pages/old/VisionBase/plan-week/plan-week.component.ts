@@ -61,6 +61,7 @@ import { Title } from '@angular/platform-browser';
 import { PlanWeekDetailComponent } from '../plan-week-detail/plan-week-detail/plan-week-detail.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { AppUserService } from '../../../../services/app-user.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-plan-week',
@@ -134,7 +135,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     private planWeekService: PlanWeekService,
     private appUserService: AppUserService
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     this.isMobile = window.innerWidth < 576;
@@ -181,7 +182,6 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
       this.sizeSearch = '22%';
     }
   };
-
 
   searchData(): void {
     this.loadMainData(
@@ -231,10 +231,9 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
 
   openPlanWeekDetailModal() {
     let userid = 0;
-    if(this.isEditMode === true) {
+    if (this.isEditMode === true) {
       userid = this.selectedId;
-    }
-    else{
+    } else {
       userid = this.appUserService.id || 0;
     }
     const modalRef = this.modalService.open(PlanWeekDetailComponent, {
@@ -256,8 +255,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
             this.filters.userId,
             this.filters.teamId
           );
-        }
-        else{
+        } else {
           this.isEditMode = false;
         }
       },
@@ -295,8 +293,6 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
     }
   }
 
-
-
   loadDepartment() {
     this.planWeekService.getDepartment().subscribe({
       next: (response) => {
@@ -307,7 +303,8 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        const errorMessage = error?.error?.message || error?.message || 'Không thể tải dữ liệu';
+        const errorMessage =
+          error?.error?.message || error?.message || 'Không thể tải dữ liệu';
         this.notification.error('Lỗi', errorMessage);
       },
     });
@@ -323,7 +320,8 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        const errorMessage = error?.error?.message || error?.message || 'Không thể tải dữ liệu';
+        const errorMessage =
+          error?.error?.message || error?.message || 'Không thể tải dữ liệu';
         this.notification.error('Lỗi', errorMessage);
       },
     });
@@ -339,7 +337,8 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        const errorMessage = error?.error?.message || error?.message || 'Không thể tải dữ liệu';
+        const errorMessage =
+          error?.error?.message || error?.message || 'Không thể tải dữ liệu';
         this.notification.error('Lỗi', errorMessage);
       },
     });
@@ -367,7 +366,8 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
           }
         },
         error: (error) => {
-          const errorMessage = error?.error?.message || error?.message || 'Không thể tải dữ liệu';
+          const errorMessage =
+            error?.error?.message || error?.message || 'Không thể tải dữ liệu';
           this.notification.error('Lỗi', errorMessage);
         },
       });
@@ -405,22 +405,30 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
       this.notification.error('Thông báo', 'Vui lòng chọn bản ghi cần xóa');
       return;
     }
-    if (!this.selectedField || ['FullName', 'Code', 'UserID', 'ParentID'].includes(this.selectedField)) {
+    if (
+      !this.selectedField ||
+      ['FullName', 'Code', 'UserID', 'ParentID'].includes(this.selectedField)
+    ) {
       this.notification.info('Thông báo', 'Vui lòng chọn đúng ô ngày cần xóa');
       return;
     }
     const dateFromField = new Date(this.selectedField as string);
 
-    const UserID = this.selectedId
-    const DatePlan = dateFromField
+    const UserID = this.selectedId;
+    const DatePlan = dateFromField;
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: `Bạn có chắc chắn muốn xóa kế hoạch ngày ${dateFromField.toLocaleDateString()} của ${this.selectedRow?.FullName}?`,
+      nzContent: `Bạn có chắc chắn muốn xóa kế hoạch ngày ${dateFromField.toLocaleDateString()} của ${
+        this.selectedRow?.FullName
+      }?`,
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
         if (isNaN(dateFromField.getTime())) {
-          this.notification.error('Lỗi', 'Không xác định được ngày từ cột đã chọn');
+          this.notification.error(
+            'Lỗi',
+            'Không xác định được ngày từ cột đã chọn'
+          );
           return;
         }
 
@@ -440,9 +448,10 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
             }
           },
           error: (err) => {
-            const errorMessage = err?.error?.message || err?.message || 'Không thể xóa dữ liệu';
+            const errorMessage =
+              err?.error?.message || err?.message || 'Không thể xóa dữ liệu';
             this.notification.error('Lỗi', errorMessage);
-          }
+          },
         });
       },
     });
@@ -450,7 +459,10 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
 
   async exportMainTableToExcel() {
     if (!this.tb_MainTable) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất Excel');
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Không có dữ liệu để xuất Excel'
+      );
       return;
     }
 
@@ -534,7 +546,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
         resizable: true,
         cssClass: 'tabulator-cell-wrap',
       },
-      rowHeader:false,
+      rowHeader: false,
       autoColumnsDefinitions: (definitions: any[] = []) =>
         definitions.map((def: any) => {
           if (def.field === 'ParentID') {

@@ -259,7 +259,7 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
-    console.log('this.menus', this.menus);
+    // console.log('this.menus', this.menus);
     this.setResponsivePageSize();
     this.getMenuParents();
     // this.generateCalendarDays();
@@ -305,62 +305,62 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
     // TODO: điều hướng/đánh dấu đã đọc...
   }
   notifItems: NotifyItem[] = [
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
-    {
-      id: 1,
-      title: 'Phiếu xe #A123 đã duyệt',
-      detail: 'Xe VP Hà Nội',
-      time: '09:12',
-      group: 'today',
-      icon: 'car',
-    },
+    // {
+    //   id: 1,
+    //   title: 'Phiếu xe #A123 đã duyệt',
+    //   detail: 'Xe VP Hà Nội',
+    //   time: '09:12',
+    //   group: 'today',
+    //   icon: 'car',
+    // },
+    // {
+    //   id: 1,
+    //   title: 'Phiếu xe #A123 đã duyệt',
+    //   detail: 'Xe VP Hà Nội',
+    //   time: '09:12',
+    //   group: 'today',
+    //   icon: 'car',
+    // },
+    // {
+    //   id: 1,
+    //   title: 'Phiếu xe #A123 đã duyệt',
+    //   detail: 'Xe VP Hà Nội',
+    //   time: '09:12',
+    //   group: 'today',
+    //   icon: 'car',
+    // },
+    // {
+    //   id: 1,
+    //   title: 'Phiếu xe #A123 đã duyệt',
+    //   detail: 'Xe VP Hà Nội',
+    //   time: '09:12',
+    //   group: 'today',
+    //   icon: 'car',
+    // },
+    // {
+    //   id: 1,
+    //   title: 'Phiếu xe #A123 đã duyệt',
+    //   detail: 'Xe VP Hà Nội',
+    //   time: '09:12',
+    //   group: 'today',
+    //   icon: 'car',
+    // },
+    // {
+    //   id: 1,
+    //   title: 'Phiếu xe #A123 đã duyệt',
+    //   detail: 'Xe VP Hà Nội',
+    //   time: '09:12',
+    //   group: 'today',
+    //   icon: 'car',
+    // },
+    // {
+    //   id: 1,
+    //   title: 'Phiếu xe #A123 đã duyệt',
+    //   detail: 'Xe VP Hà Nội',
+    //   time: '09:12',
+    //   group: 'today',
+    //   icon: 'car',
+    // },
   ];
 
   getMenuParents(): void {

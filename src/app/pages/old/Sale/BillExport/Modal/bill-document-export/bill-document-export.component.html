@@ -2,20 +2,20 @@
     <h6 class="modal-title text-white">Chi tiết hồ sơ chứng từ phiếu xuất Sale {{code}}</h6>
     <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
   </div>
-  <div class="modal-body p-1 flex-grow-1 overflow-hidden">   
+  <div class="modal-body p-1 flex-grow-1 overflow-hidden">
       <div class="tab-content">
         <div class="card-body p-0" >
             <nz-splitter nzLayout="vertical">
-                <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" >
-                    <div id="table_billDocumentExport" style="height: 40vh;"></div>
+                <nz-splitter-panel [nzCollapsible]="true" style="height: 40vh;" nzResizable="true" >
+                    <div id="table_billDocumentExport" style="height:100%;"></div>
                 </nz-splitter-panel>
                 <!-- table productGroupWareHouse -->
-                <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
-                    <div id="table_billDocumentExportLog" style="height: 30vh;"></div>
+                <nz-splitter-panel [nzCollapsible]="true" style="height: 30vh;" nzResizable="true">
+                    <div id="table_billDocumentExportLog" style="height: 100%;"></div>
                 </nz-splitter-panel>
             </nz-splitter>
         </div>
-      </div>     
+      </div>
   </div>
   <div class="modal-footer flex-shrink-0">
     <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>

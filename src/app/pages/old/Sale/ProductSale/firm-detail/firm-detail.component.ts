@@ -175,3 +175,4 @@ export class FirmDetailComponent implements OnInit, AfterViewInit {
     });
   }
 }
+

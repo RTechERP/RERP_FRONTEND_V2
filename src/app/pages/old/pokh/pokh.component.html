@@ -7,7 +7,7 @@
             <h6 class="m-0 ms-2">Tìm kiếm</h6>
             <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
               (click)="toggleSearchPanel()">
-              <nz-icon nzType="close" nzTheme="outline" />
+              <nz-icon nzType="close" nzTheme="outline" /> 
             </button>
           </div>
         </div>
@@ -102,66 +102,83 @@
                     (click)="toggleSearchPanel()">
                     <nz-icon nzType="search"></nz-icon>
                   </button>
-                  <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onAdd()">
-                    <nz-icon nzType="plus"></nz-icon> Thêm
-                  </button>
-                  <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onEdit()">
-                    <nz-icon nzType="edit" nzTheme="fill"></nz-icon> Sửa
-                  </button>
-                  <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onDelete()">
-                    <nz-icon nzType="delete" nzTheme="fill"></nz-icon> Xóa
-                  </button>
+                  <button
+                  nz-button
+                  nzType="default"
+                  nzSize="small"
+                  class="fs-12 btn-add"
+                  (click)="onAdd()"
+                >
+                  <img src="assets/icon/action_add_item_16.png" alt="Thêm " />Thêm
+                </button>
+                <button
+                  class="fs-12 btn-edit"
+                  nz-button
+                  nzType="default"
+                  nzSize="small"
+                  (click)="onEdit()"
+                >
+                  <img src="assets/icon/action_edit_item_16.png" alt="Sửa" /> Sửa
+                </button>
+                <button
+                  class="fs-12 btn-delete"
+                  nz-button
+                  nzType="default"
+                  nzSize="small"
+                  (click)="onDelete()"
+                >
+                  <img src="assets/icon/action_delete_item_16.png" alt="Xóa" /> Xóa
+                </button>
                   <button class="fs-12" nz-button nzType="default" nzSize="small" title="Nhập Excel">
-                    <nz-icon nzType="file-excel"></nz-icon> Nhập Excel
+                    <img src="assets/icon/import-excel.png" alt="Nhập Excel" /> Nhập Excel
                   </button>
                   <button class="fs-12" nz-button nzType="default" nzSize="small" title="Duyệt"
                     (click)="handlePOKHApproval(true)">
-                    <nz-icon nzType="check-circle"></nz-icon> Duyệt
+                    <img src="assets/icon/action_approved_16.png" alt="Duyệt" /> Duyệt
                   </button>
                   <button class="fs-12" nz-button nzType="default" nzSize="small" title="Hủy Duyệt"
                     (click)="handlePOKHApproval(false)">
-                    <nz-icon nzType="close-circle"></nz-icon> Hủy Duyệt
+                    <img src="assets/icon/action_unapproved_16.png" alt="Hủy Duyệt" /> Hủy Duyệt
                   </button>
                   <button class="fs-12" nz-button nzType="default" nzSize="small" title="Chuyển đặt hàng">
-                    <nz-icon nzType="swap"></nz-icon> Chuyển đặt hàng
+                    <img src="assets/icon/reuse.png" alt="Chuyển PO" /> Chuyển đặt hàng
                   </button>
-                  <button class="fs-12" nz-button nzType="default" nzSize="small" title="Xuất PO"
-                    (click)="exportToExcel()">
-                    <nz-icon nzType="file-text"></nz-icon> Xuất PO
+                  <button class="fs-12" nz-button nzType="default" nzSize="small" title="Xuất PO" (click)="exportToExcel()">
+                    <img src="assets/icon/action_export_excel_16.png" alt="Xuất PO" /> Xuất PO
                   </button>
-                  <button class="fs-12" nz-button nzType="default" nzSize="small" title="Xuất Phiếu"
-                    (click)="exportMainTableToExcel()">
-                    <nz-icon nzType="file-done"></nz-icon> Xuất Phiếu
+                  <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportMainTableToExcel()">
+                    <img src="/assets/icon/export_document.png" alt="Xuất phiếu" class="me-1" />
+                    Xuất phiếu
                   </button>
-                  <button class="fs-12" nz-button nzType="default" nzSize="small" title="Chi tiết POKH"
+                  <button class="fs-12" nz-button nzType ="default" nzSize="small" title="Chi tiết POKH"
                     (click)="openModalViewPOKH()">
-                    <nz-icon nzType="info-circle"></nz-icon> Chi tiết POKH
+                    <img src="assets/icon/loupe.png" alt="Chi tiết POKH" /> Chi tiết POKH
                   </button>
                   <button class="fs-12" nz-button nzType="default" nzSize="small" title="Tiền về">
-                    <nz-icon nzType="dollar"></nz-icon> Tiền về
+                    <img src="assets/icon/liquidation.png" alt="Tiền về" /> Tiền về
                   </button>
                   <button class="fs-12" nz-button nzType="default" nzSize="small" title="Yêu cầu mua hàng"
                     (click)="openPORequestBuyModal()">
-                    <nz-icon nzType="shopping-cart"></nz-icon> Yêu cầu mua hàng
+                    <img src="assets/icon/shopping_cart_16.svg" alt="Yêu cầu mua hàng" /> Yêu cầu mua hàng
                   </button>
                   <button class="fs-12" nz-button nzType="default" nzSize="small" title="Yêu cầu xuất kho"
                     (click)="openWarehouseReleaseRequestModal()">
-                    <nz-icon nzType="inbox"></nz-icon> Yêu cầu xuất kho
+                    <img src="assets/icon/export_24.svg" alt="Yêu cầu xuất kho" /> Yêu cầu xuất kho
                   </button>
                   <button class="fs-12" nz-button nzType="default" nzSize="small" title="Lịch sử bán hàng"
                     (click)="openFollowProductReturnModal()">
-                    <nz-icon nzType="history"></nz-icon> Lịch sử bán hàng
+                    <img src="assets/icon/history_24.svg" alt="Lịch sử bán hàng" /> Lịch sử bán hàng
                   </button>
                   <button class="fs-12" nz-button nzType="default" nzSize="small" title="Copy" (click)="onCopy()">
                     <nz-icon nzType="copy"></nz-icon> Copy
                   </button>
-                  <button class="fs-12" nz-button nzType="default" nzSize="small" title="Yêu cầu báo giá">
+                  <button class="fs-12" nz-button nzType="default" nzSize="small" title="Yêu cầu báo giá" (click)="openPORequestPriceRTC()">
                     <nz-icon nzType="file-search"></nz-icon> Yêu cầu báo giá
                   </button>
                 </div>
               </div>
               <div class="card-body p-0">
-                <div id="tb_POKH"></div>
+                <div #tb_POKH></div>
               </div>
             </div>
           </nz-splitter-panel>
@@ -171,7 +188,7 @@
                 <h6 class="m-0 ms-2">Chi tiết sản phẩm</h6>
               </div>
               <div class="card-body p-0">
-                <div id="tb_POKHProduct"></div>
+                <div #tb_POKHProduct></div>
               </div>
             </div>
             <div class="card border-0 rounded-0 mt-2">
@@ -179,7 +196,7 @@
                 <h6 class="m-0 ms-2">Danh sách file</h6>
               </div>
               <div class="card-body p-0">
-                <div id="tb_POKHFile"></div>
+                <div #tb_POKHFile></div>
               </div>
             </div>
           </nz-splitter-panel>

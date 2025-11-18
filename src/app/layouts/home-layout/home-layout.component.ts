@@ -528,7 +528,7 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
         //   console.log(response);
       },
       error: (err: any) => {
-        this.notification.error('Lỗi', err.error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
       },
     });
   }

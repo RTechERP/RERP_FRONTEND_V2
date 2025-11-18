@@ -13,6 +13,7 @@ import { EmployeeService } from '../employee-service/employee.service';
 import { NzOptionComponent, NzSelectModule } from 'ng-zorro-antd/select';
 import { DepartmentServiceService } from '../../department/department-service/department-service.service';
 import { CommonModule } from '@angular/common';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-employee-team',
@@ -97,7 +98,7 @@ export class EmployeeTeamComponent implements OnInit {
         this.tabulator.setData(this.employeeTeam);
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Không thể tải danh sách team phòng ban: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách team phòng ban: ' + error.message);
       }
     })
   }
@@ -112,7 +113,7 @@ export class EmployeeTeamComponent implements OnInit {
         console.log(this.departmentList);
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách phòng ban: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách phòng ban: ' + error.message);
       }
     });
   }
@@ -126,7 +127,7 @@ export class EmployeeTeamComponent implements OnInit {
             this.loadEmployeeTeam();
           },
           error: (error) => {
-            this.notification.error('Lỗi', 'Cập nhật team phòng ban thất bại: ' + error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật team phòng ban thất bại: ' + error.message);
           }
         });
     } else {
@@ -141,8 +142,8 @@ export class EmployeeTeamComponent implements OnInit {
   }
 
   openAddModal() {
-    const nextSTT = this.employeeTeam.length > 0 
-    ? Math.max(...this.employeeTeam.map(item => item.STT)) + 1 
+    const nextSTT = this.employeeTeam.length > 0
+    ? Math.max(...this.employeeTeam.map(item => item.STT)) + 1
     : 1;
     this.employeeTeamForm.reset({
       ID: 0,
@@ -208,7 +209,7 @@ export class EmployeeTeamComponent implements OnInit {
             this.loadEmployeeTeam();
           },
           error: (error) => {
-            this.notification.error('Lỗi', 'Xóa team phòng ban thất bại: ' + error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Xóa team phòng ban thất bại: ' + error.message);
           }
         });
       },

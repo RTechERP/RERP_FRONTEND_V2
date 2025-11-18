@@ -1,9 +1,9 @@
 import { NzNotificationService } from 'ng-zorro-antd/notification'
-import { Component, OnInit, Input, Output, EventEmitter, inject, AfterViewInit } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, inject, AfterViewInit, Optional } from '@angular/core';
 import { DateTime } from 'luxon';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzGridModule } from 'ng-zorro-antd/grid';
@@ -43,6 +43,8 @@ import { filter, last } from 'rxjs';
     NzButtonModule,
     NzModalModule,
     NzFormModule,
+    NgbModalModule
+
   ],
   selector: 'app-material-detail-of-product-rtc',
   templateUrl: './material-detail-of-product-rtc.component.html',
@@ -50,7 +52,6 @@ import { filter, last } from 'rxjs';
 })
 export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewInit {
   @Output() closeModal = new EventEmitter<void>();
-  public activeModal = inject(NgbActiveModal);
   @Input() productRTCID1!: number;
   @Input() warehouseID1!: number;
   formDeviceInfo!: FormGroup;
@@ -75,6 +76,7 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
   InventoryReal: number = 0;
   constructor(private notification: NzNotificationService,
     private inventoryDemoService: InventoryDemoService,
+    @Optional() public activeModal: NgbActiveModal
   ) { }
   initForm() {
     this.formDeviceInfo = new FormBuilder().group({
@@ -90,7 +92,7 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
 
   close() {
     this.closeModal.emit();
-    this.activeModal.dismiss('cancel');
+    this.activeModal?.dismiss('cancel');
   }
   ngAfterViewInit() {
     this.getBorrowImportExportProductRTC();

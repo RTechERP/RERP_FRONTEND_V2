@@ -24,6 +24,7 @@ import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { filter } from 'rxjs';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 
 @Component({
@@ -84,7 +85,7 @@ export class EmployeeScheduleWorkComponent implements OnInit {
      this.searchForm.get('month')?.valueChanges.subscribe(() => {
         this.loadScheduleWork();
     });
-    
+
     this.searchForm.get('year')?.valueChanges.subscribe(() => {
         this.loadScheduleWork();
     });
@@ -138,7 +139,7 @@ export class EmployeeScheduleWorkComponent implements OnInit {
               const currentValue = cell.getValue();
               const newValue = !(currentValue === true || currentValue === 'true' || currentValue === 1 || currentValue === '1');
               cell.setValue(newValue);
-              
+
               // Cập nhật dữ liệu trong scheduleWorks
               const rowData = cell.getRow().getData();
               const index = this.scheduleWorks.findIndex((item: any) => item.ID === rowData.ID);
@@ -165,7 +166,7 @@ export class EmployeeScheduleWorkComponent implements OnInit {
               const currentValue = cell.getValue();
               const newValue = !(currentValue === true || currentValue === 'true' || currentValue === 1 || currentValue === '1');
               cell.setValue(newValue);
-              
+
               // Cập nhật dữ liệu trong scheduleWorks
               const rowData = cell.getRow().getData();
               const index = this.scheduleWorks.findIndex((item: any) => item.ID === rowData.ID);
@@ -192,9 +193,9 @@ export class EmployeeScheduleWorkComponent implements OnInit {
   loadScheduleWork() {
     const month = this.searchForm.get('month')?.value;
     const year = this.searchForm.get('year')?.value;
-    
+
     this.isLoading = true;
-    
+
     this.holidayService.getEmployeeScheduleWork(month, year).subscribe({
       next: (data) => {
         this.scheduleWorks = data.data;
@@ -203,7 +204,7 @@ export class EmployeeScheduleWorkComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Không thể tải dữ liệu lịch làm việc');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu lịch làm việc');
         console.error('Error loading holidays:', error);
       }
     });
@@ -212,22 +213,22 @@ export class EmployeeScheduleWorkComponent implements OnInit {
   saveEmployeeScheduleWork() {
     // Lấy dữ liệu gốc ban đầu để so sánh
     const originalData = [...this.originalScheduleWorks];
-    
+
     // Lọc ra những dòng có thay đổi trạng thái
     const updatedData = this.scheduleWorks.filter((row: any) => {
       // So sánh với dữ liệu gốc để tìm những dòng có thay đổi
       const originalRow = originalData.find((item: any) => item.ID === row.ID);
-      
+
       if (!originalRow) {
         return false;
       }
-      
+
       // Chuẩn hóa giá trị boolean để so sánh
       const originalStatus = Boolean(originalRow.Status);
       const currentStatus = Boolean(row.Status);
       const originalIsApproved = Boolean(originalRow.IsApproved);
       const currentIsApproved = Boolean(row.IsApproved);
-      
+
       return originalStatus !== currentStatus || originalIsApproved !== currentIsApproved;
     });
 
@@ -259,7 +260,7 @@ export class EmployeeScheduleWorkComponent implements OnInit {
         this.loadScheduleWork(); // Tải lại dữ liệu
       })
       .catch((response) => {
-        this.notification.error('Lỗi', 'Cập nhật lịch làm việc thất bại: ' + response.error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật lịch làm việc thất bại: ' + response.error.message);
       });
   }
 
@@ -268,14 +269,14 @@ export class EmployeeScheduleWorkComponent implements OnInit {
     const approvedText = isApproved ? 'duyệt' : 'hủy duyệt';
     const month = this.searchForm.get('month')?.value;
     const listID: number[] = [];
-  
+
     // Kiểm tra trạng thái từng dòng
     for (const row of this.scheduleWorks) {
       const isRowApproved = !!row.IsApproved;
       const approverID = row.Approver || 0;
-  
+
       if (approverID === 0) continue;
-  
+
       if (!isRowApproved && !isApproved) {
         this.notification.warning(
           'Thông báo',
@@ -291,34 +292,34 @@ export class EmployeeScheduleWorkComponent implements OnInit {
         return;
       }
     }
-  
+
     // Xác nhận trước khi thực hiện
     this.modal.confirm({
       nzTitle: `Bạn có chắc muốn ${approvedText} lịch làm việc tháng [${month}] không?`,
       nzOnOk: () => {
         const updatePromises = [];
-  
+
         for (const row of this.scheduleWorks) {
           const id = row.ID;
           listID.push(id);
-  
+
           // Cập nhật trạng thái và người duyệt
           row.IsApproved = isApproved;
           // row.Approver = isApproved ? 368 : 0;
-  
+
           // Gọi API cập nhật từng dòng
           updatePromises.push(
             this.holidayService.saveEmployeeScheduleWork(row).toPromise()
           );
         }
-  
+
         Promise.all(updatePromises)
           .then(() => {
             this.notification.success('Thành công', `${approvedText.charAt(0).toUpperCase() + approvedText.slice(1)} lịch làm việc thành công!`);
             this.loadScheduleWork();
           })
           .catch((error) => {
-            this.notification.error('Lỗi', `Cập nhật lịch làm việc thất bại: ${error.message}`);
+            this.notification.error(NOTIFICATION_TITLE.error, `Cập nhật lịch làm việc thất bại: ${error.message}`);
           });
       }
     });
@@ -341,7 +342,7 @@ export class EmployeeScheduleWorkComponent implements OnInit {
         };
       });
       const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('LichLamViec'); 
+      const worksheet = workbook.addWorksheet('LichLamViec');
 
       worksheet.columns = [
         { header: 'Trạng thái', key: 'Trạng thái', width: 20, style: { alignment: { horizontal: 'center', vertical: 'middle' } }},

@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
-import { AfterViewInit, Component, OnInit, ViewEncapsulation, ViewChild, ElementRef, Input } from '@angular/core';
+import { AfterViewInit, Component, OnInit, OnDestroy, ViewEncapsulation, ViewChild, ElementRef, Input } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -32,7 +32,10 @@ import { NzModalModule } from 'ng-zorro-antd/modal';
 import { FilmManagementFormComponent } from './film-management-form/film-management-form.component';
 import { FilmManagementImportExcelComponent } from './film-management-import-excel/film-management-import-excel.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { NOTIFICATION_TITLE } from '../../../app.config';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 @Component({
   standalone: true,
   imports: [
@@ -56,14 +59,15 @@ import { forkJoin } from 'rxjs';
     NzTableModule,
     NzTabsModule,
     NgbModalModule,
-    NzModalModule
+    NzModalModule,
+    HasPermissionDirective
   ],
   selector: 'app-film-management',
   templateUrl: './film-management.component.html',
   styleUrls: ['./film-management.component.css']
 })
-export class FilmManagementComponent implements OnInit, AfterViewInit {
-    @ViewChild('filmTableRef', { static: true }) filmTableRef!: ElementRef<HTMLDivElement>;
+export class FilmManagementComponent implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild('filmTableRef', { static: true }) filmTableRef!: ElementRef<HTMLDivElement>;
   @ViewChild('filmDetailTableRef', { static: true }) filmDetailTableRef!: ElementRef<HTMLDivElement>;
   private ngbModal = inject(NgbModal);
   modalData: any = [];
@@ -74,18 +78,37 @@ export class FilmManagementComponent implements OnInit, AfterViewInit {
   filmData: any[] = [];
   filmDetailData: any[] = [];
   filterText: string = "";
+  detailTabTitle: string = "Chi tiết phim";
+  private searchSubject = new Subject<string>();
+  
   constructor(private notification: NzNotificationService,
     private filmManagementService: FilmManagementService,
     private modal: NzModalService) { }
+  
   ngAfterViewInit(): void {
     this.drawTable();
   }
+  
   ngOnInit() {
+    // Setup debounce cho tìm kiếm
+    this.searchSubject.pipe(
+      debounceTime(500), // Đợi 500ms sau khi user ngừng gõ
+      distinctUntilChanged() // Chỉ thực hiện nếu giá trị thay đổi
+    ).subscribe(() => {
+      if (this.filmTable) {
+        this.filmTable.setData();
+      }
+    });
+  }
+  
+  ngOnDestroy() {
+    this.searchSubject.complete();
   }
   drawTable() {
-  this.filmTable = new Tabulator(this.filmTableRef.nativeElement, {
+    this.filmTable = new Tabulator(this.filmTableRef.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
-      layout: 'fitDataStretch',
+      layout: 'fitColumns',
+      selectableRows:true,
       ajaxURL: this.filmManagementService.getFilmAjax(),
 
 
@@ -109,11 +132,14 @@ export class FilmManagementComponent implements OnInit, AfterViewInit {
       responsiveLayout: "collapse",
       addRowPos: "bottom",
       history: true,
+      initialSort: [
+        { column: "STT", dir: "asc" }
+      ],
       columns: [
         { title: "ID", field: "ID", visible: false },
-        { title: "STT", field: "STT", hozAlign: "right", headerHozAlign: "center" },
+        { title: "STT", field: "STT", hozAlign: "right", headerHozAlign: "center", width: 70, sorter: "number" },
         { title: "Mã phim", field: "Code", hozAlign: "left", headerHozAlign: "center" },
-        { title: "Tên phim", field: "Name", hozAlign: "left", headerHozAlign: "center", width:450 },
+        { title: "Tên phim", field: "Name", hozAlign: "left", headerHozAlign: "center" },
         {
           title: 'Yêu cầu kết quả',
           field: 'RequestResult',
@@ -121,13 +147,18 @@ export class FilmManagementComponent implements OnInit, AfterViewInit {
           ,
           hozAlign: 'center',
           headerHozAlign: 'center',
-        
+
         },
       ]
     });
     this.filmTable.on('rowClick', (evt, row: RowComponent) => {
       const rowData = row.getData();
       const ID = rowData['ID'];
+      const filmCode = rowData['Code'] || '';
+      
+      // Cập nhật tiêu đề tab với mã phim
+      this.detailTabTitle = `Chi tiết phim: ${filmCode}`;
+      
       this.filmManagementService.getFilmDetail(ID).subscribe(respon => {
         this.filmDetailData = respon.data;
 
@@ -139,36 +170,34 @@ export class FilmManagementComponent implements OnInit, AfterViewInit {
       this.sizeTbDetail = null;
     });
   }
- private drawFilmDetailTable(): void {
+  private drawFilmDetailTable(): void {
     if (this.filmDetailTable) {
       this.filmDetailTable.setData(this.filmDetailData);
       return;
     }
-    this.filmDetailTable = new Tabulator(this.filmDetailTableRef.nativeElement, 
-        {
-          data: this.filmDetailData,
-          layout: "fitDataStretch",
-          paginationSize: 5,
-          movableColumns: true,
-          reactiveData: true,
-          columns: [
+    this.filmDetailTable = new Tabulator(this.filmDetailTableRef.nativeElement,
+      {
+        data: this.filmDetailData,
+        layout: "fitDataStretch",
 
-            {
-              title: "STT",
-              formatter: "rownum",   // tự tăng số thứ tự
-              hozAlign: "right",
-              headerHozAlign: "center",
-              width: 70
-            },
-            { title: 'Nội dung công việc', field: 'WorkContent1', headerHozAlign: 'center' },
-            { title: 'Đơn vị tính', field: 'UnitName', headerHozAlign: 'center' },
-            { title: 'Năng xuất trung bình', field: 'PerformanceAVG', headerHozAlign: 'center' },
+        columns: [
 
-          ]
-        });
-    }
+          {
+            title: "STT",
+            formatter: "rownum",   // tự tăng số thứ tự
+            hozAlign: "right",
+            headerHozAlign: "center",
+          
+          },
+          { title: 'Nội dung công việc', field: 'WorkContent', headerHozAlign: 'center' },
+          { title: 'Đơn vị tính', field: 'UnitName', headerHozAlign: 'center' },
+          { title: 'Năng xuất trung bình', field: 'PerformanceAVG', headerHozAlign: 'center' },
 
-  
+        ]
+      });
+  }
+
+
   onAddFilm() {
     const modalRef = this.ngbModal.open(FilmManagementFormComponent, {
       size: 'xl',
@@ -200,13 +229,21 @@ export class FilmManagementComponent implements OnInit, AfterViewInit {
     return;
   }
 
+  // Lấy danh sách mã phim từ các dòng chọn
+  const codes = selectedRows
+    .map((row: any) => row.Code)   // hoặc row.Ma nếu field tên khác
+    .filter((x: any) => !!x);
+
+  const content = codes.length
+    ? `Bạn có chắc muốn xóa mã phim: ${codes.join(', ')}?`
+    : `Bạn có chắc muốn xóa ${selectedRows.length} film đã chọn?`;
+
   this.modal.confirm({
     nzTitle: 'Xác nhận xóa',
-    nzContent: `Bạn có chắc muốn xóa ${selectedRows.length} film đã chọn?`,
+    nzContent: content,
     nzOkText: 'Đồng ý',
     nzCancelText: 'Hủy',
     nzOnOk: () => {
-      // map từng film sang 1 observable gọi API
       const deleteRequests = selectedRows.map((row: any) => {
         const payload = {
           filmManagement: {
@@ -217,11 +254,11 @@ export class FilmManagementComponent implements OnInit, AfterViewInit {
         return this.filmManagementService.saveData(payload);
       });
 
-      forkJoin
-      (deleteRequests).subscribe({
+      forkJoin(deleteRequests).subscribe({
         next: (responses: any[]) => {
           const success = responses.filter(r => r?.status === 1).length;
           const failed = responses.length - success;
+
           if (failed === 0) {
             this.notification.success('Thành công', `Đã xóa ${success} film.`);
           } else if (success === 0) {
@@ -230,19 +267,19 @@ export class FilmManagementComponent implements OnInit, AfterViewInit {
             this.notification.warning('Kết quả', `Xóa thành công ${success}, lỗi ${failed}.`);
           }
 
-          // reload bảng và bỏ chọn
           this.filmTable?.deselectRow?.(this.filmTable.getSelectedRows());
           this.filmTable?.setData?.();
           this.filmDetailData = [];
           this.filmDetailTable?.setData?.([]);
         },
-        error: (res:any) => {
-          this.notification.error('Lỗi',res.error.message);
+        error: (res: any) => {
+          this.notification.error(NOTIFICATION_TITLE.error, res.error.message);
         }
       });
     }
   });
 }
+
   onEditFilm() {
     const selectedData = this.filmTable?.getSelectedData?.();
     const detailData = this.filmDetailTable?.getData?.();
@@ -281,5 +318,19 @@ export class FilmManagementComponent implements OnInit, AfterViewInit {
       keyboard: false,
       centered: true,
     });
+  }
+
+  closePanel() {
+    this.sizeTbDetail = '0';
+    this.filmDetailData = [];
+    this.detailTabTitle = "Chi tiết phim"; // Reset lại tiêu đề
+    if (this.filmDetailTable) {
+      this.filmDetailTable.setData([]);
+    }
+  }
+
+  searchFilm() {
+    // Gọi subject để trigger debounce
+    this.searchSubject.next(this.filterText);
   }
 }

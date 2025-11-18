@@ -5,14 +5,17 @@
         <button nz-button nzType="default" nzSize="small">
           <nz-icon nzType="search" />
         </button>
-        <button class="btn-add" nz-button nzType="default" nzSize="small" (click)="onAdd()">
+        <button class="btn-add" *hasPermission="'N33,N1'" z-button nzType="default" nzSize="small" (click)="onAdd()">
           <nz-icon nzType="plus" /> Thêm
         </button>
-        <button class="btn-edit" nz-button nzType="default" nzSize="small" (click)="onEditProduct()">
+        <button class="btn-edit" *hasPermission="'N33,N1'" nz-button nzType="default" nzSize="small" (click)="onEditProduct()">
           <nz-icon nzType="edit" nzTheme="fill" /> Sửa
         </button>
-        <button class="btn-delete" nz-button nzType="default" nzSize="small" (click)="onDeleteMultiple()">
+        <button class="btn-delete" *hasPermission="'N33,N1'" nz-button nzType="default" nzSize="small" (click)="onDeleteMultiple()">
           <nz-icon nzType="delete" nzTheme="fill" /> Xóa
+        </button>
+        <button class="btn" nz-button nzType="default" nzSize="small" (click)="onRefresh()">
+          <img src="assets/images/refresh.png" alt="Làm mới"> Làm mới
         </button>
         <input type="text" nz-input class="search-box ms-auto" placeholder="Nhập từ khóa..." [(ngModel)]="searchText" (ngModelChange)="onSearch()"/>
       </div>

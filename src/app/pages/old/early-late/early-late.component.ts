@@ -29,6 +29,7 @@ import { DepartmentServiceService } from '../department/department-service/depar
 import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-early-late',
@@ -136,7 +137,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
         this.approverList = data.data;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách người duyệt: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách người duyệt: ' + error.message);
       }
     })
   }
@@ -170,26 +171,26 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
     })
 
   }
-  private initializeTable(): void { 
+  private initializeTable(): void {
     this.tabulator = new Tabulator('#tb_early_late', {
       data: this.earlyLateList,
       layout: 'fitColumns',
       selectableRows: true,
       height: '85vh',
       rowHeader: {
-        formatter: "rowSelection", 
-        titleFormatter: "rowSelection", 
-        headerSort: false, 
-        width: 100, 
-        frozen: true, 
-        headerHozAlign: "center", 
+        formatter: "rowSelection",
+        titleFormatter: "rowSelection",
+        headerSort: false,
+        width: 100,
+        frozen: true,
+        headerHozAlign: "center",
         hozAlign: "center"
       },
       rowContextMenu: [
         {
           label: "TBP hủy duyệt hủy đăng ký",
           action: () => {
-            
+
           }
         },
         {
@@ -198,7 +199,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
 
           }
         }
-      
+
       ],
       groupBy: 'DepartmentName',
       groupHeader: function(value, count, data, group){
@@ -343,12 +344,12 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
       return;
     }
 
-    
+
     this.modal.confirm({
       nzTitle: "Xác nhận xóa",
       nzContent: `Bạn có chắc chắn muốn xóa danh sách ngày đã đăng ký này không?`,
       nzOkText:"Xóa",
-      nzOkType:'primary', 
+      nzOkType:'primary',
       nzOkDanger: true,
       nzOnOk: () => {
         for(let row of selectedRows) {
@@ -362,7 +363,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
               this.loadEarlyLate();
             },
             error: (error) => {
-              this.notification.error('Lỗi', 'Xóa ngày đã đăng ký thất bại: ' + error.message);
+              this.notification.error(NOTIFICATION_TITLE.error, 'Xóa ngày đã đăng ký thất bại: ' + error.message);
             }
           });
         }
@@ -385,7 +386,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
     const worksheet = workbook.addWorksheet('KhaiBaoDiMuonVeSom');
 
     const columns = [
-      { header: '', key: 'TBP duyệt', width: 20 }, 
+      { header: '', key: 'TBP duyệt', width: 20 },
       { header: '', key: 'HR duyệt', width: 20 },
       { header: '', key: 'Mã nhân viên', width: 15 },
       { header: '', key: 'Tên nhân viên', width: 30 },
@@ -404,7 +405,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
     worksheet.columns = columns;
 
         //Thêm header một lần ở đầu file
-        const headerRow = worksheet.addRow(columns.map(col => col.key)); 
+        const headerRow = worksheet.addRow(columns.map(col => col.key));
         headerRow.eachCell((cell: ExcelJS.Cell) => {
           cell.font = { name: 'Tahoma', size: 10, bold: true };
           cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
@@ -415,7 +416,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
           };
         });
         headerRow.height = 30;
-        
+
         let rowIndex = 2; // Bắt đầu sau header
         for (const dept in grouped) {
           // Thêm dòng tiêu đề phòng ban
@@ -430,7 +431,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
           deptRow.height = 25;
           // worksheet.mergeCells(`A${rowIndex}:D${rowIndex}`);
           // rowIndex++;
-      
+
           // Thêm dữ liệu nhân viên
           grouped[dept].forEach((item: any) => {
             const safe = (val: any) => (val && typeof val === 'object' && Object.keys(val).length === 0 ? '' : val);
@@ -460,11 +461,11 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
             rowIndex++;
           });
         }
-      
+
         // Xuất file
         const buffer = await workbook.xlsx.writeBuffer();
         const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-        saveAs(blob, `KhaiBaoDiMuonVeSom.xlsx`);   
+        saveAs(blob, `KhaiBaoDiMuonVeSom.xlsx`);
   }
 
   closeModal() {
@@ -501,13 +502,13 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
     const endDate = new Date(formData.DateEnd);
 
     if (isNaN(startDate.getTime())) {
-      this.notification.error('Lỗi', 'Ngày bắt đầu không hợp lệ. Vui lòng kiểm tra lại.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Ngày bắt đầu không hợp lệ. Vui lòng kiểm tra lại.');
       this.earlyLateForm.get('StartDate')?.markAsTouched();
       return;
     }
 
     if (isNaN(endDate.getTime())) {
-      this.notification.error('Lỗi', 'Ngày kết thúc không hợp lệ. Vui lòng kiểm tra lại.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Ngày kết thúc không hợp lệ. Vui lòng kiểm tra lại.');
       this.earlyLateForm.get('EndDate')?.markAsTouched();
       return;
     }
@@ -556,7 +557,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
         this.loadEarlyLate();
       },
       error: (response) => {
-        this.notification.error('Lỗi', 'Lưu đăng ký thất bại: ' + response.error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lưu đăng ký thất bại: ' + response.error.message);
       },
     });
   }
@@ -571,7 +572,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
     if(selectedRows.length == 0) {
       this.notification.warning("Thông báo", "Vui lòng chọn nhân viên để duyệt");
       return ;
-    } 
+    }
 
     this.modal.confirm({
       nzTitle: 'Thông báo',
@@ -585,7 +586,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
           let employeeName = data['FullName'];
           let approvedTP = data['ApprovedTP'];
           if(departmentId == 0) continue;
-  
+
           // if (!Global.IsAdmin)
           //   {
           //       if (departmentId != Global.DepartmentID && Global.DepartmentID != 1)
@@ -599,12 +600,12 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
           //           return;
           //       }
           //   }
-  
+
           let id = data['ID'];
           if(id == 0) continue;
           let isApprovedTP = data['IsApprovedTP'];
           if(isApprovedTP) continue;
-        
+
               this.earlyLateService.saveEmployeeEarlyLate({
                 ...data,
                 IsApprovedTP: true
@@ -640,13 +641,13 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
           const data = row.getData();
           let id = data['ID'];
           if(id == 0) continue;
-    
+
           let isApprovedTP = data['IsApprovedTP'];
           if(!isApprovedTP) {
             this.notification.warning('Thông báo', 'TBP chưa duyệt. Vui lòng kiểm tra lại!');
             return;
           }
-    
+
           this.earlyLateService.saveEmployeeEarlyLate({
             ...data,
             IsApproved: true
@@ -659,7 +660,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
               this.notification.error('Thất bại', 'HR duyệt khai báo thất bại' + error.message);
             }
           })
-    
+
         }
       }
     });
@@ -683,8 +684,8 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
           const data = row.getData();
           let id = data['ID'];
           if(id == 0) continue;
-    
-    
+
+
           this.earlyLateService.saveEmployeeEarlyLate({
             ...data,
             IsApproved: false
@@ -697,7 +698,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit{
               this.notification.error('Thất bại', 'HR hủy duyệt khai báo thất bại' + error.message);
             }
           })
-    
+
         }
       }
     });

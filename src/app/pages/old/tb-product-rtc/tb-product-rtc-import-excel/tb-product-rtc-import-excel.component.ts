@@ -100,14 +100,14 @@ export class TbProductRtcImportExcelComponent implements OnInit {
           ID: { title: "ID", field: "ID" },
           ProductCode: { title: "Mã sản phẩm", field: "ProductCode" },
           ProductName: { title: "Tên sản phẩm", field: "ProductName" },
-          ProductGroupName: { title: "ProductGroupName", field: "ProductGroupName", visible: false },
+          ProductGroupName: { title: "Tên nhóm", field: "ProductGroupName",},
           ProductCodeRTC: { title: "Code RTC", field: "ProductCodeRTC" },
           LocationName: { title: "Vị trí", field: "LocationName" },
           FirmName: { title: "FirmName", field: "FirmName" },
           Serial: { title: "Serial", field: "Serial" },
           SerialNumber: { title: "Serial Number", field: "SerialNumber" },
           PartNumber: { title: "Part Number", field: "PartNumber" },
-          UnitName: { title: "UnitName", field: "UnitName" },
+          UnitName: { title: "ĐVT", field: "UnitName" }, // đổi title cho dễ nhìn
           Number: { title: "Số lượng", field: "Number" },
           NumberInStore: { title: "SL tồn kho", field: "NumberInStore" },
           SLKiemKe: { title: "SL kiểm kê", field: "SLKiemKe" },
@@ -293,11 +293,91 @@ export class TbProductRtcImportExcelComponent implements OnInit {
   closeExcelModal() {
     this.modalService.dismissAll(true);
   }
+  private normalizeHeader(h: any): string {
+    const s = (typeof h === 'string' ? h : h?.toString() || '').trim().toLowerCase();
+    return s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // bỏ dấu
+  }
+
+  private headerSynonyms: Record<string, string> = {
+    // Mã và Tên
+    'ma san pham': 'ProductCode',
+    'ma thiet bi': 'ProductCode',
+    'ten san pham': 'ProductName',
+    'ten thiet bi': 'ProductName',
+    // Nhóm / Kho / Vị trí
+    'productgroupname': 'ProductGroupName',
+    'ten nhom': 'ProductGroupName',
+    'vi tri': 'LocationName',
+    'kho': 'WarehouseID',
+    // Đơn vị / Hãng
+    // 'unitname': 'UnitName',
+    // 'don vi': 'UnitName',
+    'đvt': 'UnitName',   // thêm: ĐVT
+    'dvt': 'UnitName',   // thêm: DVT
+    'DVT': 'UnitName',
+    'firmname': 'FirmName',
+    'hang': 'FirmName',
+    'hang thiet bi (id)': 'FirmID',
+    // Code
+    'code rtc': 'ProductCodeRTC',
+    'code hcm': 'CodeHCM',
+    // Thông số, số lượng, trạng thái
+    'serial': 'Serial',
+    'serial number': 'SerialNumber',
+    'part number': 'PartNumber',
+    'so luong': 'Number',
+    'sl ton kho': 'NumberInStore',
+    'sl kiem ke': 'SLKiemKe',
+    'muon kh?': 'BorrowCustomer',
+    'muon kh': 'BorrowCustomer',
+    'trang thai': 'StatusProduct',
+    'trang thai thiet bi': 'Status',
+    'ghi chu': 'Note',
+    'nguoi tao': 'CreatedBy',
+    'ngay tao': 'CreateDate',
+    // Quang học, camera
+    'lens mount': 'LensMount',
+    'focal length': 'FocalLength',
+    'mod': 'MOD',
+    'magnification': 'Magnification',
+    'sensor size': 'SensorSize',
+    'sensor size max': 'SensorSizeMax',
+    'resolution': 'Resolution',
+    'shutter mode': 'ShutterMode',
+    'mono/color': 'MonoColor',
+    'mono color': 'MonoColor',
+    'pixel size': 'PixelSize',
+    // Đèn, giao tiếp
+    'lamp type': 'LampType',
+    'lamp power': 'LampPower',
+    'lamp wattage': 'LampWattage',
+    'lamp color': 'LampColor',
+    'data interface': 'DataInterface',
+    'input value': 'InputValue',
+    'output value': 'OutputValue',
+    // Khác
+    'cuong do dong toi da': 'CurrentIntensityMax',
+    'kich thuoc': 'Size',
+    'anh vi tri': 'LocationImg',
+    'addressbox': 'AddressBox',
+    'fno': 'FNo',
+    'wd': 'WD'
+  };
+
   async readExcelData(workbook: ExcelJS.Workbook, sheetName: string) {
-    console.log(`Bắt đầu đọc dữ liệu từ sheet: "${sheetName}"`);
     try {
       const worksheet = workbook.getWorksheet(sheetName);
       if (!worksheet) throw new Error(`Sheet "${sheetName}" không tồn tại.`);
+
+      // Map theo header ở hàng 1
+      const headerRow = worksheet.getRow(1);
+      const fieldToCol: Record<string, number> = {};
+      for (let c = 1; c <= headerRow.cellCount; c++) {
+        const raw = (headerRow.getCell(c)?.text ?? headerRow.getCell(c)?.value ?? '').toString();
+        const norm = this.normalizeHeader(raw);
+        const field = this.headerSynonyms[norm] || norm; // nếu trùng sẵn field chuẩn thì dùng trực tiếp
+        if (field) fieldToCol[field] = c;
+      }
 
       const data: any[] = [];
       let validRecords = 0;
@@ -305,64 +385,85 @@ export class TbProductRtcImportExcelComponent implements OnInit {
       worksheet.eachRow((row, rowNumber) => {
         if (rowNumber <= 1) return;
 
-        const firstCell = row.getCell(1).value;
-        if (!firstCell) return;
+        // yêu cầu có ít nhất mã hoặc tên để coi là bản ghi hợp lệ
+        const firstVal =
+          (fieldToCol['ProductCode'] ? row.getCell(fieldToCol['ProductCode']).value : null) ||
+          (fieldToCol['ProductName'] ? row.getCell(fieldToCol['ProductName']).value : null);
+        if (!firstVal) return;
 
-        const getValue = (col: number) => row.getCell(col).value?.toString()?.trim() || '';
-        const getNumber = (col: number) => parseFloat(getValue(col)) || 0;
-        const getDate = (col: number) => formatDate(getValue(col));
-        const getBool = (col: number) => {
-          const val = getValue(col).toLowerCase();
-          return val === 'true' || val === '1' || val === 'x';
+        const getValueByField = (field: string) => {
+          const col = fieldToCol[field];
+          if (!col) return '';
+          const val = row.getCell(col).value;
+          return val?.toString()?.trim() || '';
+        };
+        const getNumberByField = (field: string) => {
+          const v = getValueByField(field);
+          const n = parseFloat(v);
+          return isNaN(n) ? 0 : n;
+        };
+        const getDateByField = (field: string) => {
+          const col = fieldToCol[field];
+          if (!col) return null;
+          const val = row.getCell(col).value;
+          if (!val) return null;
+          if (val instanceof Date) {
+            return DateTime.fromJSDate(val).toISODate();
+          }
+          const s = val.toString().trim();
+          return formatDate(s); // d/M/yyyy hoặc dd/MM/yyyy
+        };
+        const getBoolByField = (field: string) => {
+          const v = getValueByField(field).toLowerCase();
+          return v === 'true' || v === '1' || v === 'x' || v === 'yes' || v === 'y' || v === 'co' || v === 'có';
         };
 
         const rowData = {
-         // ID: getValue(1),
-          ProductCode: getValue(1),
-          ProductName: getValue(2),
-          ProductGroupName: getValue(3),
-          ProductCodeRTC: getValue(5),
-          LocationName: getValue(6),
-          FirmName: getValue(7),
-          Serial: getValue(8),
-          SerialNumber: getValue(9),
-          PartNumber: getValue(10),
-          UnitName: getValue(11),
-          Number: getNumber(12),
-          NumberInStore: getNumber(13),
-          SLKiemKe: getNumber(14),
-          BorrowCustomer: getBool(15),
-          StatusProduct: getBool(16),
-          Note: getValue(17),
-          CreatedBy: getValue(18),
-          CreateDate: getDate(19),
-          LensMount: getValue(20),
-          FocalLength: getValue(21),
-          MOD: getValue(22),
-          Magnification: getValue(23),
-          SensorSize: getValue(24),
-          SensorSizeMax: getValue(25),
-          Resolution: getValue(26),
-          ShutterMode: getValue(27),
-          MonoColor: getValue(28),
-          PixelSize: getValue(29),
-          LampType: getValue(30),
-          LampPower: getValue(31),
-          LampWattage: getValue(32),
-          LampColor: getValue(33),
-          DataInterface: getValue(34),
-          InputValue: getValue(35),
-          OutputValue: getValue(36),
-          CurrentIntensityMax: getValue(37),
-          Size: getValue(38),
-          LocationImg: getValue(39),
-          AddressBox: getValue(40),
-          WarehouseID: getValue(41),
-          FNo: getValue(42),
-          WD: getValue(43),
-          Status: getValue(44),
-          FirmID: getValue(45),
-          CodeHCM: getValue(46)
+          ProductCode: getValueByField('ProductCode'),
+          ProductName: getValueByField('ProductName'),
+          ProductGroupName: getValueByField('ProductGroupName'),
+          ProductCodeRTC: getValueByField('ProductCodeRTC'),
+          LocationName: getValueByField('LocationName'),
+          FirmName: getValueByField('FirmName'),
+          Serial: getValueByField('Serial'),
+          SerialNumber: getValueByField('SerialNumber'),
+          PartNumber: getValueByField('PartNumber'),
+          UnitName: getValueByField('UnitName'),
+          Number: getNumberByField('Number'),
+          NumberInStore: getNumberByField('NumberInStore'),
+          SLKiemKe: getNumberByField('SLKiemKe'),
+          BorrowCustomer: getBoolByField('BorrowCustomer'),
+          StatusProduct: getBoolByField('StatusProduct'),
+          Note: getValueByField('Note'),
+          CreatedBy: getValueByField('CreatedBy'),
+          CreateDate: getDateByField('CreateDate'),
+          LensMount: getValueByField('LensMount'),
+          FocalLength: getValueByField('FocalLength'),
+          MOD: getValueByField('MOD'),
+          Magnification: getValueByField('Magnification'),
+          SensorSize: getValueByField('SensorSize'),
+          SensorSizeMax: getValueByField('SensorSizeMax'),
+          Resolution: getValueByField('Resolution'),
+          ShutterMode: getValueByField('ShutterMode'),
+          MonoColor: getValueByField('MonoColor'),
+          PixelSize: getValueByField('PixelSize'),
+          LampType: getValueByField('LampType'),
+          LampPower: getValueByField('LampPower'),
+          LampWattage: getValueByField('LampWattage'),
+          LampColor: getValueByField('LampColor'),
+          DataInterface: getValueByField('DataInterface'),
+          InputValue: getValueByField('InputValue'),
+          OutputValue: getValueByField('OutputValue'),
+          CurrentIntensityMax: getValueByField('CurrentIntensityMax'),
+          Size: getValueByField('Size'),
+          LocationImg: getValueByField('LocationImg'),
+          AddressBox: getValueByField('AddressBox'),
+          WarehouseID: getValueByField('WarehouseID'),
+          FNo: getValueByField('FNo'),
+          WD: getValueByField('WD'),
+          Status: getValueByField('Status'),
+          FirmID: getValueByField('FirmID'),
+          CodeHCM: getValueByField('CodeHCM')
         };
 
         data.push(rowData);
@@ -379,7 +480,7 @@ export class TbProductRtcImportExcelComponent implements OnInit {
       if (this.tableExcel) {
         this.tableExcel.replaceData(data);
       } else {
-        this.drawTable(); // drawTable nên đã cấu hình columns theo bảng bạn gửi
+        this.drawTable();
       }
 
       console.log(`Đã load ${validRecords} bản ghi hợp lệ.`);
@@ -418,154 +519,91 @@ export class TbProductRtcImportExcelComponent implements OnInit {
       return;
     }
 
-    let existingList: any[] = [];
-    try {
-      const res: any = await firstValueFrom(this.tbProductRtcService.getProductRTC({
-        keyWord: ' ',
-        checkAll: 1,
-        productGroupID: 0,
-        warehouseID: 0,
-        productRTCID: 0,
-        productGroupNo: ''
-      }));
-      existingList = res?.products || [];
-    } catch (err) {
-      this.notification.error('Lỗi', 'Không thể lấy danh sách thiết bị để kiểm tra trùng');
-      return;
-    }
+    // Map toàn bộ rows sang DTO theo API
+    const productRTCs = validDataToSave.map(row => ({
+      ID: 0,
+      ProductGroupRTCID: this.getProductGroupIdByName(row.ProductGroupName) || 0,
+      ProductCode: row.ProductCode || '',
+      ProductName: row.ProductName || '',
+      UnitCountID: this.getUnitIdByName(row.UnitName) || 0,
+      Number: 0,
+      Maker: row.FirmName || '',
+      AddressBox: row.AddressBox || '',
+      Note: row.Note || '',
+      StatusProduct: row.StatusProduct === true || row.StatusProduct === '1',
+      CreateDate: formatDate(row.CreateDate),
+      NumberInStore: +row.NumberInStore || 0,
+      Serial: row.Serial || '',
+      SerialNumber: row.SerialNumber || '',
+      PartNumber: row.PartNumber || '',
+      CreatedBy: row.CreatedBy || '',
+      LocationImg: row.LocationImg || '',
+      ProductCodeRTC: row.ProductCodeRTC || '',
+      BorrowCustomer: row.BorrowCustomer === true || row.BorrowCustomer === '1',
+      SLKiemKe: +row.SLKiemKe || 0,
+      ProductLocationID: this.getLocationIdByName(row.LocationName) || 0,
+      WarehouseID: +row.WarehouseID || 0,
+      Resolution: row.Resolution || '',
+      MonoColor: row.MonoColor || '',
+      SensorSize: row.SensorSize || '',
+      DataInterface: row.DataInterface || '',
+      LensMount: row.LensMount || '',
+      ShutterMode: row.ShutterMode || '',
+      PixelSize: row.PixelSize || '',
+      SensorSizeMax: row.SensorSizeMax || '',
+      MOD: row.MOD || '',
+      FNo: row.FNo || '',
+      WD: row.WD || '',
+      LampType: row.LampType || '',
+      LampColor: row.LampColor || '',
+      LampPower: row.LampPower || '',
+      LampWattage: row.LampWattage || '',
+      Magnification: row.Magnification || '',
+      FocalLength: row.FocalLength || '',
+      FirmID: this.getFirmIdByName(row.FirmName),
+      InputValue: row.InputValue || '',
+      OutputValue: row.OutputValue || '',
+      CurrentIntensityMax: row.CurrentIntensityMax || '',
+      Status: 0,
+      Size: row.Size || '',
+      CodeHCM: row.CodeHCM || ''
+      ,IsDeleted: false
+      ,IsDelete: false
+    }));
 
-    this.processedRowsForSave = 0;
-    const totalToSave = validDataToSave.length;
-    this.displayText = `Đang lưu: 0/${totalToSave} bản ghi`;
-    this.displayProgress = 0;
-
-    let successCount = 0;
-    let errorCount = 0;
-    let completedRequests = 0;
-    const errorRows: any[] = [];
-
-    const saveOneByOne = (index: number) => {
-      if (index >= totalToSave) {
-        if (errorCount > 0) {
-          this.dataTableExcel = errorRows;
-          this.tableExcel.replaceData(errorRows);
-        }
-        this.showSaveSummary(successCount, errorCount, totalToSave);
-        return;
-      }
-
-      const row = validDataToSave[index];
-
-      const isDuplicate = existingList.some((item) =>
-        item.ProductCode?.trim().toLowerCase() === row.ProductCode?.trim().toLowerCase());
-      if (isDuplicate) {
-        const productCode = row.ProductCode || '[Không có mã]';
-        this.notification.warning('Trùng mã', `Thiết bị với mã '${productCode}' đã tồn tại!`);
-
-        errorCount++;
-        errorRows.push(row); // giữ lại bản ghi lỗi
-
-        completedRequests++;
-        this.processedRowsForSave = completedRequests;
-        this.displayProgress = Math.round((completedRequests / totalToSave) * 100);
-        this.displayText = `Đang lưu: ${completedRequests}/${totalToSave} bản ghi`;
-
-        saveOneByOne(index + 1);
-        return;
-      }
-
-
-      const productData = {
-        productRTCs: [{
-          ID: 0,
-          ProductGroupRTCID: this.getProductGroupIdByName(row.ProductGroupName) || 0,
-          ProductCode: row.ProductCode || '',
-          ProductName: row.ProductName || '',
-          UnitCountID: this.getUnitIdByName(row.UnitName) || 0,
-          Number: 0,
-          Maker: row.FirmName || '',
-          AddressBox: row.AddressBox || '',
-          Note: row.Note || '',
-          StatusProduct: row.StatusProduct === true || row.StatusProduct === '1' ? true : false,
-          CreateDate: formatDate(row.CreateDate),
-          NumberInStore: +row.NumberInStore || 0,
-          Serial: row.Serial || '',
-          SerialNumber: row.SerialNumber || '',
-          PartNumber: row.PartNumber || '',
-          CreatedBy: row.CreatedBy || '',
-          LocationImg: row.LocationImg || '',
-          ProductCodeRTC: row.ProductCodeRTC || '',
-          BorrowCustomer: row.BorrowCustomer === true || row.BorrowCustomer === '1' ? true : false,
-          SLKiemKe: +row.SLKiemKe || 0,
-          ProductLocationID: this.getLocationIdByName(row.LocationName) || 0,
-          WarehouseID: +row.WarehouseID || 0,
-          Resolution: row.Resolution || '',
-          MonoColor: row.MonoColor || '',
-          SensorSize: row.SensorSize || '',
-          DataInterface: row.DataInterface || '',
-          LensMount: row.LensMount || '',
-          ShutterMode: row.ShutterMode || '',
-          PixelSize: row.PixelSize || '',
-          SensorSizeMax: row.SensorSizeMax || '',
-          MOD: row.MOD || '',
-          FNo: row.FNo || '',
-          WD: row.WD || '',
-          LampType: row.LampType || '',
-          LampColor: row.LampColor || '',
-          LampPower: row.LampPower || '',
-          LampWattage: row.LampWattage || '',
-          Magnification: row.Magnification || '',
-          FocalLength: row.FocalLength || '',
-          FirmID: this.getFirmIdByName(row.FirmName),
-          InputValue: row.InputValue || '',
-          OutputValue: row.OutputValue || '',
-          CurrentIntensityMax: row.CurrentIntensityMax || '',
-          Status: 0,
-          Size: row.Size || '',
-          CodeHCM: row.CodeHCM || ''
-        }]
-      };
-      console.log(`Lưu thiết bị ${index + 1}:`, productData);
-      setTimeout(() => {
-        this.tbProductRtcService.saveData(productData).subscribe({
-          next: (res: any) => {
-            if (res.status === 1) {
-              successCount++;
-            } else {
-              errorCount++;
-              console.error(`Lỗi khi lưu thiết bị ${index + 1}:`, res.message);
-            }
-            completedRequests++;
-            this.processedRowsForSave = completedRequests;
-            this.displayProgress = Math.round((completedRequests / totalToSave) * 100);
-            this.displayText = `Đang lưu: ${completedRequests}/${totalToSave} bản ghi`;
-            saveOneByOne(index + 1);
-          },
-          error: (err) => {
-            this.notification.error('Lỗi', `Không thể lưu thiết bị: ${row.ProductCode}`);
-            errorCount++;
-            console.error(`Lỗi API khi lưu thiết bị ${index + 1}:`, err);
-            completedRequests++;
-            this.processedRowsForSave = completedRequests;
-            this.displayProgress = Math.round((completedRequests / totalToSave) * 100);
-            this.displayText = `Đang lưu: ${completedRequests}/${totalToSave} bản ghi`;
-            saveOneByOne(index + 1);
-          }
-        });
-      }, 10);
+    const payload = {
+      // Có thể truyền productGroupRTC nếu cần server tạo/cập nhật nhóm
+      // productGroupRTC: { ... },
+      productRTCs
     };
 
-    saveOneByOne(0);
-  }
-  showSaveSummary(successCount: number, errorCount: number, totalProducts: number) {
-    if (errorCount === 0) {
-      this.notification.success('Thông báo', `Đã lưu ${successCount} sản phẩm thành công`);
-      this.closeExcelModal(); // Chỉ đóng khi thành công hoàn toàn
-    } else if (successCount === 0) {
-      this.notification.error('Thông báo', `Lưu thất bại ${errorCount}/${totalProducts} sản phẩm`);
-    } else {
-      this.notification.warning('Thông báo', `Đã lưu ${successCount} sản phẩm, ${errorCount} sản phẩm thất bại`);
-    }
+    this.displayText = `Đang lưu: ${validDataToSave.length}/${validDataToSave.length} bản ghi`;
+    this.displayProgress = 50;
+
+    this.tbProductRtcService.saveDataExcel(payload).subscribe({
+      next: (res: any) => {
+        // Hiển thị chính xác message từ API
+        if (res.status === 1) {
+          this.notification.success('Thông báo', res.message || 'Lưu dữ liệu thành công.');
+          this.closeExcelModal(); // đóng modal khi thành công
+        } else {
+          this.notification.warning('Thông báo', res.message || 'Lưu dữ liệu có lỗi.');
+        }
+
+        this.displayProgress = 100;
+        if (res?.data && typeof res.data.successCount === 'number') {
+          this.displayText = `${res.data.successCount}/${validDataToSave.length} thành công`;
+        } else {
+          this.displayText = 'Hoàn tất';
+        }
+      },
+      error: (err) => {
+        this.notification.error('Thông báo', 'Không thể lưu dữ liệu Excel!');
+        console.error('Lỗi API save-data-excel:', err);
+        this.displayProgress = 0;
+        this.displayText = `0/${validDataToSave.length} bản ghi`;
+      }
+    });
   }
 
   private loadUnit() {
@@ -587,21 +625,24 @@ export class TbProductRtcImportExcelComponent implements OnInit {
     });
   }
   private getUnitIdByName(unitName: string): number {
-    const unit = this.unitData.find(u => u.UnitName === unitName);
+    const key = (unitName || '').trim().toLowerCase();
+    const unit = this.unitData.find(u => (u.UnitName || '').trim().toLowerCase() === key);
     return unit ? unit.ID : 0;
   }
 
   private getFirmIdByName(firmName: string): number {
-    const firm = this.firmData.find(f => f.FirmName === firmName);
+    const firm = this.firmData.find(f => f.FirmName.trim().toLowerCase() === firmName.trim().toLowerCase());
     return firm ? firm.ID : 0;
   }
 
   private getLocationIdByName(locationName: string): number {
-    const location = this.locationData.find(l => l.LocationName === locationName);
+    const location = this.locationData.find(l => l.LocationName.trim().toLowerCase() === locationName.trim().toLowerCase());
     return location ? location.ID : 0;
   }
   private getProductGroupIdByName(ProductGroupName: string): number {
-    const group = this.productGroupData.find(g => g.ProductGroupName === ProductGroupName);
+    const group = this.productGroupData.find(g => g.ProductGroupName.trim().toLowerCase() === ProductGroupName.trim().toLowerCase());
+    console.log("group:", group);
+    
     return group ? group.ID : 0;
   }
 async exportToExcelProduct() {

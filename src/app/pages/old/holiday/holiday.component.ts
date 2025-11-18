@@ -29,6 +29,7 @@ import { EmployeeScheduleWorkComponent } from './employee-schedule-work/employee
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-holiday',
@@ -86,7 +87,7 @@ export class HolidayComponent implements OnInit, AfterViewInit {
             }
           },
           error: (error) => {
-            this.notification.error('Lỗi', 'Không thể tải dữ liệu ngày lễ');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu ngày lễ');
             console.error('Error loading holidays:', error);
             // Reset checkbox on error
             this.viewAll.setValue(false, { emitEvent: false });
@@ -211,7 +212,7 @@ export class HolidayComponent implements OnInit, AfterViewInit {
         this.isLoading = false;
       },
       error: (error) => {
-        this.notification.error('Lỗi', error.error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
         console.error('Error loading holidays:', error);
       },
     });

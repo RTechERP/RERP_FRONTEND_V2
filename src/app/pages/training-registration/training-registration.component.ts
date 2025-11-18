@@ -48,6 +48,8 @@ import { PermissionService } from '../../services/permission.service';
 import { HasPermissionDirective } from '../../directives/has-permission.directive';
 import { DisablePermissionDirective } from '../../directives/disable-permission.directive';
 import { DEFAULT_TABLE_CONFIG } from '../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../app.config';
+// import { log } from 'ng-zorro-antd/core/logger';
 
 @Component({
   selector: 'app-training-registration',
@@ -386,7 +388,7 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
                           }
                         },
                         (error) => {
-                          this.notification.error('Lỗi', error.error.message);
+                          this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
                         }
                       );
                   }
@@ -468,7 +470,7 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
                     }
                   },
                   (error) => {
-                    this.notification.error('Lỗi', error.error.message);
+                    this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
                   }
                 );
             }

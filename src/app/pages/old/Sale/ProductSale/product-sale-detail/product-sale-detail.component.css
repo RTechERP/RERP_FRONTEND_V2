@@ -1,5 +1,42 @@
 .my-row {
-    --bs-gutter-y: 0;
-    display: flex;
-    flex-wrap: wrap;
-  }
+  --bs-gutter-y: 0;
+  display: flex;
+  flex-wrap: wrap;
+}
+/* Chống tràn cho nz-select trong component */
+:host ::ng-deep .ant-select {
+  width: 100%;
+}
+:host ::ng-deep .ant-select .ant-select-selector {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;      /* ngăn selector đẩy tràn sang cột bên cạnh */
+}
+:host ::ng-deep .ant-select .ant-select-selection-item {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;    /* cắt bằng ellipsis khi rất dài */
+}
+/* Cho item trong dropdown tự xuống dòng khi tên quá dài */
+:host ::ng-deep .ant-select-dropdown .ant-select-item-option-content {
+  white-space: normal;
+  word-break: break-word;
+}
+/* Giới hạn độ rộng dropdown để tránh vọt ra khỏi viewport */
+:host ::ng-deep .ant-select-dropdown {
+  max-width: calc(100vw - 32px);
+}
+:host ::ng-deep .ant-form-item-control {
+  overflow: visible;           /* tránh cắt phần text lỗi */
+}
+:host ::ng-deep .ant-form-item-explain,
+:host ::ng-deep .ant-form-item-explain-error {
+  white-space: normal;         /* cho phép xuống dòng */
+  overflow-wrap: anywhere;     /* bẻ dòng cả khi không có khoảng trắng */
+  word-break: break-word;      /* bẻ từ dài */
+  line-height: 1.4;            /* tăng chiều cao dòng để không cắt đuôi chữ */
+  min-height: 1.4em;           /* đảm bảo đủ không gian cho descenders */
+  margin-top: 4px;             /* tạo khoảng cách với textarea */
+  width: 100%;
+  display: block;
+}

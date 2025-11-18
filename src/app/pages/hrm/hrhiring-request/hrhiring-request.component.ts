@@ -40,6 +40,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { DisablePermissionDirective } from '../../../directives/disable-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-hrhiring-request',
@@ -61,7 +62,7 @@ import { DisablePermissionDirective } from '../../../directives/disable-permissi
     HasPermissionDirective,
     DisablePermissionDirective, // Thêm directive mới
     NzTabsModule,
-    
+
   ],
   templateUrl: './hrhiring-request.component.html',
   styleUrls: ['./hrhiring-request.component.css'],
@@ -214,7 +215,7 @@ export class HrhiringRequestComponent
         }
       },
       error: () => {
-        this.notification.error('Lỗi', 'Không thể tải danh sách phòng ban');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách phòng ban');
       },
     });
   }
@@ -232,7 +233,7 @@ export class HrhiringRequestComponent
         }
       },
       error: () => {
-        this.notification.error('Lỗi', 'Không thể tải danh sách chức vụ');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách chức vụ');
       },
     });
   }
@@ -1405,7 +1406,7 @@ export class HrhiringRequestComponent
         },
         error: (err) => {
           console.log(err);
-          this.notification.error('Lỗi', err.error.message);
+          this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
         },
       });
     } else if (step == 2) {
@@ -1417,7 +1418,7 @@ export class HrhiringRequestComponent
         error: (err) => {
           console.log(err);
           console.log('err.status:', err.status),
-            this.notification.error('Lỗi', err.error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
         },
       });
     } else {
@@ -1428,7 +1429,7 @@ export class HrhiringRequestComponent
         },
         error: (err) => {
           console.log(err);
-          this.notification.error('Lỗi', err.error.message);
+          this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
         },
       });
     }

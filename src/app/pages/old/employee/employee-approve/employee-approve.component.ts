@@ -17,6 +17,7 @@ import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { EmployeeService } from '../employee-service/employee.service';
 import { EmployeeApproveModalComponent } from '../employee-approve-modal/employee-approve-modal.component';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-employee-approve',
@@ -68,9 +69,9 @@ export class EmployeeApproveComponent implements OnInit, AfterViewInit {
       next: (data: any) => {
         this.employeeApproveList = data.data;
         this.employeeApproveTabulator.setData(this.employeeApproveList);
-      }, 
+      },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách người duyệt: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách người duyệt: ' + error.message);
       }
     });
   }
@@ -86,12 +87,12 @@ export class EmployeeApproveComponent implements OnInit, AfterViewInit {
       },
       height: '80vh',
       rowHeader: {
-        formatter: "rowSelection", 
-        titleFormatter: "rowSelection", 
-        headerSort: false, 
-        width: 70, 
-        frozen: true, 
-        headerHozAlign: "center", 
+        formatter: "rowSelection",
+        titleFormatter: "rowSelection",
+        headerSort: false,
+        width: 70,
+        frozen: true,
+        headerHozAlign: "center",
         hozAlign: "center"
       },
       columns: [
@@ -141,7 +142,7 @@ export class EmployeeApproveComponent implements OnInit, AfterViewInit {
             this.loadEmployeeApprove();
           })
           .catch(error => {
-            this.notification.error('Lỗi', 'Xóa người duyệt thất bại: ' + error.message);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Xóa người duyệt thất bại: ' + error.message);
           });
       },
       nzCancelText: 'Hủy'

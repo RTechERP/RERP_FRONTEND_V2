@@ -16,6 +16,7 @@ import { TabulatorFull as Tabulator, RowComponent } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { EmployeeService } from '../employee-service/employee.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-employee-approve-modal',
@@ -61,7 +62,7 @@ export class EmployeeApproveModalComponent implements OnInit {
         this.employeeTabulator.setData(this.employeeList);
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách nhân viên: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách nhân viên: ' + error.message);
       }
     });
   }
@@ -73,12 +74,12 @@ export class EmployeeApproveModalComponent implements OnInit {
       responsiveLayout: true,
       height: '65vh',
       rowHeader: {
-        formatter: "rowSelection", 
-        titleFormatter: "rowSelection", 
-        headerSort: false, 
-        width: 70, 
-        frozen: true, 
-        headerHozAlign: "center", 
+        formatter: "rowSelection",
+        titleFormatter: "rowSelection",
+        headerSort: false,
+        width: 70,
+        frozen: true,
+        headerHozAlign: "center",
         hozAlign: "center"
       },
       columns: [
@@ -98,24 +99,24 @@ export class EmployeeApproveModalComponent implements OnInit {
     });
   }
 
-  
+
 addEmployeeApprove() {
   const selectedRows = this.employeeTabulator.getSelectedRows();
   if(selectedRows.length === 0) {
       this.notification.warning('Cảnh báo', 'Vui lòng chọn người duyệt cần thêm');
       return;
   }
-  
+
   const employeeIds = selectedRows.map(row => parseInt(row.getData()['ID']));
   const request: { ListEmployeeID: number[] } = {
       ListEmployeeID: employeeIds
   };
-  
+
   this.employeeService.addEmployeeApprove(request).subscribe({
       next: (response: any) => {
           this.closeEmployeeModal();
           this.employeeAdded.emit();
-          
+
           // Hiển thị message từ response của backend
           const message = response?.message || 'Thêm người duyệt thành công';
           this.notification.success('Thành công', message);
@@ -123,14 +124,14 @@ addEmployeeApprove() {
       error: (error) => {
           // Xử lý error response từ backend
           let errorMessage = 'Thêm người duyệt thất bại';
-          
+
           if (error?.error?.message) {
               errorMessage = error.error.message;
           } else if (error?.message) {
               errorMessage = error.message;
           }
-          
-          this.notification.error('Lỗi', errorMessage);
+
+          this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
       }
   });
 }
@@ -165,7 +166,7 @@ addEmployeeApprove() {
               this.notification.success('Thành công', 'Xóa người duyệt thành công');
             },
             error: (error) => {
-              this.notification.error('Lỗi', 'Xóa người duyệt thất bại: ' + error.message);
+              this.notification.error(NOTIFICATION_TITLE.error, 'Xóa người duyệt thất bại: ' + error.message);
             }
           });
         });

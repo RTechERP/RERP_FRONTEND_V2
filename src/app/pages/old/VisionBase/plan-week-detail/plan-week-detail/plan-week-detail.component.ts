@@ -59,6 +59,7 @@ import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { NzFormModule } from 'ng-zorro-antd/form';
 
 import { PlanWeekService } from '../../plan-week/plan-week-services/plan-week.service';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 @Component({
   selector: 'app-plan-week-detail',
@@ -195,11 +196,11 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
             );
 
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -214,11 +215,11 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
           //   this.tb_MainTable.setData(this.mainData);
           // }
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -370,7 +371,11 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
     item._dirty = true;
   }
 
-  deleteItem(item: any): void {
+  deleteItem(item: any, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
       nzContent: 'Bạn có chắc chắn muốn xóa kế hoạch ngày ' + this.formatDate(item.DatePlan) + '?',

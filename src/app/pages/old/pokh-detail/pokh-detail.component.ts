@@ -6,6 +6,7 @@ import {
   ElementRef,
   Input,
 } from '@angular/core';
+import { NgForm } from '@angular/forms';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
@@ -44,7 +45,7 @@ import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/sign
 import { EnvironmentInjector } from '@angular/core';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DateTime } from 'luxon';
-import { FormGroup, FormBuilder } from '@angular/forms';
+import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -52,6 +53,9 @@ import { map, catchError, of, forkJoin } from 'rxjs';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { NOTIFICATION_TITLE } from '../../../app.config';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 
 import { PokhService } from '../pokh/pokh-service/pokh.service';
 import { CustomerPartService } from '../customer-part/customer-part/customer-part.service';
@@ -61,6 +65,7 @@ import { WarehouseReleaseRequestComponent } from '../warehouse-release-request/w
 import { FollowProductReturnComponent } from '../follow-product-return/follow-product-return.component';
 import { PoRequestBuyComponent } from '../po-request-buy/po-request-buy.component';
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
+import { QuotationKhDataComponent } from '../quotation-kh-data/quotation-kh-data.component';
 
 @Component({
   selector: 'app-pokh',
@@ -88,6 +93,7 @@ import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
     NzUploadModule,
     NzSwitchModule,
     NzCheckboxModule,
+    NzFormModule,
     CommonModule,
   ],
   templateUrl: './pokh-detail.component.html',
@@ -98,6 +104,8 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   tbProductDetailTreeListElement!: ElementRef;
   @ViewChild('tbDetailUser', { static: false })
   tbDetailUserElement!: ElementRef;
+  @ViewChild('pokhForm', { static: false })
+  pokhForm!: NgForm;
   @Input() isEditMode: boolean = false;
   @Input() selectedId: number = 0;
   sizeSearch: string = '0';
@@ -120,7 +128,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   //Khai báo các bảng
   tb_POKH!: Tabulator;
   tb_POKHProduct!: Tabulator;
-  tb_POKHFile!: Tabulator;
+  tb_POKHFile!: Tabulator; // Không dùng
   tb_POKHDetailFile!: Tabulator;
   tb_ProductDetailTreeList!: Tabulator;
   tb_DetailUser!: Tabulator;
@@ -135,7 +143,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   selectedRow: any = null;
   dataPOKH: any[] = [];
   dataPOKHProduct: any[] = [];
-  dataPOKHFiles: any[] = [];
+  dataPOKHFiles: any[] = []; // Không dùng
   dataPOKHDetailFile: any[] = [];
   dataCurrency: any[] = [];
   dataCustomers: any[] = [];
@@ -166,6 +174,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     isBigAccount: false,
     isApproved: false,
     warehouseId: 1,
+    accountType: 0,
+    totalMoneyDiscount: 0,
+    discount: 0,
   };
   filters: any = {
     filterText: '',
@@ -195,6 +206,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   lockEvents: boolean = false;
   isResponsibleUsersEnabled: boolean = false;
   isCopy: boolean = false;
+  isSubmitted: boolean = false;
 
   //#endregion
   //#region : Hàm khởi tạo
@@ -384,6 +396,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     });
   }
   loadPOKHFiles(id: number = 0): void {
+    // Không dùng
     this.POKHService.getPOKHFile(id).subscribe({
       next: (response) => {
         if (response.status === 1) {
@@ -436,7 +449,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         if (response.status === 1) {
           const pokhData = response.data;
           const receivedDate = new Date(pokhData.ReceivedDatePO);
-
+          console.log('dataPOKH:', pokhData);
           // Format date to YYYY-MM-DD with local timezone
           const year = receivedDate.getFullYear();
           const month = String(receivedDate.getMonth() + 1).padStart(2, '0');
@@ -462,12 +475,19 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             isBigAccount: pokhData.NewAccount,
             isApproved: pokhData.IsApproved,
             warehouseId: pokhData.WarehouseID,
+            discount: pokhData.Discount || 0,
+            totalMoneyDiscount: pokhData.TotalMoneyDiscount || 0,
+            accountType: pokhData.AccountType || 0,
           };
 
           this.selectedCustomer = this.dataCustomers.find(
             (c) => c.ID === pokhData.CustomerID
           );
           this.isResponsibleUsersEnabled = pokhData.UserType === 1;
+
+          // Tính toán chiết khấu lần đầu khi load dữ liệu (xử lý dữ liệu cũ không có discount)
+          // Nếu discount = 0 hoặc null, totalMoneyDiscount sẽ bằng totalPO
+          this.calculateDiscount();
 
           // Nếu đang ở chế độ copy thì reset ID và data file
           if (this.isCopy) {
@@ -478,7 +498,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             this.generatePOCode(item.CustomerShortName);
             // Reset data file khi copy
             this.dataPOKHDetailFile = [];
-            this.dataPOKHFiles = [];
+            this.dataPOKHFiles = []; // Không dùng
           }
 
           // Lấy dữ liệu bộ phận bằng khách hàng
@@ -576,6 +596,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
                   this.isResponsibleUsersEnabled = false;
                 }
               }
+
+              // Tính lại chiết khấu sau khi load xong tất cả dữ liệu
+              this.calculateDiscount();
             },
             (forkJoinError) => {
               this.notification.error(
@@ -651,7 +674,10 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     console.log('Deleted Detail Users:', deletedDetailUsers);
 
     if (!details || details.length === 0) {
-      alert('Vui lòng thêm chi tiết sản phẩm');
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Vui lòng thêm chi tiết sản phẩm'
+      );
       return;
     }
 
@@ -685,7 +711,10 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       this.uploadFiles(pokhId);
     }
     this.notification.success('Thông báo', 'Lưu thành công');
-    this.closeModal();
+    this.activeModal.close({
+      success: true,
+      reloadData: true,
+    });
 
     // Cập nhật endDate lên 1 ngày hoặc 1 giờ so với hiện tại
     const now = new Date();
@@ -702,20 +731,47 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   //#endregion
   //#region : Hàm xử lý upload files
   uploadFiles(pokhId: number) {
-    const formData = new FormData();
+    // Lọc ra các file mới có thuộc tính file (giống cách làm bên TrainingRegistration)
+    const newFiles = this.dataPOKHDetailFile.filter(
+      (fileObj: any) => fileObj.file
+    );
+    const hasDeletedFiles = this.deletedFileIds.length > 0;
 
-    // Thêm từng file vào FormData
-    this.dataPOKHDetailFile.forEach((fileObj: any) => {
-      if (fileObj.file) {
+    // Nếu không có file mới và không có file bị xóa thì không gọi API
+    if (newFiles.length === 0 && !hasDeletedFiles) {
+      return;
+    }
+
+    if (newFiles.length > 0) {
+      const formData = new FormData();
+
+      // Thêm từng file mới vào FormData
+      newFiles.forEach((fileObj: any) => {
         formData.append('files', fileObj.file);
-      }
-    });
+      });
 
-    // Xử lý upload files mới
-    if (this.dataPOKHDetailFile.length > 0) {
+      // key: để backend nhận biết loại tài liệu
+      formData.append('key', 'TuanBeoTest');
+
+      // subPath: Năm/Khách hàng/Mã PO (lọc ký tự không hợp lệ trong đường dẫn)
+      const year = new Date().getFullYear().toString();
+      const customerName =
+        (this.selectedCustomer?.CustomerShortName ||
+          this.poFormData.customerName ||
+          'Khac') + '';
+      const poCode = (this.poFormData.poCode || '').toString();
+      const sanitize = (s: string) =>
+        s.replace(/[<>:"/\\|?*\u0000-\u001F]/g, '').trim();
+      const subPath = [sanitize(year), sanitize(customerName), sanitize(poCode)]
+        .filter((x) => x)
+        .join('/');
+
+      formData.append('subPath', subPath);
+
+      // Gọi API upload
       this.POKHService.uploadFiles(formData, pokhId).subscribe({
-        next: (response) => {
-          console.log('Upload files thành công');
+        next: () => {
+          console.log('Upload files POKH thành công');
         },
         error: (error) => {
           this.notification.error('Thông báo', 'Lỗi upload files: ' + error);
@@ -724,9 +780,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     }
 
     // Xử lý xóa files
-    if (this.deletedFileIds.length > 0) {
+    if (hasDeletedFiles) {
       this.POKHService.deleteFiles(this.deletedFileIds).subscribe({
-        next: (response) => {
+        next: () => {
           this.deletedFileIds = [];
         },
         error: (error) => {
@@ -870,7 +926,10 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   //#region : Hàm xử lý xuất excel Phiếu
   async exportMainTableToExcel() {
     if (!this.tb_POKH) {
-      this.notification.error('Lỗi', 'Không có dữ liệu để xuất Excel');
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Không có dữ liệu để xuất Excel'
+      );
       return;
     }
 
@@ -1106,6 +1165,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       Year: poDate.getFullYear(),
       Month: poDate.getMonth() + 1,
       IsDeleted: false,
+      Discount: this.poFormData.discount || 0,
+      TotalMoneyDiscount: this.poFormData.totalMoneyDiscount || 0,
+      AccountType: this.poFormData.accountType || 0,
     };
   }
   calculateTotalMoneyKoVAT() {
@@ -1153,6 +1215,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       isBigAccount: false,
       isApproved: false,
       warehouseId: 1,
+      totalMoneyDiscount: 0,
+      discount: 0,
+      accountType: 0,
     };
     this.selectedCustomer = null;
     this.dataPOKHProduct = [];
@@ -1220,7 +1285,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         this.calculateTotalIterative();
       }
     } catch (error) {
-      this.notification.error('Lỗi', 'Lỗi:' + error);
+      this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi:' + error);
     }
   }
   private convertToTreeData(flatData: any[]): any[] {
@@ -1327,24 +1392,51 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       }
     });
 
-    this.poFormData.totalPO = totalSum;
+    // Đảm bảo totalPO luôn là số hợp lệ, không phải NaN
+    this.poFormData.totalPO = isNaN(totalSum) ? 0 : totalSum;
     console.log('Tổng giá trị sau VAT:', this.poFormData.totalPO);
 
     // Cập nhật lại giá trị tiền trong bảng người phụ trách
     this.updateResponsibleUsersMoney();
+
+    // Tính lại chiết khấu khi totalPO thay đổi
+    this.calculateDiscount();
   }
   updateResponsibleUsersMoney(): void {
     if (!this.tb_DetailUser) return;
 
-    const totalPO = this.poFormData.totalPO;
+    // Đảm bảo totalPO luôn là số hợp lệ
+    const totalPO = isNaN(Number(this.poFormData.totalPO))
+      ? 0
+      : Number(this.poFormData.totalPO) || 0;
     this.tb_DetailUser.getRows().forEach((row: RowComponent) => {
       const rowData = row.getData();
       if (rowData['ResponsibleUser']) {
         const percentValue = parseFloat(rowData['PercentUser']) || 0;
         const moneyValue = totalPO * (percentValue / 100);
-        row.update({ MoneyUser: moneyValue });
+        // Đảm bảo moneyValue không bị NaN
+        row.update({ MoneyUser: isNaN(moneyValue) ? 0 : moneyValue });
       }
     });
+  }
+  calculateDiscount(): void {
+    // Đảm bảo totalPO và discount luôn là số hợp lệ
+    const totalPO = isNaN(Number(this.poFormData.totalPO))
+      ? 0
+      : Number(this.poFormData.totalPO) || 0;
+    const discount = isNaN(Number(this.poFormData.discount))
+      ? 0
+      : Number(this.poFormData.discount) || 0;
+
+    // Tính số tiền chiết khấu
+    const moneyDiscount = (totalPO * discount) / 100;
+
+    // Tính tổng tiền sau chiết khấu, đảm bảo không bị NaN
+    const result = totalPO - moneyDiscount;
+    this.poFormData.totalMoneyDiscount = isNaN(result) ? 0 : result;
+  }
+  onDiscountChange(): void {
+    this.calculateDiscount();
   }
   formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
@@ -1357,18 +1449,55 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   //#region : Các hàm xử lý sự kiện
 
   validateForm(): boolean {
+    this.isSubmitted = true;
+
+    // Mark all form controls as touched để hiển thị lỗi
+    if (this.pokhForm) {
+      Object.keys(this.pokhForm.controls).forEach((key) => {
+        const control = this.pokhForm.controls[key];
+        if (control) {
+          control.markAsTouched();
+        }
+      });
+    }
+
+    // Kiểm tra các trường nz-select (vì required directive có thể không hoạt động đúng với nz-select)
+    if (!this.poFormData.poType || this.poFormData.poType === 0) {
+      return false;
+    }
+
+    if (!this.poFormData.projectId || this.poFormData.projectId === 0) {
+      return false;
+    }
+
+    // Kiểm tra các trường input text
+    if (
+      !this.poFormData.poCode ||
+      (typeof this.poFormData.poCode === 'string' &&
+        this.poFormData.poCode.trim() === '')
+    ) {
+      return false;
+    }
+
+    if (
+      !this.poFormData.poNumber ||
+      (typeof this.poFormData.poNumber === 'string' &&
+        this.poFormData.poNumber.trim() === '')
+    ) {
+      return false;
+    }
+
+    // Kiểm tra validation của form
+    if (this.pokhForm && this.pokhForm.invalid) {
+      return false;
+    }
+
+    // Kiểm tra các trường hợp đặc biệt
     if (this.poFormData.status < 0) {
-      this.notification.error('Thông báo', 'Xin hãy chọn trạng thái.');
+      this.notification.error('Thông báo', 'Vui lòng chọn trạng thái.');
       return false;
     }
-    if (!this.poFormData.poType) {
-      this.notification.error('Thông báo', 'Xin hãy chọn loại PO.');
-      return false;
-    }
-    if (!this.poFormData.poCode) {
-      this.notification.error('Thông báo', 'Xin hãy nhập mã PO.');
-      return false;
-    }
+
     return true;
   }
   toggleResponsibleUsers() {
@@ -1503,6 +1632,22 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     this.generatePOCode(customerShortName);
     console.log('Customer Short Name:', customerShortName);
   }
+  openQuotationKhDataModal() {
+    const modalRef = this.modalService.open(QuotationKhDataComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+    });
+    modalRef.result.then(
+      (result) => {
+        if (result) {
+        }
+      },
+      (reason) => {
+        console.log('Modal dismissed');
+      }
+    );
+  }
   openPOCodeModal() {
     if (!this.selectedCustomer) {
       this.notification.warning('Thông báo', 'Vui lòng chọn khách hàng trước!');
@@ -1591,6 +1736,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     this.isEditMode = false;
     this.isCopy = false;
     this.selectedId = 0;
+    this.isSubmitted = false;
     this.resetForm();
     if (this.tb_ProductDetailTreeList) {
       this.tb_ProductDetailTreeList.destroy();
@@ -1608,8 +1754,6 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     this.tb_POKHDetailFile = new Tabulator(`#tb_POKHDetailFile`, {
       data: this.dataPOKHDetailFile,
       layout: 'fitDataFill',
-      pagination: true,
-      paginationSize: 10,
       height: '20vh',
       movableColumns: true,
       resizableRows: true,
@@ -1619,12 +1763,16 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           title: 'Hành động',
           field: 'actions',
           formatter: (cell) => {
-            return `<i class="bi bi-trash3 text-danger delete-btn" style="font-size:15px; cursor: pointer;"></i>`;
+            return `<img src="/assets/icon/delete-btn.png" class="delete-btn" style="width: 20px; height: 20px; cursor: pointer;" alt="Xóa" />`;
           },
           width: '10%',
           hozAlign: 'center',
           cellClick: (e, cell) => {
-            if ((e.target as HTMLElement).classList.contains('delete-btn')) {
+            const target = e.target as HTMLElement;
+            if (
+              target.classList.contains('delete-btn') ||
+              target.tagName === 'IMG'
+            ) {
               this.modal.confirm({
                 nzTitle: 'Xác nhận xóa',
                 nzContent: 'Bạn có chắc chắn muốn xóa file này?',
@@ -1640,6 +1788,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
                   }
 
                   row.delete();
+                  this.dataPOKHDetailFile = this.tb_POKHDetailFile.getData();
                   this.dataPOKHFiles = this.tb_POKHFile.getData();
                 },
               });
@@ -1681,24 +1830,48 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         dataTreeChildField: '_children',
         dataTreeChildIndent: 15,
         dataTreeElementColumn: 'STT',
-        height: '30vh',
+        height: '45vh',
         layout: 'fitDataFill',
         pagination: true,
         paginationSize: 10,
         movableColumns: true,
         resizableRows: true,
+        langs: {
+          vi: {
+            pagination: {
+              first: '<<',
+              last: '>>',
+              prev: '<',
+              next: '>',
+            },
+          },
+        },
+        locale: 'vi',
+        columnDefaults: {
+          headerWordWrap: true,
+          headerVertical: false,
+          headerHozAlign: 'center',
+          minWidth: 60,
+          hozAlign: 'left',
+          vertAlign: 'middle',
+          resizable: true,
+        },
         columns: [
           {
             title: '',
             field: 'actions',
             frozen: true,
             formatter: (cell) => {
-              return `<i class="bi bi-trash3 text-danger delete-btn" style="font-size:15px; cursor: pointer;"></i>`;
+              return `<img src="/assets/icon/delete-btn.png" class="delete-btn" style="width: 20px; height: 20px; cursor: pointer;" alt="Xóa" />`;
             },
             width: '5%',
             hozAlign: 'center',
             cellClick: (e, cell) => {
-              if ((e.target as HTMLElement).classList.contains('delete-btn')) {
+              const target = e.target as HTMLElement;
+              if (
+                target.classList.contains('delete-btn') ||
+                target.tagName === 'IMG'
+              ) {
                 this.modal.confirm({
                   nzTitle: 'Xác nhận xóa',
                   nzContent: 'Bạn có chắc chắn muốn xóa sản phẩm này?',
@@ -2017,17 +2190,41 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       movableColumns: true,
       resizableRows: true,
       reactiveData: true,
+      langs: {
+        vi: {
+          pagination: {
+            first: '<<',
+            last: '>>',
+            prev: '<',
+            next: '>',
+          },
+        },
+      },
+      locale: 'vi',
+      columnDefaults: {
+        headerWordWrap: true,
+        headerVertical: false,
+        headerHozAlign: 'center',
+        minWidth: 60,
+        hozAlign: 'left',
+        vertAlign: 'middle',
+        resizable: true,
+      },
       columns: [
         {
           title: '',
           field: 'actions',
           formatter: (cell) => {
-            return `<i class="bi bi-trash3 text-danger delete-btn" style="font-size:15px; cursor: pointer;"></i>`;
+            return `<img src="/assets/icon/delete-btn.png" class="delete-btn" style="width: 20px; height: 20px; cursor: pointer;" alt="Xóa" />`;
           },
           width: '5%',
           hozAlign: 'center',
           cellClick: (e, cell) => {
-            if ((e.target as HTMLElement).classList.contains('delete-btn')) {
+            const target = e.target as HTMLElement;
+            if (
+              target.classList.contains('delete-btn') ||
+              target.tagName === 'IMG'
+            ) {
               this.modal.confirm({
                 nzTitle: 'Xác nhận xóa',
                 nzContent: 'Bạn có chắc chắn muốn xóa người phụ trách này?',
@@ -2120,7 +2317,10 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
 
             // Kiểm tra nếu tổng phần trăm vượt quá 100%
             if (totalPercent > 100) {
-              alert('Tổng phần trăm không được vượt quá 100%');
+              this.notification.error(
+                NOTIFICATION_TITLE.error,
+                'Tổng phần trăm không được vượt quá 100%'
+              );
               cell.setValue(0);
               cell.getRow().update({ MoneyUser: 0 });
               return;

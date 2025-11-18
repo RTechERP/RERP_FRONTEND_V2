@@ -25,11 +25,12 @@ import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { DayOffImportExcelComponent } from '../day-off-import-excel/day-off-import-excel.component';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-declare-day-off',
   templateUrl: './declare-day-off.component.html',
-  styleUrls: ['./declare-day-off.component.css'], 
+  styleUrls: ['./declare-day-off.component.css'],
   imports: [
     CommonModule,
     NzModalModule,
@@ -83,7 +84,7 @@ export class DeclareDayOffComponent implements OnInit {
         this.employeeList = data.data || data;
       },
       error: () => {
-        this.notification.error('Lỗi', 'Không thể tải danh sách nhân viên');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách nhân viên');
       }
     });
   }
@@ -97,7 +98,7 @@ export class DeclareDayOffComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Lỗi khi tải danh sách khai báo ngày phép');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách khai báo ngày phép');
       }
     })
   }
@@ -196,7 +197,7 @@ export class DeclareDayOffComponent implements OnInit {
         this.selectedDeclare = null;
       },
       error: (error) => {
-        this.notification.error('Lỗi', 'Xóa khai báo ngày phép thất bại: ' + (error?.message || ''));
+        this.notification.error(NOTIFICATION_TITLE.error, 'Xóa khai báo ngày phép thất bại: ' + (error?.message || ''));
       }
     });
   }
@@ -222,7 +223,7 @@ export class DeclareDayOffComponent implements OnInit {
         this.loadDeclareDayOff();
       },
       error: (response) => {
-        this.notification.error('Lỗi', 'Lưu khai báo ngày phép thất bại: ' + (response.error?.message || ''));
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lưu khai báo ngày phép thất bại: ' + (response.error?.message || ''));
       }
     });
   }
@@ -244,10 +245,10 @@ export class DeclareDayOffComponent implements OnInit {
       acc[dept].push(item);
       return acc;
     }, {});
-  
+
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('KhaiBaoNgayNghiPhep');
-  
+
     // Định nghĩa cột
     const columns = [
       { header: '', key: 'Mã nhân viên', width: 40 },
@@ -256,7 +257,7 @@ export class DeclareDayOffComponent implements OnInit {
       { header: '', key: 'Tổng số ngày phép', width: 40 }
     ];
     worksheet.columns = columns;
-  
+
     //Thêm header một lần ở đầu file
     const headerRow = worksheet.addRow(columns.map(col => col.key));
     headerRow.eachCell((cell: ExcelJS.Cell) => {
@@ -269,7 +270,7 @@ export class DeclareDayOffComponent implements OnInit {
       };
     });
     headerRow.height = 30;
-  
+
     let rowIndex = 2; // Bắt đầu sau header
     for (const dept in grouped) {
       // Thêm dòng tiêu đề phòng ban
@@ -284,7 +285,7 @@ export class DeclareDayOffComponent implements OnInit {
       deptRow.height = 25;
       // worksheet.mergeCells(`A${rowIndex}:D${rowIndex}`);
       // rowIndex++;
-  
+
       // Thêm dữ liệu nhân viên
       grouped[dept].forEach((item: any) => {
         const safe = (val: any) => (val && typeof val === 'object' && Object.keys(val).length === 0 ? '' : val);
@@ -302,7 +303,7 @@ export class DeclareDayOffComponent implements OnInit {
         rowIndex++;
       });
     }
-  
+
     // Xuất file
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });

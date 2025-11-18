@@ -27,6 +27,7 @@ import { ProductLocationService } from './product-location-service/product-locat
 import { ProductLocationFormComponent } from './product-location-form/product-location-form.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-product-location',
@@ -92,7 +93,7 @@ export class ProductLocationComponent implements OnInit, AfterViewInit {
       },
       error: (error) => {
         console.error('Error loading product locations:', error);
-        this.notification.error('Lỗi', 'Có lỗi xảy ra khi tải dữ liệu');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi tải dữ liệu');
       }
     });
   }
@@ -106,7 +107,7 @@ export class ProductLocationComponent implements OnInit, AfterViewInit {
         ...DEFAULT_TABLE_CONFIG,
         paginationMode: 'local',
         layout: 'fitDataStretch',
-        
+
         groupBy: 'ProductGroupName',
 
         columns: [

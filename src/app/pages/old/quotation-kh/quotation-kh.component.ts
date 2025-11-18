@@ -60,6 +60,7 @@ import { QuotationKhDetailServiceService } from '../quotation-kh-detail/quotatio
 import { CustomerPartService } from '../customer-part/customer-part/customer-part.service';
 import { PokhComponent } from '../pokh/pokh.component';
 import { PokhDetailComponent } from '../pokh-detail/pokh-detail.component';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 
@@ -157,6 +158,7 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
     modalRef.result.then(
       (result) => {
         if (result.success && result.reloadData) {
+          this.mainTable.setData();
         }
       },
       (reason) => {
@@ -216,11 +218,11 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
             this.detailTable.setData(this.dataDetail);
           }
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -249,7 +251,7 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
     // Kiểm tra trạng thái duyệt hiện tại
     const SELECTED_ITEM = this.selectedRow;
     if (!SELECTED_ITEM) {
-      this.notification.error('Lỗi', 'Không tìm thấy thông tin báo giá');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không tìm thấy thông tin báo giá');
       return;
     }
 
@@ -293,7 +295,7 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
               this.selectedId = 0;
               this.mainTable.setData(); //Reload table
             } else {
-              this.notification.error('Lỗi', 'Có lỗi xảy ra khi xử lý Báo giá');
+              this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xử lý Báo giá');
             }
           },
           error: (error) => {
@@ -308,7 +310,7 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
   }
   onDelete() {
     if (!this.selectedId) {
-      this.notification.error('Lỗi', 'Vui lòng chọn báo giá cần xóa');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn báo giá cần xóa');
       return;
     }
 
@@ -333,7 +335,7 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
               this.selectedId = 0;
               this.mainTable.setData(); //Reload table
             } else {
-              this.notification.error('Lỗi', 'Có lỗi xảy ra khi xử lý Báo giá');
+              this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xử lý Báo giá');
             }
           },
           error: (error) => {
@@ -348,7 +350,7 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
   }
   onEdit() {
     if (!this.selectedId) {
-      this.notification.error('Lỗi', 'Vui lòng chọn bản ghi cần sửa');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn bản ghi cần sửa');
       return;
     }
     this.quotationKhServices.getQuotationKHDetail(this.selectedId).subscribe({
@@ -383,11 +385,11 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
             }
           );
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -411,7 +413,7 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
   }
   async exportMainTableToExcel() {
     if (!this.mainTable) {
-      this.notification.error('Lỗi', 'Không có dữ liệu để xuất Excel');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất Excel');
       return;
     }
 
@@ -567,6 +569,7 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
           last_page: res.data[0].TotalPage,
         };
       },
+      rowHeader: false,
       columns: [
         {
           title: 'Duyệt',

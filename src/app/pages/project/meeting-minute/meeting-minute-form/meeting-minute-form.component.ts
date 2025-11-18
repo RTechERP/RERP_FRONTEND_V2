@@ -56,6 +56,7 @@ import dayjs from 'dayjs';
 import { forkJoin, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 interface MeetingMinutes {
   STT: number;
@@ -227,14 +228,14 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
       }
     });
 
-        this.form.get('ProjectID')?.valueChanges.subscribe((projectId) => {
+    this.form.get('ProjectID')?.valueChanges.subscribe((projectId) => {
       if (projectId) {
-          const project = this.projectData.find((p) => p.ID === projectId);
-          if (project) {
-            this.selectedProject = {
-              ProjectCode: project.ProjectCode,
-              CreatedDate: project.CreatedDate,
-            };
+        const project = this.projectData.find((p) => p.ID === projectId);
+        if (project) {
+          this.selectedProject = {
+            ProjectCode: project.ProjectCode,
+            CreatedDate: project.CreatedDate,
+          };
           this.loadOptionProjectProblem();
           this.loadProjectHistoryProblems();
         }
@@ -276,21 +277,21 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
         if (response.status === 1) {
           this.projectData = response.data || [];
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
 
   loadDetailEditMode(id: number): void {
-      forkJoin({
+    forkJoin({
       master: this.meetingminuteService.getMeetingMinutesID(id),
       details: this.meetingminuteService.getMeetingMinutesDetailsByID(id),
-      }).subscribe({
-        next: ({ master, details }) => {
+    }).subscribe({
+      next: ({ master, details }) => {
         if (master?.status === 1 && master?.data) {
           const meetingMinute = master.data;
           const customerDetails = details?.data?.cusContent || [];
@@ -339,27 +340,27 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
 
           // Employee content
           this.employeeDetailContentData = employeeDetails.map((item: any) => ({
-              ID: item.ID || 0,
-              DetailContent: item.DetailContent || '',
-              DetailResult: item.DetailResult || '',
-              EmployeeID: item.EmployeeID || 0,
-              CustomerName: item.CustomerName || '',
-              PhoneNumber: item.PhoneNumber || '',
-              PlanDate: item.PlanDate || null,
-              Note: item.Note || '',
-              ProjectHistoryProblemID: item.ProjectHistoryProblemID || null,
+            ID: item.ID || 0,
+            DetailContent: item.DetailContent || '',
+            DetailResult: item.DetailResult || '',
+            EmployeeID: item.EmployeeID || 0,
+            CustomerName: item.CustomerName || '',
+            PhoneNumber: item.PhoneNumber || '',
+            PlanDate: item.PlanDate || null,
+            Note: item.Note || '',
+            ProjectHistoryProblemID: item.ProjectHistoryProblemID || null,
           }));
 
           // Customer content
           this.customerDetailContentData = customerDetails.map((item: any) => ({
-              ID: item.ID || 0,
-              DetailContent: item.DetailContent || '',
-              DetailResult: item.DetailResult || '',
-              CustomerName: item.CustomerName || '',
-              PhoneNumber: item.PhoneNumber || '',
-              PlanDate: item.PlanDate || null,
-              Note: item.Note || '',
-              ProjectHistoryProblemID: item.ProjectHistoryProblemID || null,
+            ID: item.ID || 0,
+            DetailContent: item.DetailContent || '',
+            DetailResult: item.DetailResult || '',
+            CustomerName: item.CustomerName || '',
+            PhoneNumber: item.PhoneNumber || '',
+            PlanDate: item.PlanDate || null,
+            Note: item.Note || '',
+            ProjectHistoryProblemID: item.ProjectHistoryProblemID || null,
             EmployeeID: -1,
           }));
 
@@ -410,12 +411,15 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             master?.message || 'Không thể lấy thông tin biên bản họp!'
           );
         }
-        },
-        error: (err) => {
-          console.error('Lỗi load data:', err);
-        this.notification.error('Thông báo', 'Lỗi khi load dữ liệu biên bản họp!');
-        },
-      });
+      },
+      error: (err) => {
+        console.error('Lỗi load data:', err);
+        this.notification.error(
+          'Thông báo',
+          'Lỗi khi load dữ liệu biên bản họp!'
+        );
+      },
+    });
   }
 
   ngAfterViewInit(): void {
@@ -535,7 +539,6 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
 
     this.activeModal.close({ success: false, reloadData: false });
   }
-
 
   getMeetingTypeGroup() {
     this.meetingminuteService.getDataGroupID().subscribe((response: any) => {
@@ -743,7 +746,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
           ];
         },
       });
-  }
+    }
   }
 
   dateEditor(cell: CellComponent, onRendered: any, success: any, cancel: any) {
@@ -767,8 +770,8 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
     // Validate form before save
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-    return;
-  }
+      return;
+    }
 
     const formValues = this.form.getRawValue();
 
@@ -786,10 +789,8 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
     }
 
     // Lấy dữ liệu từ các bảng
-    const employeeDetailRows =
-      this.tb_EmployeeDetailTable?.getData() || [];
-    const customerDetailRows =
-      this.tb_CustomerDetailTable?.getData() || [];
+    const employeeDetailRows = this.tb_EmployeeDetailTable?.getData() || [];
+    const customerDetailRows = this.tb_CustomerDetailTable?.getData() || [];
     const employeeContentRows =
       this.tb_EmployeeDetailContentTable?.getData() || [];
     const customerContentRows =
@@ -815,8 +816,8 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
         PhoneNumber: r?.PhoneNumber ?? '',
         EmailCustomer: r?.EmailCustomer ?? '',
         AddressCustomer: r?.AddressCustomer ?? '',
-              EmployeeID: -1,
-              IsEmployee: true,
+        EmployeeID: -1,
+        IsEmployee: true,
       }));
 
     const employeeDetails = employeeContentRows
@@ -828,14 +829,17 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
         EmployeeID: r?.EmployeeID ?? 0,
         CustomerName: r?.CustomerName ?? '',
         PhoneNumber: r?.PhoneNumber ?? '',
-        PlanDate: (typeof r?.PlanDate === 'string' && r?.PlanDate)
-          ? new Date(r.PlanDate).toISOString()
-          : (r?.PlanDate instanceof Date ? r.PlanDate.toISOString() : null),
+        PlanDate:
+          typeof r?.PlanDate === 'string' && r?.PlanDate
+            ? new Date(r.PlanDate).toISOString()
+            : r?.PlanDate instanceof Date
+            ? r.PlanDate.toISOString()
+            : null,
         Note: r?.Note ?? '',
         ProjectHistoryProblemID: r?.ProjectHistoryProblemID ?? null,
-              IsEmployee: true,
+        IsEmployee: true,
       }));
-      console.log('employeeDetailskk', employeeDetails);
+    console.log('employeeDetailskk', employeeDetails);
 
     const customerDetails = customerContentRows
       .filter((r: any) => r?.DetailContent?.trim() || r?.CustomerName?.trim())
@@ -845,15 +849,18 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
         DetailResult: r?.DetailResult ?? '',
         CustomerName: r?.CustomerName ?? '',
         PhoneNumber: r?.PhoneNumber ?? '',
-        PlanDate: (typeof r?.PlanDate === 'string' && r?.PlanDate)
-          ? new Date(r.PlanDate).toISOString()
-          : (r?.PlanDate instanceof Date ? r.PlanDate.toISOString() : null),
+        PlanDate:
+          typeof r?.PlanDate === 'string' && r?.PlanDate
+            ? new Date(r.PlanDate).toISOString()
+            : r?.PlanDate instanceof Date
+            ? r.PlanDate.toISOString()
+            : null,
         Note: r?.Note ?? '',
         ProjectHistoryProblemID: r?.ProjectHistoryProblemID ?? null,
-              IsEmployee: false,
-              EmployeeID: -1,
+        IsEmployee: false,
+        EmployeeID: -1,
       }));
-      console.log('customerDetailskk', customerDetails);
+    console.log('customerDetailskk', customerDetails);
 
     // Upload files nếu có
     const subPath = this.getSubPath();
@@ -877,14 +884,29 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
                 }
               });
             }
-            this.performSave(formValues, employeeAttendance, customerAttendance, employeeDetails, customerDetails);
-        },
-        error: (err) => {
-            this.notification.error('Lỗi', 'Upload file thất bại!');
-        },
-      });
+            this.performSave(
+              formValues,
+              employeeAttendance,
+              customerAttendance,
+              employeeDetails,
+              customerDetails
+            );
+          },
+          error: (err) => {
+            this.notification.error(
+              NOTIFICATION_TITLE.error,
+              'Upload file thất bại!'
+            );
+          },
+        });
     } else {
-      this.performSave(formValues, employeeAttendance, customerAttendance, employeeDetails, customerDetails);
+      this.performSave(
+        formValues,
+        employeeAttendance,
+        customerAttendance,
+        employeeDetails,
+        customerDetails
+      );
     }
   }
 
@@ -895,8 +917,8 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
     employeeDetails: any[],
     customerDetails: any[]
   ): void {
-      const payload = {
-        MeetingMinute: {
+    const payload = {
+      MeetingMinute: {
         ID: this.isCheckmode ? this.MeetingMinutesID : 0,
         MeetingTypeID: formValues.MeetingTypeID ?? 0,
         ProjectID: formValues.ProjectID ?? 0,
@@ -910,7 +932,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
         Place: formValues.Place ?? '',
       },
       MeetingMinutesAttendance: [...employeeAttendance, ...customerAttendance],
-      MeetingMinutesDetail: [...customerDetails,...employeeDetails],
+      MeetingMinutesDetail: [...customerDetails, ...employeeDetails],
       DeletedMeetingMinutesDetails: this.deletedIdsEmployeeContent.concat(
         this.deletedIdsCustomerContent
       ),
@@ -918,37 +940,37 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
         this.deletedIdsCustomerDetail
       ),
       MeetingMinutesFile: this.fileDatas.map((f) => ({
-            ID: f.ID || 0,
-            MeetingMinutesID: this.isCheckmode ? this.MeetingMinutesID : 0,
-            FileName: f.FileName,
-            OriginPath: f.OriginPath,
-            ServerPath: f.ServerPath,
-          })),
+        ID: f.ID || 0,
+        MeetingMinutesID: this.isCheckmode ? this.MeetingMinutesID : 0,
+        FileName: f.FileName,
+        OriginPath: f.OriginPath,
+        ServerPath: f.ServerPath,
+      })),
       DeletedFile: this.deletedFile,
-      };
+    };
 
-      console.log('payload save: ', payload);
+    console.log('payload save: ', payload);
 
-      this.meetingminuteService.saveData(payload).subscribe({
-        next: (res) => {
-          if (res.status === 1) {
+    this.meetingminuteService.saveData(payload).subscribe({
+      next: (res) => {
+        if (res.status === 1) {
           this.notification.success(
             'Thông báo',
             this.isCheckmode ? 'Cập nhật thành công!' : 'Thêm mới thành công!'
           );
-            this.closeModal();
-          } else {
-            this.notification.warning(
-              'Thông báo',
+          this.closeModal();
+        } else {
+          this.notification.warning(
+            'Thông báo',
             res.message || 'Không thể lưu biên bản họp!'
-            );
-          }
-        },
-        error: (err) => {
+          );
+        }
+      },
+      error: (err) => {
         this.notification.error('Thông báo', 'Có lỗi xảy ra khi lưu!');
         console.error('Lỗi khi lưu:', err);
-        },
-      });
+      },
+    });
   }
 
   onAddMeetingType() {
@@ -983,23 +1005,23 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
       this.tb_EmployeeDetailTableElement.nativeElement,
       {
         ...DEFAULT_TABLE_CONFIG,
-      data: this.employeeDetailData,
+        data: this.employeeDetailData,
         height: '100%',
         rowHeader: false,
-      selectableRows: 1,
+        selectableRows: 1,
         layout: 'fitColumns',
         pagination: false,
-          columns: [
-            {
-              title: '',
-              field: 'addRow',
-              hozAlign: 'center',
-              width: 40,
+        columns: [
+          {
+            title: '',
+            field: 'addRow',
+            hozAlign: 'center',
+            width: 40,
             frozen: true,
-              headerSort: false,
-              titleFormatter: () =>
+            headerSort: false,
+            titleFormatter: () =>
               `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
-              headerClick: () => {
+            headerClick: () => {
               this.addNewEmployeeRow();
             },
             formatter: (cell) => {
@@ -1009,7 +1031,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
                 ? `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`
                 : '';
             },
-              cellClick: (e, cell) => {
+            cellClick: (e, cell) => {
               let data = cell.getRow().getData();
               let id = data['ID'];
               let fullName = data['FullName'];
@@ -1017,14 +1039,14 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
               if (isDeleted) {
                 return;
               }
-                  this.modal.confirm({
+              this.modal.confirm({
                 nzTitle: `Bạn có chắc chắn muốn xóa nhân viên`,
                 nzContent: `${fullName}?`,
                 nzOkText: 'Xóa',
                 nzOkType: 'primary',
-                    nzCancelText: 'Hủy',
+                nzCancelText: 'Hủy',
                 nzOkDanger: true,
-                    nzOnOk: () => {
+                nzOnOk: () => {
                   if (id > 0) {
                     if (!this.deletedIdsEmployeeDetail.includes(id))
                       this.deletedIdsEmployeeDetail.push(id);
@@ -1032,85 +1054,85 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
                   } else {
                     this.tb_EmployeeDetailTable.deleteRow(cell.getRow());
                   }
-                    },
-                  });
+                },
+              });
             },
           },
           { title: 'ID', field: 'ID', visible: false },
-            {
-              title: 'Mã nhân viên',
-              field: 'EmployeeID',
-            
-              headerHozAlign: 'center',
+          {
+            title: 'Mã nhân viên',
+            field: 'EmployeeID',
+
+            headerHozAlign: 'center',
             frozen: true,
-              editor: this.createdControl(
-                SelectControlComponent,
-                this.injector,
-                this.appRef,
-                () => this.employeeOptions,
-                {
-                  valueField: 'value',
-                  labelField: 'label',
-                }
-              ),
-              formatter: (cell) => {
-                const val = cell.getValue();
-                if (!val) {
+            editor: this.createdControl(
+              SelectControlComponent,
+              this.injector,
+              this.appRef,
+              () => this.employeeOptions,
+              {
+                valueField: 'value',
+                labelField: 'label',
+              }
+            ),
+            formatter: (cell) => {
+              const val = cell.getValue();
+              if (!val) {
                 return '<div class="d-flex justify-content-between align-items-center" style="width: 100%;"><p class="w-100 m-0 text-muted"></p> <i class="fas fa-angle-down"></i></div>';
-                }
-                const employee = this.employeeOptions.find(
-                  (p: any) => p.value === val
-                );
-                const employeeName = employee ? employee.Code : val;
+              }
+              const employee = this.employeeOptions.find(
+                (p: any) => p.value === val
+              );
+              const employeeName = employee ? employee.Code : val;
               return `<div class="d-flex justify-content-between align-items-center" style="width: 100%;"><p class="w-100 m-0">${employeeName}</p> <i class="fas fa-angle-down"></i></div>`;
-              },
-              cellEdited: (cell) => {
-                const row = cell.getRow();
-                const newValue = cell.getValue();
+            },
+            cellEdited: (cell) => {
+              const row = cell.getRow();
+              const newValue = cell.getValue();
               const selectedEmployee = this.employeeOptions.find(
-                  (p: any) => p.value === newValue
-                );
+                (p: any) => p.value === newValue
+              );
               if (selectedEmployee) {
-                  row.update({
+                row.update({
                   FullName: selectedEmployee.FullName,
                   Section: selectedEmployee.ChucVu,
                   UserTeamID: selectedEmployee.TeamID,
-                  });
-                }
-              },
+                });
+              }
             },
-            {
-              title: 'Tên nhân viên',
-              field: 'FullName',
-              headerHozAlign: 'center',
+          },
+          {
+            title: 'Tên nhân viên',
+            field: 'FullName',
+            headerHozAlign: 'center',
             editor: true,
             frozen: true,
           },
-            {
-              title: 'Team',
-              field: 'UserTeamID',
-              hozAlign: 'center',
-              headerHozAlign: 'center',
-              editable: false, // 🔒 Không cho chỉnh sửa
-              editor: this.createdControl(
-                SelectControlComponent,
-                this.injector,
-                this.appRef,
-                () => this.userTeamOptions,
-                {
-                  valueField: 'value',
-                  labelField: 'label',
-                }
-              ),
-              formatter: (cell) => {
-                const val = cell.getValue();
-                if (!val) {
+          {
+            title: 'Team',
+            field: 'UserTeamID',
+            hozAlign: 'center',
+            headerHozAlign: 'center',
+            editable: false, // 🔒 Không cho chỉnh sửa
+            editor: this.createdControl(
+              SelectControlComponent,
+              this.injector,
+              this.appRef,
+              () => this.userTeamOptions,
+              {
+                valueField: 'value',
+                labelField: 'label',
+              }
+            ),
+            formatter: (cell) => {
+              const val = cell.getValue();
+              if (!val) {
                 return '<div class="d-flex justify-content-between align-items-center" style="width: 100% !important;"><p class="w-100 m-0 text-muted"></p> <i class="fas fa-angle-down"></i></div>';
-                }
-                const userteam = this.userTeamOptions.find(
-                  (p: any) => p.value === val
-                );
-                const userTeamName = userteam ? userteam.Name : val;
+              }
+              const userteam = this.userTeamOptions.find(
+                (p: any) => p.value === val
+              );
+              const userTeamName = userteam ? userteam.Name : val;
               return `<div class="d-flex justify-content-between align-items-center" style="width: 100% !important;"><p class="w-100 m-0">${userTeamName}</p> <i class="fas fa-angle-down"></i></div>`;
             },
           },
@@ -1119,7 +1141,6 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             field: 'Section',
             headerHozAlign: 'center',
             editor: true,
-          
           },
         ],
       }
@@ -1209,7 +1230,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             title: 'Tên khách hàng',
             field: 'FullName',
             hozAlign: 'left',
-              headerHozAlign: 'center',
+            headerHozAlign: 'center',
             editor: true,
             frozen: true,
           },
@@ -1239,7 +1260,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
   addNewCustomerRow(): void {
     const newRow = {
       ID: null,
-        FullName: '',
+      FullName: '',
       PhoneNumber: '',
       EmailCustomer: '',
       AddressCustomer: '',
@@ -1261,23 +1282,23 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
       this.tb_EmployeeDetailContentTableElement.nativeElement,
       {
         ...DEFAULT_TABLE_CONFIG,
-          data: this.employeeDetailContentData,
+        data: this.employeeDetailContentData,
         height: '100%',
         rowHeader: false,
-          selectableRows: 1,
+        selectableRows: 1,
         layout: 'fitDataStretch',
         pagination: false,
-              columns: [
-                {
-                  title: '',
+        columns: [
+          {
+            title: '',
             field: 'addRow',
-                  hozAlign: 'center',
-                  width: 40,
+            hozAlign: 'center',
+            width: 40,
             frozen: true,
-                  headerSort: false,
-                  titleFormatter: () =>
+            headerSort: false,
+            titleFormatter: () =>
               `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
-                  headerClick: () => {
+            headerClick: () => {
               this.addNewEmployeeContentRow();
             },
             formatter: (cell) => {
@@ -1287,20 +1308,20 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
                 ? `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`
                 : '';
             },
-                  cellClick: (e, cell) => {
+            cellClick: (e, cell) => {
               let data = cell.getRow().getData();
               let id = data['ID'];
               let isDeleted = data['IsDeleted'];
               if (isDeleted) {
                 return;
               }
-                      this.modal.confirm({
+              this.modal.confirm({
                 nzTitle: `Bạn có chắc chắn muốn xóa nội dung này không?`,
                 nzOkText: 'Xóa',
                 nzOkType: 'primary',
-                        nzCancelText: 'Hủy',
+                nzCancelText: 'Hủy',
                 nzOkDanger: true,
-                        nzOnOk: () => {
+                nzOnOk: () => {
                   if (id > 0) {
                     if (!this.deletedIdsEmployeeContent.includes(id))
                       this.deletedIdsEmployeeContent.push(id);
@@ -1308,145 +1329,145 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
                   } else {
                     this.tb_EmployeeDetailContentTable.deleteRow(cell.getRow());
                   }
-                        },
-                      });
-                  },
                 },
+              });
+            },
+          },
           { title: 'ID', field: 'ID', visible: false },
-                {
-                  title: 'Nội dung',
-                  field: 'DetailContent',
+          {
+            title: 'Nội dung',
+            field: 'DetailContent',
             headerHozAlign: 'center',
             editor: true,
-                  formatter: 'textarea',
+            formatter: 'textarea',
             width: 200,
-                },
-                {
-                  title: 'Kết quả',
-                  field: 'DetailResult',
-                  headerHozAlign: 'center',
+          },
+          {
+            title: 'Kết quả',
+            field: 'DetailResult',
+            headerHozAlign: 'center',
             editor: true,
-                  formatter: 'textarea',
+            formatter: 'textarea',
             width: 200,
-                },
-                {
-                  title: 'Mã nhân viên',
-                  field: 'EmployeeID',
-                  hozAlign: 'left',
-                  headerHozAlign: 'center',
-     
-                  editor: this.createdControl(
-                    SelectControlComponent,
-                    this.injector,
-                    this.appRef,
-                    () => this.employeeOptions,
-                    {
-                      valueField: 'value',
-                      labelField: 'label',
-                    }
-                  ),
-                  formatter: (cell) => {
-                    const val = cell.getValue();
-                    if (!val) {
+          },
+          {
+            title: 'Mã nhân viên',
+            field: 'EmployeeID',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+
+            editor: this.createdControl(
+              SelectControlComponent,
+              this.injector,
+              this.appRef,
+              () => this.employeeOptions,
+              {
+                valueField: 'value',
+                labelField: 'label',
+              }
+            ),
+            formatter: (cell) => {
+              const val = cell.getValue();
+              if (!val) {
                 return '<div class="d-flex justify-content-between align-items-center" style="width: 100%;"><p class="w-100 m-0 text-muted"></p> <i class="fas fa-angle-down"></i></div>';
-                    }
-                    const employee = this.employeeOptions.find(
-                      (p: any) => p.value === val
-                    );
-                    const employeeName = employee ? employee.Code : val;
+              }
+              const employee = this.employeeOptions.find(
+                (p: any) => p.value === val
+              );
+              const employeeName = employee ? employee.Code : val;
               return `<div class="d-flex justify-content-between align-items-center" style="width: 100%;"><p class="w-100 m-0">${employeeName}</p> <i class="fas fa-angle-down"></i></div>`;
-                  },
-                  cellEdited: (cell) => {
-                    const row = cell.getRow();
-                    const newValue = cell.getValue();
+            },
+            cellEdited: (cell) => {
+              const row = cell.getRow();
+              const newValue = cell.getValue();
               const selectedEmployee = this.employeeOptions.find(
-                      (p: any) => p.value === newValue
-                    );
+                (p: any) => p.value === newValue
+              );
               if (selectedEmployee) {
-                      row.update({
+                row.update({
                   CustomerName: selectedEmployee.FullName,
                   PhoneNumber: selectedEmployee.SDTCaNhan || '',
-                      });
-                    }
-                  },
-                },
-                {
-                  title: 'Người phụ trách',
-                  field: 'CustomerName',
-                  headerHozAlign: 'center',
-            editor: true,
-                },
-                {
-                  title: 'Số điện thoại',
-                  field: 'PhoneNumber',
-                  headerHozAlign: 'center',
-            editor: true,
-                },
-                {
-                  title: 'Kế hoạch',
-                  field: 'PlanDate',
-                  headerHozAlign: 'center',
-                  editor: "date",
-                  editorParams: {
-                    format: "yyyy-MM-dd",
-                  },
-                  formatter: "datetime",
-                  formatterParams: {
-                    inputFormat: "yyyy-MM-dd",
-                    outputFormat: "dd/MM/yyyy",
-                  },
-                },
-                {
-                  title: 'Ghi chú',
-                  field: 'Note',
-                  headerHozAlign: 'center',
+                });
+              }
+            },
+          },
+          {
+            title: 'Người phụ trách',
+            field: 'CustomerName',
+            headerHozAlign: 'center',
             editor: true,
           },
-                {
-                  title: 'Phát sinh',
-                  field: 'ProjectHistoryProblemID',
-                  hozAlign: 'center',
-                  headerHozAlign: 'center',
-                  width: 200,
-                  editor: this.createdControl(
-                    SelectControlComponent,
-                    this.injector,
-                    this.appRef,
-                    () => this.projectProblemOptions,
-                    {
-                      valueField: 'value',
-                      labelField: 'label',
-                    }
-                  ),
-                  formatter: (cell) => {
-                    const val = cell.getValue();
-                    if (!val) {
+          {
+            title: 'Số điện thoại',
+            field: 'PhoneNumber',
+            headerHozAlign: 'center',
+            editor: true,
+          },
+          {
+            title: 'Kế hoạch',
+            field: 'PlanDate',
+            headerHozAlign: 'center',
+            editor: 'date',
+            editorParams: {
+              format: 'yyyy-MM-dd',
+            },
+            formatter: 'datetime',
+            formatterParams: {
+              inputFormat: 'yyyy-MM-dd',
+              outputFormat: 'dd/MM/yyyy',
+            },
+          },
+          {
+            title: 'Ghi chú',
+            field: 'Note',
+            headerHozAlign: 'center',
+            editor: true,
+          },
+          {
+            title: 'Phát sinh',
+            field: 'ProjectHistoryProblemID',
+            hozAlign: 'center',
+            headerHozAlign: 'center',
+            width: 200,
+            editor: this.createdControl(
+              SelectControlComponent,
+              this.injector,
+              this.appRef,
+              () => this.projectProblemOptions,
+              {
+                valueField: 'value',
+                labelField: 'label',
+              }
+            ),
+            formatter: (cell) => {
+              const val = cell.getValue();
+              if (!val) {
                 return '<div class="d-flex justify-content-between align-items-center" style="width: 100%;"><p class="w-100 m-0 text-muted"></p> <i class="fas fa-angle-down"></i></div>';
-                    }
-                    const projectproblem = this.projectProblemOptions.find(
-                      (p: any) => p.value === val
-                    );
-                    const projectProblemName = projectproblem
-                      ? projectproblem.ContentError
-                      : val;
+              }
+              const projectproblem = this.projectProblemOptions.find(
+                (p: any) => p.value === val
+              );
+              const projectProblemName = projectproblem
+                ? projectproblem.ContentError
+                : val;
               return `<div class="d-flex justify-content-between align-items-center" style="width: 100%;"><p class="w-100 m-0">${projectProblemName}</p> <i class="fas fa-angle-down"></i></div>`;
             },
-            },
-          ],
-        }
-      );
-    }
+          },
+        ],
+      }
+    );
+  }
 
   addNewEmployeeContentRow(): void {
     const newRow = {
       ID: null,
-        DetailContent: '',
-        DetailResult: '',
-        EmployeeID: 0,
-        CustomerName: '',
-        PhoneNumber: '',
+      DetailContent: '',
+      DetailResult: '',
+      EmployeeID: 0,
+      CustomerName: '',
+      PhoneNumber: '',
       PlanDate: null,
-        Note: '',
+      Note: '',
       ProjectHistoryProblemID: null,
     };
     this.tb_EmployeeDetailContentTable.addRow(newRow);
@@ -1466,23 +1487,23 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
       this.tb_CustomerDetailContentTableElement.nativeElement,
       {
         ...DEFAULT_TABLE_CONFIG,
-          data: this.customerDetailContentData,
+        data: this.customerDetailContentData,
         height: '100%',
         rowHeader: false,
-          selectableRows: 1,
+        selectableRows: 1,
         layout: 'fitDataStretch',
         pagination: false,
-              columns: [
-                {
-                  title: '',
+        columns: [
+          {
+            title: '',
             field: 'addRow',
-                  hozAlign: 'center',
-                  width: 40,
+            hozAlign: 'center',
+            width: 40,
             frozen: true,
-                  headerSort: false,
-                  titleFormatter: () =>
+            headerSort: false,
+            titleFormatter: () =>
               `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
-                  headerClick: () => {
+            headerClick: () => {
               this.addNewCustomerContentRow();
             },
             formatter: (cell) => {
@@ -1492,20 +1513,20 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
                 ? `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`
                 : '';
             },
-                  cellClick: (e, cell) => {
+            cellClick: (e, cell) => {
               let data = cell.getRow().getData();
               let id = data['ID'];
               let isDeleted = data['IsDeleted'];
               if (isDeleted) {
                 return;
               }
-                      this.modal.confirm({
+              this.modal.confirm({
                 nzTitle: `Bạn có chắc chắn muốn xóa nội dung này không?`,
                 nzOkText: 'Xóa',
                 nzOkType: 'primary',
-                        nzCancelText: 'Hủy',
+                nzCancelText: 'Hủy',
                 nzOkDanger: true,
-                        nzOnOk: () => {
+                nzOnOk: () => {
                   if (id > 0) {
                     if (!this.deletedIdsCustomerContent.includes(id))
                       this.deletedIdsCustomerContent.push(id);
@@ -1513,101 +1534,101 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
                   } else {
                     this.tb_CustomerDetailContentTable.deleteRow(cell.getRow());
                   }
-                        },
-                      });
-                  },
                 },
+              });
+            },
+          },
           { title: 'ID', field: 'ID', visible: false },
-                {
-                  title: 'Nội dung',
-                  field: 'DetailContent',
+          {
+            title: 'Nội dung',
+            field: 'DetailContent',
             headerHozAlign: 'center',
             editor: true,
-                  formatter: 'textarea',
+            formatter: 'textarea',
             width: 200,
-                },
-                {
-                  title: 'Kết quả',
-                  field: 'DetailResult',
-                  headerHozAlign: 'center',
+          },
+          {
+            title: 'Kết quả',
+            field: 'DetailResult',
+            headerHozAlign: 'center',
             editor: true,
-                  formatter: 'textarea',
+            formatter: 'textarea',
             width: 200,
-                },
-                {
-                  title: 'Họ tên',
-                  field: 'CustomerName',
-                  headerHozAlign: 'center',
+          },
+          {
+            title: 'Họ tên',
+            field: 'CustomerName',
+            headerHozAlign: 'center',
             editor: true,
-                },
-                {
-                  title: 'Số điện thoại',
-                  field: 'PhoneNumber',
-                  headerHozAlign: 'center',
+          },
+          {
+            title: 'Số điện thoại',
+            field: 'PhoneNumber',
+            headerHozAlign: 'center',
             editor: true,
-                },
-                {
-                  title: 'Kế hoạch',
-                  field: 'PlanDate',
-                  headerHozAlign: 'center',
-                  editor: "date",
-                  editorParams: {
-                    format: "yyyy-MM-dd",
-                  },
-                  formatter: "datetime",
-                  formatterParams: {
-                    inputFormat: "yyyy-MM-dd",
-                    outputFormat: "dd/MM/yyyy",
-                  },
-                },
-                {
-                  title: 'Ghi chú',
-                  field: 'Note',
-                  headerHozAlign: 'center',
+          },
+          {
+            title: 'Kế hoạch',
+            field: 'PlanDate',
+            headerHozAlign: 'center',
+            editor: 'date',
+            editorParams: {
+              format: 'yyyy-MM-dd',
+            },
+            formatter: 'datetime',
+            formatterParams: {
+              inputFormat: 'yyyy-MM-dd',
+              outputFormat: 'dd/MM/yyyy',
+            },
+          },
+          {
+            title: 'Ghi chú',
+            field: 'Note',
+            headerHozAlign: 'center',
             editor: true,
-                },
-                {
-                  title: 'Phát sinh',
-                  field: 'ProjectHistoryProblemID',
-                  headerHozAlign: 'center',
-                  editor: this.createdControl(
-                    SelectControlComponent,
-                    this.injector,
-                    this.appRef,
-                    () => this.projectProblemOptions,
-                    {
-                      valueField: 'value',
-                      labelField: 'label',
-                    }
-                  ),
-                  formatter: (cell) => {
-                    const val = cell.getValue();
-                    if (!val) {
+          },
+          {
+            title: 'Phát sinh',
+            field: 'ProjectHistoryProblemID',
+            headerHozAlign: 'center',
+            editor: this.createdControl(
+              SelectControlComponent,
+              this.injector,
+              this.appRef,
+              () => this.projectProblemOptions,
+              {
+                valueField: 'value',
+                labelField: 'label',
+              }
+            ),
+            formatter: (cell) => {
+              const val = cell.getValue();
+              if (!val) {
                 return '<div class="d-flex justify-content-between align-items-center" style="width: 100%;"><p class="w-100 m-0 text-muted"></p> <i class="fas fa-angle-down"></i></div>';
-                    }
-                    const projectproblem = this.projectProblemOptions.find(
-                      (p: any) => p.value === val
-                    );
-                    const projectProblemName = projectproblem
-                      ? projectproblem.ContentError
-                      : val;
+              }
+              const projectproblem = this.projectProblemOptions.find(
+                (p: any) => p.value === val
+              );
+              const projectProblemName = projectproblem
+                ? projectproblem.ContentError
+                : val;
               return `<div class="d-flex justify-content-between align-items-center" style="width: 100%;"><p class="w-100 m-0">${projectProblemName}</p> <i class="fas fa-angle-down"></i></div>`;
             },
-            },
-          ],
-        }
-      );
-    }
+          },
+        ],
+      }
+    );
+  }
 
   addNewCustomerContentRow(): void {
     const newRow = {
       ID: null,
-        DetailContent: '',
+      DetailContent: '',
       DetailResult: '',
-        CustomerName: '',
-        PhoneNumber: '',
-        PlanDate: null,
-        Note: '',
+      CustomerName: '',
+      PhoneNumber: '',
+      PlanDate: null,
+      Note: '',
       ProjectHistoryProblemID: null,
       EmployeeID: -1,
     };
@@ -1673,7 +1694,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
                       f['ServerPath'] === rowData['ServerPath'] &&
                       f['ID'] === rowData['ID']
                   );
-  
+
                   if (index > -1) {
                     const deletedFile = this.fileDatas[index];
                     if (deletedFile['ID']) {
@@ -1681,7 +1702,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
                     }
                     this.fileDatas.splice(index, 1);
                   }
-  
+
                   row.delete();
                 },
               });
@@ -1743,67 +1764,67 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
     fileInput.type = 'file';
     fileInput.multiple = false;
     fileInput.style.display = 'none';
-  
+
     const cleanup = () => {
       if (fileInput.parentNode) {
         fileInput.parentNode.removeChild(fileInput);
       }
     };
-  
+
     const handleFileChange = (event: Event) => {
       const target = event.target as HTMLInputElement;
       const files = target.files;
-  
+
       if (!files || files.length === 0) {
         cleanup();
         return;
       }
-  
+
       const file = files[0];
       const fileName = file.name;
-  
+
       // 1. Cập nhật dữ liệu trong Tabulator row
       row.update({
         FileName: fileName,
         File: file,
         // Không cần gán ID, OriginPath, ServerPath ở đây nếu chưa có
       });
-  
+
       // 2. Lấy dữ liệu hiện tại của row
       const rowData = row.getData();
-  
+
       // 3. Tìm index trong this.fileDatas (dùng findIndex để tránh lỗi reference)
-      const index = this.fileDatas.findIndex(f =>
-        f['ID'] === rowData['ID'] &&
-        f['FileName'] === rowData['FileName'] &&
-        f['ServerPath'] === rowData['ServerPath']
+      const index = this.fileDatas.findIndex(
+        (f) =>
+          f['ID'] === rowData['ID'] &&
+          f['FileName'] === rowData['FileName'] &&
+          f['ServerPath'] === rowData['ServerPath']
       );
-  
+
       if (index > -1) {
         // 4. Cập nhật trong mảng chính (giữ lại các trường cũ)
         this.fileDatas[index] = {
           ...this.fileDatas[index],
           FileName: fileName,
-          OriginPath: fileName,           // OriginPath = tên file gốc
-          File: file,                     // File object mới
+          OriginPath: fileName, // OriginPath = tên file gốc
+          File: file, // File object mới
           // ServerPath: giữ nguyên (sẽ có sau khi upload)
         };
       } else {
-
       }
-  
+
       cleanup();
     };
-  
+
     fileInput.addEventListener('change', handleFileChange);
-  
+
     // Xử lý khi người dùng hủy (click ngoài)
     fileInput.addEventListener('cancel', cleanup);
-  
+
     // Thêm vào DOM và kích hoạt click
     document.body.appendChild(fileInput);
     fileInput.click();
-  
+
     // Dọn dẹp sau 5 phút (tránh rò rỉ)
     setTimeout(cleanup, 300_000);
   }

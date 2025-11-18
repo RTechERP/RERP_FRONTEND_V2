@@ -40,7 +40,7 @@ export class ProjectService {
   ISADMIN: boolean = true;
   GlobalDepartmentId: number = 1;
   //save hãng 
-  saveFirmBase(data:any): Observable<any>{
+  saveFirmBase(data: any): Observable<any> {
     return this.http.post<any>(`${this.urlProject}save-firm-base`, data);
   }
   // Lấy danh sách thư mục dự án
@@ -146,7 +146,7 @@ export class ProjectService {
     debugger
     return this.http.get<any>(
       this.urlProject +
-        `get-project-code-modal?projectId=${projectId}&customerShortName=${shortName}&projectType=${projectType}`
+      `get-project-code-modal?projectId=${projectId}&customerShortName=${shortName}&projectType=${projectType}`
     );
   }
   // lấy leader
@@ -167,14 +167,14 @@ export class ProjectService {
   getProjectCurrentSituation(projectId: any, employeeId: any): Observable<any> {
     return this.http.get<any>(
       this.urlProject +
-        `get-project-current-situation?projectId=${projectId}&employeeId=${employeeId}`
+      `get-project-current-situation?projectId=${projectId}&employeeId=${employeeId}`
     );
   }
   // lấy độ ưu tiên cá nhân
   getPersonalPriority(projectId: any, employeeId: any): Observable<any> {
     return this.http.get<any>(
       this.urlProject +
-        `get-personal-priority?projectId=${projectId}&employeeId=${employeeId}`
+      `get-personal-priority?projectId=${projectId}&employeeId=${employeeId}`
     );
   }
   // Kiểm tra đã có mã dự án chưa
@@ -182,7 +182,7 @@ export class ProjectService {
     debugger
     return this.http.get<any>(
       this.urlProject +
-        `check-project-code?id=${projectId}&projectCode=${projectCode}`
+      `check-project-code?id=${projectId}&projectCode=${projectCode}`
     );
   }
 
@@ -193,7 +193,7 @@ export class ProjectService {
   ): Observable<any> {
     return this.http.get<any>(
       this.urlProject +
-        `save-change-project?projectIdOld=${projectIdOld}&projectIdNew=${projectIdNew}`
+      `save-change-project?projectIdOld=${projectIdOld}&projectIdNew=${projectIdNew}`
     );
   }
 
@@ -267,7 +267,7 @@ export class ProjectService {
   saveProjectStatus(Stt: any, statusName: any): Observable<any> {
     return this.http.post<any>(
       this.urlProject +
-        `save-project-status?Stt=${Stt}&statusName=${statusName}`,
+      `save-project-status?Stt=${Stt}&statusName=${statusName}`,
       {}
     );
   }
@@ -310,7 +310,7 @@ export class ProjectService {
     let selected: any[] = [];
 
     data.forEach((row) => {
-        selected.push(row);
+      selected.push(row);
       if (row._children && Array.isArray(row._children)) {
         selected = selected.concat(
           this.getSelectedRowsRecursive(row._children)
@@ -342,7 +342,7 @@ export class ProjectService {
   getEmployeeMain(projectId: number, isDeleted: number): Observable<any> {
     return this.http.get<any>(
       this.urlProject +
-        `get-employee-main?projectId=${projectId}&isDeleted=${isDeleted}`
+      `get-employee-main?projectId=${projectId}&isDeleted=${isDeleted}`
     );
   }
 
@@ -601,8 +601,15 @@ export class ProjectService {
     const worksheet = workbook.addWorksheet(sheetName);
 
     const columns = table.getColumns();
-    // Bỏ qua cột đầu tiên
-    const headers = columns.map((col: any) => col.getDefinition().title);
+
+    // tạo danh sách header nhưng bỏ cột có formatter: rowSelection
+    const visibleColumns = columns
+      .map((col: any) => col.getDefinition())
+      .filter((def: any) => def.formatter !== "rowSelection"); // bỏ cột checkbox
+
+    const headers = visibleColumns.map((def: any) => def.title);
+
+    // Thêm vào Excel
     worksheet.addRow(headers);
 
     let nums: number[] = [];
@@ -633,14 +640,15 @@ export class ProjectService {
 
       // Ghi dữ liệu thực tế của nhóm này
       rows.forEach((row: any) => {
-        const rowData = columns.map((col: any, colIndex: number) => {
-          const field = col.getField();
+        const rowData = visibleColumns.map((col: any) => {
+          const field = col.field; // dùng field từ visibleColumns
           let value = row[field];
 
-          // Nếu là 2 cột đầu và kiểu boolean, chuyển thành checkbox biểu tượng
+          // Nếu là boolean, chuyển thành checkbox biểu tượng
           if (typeof value === 'boolean') {
             return value ? '☑' : '☐';
           }
+
           // Format ngày nếu là ISO string
           if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
             value = new Date(value);
@@ -648,7 +656,8 @@ export class ProjectService {
 
           return value;
         });
-        const newRow = worksheet.addRow(rowData);
+
+        worksheet.addRow(rowData);
       });
     });
 
@@ -823,19 +832,19 @@ export class ProjectService {
   saveProjectTreeFolder(data: any): Observable<any> {
     return this.http.post<any>(this.urlProject + 'save-project-tree-folder', data);
   }
-     // lấy danh sách leader của loại dự án
-     getEmployeeProjectType(projectTypeId: any): Observable<any> {
-      return this.http.get<any>(this.apiUrl + `Project/getemployeeprojecttype/${projectTypeId}`);
-    }
-       // lưu leader dự án
+  // lấy danh sách leader của loại dự án
+  getEmployeeProjectType(projectTypeId: any): Observable<any> {
+    return this.http.get<any>(this.apiUrl + `Project/getemployeeprojecttype/${projectTypeId}`);
+  }
+  // lưu leader dự án
   saveemployeeprojecttype(
     employeeProjectType: any,
   ): Observable<any> {
     return this.http.post<any>(
-      this.apiUrl + `Project/saveemployeeprojecttype`,employeeProjectType
+      this.apiUrl + `Project/saveemployeeprojecttype`, employeeProjectType
     );
   }
-   // Chức năng người tham gia dự án theo departmentID
+  // Chức năng người tham gia dự án theo departmentID
   getProjectEmployeefilter(departmentID: number): Observable<any> {
     return this.http.get<any>(
       this.apiUrl + `Project/get-project-employee-filter/${departmentID}`
@@ -844,14 +853,14 @@ export class ProjectService {
   //end
   //tổng hợp dự án
   getProjectSummary(
-    dateTimeS:DateTime,
-    dateTimeE:DateTime,
-    departmentID:number,
-    userID:number,
+    dateTimeS: DateTime,
+    dateTimeE: DateTime,
+    departmentID: number,
+    userID: number,
     projectTypeID: string,
     keyword: string,
     userTeamID: number,
-    
+
   ): Observable<any> {
     const filter: any = {
       dateTimeS: dateTimeS?.toISO() || new Date().toISOString(),
@@ -859,7 +868,7 @@ export class ProjectService {
       keyword: keyword.trim(),
       userID: userID.toString(),
       projectTypeID: projectTypeID.trim(),
-      userTeamID:userTeamID.toString(),
+      userTeamID: userTeamID.toString(),
       departmentID: departmentID.toString(),
     };
 

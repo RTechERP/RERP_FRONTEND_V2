@@ -1,0 +1,142 @@
+<ng-container class="w-100">
+    <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex gap-2">
+                    <button class="fs-12 btn-add" nz-button nzType="default" nzSize="small" (click)="openAddModal()"
+                        *hasPermission="'N2,N1'">
+                        <img src="assets/icon/action_add_item_16.png" alt="Thêm " /> Thêm
+                    </button>
+                    <button class="fs-12 btn-edit" nz-button nzType="default" nzSize="small" (click)="openEditModal()"
+                        *hasPermission="'N2,N23,N1'">
+                        <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />Sửa
+                    </button>
+                    <button class="fs-12 btn-delete" nz-button nzType="default" nzSize="small"
+                        (click)="openDeleteModal()" *hasPermission="'N2,N1'">
+                        <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />Xóa
+                    </button>
+                    <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openScheduleWorkModal()"
+                        *hasPermission="'N2,N1'">
+                        <img src="assets/icon/action_calendar_16.png" alt="Thêm lịch thứ 7" />Thêm lịch thứ 7
+                    </button>
+                </div>
+                <form [formGroup]="searchForm" class="d-flex flex-wrap align-items-center gap-2">
+                    <!-- <label nz-checkbox formControlName="viewAll" class="mb-0" (change)="loadHolidays()">Xem tất
+                        cả</label> -->
+
+                    <div class="d-flex align-items-center gap-1">
+                        <label class="mb-0">Tháng</label>
+                        <nz-input-number formControlName="month" [nzMin]="1" [nzMax]="12"
+                            nzSize="small"></nz-input-number>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-1">
+                        <label class="mb-0">Năm</label>
+                        <nz-input-number formControlName="year" [nzMin]="1900" [nzMax]="3000"
+                            nzSize="small"></nz-input-number>
+                    </div>
+
+                    <button class="fs-12" nz-button nzType="default" nzSize="small" type="button"
+                        (click)="loadHolidays()">
+                        Tìm kiếm
+                    </button>
+                </form>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="card-body p-0 position-relative">
+                <div *ngIf="isLoading">
+                    <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
+              position: 'absolute',
+              top: '0',
+              left: '0',
+              width: '100%',
+              height: '100%',
+              background: 'rgba(255,255,255,0.4)',
+              zIndex: '999',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }"></nz-spin>
+                </div>
+                <div id="tb_holiday"></div>
+            </div>
+
+        </div>
+    </div>
+</ng-container>
+
+
+<div class="modal fade" id="addHolidayModal" tabindex="-1" aria-labelledby="addHolidayModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered fs-12">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h6 class="modal-title text-uppercase text-white" id="addHolidayModalLabel">
+                    CHI TIẾT NGÀY NGHỈ
+                </h6>
+                <button type="button" class="btn-close me-1" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-2">
+                <form nz-form [formGroup]="holidayForm">
+                    <nz-form-item class="mb-1">
+                        <nz-form-label [nzSpan]="24" class="p-0">Ngày</nz-form-label>
+                        <nz-form-control [nzSpan]="24">
+                            <nz-date-picker formControlName="HolidayDate" nzPlaceHolder="Chọn ngày nghỉ" nzAllowClear="false"
+                                nzFormat="dd/MM/yyyy" [nzSize]="'default'" style="width: 100%"></nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+
+                    <nz-form-item class="mb-1">
+                        <nz-form-label [nzSpan]="24" class="p-0">Loại<span
+                                class="text-danger ps-1">*</span></nz-form-label>
+                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn loại ngày nghỉ">
+                            <nz-select formControlName="TypeHoliday" style="width: 100%;"
+                                nzPlaceHolder="Chọn loại ngày nghỉ">
+                                <nz-option [nzValue]="1" nzLabel="Nghỉ có hưởng lương"></nz-option>
+                                <nz-option [nzValue]="2" nzLabel="Nghỉ không hưởng lương"></nz-option>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                    <nz-form-item class="mb-1">
+                        <nz-form-label [nzSpan]="24" class="p-0">Tên<span
+                                class="text-danger ps-1">*</span></nz-form-label>
+                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập tên ngày nghỉ">
+                            <input nz-input formControlName="HolidayName" placeholder="Nhập tên ngày nghỉ" />
+                        </nz-form-control>
+                    </nz-form-item>
+                    <nz-form-item class="mb-1">
+                        <nz-form-label [nzSpan]="24" class="p-0">Ghi chú</nz-form-label>
+                        <nz-form-control [nzSpan]="24">
+                            <input nz-input formControlName="Note" placeholder="Nhập ghi chú" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </form>
+            </div>
+            <div class="modal-footer py-0">
+                <button type="button" class="btn btn-outline-danger" style="border: 1px solid; border-radius: 0;" (click)="closeModal()">
+                    Đóng
+                </button>
+                <button type="button" style="border-radius: 0;" class="btn btn-primary" (click)="onSubmit()" *hasPermission="'N2,N1'">
+                    Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="scheduleWorkModal" tabindex="-1" aria-labelledby="scheduleWorkModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered fs-12 modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <h6 class="modal-title text-uppercase text-white" id="scheduleWorkModalLabel">
+                    LỊCH LÀM VIỆC THỨ BẢY
+                </h6>
+                <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-0">
+                <app-employee-schedule-work></app-employee-schedule-work>
+            </div>
+        </div>
+    </div>
+</div>

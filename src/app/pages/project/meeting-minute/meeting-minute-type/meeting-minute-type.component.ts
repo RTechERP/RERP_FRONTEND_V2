@@ -32,12 +32,13 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NgModel } from '@angular/forms';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { Router } from '@angular/router';
-import { ProjectService } from '../project-service/project.service';
+import { MeetingMinuteService } from '../meeting-minute-service/meeting-minute.service';
 import { Title } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
-import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
-import { LeaderProjectDetailComponent } from './leader-project-form/leader-project-detail.component';
-import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { MeetingTypeFormComponent } from '../meeting-type-form/meeting-type-form.component';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { ProjectService } from '../../project-service/project.service';
 @Component({
   selector: 'app-price-history-partlist',
   imports: [
@@ -64,10 +65,10 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
     CommonModule,
     HasPermissionDirective,
   ],
-  templateUrl: './leader-project.component.html',
-  styleUrl: './leader-project.component.css'
+  templateUrl: './meeting-minute-type.component.html',
+  styleUrl: './meeting-minute-type.component.css'
 })
-export class LeaderProjectComponent implements OnInit, AfterViewInit{
+export class MeetingMinuteTypeComponent implements OnInit, AfterViewInit{
 //#region Khai báo biến 
   constructor(
     private injector: EnvironmentInjector,
@@ -76,24 +77,17 @@ export class LeaderProjectComponent implements OnInit, AfterViewInit{
     private notification: NzNotificationService,
     private modal: NzModalService,
     private modalService: NgbModal,
-    private router: Router
+    private router: Router,
+    private meetingMinuteService: MeetingMinuteService,
   ) { }
 
-  @ViewChild('tb_leaderProject', { static: false })
-  tb_leaderProjectContainer!: ElementRef;
-  tb_leaderProject: any;
+  @ViewChild('tb_meetingMinuteType', { static: false })
+  tb_meetingMinuteTypeContainer!: ElementRef;
+  tb_meetingMinuteType: any;
 
   isLoadTable: any = false;
   sizeSearch: string = '0';
 
-  employeeRequests: any[] = [];
-  projects: any[] = [];
-  suppliers: any[] = [];
-
-
-  employeeRequestId: any;
-  projectId: any;
-  supplierId: any;
   keyword: string = '';
   //#endregion
 
@@ -101,38 +95,36 @@ export class LeaderProjectComponent implements OnInit, AfterViewInit{
   ngOnInit(): void {
   }
   ngAfterViewInit(): void {
-    this.drawTbLeaderProject(
-      this.tb_leaderProjectContainer.nativeElement
+    this.drawTbMeetingType(
+      this.tb_meetingMinuteTypeContainer.nativeElement
     );
-      this.getLeaderProject();
+      this.getAllMeetingType();
   }
   //#endregion
 
-  //#region Sự kiện khác
-  toggleSearchPanel() {
-    this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
-  }
-
-  resetSearch() {
-    this.employeeRequestId = 0;
-    this.projectId = 0;
-    this.supplierId = 0;
-    this.keyword = '';
-  }
-
-  openModalAddLeaders() {
-    const modalRef = this.modalService.open(LeaderProjectDetailComponent, {
-
-      size: 'xl',
+  openModalAddMeetingType(isEdit: boolean) {
+    let selectedData;
+    debugger
+    if(isEdit == true){
+      selectedData = this.tb_meetingMinuteType?.getSelectedData();
+      if (!selectedData && selectedData.length < 0) {
+        this.notification.warning('Thông báo', 'Vui lòng chọn 1 loại biên bản cuộc họp để sửa!')
+        return;
+      }
+    }
+    const modalRef = this.modalService.open(MeetingTypeFormComponent, {
+      centered: true,
+      size: 'md',
+      backdrop: 'static',
+      keyboard: false,
     });
+    modalRef.componentInstance.meetingtype = selectedData[0];
     modalRef.result.then(
       (result) => {
 
         if (result === true) {
-          this.getLeaderProject();
-        } else {
-          this.getLeaderProject();
-        }
+          this.getAllMeetingType();
+        } 
       },
       (reason) => {
         console.log('Modal dismissed with reason:', reason);
@@ -140,12 +132,12 @@ export class LeaderProjectComponent implements OnInit, AfterViewInit{
       }
     );
   }
-  async getLeaderProject() {
+  async getAllMeetingType() {
     this.isLoadTable = true;
 
-    this.projectService.getLeaderProject(this.keyword).subscribe({
+    this.meetingMinuteService.getAllMeetingType().subscribe({
       next: (response: any) => {
-        this.tb_leaderProject.setData(response.data);
+        this.tb_meetingMinuteType.setData(response.data);
         this.isLoadTable = false;
       },
       error: (error) => {
@@ -155,50 +147,37 @@ export class LeaderProjectComponent implements OnInit, AfterViewInit{
     });
   }
   onDeleteLeaders() {
-    const selectedRows = this.tb_leaderProject.getSelectedRows();
+    const selectedRows = this.tb_meetingMinuteType.getSelectedRows();
     
     if (selectedRows.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn nhân viên để xóa!');
+      this.notification.warning('Thông báo', 'Vui lòng chọn loại biên bản để xóa!');
       return;
     }
-
-    // Chỉ cho phép xóa 1 nhân viên
-    if (selectedRows.length > 1) {
-      this.notification.warning('Thông báo', 'Chỉ được phép xóa 1 nhân viên tại một thời điểm!');
-      return;
-    }
-
+    console.log("selectedRows", selectedRows);
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: 'Bạn có chắc chắn muốn xóa nhân viên đã chọn?',
+      nzContent: 'Bạn có chắc chắn muốn xóa loại biên bản đã chọn?',
       nzOkText: 'Xóa',
       nzCancelText: 'Hủy',
       nzOkDanger: true,
       nzOnOk: () => {
-        // Lấy dữ liệu đầy đủ của nhân viên đã chọn
-        const row = selectedRows[0];
-        const rowData = row.getData();
-        
-        // Tạo payload với đầy đủ thông tin theo format API yêu cầu
-        const payload = [{
-          Code: rowData.Code || '',
-          FullName: rowData.FullName || '',
-          EmployeeID: rowData.EmployeeID ,
-          Type: 2,
-          IsDeleted: true
-        }];
-
+        const meetingtypeDeleted = selectedRows.map((row: any) => {
+          const data = row.getData(); 
+          return {
+            ID: data.ID,
+            IsDeleted: true
+          };
+        });
         // Gọi API với payload xóa (IsDeleted = true)
-        this.projectService.saveProjectLeader(payload).subscribe({
+        this.meetingMinuteService.saveDataMeetingType(meetingtypeDeleted).subscribe({
           next: (res) => {
-            this.notification.success('Thành công', 'Đã xóa nhân viên thành công!');
-            // Reload lại dữ liệu bảng
-            this.getLeaderProject();
+            this.notification.success('Thành công', 'Đã xóa các loại biên bản cuộc họp thành công!');
+            this.getAllMeetingType();
             // Bỏ chọn dòng đã xóa
-            this.tb_leaderProject.deselectRow();
+            this.tb_meetingMinuteType.deselectRow();
           },
           error: (error) => {
-            console.error('Lỗi khi xóa nhân viên:', error);
+            console.error('Lỗi khi xóa:', error);
             const errorMessage = error?.error?.message || error?.message || 'Không thể xóa nhân viên, vui lòng thử lại!';
             this.notification.error('Lỗi', errorMessage);
           }
@@ -208,10 +187,10 @@ export class LeaderProjectComponent implements OnInit, AfterViewInit{
   }
 
   exportExcel() {
-    let table = this.tb_leaderProject;
+    let table = this.tb_meetingMinuteType;
     if (!table) return;
 
-    let datatable = this.tb_leaderProject.getData();
+    let datatable = this.tb_meetingMinuteType.getData();
     if (!datatable || datatable.length === 0) {
       this.notification.error('Thông báo', 'Không có dữ liệu để xuất excel!');
       return;
@@ -226,37 +205,57 @@ export class LeaderProjectComponent implements OnInit, AfterViewInit{
     );
   }
 
-  drawTbLeaderProject(container: HTMLElement) {
-    this.tb_leaderProject = new Tabulator(container, {
+  drawTbMeetingType(container: HTMLElement) {
+    this.tb_meetingMinuteType = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
       pagination: true,
       layout: 'fitDataStretch',
       paginationMode:'local',
-      rowHeader: false,
-      groupBy: "DepartmentName",
+      groupBy: "GroupID",
      groupHeader: function(value, count, data) {
-        return "Phòng ban: " + value;
+        return "Thành phần tham gia: " + (value==1 ? 'Nội bộ' : 'Khách hàng');
       },
-      //groupToggleElement: "header",
-      selectableRows:1,
+      groupToggleElement: "header",
+      selectableRows:true,
       columns: [
         {
-          title: 'Mã nhân viên',
-          field: 'Code',
-          width:300,
+          title: 'STT',
+          field: 'STT',
+          width:70,
           headerHozAlign: 'center',
+          formatter: 'rownum',
         },
         {
-          title: 'Họ tên',
-          field: 'FullName',
+          title: 'ID',
+          field: 'ID',
+          width:70,
           headerHozAlign: 'center',
+          visible:false,
+        },
+        {
+          title: 'Mã loại cuộc họp',
+          field: 'TypeCode',
+          width:300,
+          headerHozAlign: 'center',
+          hozAlign: 'left',
+        },
+        {
+          title: 'Tên loại cuộc họp',
+          field: 'TypeName',
+          headerHozAlign: 'center',
+          hozAlign: 'left',
+        },
+        {
+          title: 'Nội dung',
+          field: 'TypeContent',
+          headerHozAlign: 'center',
+          hozAlign: 'left',
           formatter: 'textarea',
-          resizable:false,
         },
       ],
     });
-    this.tb_leaderProject.on("pageLoaded", () => {
-      this.tb_leaderProject.redraw();
+    this.tb_meetingMinuteType.on("pageLoaded", () => {
+      this.tb_meetingMinuteType.redraw();
     });
     
   }

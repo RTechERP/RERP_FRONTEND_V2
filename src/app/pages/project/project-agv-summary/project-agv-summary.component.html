@@ -1,6 +1,6 @@
 <ng-container class="w-100">
     <nz-splitter>
-        <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false" >
+        <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
             <div class="card h-100 border-0 rounded-0">
                 <div class="card-header bg-white p-1">
                     <div class="d-flex justify-content-between align-items-center">
@@ -11,74 +11,27 @@
                         </button>
                     </div>
                 </div> 
-                <div class="card-body" style="overflow-x: auto;">
+                <div class="card-body">
                     <form nz-form nzLayout="vertical">
                         <nz-form-item>
                             <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
                             <nz-form-control [nzSpan]="24"><nz-date-picker name="dateStart" class="w-100"
-                                    nzFormat="dd/MM/yyyy" [(ngModel)]="searchParams.dateTimeS" nzAllowClear="false"
+                                    nzFormat="dd/MM/yyyy" [(ngModel)]="dateStart" nzAllowClear="false"
                                     (ngModelChange)="getDay()"></nz-date-picker>
                             </nz-form-control>
                         </nz-form-item>
                         <nz-form-item class="mt-2">
                             <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
                             <nz-form-control [nzSpan]="24">
-                                <nz-date-picker name="dateEnd" class="w-100" nzFormat="dd/MM/yyyy" [(ngModel)]="searchParams.dateTimeE"
+                                <nz-date-picker name="dateEnd" class="w-100" nzFormat="dd/MM/yyyy" [(ngModel)]="dateEnd"
                                     nzAllowClear="false"></nz-date-picker>
                             </nz-form-control>
                         </nz-form-item>
                         <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24"
-                              >Phòng ban</nz-form-label
-                            >
-                            <nz-form-control [nzSpan]="24">
-                              <nz-select
-                                name="departmentId"
-                                class="w-100"
-                                nzShowSearch
-                                nzAllowClear
-                                nzPlaceHolder="Chọn phòng ban"
-                                [(ngModel)]="searchParams.departmentID"
-                                (ngModelChange)="getUserTeam()"
-                              >
-                                @for (item of departments; track $index) {
-                                <nz-option
-                                  nzCustomContent="true"
-                                  [nzLabel]="item.Name"
-                                  [nzValue]="item.ID"
-                                  >{{ item.Name }}</nz-option
-                                >
-                                }
-                              </nz-select>
-                            </nz-form-control>
-                          </nz-form-item>
-                          <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Team</nz-form-label>
-                            <nz-form-control [nzSpan]="24">
-                              <nz-select
-                                name="teamId"
-                                class="w-100"
-                                nzShowSearch
-                                nzAllowClear
-                                nzPlaceHolder="Chọn team"
-                                [(ngModel)]="searchParams.userTeamID"
-                              >
-                                @for (item of teams; track $index) {
-                                <nz-option
-                                  nzCustomContent="true"
-                                  [nzLabel]="item.Name"
-                                  [nzValue]="item.ID"
-                                  >{{ item.Name }}</nz-option
-                                >
-                                }
-                              </nz-select>
-                            </nz-form-control>
-                          </nz-form-item>
-                        <nz-form-item class="mt-2">
-                            <nz-form-label class="fs-12" [nzSpan]="24">Nhân viên</nz-form-label>
+                            <nz-form-label class="fs-12" [nzSpan]="24">Sale</nz-form-label>
                             <nz-form-control [nzSpan]="24">
                                 <nz-select name="userId" class="w-100" nzShowSearch nzAllowClear
-                                    nzPlaceHolder="Chọn Sale" [(ngModel)]="searchParams.userId">
+                                    nzPlaceHolder="Chọn Sale" [(ngModel)]="userId">
                                     @for (parent of users; track $index) {
                                     <nz-option-group [nzLabel]="parent.label">
                                         @for (child of parent.options; track $index) {
@@ -92,7 +45,68 @@
                                 </nz-select>
                             </nz-form-control>
                         </nz-form-item>
-
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Pm</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select name="pmId" class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn pm"
+                                    [(ngModel)]="pmId">
+                                    @for (parent of pms; track $index) {
+                                    <nz-option-group [nzLabel]="parent.label">
+                                        @for (child of parent.options; track $index) {
+                                        <nz-option nzCustomContent="true" [nzLabel]="child.item.FullName"
+                                            [nzValue]="child.item.EmployeeID">{{
+                                            child.item.Code + " - " + child.item.FullName
+                                            }}</nz-option>
+                                        }
+                                    </nz-option-group>
+                                    }
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Kỹ thuật</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select name="technicalId" class="w-100" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn kỹ thuật thực hiện" [(ngModel)]="technicalId">
+                                    @for (parent of users; track $index) {
+                                    <nz-option-group [nzLabel]="parent.label">
+                                        @for (child of parent.options; track $index) {
+                                        <nz-option nzCustomContent="true" [nzLabel]="child.item.FullName"
+                                            [nzValue]="child.item.ID">{{
+                                            child.item.Code + " - " + child.item.FullName
+                                            }}</nz-option>
+                                        }
+                                    </nz-option-group>
+                                    }
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Lĩnh vực dự án</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select name="businessFieldId" class="w-100" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn lĩnh vực dự án" [(ngModel)]="businessFieldId">
+                                    @for (item of businessFields; track $index) {
+                                    <nz-option nzCustomContent="true" [nzLabel]="item.Name + ' - ' + item.Code" [nzValue]="item.ID">{{
+                                        item.Code + " - " + item.Name }}</nz-option>
+                                    }
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Khách hàng</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select name="customerId" class="w-100" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn khách hàng" [(ngModel)]="customerId">
+                                    @for (item of customers; track $index) {
+                                    <nz-option nzCustomContent="true" [nzLabel]="item.CustomerName"
+                                        [nzValue]="item.ID">{{
+                                        item.CustomerCode + " - " + item.CustomerName
+                                        }}</nz-option>
+                                    }
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
                         <nz-form-item class="mt-2">
                             <nz-form-label class="fs-12" [nzSpan]="24">Kiểu dự án</nz-form-label>
                             <nz-form-control [nzSpan]="24">
@@ -122,7 +136,7 @@
                         <nz-form-item class="mt-2">
                             <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
                             <nz-form-control [nzSpan]="24">
-                                <input name="keyword" nz-input placeholder="Nhập từ khóa" [(ngModel)]="searchParams.keyword"/>
+                                <input name="keyword" nz-input placeholder="Nhập từ khóa" [(ngModel)]="keyword" />
                             </nz-form-control>
                         </nz-form-item>
                     </form>
@@ -145,25 +159,20 @@
                             <nz-icon nzType="search" />
                         </button>
                         <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
-                            <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" class="me-1" />Xuất excel
+                            <img src="assets/icon/action_export_excel_16.png" alt="Xuất excel" />Xuất excel
+                          </button>
+                        <!-- <button nz-button nzSize="small" class="fs-12 button button-succes btn-add" (click)="updateProject(0)"
+                            *ngIf="isHide">
+                            <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " /> Thêm
                         </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openProjectWorkerSynthetic()">
-                            <img src="assets/icon/summary_assignments_16.png" alt="Xuất Excel" class="me-1" /> Tổng hợp nhân công
+
+                        <button class="fs-12 btn-edit" nz-button nzType="default" nzSize="small" nzD (click)="updateProject(1)"
+                            *ngIf="isHide">
+                            <img src="assets/icon/action_edit_item_16.png" alt="Sửa">Sửa
                         </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openProjectWorkReportModal()">
-                            <img src="assets/icon/list_project_report_16.png" alt="Danh sách báo cáo công việc" class="me-1" /> Ds báo cáo công việc
-                        </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openWorkItemModal()">
-                            <img src="assets/icon/work_item_16.png" alt="Hạng mục công việc" class="me-1" /> Hạng mục công việc
-                        </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openProjectWorkerModal()">
-                            <img src="assets/icon/work_item_16.png" alt="Nhân công dự án" class="me-1" /> Nhân công dự án
-                        </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openProjectPartListModal()">
-                            <img src="assets/icon/work_item_16.png" alt="Danh mục vật tư" class="me-1" /> Danh mục vật tư
-                        </button>
-                        <!-- <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openProjectWorkTimeline()">
-                            <img src="assets/icon/progress_work_16.png" alt="Tiến độ công việc" class="me-1" /> Tiến độ công việc
+                        <button class="fs-12 btn-delete" nz-button nzType="default" nzSize="small" nzDanger
+                            (click)="deletedProjects()" *ngIf="isHide">
+                            <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />Xóa
                         </button> -->
                         <!-- <button class="fs-12" nz-button nzType="default" nzSize="small" *ngIf="isHide">
                             <nz-icon nzType="delete" nzTheme="fill" /> Hạng mục công việc
@@ -173,7 +182,7 @@
                 <div class="card-body p-0">
                     <nz-splitter>
                         <nz-splitter-panel nzSize="" [nzCollapsible]="true" nzResizable="true">
-                            <div #tb_projectsummary style=" padding-right: 10px !important;"></div>
+                            <div #tb_projects style=" padding-right: 10px !important;"></div>
                         </nz-splitter-panel>
                         <nz-splitter-panel [nzSize]="sizeTbDetail" [nzCollapsible]="true" nzResizable="true" >
                             <ng-template #tabClose>
@@ -203,13 +212,10 @@
                                             Failed
                                         </button>
                                     </div>
-                                    <div class="border" #tb_projectsummaryWorkReport></div>
+                                    <div class="border" #tb_projectWorkReport></div>
                                 </nz-tab>
                                 <nz-tab nzTitle="Kiểu dự án">
-                                    <div class="border" #tb_projectsummaryTypeLink></div>
-                                </nz-tab>
-                                <nz-tab nzTitle="Hiện trạng">
-                                    <div class="border" #tb_projectSituation></div>
+                                    <div class="border" #tb_projectTypeLink></div>
                                 </nz-tab>
                             </nz-tabset>
                            

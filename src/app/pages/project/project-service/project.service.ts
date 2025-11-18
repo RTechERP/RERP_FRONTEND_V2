@@ -909,45 +909,40 @@ export class ProjectService {
   }
   //#end
 
-  //#region Tổng hợp nhân công
-  getProjectWorkerSynthetic(
-    projectID: number,
-    projectworkertypeID: number,
-    keyword: string
-  ): Observable<any> {
-    const filter: any = {
-      projectID: projectID.toString(),
-      projectworkertypeID: projectworkertypeID.toString(),
-      keyword: keyword.trim(),
-    };
-    return this.http.post<any>(
-      this.urlProjectSummary + `get-project-worker-synthetic`,
-      filter
-    );
-  }
-  getProjectCombobox(): Observable<any> {
-    return this.http.get<any>(this.urlProjectSummary + `get-combobox-project`);
-  }
-  getProjectWorkerType(): Observable<any> {
-    return this.http.get<any>(this.urlProjectSummary + `get-worker-type`);
-  }
-  //#endregion
-  //#region Danh sách báo cáo công việc
-  getProjectListWorkReport(
-    projectId: number,
-    keyword: string,
-    page: number,
-    size: number
-  ): Observable<any> {
-    const filter: any = {
-      projectId: projectId.toString() || 0,
-      keyword: keyword.trim() || '',
-      page: page.toString(),
-      size: size.toString(),
-    };
-    return this.http.get<any>(this.urlProject + `get-project-work-reports`, {
-      params: filter,
-    });
-  }
-  //#endregion
+    //#region Tổng hợp nhân công
+    getProjectWorkerSynthetic(projectID:number, projectworkertypeID:number, keyword:string): Observable<any> {
+      const filter: any = {
+        projectID: projectID.toString(),
+        projectworkertypeID: projectworkertypeID.toString(),
+        keyword: keyword.trim(),
+      };
+      return this.http.post<any>(this.urlProjectSummary + `get-project-worker-synthetic`, filter);
+    }
+    getProjectCombobox(): Observable<any> {
+      return this.http.get<any>(this.urlProjectSummary + `get-combobox-project`);
+    }
+    getProjectWorkerType(): Observable<any> {
+      return this.http.get<any>(this.urlProjectSummary + `get-worker-type`);
+    }
+    //#endregion
+    //#region Danh sách báo cáo công việc
+    getProjectListWorkReport(projectId: number, keyword: string, page: number, size: number): Observable<any> {
+      const filter: any = {
+        projectId: projectId.toString()||0,
+        keyword: keyword.trim() ||'',
+        page: page.toString(),
+        size: size.toString(),
+      };
+      return this.http.get<any>(this.urlProject + `get-project-work-reports`, { params: filter });
+    }
+    //#endregion
+
+    //#region Leader project
+    getLeaderProject(keyword: string): Observable<any> {
+      return this.http.get<any>(this.urlProject + `get-project-leader/${keyword}`);
+    }
+    saveProjectLeader(payload: any): Observable<any> {
+      return this.http.post<any>(this.urlProject + `save-data-project-leader`, payload);
+    }
+    //#endregion
 }

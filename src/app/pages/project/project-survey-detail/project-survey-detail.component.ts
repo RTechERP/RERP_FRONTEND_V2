@@ -44,6 +44,7 @@ import {
 } from '@angular/forms';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { AuthService } from '../../../auth/auth.service';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 
 @Component({
   selector: 'app-project-survey-detail',
@@ -146,8 +147,8 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
 
   //#region Chạy khi mở trương trình
   ngOnInit(): void {
-    this.isAdmin = !this.projectService.ISADMIN;
-    this.userRequestId =this.currentUser.ID ;
+    // this.isAdmin = !this.projectService.ISADMIN;
+    // this.userRequestId =this.currentUser.ID ;
    
   }
 
@@ -263,9 +264,12 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
   //#region Xử lý bảng file
   drawTbProjectSurveyFile(container: HTMLElement) {
     this.tb_projectSurveyFile = new Tabulator(container, {
-      height: '100%',
+      ...DEFAULT_TABLE_CONFIG,
+      height: '30vh',
       layout: 'fitDataStretch',
       locale: 'vi',
+      rowHeader:false,
+      pagination:false,
       columns: [
         {
           title: '',
@@ -328,7 +332,10 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
       },
     ];
     this.tb_projectSurveyDetail = new Tabulator(container, {
-      height: '100%',
+      ...DEFAULT_TABLE_CONFIG,
+      pagination:false,
+      rowHeader:false,
+      height: '50vh',
       layout: 'fitDataStretch',
       locale: 'vi',
       dataTree: true,
@@ -370,7 +377,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
           hozAlign: 'center',
           headerHozAlign: 'center',
           headerSort: false,
-          width: '5px',
+          width: '30px',
           frozen: true,
         },
         {
@@ -490,8 +497,19 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
   //#region Upload file
   beforeUpload = (file: any): boolean => {
     console.log('file', file);
+    
+    // Check duplicate
+    const isDuplicate = this.fileList.some(f => 
+      f.name === file.name && f.size === file.size
+    );
+    
+    if (isDuplicate) {
+      console.warn('File đã tồn tại:', file.name);
+      return false;
+    }
+    
     const newFile = {
-      uid: Math.random().toString(36).substring(2),
+      uid: Math.random().toString(36).substring(2) + Date.now(),
       name: file.name,
       size: file.size,
       type: file.type,
@@ -501,18 +519,22 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
       ServerPath: '',
       OriginName: file.name,
     };
+    
     this.fileList = [...this.fileList, newFile];
     this.updateFileTable();
-    return false;
+    
+    return false; // Prevent auto upload
   };
 
   updateFileTable() {
     if (this.tb_projectSurveyFile) {
-      // Lọc ra những file chưa bị xóa
+      // Clear table trước
+      this.tb_projectSurveyFile.clearData();
+      
       const activeFiles = this.fileList.filter(
         (file: any) => !file.isDeleted && !file.IsDeleted
       );
-
+  
       const fileData = activeFiles.map((file: any, index: number) => ({
         ID: 0,
         FileName: file.name || file.FileName,
@@ -520,6 +542,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
         OriginName: file.name || file.OriginName,
         file: file,
       }));
+      
       this.tb_projectSurveyFile.addData(fileData);
     }
   }

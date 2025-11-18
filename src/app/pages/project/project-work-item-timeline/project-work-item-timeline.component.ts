@@ -18,7 +18,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import { OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { OnInit, AfterViewInit, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
 import { EnvironmentInjector } from '@angular/core';
@@ -75,7 +75,8 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private modal: NzModalService,
     private modalService: NgbModal,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   @ViewChild('tb_projectWorkItemTimeline', { static: false })
@@ -111,10 +112,13 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
   //#region Chạy khi mở chương trình
   ngOnInit(): void {}
   ngAfterViewInit(): void {
-    this.getEmployees();
-    this.getDepartment();
-    this.getUserTeam();
-    this.getProjectWorkItemTimeline();
+    // Sử dụng setTimeout để tránh ExpressionChangedAfterItHasBeenCheckedError
+    setTimeout(() => {
+      this.getEmployees();
+      this.getDepartment();
+      this.getUserTeam();
+      this.getProjectWorkItemTimeline();
+    }, 0);
   }
 
   toggleSearchPanel() {
@@ -177,9 +181,29 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
 
   async getProjectWorkItemTimeline() {
     this.isLoadTable = true;
-    this.drawTbProjectWorkItemTimeline(
-      this.tb_projectWorkItemTimelineContainer.nativeElement
-    );
+    this.cdr.detectChanges();
+    
+    // Chỉ tạo Tabulator mới nếu chưa tồn tại
+    if (!this.tb_projectWorkItemTimeline) {
+      this.drawTbProjectWorkItemTimeline(
+        this.tb_projectWorkItemTimelineContainer.nativeElement
+      );
+    } else {
+      // Nếu đã tồn tại, destroy và tạo lại để tránh lỗi khi xóa cột động
+      try {
+        this.tb_projectWorkItemTimeline.destroy();
+      } catch (error) {
+        console.error('Lỗi khi destroy Tabulator:', error);
+      } finally {
+        // Clear container để đảm bảo không còn element cũ
+        this.tb_projectWorkItemTimelineContainer.nativeElement.innerHTML = '';
+        this.tb_projectWorkItemTimeline = null;
+      }
+      // Tạo lại Tabulator
+      this.drawTbProjectWorkItemTimeline(
+        this.tb_projectWorkItemTimelineContainer.nativeElement
+      );
+    }
 
     let data = {
       dateStart: this.dateStart
@@ -193,17 +217,34 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
       employeeId: this.employeeId ? this.employeeId : 0,
       status: this.statusId,
     };
-    console.log("sjhssd", this.employeeId);
-    const response: any = await firstValueFrom(
-      this.projectService.getProjectWorkItemTimeline(data)
-    );
+    
+    try {
+      const response: any = await firstValueFrom(
+        this.projectService.getProjectWorkItemTimeline(data)
+      );
 
-    this.dataMonth = response.data.dtMonth;
-    this.dataMission = response.data.dtAllDate;
-    await this.addColunmTable(this.dataMission, this.dataMonth);
-    await this.tb_projectWorkItemTimeline.setData(response.data.dt);
+      this.dataMonth = response.data.dtMonth;
+      this.dataMission = response.data.dtAllDate;
+      
+      // Thêm cột mới
+      await this.addColunmTable(this.dataMission, this.dataMonth);
+      
+      // Set data
+      await this.tb_projectWorkItemTimeline.setData(response.data.dt);
+      
+      // Redraw table để đảm bảo render đúng
+      setTimeout(() => {
+        this.tb_projectWorkItemTimeline.redraw(true);
+      }, 100);
 
-    this.isLoadTable = false;
+      this.isLoadTable = false;
+      this.cdr.detectChanges();
+    } catch (error) {
+      console.error('Lỗi khi load dữ liệu:', error);
+      this.isLoadTable = false;
+      this.cdr.detectChanges();
+      this.notification.error('Thông báo', 'Có lỗi xảy ra khi tải dữ liệu');
+    }
   }
   //#endregion
 

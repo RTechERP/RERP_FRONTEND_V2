@@ -145,7 +145,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
   versionID: number = 0; //id phiên bản giải pháp
   versionPOID: number = 0; //id phiên bản PO
   type: number = 0; //1: giải pháp, 2: PO
-
+  isApprovedPurchase: number = -1; // -1: Tất cả, 0: Chưa yêu cầu mua, 1: Đã yêu cầu mua
   //selected data
   selectedData: any[] = [];
 
@@ -154,16 +154,17 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.isDeleted = 0;
     this.isApprovedTBP = -1;
+    this.isApprovedPurchase = -1
     this.loadDataSolution();
     this.loadDataProjectPartListVersion();
     this.loadDataProjectPartListVersionPO();
-    this.loadDataProjectWorker();
+    this.loadDataProjectPartList();
   }
   ngAfterViewInit(): void {
     this.drawTbSolution();
     this.drawTbProjectPartListVersion();
     this.drawTbProjectPartListVersionPO();
-    this.drawTbProjectWorker();
+    this.drawTbProjectPartList();
   }
   loadDataSolution(): void {
     this.projectWorkerService.getSolution(this.projectId).subscribe({
@@ -209,7 +210,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       });
   }
   searchDataProjectWorker(): void {
-    this.loadDataProjectWorker();
+    this.loadDataProjectPartList();
   }
 
   loadDataProjectPartListVersionPO(): void {
@@ -225,32 +226,34 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       },
     });
   }
-  //#region load dữ liệu nhân công
-  loadDataProjectWorker(): void {
+  //#region load dữ liệu Partlist
+  loadDataProjectPartList(): void {
     // Lấy versionID từ bảng đã chọn
     let selectedVersionID: number = 0;
+    let projectTypeID: number = 0;
     if (this.type === 1) {
       // Giải pháp
       this.selectedData = this.tb_projectPartListVersion?.getSelectedData();
       if (this.selectedData && this.selectedData.length > 0) {
         selectedVersionID = this.selectedData[0].ID || 0;
+        projectTypeID = this.selectedData[0].ProjectTypeID || 0;
       }
     } else if (this.type === 2) {
       // PO
       this.selectedData = this.tb_projectPartListVersionPO?.getSelectedData();
       if (this.selectedData && this.selectedData.length > 0) {
         selectedVersionID = this.selectedData[0].ID || 0;
+        projectTypeID = this.selectedData[0].ProjectTypeID || 0;
       }
     }
     const payload = {
      ProjectID: this.projectId || 0,
-      PartlistTypeID:  7,
-      IsDeleted: false, 
+      PartlistTypeID:  projectTypeID,
+      IsDeleted: this.isDeleted || 0, 
      Keywords: this.keyword || '',
-      IsApprovedTBP:-1 ,
-    IsApprovedPurchase:-1,
-    // ProjectPartListVersionID:selectedVersionID || 0
-     ProjectPartListVersionID:1384
+      IsApprovedTBP: this.isApprovedTBP ,
+    IsApprovedPurchase:this.isApprovedPurchase,
+     ProjectPartListVersionID:selectedVersionID || 0,
      //17433,7,0,'',-1,-1,1384
         // projectID: this.projectId || 0,
         // projectWorkerTypeID: this.projectworkertypeID || 0,
@@ -289,69 +292,85 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     });
   }
   //#endregion
-  //#region cập nhật trạng thái duyệt
+  //#region cập nhật trạng thái duyệt TBP
   updateApprove(action: number): void {
-    debugger;
-    console.log('updateApprove', action);
+    const isApproved = action === 1;
+    const isApprovedText = isApproved ? 'duyệt' : 'hủy duyệt';
+    
+    // Lấy danh sách vật tư đã chọn
     const selectedRows = this.tb_projectWorker?.getSelectedData();
     if (!selectedRows || selectedRows.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn vật tư cần ' + (action === 1 ? 'duyệt' : 'hủy duyệt'));
+      this.notification.warning('Thông báo', `Vui lòng chọn vật tư cần ${isApprovedText}`);
       return;
     }
-    else {
-      let checkDeleted =0;
-      let checkiApprovedPurchase =0;
-      for(let row of selectedRows) {
-        if(row.IsDeleted == true) {
-          checkDeleted ++
-        }
-        if(row.IsApprovedPurchase == true) {
-          checkiApprovedPurchase ++
-        }
-      }
-      if(checkDeleted > 0) {
-        this.notification.warning('Thông báo', 'Vui lòng chọn các vật tư chưa bị xóa để '+ (action === 1 ? 'duyệt' : 'hủy duyệt'));
+
+    // Kiểm tra phiên bản đang sử dụng
+    let selectedVersion: any = null;
+    if (this.type == 1) {
+      const versionRows = this.tb_projectPartListVersion?.getSelectedData();
+      if (!versionRows || versionRows.length === 0) {
+        this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản để cập nhật');
         return;
       }
-      if(checkiApprovedPurchase > 0) {
-        this.notification.warning('Thông báo', 'Vui lòng chọn các vật tư chưa được duyệt yêu cầu mua để '+ (action === 1 ? 'duyệt' : 'hủy duyệt'));
-        return;
-      }
-    }
-    var projectPartListVersionID = 0;
-    if(this.type == 1) {
-      const selectedRows = this.tb_projectPartListVersion?.getSelectedData();
-      projectPartListVersionID = selectedRows[0]['ID'] || 0;
-      if (selectedRows[0]['IsActive'] == false) {
-        this.notification.warning('Thông báo', 'Vui lòng chọn sử dụng phiên bản '+selectedRows[0].Code +' để cập nhật');
+      selectedVersion = versionRows[0];
+      if (selectedVersion['IsActive'] == false || selectedVersion['IsActive'] == null) {
+        this.notification.warning('Thông báo', `Vui lòng chọn sử dụng phiên bản [${selectedVersion.Code}] trước!`);
         return;
       }
     } else {
-      const selectedRows = this.tb_projectPartListVersionPO?.getSelectedData();
-      projectPartListVersionID = selectedRows[0]['ID'] || 0;
-      if (selectedRows[0]['IsActive']  == false) {
-        this.notification.warning('Thông báo', 'Vui lòng chọn sử dụng phiên bản PO '+selectedRows[0].Code +' để cập nhật');
+      const versionRows = this.tb_projectPartListVersionPO?.getSelectedData();
+      if (!versionRows || versionRows.length === 0) {
+        this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản PO để cập nhật');
+        return;
+      }
+      selectedVersion = versionRows[0];
+      if (selectedVersion['IsActive'] == false || selectedVersion['IsActive'] == null) {
+        this.notification.warning('Thông báo', `Vui lòng chọn sử dụng phiên bản PO [${selectedVersion.Code}] trước!`);
         return;
       }
     }
-    const payload = selectedRows.map((row: any) => ({
-      ID: row.ID,
-      TT:row.TT,
-      ProjectTypeID:row.ProjectTypeID,
-      IsApprovedTBP: action === 1 ? true : false,
-      ProjectPartListVersionID: projectPartListVersionID
-    }));
-    console.log('payload', payload);
-    this.projectPartListService.saveProjectPartList(payload).subscribe({
+
+    // Validate từng vật tư được chọn
+    const projectpartlistIDs: number[] = [];
+    for (let row of selectedRows) {
+      // Kiểm tra ID hợp lệ
+      if (!row.ID || row.ID <= 0) {
+        this.notification.warning('Thông báo', 'Vui lòng chọn vật tư!');
+        return;
+      }
+
+      // Kiểm tra vật tư đã bị xóa
+      if (row.IsDeleted == true) {
+        this.notification.warning('Thông báo', `Không thể ${isApprovedText} vì vật tư thứ tự [${row.STT || row.ID}] đã bị xóa!`);
+        return;
+      }
+
+      // Chỉ kiểm tra IsApprovedPurchase khi hủy duyệt
+      if (!isApproved && row.IsApprovedPurchase == true) {
+        this.notification.warning('Thông báo', `Không thể ${isApprovedText} vì vật tư thứ tự [${row.STT || row.ID}] đã được Yêu cầu mua!`);
+        return;
+      }
+
+      projectpartlistIDs.push(row.ID);
+    }
+
+    // Gọi API để duyệt/hủy duyệt
+    this.projectPartListService.approveProjectPartList(projectpartlistIDs, isApproved).subscribe({
       next: (response: any) => {
         if (response.status === 1) {
-          this.notification.success('Thành công', 'Cập nhật trạng thái thành công!');
-          this.loadDataProjectWorker();
+          this.notification.success('Thành công', 'Duyệt thành công!');
+          this.loadDataProjectPartList();
+        } else if (response.status === 2) {
+          // Validation error từ backend
+          this.notification.warning('Thông báo', response.message || 'Không thể cập nhật trạng thái duyệt');
+        } else {
+          this.notification.error('Lỗi', response.message || 'Không thể cập nhật trạng thái duyệt');
         }
       },
       error: (error: any) => {
         console.error('Error updating approve:', error);
-        this.notification.error('Lỗi', 'Không thể cập nhật trạng thái duyệt');
+        const errorMessage = error?.error?.message || error?.message || 'Không thể cập nhật trạng thái duyệt';
+        this.notification.error('Lỗi', errorMessage);
       }
     });
   }
@@ -375,7 +394,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     
     modalRef.result.then((result: any) => {
       if (result.success) {
-        this.loadDataProjectWorker();
+        this.loadDataProjectPartList();
       }
     });
   }
@@ -582,13 +601,20 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       const data = row.getData();
       const el = row.getElement();
       if (el) { // Kiểm tra element tồn tại
-        if (data['IsDeleted'] === true) {
+        // Reset style 1 lần duy nhất
+        el.style.cssText = '';
+        
+        // 1. Ưu tiên: Dòng bị xóa → đỏ
+        if (data.IsDeleted === true) {
           el.style.backgroundColor = 'red';
           el.style.color = 'white';
-        } else {
-          el.style.backgroundColor = '';
-          el.style.color = '';
         }
+        // 2. Dòng CHA → lightyellow + bold (chỉ khi KHÔNG bị xóa)
+        else if (data._children?.length > 0) {
+          el.style.backgroundColor = 'lightyellow';
+          el.style.fontWeight = 'bold';
+        }
+        // Không cần else → không reset gì cả!
       }
     });
     // === CẬP NHẬT TIÊU ĐỀ CỘT NHÓM ĐẦU TIÊN ===
@@ -884,7 +910,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         selectedRow.deselect();
       });
       this.toggleTBPColumn();
-      this.loadDataProjectWorker();
+      this.loadDataProjectPartList();
     });
   }
   //set data tree cho bảng
@@ -990,13 +1016,13 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
               return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
             },
           },
-          // {
-          //   title: 'Người duyệt',
-          //   field: 'UpdatedBy',
-          //   hozAlign: 'center',
-          //   headerHozAlign: 'center',
-          //   width: 110,
-          // },
+          {
+            title: 'ProjectTypeID',
+            field: 'ProjectTypeID',
+            hozAlign: 'center',
+            headerHozAlign: 'center',
+            visible: false,
+          },
         ],
       }
     );
@@ -1016,11 +1042,11 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       });
       console.log('type', this.type);
       this.toggleTBPColumn();
-      this.loadDataProjectWorker();
+      this.loadDataProjectPartList();
     });
   }
 
-  drawTbProjectWorker(): void {
+  drawTbProjectPartList(): void {
     // let selectedData: any[] = [];
     // if (this.type === 1) {
     //   // Giải pháp
@@ -1044,13 +1070,21 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         rowFormatter: (row: any) => {
           const data = row.getData();
           const el = row.getElement();
-          if (data['IsDeleted'] ===true) {
+        
+          // Reset style 1 lần duy nhất
+          el.style.cssText = '';
+        
+          // 1. Ưu tiên: Dòng bị xóa → đỏ
+          if (data.IsDeleted === true) {
             el.style.backgroundColor = 'red';
             el.style.color = 'white';
-          } else {
-            el.style.backgroundColor = '';
-            el.style.color = '';
           }
+          // 2. Dòng CHA → lightyellow + bold (chỉ khi KHÔNG bị xóa)
+          else if (data._children?.length > 0) {
+            el.style.backgroundColor = 'lightyellow';
+            el.style.fontWeight = 'bold';
+          }
+          // Không cần else → không reset gì cả!
         },
         columns: [
           {
@@ -1069,7 +1103,9 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 width: 50,
                 formatter: 'rowSelection',
                 titleFormatter: 'rowSelection',
+                
               },
+              { title: 'ParentID', field: 'ParentID' },
               // === CỘT ẨN ===
               { title: 'ID', field: 'ID', visible: false },
               { title: 'ProjectPartListVersionID', field: 'ProjectPartListVersionID', visible: false },
@@ -1757,7 +1793,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     modalRef.result
       .then((result: any) => {
         if (result && result.success) {
-          this.loadDataProjectWorker();
+          this.loadDataProjectPartList();
           this.notification.success('Thành công', isEdit ? 'Sửa nhân công thành công!' : 'Thêm nhân công thành công!');
         }
       })
@@ -1835,7 +1871,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         if (response.status === 1) {
           this.notification.success('Thành công', response.message || 'Xóa nhân công thành công!');
-          this.loadDataProjectWorker(); // Reload lại dữ liệu
+          this.loadDataProjectPartList(); // Reload lại dữ liệu
         } else {
           this.notification.error('Lỗi', response.message || 'Không thể xóa nhân công');
         }

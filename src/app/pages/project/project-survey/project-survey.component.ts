@@ -573,9 +573,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
 
   //#region Duyệt/Hủy duyệt gấp yêu cầu
   approved(approvedStatus: boolean, statusText: string, select: number) {
-    let selectedRows = this.tb_projectSurvey
-      .getData()
-      .filter((row: any) => row['Selected'] == true);
+    var selectedRows = this.tb_projectSurvey.getSelectedData();
     if (selectedRows.length <= 0) {
       this.notification.error(
         'Thông báo',
@@ -968,7 +966,6 @@ export class ProjectSurveyComponent implements AfterViewInit {
     let dataSave = {
       projectSurveyId: selectedRows[0]['ID'],
     };
-
     this.projectService.checkStatusDetail(dataSave).subscribe({
       next: (response: any) => {
         if (response.data == true && !this.projectService.ISADMIN) {
@@ -981,30 +978,31 @@ export class ProjectSurveyComponent implements AfterViewInit {
           );
           return;
         } else {
-          this.projectService.deletedProjectSurvey(dataSave).subscribe({
-            next: (response: any) => {
-              if (response.status == 1) {
-                this.notification.success(
-                  'Thông báo',
-                  `Đã xóa yêu cầu khảo sát dự án`,
-                  {
-                    nzStyle: { fontSize: '0.75rem' },
+          this.modal.confirm({
+            nzTitle: `Thông báo`,
+            nzContent: `Bạn có chắc muốn xóa yêu cầu khảo sát dự án đã chọn?`,
+            nzOkText: 'Ok',
+            nzOkType: 'primary',
+            nzCancelText: 'Hủy',
+            nzOnOk: () => {
+              this.projectService.deletedProjectSurvey(dataSave).subscribe({
+                next: (response: any) => {
+                  if (response.status == 1) {
+                    this.notification.success(
+                      'Thông báo',
+                      `Đã xóa yêu cầu khảo sát dự án!`
+                    );
+                    this.getDataProjectSurvey();
                   }
-                );
-                this.getDataProjectSurvey();
-              }
-            },
-            error: (error) => {
-              console.error('Lỗi:', error);
+                },
+                error: (error) => {
+                  console.error('Lỗi:', error.message);
+                },
+              });
             },
           });
         }
-      },
-      error: (error: any) => {
-        const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
-        console.error('Lỗi:', error.error);
-      },
+      }
     });
   }
   //#endregion
@@ -1052,9 +1050,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
 
   //#region kết quả khảo sát
   surveyResult(): void {
-    let selectedRows = this.tb_projectSurvey
-      .getData()
-      .filter((row: any) => row['Selected'] == true);
+    var selectedRows = this.tb_projectSurvey.getSelectedData();
     if (selectedRows.length != 1) {
       this.notification.error(
         'Thông báo',

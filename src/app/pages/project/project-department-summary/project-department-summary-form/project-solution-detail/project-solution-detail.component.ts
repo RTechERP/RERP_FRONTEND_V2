@@ -246,7 +246,6 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
   }
 
   saveData() {
-    debugger
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -391,6 +390,7 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
         const newFile = {
           FileName: file.name,
           OriginPath: file.name,
+          FileNameOrigin: file.name,
           File: file,
         };
 

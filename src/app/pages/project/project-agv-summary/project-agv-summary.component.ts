@@ -166,7 +166,6 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
         console.error('Lỗi:', error);
       },
     });
-    this.searchProjects();
   }
 
   ngAfterViewInit(): void {
@@ -182,10 +181,14 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
     this.getCustomers();
     this.getProjectStatus();
   
-    // 3. Chờ 2 API → mới search
-      this.getCurrent();
+    // 3. Set giá trị mặc định cho projectTypeIds nếu pageId === 2 (set sớm để đảm bảo có giá trị khi search)
+    if (this.pageId === 2) {
+      this.projectTypeIds = [2];
+    }
+  
+    // 4. Chờ getCurrent và getProjectTypes hoàn thành → mới search
+    this.getCurrent();
     this.getProjectTypes();
-      this.searchProjects();
   }
 
   onChange(val: string) {
@@ -214,7 +217,7 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
       rowHeader:false,
       selectableRows: 1,
       layout:'fitDataStretch',
-      height: '87vh',
+      height: '85vh',
       //   pagination: true,
       //   paginationMode: 'remote',
       //   paginationSize: 100,
@@ -875,10 +878,20 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
   
           // Ép Angular cập nhật lại select (cách chắc chắn)
           this.projectTypeIds = [...this.projectTypeIds];
+          
+          // Sau khi getProjectTypes hoàn thành và projectTypeIds đã được set, mới gọi searchProjects
+          // Đợi một chút để đảm bảo getCurrent cũng có thể hoàn thành
+          setTimeout(() => {
+            this.searchProjects();
+          }, 100);
         }
       },
       error: (err) => {
         console.log("Lỗi khi lấy project types", err);
+        // Vẫn search ngay cả khi có lỗi
+        setTimeout(() => {
+          this.searchProjects();
+        }, 100);
       }
     });
   }

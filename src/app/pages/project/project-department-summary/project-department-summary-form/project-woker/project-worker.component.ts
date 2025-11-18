@@ -230,14 +230,21 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
         selectedVersionID = selectedData[0].ID || 0;
       }
     }
-    const payload = {
+    const payload = 
+    {  
       projectID: this.projectId || 0,
       projectWorkerTypeID: this.projectworkertypeID || 0,
       IsApprovedTBP: this.isApprovedTBP || -1,
       IsDeleted: this.isDeleted || 0,
       KeyWord: this.keyword || '',
       versionID: selectedVersionID || 0,
-    };
+  };
+    // "projectID": 0,
+    // "projectWorkerTypeID": 0,
+    // "IsApprovedTBP": true,
+    // "IsDeleted": true,
+    // "KeyWord": "string",
+    // "versionID": 0
     console.log('payload', payload);
     this.projectWorkerService.getProjectWorker(payload).subscribe({
       next: (response: any) => {

@@ -104,7 +104,7 @@
                   nzSize="small"
                   (click)="onExportExcelSolutionVersion()"
                 >
-                  <img src="assets/icon/import-excel.png" /> Xuất Excel
+                  <img src="assets/icon/action_export_excel_16.png" /> Xuất Excel
                 </button>
                 </div>
                 <div class="card-body p-0 flex-grow-1 overflow-hidden" style="min-height: 0;">
@@ -163,7 +163,7 @@
                     nzSize="small"
                     (click)="onExportExcelPOVersion()"
                   >
-                    <img src="assets/icon/import-excel.png" /> Xuất Excel
+                    <img src="assets/icon/action_export_excel_16.png" /> Xuất Excel
                   </button>
                 </div>
                 <div class="card-body p-0 flex-grow-1 overflow-hidden" style="min-height: 0;">
@@ -218,6 +218,62 @@
                   nzType="default"
                   nzSize="small"
                   nz-dropdown
+                  [nzDropdownMenu]="menuYeuCau"
+          
+                >
+                  <img src="assets/icon/action_confirm_tbp_16.png" alt="yêu cầu " /> Yêu cầu
+                  <i nz-icon nzType="down"></i>
+                </button>
+              </ng-container>
+              <nz-dropdown-menu #menuYeuCau="nzDropdownMenu">
+                <ul nz-menu>
+                  <li nz-menu-item (click)="updateApprove(1)">
+                    <img src="assets/icon/action_approved_16.png" />
+                    <span class="ms-1">Yêu cầu báo giá</span>
+                  </li>
+                  <li nz-menu-item (click)="updateApprove(2)">
+                    <img src="assets/icon/action_unapproved_16.png" />
+                    <span class="ms-1">Hủy yêu cầu báo giá</span>
+                  </li>
+                  <li nz-menu-item (click)="updateApprove(2)">
+                    <img src="assets/icon/action_unapproved_16.png" />
+                    <span class="ms-1">Yêu cầu mua hàng</span>
+                  </li>
+                </ul>
+              </nz-dropdown-menu>
+              <ng-container *hasPermission="''">
+                <button
+                  class="fs-12"
+                  nz-button
+                  nzType="default"
+                  nzSize="small"
+                  nz-dropdown
+                  [nzDropdownMenu]="menuTBPduyetmoi"
+          
+                >
+                  <img src="assets/icon/action_confirm_tbp_16.png" alt="TBP duyệt" /> TBP duyệt
+                  <i nz-icon nzType="down"></i>
+                </button>
+              </ng-container>
+              <nz-dropdown-menu #menuTBPduyetmoi="nzDropdownMenu">
+                <ul nz-menu>
+                  <li nz-menu-item (click)="updateApprove(1)">
+                    <img src="assets/icon/action_approved_16.png" />
+                    <span class="ms-1">TBP duyệt mới</span>
+                  </li>
+                  <li nz-menu-item (click)="updateApprove(2)">
+                    <img src="assets/icon/action_unapproved_16.png" />
+                    <span class="ms-1">TBP hủy duyệt mới</span>
+                  </li>
+                </ul>
+              </nz-dropdown-menu>
+              <ng-container *hasPermission="''">
+                <button
+                  class="fs-12"
+                  nz-button
+                  nzType="default"
+                  nzSize="small"
+                  nz-dropdown
                   [nzDropdownMenu]="menuTBP"
                   *ngIf="type == 2"
                 >
@@ -244,7 +300,7 @@
             nzSize="small"
             (click)="openImportExcelProjectWorker()"
           >
-            <img src="assets/icon/excel.png" /> Nhập Excel
+            <img src="assets/icon/action_import_excel_16.png" /> Nhập Excel
           </button>
   
           <button
@@ -254,8 +310,11 @@
             nzSize="small"
             (click)="onExportExcel()"
           >
-            <img src="assets/icon/import-excel.png" /> Xuất Excel
+              <img src="assets/icon/action_export_excel_16.png" /> Xuất Excel
           </button>
+            </div>
+  
+            <div class="card-header bg-white p-1 d-flex gap-1">
               <div
                 style="min-width: 400px"
                 class="d-flex gap-1 ms-auto align-items-center"
@@ -276,16 +335,31 @@
                   <nz-option [nzValue]="1" nzLabel="Đã duyệt"></nz-option>
                 </nz-select>
   
+                <label class="fs-12 mb-0">Trạng thái Y/c mua</label>
+                <nz-select
+                  name="IsApprovedPurchase"
+                 
+                  nzShowSearch
+                  nzAllowClear
+                  nzPlaceHolder="Chọn trạng thái"
+                  nzSize="small"
+                  [ngModel]="isApprovedPurchase"
+                  (ngModelChange)="isApprovedPurchase = $event; loadDataProjectPartList()"
+                >
+                  <nz-option [nzValue]="-1" nzLabel="--Tất cả--"></nz-option>
+                  <nz-option [nzValue]="0" nzLabel="Chưa Y/c mua"></nz-option>
+                  <nz-option [nzValue]="1" nzLabel="Đã yêu cầu mua"></nz-option>
+                </nz-select>
                 <label class="fs-12 mb-0">Trạng thái</label>
                 <nz-select
-                  name="IsLateActual"
+                  name="IsDeleted"
                  
                   nzShowSearch
                   nzAllowClear
                   nzPlaceHolder="Chọn trạng thái"
                   nzSize="small"
                   [ngModel]="isDeleted"
-                  (ngModelChange)="isDeleted = $event; searchDataProjectWorker()"
+                  (ngModelChange)="isDeleted = $event; loadDataProjectPartList()"
                 >
                   <nz-option [nzValue]="-1" nzLabel="--Tất cả--"></nz-option>
                   <nz-option [nzValue]="0" nzLabel="Chưa xóa"></nz-option>
@@ -297,7 +371,7 @@
                   placeholder="Nhập từ khóa"
                   style="width: 150px"
                   [ngModel]="keyword"
-                  (ngModelChange)="keyword = $event; searchDataProjectWorker()"
+                  (ngModelChange)="keyword = $event; loadDataProjectPartList()"
                 />
                 <!-- <button
                   type="submit"

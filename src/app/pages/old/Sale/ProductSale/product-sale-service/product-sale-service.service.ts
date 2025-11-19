@@ -16,7 +16,7 @@ export class ProductsaleServiceService {
   private locationUrl = environment.host + `api/Location`;
   private unitcountUrl = environment.host + `api/UnitCount`;
   private frimUrl = environment.host + `api/Firm`;
-  private employeeUrl = environment.host + `api/Employee`;
+  private employeeUrl = environment.host + `api/Employee/employees`;
 
   constructor(private httpclient: HttpClient) {}
 
@@ -90,6 +90,9 @@ export class ProductsaleServiceService {
   }
   saveDataProductSale(data: any) {
     return this.httpclient.post<any>(`${this.baseUrl}/save-data`, data);
+  }
+    saveDataProductSaleExcel(data: any) {
+    return this.httpclient.post<any>(`${this.baseUrl}/save-data-excel`, data);
   }
   getDataProductSalebyID(id: number) {
     return this.httpclient.get<any>(`${this.baseUrl}/` + id);

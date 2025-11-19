@@ -33,4 +33,26 @@ export class WarehouseReleaseRequestService {
       },
     });
   }
+
+  validateKeep(
+    warehouseID: number,
+    productID: number,
+    projectID: number,
+    pokhDetailID: number,
+    billExportDetailID: number,
+    unitName: string,
+    quantityRequestExport: number,
+    productNewCode: string
+  ): Observable<any> {
+    return this.http.post<any>(this._url + 'validate-keep', {
+      warehouseID: warehouseID,
+      productID: productID,
+      projectID: projectID || 0,
+      pokhDetailID: pokhDetailID,
+      billExportDetailID: billExportDetailID || 0,
+      unitName: unitName || '',
+      quantityRequestExport: quantityRequestExport || 0,
+      productNewCode: productNewCode || '',
+    });
+  }
 }

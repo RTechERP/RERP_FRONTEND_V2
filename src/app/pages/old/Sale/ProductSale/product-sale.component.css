@@ -28,8 +28,8 @@
     height: 100%;
   }
   .row > * {
-    padding-right: 2px !important;
-    padding-left: 2px !important;
+    padding-right: 5px !important;
+    padding-left: 5px !important;
   ;
   }
   .row {
@@ -64,14 +64,8 @@
   
   ::ng-deep ng-select.form-control .ng-clear-wrapper {
     display: flex;
-    align-items: center;
-    margin-left: 20px;
+    align-items: center;}
     
-  }
-  .row{
-    margin:auto !important;
-  }
-  
   ::ng-deep ng-select.form-control .ng-clear-wrapper:hover {
     color: #d9363e;
   }
@@ -98,10 +92,11 @@
   
   /* Optional: Đảm bảo vùng chứa progress bar có đủ không gian và nền rõ ràng */
 
+  /* ProductSale action bar - bỏ border radius, căn icon cho dropdown */
   .card-header.action-bar {
     background-color: #ecedf0 !important;
     padding: 6px;
-    border-radius: 4px;
+    border-radius: 0; /* bỏ bo tròn để khớp style Ant */
   }
 
   .tabulator-row.row-inactive {
@@ -128,5 +123,31 @@
     background-color: #f0f0f0 !important;
     filter: grayscale(100%) !important;
     cursor: not-allowed !important;
+  }
+
+  /* Đồng bộ góc vuông cho nút và dropdown trong action bar */
+  .action-bar button[nz-button],
+  .action-bar .btn {
+    border-radius: 0 !important;
+  }
+  
+  .action-bar .dropdown-menu {
+    border-radius: 0 !important;
+    padding: 4px 0;
+  }
+  
+  .action-bar .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+  .btn-primary {
+    padding: 3px 6px;
+  }
+  .action-bar .dropdown-item img {
+    width: 16px;
+    height: 16px;
   }
 

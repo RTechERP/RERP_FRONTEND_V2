@@ -8,8 +8,8 @@ import { environment } from '../../../../../environments/environment';
 })
 export class BillImportTechnicalService {
   private url = `${environment.host}api/BillImportTechnical/`;
-  private urlCustomer = `${environment.host}api/Customer/get-customers`;
-  private urlNCC = `${environment.host}api/SupplierSale/get-ncc`;
+  private urlCustomer = `${environment.host}api/Customer/get-data-by-procedure`;
+  private urlNCC = `${environment.host}api/SupplierSale`;
   private urlRulepay = `${environment.host}api/BillImportTechnical/get-rulepay`;
   constructor(private http: HttpClient) {}
   getBillimportTechnical(request: any) {
@@ -35,8 +35,22 @@ export class BillImportTechnicalService {
     const url = `${this.url}get-document-bill-import`;
     return this.http.get<any>(url, { params });
   }
-  getCustomer(): Observable<any> {
-    return this.http.get<any>(this.urlCustomer);
+
+  getCustomer(pageNumber: number,
+    pageSize: number,
+    filterText: string,
+    employeeId: number,
+    groupId: number): Observable<any> {
+
+    return this.http.get<any>(this.urlCustomer,{
+      params: {
+        page: pageNumber.toString(),
+        size: pageSize.toString(),
+        filterText: filterText.toString(),
+        employeeId: employeeId.toString(),
+        groupId: groupId.toString(),
+      },
+    });
   }
   getNCC(): Observable<any> {
     return this.http.get<any>(this.urlNCC);
@@ -66,5 +80,8 @@ export class BillImportTechnicalService {
     return this.http.post(`${this.url}export-bill-import-technical`, request, {
       responseType: 'blob',
     });
+  }
+  approveAction(ids: number[], action: 'approve' | 'unapprove') {
+    return this.http.post<any>(`${this.url}approve-action`, { IDs: ids, Action: action });
   }
 }

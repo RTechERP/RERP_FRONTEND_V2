@@ -1,0 +1,150 @@
+/* Đảm bảo phần thân đúng layout */
+.layout-wrapper {
+  height: 100%;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Thẻ offcanvas */
+.custom-offcanvas {
+  width: 300px;
+  position: absolute;
+  height: 100%;
+  transform: translateX(-100%);
+  transition: transform 0.2s ease;
+  z-index: 1;
+}
+
+/* Khi show, trượt vào */
+.offcanvas-left.show {
+  transform: translateX(0);
+}
+
+.card {
+  height: 100%;
+}
+
+.row {
+  height: 100%;
+}
+
+.offcanvas-left.show + .project-container {
+  margin-left: 300px;
+  width: calc(100% - 300px);
+}
+
+::ng-deep ng-select .ng-value-container {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  white-space: nowrap !important;
+}
+
+.tabulator {
+  font-size: 0.75rem;
+}
+
+.tabulator-cell {
+  padding: 0px;
+}
+
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+.btn {
+    font-weight: bold;
+  height: 2.5vh;
+  font-size: 0.75rem;
+  border: none;
+}
+
+::ng-deep ng-select.form-control .ng-clear-wrapper {
+  display: flex;
+  align-items: center;
+  margin-left: 20px;
+}
+
+::ng-deep ng-select.form-control .ng-clear-wrapper:hover {
+  color: #d9363e;
+}
+
+::ng-deep .ng-select.ng-select-multiple .ng-select-container .ng-value-container .ng-value {
+    margin-top: 3px;
+    margin-right: 1px;
+    font-size: .75rem;
+    background-color: #fafafa;
+    border: none;
+    border-radius: 2px;
+    height: 24px;
+    line-height: 22px;
+}
+.reset {
+    all: revert;
+}
+
+.tabulator {
+  font-size: 0.75rem;
+  border: 1px solid !important;
+}
+
+.tabulator-cell {
+  padding: 0px;
+}
+
+.fs-12 {
+  font-size: 0.75rem;
+}
+.custom-border {
+  border: 1px ;  /* Màu viền mặc định của Ant Design */
+  border-radius: 4px;         /* Bo góc 4px */
+  padding: 16px;              /* Tạo khoảng đệm bên trong */
+  transition: all 0.3s;       /* Hiệu ứng mượt khi hover */
+
+}
+
+/* styles.css hoặc bill-import-technical-protective-gear.component.css */
+.modal-fullscreen .modal-dialog {
+  width: 100vw;
+  max-width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+.modal-fullscreen .modal-content {
+  height: 100vh;
+  border-radius: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-fullscreen .modal-body {
+  flex: 1 1 auto;
+  overflow: auto;
+}
+
+:host ::ng-deep .tabulator-col.group-booking-info
+{
+  background-color: #1890ff !important;
+  color: #ffffff !important;
+}
+
+:host ::ng-deep .tabulator-col.group-destination
+{
+  background-color: #00b92e !important;
+  color: #ffffff !important;
+}
+
+:host ::ng-deep .tabulator-col.group-passenger
+{
+  background-color: #c7850b !important;
+  color: #ffffff !important;
+}
+
+:host ::ng-deep .tabulator-col.group-delivery
+{
+  background-color: #1890ff !important;
+  color: #ffffff !important;
+}

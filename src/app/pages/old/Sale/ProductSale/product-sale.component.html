@@ -1,57 +1,108 @@
 <ng-container class="w-100">
-    <nz-splitter style="height: 94vh; ">
-        <nz-splitter-panel>
+    <nz-splitter >
+        <nz-splitter-panel nzDefaultSize="100%">
             <div class="card border-0 rounded-0">
                 <div class="card-header bg-white p-1 action-bar">
-                    <div class="d-flex h-40 gap-1">
-                        <button nz-button nzType="default" nzSize="small" class=" btn-add"
-                            (click)="openModalProductGroup(false)" 
-                            *hasPermission="'N27,N1'"
-                            >
-                            <img src="assets/icon/action_add_group_16.png" alt="Thêm mới " />Tạo nhóm TB
-                        </button>
-                        <button nz-button nzType="default" nzSize="small" class="btn-edit"
-                            (click)="openModalProductGroup(true)" *hasPermission="'N27,N1'">
-                            <img src="assets/icon/action_edit_item_16.png" alt="Sửa nhóm TB" />Sửa nhóm TB
-                        </button>
-                        <button nz-button nzType="default" nzSize="small" class="btn-delete "
-                            (click)="deleteProductGroup()" *hasPermission="'N27,N1'">
-                            <img src="assets/icon/action_delete_item_16.png" alt="Xóa nhóm TB" />Xóa nhóm TB
-                        </button>
+                    <!-- Desktop: hiển thị đầy đủ nút -->
+                    <div class="d-none d-md-flex h-40 gap-1 align-items-center">
+                        <div class="flex-grow-1" style="overflow-x: auto;">
+                            <div class="d-flex gap-1 flex-nowrap">
+                                <!-- giữ nguyên các nút hiện có -->
+                                <button nz-button nzType="default" nzSize="small" class=" btn-add"
+                                    (click)="openModalProductGroup(false)" 
+                                    *hasPermission="'N27,N1'">
+                                    <img src="assets/icon/action_add_group_16.png" alt="Thêm mới " />Thêm nhóm TB
+                                </button>
+                                <button nz-button nzType="default" nzSize="small" class="btn-edit"
+                                    (click)="openModalProductGroup(true)" *hasPermission="'N27,N1'">
+                                    <img src="assets/icon/action_edit_item_16.png" alt="Sửa nhóm TB" />Sửa nhóm TB
+                                </button>
+                                <button nz-button nzType="default" nzSize="small" class="btn-delete "
+                                    (click)="deleteProductGroup()" *hasPermission="'N27,N1'">
+                                    <img src="assets/icon/action_delete_item_16.png" alt="Xóa nhóm TB" />Xóa nhóm TB
+                                </button>
 
-                        <span class="mx-2 divider"></span>
+                                <span class="mx-2 divider"></span>
 
-                        <button nz-button nzType="default" nzSize="small" class="btn-add"
-                            (click)="openModalForNewProductSale()" *hasPermission="'N27,N35,N1,N33,N34'">
-                            <img src="assets/icon/action_add_item_16.png" alt="Thêm thiết bị" />Tạo thiết bị
-                        </button>
-                        <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="updateProductSale()"
-                            *hasPermission="'N27,N35,N1,N33,N34'">
-                            <img src="assets/icon/action_edit_item_16.png" alt="Sửa thiết bị" />Sửa thiết bị
-                        </button>
-                        <button nz-button nzType="default" nzSize="small" class="btn-delete"
-                            (click)="deleteProductSale()" *hasPermission="'N27,N35,N1,N33,N34'">
-                            <img src="assets/icon/action_delete_item_16.png" alt="Xóa thiết bị" />Xóa thiết bị
-                        </button>
+                                <button nz-button nzType="default" nzSize="small" class="btn-add"
+                                    (click)="openModalForNewProductSale()" *hasPermission="'N27,N35,N1,N33,N34'">
+                                    <img src="assets/icon/action_add_item_16.png" alt="Thêm thiết bị" />Thêm
+                                </button>
+                                <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="updateProductSale()"
+                                    *hasPermission="'N27,N35,N1,N33,N34'">
+                                    <img src="assets/icon/action_edit_item_16.png" alt="Sửa thiết bị" />Sửa
+                                </button>
+                                <button nz-button nzType="default" nzSize="small" class="btn-delete"
+                                    (click)="deleteProductSale()" *hasPermission="'N27,N35,N1,N33,N34'">
+                                    <img src="assets/icon/action_delete_item_16.png" alt="Xóa thiết bị" />Xóa
+                                </button>
 
-                        <span class="mx-2 divider"></span>
+                                <span class="mx-2 divider"></span>
 
-                        <button nz-button nzType="default" nzSize="small" (click)="openModalImportExcel()"
-                            *hasPermission="'N27,N1'">
-                            <img src="assets/icon/action_import_16.png" alt="Nhập Excel" class="me-1" />Nhập
-                            excel
-                        </button>
-                        <button nz-button nzType="default" nzSize="small" (click)="exportExcel()">
-                            <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" class="me-1" />Xuất
-                            excel
-                        </button>
-                        <div style="display: flex; width: 30%;" class="ms-auto">
-                            <label nz-checkbox [(ngModel)]="checkedALL" name="checkedALL"
-                                (nzCheckedChange)="getAllProductSale()">Tất
-                                cả</label>
-                            <input type="text" nzSize="small" [(ngModel)]="keyword" name="keyword" nz-input
-                                class="fs-12" style="font-style: italic; flex: 1;" placeholder="Tìm kiếm" />
-                            <button nz-button nzSize="small" (click)="getdataFind()">
+                                <button nz-button nzType="default" nzSize="small" (click)="openModalImportExcel()" *hasPermission="'N27,N1'">
+                                    <img src="assets/icon/action_import_16.png" alt="Nhập Excel" class="me-1" />Nhập
+                                    excel
+                                </button>
+                                <button nz-button nzType="default" nzSize="small" (click)="exportExcel()">
+                                    <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" class="me-1" />Xuất
+                                    excel
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Tìm kiếm desktop -->
+                        <div class="d-flex ms-auto align-items-center" style="flex: 0 0 auto; min-width: 280px;">
+                            <label nz-checkbox [(ngModel)]="checkedALL" name="checkedALL" (nzCheckedChange)="getAllProductSale()" class="me-2 text-nowrap">Tất cả</label>
+                            <input type="text" nzSize="small" [(ngModel)]="keyword" name="keyword" nz-input class="fs-12 flex-grow-1" style="font-style: italic; min-width: 0;" placeholder="Tìm kiếm" />
+                            <button nz-button nzSize="small" (click)="getdataFind()" class="ms-1">
+                                <nz-icon nzType="search"></nz-icon>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Mobile: dropdown + tìm kiếm -->
+                    <div class="d-flex d-md-none h-40 gap-1 align-items-center justify-content-between">
+                        <div ngbDropdown class="dropdown">
+                            <button class="btn btn-primary btn-sm" ngbDropdownToggle>
+                                <i class="fa fa-bars"></i>
+                            </button>
+                            <div ngbDropdownMenu class="dropdown-menu">
+                                <button ngbDropdownItem (click)="openModalProductGroup(false)" *hasPermission="'N27,N1'" class="d-flex align-items-center">
+                                    Thêm nhóm TB
+                                </button>
+                                <button ngbDropdownItem (click)="openModalProductGroup(true)" *hasPermission="'N27,N1'" class="d-flex align-items-center">
+                                    Sửa nhóm TB
+                                </button>
+                                <button ngbDropdownItem (click)="deleteProductGroup()" *hasPermission="'N27,N1'" class="d-flex align-items-center">
+                                    Xóa nhóm TB
+                                </button>
+                                
+                                <div class="dropdown-divider"></div>
+                                
+                                <button ngbDropdownItem (click)="openModalForNewProductSale()" *hasPermission="'N27,N35,N1,N33,N34'" class="d-flex align-items-center">
+                                    Thêm
+                                </button>
+                                <button ngbDropdownItem (click)="updateProductSale()" *hasPermission="'N27,N35,N1,N33,N34'" class="d-flex align-items-center">
+                                    Sửa 
+                                </button>
+                                <button ngbDropdownItem (click)="deleteProductSale()" *hasPermission="'N27,N35,N1,N33,N34'" class="d-flex align-items-center">
+                                    Xóa
+                                </button>
+                                
+                                <div class="dropdown-divider"></div>
+                                
+                                <button ngbDropdownItem (click)="openModalImportExcel()" *hasPermission="'N27,N1'" class="d-flex align-items-center">
+                                    Nhập excel
+                                </button>
+                                <button ngbDropdownItem (click)="exportExcel()" class="d-flex align-items-center">
+                                    Xuất excel
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- cụm tìm kiếm mobile -->
+                        <div class="d-flex align-items-center" style="flex: 1; min-width: 0;">
+                            <label nz-checkbox [(ngModel)]="checkedALL" name="checkedALL" (nzCheckedChange)="getAllProductSale()" class="me-2 text-nowrap">Tất cả</label>
+                            <input type="text" nzSize="small" [(ngModel)]="keyword" name="keyword" nz-input class="fs-12 flex-grow-1" style="font-style: italic; min-width: 0;" placeholder="Tìm kiếm" />
+                            <button nz-button nzSize="small" (click)="getdataFind()" class="ms-1">
                                 <nz-icon nzType="search"></nz-icon>
                             </button>
                         </div>
@@ -59,7 +110,7 @@
                 </div>
                 <nz-splitter style="height: 100%;">
                     <!-- Cột trái -->
-                    <nz-splitter-panel nzDefaultSize="25%" [nzCollapsible]="true" nzResizable="true"
+                    <nz-splitter-panel nzDefaultSize="22%" [nzCollapsible]="true" nzResizable="true"
                         style="height: 100%;">
                         <nz-splitter nzLayout="vertical" style="height: 100%;">
                           <nz-splitter-panel  style="overflow: auto;">

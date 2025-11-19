@@ -123,7 +123,7 @@ if (this.validateForm.invalid) {
     const formData = this.validateForm.value;
     console.log('Form data for update:', formData);
     console.log('Current form values:', this.validateForm.getRawValue());
-    
+
     if (!this.newRulePay.ID) {
       this.notification.error(NOTIFICATION_TITLE.error,  'Không tìm thấy ID để cập nhật');
       return;

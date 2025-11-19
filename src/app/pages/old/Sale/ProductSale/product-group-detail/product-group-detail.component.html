@@ -47,25 +47,36 @@
                     </nz-form-control>
                 </div>
             </div>
+            <!-- Nhân viên phụ trách -->
             <div class="row">
                 <div>
                     <div class="col md-12 pb-3">
-                        <nz-form-label class="fs-12">Nhân viên phụ trách<span class="text-danger ps-1 me-1"> (*)
-                            </span></nz-form-label>
+                        <nz-form-label class="fs-12">Nhân viên phụ trách<span class="text-danger ps-1 me-1"> (*) </span></nz-form-label>
                         <nz-form-control [nzSpan]="24" [nzErrorTip]="formGroup.get('EmployeeID')?.invalid && (formGroup.get('EmployeeID')?.dirty || formGroup.get('EmployeeID')?.touched)
-                ? 'Vui lòng chọn nhân viên!'
-                : undefined">
-                            <nz-input-group nzSearch nzSize="default" class="w-100">
-                                <nz-select formControlName="EmployeeID" nzPlaceHolder="Chọn nhân viên"
-                                    class="fs-12 w-100" required nzShowSearch nzAllowClear>
-                                    <nz-option *ngFor="let id of listEmployee" [nzValue]="id.ID"
-                                        [nzLabel]="id.FullName + ' - ' + id.Code"></nz-option>
-                                </nz-select>
-                            </nz-input-group>
-                        </nz-form-control>
+                            ? 'Vui lòng chọn nhân viên!'
+                            : undefined">
+                                <nz-input-group nzSearch nzSize="default" class="w-100">
+                                    <!-- Sửa phần options để dùng nhóm và truy cập opt.item.* -->
+                                    <nz-select formControlName="EmployeeID"
+                                               nzPlaceHolder="Chọn nhân viên"
+                                               class="fs-12 w-100"
+                                               required
+                                               nzShowSearch
+                                               nzAllowClear>
+                                        <!-- Duyệt nhóm -->
+                                        <nz-option-group *ngFor="let group of listEmployee" [nzLabel]="group.label">
+                                            <!-- Duyệt từng option trong nhóm -->
+                                            <nz-option *ngFor="let opt of group.options"
+                                                       [nzValue]="opt.item.ID"
+                                                       [nzLabel]="opt.item.Code + ' - ' + opt.item.FullName">
+                                            </nz-option>
+                                        </nz-option-group>
+                                    </nz-select>
+                                </nz-input-group>
+                            </nz-form-control>
+                        </div>
                     </div>
                 </div>
-            </div>
         </form>
     </div>
     <div class="modal-footer">

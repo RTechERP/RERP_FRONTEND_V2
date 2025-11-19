@@ -176,9 +176,8 @@ export class TsAssetLiquidationComponent implements OnInit, AfterViewInit {
         this.activeModal.close(true);
       },
       error: (res: any) => {
-        this.notification.error("Thông báo", res.error.message || "Lỗi");
-        console.error('Lỗi khi lưu đơn vị!');
-      }
+               this.notification.error(NOTIFICATION_TITLE.error, res.error.message);
+             }
     });
   }
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, Input } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 // import * as bootstrap from 'bootstrap';
@@ -38,7 +38,11 @@ import { BillDocumentImportComponent } from './Modal/bill-document-import/bill-d
 import { BillImportSyntheticComponent } from './Modal/bill-import-synthetic/bill-import-synthetic.component';
 import { ScanBillImportComponent } from './Modal/scan-bill-import/scan-bill-import.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+
 interface BillImport {
   Id?: number;
   BillImportCode: string;
@@ -77,6 +81,9 @@ interface BillImport {
     NzDatePickerModule,
     NzDropDownModule,
     NzMenuModule,
+    NzSpinModule,
+    NzTabsModule,
+    HasPermissionDirective
   ],
   templateUrl: './bill-import.component.html',
   styleUrl: './bill-import.component.css',
@@ -89,7 +96,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     private modalService: NgbModal,
     private appUserService: AppUserService
   ) {}
-
+@Input() wareHouseCode: string = 'HN';
   newBillImport: BillImport = {
     BillImportCode: '',
     ReciverID: 0,
@@ -106,7 +113,9 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     RequestDate: new Date(),
     RulePayID: 0,
   };
-
+ isLoadTable: boolean = false;
+ isDetailLoad: boolean = false;
+  sizeTbDetail: any = '0';
   dataProductGroup: any[] = [];
   data: any[] = [];
   sizeSearch: string = '0';
@@ -122,13 +131,20 @@ export class BillImportComponent implements OnInit, AfterViewInit {
   selectBillImport: any[] = [];
 
   searchParams = {
-    dateStart: new Date(new Date().setMonth(new Date().getMonth() - 1))
-      .toISOString()
-      .split('T')[0],
-    dateEnd: new Date().toISOString().split('T')[0],
+      dateStart: (() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 1);
+    d.setHours(0, 0, 0, 0); // đầu ngày
+    return d.toISOString(); // ISO chuẩn UTC
+  })(),
+  dateEnd: (() => {
+    const d = new Date();
+    d.setHours(23, 59, 59, 999); // cuối ngày
+    return d.toISOString(); // ISO chuẩn UTC
+  })(),
     listproductgroupID: '',
     status: -1,
-    warehousecode: 'HN',
+    warehousecode: this.wareHouseCode,
     keyword: '',
     checkAll: false,
     pageNumber: 1,
@@ -139,11 +155,9 @@ export class BillImportComponent implements OnInit, AfterViewInit {
   dateFormat = 'dd/MM/yyyy';
   cbbStatus: any = [
     { ID: -1, Name: '--Tất cả--' },
-    { ID: 0, Name: 'Mượn' },
-    { ID: 1, Name: 'Tồn Kho' },
-    { ID: 2, Name: 'Đã Xuất Kho' },
-    { ID: 5, Name: 'Xuất trả NCC' },
-    { ID: 6, Name: 'Yêu cầu xuất kho' },
+    { ID: 0, Name: 'Phiếu nhập kho' },
+    { ID: 1, Name: 'Phiếu trả' },
+    { ID: 2, Name: 'Phiếu mượn NCC' },
   ];
   ngOnInit(): void {
     this.getProductGroup();
@@ -166,7 +180,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
       dateEnd: new Date().toISOString().split('T')[0],
       listproductgroupID: '',
       status: -1,
-      warehousecode: 'HN',
+      warehousecode: this.wareHouseCode,
       keyword: '',
       checkAll: false,
       pageNumber: 1,
@@ -176,9 +190,56 @@ export class BillImportComponent implements OnInit, AfterViewInit {
   }
   searchData() {
     this.loadDataBillImport();
-    this.sizeSearch = '';
   }
-  convertExport(){}
+  convertExport(){
+    // Get selected rows from the table
+    const selectedRows = this.table_billImport?.getSelectedRows();
+
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.info('Thông báo', 'Vui lòng chọn ít nhất một phiếu nhập để chuyển đổi!');
+      return;
+    }
+
+    // Get the list of bill import IDs
+    const lstBillImportID: number[] = selectedRows.map((row: any) => {
+      const rowData = row.getData();
+      return rowData.ID;
+    }).filter((id: number) => id > 0);
+
+    if (lstBillImportID.length === 0) {
+      this.notification.warning('Thông báo', 'Không tìm thấy phiếu nhập hợp lệ để chuyển đổi!');
+      return;
+    }
+
+    // Get the first selected bill import for default values
+    const firstBillImport = selectedRows[0].getData();
+
+    // Import BillExportDetailComponent dynamically
+    import('../BillExport/Modal/bill-export-detail/bill-export-detail.component').then(m => {
+      const modalRef = this.modalService.open(m.BillExportDetailComponent, {
+        centered: true,
+        size: 'xl',
+        backdrop: 'static',
+        keyboard: false,
+      });
+
+      // Pass data to the modal matching the C# form logic
+      modalRef.componentInstance.lstBillImportID = lstBillImportID;
+      modalRef.componentInstance.wareHouseCode = this.wareHouseCode;
+      modalRef.componentInstance.billImport = firstBillImport;
+      modalRef.componentInstance.isAddExport = true;
+      modalRef.componentInstance.checkConvert = false;
+
+      modalRef.result.catch((result) => {
+        if (result === true) {
+          this.loadDataBillImport();
+        }
+      });
+    }).catch(err => {
+      console.error('Error loading BillExportDetailComponent:', err);
+      this.notification.error('Thông báo', 'Không thể mở form chuyển đổi phiếu xuất!');
+    });
+  }
 
   openModalBillImportDetail(ischeckmode: boolean) {
     this.isCheckmode = ischeckmode;
@@ -190,7 +251,6 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     console.log('is', this.isCheckmode);
     const modalRef = this.modalService.open(BillImportDetailComponent, {
       centered: true,
-      // windowClass: 'full-screen-modal',
       size: 'xl',
       backdrop: 'static',
       keyboard: false,
@@ -198,6 +258,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.newBillImport = this.newBillImport;
     modalRef.componentInstance.isCheckmode = this.isCheckmode;
     modalRef.componentInstance.id = this.id;
+    modalRef.componentInstance.wareHouseCode = this.wareHouseCode;
 
     modalRef.result.catch((result) => {
       if (result == true) {
@@ -219,32 +280,32 @@ export class BillImportComponent implements OnInit, AfterViewInit {
           this.selectedKhoTypes = this.dataProductGroup.map((item) => item.ID);
           this.searchParams.listproductgroupID =
             this.selectedKhoTypes.join(',');
-          // Load data sau khi đã có product group
           this.loadDataBillImport();
         } else {
-          // Nếu không có data, vẫn load với listproductgroupID rỗng
           this.searchParams.listproductgroupID = '';
           this.loadDataBillImport();
         }
       },
       error: (err) => {
         console.error('Lỗi khi lấy nhóm vật tư', err);
-        // Vẫn load data ngay cả khi lỗi getProductGroup
         this.searchParams.listproductgroupID = '';
         this.loadDataBillImport();
       },
     });
   }
   getBillImportDetail(id: number) {
+    this.isDetailLoad = true;
     this.billImportService.getBillImportDetail(id).subscribe({
       next: (res) => {
         this.dataTableBillImportDetail = res.data;
         this.table_billImportDetail?.replaceData(
           this.dataTableBillImportDetail
         );
+        this.isDetailLoad = false;
       },
       error: (err) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy chi tiết');
+        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy chi tiết');
+        this.isDetailLoad = false;
       },
     });
   }
@@ -335,6 +396,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
   }
 
   loadDataBillImport() {
+    this.isLoadTable = true;
     const dateStart = DateTime.fromJSDate(
       new Date(this.searchParams.dateStart)
     );
@@ -347,7 +409,6 @@ export class BillImportComponent implements OnInit, AfterViewInit {
         next: (res) => {
           if (res.status === 1) {
             this.dataTableBillImport = res.data;
-            console.log('>>> Kết quả getBillImport:', res.data);
             if (this.table_billImport) {
               this.table_billImport.replaceData(this.dataTableBillImport);
             } else {
@@ -355,10 +416,12 @@ export class BillImportComponent implements OnInit, AfterViewInit {
                 '>>> Bảng chưa tồn tại, dữ liệu sẽ được load khi drawTable() được gọi'
               );
             }
+            this.isLoadTable = false;
           }
         },
         error: (err) => {
-          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu phiếu xuất');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu phiếu nhập');
+          this.isLoadTable = false;
         },
       });
   }
@@ -467,7 +530,6 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     window.URL.revokeObjectURL(link.href);
   }
   //#endregion
-  //Xuất Excel theo mẫu
   onExportExcel() {
     if (!this.id || this.id === 0) {
       this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn bản ghi cần xuất file');
@@ -506,21 +568,73 @@ export class BillImportComponent implements OnInit, AfterViewInit {
       },
     });
   }
-  //hồ sơ chứng từ
-  openModalBillDocumentImport() {
-    if (this.id == 0) {
-      this.notification.info('Thông báo', 'Vui lòng chọn 1 phiếu nhập!');
-      this.id = 0;
+
+  onExportExcelKT() {
+    if (!this.id || this.id === 0) {
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn bản ghi cần xuất file');
       return;
     }
-    const code = this.data[0].BillImportCode;
+
+    const selectedBill = this.data.find((item) => item.ID === this.id);
+    if (!selectedBill) {
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không tìm thấy bản ghi được chọn');
+      return;
+    }
+
+    this.billImportService.exportExcelKT(this.id).subscribe({
+      next: (res) => {
+        const url = window.URL.createObjectURL(res);
+        const a = document.createElement('a');
+        const now = new Date();
+        const dateString = now.getDate().toString().padStart(2, '0') + '_' +
+          (now.getMonth() + 1).toString().padStart(2, '0') + '_' +
+          now.getFullYear() + '_' +
+          now.getHours().toString().padStart(2, '0') + '_' +
+          now.getMinutes().toString().padStart(2, '0') + '_' +
+          now.getSeconds().toString().padStart(2, '0');
+        const fileName = `${selectedBill.BillImportCode || 'PhieuNhap'}_${dateString}.xls`;
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        this.notification.success('Thông báo', 'Xuất file thành công!');
+      },
+      error: (err) => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xuất file KT. '+err.error?.message);
+        console.error(err);
+      },
+    });
+  }
+  //hồ sơ chứng từ
+  openModalBillDocumentImport() {
+    let importId = this.id;
+    let code = '';
+    if (!importId || importId === 0) {
+      const selectedRows = this.table_billImport?.getSelectedRows?.() || [];
+      if (selectedRows.length > 0) {
+        const rowData = selectedRows[0].getData();
+        importId = rowData?.ID || 0;
+        code = rowData?.BillImportCode || '';
+      }
+    }
+    if (!importId || importId === 0) {
+      this.notification.info('Thông báo', 'Vui lòng chọn 1 phiếu nhập!');
+      return;
+    }
+    if (!code) {
+      const selected = this.data?.[0];
+      code = selected?.BillImportCode || '';
+    }
+
     const modalRef = this.modalService.open(BillDocumentImportComponent, {
       centered: true,
       size: 'xl',
       backdrop: 'static',
       keyboard: false,
     });
-    modalRef.componentInstance.id = this.id;
+    modalRef.componentInstance.id = importId;
     modalRef.componentInstance.code = code;
     modalRef.result.catch((result) => {
       if (result == true) {
@@ -534,9 +648,9 @@ export class BillImportComponent implements OnInit, AfterViewInit {
   openModalBillImportSynthetic() {
     const modalRef = this.modalService.open(BillImportSyntheticComponent, {
       centered: true,
-      size: 'xl',
       backdrop: 'static',
       keyboard: false,
+      fullscreen: true,
     });
 
     modalRef.result.catch((result) => {
@@ -663,6 +777,8 @@ addAttachment(){
       return menu;
     };
 
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+
     if (this.table_billImport) {
       this.table_billImport.replaceData(this.dataTableBillImport);
     } else {
@@ -670,13 +786,37 @@ addAttachment(){
         ...DEFAULT_TABLE_CONFIG,
         data: this.dataTableBillImport,
         height: '90vh',
-        layout: 'fitDataFill',
+        layout: 'fitDataStretch',
         pagination: true,
         selectableRows: 1,
         movableColumns: true,
         resizableRows: true,
         reactiveData: true,
+        paginationMode: 'local',
         rowContextMenu: rowMenu,
+         langs: {
+    vi: {
+      pagination: {
+        first: '<<',
+        last: '>>',
+        prev: '<',
+        next: '>',
+      },
+    },
+  },
+  locale: 'vi',
+        // rowHeader: {
+        //   headerSort: false,
+        //   resizable: false,
+        //   frozen: true,
+        //   formatter: 'rowSelection',
+        //   headerHozAlign: 'center',
+        //   hozAlign: 'center',
+        //   titleFormatter: 'rowSelection',
+        //   cellClick: (e: any, cell: any) => {
+        //     e.stopPropagation();
+        //   },
+        // },
         columns: [
           {
             title: 'Nhận chứng từ',
@@ -689,7 +829,7 @@ addAttachment(){
                 value === true ? 'checked' : ''
               } disabled />`;
             },
-            headerMenu: headerMenu,
+
           },
           {
             title: 'Ngày nhận / Hủy',
@@ -702,14 +842,14 @@ addAttachment(){
                 ? DateTime.fromISO(value).toFormat('dd/MM/yyyy')
                 : '';
             },
-            headerMenu: headerMenu,
+
           },
           {
             title: 'Loại phiếu',
             field: 'BillTypeText',
             hozAlign: 'left',
             headerHozAlign: 'center',
-            headerMenu: headerMenu,
+
           },
           {
             title: 'Ngày Y/c nhập',
@@ -722,14 +862,14 @@ addAttachment(){
                 ? DateTime.fromISO(value).toFormat('dd/MM/yyyy')
                 : '';
             },
-            headerMenu: headerMenu,
+
           },
           {
             title: 'Số phiếu',
             field: 'BillImportCode',
             hozAlign: 'left',
             headerHozAlign: 'center',
-            headerMenu: headerMenu,
+
             resizable: true,
             variableHeight: true,
             bottomCalc: 'count',
@@ -739,35 +879,35 @@ addAttachment(){
             field: 'Suplier',
             hozAlign: 'left',
             headerHozAlign: 'center',
-            headerMenu: headerMenu,
+
           },
           {
             title: 'Phòng ban',
             field: 'DepartmentName',
             hozAlign: 'left',
             headerHozAlign: 'center',
-            headerMenu: headerMenu,
+
           },
           {
             title: 'Mã NV',
             field: 'Code',
             hozAlign: 'left',
             headerHozAlign: 'center',
-            headerMenu: headerMenu,
+
           },
           {
             title: 'Người giao / Người trả',
             field: 'Deliver',
             hozAlign: 'left',
             headerHozAlign: 'center',
-            headerMenu: headerMenu,
+
           },
           {
             title: 'Người nhận',
             field: 'Reciver',
             hozAlign: 'left',
             headerHozAlign: 'center',
-            headerMenu: headerMenu,
+
           },
           {
             title: 'Ngày tạo',
@@ -780,21 +920,21 @@ addAttachment(){
                 ? DateTime.fromISO(value).toFormat('dd/MM/yyyy')
                 : '';
             },
-            headerMenu: headerMenu,
+
           },
           {
             title: 'Loại vật tư',
             field: 'KhoType',
             hozAlign: 'left',
             headerHozAlign: 'center',
-            headerMenu: headerMenu,
+
           },
           {
             title: 'Kho',
             field: 'WarehouseName',
             hozAlign: 'left',
             headerHozAlign: 'center',
-            headerMenu: headerMenu,
+
           },
 
           // ====== Bổ sung đầy đủ các cột yêu cầu ======
@@ -804,7 +944,7 @@ addAttachment(){
             hozAlign: 'right',
             headerHozAlign: 'center',
             visible: false,
-            headerMenu: headerMenu,
+
           },
           {
             title: 'RowNum',
@@ -812,7 +952,7 @@ addAttachment(){
             hozAlign: 'right',
             headerHozAlign: 'center',
             visible: false,
-            headerMenu: headerMenu,
+
           },
           {
             title: 'ID',
@@ -820,7 +960,7 @@ addAttachment(){
             hozAlign: 'right',
             headerHozAlign: 'center',
             visible: false,
-            headerMenu: headerMenu,
+
           },
           {
             title: 'BillType',
@@ -828,7 +968,7 @@ addAttachment(){
             hozAlign: 'right',
             headerHozAlign: 'center',
             visible: false,
-            headerMenu: headerMenu,
+
           },
           {
             title: 'GroupID',
@@ -836,7 +976,7 @@ addAttachment(){
             hozAlign: 'right',
             headerHozAlign: 'center',
             visible: false,
-            headerMenu: headerMenu,
+
           },
           {
             title: 'SupplierID',
@@ -844,7 +984,7 @@ addAttachment(){
             hozAlign: 'right',
             headerHozAlign: 'center',
             visible: false,
-            headerMenu: headerMenu,
+
           },
           {
             title: 'Người giao / Người trả',
@@ -852,7 +992,7 @@ addAttachment(){
             hozAlign: 'right',
             headerHozAlign: 'center',
             visible: false,
-            headerMenu: headerMenu,
+
           },
           {
             title: 'ReciverID',
@@ -860,14 +1000,14 @@ addAttachment(){
             hozAlign: 'right',
             headerHozAlign: 'center',
             visible: false,
-            headerMenu: headerMenu,
+
           },
           {
             title:'Người giao',
             field:'FullNameSender',
             hozAlign: 'left',
             headerHozAlign: 'center',
-            headerMenu: headerMenu,
+
           },
           {
             title: 'KhoTypeID',
@@ -875,7 +1015,7 @@ addAttachment(){
             hozAlign: 'right',
             headerHozAlign: 'center',
             visible: false,
-            headerMenu: headerMenu,
+
           },
           {
             title: 'Ngày tạo',
@@ -886,7 +1026,7 @@ addAttachment(){
               const v = cell.getValue();
               return v ? DateTime.fromISO(v).isValid ? DateTime.fromISO(v).toFormat('dd/MM/yyyy HH:mm') : (DateTime.fromSQL(v).isValid ? DateTime.fromSQL(v).toFormat('dd/MM/yyyy HH:mm') : v) : '';
             },
-            headerMenu: headerMenu,
+
           },
           {
             title: 'UpdatedDate',
@@ -898,14 +1038,14 @@ addAttachment(){
               const v = cell.getValue();
               return v ? DateTime.fromISO(v).isValid ? DateTime.fromISO(v).toFormat('dd/MM/yyyy HH:mm') : (DateTime.fromSQL(v).isValid ? DateTime.fromSQL(v).toFormat('dd/MM/yyyy HH:mm') : v) : '';
             },
-            headerMenu: headerMenu,
+
           },
           {
             title:'Người tạo',
             field: 'CreatedBy',
             hozAlign: 'left',
             headerHozAlign: 'center',
-            headerMenu: headerMenu,
+
           },
           {
             title: 'UpdatedBy',
@@ -913,7 +1053,7 @@ addAttachment(){
             hozAlign: 'left',
             headerHozAlign: 'center',
             visible: false,
-            headerMenu: headerMenu,
+
           },
           {
             title: 'UnApprove',
@@ -925,7 +1065,7 @@ addAttachment(){
               const v = cell.getValue();
               return `<input type="checkbox" ${v ? 'checked' : ''} disabled />`;
             },
-            headerMenu: headerMenu,
+
           },
           {
             title: 'PTNB',
@@ -937,7 +1077,7 @@ addAttachment(){
               return `<input type="checkbox" ${v ? 'checked' : ''} disabled />`;
             },
             visible: false,
-            headerMenu: headerMenu,
+
           },
           {
             title: 'WarehouseID',
@@ -945,7 +1085,7 @@ addAttachment(){
             hozAlign: 'right',
             headerHozAlign: 'center',
             visible: false,
-            headerMenu: headerMenu,
+
           },
           {
             title: 'BillTypeNew',
@@ -953,7 +1093,7 @@ addAttachment(){
             hozAlign: 'right',
             headerHozAlign: 'center',
             visible: false,
-            headerMenu: headerMenu,
+
           },
           {
             title: 'BillDocumentImportType',
@@ -961,7 +1101,7 @@ addAttachment(){
             hozAlign: 'right',
             headerHozAlign: 'center',
             visible: false,
-            headerMenu: headerMenu,
+
           },
           // DateRequestImport đã có ở trên
           {
@@ -970,7 +1110,7 @@ addAttachment(){
             hozAlign: 'right',
             headerHozAlign: 'center',
             visible: false,
-            headerMenu: headerMenu,
+
           },
           {
             title: 'IsDeleted',
@@ -982,7 +1122,7 @@ addAttachment(){
               const v = cell.getValue();
               return `<input type="checkbox" ${v ? 'checked' : ''} disabled />`;
             },
-            headerMenu: headerMenu,
+
           },
           {
             title: 'BillExportID',
@@ -990,7 +1130,7 @@ addAttachment(){
             hozAlign: 'right',
             headerHozAlign: 'center',
             visible: false,
-            headerMenu: headerMenu,
+
           },
           {
             title: 'StatusDocumentImport',
@@ -998,7 +1138,7 @@ addAttachment(){
             hozAlign: 'right',
             headerHozAlign: 'center',
             visible: false,
-            headerMenu: headerMenu,
+
           },
           // BillTypeText đã có ở trên
           // Code đã có ở trên
@@ -1009,21 +1149,21 @@ addAttachment(){
             hozAlign: 'left',
             headerHozAlign: 'center',
             visible: false,
-            headerMenu: headerMenu,
+
           },
           {
             title: 'Tình trạng hồ sơ',
             field: 'IsSuccessText',
             hozAlign: 'left',
             headerHozAlign: 'center',
-            headerMenu: headerMenu,
+
           },
           {
             title: 'Người nhận / Hủy CT',
             field: 'DoccumentReceiver',
             hozAlign: 'left',
             headerHozAlign: 'center',
-            headerMenu: headerMenu,
+
           },
           {
             title: 'DoccumentReceiverID',
@@ -1031,7 +1171,6 @@ addAttachment(){
             hozAlign: 'right',
             headerHozAlign: 'center',
             visible: false,
-            headerMenu: headerMenu,
           },
           {
             title: 'CurrencyList',
@@ -1039,7 +1178,6 @@ addAttachment(){
             hozAlign: 'left',
             headerHozAlign: 'center',
             visible: false,
-            headerMenu: headerMenu,
           },
           {
             title: 'VAT',
@@ -1047,7 +1185,6 @@ addAttachment(){
             hozAlign: 'right',
             headerHozAlign: 'center',
             visible: false,
-            headerMenu: headerMenu,
           },
           {
             title: 'PONCCCodeList',
@@ -1055,16 +1192,25 @@ addAttachment(){
             hozAlign: 'left',
             headerHozAlign: 'center',
             visible: false,
-            headerMenu: headerMenu,
           },
           // ====== Hết phần bổ sung ======
         ],
       });
 
+      if (isMobile) {
+        this.table_billImport.getColumns().forEach((col: any) => {
+          const def = col.getDefinition();
+          if (def && def.frozen === true) {
+            col.updateDefinition({ frozen: false });
+          }
+        });
+      }
+
       // Events for row selection
       this.table_billImport.on('rowSelected', (row: RowComponent) => {
         const rowData = row.getData();
         this.id = rowData['ID'];
+         this.sizeTbDetail = null;
         this.data = [rowData];
         console.log('dhdgdfgd', this.data);
         this.getBillImportDetail(this.id);
@@ -1087,8 +1233,8 @@ addAttachment(){
       this.table_billImportDetail = new Tabulator('#table_billimportdetail', {
         ...DEFAULT_TABLE_CONFIG,
         data: this.dataTableBillImportDetail,
-        layout: 'fitDataFill',
-        height: '90vh',
+        layout: 'fitDataStretch',
+        height: '39vh',
         pagination: true,
         movableColumns: true,
         resizableRows: true,
@@ -1118,6 +1264,7 @@ addAttachment(){
             field: 'SerialNumber',
             hozAlign: 'left',
             headerHozAlign: 'center',
+            visible: false,
           },
           {
             title: 'ĐVT',
@@ -1148,6 +1295,7 @@ addAttachment(){
             field: 'DateSomeBill',
             hozAlign: 'left',
             headerHozAlign: 'center',
+            editor: 'datetime',
             formatter: (cell) => {
               const value = cell.getValue();
               return value
@@ -1194,5 +1342,8 @@ addAttachment(){
         ],
       });
     }
+  }
+    closePanel() {
+    this.sizeTbDetail = '0';
   }
 }

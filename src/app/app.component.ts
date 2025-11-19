@@ -22,6 +22,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { AppNotifycationDropdownComponent } from './pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
+import { NzGridModule } from 'ng-zorro-antd/grid';
 @Component({
   selector: 'app-root',
   imports: [
@@ -38,6 +39,7 @@ import { AppNotifycationDropdownComponent } from './pages/old/app-notifycation-d
     // BrowserModule,
     ReactiveFormsModule,
     // HttpClient,
+    NzGridModule,
   ],
   //   templateUrl: './app.component.html',
   styleUrl: './app.component.css',

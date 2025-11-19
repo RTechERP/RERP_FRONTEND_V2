@@ -61,6 +61,8 @@ import { Title } from '@angular/platform-browser';
 import { PlanWeekDetailComponent } from '../plan-week-detail/plan-week-detail/plan-week-detail.component';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { AppUserService } from '../../../../services/app-user.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-plan-week',
@@ -132,8 +134,9 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private modalService: NgbModal,
     private modal: NzModalService,
-    private planWeekService: PlanWeekService
-  ) { }
+    private planWeekService: PlanWeekService,
+    private appUserService: AppUserService
+  ) {}
 
   ngOnInit(): void {
     this.isMobile = window.innerWidth < 576;
@@ -180,7 +183,6 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
       this.sizeSearch = '22%';
     }
   };
-
 
   searchData(): void {
     this.loadMainData(
@@ -229,13 +231,19 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
   }
 
   openPlanWeekDetailModal() {
+    let userid = 0;
+    if (this.isEditMode === true) {
+      userid = this.selectedId;
+    } else {
+      userid = this.appUserService.id || 0;
+    }
     const modalRef = this.modalService.open(PlanWeekDetailComponent, {
       centered: true,
       backdrop: 'static',
       size: 'xl',
     });
     modalRef.componentInstance.isEditMode = this.isEditMode;
-    modalRef.componentInstance.UserID = this.selectedId;
+    modalRef.componentInstance.UserID = userid;
     modalRef.result.then(
       (result) => {
         if (result.success && result.reloadData) {
@@ -248,12 +256,24 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
             this.filters.userId,
             this.filters.teamId
           );
+        } else {
+          this.isEditMode = false;
         }
       },
       (reason) => {
+        this.isEditMode = false;
         console.log('Modal closed');
       }
     );
+  }
+
+  onEdit(): void {
+    if (this.selectedId > 0) {
+      this.isEditMode = true;
+      this.openPlanWeekDetailModal();
+    } else {
+      this.notification.info('Thông báo', 'Không có dữ liệu bản ghi cần sửa!');
+    }
   }
 
   onDepartmentChange(value: any): void {
@@ -274,15 +294,6 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
     }
   }
 
-  onEdit(): void {
-    if (this.selectedId > 0) {
-      this.isEditMode = true;
-      this.openPlanWeekDetailModal();
-    } else {
-      this.notification.info('Thông báo', 'Vui lòng chọn 1 bản ghi cần sửa!');
-    }
-  }
-
   loadDepartment() {
     this.planWeekService.getDepartment().subscribe({
       next: (response) => {
@@ -293,9 +304,8 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, error);
         const errorMessage = error?.error?.message || error?.message || 'Không thể tải dữ liệu';
-        this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
+        this.notification.error('Lỗi', errorMessage);
       },
     });
   }
@@ -307,12 +317,16 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
           this.filterTeamData = this.transformFlatDataToTreeData(response.data);
         } else {
           this.notification.error(NOTIFICATION_TITLE.error, response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
         this.notification.error(NOTIFICATION_TITLE.error, error);
         const errorMessage = error?.error?.message || error?.message || 'Không thể tải dữ liệu';
         this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
+        const errorMessage =
+          error?.error?.message || error?.message || 'Không thể tải dữ liệu';
+        this.notification.error('Lỗi', errorMessage);
       },
     });
   }
@@ -324,12 +338,16 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
           this.filterUserData = response.data;
         } else {
           this.notification.error(NOTIFICATION_TITLE.error, response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
         this.notification.error(NOTIFICATION_TITLE.error, error);
         const errorMessage = error?.error?.message || error?.message || 'Không thể tải dữ liệu';
         this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
+        const errorMessage =
+          error?.error?.message || error?.message || 'Không thể tải dữ liệu';
+        this.notification.error('Lỗi', errorMessage);
       },
     });
   }
@@ -353,12 +371,16 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
             }
           } else {
             this.notification.error(NOTIFICATION_TITLE.error, response.message);
+            this.notification.error(NOTIFICATION_TITLE.error, response.message);
           }
         },
         error: (error) => {
           this.notification.error(NOTIFICATION_TITLE.error, error);
           const errorMessage = error?.error?.message || error?.message || 'Không thể tải dữ liệu';
           this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
+          const errorMessage =
+            error?.error?.message || error?.message || 'Không thể tải dữ liệu';
+          this.notification.error('Lỗi', errorMessage);
         },
       });
   }
@@ -395,22 +417,31 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
       this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn bản ghi cần xóa');
       return;
     }
-    if (!this.selectedField || ['FullName', 'Code', 'UserID', 'ParentID'].includes(this.selectedField)) {
+    if (
+      !this.selectedField ||
+      ['FullName', 'Code', 'UserID', 'ParentID'].includes(this.selectedField)
+    ) {
       this.notification.info('Thông báo', 'Vui lòng chọn đúng ô ngày cần xóa');
       return;
     }
     const dateFromField = new Date(this.selectedField as string);
 
-    const UserID = this.selectedId
-    const DatePlan = dateFromField
+    const UserID = this.selectedId;
+    const DatePlan = dateFromField;
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: `Bạn có chắc chắn muốn xóa kế hoạch ngày ${dateFromField.toLocaleDateString()} của ${this.selectedRow?.FullName}?`,
+      nzContent: `Bạn có chắc chắn muốn xóa kế hoạch ngày ${dateFromField.toLocaleDateString()} của ${
+        this.selectedRow?.FullName
+      }?`,
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
         if (isNaN(dateFromField.getTime())) {
           this.notification.error(NOTIFICATION_TITLE.error, 'Không xác định được ngày từ cột đã chọn');
+          this.notification.error(
+            'Lỗi',
+            'Không xác định được ngày từ cột đã chọn'
+          );
           return;
         }
 
@@ -433,6 +464,10 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
             const errorMessage = err?.error?.message || err?.message || 'Không thể xóa dữ liệu';
             this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
           }
+            const errorMessage =
+              err?.error?.message || err?.message || 'Không thể xóa dữ liệu';
+            this.notification.error('Lỗi', errorMessage);
+          },
         });
       },
     });
@@ -441,6 +476,10 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
   async exportMainTableToExcel() {
     if (!this.tb_MainTable) {
       this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất Excel');
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Không có dữ liệu để xuất Excel'
+      );
       return;
     }
 
@@ -493,12 +532,12 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
       const year = d.getFullYear();
       return `${day}/${month}/${year}`;
     };
-    
+
     const start = formatDate(this.filters.startDate);
     const end = formatDate(this.filters.endDate);
-    
+
     link.download = `KeHoachTuan_${start} - ${end}.xlsx`;
-    
+
     link.click();
     window.URL.revokeObjectURL(url);
   }
@@ -524,6 +563,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
         resizable: true,
         cssClass: 'tabulator-cell-wrap',
       },
+      rowHeader: false,
       autoColumnsDefinitions: (definitions: any[] = []) =>
         definitions.map((def: any) => {
           if (def.field === 'ParentID') {
@@ -541,11 +581,11 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
           return def;
         }),
     });
-    this.tb_MainTable.on('rowClick', (e: any, row: RowComponent) => {
-      const rowData = row.getData();
-      this.selectedRow = rowData;
-      this.selectedId = rowData['UserID'];
-    });
+    // this.tb_MainTable.on('rowClick', (e: any, row: RowComponent) => {
+    //   const rowData = row.getData();
+    //   this.selectedRow = rowData;
+    //   this.selectedId = rowData['UserID'];
+    // });
     this.tb_MainTable.on('cellClick', (e: any, cell: any) => {
       const field = cell.getField();
       this.selectedField = field;
@@ -553,6 +593,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
       this.selectedRow = rowData;
       if (rowData && rowData['UserID']) {
         this.selectedId = rowData['UserID'];
+        console.log(this.selectedId);
       }
     });
   }

@@ -136,7 +136,7 @@ export class EmployeeBussinessVehicleComponent implements OnInit {
     }
     const selectedEmployeeBussinessVehicle = selectedRows[0].getData();
 
-    
+
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
       nzContent: `Bạn có chắc chắn muốn xóa loại phụ cấp phương tiện đã chọn?`,

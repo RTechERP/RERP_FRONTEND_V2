@@ -1,0 +1,67 @@
+<div>
+    <!-- Header -->
+    <div class="modal-header bg-primary align-items-center ps-2">
+        <h6 class="text-light text-uppercase m-0" style="padding: 0, 5rem">
+            Quản lý loại xe
+        </h6>
+        <button type="button" class="btn-close fs-12" aria-label="Close" (click)="close()"></button>
+    </div>
+    <!-- Body-->
+    <div class="modal-body">
+        <div class="card  border-0 rounded-0">
+            <div class="card-header  bg-white p-1">
+                <div class="d-flex h-40  gap-1">
+                 
+                    <button class="btn-add" nz-button nzType="default" nzSize="small" (click)="onAddVehicle()"
+                    *hasPermission="'N2,N34,N1'">
+                    <!-- <nz-icon nzType="plus" /> Thêm -->
+                    <img src="assets/icon/action_add_item_16.png" />Thêm
+                </button>
+                <button class="btn-edit" nz-button nzType="default" nzSize="small" (click)="onEditVehicle()"
+                    *hasPermission="'N2,N34,N1'">
+                    <img src="assets/icon/action_edit_item_16.png" />Sửa
+                </button>
+                <button class="btn-delete" nz-button nzType="default" nzSize="small" (click)="onDeleteVehicle()"
+                    *hasPermission="'N2,N34,N1'">
+                    <img src="assets/icon/action_delete_item_16.png" />Xóa
+                </button>
+                    <div class="ms-auto d-flex gap-1 align-items-center">
+              <nz-input-group style="width: 250px">
+                <input
+                  nz-input
+                  type="text"
+                  placeholder="Enter text to search..."
+                  [(ngModel)]="searchText"
+                  (ngModelChange)="onSearch()"
+                  (keyup.enter)="onSearch()"
+                />
+              </nz-input-group>
+
+              <!-- Nút Tìm kiếm bên ngoài -->
+              <button
+                class="fs-12"
+                nz-button
+                nzType="primary"
+                nzSize="small"
+                (click)="onSearch()"
+                [disabled]="!searchText || searchText.trim().length === 0"
+              >
+                <nz-icon nzType="search"></nz-icon> Tìm kiếm
+              </button>
+            </div>
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                <div style="height: 100%">
+                    <div id="tb_vehicleCategory" style="height: 100%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+        <div class="modal-footer bg-whitesmoke br p-1">
+        <button nz-button nzType="default" nzDanger (click)="close()">
+            Đóng
+        </button>
+    </div>
+</div>

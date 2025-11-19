@@ -1,0 +1,413 @@
+<ng-container class="w-100">
+  <nz-splitter>
+    <!-- BẢNG TÌM KIẾM -->
+    <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-2 border-bottom">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="m-0 fs-6 fw-semibold">Tìm kiếm</h6>
+            <button
+              nz-button
+              nzSize="small"
+              nzType="text"
+              nzDanger
+              (click)="toggleSearchPanel()"
+            >
+              <nz-icon nzType="close" nzTheme="outline" />
+            </button>
+          </div>
+        </div>
+
+        <div class="card-body p-3">
+          <form nz-form nzLayout="vertical">
+            <nz-row [nzGutter]="[16, 8]">
+              <!-- Từ ngày -->
+              <nz-col [nzSpan]="24">
+                <nz-form-item>
+                  <nz-form-label class="fs-12">Từ ngày</nz-form-label>
+                  <nz-form-control>
+                    <nz-date-picker
+                      name="dateStart"
+                      class="w-100"
+                      nzFormat="dd/MM/yyyy"
+                      nzAllowClear="false"
+                      [(ngModel)]="dateStart"
+                    ></nz-date-picker>
+                  </nz-form-control>
+                </nz-form-item>
+              </nz-col>
+
+              <!-- Đến ngày -->
+              <nz-col [nzSpan]="24">
+                <nz-form-item>
+                  <nz-form-label class="fs-12">Đến ngày</nz-form-label>
+                  <nz-form-control>
+                    <nz-date-picker
+                      name="dateEnd"
+                      class="w-100"
+                      nzFormat="dd/MM/yyyy"
+                      nzAllowClear="false"
+                      [(ngModel)]="dateEnd"
+                    ></nz-date-picker>
+                  </nz-form-control>
+                </nz-form-item>
+              </nz-col>
+
+              <!-- Dự án -->
+              <nz-col [nzSpan]="24">
+                <nz-form-item>
+                  <nz-form-label>Dự án</nz-form-label>
+                  <nz-form-control>
+                    <nz-select
+                      name="projectId"
+                      class="w-100"
+                      nzShowSearch
+                      nzAllowClear
+                      nzPlaceHolder="Chọn dự án"
+                      [(ngModel)]="projectId"
+                      (ngModelChange)="getDataProjectSurvey()"
+                    >
+                      @for (item of projects; track $index) {
+                        <nz-option
+                          [nzLabel]="item.ProjectCode"
+                          [nzValue]="item.ID"
+                        >
+                          {{ item.ProjectCode + " - " + item.ProjectName }}
+                        </nz-option>
+                      }
+                    </nz-select>
+                  </nz-form-control>
+                </nz-form-item>
+              </nz-col>
+
+              <!-- NV Sale -->
+              <nz-col [nzSpan]="24">
+                <nz-form-item>
+                  <nz-form-label class="fs-12">NV Sale</nz-form-label>
+                  <nz-form-control>
+                    <nz-select
+                      name="saleId"
+                      class="w-100"
+                      nzShowSearch
+                      nzAllowClear
+                      nzPlaceHolder="Chọn sale"
+                      [(ngModel)]="saleId"
+                      (ngModelChange)="getDataProjectSurvey()"
+                    >
+                      @for (parent of employees; track $index) {
+                        <nz-option-group [nzLabel]="parent.label">
+                          @for (child of parent.options; track $index) {
+                            <nz-option
+                              [nzLabel]="child.item.FullName"
+                              [nzValue]="child.item.ID"
+                            >
+                              {{ child.item.Code + " - " + child.item.FullName }}
+                            </nz-option>
+                          }
+                        </nz-option-group>
+                      }
+                    </nz-select>
+                  </nz-form-control>
+                </nz-form-item>
+              </nz-col>
+
+              <!-- Kỹ thuật -->
+              <nz-col [nzSpan]="24">
+                <nz-form-item>
+                  <nz-form-label class="fs-12">Kỹ thuật</nz-form-label>
+                  <nz-form-control>
+                    <nz-select
+                      name="technicalId"
+                      class="w-100"
+                      nzShowSearch
+                      nzAllowClear
+                      nzPlaceHolder="Chọn kỹ thuật"
+                      [(ngModel)]="technicalId"
+                      (ngModelChange)="getDataProjectSurvey()"
+                    >
+                      @for (parent of employees; track $index) {
+                        <nz-option-group [nzLabel]="parent.label">
+                          @for (child of parent.options; track $index) {
+                            <nz-option
+                              [nzLabel]="child.item.FullName"
+                              [nzValue]="child.item.ID"
+                            >
+                              {{ child.item.Code + " - " + child.item.FullName }}
+                            </nz-option>
+                          }
+                        </nz-option-group>
+                      }
+                    </nz-select>
+                  </nz-form-control>
+                </nz-form-item>
+              </nz-col>
+
+              <!-- Từ khóa -->
+              <nz-col [nzSpan]="24">
+                <nz-form-item>
+                  <nz-form-label class="fs-12">Từ khóa</nz-form-label>
+                  <nz-form-control>
+                    <input
+                      name="keyword"
+                      nz-input
+                      placeholder="Nhập từ khóa"
+                      [(ngModel)]="keyword"
+                    />
+                  </nz-form-control>
+                </nz-form-item>
+              </nz-col>
+            </nz-row>
+          </form>
+        </div>
+
+        <div class="card-footer bg-white p-2 d-flex gap-2 justify-content-end border-top">
+          <button nz-button nzType="default" nzSize="small" (click)="reset()">
+            Đặt lại
+          </button>
+          <button
+            nz-button
+            nzType="primary"
+            nzSize="small"
+            (click)="getDataProjectSurvey()"
+          >
+            Tìm kiếm
+          </button>
+        </div>
+      </div>
+    </nz-splitter-panel>
+
+    <!-- BẢNG DỮ LIỆU -->
+    <nz-splitter-panel nzDefaultSize="100%">
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-2 border-bottom">
+          <div class="d-flex gap-1 flex-wrap">
+            <button
+              nz-button
+              nzType="default"
+              nzSize="small"
+              (click)="toggleSearchPanel()"
+            >
+              <nz-icon nzType="search" />
+            </button>
+            <button
+              nz-button
+              nzSize="small"
+              class="btn-add"
+              (click)="updateProjectSurvey(0)"
+            >
+              <img src="assets/icon/action_add_item_16.png" alt="Thêm" /> Thêm
+            </button>
+            <button
+              nz-button
+              nzType="default"
+              nzSize="small"
+              class="btn-edit"
+              (click)="updateProjectSurvey(1)"
+            >
+              <img src="assets/icon/action_edit_item_16.png" alt="Sửa" /> Sửa
+            </button>
+            <button
+              nz-button
+              nzType="default"
+              nzSize="small"
+              nzDanger
+              class="btn-delete"
+              (click)="deletedSurvey()"
+            >
+              <img src="assets/icon/action_delete_item_16.png" alt="Xóa" /> Xóa
+            </button>
+            <button
+              nz-button
+              nzType="default"
+              nzSize="small"
+              (click)="surveyResult()"
+            >
+              <nz-icon nzType="file-done" nzTheme="outline" /> Kết quả khảo sát
+            </button>
+          </div>
+        </div>
+
+        <div class="card-body p-0 position-relative">
+          <div *ngIf="isLoadTable" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75 z-3">
+            <nz-spin nzSimple></nz-spin>
+          </div>
+          <div class="border h-100" #tb_projectSurvey></div>
+        </div>
+      </div>
+    </nz-splitter-panel>
+  </nz-splitter>
+</ng-container>
+
+<!-- ==================== MODAL: INFO APPROVED ==================== -->
+<ng-template #infoApproved>
+  <form nz-form nzLayout="vertical">
+    <nz-row [nzGutter]="16">
+      <nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label class="fs-12">
+            Kỹ thuật yêu cầu <span class="text-danger">(*)</span>
+          </nz-form-label>
+          <nz-form-control>
+            <nz-select
+              name="technicalRequestId"
+              class="w-100"
+              nzShowSearch
+              nzAllowClear
+              nzPlaceHolder="Chọn kỹ thuật"
+              [(ngModel)]="technicalRequestId"
+            >
+              @for (parent of employees; track $index) {
+                <nz-option-group [nzLabel]="parent.label">
+                  @for (child of parent.options; track $index) {
+                    <nz-option
+                      [nzLabel]="child.item.FullName"
+                      [nzValue]="child.item.ID"
+                    >
+                      {{ child.item.Code + " - " + child.item.FullName }}
+                    </nz-option>
+                  }
+                </nz-option-group>
+              }
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label class="fs-12">
+            Ngày khảo sát <span class="text-danger">(*)</span>
+          </nz-form-label>
+          <nz-form-control>
+            <nz-date-picker
+              name="dateSurvey"
+              class="w-100"
+              nzFormat="dd/MM/yyyy"
+              nzAllowClear="false"
+              [(ngModel)]="dateSurvey"
+            ></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-radio-group [(ngModel)]="partOfDayId" class="d-block">
+            <label nz-radio [nzValue]="1">Buổi sáng</label>
+            <label nz-radio [nzValue]="2">Buổi chiều</label>
+          </nz-radio-group>
+        </nz-form-item>
+      </nz-col>
+
+      @if (isDisableReasion) {
+        <nz-col [nzSpan]="24">
+          <nz-form-item>
+            <nz-form-label class="fs-12">
+              Lý do hủy <span class="text-danger">(*)</span>
+            </nz-form-label>
+            <nz-form-control>
+              <textarea
+                [(ngModel)]="reason"
+                name="Reason"
+                rows="4"
+                nz-input
+                placeholder="Nhập lý do hủy"
+              ></textarea>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      }
+    </nz-row>
+  </form>
+</ng-template>
+
+<!-- ==================== MODAL: KẾT QUẢ KHẢO SÁT ==================== -->
+<ng-template #resultSurvey>
+  <form nz-form nzLayout="vertical">
+    <nz-row [nzGutter]="16">
+      <nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label class="fs-12">Kỹ thuật phụ trách</nz-form-label>
+          <nz-form-control>
+            <nz-select
+              name="employeeIdResult"
+              class="w-100"
+              nzShowSearch
+              nzAllowClear
+              nzPlaceHolder="Chọn kỹ thuật"
+              [(ngModel)]="employeeIdResult"
+              [nzDisabled]="true"
+            >
+              @for (parent of employees; track $index) {
+                <nz-option-group [nzLabel]="parent.label">
+                  @for (child of parent.options; track $index) {
+                    <nz-option
+                      [nzLabel]="child.item.FullName"
+                      [nzValue]="child.item.ID"
+                    >
+                      {{ child.item.Code + " - " + child.item.FullName }}
+                    </nz-option>
+                  }
+                </nz-option-group>
+              }
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label class="fs-12">Ngày khảo sát</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker
+              name="dateResult"
+              class="w-100"
+              nzFormat="dd/MM/yyyy"
+              nzAllowClear="false"
+              [(ngModel)]="dateResult"
+              [nzDisabled]="true"
+            ></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label class="fs-12">
+            Kết quả khảo sát <span class="text-danger">(*)</span>
+          </nz-form-label>
+          <nz-form-control>
+            <textarea
+              [(ngModel)]="result"
+              name="result"
+              rows="5"
+              nz-input
+              placeholder="Nhập kết quả"
+              style="min-height: 120px; max-height: 200px;"
+            ></textarea>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+
+      <nz-col [nzSpan]="24">
+        <nz-form-item class="mb-2">
+          <nz-upload
+            [(nzFileList)]="fileListResult"
+            [nzBeforeUpload]="beforeUpload"
+            [nzMultiple]="true"
+            [nzShowUploadList]="false"
+          >
+            <button nz-button nzSize="small">
+              <nz-icon nzType="upload" />
+              Chọn file mô tả dự án
+            </button>
+          </nz-upload>
+        </nz-form-item>
+      </nz-col>
+
+      <nz-col [nzSpan]="24">
+        <div class="border rounded" style="height: 180px;" #tb_projectSurveyFile></div>
+      </nz-col>
+    </nz-row>
+  </form>
+</ng-template>

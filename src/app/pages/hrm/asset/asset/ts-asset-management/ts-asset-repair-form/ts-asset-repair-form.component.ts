@@ -190,10 +190,9 @@ formatDateForInput(value: any): string {
         this.formSubmitted.emit();
         this.activeModal.close(true);
       },
-      error: () => {
-        this.notification.error("Thông báo", "Lỗi");
-        console.error('Lỗi khi lưu đơn vị!');
-      }
+      error: (res: any) => {
+               this.notification.error(NOTIFICATION_TITLE.error, res.error.message);
+             }
     });
   }
 }

@@ -55,7 +55,10 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 
 import { PokhService } from '../pokh/pokh-service/pokh.service';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../app.config';
+
+import { CustomerServiceService } from '../../crm/customers/customer/customer-service/customer-service.service';
 
 @Component({
   selector: 'app-pokh-kpi',
@@ -84,18 +87,24 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
     NzSwitchModule,
     NzCheckboxModule,
     CommonModule,
+    HasPermissionDirective,
   ],
   templateUrl: './pokh-kpi.component.html',
   styleUrl: './pokh-kpi.component.css',
 })
 export class PokhKpiComponent implements OnInit, AfterViewInit {
+  @ViewChild('tb_POKH', { static: false }) tb_POKHElement!: ElementRef;
+  @ViewChild('tb_Detail', { static: false }) tb_DetailElement!: ElementRef;
+  
   tb_POKH!: Tabulator;
   tb_Detail!: Tabulator;
   sizeSearch: string = '0';
+  sizeTbDetail: string = '20%';
   selectedId: number = 0;
   selectedRow: any = null;
   filterEmployeeTeamSale: any[] = [];
   filterUserData: any[] = [];
+  customers: any[] = [];
   dataDetail: any[] = [];
   filters: any = {
     filterText: '',
@@ -116,6 +125,9 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
   }
+  closePanel() {
+    this.sizeTbDetail = '0';
+  }
   toggleSelectAll() {
     if (!this.tb_POKH) return;
     if (this.allSelected) {
@@ -130,7 +142,8 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
   }
   constructor(
     private POKHService: PokhService,
-    private notification: NzNotificationService
+    private notification: NzNotificationService,
+    private customerService: CustomerServiceService
   ) {}
   ngOnInit(): void {
     const endDate = new Date();
@@ -138,6 +151,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
     startDate.setMonth(endDate.getMonth() - 3);
     this.filters.startDate = startDate;
     this.filters.endDate = endDate;
+    this.loadFilterCustomers();
   }
   ngAfterViewInit(): void {
     this.drawPOKHTable();
@@ -149,6 +163,23 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
       // Gọi setData() với tham số true để force reload data từ server
       this.tb_POKH.setData(null, true);
     }
+  }
+
+  loadFilterCustomers(): void {
+    this.customerService.getCustomers().subscribe(
+      (response) => {
+        if (response.status === 1) {
+          this.customers = response.data;
+        } else {
+          this.notification.error('Lỗi khi tải khách hàng:', response.message);
+          return;
+        }
+      },
+      (error) => {
+        this.notification.error('Lỗi kết nối khi tải khách hàng:', error);
+        return;
+      }
+    );
   }
 
   loadPOKHKPIDetail(id: number): void {
@@ -249,7 +280,26 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
     currentPageData.forEach((rowData) => {
       const row = columns.map((col) => {
         const field = col.getField();
+        const column = col.getDefinition();
         let value = rowData[field];
+
+        // Format number for money columns
+        if (column.formatter === 'money' && value !== null && value !== undefined) {
+          // Convert to number if it's string
+          const numValue = typeof value === 'number' ? value : Number(value);
+          if (!isNaN(numValue)) {
+            value = numValue;
+          }
+        }
+
+        // Format date columns - convert ISO string to Date object
+        if (field === 'ReceivedDatePO' && value) {
+          const date = new Date(value);
+          if (!isNaN(date.getTime())) {
+            value = date;
+          }
+        }
+
         return value;
       });
       worksheet.addRow(row);
@@ -290,9 +340,30 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
     totalLabelCell.value = 'Tổng cộng';
     totalLabelCell.font = { bold: true };
 
-    // Auto-fit columns
-    worksheet.columns.forEach((column: any) => {
+    // Auto-fit columns and set format for money and date columns
+    worksheet.columns.forEach((column: any, index: number) => {
       column.width = 15;
+
+      // Get column definition from Tabulator
+      const colDef = columns[index]?.getDefinition();
+
+      // Apply number format to money columns
+      if (colDef?.formatter === 'money') {
+        worksheet.getColumn(index + 1).eachCell((cell, rowNumber) => {
+          if (rowNumber > 1 && typeof cell.value === 'number') {
+            cell.numFmt = '#,##0'; // Format with thousand separator
+          }
+        });
+      }
+
+      // Apply date format to date columns
+      if (colDef?.field === 'ReceivedDatePO') {
+        worksheet.getColumn(index + 1).eachCell((cell, rowNumber) => {
+          if (rowNumber > 1 && cell.value instanceof Date) {
+            cell.numFmt = 'dd/mm/yyyy'; // Format as dd/MM/yyyy
+          }
+        });
+      }
     });
 
     // Generate Excel file
@@ -310,9 +381,13 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
     window.URL.revokeObjectURL(url);
   }
   drawPOKHTable(): void {
-    this.tb_POKH = new Tabulator(`#tb_POKH`, {
+    if (!this.tb_POKHElement) {
+      console.error('tb_POKH element not found');
+      return;
+    }
+    this.tb_POKH = new Tabulator(this.tb_POKHElement.nativeElement, {
       layout: 'fitDataFill',
-      height: '91vh',
+      height: '88vh',
       selectableRows: true,
       pagination: true,
       paginationMode: 'remote',
@@ -393,7 +468,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
           </div>`;
           },
         },
-        { title: 'Số POKH', field: 'ID', sorter: 'number', width: 100 },
+        { title: 'Số POKH', field: 'ID', sorter: 'number', width: 100, visible: false },
         { title: 'Mã PO', field: 'POCode', sorter: 'string', width: 150 },
         {
           title: 'Khách hàng',
@@ -413,6 +488,11 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
           field: 'ReceivedDatePO',
           sorter: 'date',
           width: 150,
+          formatter: (cell) => {
+            const value = cell.getValue();
+            // Nếu có giá trị thì chuyển đổi ISO sang dạng dd/MM/yyyy
+            return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
+          },
         },
         {
           title: 'Loại tiền',
@@ -509,27 +589,69 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
     });
   }
   initDetailTable(): void {
-    this.tb_Detail = new Tabulator(`#tb_Detail`, {
+    if (!this.tb_DetailElement) {
+      console.error('tb_Detail element not found');
+      return;
+    }
+    this.tb_Detail = new Tabulator(this.tb_DetailElement.nativeElement, {
       data: this.dataDetail,
       layout: 'fitDataFill',
       pagination: true,
       paginationSize: 50,
-      height: '88.5vh',
+      height: '85vh',
       movableColumns: true,
       resizableRows: true,
+      langs: {
+        vi: {
+          pagination: {
+            first: '<<',
+            last: '>>',
+            prev: '<',
+            next: '>',
+          },
+        },
+      },
+      locale: 'vi',
+      reactiveData: true,
+      columnDefaults: {
+        headerWordWrap: true,
+        headerVertical: false,
+        headerHozAlign: 'center',
+        minWidth: 60,
+        resizable: true,
+      },
       columns: [
         {
           title: 'Ngày nhận PO',
           field: 'ReceivedDatePO',
           sorter: 'string',
           width: '25%',
+          formatter: (cell) => {
+            const value = cell.getValue();
+            return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
+          },
         },
         { title: 'Số POKH', field: 'PONumber', sorter: 'string', width: '25%' },
         {
           title: 'Thành tiền trước VAT',
           field: 'IntoMoney',
-          sorter: 'string',
+          sorter: 'number',
           width: '25%',
+          formatter: 'money',
+          formatterParams: {
+            precision: 0,
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+          },
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
+          bottomCalcFormatterParams: {
+            precision: 0,
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+          },
         },
         {
           title: 'Người nhận hàng',

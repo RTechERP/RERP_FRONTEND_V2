@@ -87,7 +87,7 @@ export class TbProductGroupRtcFormComponent implements OnInit, AfterViewInit {
     console.log("Payload", payload);
     this.tbProductRtcService.saveData(payload).subscribe({
       next: (res) => {
-        if (res.status === 1) 
+        if (res.status === 1)
           {
             if(payload.productGroupRTC.ID <=0)
               {
@@ -98,13 +98,13 @@ export class TbProductGroupRtcFormComponent implements OnInit, AfterViewInit {
               }
               this.formSubmitted.emit();
               this.activeModal.close(true);
-         }else 
+         }else
          {
           this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể cập nhật sản phẩm!');
          }
       },
       error: () => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lưu nhóm TB');
+        this.notification.error( NOTIFICATION_TITLE.error, 'Không thể lưu nhóm TB');
       }
     });
   }

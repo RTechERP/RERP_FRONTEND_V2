@@ -1,6 +1,18 @@
-import { Component, OnInit, AfterViewInit, ViewEncapsulation, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  AfterViewInit,
+  ViewEncapsulation,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, NonNullableFormBuilder, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
+import {
+  FormsModule,
+  NonNullableFormBuilder,
+  ReactiveFormsModule,
+  Validators,
+  AbstractControl,
+} from '@angular/forms';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator.min.css';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
@@ -17,6 +29,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 interface newOfficeSupplyUnit {
   ID?: number;
@@ -37,7 +50,7 @@ interface newOfficeSupplyUnit {
     NzButtonModule,
     NzFormModule,
     OfficeSupplyUnitDetailComponent,
-    HasPermissionDirective
+    HasPermissionDirective,
   ],
   templateUrl: './office-supply-unit.component.html',
   styleUrl: './office-supply-unit.component.css',
@@ -45,7 +58,7 @@ interface newOfficeSupplyUnit {
 })
 export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
   newOfficeSupplyUniy: newOfficeSupplyUnit = {
-    Name: ""
+    Name: '',
   };
   lstOUS: any[] = [];
   table: any; // instance của Tabulator
@@ -72,12 +85,11 @@ export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
 
   private initForm() {
     this.validateForm = this.fb.group({
-      unitName: [null, [Validators.required]]
+      unitName: [null, [Validators.required]],
     });
   }
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
   ngAfterViewInit(): void {
     this.drawTable();
@@ -87,56 +99,27 @@ export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
     if (this.table) {
       this.table.replaceData(this.dataTable);
     } else {
-      this.table = new Tabulator('#datatable', {
-        layout: 'fitDataFill',
-        height: '89vh',
-        pagination: true,
-        paginationSize: 50,
-        paginationSizeSelector: [5, 10, 20, 50, 100],
-        movableColumns: true,
-        resizableRows: true,
-        reactiveData: true,
-        selectableRows: 15,
-        langs: {
-          vi: {
-            pagination: {
-              first: '<<',
-              last: '>>',
-              prev: '<',
-              next: '>',
-            },
-          },
-        },
-        locale: 'vi',
-        columns: [
-          {
-            title: "",
-            formatter: "rowSelection",
-            titleFormatter: "rowSelection",
-            hozAlign: "center",
-            headerHozAlign: "center",
-            headerSort: false,
-            width: 40,
-            frozen: true,
+      this.table = new Tabulator('#datatableunit', {
+        ...DEFAULT_TABLE_CONFIG,
+        layout: 'fitDataStretch',
 
-          },
+        paginationMode: 'local',
+
+        columns: [
           {
             title: 'STT',
             formatter: 'rownum',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            width: 60
+
+            //   width: 60,
           },
           {
             title: 'Tên đơn vị',
             field: 'Name',
             hozAlign: 'left',
-            headerHozAlign: 'left',
-            width: "90%"
-          }
-        ]
+          },
+        ],
       });
-      this.table.on("rowClick", (e: MouseEvent, row: RowComponent) => {
+      this.table.on('rowClick', (e: MouseEvent, row: RowComponent) => {
         const rowData = row.getData();
 
         this.getdatabyid(rowData['ID']);
@@ -144,13 +127,15 @@ export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
     }
   }
   getdatabyid(id: number) {
-    console.log("id", id);
+    console.log('id', id);
     this.officesupplyunitSV.getdatafill(id).subscribe({
       next: (response) => {
         console.log('Dữ liệu click sửa được:', response);
         let data = null;
         if (response?.data) {
-          data = Array.isArray(response.data) ? response.data[0] : response.data;
+          data = Array.isArray(response.data)
+            ? response.data[0]
+            : response.data;
         } else {
           data = response;
         }
@@ -162,7 +147,7 @@ export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
           };
           // Set giá trị vào form
           this.validateForm.patchValue({
-            unitName: data.Name
+            unitName: data.Name,
           });
         } else {
           console.warn('Không có dữ liệu để fill');
@@ -171,7 +156,7 @@ export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         console.error('Lỗi khi lấy dữ liệu:', err);
-      }
+      },
     });
   }
 
@@ -185,11 +170,15 @@ export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
     const rows = this.table?.getSelectedData?.() || [];
     this.selectedList = rows;
     if (this.selectedList.length === 0) {
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn ít nhất 1 đơn vị để xóa'
+      );
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất 1 đơn vị để xóa');
       return;
     }
 
-    const names = this.selectedList.map(x => x.Name).join(', ');
+    const names = this.selectedList.map((x) => x.Name).join(', ');
     this.modal.create({
       nzTitle: 'Xác nhận',
       nzContent: `Xóa các đơn vị: ${names} ?`,
@@ -197,7 +186,7 @@ export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
       nzOkDanger: true,
       nzOnOk: () => {
         // tạo danh sách request SaveData cho từng ID
-        const requests = this.selectedList.map(x => {
+        const requests = this.selectedList.map((x) => {
           const payload = { ID: x.ID, Name: x.Name ?? '', IsDeleted: true };
           return this.officesupplyunitSV.savedata(payload).pipe(
             catchError(() => of({ status: 0 })) // không văng lỗi chuỗi
@@ -205,9 +194,16 @@ export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
         });
 
         forkJoin(requests).subscribe((results: any[]) => {
-          const ok = results.filter(r => r?.status === 1).length;
+          const ok = results.filter((r) => r?.status === 1).length;
           const fail = results.length - ok;
 
+          if (ok > 0)
+            this.notification.success(
+              'Thông báo',
+              `Xóa thành công ${ok} đơn vị`
+            );
+          if (fail > 0)
+            this.notification.error('Thông báo', `Xóa lỗi ${fail} đơn vị`);
           if (ok > 0) this.notification.success(NOTIFICATION_TITLE.success, `Xóa thành công ${ok} đơn vị`);
           if (fail > 0) this.notification.error(NOTIFICATION_TITLE.error, `Xóa lỗi ${fail} đơn vị`);
 
@@ -218,33 +214,33 @@ export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
       },
       nzCancelText: 'Hủy',
       nzClosable: true,
-      nzMaskClosable: true
+      nzMaskClosable: true,
     });
   }
- openUnitModal() {
-  const modalRef = this.modalService.open(OfficeSupplyUnitDetailComponent, {
-    centered: true,
-    size: 'md',
-    backdrop: 'static',
-    keyboard: false
-  });
+  openUnitModal() {
+    const modalRef = this.modalService.open(OfficeSupplyUnitDetailComponent, {
+      centered: true,
+      size: 'md',
+      backdrop: 'static',
+      keyboard: false,
+    });
 
-  modalRef.componentInstance.isCheckmode = this.isCheckmode;
-  modalRef.componentInstance.selectedItem = this.selectedItem;
-  modalRef.componentInstance.reloadData.subscribe(() => {
-    this.get(); // reload bảng
-  });
-  modalRef.result.then(
-    (result) => {
-      if (result === 'success') {
-        this.get();
+    modalRef.componentInstance.isCheckmode = this.isCheckmode;
+    modalRef.componentInstance.selectedItem = this.selectedItem;
+    modalRef.componentInstance.reloadData.subscribe(() => {
+      this.get(); // reload bảng
+    });
+    modalRef.result.then(
+      (result) => {
+        if (result === 'success') {
+          this.get();
+        }
+      },
+      (reason) => {
+        console.log('Modal dismissed:', reason);
       }
-    },
-    (reason) => {
-      console.log('Modal dismissed:', reason);
-    }
-  );
-}
+    );
+  }
   openUnitModalForNewUnit() {
     this.isCheckmode = false;
     this.selectedItem = {};
@@ -256,6 +252,10 @@ export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
 
     const rows = this.table?.getSelectedData?.() || [];
     if (rows.length !== 1) {
+      this.notification.warning(
+        'Thông báo',
+        rows.length === 0 ? 'Chọn 1 dòng để sửa' : 'Chỉ chọn 1 dòng để sửa'
+      );
       this.notification.warning(NOTIFICATION_TITLE.warning, rows.length === 0 ? 'Chọn 1 dòng để sửa' : 'Chỉ chọn 1 dòng để sửa');
       return;
     }
@@ -263,7 +263,7 @@ export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
     const r = rows[0]; // dữ liệu đã có sẵn trong bảng
     this.selectedItem = {
       ID: r.ID ?? 0,
-      Name: r.Name ?? ''
+      Name: r.Name ?? '',
     };
     this.validateForm?.patchValue?.({ unitName: this.selectedItem.Name });
     this.openUnitModal();
@@ -276,8 +276,11 @@ export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
     this.officesupplyunitSV.getdata().subscribe({
       next: (response) => {
         console.log('Dữ liệu nhận được:', response);
-        this.lstOUS = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
-
+        this.lstOUS = Array.isArray(response?.data)
+          ? response.data
+          : Array.isArray(response)
+          ? response
+          : [];
 
         this.dataTable = this.lstOUS;
         if (this.table) {
@@ -301,11 +304,6 @@ export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    this.table?.setFilter([
-      { field: 'Name', type: 'like', value: keyword }
-    ]);
+    this.table?.setFilter([{ field: 'Name', type: 'like', value: keyword }]);
   }
-
 }
-
-

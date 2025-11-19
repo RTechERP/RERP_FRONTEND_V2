@@ -24,7 +24,7 @@ export const SERVER_PATH = `D:/RTC_Sw/RTC/ProductRTC/`;
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { filter, distinctUntilChanged } from 'rxjs/operators';
-import { VehicleRepairService } from '../../../../hrm/vehicle-repair/vehicle-repair-service/vehicle-repair.service';
+import { VehicleRepairService } from '../../../../hrm/vehicle/vehicle-repair/vehicle-repair-service/vehicle-repair.service';
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { TbProductRtcService } from '../../../tb-product-rtc/tb-product-rtc-service/tb-product-rtc.service';
 import { NzUploadFile } from 'ng-zorro-antd/upload';
@@ -95,7 +95,7 @@ export class TsAssetManagementPersonalTypeFormComponent {
       YearValue: [null, Validators.required],
     });
   }
-  private toDate(val: any): Date | null { 
+  private toDate(val: any): Date | null {
     if (!val) return null;
     if (val instanceof Date) return val;
     if (typeof val === 'number') return new Date(val);                    // epoch ms
@@ -118,7 +118,7 @@ export class TsAssetManagementPersonalTypeFormComponent {
       Code: d.Code ?? null,
       YearValue: d.YearValue ?? 1,
       StandardAmount: d.StandardAmount??1
-     
+
     });
   }
   ngOnInit(): void {
@@ -165,7 +165,7 @@ export class TsAssetManagementPersonalTypeFormComponent {
   if (event.key === 'e' || event.key === 'E' || event.key === '+' || event.key === '-') {
     event.preventDefault();
   }
-} 
+}
   close() {
     this.closeModal.emit();
     this.activeModal.dismiss('cancel');
@@ -188,7 +188,7 @@ export class TsAssetManagementPersonalTypeFormComponent {
         Code: formValue.Code,
         YearValue: formValue.YearValue,
         StandardAmount: formValue.StandardAmount
-      
+
       }
 
     }

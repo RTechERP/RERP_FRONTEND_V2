@@ -242,6 +242,8 @@ export class ProductGroupDetailComponent implements OnInit, AfterViewInit {
     this.productsaleService.getdataEmployee().subscribe({
       next: (res) => {
         if (res?.data) {
+          console.log('res.data',res.data);
+          
           this.listEmployee = this.cbbDataGroupService.createdDataGroup(
             res.data,
             'DepartmentName'

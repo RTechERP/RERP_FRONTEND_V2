@@ -1,4 +1,10 @@
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnInit,
+  ViewChild,
+  ViewEncapsulation,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -61,6 +67,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { DateTime } from 'luxon';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { MenuService } from '../../../systems/menus/menu-service/menu.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 interface Unit {
@@ -138,6 +145,10 @@ interface Product {
   //encapsulation: ViewEncapsulation.None
 })
 export class OfficeSupplyRequestsComponent implements OnInit {
+  @ViewChild('officeSupplyRequestTable', { static: false })
+  officeSupplyRequestTableRef!: ElementRef;
+
+  private officeSupplyRequestTable!: Tabulator;
   table: any;
   table2: any;
   dataTable1: any[] = [];
@@ -153,40 +164,41 @@ export class OfficeSupplyRequestsComponent implements OnInit {
 
   newUnit: Unit = {
     Code: '',
-    Name: ''
+    Name: '',
   };
 
   typeOptions = [
     { id: 2, name: 'Dùng chung' },
-    { id: 1, name: 'Cá nhân' }
+    { id: 1, name: 'Cá nhân' },
   ];
 
   newProduct: Product = {
     SupplyUnitID: 0,
     Price: 0,
     Type: 2,
-    RequestLimit: 0
+    RequestLimit: 0,
   };
   searchParams = {
     month: new Date(),
     departmentId: 0,
-    keyword: ''
+    keyword: '',
   };
 
   constructor(
     private lstDKVPP: DangkyvppServiceService,
     private notification: NzNotificationService,
-    private modal: NzModalService
-  ) { }
+    private modal: NzModalService,
+    public menuService: MenuService
+  ) {}
 
   ngOnInit(): void {
     this.getDataDeparment();
-    this.getOfficeSupplyRequest();
   }
 
   ngAfterViewInit(): void {
     this.initTable1();
     this.initTable2();
+    this.getOfficeSupplyRequest();
   }
 
   toggleSearchPanel() {
@@ -200,11 +212,20 @@ export class OfficeSupplyRequestsComponent implements OnInit {
           this.dataDeparment = res.data;
         } else {
           this.dataDeparment = [];
+          this.notification.warning(
+            'Thông báo',
+            'Phản hồi không chứa danh sách'
+          );
           this.notification.warning(NOTIFICATION_TITLE.warning, "Phản hồi không chứa danh sách");
         }
       },
       error: (err) => {
         console.error('Lỗi khi lấy đơn vị tính:', err);
+        this.notification.error(
+          'Thông báo',
+          'Có lỗi xảy ra khi lấy danh sách phòng ban'
+        );
+      },
         this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy danh sách phòng ban');
       }
     });
@@ -214,10 +235,48 @@ export class OfficeSupplyRequestsComponent implements OnInit {
     this.isLoading = true;
 
     const deptId =
-      this.searchParams.departmentId === null || this.searchParams.departmentId === undefined
+      this.searchParams.departmentId === null ||
+      this.searchParams.departmentId === undefined
         ? 0
         : this.searchParams.departmentId;
 
+    this.lstDKVPP
+      .getOfficeSupplyRequests(
+        this.searchParams.keyword,
+        this.searchParams.month,
+        0
+      )
+      .subscribe({
+        next: (res) => {
+          if (res && Array.isArray(res.data)) {
+            this.listDKVPP = res.data;
+            this.dataTable1 = this.listDKVPP;
+            if (this.table) {
+              this.table.replaceData(this.dataTable1);
+            }
+          } else {
+            this.listDKVPP = [];
+            this.dataTable1 = [];
+            if (this.table) {
+              this.table.replaceData([]);
+            }
+            this.notification.warning(
+              'Thông báo',
+              'Không tìm thấy dữ liệu phù hợp'
+            );
+          }
+        },
+        error: () => {
+          this.dataTable1 = [];
+          if (this.table) {
+            this.table.replaceData([]);
+          }
+          this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
+        },
+        complete: () => {
+          this.isLoading = false;
+        },
+      });
     this.lstDKVPP.getOfficeSupplyRequests(
       this.searchParams.keyword,
       this.searchParams.month,
@@ -253,13 +312,12 @@ export class OfficeSupplyRequestsComponent implements OnInit {
     });
   }
 
-
   private initTable1(): void {
     this.table = new Tabulator('#datatable1', {
       data: this.dataTable1,
 
       ...DEFAULT_TABLE_CONFIG,
-      paginationMode:'local',
+      paginationMode: 'local',
       layout: 'fitDataStretch',
       height: '100%',
       selectableRows: 1,
@@ -271,10 +329,10 @@ export class OfficeSupplyRequestsComponent implements OnInit {
         headerSort: false,
         resizable: false,
         frozen: true,
-        formatter: "rowSelection",
-        headerHozAlign: "center",
-        hozAlign: "center",
-        titleFormatter: "rowSelection",
+        formatter: 'rowSelection',
+        headerHozAlign: 'center',
+        hozAlign: 'center',
+        titleFormatter: 'rowSelection',
         cellClick: (e, cell) => {
           e.stopPropagation();
           cell.getRow().toggleSelect(); // tự toggle select, không gọi rowClick
@@ -286,15 +344,20 @@ export class OfficeSupplyRequestsComponent implements OnInit {
           field: 'IsAdminApproved',
           hozAlign: 'center',
           headerHozAlign: 'center',
-          formatter: (cell) => `<input type="checkbox" ${(['true', true, 1, '1'].includes(cell.getValue()) ? 'checked' : '')} onclick="return false;">`
+          formatter: (cell) =>
+            `<input type="checkbox" ${
+              ['true', true, 1, '1'].includes(cell.getValue()) ? 'checked' : ''
+            } onclick="return false;">`,
         },
         {
           title: 'TBP duyệt',
           field: 'IsApproved',
           hozAlign: 'center',
           headerHozAlign: 'center',
-          formatter: (cell) => `<input type="checkbox" ${(['true', true, 1, '1'].includes(cell.getValue()) ? 'checked' : '')} onclick="return false;">`
-
+          formatter: (cell) =>
+            `<input type="checkbox" ${
+              ['true', true, 1, '1'].includes(cell.getValue()) ? 'checked' : ''
+            } onclick="return false;">`,
         },
         {
           title: 'Ngày TBP duyệt',
@@ -304,11 +367,29 @@ export class OfficeSupplyRequestsComponent implements OnInit {
           formatter: (cell) => {
             const value = cell.getValue();
             return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
-          }
+          },
         },
-        { title: 'Họ tên TBP duyệt', field: 'FullNameApproved', hozAlign: 'left', headerHozAlign: 'center', width: 200 },
-        { title: 'Người đăng ký', field: 'UserName', hozAlign: 'left', headerHozAlign: 'center', width: 150 },
-        { title: 'Phòng ban', field: 'DepartmentName', hozAlign: 'left', headerHozAlign: 'center', width: 160 },
+        {
+          title: 'Họ tên TBP duyệt',
+          field: 'FullNameApproved',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+          width: 200,
+        },
+        {
+          title: 'Người đăng ký',
+          field: 'UserName',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+          width: 150,
+        },
+        {
+          title: 'Phòng ban',
+          field: 'DepartmentName',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+          width: 160,
+        },
         {
           title: 'Ngày đăng ký',
           field: 'DateRequest',
@@ -318,12 +399,12 @@ export class OfficeSupplyRequestsComponent implements OnInit {
           formatter: (cell) => {
             const value = cell.getValue();
             return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
 
-    this.table.on("rowClick", (e: MouseEvent, row: RowComponent) => {
+    this.table.on('rowClick', (e: MouseEvent, row: RowComponent) => {
       const rowData = row.getData();
       this.getDataOfficeSupplyRequestsDetail(rowData['ID']);
     });
@@ -339,12 +420,12 @@ export class OfficeSupplyRequestsComponent implements OnInit {
       resizableRows: true,
       reactiveData: true,
       selectableRows: 1,
-      groupBy: "FullName",
-      
-   groupHeader: (value, count, data) => {
-  const code = data[0]?.Code || '';
-  return `Nhân viên: ${code} - ${value} (${count} sản phẩm)`;
-},
+      groupBy: 'FullName',
+
+      groupHeader: (value, count, data) => {
+        const code = data[0]?.Code || '';
+        return `Nhân viên: ${code} - ${value} (${count} sản phẩm)`;
+      },
       columns: [
         {
           title: 'Văn phòng phẩm',
@@ -360,11 +441,26 @@ export class OfficeSupplyRequestsComponent implements OnInit {
               return value.Name || value.name || '';
             }
             return value;
-          }
+          },
         },
-        { title: 'ĐVT', field: 'Unit', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: 'SL đề xuất', field: 'Quantity', hozAlign: 'right', headerHozAlign: 'center' },
-        { title: 'SL thực tế', field: 'QuantityReceived', hozAlign: 'right', headerHozAlign: 'center' },
+        {
+          title: 'ĐVT',
+          field: 'Unit',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'SL đề xuất',
+          field: 'Quantity',
+          hozAlign: 'right',
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'SL thực tế',
+          field: 'QuantityReceived',
+          hozAlign: 'right',
+          headerHozAlign: 'center',
+        },
         {
           title: 'Vượt định mức',
           field: 'ExceedsLimit',
@@ -372,21 +468,31 @@ export class OfficeSupplyRequestsComponent implements OnInit {
           headerHozAlign: 'center',
           formatter: (cell) => {
             const value = cell.getValue();
-            if (value === true) return '<span style="color:green;font-size:18px;">&#10004;</span>'; // ✅
-            if (value === false) return '<span style="color:red;font-size:18px;">&#10006;</span>';   // ❌
+            if (value === true)
+              return '<span style="color:green;font-size:18px;">&#10004;</span>'; // ✅
+            if (value === false)
+              return '<span style="color:red;font-size:18px;">&#10006;</span>'; // ❌
             return ''; // không có gì nếu null hoặc undefined
-          }
-        },
-        { title: 'Lý do vượt định mức', field: 'Reason', hozAlign: 'left', headerHozAlign: 'center' },
-        {
-          title: 'Ghi chú', field: 'Note', hozAlign: 'left', headerHozAlign: 'center',
-          width: 250,
-          formatter: "textarea",
-          formatterParams: {
-            maxHeight: 100
           },
         },
-      ]
+        {
+          title: 'Lý do vượt định mức',
+          field: 'Reason',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Ghi chú',
+          field: 'Note',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+          width: 250,
+          formatter: 'textarea',
+          formatterParams: {
+            maxHeight: 100,
+          },
+        },
+      ],
     });
   }
 
@@ -399,6 +505,8 @@ export class OfficeSupplyRequestsComponent implements OnInit {
         }
       },
       error: () => {
+        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy chi tiết');
+      },
         this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy chi tiết');
       }
     });
@@ -410,6 +518,10 @@ export class OfficeSupplyRequestsComponent implements OnInit {
       this.selectedList.push(row);
     });
     if (this.selectedList.length === 0) {
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn ít nhất 1 người đăng ký để duyệt/hủy duyệt!'
+      );
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất 1 người đăng ký để duyệt/hủy duyệt!');
       return false;
     }
@@ -420,7 +532,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
     if (!this.pushSelectedList()) {
       return;
     }
-    const ids = this.selectedList.map(item => item.ID);
+    const ids = this.selectedList.map((item) => item.ID);
     this.modal.confirm({
       nzTitle: 'Xác nhận',
       nzContent: 'Bạn có chắc chắn muốn duyệt các VPP đã chọn không?',
@@ -434,10 +546,12 @@ export class OfficeSupplyRequestsComponent implements OnInit {
             this.notification.success(NOTIFICATION_TITLE.success, 'Duyệt thành công!');
           },
           error: (error: any) => {
+            this.notification.error('Thông báo', 'Có lỗi xảy ra khi duyệt!');
+          },
             this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi duyệt!');
           }
         });
-      }
+      },
     });
   }
 
@@ -446,10 +560,18 @@ export class OfficeSupplyRequestsComponent implements OnInit {
       return;
     }
 
-    const canUnapproveItems = this.selectedList.filter(item => !item.IsApproved);
-    const cannotUnapproveItems = this.selectedList.filter(item => item.IsApproved);
+    const canUnapproveItems = this.selectedList.filter(
+      (item) => !item.IsApproved
+    );
+    const cannotUnapproveItems = this.selectedList.filter(
+      (item) => item.IsApproved
+    );
 
     if (canUnapproveItems.length === 0) {
+      this.notification.error(
+        'Thông báo',
+        'VPP đã được TBP duyệt không thể hủy duyệt!'
+      );
       this.notification.error(NOTIFICATION_TITLE.error, 'VPP đã được TBP duyệt không thể hủy duyệt!');
       return;
     }
@@ -462,7 +584,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
         nzCancelText: 'Hủy',
         nzOnOk: () => {
           this.processUnadminApproval(canUnapproveItems);
-        }
+        },
       });
     } else {
       this.modal.confirm({
@@ -472,13 +594,13 @@ export class OfficeSupplyRequestsComponent implements OnInit {
         nzCancelText: 'Hủy',
         nzOnOk: () => {
           this.processUnadminApproval(canUnapproveItems);
-        }
+        },
       });
     }
   }
 
   private processUnadminApproval(items: any[]): void {
-    const ids = items.map(item => item.ID);
+    const ids = items.map((item) => item.ID);
     this.lstDKVPP.UnAdminApproved(ids).subscribe({
       next: (res) => {
         this.getOfficeSupplyRequest();
@@ -486,6 +608,8 @@ export class OfficeSupplyRequestsComponent implements OnInit {
         this.notification.success(NOTIFICATION_TITLE.success, 'Hủy duyệt thành công!');
       },
       error: (error: any) => {
+        this.notification.error('Thông báo', 'Có lỗi xảy ra khi hủy duyệt!');
+      },
         this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi hủy duyệt!');
       }
     });
@@ -496,10 +620,18 @@ export class OfficeSupplyRequestsComponent implements OnInit {
       return;
     }
 
-    const approvedItems = this.selectedList.filter(item => item.IsAdminApproved);
-    const unapprovedItems = this.selectedList.filter(item => !item.IsAdminApproved);
+    const approvedItems = this.selectedList.filter(
+      (item) => item.IsAdminApproved
+    );
+    const unapprovedItems = this.selectedList.filter(
+      (item) => !item.IsAdminApproved
+    );
 
     if (approvedItems.length === 0) {
+      this.notification.error(
+        'Thông báo',
+        'VPP đã chọn chưa được admin duyệt, không thể duyệt!'
+      );
       this.notification.error(NOTIFICATION_TITLE.error, 'VPP đã chọn chưa được admin duyệt, không thể duyệt!');
       return;
     }
@@ -512,7 +644,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
         nzCancelText: 'Hủy',
         nzOnOk: () => {
           this.processApproval(approvedItems);
-        }
+        },
       });
     } else {
       this.modal.confirm({
@@ -522,13 +654,13 @@ export class OfficeSupplyRequestsComponent implements OnInit {
         nzCancelText: 'Hủy',
         nzOnOk: () => {
           this.processApproval(approvedItems);
-        }
+        },
       });
     }
   }
 
   private processApproval(items: any[]): void {
-    const ids = items.map(item => item.ID);
+    const ids = items.map((item) => item.ID);
     this.lstDKVPP.IsApproved(ids).subscribe({
       next: (res) => {
         this.getOfficeSupplyRequest();
@@ -536,6 +668,8 @@ export class OfficeSupplyRequestsComponent implements OnInit {
         this.notification.success(NOTIFICATION_TITLE.success, 'Duyệt thành công!');
       },
       error: (error: any) => {
+        this.notification.error('Thông báo', 'Có lỗi xảy ra khi duyệt!');
+      },
         this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi duyệt!');
       }
     });
@@ -546,10 +680,18 @@ export class OfficeSupplyRequestsComponent implements OnInit {
       return;
     }
 
-    const canUnapproveItems = this.selectedList.filter(item => item.IsAdminApproved);
-    const cannotUnapproveItems = this.selectedList.filter(item => !item.IsAdminApproved);
+    const canUnapproveItems = this.selectedList.filter(
+      (item) => item.IsAdminApproved
+    );
+    const cannotUnapproveItems = this.selectedList.filter(
+      (item) => !item.IsAdminApproved
+    );
 
     if (canUnapproveItems.length === 0) {
+      this.notification.error(
+        'Thông báo',
+        'Không có VPP nào được admin duyệt để hủy duyệt!'
+      );
       this.notification.error(NOTIFICATION_TITLE.error, 'Không có VPP nào được admin duyệt để hủy duyệt!');
       return;
     }
@@ -562,7 +704,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
         nzCancelText: 'Hủy',
         nzOnOk: () => {
           this.processUnapproval(canUnapproveItems);
-        }
+        },
       });
     } else {
       this.modal.confirm({
@@ -572,13 +714,13 @@ export class OfficeSupplyRequestsComponent implements OnInit {
         nzCancelText: 'Hủy',
         nzOnOk: () => {
           this.processUnapproval(canUnapproveItems);
-        }
+        },
       });
     }
   }
 
   private processUnapproval(items: any[]): void {
-    const ids = items.map(item => item.ID);
+    const ids = items.map((item) => item.ID);
     this.lstDKVPP.UnIsApproved(ids).subscribe({
       next: (res) => {
         this.getOfficeSupplyRequest();
@@ -586,11 +728,12 @@ export class OfficeSupplyRequestsComponent implements OnInit {
         this.notification.success(NOTIFICATION_TITLE.success, 'Hủy duyệt thành công!');
       },
       error: (error: any) => {
+        this.notification.error('Thông báo', 'Có lỗi xảy ra khi hủy duyệt!');
+      },
         this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi hủy duyệt!');
       }
     });
   }
 }
 
-//reset trong 
-
+//reset trong

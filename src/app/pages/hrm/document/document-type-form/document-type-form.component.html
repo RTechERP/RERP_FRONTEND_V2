@@ -1,0 +1,67 @@
+<div class="modal-header bg-primary p-2">
+  <h6 class="modal-title text-white" id="assetModalLabel">Loại văn bản</h6>
+  <button
+    type="button"
+    class="btn-close"
+    aria-label="Close"
+    (click)="close()"
+  ></button>
+</div>
+<div class="modal-body">
+  <form nz-form [formGroup]="formGroup" nzLayout="vertical" class="fs-7 mt-2">
+    <div class="col-md-12" style="margin-top: 10px">
+      <nz-form-label for="unitNameInput" class="form-label p-0"
+        >Mã văn bản<span class="text-danger ps-1">(*) </span></nz-form-label
+      >
+      <nz-form-control
+        [nzSpan]="24"
+        [nzErrorTip]="
+          formGroup.get('Code')?.hasError('required') &&
+          (formGroup.get('Code')?.dirty || formGroup.get('Code')?.touched)
+            ? 'Vui lòng nhập mã văn bản!'
+            : formGroup.get('Code')?.hasError('maxlength')
+            ? 'Mã TB tối đa 20 ký tự!'
+            : undefined
+        "
+      >
+        <input
+          id="unitNameInput"
+          nz-input
+          name="Code"
+          placeholder="Nhập mã văn bản"
+          formControlName="Code"
+        />
+      </nz-form-control>
+    </div>
+    <div class="col-md-12" style="margin-top: 20px">
+      <nz-form-label for="unitNameInput" class="form-label p-0"
+        >Tên văn bản<span class="text-danger ps-1">(*) </span></nz-form-label
+      >
+      <nz-form-control
+        [nzSpan]="24"
+        [nzErrorTip]="
+          formGroup.get('Name')?.hasError('required') &&
+          (formGroup.get('Name')?.dirty || formGroup.get('Name')?.touched)
+            ? 'Vui lòng nhập tên văn bản!'
+            : formGroup.get('Name')?.hasError('maxlength')
+            ? 'Tên loại tối đa 100 ký tự!'
+            : undefined
+        "
+      >
+        <input
+          id="unitNameInput"
+          nz-input
+          name="Name"
+          placeholder="Nhập tên văn bản"
+          formControlName="Name"
+        />
+      </nz-form-control>
+    </div>
+    <div class="modal-footer">
+      <button nz-button nzType="default" (click)="close()">Đóng</button>
+      <button nz-button nzType="primary" (click)="saveDocumentType()">
+        Lưu dữ liệu
+      </button>
+    </div>
+  </form>
+</div>

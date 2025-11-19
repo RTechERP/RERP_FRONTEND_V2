@@ -1,0 +1,187 @@
+<div class="modal-dialog-scrollable">
+  <div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">Chi tiết giải pháp dự án</h6>
+    <button
+      type="button"
+      class="btn-close"
+      (click)="closeModal()"
+      aria-label="Close"
+    ></button>
+  </div>
+
+  <div class="modal-body" style="max-height: 80vh !important; overflow-y: auto;">
+    <form nz-form [formGroup]="form" class="g-3 needs-validation was-validated">
+      <!-- Hàng 1: Dự án + Yêu cầu dự án -->
+      <div class="row">
+        <div class="col-md-6 pb-3">
+          <label class="fs-12">
+            Dự án
+            <span class="text-danger ps-1 me-1">*</span>
+          </label>
+          <nz-form-control
+            [nzErrorTip]="
+              form.get('ProjectID')?.invalid &&
+              (form.get('ProjectID')?.dirty || form.get('ProjectID')?.touched)
+                ? 'Vui lòng chọn dự án!'
+                : undefined
+            "
+          >
+            <nz-select
+              formControlName="ProjectID"
+              nzPlaceHolder="Chọn dự án"
+              class="fs-12 w-100"
+              required
+              nzShowSearch
+              nzAllowClear
+            >
+              <nz-option 
+                *ngFor="let project of projectList" 
+                [nzValue]="project.ID" 
+                [nzLabel]="project.ProjectName + ' - ' + project.ProjectCode"
+              ></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </div>
+
+        <div class="col-md-6 pb-3">
+          <label class="fs-12">
+            Yêu cầu dự án
+            <span class="text-danger ps-1 me-1">*</span>
+          </label>
+          <nz-form-control
+            [nzErrorTip]="
+              form.get('RequestID')?.invalid &&
+              (form.get('RequestID')?.dirty || form.get('RequestID')?.touched)
+                ? 'Vui lòng chọn yêu cầu dự án!'
+                : undefined
+            "
+          >
+            <nz-select
+              formControlName="RequestID"
+              nzPlaceHolder="Chọn yêu cầu dự án"
+              class="fs-12 w-100"
+              required
+              nzShowSearch
+              nzAllowClear
+              (ngModelChange)="onRequestChange()"
+            >
+              <nz-option 
+                *ngFor="let request of projectRequestList" 
+                [nzValue]="request.ID" 
+                [nzLabel]="request.CodeRequest"
+              ></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </div>
+      </div>
+
+      <!-- Hàng 2: Mã giải pháp + STT + Checkbox PO -->
+      <div class="row">
+        <div class="col-md-6 col-sm-12 pb-3">
+            <label class="fs-12 d-flex align-items-center">
+              Mã giải pháp
+              <span class="text-danger ps-1 me-1">*</span>
+            </label>
+          <nz-form-control
+            [nzErrorTip]="
+              form.get('SolutionCode')?.invalid &&
+              (form.get('SolutionCode')?.dirty || form.get('SolutionCode')?.touched)
+                ? 'Vui lòng nhập mã giải pháp!'
+                : undefined
+            "
+          >
+            <input
+              nz-input
+              formControlName="SolutionCode"
+              placeholder="Nhập mã giải pháp"
+              class="fs-12"
+            />
+          </nz-form-control>
+        </div>
+
+        <div class="col-md-3 col-sm-12 pb-3">
+          <label class="fs-12">STT</label>
+          <nz-form-control>
+            <input
+              nz-input
+              type="number"
+              formControlName="STT"
+              placeholder="Nhập STT"
+              class="fs-12"
+            />
+          </nz-form-control>
+        </div>
+
+        <div class="col-md-3 col-sm-12 pb-3">
+          <label class="fs-12" [style.visibility]="'hidden'">PO</label>
+          <nz-form-control>
+            <label nz-checkbox formControlName="IsPO" class="fs-12">
+              PO
+            </label>
+          </nz-form-control>
+        </div>
+      </div>
+
+      <!-- Hàng 3: Ngày lên giải pháp + Deadline báo giá -->
+      <div class="row">
+        <div class="col-md-6 col-sm-12 pb-3">
+          <label class="fs-12">Ngày lên giải pháp </label>
+          <nz-form-control>
+            <nz-date-picker
+              formControlName="SolutionDate"
+              nzFormat="dd/MM/yyyy"
+              nzPlaceHolder="Chọn ngày lên giải pháp"
+              class="fs-12 w-100"
+              style="width: 100%"
+            ></nz-date-picker>
+          </nz-form-control>
+        </div>
+
+        <div class="col-md-6 col-sm-12 pb-3">
+          <label class="fs-12">Deadline báo giá</label>
+          <nz-form-control>
+            <nz-date-picker
+              formControlName="DeadlinePrice"
+              nzFormat="dd/MM/yyyy"
+              nzPlaceHolder="Chọn deadline báo giá"
+              class="fs-12 w-100"
+              style="width: 100%"
+            ></nz-date-picker>
+          </nz-form-control>
+        </div>
+      </div>
+
+      <!-- Hàng 4: Nội dung -->
+      <div class="row">
+        <div class="col-md-12 pb-3">
+          <label class="fs-12">Nội dung  <span class="text-danger ps-1 me-1">*</span></label>
+          <nz-form-control>
+            <textarea
+              nz-input
+              placeholder="Nhập nội dung"
+              formControlName="Content"
+              class="fs-12"
+              rows="4"
+            ></textarea>
+          </nz-form-control>
+        </div>
+      </div>
+
+      <!-- Hàng 5: Bảng -->
+      <div class="row">
+        <div class="col-md-12 pb-3">
+          <div #tb_FileSolutionTable id="tb_FileSolutionTable" style="height: 100%; min-height: 300px;"></div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal-footer">
+    <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">
+      Đóng
+    </button>
+    <button class="fs-12 btn" nz-button nzType="primary" (click)="saveData()">
+      Lưu
+    </button>
+  </div>
+</div>

@@ -1,0 +1,47 @@
+<div>
+    <!-- Header -->
+    <div class="modal-header bg-primary align-items-center ps-2">
+        <h6 class="text-light text-uppercase m-0" style="padding: 0, 5rem">
+            Lịch trình xe
+        </h6>
+        <button type="button" class="btn-close fs-12" aria-label="Close" (click)="close()"></button>
+    </div>
+    <!-- Body-->
+    <div class="modal-body">
+        <div class="card  border-0 rounded-0">
+            <div class="card-header  bg-white p-1">
+                <div class="d-flex h-40  gap-1">
+                    <div class="d-flex gap-1 align-items-center">
+                        <label class="mb-0 me-2">Ngày bắt đầu:</label>
+                        <nz-date-picker name="dateStart" nzFormat="dd/MM/yyyy" [(ngModel)]="dateStart"
+                            nzAllowClear="false" (ngModelChange)="onDateStartChange()"></nz-date-picker>
+
+                        <label class="mb-0 me-2 ms-2">Ngày kết thúc:</label>
+                        <nz-date-picker name="dateEnd" nzFormat="dd/MM/yyyy" [(ngModel)]="dateEnd"
+                            nzAllowClear="false" (ngModelChange)="onDateEndChange()"></nz-date-picker>
+
+                        <!-- Nút Tìm kiếm -->
+                        <button class="fs-12 ms-2" nz-button nzType="primary" nzSize="small" (click)="onSearch()">
+                            <nz-icon nzType="search"></nz-icon> Tìm kiếm
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                <div style="height: 100%">
+                    <div id="tb_ExportVehicleSchedule" style="height: 100%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer bg-whitesmoke br p-1">
+        <button nz-button nzType="dashed" nzType="primary" nzSize="default" (click)="exportToExcel()">
+            <nz-icon nzType="file-excel" nzTheme="fill" />Xuất excel
+        </button>
+        <button nz-button nzType="default" nzDanger (click)="close()">
+            Đóng
+        </button>
+
+    </div>
+</div>

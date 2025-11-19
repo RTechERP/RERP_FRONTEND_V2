@@ -1,0 +1,44 @@
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+.ant-splitter-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.ant-splitter {
+  height: 100%;
+}
+
+.tabulator {
+  font-size: 0.75rem;
+  height: 100% !important;
+}
+
+.tabulator-cell {
+  padding: 4px;
+}
+
+.card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.card-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.card-footer {
+  flex-shrink: 0;
+}
+
+.card-header {
+  flex-shrink: 0;
+}
+

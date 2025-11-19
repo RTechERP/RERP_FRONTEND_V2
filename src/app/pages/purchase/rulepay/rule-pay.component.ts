@@ -138,11 +138,11 @@ export class RulePayComponent implements OnInit, AfterViewInit {
     this.table = new Tabulator('#rule-pay-table', {
       data: this.dataTable,
        ...DEFAULT_TABLE_CONFIG,
-      paginationMode: 'local',  
-      paginationSize: 50,
+      paginationMode: 'local',
+      paginationSize: 10,
       paginationSizeSelector: [10, 30, 50, 100, 300, 500],
       layout: 'fitDataStretch',
-      
+
       columns: [
         { title: 'Mã', field: 'Code', width: 350, formatter: 'textarea' },
         { title: 'Chú giải', field: 'Note', formatter: 'textarea' }
@@ -313,4 +313,4 @@ export class RulePayComponent implements OnInit, AfterViewInit {
 
 
 
-} 
+}

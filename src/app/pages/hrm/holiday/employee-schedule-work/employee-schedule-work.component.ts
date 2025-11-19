@@ -159,9 +159,21 @@ export class EmployeeScheduleWorkComponent implements OnInit {
             return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
           },
           cellClick: (e: any, cell: any) => {
-            e.stopPropagation();
-            return;
-          },
+            // Xử lý sự kiện click vào checkbox
+            const target = e.target as HTMLInputElement;
+            if (target.tagName === 'INPUT' && target.type === 'checkbox') {
+              const currentValue = cell.getValue();
+              const newValue = !(currentValue === true || currentValue === 'true' || currentValue === 1 || currentValue === '1');
+              cell.setValue(newValue);
+
+              // Cập nhật dữ liệu trong scheduleWorks
+              const rowData = cell.getRow().getData();
+              const index = this.scheduleWorks.findIndex((item: any) => item.ID === rowData.ID);
+              if (index !== -1) {
+                this.scheduleWorks[index].IsApproved = newValue;
+              }
+            }
+          }
         },
         { title: 'Người duyệt', field: 'FullName', hozAlign: 'center', headerHozAlign: 'center', },
         {
@@ -329,8 +341,8 @@ export class EmployeeScheduleWorkComponent implements OnInit {
           'Trạng thái làm việc': safe(scheduleWork.StatusWork),
         };
       });
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('LichLamViec');
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('LichLamViec');
 
     worksheet.columns = [
       { header: 'Trạng thái', key: 'Trạng thái', width: 20, style: { alignment: { horizontal: 'center', vertical: 'middle' } } },

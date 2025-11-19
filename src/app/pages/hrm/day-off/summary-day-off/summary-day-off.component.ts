@@ -99,7 +99,7 @@ export class SummaryDayOffComponent implements OnInit {
       error: (error) => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải  danh sách ')
       }
-      
+
     })
   }
 
@@ -112,7 +112,7 @@ export class SummaryDayOffComponent implements OnInit {
   private initializeTabulator(): void {
     const month = this.searchForm.get('month')?.value;
     const year = this.searchForm.get('year')?.value || new Date().getFullYear();
-    
+
     this.tabulator = new Tabulator('#tb_summary_day_off', {
       data: this.summaryDayOff,
       selectableRows: 1,

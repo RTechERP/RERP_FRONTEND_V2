@@ -134,7 +134,7 @@ export class EmployeeBussinessTypeComponent implements OnInit {
     }
     const selectedEmployeeBussinessType = selectedRows[0].getData();
 
-    
+
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
       nzContent: `Bạn có chắc chắn muốn xóa loại phụ cấp công tác đã chọn?`,

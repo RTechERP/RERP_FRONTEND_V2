@@ -129,10 +129,9 @@ Reason: string = '';
         this.formSubmitted.emit();
         this.activeModal.close(true);
       },
-      error: () => {
-        this.notification.error("Thông báo", "Lỗi");
-
-      }
+     error: (res: any) => {
+              this.notification.error(NOTIFICATION_TITLE.error, res.error.message);
+            }
     });
   }
   close() {

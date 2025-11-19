@@ -86,6 +86,15 @@ export class EmployeeApproveComponent implements OnInit, AfterViewInit {
         return value || '' + "<span style='color:#d00; margin-left:10px;'>(" + count + " thành viên)</span>";
       },
       height: '80vh',
+      rowHeader: {
+        formatter: "rowSelection",
+        titleFormatter: "rowSelection",
+        headerSort: false,
+        width: 70,
+        frozen: true,
+        headerHozAlign: "center",
+        hozAlign: "center"
+      },
       columns: [
         {
           title: 'Mã nhân viên',

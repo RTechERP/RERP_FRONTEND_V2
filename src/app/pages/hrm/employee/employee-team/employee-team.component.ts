@@ -137,18 +137,16 @@ export class EmployeeTeamComponent implements OnInit {
 
   onSubmit() {
     if (this.employeeTeamForm.valid) {
-      this.employeeService.saveEmployeeTeam(this.employeeTeamForm.value).subscribe({
-        next: (response) => {
-          this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật team phòng ban thành công');
-          this.closeModal();
-          this.initializeTable();
-          this.loadEmployeeTeam();
-          this.loadDepartments();
-        },
-        error: (error) => {
-          this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật team phòng ban thất bại: ' + error.message);
-        }
-      });
+        this.employeeService.saveEmployeeTeam(this.employeeTeamForm.value).subscribe({
+          next: (response) => {
+            this.notification.success('Thành công', 'Cập nhật team phòng ban thành công');
+            this.closeModal();
+            this.loadEmployeeTeam();
+          },
+          error: (error) => {
+            this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật team phòng ban thất bại: ' + error.message);
+          }
+        });
     } else {
       Object.values(this.employeeTeamForm.controls).forEach(control => {
         if (control.invalid) {
@@ -162,8 +160,8 @@ export class EmployeeTeamComponent implements OnInit {
 
   openAddModal() {
     const nextSTT = this.employeeTeam.length > 0
-      ? Math.max(...this.employeeTeam.map(item => item.STT)) + 1
-      : 1;
+    ? Math.max(...this.employeeTeam.map(item => item.STT)) + 1
+    : 1;
     this.employeeTeamForm.reset({
       ID: 0,
       STT: nextSTT,

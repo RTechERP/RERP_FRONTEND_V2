@@ -46,10 +46,11 @@ import {
   createComponent,
 } from '@angular/core';
 import { SelectControlComponent } from '../../../BillExport/Modal/select-control/select-control.component';
-import { ProjectComponent } from '../../../../project/project.component';
+import { ProjectComponent } from '../../../../../project/project.component';
 import { HistoryDeleteBillComponent } from '../../../BillExport/Modal/history-delete-bill/history-delete-bill.component';
 import { BillExportService } from '../../../BillExport/bill-export-service/bill-export.service';
 import { NOTIFICATION_TITLE } from '../../../../../../app.config';
+import { DEFAULT_TABLE_CONFIG } from '../../../../../../tabulator-default.config';
 interface data {
   idsPONCC: []; // array of number
   documentImportID: number;
@@ -91,11 +92,9 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
   selectedKhoTypes: number[] = [];
   cbbStatus: any = [
     { ID: -1, Name: '--Tất cả--' },
-    { ID: 0, Name: 'Mượn' },
-    { ID: 1, Name: 'Tồn Kho' },
-    { ID: 2, Name: 'Đã Xuất Kho' },
-    { ID: 5, Name: 'Xuất trả NCC' },
-    { ID: 6, Name: 'Yêu cầu xuất kho' },
+    { ID: 0, Name: 'Phiếu nhập kho' },
+    { ID: 1, Name: 'Phiếu trả' },
+    { ID: 2, Name: 'Phiếu mượn NCC' },
   ];
   data: data = {
     idsPONCC: [], // array of number
@@ -246,23 +245,27 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
     window.URL.revokeObjectURL(link.href);
   }
   getProductGroup() {
-    this.billExportService.getProductGroup(
-      this.appUserService.isAdmin,
-      this.appUserService.departmentID || 0
-    ).subscribe({
-      next: (res) => {
-        if (res?.data && Array.isArray(res.data)) {
-          this.dataProductGroup = res.data;
-          console.log('>>> Kết quả getProductGroup:', res);
-          this.selectedKhoTypes = this.dataProductGroup.map((item) => item.ID);
-          this.searchParams.listproductgroupID =
-            this.selectedKhoTypes.join(',');
-        }
-      },
-      error: (err) => {
-        console.error('Lỗi khi lấy nhóm vật tư', err);
-      },
-    });
+    this.billExportService
+      .getProductGroup(
+        this.appUserService.isAdmin,
+        this.appUserService.departmentID || 0
+      )
+      .subscribe({
+        next: (res) => {
+          if (res?.data && Array.isArray(res.data)) {
+            this.dataProductGroup = res.data;
+            console.log('>>> Kết quả getProductGroup:', res);
+            this.selectedKhoTypes = this.dataProductGroup.map(
+              (item) => item.ID
+            );
+            this.searchParams.listproductgroupID =
+              this.selectedKhoTypes.join(',');
+          }
+        },
+        error: (err) => {
+          console.error('Lỗi khi lấy nhóm vật tư', err);
+        },
+      });
   }
   onKhoTypeChange(selected: number[]): void {
     this.selectedKhoTypes = selected;
@@ -442,7 +445,8 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
     this.table = new Tabulator('#table_BillImportSynthetic', {
       data: this.dataTable,
       layout: 'fitDataFill',
-      height: '65vh',
+      height: '100%',
+      // ...DEFAULT_TABLE_CONFIG,
       pagination: true,
       paginationSize: 50,
       movableColumns: true,
@@ -453,6 +457,17 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
       columnDefaults: {
         resizable: true,
       },
+        langs: {
+    vi: {
+      pagination: {
+        first: '<<',
+        last: '>>',
+        prev: '<',
+        next: '>',
+      },
+    },
+  },
+  locale: 'vi',
       columns: [
         {
           title: '',
@@ -513,11 +528,11 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
           frozen: true,
         },
         { title: 'Mã NCC', field: 'CodeNCC', width: 120 },
-        { title: 'Nhà cung cấp / Bộ phận', field: 'NameNCC', width: 280 },
+        { title: 'Nhà cung cấp / Bộ phận', field: 'NameNCC', width: 300,formatter: 'textarea' },
         { title: 'Phòng ban', field: 'DepartmentName', width: 150 },
         { title: 'Mã NV', field: 'Code', width: 100 },
-        { title: 'Người giao / Người trả', field: 'Deliver', width: 160 },
-        { title: 'Người nhận', field: 'Reciver', width: 160 },
+        { title: 'Người giao / Người trả', field: 'Deliver', width: 200 },
+        { title: 'Người nhận', field: 'Reciver', width: 200 },
 
         {
           title: 'Ngày tạo',
@@ -548,8 +563,8 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
           },
         },
         { title: 'Mã dự án', field: 'ProjectCode', width: 130 },
-        { title: 'Tên sản phẩm', field: 'ProductName', width: 250 },
-        { title: 'Tên dự án', field: 'ProjectName', width: 250 },
+        { title: 'Tên sản phẩm', field: 'ProductName', width: 300,formatter: 'textarea' },
+        { title: 'Tên dự án', field: 'ProjectName', width: 300, formatter: 'textarea' },
         { title: 'SerialNumber', field: 'SerialNumber', width: 150 },
 
         { title: 'Ghi chú', field: 'Note', width: 200 },

@@ -1,8 +1,6 @@
 import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import * as bootstrap from 'bootstrap';
-
 import { CommonModule } from '@angular/common';
 import {
   FormsModule,
@@ -28,12 +26,11 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
-import { IS_ADMIN } from '../../../../../app.config';
-import { DEPARTMENTID } from '../../../../../app.config';
 import { DateTime } from 'luxon';
 import { HistoryBorrowSaleService } from './history-borrow-sale-service/history-borrow-sale.service';
 import { BillExportService } from '../BillExport/bill-export-service/bill-export.service';
 import { BillImportDetailComponent } from '../BillImport/Modal/bill-import-detail/bill-import-detail.component';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 @Component({
   selector: 'app-history-borrow-sale',
   standalone: true,
@@ -154,28 +151,28 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
       this.notification.info('Thông báo', 'Vui lòng tích chọn vào bản ghi bạn cần sinh phiếu trả!');
       return;
     }
-  
+
     // 2. Kiểm tra cùng người mượn (Code)
     const distinctReturners = [...new Set(this.dataCreateImport.map(row => row.Code))];
     if (distinctReturners.length > 1) {
       this.notification.info('Thông báo', 'Vui lòng chọn các sản phẩm chỉ trong 1 người mượn để tạo phiếu trả!');
       return;
     }
-  
+
     // // 3. Lấy mã kho (giả định)
     // const warehouseCode = this.getWarehouseCode(this.warehouseID); // Thay bằng logic thực tế
-  
+
     // 4. Lọc các bản ghi chưa trả
     const validData = this.dataCreateImport.filter(row => !row.ReturnedStatus);
-  
+
     if (validData.length === 0) {
       this.notification.info('Thông báo', 'Tất cả bản ghi được chọn đã được trả!');
       return;
     }
-  
+
     // 5. Lấy danh sách ProductGroupID duy nhất
     const distinctGroups = [...new Set(validData.filter(row => row.ProductGroupID != null).map(row => row.ProductGroupID))];
-  
+
     // 6. Với mỗi ProductGroupID, mở modal
     distinctGroups.forEach(groupID => {
       // Lọc dữ liệu theo ProductGroupID
@@ -185,7 +182,7 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
       if (filterData.length === 0) {
         this.notification.info('Thông báo', 'Không có dữ liệu hợp lệ cho nhóm sản phẩm này!');
         return;
-      } 
+      }
       // Mở modal
       const modalRef = this.modalService.open(BillImportDetailComponent, {
         centered: true,
@@ -193,7 +190,7 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
         backdrop: 'static',
         keyboard: false
       });
-  
+
       // Truyền dữ liệu sang BillImportDetailComponent
       modalRef.componentInstance.createImport = true;
       modalRef.componentInstance.isCheckmode = true;
@@ -201,16 +198,15 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
       modalRef.componentInstance.groupID = groupID;
       modalRef.componentInstance.dataHistory = filterData; // Chứa tất cả bản ghi của nhóm, bao gồm các ProductID
       modalRef.componentInstance.billType = 1;
-  
-      modalRef.result.then(
-        (result) => {
-          if (result === true) {
+
+      modalRef.result.finally(
+        () => {
+
             this.data = [];
             this.dataCreateImport = [];
             this.loadData();
-          }
+
         },
-        () => {}
       );
     });
   }
@@ -414,7 +410,7 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
     this.table = new Tabulator('#table_HistoryBorrowSale', {
       data: this.dataTable, // Khởi tạo với dữ liệu rỗng hoặc dữ liệu ban đầu nếu có
       layout: 'fitDataFill', // Hoặc "fitColumns" tùy theo mong muốn
-      height: '80vh',
+      height: '90vh',
       selectableRows: 15,
       reactiveData: true,
       movableColumns: true,

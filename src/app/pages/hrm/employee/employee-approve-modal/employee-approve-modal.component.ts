@@ -99,56 +99,39 @@ export class EmployeeApproveModalComponent implements OnInit {
     });
   }
 
-  onSearchEmployee(event: any) {
-    const keyword = event.target.value.toLowerCase().trim();
 
-    if (keyword) {
-      this.employeeTabulator.setFilter([
-        [
-          { field: 'Code', type: 'like', value: keyword },
-          { field: 'FullName', type: 'like', value: keyword },
-        ]
-      ]);
-    } else {
-      this.loadEmployee();
-      this.initializeEmployeeTable();
-    }
+addEmployeeApprove() {
+  const selectedRows = this.employeeTabulator.getSelectedRows();
+  if(selectedRows.length === 0) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn người duyệt cần thêm');
+      return;
   }
 
-
-  addEmployeeApprove() {
-    const selectedRows = this.employeeTabulator.getSelectedRows();
-    if (selectedRows.length === 0) {
-      this.initializeEmployeeTable();
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn người duyệt cần thêm');
-      return;
-    }
-
-    const employeeIds = selectedRows.map(row => parseInt(row.getData()['ID']));
-    const request: { ListEmployeeID: number[] } = {
+  const employeeIds = selectedRows.map(row => parseInt(row.getData()['ID']));
+  const request: { ListEmployeeID: number[] } = {
       ListEmployeeID: employeeIds
-    };
+  };
 
-    this.employeeService.addEmployeeApprove(request).subscribe({
+  this.employeeService.addEmployeeApprove(request).subscribe({
       next: (response: any) => {
-        this.closeEmployeeModal();
-        this.employeeAdded.emit();
+          this.closeEmployeeModal();
+          this.employeeAdded.emit();
 
-        // Hiển thị message từ response của backend
-        const message = response?.message || 'Thêm người duyệt thành công';
-        this.notification.success(NOTIFICATION_TITLE.success, message);
+          // Hiển thị message từ response của backend
+          const message = response?.message || 'Thêm người duyệt thành công';
+          this.notification.success('Thành công', message);
       },
       error: (error) => {
-        // Xử lý error response từ backend
-        let errorMessage = 'Thêm người duyệt thất bại';
+          // Xử lý error response từ backend
+          let errorMessage = 'Thêm người duyệt thất bại';
 
-        if (error?.error?.message) {
-          errorMessage = error.error.message;
-        } else if (error?.message) {
-          errorMessage = error.message;
-        }
+          if (error?.error?.message) {
+              errorMessage = error.error.message;
+          } else if (error?.message) {
+              errorMessage = error.message;
+          }
 
-        this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
+          this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
       }
     });
   }

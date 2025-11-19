@@ -68,7 +68,6 @@ import { DateTime } from 'luxon';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { MenuService } from '../../../systems/menus/menu-service/menu.service';
-import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 interface Unit {
   Code: string;
@@ -216,7 +215,6 @@ export class OfficeSupplyRequestsComponent implements OnInit {
             'Thông báo',
             'Phản hồi không chứa danh sách'
           );
-          this.notification.warning(NOTIFICATION_TITLE.warning, "Phản hồi không chứa danh sách");
         }
       },
       error: (err) => {
@@ -226,8 +224,6 @@ export class OfficeSupplyRequestsComponent implements OnInit {
           'Có lỗi xảy ra khi lấy danh sách phòng ban'
         );
       },
-        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy danh sách phòng ban');
-      }
     });
   }
 
@@ -277,39 +273,6 @@ export class OfficeSupplyRequestsComponent implements OnInit {
           this.isLoading = false;
         },
       });
-    this.lstDKVPP.getOfficeSupplyRequests(
-      this.searchParams.keyword,
-      this.searchParams.month,
-      0,
-      deptId
-    ).subscribe({
-      next: (res) => {
-        if (res && Array.isArray(res.data)) {
-          this.listDKVPP = res.data;
-          this.dataTable1 = this.listDKVPP;
-          if (this.table) {
-            this.table.replaceData(this.dataTable1);
-          }
-        } else {
-          this.listDKVPP = [];
-          this.dataTable1 = [];
-          if (this.table) {
-            this.table.replaceData([]);
-          }
-          this.notification.warning(NOTIFICATION_TITLE.warning, "Không tìm thấy dữ liệu phù hợp");
-        }
-      },
-      error: () => {
-        this.dataTable1 = [];
-        if (this.table) {
-          this.table.replaceData([]);
-        }
-        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy dữ liệu');
-      },
-      complete: () => {
-        this.isLoading = false;
-      }
-    });
   }
 
   private initTable1(): void {
@@ -507,8 +470,6 @@ export class OfficeSupplyRequestsComponent implements OnInit {
       error: () => {
         this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy chi tiết');
       },
-        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy chi tiết');
-      }
     });
   }
   pushSelectedList(): boolean {
@@ -522,7 +483,6 @@ export class OfficeSupplyRequestsComponent implements OnInit {
         'Thông báo',
         'Vui lòng chọn ít nhất 1 người đăng ký để duyệt/hủy duyệt!'
       );
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất 1 người đăng ký để duyệt/hủy duyệt!');
       return false;
     }
     return true;
@@ -543,13 +503,11 @@ export class OfficeSupplyRequestsComponent implements OnInit {
           next: (res) => {
             this.getOfficeSupplyRequest();
             this.selectedList = [];
-            this.notification.success(NOTIFICATION_TITLE.success, 'Duyệt thành công!');
+            this.notification.success('Thông báo', 'Duyệt thành công!');
           },
           error: (error: any) => {
             this.notification.error('Thông báo', 'Có lỗi xảy ra khi duyệt!');
           },
-            this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi duyệt!');
-          }
         });
       },
     });
@@ -572,7 +530,6 @@ export class OfficeSupplyRequestsComponent implements OnInit {
         'Thông báo',
         'VPP đã được TBP duyệt không thể hủy duyệt!'
       );
-      this.notification.error(NOTIFICATION_TITLE.error, 'VPP đã được TBP duyệt không thể hủy duyệt!');
       return;
     }
 
@@ -605,13 +562,11 @@ export class OfficeSupplyRequestsComponent implements OnInit {
       next: (res) => {
         this.getOfficeSupplyRequest();
         this.selectedList = [];
-        this.notification.success(NOTIFICATION_TITLE.success, 'Hủy duyệt thành công!');
+        this.notification.success('Thông báo', 'Hủy duyệt thành công!');
       },
       error: (error: any) => {
         this.notification.error('Thông báo', 'Có lỗi xảy ra khi hủy duyệt!');
       },
-        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi hủy duyệt!');
-      }
     });
   }
 
@@ -632,7 +587,6 @@ export class OfficeSupplyRequestsComponent implements OnInit {
         'Thông báo',
         'VPP đã chọn chưa được admin duyệt, không thể duyệt!'
       );
-      this.notification.error(NOTIFICATION_TITLE.error, 'VPP đã chọn chưa được admin duyệt, không thể duyệt!');
       return;
     }
 
@@ -665,13 +619,11 @@ export class OfficeSupplyRequestsComponent implements OnInit {
       next: (res) => {
         this.getOfficeSupplyRequest();
         this.selectedList = [];
-        this.notification.success(NOTIFICATION_TITLE.success, 'Duyệt thành công!');
+        this.notification.success('Thông báo', 'Duyệt thành công!');
       },
       error: (error: any) => {
         this.notification.error('Thông báo', 'Có lỗi xảy ra khi duyệt!');
       },
-        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi duyệt!');
-      }
     });
   }
 
@@ -692,7 +644,6 @@ export class OfficeSupplyRequestsComponent implements OnInit {
         'Thông báo',
         'Không có VPP nào được admin duyệt để hủy duyệt!'
       );
-      this.notification.error(NOTIFICATION_TITLE.error, 'Không có VPP nào được admin duyệt để hủy duyệt!');
       return;
     }
 
@@ -725,13 +676,11 @@ export class OfficeSupplyRequestsComponent implements OnInit {
       next: (res) => {
         this.getOfficeSupplyRequest();
         this.selectedList = [];
-        this.notification.success(NOTIFICATION_TITLE.success, 'Hủy duyệt thành công!');
+        this.notification.success('Thông báo', 'Hủy duyệt thành công!');
       },
       error: (error: any) => {
         this.notification.error('Thông báo', 'Có lỗi xảy ra khi hủy duyệt!');
       },
-        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi hủy duyệt!');
-      }
     });
   }
 }

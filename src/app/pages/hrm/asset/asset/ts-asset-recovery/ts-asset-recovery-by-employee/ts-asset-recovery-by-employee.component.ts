@@ -4,7 +4,6 @@ import { DateTime } from 'luxon';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { TabulatorFull as Tabulator, CellComponent, ColumnDefinition, RowComponent } from 'tabulator-tables';
 import { AssetsRecoveryService } from '../ts-asset-recovery-service/ts-asset-recovery.service';
-import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
@@ -167,27 +166,78 @@ export class TsAssetRecoveryByEmployeeComponent implements OnInit, AfterViewInit
     }
   
   selectAssets() {
-    const selectedRows = this.assetByEmployeeTb?.getSelectedData() || [];
-    if (selectedRows.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một tài sản.');
+  const selectedRows = this.assetByEmployeeTb?.getSelectedData() || [];
+  if (selectedRows.length === 0) {
+    this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một tài sản.');
+    return;
+  }
+
+  const blockIds = new Set((this.existingIds || this.dataInput1?.existingIds || []).map(Number));
+  const filtered = selectedRows.filter(r => !blockIds.has(Number(r.ID)));
+  const skipped = selectedRows.length - filtered.length;
+  if (skipped > 0) {
+    this.notification.warning('Thông báo', `Bỏ qua ${skipped} tài sản trùng.`);
+  }
+  if (filtered.length === 0) return;
+
+  const newRows = filtered.map(row => ({
+    ID: 0,
+    AssetManagementID: row.ID,                   
+    TSAssetRecoveryID: this.dataInput1.RecoverID,
+    EmployeeID: row.EmployeeID,
+    FullName: row.FullName,
+    Name: row.Name,
+    Note: row.Note,
+    Quantity: row.Quantity,
+    STT: row.STT,
+    Status: row.Status,
+    TSAssetName: row.TSAssetName,
+    TSCodeNCC: row.TSCodeNCC,
+  }));
+
+  this.formSubmitted.emit(newRows);
+  this.activeModal.dismiss();
+}
+onSearch(event: any) {
+  const query = (event.target.value || '').trim().toLowerCase();
+  if (!this.assetByEmployeeTb) return;
+
+  if (!query) {
+    this.assetByEmployeeTb.clearFilter(true);
+    return;
+  }
+
+  this.assetByEmployeeTb.setFilter((row) => {
+    const d = row.getData();
+    return (
+      (d.TSCodeNCC?.toLowerCase().includes(query)) ||
+      (d.TSAssetName?.toLowerCase().includes(query)) ||
+      (d.FullName?.toLowerCase().includes(query)) ||
+      (d.Name?.toLowerCase().includes(query))
+    );
+  });
+}
+
+ applyFilter() {
+    if (!this.assetByEmployeeTb) return;
+
+    const q = (this.searchText || '').trim().toLowerCase();
+    if (!q) {
+      this.assetByEmployeeTb.clearFilter(true);
       return;
     }
-    const newRows = selectedRows.map(row => ({
-      ID: 0,
-      AssetManagementID: row.ID,
-      TSAssetRecoveryID: this.dataInput1.RecoverID,
-      EmployeeID: row.EmployeeID,
-      FullName: row.FullName,
-      Name: row.Name,
-      Note: row.Note,
-      Quantity: row.Quantity,
-      STT: row.STT,
-      Status: row.Status,
-      TSAssetName: row.TSAssetName,
-      TSCodeNCC: row.TSCodeNCC,
 
-    }));
-    this.formSubmitted.emit(newRows);
-    this.activeModal.dismiss();
+    this.assetByEmployeeTb.setFilter((data: any) => {
+      const fields = [
+        data.TSCodeNCC,
+        data.TSAssetName,
+        data.FullName,
+        data.Name
+      ];
+
+      return fields
+        .map(v => String(v ?? '').toLowerCase())
+        .some(v => v.includes(q));
+    });
   }
 }

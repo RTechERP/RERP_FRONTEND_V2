@@ -318,13 +318,14 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           this.dataPOTypes = response.data;
         } else {
           this.notification.error(
-            NOTIFICATION_TITLE.error,
+            'Thông báo',
             'Lỗi khi tải loại PO: ' + response.message
           );
         }
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error,
+        this.notification.error(
+          'Thông báo',
           'Lỗi kết nối khi tải loại PO: ' + error
         );
       },
@@ -338,13 +339,14 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         } else {
           this.dataParts = []; // Xóa mảng parts khi có lỗi
           this.notification.error(
-            NOTIFICATION_TITLE.error,
+            'Thông báo',
             'Lỗi khi tải phòng ban: ' + response.message
           );
         }
       },
       error: (error: any) => {
-        this.notification.error(NOTIFICATION_TITLE.error,
+        this.notification.error(
+          'Thông báo',
           'Lỗi kết nối khi tải phòng ban: ' + error
         );
       },
@@ -357,13 +359,14 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           this.dataCurrencies = response.data;
         } else {
           this.notification.error(
-            NOTIFICATION_TITLE.error,
+            'Thông báo',
             'Lỗi khi tải loại tiền: ' + response.message
           );
         }
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error,
+        this.notification.error(
+          'Thông báo',
           'Lỗi kết nối khi tải loại tiền: ' + error
         );
       },
@@ -379,13 +382,14 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           this.tb_POKHProduct.setData(this.dataPOKHProduct);
         } else {
           this.notification.error(
-            NOTIFICATION_TITLE.error,
+            'Thông báo',
             'Lỗi khi tải chi tiết POKH: ' + response.message
           );
         }
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error,
+        this.notification.error(
+          'Thông báo',
           'Lỗi kết nối khi tải chi tiết POKH: ' + error
         );
       },
@@ -400,7 +404,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           this.tb_POKHFile.setData(this.dataPOKHFiles);
         } else {
           this.notification.error(
-            NOTIFICATION_TITLE.error,
+            'Thông báo',
             'Lỗi khi tải tệp POKH: ' + response.message
           );
         }
@@ -426,13 +430,14 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           }
         } else {
           this.notification.error(
-            NOTIFICATION_TITLE.error,
+            'Thông báo',
             'Lỗi khi tải sản phẩm: ' + response.message
           );
         }
       },
       error: (error: any) => {
-        this.notification.error(NOTIFICATION_TITLE.error,
+        this.notification.error(
+          'Thông báo',
           'Lỗi kết nối khi tải sản phẩm: ' + error
         );
       },
@@ -517,7 +522,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           const POKHFiles$ = this.POKHService.getPOKHFile(id).pipe(
             map((res) => (res.status === 1 ? res.data : [])),
             catchError((err) => {
-              this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi tải POKHFile: ' + err);
+              this.notification.error('Thông báo', 'Lỗi tải POKHFile: ' + err);
               return of([]);
             })
           );
@@ -607,13 +612,14 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           );
         } else {
           this.notification.error(
-            NOTIFICATION_TITLE.error,
+            'Thông báo',
             'Lỗi khi tải dữ liệu POKH chính: ' + response.message
           );
         }
       },
       (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error,
+        this.notification.error(
+          'Thông báo',
           'Lỗi kết nối khi tải dữ liệu POKH chính: ' + error
         );
       }
@@ -709,8 +715,6 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       success: true,
       reloadData: true,
     });
-    this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thành công');
-    this.closeModal();
 
     // Cập nhật endDate lên 1 ngày hoặc 1 giờ so với hiện tại
     const now = new Date();
@@ -722,7 +726,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     this.isCopy = false;
   }
   handleError(error: any) {
-    this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra: ' + error.message);
+    this.notification.error('Thông báo', 'Có lỗi xảy ra: ' + error.message);
   }
   //#endregion
   //#region : Hàm xử lý upload files
@@ -770,7 +774,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           console.log('Upload files POKH thành công');
         },
         error: (error) => {
-          this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi upload files: ' + error);
+          this.notification.error('Thông báo', 'Lỗi upload files: ' + error);
         },
       });
     }
@@ -926,7 +930,6 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         NOTIFICATION_TITLE.error,
         'Không có dữ liệu để xuất Excel'
       );
-      this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất Excel');
       return;
     }
 
@@ -1283,7 +1286,6 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       }
     } catch (error) {
       this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi:' + error);
-      this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi:' + error);
     }
   }
   private convertToTreeData(flatData: any[]): any[] {
@@ -1330,7 +1332,8 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error,
+        this.notification.error(
+          'Thông báo',
           'Lỗi kết nối khi tạo mã PO: ' + error
         );
       },
@@ -1460,14 +1463,10 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
 
     // Kiểm tra các trường nz-select (vì required directive có thể không hoạt động đúng với nz-select)
     if (!this.poFormData.poType || this.poFormData.poType === 0) {
-    if (this.poFormData.status < 0) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Xin hãy chọn trạng thái.');
       return false;
     }
 
     if (!this.poFormData.projectId || this.poFormData.projectId === 0) {
-    if (!this.poFormData.poType) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Xin hãy chọn loại PO.');
       return false;
     }
 
@@ -1477,8 +1476,6 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       (typeof this.poFormData.poCode === 'string' &&
         this.poFormData.poCode.trim() === '')
     ) {
-    if (!this.poFormData.poCode) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Xin hãy nhập mã PO.');
       return false;
     }
 
@@ -1653,7 +1650,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   }
   openPOCodeModal() {
     if (!this.selectedCustomer) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn khách hàng trước!');
+      this.notification.warning('Thông báo', 'Vui lòng chọn khách hàng trước!');
       return;
     }
 
@@ -1691,7 +1688,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         const fileObj = file as File;
         if (fileObj.size > MAX_FILE_SIZE) {
           this.notification.error(
-            NOTIFICATION_TITLE.error,
+            'Thông báo',
             `File ${fileObj.name} vượt quá giới hạn dung lượng cho phép (50MB)`
           );
           return;
@@ -2454,10 +2451,10 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     // Gọi API copy-dto
     this.POKHService.copyFromDTO(dto).subscribe((res) => {
       if (res.status === 1) {
-        this.notification.success(NOTIFICATION_TITLE.success, 'Copy thành công!');
+        this.notification.success('Thông báo', 'Copy thành công!');
         // Có thể load lại danh sách hoặc chuyển sang bản ghi mới
       } else {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Copy thất bại: ' + res.message);
+        this.notification.error('Thông báo', 'Copy thất bại: ' + res.message);
       }
     });
   }

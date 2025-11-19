@@ -62,7 +62,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { NOTIFICATION_TITLE } from '../../../app.config';
-import { ProjectService } from '../../old/project/project-service/project.service';
+import { ProjectService } from '../../project/project-service/project.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { TeamComponent } from '../team/team.component';
 

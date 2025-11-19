@@ -9,7 +9,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { ProjectFormPriorityDetailComponent } from '../project-form-priority-detail/project-form-priority-detail.component';
 import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 @Component({
   selector: 'app-project-priority-detail',
   imports: [FormsModule, NzButtonModule, NzModalModule],

@@ -29,6 +29,7 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { DateTime } from 'luxon';
 import { ListProductProjectService } from './list-product-project-service/list-product-project.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-list-product-project',

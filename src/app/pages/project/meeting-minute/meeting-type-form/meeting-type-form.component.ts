@@ -44,7 +44,7 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { MeetingMinuteComponent } from '../meeting-minute.component';
 import { MeetingMinuteService } from '../meeting-minute-service/meeting-minute.service';
 import { NzFormModule } from 'ng-zorro-antd/form';
-import { NOTIFICATION_TITLE } from '../../../../../app.config';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 interface MeetingType {
   GroupID: number;

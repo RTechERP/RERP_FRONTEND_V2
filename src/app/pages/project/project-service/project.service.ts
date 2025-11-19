@@ -853,10 +853,6 @@ export class ProjectService {
     dateTimeE: DateTime,
     departmentID: number,
     userID: number,
-    dateTimeS: DateTime,
-    dateTimeE: DateTime,
-    departmentID: number,
-    userID: number,
     projectTypeID: string,
     keyword: string,
     userTeamID: number,
@@ -868,7 +864,6 @@ export class ProjectService {
       keyword: keyword.trim(),
       userID: userID.toString(),
       projectTypeID: projectTypeID.trim(),
-      userTeamID: userTeamID.toString(),
       userTeamID: userTeamID.toString(),
       departmentID: departmentID.toString(),
     };

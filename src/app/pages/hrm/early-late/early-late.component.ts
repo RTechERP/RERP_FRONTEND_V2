@@ -177,7 +177,6 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
 
   }
   private initializeTable(): void {
-  private initializeTable(): void {
     this.tabulator = new Tabulator('#tb_early_late', {
       data: this.earlyLateList,
       layout: 'fitColumns',

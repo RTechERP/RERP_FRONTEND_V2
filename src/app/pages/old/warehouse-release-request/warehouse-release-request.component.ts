@@ -59,7 +59,7 @@ import { CustomerPartService } from '../customer-part/customer-part/customer-par
 import { RequestInvoiceDetailService } from '../request-invoice-detail/request-invoice-detail-service/request-invoice-detail-service.service';
 import { AppUserService } from '../../../services/app-user.service';
 import { BillExportDetailComponent } from '../Sale/BillExport/Modal/bill-export-detail/bill-export-detail.component';
-
+import { NOTIFICATION_TITLE } from '../../../app.config';
 interface BillExportDetail {
   ProductID: number;
   Qty: number;

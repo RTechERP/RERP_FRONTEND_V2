@@ -36,6 +36,7 @@ import { ProductSaleDetailComponent } from '../ProductSale/product-sale-detail/p
 import { ProductGroupDetailComponent } from '../ProductSale/product-group-detail/product-group-detail.component';
 import { ImportExportModalComponent } from './detail-modal/import-export-detail-modal..component';
 import { BillExportDetailComponent } from '../BillExport/Modal/bill-export-detail/bill-export-detail.component';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 interface ProductSale {
   Id?: number;

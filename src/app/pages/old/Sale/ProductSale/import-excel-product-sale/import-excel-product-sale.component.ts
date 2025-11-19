@@ -19,7 +19,6 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ProductsaleServiceService } from '../product-sale-service/product-sale-service.service';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
-import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   selector: 'app-import-excel-product-sale',
   imports: [CommonModule, FormsModule, ReactiveFormsModule, NzProgressModule, NzIconModule, NzButtonModule],
@@ -116,7 +115,7 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
     if (this.table) {
       this.table.import("xlsx", [".xlsx", ".csv", ".ods"], "buffer");
     } else {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Bảng chưa được khởi tạo!');
+      this.notification.warning('Thông báo', 'Bảng chưa được khởi tạo!');
     }
   }
 
@@ -139,12 +138,6 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
         this.resetExcelImportState(); // Reset trạng thái khi có lỗi định dạng
         return;
       }
-        if (fileExtension !== 'xlsx' && fileExtension !== 'xls') {
-            this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn tệp Excel (.xlsx hoặc .xls)!');
-            input.value = ''; // Xóa input để có thể chọn lại file
-            this.resetExcelImportState(); // Reset trạng thái khi có lỗi định dạng
-            return;
-        }
 
       this.filePath = file.name;
       this.excelSheets = [];
@@ -223,19 +216,6 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
         input.value = ''; // Xóa input để có thể chọn lại cùng file
       };
       reader.readAsArrayBuffer(file); // Bắt đầu đọc file ngay lập tức
-                } else {
-                    console.warn('File Excel không chứa bất kỳ sheet nào.'); // Log
-                    this.notification.warning(NOTIFICATION_TITLE.warning, 'File Excel không có sheet nào!');
-                    this.resetExcelImportState();
-                }
-            } catch (error) {
-                console.error('Lỗi khi đọc tệp Excel trong FileReader.onload:', error); // Log chi tiết lỗi
-                this.notification.error(NOTIFICATION_TITLE.error, 'Không thể đọc tệp Excel. Vui lòng đảm bảo tệp không bị hỏng và đúng định dạng.');
-                this.resetExcelImportState(); // Reset trạng thái khi có lỗi
-            }
-            input.value = ''; // Xóa input để có thể chọn lại cùng file
-        };
-        reader.readAsArrayBuffer(file); // Bắt đầu đọc file ngay lập tức
     }
   }
   private normalizeHeader(raw: any): string {
@@ -369,81 +349,6 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
           this.notification.error('Thông báo', 'Không thể đọc dữ liệu từ sheet! Vui lòng kiểm tra định dạng dữ liệu.');
           this.resetExcelImportState();
       }
-      const data: any[] = []; // Dữ liệu cho bảng preview
-      let validRecords = 0; // Số lượng bản ghi hợp lệ
-      let foundFirstDataRow = false; // Biến flag để xác định hàng dữ liệu hợp lệ đầu tiên
-
-      // Đọc dữ liệu từ hàng thứ 2 trở đi
-      worksheet.eachRow((row, rowNumber) => {
-        if (rowNumber > 1) { // Bỏ qua hàng tiêu đề đầu tiên
-          const firstCell = row.getCell(1).value;
-          const secondCell = row.getCell(2).value;
-          const thirdCell = row.getCell(3).value;
-          
-          // Kiểm tra nếu cell(1) là số
-          const isFirstCellNumber = typeof firstCell === 'number' && !isNaN(firstCell);
-
-          // Kiểm tra nếu hàng không rỗng hoàn toàn
-          // Đồng thời đảm bảo secondCell và thirdCell không được rỗng
-          const isEmptyRow = !firstCell || (!secondCell || !thirdCell);
-
-          // Nếu hàng không trống, tạo rowData và thêm vào dataTableExcel
-          if (!isEmptyRow) {
-             const rowData: any = {
-               STT: firstCell?.toString() || '',
-               ProductGroup: row.getCell(2).value?.toString() || '',
-               ProductGroupName: row.getCell(2).value?.toString() || '',
-               ProductCode: row.getCell(3).value?.toString() || '',
-               ProductName: row.getCell(4).value?.toString() || '',
-               Maker: row.getCell(5).value?.toString() || '',
-               MakerName: row.getCell(5).value?.toString() || '',
-               Unit: row.getCell(6).value?.toString() || '',
-               AddressBox: row.getCell(7).value?.toString() || '',
-               LocationName: row.getCell(7).value?.toString() || '',
-        
-               Note: row.getCell(9).value?.toString() || ''
-             };
-             data.push(rowData); // Thêm vào data cho bảng preview
-          }
-
-          // Logic để xác định khi nào bắt đầu đếm validRecords
-          if (typeof firstCell === 'number' && !isNaN(firstCell)) {
-            foundFirstDataRow = true; // Đánh dấu đã tìm thấy hàng dữ liệu đầu tiên có STT số
-          }
-
-          // Đếm validRecords chỉ sau khi tìm thấy hàng đầu tiên có STT số và hàng đó không trống
-          if (foundFirstDataRow && !isEmptyRow) {
-             validRecords++;
-          }
-        }
-      });
-
-      this.dataTableExcel = data; // Gán dữ liệu đầy đủ cho bảng preview
-      this.totalRowsAfterFileRead = validRecords; // Cập nhật tổng số dòng hợp lệ (đếm từ hàng có STT số)
-      console.log(`Đã đọc ${data.length} dòng dữ liệu không trống từ sheet (hiển thị preview).`);
-      console.log(`Tìm thấy ${validRecords} bản ghi hợp lệ (bắt đầu từ STT số).`); // Log rõ ràng hơn
-
-      // Cập nhật hiển thị sau khi đọc dữ liệu xong (0/tổng số dòng)
-      this.displayProgress = 0; 
-      if (this.totalRowsAfterFileRead === 0) {
-        this.displayText = 'Không có dữ liệu hợp lệ trong sheet.'; // Thông báo rõ ràng hơn
-      } else {
-        this.displayText = `0/${this.totalRowsAfterFileRead} bản ghi`;
-      }
-      
-      // Cập nhật Tabulator
-      if (this.tableExcel) {
-        this.tableExcel.replaceData(this.dataTableExcel);
-      } else {
-        // Trường hợp này ít xảy ra nếu drawTable được gọi trong ngOnInit
-        this.drawtable();     
-      }
-
-    } catch (error) {
-      console.error('Lỗi khi đọc dữ liệu từ sheet trong readExcelData:', error); // Log chi tiết lỗi
-      this.notification.error(NOTIFICATION_TITLE.error, 'Không thể đọc dữ liệu từ sheet! Vui lòng kiểm tra định dạng dữ liệu.');
-      this.resetExcelImportState(); // Reset trạng thái khi có lỗi
-    }
   }
   onSheetChange() {
       console.log('Sheet đã thay đổi thành:', this.selectedSheet);
@@ -471,31 +376,6 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
               reader.readAsArrayBuffer(file);
           }
       }
-    console.log('Sheet đã thay đổi thành:', this.selectedSheet);
-    if (this.filePath) {
-        const fileInput = document.getElementById('fileInput') as HTMLInputElement;
-        if (fileInput.files && fileInput.files.length > 0) {
-            const file = fileInput.files[0];
-            const reader = new FileReader();
-            reader.onload = async (e: any) => {
-                const data = e.target.result;
-                try {
-                    const workbook = new ExcelJS.Workbook();
-                    await workbook.xlsx.load(data);
-                    await this.readExcelData(workbook, this.selectedSheet);
-                    // Sau khi thay đổi sheet và đọc dữ liệu, đặt lại thanh tiến trình
-                    this.displayProgress = 0;
-                    // displayText được cập nhật trong readExcelData
-                    console.log('Dữ liệu đã được đọc lại sau khi thay đổi sheet.'); // Log
-                } catch (error) {
-                    console.error('Lỗi khi đọc tệp Excel khi thay đổi sheet:', error);
-                    this.notification.error(NOTIFICATION_TITLE.error, 'Không thể đọc dữ liệu từ sheet đã chọn!');
-                    this.resetExcelImportState(); // Reset trạng thái khi có lỗi
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-    }
   }
   downloadTemplate() {
       this.productsaleService.getTemplateExcel().subscribe({
@@ -520,11 +400,6 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
           console.log('Không có dữ liệu để lưu.');
           return;
       }
-    if (!this.dataTableExcel || this.dataTableExcel.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để lưu!');
-      console.log('Không có dữ liệu để lưu.');
-      return;
-    }
 
       // Lọc dữ liệu để chỉ lấy các dòng có STT là số để xử lý lưu
       const validDataToSave = this.dataTableExcel.filter(row => {
@@ -543,13 +418,6 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
           this.displayText = `0/${this.totalRowsAfterFileRead} bản ghi`;
           return;
       }
-    if (validDataToSave.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu hợp lệ (STT là số) để lưu!');
-      console.log('Không có dữ liệu hợp lệ (STT là số) để lưu.');
-      this.displayProgress = 0;
-      this.displayText = `0/${this.totalRowsAfterFileRead} bản ghi`;
-      return;
-    } 
 
       // Reset tiến trình cho giai đoạn lưu dữ liệu
       this.processedRowsForSave = 0;
@@ -641,36 +509,6 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
           showSaveSummary(successCount: number, errorCount: number, totalProducts: number) {
             console.log('--- Hiển thị tóm tắt kết quả lưu ---');
             console.log(`Tổng sản phẩm: ${totalProducts}, Thành công: ${successCount}, Thất bại: ${errorCount}`);
-              error: (err) => {
-                errorCount++;
-                console.error(`Lỗi khi lưu sản phẩm ${index + 1}:`, err);
-
-                completedRequests++;
-                this.processedRowsForSave = completedRequests;
-                this.displayProgress = Math.round((completedRequests / totalProductsToSave) * 100);
-                this.displayText = `Đang lưu: ${completedRequests}/${totalProductsToSave} bản ghi`;
-
-                // Xử lý sản phẩm tiếp theo
-                saveProductWithDelay(index + 1);
-              }
-            });
-          }, 5); // Delay 0,0005s
-        };
-
-        // Bắt đầu xử lý từ sản phẩm đầu tiên
-        saveProductWithDelay(0);
-      },
-      error: (err) => {
-        console.error('Lỗi khi kiểm tra mã sản phẩm từ API:', err);
-        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi kiểm tra mã sản phẩm từ database!');
-        this.displayText = 'Lỗi kiểm tra sản phẩm!';
-        this.displayProgress = 0;
-      }
-    });
-  }
-  showSaveSummary(successCount: number, errorCount: number, totalProducts: number) {
-    console.log('--- Hiển thị tóm tắt kết quả lưu ---');
-    console.log(`Tổng sản phẩm: ${totalProducts}, Thành công: ${successCount}, Thất bại: ${errorCount}`);
 
             if (errorCount === 0) {
               this.notification.success('Thông báo', `Đã lưu ${successCount} sản phẩm thành công`);
@@ -686,20 +524,6 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
             const unit = this.listUnitCount.find(u => u.UnitName === unitName);
             return unit ? unit.ID : 0;
           }
-    if (errorCount === 0) {
-      this.notification.success(NOTIFICATION_TITLE.success, `Đã lưu ${successCount} sản phẩm thành công`);
-    } else if (successCount === 0) {
-        this.notification.error(NOTIFICATION_TITLE.error, `Lưu thất bại ${errorCount}/${totalProducts} sản phẩm`);
-    } else {
-      this.notification.warning(NOTIFICATION_TITLE.warning, `Đã lưu ${successCount} sản phẩm thành công, ${errorCount} sản phẩm thất bại`);
-    }
-    this.closeExcelModal();
-  }
-  // Hàm helper để lấy ID của đơn vị tính từ tên
-  private getUnitIdByName(unitName: string): number {
-    const unit = this.listUnitCount.find(u => u.UnitName === unitName);
-    return unit ? unit.ID : 0;
-  }
 
           // Hàm helper để lấy ID của hãng từ tên
           private getFirmIdByName(firmName: string): number {
@@ -785,12 +609,3 @@ export class ImportExcelProductSaleComponent implements OnInit, AfterViewInit {
             this.modalService.dismissAll(true);
           }
       }
-  closeExcelModal() {
-    // Chặn đóng khi đang đọc/lưu
-    if (this.isBusy) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Đang nhập dữ liệu, vui lòng đợi hoàn tất!');
-      return;
-    }
-    this.modalService.dismissAll(true);
-  }
-}

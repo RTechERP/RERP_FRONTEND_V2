@@ -28,6 +28,7 @@ import { InventoryDemoService } from './inventory-demo-service/inventory-demo.se
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TbProductRtcService } from '../tb-product-rtc/tb-product-rtc-service/tb-product-rtc.service';
 import { InventoryBorrowSupplierDemoComponent } from './inventory-borrow-supplier-demo/inventory-borrow-supplier-demo.component';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 
 @Component({

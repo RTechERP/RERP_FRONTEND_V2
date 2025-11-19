@@ -203,7 +203,6 @@ export class DayOffComponent implements OnInit, AfterViewInit {
   }
 
   private initializeTable(): void {
-  private initializeTable(): void {
     this.tabulator = new Tabulator('#tb_day_off', {
       data: this.dayOffList,
       layout: 'fitColumns',

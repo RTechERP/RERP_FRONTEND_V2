@@ -36,8 +36,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { PayrollService } from '../payroll.service';
-import { ProjectService } from '../../../old/project/project-service/project.service';
-import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { ProjectService } from '../../../project/project-service/project.service';
 import { ImportExcelComponent } from './import-excel/import-excel.component';
 import { EditDetailComponent } from './edit-detail/edit-detail.component';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
@@ -144,7 +143,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
           'DepartmentName'
         );
       },
-      error: (error) => {
+      error: (error:any) => {
         console.error('Lỗi:', error);
       },
     });
@@ -155,7 +154,7 @@ export class PayrollReportComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         this.departments = response.data;
       },
-      error: (error) => {
+      error: (error:any) => {
         console.error('Lỗi:', error);
       },
     });

@@ -41,7 +41,6 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../../../../auth/auth.service';
-import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   standalone: true,
   imports: [
@@ -370,14 +369,14 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
   }
   onDeleteRecovery() {
     if (!this.recoveryTable) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Lỗi bảng, không thể thao tác');
+      this.notification.warning('Thông báo', 'Lỗi bảng, không thể thao tác');
       return;
     }
 
     const selectedRows = this.recoveryTable.getSelectedData() as any[];
 
     if (!selectedRows || selectedRows.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Chưa chọn biên bản để xóa!');
+      this.notification.warning('Thông báo', 'Chưa chọn biên bản để xóa!');
       return;
     }
 
@@ -437,7 +436,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
 
         return forkJoin(requests$).toPromise().then(() => {
           this.notification.success(
-            NOTIFICATION_TITLE.success,
+            'Thành công',
             `Đã xóa thành công các biên bản: ${codesText}`
           );
           this.getRecovery();
@@ -502,17 +501,18 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
 
   return null; // hợp lệ
 }
-  updateApprove(action: 1 | 2 | 3 | 4 | 5 | 6) {
-    if (!this.recoveryTable) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Lỗi bảng, không thể thao tác');
-      return;
-    }
 
-    const selectedRows = this.recoveryTable.getSelectedData();
-    if (!selectedRows || selectedRows.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Chọn ít nhất 1 bản ghi để duyệt');
-      return;
-    }
+ updateApprove(action: 1 | 2 | 3 | 4 | 5 | 6) {
+  if (!this.recoveryTable) {
+    this.notification.warning('Thông báo', 'Lỗi bảng, không thể thao tác');
+    return;
+  }
+
+  const selectedRows = this.recoveryTable.getSelectedData() as any[];
+  if (!selectedRows || selectedRows.length === 0) {
+    this.notification.warning('Thông báo', 'Chọn ít nhất 1 bản ghi để duyệt');
+    return;
+  }
 
  const validRows: any[] = [];
 const invalidRows: { row: any; code: string }[] = [];
@@ -688,10 +688,10 @@ if (invalidRows.length > 0) {
         .map(x => x.CodeReport ?? x.Code)
         .join(', ');
 
-        this.notification.success(
-          NOTIFICATION_TITLE.success,
-          `Đã cập nhật thành công các biên bản: ${approvedCodes}`
-        );
+      this.notification.success(
+        'Thành công',
+        `Đã cập nhật thành công các biên bản: ${approvedCodes}`
+      );
 
       if (action === 5 && validRows.length > 0) {
         this.updateOnApproveMultiple(validRows);
@@ -700,11 +700,95 @@ if (invalidRows.length > 0) {
         this.assetRecoveryData = [];
         this.drawDetail();
         this.sizeTbDetail = '0';
+      }
+    },
+    error: (err: any) => {
+      console.error('Lỗi updateApprove (nhiều)', err);
+      const msg = err?.error?.message || 'Duyệt thất bại';
+      this.notification.error('Lỗi', msg);
+    }
+  });
+}
+
+  private updateOnApproveMultiple(masters: any[]) {
+    // Lấy detail cho từng biên bản thu hồi
+    const detailRequests = masters.map(m =>
+      this.assetsRecoveryService.getAssetsRecoveryDetail(m.ID)
+    );
+
+    forkJoin(detailRequests).subscribe({
+      next: (responses: any[]) => {
+        const allAssetManagements: any[] = [];
+        const allAllocationEvictions: any[] = [];
+
+        responses.forEach((res, index) => {
+          const master = masters[index];
+
+          const details = Array.isArray(res?.data?.assetsRecoveryDetail)
+            ? res.data.assetsRecoveryDetail
+            : [];
+
+          if (!details || details.length === 0) {
+            console.warn(`Biên bản ${master.Code} không có chi tiết, bỏ qua.`);
+            return;
+          }
+
+          details.forEach((item: any) => {
+            const safeAssetId = Number(item.AssetManagementID) || 0;
+
+            allAssetManagements.push({
+              ID: safeAssetId,
+              StatusID: 1,
+              Status: 'Chưa sử dụng',
+              DepartmentID: master.DepartmentRecoveryID || 0,
+              EmployeeID: master.EmployeeRecoveryID,
+            });
+
+            allAllocationEvictions.push({
+              ID: 0,
+              AssetManagementID: safeAssetId,
+              EmployeeID: master.EmployeeReturnID || 0,
+              ChucVuID: item.ChucVuHDID,
+              DepartmentID: item.DepartmentID,
+              Status: 'Đã thu hồi',
+              Note: `Đã thu hồi từ ${master.EmployeeReturnName}`
+            });
+          });
+        });
+
+        if (allAssetManagements.length === 0) {
+          this.notification.warning('Cảnh báo', 'Không có chi tiết tài sản nào để cập nhật.');
+          return;
+        }
+
+        const payloadRecovery = {
+          tSAssetManagements: allAssetManagements,
+          tSAllocationEvictionAssets: allAllocationEvictions
+        };
+
+        console.log('payloadRecovery (multi):', payloadRecovery);
+
+        this.assetsRecoveryService.saveAssetRecovery(payloadRecovery).subscribe({
+          next: () => {
+            const codes = masters.map(x => x.CodeReport ?? x.Code).join(', ');
+            // this.notification.success(
+            //   'Thành công',
+            //   `Đã cập nhật tài sản cho các biên bản: ${codes}`
+            // );
+
+            this.getRecovery();
+            this.assetRecoveryDetailData = [];
+            this.sizeTbDetail = '0';
+          },
+          error: (err) => {
+            console.error('Lỗi saveAssetRecovery (multi):', err);
+            this.notification.error('Lỗi', err?.error?.message || 'Duyệt tài sản thất bại.');
+          }
+        });
       },
-      error: (err: any) => {
-        console.error('Lỗi updateApprove (nhiều)', err);
-        const msg = err?.error?.message || 'Duyệt thất bại';
-        this.notification.error(NOTIFICATION_TITLE.error, msg);
+      error: (err) => {
+        console.error('Lỗi load detail khi duyệt nhiều biên bản:', err);
+        this.notification.error('Lỗi', 'Không tải được chi tiết biên bản.');
       }
     });
   }
@@ -751,7 +835,7 @@ if (invalidRows.length > 0) {
 
     const selected = this.recoveryTable.getSelectedData();
     if (!selected || selected.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một đơn vị để sửa!');
+      this.notification.warning('Thông báo', 'Vui lòng chọn một biên bản để sửa!');
       return;
     }
 
@@ -830,7 +914,7 @@ if (invalidRows.length > 0) {
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu xuất Excel!');
+      this.notification.warning('Thông báo', 'Không có dữ liệu xuất Excel!');
       return;
     }
 
@@ -917,7 +1001,7 @@ if (invalidRows.length > 0) {
     const details = this.recoveryDetailTable?.getData();
 
     if (!selectedMaster || !details || details.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất Excel!');
+      this.notification.warning('Thông báo', 'Không có dữ liệu để xuất Excel!');
       return;
     }
     const payload = {
@@ -950,7 +1034,6 @@ if (invalidRows.length > 0) {
         saveAs(blob, fileName); // 🟢 Lưu file Excel
       },
       error: (err) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xuất file!');
         this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xuất file!');
         console.error(err);
       }

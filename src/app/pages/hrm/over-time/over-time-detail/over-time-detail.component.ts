@@ -286,15 +286,10 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit {
         {
           title: 'Địa điểm',
           field: 'Location',
-        {
-          title: 'Địa điểm',
-          field: 'Location',
           editor: 'list', // Thay đổi thành list editor
           editorParams: {
             values: this.locationList
           },
-          hozAlign: 'left',
-          headerHozAlign: 'center',
           hozAlign: 'left',
           headerHozAlign: 'center',
           width: 300,
@@ -338,10 +333,7 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit {
           }
         },
         {
-        {
           title: 'Loại',
-          field: 'TypeID',
-          editor: 'list',
           field: 'TypeID',
           editor: 'list',
           editorParams: {
@@ -354,8 +346,6 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit {
             const type = this.employeeTypeOverTimeList.find((emp: any) => emp.value === value);
             return type ? type.label : value;
           },
-          hozAlign: 'left',
-          headerHozAlign: 'center',
           hozAlign: 'left',
           headerHozAlign: 'center',
           width: 350

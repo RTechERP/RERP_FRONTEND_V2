@@ -34,7 +34,6 @@ import { Router } from '@angular/router';
 import { ProjectService } from '../../project-service/project.service';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
-import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-leader-project-detail',
@@ -235,7 +234,7 @@ onClose() {
 onAddLeaders() {
   const selected = this.selectedEmployee.size;
   if (!selected || selected === 0) {
-    this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn nhân viên để thêm!');
+    this.notification.warning('Thông báo', 'Vui lòng chọn nhân viên để thêm!');
     return;
   }
 
@@ -279,32 +278,9 @@ onAddLeaders() {
           console.error('Lỗi khi thêm nhân viên:', error);
           const errorMessage = error?.error?.message || error?.message || 'Không thể thêm nhân viên, vui lòng thử lại!';
           this.notification.error('Lỗi', errorMessage);
-          // 3️⃣ Tạo payload list
-          const payload = newEmployeeIDs.map(id => ({
-            ProjectTypeID: this.projectTypeId,
-            EmployeeID: id
-          }));
-
-          // 4️⃣ Gọi API 1 lần, truyền list object
-          this.projectService.saveemployeeprojecttype(payload).subscribe({
-            next: (res) => {
-              this.notification.success(NOTIFICATION_TITLE.success, `Đã thêm ${payload.length} nhân viên thành công!`);
-              this.selectedEmployee.clear();
-              this.onClose();
-            },
-            error: (error) => {
-              console.error('Lỗi khi thêm nhân viên:', error);
-              this.notification.error(NOTIFICATION_TITLE.error, 'Không thể thêm nhân viên, vui lòng thử lại!');
-            }
-          });
-        },
-        error: (error) => {
-          console.error('Lỗi khi kiểm tra nhân viên:', error);
-          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể kiểm tra nhân viên, vui lòng thử lại sau!');
         }
       });
     }
   });
 }
 }
-

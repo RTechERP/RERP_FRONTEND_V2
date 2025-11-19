@@ -30,7 +30,7 @@ import { EmployeeBussinessDetailComponent } from './employee-bussiness-detail/em
 import { EmployeeBussinessBonusComponent } from "./employee-bussiness-bonus/employee-bussiness-bonus.component";
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../app.config';
-import { ProjectService } from '../../old/project/project-service/project.service';
+import { ProjectService } from '../../project/project-service/project.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { VehiceDetailComponent } from './vehice-detail/vehice-detail.component';
 

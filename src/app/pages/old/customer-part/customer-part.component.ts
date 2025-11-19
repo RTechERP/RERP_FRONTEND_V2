@@ -52,6 +52,7 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 
 import { CustomerPartService } from './customer-part/customer-part.service';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-customer-part',
@@ -203,7 +204,7 @@ export class CustomerPartComponent implements OnInit, AfterViewInit {
 
   addNewRow(): void {
     if (!this.selectedCustomer) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn khách hàng trước!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn khách hàng trước!');
       return;
     }
 
@@ -217,7 +218,7 @@ export class CustomerPartComponent implements OnInit, AfterViewInit {
   }
   saveCustomerParts() {
     if (!this.selectedCustomer) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn khách hàng trước!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn khách hàng trước!');
       return;
     }
     //Lấy dữ liệu ban đầu
@@ -287,18 +288,18 @@ export class CustomerPartComponent implements OnInit, AfterViewInit {
     this.customePartService.saveCustomerPart(saveData).subscribe(
       (response) => {
         if (response.status === 1) {
-          this.notification.success('Thông báo', 'Lưu thành công');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thành công');
           this.activeModal.close(true);
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi lưu: ' + response.message
           );
         }
       },
       (error) => {
         console.error('Lỗi khi lưu:', error);
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lưu dữ liệu');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lưu dữ liệu');
       }
     );
   }

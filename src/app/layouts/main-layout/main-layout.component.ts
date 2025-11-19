@@ -187,20 +187,20 @@ export class MainLayoutComponent implements OnInit {
     if (this.selectedIndex >= this.dynamicTabs.length)
       this.selectedIndex = this.dynamicTabs.length - 1;
   }
-  //   getMenus(id: number): void {
-  //     this.menuService.getMenus(id).subscribe({
-  //       next: (response: any) => {
-  //         if (response.status == 1) {
-  //           this.menu = response.data;
-  //           //   console.log(this.menu);
-  //         }
-  //       },
-  //       error: (err) => {
-  //         // console.log(err);
-  //         // this.notification.error('Thông báo', err.error.message);
-  //       },
-  //     });
-  //   }
+//   getMenus(id: number): void {
+//     this.menuService.getMenus(id).subscribe({
+//       next: (response: any) => {
+//         if (response.status == 1) {
+//           this.menu = response.data;
+//           //   console.log(this.menu);
+//         }
+//       },
+//       error: (err) => {
+//         // console.log(err);
+//         // this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+//       },
+//     });
+//   }
 
   logout() {
     this.auth.logout();

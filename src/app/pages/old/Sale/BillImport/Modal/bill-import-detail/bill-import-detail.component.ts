@@ -1510,9 +1510,9 @@ export class BillImportDetailComponent
         if (Array.isArray(serials) && serials.length > 0) {
           const serialsID = serials.map((s) => s.ID).join(',');
           row.update({ SerialNumber: serialsID });
-          this.notification.success('Thông báo', 'Cập nhật serial thành công!');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật serial thành công!');
         } else {
-          this.notification.error('Thông báo', 'Dữ liệu serial không hợp lệ!');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Dữ liệu serial không hợp lệ!');
         }
       },
       (reason) => {

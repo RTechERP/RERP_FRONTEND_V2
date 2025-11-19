@@ -429,19 +429,13 @@ onAddAllocation() {
 
     forkJoin(requests).subscribe({
       next: () => {
-        // Tạo chuỗi các mã đã xóa
-        const deletedCodes = deletable.map(x => x.Code).join(', ');
-
-        this.notification.success(
-          'Thành công',
-          // Hiển thị các mã thay vì số lượng
-          `Đã xóa thành công các biên bản: ${deletedCodes}`
-        );
+        this.notification.success(NOTIFICATION_TITLE.success, 'Xóa biên bản thành công!');
         this.getAllocation();
         this.drawTable();
       },
-      error: (res: any) => {
-        this.notification.warning('Lỗi', res.error?.message || 'Lỗi!');
+      error: (err) => {
+
+        this.notification.warning(NOTIFICATION_TITLE.error, 'Lỗi kết nối máy chủ!');
       }
     });
   }
@@ -725,7 +719,7 @@ validateApprove(
     const selectedDetail = this.allocationDetailTable?.getData();
     console.log(selectedDetail);
     if (!selectedDetail || selectedDetail.length === 0) {
-      this.notification.warning('Cảnh báo', 'Không có dữ liệu để duyệt.');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để duyệt.');
       return;
     }
 
@@ -878,7 +872,7 @@ validateApprove(
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu để xuất Excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất Excel!');
       return;
     }
 

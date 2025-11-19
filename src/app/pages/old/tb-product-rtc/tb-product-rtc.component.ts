@@ -398,7 +398,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
     );
 
     if (!selectedGroup) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một nhóm vật tư để xóa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một nhóm vật tư để xóa!');
       return;
     }
 
@@ -425,12 +425,12 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
         this.tbProductRtcService.saveData(payload).subscribe({
           next: (res) => {
             if (res.status === 1) {
-              this.notification.success('Thành công', 'Đã xóa nhóm vật tư thành công!');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Đã xóa nhóm vật tư thành công!');
               this.productGroupID = 0;
               setTimeout(() => this.getGroup(), 100);
               setTimeout(() => this.getProduct(), 100);
             } else {
-              this.notification.warning('Thông báo', res.message || 'Không thể xóa nhóm!');
+              this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể xóa nhóm!');
             }
           },
           error: (err) => {
@@ -451,7 +451,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
   onDeleteProduct() {
     const selectedRows = this.productTable?.getSelectedData();
     if (!selectedRows || selectedRows.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một thiết bị để xóa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một thiết bị để xóa!');
       return;
     }
 
@@ -494,10 +494,10 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
 
           next: (res) => {
             if (res.status === 1) {
-              this.notification.success('Thành công', 'Đã xóa thiết bị thành công!');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Đã xóa thiết bị thành công!');
               this.getProduct(); // Tải lại dữ Concerns liệu
             } else {
-              this.notification.warning('Thông báo', res.message || 'Không thể xóa thiết bị!');
+              this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể xóa thiết bị!');
             }
           },
           error: (err) => {

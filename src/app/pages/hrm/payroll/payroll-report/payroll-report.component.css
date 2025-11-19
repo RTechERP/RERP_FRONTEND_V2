@@ -1,0 +1,13 @@
+
+.modal-header {
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+}
+
+/* ::ng-deep .full-screen-modal .modal-content {
+    height: 100vh !important;
+}
+
+::ng-deep .full-screen-modal .modal-content app-payroll-report {
+    height: 100vh !important;
+} */

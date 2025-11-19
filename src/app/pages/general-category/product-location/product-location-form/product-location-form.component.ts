@@ -122,10 +122,10 @@ export class ProductLocationFormComponent implements OnInit {
       this.productLocationService.saveProductLocation(formData).subscribe({
         next: (response: any) => {
           if (response.status === 1) {
-            this.notification.success('Thành công', response.message || 'Lưu vị trí sản phẩm thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, response.message || 'Lưu vị trí sản phẩm thành công!');
             this.activeModal.close(true);
           } else {
-            this.notification.warning('Thông báo', response.message || 'Có lỗi xảy ra khi lưu vị trí sản phẩm');
+            this.notification.warning(NOTIFICATION_TITLE.warning, response.message || 'Có lỗi xảy ra khi lưu vị trí sản phẩm');
           }
         },
         error: (error) => {
@@ -141,7 +141,7 @@ export class ProductLocationFormComponent implements OnInit {
           control.updateValueAndValidity({ onlySelf: true });
         }
       });
-      this.notification.warning('Thông báo', 'Vui lòng kiểm tra và điền đầy đủ thông tin bắt buộc!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng kiểm tra và điền đầy đủ thông tin bắt buộc!');
     }
   }
 

@@ -94,11 +94,11 @@ export class IssueSolutionComponent implements OnInit, AfterViewInit {
             this.tb_Master.setData(this.mainData);
           }
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }
@@ -114,7 +114,7 @@ export class IssueSolutionComponent implements OnInit, AfterViewInit {
 
   onDelete(){
     if(!this.selectedId) {
-      this.notification.error('Lỗi',"Vui lòng chọn bản ghi cần xóa");
+      this.notification.error(NOTIFICATION_TITLE.error,"Vui lòng chọn bản ghi cần xóa");
       return;
     }
     this.modal.confirm({
@@ -137,13 +137,13 @@ export class IssueSolutionComponent implements OnInit, AfterViewInit {
               this.loadMainData();
             } else {
               this.notification.error(
-                'Lỗi',
+                NOTIFICATION_TITLE.error,
                 response.message || 'Xóa dữ liệu thất bại!'
               );
             }
           },
           error: (err: any) => {
-            this.notification.error('Lỗi', 'Không thể xóa dữ liệu!' + err);
+            this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xóa dữ liệu!' + err);
           },
         });
       },
@@ -153,7 +153,7 @@ export class IssueSolutionComponent implements OnInit, AfterViewInit {
 
   onEdit(){
     if(!this.selectedId) {
-      this.notification.error('Lỗi',"Vui lòng chọn bản ghi cần sửa");
+      this.notification.error(NOTIFICATION_TITLE.error,"Vui lòng chọn bản ghi cần sửa");
       return;
     }
     this.issueSolutionService.getIssueSolutionDetail(this.selectedId).subscribe({
@@ -190,11 +190,11 @@ export class IssueSolutionComponent implements OnInit, AfterViewInit {
             }
           );
         } else {
-          this.notification.error('Lỗi', response.message);
+          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error('Lỗi', error);
+        this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
   }

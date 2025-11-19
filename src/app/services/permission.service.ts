@@ -96,6 +96,7 @@ export class PermissionService {
     // console.log('isAdmin:', isAdmin);
 
     const isPermissions = isPermission || isAdmin || permission == '';
+    //const isPermissions = true;
     // console.log('isPermission:', isPermission);
     // console.log('isAdmin:', isAdmin);
     // console.log('permission:', permission);

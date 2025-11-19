@@ -1,0 +1,67 @@
+.tabulator {
+    font-size: 0.75rem;
+  }
+  
+  .fs-12 {
+    font-size: 0.75rem;
+  }
+
+  .btn {
+    font-size: 0.75rem;
+  }
+
+  .reset {
+    all: revert;
+}
+
+.modal-body {
+  padding-top: 0 !important;
+}
+
+.ant-form-item-label {
+  padding: 0px !important;
+}
+
+/* Hoặc target cụ thể hơn */
+nz-form-label .ant-form-item-label {
+  padding: 0px !important;
+}
+
+.ant-modal-footer .ant-btn:first-child {    
+  border-color: red;
+  color: red;
+}
+
+.ant-modal-footer .ant-btn:first-child:hover{    
+  background: red;
+  color: white;
+}
+
+.cdk-overlay-container {
+  z-index: 9999 !important;
+}
+
+::ng-deep .ant-layout-content{
+  overflow: hidden;
+}
+
+
+::ng-deep .ant-modal-header {
+  background-color: #0d6efd !important;
+}
+
+::ng-deep .ant-modal-header .ng-star-inserted {
+  color: white;
+}
+
+::ng-deep .ant-modal-footer .ant-btn:not(.ant-btn-primary) {
+  border-color: red;
+  /* viền đỏ */
+  color: red;
+  /* chữ trắng */
+}
+
+::ng-deep .ant-modal-body{
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+}

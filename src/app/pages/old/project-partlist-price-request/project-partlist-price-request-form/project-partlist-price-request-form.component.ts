@@ -530,12 +530,12 @@ export class ProjectPartlistPriceRequestFormComponent
   validate(): boolean {
     const employeeID = Number(this.requester);
     if (employeeID <= 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn Người yêu cầu!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn Người yêu cầu!');
       return false;
     }
     const rows = this.table.getRows();
     if (rows.length <= 0) {
-      this.notification.warning('Thông báo', 'Vui lòng tạo ít nhất một yêu cầu!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng tạo ít nhất một yêu cầu!');
       return false;
     }
     for (let i = 0; i < rows.length; i++) {
@@ -633,7 +633,7 @@ export class ProjectPartlistPriceRequestFormComponent
     this.priceRequestService.saveData(this.lstSave).subscribe({
       next: (response) => {
         console.log('Server response:', response); // Debug log
-        this.notification.success('Thông báo', 'Lưu dữ liệu thành công!');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Lưu dữ liệu thành công!');
         this.formSubmitted.emit();
         this.activeModal.close('saved'); // Đóng modal với kết quả
       },

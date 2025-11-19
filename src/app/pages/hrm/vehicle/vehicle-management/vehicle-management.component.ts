@@ -202,7 +202,7 @@ export class VehicleManagementComponent implements AfterViewInit {
 
     modalRef.result.then(
       (result) => {
-        this.notification.success('Thông báo', 'Tạo sản phẩm thành công');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Tạo sản phẩm thành công');
         setTimeout(() => this.getVehicleManagement(), 100);
       },
       () => {

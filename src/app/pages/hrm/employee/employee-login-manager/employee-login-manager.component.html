@@ -1,0 +1,78 @@
+<div class="card h-100 border-0 rounded-0">
+  <div class="card-body bg-white p-3">
+    <form nz-form [formGroup]="loginManagerForm">
+      <nz-form-item class="mb-1" disabled>
+        <nz-form-label [nzSpan]="24">Mã nhân viên</nz-form-label>
+        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập mã nhân viên">
+          <nz-select formControlName="Code" style="width: 100%;" nzAllowClear nzShowSearch [nzDisabled]="true"
+            (ngModelChange)="onCodeChange($event)">
+            <nz-option *ngFor="let employee of employeeList" [nzValue]="employee.ID" [nzLabel]="employee.Code">
+            </nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <!-- Select cho Họ tên -->
+      <nz-form-item class="mb-1" disabled>
+        <nz-form-label [nzSpan]="24">Họ tên</nz-form-label>
+        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập họ tên nhân viên">
+          <nz-select formControlName="FullName" style="width: 100%;" nzAllowClear nzShowSearch [nzDisabled]="true"
+            (ngModelChange)="onNameChange($event)">
+            <nz-option *ngFor="let employee of employeeNameList" [nzValue]="employee.ID"
+              [nzLabel]="employee.Code + '-'+ employee.FullName">
+            </nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item class="mb-1">
+        <nz-form-label [nzSpan]="24">
+          Team
+        </nz-form-label>
+        <nz-form-control [nzSpan]="24">
+          <nz-select formControlName="TeamID" style="width: 100%;" nzAllowClear nzShowSearch>
+            <nz-option [nzValue]="0" nzLabel="--CHỌN TEAM--"></nz-option>
+            <nz-option [nzValue]="1" nzLabel="SOFTWARE"></nz-option>
+            <nz-option [nzValue]="2" nzLabel="PLC ROBOT"></nz-option>
+            <nz-option [nzValue]="3" nzLabel="VISION"></nz-option>
+
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item class="mb-1">
+        <nz-form-control>
+          <label nz-checkbox formControlName="HasUser" (ngModelChange)="onHasUserChange($event)">Có quyền đăng
+            nhập</label>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item class="mb-1">
+        <nz-form-label [nzSpan]="24">
+          Tên đăng nhập
+        </nz-form-label>
+        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập tên đăng nhập">
+          <input nz-input formControlName="LoginName" [disabled]="!hasUser" />
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item class="mb-1">
+        <nz-form-label [nzSpan]="24">
+          Mật khẩu
+        </nz-form-label>
+        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập mật khẩu">
+          <input nz-input type="password" formControlName="PasswordHash" [disabled]="!hasUser" />
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </div>
+  <div class="card-footer bg-white d-flex justify-content-end gap-2">
+    <!-- Nút Đóng -->
+    <button nz-button nzDanger="true" nzSize="default" data-bs-dismiss="modal">
+      Đóng
+    </button>
+
+    <!-- Nút Lưu -->
+    <button nz-button nzType="primary" nzSize="default" (click)="onSubmit()">
+      Lưu
+    </button>
+
+
+  </div>
+</div>

@@ -198,7 +198,7 @@ export class CustomerMajorDetailComponent implements OnInit, AfterViewInit {
     this.customerMajorService.save(model).subscribe({
       next: (res: any) => {
         if (res?.status === 1) {
-          this.notification.success('Thông báo', 'Lưu thành công');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thành công');
           this.activeModal.close(true);
         } else {
           this.notification.error(

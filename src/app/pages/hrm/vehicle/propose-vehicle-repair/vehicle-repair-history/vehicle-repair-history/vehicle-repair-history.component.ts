@@ -512,7 +512,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
 
     modalRef.result.then(
       (result) => {
-        this.notification.success('Thông báo', 'Tạo sản phẩm thành công');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Tạo sản phẩm thành công');
         setTimeout(() => this.getVehicleManagement(), 100);
       },
       () => {
@@ -526,7 +526,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
   }
   onDeleteVehicle() {
     if (!this.selectedID || this.selectedID === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn xe để xóa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn xe để xóa!');
       return;
     }
 
@@ -552,12 +552,12 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
               );
               setTimeout(() => this.getVehicleManagement(), 100);
             } else {
-              this.notification.warning('Thông báo', 'Thất bại');
+              this.notification.warning(NOTIFICATION_TITLE.warning, 'Thất bại');
             }
           },
           error: (err) => {
             console.error(err);
-            this.notification.warning('Thông báo', 'Lỗi kết nối');
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Lỗi kết nối');
           },
         });
       },
@@ -784,7 +784,7 @@ export class VehicleRepairHistoryComponent implements AfterViewInit {
   async exportAllVehicles_ByTemplateRow5() {
     const vehicles = this.vehicleMnagemens || [];
     if (!vehicles.length) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu xe');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu xe');
       return;
     }
 

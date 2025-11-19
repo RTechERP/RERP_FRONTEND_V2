@@ -30,6 +30,7 @@ import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 interface newOfficeSupplyUnit {
   ID?: number;
   Name: string;
@@ -173,6 +174,7 @@ export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
         'Thông báo',
         'Vui lòng chọn ít nhất 1 đơn vị để xóa'
       );
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất 1 đơn vị để xóa');
       return;
     }
 
@@ -202,6 +204,8 @@ export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
             );
           if (fail > 0)
             this.notification.error('Thông báo', `Xóa lỗi ${fail} đơn vị`);
+          if (ok > 0) this.notification.success(NOTIFICATION_TITLE.success, `Xóa thành công ${ok} đơn vị`);
+          if (fail > 0) this.notification.error(NOTIFICATION_TITLE.error, `Xóa lỗi ${fail} đơn vị`);
 
           this.get();
           this.selectedList = [];
@@ -252,6 +256,7 @@ export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
         'Thông báo',
         rows.length === 0 ? 'Chọn 1 dòng để sửa' : 'Chỉ chọn 1 dòng để sửa'
       );
+      this.notification.warning(NOTIFICATION_TITLE.warning, rows.length === 0 ? 'Chọn 1 dòng để sửa' : 'Chỉ chọn 1 dòng để sửa');
       return;
     }
 

@@ -44,6 +44,7 @@ import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { AuthService } from '../../../auth/auth.service';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-project-survey',
@@ -150,7 +151,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
     },
     error: (error: any) => {
       const msg = error.message || 'Lỗi không xác định';
-      this.notification.error('Thông báo', msg);
+      this.notification.error(NOTIFICATION_TITLE.error, msg);
       console.error('Lỗi:', error.error);
     },
   })
@@ -167,7 +168,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -180,7 +181,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -578,7 +579,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
       .filter((row: any) => row['Selected'] == true);
     if (selectedRows.length <= 0) {
       this.notification.error(
-        'Thông báo',
+       NOTIFICATION_TITLE.error,
         `Vui lòng chọn yêu cầu cần ${statusText}!`,
         {
           nzStyle: { fontSize: '0.75rem' },
@@ -627,8 +628,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
     } else {
       if (approvedStatus == false) this.isDisableReasion = true;
       if (selectedRows.length > 1) {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           `Vui lòng chỉ chọn 1 yêu cầu cần ${statusText}!`,
           {
             nzStyle: { fontSize: '0.75rem' },
@@ -645,8 +645,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
       let leaderID = selectedRows[0].LeaderID;
       let leaderName = selectedRows[0].FullNameLeaderTBP;
       if (this.projectService.GlobalEmployeeId != leaderID) {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           `Bạn không thể ${statusText} yêu cầu của leader [${leaderName}]!`,
           {
             nzStyle: { fontSize: '0.75rem' },
@@ -768,7 +767,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
     const data = table.getData();
     if (!data || data.length === 0) {
       if (!data || data.length === 0) {
-        this.notification.error('Thông báo', 'Không có dữ liệu để xuất!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất!');
         return;
       }
     }
@@ -956,7 +955,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
       !this.projectService.ISADMIN
     ) {
       this.notification.error(
-        'Thông báo',
+       NOTIFICATION_TITLE.error,
         `Bạn không thể xóa yêu cầu khảo sát của người khác!`,
         {
           nzStyle: { fontSize: '0.75rem' },
@@ -973,7 +972,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
       next: (response: any) => {
         if (response.data == true && !this.projectService.ISADMIN) {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             `Bạn không thể xóa yêu cầu khảo sát vì Leader Kỹ thuật đã xác nhận!`,
             {
               nzStyle: { fontSize: '0.75rem' },
@@ -1002,7 +1001,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -1016,7 +1015,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
       .filter((row: any) => row['Selected'] == true);
     if (selectedRows.length != 1) {
       this.notification.error(
-        'Thông báo',
+       NOTIFICATION_TITLE.error,
         `Vui lòng chọn 1 yêu cầu khảo sát!`,
         {
           nzStyle: { fontSize: '0.75rem' },
@@ -1038,7 +1037,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
         error: (error) => {
           console.error('Lỗi:', error);
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             `Lỗi mở cây thư mục dự án ${data.ProjectCode}!`,
             {
               nzStyle: { fontSize: '0.75rem' },
@@ -1057,7 +1056,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
       .filter((row: any) => row['Selected'] == true);
     if (selectedRows.length != 1) {
       this.notification.error(
-        'Thông báo',
+       NOTIFICATION_TITLE.error,
         `Vui lòng chọn 1 yêu cầu khảo sát!`,
         {
           nzStyle: { fontSize: '0.75rem' },
@@ -1074,7 +1073,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
       !this.projectService.ISADMIN
     ) {
       this.notification.error(
-        'Thông báo',
+       NOTIFICATION_TITLE.error,
         `Bạn không được nhập kết quả của người khác!`,
         {
           nzStyle: { fontSize: '0.75rem' },
@@ -1172,8 +1171,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
       },
       error: (error) => {
         console.error('Lỗi:', error);
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           `Không tìm thấy nội dung kết quả khảo sát!`,
           {
             nzStyle: { fontSize: '0.75rem' },

@@ -463,7 +463,7 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
                 .subscribe(
                   (response: any) => {
                     if (response.status === 1) {
-                      this.notification.success('Thành công', response.message);
+                      this.notification.success(NOTIFICATION_TITLE.success, response.message);
                       this.getTrainingRegistrationApproved();
                     } else {
                       this.notification.error('Thất bại', response.message);
@@ -477,7 +477,7 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
           },
           (error) => {
             this.notification.error(
-              'Lỗi',
+              NOTIFICATION_TITLE.error,
               'Không thể kiểm tra trạng thái phê duyệt: ' + error.message
             );
           }
@@ -538,7 +538,7 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
   }
   onDeleteClick() {
     if (!this.selectedRowData || !this.selectedRowData.ID) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn bản ghi để xóa.');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn bản ghi để xóa.');
       return;
     }
     if (this.isEditLocked && !this.isEditAllowedByRole) {
@@ -569,16 +569,15 @@ export class TrainingRegistrationComponent implements OnInit, AfterViewInit {
     this.trainingRegistrationService.saveData(payload).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success('Thông báo', 'Đã xóa đăng ký đào tạo.');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Đã xóa đăng ký đào tạo.');
           // Refresh lại dữ liệu
           this.getData();
         } else {
-          this.notification.error('Thông báo', res.message || 'Xóa thất bại.');
+          this.notification.error(NOTIFICATION_TITLE.error, res.message || 'Xóa thất bại.');
         }
       },
       error: (err) => {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Xóa thất bại: ' + (err.error?.message || err.message)
         );
       },

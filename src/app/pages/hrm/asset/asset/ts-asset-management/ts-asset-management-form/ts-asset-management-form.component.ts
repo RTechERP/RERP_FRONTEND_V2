@@ -20,6 +20,7 @@ import { AssetsService } from '../../ts-asset-source/ts-asset-source-service/ts-
 import { TsAssetSourceFormComponent } from '../../ts-asset-source/ts-asset-source-form/ts-asset-source-form.component';
 import { TsAssetStatusFormComponent } from '../../ts-asset-status/ts-asset-status-form/ts-asset-status-form.component';
 import { TyAssetTypeFormComponent } from '../../ts-asset-type/ts-asset-type-form/ts-asset-type-form.component';
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 import { HasPermissionDirective } from '../../../../../../directives/has-permission.directive';
 @Component({
   standalone: true,
@@ -216,49 +217,49 @@ export class TsAssetManagementFormComponent implements OnInit, AfterViewInit {
 
     // 1. Mã tài sản
     if (!d.TSAssetCode || String(d.TSAssetCode).trim() === '') {
-      this.notification.error('Thông báo', 'Mã tài sản không được để trống.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Mã tài sản không được để trống.');
       return false;
     }
 
     // 2. Người quản lý (EmployeeID)
     if (!d.EmployeeID || d.EmployeeID === 0) {
-      this.notification.error('Thông báo', 'Vui lòng chọn người quản lý.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn người quản lý.');
       return false;
     }
 
     // 3. Phòng ban (Name hoặc DepartmentID, tùy bạn dùng cái nào)
     if (!d.Name || String(d.Name).trim() === '') {
-      this.notification.error('Thông báo', 'Phòng ban không được để trống.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Phòng ban không được để trống.');
       return false;
     }
 
     // 4. Loại tài sản
     if (!d.TSAssetID || d.TSAssetID === 0) {
-      this.notification.error('Thông báo', 'Vui lòng chọn loại tài sản.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn loại tài sản.');
       return false;
     }
 
     // 5. Đơn vị tính
     if (!d.UnitID || d.UnitID === 0) {
-      this.notification.error('Thông báo', 'Vui lòng chọn đơn vị tính.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn đơn vị tính.');
       return false;
     }
 
     // 6. Nguồn gốc
     if (!d.SourceID || d.SourceID === 0) {
-      this.notification.error('Thông báo', 'Vui lòng chọn nguồn gốc.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn nguồn gốc.');
       return false;
     }
 
     // 7. Tên tài sản
     if (!d.TSAssetName || String(d.TSAssetName).trim() === '') {
-      this.notification.error('Thông báo', 'Tên tài sản không được để trống.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Tên tài sản không được để trống.');
       return false;
     }
 
     // 8. Số Seri
     if (!d.Seri || String(d.Seri).trim() === '') {
-      this.notification.error('Thông báo', 'Số Seri không được để trống.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Số Seri không được để trống.');
       return false;
     }
 
@@ -308,7 +309,7 @@ export class TsAssetManagementFormComponent implements OnInit, AfterViewInit {
     };
     this.assetService.saveDataAsset(payloadAsset).subscribe({
       next: () => {
-        this.notification.success("Thông báo", "Thành công");
+        this.notification.success(NOTIFICATION_TITLE.success, "Thành công");
         this.loadAsset();
         this.formSubmitted.emit();
         this.activeModal.close(true);

@@ -196,15 +196,15 @@ export class TsAssetUnitcountComponent implements OnInit, AfterViewInit {
     this.unitService.SaveData([payloadUnit]).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success('Thông báo', 'Thành công');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Thành công');
           setTimeout(() => this.getunit(), 100);
         } else {
-          this.notification.warning('Thông báo', 'Thất bại');
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Thất bại');
         }
       },
       error: (err) => {
         console.error(err);
-        this.notification.warning('Thông báo', 'Lỗi kết nối');
+        this.notification.warning(NOTIFICATION_TITLE.warning, 'Lỗi kết nối');
       },
     });
   }

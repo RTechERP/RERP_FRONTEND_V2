@@ -3,7 +3,6 @@ import {
   OnInit,
   AfterViewInit,
   ViewChild,
-  input,
   Input,
 } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
@@ -30,7 +29,6 @@ import { NzProgressModule } from 'ng-zorro-antd/progress';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
-import { ProductSaleDetailComponent } from '../../../ProductSale/product-sale-detail/product-sale-detail.component';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { BillExportService } from '../../bill-export-service/bill-export.service';
@@ -44,10 +42,13 @@ import {
   Type,
   createComponent,
 } from '@angular/core';
-import { SelectControlComponent } from '../select-control/select-control.component';
-import { ProjectComponent } from '../../../../project/project.component';
-import { HistoryDeleteBillComponent } from '../history-delete-bill/history-delete-bill.component';
+
 import { NOTIFICATION_TITLE } from '../../../../../../app.config';
+
+import { SelectControlComponent } from '../select-control/select-control.component';
+import { ProjectComponent } from '../../../../../project/project.component';
+import { HistoryDeleteBillComponent } from '../history-delete-bill/history-delete-bill.component';
+import { ProductSaleDetailComponent } from '../../../ProductSale/product-sale-detail/product-sale-detail.component';
 @Component({
   selector: 'app-bill-export-synthetic',
   standalone: true,
@@ -65,7 +66,6 @@ import { NOTIFICATION_TITLE } from '../../../../../../app.config';
     NzFormModule,
     NzInputNumberModule,
     NgbModule,
-    NzFormModule,
     NzDividerModule,
     NzDatePickerModule,
     ProductSaleDetailComponent,
@@ -125,20 +125,27 @@ export class BillExportSyntheticComponent implements OnInit, AfterViewInit {
     this.drawTable();
   }
   getProductGroup() {
-    this.billExportService.getProductGroup(this.appUserService.isAdmin,this.appUserService.departmentID??0).subscribe({
-      next: (res) => {
-        if (res?.data && Array.isArray(res.data)) {
-          this.dataProductGroup = res.data;
-          console.log('>>> Kết quả getProductGroup:', res);
-          this.selectedKhoTypes = this.dataProductGroup.map((item) => item.ID);
-          this.searchParams.listproductgroupID =
-            this.selectedKhoTypes.join(',');
-        }
-      },
-      error: (err) => {
-        console.error('Lỗi khi lấy nhóm vật tư', err);
-      },
-    });
+    this.billExportService
+      .getProductGroup(
+        this.appUserService.isAdmin,
+        this.appUserService.departmentID ?? 0
+      )
+      .subscribe({
+        next: (res) => {
+          if (res?.data && Array.isArray(res.data)) {
+            this.dataProductGroup = res.data;
+            console.log('>>> Kết quả getProductGroup:', res);
+            this.selectedKhoTypes = this.dataProductGroup.map(
+              (item) => item.ID
+            );
+            this.searchParams.listproductgroupID =
+              this.selectedKhoTypes.join(',');
+          }
+        },
+        error: (err) => {
+          console.error('Lỗi khi lấy nhóm vật tư', err);
+        },
+      });
   }
   onKhoTypeChange(selected: number[]): void {
     this.selectedKhoTypes = selected;
@@ -369,17 +376,17 @@ export class BillExportSyntheticComponent implements OnInit, AfterViewInit {
         columnDefaults: {
           resizable: true,
         },
-          langs: {
-    vi: {
-      pagination: {
-        first: '<<',
-        last: '>>',
-        prev: '<',
-        next: '>',
-      },
-    },
-  },
-  locale: 'vi',
+        langs: {
+          vi: {
+            pagination: {
+              first: '<<',
+              last: '>>',
+              prev: '<',
+              next: '>',
+            },
+          },
+        },
+        locale: 'vi',
         columns: [
           {
             title: 'STT',

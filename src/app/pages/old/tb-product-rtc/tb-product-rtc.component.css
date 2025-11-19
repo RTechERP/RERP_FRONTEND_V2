@@ -83,3 +83,13 @@
     height: 24px;
     line-height: 22px;
 }
+.dropdown .btn {
+  border-radius: 0 !important;
+}
+
+.dropdown-item {
+  border-radius: 0 !important;
+}
+.dropdown-menu {
+    border-radius: 0 !important;
+  }

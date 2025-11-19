@@ -1,0 +1,228 @@
+<ng-container class="w-100">
+    <nz-splitter>
+        <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
+            <div class="card h-100 border-0 rounded-0">
+                <div class="card-header bg-white p-1">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 ms-2">Tìm kiếm</h6>
+                        <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+                            (click)="toggleSearchPanel()">
+                            <nz-icon nzType="close" nzTheme="outline" />
+                        </button>
+                    </div>
+                </div> 
+                <div class="card-body">
+                    <form nz-form nzLayout="vertical">
+                        <nz-form-item>
+                            <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
+                            <nz-form-control [nzSpan]="24"><nz-date-picker name="dateStart" class="w-100"
+                                    nzFormat="dd/MM/yyyy" [(ngModel)]="dateStart" nzAllowClear="false"
+                                    (ngModelChange)="getDay()"></nz-date-picker>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-date-picker name="dateEnd" class="w-100" nzFormat="dd/MM/yyyy" [(ngModel)]="dateEnd"
+                                    nzAllowClear="false"></nz-date-picker>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Sale</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select name="userId" class="w-100" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn Sale" [(ngModel)]="userId">
+                                    @for (parent of users; track $index) {
+                                    <nz-option-group [nzLabel]="parent.label">
+                                        @for (child of parent.options; track $index) {
+                                        <nz-option nzCustomContent="true" [nzLabel]="child.item.FullName"
+                                            [nzValue]="child.item.ID">{{
+                                            child.item.Code + " - " + child.item.FullName
+                                            }}</nz-option>
+                                        }
+                                    </nz-option-group>
+                                    }
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Pm</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select name="pmId" class="w-100" nzShowSearch nzAllowClear nzPlaceHolder="Chọn pm"
+                                    [(ngModel)]="pmId">
+                                    @for (parent of pms; track $index) {
+                                    <nz-option-group [nzLabel]="parent.label">
+                                        @for (child of parent.options; track $index) {
+                                        <nz-option nzCustomContent="true" [nzLabel]="child.item.FullName"
+                                            [nzValue]="child.item.EmployeeID">{{
+                                            child.item.Code + " - " + child.item.FullName
+                                            }}</nz-option>
+                                        }
+                                    </nz-option-group>
+                                    }
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Kỹ thuật</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select name="technicalId" class="w-100" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn kỹ thuật thực hiện" [(ngModel)]="technicalId">
+                                    @for (parent of users; track $index) {
+                                    <nz-option-group [nzLabel]="parent.label">
+                                        @for (child of parent.options; track $index) {
+                                        <nz-option nzCustomContent="true" [nzLabel]="child.item.FullName"
+                                            [nzValue]="child.item.ID">{{
+                                            child.item.Code + " - " + child.item.FullName
+                                            }}</nz-option>
+                                        }
+                                    </nz-option-group>
+                                    }
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Lĩnh vực dự án</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select name="businessFieldId" class="w-100" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn lĩnh vực dự án" [(ngModel)]="businessFieldId">
+                                    @for (item of businessFields; track $index) {
+                                    <nz-option nzCustomContent="true" [nzLabel]="item.Name + ' - ' + item.Code" [nzValue]="item.ID">{{
+                                        item.Code + " - " + item.Name }}</nz-option>
+                                    }
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Khách hàng</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select name="customerId" class="w-100" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn khách hàng" [(ngModel)]="customerId">
+                                    @for (item of customers; track $index) {
+                                    <nz-option nzCustomContent="true" [nzLabel]="item.CustomerName"
+                                        [nzValue]="item.ID">{{
+                                        item.CustomerCode + " - " + item.CustomerName
+                                        }}</nz-option>
+                                    }
+                                </nz-select>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Kiểu dự án</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select name="projectTypeIds" class="w-100" [nzMaxTagCount]="2" nzAllowClear
+                                    [nzMaxTagPlaceholder]="tagPlaceHolder" nzMode="multiple"
+                                    nzPlaceHolder="Chọn kiểu dự án" [(ngModel)]="projectTypeIds">
+                                    @for (item of projectTypes; track $index) {
+                                    <nz-option [nzLabel]="item.ProjectTypeName" [nzValue]="item.ID"></nz-option>
+                                    }
+                                </nz-select>
+                                <ng-template #tagPlaceHolder let-selectedList>...</ng-template>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2" *ngIf="isHide">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Trạng thái</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <nz-select name="projecStatusIds" class="w-100" [nzMaxTagCount]="1" nzAllowClear
+                                    [nzMaxTagPlaceholder]="tagPlaceHolder" nzMode="multiple"
+                                    nzPlaceHolder="Chọn trạng thái" [(ngModel)]="projecStatusIds">
+                                    @for (item of projecStatuses; track $index) {
+                                    <nz-option [nzLabel]="item.StatusName" [nzValue]="item.ID"></nz-option>
+                                    }
+                                </nz-select>
+                                <ng-template #tagPlaceHolder let-selectedList>...</ng-template>
+                            </nz-form-control>
+                        </nz-form-item>
+                        <nz-form-item class="mt-2">
+                            <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+                            <nz-form-control [nzSpan]="24">
+                                <input name="keyword" nz-input placeholder="Nhập từ khóa" [(ngModel)]="keyword" />
+                            </nz-form-control>
+                        </nz-form-item>
+                    </form>
+                </div>
+                <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+                    <button nz-button nzType="default" nzSize="small" (click)="setDefautSearch()">
+                        Đặt lại
+                    </button>
+                    <button nz-button nzType="primary" nzSize="small" (click)="searchProjects()">
+                        Tìm kiếm
+                    </button>
+                </div>
+            </div>
+        </nz-splitter-panel>
+        <nz-splitter-panel nzDefaultSize="100%">
+            <div class="card h-100 border-0 rounded-0">
+                <div class="card-header bg-white p-1">
+                    <div class="d-flex gap-1">
+                        <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
+                            <nz-icon nzType="search" />
+                        </button>
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
+                            <img src="assets/icon/action_export_excel_16.png" alt="Xuất excel" />Xuất excel
+                          </button>
+                        <!-- <button nz-button nzSize="small" class="fs-12 button button-succes btn-add" (click)="updateProject(0)"
+                            *ngIf="isHide">
+                            <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " /> Thêm
+                        </button>
+
+                        <button class="fs-12 btn-edit" nz-button nzType="default" nzSize="small" nzD (click)="updateProject(1)"
+                            *ngIf="isHide">
+                            <img src="assets/icon/action_edit_item_16.png" alt="Sửa">Sửa
+                        </button>
+                        <button class="fs-12 btn-delete" nz-button nzType="default" nzSize="small" nzDanger
+                            (click)="deletedProjects()" *ngIf="isHide">
+                            <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />Xóa
+                        </button> -->
+                        <!-- <button class="fs-12" nz-button nzType="default" nzSize="small" *ngIf="isHide">
+                            <nz-icon nzType="delete" nzTheme="fill" /> Hạng mục công việc
+                        </button> -->
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <nz-splitter>
+                        <nz-splitter-panel nzSize="" [nzCollapsible]="true" nzResizable="true">
+                            <div #tb_projects style=" padding-right: 10px !important;"></div>
+                        </nz-splitter-panel>
+                        <nz-splitter-panel [nzSize]="sizeTbDetail" [nzCollapsible]="true" nzResizable="true" >
+                            <ng-template #tabClose>
+                                <button
+                                  nz-button
+                                  nzType="text"
+                                  class="btn-close-panel"
+                                  style="color: red;"
+                                  (click)="closePanel()"
+                                >
+                                  <i nz-icon nzType="close"></i>
+                                </button>
+                              </ng-template>
+                            <nz-tabset style=" padding-left: 10px !important;" [nzTabBarExtraContent]="tabClose">
+                                <nz-tab nzTitle="Danh sách hạng mục">
+                                    <div class="d-flex align-items-center p-1 gap-1 justify-content-sm-end">
+                                        <button class="fs-12 border" nz-button nzType="text" nzSize="small"
+                                            style="background-color: lightyellow">
+                                            Sắp hết hạn
+                                        </button>
+                                        <button class="fs-12 text-white" nz-button nzType="text" nzSize="small"
+                                            style="background-color: orange">
+                                            Chậm
+                                        </button>
+                                        <button class="fs-12 text-white" nz-button nzType="text" nzSize="small"
+                                            style="background-color: red">
+                                            Failed
+                                        </button>
+                                    </div>
+                                    <div class="border" #tb_projectWorkReport></div>
+                                </nz-tab>
+                                <nz-tab nzTitle="Kiểu dự án">
+                                    <div class="border" #tb_projectTypeLink></div>
+                                </nz-tab>
+                            </nz-tabset>
+                           
+                        </nz-splitter-panel>
+                    </nz-splitter>
+                </div>
+            </div>
+        </nz-splitter-panel>
+    </nz-splitter>
+</ng-container>

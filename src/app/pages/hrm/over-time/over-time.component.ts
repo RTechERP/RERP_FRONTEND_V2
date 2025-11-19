@@ -310,7 +310,7 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
 
     if (approvedRecords.length > 0) {
       this.notification.warning(
-        NOTIFICATION_TITLE.warning,
+        'Cảnh báo',
         `Có ${approvedRecords.length}/${selectedData.length} đăng ký đã được duyệt. Vui lòng hủy duyệt trước khi xóa!`
       );
       return;
@@ -355,7 +355,8 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
 
         this.overTimeService.saveEmployeeOverTime(formData).subscribe({
           next: (response) => {
-            this.notification.success(NOTIFICATION_TITLE.success,
+            this.notification.success(
+              'Thành công',
               `Xóa ${validRows.length} đăng ký làm thêm thành công`
             );
             this.loadEmployeeOverTime();
@@ -363,7 +364,7 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
           error: (error) => {
             console.error('Error deleting overtime:', error);
             this.notification.error(
-              NOTIFICATION_TITLE.error,
+              'Lỗi',
               `Xóa đăng ký làm thêm thất bại: ${error.message || 'Vui lòng thử lại'}`
             );
           }
@@ -558,14 +559,15 @@ export class OverTimeComponent implements OnInit, AfterViewInit {
         this.overTimeService.saveEmployeeOverTime(formData).subscribe({
           next: (response) => {
             this.loadEmployeeOverTime();
-            this.notification.success(NOTIFICATION_TITLE.success,
+            this.notification.success(
+              'Thành công',
               `${approveText.charAt(0).toUpperCase() + approveText.slice(1)} ${validRows.length} đăng ký làm thêm thành công`
             );
           },
           error: (error) => {
             console.error('Error updating overtime:', error);
             this.notification.error(
-              NOTIFICATION_TITLE.error,
+              'Lỗi',
               `Cập nhật đăng ký làm thêm thất bại: ${error.message || 'Vui lòng thử lại'}`
             );
           }

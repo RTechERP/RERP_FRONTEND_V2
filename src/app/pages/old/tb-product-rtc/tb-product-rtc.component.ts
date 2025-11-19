@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbDropdownModule, NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import {
   AfterViewInit,
   Component,
@@ -71,7 +71,8 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
     NzTabsModule,
     NgbModalModule,
     NzModalModule,
-    HasPermissionDirective
+    HasPermissionDirective,
+    NgbDropdownModule // thêm để dùng ngbDropdown
   ],
   selector: 'app-tb-product-rtc',
   templateUrl: './tb-product-rtc.component.html',
@@ -152,6 +153,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
     this.isSearchVisible = !this.isSearchVisible;
   }
   drawTable() {
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
     this.productTable = new Tabulator('#dataTableProduct', {
       ...DEFAULT_TABLE_CONFIG,
       //   layout: 'fitDataFill',
@@ -217,13 +219,13 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
           bottomCalcFormatter: (cell) => {
             return `<div style="text-align:center;">${cell.getValue()}</div>`;
           },
-          frozen: true,
+          frozen: !isMobile,
         },
         {
           title: 'Tên sản phẩm',
           field: 'ProductName',
           minWidth: 120,
-          frozen: true,
+          frozen: !isMobile,
           formatter: 'textarea',
         },
         { title: 'Vị trí (Hộp)', field: 'LocationName', minWidth: 200 },
@@ -248,6 +250,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
           field: 'CreateDate',
           formatter: 'datetime',
           formatterParams: { outputFormat: 'DD/MM/YYYY HH:mm' },
+          visible: false,
         },
         {
           title: 'Đồ mượn khách',
@@ -263,9 +266,9 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
         { title: 'Serial Number', field: 'SerialNumber', minWidth: 120 },
         { title: 'Code', field: 'Serial', minWidth: 120 },
         { title: 'Người tạo', field: 'CreatedBy', visible: false },
-        { title: 'Input Value', field: 'InputValue' },
-        { title: 'Output Value', field: 'OutputValue' },
-        { title: 'Rated Current (A)', field: 'CurrentIntensityMax' },
+        { title: 'Input Value', field: 'InputValue', visible: false },
+        { title: 'Output Value', field: 'OutputValue', visible: false },
+        { title: 'Rated Current (A)', field: 'CurrentIntensityMax', visible: false },
         { title: 'Mã nhóm RTC', field: 'ProductGroupRTCID', visible: false },
         { title: 'ID vị trí', field: 'ProductLocationID', visible: false },
         { title: 'UnitCountID', field: 'UnitCountID', visible: false },
@@ -389,21 +392,21 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
       );
       return;
     }
-  
+
     const selectedGroup = this.productGroupData.find(
       (group) => group.ID === this.productGroupID
     );
-  
+
     if (!selectedGroup) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một nhóm vật tư để xóa!');
       return;
     }
-  
+
     let nameDisplay = selectedGroup.ProductGroupName || 'Không xác định';
     if (nameDisplay.length > 30) {
       nameDisplay = nameDisplay.slice(0, 30) + '...';
     }
-  
+
     const payload = {
       productGroupRTC: {
         ID: selectedGroup.ID,
@@ -411,7 +414,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
       },
       productRTCs: [],
     };
-  
+
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa nhóm',
       nzContent: `Bạn có chắc chắn muốn xóa nhóm <b>[${nameDisplay}]</b> không?`,
@@ -451,15 +454,15 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một thiết bị để xóa!');
       return;
     }
-  
+
     // Tạo chuỗi tên thiết bị
     let nameDisplay = '';
     selectedRows.forEach((item: any, index: number) => {
-      
+
         nameDisplay += item.ProductName + ',';
-     
+
     });
-  
+
     if (selectedRows.length > 10) {
       if (nameDisplay.length > 10) {
         nameDisplay = nameDisplay.slice(0, 10) + '...';
@@ -476,9 +479,9 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
         IsDelete: true
       }))
     };
-  
+
     console.log('Payload xóa:', payload);
-  
+
     // Hiển thị confirm
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
@@ -488,7 +491,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
       nzOkDanger: true,
       nzOnOk: () => {
         this.tbProductRtcService.saveData(payload).subscribe({
-          
+
           next: (res) => {
             if (res.status === 1) {
               this.notification.success(NOTIFICATION_TITLE.success, 'Đã xóa thiết bị thành công!');

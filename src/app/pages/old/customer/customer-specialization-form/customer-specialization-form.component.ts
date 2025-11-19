@@ -135,7 +135,7 @@ export class CustomerSpecializationFormComponent implements OnInit {
       return;
     }
     const selectedSpecialization = selectedRows[0].getData();
-    
+
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
       nzContent: 'Bạn có chắc chắn muốn xóa ngành nghề này không?',

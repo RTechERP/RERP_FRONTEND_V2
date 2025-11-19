@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { DateTime } from 'luxon';
 // import { HOST } from '../../../../../app.config';
 import { RouterTestingHarness } from '@angular/router/testing';
@@ -16,7 +17,7 @@ export class BillImportServiceService {
       deparmentID: deparmentID.toString(),
     };
 
-    return this.http.get(environment.host + `api/BillExport`, params);
+    return this.http.get(environment.host + `api/BillExport/get-product-group`, params);
   }
   getBillImport(searchParams: any): Observable<any> {
     const params: any = {
@@ -42,6 +43,11 @@ export class BillImportServiceService {
   getBillImportDetail(billID: number): Observable<any> {
     return this.http.get(
       environment.host + `api/BillImportDetail/BillImportID/${billID}`
+    );
+  }
+  getWarehouse() {
+    return this.http.get<any>(
+      environment.host + `api/warehouse/`
     );
   }
   getBillImportByID(id: number) {
@@ -83,6 +89,14 @@ export class BillImportServiceService {
     const url = `${environment.host}api/billimport/import-excel?id=${id}`;
     return this.http.get(url, {
       responseType: 'blob',
+    });
+  }
+
+  // Xuất Excel theo template KT (tương tự WinForm)
+  exportExcelKT(id: number): Observable<Blob> {
+    const url = `${environment.host}api/billimport/export-excel-kt?id=${id}`;
+    return this.http.get(url, {
+      responseType: 'blob'
     });
   }
   getBillDocumentImportLog(

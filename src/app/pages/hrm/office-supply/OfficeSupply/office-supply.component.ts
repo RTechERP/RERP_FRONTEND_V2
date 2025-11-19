@@ -134,41 +134,14 @@ export class OfficeSupplyComponent implements OnInit, AfterViewInit {
     if (!this.table) {
       this.table = new Tabulator('#datatable', {
         data: this.dataTable,
-
+        ...DEFAULT_TABLE_CONFIG,
         layout: 'fitDataStretch',
-        height: '89vh',
-        selectableRows: true,
-        paginationSize: 50,
-        paginationSizeSelector: [20, 50, 100, 200, 500],
-        pagination: true,
+       
+        paginationMode: 'local',
 
-        movableColumns: true,
-        resizableRows: true,
-        reactiveData: true,
-        langs: {
-          vi: {
-            pagination: {
-              first: '<<',
-              last: '>>',
-              prev: '<',
-              next: '>',
-            },
-          },
-        },
-        locale: 'vi',
         columns: [
-          {
-            title: "",
-            formatter: "rowSelection",
-            titleFormatter: "rowSelection",
-            hozAlign: "center",
-            headerHozAlign: "center",
-            headerSort: false,
-            width: 40,
-            frozen: true,
 
-          },
-          { title: 'Mã RTC', field: 'CodeRTC', hozAlign: 'left', headerHozAlign: 'center', width: 80 },
+          { title: 'Mã RTC', field: 'CodeRTC', hozAlign: 'left', headerHozAlign: 'center', width: 80, bottomCalc: "count" },
           { title: 'Mã NCC', field: 'CodeNCC', hozAlign: 'left', headerHozAlign: 'center', width: 100 },
           { title: 'Tên (RTC)', field: 'NameRTC', hozAlign: 'left', headerHozAlign: 'center', width: 220 },
           { title: 'Tên (NCC)', field: 'NameNCC', hozAlign: 'left', headerHozAlign: 'center', width: 350 },
@@ -176,25 +149,30 @@ export class OfficeSupplyComponent implements OnInit, AfterViewInit {
             title: 'ĐVT', field: 'Unit', hozAlign: 'left', headerHozAlign: 'center', width: 80
           },
           {
-            title: 'Giá (VND)', field: 'Price', hozAlign: 'right', headerHozAlign: 'center',
+            title: 'Giá (VND)',
+            field: 'Price',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
             width: 120,
-            // formatter: "money",
-            // formatterParams: {
-            //   precision: 0,
-            //   decimal: ".",
-            //   thousand: ",",
-            //   symbol: "",
-            //   symbolAfter: true
-            // },
-            // bottomCalc: "sum",
-            // bottomCalcFormatter: "money",
-            // bottomCalcFormatterParams: {
-            //   precision: 0,
-            //   decimal: ".",
-            //   thousand: ",",
-            //   symbol: "",
-            //   symbolAfter: true
-            // }
+
+            // Định dạng cho từng ô (cái này đã có)
+            formatter: "money",
+            formatterParams: {
+              precision: 0,
+              thousand: ",",
+              symbol: "",
+              symbolAfter: true
+            },
+
+            // Thêm phần tính tổng ở dưới (cái mới)
+            bottomCalc: "sum",
+            bottomCalcFormatter: "money",
+            bottomCalcFormatterParams: {
+              precision: 0, // Quan trọng là cái này
+              thousand: ",",
+              symbol: "",
+              symbolAfter: true
+            }
           },
           { title: 'Định mức', field: 'RequestLimit', hozAlign: 'right', headerHozAlign: 'center', width: 120 },
           {

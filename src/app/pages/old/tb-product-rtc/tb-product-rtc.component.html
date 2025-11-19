@@ -87,75 +87,120 @@
     </nz-splitter-panel>
     <nz-splitter-panel [nzSize]="isSearchVisible ? '80%' : '100%'">
       <div class="card border-0 rounded-0">
-        <div class="card-header bg-white p-1">
-          <div class="d-flex h-40 gap-1">
-            <button
-              nz-button
-              nzType="default"
-              nzSize="small"
-              (click)="toggleSearchPanel()"
-            >
-              <nz-icon nzType="search" />
-            </button>
-                        <button nz-button nzType="default" nzSize="small" class=" btn-add" (click)="onAddGroupProduct()"
-                            *hasPermission="'N26,N38,N1,N73,N80'">
-                            <img src="assets/icon/action_add_group_16.png" alt="Thêm mới " />Tạo nhóm TB
-                        </button>
-                        <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="onEditGroup()"
-                            *hasPermission="'N26,N38,N1,N73,N80'">
-                            <img src="assets/icon/action_edit_item_16.png" alt="Sửa nhóm TB" />Sửa nhóm TB
-                        </button>
-                        <button nz-button nzType="default" nzSize="small" class="btn-delete"
-                            (click)="onDeleteProductGroup()" *hasPermission="'N26,N1,N73,N80'">
-                            <img src="assets/icon/action_delete_item_16.png" alt="Xóa nhóm TB" />Xóa nhóm TB
-                        </button>
-                        <span class="mx-2"
-                            style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
-                        <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add"
-                            (click)="onAddProducRTC()" *hasPermission="'N26,N38,N1,N73,N80'">
-                            <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " />Tạo thiết bị
-                        </button>
-                        <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="onEditProduct()"
-                            *hasPermission="'N26,N38,N1,N73,N80'">
-                            <img src="assets/icon/action_edit_item_16.png" alt="Sửa thiết bị" />Sửa thiết bị
-                        </button>
-                        <button nz-button nzType="default" nzSize="small" class="btn-delete "
-                            (click)="onDeleteProduct()" *hasPermission="'N26,N1,N73,N80'">
-                            <img src="assets/icon/action_delete_item_16.png" alt="Xóa thiết bị" />Xóa thiết bị
-                        </button>
+        <div class="card-header bg-white p-1 action-bar">
+          <!-- Desktop: dải nút cuộn ngang -->
+          <div class="d-none d-md-flex h-40 gap-1 align-items-center">
+            <div class="flex-grow-1" style="overflow-x: auto;">
+              <div class="d-flex gap-1 flex-nowrap">
+                <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
+                  <nz-icon nzType="search"></nz-icon>
+                </button>
+                <button nz-button nzType="default" nzSize="small" class=" btn-add" (click)="onAddGroupProduct()"
+                    *hasPermission="'N26,N38,N1,N73,N80'">
+                    <img src="assets/icon/action_add_group_16.png" alt="Thêm mới " />Thêm nhóm TB
+                </button>
+                <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="onEditGroup()"
+                    *hasPermission="'N26,N38,N1,N73,N80'">
+                    <img src="assets/icon/action_edit_item_16.png" alt="Sửa nhóm TB" />Sửa nhóm TB
+                </button>
+                <button nz-button nzType="default" nzSize="small" class="btn-delete"
+                    (click)="onDeleteProductGroup()" *hasPermission="'N26,N1,N73,N80'">
+                    <img src="assets/icon/action_delete_item_16.png" alt="Xóa nhóm TB" />Xóa nhóm TB
+                </button>
 
-                        <span class="mx-2"
-                            style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
-                        <button nz-button nzType="default" nzSize="small" class="me-1" *hasPermission="'N26,N1,N80'">
-                            <img src="assets/icon/action_add_qr_code_16.png" alt="Thêm QRCode"
-                                style="width:16px; height:16px; object-fit:contain" />Thêm QRCode
-                        </button>
-                        <button nz-button nzType="default" nzSize="small" class="me-1" (click)="openModalImportExcel()"
-                            *hasPermission="'N26,N1,N80'">
-                            <img src="assets/icon/action_import_16.png" alt="Nhập Excel"
-                                style="width:16px; height:16px; object-fit:contain" />Nhập Excel
-                        </button>
-                        <button nz-button nzType="default" nzSize="small" class="me-1" (click)="exportToExcelProduct()">
-                            <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel"
-                                style="width:16px; height:16px; object-fit:contain" />Xuất Excel
-                        </button>
-                        <button nz-button nzType="default" nzSize="small" class="me-1">
-                            <img src="assets/icon/purchase.png" alt="Yêu cầu mua hàng"
-                                style="width:16px; height:16px; object-fit:contain" />Yêu cầu mua hàng
-                        </button>
+                <span class="mx-2" style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
 
+                <button nz-button nzType="default" nzSize="small" class="fs-12 btn-add"
+                    (click)="onAddProducRTC()" *hasPermission="'N26,N38,N1,N73,N80'">
+                    <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " />Thêm
+                </button>
+                <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="onEditProduct()"
+                    *hasPermission="'N26,N38,N1,N73,N80'">
+                    <img src="assets/icon/action_edit_item_16.png" alt="Sửa thiết bị" />Sửa
+                </button>
+                <button nz-button nzType="default" nzSize="small" class="btn-delete "
+                    (click)="onDeleteProduct()" *hasPermission="'N26,N1,N73,N80'">
+                    <img src="assets/icon/action_delete_item_16.png" alt="Xóa thiết bị" />Xóa
+                </button>
 
+                <span class="mx-2" style="display: inline-block; height: 20px; border-left: 1px solid #e5e5e5; align-self: center;"></span>
 
-
-                    </div>
-                </div>
-
-                <nz-splitter style="height: 90vh;">
-                    <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
-                        <div id="dataTableProduct" style="height: 100%;"></div>
-                    </nz-splitter-panel>
-                </nz-splitter>
+                <button nz-button nzType="default" nzSize="small" class="me-1" *hasPermission="'N26,N1,N80'">
+                    <img src="assets/icon/action_add_qr_code_16.png" alt="Thêm QRCode"
+                        style="width:16px; height:16px; object-fit:contain" />Thêm QRCode
+                </button>
+                <button nz-button nzType="default" nzSize="small" class="me-1" (click)="openModalImportExcel()"
+                    *hasPermission="'N26,N1,N80'">
+                    <img src="assets/icon/action_import_16.png" alt="Nhập Excel"
+                        style="width:16px; height:16px; object-fit:contain" />Nhập Excel
+                </button>
+                <button nz-button nzType="default" nzSize="small" class="me-1" (click)="exportToExcelProduct()">
+                    <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel"
+                        style="width:16px; height:16px; object-fit:contain" />Xuất Excel
+                </button>
+                <button nz-button nzType="default" nzSize="small" class="me-1">
+                    <img src="assets/icon/purchase.png" alt="Yêu cầu mua hàng"
+                        style="width:16px; height:16px; object-fit:contain" />Yêu cầu mua hàng
+                </button>
+              </div>
             </div>
-        </nz-splitter-panel>
+          </div>
+
+          <!-- Mobile: dropdown hành động + nút bật/tắt panel tìm kiếm -->
+          <div class="d-flex d-md-none h-40 gap-1 align-items-center justify-content-between">
+            <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
+              <nz-icon nzType="search"></nz-icon>
+            </button>
+
+            <div ngbDropdown class="dropdown ms-auto">
+              <button class="btn btn-primary btn-sm" ngbDropdownToggle>
+                <i class="fa fa-bars"></i>
+              </button>
+              <div ngbDropdownMenu class="dropdown-menu">
+                <button ngbDropdownItem (click)="onAddGroupProduct()" *hasPermission="'N26,N38,N1,N73,N80'" class="d-flex align-items-center gap-2">
+                 Tạo nhóm TB
+                </button>
+                <button ngbDropdownItem (click)="onEditGroup()" *hasPermission="'N26,N38,N1,N73,N80'" class="d-flex align-items-center gap-2">
+                  Sửa nhóm TB
+                </button>
+                <button ngbDropdownItem (click)="onDeleteProductGroup()" *hasPermission="'N26,N1,N73,N80'" class="d-flex align-items-center gap-2">
+                  Xóa nhóm TB
+                </button>
+
+                <div class="dropdown-divider"></div>
+
+                <button ngbDropdownItem (click)="onAddProducRTC()" *hasPermission="'N26,N38,N1,N73,N80'" class="d-flex align-items-center gap-2">
+                  Tạo thiết bị
+                </button>
+                <button ngbDropdownItem (click)="onEditProduct()" *hasPermission="'N26,N38,N1,N73,N80'" class="d-flex align-items-center gap-2">
+                  Sửa thiết bị
+                </button>
+                <button ngbDropdownItem (click)="onDeleteProduct()" *hasPermission="'N26,N1,N73,N80'" class="d-flex align-items-center gap-2">
+                  Xóa thiết bị
+                </button>
+
+                <div class="dropdown-divider"></div>
+
+                <button ngbDropdownItem (click)="openModalImportExcel()" *hasPermission="'N26,N1,N80'" class="d-flex align-items-center gap-2">
+                  Nhập Excel
+                </button>
+                <button ngbDropdownItem (click)="exportToExcelProduct()" class="d-flex align-items-center gap-2">
+                  Xuất Excel
+                </button>
+                <button ngbDropdownItem class="d-flex align-items-center gap-2">
+                  Yêu cầu mua hàng
+                </button>
+                <button ngbDropdownItem *hasPermission="'N26,N1,N80'" class="d-flex align-items-center gap-2">
+                  Thêm QRCode
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- phần nội dung splitter ở dưới giữ nguyên -->
+        <div id="dataTableProduct" style="height: 100%;"></div>
+      </div>
+    </nz-splitter-panel>
     </nz-splitter>
 </ng-container>

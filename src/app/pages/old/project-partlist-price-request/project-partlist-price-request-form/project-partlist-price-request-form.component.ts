@@ -114,7 +114,7 @@ export class ProjectPartlistPriceRequestFormComponent
       next: (response) => {
         this.users = response.data.dtEmployee;
         this.createLabels("lbusers",this.users, 'ID', 'FullName');
-        this.requesterLoading = false; 
+        this.requesterLoading = false;
         console.log(this.users);
       },
       error: (err) => {

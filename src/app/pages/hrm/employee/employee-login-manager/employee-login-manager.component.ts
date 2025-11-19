@@ -47,7 +47,7 @@ export class EmployeeLoginManagerComponent implements OnInit, OnChanges {
   employeeList: any[] = [];
   employeeNameList: any[] = [];
   hasUser: boolean = true;
-  
+
 
   constructor(
     private employeeService: EmployeeService,
@@ -77,7 +77,7 @@ export class EmployeeLoginManagerComponent implements OnInit, OnChanges {
       // Khi checkbox bị uncheck, disable các input và clear giá trị
       this.loginManagerForm.get('LoginName')?.disable();
       this.loginManagerForm.get('PasswordHash')?.disable();
-      
+
     }
   }
 
@@ -110,7 +110,7 @@ export class EmployeeLoginManagerComponent implements OnInit, OnChanges {
             LoginName: data.data.LoginName,
             PasswordHash: data.data.PasswordHash,
             UserID: data.data.ID
-          }); 
+          });
         } else {
           this.hasUser = true;
           this.loginManagerForm.patchValue({
@@ -142,7 +142,7 @@ export class EmployeeLoginManagerComponent implements OnInit, OnChanges {
           FullName: employee.FullName,
           ...employee
         }));
-        
+
         // Tạo list cho select họ tên
         this.employeeNameList = data.data.map((employee: any) => ({
           value: Number(employee.ID),

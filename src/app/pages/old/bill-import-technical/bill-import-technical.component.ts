@@ -1,4 +1,4 @@
-import { inject } from '@angular/core';
+import { inject, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
@@ -30,6 +30,8 @@ import * as ExcelJS from 'exceljs';
 import { BillImportTechnicalService } from './bill-import-technical-service/bill-import-technical.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { BillImportTechnicalFormComponent } from './bill-import-technical-form/bill-import-technical-form.component';
+import { NOTIFICATION_TITLE } from '../../../app.config';
+import { AppUserService } from '../../../services/app-user.service';
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
@@ -65,7 +67,8 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
   constructor(private notification: NzNotificationService,
     private billImportTechnicalService: BillImportTechnicalService,
     private modalService: NgbModal,
-    private TsAssetManagementPersonalService: TsAssetManagementPersonalService) { }
+    private TsAssetManagementPersonalService: TsAssetManagementPersonalService,
+    private appUserService: AppUserService) { }
   private ngbModal = inject(NgbModal);
   selectedRow: any = "";
   sizeTbDetail: any = '0';
@@ -80,7 +83,7 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
   filterText: string = '';
   Size: number = 100000;
   Page: number = 1;
-  warehouseID: number | null = null;
+  @Input() warehouseID: number =1;
   selectedApproval: number | null = null;
   isSearchVisible: boolean = false;
   // Danh sách nhân viên
@@ -299,7 +302,7 @@ getListEmployee() {
           { title: 'Tên sản phẩm', field: 'ProductName' },
           { title: 'STT', field: 'STT', hozAlign: 'center', width: 60, visible: false },
           { title: 'Mã phiếu PO', field: 'BillCodePO', visible: false },
-          { title: 'Serial', field: 'ProductCode' },
+          { title: 'Serial', field: 'Serial' },
           { title: 'Mã QR sản phẩm', field: 'ProductQRCode', visible: false },
           { title: 'Mã sản phẩm RTC', field: 'ProductCodeRTC', visible: false },
           { title: 'Số lượng', field: 'Quantity', hozAlign: 'center' },
@@ -422,15 +425,42 @@ getListEmployee() {
       }
     });
   }
+  // PHASE 3.2: Enhanced approval with permission checks
   onApprove() {
     const selectedIds = this.getSelectedIds();
-    let payload = {
-      billImportTechnical: {
-        ID: selectedIds[0],
-        Status: true
-      }
-    };
-    this.billImportTechnicalService.saveData(payload).subscribe({
+
+    if (!selectedIds || selectedIds.length === 0) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn phiếu cần duyệt!');
+      return;
+    }
+
+    const selectedBill = this.billImportTechnicalTable?.getSelectedData()?.[0];
+
+    if (!selectedBill) {
+      this.notification.warning('Cảnh báo', 'Không tìm thấy thông tin phiếu!');
+      return;
+    }
+
+    // Check if already approved
+    if (selectedBill.Status === true || selectedBill.Status === 1) {
+      this.notification.warning('Cảnh báo', 'Phiếu này đã được duyệt rồi!');
+      return;
+    }
+
+    // PHASE 3.2: Check if current user is the approver
+    const currentEmployeeID = this.appUserService.employeeID;
+    if (selectedBill.ApproverID && currentEmployeeID && selectedBill.ApproverID !== currentEmployeeID) {
+      this.notification.error('Lỗi', `Chỉ người duyệt được chỉ định (ID: ${selectedBill.ApproverID}) mới có quyền duyệt phiếu này!`);
+      return;
+    }
+
+    // PHASE 3.2: Show confirmation dialog
+    const billCode = selectedBill.BillCode || `ID ${selectedIds[0]}`;
+    if (!confirm(`Bạn có chắc chắn muốn duyệt phiếu "${billCode}" không?`)) {
+      return;
+    }
+
+    this.billImportTechnicalService.approveAction(selectedIds, 'approve').subscribe({
       next: () => {
         this.notification.success(NOTIFICATION_TITLE.success, 'Duyệt biên bản thành công!');
         this.getBillImportTechnical();
@@ -443,16 +473,44 @@ getListEmployee() {
     });
   }
 
+  // PHASE 3.2: Enhanced unapproval with strict permission check
   onUnApprove() {
-    // lọc theo ID anh Quìn
     const selectedIds = this.getSelectedIds();
-    let payload = {
-      billImportTechnical: {
-        ID: selectedIds[0],
-        Status: false
-      }
-    };
-    this.billImportTechnicalService.saveData(payload).subscribe({
+
+    if (!selectedIds || selectedIds.length === 0) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn phiếu cần bỏ duyệt!');
+      return;
+    }
+
+    const selectedBill = this.billImportTechnicalTable?.getSelectedData()?.[0];
+
+    if (!selectedBill) {
+      this.notification.warning('Cảnh báo', 'Không tìm thấy thông tin phiếu!');
+      return;
+    }
+
+    // Check if not approved yet
+    if (selectedBill.Status === false || selectedBill.Status === 0) {
+      this.notification.warning('Cảnh báo', 'Phiếu này chưa được duyệt!');
+      return;
+    }
+
+    // PHASE 3.2: Hardcoded permission check - Only ApproverID = 54 can unapprove
+    const currentEmployeeID = this.appUserService.employeeID;
+    const ALLOWED_UNAPPROVER_ID = 54; // A QUYỀN
+
+    if (currentEmployeeID !== ALLOWED_UNAPPROVER_ID) {
+      this.notification.error('Lỗi', `Chỉ người có ID ${ALLOWED_UNAPPROVER_ID} (A QUYỀN) mới có quyền bỏ duyệt phiếu!`);
+      return;
+    }
+
+    // PHASE 3.2: Show confirmation dialog
+    const billCode = selectedBill.BillCode || `ID ${selectedIds[0]}`;
+    if (!confirm(`Bạn có chắc chắn muốn BỎ DUYỆT phiếu "${billCode}" không?`)) {
+      return;
+    }
+
+    this.billImportTechnicalService.approveAction(selectedIds, 'unapprove').subscribe({
       next: () => {
         this.notification.success(NOTIFICATION_TITLE.success, 'duyệt biên bản thành công!');
         this.getBillImportTechnical();
@@ -503,6 +561,7 @@ getListEmployee() {
       },
       error: (err) => {
         console.error(err);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xuất phiếu nhập kỹ thuật!');
         this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xuất phiếu nhập kỹ thuật!');
       }
     });

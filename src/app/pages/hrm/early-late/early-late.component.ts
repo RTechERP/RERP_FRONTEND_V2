@@ -142,6 +142,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
       },
       error: (error) => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách người duyệt: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách người duyệt: ' + error.message);
       }
     })
   }
@@ -176,6 +177,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
 
   }
   private initializeTable(): void {
+  private initializeTable(): void {
     this.tabulator = new Tabulator('#tb_early_late', {
       data: this.earlyLateList,
       layout: 'fitColumns',
@@ -206,6 +208,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
           label: "TBP hủy duyệt hủy đăng ký",
           action: () => {
 
+
           }
         },
         {
@@ -214,6 +217,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
 
           }
         }
+
 
       ],
       groupBy: 'DepartmentName',
@@ -370,6 +374,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
     }
 
 
+
     this.modal.confirm({
       nzTitle: "Xác nhận xóa",
       nzContent: `Bạn có chắc chắn muốn xóa danh sách ngày đã đăng ký này không?`,
@@ -388,6 +393,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
               this.loadEarlyLate();
             },
             error: (error) => {
+              this.notification.error(NOTIFICATION_TITLE.error, 'Xóa ngày đã đăng ký thất bại: ' + error.message);
               this.notification.error(NOTIFICATION_TITLE.error, 'Xóa ngày đã đăng ký thất bại: ' + error.message);
             }
           });
@@ -411,6 +417,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
     const worksheet = workbook.addWorksheet('KhaiBaoDiMuonVeSom');
 
     const columns = [
+      { header: '', key: 'TBP duyệt', width: 20 },
       { header: '', key: 'TBP duyệt', width: 20 },
       { header: '', key: 'HR duyệt', width: 20 },
       { header: '', key: 'Mã nhân viên', width: 15 },
@@ -528,11 +535,13 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
 
     if (isNaN(startDate.getTime())) {
       this.notification.error(NOTIFICATION_TITLE.error, 'Ngày bắt đầu không hợp lệ. Vui lòng kiểm tra lại.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Ngày bắt đầu không hợp lệ. Vui lòng kiểm tra lại.');
       this.earlyLateForm.get('StartDate')?.markAsTouched();
       return;
     }
 
     if (isNaN(endDate.getTime())) {
+      this.notification.error(NOTIFICATION_TITLE.error, 'Ngày kết thúc không hợp lệ. Vui lòng kiểm tra lại.');
       this.notification.error(NOTIFICATION_TITLE.error, 'Ngày kết thúc không hợp lệ. Vui lòng kiểm tra lại.');
       this.earlyLateForm.get('EndDate')?.markAsTouched();
       return;
@@ -582,6 +591,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
         this.loadEarlyLate();
       },
       error: (response) => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lưu đăng ký thất bại: ' + response.error.message);
         this.notification.error(NOTIFICATION_TITLE.error, 'Lưu đăng ký thất bại: ' + response.error.message);
       },
     });
@@ -690,6 +700,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
             return;
           }
 
+
           this.earlyLateService.saveEmployeeEarlyLate({
             ...data,
             IsApproved: true
@@ -702,6 +713,7 @@ export class EarlyLateComponent implements OnInit, AfterViewInit {
               this.notification.error('Thất bại', 'HR duyệt khai báo thất bại' + error.message);
             }
           })
+
 
         }
       }

@@ -24,6 +24,7 @@ import { InventoryDemoService } from '../inventory-demo-service/inventory-demo.s
 import { BillImportTechnicalFormComponent } from '../../bill-import-technical/bill-import-technical-form/bill-import-technical-form.component';
 import { BillExportTechnicalFormComponent } from '../../bill-export-technical/bill-export-technical-form/bill-export-technical-form.component';
 import { BillExportTechnicalService } from '../../bill-export-technical/bill-export-technical-service/bill-export-technical.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 @Component({
   standalone: true,
   imports: [
@@ -40,6 +41,7 @@ import { BillExportTechnicalService } from '../../bill-export-technical/bill-exp
     NzButtonModule,
     NzModalModule,
     NzFormModule,
+    NgbModalModule,
   ],
   selector: 'app-inventory-borrow-supplier-demo',
   templateUrl: './inventory-borrow-supplier-demo.component.html',
@@ -48,7 +50,7 @@ import { BillExportTechnicalService } from '../../bill-export-technical/bill-exp
 export class InventoryBorrowSupplierDemoComponent implements OnInit, AfterViewInit {
   @Output() closeModal = new EventEmitter<void>();
   private ngbModal = inject(NgbModal);
-  public activeModal = inject(NgbActiveModal);
+  public activeModal = inject(NgbActiveModal, { optional: true });
   // bảng danh sách sản phẩm
   productTable: Tabulator | null = null;
   // data sản phẩm
@@ -82,7 +84,7 @@ export class InventoryBorrowSupplierDemoComponent implements OnInit, AfterViewIn
     const now = DateTime.now();
     //gán dateStart và dateEnd mặc định là ngày đầu tháng và cuối tháng hiện tại
     this.dateStart = now.startOf('month').toJSDate();
-    this.dateEnd = now.endOf('month').toJSDate();    
+    this.dateEnd = now.endOf('month').toJSDate();
   }
   //lấy ds ncc
   getNCC() {
@@ -93,7 +95,7 @@ export class InventoryBorrowSupplierDemoComponent implements OnInit, AfterViewIn
   // Đóng modal
   close() {
     this.closeModal.emit();
-    this.activeModal.dismiss('cancel');
+    this.activeModal?.dismiss('cancel');
   }
   drawTable() {
     //Menu khi click chuột phải vào dòng
@@ -199,7 +201,7 @@ export class InventoryBorrowSupplierDemoComponent implements OnInit, AfterViewIn
         });
       }
       return menu;
-    }; 
+    };
     this.productTable = new Tabulator('#dataTableProductInventoryDemo', {
       layout: "fitDataStretch",
       pagination: true,

@@ -3,6 +3,7 @@ import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 
 
+
 import { CommonModule } from '@angular/common';
 import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -328,7 +329,7 @@ export class InventoryBorrowNCCComponent implements OnInit, AfterViewInit {
       ...DEFAULT_TABLE_CONFIG,
       paginationMode: 'local',
       layout: 'fitDataFill',
-      height: "76vh",
+      height: "83vh",
       columnDefaults: {
         resizable: true,
       },

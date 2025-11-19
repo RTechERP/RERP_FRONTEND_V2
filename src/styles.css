@@ -91,11 +91,11 @@ button.ant-btn.btn-delete:hover{
   border-color:#b02a37 !important;
   color:#fff !important;
 }
-button.ant-btn.btn-edit, 
-button.ant-btn.btn-add,                                       
+button.ant-btn.btn-edit,
+button.ant-btn.btn-add,
 button.ant-btn.btn-delete{
 
-  display:flex; align-items:center; justify-content:center;                                   
+  display:flex; align-items:center; justify-content:center;
 }
  */
 
@@ -130,7 +130,10 @@ button.ant-btn.btn-delete{
   min-width: 150px !important;
   width: 350px !important;
 }
+.ant-splitter{
+  height:95vh!important;
 
+}
 .tabulator-cell[data-column="ProductStatus"] .tabulator-edit-list {
   max-width: 380px !important;
   min-width: 200px !important;
@@ -212,14 +215,14 @@ button[nz-button] {
 }
 
 button[nz-button] img {
-  width: 16px;
-  height: 16px;
+  /* width: 16px;
+  height: 16px; */
   display: block;
 }
 
 /* .tabulator .tabulator-row {
-  display: flex;         
-  align-items: stretch;   
+  display: flex;
+  align-items: stretch;
   height: auto !important;
 }
 
@@ -228,9 +231,9 @@ button[nz-button] img {
   word-break: break-word;
   line-height: 1.4;
   height: auto !important;
-  display: flex;        
-  align-items: center;  
-   border-right: 1px solid #dddddd; 
+  display: flex;
+  align-items: center;
+   border-right: 1px solid #dddddd;
  }   */
 
 /* .card-body {
@@ -256,9 +259,9 @@ button[nz-button] img {
   color: black;
 }
 
-/* .ant-splitter {
-  height: 93vh !important;
-} */
+.ant-splitter {
+  height: 95vh !important;
+}
 
 .tabulator {
   border: 1px solid #ddd;
@@ -271,22 +274,17 @@ button[nz-button] img {
 .ant-collapse > .ant-collapse-item > .ant-collapse-header {
   padding-top: 5px;
   padding-bottom: 5px;
+  font-size: 12px !important;
+}
+
+.ant-list {
+  font-size: 12px !important;
 }
 
 .ant-carousel .slick-dots {
   display: none !important;
 }
-/* :host ::ng-deep nz-tabset.approval-tabs .ant-tabs-tab-btn {
-  opacity: 1 !important;
+
+.bell-icon:hover {
+  animation: ring 0.5s ease-in-out infinite;
 }
-:host
-  ::ng-deep
-  nz-tabset.approval-tabs
-  .ant-tabs-tab.ant-tabs-tab-active
-  .ant-tabs-tab-btn {
-  color: #1677ff !important;
-  font-weight: 600;
-}
-:host ::ng-deep nz-tabset.approval-tabs .ant-tabs-ink-bar {
-  background: #1677ff !important;
-} */

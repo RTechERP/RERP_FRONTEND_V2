@@ -57,6 +57,7 @@ import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 export class TsAssetTransferFormComponent implements OnInit {
   @Input() dataInput: any;
   modalData: any = [];
+    deletedDetailIds: number[] = [];
   @ViewChild('assetTranferTable', { static: false })
   assetTranferTableRef!: ElementRef;
   private ngbModal = inject(NgbModal);
@@ -135,15 +136,36 @@ export class TsAssetTransferFormComponent implements OnInit {
           movableColumns: true,
           reactiveData: true,
           columns: [
+          {
+  title: "",
+  field: "addRow",
+  hozAlign: "center",
+  width: 40,
+  headerSort: false,
+  formatter: () =>
+    `<i class="fas fa-times text-danger cursor-pointer" title="Xóa dòng"></i>`,
+  cellClick: (e, cell) => {
+    const row = cell.getRow();
+    const data = row.getData();
+
+    // Nếu là dòng cũ trong DB thì lưu lại ID để gửi IsDeleted = true
+    if (data['ID']) {
+      this.deletedDetailIds.push(data['ID']);
+    }
+
+    // Xóa trên UI
+    row.delete();
+  },
+},
             { title: 'AssetManagementID', field: 'AssetManagementID', hozAlign: 'center', width: 60, visible: false },
             { title: 'TSTranferAssetID', field: 'TSTranferAssetID', hozAlign: 'center', width: 60, visible: false },
             { title: 'ID', field: 'ID', hozAlign: 'center', width: 60, visible: false },
             { title: 'STT', hozAlign: 'center', width: 60, formatter: 'rownum' },
             { title: 'Mã tài sản', field: 'TSCodeNCC' },
             { title: 'Số lượng', field: 'Quantity', hozAlign: 'center' },
-            { title: 'Tên tài sản', field: 'TSAssetName' },
-            { title: 'Đơn vị', field: 'UnitName', hozAlign: 'center' },
-            { title: 'Ghi chú', field: 'Note' }
+            { title: 'Tên tài sản', field: 'TSAssetName' , width:300,formatter:'textarea'  },
+            //   { title: 'Đơn vị tính ', field: 'UnitName', hozAlign: 'center' },
+            { title: 'Ghi chú', field: 'Note', editor: 'input' ,formatter:'textarea' }
           ]
         }
       );
@@ -164,24 +186,33 @@ export class TsAssetTransferFormComponent implements OnInit {
       this.emPloyeeLists = respon.data;
       console.log(this.emPloyeeLists);
       if (this.dataInput?.EmployeeReturnID) {
-        this.onEmployeeDeliverChange(this.dataInput.EmployeeReturnID);
+        this.onEmployeeDeliverChange(this.dataInput.EmployeeReturnID, false);
       }
       if (this.dataInput?.EmployeeRecoveryID) {
         this.onEmployeeReceiverChange(this.dataInput.EmployeeRecoveryID);
       }
     });
   }
-  onEmployeeDeliverChange(id: number): void {
+  onEmployeeDeliverChange(id: number, clearDetails: boolean = true): void {
+    if (clearDetails) this.resetDetails();
+
     const emp = this.emPloyeeLists.find(x => x.ID === id);
     if (emp) {
       this.dataInput.DeliverID = emp.ID;
-      this.dataInput.DepartmentDeliver = emp.DepartmentName;;
+      this.dataInput.DepartmentDeliver = emp.DepartmentName;
       this.dataInput.PossitionDeliver = emp.ChucVuHD;
       this.dataInput.FromChucVuID = emp.ChucVuHDID;
       this.dataInput.FromDepartmentID = emp.DepartmentID;
-
+    } else {
+      // khi clear select
+      this.dataInput.DeliverID = null;
+      this.dataInput.DepartmentDeliver = '';
+      this.dataInput.PossitionDeliver = '';
+      this.dataInput.FromChucVuID = null;
+      this.dataInput.FromDepartmentID = null;
     }
   }
+
   onEmployeeReceiverChange(id: number): void {
     const emp = this.emPloyeeLists.find(x => x.ID === id);
     if (emp) {
@@ -205,76 +236,146 @@ export class TsAssetTransferFormComponent implements OnInit {
     }
   }
   OpenModalAsset() {
+    if (!this.dataInput?.DeliverID) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn nhân viên giao tài sản trước khi chọn tài sản.');
+      return;
+    }
+
     const modalRef = this.ngbModal.open(TsAssetTranferChoseAssetComponent, {
       size: 'xl',
       backdrop: 'static',
       keyboard: false,
       centered: true,
     });
+
+    // các ID đã có trong bảng chi tiết hiện tại
+    const existingIds: number[] = (this.assetTranferDetailTable?.getData() || [])
+      .map((r: any) => Number(r.AssetManagementID))
+      .filter((x: any) => Number.isFinite(x));
+
     modalRef.componentInstance.dataInput1 = {
       DeliverID: this.dataInput.DeliverID,
       ReceiverID: this.dataInput.ReceiverID,
-      TranferID: this.dataInput.ID
+      TranferID: this.dataInput.ID || 0,
+      existingIds, // <-- truyền xuống modal
     };
+
     modalRef.componentInstance.formSubmitted.subscribe((selectedAssets: any[]) => {
-      if (selectedAssets && selectedAssets.length > 0) {
-        console.log("Nhận từ modal con:", selectedAssets);
-        this.assetTranferDetailTable?.addData(selectedAssets);
-        this.getTranferAsset();
-      }
-    });
-    modalRef.result.catch(() => {
-      console.log('Modal dismissed');
-    });
-  }
-  saveTranfer() {
-    if (!this.assetTranferDetailTable) {
-      console.warn('assetTable chưa được khởi tạo!');
-      return;
-    }
-    const selectedAssets = this.assetTranferDetailTable.getData();
-    const payloadTransfer = {
-      tSTranferAsset: {
-        ID: this.dataInput.ID || 0,
-        AssetManagementID: 0,
-        CodeReport: this.dataInput.CodeReport,
-        TranferDate: this.dataInput.TranferDate,
-        DeliverID: this.dataInput.DeliverID,
-        ReceiverID: this.dataInput.ReceiverID,
-        FromDepartmentID: this.dataInput.FromDepartmentID,
-        ToDepartmentID: this.dataInput.ToDepartmentID,
-        FromChucVuID: this.dataInput.FromChucVuID,
-        ToChucVuID: this.dataInput.ToChucVuID,
-        Reason: this.dataInput.Reason,
-        IsApproveAccountant: false,
-        IsApprovedPersonalProperty: false,
-        IsApproved: false
-      },
-      tSTranferAssetDetails: selectedAssets.map((item, index) =>
-      ({
-        ID: item.ID || 0,
-        STT: index + 1,
-        TSTranferAssetID: item.TSTranferAssetID || 0,
-        AssetManagementID: item.AssetManagementID || 0,
-        Quantity: item.Quantity || 1,
-        Note: ""
-      }))
-    };
-    console.log(payloadTransfer);
-    this.tsAssetTransferService.saveData(payloadTransfer).subscribe({
-      next: () => {
-        this.notification.success(NOTIFICATION_TITLE.success, "Thành công");
-        this.getTranferAsset();
-        this.resetModal();
-        this.formSubmitted.emit();
-        this.activeModal.close(true);
-      },
-      error: () => {
-        this.notification.success(NOTIFICATION_TITLE.success, "Lỗi");
-        console.error('Lỗi khi lưu đơn vị!');
-      }
+      if (!selectedAssets?.length) return;
+
+      // lọc lần 2 ở cha để chắc chắn không trùng
+      const current = new Set(
+        (this.assetTranferDetailTable?.getData() || []).map((r: any) => Number(r.AssetManagementID))
+      );
+      const dedup = selectedAssets.filter(x => !current.has(Number(x.AssetManagementID)));
+
+      const skipped = selectedAssets.length - dedup.length;
+      if (skipped > 0) this.notification.warning('Thông báo', `Bỏ qua ${skipped} tài sản trùng.`);
+
+      if (dedup.length) this.assetTranferDetailTable?.addData(dedup);
+      this.getTranferAsset();
     });
 
+    modalRef.result.catch(() => { });
   }
+
+  saveTranfer() {
+
+    if (!this.dataInput?.DeliverID) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn người điều chuyển.');
+      return;
+    }
+
+    if (!this.dataInput?.ReceiverID) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn người nhận tài sản.');
+      return;
+    }
+
+    if (!this.dataInput?.TranferDate) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn ngày điều chuyển.');
+      return;
+    }
+
+    if (!this.dataInput?.Reason || this.dataInput.Reason.trim() === '') {
+      this.notification.warning('Thông báo', 'Vui lòng nhập lý do điều chuyển.');
+      return;
+    }
+
+    if (!this.assetTranferDetailTable) {
+      this.notification.warning('Thông báo', 'Chưa có dữ liệu tài sản để lưu.');
+      return;
+    }
+
+    const selectedAssets = this.assetTranferDetailTable.getData();
+ const rows = this.assetTranferDetailTable.getData();
+  if (rows.length === 0) {
+    this.notification.warning('Thông báo', 'Chưa có tài sản trong danh sách.');
+    return;
+  }
+    const detailPayload = rows.map((item: any, index: number) => ({
+    ID: item.ID || 0,
+    STT: index + 1,
+    TSTranferAssetID: item.TSTranferAssetID || (this.dataInput.ID || 0),
+    AssetManagementID: item.AssetManagementID || 0,
+    Quantity: item.Quantity || 1,
+    Note: item.Note || "",
+    IsDeleted: false       // <-- CỜ ĐÁNH LÀ ĐANG ACTIVE
+  }));
+
+  // Những detail đã bấm X: chỉ cần ID + IsDeleted = true
+  const deletedDetailsPayload = this.deletedDetailIds.map(id => ({
+    ID: id,
+    STT: 0,
+    TSTranferAssetID: this.dataInput.ID || 0,
+    AssetManagementID: 0,
+    Quantity: 0,
+    Note: "",
+    IsDeleted: true        // <-- ĐÁNH CỜ XÓA
+  }));
+
+  const payloadTransfer = {
+    tSTranferAsset: {
+      ID: this.dataInput.ID || 0,
+      AssetManagementID: 0,
+      CodeReport: this.dataInput.CodeReport,
+      TranferDate: this.dataInput.TranferDate,
+      DeliverID: this.dataInput.DeliverID,
+      ReceiverID: this.dataInput.ReceiverID,
+      FromDepartmentID: this.dataInput.FromDepartmentID,
+      ToDepartmentID: this.dataInput.ToDepartmentID,
+      FromChucVuID: this.dataInput.FromChucVuID,
+      ToChucVuID: this.dataInput.ToChucVuID,
+      Reason: this.dataInput.Reason,
+      IsApproveAccountant: false,
+      IsApprovedPersonalProperty: false,
+      IsApproved: false
+    },
+    tSTranferAssetDetails: [
+      ...detailPayload,
+      ...deletedDetailsPayload
+    ]
+  };
+
+  console.log(payloadTransfer);
+
+  this.tsAssetTransferService.saveData(payloadTransfer).subscribe({
+    next: () => {
+      this.notification.success("Thông báo", "Thành công");
+      this.getTranferAsset();
+      this.resetModal();
+      this.formSubmitted.emit();
+      this.activeModal.close(true);
+      this.deletedDetailIds = [];   
+    },
+    error: () => {
+      this.notification.success("Thông báo", "Lỗi");
+      console.error('Lỗi khi lưu đơn vị!');
+    }
+  });
+}
   resetModal() { }
+  private resetDetails(): void {
+    this.assetTranferDetailData = [];
+    if (this.assetTranferDetailTable) this.assetTranferDetailTable.setData([]);
+  }
 }

@@ -397,4 +397,35 @@ export class ProductSaleDetailComponent implements OnInit, AfterViewInit {
       },
     );
   }
+
+  private getFirstErrorMessage(): string | undefined {
+    // Ưu tiên lỗi ghi chú vượt quá 500 ký tự
+    const noteCtrl = this.formGroup.get('Note');
+    if (noteCtrl?.invalid && noteCtrl.errors?.['maxlength']) {
+      return 'Ghi chú không quá 500 kí tự!';
+    }
+
+    // Lỗi mã thiết bị (dùng logic có sẵn)
+    const codeMsg = this.getProductCodeError();
+    if (codeMsg) return codeMsg;
+
+    // Kiểm tra các trường bắt buộc khác theo thứ tự hiển thị
+    const checks: Array<{ key: string; requiredMsg: string }> = [
+      { key: 'ProductGroupID', requiredMsg: 'Vui lòng chọn kho!' },
+      { key: 'Unit', requiredMsg: 'Vui lòng chọn đơn vị!' },
+      { key: 'ProductName', requiredMsg: 'Vui lòng nhập tên thiết bị!' },
+      { key: 'LocationID', requiredMsg: 'Vui lòng chọn vị trí!' },
+      { key: 'Maker', requiredMsg: 'Vui lòng chọn hãng!' },
+    ];
+
+    for (const { key, requiredMsg } of checks) {
+      const ctrl = this.formGroup.get(key);
+      if (ctrl?.invalid) {
+        if (ctrl.errors?.['required']) return requiredMsg;
+        if (ctrl.errors?.['notInOptions']) return 'Giá trị không hợp lệ!';
+      }
+    }
+
+    return undefined;
+  }
 }

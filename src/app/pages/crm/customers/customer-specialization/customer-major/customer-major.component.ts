@@ -62,6 +62,7 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   selector: 'app-customer-major',
   imports: [
@@ -116,7 +117,7 @@ export class CustomerMajorComponent implements OnInit, AfterViewInit {
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
     private customerMajorService: CustomerMajorService,
-    
+
   ) {}
 
   ngOnInit(): void {
@@ -175,6 +176,7 @@ export class CustomerMajorComponent implements OnInit, AfterViewInit {
       nzOnOk: () => {
         const model = {
           ID: this.selectedId,
+          Code: this.selectedRow.Code,
           IsDeleted: true,
         };
         this.customerMajorService.save(model).subscribe({

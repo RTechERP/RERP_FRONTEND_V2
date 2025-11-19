@@ -19,19 +19,27 @@ import { Type, Injector } from '@angular/core';
 // import { AppNotifycationDropdownComponent } from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
 // import { AppUserDropdownComponent } from '/pages/old/app/app-user-dropdown/app-user-dropdown.component';
 import { Title } from '@angular/platform-browser';
-import { ProjectComponent } from '../../pages/old/project/project.component';
+import { ProjectComponent } from '../../pages/project/project.component';
 // import { EmployeePayrollComponent } from '../../pages/hrm/employee/employee-payroll/employee-payroll/employee-payroll.component';
 // import { CustomerComponent } from '../../pages/customer/customer.component';
 import { TbProductRtcComponent } from '../../pages/old/tb-product-rtc/tb-product-rtc.component';
 import { CustomerComponent } from '../../pages/crm/customers/customer/customer.component';
 // import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
 
-
 // import { menus } from '../../pages/old/menus/menus.component';
-import { GroupItem, LeafItem, MenuItem, MenuService } from '../../pages/systems/menus/menu-service/menu.service';
+import {
+  GroupItem,
+  LeafItem,
+  MenuItem,
+  MenuService,
+} from '../../pages/systems/menus/menu-service/menu.service';
 import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
-import { AppNotifycationDropdownComponent, NotifyItem } from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
+import {
+  AppNotifycationDropdownComponent,
+  NotifyItem,
+} from '../../pages/old/app-notifycation-dropdown/app-notifycation-dropdown.component';
 import { MenusComponent } from '../../pages/old/menus/menus.component';
+import { NzGridModule } from 'ng-zorro-antd/grid';
 
 type TabItem = {
   title: string;
@@ -83,6 +91,7 @@ const COMPONENT_REGISTRY: Record<string, Type<any>> = {
     AppNotifycationDropdownComponent,
     AppUserDropdownComponent,
     NgComponentOutlet,
+    NzGridModule,
   ],
   templateUrl: '../../app.component.html',
   styleUrl: '../../app.component.css',
@@ -97,7 +106,9 @@ export class MainLayoutComponent implements OnInit {
     private router: Router,
     private menuService: MenuService,
     private notification: NzNotificationService
-  ) {this.menus = this.menuService.getMenus()}
+  ) {
+    this.menus = this.menuService.getMenus();
+  }
   notificationComponent = AppNotifycationDropdownComponent;
   //#region Khai báo biến
   isCollapsed = true;
@@ -106,7 +117,7 @@ export class MainLayoutComponent implements OnInit {
   trackKey = (_: number, x: any) => x?.key ?? x?.title ?? _;
   isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
   isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
-  menus:MenuItem[]=[];
+  menus: MenuItem[] = [];
   dynamicTabs: TabItem[] = [];
 
   menu: any = {};
@@ -211,7 +222,8 @@ export class MainLayoutComponent implements OnInit {
     localStorage.setItem('openMenuKey', key ?? '');
   }
 
-  isMenuOpen = (key: string) => this.menus.some((m) => m.key === key && m.isOpen);
+  isMenuOpen = (key: string) =>
+    this.menus.some((m) => m.key === key && m.isOpen);
   toggleMenu(key: string) {
     const m = this.menus.find((x) => x.key === key);
     if (m) m.isOpen = !m.isOpen;

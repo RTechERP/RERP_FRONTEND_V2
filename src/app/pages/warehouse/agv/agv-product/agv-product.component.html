@@ -1,0 +1,76 @@
+<nav class="navbar navbar-expand-sm navbar-light bg-light">
+    <div class="container">
+
+        <div class="collapse navbar-collapse" id="collapsibleNavId">
+            <ul class="navbar-nav me-auto mt-2 mt-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#" aria-current="page">Home
+                        <span class="visually-hidden">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <button nz-button nzType="primary">
+                        <nz-icon nzType="search" />
+                        Search
+                    </button>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="dropdownId" data-bs-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">Dropdown</a>
+                    <div class="dropdown-menu" aria-labelledby="dropdownId">
+                        <a class="dropdown-item" href="#">Action 1</a>
+                        <a class="dropdown-item" href="#">Action 2</a>
+                    </div>
+                </li>
+            </ul>
+            <form class="d-flex my-2 my-lg-0">
+                <input class="form-control me-sm-2" type="text" placeholder="Search" />
+                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">
+                    Search
+                </button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+
+<nz-splitter style="height: 87vh !important;">
+    <!--Panel TÌM KIẾM -->
+    <nz-splitter-panel [nzCollapsible]="true" nzDefaultSize="20%">
+        <nz-card nzTitle="TÌM KIẾM" [nzExtra]="extraTemplate" [nzActions]="[actionReset, actionSearch]">
+            <p>Card content</p>
+            <p>Card content</p>
+            <p>Card content</p>
+        </nz-card>
+        <ng-template #extraTemplate>
+            <button nz-button nzType="text" nzDanger="">
+                <nz-icon nzType="close" nzTheme="outline" />
+            </button>
+        </ng-template>
+        <ng-template #actionReset>
+            <button nz-button nzType="default">
+                <nz-icon nzType="reload" />
+                Đặt lại
+            </button>
+        </ng-template>
+        <ng-template #actionSearch>
+            <button nz-button nzType="primary">
+                <nz-icon nzType="search" />
+                Tìm kiếm
+            </button>
+        </ng-template>
+    </nz-splitter-panel>
+    <!--END PANEL TÌM KIẾM -->
+
+    <!-- START PANEL MASTER -->
+    <nz-splitter-panel [nzCollapsible]="true" nzDefaultSize="20%">
+        <div class="box" #tbl_AGVProductGroup></div>
+    </nz-splitter-panel>
+
+    <!-- END PANEL MASTER -->
+
+    <!-- START PANEL DETAIL -->
+    <nz-splitter-panel [nzCollapsible]="true" nzDefaultSize="60%">
+        <div class="box" #tbl_AGVProduct></div>
+    </nz-splitter-panel>
+    <!-- END PANEL DETAIL -->
+</nz-splitter>

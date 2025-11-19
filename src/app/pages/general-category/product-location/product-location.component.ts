@@ -107,7 +107,7 @@ export class ProductLocationComponent implements OnInit, AfterViewInit {
         ...DEFAULT_TABLE_CONFIG,
         paginationMode: 'local',
         layout: 'fitDataStretch',
-        
+
         groupBy: 'ProductGroupName',
 
         columns: [

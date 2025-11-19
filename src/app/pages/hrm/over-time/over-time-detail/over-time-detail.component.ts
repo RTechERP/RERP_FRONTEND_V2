@@ -67,6 +67,7 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit {
   searchForm!: FormGroup;
   overTimeDetail: any[] = [];
 
+
   // Thêm mảng để map location value với label
   locationList = [
     { value: 0, label: '--Chọn địa điểm--' },
@@ -189,6 +190,7 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit {
 
 
 
+
   private initSearchForm() {
     this.searchForm = this.fb.group({
       approverId: null,
@@ -284,10 +286,15 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit {
         {
           title: 'Địa điểm',
           field: 'Location',
+        {
+          title: 'Địa điểm',
+          field: 'Location',
           editor: 'list', // Thay đổi thành list editor
           editorParams: {
             values: this.locationList
           },
+          hozAlign: 'left',
+          headerHozAlign: 'center',
           hozAlign: 'left',
           headerHozAlign: 'center',
           width: 300,
@@ -331,18 +338,24 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit {
           }
         },
         {
+        {
           title: 'Loại',
+          field: 'TypeID',
+          editor: 'list',
           field: 'TypeID',
           editor: 'list',
           editorParams: {
             values: this.employeeTypeOverTimeList
           },
 
+
           formatter: (cell: any) => {
             const value = cell.getValue();
             const type = this.employeeTypeOverTimeList.find((emp: any) => emp.value === value);
             return type ? type.label : value;
           },
+          hozAlign: 'left',
+          headerHozAlign: 'center',
           hozAlign: 'left',
           headerHozAlign: 'center',
           width: 350
@@ -355,6 +368,7 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit {
       this.tabulator.on('cellEdited', (cell: any) => {
         const value = cell.getValue();
         const field = cell.getField();
+
 
         // Validation cho thời gian
         if ((field === 'TimeStart' || field === 'EndTime') && value) {
@@ -372,6 +386,7 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit {
           }
         }
 
+
         // Validation cho thời gian kết thúc phải sau thời gian bắt đầu
         if (field === 'EndTime' || field === 'TimeStart') {
           const rowData = cell.getRow().getData();
@@ -385,6 +400,7 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit {
             }
           }
         }
+
 
         this.overTimeDetail = this.tabulator!.getData();
       });
@@ -432,6 +448,7 @@ export class OverTimeDetailComponent implements OnInit, AfterViewInit {
         this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật đăng ký làm thêm thành công');
       },
       error: (error) => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật đăng ký làm thêm thất bại');
         this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật đăng ký làm thêm thất bại');
 
       }

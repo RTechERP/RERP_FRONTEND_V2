@@ -9,7 +9,7 @@
             <nz-col [nzSpan]="12">
                 <nz-form-label>Số biên bản <span class="text-danger">(*)</span></nz-form-label>
                 <nz-form-control>
-                    <input nz-input [(ngModel)]="dataInput.Code" name="Code" readonly />
+                    <input nz-input [(ngModel)]="dataInput.Code" name="Code" disabled />
                 </nz-form-control>
             </nz-col>
             <nz-col [nzSpan]="12">
@@ -22,19 +22,21 @@
 
         <nz-row [nzGutter]="24" class="mt-2 me-2">
             <nz-col [nzSpan]="12" class="pe-0">
-                <nz-form-label class="fs-12" [nzSpan]="12">Chọn nhân viên</nz-form-label>
+                <nz-form-label class="fs-12" [nzSpan]="12">Chọn nhân viên<span class="text-danger ps-1 me-1">
+                        (*)</span></nz-form-label>
                 <nz-form-control [nzSpan]="24" class="pe-0">
                     <nz-select class="w-100 fs-12 pe-0" nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên..."
                         [(ngModel)]="dataInput.EmployeeID" name="employeeID" (ngModelChange)="onEmployeeChange($event)">
                         <nz-option *ngFor="let emp of emPloyeeLists" [nzLabel]="emp.Code + ' - ' + emp.FullName"
                             [nzValue]="emp.ID"></nz-option>
                     </nz-select>
+
                 </nz-form-control>
             </nz-col>
             <nz-col [nzSpan]="12">
                 <nz-form-label>Phòng ban</nz-form-label>
                 <nz-form-control>
-                    <input nz-input [(ngModel)]="dataInput.Name" name="DepartmentName" readonly />
+                    <input nz-input [(ngModel)]="dataInput.Name" name="DepartmentName" disabled />
                 </nz-form-control>
             </nz-col>
         </nz-row>
@@ -42,7 +44,7 @@
             <nz-col [nzSpan]="12">
                 <nz-form-label>Chức vụ</nz-form-label>
                 <nz-form-control>
-                    <input nz-input [(ngModel)]="dataInput.ChucVuHD" name="PositionName" readonly />
+                    <input nz-input [(ngModel)]="dataInput.ChucVuHD" name="PositionName" disabled />
                 </nz-form-control>
             </nz-col>
             <nz-col [nzSpan]="12">
@@ -58,7 +60,7 @@
                 <button nz-button nzType="dashed" class="me-2 mt-2" (click)="openModalAsset()">
                     <i class="fas fa-plus me-2"></i>Chọn tài sản
                 </button>
-              
+
             </nz-col>
         </nz-row>
 
@@ -71,5 +73,5 @@
 </div>
 <div class="modal-footer">
     <button nz-button nzDanger nzType="default" (click)="close()">Đóng</button>
-    <button nz-button nzType="primary" (click)="saveAllocation()" *hasPermission="'N1,N23'" >Lưu dữ liệu</button>
+    <button nz-button nzType="primary" (click)="saveAllocation()" *hasPermission="'N1,N23'">Lưu</button>
 </div>

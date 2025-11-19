@@ -1,0 +1,151 @@
+<!-- Header -->
+
+<div class="modal-header bg-primary p-2">
+    <h6 class="modal-title text-white">QUẢN LÍ CHI TIẾT XE</h6>
+    <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+</div>
+
+<!-- Body-->
+<div class="modal-body">
+    <form [formGroup]="formGroup" nz-row [nzGutter]="[8, 4]">
+        <!-- Thông tin người lái xe -->
+        <fieldset nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="24" [nzXl]="24" class="fieldset-custom">
+            <legend class="legend-custom">
+                <i class="fas fa-user me-2"></i>Thông tin người lái xe
+            </legend>
+            <nz-row [nzGutter]="[8, 4]">
+                <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24" class="fs-12">Lái xe<span class="text-danger ps-1"> (*)
+                            </span></nz-form-label>
+                        <nz-form-control [nzSpan]="24" [nzErrorTip]="
+                                formGroup.get('employeeID')?.hasError('required') && (formGroup.get('employeeID')?.dirty || formGroup.get('employeeID')?.touched)
+                                    ? 'Vui lòng chọn nhân viên lái xe!'
+                                    : undefined">
+                            <nz-select class="w-100" nzSize="default" nzShowSearch nzAllowClear
+                                formControlName="employeeID" nzPlaceHolder="Lái xe...">
+                                <nz-option *ngFor="let emp of employeeList" [nzLabel]="emp.Code + ' - ' +  emp.FullName"
+                                    [nzValue]="emp.ID"></nz-option>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24" class="fs-12">Tên lái xe</nz-form-label>
+                        <nz-form-control [nzSpan]="24">
+                            <input id="employeeName" nz-input formControlName="employeeName" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+
+            <nz-row [nzGutter]="[8, 4]" style="margin-bottom: 0;">
+                <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24" class="fs-12">SDT</nz-form-label>
+                        <nz-form-control [nzSpan]="24">
+                            <input nz-input class="w-100" formControlName="SDT">
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+                <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24" class="fs-12">STT<span class="text-danger ps-1"> (*)
+                            </span></nz-form-label>
+                        <nz-form-control [nzSpan]="24"
+                            [nzErrorTip]="
+                                formGroup.get('STT')?.hasError('required') && (formGroup.get('STT')?.dirty || formGroup.get('STT')?.touched)
+                                    ? 'Số thứ tự không được để trống!'
+                                    : (formGroup.get('STT')?.hasError('min') ? 'Số thứ tự phải lớn hơn 0!' : (formGroup.get('STT')?.hasError('minValue') ? `Số thứ tự phải lớn hơn ${maxSTT}!` : undefined))">
+                            <nz-input-number formControlName="STT" [nzMin]="1" [nzMax]="100" [nzStep]="1"
+                                style="width: 100%;"></nz-input-number>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+        </fieldset>
+
+        <!-- Thông tin xe -->
+        <fieldset nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="24" [nzXl]="24" class="fieldset-custom">
+            <legend class="legend-custom">
+                <i class="fas fa-car-side me-2"></i>Thông tin xe
+            </legend>
+            <nz-row [nzGutter]="[8, 4]">
+                <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="24" [nzXl]="24">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24" class="fs-12">Tên xe<span class="text-danger ps-1"> (*)
+                            </span></nz-form-label>
+                        <nz-form-control [nzSpan]="24"
+                            [nzErrorTip]="
+                                formGroup.get('carName')?.hasError('required') && (formGroup.get('carName')?.dirty || formGroup.get('carName')?.touched)
+                                    ? 'Vui lòng nhập tên xe!'
+                                    : (formGroup.get('carName')?.hasError('maxlength') ? 'Tên xe tối đa 200 ký tự!' : undefined)">
+                            <input id="carName" nz-input formControlName="carName" placeholder="Nhập tên xe" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+
+            <nz-row [nzGutter]="[8, 4]">
+                <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="24" [nzXl]="24">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24" class="fs-12">Biển số<span class="text-danger ps-1" *ngIf="isInternalVehicle()"> (*)
+                            </span></nz-form-label>
+                        <nz-form-control [nzSpan]="24"
+                            [nzErrorTip]="
+                                formGroup.get('licensePlates')?.hasError('required') && (formGroup.get('licensePlates')?.dirty || formGroup.get('licensePlates')?.touched)
+                                    ? 'Vui lòng nhập biển số xe!'
+                                    : (formGroup.get('licensePlates')?.hasError('pattern') ? 'Biển số xe không đúng định dạng. VD: 89F-118.52 (ô tô) hoặc 17B2-74412 (xe máy)!' : (formGroup.get('licensePlates')?.hasError('duplicate') ? `Biển số xe đã tồn tại!` : undefined))">
+                            <input id="licensePlates" nz-input formControlName="licensePlates"
+                                placeholder="Nhập biển số xe" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+
+            <nz-row [nzGutter]="[8, 8]" style="margin-bottom: 0;">
+                <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24" class="fs-12">Loại xe<span class="text-danger ps-1"> (*)
+                            </span> <button nz-button nzSize="small" class="fs-12 button button-succes me-2"
+                                title="Thêm loại xe" (click)="onAddVehicleCategory()"><nz-icon nzType="plus" />
+                            </button></nz-form-label>
+                        <nz-form-control [nzSpan]="24" [nzErrorTip]="
+                                formGroup.get('vehicleCategoryID')?.hasError('required') && (formGroup.get('vehicleCategoryID')?.dirty || formGroup.get('vehicleCategoryID')?.touched)
+                                    ? 'Vui lòng chọn loại xe!'
+                                    : undefined">
+                            <nz-select class="w-100" nzSize="default" nzShowSearch nzAllowClear
+                                formControlName="vehicleCategoryID" nzPlaceHolder="Chọn loại ...">
+                                <nz-option *ngFor="let emp of vehicleCategoryList" [nzLabel]="emp.CategoryName"
+                                    [nzValue]="emp.ID"></nz-option>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+
+
+                <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24" class="fs-12">Chỗ ngồi<span class="text-danger ps-1"> (*)
+                            </span></nz-form-label>
+                        <nz-form-control [nzSpan]="24"
+                            [nzErrorTip]="
+                                formGroup.get('slots')?.hasError('required') && (formGroup.get('slots')?.dirty || formGroup.get('slots')?.touched)
+                                    ? 'Vui lòng nhập số chỗ ngồi!'
+                                    : (formGroup.get('slots')?.hasError('min') ? 'Số chỗ ngồi phải lớn hơn 0!' : undefined)">
+                            <nz-input-number formControlName="slots" [nzMin]="1" [nzMax]="100" [nzStep]="1"
+                                style="width: 100%;"></nz-input-number>
+                        </nz-form-control>
+                    </nz-form-item>
+                </nz-col>
+            </nz-row>
+        </fieldset>
+    </form>
+</div>
+<div class="modal-footer bg-whitesmoke br p-1">
+    <button nz-button nzType="default" nzDanger (click)="close()">
+        Đóng
+    </button>
+    <button nz-button nzType="primary" (click)="saveStatus()" *hasPermission="'N2,N34,N1'">Lưu</button>
+</div>

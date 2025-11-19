@@ -114,11 +114,11 @@ export class ProductLocationFormComponent implements OnInit {
       });
 
       const formData = this.productLocationForm.value;
-      
+
       // Debug: Log form data để kiểm tra ProductGroupID
       console.log('Form data before save:', formData);
       console.log('ProductGroupID value:', formData.ProductGroupID);
-      
+
       this.productLocationService.saveProductLocation(formData).subscribe({
         next: (response: any) => {
           if (response.status === 1) {

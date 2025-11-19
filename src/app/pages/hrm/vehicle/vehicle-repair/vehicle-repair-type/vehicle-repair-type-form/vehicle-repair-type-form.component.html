@@ -1,0 +1,59 @@
+<div class="modal-header bg-primary p-2">
+    <h6 class="modal-title text-white">LOẠI SỬA CHỮA/BẢO DƯỠNG</h6>
+    <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
+</div>
+
+<div class="modal-body">
+    <form [formGroup]="formGroup" class="row g-3">
+        <nz-row [nzGutter]="24">
+
+            <nz-col [nzSpan]="12">
+                <!-- Mã TB -->
+                <nz-form-item class="col-md-12">
+                    <nz-form-label [nzSpan]="24">Mã loại<span class="text-danger ps-1 "> (*) </span></nz-form-label>
+                    <nz-form-control [nzSpan]="24" [nzErrorTip]="
+          formGroup.get('RepairTypeCode')?.hasError('required') && (formGroup.get('RepairTypeCode')?.dirty || formGroup.get('RepairTypeCode')?.touched)
+            ? 'Vui lòng nhập mã loại!'
+            : (formGroup.get('RepairTypeCode')?.hasError('maxlength') ? 'Mã TB tối đa 20 ký tự!' : undefined)">
+                        <input nz-input placeholder="Nhập mã loại" formControlName="RepairTypeCode" />
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+            <nz-col [nzSpan]="12">
+                <nz-form-item class="col-md-12">
+                    <nz-form-label [nzSpan]="24">Tên loại<span class="text-danger ps-1 me-1"> (*) </span>
+                    </nz-form-label>
+                    <nz-form-control [nzSpan]="24" [nzErrorTip]="
+          formGroup.get('RepairTypeName')?.hasError('required') && (formGroup.get('RepairTypeName')?.dirty || formGroup.get('RepairTypeName')?.touched)
+            ? 'Vui lòng nhập tên lọai!'
+            : (formGroup.get('RepairTypeName')?.hasError('maxlength') ? 'Tên loại tối đa 100 ký tự!' : undefined)">
+                        <input nz-input placeholder="Nhập tên loại" formControlName="RepairTypeName" />
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+        </nz-row>
+        <!-- Số TB -->
+        <nz-row [nzGutter]="24">
+            <nz-col [nzSpan]="24">
+                <nz-form-item class="col-md-12">
+                    <nz-form-label [nzSpan]="24">Ghi chú</nz-form-label>
+                    <nz-form-control [nzSpan]="24">
+                        <textarea nz-input rows="3" placeholder="Nhập ghi chú" formControlName="Note"></textarea>
+                    </nz-form-control>
+                </nz-form-item>
+            </nz-col>
+            <!-- Tên TB -->
+
+        </nz-row>
+
+
+
+
+
+    </form>
+</div>
+
+<div class="modal-footer">
+    <button nz-button nzType="default" nzDanger (click)="close()">Đóng</button>
+    <button nz-button nzType="primary" (click)="save()" *hasPermission="'N2,N34,N1'">Lưu</button>
+</div>

@@ -78,7 +78,7 @@ interface Handover {
   Note: string;
 
   DateStart: Date;
- DateEnd: Date;
+  DateEnd: Date;
 }
 
 interface HandoverReceiver {
@@ -180,7 +180,8 @@ interface HandoverApprove {
     NzFormModule,
     NzInputNumberModule,
     NzDropDownModule,
-    NzMenuModule,HasPermissionDirective
+    NzMenuModule,
+    HasPermissionDirective,
   ],
   templateUrl: './handover.component.html',
   styleUrl: './handover.component.css',
@@ -284,7 +285,6 @@ export class HandoverComponent implements OnInit, AfterViewInit {
     Keyword: '',
     DateStart: new Date(),
     DateEnd: new Date(),
-
   };
 
   handoverList: any[] = [];
@@ -293,7 +293,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
   HandoverID: number = 0;
   data: any[] = [];
 
-  HandoverReceiverData: any[] = []; 
+  HandoverReceiverData: any[] = [];
   handoverReceiverTable: Tabulator | null = null;
 
   HandoverWorkData: any[] = [];
@@ -330,16 +330,16 @@ export class HandoverComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     private cdr: ChangeDetectorRef,
     private message: NzMessageService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.getHandover();
     this.getdataDepartment();
     this.getdataEmployee();
 
-//      const startDate = this.searchParams.DateStart;
-//     startDate.setFullYear(startDate.getFullYear() - 1);
-// this.searchParams.DateEnd = new Date(new Date(this.searchParams.DateEnd).setDate(new Date(this.searchParams.DateEnd).getDate() + 1));
+    //      const startDate = this.searchParams.DateStart;
+    //     startDate.setFullYear(startDate.getFullYear() - 1);
+    // this.searchParams.DateEnd = new Date(new Date(this.searchParams.DateEnd).setDate(new Date(this.searchParams.DateEnd).getDate() + 1));
   }
 
   ngAfterViewInit(): void {
@@ -367,34 +367,33 @@ export class HandoverComponent implements OnInit, AfterViewInit {
     );
   };
 
-     toLocalISOString(date: Date | string): string {
-  // Chuyển đổi chuỗi thành Date nếu cần
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  toLocalISOString(date: Date | string): string {
+    // Chuyển đổi chuỗi thành Date nếu cần
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
 
-  // Kiểm tra xem dateObj có hợp lệ không
-  if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
-    throw new Error('Invalid date input');
+    // Kiểm tra xem dateObj có hợp lệ không
+    if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) {
+      throw new Error('Invalid date input');
+    }
+
+    const tzOffset = 7 * 60; // GMT+7, tính bằng phút
+    const adjustedDate = new Date(dateObj.getTime() + tzOffset * 60 * 1000); // Điều chỉnh sang GMT+7
+    const pad = (n: number) => String(Math.floor(Math.abs(n))).padStart(2, '0');
+
+    return (
+      adjustedDate.getUTCFullYear() +
+      '-' +
+      pad(adjustedDate.getUTCMonth() + 1) +
+      '-' +
+      pad(adjustedDate.getUTCDate()) +
+      'T' +
+      pad(adjustedDate.getUTCHours()) +
+      ':' +
+      pad(adjustedDate.getUTCMinutes()) +
+      ':' +
+      pad(adjustedDate.getUTCSeconds())
+    ); // Trả về định dạng YYYY-MM-DDTHH:mm:ss
   }
-
-  const tzOffset = 7 * 60; // GMT+7, tính bằng phút
-  const adjustedDate = new Date(dateObj.getTime() + tzOffset * 60 * 1000); // Điều chỉnh sang GMT+7
-  const pad = (n: number) => String(Math.floor(Math.abs(n))).padStart(2, '0');
-
-  return (
-    adjustedDate.getUTCFullYear() +
-    '-' +
-    pad(adjustedDate.getUTCMonth() + 1) +
-    '-' +
-    pad(adjustedDate.getUTCDate()) +
-    'T' +
-    pad(adjustedDate.getUTCHours()) +
-    ':' +
-    pad(adjustedDate.getUTCMinutes()) +
-    ':' +
-    pad(adjustedDate.getUTCSeconds())
-  ); // Trả về định dạng YYYY-MM-DDTHH:mm:ss
-}
-
 
   onTabChange(index: number) {
     this.activeTab = index;
@@ -421,18 +420,17 @@ export class HandoverComponent implements OnInit, AfterViewInit {
   }
 
   getHandover(): void {
-
     console.log(this.searchParams);
     this.HandoverService.getHandover(
       this.searchParams.DepartmentID,
       this.searchParams.EmployeeID,
       this.searchParams.LeaderID,
       this.searchParams.Keyword,
-    //   this.searchParams.DateStart,
-    this.searchParams.DateStart,
+      //   this.searchParams.DateStart,
+      this.searchParams.DateStart,
       this.searchParams.DateEnd
-    //   this.toLocalISOString(this.searchParams.DateStart),
-    //   this.toLocalISOString(this.searchParams.DateEnd)
+      //   this.toLocalISOString(this.searchParams.DateStart),
+      //   this.toLocalISOString(this.searchParams.DateEnd)
     ).subscribe((response: any) => {
       this.HandoverData = response.data?.asset || [];
       if (this.handoverTable) {
@@ -523,7 +521,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
       // Dữ liệu duyệt quản lý bàn giao
       this.HandoverApproveData = response.data?.HandoverApprove || [];
 
-      const giverApprove = this.HandoverApproveData.find(x => x.STT === 1);
+      const giverApprove = this.HandoverApproveData.find((x) => x.STT === 1);
       this.handoverStatusGiver = giverApprove?.ApproveStatus ?? 0;
 
       if (this.handoverApproveTable) {
@@ -562,79 +560,82 @@ export class HandoverComponent implements OnInit, AfterViewInit {
   }
 
   approveHandover(handoverId: number, stt: number, status: number) {
-  if (status === 2) {
-    const modalRef = this.modal.create({
-      nzTitle: 'Nhập lý do hủy duyệt',
-      nzContent: HandoverRejectreasonFormComponent,
-      nzFooter: null 
-    });
+    if (status === 2) {
+      const modalRef = this.modal.create({
+        nzTitle: 'Nhập lý do hủy duyệt',
+        nzContent: HandoverRejectreasonFormComponent,
+        nzFooter: null,
+      });
 
-    modalRef.afterClose.subscribe((reason: string) => {
-      if (!reason) {
-        this.notification.warning(NOTIFICATION_TITLE.warning, 'Bạn phải nhập lý do để hủy duyệt!');
-        return;
-      }
-      this.approveAction(handoverId, stt, status, null, reason.trim());
+      modalRef.afterClose.subscribe((reason: string) => {
+        if (!reason) {
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Bạn phải nhập lý do để hủy duyệt!');
+          return;
+        }
+        this.approveAction(handoverId, stt, status, null, reason.trim());
+        this.getHandoverDataByID(this.HandoverID);
+        this.updateHandoverStatus(stt, status);
+      });
+    } else {
+      this.approveAction(handoverId, stt, status, null, null);
       this.getHandoverDataByID(this.HandoverID);
       this.updateHandoverStatus(stt, status);
-    });
-  } else {
-    this.approveAction(handoverId, stt, status, null, null);
-    this.getHandoverDataByID(this.HandoverID);
-    this.updateHandoverStatus(stt, status);
+    }
   }
-}
 
-// Hàm tiện ích cập nhật trạng thái hiển thị
-private updateHandoverStatus(stt: number, status: number) {
-  if (stt === 1) this.handoverStatusGiver = status;
-  if (stt === 2) this.handoverStatusLeader = status;
-  if (stt === 3) this.handoverStatusManager = status;
-}
-approveAction(
-  handoverId: number,
-  stt: number,
-  status: number,
-  cell: any,
-  rejectReason: string | null
-) {
-  const body = [
-    {
-      HandoverID: handoverId,
-      STT: stt,
-      ApproveStatus: status,
-      RejectReason: rejectReason || '' 
-    },
-  ];
+  // Hàm tiện ích cập nhật trạng thái hiển thị
+  private updateHandoverStatus(stt: number, status: number) {
+    if (stt === 1) this.handoverStatusGiver = status;
+    if (stt === 2) this.handoverStatusLeader = status;
+    if (stt === 3) this.handoverStatusManager = status;
+  }
+  approveAction(
+    handoverId: number,
+    stt: number,
+    status: number,
+    cell: any,
+    rejectReason: string | null
+  ) {
+    const body = [
+      {
+        HandoverID: handoverId,
+        STT: stt,
+        ApproveStatus: status,
+        RejectReason: rejectReason || '',
+      },
+    ];
 
-  this.HandoverService.approve(body).subscribe({
-    next: (res) => {
-      if (res?.status === 1) {
-        if (cell) {
-          const row = cell.getRow();
-          const rowData = row.getData();
-          rowData.ApproveStatus = status;
-          rowData.RejectReason = rejectReason || '';
-          row.update({ ApproveStatus: status, RejectReason: rejectReason || '' });
+    this.HandoverService.approve(body).subscribe({
+      next: (res) => {
+        if (res?.status === 1) {
+          if (cell) {
+            const row = cell.getRow();
+            const rowData = row.getData();
+            rowData.ApproveStatus = status;
+            rowData.RejectReason = rejectReason || '';
+            row.update({
+              ApproveStatus: status,
+              RejectReason: rejectReason || '',
+            });
+          }
+
+          if (status === 1) {
+            this.notification.success('Thông báo', 'Đã duyệt thành công!');
+          } else if (status === 2) {
+            this.notification.warning('Thông báo', 'Đã hủy duyệt thành công!');
+          }
+        } else if (res?.status === 0 && res?.message) {
+          this.notification.error('Thông báo', res.message);
+        } else {
+          this.notification.error('Thông báo', 'Có lỗi xảy ra khi duyệt!');
         }
-
-        if (status === 1) {
-          this.notification.success(NOTIFICATION_TITLE.success, 'Đã duyệt thành công!');
-        } else if (status === 2) {
-          this.notification.warning(NOTIFICATION_TITLE.warning, 'Đã hủy duyệt thành công!');
-        }
-      } else if (res?.status === 0 && res?.message) {
-        this.notification.error(NOTIFICATION_TITLE.error, res.message);
-      } else {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi duyệt!');
-      }
-    },
-    error: (err) => {
-      const msg = err?.error?.message || 'Có lỗi xảy ra!';
-      this.notification.error(NOTIFICATION_TITLE.error, msg);
-    },
-  });
-}
+      },
+      error: (err) => {
+        const msg = err?.error?.message || 'Có lỗi xảy ra!';
+        this.notification.error('Thông báo', msg);
+      },
+    });
+  }
 
   onAddHandover(isEditmode: boolean): void {
     this.isCheckmode = isEditmode;
@@ -654,7 +655,7 @@ approveAction(
         : null;
 
     const modalRef = this.modalService.open(HandoverFormComponent, {
-      fullscreen:true,
+      fullscreen: true,
       backdrop: 'static',
       keyboard: false,
     });
@@ -671,7 +672,7 @@ approveAction(
           this.draw_handoverTable();
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }
 
   onDeleteHandover() {
@@ -807,9 +808,8 @@ approveAction(
         groupBy: [
           (data) => {
             return data.DepartmentName
-              ? `Phòng ban: ${
-                  data.DepartmentName ? `  ${data.DepartmentName}` : ''
-                }`
+              ? `Phòng ban: ${data.DepartmentName ? `  ${data.DepartmentName}` : ''
+              }`
               : 'Phòng ban: ';
           },
         ],
@@ -1062,9 +1062,9 @@ approveAction(
             field: 'IsSigned',
             headerHozAlign: 'center',
             hozAlign: 'center',
-            formatter: 'tickCross', 
+            formatter: 'tickCross',
             formatterParams: {
-              allowEmpty: true, 
+              allowEmpty: true,
             },
           },
         ],
@@ -1151,16 +1151,16 @@ approveAction(
               minWidth: 300,
               widthGrow: 2,
             },
-              {
-            title: 'Ký nhận',
-            field: 'IsSigned',
-            headerHozAlign: 'center',
-            hozAlign: 'center',
-            formatter: 'tickCross', 
-            formatterParams: {
-              allowEmpty: true, 
+            {
+              title: 'Ký nhận',
+              field: 'IsSigned',
+              headerHozAlign: 'center',
+              hozAlign: 'center',
+              formatter: 'tickCross',
+              formatterParams: {
+                allowEmpty: true,
+              },
             },
-          },
           ],
         }
       );
@@ -1244,14 +1244,14 @@ approveAction(
             minWidth: 300,
             widthGrow: 2,
           },
-             {
+          {
             title: 'Ký nhận',
             field: 'IsSigned',
             headerHozAlign: 'center',
             hozAlign: 'center',
-            formatter: 'tickCross', 
+            formatter: 'tickCross',
             formatterParams: {
-              allowEmpty: true, 
+              allowEmpty: true,
             },
           },
 

@@ -37,6 +37,7 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 // @ts-ignore
 import { saveAs } from 'file-saver';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../../../../auth/auth.service';
@@ -115,6 +116,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
     this.drawDetail();
     this.drawtable();
     this.getListEmployee();
+    this.getCurrentUser();
   }
   getCurrentUser() {
     this.authService.getCurrentUser().subscribe((res: any) => {
@@ -253,7 +255,8 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
             title: 'Thu hồi từ',
             field: 'EmployeeReturnID',
             headerHozAlign: 'center',
-            visible: false,
+            visible:false,
+
             width: 160,
           },
           {
@@ -319,7 +322,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       });
     }
   }
-    closePanel() {
+  closePanel() {
     this.sizeTbDetail = '0';
 
     this.detailTabTitle = 'Thông tin biên bản cấp phát';
@@ -340,7 +343,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       { title: 'Tên tài sản', field: 'TSAssetName' },
       { title: 'Số lượng', field: 'Quantity', headerHozAlign: 'center' },
       { title: 'Đơn vị', field: 'UnitName', headerHozAlign: 'center' },
-      { title: 'Tình trạng', field: 'TinhTrang', headerHozAlign: 'center' },
+      { title: 'Tình trạng', field: 'Status', headerHozAlign: 'center', visible:false },
       { title: 'Ghi chú', field: 'Note' }
     ];
     if (this.recoveryDetailTable) {
@@ -350,7 +353,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
         data: this.assetRecoveryDetailData,
         layout: "fitDataStretch",
         paginationSize: 5,
-        height: '83vh',
+        height: '90vh',
         movableColumns: true,
         reactiveData: true,
 
@@ -380,12 +383,12 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
 
     // Những biên bản HR đã duyệt -> không được xóa
     const locked = selectedRows.filter(x =>
-      ['true', true, 1, '1'].includes(x.IsApproved) // hoặc IsApproveHR, tùy DB
+      ['true', true, 1, '1'].includes(x.IsApprovedPersonalProperty) // hoặc IsApproveHR, tùy DB
     );
 
     // Những biên bản được phép xóa
     const deletable = selectedRows.filter(x =>
-      !['true', true, 1, '1'].includes(x.IsApproved)
+      !['true', true, 1, '1'].includes(x.IsApprovedPersonalProperty)
     );
 
     // Không có cái nào xóa được
@@ -393,7 +396,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       const lockedCodes = locked.map(x => x.CodeReport ?? x.Code).join(', ');
       this.notification.warning(
         'Không thể xóa',
-        `Tất cả các biên bản đã được HR duyệt, không thể xóa. Danh sách: ${lockedCodes}`
+        `Biên bản đã được cá nhân duyệt, không thể xóa. Danh sách: ${lockedCodes}`
       );
       return;
     }
@@ -403,7 +406,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       const lockedCodes = locked.map(x => x.CodeReport ?? x.Code).join(', ');
       this.notification.warning(
         'Một số biên bản không được xóa',
-        `Các biên bản đã được HR duyệt sẽ không bị xóa: ${lockedCodes}`
+        `Biên bản đã được cá nhân duyệt sẽ không bị xóa: ${lockedCodes}`
       );
     }
 
@@ -446,51 +449,55 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
     });
   }
 
-  validateApprove(
+ validateApprove(
   action: 1 | 2 | 3 | 4 | 5 | 6,
   row: any
 ): string | null {
   // Rule: chỉ người trả tài sản mới được duyệt / hủy cá nhân
   if (action === 1 || action === 2) {
-    const empIdRaw = this.currentUser?.ID;
+    const empIdRaw = this.currentUser?.EmployeeID;
     const empId = empIdRaw != null ? Number(empIdRaw) : null;
     const returnId = row.EmployeeReturnID != null ? Number(row.EmployeeReturnID) : null;
 
-    if (!empId) {
-      return 'Không xác định được nhân viên hiện tại, không thể duyệt.';
-    }
-
-    if (returnId !== empId) {
-      return `Bạn không được phép duyệt biên bản ${row.Code} vì không phải người trả tài sản.`;
+    if (!empId || returnId !== empId) {
+      // dùng code, gom message ở trên gọi
+      return 'NOT_OWNER';
     }
   }
 
   switch (action) {
     case 2: // Hủy cá nhân
       if (row.Status == 1) {
-        return `Biên bản ${row.Code} đã được HR duyệt, không thể hủy`;
+        return 'PERSONAL_CANNOT_CANCEL_AFTER_HR';
       }
       break;
 
     case 3: // HR duyệt
       if (row.IsApprovedPersonalProperty != true) {
-        return `Biên bản ${row.Code} chưa được cá nhân duyệt, HR không thể duyệt!`;
+        return 'HR_NEED_PERSONAL';
       }
       break;
 
     case 4: // Hủy HR
       if (row.IsApproveAccountant == true) {
-        return `Biên bản ${row.Code} đã được Kế toán duyệt, không thể hủy`;
+        return 'HR_CANNOT_CANCEL_AFTER_KT';
       }
       break;
 
     case 5: // KT duyệt
       if (row.IsApproved != true) {
-        return `Biên bản ${row.Code} chưa được HR duyệt, Kế Toán không thể duyệt!`;
+        return 'KT_NEED_HR';
+      }
+      if (row.IsApproveAccountant == true) {
+        return 'KT_ALREADY_APPROVED';
       }
       break;
 
-    // 1 & 6 không thêm rule gì ngoài check ReturnID ở trên
+    case 6: // KT hủy duyệt
+      if (row.IsApproveAccountant != true) {
+        return 'KT_CANNOT_UNAPPROVE_NOT_APPROVED';
+      }
+      break;
   }
 
   return null; // hợp lệ
@@ -507,125 +514,188 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const validRows: any[] = [];
-    const invalidRows: { row: any; message: string }[] = [];
+ const validRows: any[] = [];
+const invalidRows: { row: any; code: string }[] = [];
 
-    // dùng validateApprove cho từng row
-    for (const row of selectedRows) {
-      const errorMsg = this.validateApprove(action, row);
-      if (errorMsg) {
-        invalidRows.push({ row, message: errorMsg });
-      } else {
-        validRows.push(row);
-      }
-    }
+// validate từng row -> trả code
+for (const row of selectedRows) {
+  const code = this.validateApprove(action, row);
+  if (code) {
+    invalidRows.push({ row, code });
+  } else {
+    validRows.push(row);
+  }
+}
 
-    // Nếu TẤT CẢ đều lỗi -> show chi tiết rồi dừng
-    if (validRows.length === 0) {
-      if (invalidRows.length > 0) {
-        const detail = invalidRows.map(x => x.message).join('\n');
-        this.notification.warning('Không thể thực hiện', detail);
-      } else {
-        this.notification.error(
-          'Thất bại',
-          'Không có biên bản nào hợp lệ để thực hiện.'
+// helper gom message theo code
+const buildErrorMessages = (items: { row: any; code: string }[]): string[] => {
+  const byCode = new Map<string, any[]>();
+
+  items.forEach(x => {
+    if (!byCode.has(x.code)) byCode.set(x.code, []);
+    byCode.get(x.code)!.push(x.row);
+  });
+
+  const messages: string[] = [];
+
+  byCode.forEach((rows, code) => {
+    const codes = rows.map((r: any) => r.Code).join(', ');
+
+    switch (code) {
+      case 'NOT_OWNER':
+        messages.push(
+          `Bạn không được phép duyệt các biên bản ${codes} vì không phải người trả tài sản.`
         );
-      }
-      return;
+        break;
+
+      case 'PERSONAL_CANNOT_CANCEL_AFTER_HR':
+        messages.push(
+          `Các biên bản ${codes} đã được HR duyệt, cá nhân không thể hủy.`
+        );
+        break;
+
+      case 'HR_NEED_PERSONAL':
+        messages.push(
+          `Các biên bản ${codes} chưa được cá nhân duyệt, HR không thể duyệt!`
+        );
+        break;
+
+      case 'HR_CANNOT_CANCEL_AFTER_KT':
+        messages.push(
+          `Các biên bản ${codes} đã được Kế toán duyệt, HR không thể hủy.`
+        );
+        break;
+
+      case 'KT_NEED_HR':
+        messages.push(
+          `Các biên bản ${codes} chưa được HR duyệt, Kế toán không thể duyệt!`
+        );
+        break;
+
+      case 'KT_ALREADY_APPROVED':
+        messages.push(
+          `Các biên bản ${codes} đã được Kế toán duyệt, không thể duyệt lại.`
+        );
+        break;
+
+      case 'KT_CANNOT_UNAPPROVE_NOT_APPROVED':
+        messages.push(
+          `Các biên bản ${codes} chưa được Kế toán duyệt, không thể hủy duyệt!`
+        );
+        break;
+
+      default:
+        // fallback nếu sau này thêm code mới mà quên map
+        messages.push(`Lỗi với các biên bản ${codes} (code: ${code}).`);
+        break;
+    }
+  });
+
+  return messages;
+};
+
+// Nếu TẤT CẢ đều lỗi
+if (validRows.length === 0) {
+  if (invalidRows.length > 0) {
+    const messages = buildErrorMessages(invalidRows);
+    this.notification.warning(
+      'Không thể thực hiện',
+      messages.join('\n')
+    );
+  } else {
+    this.notification.error(
+      'Thất bại',
+      'Không có biên bản nào hợp lệ để thực hiện.'
+    );
+  }
+  return;
+}
+
+// Nếu vừa có đúng vừa có sai -> báo lỗi cho phần sai nhưng vẫn xử lý phần đúng
+if (invalidRows.length > 0) {
+  const messages = buildErrorMessages(invalidRows);
+  this.notification.warning(
+    'Danh sách biên bản không được duyệt:',
+    messages.join('\n')
+  );
+}
+  const currentDate = new Date().toISOString();
+
+  // payload chỉ cho validRows
+  const payloads = validRows.map(row => {
+    const ID = row.ID;
+
+    const updatePayload: {
+      tSAssetRecovery: {
+        ID: number;
+        Status?: number;
+        IsApproveAccountant?: boolean;
+        IsApprovedPersonalProperty?: boolean;
+        DateApproveAccountant?: string;
+        DateApprovedPersonalProperty?: string;
+        DateApprovedHR?: string;
+      };
+    } = { tSAssetRecovery: { ID } };
+
+    switch (action) {
+      case 1:
+        updatePayload.tSAssetRecovery.IsApprovedPersonalProperty = true;
+        updatePayload.tSAssetRecovery.DateApprovedPersonalProperty = currentDate;
+        break;
+
+      case 2:
+        updatePayload.tSAssetRecovery.IsApprovedPersonalProperty = false;
+        updatePayload.tSAssetRecovery.DateApprovedPersonalProperty = currentDate;
+        break;
+
+      case 3:
+        updatePayload.tSAssetRecovery.Status = 1;
+        updatePayload.tSAssetRecovery.DateApprovedHR = currentDate;
+        break;
+
+      case 4:
+        updatePayload.tSAssetRecovery.Status = 0;
+        updatePayload.tSAssetRecovery.DateApprovedHR = currentDate;
+        break;
+
+      case 5:
+        updatePayload.tSAssetRecovery.IsApproveAccountant = true;
+        updatePayload.tSAssetRecovery.DateApproveAccountant = currentDate;
+        break;
+
+      case 6:
+        updatePayload.tSAssetRecovery.IsApproveAccountant = false;
+        updatePayload.tSAssetRecovery.DateApproveAccountant = currentDate;
+        break;
     }
 
-    // Nếu vừa có đúng vừa có sai -> báo các bản ghi bị bỏ qua
-    if (invalidRows.length > 0) {
-      const detail = invalidRows.map(x => x.message).join('\n');
-      this.notification.warning('Danh sách biên bản không được duyệt:', detail);
+    return updatePayload;
+  });
+
+  const requests$ = payloads.map(payload => {
+    if (action === 1 || action === 2) {
+      return this.assetsRecoveryService.saveDataPersonal(payload);
+    } else if (action === 5 || action === 6) {
+      return this.assetsRecoveryService.saveDataKT(payload);
+    } else {
+      return this.assetsRecoveryService.saveAssetRecovery(payload);
     }
+  });
 
-    const currentDate = new Date().toISOString();
-
-    // Chỉ build payload từ validRows
-    const payloads = validRows.map(row => {
-      const ID = row.ID;
-
-      const updatePayload: {
-        tSAssetRecovery: {
-          ID: number;
-          Status?: number;
-          IsApproveAccountant?: boolean;
-          IsApprovedPersonalProperty?: boolean;
-          DateApproveAccountant?: string;
-          DateApprovedPersonalProperty?: string;
-          DateApprovedHR?: string;
-        };
-      } = { tSAssetRecovery: { ID } };
-
-      switch (action) {
-        case 1:
-          updatePayload.tSAssetRecovery.IsApprovedPersonalProperty = true;
-          updatePayload.tSAssetRecovery.DateApprovedPersonalProperty = currentDate;
-          break;
-
-        case 2:
-          updatePayload.tSAssetRecovery.IsApprovedPersonalProperty = false;
-          updatePayload.tSAssetRecovery.DateApprovedPersonalProperty = currentDate;
-          break;
-
-        case 3:
-          updatePayload.tSAssetRecovery.Status = 1;
-          updatePayload.tSAssetRecovery.DateApprovedHR = currentDate;
-          break;
-
-        case 4:
-          updatePayload.tSAssetRecovery.Status = 0;
-          updatePayload.tSAssetRecovery.DateApprovedHR = currentDate;
-          break;
-
-        case 5:
-          updatePayload.tSAssetRecovery.IsApproveAccountant = true;
-          updatePayload.tSAssetRecovery.DateApproveAccountant = currentDate;
-          break;
-
-        case 6:
-          updatePayload.tSAssetRecovery.IsApproveAccountant = false;
-          updatePayload.tSAssetRecovery.DateApproveAccountant = currentDate;
-          break;
-      }
-
-      return updatePayload;
-    });
-
-    // Chọn service theo action
-    const requests$ = payloads.map(payload => {
-      if (action === 1 || action === 2) {
-        return this.assetsRecoveryService.saveDataPersonal(payload);
-      } else if (action === 5 || action === 6) {
-        return this.assetsRecoveryService.saveDataKT(payload);
-      } else {
-        // 3, 4
-        return this.assetsRecoveryService.saveAssetRecovery(payload);
-      }
-    });
-
-    // Logic đặc biệt cho action 5: chỉ chạy updateOnApprove nếu dòng đang chọn là hợp lệ
-    if (action === 5) {
-      const lastSelectedIsValid = validRows.some(
-        row => row.ID === this.selectedRow?.ID
-      );
-      if (lastSelectedIsValid) {
-        this.updateOnApprove();
-      }
-    }
-
-    forkJoin(requests$).subscribe({
-      next: () => {
-        const approvedCodes = validRows
-          .map(x => x.CodeReport ?? x.Code)
-          .join(', ');
+  forkJoin(requests$).subscribe({
+    next: () => {
+      const approvedCodes = validRows
+        .map(x => x.CodeReport ?? x.Code)
+        .join(', ');
 
         this.notification.success(
           NOTIFICATION_TITLE.success,
           `Đã cập nhật thành công các biên bản: ${approvedCodes}`
         );
 
+      if (action === 5 && validRows.length > 0) {
+        this.updateOnApproveMultiple(validRows);
+      } else {
         this.getRecovery();
         this.assetRecoveryData = [];
         this.drawDetail();
@@ -638,36 +708,75 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       }
     });
   }
-  onAddRecovery() {
-    const modalRef = this.ngbModal.open(TsAssetRecoveryFormComponent, {
-      size: 'xl',
-      backdrop: 'static',
-      keyboard: false,
-      centered: true,
-    });
-    modalRef.componentInstance.dataInput = this.modalData;
-    modalRef.result.then(
-      (result) => {
-        this.getRecovery();
-      },
-      (dismissed) => {
-        console.log('Modal dismissed');
-      }
-    );
-  }
+ onAddRecovery() {
+  const modalRef = this.ngbModal.open(TsAssetRecoveryFormComponent, {
+    size: 'xl',
+    backdrop: 'static',
+    keyboard: false,
+    centered: true,
+  });
+
+  // ✅ Dữ liệu mặc định cho THÊM MỚI
+  modalRef.componentInstance.dataInput = {
+    ID: 0,
+    Code: '',
+    DateRecovery: DateTime.now().toISODate(),
+    EmployeeReturnID: null,
+    EmployeeRecoveryID: null,
+    DepartmentReturn: '',
+    PossitionReturn: '',
+    DepartmentRecovery: '',
+    PossitionRecovery: '',
+    Status: 0,
+    Note: '',
+    IsApproveAccountant: false,
+    IsApprovedPersonalProperty: false
+  };
+
+  modalRef.result.then(
+    () => {
+      this.getRecovery();
+    },
+    () => {
+      console.log('Modal dismissed');
+    }
+  );
+}
+
   onEditRecovery() {
-    const selected = this.recoveryTable?.getSelectedData();
+    if (!this.recoveryTable) {
+      this.notification.warning('Thông báo', 'Bảng chưa khởi tạo, không thể sửa!');
+      return;
+    }
+
+    const selected = this.recoveryTable.getSelectedData();
     if (!selected || selected.length === 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một đơn vị để sửa!');
       return;
     }
+
     const selectedAssets = { ...selected[0] };
+
+    // ✅ CHECK: nếu cá nhân đã duyệt thì không cho sửa
+    const isPersonalApproved = ['true', true, 1, '1'].includes(
+      selectedAssets.IsApprovedPersonalProperty
+    );
+
+    if (isPersonalApproved) {
+      this.notification.warning(
+        'Thông báo',
+        `Biên bản ${selectedAssets.Code} đã được cá nhân duyệt, không thể sửa.`
+      );
+      return;
+    }
+
     const modalRef = this.ngbModal.open(TsAssetRecoveryFormComponent, {
       size: 'lg',
       backdrop: 'static',
       keyboard: false,
       centered: true
     });
+
     modalRef.componentInstance.dataInput = selectedAssets;
     modalRef.result.then(
       (result) => {
@@ -679,6 +788,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       }
     );
   }
+
   updateOnApprove() {
     const selectedDetail = this.recoveryDetailTable?.getData();
     const selectedRecovery = this.recoveryTable?.getSelectedData()?.[0];
@@ -831,16 +941,16 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
         TSAssetName: d.TSAssetName,
         TSCodeNCC: d.TSCodeNCC,
         UnitName: d.UnitName,
-        TinhTrang: d.TinhTrang,
-
+        Status: d.Status,
       }))
     };
     this.assetsRecoveryService.exportRecoveryReport(payload).subscribe({
       next: (blob: Blob) => {
-        const fileName = `PhieuBanGiao_${selectedMaster.CodeReport}.xlsx`;
+        const fileName = `PhieuBanGiao_${selectedMaster.Code}.xlsx`;
         saveAs(blob, fileName); // 🟢 Lưu file Excel
       },
       error: (err) => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xuất file!');
         this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xuất file!');
         console.error(err);
       }

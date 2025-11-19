@@ -1,0 +1,36 @@
+export interface AGVProduct {
+  ID: number;
+  ProductGroupRTCID: number;
+  ProductCode: string;
+  ProductName: string;
+  FirmID: number;
+  UnitCountID: number;
+  ProductLocationID: number;
+  Note: string;
+  Resolution: string;
+  MonoColor: string;
+  SensorSize: string;
+  DataInterface: string;
+  LensMount: string;
+  ShutterMode: string;
+  PixelSize: string;
+  SensorSizeMax: string;
+  MOD: string;
+  FNo: string;
+  WD: string;
+  LampType: string;
+  LampColor: string;
+  LampPower: string;
+  LampWattage: string;
+  Magnification: string;
+  FocalLength: string;
+  InputValue: string;
+  OutputValue: string;
+  CurrentIntensityMax: string;
+  Size: string;
+  IsDeleted: boolean;
+  CreatedBy: string;
+  CreatedDate: Date;
+  UpdatedBy: string;
+  UpdatedDate: Date;
+}

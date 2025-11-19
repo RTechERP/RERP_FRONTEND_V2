@@ -176,7 +176,7 @@ export class OverTimeTypeComponent implements OnInit, AfterViewInit{
 
   onSubmit() {
     if (this.overTimeTypeForm.valid) {
-      
+
         this.overTimeService.saveEmployeeTypeOverTime(this.overTimeTypeForm.value).subscribe({
           next: (response) => {
             this.notification.success(NOTIFICATION_TITLE.success, 'Lưu kiểu làm thêm mới thành công');

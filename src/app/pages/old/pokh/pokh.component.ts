@@ -65,6 +65,8 @@ import { PoRequestBuyComponent } from '../po-request-buy/po-request-buy.componen
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
 import { PokhDetailComponent } from '../pokh-detail/pokh-detail.component';
 import { NOTIFICATION_TITLE } from '../../../app.config';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { PoRequestPriceRtcComponent } from '../po-request-price-rtc/po-request-price-rtc.component';
 @Component({
   selector: 'app-pokh',
   imports: [
@@ -92,6 +94,7 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
     NzSwitchModule,
     NzCheckboxModule,
     CommonModule,
+    HasPermissionDirective,
   ],
   templateUrl: './pokh.component.html',
   styleUrl: './pokh.component.css',
@@ -102,6 +105,12 @@ export class PokhComponent implements OnInit, AfterViewInit {
   tbProductDetailTreeListElement!: ElementRef;
   @ViewChild('tbDetailUser', { static: false })
   tbDetailUserElement!: ElementRef;
+  @ViewChild('tb_POKH', { static: false })
+  tb_POKHElement!: ElementRef;
+  @ViewChild('tb_POKHProduct', { static: false })
+  tb_POKHProductElement!: ElementRef;
+  @ViewChild('tb_POKHFile', { static: false })
+  tb_POKHFileElement!: ElementRef;
   sizeSearch: string = '0';
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
@@ -178,8 +187,12 @@ export class PokhComponent implements OnInit, AfterViewInit {
   //#region : Hàm khởi tạo
   ngOnInit(): void {
     const endDate = new Date();
+    endDate.setHours(23, 59, 59, 999);
+    
     const startDate = new Date();
     startDate.setMonth(endDate.getMonth() - 3);
+    startDate.setHours(0, 0, 0, 0);
+    
     this.filters.startDate = startDate;
     this.filters.endDate = endDate;
     this.loadPOKH();
@@ -210,6 +223,25 @@ export class PokhComponent implements OnInit, AfterViewInit {
     return (params: any) => {
       console.log('Params từ Tabulator:', params);
 
+      const formatDateToLocalISO = (date: Date, isStartDate: boolean = true): string => {
+        const dateCopy = new Date(date);
+        
+        if (isStartDate) {
+          dateCopy.setHours(0, 0, 0, 0);
+        } else {
+          dateCopy.setHours(23, 59, 59, 999);
+        }
+        
+        const timezoneOffset = dateCopy.getTimezoneOffset();
+        
+        const adjustedDate = new Date(dateCopy.getTime() - timezoneOffset * 60 * 1000);
+        
+        return adjustedDate.toISOString();
+      };
+
+      const startDate = this.filters.startDate || new Date();
+      const endDate = this.filters.endDate || new Date();
+
       return {
         filterText: this.filters.filterText || '',
         customerId: this.filters.customerId || 0,
@@ -219,10 +251,8 @@ export class PokhComponent implements OnInit, AfterViewInit {
         group: this.filters.group || 0,
         warehouseId: this.filters.warehouseId || 1,
         employeeTeamSaleId: this.filters.employeeTeamSaleId || 0,
-        startDate:
-          this.filters.startDate?.toISOString() || new Date().toISOString(),
-        endDate:
-          this.filters.endDate?.toISOString() || new Date().toISOString(),
+        startDate: formatDateToLocalISO(startDate, true),
+        endDate: formatDateToLocalISO(endDate, false),
       };
     };
   }
@@ -959,6 +989,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
             if (response.status === 1) {
               this.notification.success(NOTIFICATION_TITLE.success, 'Xóa PO thành công');
               this.loadPOKH();
+              this.tb_POKH.setData(null, true);
               this.selectedRow = null;
               this.selectedId = 0;
             } else {
@@ -972,6 +1003,35 @@ export class PokhComponent implements OnInit, AfterViewInit {
         });
       },
     });
+  }
+
+  openPORequestPriceRTC() {
+    if (!this.selectedId) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn POKH trước!');
+      return;
+    }
+    this.isModalOpen = true;
+    this.modalRef = this.modalService.open(PoRequestPriceRtcComponent, {
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+      size: 'xl',
+    });
+
+    // Truyền dữ liệu sang modal con
+    this.modalRef.componentInstance.id = this.selectedId;
+
+    this.modalRef.result.then(
+      (result: any) => {
+        console.log('result: ', result);
+        if (result.success) {
+
+        }
+      },
+      (reason: any) => {
+        console.log('Modal dismissed:', reason);
+      }
+    );
   }
 
   openFollowProductReturnModal() {
@@ -1103,12 +1163,25 @@ export class PokhComponent implements OnInit, AfterViewInit {
     // Truyền dữ liệu sang modal con
     this.modalRef.componentInstance.isEditMode = this.isEditMode;
     this.modalRef.componentInstance.selectedId = this.selectedId;
+
+    this.modalRef.result.then(
+      (result: any) => {
+        console.log('result: ', result);
+        if (result.success) {
+          this.loadPOKH();
+          this.tb_POKH.setData(null, true);
+        }
+      },
+      (reason: any) => {
+        console.log('Modal dismissed:', reason);
+      }
+    );
   }
 
   //#endregion
   //#region : Các hàm vẽ bảng
   drawPOKHTable(): void {
-    this.tb_POKH = new Tabulator(`#tb_POKH`, {
+    this.tb_POKH = new Tabulator(this.tb_POKHElement.nativeElement, {
       layout: 'fitDataFill',
       height: '87vh',
       selectableRows: 1,
@@ -1163,8 +1236,14 @@ export class PokhComponent implements OnInit, AfterViewInit {
           },
         },
         {
+          title: 'ID',
+          field: 'ID',
+          sorter: 'number',
+          visible: false,
+        },
+        {
           title: 'Trạng thái',
-          field: 'StatusText',
+          field: 'StatusTextNew',
           sorter: 'string',
           width: 150,
         },
@@ -1181,7 +1260,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
           </div>`;
           },
         },
-        { title: 'Số POKH', field: 'ID', sorter: 'number', width: 100 },
+        { title: 'Số POKH', field: 'PONumber', sorter: 'number', width: 100 },
         { title: 'Mã PO', field: 'POCode', sorter: 'string', width: 150 },
         {
           title: 'Khách hàng',
@@ -1201,6 +1280,16 @@ export class PokhComponent implements OnInit, AfterViewInit {
           field: 'ReceivedDatePO',
           sorter: 'date',
           width: 150,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (!value) return '';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          }
         },
         {
           title: 'Loại tiền',
@@ -1304,7 +1393,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
   }
 
   initProductTable(): void {
-    this.tb_POKHProduct = new Tabulator(`#tb_POKHProduct`, {
+    this.tb_POKHProduct = new Tabulator(this.tb_POKHProductElement.nativeElement, {
       data: this.dataPOKHProduct,
       dataTree: true,
       layout: 'fitDataFill',
@@ -1314,6 +1403,26 @@ export class PokhComponent implements OnInit, AfterViewInit {
       height: '55vh',
       movableColumns: true,
       resizableRows: true,
+      langs: {
+        vi: {
+          pagination: {
+            first: '<<',
+            last: '>>',
+            prev: '<',
+            next: '>',
+          },
+        },
+      },
+      locale: 'vi',
+      columnDefaults: {
+        headerWordWrap: true,
+        headerVertical: false,
+        headerHozAlign: 'center',
+        minWidth: 60,
+        hozAlign: 'left',
+        vertAlign: 'middle',
+        resizable: true,
+      },
       columns: [
         {
           title: 'STT',
@@ -1541,6 +1650,16 @@ export class PokhComponent implements OnInit, AfterViewInit {
           field: 'DeliveryRequestedDate',
           sorter: 'string',
           width: 200,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (!value) return '';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          }
         },
         {
           title: 'Thanh toán dự kiến',
@@ -1553,6 +1672,16 @@ export class PokhComponent implements OnInit, AfterViewInit {
           field: 'BillDate',
           sorter: 'string',
           width: 200,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (!value) return '';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          }
         },
         {
           title: 'Số hóa đơn',
@@ -1566,6 +1695,16 @@ export class PokhComponent implements OnInit, AfterViewInit {
           field: 'PayDate',
           sorter: 'string',
           width: 200,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (!value) return '';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          }
         },
         { title: 'Nhóm', field: 'GroupPO', sorter: 'string', width: 100 },
         {
@@ -1573,6 +1712,16 @@ export class PokhComponent implements OnInit, AfterViewInit {
           field: 'ActualDeliveryDate',
           sorter: 'string',
           width: 200,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (!value) return '';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          }
         },
         {
           title: 'Ngày tiền về',
@@ -1584,12 +1733,10 @@ export class PokhComponent implements OnInit, AfterViewInit {
     });
   }
   initFileTable(): void {
-    this.tb_POKHFile = new Tabulator(`#tb_POKHFile`, {
+    this.tb_POKHFile = new Tabulator(this.tb_POKHFileElement.nativeElement, {
       data: this.dataPOKHFiles,
       layout: 'fitDataFill',
-      pagination: true,
-      paginationSize: 5,
-      height: '30vh',
+      height: '29vh',
       movableColumns: true,
       resizableRows: true,
       columns: [

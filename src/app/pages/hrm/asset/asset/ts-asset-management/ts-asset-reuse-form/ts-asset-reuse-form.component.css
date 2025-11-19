@@ -102,3 +102,18 @@ legend {
 .fs-12 {
   font-size: 0.75rem;
 }
+:host {
+  font-size: 12px !important;
+}
+
+/* Bảo đảm áp dụng cho toàn modal */
+:host ::ng-deep .modal-content,
+:host ::ng-deep .modal-body,
+:host ::ng-deep .modal-footer,
+:host ::ng-deep .form-control,
+:host ::ng-deep label,
+:host ::ng-deep button,
+:host ::ng-deep textarea,
+:host ::ng-deep input {
+  font-size: 12px !important;
+}

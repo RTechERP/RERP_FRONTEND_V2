@@ -26,8 +26,7 @@ import { EmployeeService } from '../../employee/employee-service/employee.servic
 import { FoodOrderService } from '../food-order-service/food-order.service';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
-import { ProjectService } from '../../../old/project/project-service/project.service';
-
+import { ProjectService } from '../../../project/project-service/project.service';
 @Component({
   selector: 'app-summary-food-order',
   templateUrl: './summary-food-order.component.html',
@@ -137,6 +136,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
       },
       error: (error) => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách phòng ban: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách phòng ban: ' + error.message);
       }
     });
   }
@@ -170,6 +170,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
       },
       error: (error) => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách đặt cơm: ' + error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách đặt cơm: ' + error.message);
         this.isLoading = false;
       }
     })
@@ -184,6 +185,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
         this.isLoading = false;
       },
       error: (error) => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách báo cáo cơm ca: ' + error.message);
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách báo cáo cơm ca: ' + error.message);
         this.isLoading = false;
       }
@@ -217,10 +219,12 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
     const daysInMonth = new Date(year, month, 0).getDate();
     const columns = [];
 
+
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month - 1, day);
       const dayOfWeek = this.getDayOfWeekName(date.getDay());
       const isWeekend = dayOfWeek === 'T7' || dayOfWeek === 'CN';
+
 
       columns.push({
         title: dayOfWeek,
@@ -246,6 +250,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
       });
     }
 
+
     // // Thêm cột tổng
     // columns.push({
     //   title: 'Tổng',
@@ -253,6 +258,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
     //   hozAlign: 'left',
     //   headerHozAlign: 'center'
     // });
+
 
     return columns;
   }
@@ -299,6 +305,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
 
 
   private initializeReportTabulator(container: HTMLElement): void {
+
 
     const month = this.searchForm.get('month')?.value;
     const year = this.searchForm.get('year')?.value || new Date().getFullYear();
@@ -365,6 +372,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
     const month = this.searchForm.get('month')?.value;
     const year = this.searchForm.get('year')?.value;
 
+
     // Hàm lấy thứ trong tuần từ ngày cụ thể
     const getDayOfWeek = (day: number, month: number, year: number) => {
       const date = new Date(year, month - 1, day);
@@ -415,6 +423,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
       return row;
     });
 
+
     const workbook = new ExcelJS.Workbook();
     const worksheetFoodOrder = workbook.addWorksheet('Báo cáo đặt cơm');
     const worksheetMealReport = workbook.addWorksheet('Báo cáo ăn ca');
@@ -457,6 +466,7 @@ export class SummaryFoodOrderComponent implements OnInit, AfterViewInit {
     dayOfWeekRow.getCell(1).value = '';
     dayOfWeekRow.getCell(1).font = { name: 'Tahoma', size: 9, bold: true };
     dayOfWeekRow.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
+
 
     // Bỏ qua 3 cột đầu (STT, Mã NV, Tên NV, Chức vụ)
     for (let i = 5; i <= 35; i++) {

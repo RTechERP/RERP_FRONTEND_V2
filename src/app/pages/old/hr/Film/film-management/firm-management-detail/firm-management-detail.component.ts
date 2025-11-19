@@ -69,7 +69,7 @@ export class FirmManagementDetailComponent implements OnInit, AfterViewInit {
   filmData: any[] = [];
   maxSTT: number = 0;
 
-  
+
   public activeModal = inject(NgbActiveModal);
   constructor(private notification: NzNotificationService,
     private filmManagementService: FilmManagementService,
@@ -127,7 +127,7 @@ export class FirmManagementDetailComponent implements OnInit, AfterViewInit {
     this.filmManagementService.getFilm(paramm).subscribe({
       next: (res: any) => {
         this.filmData = res.data;
-        this.maxSTT = res.data.maxSTT + 1; 
+        this.maxSTT = res.data.maxSTT + 1;
       },
       error: (err: any) => {
         console.error(err);

@@ -255,7 +255,7 @@ export class EmployeePurchaseDetailComponent implements OnInit, OnDestroy {
   // ✅ Employee selection change handler
   onEmployeeChange(): void {
     const selectedEmployeeId = this.employeePurchaseForm.get('selectedEmployeeId')?.value;
-    
+
     if (selectedEmployeeId) {
       let selectedEmployee: any = null;
 
@@ -290,7 +290,7 @@ export class EmployeePurchaseDetailComponent implements OnInit, OnDestroy {
   // ✅ Company selection change handler
   onCompanyChange(): void {
     const selectedCompanyId = this.employeePurchaseForm.get('selectedCompanyId')?.value;
-    
+
     if (selectedCompanyId) {
       const selectedCompany = this.companyList.find(
         (c) => c.ID === selectedCompanyId
@@ -351,7 +351,7 @@ export class EmployeePurchaseDetailComponent implements OnInit, OnDestroy {
   private async checkDuplicateEmployee(): Promise<boolean> {
     const selectedEmployeeId = this.employeePurchaseForm.get('selectedEmployeeId')?.value;
     const selectedCompanyId = this.employeePurchaseForm.get('selectedCompanyId')?.value;
-    
+
     if (!selectedEmployeeId || !selectedCompanyId) return false;
 
     return new Promise((resolve) => {
@@ -385,11 +385,11 @@ export class EmployeePurchaseDetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  
+
   private checkDuplicateRealTime(): void {
     const selectedEmployeeId = this.employeePurchaseForm.get('selectedEmployeeId')?.value;
     const selectedCompanyId = this.employeePurchaseForm.get('selectedCompanyId')?.value;
-    
+
     if (!selectedEmployeeId || !selectedCompanyId) {
       this.clearDuplicateWarning();
       return;
@@ -422,7 +422,7 @@ export class EmployeePurchaseDetailComponent implements OnInit, OnDestroy {
     this.duplicateMessage = '';
   }
 
-  
+
   isFormValid(): boolean {
     return this.employeePurchaseForm.valid && !this.isDuplicateWarning;
   }
@@ -439,7 +439,7 @@ export class EmployeePurchaseDetailComponent implements OnInit, OnDestroy {
     return phoneRegex.test(cleanPhone);
   }
 
- 
+
   async saveEmployeePurchase(): Promise<void> {
     // Mark all fields as touched to show validation errors
     this.employeePurchaseForm.markAllAsTouched();

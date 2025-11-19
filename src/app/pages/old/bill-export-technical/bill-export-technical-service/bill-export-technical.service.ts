@@ -45,4 +45,26 @@ export class BillExportTechnicalService {
       responseType: 'blob',
     });
   }
+  approveAction(ids: number[], action: 'approve' | 'unapprove') {
+    return this.http.post<any>(`${this.url}approve-action`, { IDs: ids, Action: action });
+  }
+  getEmployees(request: { status: number; departmentid: number; keyword: string }): Observable<any> {
+    const params = new HttpParams()
+      .set('status', String(request.status ?? 0))
+      .set('departmentid', String(request.departmentid ?? 0))
+      .set('keyword', String(request.keyword ?? ''));
+    return this.http.get<any>(`${environment.host}api/Employee/getemployees`, { params });
+  }
+  getCustomers(page: number, size: number, filterText: string, employeeId: number, groupId: number): Observable<any> {
+    const params = new HttpParams()
+      .set('page', String(page))
+      .set('size', String(size))
+      .set('filterText', String(filterText ?? ''))
+      .set('employeeId', String(employeeId ?? 0))
+      .set('groupId', String(groupId ?? 0));
+    return this.http.get<any>(`${environment.host}api/Customer/get-data-by-procedure`, { params });
+  }
+  getNCC(): Observable<any> {
+    return this.http.get<any>(`${environment.host}api/SupplierSale`);
+  }
 }

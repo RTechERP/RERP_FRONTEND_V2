@@ -35,6 +35,7 @@ import { TsAssetChooseAssetsComponent } from '../../ts-asset-allocation/ts-asset
 import { right } from '@popperjs/core';
 import { TsAssetTransferService } from '../ts-asset-transfer-service/ts-asset-transfer.service';
 import { TsAssetTranferChoseAssetComponent } from '../ts-asset-tranfer-chose-asset/ts-asset-tranfer-chose-asset.component';
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 @Component({
   standalone: true,
   selector: 'app-ts-asset-transfer-form',

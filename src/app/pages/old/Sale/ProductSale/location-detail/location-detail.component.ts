@@ -16,6 +16,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ProductsaleServiceService } from '../product-sale-service/product-sale-service.service';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 interface Location {
   ID?: number,
   LocationCode: string,
@@ -111,14 +112,14 @@ export class LocationDetailComponent implements OnInit, AfterViewInit {
     this.productsaleService.saveDataLocation(payload).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success('Thông báo', 'Thêm mới thành công!');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công!');
           this.closeModal();
         }else {
-          this.notification.warning('Thông báo', res.message || 'Không thể thêm vị trí!');
+          this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể thêm vị trí!');
         }
       },
       error: (err) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi thêm mới!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi thêm mới!');
         console.error(err);
       }
     });

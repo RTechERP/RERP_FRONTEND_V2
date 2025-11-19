@@ -334,14 +334,14 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
   }
   onDeleteAssetTranfer() {
   if (!this.assetTranferTable) {
-    this.notification.warning('Thông báo', 'Lỗi bảng, không thể thao tác');
+    this.notification.warning(NOTIFICATION_TITLE.warning, 'Lỗi bảng, không thể thao tác');
     return;
   }
 
   const selectedRows = this.assetTranferTable.getSelectedData() as any[];
 
   if (!selectedRows || selectedRows.length === 0) {
-    this.notification.warning('Thông báo', 'Chưa chọn biên bản để xóa!');
+    this.notification.warning(NOTIFICATION_TITLE.warning, 'Chưa chọn biên bản để xóa!');
     return;
   }
 
@@ -396,8 +396,7 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
       );
 
       return forkJoin(requests$).toPromise().then(() => {
-        this.notification.success(
-          'Thành công',
+        this.notification.success(NOTIFICATION_TITLE.success,
           `Đã xóa thành công các biên bản: ${codesText}`
         );
         this.getTranferAsset();
@@ -885,7 +884,7 @@ onAddATranfer() {
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu để xuất Excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất Excel!');
       return;
     }
 
@@ -966,7 +965,7 @@ onAddATranfer() {
     const details = this.assetTranferDetailTable?.getData();
 
     if (!selectedMaster || !details || details.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu để xuất Excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất Excel!');
       return;
     }
     const payload = {
@@ -1011,4 +1010,3 @@ onAddATranfer() {
   }
 
 }
-

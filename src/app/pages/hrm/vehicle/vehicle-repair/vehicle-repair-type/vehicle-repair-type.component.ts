@@ -168,7 +168,7 @@ export class VehicleRepairTypeComponent implements OnInit, AfterViewInit {
   editType() {
     const rows = this.vehicleRepairTypeTable?.getSelectedRows() ?? [];
     if (rows.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một loại để sửa.');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một loại để sửa.');
       return;
     }
     const rowData = rows[0].getData(); // <— lấy data, KHÔNG spread mảng

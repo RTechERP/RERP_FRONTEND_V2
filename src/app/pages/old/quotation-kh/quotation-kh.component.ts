@@ -331,7 +331,7 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
         this.quotationKhDetailService.save(requestBody).subscribe({
           next: (response) => {
             if (response.status === 1) {
-              this.notification.success('Thông báo', 'Xóa báo giá thành công!');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Xóa báo giá thành công!');
               this.selectedId = 0;
               this.mainTable.setData(); //Reload table
             } else {

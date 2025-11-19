@@ -59,7 +59,7 @@ export class TsAssetSourceFormComponent implements OnInit {
   const name = this.SourceName?.trim();
 
   if (!code || !name) {
-    this.notification.warning('Cảnh báo', 'Vui lòng nhập đầy đủ mã và tên nguồn gốc tài sản');
+    this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập đầy đủ mã và tên nguồn gốc tài sản');
     return;
   }
 
@@ -76,7 +76,7 @@ export class TsAssetSourceFormComponent implements OnInit {
   this.sourceService.SaveData(payloadType).subscribe({
     next: (res: any) => {
       if (res?.status === 1) {
-        this.notification.success('Thành công', 'Lưu nguồn gốc tài sản thành công');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Lưu nguồn gốc tài sản thành công');
         this.loadAssetType();
         this.formSubmitted.emit();
         this.activeModal.close(true);

@@ -1,0 +1,167 @@
+<div class="modal-dialog-scrollable">
+    <div class="modal-header bg-primary align-items-center ps-2 border-0">
+        <h6 class="text-light text-uppercase m-0" style="padding: 0,5rem">
+            Chi tiết thưởng phạt
+        </h6>
+        <button type="button" class="btn-close" (click)="activeModal.dismiss()" aria-label="Close"></button>
+    </div>
+
+    <div class="modal-body p-3">
+        <form nz-form class="container-fluid">
+
+            <!-- Hàng đầu tiên -->
+            <div nz-row [nzGutter]="16" class="mb-3">
+
+                <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24" class="fs-12 p-0">
+                            Tháng
+                        </nz-form-label>
+                        <nz-form-control [nzSpan]="24">
+                            <nz-select [(ngModel)]="month" name="month" class="w-100" nzAllowClear
+                                nzPlaceHolder="Chọn tháng">
+                                @for (i of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; track
+                                $index) {
+                                <nz-option class="text-center" [nzValue]="i" [nzLabel]="'Tháng ' + i"></nz-option>
+                                }
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24" class="fs-12 p-0">
+                            Năm
+                        </nz-form-label>
+                        <nz-form-control [nzSpan]="24">
+                            <nz-date-picker [(ngModel)]="year" nzMode="year" name="year" class="w-100"></nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                        <nz-form-label class="fs-12 p-0" [nzSpan]="24">Nhân viên <span class="ps-1"
+                                style="color: red;">(*)</span> </nz-form-label>
+                        <nz-form-control [nzSpan]="24">
+                            <nz-select name="employeeId" class="w-100" nzShowSearch nzAllowClear
+                                (ngModelChange)="checkEmployee($event)" nzPlaceHolder="Chọn nhân viên"
+                                [(ngModel)]="employeeId">
+                                @for (parent of employees; track $index) {
+                                <nz-option-group [nzLabel]="parent.label">
+                                    @for (child of parent.options; track $index) {
+                                    <nz-option nzCustomContent="true" [nzLabel]="child.item.FullName"
+                                        [nzValue]="child.item.EmployeeID">{{
+                                        child.item.Code + " - " + child.item.FullName
+                                        }}</nz-option>
+                                    }
+                                </nz-option-group>
+                                }
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24" class="fs-12 p-0">
+                            Thưởng KPIs
+                        </nz-form-label>
+                        <nz-form-control [nzSpan]="24">
+                            <input nz-input name="KPIBonus" (input)="onMoneyInputDynamic($event, 'KPIBonus')"
+                                [ngModel]="formatNumber(KPIBonus)" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24" class="fs-12 p-0">
+                            Thưởng khác
+                        </nz-form-label>
+                        <nz-form-control [nzSpan]="24">
+                            <input nz-input name="OtherBonus" (input)="onMoneyInputDynamic($event, 'OtherBonus')"
+                                [ngModel]="formatNumber(OtherBonus)" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24" class="fs-12 p-0">
+                            Gửi xe ô tô
+                        </nz-form-label>
+                        <nz-form-control [nzSpan]="24">
+                            <input nz-input name="ParkingMoney" (input)="onMoneyInputDynamic($event, 'ParkingMoney')"
+                                [ngModel]="formatNumber(ParkingMoney)" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24" class="fs-12 p-0">
+                            Phạt 5s
+                        </nz-form-label>
+                        <nz-form-control [nzSpan]="24">
+                            <input nz-input name="Punish5S" (input)="onMoneyInputDynamic($event, 'Punish5S')"
+                                [ngModel]="formatNumber(Punish5S)" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24" class="fs-12 p-0">
+                            Khoản trừ khác
+                        </nz-form-label>
+                        <nz-form-control [nzSpan]="24">
+                            <input nz-input name="OtherDeduction"
+                                (input)="onMoneyInputDynamic($event, 'OtherDeduction')"
+                                [ngModel]="formatNumber(OtherDeduction)" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24" class="fs-12 p-0">
+                            BHXH
+                        </nz-form-label>
+                        <nz-form-control [nzSpan]="24">
+                            <input nz-input name="BHXH" (input)="onMoneyInputDynamic($event, 'BHXH')"
+                                [ngModel]="formatNumber(BHXH)" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24" class="fs-12 p-0">
+                            Ứng lương
+                        </nz-form-label>
+                        <nz-form-control [nzSpan]="24">
+                            <input nz-input name="SalaryAdvance" (input)="onMoneyInputDynamic($event, 'SalaryAdvance')"
+                                [ngModel]="formatNumber(SalaryAdvance)" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="24">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24" class="fs-12 p-0">
+                            Note
+                        </nz-form-label>
+                        <nz-form-control [nzSpan]="24">
+                            <textarea nz-input rows="6" name="Note" [(ngModel)]="Note"></textarea>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+            </div>
+        </form>
+
+
+    </div>
+
+    <div class="modal-footer">
+        <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">
+            Đóng
+        </button>
+        <button nz-button nzType="primary" [nzLoading]="isSave" (click)="onSubmit()">
+            Lưu
+        </button>
+    </div>
+</div>

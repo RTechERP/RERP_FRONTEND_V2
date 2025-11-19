@@ -82,7 +82,7 @@ export class RulePayDetailComponent implements OnInit, AfterViewInit, OnChanges 
       c.markAsTouched();
       c.updateValueAndValidity({ onlySelf: true });
     });
-    this.notification.warning('Cảnh báo', 'Vui lòng điền đủ thông tin bắt buộc');
+    this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đủ thông tin bắt buộc');
     return;
   }
     const now = new Date();
@@ -101,11 +101,11 @@ export class RulePayDetailComponent implements OnInit, AfterViewInit, OnChanges 
     };
     this.rulePayService.saveData(payload).subscribe({
       next: (res) => {
-        this.notification.success('Thông báo', 'Thêm thành công!');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Thêm thành công!');
         this.activeModal.close('success');
       },
       error: (err) => {
-        this.notification.error('Thông báo', err.error?.message || 'Có lỗi xảy ra khi thêm dữ liệu!');
+        this.notification.error(NOTIFICATION_TITLE.error, err.error?.message || 'Có lỗi xảy ra khi thêm dữ liệu!');
       }
     });
   }
@@ -116,7 +116,7 @@ if (this.validateForm.invalid) {
       c.markAsTouched();
       c.updateValueAndValidity({ onlySelf: true });
     });
-    this.notification.warning('Cảnh báo', 'Vui lòng điền đủ thông tin bắt buộc');
+    this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đủ thông tin bắt buộc');
     return;
   }
     const now = new Date();
@@ -143,12 +143,12 @@ if (this.validateForm.invalid) {
     console.log('Update payload:', payload);
     this.rulePayService.saveData(payload).subscribe({
       next: (res) => {
-        this.notification.success('Thông báo', 'Cập nhật thành công!');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công!');
         this.activeModal.close('success');
       },
       error: (err) => {
         console.error('Error updating:', err);
-        this.notification.error('Thông báo', err.error?.message || 'Có lỗi xảy ra khi cập nhật dữ liệu!');
+        this.notification.error(NOTIFICATION_TITLE.error, err.error?.message || 'Có lỗi xảy ra khi cập nhật dữ liệu!');
       }
     });
   }

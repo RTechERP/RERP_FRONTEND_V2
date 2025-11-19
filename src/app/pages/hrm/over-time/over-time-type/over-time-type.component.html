@@ -1,0 +1,94 @@
+<ng-container class="w-100">
+  <div class="card h-100 border-0 rounded-0">
+    <div class="card-header bg-white" style="padding-left: 0;">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex gap-2">
+          <button class="fs-12 btn-add" nz-button nzType="default" nzSize="small" (click)="openAddModal()">
+            <img src="assets/icon/action_add_item_16.png" alt="Thêm " /> Thêm
+          </button>
+          <button class="fs-12 btn-edit" nz-button nzType="default" nzSize="small" (click)="openEditModal()">
+            <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />Sửa
+          </button>
+          <button class="fs-12 btn-delete" nz-button nzType="default" nzSize="small" (click)="openDeleteModal()">
+            <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />Xóa
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-body p-0 position-relative">
+      <div *ngIf="isLoading">
+        <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
+              position: 'absolute',
+              top: '0',
+              left: '0',
+              width: '100%',
+              height: '100%',
+              background: 'rgba(255,255,255,0.4)',
+              zIndex: '999',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }"></nz-spin>
+      </div>
+
+      <div id="tb_over_time_type"></div>
+    </div>
+  </div>
+</ng-container>
+
+<div class="modal fade" id="addOverTimeTypeModal" tabindex="-1" aria-labelledby="addOverTimeTypeModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered fs-12">
+    <div class="modal-content">
+      <div class="modal-header bg-primary">
+        <h6 class="modal-title text-uppercase text-white">
+          CHI TIẾT KIỂU LÀM THÊM
+        </h6>
+        <button type="button" class="btn-close me-1" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form nz-form [formGroup]="overTimeTypeForm" (ngSubmit)="onSubmit()">
+          <nz-form-item class="mb-2">
+            <nz-form-label class="fs-12 p-0" [nzSpan]="24">Mã loại<span
+                class="text-danger ps-1">*</span></nz-form-label>
+            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập mã loại làm thêm">
+              <input nz-input formControlName="TypeCode" placeholder="Nhập mã loại làm thêm" />
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item class="mb-2">
+            <nz-form-label class="fs-12 p-0" [nzSpan]="24">Tên loại<span
+                class="text-danger ps-1">*</span></nz-form-label>
+            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập tên loại làm thêm">
+              <input nz-input formControlName="Type" placeholder="Nhập tên loại làm thêm" />
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item class="mb-2">
+            <nz-form-label class="fs-12 p-0" [nzSpan]="24">Tỷ lệ<span class="text-danger ps-1">*</span></nz-form-label>
+            <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập loại hợp đồng">
+              <input nz-input formControlName="Ratio" placeholder="Nhập tỷ lệ" />
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item class="mb-2">
+            <nz-form-label class="fs-12 p-0" [nzSpan]="24">Ghi chú</nz-form-label>
+            <nz-form-control [nzSpan]="24">
+              <textarea rows="4" nz-input formControlName="Note" placeholder="Nhập ghi chú"></textarea>
+            </nz-form-control>
+          </nz-form-item>
+        </form>
+      </div>
+      <div class="modal-footer py-1">
+        <button type="button" class="btn btn-outline-danger" style="border: 1px solid; border-radius: 0;"
+          data-bs-dismiss="modal">
+          Đóng
+        </button>
+        <button type="button" style="border-radius: 0;" class="btn btn-primary" (click)="onSubmit()">
+          Lưu
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -88,7 +88,7 @@ export class ProductLocationComponent implements OnInit, AfterViewInit {
           this.filteredProductLocationData = [...this.productLocationData];
           this.drawTable();
         } else {
-          this.notification.warning('Thông báo', response.message || 'Không thể tải dữ liệu');
+          this.notification.warning(NOTIFICATION_TITLE.warning, response.message || 'Không thể tải dữ liệu');
         }
       },
       error: (error) => {
@@ -150,11 +150,11 @@ export class ProductLocationComponent implements OnInit, AfterViewInit {
   onEditProductLocation(): void {
     const selected = this.productLocationTable?.getSelectedData();
     if (!selected || selected.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một vị trí để sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một vị trí để sửa!');
       return;
     }
     if (selected.length > 1) {
-      this.notification.warning('Thông báo', 'Vui lòng chỉ chọn một vị trí để sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chỉ chọn một vị trí để sửa!');
       return;
     }
     const selectedProductLocation = { ...selected[0] };
@@ -179,7 +179,7 @@ export class ProductLocationComponent implements OnInit, AfterViewInit {
   onDeleteProductLocation() {
     const selected = this.productLocationTable?.getSelectedData();
     if (!selected || selected.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn vị trí để xóa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn vị trí để xóa!');
       return;
     }
 
@@ -195,15 +195,15 @@ export class ProductLocationComponent implements OnInit, AfterViewInit {
         this.productLocationService.deleteProductLocation(selected[0].ID).subscribe({
           next: (res) => {
             if (res.status === 1) {
-              this.notification.success("Thông báo", "Xóa thành công");
+              this.notification.success(NOTIFICATION_TITLE.success, "Xóa thành công");
               setTimeout(() => this.resetSearchAndReload(), 100);
             } else {
-              this.notification.warning("Thông báo", "Xóa thất bại");
+              this.notification.warning(NOTIFICATION_TITLE.warning, "Xóa thất bại");
             }
           },
           error: (err) => {
             console.error(err);
-            this.notification.warning("Thông báo", "Lỗi kết nối");
+            this.notification.warning(NOTIFICATION_TITLE.warning, "Lỗi kết nối");
           }
         });
       }

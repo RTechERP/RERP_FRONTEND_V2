@@ -27,6 +27,7 @@ import { AuthService } from '../../../../../../auth/auth.service';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { TsAssetChooseAssetsComponent } from '../ts-asset-choose-assets/ts-asset-choose-assets.component';
 import { HasPermissionDirective } from "../../../../../../directives/has-permission.directive";
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 @Component({
   standalone: true,
   selector: 'app-ts-asset-allocation-form',
@@ -328,14 +329,14 @@ export class TsAssetAllocationFormComponent implements OnInit, AfterViewInit {
     console.log("payloadAllocation", payloadAllocation);
     this.assetAllocationService.saveData(payloadAllocation).subscribe({
       next: () => {
-        this.notification.success("Thông báo", "Thành công");
+        this.notification.success(NOTIFICATION_TITLE.success, "Thành công");
         this.deletedDetailIds = [];
         this.getAllocation();
         this.formSubmitted.emit();
         this.activeModal.close(true);
       },
-      error: (res: any) => {
-        this.notification.success("Thông báo", res.error.message);
+      error: () => {
+        this.notification.success(NOTIFICATION_TITLE.success, "Lỗi");
         console.error('Lỗi khi lưu đơn vị!');
       }
     });

@@ -209,7 +209,7 @@ export class ScanBillImportComponent implements OnInit, AfterViewInit {
         );
       },
       error: (err) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy chi tiết');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy chi tiết');
       },
     });
   }

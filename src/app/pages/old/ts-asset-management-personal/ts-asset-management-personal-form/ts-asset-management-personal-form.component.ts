@@ -224,7 +224,7 @@ export class TsAssetManagementPersonalFormComponent implements OnInit {
         c.updateValueAndValidity({ onlySelf: true });
       });
       this.notification.warning(
-        'Cảnh báo',
+       NOTIFICATION_TITLE.warning,
         'Vui lòng điền đầy đủ thông tin bắt buộc'
       );
       return;
@@ -247,8 +247,7 @@ export class TsAssetManagementPersonalFormComponent implements OnInit {
       .subscribe({
         next: (response: any) => {
           if (response?.status == 1) {
-            this.notification.success(
-              'Thành công',
+            this.notification.success(NOTIFICATION_TITLE.success,
               'Lưu thông tin tài sản cá nhân thành công'
             );
             this.formSubmitted.emit();

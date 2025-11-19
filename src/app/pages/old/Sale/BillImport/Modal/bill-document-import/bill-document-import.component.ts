@@ -265,7 +265,7 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
     this.billImportService.saveBillDocumentImport(changedData).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success('Thành công', 'Dữ liệu đã được lưu.');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Dữ liệu đã được lưu.');
           this.flag = true;
           this.getBillDocumentImport(); // load lại bảng + reset cờ _edited
           this.dataSaved.emit();

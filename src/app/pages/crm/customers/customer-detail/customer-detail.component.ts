@@ -394,8 +394,7 @@ if (this.tb_AddressTable) {
       },
       error: (err: any) => {
         console.error(err);
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Có lỗi xảy ra khi lấy danh sách nhân viên'
         );
         this.cboEmployeeDataTable = [];
@@ -557,7 +556,7 @@ if (this.tb_AddressTable) {
     this.customerService.save(payload).subscribe({
       next: (res: any) => {
         if (res?.status === 1) {
-          this.notification.success('Thông báo', 'Lưu thành công');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thành công');
           this.activeModal.close({ success: true, reloadData: true });
         } else {
           this.notification.error(

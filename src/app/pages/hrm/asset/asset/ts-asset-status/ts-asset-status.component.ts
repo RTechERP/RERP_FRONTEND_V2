@@ -145,7 +145,7 @@ export class TsAssetStatusComponent implements OnInit, AfterViewInit {
   onEditTypeAsset(): void {
     const selected = this.assetStatusTable?.getSelectedData();
     if (!selected || selected.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một loại tài sản để sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một loại tài sản để sửa!');
       return;
     }
     const selecteStatus = { ...selected[0] };
@@ -168,7 +168,7 @@ export class TsAssetStatusComponent implements OnInit, AfterViewInit {
   onDeleteTypeAsset() {
     const selected = this.assetStatusTable?.getSelectedData();
     if (!selected || selected.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn loại tài sản để xóa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn loại tài sản để xóa!');
       return;
     }
     const payloadStatusAsset = {
@@ -179,15 +179,15 @@ export class TsAssetStatusComponent implements OnInit, AfterViewInit {
     this.tsAssetService.saveData(payloadStatusAsset).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success("Thông báo", "Thành công");
+          this.notification.success(NOTIFICATION_TITLE.success, "Thành công");
           setTimeout(() => this.getAssetStatus(), 100);
         } else {
-          this.notification.warning("Thông báo", "Thất bại");
+          this.notification.warning(NOTIFICATION_TITLE.warning, "Thất bại");
         }
       },
       error: (err) => {
         console.error(err);
-        this.notification.warning("Thông báo", "Lỗi kết nối");
+        this.notification.warning(NOTIFICATION_TITLE.warning, "Lỗi kết nối");
       }
     });
   }

@@ -54,7 +54,7 @@ import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { NzListModule } from 'ng-zorro-antd/list';
 import { NzCalendarMode, NzCalendarModule } from 'ng-zorro-antd/calendar';
 import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
-import { HolidayServiceService } from '../../pages/old/holiday/holiday-service/holiday-service.service';
+import { HolidayServiceService } from '../../pages/hrm/holiday/holiday-service/holiday-service.service';
 import { HasPermissionDirective } from '../../directives/has-permission.directive';
 // import { MenuItem } from '../main-layout/main-layout.component';
 // import { menus } from '../../pages/old/menus/menus.component';
@@ -393,7 +393,7 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
         );
       },
       (error: any) => {
-        this.notification.error('Thông báo', error.error.message);
+        this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
       }
     );
   }

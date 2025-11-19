@@ -353,14 +353,14 @@ export class VehicleRepairComponentFormComponent implements OnInit {
         c.updateValueAndValidity({ onlySelf: true });
       });
       this.notification.warning(
-        'Cảnh báo',
+       NOTIFICATION_TITLE.warning,
         'Vui lòng điền đầy đủ thông tin bắt buộc'
       );
       return;
     }
 
     if (!this.selectedFile) {
-      this.notification.warning('Cảnh báo', 'Chưa chọn file hóa đơn');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Chưa chọn file hóa đơn');
       return;
     }
 

@@ -95,7 +95,7 @@ export class UpdateQrcodeFormComponent implements OnInit, AfterViewInit {
     console.log("Payload", payload);
     this.inventoryDemoService.saveDataQRCode(payload).subscribe({
       next: () => {
-        this.notification.success('Thành công', 'Lưu QR Code thành công');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Lưu QR Code thành công');
         this.formSubmitted.emit();
         this.activeModal.close(true);
       },

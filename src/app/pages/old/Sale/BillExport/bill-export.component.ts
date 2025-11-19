@@ -308,8 +308,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
         next: (res) => {
           console.log('Approval response:', res);
           if (res.status === 1) {
-            this.notification.success(
-              'Thông báo',
+            this.notification.success(NOTIFICATION_TITLE.success,
               res.message || 'Thành công!'
             );
             this.data = [];
@@ -324,7 +323,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
         },
         error: (err) => {
           const errorMsg = err?.error?.message || 'Có lỗi xảy ra!';
-          this.notification.error('Thông báo', errorMsg);
+          this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
         },
       });
     }
@@ -362,7 +361,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
             },
             error: (err) => {
               const errorMsg = err?.error?.message || 'Có lỗi xảy ra!';
-              this.notification.error('Thông báo', errorMsg);
+              this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
             },
           });
         },
@@ -404,7 +403,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
           this.selectBillExport = res.data;
           console.log('seelct:', this.selectBillExport);
         } else {
-          this.notification.warning('Thông báo', res.message || 'Lỗi');
+          this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Lỗi');
         }
       },
     });
@@ -416,7 +415,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
     }
     const selected = this.data[0];
     if (selected?.IsApproved === true) {
-      this.notification.warning('Thông báo', 'Phiếu đã được duyệt không thể xóa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Phiếu đã được duyệt không thể xóa!');
       return;
     }
 
@@ -451,7 +450,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
               }
             },
             error: (err) => {
-              this.notification.error('Thông báo', 'Có lỗi xảy ra khi xóa!');
+              this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xóa!');
               console.error(err);
             },
           });
@@ -859,7 +858,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu xuất excel!');
       return;
     }
 

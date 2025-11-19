@@ -29,6 +29,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { ProductSaleDetailComponent } from './product-sale-detail/product-sale-detail.component';
 import { ProductGroupDetailComponent } from './product-group-detail/product-group-detail.component';
 import { ImportExcelProductSaleComponent } from './import-excel-product-sale/import-excel-product-sale.component';
+import { ISADMIN, NOTIFICATION_TITLE } from '../../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 
@@ -269,7 +270,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
             }
           },
           error: (err) => {
-            this.notification.error('Thông báo', 'Có lỗi xảy ra khi xóa!');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xóa!');
             console.error(err);
           },
         });
@@ -486,7 +487,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
         this.productsaleSV.saveDataProductSale(payloads).subscribe({
           next: (res) => {
             if (res.status === 1) {
-              this.notification.success('Thông báo', 'Đã xóa thành công!');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Đã xóa thành công!');
               // this.id = 0; // Set to 0 to trigger selection of first record in GetProductGroup
               // this.getProductGroup();
               this.idSale = 0;
@@ -499,7 +500,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
             }
           },
           error: (err) => {
-            this.notification.error('Thông báo', 'Có lỗi xảy ra khi xóa!');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xóa!');
             console.error(err);
           },
         });
@@ -871,7 +872,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu xuất excel!');
       return;
     }
 

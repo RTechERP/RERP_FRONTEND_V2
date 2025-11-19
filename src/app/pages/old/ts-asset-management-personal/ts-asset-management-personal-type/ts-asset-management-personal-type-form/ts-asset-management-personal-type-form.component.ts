@@ -177,7 +177,7 @@ export class TsAssetManagementPersonalTypeFormComponent {
       Object.values(this.formGroup.controls).forEach(c => {
         c.markAsTouched(); c.updateValueAndValidity({ onlySelf: true });
       });
-      this.notification.warning('Cảnh báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
     }
     const formValue = this.formGroup.value;
@@ -195,7 +195,7 @@ export class TsAssetManagementPersonalTypeFormComponent {
     this.tsAssetAllocationPersonalService.saveAssetAllocationPerson(payload).subscribe({
       next: (response: any) => {
         if (response?.status == 1) {
-          this.notification.success('Thành công', 'Lưu thông tin tài sản cá nhân thành công');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thông tin tài sản cá nhân thành công');
           this.formSubmitted.emit();
           this.activeModal.close('save');
         } else {

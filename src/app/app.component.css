@@ -418,7 +418,7 @@ nz-sider {
 
 ::ng-deep .ant-menu-inline.ant-menu-root .ant-menu-item {
   white-space: pre-line;
-  line-height: normal;
+  line-height: normal !important;
 }
 
 ::ng-deep
@@ -426,7 +426,7 @@ nz-sider {
   .ant-menu-submenu-title
   > .ant-menu-title-content {
   white-space: pre-line;
-  line-height: normal;
+  line-height: normal !important;
   /* font-weight: bold; */
 }
 
@@ -438,15 +438,10 @@ nz-sider {
   /* background-color: #1a73e8; */
   height: 40px !important;
 }
-/* ::ng-deep .ant-menu-submenu-title,
-.ant-menu-item {
-  padding: 0 16px !important;
-} */
-/* 
-:ng-deep .ant-menu-submenu .ant-menu-item {
-  padding: 0 16px !important;
-} */
 
-/* ::ng-deep .ant-menu-inline.ant-menu-root .ant-menu-submenu-title {
-  padding-left: 0 !important;
-} */
+::ng-deep
+  .ant-menu-inline.ant-menu-root
+  .ant-menu-item
+  > .ant-menu-title-content {
+  line-height: 1.5em !important;
+}

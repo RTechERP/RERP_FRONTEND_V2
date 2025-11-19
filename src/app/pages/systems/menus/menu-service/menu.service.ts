@@ -675,7 +675,7 @@ export class MenuService {
             key: 'Employee',
             title: 'Quản lí nhân viên',
             isOpen: true,
-            isPermission: this.permissionService.hasPermission('N2,N1'),
+            isPermission: this.permissionService.hasPermission(''),
             children: [
               {
                 kind: 'leaf',

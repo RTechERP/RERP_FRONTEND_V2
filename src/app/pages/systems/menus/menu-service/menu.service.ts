@@ -341,6 +341,36 @@ export class MenuService {
               },
             ],
           },
+          {
+            kind: 'group',
+            key: 'agv',
+            title: 'AGV',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            //   icon: 'assets/icon/layers.png',
+            children: [
+              {
+                kind: 'leaf',
+                key: 'AgvProductComponent',
+                title: 'Sản phẩm',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: AgvProductComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+
+              {
+                kind: 'leaf',
+                key: 'AgvProductComponent1',
+                title: 'Sản phẩm lọc',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: AgvProductComponent,
+                //   icon: 'assets/icon/layers.png',
+                data: { isDeleted: true },
+              },
+            ],
+          },
         ],
       },
       //#endregion
@@ -1179,7 +1209,7 @@ export class MenuService {
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission('N13,N1'),
                 comp: MeetingMinuteTypeComponent,
-              }
+              },
             ],
           },
         ],
@@ -1303,6 +1333,7 @@ type BaseItem = {
   isOpen: boolean;
   icon?: string | null; // tùy chọn
   isPermission: boolean;
+  data?: {};
 };
 
 export type LeafItem = BaseItem & {

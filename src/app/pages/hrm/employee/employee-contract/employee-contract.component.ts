@@ -49,7 +49,6 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
   contractType: any = 0;
   employeeList: any[] = [];
   contractTypeList: any[] = [];
-  contractTypeList: any[] = [];
   employeeContractList: any[] = [];
   employeeContractForm!: FormGroup;
   employeeContractSearchForm!: FormGroup;
@@ -151,7 +150,6 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
       },
       error: (error) => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách loại hợp đồng: ' + error.message);
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách loại hợp đồng: ' + error.message);
       }
     })
   }
@@ -167,7 +165,6 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
         this.tabulatorEmployeeContract.setData(this.employeeContractList);
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải hợp đồng nhân viên: ' + error.message);
         this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải hợp đồng nhân viên: ' + error.message);
       }
     });
@@ -186,7 +183,6 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
       DateSign: new Date().toISOString().split('T')[0],
       IsDelete: false
     });
-
 
     const modal = new (window as any).bootstrap.Modal(document.getElementById('addEmployeeContractModal'));
     modal.show();
@@ -209,7 +205,6 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
       EmployeeID: this.employeeId,
       EmployeeLoaiHDLDID: this.selectedContract.EmployeeLoaiHDLDID,
       DateStart: this.selectedContract.DateStart,
-      DateEnd: this.selectedContract.DateEnd,
       DateEnd: this.selectedContract.DateEnd,
       ContractNumber: this.selectedContract.ContractNumber,
       StatusSign: this.selectedContract.StatusSign,
@@ -296,7 +291,6 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
             return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
           }
         },
-        },
       ],
       rowFormatter: function (row) {
 
@@ -325,7 +319,6 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
         }
       });
       this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng điền đầy đủ thông tin bắt buộc');
-      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
     }
 
@@ -337,7 +330,6 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
         this.loadEmployeeContract(this.selectedEmployee.ID);
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật phòng ban thất bại: ' + error.message);
         this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật phòng ban thất bại: ' + error.message);
       }
     });
@@ -377,7 +369,6 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
           },
           error: (error) => {
             this.notification.error(NOTIFICATION_TITLE.error, 'Xóa hợp đồng lao động thất bại: ' + error.message);
-            this.notification.error(NOTIFICATION_TITLE.error, 'Xóa hợp đồng lao động thất bại: ' + error.message);
           }
         });
       },
@@ -404,7 +395,6 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
       error: (error) => {
         console.error('Error searching employee contracts:', error);
         this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tìm kiếm hợp đồng lao động');
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tìm kiếm hợp đồng lao động');
       }
     });
   }
@@ -418,15 +408,12 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
 
     const selectedContract = selectedRows[0].getData();
 
-
     if (selectedContract['StatusSign'] !== 2) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Chỉ có thể in hợp đồng đã được ký');
       return;
     }
 
-
     this.isPrinting = true;
-
 
     this.employeeService.printContract(selectedContract['ID']).subscribe({
       next: (response: any) => {
@@ -465,7 +452,6 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
               if (contractTypeId === 4) fileName += '_12T';
               fileName += '.docx';
 
-
               const url = window.URL.createObjectURL(fileBlob);
               const link = document.createElement('a');
               link.href = url;
@@ -481,7 +467,6 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
             error: (err) => {
               this.isPrinting = false;
               this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tạo file Word: ' + err.message);
-              this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tạo file Word: ' + err.message);
             }
           });
         } else {
@@ -492,7 +477,6 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
       error: (error) => {
         this.isPrinting = false;
         console.error('Error printing contract:', error);
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể in hợp đồng lao động: ' + error.message);
         this.notification.error(NOTIFICATION_TITLE.error, 'Không thể in hợp đồng lao động: ' + error.message);
       }
     });

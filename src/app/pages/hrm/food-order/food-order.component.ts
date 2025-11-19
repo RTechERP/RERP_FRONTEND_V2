@@ -225,12 +225,6 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
         width: 100,
         frozen: true,
         headerHozAlign: "center",
-        formatter: "rowSelection",
-        titleFormatter: "rowSelection",
-        headerSort: false,
-        width: 100,
-        frozen: true,
-        headerHozAlign: "center",
         hozAlign: "center"
       },
       columns: [
@@ -259,7 +253,6 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
           hozAlign: 'left',
           headerHozAlign: 'center',
           width: 500
-        },
         },
         {
           title: 'Số lượng',
@@ -314,12 +307,6 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
         width: 100,
         frozen: true,
         headerHozAlign: "center",
-        formatter: "rowSelection",
-        titleFormatter: "rowSelection",
-        headerSort: false,
-        width: 100,
-        frozen: true,
-        headerHozAlign: "center",
         hozAlign: "center"
       },
       columns: [
@@ -365,7 +352,6 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
             const value = cell.getValue();
             return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
           }
-        }
         }
       ],
       pagination: true,

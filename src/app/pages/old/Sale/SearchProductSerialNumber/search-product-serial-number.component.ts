@@ -29,6 +29,7 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { DateTime } from 'luxon';
 import { SearchProductSerialNumberServiceService } from './search-product-serial-number-service/search-product-serial-number-service.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 @Component({
   selector: 'app-search-product-serial-number',
   standalone: true,

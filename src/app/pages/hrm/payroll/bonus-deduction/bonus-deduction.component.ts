@@ -36,7 +36,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { CommonModule } from '@angular/common';
 import { NzInputNumberModule } from "ng-zorro-antd/input-number";
 import { PayrollService } from '../payroll.service';
-import { ProjectService } from '../../../old/project/project-service/project.service';
+import { ProjectService } from '../../../project/project-service/project.service';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { BonusDeductionDetailComponent } from './bonus-deduction-detail/bonus-deduction-detail.component';
 import { ImportExcelComponent } from './import-excel/import-excel.component';

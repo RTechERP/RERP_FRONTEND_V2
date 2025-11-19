@@ -183,7 +183,6 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
           this.employeeTypeBussinessList = [];
         }
       },
-      },
       error: (error) => {
         this.notification.warning("Lỗi", "Lỗi khi lấy danh sách loại công tác")
       }
@@ -247,7 +246,6 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
 
         },
         {
-        {
           title: 'Loại',
           field: 'TypeBusiness',
           editor: 'list',
@@ -261,8 +259,6 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
             const type = this.employeeTypeBussinessList.find((emp: any) => emp.value === value);
             return type ? type.label : '--Chọn loại--';
           },
-          hozAlign: 'left',
-          headerHozAlign: 'center',
           hozAlign: 'left',
           headerHozAlign: 'center',
           width: 350
@@ -293,11 +289,6 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
             return value === true || value === 'true' || value === 1 || value === '1';
           }
         },
-        {
-          title: 'Phụ cấp ăn tối',
-          field: 'OvernightType',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
         {
           title: 'Phụ cấp ăn tối',
           field: 'OvernightType',
@@ -370,7 +361,6 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
         const value = cell.getValue();
         const field = cell.getField();
 
-
         // Validation cho thời gian
         if ((field === 'TimeStart' || field === 'EndTime') && value) {
           try {
@@ -387,7 +377,6 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
           }
         }
 
-
         // Validation cho thời gian kết thúc phải sau thời gian bắt đầu
         if (field === 'EndTime' || field === 'TimeStart') {
           const rowData = cell.getRow().getData();
@@ -401,7 +390,6 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
             }
           }
         }
-
 
         this.employeeBussinessDetail = this.tabulator!.getData();
       });
@@ -506,7 +494,6 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
         this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật đăng ký công tác thành công');
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật đăng ký công tác thất bại');
         this.notification.error(NOTIFICATION_TITLE.error, 'Cập nhật đăng ký công tác thất bại');
       }
     })

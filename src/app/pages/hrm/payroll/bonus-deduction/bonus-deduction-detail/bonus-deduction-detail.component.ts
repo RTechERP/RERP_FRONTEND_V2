@@ -36,7 +36,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { CommonModule } from '@angular/common';
 import { NzInputNumberModule } from "ng-zorro-antd/input-number";
 import { PayrollService } from '../../payroll.service';
-import { ProjectService } from '../../../../old/project/project-service/project.service';
+import { ProjectService } from '../../../../project/project-service/project.service';
 
 @Component({
   selector: 'app-bonus-deduction-detail',

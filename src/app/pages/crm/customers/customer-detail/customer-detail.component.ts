@@ -60,7 +60,6 @@ import { SelectControlComponent } from '../../../old/select-control/select-contr
 import { CustomerServiceService } from '../customer/customer-service/customer-service.service';
 import { CustomerMajorDetailComponent } from '../customer-specialization/customer-major-detail/customer-major-detail.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
-import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 

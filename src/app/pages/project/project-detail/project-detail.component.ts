@@ -39,7 +39,7 @@ import { CustomerDetailComponent } from '../../crm/customers/customer-detail/cus
 import { FirmBaseDetailComponent } from '../firmbase-detail/firm-base-detail.component';
 // THÊM DÒNG NÀY:
 import { combineLatest, debounceTime, distinctUntilChanged, filter } from 'rxjs';
-import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-project-detail',

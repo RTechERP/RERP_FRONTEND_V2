@@ -363,17 +363,9 @@ export class TeamComponent implements OnInit, AfterViewInit {
           title: 'Tên nhóm',
           field: 'Name',
           hozAlign: 'left',
-        {
-          title: 'Tên nhóm',
-          field: 'Name',
-          hozAlign: 'left',
           headerHozAlign: 'center',
           formatter: 'tree' as any,
         },
-        {
-          title: 'Trưởng nhóm',
-          field: 'Leader',
-          hozAlign: 'left',
         {
           title: 'Trưởng nhóm',
           field: 'Leader',
@@ -383,10 +375,6 @@ export class TeamComponent implements OnInit, AfterViewInit {
             return cell.getValue() || '';
           },
         },
-        {
-          title: 'Loại',
-          field: 'TypeName',
-          hozAlign: 'left',
         {
           title: 'Loại',
           field: 'TypeName',
@@ -459,12 +447,6 @@ export class TeamComponent implements OnInit, AfterViewInit {
         width: 70,
         frozen: true,
         headerHozAlign: "center",
-        formatter: "rowSelection",
-        titleFormatter: "rowSelection",
-        headerSort: false,
-        width: 70,
-        frozen: true,
-        headerHozAlign: "center",
         hozAlign: "center"
       },
       groupBy: "Team",
@@ -479,10 +461,6 @@ export class TeamComponent implements OnInit, AfterViewInit {
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
-        {
-          title: 'Tên nhân viên',
-          field: 'FullName',
-          hozAlign: 'left',
         {
           title: 'Tên nhân viên',
           field: 'FullName',
@@ -507,12 +485,6 @@ export class TeamComponent implements OnInit, AfterViewInit {
           width: 70,
           frozen: true,
           headerHozAlign: "center",
-          formatter: "rowSelection",
-          titleFormatter: "rowSelection",
-          headerSort: false,
-          width: 70,
-          frozen: true,
-          headerHozAlign: "center",
           hozAlign: "center"
         },
         groupBy: "DepartmentName",
@@ -522,17 +494,9 @@ export class TeamComponent implements OnInit, AfterViewInit {
             title: 'Mã nhân viên',
             field: 'Code',
             hozAlign: 'center',
-          {
-            title: 'Mã nhân viên',
-            field: 'Code',
-            hozAlign: 'center',
             headerHozAlign: 'center',
             width: '20vw',
           },
-          {
-            title: 'Tên nhân viên',
-            field: 'FullName',
-            hozAlign: 'center',
           {
             title: 'Tên nhân viên',
             field: 'FullName',

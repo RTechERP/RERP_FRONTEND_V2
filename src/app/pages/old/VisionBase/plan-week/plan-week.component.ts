@@ -59,7 +59,6 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { PlanWeekService } from './plan-week-services/plan-week.service';
 import { Title } from '@angular/platform-browser';
 import { PlanWeekDetailComponent } from '../plan-week-detail/plan-week-detail/plan-week-detail.component';
-import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { AppUserService } from '../../../../services/app-user.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
@@ -304,7 +303,8 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        const errorMessage = error?.error?.message || error?.message || 'Không thể tải dữ liệu';
+        const errorMessage =
+          error?.error?.message || error?.message || 'Không thể tải dữ liệu';
         this.notification.error('Lỗi', errorMessage);
       },
     });
@@ -317,13 +317,9 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
           this.filterTeamData = this.transformFlatDataToTreeData(response.data);
         } else {
           this.notification.error(NOTIFICATION_TITLE.error, response.message);
-          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, error);
-        const errorMessage = error?.error?.message || error?.message || 'Không thể tải dữ liệu';
-        this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
         const errorMessage =
           error?.error?.message || error?.message || 'Không thể tải dữ liệu';
         this.notification.error('Lỗi', errorMessage);
@@ -338,13 +334,9 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
           this.filterUserData = response.data;
         } else {
           this.notification.error(NOTIFICATION_TITLE.error, response.message);
-          this.notification.error(NOTIFICATION_TITLE.error, response.message);
         }
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, error);
-        const errorMessage = error?.error?.message || error?.message || 'Không thể tải dữ liệu';
-        this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
         const errorMessage =
           error?.error?.message || error?.message || 'Không thể tải dữ liệu';
         this.notification.error('Lỗi', errorMessage);
@@ -371,13 +363,9 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
             }
           } else {
             this.notification.error(NOTIFICATION_TITLE.error, response.message);
-            this.notification.error(NOTIFICATION_TITLE.error, response.message);
           }
         },
         error: (error) => {
-          this.notification.error(NOTIFICATION_TITLE.error, error);
-          const errorMessage = error?.error?.message || error?.message || 'Không thể tải dữ liệu';
-          this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
           const errorMessage =
             error?.error?.message || error?.message || 'Không thể tải dữ liệu';
           this.notification.error('Lỗi', errorMessage);
@@ -414,7 +402,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
 
   onDelete() {
     if (!this.selectedId || this.selectedId <= 0) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn bản ghi cần xóa');
+      this.notification.error('Thông báo', 'Vui lòng chọn bản ghi cần xóa');
       return;
     }
     if (
@@ -437,7 +425,6 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
       nzCancelText: 'Hủy',
       nzOnOk: () => {
         if (isNaN(dateFromField.getTime())) {
-          this.notification.error(NOTIFICATION_TITLE.error, 'Không xác định được ngày từ cột đã chọn');
           this.notification.error(
             'Lỗi',
             'Không xác định được ngày từ cột đã chọn'
@@ -448,7 +435,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
         this.planWeekService.delete(UserID, DatePlan).subscribe({
           next: (sv) => {
             if (sv.status === 1) {
-              this.notification.success(NOTIFICATION_TITLE.success, 'Xóa thành công');
+              this.notification.success('Thông báo', 'Xóa thành công');
               this.loadMainData(
                 this.filters.startDate,
                 this.filters.endDate,
@@ -457,13 +444,10 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
                 this.filters.teamId
               );
             } else {
-              this.notification.error(NOTIFICATION_TITLE.error, sv.message || 'Không thể lưu');
+              this.notification.error('Lỗi', sv.message || 'Không thể lưu');
             }
           },
           error: (err) => {
-            const errorMessage = err?.error?.message || err?.message || 'Không thể xóa dữ liệu';
-            this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
-          }
             const errorMessage =
               err?.error?.message || err?.message || 'Không thể xóa dữ liệu';
             this.notification.error('Lỗi', errorMessage);
@@ -475,7 +459,6 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
 
   async exportMainTableToExcel() {
     if (!this.tb_MainTable) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất Excel');
       this.notification.error(
         NOTIFICATION_TITLE.error,
         'Không có dữ liệu để xuất Excel'

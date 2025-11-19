@@ -60,7 +60,6 @@ import { CustomerMajorService } from '../customer-major-service/customer-major.s
 import { CustomerMajorDetailComponent } from '../customer-major-detail/customer-major-detail.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
-import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({

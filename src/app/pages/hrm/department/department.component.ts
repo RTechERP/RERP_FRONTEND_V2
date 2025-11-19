@@ -26,7 +26,7 @@ import { HasPermissionDirective } from "../../../directives/has-permission.direc
 import { EmployeeService } from '../employee/employee-service/employee.service';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { forkJoin } from 'rxjs';
-import { ProjectService } from '../../old/project/project-service/project.service';
+import { ProjectService } from '../../project/project-service/project.service';
 
 @Component({
   selector: 'app-department',

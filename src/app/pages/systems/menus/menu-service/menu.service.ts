@@ -103,6 +103,7 @@ import { ProtectgearComponent } from '../../../hrm/protectgear/protectgear/prote
 
 import { MeetingMinuteTypeComponent } from '../../../project/meeting-minute/meeting-minute-type/meeting-minute-type.component';
 import { ProjectAgvSummaryComponent } from '../../../project/project-agv-summary/project-agv-summary.component';
+import { FoodOrderComponent } from '../../../hrm/food-order/food-order.component';
 @Injectable({
   providedIn: 'root',
 })

@@ -27,7 +27,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { OverTimeService } from '../over-time-service/over-time.service';
 import { FoodOrderService } from '../../food-order/food-order-service/food-order.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
-import { ProjectService } from '../../../old/project/project-service/project.service';
+import { ProjectService } from '../../../project/project-service/project.service';
 
 @Component({
   selector: 'app-summary-over-time',

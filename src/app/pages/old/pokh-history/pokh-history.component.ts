@@ -370,7 +370,7 @@ export class PokhHistoryComponent implements OnInit, AfterViewInit {
       data: this.mainData,
       pagination: true,
       paginationSize: 50,
-      height: '88.5vh',
+      height: '100%',
       movableColumns: true,
       renderVerticalBuffer: 1000,
       langs: {

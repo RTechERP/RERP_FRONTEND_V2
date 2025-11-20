@@ -65,7 +65,7 @@ import { CurrencyListComponent } from '../../../general-category/currency-list/c
 import { UnitCountComponent } from '../../../old/Sale/ProductSale/unit-count/unit-count.component';
 import { ProductLocationComponent } from '../../../general-category/product-location/product-location.component';
 import { FirmComponent } from '../../../general-category/firm/firm.component';
-import { CustomerComponent } from '../../../old/customer/customer.component';
+import { CustomerComponent } from '../../../crm/customers/customer/customer.component';
 import { PayrollComponent } from '../../../hrm/payroll/payroll/payroll.component';
 import { FollowProjectBaseComponent } from '../../../old/VisionBase/kho-base/follow-project-base/follow-project-base.component';
 import { InventoryComponent } from '../../../old/Sale/Inventory/inventory.component';

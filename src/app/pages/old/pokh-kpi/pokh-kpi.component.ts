@@ -105,6 +105,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
   selectedId: number = 0;
   selectedRow: any = null;
   filterEmployeeTeamSale: any[] = [];
+  selectedIds: number[] = []; // Lưu danh sách ID đã chọn
 
   groupSales: any[] = [];
   mainIndexes: any[] = [];
@@ -193,8 +194,38 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
 
   loadPOKH(): void {
     if (this.tb_POKH) {
+      // Sử dụng selectedIds đã lưu (không phụ thuộc vào data hiện tại)
+      // Điều này đảm bảo các ID vẫn được giữ ngay cả khi dòng bị mất khỏi kết quả lọc
+      const previouslySelectedIds = [...this.selectedIds];
+      
       // Gọi setData() với tham số true để force reload data từ server
-      this.tb_POKH.setData(null, true);
+      this.tb_POKH.setData(null, true).then(() => {
+        // Sau khi reload xong, chọn lại các dòng theo ID đã lưu
+        if (previouslySelectedIds.length > 0) {
+          setTimeout(() => {
+            const allRows = this.tb_POKH.getRows();
+            const rowsToSelect = allRows.filter((row: any) => {
+              const rowData = row.getData();
+              return previouslySelectedIds.includes(rowData.ID);
+            });
+            
+            // Chọn lại các dòng có trong data mới
+            if (rowsToSelect.length > 0) {
+              this.tb_POKH.selectRow(rowsToSelect);
+            }
+            
+            // Luôn load lại detail với tất cả các ID đã chọn (kể cả những ID không có trong data hiện tại)
+            // Điều này đảm bảo detail luôn hiển thị đầy đủ dữ liệu của các dòng đã chọn
+            this.loadMultiplePOKHKPIDetail(previouslySelectedIds);
+          }, 100);
+        } else {
+          // Nếu không có ID nào được chọn, xóa detail
+          this.dataDetail = [];
+          if (this.tb_Detail) {
+            this.tb_Detail.replaceData([]);
+          }
+        }
+      });
     }
   }
 
@@ -481,7 +512,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
     }
     this.tb_POKH = new Tabulator(this.tb_POKHElement.nativeElement, {
       layout: 'fitDataFill',
-      height: '88vh',
+      height: '100%',
       selectableRows: true,
       pagination: true,
       paginationMode: 'remote',
@@ -705,7 +736,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
           sorter: 'string',
           width: 150,
         },
-        { title: 'Đặt hàng', field: 'PONumber', sorter: 'string', width: 150 },
+        { title: 'Đặt hàng', field: 'IsOder', sorter: 'string', width: 100 },
       ],
     });
 
@@ -713,17 +744,74 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
     this.tb_POKH.on('pageLoaded', (pageno: number) => {
       this.filters.pageNumber = pageno;
       console.log('Trang hiện tại:', pageno);
+      // Sau khi load trang mới, chọn lại các dòng đã chọn (nếu có)
+      if (this.selectedIds.length > 0) {
+        setTimeout(() => {
+          const allRows = this.tb_POKH.getRows();
+          const rowsToSelect = allRows.filter((row: any) => {
+            const rowData = row.getData();
+            return this.selectedIds.includes(rowData.ID);
+          });
+          if (rowsToSelect.length > 0) {
+            this.tb_POKH.selectRow(rowsToSelect);
+          }
+          // Luôn load lại detail với tất cả các ID đã chọn
+          this.loadMultiplePOKHKPIDetail(this.selectedIds);
+        }, 100);
+      }
     });
 
     // Thêm sự kiện khi thay đổi kích thước trang
     this.tb_POKH.on('pageSizeChanged', (size: number) => {
       this.filters.pageSize = size;
       console.log('Kích thước trang:', size);
+      // Sau khi thay đổi kích thước trang, chọn lại các dòng đã chọn (nếu có)
+      if (this.selectedIds.length > 0) {
+        setTimeout(() => {
+          const allRows = this.tb_POKH.getRows();
+          const rowsToSelect = allRows.filter((row: any) => {
+            const rowData = row.getData();
+            return this.selectedIds.includes(rowData.ID);
+          });
+          if (rowsToSelect.length > 0) {
+            this.tb_POKH.selectRow(rowsToSelect);
+          }
+          // Luôn load lại detail với tất cả các ID đã chọn
+          this.loadMultiplePOKHKPIDetail(this.selectedIds);
+        }, 100);
+      }
     });
 
+    // Xử lý khi chọn một dòng
+    this.tb_POKH.on('rowSelected', (row: any) => {
+      const rowData = row.getData();
+      const id = rowData.ID;
+      // Thêm ID vào danh sách nếu chưa có
+      if (!this.selectedIds.includes(id)) {
+        this.selectedIds.push(id);
+      }
+      // Load lại detail với tất cả các ID đã chọn
+      this.loadMultiplePOKHKPIDetail(this.selectedIds);
+    });
+    
+    // Xử lý khi bỏ chọn một dòng
+    this.tb_POKH.on('rowDeselected', (row: any) => {
+      const rowData = row.getData();
+      const id = rowData.ID;
+      // Xóa ID khỏi danh sách khi người dùng tự bỏ chọn
+      this.selectedIds = this.selectedIds.filter(selectedId => selectedId !== id);
+      // Load lại detail với danh sách ID còn lại
+      if (this.selectedIds.length > 0) {
+        this.loadMultiplePOKHKPIDetail(this.selectedIds);
+      } else {
+        this.dataDetail = [];
+        if (this.tb_Detail) {
+          this.tb_Detail.replaceData([]);
+        }
+      }
+    });
+    
     this.tb_POKH.on('rowSelectionChanged', (data: any[]) => {
-      const ids = data.map((row) => row.ID);
-      this.loadMultiplePOKHKPIDetail(ids);
       // Cập nhật trạng thái allSelected
       const rows = this.tb_POKH.getRows();
       this.allSelected = data.length === rows.length && rows.length > 0;
@@ -739,7 +827,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
       layout: 'fitDataFill',
       pagination: true,
       paginationSize: 50,
-      height: '85vh',
+      height: '100%',
       movableColumns: true,
       resizableRows: true,
       langs: {

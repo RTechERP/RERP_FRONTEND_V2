@@ -1,6 +1,25 @@
 .ant-splitter {
-    height: 88vh !important;
+    height: 93vh !important;
   }
+
+/* Đảm bảo các splitter panel có height 100% */
+:host ::ng-deep .ant-splitter-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Đảm bảo các card trong splitter panel có height 100% */
+:host ::ng-deep .ant-splitter-panel .card {
+  min-height: 0;
+}
+
+/* Đảm bảo các card-body có thể scroll */
+:host ::ng-deep .ant-splitter-panel .card-body {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
 
 /* Hiển thị màu trong phần selected item của combobox */
 ::ng-deep .status-select .ant-select-selector {

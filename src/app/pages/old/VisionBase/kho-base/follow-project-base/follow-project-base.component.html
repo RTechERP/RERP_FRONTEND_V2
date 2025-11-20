@@ -152,10 +152,10 @@
         </div>
         <div class="card-body p-0">
           <nz-splitter>
-            <nz-splitter-panel nzSize="" [nzCollapsible]="true" nzResizable="true">
+            <nz-splitter-panel [nzSize]="sizeTbDetail === '0' ? '100%' : undefined" [nzCollapsible]="true" nzResizable="true">
               <div #tb_followProject></div>
             </nz-splitter-panel>
-            <nz-splitter-panel [nzSize]="sizeTbDetail" [nzCollapsible]="true" nzResizable="true">
+            <nz-splitter-panel [nzSize]="sizeTbDetail === '0' ? '0' : undefined" [nzDefaultSize]="sizeTbDetail !== '0' ? sizeTbDetail : undefined" [nzCollapsible]="true" nzResizable="true">
               <nz-tabset>
                 <nz-tab nzTitle="Sale báo cáo">
                   <div class="border"  style="min-height: 84vh;" #tb_followProjectForSale></div>

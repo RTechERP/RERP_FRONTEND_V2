@@ -9,7 +9,7 @@ import { environment } from '../../../../../environments/environment';
 })
 export class ProjectPartlistPriceRequestService {
   private http = inject(HttpClient);
-  private baseUrl = `${environment.host}/api/ProjectPartlistPriceRequest`;
+  private baseUrl = `${environment.host}api/ProjectPartlistPriceRequest`;
 
   // Sửa đổi method getAllPartlist để có thể lấy nhiều dữ liệu hơn
   getAllPartlist(
@@ -44,11 +44,13 @@ export class ProjectPartlistPriceRequestService {
     );
   }
   getAPIPricerequest() {
-    return this.baseUrl + '/getallProjectParListPriceRequest';
+    return this.baseUrl + '/get-all-project-parList-price-request';
   }
   // Gọi API lấy danh sách types
-  getTypes(employeeID: number): Observable<any> {
-    const params = new HttpParams().set('employeeID', employeeID.toString());
+  getTypes(employeeID: number, projectTypeID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('employeeID', employeeID.toString())
+      .set('projectTypeIdHR', projectTypeID.toString());
     return this.http.get<any>(`${this.baseUrl}/get-type`, { params });
   }
   getProject(): Observable<any> {
@@ -72,13 +74,13 @@ export class ProjectPartlistPriceRequestService {
     return this.http.post(`${this.baseUrl}/save-data`, lstModel);
   }
   getCurrency(): Observable<any> {
-    return this.http.get(`${this.baseUrl}/getCurrency`);
+    return this.http.get(`${this.baseUrl}/get-currency`);
   }
   getSuplierSale(): Observable<any> {
-    return this.http.get(`${this.baseUrl}/getSupplierSale`);
+    return this.http.get(`${this.baseUrl}/get-supplier-sale`);
   }
   saveChangedData(data: any[]) {
-    return this.http.post(`${this.baseUrl}/saveData`, data);
+    return this.http.post(`${this.baseUrl}/save-data`, data);
   }
   downloadFile(payload: {
     projectId: number;
@@ -89,4 +91,27 @@ export class ProjectPartlistPriceRequestService {
       responseType: 'blob',
     });
   }
+  /**
+   * Cập nhật trạng thái yêu cầu báo giá (Từ chối/Hủy từ chối)
+   * @param data - Dữ liệu cập nhật bao gồm listModel và listDataMail
+   */
+  updatePriceRequestStatus(data: {
+    listModel: any[];
+    listDataMail: any[];
+  }): Observable<any> {
+    return this.http.post(
+      `${this.baseUrl}/update-price-request-status`,
+      data
+    );
+  }
+  getPriceRequestType(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/get-price-request-type`);
+  }
+  getAll(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/get-all`).pipe(shareReplay(1));
+  }
+  saveRequestNote(data:any[]): Observable<any> {
+    return this.http.post(`${this.baseUrl}/save-request-note`, data);
+  }
+
 }

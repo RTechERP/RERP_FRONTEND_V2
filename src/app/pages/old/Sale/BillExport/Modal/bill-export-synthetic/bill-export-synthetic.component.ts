@@ -31,6 +31,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { BillExportService } from '../../bill-export-service/bill-export.service';
 import { ProductsaleServiceService } from '../../../ProductSale/product-sale-service/product-sale-service.service';
 import { AppUserService } from '../../../../../../services/app-user.service';
@@ -71,6 +72,7 @@ import { ProductSaleDetailComponent } from '../../../ProductSale/product-sale-de
     ProductSaleDetailComponent,
     SelectControlComponent,
     NzCheckboxModule,
+    NzSpinModule,
   ],
   templateUrl: './bill-export-synthetic.component.html',
   styleUrl: './bill-export-synthetic.component.css',
@@ -79,6 +81,7 @@ export class BillExportSyntheticComponent implements OnInit, AfterViewInit {
   dataProductGroup: any[] = [];
   checked: any;
   dataTable: any[] = [];
+  isLoading: boolean = false;
   table: any;
   selectedKhoTypes: number[] = [];
   cbbStatus: any = [
@@ -169,7 +172,7 @@ export class BillExportSyntheticComponent implements OnInit, AfterViewInit {
     };
     this.searchText = '';
   }
-  loadDataBillExportSynthetic() {
+  loadDataBillExportSynthetic() { this.isLoading = true;
     const dateStart = DateTime.fromJSDate(
       new Date(this.searchParams.dateStart)
     );
@@ -196,9 +199,11 @@ export class BillExportSyntheticComponent implements OnInit, AfterViewInit {
               this.table.replaceData(this.dataTable);
             }
           }
+          this.isLoading = false;
         },
         error: (err) => {
           this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu phiếu xuất');
+          this.isLoading = false;
         },
       });
   }

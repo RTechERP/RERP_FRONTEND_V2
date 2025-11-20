@@ -29,6 +29,7 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { DateTime } from 'luxon';
 import { SearchProductSerialNumberServiceService } from './search-product-serial-number-service/search-product-serial-number-service.service';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 @Component({
   selector: 'app-search-product-serial-number',
@@ -82,7 +83,7 @@ export class SearchProductSerialNumberComponent
     this.drawTable();
   }
   loadData() {
-    this.isLoading = true; // <-- Thêm dòng này
+    this.isLoading = true;
     this.searchProductSerialNumberService.getAll(this.keyword).subscribe({
       next: (res: any) => {
         this.dataImport = res.dataImport;
@@ -100,20 +101,22 @@ export class SearchProductSerialNumberComponent
           NOTIFICATION_TITLE.error,
           'Không thể tải dữ liệu lịch sử mượn/trả'
         );
-        this.isLoading = false; // <-- Đổi thành false ở đây
+        this.isLoading = false;
       },
     });
   }
   drawTable() {
     this.table_Import = new Tabulator('#table_import', {
       data: this.dataImport,
+      ...DEFAULT_TABLE_CONFIG,
       layout: 'fitDataFill',
-      height: '80vh',
+      height: '89vh',
       selectableRows: true, // Cho phép checkbox chọn dòng
       movableColumns: true,
       resizableRows: true,
       reactiveData: true,
       pagination: true,
+      paginationMode: 'local',
       paginationSize: 50,
       columns: [
         {
@@ -186,8 +189,10 @@ export class SearchProductSerialNumberComponent
     //bang xuat
     this.table_Export = new Tabulator('#table_export', {
       data: this.dataExport,
+       ...DEFAULT_TABLE_CONFIG,
       layout: 'fitDataFill',
-      height: '80vh',
+      height: '89vh',
+            paginationMode: 'local',
       selectableRows: true, // Cho phép checkbox chọn dòng
       movableColumns: true,
       resizableRows: true,

@@ -34,6 +34,7 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { ProductSaleDetailComponent } from '../../../ProductSale/product-sale-detail/product-sale-detail.component';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { BillImportServiceService } from '../../bill-import-service/bill-import-service.service';
 import { ProductsaleServiceService } from '../../../ProductSale/product-sale-service/product-sale-service.service';
 import { AppUserService } from '../../../../../../services/app-user.service';
@@ -79,6 +80,7 @@ interface data {
     ProductSaleDetailComponent,
     SelectControlComponent,
     NzCheckboxModule,
+    NzSpinModule,
   ],
   templateUrl: './bill-import-synthetic.component.html',
   styleUrl: './bill-import-synthetic.component.css',
@@ -87,6 +89,7 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
   dataProductGroup: any[] = [];
   checked: any;
   dataTable: any[] = [];
+  isLoading: boolean = false;
   table: any;
   //
   selectedKhoTypes: number[] = [];
@@ -293,7 +296,7 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
   onCheckboxChange() {
     this.loadDataBillImportSynthetic();
   }
-  loadDataBillImportSynthetic() {
+  loadDataBillImportSynthetic() { this.isLoading = true;
     const dateStart = DateTime.fromJSDate(
       new Date(this.searchParams.dateStart)
     );
@@ -319,9 +322,11 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
               this.table.replaceData(this.dataTable);
             }
           }
+          this.isLoading = false;
         },
         error: (err) => {
           this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu phiếu xuất');
+          this.isLoading = false;
         },
       });
   }

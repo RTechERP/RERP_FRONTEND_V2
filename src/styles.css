@@ -53,7 +53,10 @@
   justify-content: center;
   color: #fff;
 }
-
+.btn-action-icon{
+  width:1.5rem;
+  padding: 0.25rem;
+}
 /* .custom-customer-modal .ant-modal-close .anticon,
 .custom-customer-modal .ant-modal-close .ant-modal-close-x {
   font-size: 18px;

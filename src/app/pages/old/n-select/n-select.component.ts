@@ -53,21 +53,7 @@ export class NSelectComponent implements AfterViewInit {
   constructor(private cdr: ChangeDetectorRef) {}
 
   ngAfterViewInit() {
-    console.log('NSelectComponent - ngAfterViewInit');
-    console.log('NSelectComponent - dataSource:', this.dataSource);
-    console.log('NSelectComponent - value:', this.value);
-    console.log('NSelectComponent - displayField:', this.displayField);
-    console.log('NSelectComponent - labelField:', this.labelField);
-    console.log('NSelectComponent - valueField:', this.valueField);
-    
-    this.cdr.detectChanges(); 
-   const allSelectDropdowns = document.querySelectorAll('.cdk-overlay-container .nz-select-dropdown');
-  allSelectDropdowns.forEach((dropdown) => {
-    const parent = dropdown.parentElement;
-    if (parent) {
-      parent.removeChild(dropdown);
-    }
-  });
+    this.cdr.detectChanges();
   }
 
   onValueChange(val: any) {

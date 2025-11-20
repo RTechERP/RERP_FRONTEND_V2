@@ -32,6 +32,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { BillExportService } from '../../bill-export-service/bill-export.service';
 import { ProductsaleServiceService } from '../../../ProductSale/product-sale-service/product-sale-service.service';
 import { DateTime } from 'luxon';
@@ -67,6 +68,7 @@ import { ProjectComponent } from '../../../../../project/project.component';
     NzDividerModule,
     NzDatePickerModule,
     SelectControlComponent,
+    NzSpinModule,
   ],
   templateUrl: './history-delete-bill.component.html',
   styleUrl: './history-delete-bill.component.css',
@@ -74,6 +76,7 @@ import { ProjectComponent } from '../../../../../project/project.component';
 export class HistoryDeleteBillComponent implements OnInit, AfterViewInit {
   table: any; // instance của Tabulator
   dataTable: any[] = [];
+  isLoading: boolean = false;
   message: string = '';
   @Input() billExportID: number = 0;
   @Input() billImportID: number = 0;
@@ -104,7 +107,7 @@ export class HistoryDeleteBillComponent implements OnInit, AfterViewInit {
     this.drawTable();
     this.getHistoryDeleteBillByBillType();
   }
-  getHistoryDeleteBillByBillType() {
+  getHistoryDeleteBillByBillType() { this.isLoading = true;
     this.billExportService
       .getHistoryDeleteBillByBillType(
         this.billExportID,
@@ -114,7 +117,7 @@ export class HistoryDeleteBillComponent implements OnInit, AfterViewInit {
       .subscribe((res: any) => {
         this.dataTable = res.data;
         this.table.replaceData(this.dataTable);
-        console.log(this.dataTable);
+        this.isLoading = false;
       });
   }
   closeModal() {

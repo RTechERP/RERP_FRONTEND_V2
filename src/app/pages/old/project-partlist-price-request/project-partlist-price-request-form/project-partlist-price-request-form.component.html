@@ -12,7 +12,7 @@
 
 <div class="modal-body">
   <form class="row g-3">
-    <div class="col-md-6">
+    <div class="col-md-4">
       <label for="requesterSelect" class="form-label"> Người yêu cầu </label>
       <nz-form-item>
         <nz-form-control [nzSpan]="24">
@@ -21,7 +21,7 @@
             [(ngModel)]="requester"
             name="requesterId"
             nzShowSearch
-            nzAllowClear
+            nzAllowClear=false
             nzPlaceHolder="Chọn người yêu cầu"
             [nzServerSearch]="true"
             (nzSearchChange)="requesterSearchChange($event)"
@@ -32,13 +32,13 @@
               class="cdk-overlay-container"
               *ngFor="let item of users"
               [nzValue]="item.ID"
-              [nzLabel]="item.FullName"
+              [nzLabel]="item.Code + ' - ' + item.FullName"
             ></nz-option>
           </nz-select>
         </nz-form-control>
       </nz-form-item>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-4">
       <label for="requestDate" class="form-label"> Ngày yêu cầu </label>
       <input
         id="requestDate"
@@ -48,20 +48,64 @@
         name="requestDate"
       />
     </div>
+        <div class="col-md-4">
+      <label for="requestTypeID" class="form-label"> Loại yêu cầu </label>
+       <nz-select
+    nzAllowClear = false
+    nzShowSearch
+    class="w-100"
+    [(ngModel)]="requestTypeID"
+    nzPlaceHolder="Chọn loại yêu cầu"
+    name="requestTypeID"
+  >
+    <nz-option
+      *ngFor="let type of lstRequestType"
+      [nzValue]="type.ID"
+      [nzLabel]="type.RequestTypeName"
+    >
+    </nz-option>
+  </nz-select>
+    </div>
   </form>
 
-  <button class="btn btn-sm btn-primary mt-3" (click)="addRow()">
-    + Thêm dòng
+  <button
+    nz-button
+    nzType="primary"
+    nzSize="small"
+    class="mt-3"
+    (click)="addRow()"
+  >
+    <i nz-icon nzType="plus"></i> Thêm dòng
   </button>
 
   <div #table class="mt-2"></div>
 </div>
 
 <div class="modal-footer">
-  <button type="button" class="btn btn-outline-danger" (click)="close()">
-    Đóng
+  <button nz-button nzType="default" nzDanger (click)="close()">
+    <i nz-icon nzType="close-circle" nzTheme="fill"></i> Đóng
   </button>
-  <button type="button" class="btn btn-primary" (click)="saveAndClose()">
-    Lưu dữ liệu
+  <button nz-button nzType="primary" (click)="saveAndClose()">
+    <i nz-icon nzType="save" nzTheme="fill"></i> Lưu dữ liệu
   </button>
 </div>
+
+<ng-template #selectTemplate let-row="row" let-productList="dt" let-success="success">
+  <nz-select
+    nzAllowClear
+    nzShowSearch
+    class="w-100"
+    [(ngModel)]="row.ProductNewCode"
+    (ngModelChange)="success($event)"
+    nzPlaceHolder="Chọn sản phẩm"
+    multiple="true"
+  >
+    <nz-option
+      *ngFor="let product of productList"
+      [nzValue]="product.ProductNewCode"
+      [nzLabel]="product.ProductNewCode + ' - ' + product.ProductName"
+    >
+    </nz-option>
+  </nz-select>
+</ng-template>
+<ng-container #vcHost></ng-container>

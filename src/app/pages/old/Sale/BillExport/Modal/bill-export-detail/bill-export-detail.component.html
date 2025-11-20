@@ -209,7 +209,10 @@
       </div>
     </div>
   </form>
-  <div id="table_BillExportDetails"></div>
+  <div class="position-relative" style="height: 38vh;">
+    <nz-spin *ngIf="isLoading" nzSimple [ngStyle]="{ position: 'absolute', top: '0', left: '0', width: '100%', height: '100%', background: 'rgba(255,255,255,0.4)', zIndex: '999', display: 'flex', alignItems: 'center', justifyContent: 'center' }"></nz-spin>
+    <div id="table_BillExportDetails"></div>
+  </div>
 </div>
 
 <div class="modal-footer flex-shrink-0">

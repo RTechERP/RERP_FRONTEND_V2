@@ -26,6 +26,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { DateTime } from 'luxon';
 import { HistoryImportExportService } from './history-import-export-service/history-import-export.service';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
@@ -51,6 +52,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     NzDatePickerModule,
     NzDropDownModule,
     NzMenuModule,
+    NzSpinModule,
   ],
   templateUrl: './history-import-export.component.html',
   styleUrl: './history-import-export.component.css',
@@ -73,6 +75,7 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
 
   table: any;
   dataTable: any[] = [];
+  isLoading: boolean = false;
   checked: boolean = false;
   sizeSearch: string = '0';
   searchParams = {
@@ -115,6 +118,32 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
   }
   onCheckboxChange() {
     this.loadData();
+  }
+
+  applyColumnVisibility() {
+    if (!this.table) return;
+    const status = this.searchParams.status;
+    const cols = this.table.getColumns();
+    const byTitle = (t: string) => cols.find((c:any) => c.getDefinition().title === t);
+    const showT = (t: string) => { const c = byTitle(t); if (c) c.show(); };
+    const hideT = (t: string) => { const c = byTitle(t); if (c) c.hide(); };
+    const show = (f: string) => { const c = this.table.getColumn(f); if (c) c.show(); };
+    const hide = (f: string) => { const c = this.table.getColumn(f); if (c) c.hide(); };
+
+    if (status === 0) {
+      show('BillImportCode'); hide('Code');
+      show('Suplier'); show('SomeBill'); show('BillCode'); show('FullName1'); show('Deliver');
+      hide('CustomerName'); hide('Address'); hide('FullName'); hide('Receiver'); hide('DateStatus');
+      showT('Ngày nhập'); hideT('Ngày xuất');
+    } else if (status === 1) {
+      hide('BillImportCode'); show('Code');
+      hide('Suplier'); hide('SomeBill'); hide('BillCode'); hide('FullName1'); hide('Deliver');
+      show('CustomerName'); show('Address'); show('FullName'); show('Receiver'); show('DateStatus');
+      hideT('Ngày nhập'); showT('Ngày xuất');
+    } else {
+      ['BillImportCode','Code','Suplier','SomeBill','BillCode','CustomerName','Address','FullName','FullName1','Deliver','Receiver','DateStatus'].forEach(show);
+      showT('Ngày nhập'); showT('Ngày xuất');
+    }
   }
 
   async exportExcel() {
@@ -219,7 +248,7 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
     window.URL.revokeObjectURL(link.href);
   }
   //lay du lieu
-  loadData() {
+  loadData() { this.isLoading = true;
     const dateStart = DateTime.fromJSDate(
       new Date(this.searchParams.dateStart)
     );
@@ -241,17 +270,21 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
             this.dataTable = res.data;
             if (this.table) {
               this.table.replaceData(this.dataTable);
+              this.applyColumnVisibility();
             } else {
               console.log(
                 '>>> Bảng chưa tồn tại, dữ liệu sẽ được load khi drawTable() được gọi'
               );
             }
           }
+          this.isLoading = false;
         },
         error: (err: any) => {
           this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu phiếu xuất');
+          this.isLoading = false;
         },
       });
+    this.applyColumnVisibility();
   }
   //ve bang
   drawTable() {
@@ -261,10 +294,44 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
       reactiveData: true,
       movableColumns: true,
       resizableRows: true,
-      ...DEFAULT_TABLE_CONFIG,
+      // ...DEFAULT_TABLE_CONFIG,
       height: '89vh',
       pagination: true,
-      paginationMode: 'remote',
+      paginationMode: 'local',
+      langs: {
+    vi: {
+      pagination: {
+        first: '<<',
+        last: '>>',
+        prev: '<',
+        next: '>',
+      },
+    },
+  },
+  locale: 'vi',
+  columnDefaults: {
+    headerWordWrap: true,
+    headerVertical: false,
+    headerHozAlign: 'center',
+    minWidth: 60,
+    hozAlign: 'left',
+    vertAlign: 'middle',
+    resizable: true,
+  },
+
+  rowHeader: {
+    width: 20,
+    headerSort: false,
+    resizable: false,
+    frozen: true,
+    headerHozAlign: 'center',
+    hozAlign: 'center',
+    formatter: 'rowSelection',
+    titleFormatter: 'rowSelection',
+    cellClick: function (e, cell) {
+      cell.getRow().toggleSelect();
+    },
+  },
       columns: [
         {
           title: 'Trạng thái',
@@ -290,18 +357,23 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
         },
         {
           title: 'Số phiếu',
+          field: 'BillImportCode',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+        }, {
+          title: 'Số phiếu',
           field: 'Code',
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'Nhà cung cấp',
-          field: 'SupplierName',
+          field: 'Suplier',
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
-          title: 'Ngày tạo',
+          title: 'Ngày nhập',
           field: 'CreatDate',
           hozAlign: 'center',
           headerHozAlign: 'center',
@@ -310,6 +382,8 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
             return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
           },
         },
+           
+        
         {
           title: 'Khách hàng',
           field: 'CustomerName',
@@ -324,7 +398,7 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
         },
         {
           title: 'Ngày xuất',
-          field: 'DateStatus',
+          field: 'CreatDate',
           hozAlign: 'center',
           headerHozAlign: 'center',
           formatter: (cell) => {
@@ -378,13 +452,13 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
         },
         {
           title: 'Hoá đơn',
-          field: 'InvoiceNumber',
+          field: 'SomeBill',
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'Đơn mua hàng',
-          field: 'PurchaseOrder',
+          field: 'BillCode',
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
@@ -408,13 +482,13 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
         },
         {
           title: 'Người nhập',
-          field: 'FullName1',
+          field: 'Reciver',
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'Loại vật tư',
-          field: 'MaterialType',
+          field: 'Stock',
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
@@ -426,7 +500,7 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
         },
         {
           title: 'Người nhận',
-          field: 'Receiver',
+          field: 'FullName1',
           hozAlign: 'left',
           headerHozAlign: 'center',
         },

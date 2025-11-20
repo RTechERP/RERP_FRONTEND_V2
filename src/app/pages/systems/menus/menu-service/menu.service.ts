@@ -100,6 +100,8 @@ import { BorrowReportComponent } from '../../../old/Technical/borrow-report/borr
 import { DocumentComponent } from '../../../hrm/document/document.component';
 import { VehicleBookingManagementComponent } from '../../../hrm/vehicle/vehicle-booking-management/vehicle-booking-management.component';
 import { ProtectgearComponent } from '../../../hrm/protectgear/protectgear/protectgear.component';
+import { ProjectPartlistPriceRequestComponent } from '../../../old/project-partlist-price-request/project-partlist-price-request.component';
+import { ProjectPartlistPurchaseRequestComponent } from '../../../purchase/project-partlist-purchase-request/project-partlist-purchase-request.component';
 
 import { MeetingMinuteTypeComponent } from '../../../project/meeting-minute/meeting-minute-type/meeting-minute-type.component';
 import { ProjectAgvSummaryComponent } from '../../../project/project-agv-summary/project-agv-summary.component';
@@ -959,6 +961,24 @@ export class MenuService {
         isPermission: this.permissionService.hasPermission(''),
         icon: 'assets/icon/ic_purchase_100px.svg',
         children: [
+                    {
+            kind: 'leaf',
+            key: 'ProjectPartlistPriceRequestComponent',
+            title: 'Yêu cầu báo giá',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission('N33,N1'),
+            comp: ProjectPartlistPriceRequestComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+                              {
+            kind: 'leaf',
+            key: 'ProjectPartlistPurchaseRequestComponent',
+            title: 'Yêu cầu báo giá',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission('N33,N1'),
+            comp: ProjectPartlistPurchaseRequestComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
           {
             kind: 'leaf',
             key: 'EmployeePurchaseComponent',

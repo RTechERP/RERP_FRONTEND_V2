@@ -13,6 +13,13 @@
 .tabulator-cell {
   padding: 0px;
 }
+/* 
+::ng-deep .tabulator .tabulator-header {
+  background-color: #d9d9d9 !important;
+}
+::ng-deep .tabulator .tabulator-header .tabulator-col {
+  background-color: transparent !important;
+} */
 
 .inner-content {
   padding: 0 !important;
@@ -21,10 +28,19 @@
 .ant-tabs-tab-btn {
   font-size: 0.75rem;
 }
-::ng-deep .ant-select-item-option-content {
+.ant-select-item-option-content {
   color: black !important;
 }
 
-::ng-deep .ant-select-selection-item {
+.ant-select-selection-item {
   color: black !important;
 }
+
+/* Active tab styling for NzTabs card */
+/* ::ng-deep .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active {
+  background-color: #314184 !important;
+  border-color: #314184 !important;
+}
+::ng-deep  .ant-tabs-card .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #ffffff !important;
+} */

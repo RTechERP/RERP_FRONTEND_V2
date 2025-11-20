@@ -19,6 +19,8 @@ import {
   Type,
   createComponent,
   OnDestroy,
+  ViewChild,
+  ElementRef,
 } from '@angular/core';
 import {
   NgbActiveModal,
@@ -123,6 +125,8 @@ interface BillImport {
 export class BillImportDetailComponent
   implements OnInit, AfterViewInit, OnDestroy
 {
+
+
   isVisible: boolean = true;
   private warehouseIdHN: number = 0;
   warehouses: any[] = [];
@@ -169,6 +173,9 @@ export class BillImportDetailComponent
     { ID: 1, Name: 'Hàng thương mại' },
     { ID: 2, Name: 'Hàng dự án' },
   ];
+    @ViewChild('table_BillImportDetails') tableBillImportDetails!: ElementRef;
+    @ViewChild('table_DocumnetImport') tableDocumnetImport!: ElementRef;
+
   private initialBillTypeNew: number | null = null; // Thêm biến này
   private isInitialLoad: boolean = true; // Cờ để biết có đang load lần đầu không
   dateFormat = 'dd/MM/yyyy';
@@ -236,7 +243,6 @@ export class BillImportDetailComponent
   }
 
   ngOnInit(): void {
-    console.log('iddd', this.id);
     this.billImportService.getWarehouse().subscribe((res: any) => {
       const list = res.data || [];
       this.warehouses = list;
@@ -293,29 +299,10 @@ export class BillImportDetailComponent
         // if (!this.isCheckmode || newValue !== this.initialBillTypeNew) {
         //   this.changeStatus();
         // }
-        console.log(
-          'BillTypeNew changed:',
-          newValue,
-          'isInitialLoad:',
-          this.isInitialLoad,
-          'initial:',
-          this.initialBillTypeNew,
-          'isCheckmode:',
-          this.isCheckmode
-        ); // THÊM: Để debug
+         // THÊM: Để debug
 
-        if (this.isInitialLoad) {
-          this.isInitialLoad = false;
-          this.initialBillTypeNew = newValue;
-          console.log('Skipped as initial load'); // THÊM
-          return;
-        }
-
-        if (!this.isCheckmode || newValue !== this.initialBillTypeNew) {
-          console.log('Calling changeStatus'); // THÊM
+        if (!this.isCheckmode) {
           this.changeStatus();
-        } else {
-          console.log('Skipped: same as initial in edit mode'); // THÊM
         }
       });
     // Theo dõi thay đổi Loại kho và NCC để áp dụng lại logic
@@ -323,6 +310,8 @@ export class BillImportDetailComponent
       .get('KhoTypeID')
       ?.valueChanges.pipe(takeUntil(this.destroy$))
       .subscribe((productGroupId: number) => {
+        console.log('productGroupIDdddddddddd',productGroupId);
+
         this.changeProductGroup(productGroupId);
         this.updateReceiverDeliver();
       });
@@ -343,8 +332,11 @@ export class BillImportDetailComponent
       });
     if (this.createImport) {
       this.newBillImport.BillTypeNew = 1;
+
       this.initialBillTypeNew = 1;
-      this.isInitialLoad = false; // THÊM: Set false ngay để lần user change đầu gọi getNewCode
+      this.validateForm.patchValue({
+        BillTypeNew: 1,
+      })
       this.getNewCode();
       this.patchNewBillImportFromHistory();
     } else if (this.isCheckmode && this.id > 0) {
@@ -549,8 +541,9 @@ export class BillImportDetailComponent
   }
 
   changeStatus() {
-    this.getNewCode();
     const billTypeNew = this.validateForm.get('BillTypeNew')?.value;
+
+    this.getNewCode();
     if (billTypeNew === 4) {
       this.validateForm.patchValue({
         CreatDate: null,
@@ -572,35 +565,27 @@ export class BillImportDetailComponent
     });
   }
 
-  /**
-   * LoadDataReciver - Giống WinForm frmBillImportDetail.cs lines 1850-1882
-   * Logic tự động set Receiver và Deliverer dựa trên Warehouse, KhoType, và Supplier
-   */
   private updateReceiverDeliver(): void {
-    // Chỉ chạy khi tạo mới phiếu (giống WinForm: if (billImport.ID > 0) return;)
     if (this.isCheckmode && this.id > 0) return;
 
     const khoTypeId = this.validateForm.controls['KhoTypeID'].value || 0;
     const warehouseId = this.validateForm.controls['WarehouseID'].value || 0;
     const supplierId = this.validateForm.controls['SupplierID'].value || 0;
 
-    // Nếu chưa chọn kho type thì không làm gì
+
     if (!khoTypeId || !warehouseId) return;
 
     const isHCM = String(this.WarehouseCode).toUpperCase().includes('HCM');
-    const specialSuppliers = [1175, 16677]; // Giống WinForm line 1848
+    const specialSuppliers = [1175, 16677];
 
     if (isHCM) {
-      // === LOGIC KHO HCM (WinForm lines 1868-1881) ===
 
-      // 1. Người nhận = user hiện tại (line 1870)
       this.validateForm.controls['ReciverID'].setValue(
         this.appUserService.id || 0
       );
 
-      // 2. Người giao: Chỉ set nếu NCC thuộc nhóm đặc biệt
       if (specialSuppliers.includes(supplierId) && this.warehouseIdHN) {
-        // Lấy mapping từ kho HN (warehouseID = 1) - line 1871-1873
+
         this.productSaleService
           .getdataProductGroupWareHouse(khoTypeId, this.warehouseIdHN)
           .subscribe({
@@ -613,19 +598,16 @@ export class BillImportDetailComponent
             },
           });
       } else {
-        // Nếu không phải NCC đặc biệt -> Người giao = 0 (line 1880)
+
         this.validateForm.controls['DeliverID'].setValue(0);
       }
     } else {
-      // === LOGIC KHO HN hoặc kho khác (WinForm lines 1856-1865) ===
 
-      // Lấy mapping ProductGroupWarehouse cho kho hiện tại
       this.productSaleService
         .getdataProductGroupWareHouse(khoTypeId, warehouseId)
         .subscribe({
           next: (res: any) => {
             const userId = res?.data?.[0]?.UserID || 0;
-            // Set Người nhận từ mapping (line 1863)
             this.validateForm.controls['ReciverID'].setValue(userId);
           },
           error: () => {
@@ -633,15 +615,9 @@ export class BillImportDetailComponent
           },
         });
 
-      // Người giao đã được set = Global.UserID ở ngOnInit (line 245)
-      // Không cần set lại ở đây
     }
   }
 
-  /**
-   * RecheckQty - Tính tổng số lượng cho các sản phẩm trùng nhau
-   * Giống WinForm frmBillImportDetail.cs lines 1361-1387
-   */
   private recheckTotalQty(): void {
     if (!this.table_billImportDetail) return;
 
@@ -675,11 +651,6 @@ export class BillImportDetailComponent
     });
   }
 
-  /**
-   * CalculateDueDate - Tính ngày đến hạn dựa trên DateSomeBill + DPO
-   * Giống WinForm frmBillImportDetail.cs lines 1634-1652
-   * @param row - Row component của Tabulator
-   */
   private calculateDueDate(row: any): void {
     const rowData = row.getData();
     const dateSomeBill = rowData.DateSomeBill;
@@ -697,13 +668,7 @@ export class BillImportDetailComponent
     }
   }
 
-  /**
-   * PHASE 2.1: Calculate quantity to keep in InventoryProject
-   * Giống WinForm frmBillImportDetail.cs lines 1119-1129
-   * @param quantityReal - Actual quantity received
-   * @param quantityRequest - Requested quantity to buy
-   * @returns Quantity to keep
-   */
+
   private calculateQuantityKeep(quantityReal: number, quantityRequest: number): number {
     let quantityKeep = quantityReal;
 
@@ -715,40 +680,24 @@ export class BillImportDetailComponent
     return quantityKeep;
   }
 
-  /**
-   * PHASE 2.1: Prepare InventoryProject data for detail row
-   * Giống WinForm frmBillImportDetail.cs lines 1092-1170
-   * Note: Actual creation/update should happen on backend
-   */
   private prepareInventoryProjectData(detailRow: any): any | null {
     const formValues = this.validateForm.getRawValue();
 
-    // Skip if "Không giữ" (IsNotKeep) is checked
     if (detailRow.IsNotKeep === true) {
       return null;
     }
 
-    // Skip if not BillTypeNew = 0 (nhập kho)
     if (formValues.BillTypeNew !== 0) {
       return null;
     }
-
-    // Skip if no ProjectID and no POKHDetailID
     const projectID = detailRow.ProjectID || detailRow.ProjectIDKeep || 0;
     const pokhDetailID = detailRow.POKHDetailID || 0;
     if (projectID <= 0 && pokhDetailID <= 0) {
       return null;
     }
-
-    // Calculate quantity to keep
     const quantityReal = parseFloat(detailRow.Qty) || 0;
     const quantityRequest = parseFloat(detailRow.QuantityRequestBuy) || 0;
     let quantityKeep = this.calculateQuantityKeep(quantityReal, quantityRequest);
-
-    // Note: Backend should call UpdateReturnQuantityLoan to adjust quantityKeep
-    // for auto-refill loan logic (lines 1129)
-
-    // Prepare InventoryProject object (for backend processing)
     const inventoryProject = {
       ID: detailRow.InventoryProjectID || 0,
       ProjectID: projectID,
@@ -788,18 +737,14 @@ export class BillImportDetailComponent
             DateRequest: data.RequestDate ? new Date(data.RequestDate) : null,
             RulePayID: data.RulePayID,
           };
-          // Lưu giá trị ban đầu của BillTypeNew
           this.initialBillTypeNew = data.BillTypeNew;
 
-          // SỬA: Patch mà không trigger valueChanges
           this.validateForm.patchValue(this.newBillImport, {
             emitEvent: false,
           });
 
-          // THÊM: Set flag sau patch
           this.isInitialLoad = false;
-          // this.validateForm.patchValue(this.newBillImport); // Đồng bộ dữ liệu vào form
-          this.changeProductGroup(this.newBillImport.KhoTypeID);
+          this.changeProductGroup(this.validateForm.get('KhoTypeID')?.value);
         } else {
           this.notification.warning(
             'Thông báo',
@@ -995,7 +940,9 @@ export class BillImportDetailComponent
     this.billExportService.getCbbUser().subscribe({
       next: (res: any) => {
         this.dataCbbReciver = res.data;
-        this.dataCbbDeliver = this.dataCbbReciver;
+        this.dataCbbDeliver = res.data;
+        console.log("data",this.dataCbbDeliver);
+
       },
       error: (err: any) => {
         this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
@@ -1013,8 +960,10 @@ export class BillImportDetailComponent
     });
   }
   getNewCode() {
+    console.log("BillTypeNew", this.newBillImport.BillTypeNew);
+    const billTypeNew = this.validateForm.get('BillTypeNew')?.value;
     this.billImportService
-      .getNewCode(this.newBillImport.BillTypeNew)
+      .getNewCode(billTypeNew)
       .subscribe({
         next: (res: any) => {
           console.log('New code received:', res.data);
@@ -1373,7 +1322,6 @@ export class BillImportDetailComponent
     injector: EnvironmentInjector,
     appRef: ApplicationRef,
     getData: () => any[],
-    // Thêm tham số config để nhận cấu hình
     config: {
       valueField: string;
       labelField: string;
@@ -1386,7 +1334,11 @@ export class BillImportDetailComponent
         environmentInjector: injector,
       });
 
-      const data = getData();
+      let data = getData();
+      data = data.map((p: any) => ({
+        ...p,
+        productLabel: `${p.ProductNewCode || ''}-${p.ProductName || ''}`
+      }));
       componentRef.instance.id = cell.getValue();
       componentRef.instance.data = data;
 
@@ -1526,7 +1478,7 @@ export class BillImportDetailComponent
     if (this.table_billImportDetail) {
       this.table_billImportDetail.replaceData(this.dataTableBillImportDetail);
     } else {
-      this.table_billImportDetail = new Tabulator('#table_BillImportDetails', {
+      this.table_billImportDetail = new Tabulator(this.tableBillImportDetails.nativeElement, {
         data: this.dataTableBillImportDetail,
         layout: 'fitDataFill',
         height: '38vh',
@@ -1586,7 +1538,7 @@ export class BillImportDetailComponent
           },
           {
             title: 'Mã nội bộ',
-            field: 'ProductCode',
+            field: 'ProductNewCode',
             hozAlign: 'left',
             headerHozAlign: 'center',
           },
@@ -1603,7 +1555,7 @@ export class BillImportDetailComponent
               () => this.productOptions,
               {
                 valueField: 'value',
-                labelField: 'label',
+                labelField: 'productLabel',
               }
             ),
             formatter: (cell) => {
@@ -1619,7 +1571,7 @@ export class BillImportDetailComponent
               const productnewcode = product ? product.ProductNewCode : '';
               console.log('productnewcode', productnewcode);
 
-              return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${productnewcode} - ${productcode}</p> <i class="fas fa-angle-down"></i></div>`;
+              return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${productcode}</p> <i class="fas fa-angle-down"></i></div>`;
             },
             cellEdited: (cell) => {
               const row = cell.getRow();
@@ -1857,7 +1809,7 @@ export class BillImportDetailComponent
               if (selectedProject) {
                 row.update({
                   ProjectCodeExport: selectedProject.ProjectCode,
-                  ProjectName: selectedProject.ProjectName,
+                  ProjectName: selectedProject.label,
                   InventoryProjectIDs: [newValue],
                 });
               }
@@ -2263,7 +2215,7 @@ export class BillImportDetailComponent
     this.isLoading = true;
 
     setTimeout(() => {
-      this.table_DocumnetImport = new Tabulator('#table_DocumnetImport', {
+      this.table_DocumnetImport = new Tabulator(this.tableDocumnetImport.nativeElement, {
         data: this.dataTableDocumnetImport, // mảng chứa dữ liệu JSON
         layout: 'fitDataFill',
         height: '38vh',

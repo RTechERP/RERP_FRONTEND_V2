@@ -27,8 +27,10 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { DateTime } from 'luxon';
 import { ListProductProjectService } from './list-product-project-service/list-product-project.service';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
@@ -52,6 +54,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     NzDatePickerModule,
     NzDropDownModule,
     NzMenuModule,
+    NzSpinModule,
   ],
   templateUrl: './list-product-project.component.html',
   styleUrl: './list-product-project.component.css',
@@ -59,6 +62,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 export class ListProductProjectComponent implements OnInit, AfterViewInit {
   table: any;
   dataTable: any[] = [];
+  isLoading: boolean = false;
   sreachParam = {
     selectedProject: {
       ProjectCode: '',
@@ -83,7 +87,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     this.drawTable();
   }
-  loadData() {
+  loadData() { this.isLoading = true;
     if (this.sreachParam.selectedProject == null) {
       this.sreachParam.selectedProject = {
         ProjectCode: '',
@@ -100,12 +104,14 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
         next: (res) => {
           this.dataTable = res.data;
           this.table?.replaceData(this.dataTable);
+          this.isLoading = false;
         },
         error: (err) => {
           this.notification.error(
             NOTIFICATION_TITLE.error,
             'Có lỗi xảy ra khi lấy sản phẩm theo dự án'
           );
+          this.isLoading = false;
         },
       });
   }
@@ -171,6 +177,23 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
       ];
     });
 
+    const totalDauKy = data.reduce((t: number, r: any) => t + (Number(r['NumberInStoreDauky']) || 0), 0);
+    const totalImport = data.reduce((t: number, r: any) => t + (Number(r['Import']) || 0), 0);
+    const totalExport = data.reduce((t: number, r: any) => t + (Number(r['Export']) || 0), 0);
+    const totalCuoiKy = data.reduce((t: number, r: any) => t + (Number(r['NumberInStoreCuoiKy']) || 0), 0);
+    const totalsRow = [
+      'TỔNG',
+      ...filteredColumns.map((col: any) => {
+        const field = col.getField();
+        if (field === 'NumberInStoreDauky') return totalDauKy;
+        if (field === 'Import') return totalImport;
+        if (field === 'Export') return totalExport;
+        if (field === 'NumberInStoreCuoiKy') return totalCuoiKy;
+        return '';
+      }),
+    ];
+    worksheet.addRow(totalsRow);
+
     // Format cột có giá trị là Date
     worksheet.eachRow((row, rowNumber) => {
       if (rowNumber === 1) return; // bỏ qua tiêu đề
@@ -233,11 +256,13 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
   //#endregion
   drawTable() {
     this.table = new Tabulator('#table_ListProductProject', {
+      ...DEFAULT_TABLE_CONFIG,
       index: 'ProductID',
       data: this.dataTable,
-      layout: 'fitColumns', // ✅ Tự chia đều
-      responsiveLayout: 'collapse', // ✅ Tự co lại nếu không đủ không gian
-      height: '80vh',
+      layout: 'fitDataStretch', // ✅ Tự chia đều
+      // responsiveLayout: 'collapse', // ✅ Tự co lại nếu không đủ không gian
+      height: '89vh',
+      paginationMode: 'local',
       movableColumns: true,
       resizableRows: true,
       reactiveData: true,
@@ -263,13 +288,13 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
         {
           title: 'Mã dự án',
           field: 'ProjectCode',
-          hozAlign: 'center',
+          hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'Mã sản phẩm',
           field: 'ProductCode',
-          hozAlign: 'center',
+          hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
@@ -277,6 +302,8 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
           field: 'ProductName',
           hozAlign: 'left',
           headerHozAlign: 'center',
+          width: 300,
+          formatter:'textarea'
         },
         {
           title: 'Mã nội bộ',

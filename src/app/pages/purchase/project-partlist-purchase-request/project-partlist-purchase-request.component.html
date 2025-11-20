@@ -1,0 +1,131 @@
+<ng-container class="w-100">
+  <nz-splitter nzDirection="vertical">
+    <nz-splitter-panel [nzSize]="'100%'">
+      <nz-splitter>
+        <!-- Tìm kiếm -->
+        <nz-splitter-panel [nzSize]="searchSize" nzDefaultSize="40%" [nzCollapsible]="false" nzResizable="false">
+          <div class="card h-100 border-0 rounded-0">
+            <div class="card-header bg-white p-1">
+              <div class="d-flex justify-content-between align-items-center">
+                <h6 class="m-0 ms-2">Tìm kiếm</h6>
+                <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger aria-label="Đóng tìm kiếm" (click)="ToggleSearchPanel()">
+                  <nz-icon nzType="close" nzTheme="outline" />
+                </button>
+              </div>
+            </div>
+            <div class="card-body p-2">
+              <form nz-form nzLayout="vertical">
+                <nz-form-item>
+                  <nz-form-label class="fs-12">Từ ngày</nz-form-label>
+                  <nz-form-control>
+                    <nz-date-picker class="w-100" nzFormat="dd/MM/yyyy" [(ngModel)]="dateStart" name="dateStart"></nz-date-picker>
+                  </nz-form-control>
+                </nz-form-item>
+                <nz-form-item class="mt-2">
+                  <nz-form-label class="fs-12">Đến ngày</nz-form-label>
+                  <nz-form-control>
+                    <nz-date-picker class="w-100" nzFormat="dd/MM/yyyy" [(ngModel)]="dateEnd" name="dateEnd"></nz-date-picker>
+                  </nz-form-control>
+                </nz-form-item>
+                <nz-form-item class="mt-2">
+                  <nz-form-label class="fs-12">Trạng thái</nz-form-label>
+                  <nz-form-control>
+                    <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear name="statusRequest"
+                      [(ngModel)]="statusRequestFilter" nzPlaceHolder="--Tất cả--">
+                      <nz-option *ngFor="let s of statusOptions" [nzValue]="s.value" [nzLabel]="s.label"></nz-option>
+                    </nz-select>
+                  </nz-form-control>
+                </nz-form-item>
+                <nz-form-item class="mt-2">
+                  <nz-form-label class="fs-12">Dự án</nz-form-label>
+                  <nz-form-control>
+                    <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear name="projectId"
+                      [(ngModel)]="projectIdFilter" nzPlaceHolder="Chọn dự án">
+                      <nz-option *ngFor="let p of projects" [nzValue]="p.ID" [nzLabel]="p.ProjectCode || p.ProjectName"></nz-option>
+                    </nz-select>
+                  </nz-form-control>
+                </nz-form-item>
+                <nz-form-item class="mt-2">
+                  <nz-form-label class="fs-12">Tình trạng</nz-form-label>
+                  <nz-form-control>
+                    <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear name="approvedTBP"
+                      [(ngModel)]="isApprovedTBPFilter" nzPlaceHolder="--Tất cả--">
+                      <nz-option *ngFor="let a of approvalOptions" [nzValue]="a.value" [nzLabel]="a.label"></nz-option>
+                    </nz-select>
+                  </nz-form-control>
+                </nz-form-item>
+                <nz-form-item class="mt-2">
+                  <nz-form-label class="fs-12">Trạng thái BGĐ</nz-form-label>
+                  <nz-form-control>
+                    <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear name="approvedBGD"
+                      [(ngModel)]="isApprovedBGDFilter" nzPlaceHolder="--Tất cả--">
+                      <nz-option *ngFor="let a of approvalOptions" [nzValue]="a.value" [nzLabel]="a.label"></nz-option>
+                    </nz-select>
+                  </nz-form-control>
+                </nz-form-item>
+                <nz-form-item class="mt-2">
+                  <nz-form-label class="fs-12">Số POKH</nz-form-label>
+                  <nz-form-control>
+                    <nz-select class="w-100" nzSize="small" nzShowSearch nzAllowClear name="pokhId"
+                      [(ngModel)]="pokhIdFilter" nzPlaceHolder="Chọn Số PO KH">
+                      <nz-option *ngFor="let po of lstPOKH" [nzValue]="po.ID" [nzLabel]="po.POCode"></nz-option>
+                    </nz-select>
+                  </nz-form-control>
+                </nz-form-item>
+                <nz-form-item class="mt-2">
+                  <nz-form-label class="fs-12">Từ khóa</nz-form-label>
+                  <nz-form-control>
+                    <input nz-input [(ngModel)]="keyword" name="keyword" placeholder="Mã SP, ghi chú..." (keyup.enter)="onSearch()" />
+                  </nz-form-control>
+                </nz-form-item>
+              </form>
+            </div>
+            <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+              <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">Làm mới</button>
+              <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">Tìm kiếm</button>
+            </div>
+          </div>
+        </nz-splitter-panel>
+
+        <!-- Bảng -->
+        <nz-splitter-panel [nzSize]="'auto'">
+          <div class="card h-100 border-0 rounded-0 position-relative">
+            <div class="card-header bg-white p-1 d-flex align-items-center justify-content-between">
+              <div class="d-flex flex-wrap gap-1">
+                <button nz-button nzType="default" nzSize="small" (click)="ToggleSearchPanel()" aria-label="Tìm kiếm">
+                  <nz-icon nzType="search" />
+                </button>
+                <button nz-button nzType="default" nzSize="small" (click)="onCheckOrder(activeTabIndex)">Check đặt hàng</button>
+                <button nz-button nzType="default" nzSize="small" (click)="onUncheckOrder(activeTabIndex)">Hủy Check đặt hàng</button>
+                <button nz-button nzType="primary" nzSize="small" (click)="saveChanges()">Lưu thay đổi</button>
+                <button nz-button nzType="default" nzSize="small" (click)="onEdit()">Sửa</button>
+                <button nz-button nzType="default" nzDanger nzSize="small" (click)="onCancelRequest(activeTabIndex)">Hủy Y/C</button>
+                <button nz-button nzType="default" nzSize="small" (click)="onAddSupplierSale()">Thêm NCC</button>
+                <button nz-button nzType="default" nzSize="small" (click)="onRequestApproved(activeTabIndex, true)">Y/C duyệt mua</button>
+                <button nz-button nzType="default" nzSize="small" (click)="onRequestApproved(activeTabIndex, false)">Hủy Y/C duyệt mua</button>
+                <button nz-button nzType="default" nzSize="small" (click)="onCompleteRequest(activeTabIndex)">Hoàn thành</button>
+                <button nz-button nzType="default" nzSize="small" (click)="onApproveBGD(true, activeTabIndex)">BGD duyệt</button>
+                <button nz-button nzType="default" nzSize="small" (click)="onApproveBGD(false, activeTabIndex)">BGD hủy duyệt</button>
+                <button nz-button nzType="default" nzSize="small" (click)="onCreatePONCC(activeTabIndex)">Tạo PO NCC</button>
+                <button nz-button nzType="default" nzSize="small" (click)="onExportExcel(activeTabIndex)">Xuất Excel</button>
+                <button nz-button nzType="default" nzSize="small" (click)="onDownloadFiles(activeTabIndex)">Tải file</button>
+              </div>
+            </div>
+
+            <div class="card-body p-0">
+              <nz-tabset (nzSelectedIndexChange)="onTabChange($event)">
+                <nz-tab *ngFor="let tab of tabs; let i = index" [nzTitle]="tab.title">
+                  <div class="table-container" #tbContainer></div>
+                </nz-tab>
+              </nz-tabset>
+
+              <div *ngIf="isLoading" class="loading-overlay">
+                <nz-spin nzSimple></nz-spin>
+              </div>
+            </div>
+          </div>
+        </nz-splitter-panel>
+      </nz-splitter>
+    </nz-splitter-panel>
+  </nz-splitter>
+</ng-container>

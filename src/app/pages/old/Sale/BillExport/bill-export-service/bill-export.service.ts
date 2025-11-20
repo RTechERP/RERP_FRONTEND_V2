@@ -111,10 +111,14 @@ export class BillExportService {
   // Get Product Groups
   getCbbProductGroup(): Observable<any> {
     return this.http.get<any>(
-      environment.host + `api/ProductGroup?isvisible=false`
+      environment.host + `api/ProductGroup?isvisible=true`
     );
   }
-
+  getAllProductGroup(): Observable<any> {
+    return this.http.get<any>(
+      environment.host + `api/ProductGroup?isvisible=true`
+    );
+  }
   // Get New Bill Code
   getNewCodeBillExport(billType: number, billId?: number, currentStatus?: number, currentCode?: string): Observable<any> {
     let params = new HttpParams().set('billTypeId', billType.toString());

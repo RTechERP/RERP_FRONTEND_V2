@@ -45,6 +45,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { BillExportService } from '../../bill-export-service/bill-export.service';
 import { ProductsaleServiceService } from '../../../ProductSale/product-sale-service/product-sale-service.service';
 import { DateTime } from 'luxon';
@@ -111,6 +112,7 @@ interface BillExport {
     NgbModule,
     NzDividerModule,
     NzDatePickerModule,
+    NzSpinModule,
     ProductSaleDetailComponent,
     SelectControlComponent,
     HasPermissionDirective
@@ -123,6 +125,8 @@ export class BillExportDetailComponent
 {
   table_billExportDetail: any;
   dataTableBillExportDetail: any[] = [];
+
+  isLoading: boolean = false;
 
   dataCbbUser: any[] = [];
   dataCbbCustomer: any[] = [];
@@ -387,7 +391,7 @@ export class BillExportDetailComponent
       },
     });
   }
-  getBillExportDetailConvert(ids: number[] = [this.id]){
+  getBillExportDetailConvert(ids: number[] = [this.id]){ this.isLoading = true;
     // Join the IDs into a comma-separated string (matching C# form logic)
     const idString = ids.join(',');
 
@@ -459,12 +463,14 @@ export class BillExportDetailComponent
               this.table_billExportDetail.redraw(true);
             }, 100);
           }
+          this.isLoading = false;
         } else {
           this.notification.warning('Thông báo', res.message || 'Không có dữ liệu chi tiết phiếu nhập để chuyển đổi!');
           this.dataTableBillExportDetail = [];
           if (this.table_billExportDetail) {
             this.table_billExportDetail.replaceData([]);
           }
+          this.isLoading = false;
         }
       },
       error: (err) => {
@@ -474,10 +480,11 @@ export class BillExportDetailComponent
         if (this.table_billExportDetail) {
           this.table_billExportDetail.replaceData([]);
         }
+        this.isLoading = false;
       },
     });
   }
-  getBillExportDetailID() {
+  getBillExportDetailID() { this.isLoading = true;
     this.billExportService.getBillExportDetail(this.id).subscribe({
       next: (res) => {
         if (res?.data) {
@@ -544,6 +551,7 @@ export class BillExportDetailComponent
               this.table_billExportDetail.redraw(true);
             }, 100);
           }
+          this.isLoading = false;
         } else {
           this.notification.warning(
             'Thông báo',
@@ -553,6 +561,7 @@ export class BillExportDetailComponent
           if (this.table_billExportDetail) {
             this.table_billExportDetail.replaceData([]);
           }
+          this.isLoading = false;
         }
       },
       error: (err) => {
@@ -565,6 +574,7 @@ export class BillExportDetailComponent
         if (this.table_billExportDetail) {
           this.table_billExportDetail.replaceData([]);
         }
+        this.isLoading = false;
       },
     });
   }

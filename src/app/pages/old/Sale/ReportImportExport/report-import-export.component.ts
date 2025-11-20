@@ -29,6 +29,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { ReportImportExportService } from './report-import-export-service/report-import-export.service';
 import { ProductsaleServiceService } from '../ProductSale/product-sale-service/product-sale-service.service';
 import { DateTime } from 'luxon';
@@ -79,6 +80,7 @@ interface ProductGroup {
     NzInputNumberModule,
     NzDatePickerModule,
     NgbModule,
+    NzSpinModule,
   ],
   templateUrl: './report-import-export.component.html',
   styleUrl: './report-import-export.component.css',
@@ -90,6 +92,8 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
   tableReport: any;
   dataReport: any[] = [];
 
+  isLoading: boolean = false;
+
   sizeSearch: string = '0';
   dateFormat = 'dd/MM/yyyy';
 
@@ -99,7 +103,11 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
     dateStart: new Date(new Date().setDate(new Date().getDate() - 2))
       .toISOString()
       .split('T')[0],
-    dateEnd: new Date().toISOString().split('T')[0],
+      dateEnd: (() => {
+    const d = new Date();
+    d.setHours(23, 59, 59, 999);
+    return d.toISOString();     // hoặc format yyyy-MM-dd HH:mm:ss
+  })(),
     keyword: '',
     group: 0,
     warehouseCode: 'HN',
@@ -171,7 +179,8 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
     // Tự động đóng panel tìm kiếm
     this.sizeSearch = '0';
   }
-  getDataProductGroup() {
+
+  getDataProductGroup() { this.isLoading = true;
     this.productsaleService.getDataProductGroupcbb().subscribe({
       next: (res) => {
         if (res?.data) {
@@ -182,14 +191,14 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
 
           // Vẽ bảng sau khi có dữ liệu
           this.drawTable_ProductGroup();
-
-          // Gọi lấy chi tiết sau khi bảng group có dữ liệu
           this.getReport();
+          this.isLoading = false;
         }
       },
       error: (err) => {
-        console.error('Lỗi khi lấy dữ liệu', err);
-      },
+          console.error('Lỗi khi lấy dữ liệu', err);
+          this.isLoading = false;
+        },
     });
   }
 
@@ -349,7 +358,7 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
       }
     });
   }
-  getReport() {
+  getReport() { this.isLoading = true;
     const dateStart = DateTime.fromJSDate(
       new Date(this.searchParams.dateStart)
     );
@@ -375,9 +384,11 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
               this.tableReport.replaceData(this.dataReport);
             }
           }
+          this.isLoading = false;
         },
         error: (err) => {
           console.error('Lỗi khi lấy dữ liệu', err);
+          this.isLoading = false;
         },
       });
   }
@@ -509,7 +520,6 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
           hozAlign: 'left',
           headerHozAlign: 'center',
           width: '50%',
-          headerFilter: true,
         },
         {
           title: 'Tên nhóm',
@@ -517,7 +527,6 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
           hozAlign: 'left',
           headerHozAlign: 'center',
           width: '50%',
-          headerFilter: true,
         },
       ],
     });
@@ -578,15 +587,15 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
-        {
-          title: 'Mã sản phẩm',
-          field: 'ProductCode',
+                {
+          title: 'Mã nội bộ',
+          field: 'ProductNewCode',
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
-          title: 'Mã nội bộ',
-          field: 'ProductNewCode',
+          title: 'Mã sản phẩm',
+          field: 'ProductCode',
           hozAlign: 'left',
           headerHozAlign: 'center',
         },

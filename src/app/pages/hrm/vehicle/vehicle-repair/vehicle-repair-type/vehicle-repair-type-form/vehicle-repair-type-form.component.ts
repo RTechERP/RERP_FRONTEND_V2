@@ -68,8 +68,7 @@ export class VehicleRepairTypeFormComponent implements OnInit, AfterViewInit {
   @Input() dataInput: any;
   @Output() closeModal = new EventEmitter<void>();
   @Output() formSubmitted = new EventEmitter<void>();
-
-  formGroup: FormGroup;
+    formGroup: FormGroup;
   ngOnInit(): void {
     if (this.dataInput) {
       this.formGroup.patchValue({

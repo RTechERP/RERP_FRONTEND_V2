@@ -82,7 +82,7 @@ searchTimeout: any;
   }, 500);
 }
   getSearchProductTechSerial() {
-    let request = { 
+    let request = {
       wearHouseID: this.wearHouseID || 1,
       serialNumber: this.serialNumber || ""
     };
@@ -114,6 +114,7 @@ searchTimeout: any;
         height: '86vh',
         movableColumns: true,
         paginationSize: 30,
+        paginationMode: "local",
         paginationSizeSelector: [5, 10, 20, 50, 100],
         reactiveData: true,
         placeholder: 'Không có dữ liệu',
@@ -157,6 +158,7 @@ searchTimeout: any;
         paginationSize: 30,
         paginationSizeSelector: [5, 10, 20, 50, 100],
         reactiveData: true,
+        paginationMode: "local",
         placeholder: 'Không có dữ liệu',
         dataTree: true,
         addRowPos: "bottom",

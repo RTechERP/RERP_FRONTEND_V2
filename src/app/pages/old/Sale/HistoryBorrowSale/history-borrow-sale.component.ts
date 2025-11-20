@@ -1,4 +1,5 @@
-import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
+import { DEFAULT_TABLE_CONFIG} from './../../../../tabulator-default.config';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { CommonModule } from '@angular/common';
@@ -26,6 +27,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { DateTime } from 'luxon';
 import { HistoryBorrowSaleService } from './history-borrow-sale-service/history-borrow-sale.service';
 import { BillExportService } from '../BillExport/bill-export-service/bill-export.service';
@@ -52,6 +54,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     NzDatePickerModule,
     NzDropDownModule,
     NzMenuModule,
+    NzSpinModule,
   ],
   templateUrl: './history-borrow-sale.component.html',
   styleUrl: './history-borrow-sale.component.css',
@@ -65,6 +68,7 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
     private billExportService: BillExportService,
   ) { }
 
+  @ViewChild('table_HistoryBorrowSale') tableElement!: ElementRef;
   newBillImport: any = {
     BillImportCode: '',
     ReciverID: 0,
@@ -93,6 +97,7 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
 
   table: any;
   dataTable: any[] = [];
+  isLoading: boolean = false;
   checked: boolean = false;
   sizeSearch: string = '0';
   searchParams = {
@@ -136,7 +141,7 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
     });
   }
   getCbbProductGroup() {
-    this.billExportService.getCbbProductGroup().subscribe({
+    this.billExportService.getAllProductGroup().subscribe({
       next: (res: any) => {
         this.cbbProductGroup = res.data;
       },
@@ -193,7 +198,7 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
 
       // Truyền dữ liệu sang BillImportDetailComponent
       modalRef.componentInstance.createImport = true;
-      modalRef.componentInstance.isCheckmode = true;
+      modalRef.componentInstance.isCheckmode = false;
      // modalRef.componentInstance.warehouseCode = warehouseCode;
       modalRef.componentInstance.groupID = groupID;
       modalRef.componentInstance.dataHistory = filterData; // Chứa tất cả bản ghi của nhóm, bao gồm các ProductID
@@ -210,7 +215,7 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
       );
     });
   }
-  loadData() {
+  loadData() { this.isLoading = true;
     const dateStart = DateTime.fromJSDate(
       new Date(this.searchParams.dateStart)
     );
@@ -238,12 +243,14 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
               'Lỗi: Bảng Tabulator chưa được khởi tạo khi loadData() được gọi.'
             );
           }
+          this.isLoading = false;
         },
         error: (err: any) => {
           this.notification.error(
             'Lỗi',
             'Không thể tải dữ liệu lịch sử mượn/trả'
           );
+          this.isLoading = false;
         },
       });
   }
@@ -407,10 +414,12 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
   }
 
   drawTable() {
-    this.table = new Tabulator('#table_HistoryBorrowSale', {
+    this.table = new Tabulator(this.tableElement.nativeElement, {
+      ...DEFAULT_TABLE_CONFIG,
       data: this.dataTable, // Khởi tạo với dữ liệu rỗng hoặc dữ liệu ban đầu nếu có
       layout: 'fitDataFill', // Hoặc "fitColumns" tùy theo mong muốn
       height: '90vh',
+      paginationMode: 'local',
       selectableRows: 15,
       reactiveData: true,
       movableColumns: true,

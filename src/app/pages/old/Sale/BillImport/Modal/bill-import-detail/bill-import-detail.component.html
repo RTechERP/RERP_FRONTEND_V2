@@ -1,31 +1,74 @@
 <div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0">
   <h6 class="modal-title text-white">Chi tiết phiếu nhập</h6>
-  <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+  <button
+    type="button"
+    class="btn-close"
+    (click)="closeModal()"
+    aria-label="Close"
+  ></button>
 </div>
-<div class="modal-body p-2 flex-grow-1 overflow-visible" style="overflow-y: unset;">
+<div
+  class="modal-body p-2 flex-grow-1 overflow-visible"
+  style="overflow-y: unset"
+>
   <div class="d-flex gap-2 pb-2 border-bottom">
-    <button class="fs-12 btn" nz-button nzType="default" nzSize="small" title="Thêm sản phẩm" (click)="openModalNewProduct()">
+    <button
+      class="fs-12 btn"
+      nz-button
+      nzType="default"
+      nzSize="small"
+      title="Thêm sản phẩm"
+      (click)="openModalNewProduct()"
+    >
       <nz-icon nzType="file-text"></nz-icon> Thêm sản phẩm
     </button>
-    <button class="fs-12 btn" nz-button nzType="default" nzSize="small" title="Thêm dự án">
+    <button
+      class="fs-12 btn"
+      nz-button
+      nzType="default"
+      nzSize="small"
+      title="Thêm dự án"
+    >
       <nz-icon nzType="exception"></nz-icon> Thêm dự án
     </button>
-    <button class="fs-12 btn" nz-button nzType="default" nzSize="small" title="Chọn PO">
+    <button
+      class="fs-12 btn"
+      nz-button
+      nzType="default"
+      nzSize="small"
+      title="Chọn PO"
+    >
       <nz-icon nzType="file-excel"></nz-icon> Chọn PO
     </button>
   </div>
 
   <!-- Đổi sang vertical: label nằm trên input -->
-  <form nz-form [nzLayout]="'vertical'" [nzLabelAlign]="'left'" class="mt-2" [formGroup]="validateForm">
+  <form
+    nz-form
+    [nzLayout]="'vertical'"
+    [nzLabelAlign]="'left'"
+    class="mt-2"
+    [formGroup]="validateForm"
+  >
     <!-- Hàng 1: 4 cột (Số phiếu, Trạng thái, Loại kho, Kho) -->
     <div nz-row [nzGutter]="16">
       <div nz-col nzXs="24" nzSm="12" nzMd="6" nzLg="6">
         <nz-form-item>
-          <nz-form-label class="fs-12" nzRequired >Số phiếu</nz-form-label>
+          <nz-form-label class="fs-12" nzRequired>Số phiếu</nz-form-label>
           <nz-form-control [nzErrorTip]="billImportCodeError">
-            <input  [disabled]="true" nz-input formControlName="BillImportCode" readonly />
+            <input
+              [disabled]="true"
+              nz-input
+              formControlName="BillImportCode"
+              readonly
+            />
             <ng-template #billImportCodeError let-control>
-              <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">
+              <ng-container
+                *ngIf="
+                  control.hasError('required') &&
+                  (control.dirty || control.touched)
+                "
+              >
                 Vui lòng nhập số phiếu!
               </ng-container>
             </ng-template>
@@ -43,10 +86,19 @@
               nzAllowClear
               nzPlaceHolder="Chọn trạng thái"
             >
-              <nz-option *ngFor="let id of cbbStatus" [nzValue]="id.ID" [nzLabel]="id.Name"></nz-option>
+              <nz-option
+                *ngFor="let status of cbbStatus"
+                [nzValue]="status.ID"
+                [nzLabel]="status.Name"
+              ></nz-option>
             </nz-select>
             <ng-template #billTypeNewError let-control>
-              <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">
+              <ng-container
+                *ngIf="
+                  control.hasError('required') &&
+                  (control.dirty || control.touched)
+                "
+              >
                 Vui lòng chọn trạng thái!
               </ng-container>
             </ng-template>
@@ -66,13 +118,26 @@
               nzAllowClear
               nzPlaceHolder="Chọn loại kho"
             >
-              <nz-option *ngFor="let id of dataCbbProductGroup" [nzValue]="id.ID" [nzLabel]="id.ProductGroupName"></nz-option>
+              <nz-option
+                *ngFor="let id of dataCbbProductGroup"
+                [nzValue]="id.ID"
+                [nzLabel]="id.ProductGroupName"
+              ></nz-option>
             </nz-select>
             <ng-template #khoTypeIdError let-control>
-              <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">
+              <ng-container
+                *ngIf="
+                  control.hasError('required') &&
+                  (control.dirty || control.touched)
+                "
+              >
                 Vui lòng chọn loại kho!
               </ng-container>
-              <ng-container *ngIf="control.hasError('min') && (control.dirty || control.touched)">
+              <ng-container
+                *ngIf="
+                  control.hasError('min') && (control.dirty || control.touched)
+                "
+              >
                 Vui lòng chọn loại kho!
               </ng-container>
             </ng-template>
@@ -85,8 +150,17 @@
           <nz-form-label class="fs-12" nzRequired>Kho</nz-form-label>
           <nz-form-control>
             <!-- Disable select, hiển thị WarehouseName, giá trị là WarehouseID -->
-            <nz-select formControlName="WarehouseID" nzShowSearch nzDisabled="true" nzPlaceHolder="Chọn kho">
-              <nz-option *ngFor="let wh of warehouses" [nzValue]="wh.ID" [nzLabel]="wh.WarehouseName"></nz-option>
+            <nz-select
+              formControlName="WarehouseID"
+              nzShowSearch
+              nzDisabled="true"
+              nzPlaceHolder="Chọn kho"
+            >
+              <nz-option
+                *ngFor="let wh of warehouses"
+                [nzValue]="wh.ID"
+                [nzLabel]="wh.WarehouseName"
+              ></nz-option>
             </nz-select>
           </nz-form-control>
         </nz-form-item>
@@ -107,13 +181,26 @@
               nzPlaceHolder="Chọn nhà cung cấp"
               (ngModelChange)="changeSuplierSale()"
             >
-              <nz-option *ngFor="let id of dataCbbSupplier" [nzValue]="id.ID" [nzLabel]="id.NameNCC"></nz-option>
+              <nz-option
+                *ngFor="let id of dataCbbSupplier"
+                [nzValue]="id.ID"
+                [nzLabel]="id.CodeNCC + '-' + id.NameNCC"
+              ></nz-option>
             </nz-select>
             <ng-template #supplierIdError let-control>
-              <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">
+              <ng-container
+                *ngIf="
+                  control.hasError('required') &&
+                  (control.dirty || control.touched)
+                "
+              >
                 Vui lòng chọn nhà cung cấp!
               </ng-container>
-              <ng-container *ngIf="control.hasError('min') && (control.dirty || control.touched)">
+              <ng-container
+                *ngIf="
+                  control.hasError('min') && (control.dirty || control.touched)
+                "
+              >
                 Vui lòng chọn nhà cung cấp!
               </ng-container>
             </ng-template>
@@ -129,7 +216,11 @@
               nzAllowClear
               nzPlaceHolder="Chọn điều khoản thanh toán"
             >
-              <nz-option *ngFor="let id of dataCbbRulePay" [nzValue]="id.ID" [nzLabel]="id.Note"></nz-option>
+              <nz-option
+                *ngFor="let id of dataCbbRulePay"
+                [nzValue]="id.ID"
+                [nzLabel]="id.Note"
+              ></nz-option>
             </nz-select>
           </nz-form-control>
         </nz-form-item>
@@ -146,13 +237,26 @@
               nzAllowClear
               nzPlaceHolder="Chọn người nhập"
             >
-              <nz-option *ngFor="let id of dataCbbReciver" [nzValue]="id.ID" [nzLabel]="id.FullName"></nz-option>
+              <nz-option
+                *ngFor="let id of dataCbbReciver"
+                [nzValue]="id.ID"
+                 [nzLabel]="(id.EmployeeCode || '') + '-' + (id.FullName || '')"
+              ></nz-option>
             </nz-select>
             <ng-template #reciverIdError let-control>
-              <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">
+              <ng-container
+                *ngIf="
+                  control.hasError('required') &&
+                  (control.dirty || control.touched)
+                "
+              >
                 Vui lòng chọn người nhập!
               </ng-container>
-              <ng-container *ngIf="control.hasError('min') && (control.dirty || control.touched)">
+              <ng-container
+                *ngIf="
+                  control.hasError('min') && (control.dirty || control.touched)
+                "
+              >
                 Vui lòng chọn người nhập!
               </ng-container>
             </ng-template>
@@ -168,13 +272,27 @@
               nzAllowClear
               nzPlaceHolder="Chọn người giao"
             >
-              <nz-option *ngFor="let id of dataCbbDeliver"  [nzValue]="id.ID" [nzLabel]="id.FullName "></nz-option>
+              <nz-option
+                *ngFor="let id of dataCbbDeliver"
+                [nzValue]="id.ID"
+                [nzLabel]="(id.EmployeeCode || '') + '-' + (id.FullName || '')"
+              >
+              </nz-option>
             </nz-select>
             <ng-template #deliverIdError let-control>
-              <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">
+              <ng-container
+                *ngIf="
+                  control.hasError('required') &&
+                  (control.dirty || control.touched)
+                "
+              >
                 Vui lòng chọn người giao!
               </ng-container>
-              <ng-container *ngIf="control.hasError('min') && (control.dirty || control.touched)">
+              <ng-container
+                *ngIf="
+                  control.hasError('min') && (control.dirty || control.touched)
+                "
+              >
                 Vui lòng chọn người giao!
               </ng-container>
             </ng-template>
@@ -211,21 +329,66 @@
     </div>
   </form>
 
-  <nz-tabset nzSize="small" [nzAnimated]="false" (nzSelectedIndexChange)="onTabChange($event)">
+  <nz-tabset
+    nzSize="small"
+    [nzAnimated]="false"
+    (nzSelectedIndexChange)="onTabChange($event)"
+  >
     <nz-tab nzTitle="Danh sách sản phẩm" nzForceRender="true">
-      <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải..." style="height: 100%;">
-        <div id="table_BillImportDetails" style="height: 38vh;"></div>
-      </nz-spin>
+      <div class="position-relative" style="height: 38vh">
+        <nz-spin
+          *ngIf="isLoading"
+          nzSimple
+          [ngStyle]="{
+            position: 'absolute',
+            top: '0',
+            left: '0',
+            width: '100%',
+            height: '100%',
+            background: 'rgba(255,255,255,0.4)',
+            zIndex: '999',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }"
+        ></nz-spin>
+        <div #table_BillImportDetails style="height: 38vh"></div>
+      </div>
     </nz-tab>
     <nz-tab nzTitle="Hồ sơ đi kèm" nzForceRender="true">
-      <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải..." style="height: 100%;">
-        <div id="table_DocumnetImport" style="height: 38vh;"></div>
-      </nz-spin>
+      <div class="position-relative" style="height: 38vh">
+        <nz-spin
+          *ngIf="isLoading"
+          nzSimple
+          [ngStyle]="{
+            position: 'absolute',
+            top: '0',
+            left: '0',
+            width: '100%',
+            height: '100%',
+            background: 'rgba(255,255,255,0.4)',
+            zIndex: '999',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }"
+        ></nz-spin>
+        <div #table_DocumnetImport style="height: 38vh"></div>
+      </div>
     </nz-tab>
   </nz-tabset>
 </div>
 
 <div class="modal-footer flex-shrink-0">
-  <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>
-  <button class="fs-12 btn" nz-button nzType="primary" (click)="saveDataBillImport()">Lưu</button>
+  <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">
+    Đóng
+  </button>
+  <button
+    class="fs-12 btn"
+    nz-button
+    nzType="primary"
+    (click)="saveDataBillImport()"
+  >
+    Lưu
+  </button>
 </div>

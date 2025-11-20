@@ -57,9 +57,9 @@ import * as ExcelJS from 'exceljs';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { NzFormModule } from 'ng-zorro-antd/form';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 import { PlanWeekService } from '../../plan-week/plan-week-services/plan-week.service';
-import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 @Component({
   selector: 'app-plan-week-detail',

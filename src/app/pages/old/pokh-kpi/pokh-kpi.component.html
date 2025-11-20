@@ -1,162 +1,164 @@
 <ng-container class="w-100">
-    <div class="card-header bg-white p-1" style="overflow-x: auto;">
-      <div class="d-flex gap-1">
-        <button style="min-width: 25px;" nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
-          <nz-icon nzType="search"></nz-icon>
-        </button>
-        <button class="fs-12" nz-button nzType="default" nzSize="small" title="Xuất PO" (click)="exportDetailTableToExcel()">
-          <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" /> Xuất Excel
-        </button>
+  <nz-splitter>
+    <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-1">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="m-0 ms-2">Tìm kiếm</h6>
+            <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+              (click)="toggleSearchPanel()">
+              <nz-icon nzType="close" nzTheme="outline" />
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <form nz-form nzLayout="vertical">
+            <nz-form-item>
+              <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-date-picker name="startDate" class="w-100" nzSize="small"
+                  [(ngModel)]="filters.startDate"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-date-picker name="endDate" class="w-100" nzSize="small"
+                  [(ngModel)]="filters.endDate"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+            <!-- <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Lĩnh vực dự án</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select class="w-100" [nzMaxTagCount]="4" [nzMaxTagPlaceholder]="tagPlaceHolder" nzMode="multiple"
+                  nzPlaceHolder="Chọn lĩnh vực dự án" nzSize="small">
+                </nz-select>
+                <ng-template #tagPlaceHolder let-selectedList>và {{ selectedList.length }} mục khác</ng-template>
+              </nz-form-control>
+            </nz-form-item> -->
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Khách hàng</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select name="customerId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
+                  nzPlaceHolder="Khách hàng" [(ngModel)]="filters.customerId">
+                  <nz-option *ngFor="let item of customers" [nzValue]="item.ID"
+                  [nzLabel]="item.CustomerCode + ' - ' + item.CustomerName"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Người phụ trách</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select name="userId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
+                  nzPlaceHolder="Người phụ trách" [(ngModel)]="filters.userId">
+                  <nz-option *ngFor="let item of filterUserData" [nzValue]="item.ID"
+                  [nzLabel]="item.FullName"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Nhóm</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select name="groupId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
+                  nzPlaceHolder="Nhóm" [(ngModel)]="filters.groupId">
+                  <nz-option *ngFor="let item of groupSales" [nzValue]="item.ID"
+                  [nzLabel]="item.GroupSalesName"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Loại</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select name="mainIndexId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
+                  nzPlaceHolder="Loại" [(ngModel)]="filters.mainIndexId">
+                  <nz-option *ngFor="let item of mainIndexes" [nzValue]="item.ID"
+                  [nzLabel]="item.MainIndex1"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Lọc màu trạng thái</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select name="status" class="w-100 status-select" 
+                  [ngClass]="filters.status !== null && filters.status !== undefined ? 'status-' + filters.status : ''"
+                  nzAllowClear nzSize="small"
+                  nzPlaceHolder="Chọn trạng thái" [(ngModel)]="filters.status">
+                  <nz-option [nzValue]="0" nzLabel="Vàng" nzCustomContent="true">
+                    <span style="display: inline-block; width: 20px; height: 20px; background-color: rgb(255, 255, 0); margin-right: 8px; vertical-align: middle; border: 1px solid #ccc; border-radius: 2px;"></span>
+                    Vàng
+                  </nz-option>
+                  <nz-option [nzValue]="1" nzLabel="Không màu" nzCustomContent="true">
+                    <span style="display: inline-block; width: 20px; height: 20px; background-color: transparent; border: 1px solid #ccc; margin-right: 8px; vertical-align: middle; border-radius: 2px;"></span>
+                    Không màu
+                  </nz-option>
+                  <nz-option [nzValue]="2" nzLabel="Cam nhạt" nzCustomContent="true">
+                    <span style="display: inline-block; width: 20px; height: 20px; background-color: rgb(244, 176, 132); margin-right: 8px; vertical-align: middle; border: 1px solid #ccc; border-radius: 2px;"></span>
+                    Cam nhạt
+                  </nz-option>
+                  <nz-option [nzValue]="3" nzLabel="Xanh dương nhạt" nzCustomContent="true">
+                    <span style="display: inline-block; width: 20px; height: 20px; background-color: rgb(155, 194, 230); margin-right: 8px; vertical-align: middle; border: 1px solid #ccc; border-radius: 2px;"></span>
+                    Xanh dương nhạt
+                  </nz-option>
+                  <nz-option [nzValue]="4" nzLabel="Xanh lá nhạt" nzCustomContent="true">
+                    <span style="display: inline-block; width: 20px; height: 20px; background-color: rgb(169, 208, 142); margin-right: 8px; vertical-align: middle; border: 1px solid #ccc; border-radius: 2px;"></span>
+                    Xanh lá nhạt
+                  </nz-option>
+                  <nz-option [nzValue]="5" nzLabel="Vàng" nzCustomContent="true">
+                    <span style="display: inline-block; width: 20px; height: 20px; background-color: rgb(255, 255, 0); margin-right: 8px; vertical-align: middle; border: 1px solid #ccc; border-radius: 2px;"></span>
+                    Vàng
+                  </nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <input name="filterText" nz-input placeholder="Nhập từ khóa" nzSize="small"
+                  [(ngModel)]="filters.filterText" />
+              </nz-form-control>
+            </nz-form-item>
+          </form>
+        </div>
+        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+          <button nz-button nzType="primary" nzSize="small" (click)="searchPOKH()">
+            Tìm kiếm
+          </button>
+        </div>
       </div>
-    </div>
-      <nz-splitter>
-        <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
-          <div class="card h-100 border-0 rounded-0">
-            <div class="card-header bg-white p-1">
-              <div class="d-flex justify-content-between align-items-center">
-                <h6 class="m-0 ms-2">Tìm kiếm</h6>
-                <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
-                  (click)="toggleSearchPanel()">
-                  <nz-icon nzType="close" nzTheme="outline" />
-                </button>
+    </nz-splitter-panel>
+    <nz-splitter-panel nzDefaultSize="100%">
+      <div class="card-body p-0 h-100">
+        <nz-splitter nzLayout="vertical" class="h-100">
+          <nz-splitter-panel nzSize="" [nzCollapsible]="true" nzResizable="true">
+            <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+              <div class="card-header bg-white p-1" style="overflow-x: auto; flex-shrink: 0;">
+                <div class="d-flex gap-1">
+                  <button style="min-width: 25px;" nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
+                    <nz-icon nzType="search"></nz-icon>
+                  </button>
+                  <button class="fs-12" nz-button nzType="default" nzSize="small" title="Xuất PO" (click)="exportDetailTableToExcel()">
+                    <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" /> Xuất Excel
+                  </button>
+                </div>
+              </div>
+              <div class="card-body p-0 flex-grow-1" style="overflow: hidden;">
+                <div #tb_POKH id="tb_POKH" class="h-100"></div>
               </div>
             </div>
-            <div class="card-body">
-                <form nz-form nzLayout="vertical">
-                  <nz-form-item>
-                    <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
-                    <nz-form-control [nzSpan]="24">
-                      <nz-date-picker name="startDate" class="w-100" nzSize="small"
-                        [(ngModel)]="filters.startDate"></nz-date-picker>
-                    </nz-form-control>
-                  </nz-form-item>
-                  <nz-form-item class="mt-2">
-                    <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
-                    <nz-form-control [nzSpan]="24">
-                      <nz-date-picker name="endDate" class="w-100" nzSize="small"
-                        [(ngModel)]="filters.endDate"></nz-date-picker>
-                    </nz-form-control>
-                  </nz-form-item>
-                  <!-- <nz-form-item class="mt-2">
-                    <nz-form-label class="fs-12" [nzSpan]="24">Lĩnh vực dự án</nz-form-label>
-                    <nz-form-control [nzSpan]="24">
-                      <nz-select class="w-100" [nzMaxTagCount]="4" [nzMaxTagPlaceholder]="tagPlaceHolder" nzMode="multiple"
-                        nzPlaceHolder="Chọn lĩnh vực dự án" nzSize="small">
-                      </nz-select>
-                      <ng-template #tagPlaceHolder let-selectedList>và {{ selectedList.length }} mục khác</ng-template>
-                    </nz-form-control>
-                  </nz-form-item> -->
-                  <nz-form-item class="mt-2">
-                    <nz-form-label class="fs-12" [nzSpan]="24">Khách hàng</nz-form-label>
-                    <nz-form-control [nzSpan]="24">
-                      <nz-select name="customerId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
-                        nzPlaceHolder="Khách hàng" [(ngModel)]="filters.customerId">
-                        <nz-option *ngFor="let item of customers" [nzValue]="item.ID"
-                        [nzLabel]="item.CustomerCode + ' - ' + item.CustomerName"></nz-option>
-                      </nz-select>
-                    </nz-form-control>
-                  </nz-form-item>
-                  <nz-form-item class="mt-2">
-                    <nz-form-label class="fs-12" [nzSpan]="24">Người phụ trách</nz-form-label>
-                    <nz-form-control [nzSpan]="24">
-                      <nz-select name="userId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
-                        nzPlaceHolder="Người phụ trách" [(ngModel)]="filters.userId">
-                        <nz-option *ngFor="let item of filterUserData" [nzValue]="item.ID"
-                        [nzLabel]="item.FullName"></nz-option>
-                      </nz-select>
-                    </nz-form-control>
-                  </nz-form-item>
-                  <nz-form-item class="mt-2">
-                    <nz-form-label class="fs-12" [nzSpan]="24">Nhóm</nz-form-label>
-                    <nz-form-control [nzSpan]="24">
-                      <nz-select name="groupId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
-                        nzPlaceHolder="Nhóm" [(ngModel)]="filters.groupId">
-                        <nz-option *ngFor="let item of groupSales" [nzValue]="item.ID"
-                        [nzLabel]="item.GroupSalesName"></nz-option>
-                      </nz-select>
-                    </nz-form-control>
-                  </nz-form-item>
-                  <nz-form-item class="mt-2">
-                    <nz-form-label class="fs-12" [nzSpan]="24">Lọc</nz-form-label>
-                    <nz-form-control [nzSpan]="24">
-                      <nz-select name="mainIndexId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
-                        nzPlaceHolder="Lọc" [(ngModel)]="filters.mainIndexId">
-                        <nz-option *ngFor="let item of mainIndexes" [nzValue]="item.ID"
-                        [nzLabel]="item.MainIndex1"></nz-option>
-                      </nz-select>
-                    </nz-form-control>
-                  </nz-form-item>
-                  <nz-form-item class="mt-2">
-                    <nz-form-label class="fs-12" [nzSpan]="24">Lọc màu trạng thái</nz-form-label>
-                    <nz-form-control [nzSpan]="24">
-                      <nz-select name="status" class="w-100 status-select" 
-                        [ngClass]="filters.status !== null && filters.status !== undefined ? 'status-' + filters.status : ''"
-                        nzAllowClear nzSize="small"
-                        nzPlaceHolder="Chọn trạng thái" [(ngModel)]="filters.status">
-                        <nz-option [nzValue]="0" nzLabel="Vàng" nzCustomContent="true">
-                          <span style="display: inline-block; width: 20px; height: 20px; background-color: rgb(255, 255, 0); margin-right: 8px; vertical-align: middle; border: 1px solid #ccc; border-radius: 2px;"></span>
-                          Vàng
-                        </nz-option>
-                        <nz-option [nzValue]="1" nzLabel="Không màu" nzCustomContent="true">
-                          <span style="display: inline-block; width: 20px; height: 20px; background-color: transparent; border: 1px solid #ccc; margin-right: 8px; vertical-align: middle; border-radius: 2px;"></span>
-                          Không màu
-                        </nz-option>
-                        <nz-option [nzValue]="2" nzLabel="Cam nhạt" nzCustomContent="true">
-                          <span style="display: inline-block; width: 20px; height: 20px; background-color: rgb(244, 176, 132); margin-right: 8px; vertical-align: middle; border: 1px solid #ccc; border-radius: 2px;"></span>
-                          Cam nhạt
-                        </nz-option>
-                        <nz-option [nzValue]="3" nzLabel="Xanh dương nhạt" nzCustomContent="true">
-                          <span style="display: inline-block; width: 20px; height: 20px; background-color: rgb(155, 194, 230); margin-right: 8px; vertical-align: middle; border: 1px solid #ccc; border-radius: 2px;"></span>
-                          Xanh dương nhạt
-                        </nz-option>
-                        <nz-option [nzValue]="4" nzLabel="Xanh lá nhạt" nzCustomContent="true">
-                          <span style="display: inline-block; width: 20px; height: 20px; background-color: rgb(169, 208, 142); margin-right: 8px; vertical-align: middle; border: 1px solid #ccc; border-radius: 2px;"></span>
-                          Xanh lá nhạt
-                        </nz-option>
-                        <nz-option [nzValue]="5" nzLabel="Vàng" nzCustomContent="true">
-                          <span style="display: inline-block; width: 20px; height: 20px; background-color: rgb(255, 255, 0); margin-right: 8px; vertical-align: middle; border: 1px solid #ccc; border-radius: 2px;"></span>
-                          Vàng
-                        </nz-option>
-                      </nz-select>
-                    </nz-form-control>
-                  </nz-form-item>
-                  <nz-form-item class="mt-2">
-                    <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
-                    <nz-form-control [nzSpan]="24">
-                      <input name="filterText" nz-input placeholder="Nhập từ khóa" nzSize="small"
-                        [(ngModel)]="filters.filterText" />
-                    </nz-form-control>
-                  </nz-form-item>
-                </form>
+          </nz-splitter-panel>
+          <nz-splitter-panel nzDefaultSize="35%" [nzCollapsible]="true" nzResizable="true">
+            <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+              <div class="card-header bg-white p-1" style="flex-shrink: 0;">
+                <h6 class="m-0 ms-2">Chi tiết</h6>
               </div>
-            <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
-              <button nz-button nzType="primary" nzSize="small" (click)="searchPOKH()">
-                Tìm kiếm
-              </button>
+              <div class="card-body p-0 flex-grow-1" style="overflow: hidden;">
+                <div #tb_Detail id="tb_Detail" class="h-100"></div>
+              </div>
             </div>
-          </div>
-        </nz-splitter-panel>
-        <nz-splitter-panel >
-          <div class="card-body p-0 h-100">
-            <nz-splitter>
-              <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
-                <div class="card h-100 border-0 rounded-0">
-                  <div class="card-body p-0">
-                    <div #tb_POKH id="tb_POKH"></div>
-                  </div>
-                </div>
-              </nz-splitter-panel>
-              <nz-splitter-panel nzDefaultSize="20%" [nzCollapsible]="true" nzResizable="true">
-                <div class="card border-0 rounded-0">
-                  <h6 class="m-0 ms-2">Chi tiết</h6>
-                  <div class="card-header bg-white p-1">
-                    <div #tb_Detail id="tb_Detail"></div>
-                  </div>
-                </div>
-              </nz-splitter-panel>
-            </nz-splitter>
-          </div>
-        </nz-splitter-panel>
-      </nz-splitter>
-    </ng-container>
+          </nz-splitter-panel>
+        </nz-splitter>
+      </div>
+    </nz-splitter-panel>
+  </nz-splitter>
+</ng-container>
    

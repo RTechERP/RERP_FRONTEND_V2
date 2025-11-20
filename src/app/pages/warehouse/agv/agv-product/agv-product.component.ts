@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
+  Inject,
   OnInit,
   ViewChild,
   viewChild,
@@ -44,14 +45,29 @@ export class AgvProductComponent implements OnInit, AfterViewInit {
   constructor(
     private productService: AgvProductService,
     private groupService: AgvProductGroupService,
-    private notification: NzNotificationService
+    private notification: NzNotificationService,
+    @Inject('tabData') public tabData: any
   ) {}
 
   ngOnInit(): void {
     this.getProductGroup();
+    console.log('this.tabData:', this.tabData);
+
+    this.getProducts();
   }
 
   ngAfterViewInit(): void {}
+
+  getProducts() {
+    this.productService.getProducts(this.tabData).subscribe({
+      next: (response: any) => {
+        console.log('response:', response);
+      },
+      error: (err: any) => {
+        this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+      },
+    });
+  }
 
   getProductGroup() {
     this.groupService.getGroups().subscribe({

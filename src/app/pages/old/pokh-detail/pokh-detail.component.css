@@ -17,7 +17,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 200px;
+  max-width: 360px;
 }
 
 :host ::ng-deep .ant-select-dropdown {
@@ -28,7 +28,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 280px;
+  max-width: 420px;
 }  
 /* dropdown text scroll */
 ::ng-deep .ant-select-dropdown {
@@ -50,4 +50,36 @@
 ::ng-deep .ant-select-dropdown .ant-select-item-option-content::-webkit-scrollbar-thumb {
   background: #ccc;
   border-radius: 2px;
+}
+.pokh-modal-content {
+  height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+
+.pokh-tabset {
+  height: 100%;
+}
+
+.pokh-tab-content {
+  height: calc(100vh - 300px);
+  overflow-y: auto;
+}
+
+/* Ensure these styles only apply to the POKH modal */
+::ng-deep .pokh-modal .ant-modal {
+  width: 90% !important;
+  max-width: 1400px;
+}
+
+::ng-deep .pokh-modal .ant-modal-body {
+  height: calc(100vh - 200px);
+  overflow: hidden;
+}
+
+::ng-deep .pokh-modal .ant-tabs-content {
+  height: 100%;
+}
+
+::ng-deep .pokh-modal .ant-tabs-tabpane {
+  height: 100%;
 }

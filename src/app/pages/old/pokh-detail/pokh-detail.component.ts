@@ -31,6 +31,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import {
   TabulatorFull as Tabulator,
@@ -49,7 +50,7 @@ import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { map, catchError, of, forkJoin } from 'rxjs';
+import { map, catchError, of, forkJoin, finalize } from 'rxjs';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
@@ -95,6 +96,7 @@ import { QuotationKhDataComponent } from '../quotation-kh-data/quotation-kh-data
     NzCheckboxModule,
     NzFormModule,
     CommonModule,
+    NzSpinModule,
   ],
   templateUrl: './pokh-detail.component.html',
   styleUrl: './pokh-detail.component.css',
@@ -207,6 +209,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   isResponsibleUsersEnabled: boolean = false;
   isCopy: boolean = false;
   isSubmitted: boolean = false;
+  isSaving: boolean = false;
 
   //#endregion
   //#region : Hàm khởi tạo
@@ -628,6 +631,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   //#endregion
   //#region : Hàm xử lý SavePOKH
   savePOKH() {
+    if (this.isSaving) {
+      return;
+    }
     if (this.isCopy) {
       this.copyPOKHToDTO();
       this.isCopy = false;
@@ -690,20 +696,27 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       pOKHDetailsMoney: [...detailUsers, ...deletedDetailUsers],
     };
 
+    this.isSaving = true;
     //api call
-    this.POKHService.handlePOKH(requestBody).subscribe({
-      next: (response) => {
-        if (response.status === 1) {
-          this.handleSuccess(response);
-          this.deletedDetailUserIds = [];
-          this.deletedPOKHDetailIds = [];
-          this.deletedFileIds = [];
-        }
-      },
-      error: (error) => {
-        this.handleError(error);
-      },
-    });
+    this.POKHService.handlePOKH(requestBody)
+      .pipe(
+        finalize(() => {
+          this.isSaving = false;
+        })
+      )
+      .subscribe({
+        next: (response) => {
+          if (response.status === 1) {
+            this.handleSuccess(response);
+            this.deletedDetailUserIds = [];
+            this.deletedPOKHDetailIds = [];
+            this.deletedFileIds = [];
+          }
+        },
+        error: (error) => {
+          this.handleError(error);
+        },
+      });
   }
   handleSuccess(response: any) {
     const pokhId = response.data.id;
@@ -1275,7 +1288,12 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         if (billDate) {
           const payDate = new Date(billDate);
           payDate.setDate(payDate.getDate() + debt);
-          row.update({ PayDate: payDate });
+          // Format thành "YYYY-MM-DDTHH:mm:ss" (không có timezone)
+          const year = payDate.getFullYear();
+          const month = String(payDate.getMonth() + 1).padStart(2, '0');
+          const day = String(payDate.getDate()).padStart(2, '0');
+          const formattedDate = `${year}-${month}-${day}T00:00:00`;
+          row.update({ PayDate: formattedDate });
         }
       }
 
@@ -1436,6 +1454,27 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     this.poFormData.totalMoneyDiscount = isNaN(result) ? 0 : result;
   }
   onDiscountChange(): void {
+    this.calculateDiscount();
+  }
+  onTotalPOChange(value: number | string | null | undefined): void {
+    let numericValue = 0;
+
+    if (typeof value === 'string') {
+      const sanitized = value.replace(/[^0-9.-]/g, '');
+      numericValue = Number(sanitized);
+    } else if (typeof value === 'number') {
+      numericValue = value;
+    } else if (value !== null && value !== undefined) {
+      numericValue = Number(value);
+    }
+
+    if (isNaN(numericValue)) {
+      numericValue = 0;
+    }
+
+    this.poFormData.totalPO = numericValue;
+
+    this.updateResponsibleUsersMoney();
     this.calculateDiscount();
   }
   formatFileSize(bytes: number): string {
@@ -1760,12 +1799,12 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       reactiveData: true,
       columns: [
         {
-          title: 'Hành động',
+          title: '',
           field: 'actions',
           formatter: (cell) => {
             return `<img src="/assets/icon/delete-btn.png" class="delete-btn" style="width: 20px; height: 20px; cursor: pointer;" alt="Xóa" />`;
           },
-          width: '10%',
+          width: '1px',
           hozAlign: 'center',
           cellClick: (e, cell) => {
             const target = e.target as HTMLElement;
@@ -1779,17 +1818,22 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
                 nzOkText: 'Đồng ý',
                 nzCancelText: 'Hủy',
                 nzOnOk: () => {
-                  const row = cell.getRow();
-                  const rowData = row.getData();
+                  try {
+                    const row = cell.getRow();
+                    const rowData = row.getData();
 
-                  // thêm id của file đã xóa vào mảng deletedFileIds
-                  if (rowData['ID']) {
-                    this.deletedFileIds.push(rowData['ID']);
+                    // thêm id của file đã xóa vào mảng deletedFileIds
+                    if (rowData['ID']) {
+                      this.deletedFileIds.push(rowData['ID']);
+                    }
+
+                    row.delete();
+                    this.dataPOKHDetailFile = this.tb_POKHDetailFile.getData();
+                    this.dataPOKHFiles = this.tb_POKHFile.getData();
+                  } catch (error) {
+                    console.error('Lỗi khi xóa file:', error);
                   }
-
-                  row.delete();
-                  this.dataPOKHDetailFile = this.tb_POKHDetailFile.getData();
-                  this.dataPOKHFiles = this.tb_POKHFile.getData();
+                  return true;
                 },
               });
             }
@@ -2096,6 +2140,16 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'string',
             width: 200,
             editor: 'date',
+            formatter: (cell: any) => {
+              const value = cell.getValue();
+              if (!value) return '';
+              const date = new Date(value);
+              if (isNaN(date.getTime())) return value;
+              const day = String(date.getDate()).padStart(2, '0');
+              const month = String(date.getMonth() + 1).padStart(2, '0');
+              const year = date.getFullYear();
+              return `${day}/${month}/${year}`;
+            }
           },
           {
             title: 'Thanh toán dự kiến',
@@ -2110,6 +2164,16 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'string',
             width: 150,
             editor: 'date',
+            formatter: (cell: any) => {
+              const value = cell.getValue();
+              if (!value) return '';
+              const date = new Date(value);
+              if (isNaN(date.getTime())) return value;
+              const day = String(date.getDate()).padStart(2, '0');
+              const month = String(date.getMonth() + 1).padStart(2, '0');
+              const year = date.getFullYear();
+              return `${day}/${month}/${year}`;
+            }
           },
           {
             title: 'Số hóa đơn',
@@ -2131,6 +2195,16 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'string',
             width: 150,
             editor: 'date',
+            formatter: (cell: any) => {
+              const value = cell.getValue();
+              if (!value) return '';
+              const date = new Date(value);
+              if (isNaN(date.getTime())) return value;
+              const day = String(date.getDate()).padStart(2, '0');
+              const month = String(date.getMonth() + 1).padStart(2, '0');
+              const year = date.getFullYear();
+              return `${day}/${month}/${year}`;
+            }
           },
           {
             title: 'Nhóm',

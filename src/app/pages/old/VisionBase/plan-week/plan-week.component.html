@@ -95,7 +95,8 @@
                         <nz-form-item class="mt-2">
                             <nz-form-label class="fs-12" [nzSpan]="24">Nhân viên</nz-form-label>
                             <nz-form-control [nzSpan]="24">
-                                <nz-select name="userId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
+                                <nz-select name="userId" class="w-100" nzShowSearch nzSize="small"
+                                    [nzAllowClear]="isCurrentUserAdmin" [nzDisabled]="isUserFilterDisabled"
                                     nzPlaceHolder="Nhân viên" [(ngModel)]="filters.userId"
                                     (ngModelChange)="onUserChange($event)">
                                     <nz-option *ngFor="let item of filterUserData" [nzValue]="item.UserID"

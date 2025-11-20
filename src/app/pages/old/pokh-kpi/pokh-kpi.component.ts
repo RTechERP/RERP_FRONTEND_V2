@@ -59,6 +59,8 @@ import { HasPermissionDirective } from '../../../directives/has-permission.direc
 import { NOTIFICATION_TITLE } from '../../../app.config';
 
 import { CustomerServiceService } from '../../crm/customers/customer/customer-service/customer-service.service';
+import { QuotationKhDetailServiceService } from '../quotation-kh-detail/quotation-kh-detail-service/quotation-kh-detail-service.service';
+import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
 
 @Component({
   selector: 'app-pokh-kpi',
@@ -103,7 +105,11 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
   selectedId: number = 0;
   selectedRow: any = null;
   filterEmployeeTeamSale: any[] = [];
+
+  groupSales: any[] = [];
+  mainIndexes: any[] = [];
   filterUserData: any[] = [];
+
   customers: any[] = [];
   dataDetail: any[] = [];
   filters: any = {
@@ -114,13 +120,34 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
     userId: 0,
     POType: 0,
     status: 0,
+    mainIndexId: 0,
     group: 0,
+    groupId: 0,
     warehouseId: 1,
     employeeTeamSaleId: 0,
     startDate: new Date(),
     endDate: new Date(),
   };
   allSelected: boolean = false; // Thêm biến trạng thái chọn tất cả
+
+  getStatusColor(status: number): string {
+    switch (status) {
+      case 0:
+        return 'rgb(255, 255, 0)'; // Vàng
+      case 1:
+        return 'transparent'; // Không màu
+      case 2:
+        return 'rgb(244, 176, 132)'; // Cam nhạt
+      case 3:
+        return 'rgb(155, 194, 230)'; // Xanh dương nhạt
+      case 4:
+        return 'rgb(169, 208, 142)'; // Xanh lá nhạt
+      case 5:
+        return 'rgb(255, 255, 0)'; // Vàng
+      default:
+        return 'transparent';
+    }
+  }
 
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
@@ -143,7 +170,9 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
   constructor(
     private POKHService: PokhService,
     private notification: NzNotificationService,
-    private customerService: CustomerServiceService
+    private customerService: CustomerServiceService,
+    private quotationKhDetailService: QuotationKhDetailServiceService,
+    private viewPokhService: ViewPokhService
   ) {}
   ngOnInit(): void {
     const endDate = new Date();
@@ -152,6 +181,10 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
     this.filters.startDate = startDate;
     this.filters.endDate = endDate;
     this.loadFilterCustomers();
+    this.loadFilterUserData();
+    this.loadFilterGroupSales();
+    this.loadFilterMainIndexes();
+
   }
   ngAfterViewInit(): void {
     this.drawPOKHTable();
@@ -177,6 +210,58 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
       },
       (error) => {
         this.notification.error('Lỗi kết nối khi tải khách hàng:', error);
+        return;
+      }
+    );
+  }
+
+  loadFilterUserData(): void {
+    this.quotationKhDetailService.getUser().subscribe(
+      (response) => {
+        if (response.status === 1) {
+          this.filterUserData = response.data;
+        } else {
+          this.notification.error('Lỗi khi tải người phụ trách:', response.message);
+          return;
+        }
+      },
+      (error) => {
+        this.notification.error('Lỗi kết nối khi tải người phụ trách:', error);
+        return;
+      }
+    );
+  }
+
+  loadFilterGroupSales(): void {
+    this.viewPokhService.loadGroupSale().subscribe(
+      (response) => {
+        if (response.status === 1) {
+          this.groupSales = response.data;
+        } else {
+          this.notification.error('Lỗi khi tải nhóm:', response.message);
+          return;
+        }
+      },
+      (error) => {
+        this.notification.error('Lỗi kết nối khi tải nhóm:', error);
+        return;
+      }
+    );
+  }
+
+  loadFilterMainIndexes(): void {
+    this.viewPokhService.loadMainIndex().subscribe(
+      (response) => {
+        if (response.status === 1) {
+          this.mainIndexes = response.data;
+          console.log("main", this.mainIndexes)
+        } else {
+          this.notification.error('Lỗi khi tải Lọc:', response.message);
+          return;
+        }
+      },
+      (error) => {
+        this.notification.error('Lỗi kết nối khi tải Lọc:', error);
         return;
       }
     );
@@ -231,9 +316,9 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
         filterText: this.filters.filterText || '',
         customerId: this.filters.customerId || 0,
         userId: this.filters.userId || 0,
-        POType: this.filters.POType || 0,
+        POType: this.filters.mainIndexId || 0,
         status: this.filters.status || 0,
-        group: this.filters.group || 0,
+        group: this.filters.groupId || 0,
         warehouseId: this.filters.warehouseId || 1,
         employeeTeamSaleId: this.filters.employeeTeamSaleId || 0,
         startDate:
@@ -244,10 +329,19 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
     };
   }
   async exportDetailTableToExcel() {
+
+
+    const selectedRows = this.tb_POKH.getSelectedRows();
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn ít nhất một dòng để xuất Excel');
+      return;
+    }
+
     if (!this.tb_Detail) {
       this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất Excel');
       return;
     }
+
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('POKH_KPI_List_Detail');
@@ -283,19 +377,19 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
         const column = col.getDefinition();
         let value = rowData[field];
 
-        // Format number for money columns
         if (column.formatter === 'money' && value !== null && value !== undefined) {
-          // Convert to number if it's string
           const numValue = typeof value === 'number' ? value : Number(value);
           if (!isNaN(numValue)) {
             value = numValue;
           }
         }
 
-        // Format date columns - convert ISO string to Date object
         if (field === 'ReceivedDatePO' && value) {
-          const date = new Date(value);
-          if (!isNaN(date.getTime())) {
+          const dateTime = DateTime.fromISO(value);
+          if (dateTime.isValid) {
+            // Tạo Date object với UTC time nhưng với date đúng để Excel hiểu đúng
+            // Excel xử lý Date object theo UTC, nên cần tạo với UTC time
+            const date = new Date(Date.UTC(dateTime.year, dateTime.month - 1, dateTime.day, 12, 0, 0));
             value = date;
           }
         }
@@ -391,8 +485,8 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
       selectableRows: true,
       pagination: true,
       paginationMode: 'remote',
-      paginationSize: 50,
-      paginationSizeSelector: [10, 30, 50, 100, 300, 500],
+      paginationSize: 10000,
+      // paginationSizeSelector: [10, 30, 50, 100, 300, 500],
       ajaxURL: this.POKHService.getPOKHAjax(),
       ajaxParams: this.getPOKHAjaxParams(),
       ajaxResponse: (url, params, res) => {
@@ -450,10 +544,57 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
           },
         },
         {
+          title: 'Trạng thái Số',
+          field: 'Status',
+          sorter: 'string',
+          width: 150,
+          visible: false,
+        },
+        {
           title: 'Trạng thái',
           field: 'StatusText',
           sorter: 'string',
-          width: 150,
+          width: 200,
+          formatter: (cell) => {
+            const rowData = cell.getRow().getData();
+            const status = rowData['Status'];
+            const value = cell.getValue() || '';
+            let backgroundColor = '';
+            
+            switch (status) {
+              case 0:
+                backgroundColor = 'rgb(255, 255, 0)'; // Vàng
+                break;
+              case 1:
+                backgroundColor = ''; // Không màu
+                break;
+              case 2:
+                backgroundColor = 'rgb(244, 176, 132)'; // Cam nhạt
+                break;
+              case 3:
+                backgroundColor = 'rgb(155, 194, 230)'; // Xanh dương nhạt
+                break;
+              case 4:
+                backgroundColor = 'rgb(169, 208, 142)'; // Xanh lá nhạt
+                break;
+              case 5:
+                backgroundColor = 'rgb(255, 255, 0)'; // Vàng
+                break;
+              default:
+                backgroundColor = '';
+                break;
+            }
+            
+            // Set background color cho cell element
+            if (backgroundColor) {
+              const cellElement = cell.getElement();
+              if (cellElement) {
+                (cellElement as HTMLElement).style.backgroundColor = backgroundColor;
+              }
+            }
+            
+            return value;
+          },
         },
         { title: 'Loại', field: 'MainIndex', sorter: 'string', width: 70 },
         {
@@ -474,7 +615,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
           title: 'Khách hàng',
           field: 'CustomerName',
           sorter: 'string',
-          width: 200,
+          width: 300,
         },
         {
           title: 'Người phụ trách',

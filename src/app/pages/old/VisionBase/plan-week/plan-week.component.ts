@@ -124,6 +124,9 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
   selectedId: number = 0;
   selectedField: string | null = null;
   isEditMode: boolean = false;
+  private selectedCellElement: HTMLElement | null = null;
+  isCurrentUserAdmin: boolean = false; //flag kiểm tra quyền admin
+  isUserFilterDisabled: boolean = false; //flag disable filter user
   filterDepartmentData: any[] = [];
   filterTeamData: any[] = [];
   filterUserData: any[] = [];
@@ -154,6 +157,8 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
 
     this.filters.startDate = monday;
     this.filters.endDate = sunday;
+
+    this.configureUserFilterByRole(); //config kiểm tra quyền admin và disable filter user
 
     this.loadDepartment();
     this.loadTeam();
@@ -469,7 +474,9 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('KeHoachTuan');
 
-    const columns = this.tb_MainTable.getColumns();
+    const columns = this.tb_MainTable
+      .getColumns()
+      .filter((column) => column.isVisible?.() ?? true);
 
     const headerRow = worksheet.addRow(
       columns.map((col) => col.getDefinition().title)
@@ -536,6 +543,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
       paginationSize: 100,
       movableColumns: true,
       resizableRows: true,
+      
       reactiveData: true,
       autoColumns: true,
       columnDefaults: {
@@ -569,7 +577,8 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
     //   this.selectedRow = rowData;
     //   this.selectedId = rowData['UserID'];
     // });
-    this.tb_MainTable.on('cellClick', (e: any, cell: any) => {
+    this.tb_MainTable.on('cellClick', (e: any, cell: CellComponent) => {
+      this.highlightSelectedCell(cell);
       const field = cell.getField();
       this.selectedField = field;
       const rowData = cell.getRow().getData();
@@ -579,5 +588,31 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
         console.log(this.selectedId);
       }
     });
+  }
+
+  private highlightSelectedCell(cell: CellComponent): void {
+    if (this.selectedCellElement) {
+      this.selectedCellElement.style.backgroundColor = '';
+    }
+    const cellElement = cell.getElement() as HTMLElement;
+    cellElement.style.backgroundColor = '#e6f4ff';
+    this.selectedCellElement = cellElement;
+  }
+
+  private configureUserFilterByRole(): void {
+    this.isCurrentUserAdmin = this.appUserService.isAdmin;
+    if (this.isCurrentUserAdmin) {
+      this.isUserFilterDisabled = false;
+      return;
+    }
+
+    this.isUserFilterDisabled = true;
+    const currentUserId = this.appUserService.id;
+    if (currentUserId) {
+      this.filters.userId = currentUserId;
+      this.selectedId = currentUserId;
+    } else {
+      this.filters.userId = 0;
+    }
   }
 }

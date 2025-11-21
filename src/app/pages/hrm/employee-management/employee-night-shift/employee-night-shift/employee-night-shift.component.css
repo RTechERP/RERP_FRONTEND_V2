@@ -1,0 +1,52 @@
+:host {
+  font-size: 12px;
+}
+
+:host ::ng-deep {
+  font-size: 12px;
+}
+
+:host ::ng-deep * {
+  font-size: 12px;
+}
+
+:host ::ng-deep .card {
+  font-size: 12px;
+}
+
+:host ::ng-deep .card-header,
+:host ::ng-deep .card-body,
+:host ::ng-deep .card-footer {
+  font-size: 12px;
+}
+
+:host ::ng-deep button {
+  font-size: 12px;
+}
+
+:host ::ng-deep input,
+:host ::ng-deep select,
+:host ::ng-deep .ant-select-selector {
+  font-size: 12px;
+}
+
+:host ::ng-deep .ant-form-item-label > label {
+  font-size: 12px;
+}
+
+:host ::ng-deep .tabulator {
+  font-size: 12px;
+}
+
+:host ::ng-deep .tabulator-cell {
+  font-size: 12px;
+}
+
+:host ::ng-deep .tabulator-header {
+  font-size: 12px;
+}
+
+:host ::ng-deep .tabulator-footer {
+  font-size: 12px;
+}
+

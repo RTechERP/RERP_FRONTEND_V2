@@ -113,7 +113,6 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
   ) { }
   public detailTabTitle: string = 'Thông tin cấp phát biên bản:';
   selectedRow: any = '';
-  sizeTbDetail: any = '0';
   modalData: any = [];
   private ngbModal = inject(NgbModal);
   assetTable: Tabulator | null = null;
@@ -144,14 +143,13 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
 
     this.drawTable();
     this.getAssetmanagement();
-    this.drawEmployeeTable();
     this.getListEmployee();
     this.getStatus();
     this.getDepartment();
-  }
-  closePanel() {
-    this.sizeTbDetail = '0';
-    this.detailTabTitle = 'Thông tin sử dụng tài sản';
+    // Khởi tạo bảng detail rỗng ngay từ đầu
+    setTimeout(() => {
+      this.drawEmployeeTable();
+    }, 100);
   }
     /** Hàm xác định đang là mobile hay desktop */
   private updateIsMobile() {
@@ -274,7 +272,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     this.assetTable = new Tabulator(this.datatableManagementRef.nativeElement, {
       data: this.assetData,
       ...DEFAULT_TABLE_CONFIG,
-      height: this.isMobile ?'100%':'90vh',
+      height: this.isMobile ?'100%':'53vh',
 
       paginationMode: 'local',
       // layout: "fitDataFill",
@@ -630,7 +628,6 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
 
     this.assetTable.on('rowClick', (e: UIEvent, row: RowComponent) => {
       this.selectedRow = row.getData();
-      this.sizeTbDetail = null;
     });
   }
   private drawEmployeeTable(): void {
@@ -647,7 +644,7 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
       data: this.assetManagementDetail,
       ...DEFAULT_TABLE_CONFIG,
       layout: 'fitDataFill',
-      height:'83vh',
+      height:'30vh',
       paginationSize: 10,
       paginationMode: 'local',
       movableColumns: true,
@@ -769,6 +766,20 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
 
     if (selectedRows.length === 0) {
       this.notification.warning('Cảnh báo', 'Chưa chọn tài sản để xóa');
+      return;
+    }
+
+    // Kiểm tra tài sản đang sử dụng
+    const assetsInUse = selectedRows.filter((x: any) => 
+      x.Status === 'Đang sử dụng' || x.StatusID === 2
+    );
+
+    if (assetsInUse.length > 0) {
+      const inUseCodes = assetsInUse.map((x: any) => x.TSCodeNCC).join(', ');
+      this.notification.warning(
+        'Cảnh báo',
+        `Không thể xóa tài sản đang sử dụng. Các tài sản sau đang được sử dụng: ${inUseCodes}`
+      );
       return;
     }
 

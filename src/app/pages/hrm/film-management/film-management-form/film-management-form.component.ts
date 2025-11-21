@@ -484,7 +484,7 @@ export class FilmManagementFormComponent implements OnInit, AfterViewInit {
 
   this.filmManagementService.saveData(payload).subscribe({
     next: () => {
-      this.notification.success(NOTIFICATION_TITLE.success, 'Lưu phiếu thành công');
+      this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật dữ liệu thành công');
       this.formSubmitted.emit();
       this.activeModal.close();
     },

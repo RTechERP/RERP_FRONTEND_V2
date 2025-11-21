@@ -15,6 +15,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { EmployeeBussinessService } from '../employee-bussiness-service/employee-bussiness.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 
+
 @Component({
   selector: 'app-employee-bussiness-vehicle',
   templateUrl: './employee-bussiness-vehicle.component.html',
@@ -104,6 +105,38 @@ export class EmployeeBussinessVehicleComponent implements OnInit {
         },
       ],
     })
+    
+    // Set font-size 12px cho Tabulator sau khi render
+    setTimeout(() => {
+      const tabulatorElement = document.getElementById('tb_employee_bussiness_vehicle');
+      if (tabulatorElement) {
+        const style = document.createElement('style');
+        style.id = 'tabulator-font-size-override';
+        style.textContent = `
+          #tb_employee_bussiness_vehicle,
+          #tb_employee_bussiness_vehicle.tabulator,
+          #tb_employee_bussiness_vehicle .tabulator,
+          #tb_employee_bussiness_vehicle .tabulator-table,
+          #tb_employee_bussiness_vehicle .tabulator-cell,
+          #tb_employee_bussiness_vehicle .tabulator-cell-content,
+          #tb_employee_bussiness_vehicle .tabulator-header,
+          #tb_employee_bussiness_vehicle .tabulator-col,
+          #tb_employee_bussiness_vehicle .tabulator-col-content,
+          #tb_employee_bussiness_vehicle .tabulator-col-title,
+          #tb_employee_bussiness_vehicle .tabulator-row,
+          #tb_employee_bussiness_vehicle .tabulator-row .tabulator-cell,
+          #tb_employee_bussiness_vehicle * {
+            font-size: 12px !important;
+          }
+        `;
+        // Remove existing style if any
+        const existingStyle = document.getElementById('tabulator-font-size-override');
+        if (existingStyle) {
+          existingStyle.remove();
+        }
+        document.head.appendChild(style);
+      }
+    }, 200);
   }
 
   openAddModal() {
@@ -136,7 +169,7 @@ export class EmployeeBussinessVehicleComponent implements OnInit {
     }
     const selectedEmployeeBussinessVehicle = selectedRows[0].getData();
 
-
+    
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
       nzContent: `Bạn có chắc chắn muốn xóa loại phụ cấp phương tiện đã chọn?`,

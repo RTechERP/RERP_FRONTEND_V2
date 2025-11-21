@@ -1,0 +1,32 @@
+<ng-container class="w-100">
+    <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-1">
+            <div class="d-flex gap-1 align-items-center w-100">
+
+                <!-- Nhóm nút bên trái -->
+                <button nz-button nzType="default" nzSize="small" (click)="onAddEmployee()" *hasPermission="'N33,N1'">
+                    <img class="btn-action-icon" src="assets/icon/action_add_24.svg" />Thêm nhân viên
+                </button>
+
+                <button nz-button nzType="default" nzSize="small" *hasPermission="'N33,N1'">
+                    <img class="btn-action-icon" src="assets/icon/action_delete_24.svg" />Xóa nhân viên
+                </button>
+
+                <button nz-button nzType="default" nzSize="small" (click)="loadData()" *hasPermission="'N33,N1'">
+                    <img class="btn-action-icon" src="assets/icon/action_reset_24.svg" />Reset
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <nz-splitter>
+                <nz-splitter-panel [nzSize]="" [nzCollapsible]="true" nzResizable="true">
+                    <div #tb_userTeamLink></div>
+                </nz-splitter-panel>
+                <nz-splitter-panel nzSize="" [nzCollapsible]="true" nzResizable="true">
+                    <div #tb_userTeamLinkDetail></div>
+                </nz-splitter-panel>
+            </nz-splitter>
+        </div>
+    </div>
+</ng-container>

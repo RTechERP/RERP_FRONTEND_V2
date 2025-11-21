@@ -1,0 +1,41 @@
+<div class="modal-dialog-scrollable">
+    <div class="modal-header bg-primary align-items-center ps-3">
+        <h6 class="text-light text-uppercase m-0 fw-bold">Thông tin nhân viên</h6>
+        <button type="button" class="btn-close position-absolute end-0 m-3" aria-label="Close"
+            (click)="activeModal.dismiss()"></button>
+    </div>
+
+    <div class="modal-body p-3">
+        <div class="d-flex">
+            <nz-form-item class="mb-2">
+                <nz-form-label class="fs-12" style="text-align: left; padding: 0; margin-right: 8px;">
+                    Phòng ban
+                </nz-form-label>
+                <nz-form-control>
+                    <nz-select name="departmentId" [(ngModel)]="departmentId" nzPlaceHolder="Tất cả phòng ban" style="width: 15vw;" (ngModelChange)="getEmployee()"
+                        nzAllowClear nzShowSearch>
+                        <nz-option *ngFor="let dept of departments" [nzValue]="dept.ID"
+                            [nzLabel]="dept.Name"></nz-option>
+                    </nz-select>
+                </nz-form-control>
+            </nz-form-item>
+
+            <!-- Form item: ô text tìm kiếm -->
+            <nz-form-item class="mb-2" style="margin-left: 1rem;">
+                <input nz-input placeholder="Tìm kiếm..." style="width: 15vw;" (input)="onSearchEmployee($event)"/>
+            </nz-form-item>
+        </div>
+
+
+        <div #tb_employee class="my-2"></div>
+    </div>
+
+
+
+    <div class="modal-footer py-1">
+        <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">Đóng</button>
+        <button nz-button nzType="primary" (click)="onSubmit()">
+            <i class="fas fa-save me-1"></i> Lưu
+        </button>
+    </div>
+</div>

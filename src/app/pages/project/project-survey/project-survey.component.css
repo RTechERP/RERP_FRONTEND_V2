@@ -31,3 +31,22 @@
   height: 93vh !important;
 }
 
+/* Modal với header màu primary */
+::ng-deep .modal-primary-header .ant-modal-header {
+  background: #1677ff !important;
+  border-bottom: 1px solid #1677ff;
+}
+
+::ng-deep .modal-primary-header .ant-modal-title {
+  color: #fff !important;
+  font-weight: 600;
+}
+
+::ng-deep .modal-primary-header .ant-modal-close {
+  color: #fff !important;
+}
+
+::ng-deep .modal-primary-header .ant-modal-close:hover {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+

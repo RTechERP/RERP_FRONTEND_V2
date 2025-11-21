@@ -586,4 +586,15 @@ export class ImportExcelProjectWorkerComponent implements OnInit, AfterViewInit 
   closeExcelModal() {
     this.activeModal.close({ success: true });
   }
+  downloadTemplate(fileName: string) {
+    this.projectWorkerService.downloadTemplate(fileName).subscribe({
+      next: (response: any) => {
+        console.log('Response từ downloadTemplate API:', response);
+      },
+      error: (err: any) => {
+        console.error('Lỗi khi download template:', err);
+        this.notification.error('Thông báo', 'Không thể download template!');
+      }
+    });
+  }
 }

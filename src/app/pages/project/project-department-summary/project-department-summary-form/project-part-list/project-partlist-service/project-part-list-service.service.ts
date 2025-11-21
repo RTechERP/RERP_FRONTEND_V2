@@ -32,4 +32,20 @@ export class ProjectPartListService {
       approved: approved
     });
   }
+  //y/c báo giá 
+  requestPrice(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/price-request`, payload);
+  }
+  //hủy yêu cầu báo giá
+  cancelPriceRequest(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/cancel-price-request`, payload);
+  }
+  //yêu cầu/hủy mua hàng
+  approvePurchaseRequest(payload: any, isApproved: boolean, projectTypeID: number, projectSolutionID: number, projectID: number): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/approve-purchase-request?isApproved=${isApproved}&projectTypeID=${projectTypeID}&projectSolutionID=${projectSolutionID}&projectID=${projectID}`, payload);
+  }
+  //duyệt/hủy duyệt mã mới
+  approveNewCode(payload: any[], isApprovedNew: boolean): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/approved-newcode?isApprovedNew=${isApprovedNew}`, payload);
+  }
 }

@@ -957,4 +957,18 @@ export class ProjectService {
       return this.http.post<any>(this.urlProject + `save-data-project-leader`, payload);
     }
     //#endregion
+
+    //#region Upload file
+    uploadMultipleFiles(files: File[], subPath?: string): Observable<any> {
+      const formData = new FormData();
+      files.forEach((file) => {
+        formData.append('files', file);
+      });
+      formData.append('key', 'MeetingMinutes');  //192.268.1.190/duan/Projects
+      if (subPath && subPath.trim()) {
+        formData.append('subPath', subPath.trim());
+      }
+      return this.http.post<any>(this.apiUrl + `home/upload-multiple`, formData);
+    }
+    //#endregion
 }

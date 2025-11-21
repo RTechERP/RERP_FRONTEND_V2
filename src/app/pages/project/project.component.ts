@@ -48,6 +48,12 @@ import { DEFAULT_TABLE_CONFIG } from '../../tabulator-default.config';
 import { ProjectService } from './project-service/project.service';
 import { HasPermissionDirective } from '../../directives/has-permission.directive';
 import { AuthService } from '../../auth/auth.service';
+import { ProjectRequestComponent } from '../project-request/project-request.component';
+import { ProjectWorkerSyntheticComponent } from './project-department-summary/project-department-summary-form/project-worker-synthetic/project-worker-synthetic.component';
+import { ProjectListWorkReportComponent } from './project-list-work-report/project-list-work-report.component';
+import { WorkItemComponent } from './work-item/work-item.component';
+import { ProjectWorkerComponent } from './project-department-summary/project-department-summary-form/project-woker/project-worker.component';
+import { ProjectPartListComponent } from './project-department-summary/project-department-summary-form/project-part-list/project-part-list.component';
 @Component({
   selector: 'app-projects',
   standalone: true,
@@ -141,6 +147,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
   customerId: any;
   keyword: string = '';
   projectId: any = 0;
+  projectCode: any = '';
   currentUser: any = null;
   dateStart: any = DateTime.local()
     .set({ hour: 0, minute: 0, second: 0, year: 2024, month: 1, day: 1 })
@@ -256,6 +263,13 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           '<span style="font-size: 0.75rem;"><img src="assets/icon/compare_project_16.png" alt="Chuyển dự án" class="me-1" /> Chuyển dự án</span>',
         action: (e: any, row: any) => {
           this.changeProject();
+        },
+      },
+      {
+        label:
+          '<span style="font-size: 0.75rem;"><img src="assets/icon/compare_project_16.png" alt="Chuyển dự án" class="me-1" /> Yêu cầu - Giải pháp</span>',
+        action: (e: any, row: any) => {
+          this.openProjectRequest();
         },
       },
     ];
@@ -559,6 +573,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       this.sizeTbDetail = null;
       var rowData = row.getData();
       this.projectId = rowData['ID'];
+      this.projectCode = rowData['ProjectCode'];
       this.getProjectWorkReports();
       this.getProjectTypeLinks();
     });
@@ -1223,9 +1238,36 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
       keyboard: false,
     });
-
+    
     modalRef.componentInstance.projectIdOld = selectedIDs[0];
     modalRef.componentInstance.disable = false;
+
+    modalRef.result.catch((reason) => {
+      if (reason == true) {
+        this.searchProjects();
+      }
+    });
+  }
+  //#endregion
+
+
+  //#region Yêu cầu - Giải pháp
+  openProjectRequest() {
+    let selectedRows = this.tb_projects.getSelectedRows();
+    let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
+
+    if (selectedIDs.length != 1) {
+      this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!');
+      return;
+    }
+    const modalRef = this.modalService.open(ProjectRequestComponent, {
+      centered: true,
+      backdrop: 'static',
+      keyboard: false,
+      windowClass: 'full-screen-modal',
+    });
+
+    modalRef.componentInstance.projectID = selectedIDs[0];
 
     modalRef.result.catch((reason) => {
       if (reason == true) {
@@ -1307,4 +1349,133 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     });
   }
   //#endregion
+
+  //#region Tổng hợp nhân công
+  openProjectWorkerSynthetic() {
+    let selectedRows = this.tb_projects.getSelectedRows();
+    let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
+
+    if (selectedIDs.length != 1) {
+      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
+        nzStyle: { fontSize: '0.75rem' },
+      });
+      return;
+    }
+
+    const modalRef = this.modalService.open(ProjectWorkerSyntheticComponent, {
+      centered: true,
+      size: 'xl',
+    });
+    modalRef.componentInstance.projectID = this.projectId;
+    modalRef.result.then((result) => {
+      if (result == true) {
+        //this.searchProjects();
+      }
+    });
+  }
+  //#endregion
+
+  //#region Danh sách báo cáo công việc
+  openProjectWorkReportModal() {
+    let selectedRows = this.tb_projects.getSelectedRows();
+    let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
+
+    if (selectedIDs.length != 1) {
+      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
+        nzStyle: { fontSize: '0.75rem' },
+      });
+      return;
+    }
+
+    const modalRef = this.modalService.open(ProjectListWorkReportComponent, {
+      centered: true,
+      size: 'xl',
+    });
+    modalRef.componentInstance.projectId = this.projectId;
+    modalRef.result.then((result) => {
+      if (result == true) {
+       // this.searchProjects();
+      }
+    });
+  }
+  //#endregion
+
+  //#region Hạng mục công việc
+  openWorkItemModal() {
+    let selectedRows = this.tb_projects.getSelectedRows();
+    let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
+
+    if (selectedIDs.length != 1) {
+      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
+        nzStyle: { fontSize: '0.75rem' },
+      });
+      return;
+    }
+    const modalRef = this.modalService.open(WorkItemComponent, {
+      centered: true,
+      size: 'xl',
+    });
+    modalRef.componentInstance.projectCode = this.projectCode;
+    modalRef.componentInstance.projectId = this.projectId;
+    modalRef.result.then((result) => {
+      if (result == true) {
+        //this.searchProjects();
+      }
+    });
+  }
+  //#endregion
+
+  //#region Nhân công dự án
+  openProjectWorkerModal() {
+    let selectedRows = this.tb_projects.getSelectedRows();
+    let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
+
+    if (selectedIDs.length != 1) {
+      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
+        nzStyle: { fontSize: '0.75rem' },
+      });
+      return;
+    }
+    const modalRef = this.modalService.open(ProjectWorkerComponent, {
+      centered: true,
+      backdrop: 'static',
+      keyboard: false,
+      windowClass: 'full-screen-modal',
+    });
+    modalRef.componentInstance.projectId = this.projectId;
+    modalRef.componentInstance.projectCodex = this.tb_projects.getSelectedData()[0].ProjectCode;
+    modalRef.result.then((result) => {
+      if (result == true) {
+        //this.searchProjects();
+      }
+    });
+  }
+  //#endregion
+
+  //#region Danh mục vật tư
+  openProjectPartListModal() {
+    let selectedRows = this.tb_projects.getSelectedRows();
+    let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
+
+    if (selectedIDs.length != 1) {
+      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
+        nzStyle: { fontSize: '0.75rem' },
+      });
+      return;
+    }
+    const modalRef = this.modalService.open(ProjectPartListComponent, {
+      centered: true,
+      backdrop: 'static',
+      keyboard: false,
+      windowClass: 'full-screen-modal',
+    });
+    modalRef.componentInstance.projectId = this.projectId;
+    modalRef.componentInstance.projectCodex = this.tb_projects.getSelectedData()[0].ProjectCode;
+    modalRef.result.then((result) => {
+      if (result == true) {
+      //this.searchProjects();
+    }
+  });
+}
+//#endregion
 }

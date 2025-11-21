@@ -36,6 +36,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzModalModule } from 'ng-zorro-antd/modal';
+import { NzFormModule } from 'ng-zorro-antd/form';
 import { DateTime } from 'luxon';
 
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -73,7 +74,7 @@ interface MeetingMinutes {
 interface Employee {
   EmployeeID: number;
   FullName: string;
-  UserTeamID: string;
+  UserTeamID: number;
   Section: string;
 }
 
@@ -122,7 +123,7 @@ interface CustomerContent {
     NzSplitterModule,
     NzButtonModule,
     NzModalModule,
-    FormsModule,
+    NzFormModule,
   ],
   templateUrl: './meeting-minute-form.component.html',
   styleUrl: './meeting-minute-form.component.css',
@@ -325,7 +326,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             ID: item.ID || 0,
             EmployeeID: item.EmployeeID || 0,
             FullName: item.FullName || '',
-            UserTeamID: item.UserTeamID || '',
+            UserTeamID: item.UserTeamID || 0,
             Section: item.Section || '',
           }));
 
@@ -435,45 +436,64 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
   onTabChange(index: number) {
     this.activeTab = index;
 
-    setTimeout(() => {
-      if (index === 0) {
-        // Tab Employee
-        if (this.tb_EmployeeDetailTable) {
-          this.tb_EmployeeDetailTable.replaceData(this.employeeDetailData);
-          this.tb_EmployeeDetailTable.redraw(true);
+    // Use requestAnimationFrame for better performance
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        if (index === 0) {
+          // Tab Employee Attendance
+          if (this.tb_EmployeeDetailTable) {
+            this.tb_EmployeeDetailTable.replaceData(this.employeeDetailData);
+            this.tb_EmployeeDetailTable.redraw(true);
+            // Force resize to maintain size
+            setTimeout(() => {
+              this.tb_EmployeeDetailTable.redraw(true);
+            }, 50);
+          }
+          if (this.tb_CustomerDetailTable) {
+            this.tb_CustomerDetailTable.replaceData(this.customerDetailData);
+            this.tb_CustomerDetailTable.redraw(true);
+            setTimeout(() => {
+              this.tb_CustomerDetailTable.redraw(true);
+            }, 50);
+          }
         }
-        if (this.tb_CustomerDetailTable) {
-          this.tb_CustomerDetailTable.replaceData(this.customerDetailData);
-          this.tb_CustomerDetailTable.redraw(true);
-        }
-      }
 
-      if (index === 1) {
-        // Tab Content
-        if (this.tb_EmployeeDetailContentTable) {
-          this.tb_EmployeeDetailContentTable.replaceData(
-            this.employeeDetailContentData
-          );
-          this.tb_EmployeeDetailContentTable.redraw(true);
+        if (index === 1) {
+          // Tab Content
+          if (this.tb_EmployeeDetailContentTable) {
+            this.tb_EmployeeDetailContentTable.replaceData(
+              this.employeeDetailContentData
+            );
+            this.tb_EmployeeDetailContentTable.redraw(true);
+            setTimeout(() => {
+              this.tb_EmployeeDetailContentTable.redraw(true);
+            }, 50);
+          }
+          if (this.tb_CustomerDetailContentTable) {
+            this.tb_CustomerDetailContentTable.replaceData(
+              this.customerDetailContentData
+            );
+            this.tb_CustomerDetailContentTable.redraw(true);
+            setTimeout(() => {
+              this.tb_CustomerDetailContentTable.redraw(true);
+            }, 50);
+          }
         }
-        if (this.tb_CustomerDetailContentTable) {
-          this.tb_CustomerDetailContentTable.replaceData(
-            this.customerDetailContentData
-          );
-          this.tb_CustomerDetailContentTable.redraw(true);
-        }
-      }
 
-      if (index === 2) {
-        // File tab
-        if (this.tb_FileTable) {
-          this.tb_FileTable.replaceData(this.fileDatas);
-          this.tb_FileTable.redraw(true);
+        if (index === 2) {
+          // File tab
+          if (this.tb_FileTable) {
+            this.tb_FileTable.replaceData(this.fileDatas);
+            this.tb_FileTable.redraw(true);
+            setTimeout(() => {
+              this.tb_FileTable.redraw(true);
+            }, 50);
+          }
         }
-      }
 
-      this.cdr.detectChanges();
-    }, 100);
+        this.cdr.detectChanges();
+      }, 150);
+    });
   }
   getGroupName(groupId: number): string {
     switch (groupId) {
@@ -801,7 +821,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
         ID: r?.ID ?? 0,
         EmployeeID: r?.EmployeeID ?? 0,
         FullName: r?.FullName ?? '',
-        UserTeamID: r?.UserTeamID ?? '',
+        UserTeamID: r?.UserTeamID ?? 0,
         Section: r?.Section ?? '',
         IsEmployee: false,
       }));
@@ -1009,6 +1029,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
         selectableRows: 1,
         layout: 'fitColumns',
         pagination: false,
+        responsiveLayout: 'hide',
         columns: [
           {
             title: '',
@@ -1150,7 +1171,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
       ID: null,
       EmployeeID: 0,
       FullName: '',
-      UserTeamID: '',
+      UserTeamID: 0,
       Section: '',
     };
     this.tb_EmployeeDetailTable.addRow(newRow);
@@ -1176,6 +1197,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
         selectableRows: 1,
         layout: 'fitColumns',
         pagination: false,
+        responsiveLayout: 'hide',
         columns: [
           {
             title: '',
@@ -1286,6 +1308,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
         selectableRows: 1,
         layout: 'fitDataStretch',
         pagination: false,
+        responsiveLayout: 'hide',
         columns: [
           {
             title: '',
@@ -1491,6 +1514,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
         selectableRows: 1,
         layout: 'fitDataStretch',
         pagination: false,
+        responsiveLayout: 'hide',
         columns: [
           {
             title: '',
@@ -1651,6 +1675,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
       selectableRows: 1,
       layout: 'fitColumns',
       pagination: false,
+      responsiveLayout: 'hide',
       placeholder: 'Chưa có file đính kèm. Click nút + để thêm.',
       columns: [
         {

@@ -2,18 +2,14 @@
 <div class="modal-content">
     <div class="modal-header bg-primary text-uppercase py-2 ">
      <h6 class="modal-title text-white" id="ExcelModalLabel">NHẬP DỮ LIỆU EXCEL</h6>
-      <button type="button" class="btn-close" (click)="closeExcelModal()"></button>
+      <button type="button" class="btn-close" (click)="closePartlistModal()"></button>
     </div>
     <div class="modal-body">
       <div class="d-flex gap-2 align-items-center p-2">
         <div class="flex-grow-1">
           <div class="progress-wrapper">
-            <div style="text-align: center;" class="progress-text">{{ formatProgressText(displayProgress) }}</div>
-            <nz-progress
-              [nzPercent]="displayProgress"
-              [nzStrokeColor]="{ '0%': '#108ee9', '100%': '#87d068' }"
-              [nzShowInfo]="false"
-            ></nz-progress>
+            <div style="text-align: center;" class="progress-text">{{ displayText }}</div>
+            <nz-progress [nzPercent]="displayProgress" [nzShowInfo]="false"></nz-progress>
           </div>
         </div>
       </div>
@@ -40,7 +36,7 @@
           </div>
         </div>
         <div class="card-body p-2">
-          <div id="datatableExcel" style="height: 300px; overflow-y: auto;">
+          <div id="partlistTable" style="height: 300px; overflow-y: auto;">
           </div>
         </div>
         <div class="modal-footer">

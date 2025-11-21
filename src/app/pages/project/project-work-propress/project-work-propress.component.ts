@@ -350,7 +350,7 @@ export class ProjectWorkPropressComponent implements OnInit, AfterViewInit {
         {
           title: 'KẾ HOẠCH TRIỂN KHAI DỰ ÁN',
           headerHozAlign: 'center',
-          frozen: true,
+          // frozen: true,
           columns: [
             {
               title: 'TÊN DỰ ÁN / PROJECT',
@@ -366,6 +366,7 @@ export class ProjectWorkPropressComponent implements OnInit, AfterViewInit {
                           field: 'STT',
                           width: 80,
                           hozAlign: 'center',
+                          frozen: true,
                           formatter: this.hideDuplicateFormatter('STT'),
                         },
                         {
@@ -374,11 +375,13 @@ export class ProjectWorkPropressComponent implements OnInit, AfterViewInit {
                           width: 200,
                           //   headerHozAlign: 'center',
                           formatter: 'textarea',
+                          frozen: true,
                         },
                         {
                           title: 'Người phụ trách',
                           field: 'FullName',
                           width: 150,
+                          frozen: true,
                           //   headerHozAlign: 'center',
                         },
                       ],
@@ -404,6 +407,7 @@ export class ProjectWorkPropressComponent implements OnInit, AfterViewInit {
                           field: 'StartDate',
                           width: 120,
                           headerHozAlign: 'center',
+                          frozen: true,
                           formatter: function (
                             cell,
                             formatterParams,
@@ -424,12 +428,14 @@ export class ProjectWorkPropressComponent implements OnInit, AfterViewInit {
                           width: 80,
                           headerHozAlign: 'center',
                           hozAlign: 'right',
+                          frozen: true,
                         },
                         {
                           title: 'Ngày kết thúc',
                           field: 'EndDate',
                           width: 120,
                           headerHozAlign: 'center',
+                          frozen: true,
                           formatter: function (
                             cell,
                             formatterParams,
@@ -449,6 +455,7 @@ export class ProjectWorkPropressComponent implements OnInit, AfterViewInit {
                           field: 'TypeText',
                           width: 80,
                           headerHozAlign: 'center',
+                          frozen: true,
                           formatter: function (cell) {
                             const value = cell.getValue();
                             const el = cell.getElement();

@@ -1,0 +1,128 @@
+<div class="modal-dialog-scrollable">
+  <div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">Kết quả khảo sát</h6>
+    <button
+      type="button"
+      class="btn-close"
+      (click)="closeModal()"
+      aria-label="Close"
+    ></button>
+  </div>
+
+  <div class="modal-body" style="height: 50vh; overflow-y: auto;">
+    <form nz-form [formGroup]="form" class="g-3 needs-validation was-validated">
+      <!-- Hàng 1: Kỹ thuật phụ trách -->
+      <div class="row">
+        <div class="col-md-12 pb-3">
+          <nz-form-label class="fs-12">
+            Kỹ thuật phụ trách
+          </nz-form-label>
+          <nz-form-control>
+            <nz-select
+              formControlName="employeeIdResult"
+              class="w-100 fs-12"
+              nzShowSearch
+              nzAllowClear
+              nzPlaceHolder="Chọn kỹ thuật"
+            >
+              @for (parent of employees; track $index) {
+                <nz-option-group [nzLabel]="parent.label">
+                  @for (child of parent.options; track $index) {
+                    <nz-option
+                      [nzLabel]="child.item.FullName"
+                      [nzValue]="child.item.ID"
+                    >
+                      {{ child.item.Code + " - " + child.item.FullName }}
+                    </nz-option>
+                  }
+                </nz-option-group>
+              }
+            </nz-select>
+          </nz-form-control>
+        </div>
+      </div>
+
+      <!-- Hàng 2: Ngày khảo sát -->
+      <div class="row">
+        <div class="col-md-12 pb-3">
+          <nz-form-label class="fs-12">
+            Ngày khảo sát
+          </nz-form-label>
+          <nz-form-control>
+            <nz-date-picker
+              formControlName="dateResult"
+              class="w-100 fs-12"
+              nzFormat="dd/MM/yyyy"
+              nzAllowClear="false"
+            ></nz-date-picker>
+          </nz-form-control>
+        </div>
+      </div>
+
+      <!-- Hàng 3: Kết quả khảo sát -->
+      <div class="row">
+        <div class="col-md-12 pb-3">
+          <nz-form-label class="fs-12">
+            Kết quả khảo sát
+            <span class="text-danger ps-1 me-1">*</span>
+          </nz-form-label>
+          <nz-form-control
+            [nzErrorTip]="
+              form.get('result')?.invalid &&
+              (form.get('result')?.dirty || form.get('result')?.touched)
+                ? 'Vui lòng nhập kết quả khảo sát!'
+                : undefined
+            "
+          >
+            <textarea
+              formControlName="result"
+              rows="5"
+              nz-input
+              class="fs-12"
+              placeholder="Nhập kết quả khảo sát"
+              style="min-height: 120px; max-height: 200px;"
+            ></textarea>
+          </nz-form-control>
+        </div>
+      </div>
+
+      <!-- Hàng 4: Upload file -->
+      <div class="row">
+        <div class="col-md-12 pb-3">
+          <nz-form-label class="fs-12">
+            File đính kèm
+          </nz-form-label>
+          <nz-form-control>
+            <nz-upload
+              [(nzFileList)]="fileListResult"
+              [nzBeforeUpload]="beforeUpload"
+              [nzMultiple]="true"
+              [nzShowUploadList]="false"
+            >
+              <button nz-button nzSize="small" class="fs-12">
+                <nz-icon nzType="upload" />
+                Chọn file mô tả dự án
+              </button>
+            </nz-upload>
+          </nz-form-control>
+        </div>
+      </div>
+
+      <!-- Hàng 5: Bảng danh sách file -->
+      <div class="row">
+        <div class="col-md-12 pb-3">
+          <div class="border rounded" style="height: 300px;" #tb_projectSurveyFile></div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal-footer">
+    <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">
+      Đóng
+    </button>
+    <button class="fs-12 btn" nz-button nzType="primary" (click)="saveData()">
+      Lưu
+    </button>
+  </div>
+</div>

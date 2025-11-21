@@ -1,0 +1,288 @@
+<div class="modal-dialog-scrollable">
+  <div class="modal-header bg-primary p-2">
+    <h6 class="modal-title text-white" id="assetModalLabel">WFH</h6>
+    <button type="button" class="btn-close" aria-label="Close" (click)="closeModal()"></button>
+  </div>
+
+  <div class="modal-body">
+    <form [formGroup]="wfhForm" nz-form nzLayout="vertical">
+      <!-- Row 1: Người đăng ký và Người duyệt -->
+      <nz-row [nzGutter]="[24, 16]">
+        <nz-col [nzSpan]="12">
+          <nz-form-item class="pt-1">
+            <nz-form-label class="fs-12 d-flex align-items-center">
+              Người đăng ký <span class="text-danger ps-1">(*)</span>
+            </nz-form-label>
+            <nz-form-control [nzErrorTip]="hasError('employeeId') ? getErrorMessage('employeeId') : undefined">
+              <nz-select
+                formControlName="employeeId"
+                class="w-100"
+                nzShowSearch
+                nzAllowClear
+                nzPlaceHolder="Chọn người đăng ký"
+                [nzFilterOption]="filterEmployeeOption"
+                [nzDisabled]="(isEditMode && wfhData && wfhData.ID && wfhData.ID > 0) || isFormDisabled"
+                [class.ng-invalid]="hasError('employeeId')"
+                (ngModelChange)="onEmployeeChange()"
+              >
+                <nz-option-group *ngFor="let group of employeeGroups" [nzLabel]="group.label">
+                  <nz-option
+                    *ngFor="let emp of group.options"
+                    [nzLabel]="emp.Code + ' - ' + emp.FullName"
+                    [nzValue]="emp.ID"
+                  >
+                    <div class="employee-option">
+                      <span class="employee-code">{{ emp.Code }}</span>
+                      <span class="employee-name"> - {{ emp.FullName }}</span>
+                      <small class="text-muted d-block">{{ emp.DepartmentName }}</small>
+                    </div>
+                  </nz-option>
+                </nz-option-group>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+        <nz-col [nzSpan]="12">
+          <nz-form-item class="pt-1">
+            <nz-form-label class="fs-12 d-flex align-items-center">
+              Người duyệt <span class="text-danger ps-1">(*)</span>
+            </nz-form-label>
+            <nz-form-control [nzErrorTip]="hasError('approvedId') ? getErrorMessage('approvedId') : undefined">
+              <nz-select
+                formControlName="approvedId"
+                class="w-100"
+                nzShowSearch
+                nzAllowClear
+                nzPlaceHolder="Chọn người duyệt"
+                [nzFilterOption]="filterApproverOption"
+                [nzDisabled]="(isEditMode && wfhData && wfhData.ID && wfhData.ID > 0) || isFormDisabled"
+                [class.ng-invalid]="hasError('approvedId')"
+                (ngModelChange)="onApprovedChange()"
+              >
+                <nz-option-group *ngFor="let group of approverGroups" [nzLabel]="group.label">
+                  <nz-option
+                    *ngFor="let appr of group.options"
+                    [nzLabel]="appr.Code + ' - ' + appr.FullName"
+                    [nzValue]="appr.ID"
+                  >
+                    <div class="approver-option">
+                      <span class="approver-code">{{ appr.Code }}</span>
+                      <span class="approver-name"> - {{ appr.FullName }}</span>
+                      <small class="text-muted d-block">{{ appr.DepartmentName }}</small>
+                    </div>
+                  </nz-option>
+                </nz-option-group>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+
+      <!-- Row 2: Ngày WFH và Thời gian WFH -->
+      <nz-row [nzGutter]="[24, 16]">
+        <nz-col [nzSpan]="12">
+          <nz-form-item class="pt-1">
+            <nz-form-label class="fs-12 d-flex align-items-center">
+              Ngày WFH <span class="text-danger ps-1">(*)</span>
+            </nz-form-label>
+            <nz-form-control [nzErrorTip]="hasError('dateWFH') ? getErrorMessage('dateWFH') : undefined">
+              <nz-date-picker
+                formControlName="dateWFH"
+                class="w-100"
+                nzPlaceHolder="Chọn ngày WFH"
+                [nzDisabled]="isFormDisabled"
+                [class.ng-invalid]="hasError('dateWFH')"
+                (ngModelChange)="onDateChange()"
+                nzFormat="dd/MM/yyyy"
+              ></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+        <nz-col [nzSpan]="12">
+          <nz-form-item class="pt-1">
+            <nz-form-label class="fs-12 d-flex align-items-center">
+              Thời gian WFH <span class="text-danger ps-1">(*)</span>
+            </nz-form-label>
+            <nz-form-control [nzErrorTip]="hasError('timeWFH') ? getErrorMessage('timeWFH') : undefined">
+              <nz-select
+                formControlName="timeWFH"
+                class="w-100"
+                nzPlaceHolder="Chọn thời gian"
+                [nzDisabled]="isFormDisabled"
+                [class.ng-invalid]="hasError('timeWFH')"
+                (ngModelChange)="onTimeWFHChange()"
+              >
+                <nz-option 
+                  *ngFor="let option of timeWFHOptions" 
+                  [nzValue]="option.value"
+                  [nzLabel]="option.label">
+                </nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+
+      <!-- Row 3: Lý do WFH -->
+      <nz-row [nzGutter]="[24, 16]">
+        <nz-col [nzSpan]="24">
+          <nz-form-item class="pt-1">
+            <nz-form-label class="fs-12 d-flex align-items-center">
+              Lý do WFH <span class="text-danger ps-1">(*)</span>
+            </nz-form-label>
+            <nz-form-control [nzErrorTip]="hasError('reason') ? getErrorMessage('reason') : undefined">
+              <textarea
+                formControlName="reason"
+                nz-input
+                placeholder="Nhập lý do WFH"
+                [disabled]="isFormDisabled"
+                [class.ng-invalid]="hasError('reason')"
+                rows="3"
+                maxlength="500"
+              ></textarea>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+
+      <!-- Row 4: Nội dung/Kế hoạch công việc -->
+      <nz-row [nzGutter]="[24, 16]">
+        <nz-col [nzSpan]="24">
+          <nz-form-item class="pt-1">
+            <nz-form-label class="fs-12 d-flex align-items-center">
+              Nội dung/Kế hoạch công việc <span class="text-danger ps-1">(*)</span>
+            </nz-form-label>
+            <nz-form-control [nzErrorTip]="hasError('contentWork') ? getErrorMessage('contentWork') : undefined">
+              <textarea
+                formControlName="contentWork"
+                nz-input
+                placeholder="Nhập nội dung và kế hoạch công việc chi tiết"
+                [disabled]="isFormDisabled"
+                [class.ng-invalid]="hasError('contentWork')"
+                rows="4"
+                maxlength="1000"
+              ></textarea>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+
+      <!-- Row 5: Đánh giá kết quả (chỉ hiển thị khi TBP duyệt) -->
+      <nz-row [nzGutter]="[24, 16]" *ngIf="showEvaluateResults">
+        <nz-col [nzSpan]="24">
+          <nz-form-item class="pt-1">
+            <nz-form-label class="fs-12 d-flex align-items-center">
+              Đánh giá kết quả <span class="text-danger ps-1">(*)</span>
+            </nz-form-label>
+            <textarea
+              formControlName="evaluateResults"
+              nz-input
+              placeholder="Nhập đánh giá kết quả công việc WFH"
+              [disabled]="isFormDisabled"
+              rows="3"
+              maxlength="500"
+            ></textarea>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+
+      <!-- Row 6: Lý do sửa đổi -->
+      <nz-row [nzGutter]="[24, 16]" *ngIf="isEditMode">
+        <nz-col [nzSpan]="24">
+          <nz-form-item class="pt-1">
+            <nz-form-label class="fs-12 d-flex align-items-center">
+              Lý do sửa đổi <span class="text-danger ps-1" *ngIf="wfhData && wfhData.ID && wfhData.ID > 0">(*)</span>
+            </nz-form-label>
+            <nz-form-control [nzErrorTip]="hasError('reasonEdit') ? getErrorMessage('reasonEdit') : undefined">
+              <textarea
+                formControlName="reasonEdit"
+                nz-input
+                placeholder="Nhập lý do sửa đổi"
+                [disabled]="isFormDisabled"
+                [class.ng-invalid]="hasError('reasonEdit')"
+                rows="2"
+                maxlength="300"
+              ></textarea>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+
+      <!-- Row 7: Lý do từ chối (chỉ hiển thị khi duyệt) -->
+      <nz-row [nzGutter]="[24, 16]" *ngIf="showReasonDecline">
+        <nz-col [nzSpan]="24">
+          <nz-form-item class="pt-1">
+            <nz-form-label class="fs-12 d-flex align-items-center">
+              Lý do từ chối
+            </nz-form-label>
+            <textarea
+              formControlName="reasonDecline"
+              nz-input
+              placeholder="Nhập lý do từ chối (nếu không duyệt)"
+              [disabled]="isFormDisabled"
+              rows="3"
+              maxlength="500"
+            ></textarea>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+    </form>
+  </div>
+
+  <div class="modal-footer br p-1 d-flex align-items-center">
+    <div class="d-flex align-items-center flex-wrap gap-1">
+      <!-- Loading spinner -->
+      <div *ngIf="loading" class="d-flex align-items-center me-2">
+        <nz-spin nzSimple nzSize="small" class="me-2"></nz-spin>
+        <span class="fs-12">Đang tải...</span>
+      </div>
+
+      <!-- Close button -->
+      <button
+        nz-button
+        nzType="default"
+        nzDanger
+        (click)="closeModal()"
+        [disabled]="saving"
+      >
+        Đóng
+      </button>
+
+      <!-- Save button (Add/Edit mode) -->
+      <button 
+        *ngIf="!isViewMode && !isApproveMode"
+        nz-button
+        nzType="primary"
+        (click)="saveWFH()"
+        [disabled]="saving"
+      >
+        <span *ngIf="saving" class="spinner-border spinner-border-sm me-2"></span>
+        {{ saving ? 'Đang lưu...' : 'Lưu' }}
+      </button>
+
+      <!-- Approve buttons (Approve mode) -->
+      <button 
+        *ngIf="canApprove"
+        nz-button
+        nzType="primary"
+        (click)="approveWFH()"
+        [disabled]="saving"
+      >
+        <span *ngIf="saving" class="spinner-border spinner-border-sm me-2"></span>
+        {{ saving ? 'Đang duyệt...' : 'Duyệt' }}
+      </button>
+
+      <button 
+        *ngIf="canDecline"
+        nz-button
+        nzType="default"
+        nzDanger
+        (click)="declineWFH()"
+        [disabled]="saving"
+      >
+        <span *ngIf="saving" class="spinner-border spinner-border-sm me-2"></span>
+        {{ saving ? 'Đang từ chối...' : 'Từ chối' }}
+      </button>
+    </div>
+  </div>
+</div>

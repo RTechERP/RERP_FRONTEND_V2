@@ -57,6 +57,7 @@ import { NzUploadFile } from 'ng-zorro-antd/upload';
 import { saveAs } from 'file-saver';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 interface DocumentType {
   Code: string;
   Name: string;
@@ -103,16 +104,17 @@ interface DocumentFile {
     NgbModalModule,
     NzFormModule,
     NzInputNumberModule,
+    HasPermissionDirective
   ],
   templateUrl: './document.component.html',
   styleUrl: './document.component.css',
 })
 export class DocumentComponent implements OnInit, AfterViewInit {
-   @ViewChild('DocumentTable') tableRef2!: ElementRef;
-   @ViewChild('DocumentTypeTable') tableRef1!: ElementRef;
+  @ViewChild('DocumentTable') tableRef2!: ElementRef;
+  @ViewChild('DocumentTypeTable') tableRef1!: ElementRef;
   @ViewChild('DocumentFileTable') tableRef3!: ElementRef;
 
-    splitterLayout: 'horizontal' | 'vertical' = 'horizontal';
+  splitterLayout: 'horizontal' | 'vertical' = 'horizontal';
 
   dataInput: any = {};
 
@@ -177,10 +179,10 @@ export class DocumentComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     private breakpointObserver: BreakpointObserver,
     private message: NzMessageService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
-      this.breakpointObserver.observe([Breakpoints.Handset])
+    this.breakpointObserver.observe([Breakpoints.Handset])
       .subscribe(result => {
         this.splitterLayout = result.matches ? 'vertical' : 'horizontal';
       });
@@ -271,7 +273,7 @@ export class DocumentComponent implements OnInit, AfterViewInit {
           ],
         ]);
       } else {
-         this.getDocument();
+        this.getDocument();
       }
     }
   }
@@ -288,7 +290,7 @@ export class DocumentComponent implements OnInit, AfterViewInit {
     this.searchParams.departmentID = value;
     this.getDocument();
   }
-  
+
 
   onAddDocumentType() {
     const selected = this.documentTypeTable?.getSelectedData() || [];
@@ -314,7 +316,7 @@ export class DocumentComponent implements OnInit, AfterViewInit {
   }
 
   onDeleteDocumentType() {
-    
+
     const dataSelect: DocumentType[] =
       this.documentTypeTable!.getSelectedData();
     const payloads = {
@@ -423,49 +425,68 @@ export class DocumentComponent implements OnInit, AfterViewInit {
     });
   }
 
-  // Bắt sự kiện upload new
+  // Bắt sự kiện upload file
+  beforeUpload = (file: NzUploadFile): boolean => {
+    if (!this.selectedDocumentId) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn văn bản để upload file!');
+      return false;
+    }
 
- beforeUpload = (file: NzUploadFile): boolean => {
-  if (!this.selectedDocumentId) {
-    this.notification.warning('Thông báo', 'Chọn văn bản để upload file!');
+    // Lấy file gốc
+    const rawFile = (file as any).originFileObj || file;
+
+    if (!(rawFile instanceof File)) {
+      this.notification.error('Thông báo', 'Không lấy được file gốc!');
+      return false;
+    }
+
+    const subPath = `Documents/${this.selectedDocumentId}`;
+
+    // Hiển thị loading
+    const loadingMsg = this.message.loading(`Đang tải lên ${file.name}...`, {
+      nzDuration: 0,
+    }).messageId;
+
+    this.documentService.uploadMultipleFiles([rawFile], subPath).subscribe({
+      next: (res) => {
+        this.message.remove(loadingMsg);
+
+        if (res?.status === 1 && res?.data?.length > 0) {
+          const uploadedFile = res.data[0];
+
+          const fileRecord = {
+            DocumentID: this.selectedDocumentId,
+            FileName: uploadedFile.SavedFileName,
+            FilePath: uploadedFile.FilePath,
+            FileNameOrigin: uploadedFile.OriginalFileName || file.name,
+          };
+
+          this.documentService.saveDocumentFile(fileRecord).subscribe({
+            next: (saveRes) => {
+              if (saveRes?.status === 1) {
+                this.notification.success('Thành công', `Upload ${file.name} hoàn tất!`);
+                // Reload danh sách file
+                this.getDocumentFileByID(this.selectedDocumentId);
+              } else {
+                this.notification.error('Lỗi', saveRes?.message || 'Lưu thông tin file thất bại!');
+              }
+            },
+            error: (err) => {
+              this.notification.error('Lỗi', err?.error?.message || 'Lưu thông tin file thất bại!');
+            },
+          });
+        } else {
+          this.notification.error('Lỗi', res?.message || 'Upload file thất bại!');
+        }
+      },
+      error: (err) => {
+        this.message.remove(loadingMsg);
+        this.notification.error('Lỗi', err?.error?.message || 'Upload file thất bại!');
+      },
+    });
+
     return false;
-  }
-
-  // Lấy file gốc
-  const rawFile = (file as any).originFileObj || file;
-
-  if (!(rawFile instanceof File)) {
-    this.notification.error('Thông báo', 'Không lấy được file gốc!');
-    return false;
-  }
-
-  const subPath = `Documents/${this.selectedDocumentId}`;
-
-  this.documentService.uploadMultipleFiles([rawFile], subPath).subscribe({
-    next: (res) => {
-      if (res.status === 1) {
-
-        const fileRecord = {
-          DocumentID: this.selectedDocumentId,
-          FileName: res.data[0].SavedFileName, 
-          FilePath: res.data[0].FilePath,
-          FileNameOrigin: file.name, 
-        };
-
-        this.documentService.saveDocumentFile(fileRecord).subscribe({
-          next: () => {
-            this.notification.success('Thành công', `Upload ${file.name} hoàn tất!`);
-          },
-        });
-
-      } else {
-        this.notification.error('Lỗi', res.message || 'Upload thất bại!');
-      }
-    },
-  });
-
-  return false; 
-};
+  };
 
   exportExcel(id: number, customFileName?: string): void {
     const fileName = customFileName || `VBPhatHanh${id}.xlsx`;
@@ -500,40 +521,66 @@ export class DocumentComponent implements OnInit, AfterViewInit {
     });
   }
 
-downloadFile() {
-  if (!this.data || this.data.length === 0) {
-    this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
-    return;
+  downloadFile() {
+    if (!this.data || this.data.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
+      return;
+    }
+
+    const file = this.data[0];
+
+    if (!file.FilePath) {
+      this.notification.error('Thông báo', 'Không có đường dẫn file để tải xuống!');
+      return;
+    }
+
+    // Hiển thị loading message
+    const loadingMsg = this.message.loading('Đang tải xuống file...', {
+      nzDuration: 0,
+    }).messageId;
+
+    this.documentService.downloadFile(file.FilePath).subscribe({
+      next: (blob: Blob) => {
+        this.message.remove(loadingMsg);
+
+        // Kiểm tra xem có phải là blob hợp lệ không
+        if (blob && blob.size > 0) {
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = file.FileName || file.FileNameOrigin || 'downloaded_file';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          this.notification.success('Thông báo', 'Tải xuống thành công!');
+        } else {
+          this.notification.error('Thông báo', 'File tải về không hợp lệ!');
+        }
+      },
+      error: (res: any) => {
+        this.message.remove(loadingMsg);
+        console.error('Lỗi khi tải file:', res);
+
+        // Nếu error response là blob (có thể server trả về lỗi dạng blob)
+        if (res.error instanceof Blob) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const errorText = JSON.parse(reader.result as string);
+              this.notification.error('Thông báo', errorText.message || 'Tải xuống thất bại!');
+            } catch {
+              this.notification.error('Thông báo', 'Tải xuống thất bại!');
+            }
+          };
+          reader.readAsText(res.error);
+        } else {
+          const errorMsg = res?.error?.message || res?.message || 'Tải xuống thất bại! Vui lòng thử lại.';
+          this.notification.error('Thông báo', errorMsg);
+        }
+      },
+    });
   }
-
-  const file = this.data[0];
-
-  if (!file.FilePath) {
-     this.notification.error(
-          'Thông báo',
-          'Không có đường dẫn file để tải xuống!'
-        );
-    return;
-  }
-
-  this.documentService.downloadFile(file.FilePath).subscribe({
-    next: (blob: Blob) => {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = file.FileName || 'downloaded_file';
-      a.click();
-      window.URL.revokeObjectURL(url);
-      this.notification.success('Thông báo', 'Tải xuống thành công!');
-    },
-    error: (err) => {
-       this.notification.error(
-          'Thông báo',
-          'Tải xuống thất bại! Vui lòng thử lại.'
-        );
-    },
-  });
-}
 
   onDeleteDocumentFile() {
     const dataSelect: DocumentFile[] =
@@ -561,8 +608,8 @@ downloadFile() {
           next: (res) => {
             if (res.status === 1) {
               this.notification.success('Thông báo', 'Đã xóa thành công!');
-               this.documentFileData = this.documentFileData.filter(f => f.ID !== dataSelect[0].ID);
-               this.documentFileTable!.setData(this.documentFileData);
+              this.documentFileData = this.documentFileData.filter(f => f.ID !== dataSelect[0].ID);
+              this.documentFileTable!.setData(this.documentFileData);
             } else {
               this.notification.warning(
                 'Thông báo',
@@ -586,7 +633,7 @@ downloadFile() {
         data: this.documentTypeData,
         ...DEFAULT_TABLE_CONFIG,
         selectableRows: 1,
-        paginationMode:'local',
+        paginationMode: 'local',
         // layout: 'fitDataStretch',
         // pagination: true,
         // selectableRows: 1,
@@ -660,7 +707,7 @@ downloadFile() {
         // pagination: true,
         selectableRows: 1,
         //  height: '100%',
-         paginationMode:'local',
+        paginationMode: 'local',
         // movableColumns: true,
         // paginationSize: 30,
         // paginationSizeSelector: [5, 10, 20, 50, 100],
@@ -684,9 +731,8 @@ downloadFile() {
         groupBy: [
           (data) => {
             return data.DepartmentName
-              ? `Phòng ban: ${
-                  data.DepartmentName ? `  ${data.DepartmentName}` : ''
-                }`
+              ? `Phòng ban: ${data.DepartmentName ? `  ${data.DepartmentName}` : ''
+              }`
               : 'Phòng ban: ';
           },
           // (data) => data.StoreName ? `Kho: ${data.StoreName}` : "Kho: Kho HN"
@@ -758,12 +804,12 @@ downloadFile() {
         this.getDocumentFileByID(rowData['ID']);
       });
 
-         this.documentTable.on('rowSelected', (row: any) => {
-    const rowData = row.getData();
-    this.selectedDocumentId = rowData.ID;
+      this.documentTable.on('rowSelected', (row: any) => {
+        const rowData = row.getData();
+        this.selectedDocumentId = rowData.ID;
 
-    // Load file list của dòng đó
-    this.getDocumentFileByID(this.selectedDocumentId);
+        // Load file list của dòng đó
+        this.getDocumentFileByID(this.selectedDocumentId);
       });
       this.documentTable.on('rowDeselected', (row: RowComponent) => {
         const selectedRows = this.documentTable!.getSelectedRows();
@@ -783,8 +829,8 @@ downloadFile() {
         data: this.documentFileData,
         ...DEFAULT_TABLE_CONFIG,
         selectableRows: 1,
-        paginationMode:'local',
-        layout:'fitDataStretch',
+        paginationMode: 'local',
+        layout: 'fitDataStretch',
         // layout: 'fitDataStretch',
         // pagination: true,
         // selectableRows: 1,
@@ -815,7 +861,7 @@ downloadFile() {
           },
           {
             title: 'Tên file',
-            hozAlign: 'center',
+            hozAlign: 'left',
             headerHozAlign: 'center',
             field: 'FileName',
             resizable: false

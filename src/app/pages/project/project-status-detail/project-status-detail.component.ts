@@ -8,6 +8,7 @@ import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-project-status-detail',
@@ -43,7 +44,7 @@ export class ProjectStatusDetailComponent implements OnInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });

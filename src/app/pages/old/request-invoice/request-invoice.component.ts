@@ -304,7 +304,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
         }).subscribe({
           next: (response) => {
             if (response.status === 1) {
-              this.notification.success('Thành công', 'Xóa dữ liệu thành công');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Xóa dữ liệu thành công');
               this.loadMainData(
                 this.filters.startDate,
                 this.filters.endDate,
@@ -312,7 +312,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
               );
             } else {
               this.notification.error(
-                'Lỗi',
+                NOTIFICATION_TITLE.error,
                 response.message || 'Xóa dữ liệu thất bại!'
               );
             }

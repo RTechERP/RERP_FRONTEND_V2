@@ -36,6 +36,7 @@ import { ProductSaleDetailComponent } from '../ProductSale/product-sale-detail/p
 import { ProductGroupDetailComponent } from '../ProductSale/product-group-detail/product-group-detail.component';
 import { ImportExportModalComponent } from './detail-modal/import-export-detail-modal..component';
 import { BillExportDetailComponent } from '../BillExport/Modal/bill-export-detail/bill-export-detail.component';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 interface ProductSale {
   Id?: number;
@@ -241,8 +242,7 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err) => {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Có lỗi xảy ra khi lấy thông tin!'
         );
         console.error(err);
@@ -387,7 +387,7 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu xuất excel!');
       return;
     }
 

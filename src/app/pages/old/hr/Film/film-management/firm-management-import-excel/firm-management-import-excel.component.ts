@@ -20,10 +20,11 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
-import { UnitService } from '../../../../ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
 export const SERVER_PATH = `D:\RTC_Sw\RTC\ProductRTC`;
 import { NzProgressModule } from 'ng-zorro-antd/progress';
-import { NzSplitterModule } from 'ng-zorro-antd/splitter';
+import { NzSplitterModule } from 'ng-zorro-antd/splitter';  
+import { UnitService } from '../../../../../hrm/asset/asset/ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 
 function formatDate(value: any): string | null {
   if (!value) return null;
@@ -112,7 +113,7 @@ ngOnInit() {
     if (this.table) {
       this.table.import("xlsx", [".xlsx", ".csv", ".ods"], "buffer");
     } else {
-      this.notification.warning('Thông báo', 'Bảng chưa được khởi tạo!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Bảng chưa được khởi tạo!');
     }
   }
   openFileExplorer() {
@@ -127,7 +128,7 @@ ngOnInit() {
       console.log('File đã chọn:', file.name); // Log để kiểm tra
       console.log('Phần mở rộng:', fileExtension); // Log để kiểm tra
       if (fileExtension !== 'xlsx' && fileExtension !== 'xls') {
-        this.notification.warning('Thông báo', 'Vui lòng chọn tệp Excel (.xlsx hoặc .xls)!');
+        this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn tệp Excel (.xlsx hoặc .xls)!');
         input.value = '';
         this.resetExcelImportState();
         return;
@@ -185,12 +186,12 @@ ngOnInit() {
             }
           } else {
             console.warn('File Excel không chứa bất kỳ sheet nào.'); // Log
-            this.notification.warning('Thông báo', 'File Excel không có sheet nào!');
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'File Excel không có sheet nào!');
             this.resetExcelImportState();
           }
         } catch (error) {
           console.error('Lỗi khi đọc tệp Excel trong FileReader.onload:', error); // Log chi tiết lỗi
-          this.notification.error('Thông báo', 'Không thể đọc tệp Excel. Vui lòng đảm bảo tệp không bị hỏng và đúng định dạng.');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể đọc tệp Excel. Vui lòng đảm bảo tệp không bị hỏng và đúng định dạng.');
           this.resetExcelImportState();
         }
         input.value = '';
@@ -215,7 +216,7 @@ ngOnInit() {
             console.log('Dữ liệu đã được đọc lại sau khi thay đổi sheet.'); // Log
           } catch (error) {
             console.error('Lỗi khi đọc tệp Excel khi thay đổi sheet:', error);
-            this.notification.error('Thông báo', 'Không thể đọc dữ liệu từ sheet đã chọn!');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Không thể đọc dữ liệu từ sheet đã chọn!');
             this.resetExcelImportState();
           }
         };
@@ -291,7 +292,7 @@ ngOnInit() {
       console.log(`Đã load ${validRecords} bản ghi hợp lệ.`);
     } catch (error) {
       console.error('Lỗi khi đọc dữ liệu từ sheet:', error);
-      this.notification.error('Thông báo', 'Không thể đọc dữ liệu từ sheet!');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không thể đọc dữ liệu từ sheet!');
       this.resetExcelImportState();
     }
   }
@@ -312,13 +313,13 @@ ngOnInit() {
 
   async saveExcelData() {
     if (!this.dataTableExcel || this.dataTableExcel.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu để lưu!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để lưu!');
       return;
     }
 
     const validDataToSave = this.dataTableExcel.filter(row => row.ProductCode && row.ProductName);
     if (validDataToSave.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu thiết bị hợp lệ để lưu!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu thiết bị hợp lệ để lưu!');
       this.displayProgress = 0;
       this.displayText = `0/${this.totalRowsAfterFileRead} bản ghi`;
       return;
@@ -336,6 +337,7 @@ ngOnInit() {
     //   }));
     //   existingList = res?.products || [];
     // } catch (err) {
+    //   this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lấy danh sách thiết bị để kiểm tra trùng');
     //   this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lấy danh sách thiết bị để kiểm tra trùng');
     //   return;
     // }
@@ -449,6 +451,7 @@ ngOnInit() {
           },
           error: (err) => {
             this.notification.error(NOTIFICATION_TITLE.error, `Không thể lưu thiết bị: ${row.ProductCode}`);
+            this.notification.error(NOTIFICATION_TITLE.error, `Không thể lưu thiết bị: ${row.ProductCode}`);
             errorCount++;
             console.error(`Lỗi API khi lưu thiết bị ${index + 1}:`, err);
             completedRequests++;
@@ -465,12 +468,12 @@ ngOnInit() {
   }
   showSaveSummary(successCount: number, errorCount: number, totalProducts: number) {
     if (errorCount === 0) {
-      this.notification.success('Thông báo', `Đã lưu ${successCount} sản phẩm thành công`);
+      this.notification.success(NOTIFICATION_TITLE.success, `Đã lưu ${successCount} sản phẩm thành công`);
       this.closeExcelModal(); // Chỉ đóng khi thành công hoàn toàn
     } else if (successCount === 0) {
-      this.notification.error('Thông báo', `Lưu thất bại ${errorCount}/${totalProducts} sản phẩm`);
+      this.notification.error(NOTIFICATION_TITLE.error, `Lưu thất bại ${errorCount}/${totalProducts} sản phẩm`);
     } else {
-      this.notification.warning('Thông báo', `Đã lưu ${successCount} sản phẩm, ${errorCount} sản phẩm thất bại`);
+      this.notification.warning(NOTIFICATION_TITLE.warning, `Đã lưu ${successCount} sản phẩm, ${errorCount} sản phẩm thất bại`);
     }
   }
 

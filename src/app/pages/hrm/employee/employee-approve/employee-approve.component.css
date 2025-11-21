@@ -1,0 +1,24 @@
+#employeeApproveModal {
+    z-index: 1000 !important;
+}
+
+.modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.modal-backdrop.show {
+  opacity: 1;
+}
+
+.modal {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-dialog {
+  position: relative;
+  /* z-index: 1051 !important; */
+}
+
+

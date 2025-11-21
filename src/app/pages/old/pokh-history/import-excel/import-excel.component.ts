@@ -13,6 +13,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { PokhHistoryServiceService } from '../pokh-history-service/pokh-history-service.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-import-excel',
@@ -67,6 +68,13 @@ export class ImportExcelComponent implements OnInit {
     'Sale': 'Sale',
     'Pur': 'Pur'
   };
+
+  // Danh sách các cột không bắt buộc (có thể để trống)
+  optionalColumns: string[] = [
+    'Dept',
+    'Sale',
+    'Pur'
+  ];
 
   constructor(
     private notification: NzNotificationService,
@@ -148,13 +156,37 @@ export class ImportExcelComponent implements OnInit {
   }
 
   renderTable() {
+    // Tạo cột số thứ tự
+    const rowNumberColumn: any = {
+      title: 'STT',
+      field: 'rowNumber',
+      width: 80,
+      headerHozAlign: 'center' as const,
+      hozAlign: 'center' as const,
+      formatter: (cell: any) => {
+        const row = cell.getRow();
+        return row.getPosition(true);
+      },
+      frozen: true,
+      resizable: false
+    };
+
+    // Tạo các cột dữ liệu
+    const dataColumns: any[] = this.tableHeaders.map(col => {
+      let align: "left" | "center" | "right" = "left";
+      if (col.toLowerCase().includes("date")) align = "center";
+      else if (this.tableData.length > 0 && typeof this.tableData[0][col] === "number") align = "right";
+      return { 
+        title: col, 
+        field: col, 
+        width: 150, 
+        headerHozAlign: 'center', 
+        hozAlign: align 
+      };
+    });
+
     if (this.tabulator) {
-      this.tabulator.setColumns(this.tableHeaders.map(col => {
-        let align: "left" | "center" | "right" = "left";
-        if (col.toLowerCase().includes("date")) align = "center";
-        else if (this.tableData.length > 0 && typeof this.tableData[0][col] === "number") align = "right";
-        return { title: col, field: col, width: 150, headerHozAlign: 'center', hozAlign: align };
-      }));
+      this.tabulator.setColumns([rowNumberColumn, ...dataColumns]);
       this.tabulator.replaceData(this.tableData);
       return;
     }
@@ -168,13 +200,47 @@ export class ImportExcelComponent implements OnInit {
       responsiveLayout: false,
       pagination: false,
       paginationMode: 'local',
-      columns: this.tableHeaders.map(col => {
-        let align: "left" | "center" | "right" = "left";
-        if (col.toLowerCase().includes("date")) align = "center";
-        else if (this.tableData.length > 0 && typeof this.tableData[0][col] === "number") align = "right";
-        return { title: col, field: col, width: 150, headerHozAlign: 'center', hozAlign: align };
-      }),
+      columns: [rowNumberColumn, ...dataColumns],
     });
+  }
+
+  validateAllColumns(): { isValid: boolean; errors: string[] } {
+    const errors: string[] = [];
+    
+    if (!this.tableData || this.tableData.length === 0) {
+      return { isValid: false, errors: ['Không có dữ liệu để validate'] };
+    }
+
+    // Lấy danh sách tất cả các cột bắt buộc từ columnMapping, loại bỏ các cột optional
+    const allColumns = Object.keys(this.columnMapping);
+    const requiredColumns = allColumns.filter(col => !this.optionalColumns.includes(col));
+    
+    // Kiểm tra từng dòng
+    this.tableData.forEach((row, rowIndex) => {
+      const rowNumber = rowIndex + 1;
+      const missingColumns: string[] = [];
+      
+      // Kiểm tra từng cột bắt buộc
+      requiredColumns.forEach(columnName => {
+        const value = row[columnName];
+        
+        // Kiểm tra giá trị có rỗng không
+        if (value === null || value === undefined || value === '' || 
+            (typeof value === 'string' && value.trim() === '')) {
+          missingColumns.push(columnName);
+        }
+      });
+      
+      // Nếu có cột thiếu, thêm vào danh sách lỗi
+      if (missingColumns.length > 0) {
+        errors.push(`Dòng ${rowNumber}: Thiếu các cột: ${missingColumns.join(', ')}`);
+      }
+    });
+    
+    return {
+      isValid: errors.length === 0,
+      errors: errors
+    };
   }
 
   importData() {
@@ -182,6 +248,30 @@ export class ImportExcelComponent implements OnInit {
     
     if (!this.tableData || this.tableData.length === 0) {
       this.notification.warning('Thông báo', 'Không có dữ liệu để lưu!');
+      return;
+    }
+
+    // Validate tất cả các cột bắt buộc
+    const validationResult = this.validateAllColumns();
+    if (!validationResult.isValid) {
+      // Hiển thị modal với danh sách lỗi chi tiết
+      const errorList = validationResult.errors.map((err, idx) => `${idx + 1}. ${err}`).join('<br>');
+      
+      this.modal.warning({
+        nzTitle: 'Lỗi',
+        nzContent: `
+          <div style="max-height: 400px; overflow-y: auto;">
+            <p class="mb-2"><strong>Vui lòng nhập đầy đủ tất cả các cột bắt buộc!</strong></p>
+            <p class="mb-2">Tổng số lỗi: <strong>${validationResult.errors.length}</strong></p>
+            <div style="text-align: left;">
+              ${errorList}
+            </div>
+          </div>
+        `,
+        nzOkText: 'Đóng',
+        nzWidth: 600
+      });
+      
       return;
     }
 

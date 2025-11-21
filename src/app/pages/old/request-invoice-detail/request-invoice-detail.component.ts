@@ -314,7 +314,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
     if (this.files.length > 0) {
       this.uploadFiles(ID);
     }
-    this.notification.success('Thành công', 'Lưu dữ liệu thành công');
+    this.notification.success(NOTIFICATION_TITLE.success, 'Lưu dữ liệu thành công');
     this.selectedId = 0;
     this.activeModal.close({
       success: true,
@@ -339,7 +339,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
           console.log('Upload files thành công');
         },
         error: (error) => {
-          this.notification.error('Thông báo', 'Lỗi upload files: ' + error);
+          this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi upload files: ' + error);
         },
       });
     }
@@ -364,7 +364,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
         const fileObj = file as File;
         if (fileObj.size > MAX_FILE_SIZE) {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             `File ${fileObj.name} vượt quá giới hạn dung lượng cho phép (50MB)`
           );
           return;

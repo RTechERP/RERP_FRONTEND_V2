@@ -27,10 +27,10 @@ export interface AGVProduct {
   InputValue: string;
   OutputValue: string;
   CurrentIntensityMax: string;
-  Size: string;
-  IsDeleted: boolean;
-  CreatedBy: string;
-  CreatedDate: Date;
-  UpdatedBy: string;
-  UpdatedDate: Date;
+  //   Size: string;
+  //   IsDeleted: boolean;
+  //   CreatedBy: string;
+  //   CreatedDate: Date;
+  //   UpdatedBy: string;
+  //   UpdatedDate: Date;
 }

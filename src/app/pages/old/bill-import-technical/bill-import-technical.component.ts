@@ -361,7 +361,7 @@ getListEmployee() {
   onEditBillImportTechnical() {
     const selectedData = this.billImportTechnicalTable?.getSelectedData?.();
     if (!selectedData || selectedData.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn biên bản cần sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn biên bản cần sửa!');
       return;
     }
     const selectedRow = selectedData[0];
@@ -389,7 +389,7 @@ getListEmployee() {
   onDeleteBillImportTechnical() {
     const selectedData = this.billImportTechnicalTable?.getSelectedData?.();
     if (!selectedData || selectedData.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn biên bản cần xóa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn biên bản cần xóa!');
       return;
     }
     const selectedRow = selectedData[0];
@@ -416,12 +416,12 @@ getListEmployee() {
 
     this.billImportTechnicalService.saveData(payload).subscribe({
       next: () => {
-        this.notification.success('Thành công', 'Xóa biên bản thành công!');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Xóa biên bản thành công!');
         this.getBillImportTechnical();
         this.drawTable();
       },
       error: (err) => {
-        this.notification.warning('Lỗi', 'Lỗi kết nối máy chủ!');
+        this.notification.warning(NOTIFICATION_TITLE.error, 'Lỗi kết nối máy chủ!');
       }
     });
   }
@@ -462,13 +462,13 @@ getListEmployee() {
 
     this.billImportTechnicalService.approveAction(selectedIds, 'approve').subscribe({
       next: () => {
-        this.notification.success('Thành công', `Duyệt phiếu "${billCode}" thành công!`);
+        this.notification.success(NOTIFICATION_TITLE.success, 'Duyệt biên bản thành công!');
         this.getBillImportTechnical();
         this.drawTable();
       },
       error: (err) => {
-        console.error('Error approving bill:', err);
-        this.notification.error('Lỗi', 'Lỗi kết nối máy chủ!');
+
+        this.notification.warning(NOTIFICATION_TITLE.error, 'Lỗi kết nối máy chủ!');
       }
     });
   }
@@ -512,13 +512,13 @@ getListEmployee() {
 
     this.billImportTechnicalService.approveAction(selectedIds, 'unapprove').subscribe({
       next: () => {
-        this.notification.success('Thành công', `Bỏ duyệt phiếu "${billCode}" thành công!`);
+        this.notification.success(NOTIFICATION_TITLE.success, 'duyệt biên bản thành công!');
         this.getBillImportTechnical();
         this.drawTable();
       },
       error: (err) => {
-        console.error('Error unapproving bill:', err);
-        this.notification.error('Lỗi', 'Lỗi kết nối máy chủ!');
+
+        this.notification.warning(NOTIFICATION_TITLE.error, 'Lỗi kết nối máy chủ!');
       }
     });
   }
@@ -527,7 +527,7 @@ getListEmployee() {
     const details = this.billImportTechnicalDetailTable?.getData();
 
     if (!selectedMaster || !details || details.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu để xuất Excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất Excel!');
       return;
     }
 
@@ -561,6 +561,7 @@ getListEmployee() {
       },
       error: (err) => {
         console.error(err);
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xuất phiếu nhập kỹ thuật!');
         this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xuất phiếu nhập kỹ thuật!');
       }
     });

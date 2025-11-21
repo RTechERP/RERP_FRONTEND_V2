@@ -117,17 +117,17 @@ export class TsAssetLiquidationComponent implements OnInit, AfterViewInit {
 
     // Check ngày báo sửa
     if (!this.dateLiquidation || this.dateLiquidation.trim() === '') {
-      this.notification.error('Thông báo', 'Vui lòng chọn ngày thanh lý.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn ngày thanh lý.');
       return false;
     }
 
     // Check lý do sửa chữa
     if (!this.reason || this.reason.trim() === '') {
-      this.notification.error('Thông báo', 'Vui lòng nhập lí do  thanh lý.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng nhập lí do  thanh lý.');
       return false;
     }
     if (!this.employeeIDLiqui || this.employeeIDLiqui == 0) {
-      this.notification.error('Thông báo', 'Vui lòng chọn nhân viên thanh lí.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn nhân viên thanh lí.');
       return false;
     }
 
@@ -170,7 +170,7 @@ export class TsAssetLiquidationComponent implements OnInit, AfterViewInit {
     };
     this.assetService.saveDataAsset(payloadLiqui).subscribe({
       next: (res: any) => {
-        this.notification.success("Thông báo", "Thành công");
+        this.notification.success(NOTIFICATION_TITLE.success, "Thành công");
         this.loadAsset();
         this.formSubmitted.emit();
         this.activeModal.close(true);

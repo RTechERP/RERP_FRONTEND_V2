@@ -315,7 +315,7 @@ export class DailyreportComponent implements OnInit, AfterViewInit {
   async exportExcel() {
     let table: any = null;
     let sheetName = ''; 
-    debugger
+    
     // Xác định table và tên sheet dựa trên tab đang chọn
     if(this.ischeckmodeExcel == 0 && this.table1){
       table = this.table1;
@@ -336,7 +336,7 @@ export class DailyreportComponent implements OnInit, AfterViewInit {
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu xuất excel!');
       return;
     }
 

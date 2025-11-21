@@ -82,13 +82,13 @@ Reason: string = '';
 
   // Check ngày báo sửa
   if (!this.DateBrokenReport || this.DateBrokenReport.trim() === '') {
-    this.notification.error('Thông báo', 'Vui lòng chọn ngày báo hỏng.');
+    this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn ngày báo hỏng.');
     return false;
   }
 
   // Check lý do sửa chữa
   if (!this.Reason || this.Reason.trim() === '') {
-    this.notification.error('Thông báo', 'Vui lòng nhập lý do báo hỏng.');
+    this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng nhập lý do báo hỏng.');
     return false;
   }
 
@@ -124,7 +124,7 @@ Reason: string = '';
     }
     this.assetService.saveDataAsset(payloadAsset).subscribe({
       next: () => {
-        this.notification.success("Thông báo", "Thành công");
+        this.notification.success(NOTIFICATION_TITLE.success, "Thành công");
         this.loadAsset();
         this.formSubmitted.emit();
         this.activeModal.close(true);

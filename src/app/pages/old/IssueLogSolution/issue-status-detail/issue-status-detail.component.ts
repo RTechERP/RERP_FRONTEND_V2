@@ -117,19 +117,19 @@ export class IssueStatusDetailComponent implements OnInit, AfterViewInit {
             });          
           } else {
             this.notification.error(
-              'Lỗi',
+              NOTIFICATION_TITLE.error,
               response.message || 'Lưu dữ liệu thất bại!'
             );
           }
         },
         error: (err: any) => {
-          this.notification.error('Lỗi', 'Không thể lưu dữ liệu!', err.message);
+          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lưu dữ liệu!', err.message);
         },
       });
     }
     else {
       this.markAllFieldsAsTouched();
-      this.notification.error('Lỗi', 'Vui lòng kiểm tra lại thông tin!');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng kiểm tra lại thông tin!');
     }
   }
 

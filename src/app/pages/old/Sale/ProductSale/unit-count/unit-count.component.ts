@@ -46,6 +46,7 @@ import { HasPermissionDirective } from '../../../../../directives/has-permission
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { ProductsaleServiceService } from '../product-sale-service/product-sale-service.service';
 import { UnitCountDetailComponent } from '../unit-count-detail/unit-count-detail.component';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   selector: 'app-unit-count',
   imports: [
@@ -100,11 +101,11 @@ export class UnitCountComponent implements OnInit, AfterViewInit {
             this.unitCountTable.setData(this.listUnitCount);
           }
         } else {
-          this.notification.warning('Thông báo', res.message || 'Không thể tải đơn vị tính!');
+          this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể tải đơn vị tính!');
         }
       },
       error: (err) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi tải đơn vị tính!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi tải đơn vị tính!');
         console.error(err);
       }
     });
@@ -143,11 +144,11 @@ export class UnitCountComponent implements OnInit, AfterViewInit {
   onEditClick() {
     const selectedData = this.unitCountTable.getSelectedData();
     if (selectedData.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn đơn vị tính để sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đơn vị tính để sửa!');
       return;
     }
     if (selectedData.length > 1) {
-      this.notification.warning('Thông báo', 'Chỉ có thể sửa 1 đơn vị tính!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Chỉ có thể sửa 1 đơn vị tính!');
       return;
     }
     const modalRef = this.modalService.open(UnitCountDetailComponent, {
@@ -170,7 +171,7 @@ export class UnitCountComponent implements OnInit, AfterViewInit {
   onDeleteClick() {
     const selected = this.unitCountTable?.getSelectedData?.() || [];
     if (!selected || selected.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn đơn vị tính để xóa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đơn vị tính để xóa!');
       return;
     }
 
@@ -187,14 +188,14 @@ export class UnitCountComponent implements OnInit, AfterViewInit {
         this.productsaleService.saveDataUnitCount(payload).subscribe({
           next: (res) => {
             if (res.status === 1) {
-              this.notification.success('Thông báo', 'Xóa đơn vị tính thành công!');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Xóa đơn vị tính thành công!');
               this.loadUnitCount();
             } else {
-              this.notification.warning('Thông báo', res.message || 'Không thể xóa đơn vị tính!');
+              this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể xóa đơn vị tính!');
             }
           },
           error: (err) => {
-            this.notification.error('Thông báo', 'Có lỗi xảy ra khi xóa đơn vị tính!');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xóa đơn vị tính!');
             console.error(err);
           }
         });

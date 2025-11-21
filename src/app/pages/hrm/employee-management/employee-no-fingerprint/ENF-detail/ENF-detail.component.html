@@ -1,0 +1,172 @@
+<div class="modal-dialog-scrollable">
+  <div class="modal-header bg-primary align-items-center ps-2">
+    <h6 class="text-light text-uppercase m-0" style="padding: 0, 5rem">
+      {{ modalTitle }}
+    </h6>
+  </div>
+
+  <div class="modal-body">
+    <div class="container-fluid">
+      <div class="row g-3">
+        <!-- Họ và tên -->
+        <div class="col-md-6">
+          <nz-form-item class="pt-1">
+            <nz-form-label class="fs-12 d-flex align-items-center">
+              Họ và tên <span class="text-danger ps-1">(*)</span>
+            </nz-form-label>
+            <nz-select
+              name="selectedEmployeeId"
+              [(ngModel)]="selectedEmployeeId"
+              class="w-100"
+              nzShowSearch
+              nzAllowClear
+              nzPlaceHolder="Chọn người đăng ký"
+              [nzFilterOption]="filterEmployeeOption"
+              [disabled]="isEditMode || isFormDisabled"
+            >
+              <nz-option-group
+                *ngFor="let group of employeeGroups"
+                [nzLabel]="group.label"
+              >
+                <nz-option
+                  *ngFor="let emp of group.options"
+                  [nzLabel]="emp.Code + ' - ' + emp.FullName"
+                  [nzValue]="emp.ID"
+                >
+                  <div class="employee-option">
+                    <span class="employee-code">{{ emp.Code }}</span>
+                    <span class="employee-name"> - {{ emp.FullName }}</span>
+                    <small class="text-muted d-block">{{
+                      emp.DepartmentName
+                    }}</small>
+                  </div>
+                </nz-option>
+              </nz-option-group>
+            </nz-select>
+          </nz-form-item>
+        </div>
+
+        <!-- Người duyệt -->
+        <div class="col-md-6">
+          <nz-form-item class="pt-1">
+            <nz-form-label class="fs-12 d-flex align-items-center">
+              Người duyệt <span class="text-danger ps-1">(*)</span>
+            </nz-form-label>
+            <nz-select
+              name="selectedApprovedId"
+              [(ngModel)]="selectedApprovedId"
+              class="w-100"
+              nzShowSearch
+              nzAllowClear
+              nzPlaceHolder="Chọn người duyệt"
+              [nzFilterOption]="filterApproverOption"
+              [disabled]="isEditMode || isFormDisabled"
+            >
+              <nz-option-group
+                *ngFor="let group of approverGroups"
+                [nzLabel]="group.label"
+              >
+                <nz-option
+                  *ngFor="let appr of group.options"
+                  [nzLabel]="appr.Code + ' - ' + appr.FullName"
+                  [nzValue]="appr.ID"
+                >
+                  <div class="approver-option">
+                    <span class="approver-code">{{ appr.Code }}</span>
+                    <span class="approver-name"> - {{ appr.FullName }}</span>
+                    <small class="text-muted d-block">{{
+                      appr.DepartmentName
+                    }}</small>
+                  </div>
+                </nz-option>
+              </nz-option-group>
+            </nz-select>
+          </nz-form-item>
+        </div>
+
+        <!-- Ngày -->
+        <div class="col-md-6">
+          <nz-form-item class="pt-1">
+            <nz-form-label class="fs-12 d-flex align-items-center">
+              Ngày <span class="text-danger ps-1">(*)</span>
+            </nz-form-label>
+            <nz-date-picker
+              name="DayWork"
+              [(ngModel)]="dayWork"
+              class="w-100"
+              nzPlaceHolder="Chọn ngày"
+              [nzDisabled]="isFormDisabled"
+              nzFormat="dd/MM/yyyy"
+            ></nz-date-picker>
+          </nz-form-item>
+        </div>
+
+        <!-- Radio button Quên lúc đến / Quên lúc về -->
+        <div class="col-md-6">
+          <nz-form-item class="pt-1">
+            <nz-form-label class="fs-12 d-flex align-items-center">
+              Loại quên chấm công <span class="text-danger ps-1">(*)</span>
+            </nz-form-label>
+            <nz-radio-group
+              [(ngModel)]="selectedType"
+              [disabled]="isFormDisabled"
+            >
+              <label nz-radio [nzValue]="1">Quên lúc đến</label>
+              <label nz-radio [nzValue]="2">Quên lúc về</label>
+            </nz-radio-group>
+          </nz-form-item>
+        </div>
+
+        <!-- Lý do sửa đổi -->
+        <div class="col-12">
+          <nz-form-item class="pt-1">
+            <nz-form-label class="fs-12 d-flex align-items-center">
+              Lý do sửa
+              <span *ngIf="isEditMode" class="text-danger ps-1">(*)</span>
+            </nz-form-label>
+            <textarea
+              name="reasonHREdit"
+              nz-input
+              [(ngModel)]="reasonHREdit"
+              placeholder="Nhập lý do sửa đổi"
+              [disabled]="isFormDisabled"
+              rows="2"
+              maxlength="300"
+            ></textarea>
+          </nz-form-item>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer br p-1 d-flex align-items-center">
+    <div class="d-flex align-items-center flex-wrap gap-1">
+      <div *ngIf="loading" class="d-flex align-items-center me-2">
+        <nz-spin nzSimple nzSize="small" class="me-2"></nz-spin>
+        <span class="fs-12">Đang tải...</span>
+      </div>
+      <button
+        nz-button
+        nzType="default"
+        nzDanger
+        (click)="closeModal()"
+        [disabled]="saving"
+      >
+        Đóng
+      </button>
+      <button
+        *ngIf="!isViewMode"
+        nz-button
+        nzType="primary"
+        (click)="saveENF()"
+        [disabled]="saving || !isFormValid()"
+      >
+        <span
+          *ngIf="saving"
+          class="spinner-border spinner-border-sm me-2"
+        ></span>
+        {{ saving ? "Đang lưu..." : "Lưu" }}
+      </button>
+    </div>
+  </div>
+</div>

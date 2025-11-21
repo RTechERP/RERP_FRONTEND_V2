@@ -62,6 +62,7 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { saveAs } from 'file-saver';
 import { HandoverRejectreasonFormComponent } from './handover-rejectreason-form/handover-rejectreason-form.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 interface Handover {
   ID: number;
@@ -329,7 +330,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     private cdr: ChangeDetectorRef,
     private message: NzMessageService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.getHandover();
@@ -568,10 +569,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
 
       modalRef.afterClose.subscribe((reason: string) => {
         if (!reason) {
-          this.notification.warning(
-            'Thông báo',
-            'Bạn phải nhập lý do để hủy duyệt!'
-          );
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Bạn phải nhập lý do để hủy duyệt!');
           return;
         }
         this.approveAction(handoverId, stt, status, null, reason.trim());
@@ -642,7 +640,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
   onAddHandover(isEditmode: boolean): void {
     this.isCheckmode = isEditmode;
     if (this.isCheckmode == true && this.HandoverID === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn 1 bản ghi để sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 bản ghi để sửa!');
       return;
     }
 
@@ -674,7 +672,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
           this.draw_handoverTable();
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }
 
   onDeleteHandover() {
@@ -731,7 +729,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
         this.HandoverService.saveData(payloads).subscribe({
           next: (res) => {
             if (res.status === 1) {
-              this.notification.success('Thông báo', 'Đã xóa thành công!');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Đã xóa thành công!');
               this.getHandover();
             } else {
               this.notification.warning(
@@ -741,7 +739,7 @@ export class HandoverComponent implements OnInit, AfterViewInit {
             }
           },
           error: (err) => {
-            this.notification.error('Thông báo', 'Có lỗi xảy ra khi xóa!');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xóa!');
           },
         });
       },
@@ -763,19 +761,18 @@ export class HandoverComponent implements OnInit, AfterViewInit {
 
         if (!blob || blob.size === 0) {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Không có dữ liệu để xuất Excel!'
           );
           return;
         }
 
         saveAs(blob, fileName);
-        this.notification.success('Thông báo', 'Xuất Excel thành công!');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Xuất Excel thành công!');
       },
       error: (err) => {
         this.message.remove(loadingMsg);
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Xuất Excel thất bại! Vui lòng thử lại.'
         );
       },
@@ -811,9 +808,8 @@ export class HandoverComponent implements OnInit, AfterViewInit {
         groupBy: [
           (data) => {
             return data.DepartmentName
-              ? `Phòng ban: ${
-                  data.DepartmentName ? `  ${data.DepartmentName}` : ''
-                }`
+              ? `Phòng ban: ${data.DepartmentName ? `  ${data.DepartmentName}` : ''
+              }`
               : 'Phòng ban: ';
           },
         ],

@@ -277,7 +277,7 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu xuất excel!');
       return;
     }
 
@@ -383,7 +383,7 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
     const hasInvalidId = this.data.some((id) => !id || id <= 0);
     if (hasInvalidId) {
       this.notification.error(
-        'Thông báo',
+       NOTIFICATION_TITLE.error,
         'Dữ liệu không hợp lệ: Một số phiếu không có ID!'
       );
       return;
@@ -392,16 +392,16 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
       next: (res) => {
         console.log('Approval response:', res);
         if (res.status === 1) {
-          this.notification.success('Thông báo', res.message || 'Thành công!');
+          this.notification.success(NOTIFICATION_TITLE.success, res.message || 'Thành công!');
           this.data = [];
           this.loadData();
         } else {
-          this.notification.error('Thông báo', res.message || 'Có lỗi xảy ra!');
+          this.notification.error(NOTIFICATION_TITLE.error, res.message || 'Có lỗi xảy ra!');
         }
       },
       error: (err) => {
         const errorMsg = err?.error?.message || 'Có lỗi xảy ra!';
-        this.notification.error('Thông báo', errorMsg);
+        this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
       },
     });
   }

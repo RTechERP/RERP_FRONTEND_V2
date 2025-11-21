@@ -57,9 +57,9 @@ import * as ExcelJS from 'exceljs';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { NzFormModule } from 'ng-zorro-antd/form';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 import { PlanWeekService } from '../../plan-week/plan-week-services/plan-week.service';
-import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 @Component({
   selector: 'app-plan-week-detail',
@@ -249,7 +249,7 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
     this.planWeekService.save(DATA).subscribe({
       next: (response) => {
         if (response.status === 1) {
-          this.notification.success('Thông báo', 'Lưu thành công');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thành công');
           this.UserID = 0;
           this.isEditMode = false;
           this.activeModal.close({ success: true, reloadData: true });
@@ -262,7 +262,7 @@ export class PlanWeekDetailComponent implements OnInit, AfterViewInit {
         
       },
       error: (error: any) => {
-        this.notification.error('Lỗi', error?.error?.message || 'Không thể lưu dữ liệu');
+        this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || 'Không thể lưu dữ liệu');
       },
     });
   }

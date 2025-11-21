@@ -331,7 +331,7 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
         this.quotationKhDetailService.save(requestBody).subscribe({
           next: (response) => {
             if (response.status === 1) {
-              this.notification.success('Thông báo', 'Xóa báo giá thành công!');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Xóa báo giá thành công!');
               this.selectedId = 0;
               this.mainTable.setData(); //Reload table
             } else {
@@ -558,7 +558,7 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
     this.mainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       selectableRows: 1,
-      height: '88vh',
+      height: '100%',
       ajaxURL: this.quotationKhServices.getQuotationKHAjax(),
       ajaxParams: this.getQuotationKHAjaxParams(),
       ajaxResponse: (url, params, res) => {
@@ -593,7 +593,7 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
           title: 'Mã báo giá',
           field: 'QuotationCode',
           sorter: 'string',
-          width: 150,
+          width: 250,
         },
         { title: 'PO', field: 'POCode', sorter: 'string', width: 150 },
         { title: 'Dự án', field: 'ProjectCode', sorter: 'string', width: 150 },
@@ -601,7 +601,7 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
           title: 'Khách hàng',
           field: 'CustomerName',
           sorter: 'string',
-          width: 150,
+          width: 250,
         },
         {
           title: 'Người liên hệ',
@@ -710,6 +710,7 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
           field: 'AttachFile',
           sorter: 'string',
           width: 150,
+          visible: false,
         },
       ],
     });
@@ -725,7 +726,7 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
   initDetailTable(): void {
     this.detailTable = new Tabulator(this.tb_DetailTableElement.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
-      height: '85vh',
+      height: '100%',
       data: this.dataDetail,
       rowHeader: false,
 

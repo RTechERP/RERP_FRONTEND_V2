@@ -28,6 +28,7 @@ import { InventoryDemoService } from './inventory-demo-service/inventory-demo.se
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TbProductRtcService } from '../tb-product-rtc/tb-product-rtc-service/tb-product-rtc.service';
 import { InventoryBorrowSupplierDemoComponent } from './inventory-borrow-supplier-demo/inventory-borrow-supplier-demo.component';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 
 @Component({
@@ -194,7 +195,7 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
     const selectedData = this.productTable?.getSelectedData()[0];
 
     if (!selectedData) {
-      this.notification.warning('Thông báo', "Vui lòng chọn một dòng để cập nhật mã QR!");
+      this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn một dòng để cập nhật mã QR!");
       return;
     }
 

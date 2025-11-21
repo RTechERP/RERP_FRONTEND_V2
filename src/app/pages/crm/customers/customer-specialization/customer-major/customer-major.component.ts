@@ -134,7 +134,7 @@ export class CustomerMajorComponent implements OnInit, AfterViewInit {
   onEdit(): void {
     const selectedRows = this.tb_MainTable?.getSelectedData();
     if (!selectedRows || selectedRows.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một ngành nghề để sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một ngành nghề để sửa!');
       return;
     }
       this.selectedId = selectedRows[0].ID;
@@ -164,7 +164,7 @@ export class CustomerMajorComponent implements OnInit, AfterViewInit {
   onDelete() {
     const selectedRows = this.tb_MainTable?.getSelectedData();
     if (!selectedRows || selectedRows.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một ngành nghề để xóa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một ngành nghề để xóa!');
       return;
     }
     this.modal.confirm({
@@ -181,21 +181,21 @@ export class CustomerMajorComponent implements OnInit, AfterViewInit {
         this.customerMajorService.save(model).subscribe({
           next: (res: any) => {
             if (res?.status === 1) {
-              this.notification.success('Thông báo', 'Xóa thành công');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Xóa thành công');
               if (this.tb_MainTable) {
                 this.keyword='';
                 this.loadData();
               }
             } else {
               this.notification.error(
-                'Lỗi',
+                NOTIFICATION_TITLE.error,
                 res?.message || 'Không thể xóa dữ liệu'
               );
             }
           },
           error: (err: any) => {
             this.notification.error(
-              'Lỗi',
+              NOTIFICATION_TITLE.error,
               err?.message || 'Không thể xóa dữ liệu'
             );
           },

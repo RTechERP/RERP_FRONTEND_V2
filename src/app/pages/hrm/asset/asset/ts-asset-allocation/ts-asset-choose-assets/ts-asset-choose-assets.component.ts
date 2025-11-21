@@ -29,6 +29,7 @@ import { AssetsService } from '../../ts-asset-source/ts-asset-source-service/ts-
 import { AssetAllocationService } from '../ts-asset-allocation-service/ts-asset-allocation.service';
 import { log } from 'ng-zorro-antd/core/logger';
 import { TabulatorFull as Tabulator, CellComponent, ColumnDefinition, RowComponent } from 'tabulator-tables';
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
 declare var bootstrap: any;
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
@@ -274,7 +275,7 @@ export class TsAssetChooseAssetsComponent implements OnInit, AfterViewInit {
   selectAssets() {
   const selectedRows = this.assetTable?.getSelectedData() || [];
   if (selectedRows.length === 0) {
-    this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một tài sản.');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một tài sản.');
     return;
   }
 

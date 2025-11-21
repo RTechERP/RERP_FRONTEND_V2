@@ -184,7 +184,7 @@ export class RulePayComponent implements OnInit, AfterViewInit {
 
   delete(): void {
     if (this.selectedList.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn dữ liệu cần xóa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn dữ liệu cần xóa!');
       return;
     }
 
@@ -198,7 +198,7 @@ export class RulePayComponent implements OnInit, AfterViewInit {
         this.rulePayService.saveData({ DeleteIds: idsToDelete }).subscribe({
           next: (response) => {
             if (response.status === 1) {
-              this.notification.success('Thông báo', 'Xóa thành công!');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Xóa thành công!');
               this.getData();
               this.selectedList = [];
               this.selectAll = false;
@@ -222,11 +222,11 @@ export class RulePayComponent implements OnInit, AfterViewInit {
 
   editItem(): void {
     if (this.selectedList.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn dữ liệu cần sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn dữ liệu cần sửa!');
       return;
     }
     if (this.selectedList.length > 1) {
-      this.notification.warning('Thông báo', 'Vui lòng chỉ chọn 1 dữ liệu để sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chỉ chọn 1 dữ liệu để sửa!');
       return;
     }
 
@@ -263,7 +263,7 @@ export class RulePayComponent implements OnInit, AfterViewInit {
   async exportExcel(): Promise<void> {
     const data = this.table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu xuất excel!');
       return;
     }
 
@@ -299,7 +299,7 @@ export class RulePayComponent implements OnInit, AfterViewInit {
     link.click();
     window.URL.revokeObjectURL(url);
 
-    this.notification.success('Thông báo', 'Xuất Excel thành công!');
+    this.notification.success(NOTIFICATION_TITLE.success, 'Xuất Excel thành công!');
   }
 
   openModalForNew(): void {

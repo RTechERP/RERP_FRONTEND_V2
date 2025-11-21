@@ -289,7 +289,7 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
         this.HandoverMinutesDetailService.save(DATA).subscribe({
           next: (response) => {
             if (response.status === 1) {
-              this.notification.success('Thành công', 'Đã xóa thành công!');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Đã xóa thành công!');
               this.loadMainData(
                 this.filters.startDate,
                 this.filters.endDate,
@@ -333,7 +333,7 @@ export class HandoverMinutesComponent implements OnInit, AfterViewInit {
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
-        this.notification.success('Thành công', 'Đã xuất file thành công!');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Đã xuất file thành công!');
       },
       error: () => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xuất file.');

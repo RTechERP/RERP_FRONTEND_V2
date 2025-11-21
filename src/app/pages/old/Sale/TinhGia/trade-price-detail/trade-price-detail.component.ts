@@ -393,12 +393,12 @@ export class TradePriceDetailComponent implements OnInit, AfterViewInit {
     // Gọi service để lưu dữ liệu
     this.tradePriceService.saveData(PAYLOAD).subscribe({
       next: (response: any) => {
-        this.notification.success('Thành công', 'Lưu dữ liệu thành công!');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Lưu dữ liệu thành công!');
         this.activeModal.close({ success: true, reloadData: true });
       },
       error: (error: any) => {
         this.notification.error(
-          'Lỗi',
+          NOTIFICATION_TITLE.error,
           'Không thể lưu dữ liệu: ' + error.message
         );
       },

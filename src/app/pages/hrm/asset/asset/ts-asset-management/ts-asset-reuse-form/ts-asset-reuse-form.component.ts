@@ -137,21 +137,21 @@ export class TsAssetReuseFormComponent implements OnInit, AfterViewInit {
 
     // Check ngày báo sửa
     if (!this.dateRepair || this.dateRepair.trim() === '') {
-      this.notification.error('Thông báo', 'Vui lòng đưa vào sửa dụng lại.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng đưa vào sửa dụng lại.');
       return false;
     }
 
     // Check lý do sửa chữa
     if (!this.reason || this.reason.trim() === '') {
-      this.notification.error('Thông báo', 'Vui lòng nhập lí do đưa vào sử dụng lại.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng nhập lí do đưa vào sử dụng lại.');
       return false;
     }
    if (!this.actualCosts || this.actualCosts==0) {
-      this.notification.error('Thông báo', 'Vui lòng nhập chi phí thực tế.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng nhập chi phí thực tế.');
       return false;
     }
     if (!this.contentRepair || this.contentRepair.trim() === '') {
-      this.notification.error('Thông báo', 'Vui lòng nhập nội dung sửa chữa.');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng nhập nội dung sửa chữa.');
       return false;
     }
         if (!this.dataInput1.repairUnitName || this.dataInput1.repairUnitName.trim() === '') {
@@ -194,7 +194,7 @@ export class TsAssetReuseFormComponent implements OnInit, AfterViewInit {
     console.log(payloadRepair);
     this.assetService.saveDataAsset(payloadRepair).subscribe({
       next: () => {
-        this.notification.success("Thông báo", "Thành công");
+        this.notification.success(NOTIFICATION_TITLE.success, "Thành công");
         this.loadAsset();
         this.formSubmitted.emit();
         this.activeModal.close(true);

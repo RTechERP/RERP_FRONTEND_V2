@@ -27,6 +27,7 @@ import { FirmService } from './firm-service/firm.service';
 import { FirmFormComponent } from './firm-form/firm-form.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-firm',
@@ -180,13 +181,13 @@ export class FirmComponent implements OnInit, AfterViewInit {
   onEditFirm(): void {
     const selected = this.firmTable?.getSelectedData();
     if (!selected || selected.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một hãng để sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một hãng để sửa!');
       return;
     }
 
     // Chỉ cho phép sửa 1 dòng
     if (selected.length > 1) {
-      this.notification.warning('Thông báo', 'Vui lòng chỉ chọn một hãng để sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chỉ chọn một hãng để sửa!');
       return;
     }
 
@@ -213,7 +214,7 @@ export class FirmComponent implements OnInit, AfterViewInit {
   onDeleteFirm() {
     const selected = this.firmTable?.getSelectedData();
     if (!selected || selected.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn hãng để xóa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn hãng để xóa!');
       return;
     }
 
@@ -235,12 +236,12 @@ export class FirmComponent implements OnInit, AfterViewInit {
 
     this.firmService.deleteFirm(numberIds).subscribe({
       next: () => {
-        this.notification.success('Thông báo', 'Xóa thành công!');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Xóa thành công!');
         this.getFirms();
       },
       error: (err) => {
         console.error(err);
-        this.notification.warning('Thông báo', 'Có lỗi xảy ra khi xóa!');
+        this.notification.warning(NOTIFICATION_TITLE.warning, 'Có lỗi xảy ra khi xóa!');
       }
     });
       }

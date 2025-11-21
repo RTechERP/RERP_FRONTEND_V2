@@ -91,16 +91,16 @@ export class TbProductGroupRtcFormComponent implements OnInit, AfterViewInit {
           {
             if(payload.productGroupRTC.ID <=0)
               {
-                this.notification.success('Thành công', 'Thêm mới thành công!');
+                this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công!');
               }else
               {
-                this.notification.success('Thành công', 'Cập nhật thành công!');
+                this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công!');
               }
               this.formSubmitted.emit();
               this.activeModal.close(true);
          }else
          {
-          this.notification.warning('Thông báo', res.message || 'Không thể cập nhật sản phẩm!');
+          this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể cập nhật sản phẩm!');
          }
       },
       error: () => {

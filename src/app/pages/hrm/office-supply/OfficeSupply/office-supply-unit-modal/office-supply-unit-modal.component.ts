@@ -10,6 +10,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { OfficeSupplyService } from '../office-supply-service/office-supply-service.service';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 interface Unit {
   ID: number;
@@ -157,7 +158,7 @@ export class OfficeSupplyUnitModalComponent implements OnInit, AfterViewInit {
   }
   saveSelectedItem() {
     if (!this.selectedItem?.Name) {
-      this.notification.error('Thông báo', 'Tên đơn vị không được để trống!');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Tên đơn vị không được để trống!');
       return;
     }
 
@@ -168,28 +169,28 @@ export class OfficeSupplyUnitModalComponent implements OnInit, AfterViewInit {
           if(response && response.data){
             const newItem = Array.isArray(response.data) ? response.data[0] : response.data;
           }
-          this.notification.success('Thông báo', 'Thêm mới thành công!');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công!');
           this.selectedItem = {};
           this.getUnit();
         
         },
         error: (response:any) => {
           console.error('Lỗi khi thêm mới:', response);
-          this.notification.error('Thông báo', response.error.message||'Có lỗi xảy ra khi thêm mới!');
+          this.notification.error(NOTIFICATION_TITLE.error, response.error.message||'Có lỗi xảy ra khi thêm mới!');
         }
       });
     } else {
       // Nếu có ID, cập nhật
       this.officeSupplyService.updatedataUnit(this.selectedItem).subscribe({
         next: (response) => {
-          this.notification.success('Thông báo', 'Cập nhật thành công!');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công!');
           this.selectedItem = {};
           this.getUnit();
          
         },
         error: (err) => {
           console.error('Lỗi khi cập nhật dữ liệu:', err);
-          this.notification.error('Thông báo', 'Có lỗi xảy ra khi cập nhật dữ liệu!');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi cập nhật dữ liệu!');
         }
       });
     }

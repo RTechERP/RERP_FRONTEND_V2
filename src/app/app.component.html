@@ -22,28 +22,28 @@
                 <ul>
                     @for (c1 of m.children; track c1.key) {
                     <li nz-menu-item *ngIf="isLeaf(c1) && c1.isPermission && c1.isOpen"
-                        (click)="newTab(c1.comp, c1.title)">
-                        <img [src]="m.icon" class="menu-icon" /> {{c1.title}}
+                        (click)="newTab(c1.comp, c1.title,c1.data)">
+                        <img [src]="c1.icon" class="menu-icon" /> {{c1.title}}
                     </li>
 
-                    <ng-template #nzTitle1 style="padding: 0 16px;">
+                    <!-- <ng-template #nzTitle1 style="padding: 0 16px;">
                         <img [src]="m.icon" class="menu-icon" width="10%"
                             style="margin-right: 8px; vertical-align: middle;" />
                         <p class="m-0" style="white-space: pre-line;">{{ c1.title }}</p>
-                    </ng-template>
-                    <li nz-submenu [nzTitle]="nzTitle1" *ngIf="isGroup(c1) && c1.isPermission && c1.isOpen">
+                    </ng-template> -->
+                    <li nz-submenu [nzTitle]="c1.title" *ngIf="isGroup(c1) && c1.isPermission && c1.isOpen">
                         <ul>
                             @for (c2 of c1.children; track c2.key) {
                             <li nz-menu-item *ngIf="isLeaf(c2) && c2.isPermission && c2.isOpen"
-                                (click)="newTab(c2.comp, c2.title)">
-                                <img [src]="m.icon" class="menu-icon" /> {{c2.title}}
+                                (click)="newTab(c2.comp, c2.title,c2.data)">
+                                <img [src]="c2.icon" class="menu-icon" /> {{c2.title}}
                             </li>
                             <li nz-submenu nzTitle="{{c2.title}}" *ngIf="isGroup(c2) && c2.isPermission && c2.isOpen">
                                 <ul>
                                     @for (c3 of c2.children; track c3.key) {
                                     <li nz-menu-item *ngIf="isLeaf(c3) && c3.isPermission && c3.isOpen"
-                                        (click)="newTab(c3.comp, c3.title)">
-                                        <img [src]="m.icon" class="menu-icon" /> {{c3.title}}
+                                        (click)="newTab(c3.comp, c3.title,c3.data)">
+                                        <img [src]="c3.icon" class="menu-icon" /> {{c3.title}}
                                     </li>
                                     }
 

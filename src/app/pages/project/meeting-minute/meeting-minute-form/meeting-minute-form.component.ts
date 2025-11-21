@@ -251,7 +251,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
         // Load detail if edit mode - after options are loaded
         if (this.isCheckmode === true) {
           if (!this.MeetingMinutesID) {
-            this.notification.warning('Thông báo', 'Thiếu ID biên bản họp!');
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Thiếu ID biên bản họp!');
             return;
           }
           this.loadDetailEditMode(this.MeetingMinutesID);
@@ -262,7 +262,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
         // Still try to load detail even if options fail
         if (this.isCheckmode === true) {
           if (!this.MeetingMinutesID) {
-            this.notification.warning('Thông báo', 'Thiếu ID biên bản họp!');
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Thiếu ID biên bản họp!');
             return;
           }
           this.loadDetailEditMode(this.MeetingMinutesID);
@@ -590,8 +590,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
       }),
       catchError((err: any) => {
         console.error(err);
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Có lỗi xảy ra khi lấy danh sách nhân viên'
         );
         this.employeeOptions = [];
@@ -688,8 +687,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
       }),
       catchError((err: any) => {
         console.error(err);
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Có lỗi xảy ra khi lấy danh sách dự án'
         );
         this.userTeamOptions = [];
@@ -734,7 +732,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
         error: (err: any) => {
           console.error(err);
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Có lỗi xảy ra khi lấy danh sách dự án'
           );
           this.projectProblemOptions = [

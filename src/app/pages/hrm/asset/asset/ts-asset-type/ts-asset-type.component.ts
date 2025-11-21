@@ -39,6 +39,7 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TypeAssetsService } from './ts-asset-type-service/ts-asset-type.service';
 import { TyAssetTypeFormComponent } from './ts-asset-type-form/ts-asset-type-form.component';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 @Component({
   standalone: true,
@@ -208,7 +209,7 @@ export class TsAssetTypeComponent implements OnInit, AfterViewInit {
   onDeleteTypeAsset() {
   const selected = this.typeAssetTable?.getSelectedData();
   if (!selected || selected.length === 0) {
-    this.notification.warning('Thông báo', 'Vui lòng chọn loại tài sản để xóa!');
+    this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn loại tài sản để xóa!');
     return;
   }
 
@@ -226,15 +227,15 @@ export class TsAssetTypeComponent implements OnInit, AfterViewInit {
       this.typeAssetService.SaveData(payloadTypeAsset).subscribe({
         next: (res) => {
           if (res.status === 1) {
-            this.notification.success('Thông báo', 'Xóa thành công');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Xóa thành công');
             setTimeout(() => this.getTypeAsset(), 100);
           } else {
-            this.notification.warning('Thông báo', 'Xóa thất bại');
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'Xóa thất bại');
           }
         },
         error: (err) => {
           console.error(err);
-          this.notification.warning('Thông báo', 'Lỗi kết nối');
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Lỗi kết nối');
         },
       });
     },

@@ -18,6 +18,7 @@ import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ProductsaleServiceService } from '../product-sale-service/product-sale-service.service';
 import { cbbDataGroupService } from '../../../../../services/cbbDataGroup.service';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 interface ProductGroup {
   ID?: number;
@@ -110,11 +111,11 @@ export class ProductGroupDetailComponent implements OnInit, AfterViewInit {
               EmployeeID: this.newProductGroup.EmployeeID || null
             });
           } else {
-            this.notification.warning('Thông báo', res.message || 'Không thể lấy thông tin nhóm!');
+            this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể lấy thông tin nhóm!');
           }
         },
         error: (err) => {
-          this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy thông tin!');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy thông tin!');
           console.error(err);
         }
       });
@@ -176,15 +177,15 @@ export class ProductGroupDetailComponent implements OnInit, AfterViewInit {
       this.productsaleService.savedataProductGroup(payload).subscribe({
         next: (res) => {
           if (res.status === 1) {
-            this.notification.success('Thông báo', 'Cập nhật thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công!');
             this.activeModal.dismiss(true);
             this.id = payload.Productgroup.ID;
           } else {
-            this.notification.warning('Thông báo', res.message || 'Không thể cập nhật nhóm!');
+            this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể cập nhật nhóm!');
           }
         },
         error: (err) => {
-          this.notification.error('Thông báo', 'Có lỗi xảy ra khi cập nhật!');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi cập nhật!');
           console.error(err);
         }
       });
@@ -209,14 +210,14 @@ export class ProductGroupDetailComponent implements OnInit, AfterViewInit {
       this.productsaleService.savedataProductGroup(payload).subscribe({
         next: (res) => {
           if (res.status === 1) {
-            this.notification.success('Thông báo', 'Thêm mới thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công!');
             this.activeModal.dismiss(true);
           } else {
-            this.notification.warning('Thông báo', res.message || 'Không thể thêm nhóm!');
+            this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể thêm nhóm!');
           }
         },
         error: (err) => {
-          this.notification.error('Thông báo', 'Có lỗi xảy ra khi thêm mới!');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi thêm mới!');
           console.error(err);
         }
       });

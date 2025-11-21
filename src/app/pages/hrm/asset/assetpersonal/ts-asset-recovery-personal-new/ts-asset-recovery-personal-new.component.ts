@@ -29,6 +29,7 @@ import { TsAssetRecoveryPersonalService } from '../../../../old/ts-asset-recover
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { DisablePermissionDirective } from '../../../../../directives/disable-permission.directive';
 import { HasPermissionDirective } from "../../../../../directives/has-permission.directive";
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 @Component({
   selector: 'app-ts-asset-recovery-personal-new',
  standalone: true,
@@ -274,15 +275,15 @@ getAssetRecoveryPersonals() {
   validateRecoveryForm(): boolean {
     let isValid = true;
     if (!this.recoveryDate) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn ngày thu hồi!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ngày thu hồi!');
       isValid = false;
     }
     if (!this.employeeReturnID) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn nhân viên thu hồi từ!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn nhân viên thu hồi từ!');
       isValid = false;
     }
     if (!this.employeeRecoveryID) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn người thu hồi!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn người thu hồi!');
       isValid = false;
     }
     return isValid;
@@ -294,7 +295,7 @@ getAssetRecoveryPersonals() {
     const today = new Date();
     const selectAssetModal = this.tbAssetPersonModal?.getData() || [];
     if (selectAssetModal.length === 0) {
-      this.notification.warning("Thông báo", "Không có tài sản nào trong danh sách để lưu");
+      this.notification.warning(NOTIFICATION_TITLE.warning, "Không có tài sản nào trong danh sách để lưu");
       return;
     }
 
@@ -342,10 +343,10 @@ getAssetRecoveryPersonals() {
     console.log(payload);
     this.tsAssetAllocationPersonalService.saveAssetAllocationPerson(payload).subscribe({
       next: (res) => {
-        if (res.status === 1) { this.notification.success("Thông báo", "Lưu thành công"); this.formNote = "", this.closeModal(); this.getAssetRecoveryPersonals(); }
-        else this.notification.warning("Thông báo", "Lưu thất bại");
+        if (res.status === 1) { this.notification.success(NOTIFICATION_TITLE.success, "Lưu thành công"); this.formNote = "", this.closeModal(); this.getAssetRecoveryPersonals(); }
+        else this.notification.warning(NOTIFICATION_TITLE.warning, "Lưu thất bại");
       },
-      error: () => this.notification.warning("Thông báo", "Lỗi kết nối máy chủ")
+      error: () => this.notification.warning(NOTIFICATION_TITLE.warning, "Lỗi kết nối máy chủ")
     });
   }
 
@@ -422,7 +423,7 @@ getAssetRecoveryPersonals() {
     const selectedRecovery = this.tbAssetRecoveryPersonal?.getSelectedData()?.[0];
     const detailRecovery = this.tbAssetRecoveryDetail?.getData() || [];
     if (!selectedRecovery) {
-      this.notification.warning("Thông báo", "Vui lòng chọn một bản ghi để sửa");
+      this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn một bản ghi để sửa");
       return;
     }
 
@@ -595,7 +596,7 @@ getAssetRecoveryPersonals() {
     action: 'HR_APPROVE' | 'HR_CANCEL' | 'Delete' | 'PERSONAL_APPROVE' | 'PERSONAL_CANCEL'
   ): boolean {
     if (!this.tbAssetRecoveryPersonal) {
-      this.notification.warning("Thông báo", "Chọn một hàng để duyệt");
+      this.notification.warning(NOTIFICATION_TITLE.warning, "Chọn một hàng để duyệt");
       return false;
     }
     const selectedRow = this.tbAssetRecoveryPersonal.getSelectedData();
@@ -604,14 +605,14 @@ getAssetRecoveryPersonals() {
         case 'PERSONAL_CANCEL':
           console.log('row: ', row);
           if (row.IsApproveHR === true) {
-            this.notification.warning("Thông báo", "Tài sản đã được HR duyệt, cá nhân không thể hủy duyệt.");
+            this.notification.warning(NOTIFICATION_TITLE.warning, "Tài sản đã được HR duyệt, cá nhân không thể hủy duyệt.");
             return false;
           }
           break;
         case 'Delete':
           console.log('row: ', row);
           if (row.IsApproveHR === true) {
-            this.notification.warning("Thông báo", "Tài sản đã được HR duyệt, không thể xóa.");
+            this.notification.warning(NOTIFICATION_TITLE.warning, "Tài sản đã được HR duyệt, không thể xóa.");
             return false;
           }
           break;
@@ -632,7 +633,7 @@ getAssetRecoveryPersonals() {
     const today = new Date();
     const ids = this.getSelectedIds();
     if (ids.length !== 1) {
-      this.notification.warning("Thông báo", "Chỉ được chọn một bản ghi để cập nhật.");
+      this.notification.warning(NOTIFICATION_TITLE.warning, "Chỉ được chọn một bản ghi để cập nhật.");
       return;
     }
     const row = this.getSelectedRow();
@@ -659,15 +660,15 @@ getAssetRecoveryPersonals() {
     this.tsAssetAllocationPersonalService.SaveApprove(updatePayload).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success("Thông báo", "Thành công");
+          this.notification.success(NOTIFICATION_TITLE.success, "Thành công");
           this.tbAssetRecoveryPersonal?.setData();
         } else {
-          this.notification.warning("Thông báo", "Thất bại");
+          this.notification.warning(NOTIFICATION_TITLE.warning, "Thất bại");
         }
       },
       error: (res) => {
         console.error(res);
-        this.notification.warning("Thông báo", res.error.message);
+        this.notification.warning(NOTIFICATION_TITLE.warning, res.error.message);
       }
     });
   }
@@ -676,7 +677,7 @@ getAssetRecoveryPersonals() {
     const today = new Date();
     const ids = this.getSelectedIds();
     if (ids.length !== 1) {
-      this.notification.warning("Thông báo", "Chỉ được chọn một bản ghi để cập nhật.");
+      this.notification.warning(NOTIFICATION_TITLE.warning, "Chỉ được chọn một bản ghi để cập nhật.");
       return;
     }
     const row = this.getSelectedRow();
@@ -703,15 +704,15 @@ getAssetRecoveryPersonals() {
     this.tsAssetAllocationPersonalService.SaveApprovePerson(updatePayload).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success("Thông báo", "Thành công");
+          this.notification.success(NOTIFICATION_TITLE.success, "Thành công");
           this.tbAssetRecoveryPersonal?.setData();
         } else {
-          this.notification.warning("Thông báo", "Thất bại");
+          this.notification.warning(NOTIFICATION_TITLE.warning, "Thất bại");
         }
       },
       error: (res) => {
         console.error(res);
-        this.notification.warning("Thông báo", res.error.message);
+        this.notification.warning(NOTIFICATION_TITLE.warning, res.error.message);
       }
     });
   }

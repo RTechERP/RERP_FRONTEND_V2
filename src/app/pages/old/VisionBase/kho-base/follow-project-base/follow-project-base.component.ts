@@ -37,6 +37,7 @@ import { NzTreeNodeOptions } from 'ng-zorro-antd/tree';
 import { FollowProjectBaseDetailComponent } from './follow-project-base-detail/follow-project-base-detail.component';
 import { ImportExcelComponent } from './import-excel/import-excel.component';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 @Component({
   selector: 'app-follow-project-base',
@@ -128,6 +129,7 @@ export class FollowProjectBaseComponent implements OnInit {
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
   }
+
   formatDate(date: Date): string {
     const pad = (n: number) => n < 10 ? '0' + n : n;
     return date.getFullYear() + '-' +
@@ -235,13 +237,33 @@ export class FollowProjectBaseComponent implements OnInit {
       groupSaleID: this.groupSaleID
     }
     this.tb_followProjectBody = new Tabulator(container, {
-      height: '100%',
+      height: '88vh',
       layout: 'fitDataStretch',
       selectableRows: 1,
       pagination: true,
       paginationMode: 'remote',
       paginationSize: 20,
       paginationSizeSelector: [20, 50, 100, 200, 500, 1000, 10000,1000000],
+      langs: {
+        vi: {
+          pagination: {
+            first: '<<',
+            last: '>>',
+            prev: '<',
+            next: '>',
+          },
+        },
+      },
+      locale: 'vi',
+      columnDefaults: {
+        headerWordWrap: true,
+        headerVertical: false,
+        headerHozAlign: 'center',
+        minWidth: 60,
+        hozAlign: 'left',
+        vertAlign: 'middle',
+        resizable: true,
+      },
       ajaxURL: this.khoBaseService.getAPIFollowProjectBase(),
       ajaxParams: {
         ...params
@@ -259,7 +281,7 @@ export class FollowProjectBaseComponent implements OnInit {
           headerHozAlign: 'center',
           hozAlign: 'center',
           headerSort: false,
-          formatter:"color",
+          cssClass: 'follow-project-base',
           columns: [
             {
               title: 'ID', field: 'ID', headerHozAlign: 'center', hozAlign: 'right', visible: false, headerSort: false,
@@ -294,9 +316,6 @@ export class FollowProjectBaseComponent implements OnInit {
             { title: "Khả năng có PO", field: "FirmPossibilityPOName", headerHozAlign: "center", hozAlign: "left" },
 
           ],
-          titleFormatter: () => {
-            return `<div style="background-color: yellow; color: black; font-weight: bold;">FOLLOW DỰ ÁN</div>`;
-          }
         },
         {
           title: 'DỰ KIẾN',
@@ -304,6 +323,7 @@ export class FollowProjectBaseComponent implements OnInit {
           headerHozAlign: 'center',
           hozAlign: 'center',
           headerSort: false,
+          cssClass: 'follow-project-plan',
           columns: [
 
             {
@@ -356,9 +376,6 @@ export class FollowProjectBaseComponent implements OnInit {
             },
 
           ],
-          titleFormatter: () => {
-            return `<div style="background-color:  rgb(153, 180, 209); color: black; font-weight: bold;">DỰ KIẾN</div>`;
-          }
         },
         {
           title: 'THỰC TẾ',
@@ -366,6 +383,7 @@ export class FollowProjectBaseComponent implements OnInit {
           headerHozAlign: 'center',
           hozAlign: 'center',
           headerSort: false,
+          cssClass: 'follow-project-actual',
           columns: [
 
             {
@@ -418,9 +436,6 @@ export class FollowProjectBaseComponent implements OnInit {
             },
 
           ],
-          titleFormatter: () => {
-            return `<div style="background-color: rgb(0, 192, 0); color: white; font-weight: bold;">THỰC TẾ</div>`;
-          }
         },
         {
           title: 'FOLLOW DỰ ÁN',
@@ -428,17 +443,14 @@ export class FollowProjectBaseComponent implements OnInit {
           headerHozAlign: 'center',
           hozAlign: 'center',
           headerSort: false,
+          cssClass: 'follow-project-base',
           columns: [
             { title: "Tổng báo giá chưa VAT", field: "TotalWithoutVAT", headerHozAlign: "center", hozAlign: "left" },
             { title: "Người phụ trách chính", field: "ProjectContactName", headerHozAlign: "center", hozAlign: "left" },
             { title: "Ghi chú", field: "Note", headerHozAlign: "center", hozAlign: "left" },
 
           ],
-          titleFormatter: () => {
-            return `<div style="background-color: yellow; color: black; font-weight: bold;">FOLLOW DỰ ÁN</div>`;
-          }
         }
-
       ],
     });
     this.tb_followProjectBody.on('dataLoading', () => {
@@ -451,7 +463,7 @@ export class FollowProjectBaseComponent implements OnInit {
     this.tb_followProjectBody.on('rowSelected', (row: any) => {
       this.selectedFollowProject.add(row.getData());
       this.getFollowProjectBaseDetail(row.getData().ID, row.getData().ProjectID);
-      this.sizeTbDetail = '0%';
+      this.sizeTbDetail = '40%';
     });
 
     // Lắng nghe sự kiện bỏ chọn
@@ -725,7 +737,7 @@ export class FollowProjectBaseComponent implements OnInit {
           // Giải phóng URL
           window.URL.revokeObjectURL(url);
           
-          this.notification.success('Thông báo', 'Xuất Excel thành công!');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Xuất Excel thành công!');
         },
         error: (err: any) => {
           console.error('Export error:', err);

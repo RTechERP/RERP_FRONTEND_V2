@@ -226,7 +226,7 @@ export class EmployeePurchaseComponent
         this.isLoadTable = false;
 
         this.notification.error(
-          'Lỗi',
+          NOTIFICATION_TITLE.error,
           'Không thể tải dữ liệu từ API: ' + (error.message || 'Unknown error')
         );
 
@@ -360,7 +360,7 @@ export class EmployeePurchaseComponent
   // ✅ Update editEmployeePurchase - sử dụng NgbModal giống meeting-type
   editEmployeePurchase(): void {
     if (!this.selectedEmployee) {
-      this.notification.error('Thông báo', 'Vui lòng chọn nhân viên cần sửa!');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn nhân viên cần sửa!');
       return;
     }
 
@@ -392,7 +392,7 @@ export class EmployeePurchaseComponent
   deleteEmployeePurchase(): void {
     if (!this.selectedEmployee) {
       this.notification.error(
-        'Thông báo',
+       NOTIFICATION_TITLE.error,
         'Vui lòng chọn 1 nhân viên cần xóa!',
         { nzStyle: { fontSize: '0.75rem' } }
       );
@@ -448,7 +448,7 @@ export class EmployeePurchaseComponent
           this.refreshData();
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             response?.Message || response?.message || 'Xóa không thành công!',
             { nzStyle: { fontSize: '0.75rem' } }
           );
@@ -457,7 +457,7 @@ export class EmployeePurchaseComponent
       error: (error) => {
         console.error('Delete error:', error);
         this.notification.error(
-          'Lỗi',
+          NOTIFICATION_TITLE.error,
           'Không thể xóa: ' + (error.message || 'Unknown error'),
           { nzStyle: { fontSize: '0.75rem' } }
         );

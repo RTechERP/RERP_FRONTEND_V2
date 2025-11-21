@@ -56,7 +56,7 @@ import { TrainingRegistrationService } from '../service/training-registration.se
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
-import { SERVER_PATH } from '../../../app.config';
+import { NOTIFICATION_TITLE, SERVER_PATH } from '../../../app.config';
 import { AppUserService } from '../../../services/app-user.service';
 
 @Component({
@@ -242,7 +242,7 @@ export class TrainingRegistrationFormComponent
       },
       error: (error) => {
         this.notification.error(
-          'Lỗi',
+          NOTIFICATION_TITLE.error,
           'Lấy danh sách nhân viên thất bại: ' + error.message
         );
       },
@@ -406,8 +406,7 @@ export class TrainingRegistrationFormComponent
 
           if (newFiles.length === 0) {
             // Không có file mới => hoàn tất sau khi lưu master
-            this.notification.success(
-              'Thông báo',
+            this.notification.success(NOTIFICATION_TITLE.success,
               'Đã lưu thông tin đăng ký đào tạo'
             );
             this.resetForm();
@@ -473,15 +472,14 @@ export class TrainingRegistrationFormComponent
           });
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             res.message || 'Lưu thông tin đăng ký đào tạo thất bại'
           );
         }
       },
       error: (error) => {
         console.error('Lỗi khi lưu master:', error);
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Lưu thông tin đăng ký đào tạo thất bại: ' +
             (error.error?.message || error.message)
         );
@@ -549,15 +547,14 @@ export class TrainingRegistrationFormComponent
           this.activeModal.close('success');
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             response.Message || 'Lưu thông tin đăng ký đào tạo thất bại'
           );
         }
       },
       error: (error) => {
         console.error('Lỗi khi lưu dữ liệu:', error);
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Lưu thông tin đăng ký đào tạo thất bại: ' +
             (error.error?.message || error.message)
         );

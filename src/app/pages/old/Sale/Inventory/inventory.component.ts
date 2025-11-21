@@ -40,6 +40,7 @@ import { InventoryService } from './inventory-service/inventory.service';
 import { InventoryBorrowNCCComponent } from './Modal/inventory-borrow-ncc/inventory-borrow-ncc.component';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 
 interface ProductGroup {
@@ -172,11 +173,11 @@ export class InventoryComponent implements OnInit, AfterViewInit {
   //   this.selectedList = dataSelect; // Cập nhật lại selectedList với dữ liệu mới nhất
   //   const ids = this.selectedList.map(item => item.ProductSaleID);
   //   if (ids.length == 0) {
-  //     this.notification.warning("Thông báo", "Vui lòng chọn ít nhất 1 sản phẩm để sửa!");
+  //     this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn ít nhất 1 sản phẩm để sửa!");
   //     return;
   //   }
   //   if (ids.length > 1) {
-  //     this.notification.warning("Thông báo", "Vui lòng chỉ chọn 1 sản phẩm để sửa!");
+  //     this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chỉ chọn 1 sản phẩm để sửa!");
   //     return;
   //   }
   //   else {
@@ -187,11 +188,11 @@ export class InventoryComponent implements OnInit, AfterViewInit {
   //           this.dataUpdate = Array.isArray(res.data) ? res.data[0] : res.data;
   //           this.openModalProductInventory();
   //         } else {
-  //           this.notification.warning('Thông báo', res.message || 'Không thể lấy thông tin vật tư!');
+  //           this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể lấy thông tin vật tư!');
   //         }
   //       },
   //       error: (err) => {
-  //         this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy thông tin!');
+  //         this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy thông tin!');
   //         console.error(err);
   //       }
   //     });
@@ -337,7 +338,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu xuất excel!');
       return;
     }
 

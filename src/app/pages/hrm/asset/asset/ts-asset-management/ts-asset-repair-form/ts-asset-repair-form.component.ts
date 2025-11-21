@@ -110,15 +110,15 @@ formatDateForInput(value: any): string {
     private validateForm(): boolean {
 
   if (!this.dateRepair || this.dateRepair.trim() === '') {
-    this.notification.error('Thông báo', 'Vui lòng chọn ngày sửa chữa bảo dưỡng.');
+    this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn ngày sửa chữa bảo dưỡng.');
     return false;
   }
   if (!this.name || this.name.trim() === '') {
-    this.notification.error('Thông báo', 'Vui lòng nhập đơn vị sửa chữa.');
+    this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng nhập đơn vị sửa chữa.');
     return false;
   }
     if (!this.expectedCost || this.expectedCost==0) {
-    this.notification.error('Thông báo', 'Vui lòng nhập lý chi phí dự kiến.');
+    this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng nhập lý chi phí dự kiến.');
     return false;
   }
 
@@ -185,7 +185,7 @@ formatDateForInput(value: any): string {
     console.log(payloadRepair);
     this.assetService.saveDataAsset(payloadRepair).subscribe({
       next: () => {
-        this.notification.success("Thông báo", "Thành công");
+        this.notification.success(NOTIFICATION_TITLE.success, "Thành công");
         this.loadAsset();
         this.formSubmitted.emit();
         this.activeModal.close(true);

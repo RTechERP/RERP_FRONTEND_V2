@@ -88,14 +88,12 @@ export class VehicleScheduleFormComponent implements OnInit {
     this.scheduleForm = this.fb.group({
       checked: [false],
       vehicleTypeID: [null],
-      employeeName: [{value: '', disabled: true}],
-      licensePlates: [{value: '', disabled: true}],
-      SDT: [{value: '', disabled: true}],
-      vehicleType: [{value: '', disabled: true}],
+      employeeName: [{ value: '', disabled: true }],
+      licensePlates: [{ value: '', disabled: true }],
+      SDT: [{ value: '', disabled: true }],
+      vehicleType: [{ value: '', disabled: true }],
       priceVehicle: [null, [Validators.min(1)]],
-      timeStart: [null, Validators.required],
-      VPID: [null, Validators.required],
-      locationStart: [{value: '', disabled: true}]
+
     }, { validators: this.customValidator() });
 
     // Watch checked changes
@@ -113,20 +111,13 @@ export class VehicleScheduleFormComponent implements OnInit {
     return (control: AbstractControl): ValidationErrors | null => {
       const checked = control.get('checked')?.value;
       const vehicleTypeID = control.get('vehicleTypeID')?.value;
-      const timeStart = control.get('timeStart')?.value;
-      const VPID = control.get('VPID')?.value;
 
       if (!checked && !vehicleTypeID) {
         control.get('vehicleTypeID')?.setErrors({ required: true });
       } else {
         control.get('vehicleTypeID')?.setErrors(null);
       }
-      if (!timeStart) {
-        control.get('timeStart')?.setErrors({ required: true });
-      }
-      if (!VPID && VPID !== 0) {
-        control.get('VPID')?.setErrors({ required: true });
-      }
+      // Bỏ validate timeStart và VPID vì đã ẩn cụm lịch trình
       return null;
     };
   }
@@ -218,7 +209,7 @@ export class VehicleScheduleFormComponent implements OnInit {
 
   onVPChange(vpID: any) {
     const locationStartControl = this.scheduleForm.get('locationStart');
-    
+
     if (vpID === 0) {
       // Khi chọn "Khác" - enable và clear để cho phép nhập
       locationStartControl?.enable();
@@ -229,7 +220,7 @@ export class VehicleScheduleFormComponent implements OnInit {
       const vpText = this.vpList.find(vp => vp.VP === vpID)?.VPText || "";
       locationStartControl?.setValue(vpText);
     }
-    
+
     this.scheduleForm.patchValue({
       VPID: vpID
     });
@@ -341,10 +332,8 @@ export class VehicleScheduleFormComponent implements OnInit {
           DriverPhoneNumber: formValue.SDT,
           LicensePlate: formValue.licensePlates,
           DriverName: formValue.employeeName,
-          NameVehicleCharge: this.vihicleName,
-          DepartureDateActual: formValue.timeStart,
-          DepartureAddressActual: formValue.locationStart,
-          DepartureAddressStatusActual: formValue.VPID
+          NameVehicleCharge: this.vihicleName
+          // Bỏ: DepartureDateActual, DepartureAddressActual, DepartureAddressStatusActual (đã ẩn cụm lịch trình)
         };
         return this.vehicleBookingManagementService.postVehicleBookingManagement(request).pipe(
           catchError((error) => {

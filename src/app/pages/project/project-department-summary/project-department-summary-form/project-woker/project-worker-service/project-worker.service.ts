@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { HttpResponse } from '@angular/common/http';
 import { environment } from '../../../../../../../environments/environment';
 @Injectable({
   providedIn: 'root'
@@ -75,10 +77,22 @@ export class ProjectWorkerService {
     files.forEach((file) => {
       formData.append('files', file);
     });
-    formData.append('key', 'MeetingMinutes');
+    formData.append('key', 'MeetingMinutes'); //192.168.1.190/duan/projects
     if (subPath && subPath.trim()) {
       formData.append('subPath', subPath.trim());
     }
     return this.http.post<any>(this._url +`home/upload-multiple`, formData);
+  }
+  //LƯU MẪU EXCEL
+  downloadTemplate(fileName: string): Observable<Blob> {
+    const url = `${environment.host}api/share/software/Template/ImportExcel/${fileName}`;
+    return this.http.get(url, {
+      responseType: 'blob',
+      observe: 'response'
+    }).pipe(
+      map((response: HttpResponse<Blob>) => {
+        return response.body as Blob;
+      })
+    );
   }
 }

@@ -213,7 +213,7 @@ export class MeetingMinuteTypeComponent implements OnInit, AfterViewInit{
       paginationMode:'local',
       groupBy: "GroupID",
      groupHeader: function(value, count, data) {
-        return "Thành phần tham gia: " + (value==1 ? 'Nội bộ' : 'Khách hàng');
+        return "Thành phần tham gia: " + (value==1 ? 'Nội bộ' : value==2 ? 'Khách hàng' : 'Khác');
       },
       groupToggleElement: "header",
       selectableRows:true,

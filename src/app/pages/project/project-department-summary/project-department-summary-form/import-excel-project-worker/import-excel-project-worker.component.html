@@ -45,8 +45,8 @@
         </div>
         <div class="modal-footer">
            <button class="fs-12 btn" nz-button nzDanger  (click)="closeExcelModal()">Đóng</button>
-          <button  class="fs-12 btn" nz-button >
-            <a href="/assets/templateForm/MauVPP.xlsx" download="MauVPP.xlsx" style="text-decoration: none; color: inherit;"><nz-icon nzType="download" nzTheme="outline" /> Mẫu</a>
+          <button  class="fs-12 btn" nz-button (click)="downloadTemplate('Danh_Muc_Vat_Tu.xlsx')">
+           Mẫu
           </button>
           <button class="fs-12 btn" nz-button nzType="primary" (click)="saveExcelData()">Lưu</button>   
         </div>

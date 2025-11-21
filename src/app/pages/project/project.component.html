@@ -1,7 +1,7 @@
-<ng-container>
+<ng-container  class="w-100">
     <nz-splitter>
         <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
-            <div class="card border-0 rounded-0">
+            <div class="card h-100 border-0 rounded-0">
                 <div class="card-header bg-white p-1">
                     <div class="d-flex justify-content-between align-items-center">
                         <h6 class="m-0 ms-2">Tìm kiếm</h6>
@@ -171,9 +171,21 @@
                             (click)="deletedProjects()" *ngIf="isHide">
                             <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />Xóa
                         </button>
-                        <!-- <button class="fs-12" nz-button nzType="default" nzSize="small" *ngIf="isHide">
-                            <nz-icon nzType="delete" nzTheme="fill" /> Hạng mục công việc
-                        </button> -->
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openProjectWorkerSynthetic()">
+                            <img src="assets/icon/summary_assignments_16.png" alt="Tổng hợp nhân công" class="me-1" /> Tổng hợp nhân công
+                        </button>
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openProjectWorkReportModal()">
+                            <img src="assets/icon/list_project_report_16.png" alt="Danh sách báo cáo công việc" class="me-1" /> Ds báo cáo công việc
+                        </button>
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openWorkItemModal()">
+                            <img src="assets/icon/work_item_16.png" alt="Hạng mục công việc" class="me-1" /> Hạng mục công việc
+                        </button>
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openProjectWorkerModal()">
+                            <img src="assets/icon/work_item_16.png" alt="Nhân công dự án" class="me-1" /> Nhân công dự án
+                        </button>
+                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openProjectPartListModal()">
+                            <img src="assets/icon/work_item_16.png" alt="Danh mục vật tư" class="me-1" /> Danh mục vật tư
+                        </button>
                     </div>
                 </div>
                 <div class="card-body p-0">

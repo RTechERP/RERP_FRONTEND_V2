@@ -353,6 +353,8 @@ getUserTeam() {
       data:this.project,
       rowHeader: false,
       selectableRows:1,
+      layout: 'fitDataStretch',
+      height: '85vh',
       paginationMode: 'local',
         // pagination: true,
         // paginationMode: 'remote',
@@ -1265,6 +1267,16 @@ getUserTeam() {
   //#endregion
   //#region Tổng hợp nhân công
   openProjectWorkerSynthetic() {
+    let selectedRows = this.tb_projects.getSelectedRows();
+    let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
+
+    if (selectedIDs.length != 1) {
+      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
+        nzStyle: { fontSize: '0.75rem' },
+      });
+      return;
+    }
+
     const modalRef = this.modalService.open(ProjectWorkerSyntheticComponent, {
       centered: true,
       size: 'xl',
@@ -1279,6 +1291,16 @@ getUserTeam() {
   //#endregion
   //#region Danh sách báo cáo công việc
   openProjectWorkReportModal() {
+    let selectedRows = this.tb_projects.getSelectedRows();
+    let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
+
+    if (selectedIDs.length != 1) {
+      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
+        nzStyle: { fontSize: '0.75rem' },
+      });
+      return;
+    }
+
     const modalRef = this.modalService.open(ProjectListWorkReportComponent, {
       centered: true,
       size: 'xl',
@@ -1307,6 +1329,15 @@ getUserTeam() {
   //#endregion
   //#region Hạng mục công việc
   openWorkItemModal() {
+    let selectedRows = this.tb_projects.getSelectedRows();
+    let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
+
+    if (selectedIDs.length != 1) {
+      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
+        nzStyle: { fontSize: '0.75rem' },
+      });
+      return;
+    }
     const modalRef = this.modalService.open(WorkItemComponent, {
       centered: true,
       size: 'xl',
@@ -1322,6 +1353,15 @@ getUserTeam() {
   //#endregion
   //#region Nhân công dự án
   openProjectWorkerModal() {
+    let selectedRows = this.tb_projects.getSelectedRows();
+    let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
+
+    if (selectedIDs.length != 1) {
+      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
+        nzStyle: { fontSize: '0.75rem' },
+      });
+      return;
+    }
     const modalRef = this.modalService.open(ProjectWorkerComponent, {
       centered: true,
       backdrop: 'static',
@@ -1339,6 +1379,15 @@ getUserTeam() {
   //#endregion
   //#region Danh mục vật tư
   openProjectPartListModal() {
+    let selectedRows = this.tb_projects.getSelectedRows();
+    let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
+
+    if (selectedIDs.length != 1) {
+      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
+        nzStyle: { fontSize: '0.75rem' },
+      });
+      return;
+    }
     const modalRef = this.modalService.open(ProjectPartListComponent, {
       centered: true,
       backdrop: 'static',

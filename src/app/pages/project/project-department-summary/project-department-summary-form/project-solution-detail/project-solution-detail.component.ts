@@ -7,7 +7,7 @@ import {
   Validators,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -23,6 +23,8 @@ import { NzModalModule } from 'ng-zorro-antd/modal';
 import { ProjectWorkerService } from '../project-woker/project-worker-service/project-worker.service';
 import { Tabulator } from 'tabulator-tables';
 import { NzModalService } from 'ng-zorro-antd/modal';
+import { ProjectRequestDetailComponent } from '../../../../project-request-detail/project-request-detail.component';
+import { ProjectRequestServiceService } from '../../../../project-request/project-request-service/project-request-service.service';
 
 @Component({
   selector: 'app-project-solution-detail',
@@ -52,6 +54,7 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
   @Input() isEdit: boolean = false;
   @Input() solutionId: number = 0; // ID của giải pháp khi edit
   @Input() solutionData: any = null; // Dữ liệu giải pháp khi edit
+  @Input() projectRequestID: number = 0; // ID của yêu cầu dự án được chọn từ bảng yêu cầu
   form!: FormGroup;
   projectList: any[] = [];
   projectRequestList: any[] = [];
@@ -61,6 +64,7 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
   private tb_FileSolutionTable!: Tabulator;
   fileSolutionData: any[] = [];
   deletedFile: number[] = [];
+  dataRequest: any[] = [];
   ngOnInit(): void {
     this.form = this.fb.group({
       ProjectID: [
@@ -79,6 +83,17 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
     this.loadProjectRequestList();
     this.loadFileData();
     this.loadTableData();
+    
+    // Nếu là thêm mới và có projectRequestID được truyền vào, set giá trị và generate mã giải pháp
+    if (!this.isEdit && this.projectRequestID > 0) {
+      setTimeout(() => {
+        this.form.patchValue({
+          RequestID: this.projectRequestID
+        });
+        // Gọi onRequestChange để generate mã giải pháp
+        this.onRequestChange();
+      }, 100);
+    }
   }
   ngAfterViewInit(): void {
     // Fill dữ liệu vào form nếu là edit mode
@@ -91,6 +106,65 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
         this.drawTbFileSolutionTable(this.tb_FileSolutionTableElement.nativeElement);
       }
     }, 0);
+  }
+  addRequest() {
+    if (this.projectId <= 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn dự án!');
+      return;
+    }
+
+    // Load danh sách request từ API để truyền vào modal (cần cho logic tính STT)
+    this.projectRequestService.getProjectRequest2(this.projectId, '').subscribe({
+      next: (response: any) => {
+        if (response.status === 1) {
+          let requestData = response.data;
+          
+          // Xử lý dữ liệu: có thể là array, object, hoặc null
+          let dataRequest: any[] = [];
+          if (!requestData) {
+            dataRequest = [];
+          } else if (Array.isArray(requestData)) {
+            dataRequest = requestData;
+          } else if (typeof requestData === 'object') {
+            if (requestData.constructor === Object && Object.keys(requestData).length > 0) {
+              dataRequest = [requestData];
+            } else {
+              dataRequest = [];
+            }
+          }
+
+          // Mở modal sau khi đã load xong danh sách request
+          const modalRef = this.ngbModal.open(ProjectRequestDetailComponent, {
+            centered: true,
+            size: 'xl',
+            keyboard: false,
+          });
+
+          // Set các Input properties
+          modalRef.componentInstance.projectId = this.projectId;
+          modalRef.componentInstance.isEdit = false;
+          modalRef.componentInstance.requestId = 0;
+          modalRef.componentInstance.dataRequest = dataRequest; // Truyền danh sách request đã load
+
+          modalRef.result
+            .then((result: any) => {
+              if (result && result.success) {
+                // Reload danh sách yêu cầu sau khi lưu thành công
+                this.loadProjectRequestList();
+              }
+            })
+            .catch((error: any) => {
+              console.log('Modal dismissed:', error);
+            });
+        } else {
+          this.notification.error('Lỗi', response.message || 'Không thể tải danh sách yêu cầu!');
+        }
+      },
+      error: (error: any) => {
+        console.error('Error loading project request:', error);
+        this.notification.error('Lỗi', 'Không thể tải danh sách yêu cầu!');
+      }
+    });
   }
 
   fillFormData(): void {
@@ -230,7 +304,9 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
     private cdr: ChangeDetectorRef,
     private fb: FormBuilder,
     private projectWorkerService: ProjectWorkerService,
-    private modal: NzModalService
+    private projectRequestService: ProjectRequestServiceService,
+    private modal: NzModalService,
+    private ngbModal: NgbModal
   ) {}
 
   trimRequiredValidator = (control: any) => {
@@ -246,7 +322,6 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
   }
 
   saveData() {
-    debugger
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -391,6 +466,7 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
         const newFile = {
           FileName: file.name,
           OriginPath: file.name,
+          FileNameOrigin: file.name,
           File: file,
         };
 

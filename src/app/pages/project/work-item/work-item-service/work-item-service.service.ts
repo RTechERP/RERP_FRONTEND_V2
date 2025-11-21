@@ -32,4 +32,37 @@ export class WorkItemServiceService {
   cbbUser(): Observable<any> {
     return this.http.get<any>(this._url + 'WorkItem/get-user');
   }
+  //lưu projectitem
+  saveData(payload:any): Observable<any> {
+    return this.http.post<any>(this._url + 'ProjectItem/save-tree', payload);
+  }
+  //lay du lieu file projectitem
+  getProjectItemFile(projectItemId: number): Observable<any> {
+    return this.http.get<any>(this._url + 'ProjectItem/get-project-item-file?projectItem=' + projectItemId);
+  }
+  //lưu file projectitem
+  saveProjectItemFile(payload:any): Observable<any> {
+    return this.http.post<any>(this._url + 'ProjectItem/save-file', payload);
+  }
+  //upload file
+  uploadMultipleFiles(files: File[], subPath?: string): Observable<any> {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+    formData.append('key', 'PathProjectItem');
+    if (subPath && subPath.trim()) {
+      formData.append('subPath', subPath.trim());
+    }
+    return this.http.post<any>(this._url + 'home/upload-multiple', formData);
+  }
+  //lấy danh sách vấn đề của project item
+  getProjectItemProblem(projectItemId: number): Observable<any> {
+    return this.http.get<any>(this._url + 'ProjectItem/get-project-item-problem?projectItem=' + projectItemId);
+  }
+  //lưu vấn đề của project item
+  saveProjectItemProblem(payload: any): Observable<any> {
+    return this.http.post<any>(this._url + 'ProjectItem/save-problem', payload);
+  }
+
 }

@@ -44,6 +44,8 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { WorkItemServiceService } from './work-item-service/work-item-service.service';
 import { SelectControlComponent } from '../../old/Sale/BillExport/Modal/select-control/select-control.component';
+import { ProjectItemFileComponent } from './work-item-form/project-item-file/project-item-file.component';
+import { ProjectItemProblemComponent } from './work-item-form/project-item-problem/project-item-problem.component';
 @Component({
   selector: 'app-work-item',
   imports: [
@@ -83,7 +85,8 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private modal: NzModalService,
     private modalService: NgbModal,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {}
   sizeSearch: string = '0';
   keyword: string = '';
@@ -99,10 +102,14 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
   cbbTypeProject: any[] = []; // loại dự án
   cbbUser: any[] = []; // mã người yêu cầu
   cbbEmployee: any[] = []; // người phụ trách
-  nextRowId:number =0;
-
+  nextRowId: number = 0; // ID tạm thời cho row mới (âm)
+  selectedRow: any = null; // Row component đã chọn để thêm con
+  deletedIdsWorkItem: number[] = []; // ID của hạng mục đã xóa
+  currentUser: any = null;
   //tree
   treeWorkItemData:any=[];
+  filterStatus: string = '0,1,2'; // Mặc định hiển thị cả "Chưa làm" (0) và "Đang làm" (1)
+  // Giá trị: 'all' = Tất cả, '0,1' = Chưa làm và Đang làm, '0' = Chưa làm, '1' = Đang làm, v.v.
 
   ngOnInit(): void {
     this.dataStatus = [
@@ -117,10 +124,11 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
       { id: 2, name: "Chờ duyệt thực tế" },
       { id: 3, name: "Duyệt thực tế" },
     ];
-    this.loadData();
-    this.loadCbbEmployeeRequest();
-    this.loadCbbTypeProject();
-    this.loadCbbEmployee();
+    this.getCurrentUser();
+    // Load tất cả dropdown trước, sau đó mới load data bảng
+    this.loadAllDropdowns().then(() => {
+      this.loadData();
+    });
   }
   ngAfterViewInit(): void {
     this.drawTbWorkItem(this.tb_workItemElement!.nativeElement);
@@ -132,6 +140,359 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
   resetSearch(){
     this.keyword = '';
   }
+  getCurrentUser() {
+    this.authService.getCurrentUser().subscribe((res: any) => {
+      const data = res?.data;
+      this.currentUser = Array.isArray(data) ? data[0] : data;
+      console.log('CurrentUser', this.currentUser);
+    });
+  }
+
+  // Kiểm tra quyền edit - tương tự checkIsPermission trong WinForm
+  checkIsPermission(createdBy: string, userID: number, employeeIDRequest: number): boolean {
+    if (!this.currentUser) return false;
+    
+    const currentUserID = this.currentUser.UserID || this.currentUser.ID || 0;
+    const currentEmployeeID = this.currentUser.EmployeeID || 0;
+    const currentUserName = (this.currentUser.UserName || this.currentUser.FullName || '').trim();
+    
+    // Kiểm tra nếu là người tạo
+    if (createdBy && createdBy.trim() === currentUserName) {
+      return true;
+    }
+    
+    // Kiểm tra nếu là người phụ trách
+    if (userID && userID === currentUserID) {
+      return true;
+    }
+    
+    // Kiểm tra nếu là người giao việc
+    if (employeeIDRequest && employeeIDRequest === currentEmployeeID) {
+      return true;
+    }
+    
+    return false;
+  }
+
+  // Validate cell editing - tương tự ValidatingEditor trong WinForm
+  validateCellEditing(cell: any): { valid: boolean; errorText?: string } {
+    const row = cell.getRow();
+    if (!row) return { valid: true };
+    
+    const rowData = row.getData();
+    const fieldName = cell.getField();
+    const id = rowData.ID || 0;
+    
+    // Chỉ validate cho row có ID > 0 (đã lưu vào DB)
+    if (id <= 0) {
+      return { valid: true };
+    }
+    
+    // Kiểm tra IsAdmin
+    const isAdmin = this.currentUser?.IsAdmin || false;
+    if (isAdmin) {
+      return { valid: true };
+    }
+    
+    const isApproved = rowData.IsApproved || 0;
+    const createdBy = (rowData.CreatedBy || '').trim();
+    const userID = rowData.UserID || 0;
+    const employeeIDRequest = rowData.EmployeeIDRequest || 0;
+    
+    // Kiểm tra nếu đã duyệt thực tế (IsApproved == 3)
+    if (isApproved === 3) {
+      return {
+        valid: false,
+        errorText: 'Đã duyệt thực tế.\nBạn không thể cập nhật!'
+      };
+    }
+    
+    // Kiểm tra quyền
+    if (!this.checkIsPermission(createdBy, userID, employeeIDRequest)) {
+      return {
+        valid: false,
+        errorText: 'Bạn không thể cập nhật hạng mục của người khác!'
+      };
+    }
+    
+    // Kiểm tra các cột Mission và Plan (PlanStartDate, PlanEndDate)
+    const isMissionColumn = fieldName === 'Mission';
+    const isPlanColumn = ['PlanStartDate', 'PlanEndDate'].includes(fieldName);
+    
+    if (isMissionColumn || isPlanColumn) {
+      const statusUpdate = rowData.StatusUpdate || 0;
+      if (statusUpdate !== 2 && statusUpdate !== 1) {
+        // Cập nhật StatusUpdate = 2
+        row.update({ StatusUpdate: 2 });
+      }
+    }
+    
+    return { valid: true };
+  }
+
+  // Xử lý thay đổi giá trị cell - tương tự CellValueChanged trong WinForm
+  handleCellValueChanged(cell: any): void {
+    const row = cell.getRow();
+    if (!row) return;
+    
+    const rowData = row.getData();
+    const fieldName = cell.getField();
+    const id = rowData.ID || 0;
+    
+    console.log(`📝 Cell changed: Field="${fieldName}", ID=${id}`);
+    
+    // Cập nhật StatusUpdate cho Mission và Plan columns
+    if (id > 0) {
+      const isMissionColumn = fieldName === 'Mission';
+      const isPlanColumn = ['PlanStartDate', 'PlanEndDate', 'TotalDayPlan'].includes(fieldName);
+      
+      if (isMissionColumn || isPlanColumn) {
+        const statusUpdate = rowData.StatusUpdate || 0;
+        if (statusUpdate !== 2 && statusUpdate !== 1) {
+          row.update({ StatusUpdate: 2 });
+        }
+      }
+    }
+  
+    // Xử lý các cột ngày tháng Plan
+    const planStartDate = rowData.PlanStartDate ? DateTime.fromISO(rowData.PlanStartDate) : null;
+    const planEndDate = rowData.PlanEndDate ? DateTime.fromISO(rowData.PlanEndDate) : null;
+    const totalDayPlan = rowData.TotalDayPlan || 0;
+  
+    // Xử lý thay đổi ngày bắt đầu
+    if (fieldName === 'PlanStartDate') {
+      if (planStartDate && planStartDate.isValid) {
+        // Validate: ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc
+        if (planEndDate && planEndDate.isValid) {
+          const daysDiff = planEndDate.diff(planStartDate, 'days').days;
+          if (daysDiff < 0) {
+            // Ngày bắt đầu lớn hơn ngày kết thúc - không hợp lệ
+            this.notification.warning('Cảnh báo', 'Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc!');
+            // Revert về giá trị cũ
+            const oldValue = cell.getOldValue();
+            cell.setValue(oldValue);
+            return;
+          }
+        }
+        
+        if (totalDayPlan > 0) {
+          const newEndDate = planStartDate.plus({ days: totalDayPlan - 1 });
+          row.update({ PlanEndDate: newEndDate.toISO() });
+        } else if (planEndDate && planEndDate.isValid) {
+          const days = planEndDate.diff(planStartDate, 'days').days + 1;
+          row.update({ TotalDayPlan: Math.max(0, Math.round(days)) });
+        }
+      }
+      this.updatePercent();
+    }
+    // Xử lý thay đổi tổng số ngày
+    else if (fieldName === 'TotalDayPlan') {
+      if (totalDayPlan > 0) {
+        if (planStartDate && planStartDate.isValid) {
+          const newEndDate = planStartDate.plus({ days: totalDayPlan - 1 });
+          row.update({ PlanEndDate: newEndDate.toISO() });
+        } else if (planEndDate && planEndDate.isValid) {
+          const newStartDate = planEndDate.minus({ days: totalDayPlan - 1 });
+          row.update({ PlanStartDate: newStartDate.toISO() });
+        }
+      }
+      this.updatePercent();
+    }
+    // Xử lý thay đổi ngày kết thúc
+    else if (fieldName === 'PlanEndDate') {
+      if (planEndDate && planEndDate.isValid) {
+        // Validate: ngày kết thúc phải lớn hơn ngày bắt đầu
+        if (planStartDate && planStartDate.isValid) {
+          const daysDiff = planEndDate.diff(planStartDate, 'days').days;
+          if (daysDiff < 0) {
+            // Ngày kết thúc nhỏ hơn ngày bắt đầu - không hợp lệ
+            this.notification.warning('Cảnh báo', 'Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu!');
+            // Revert về giá trị cũ
+            const oldValue = cell.getOldValue();
+            cell.setValue(oldValue);
+            return;
+          }
+          const days = daysDiff + 1;
+          row.update({ TotalDayPlan: Math.max(0, Math.round(days)) });
+        } else if (totalDayPlan > 0) {
+          const newStartDate = planEndDate.minus({ days: totalDayPlan - 1 });
+          row.update({ PlanStartDate: newStartDate.toISO() });
+        }
+      }
+      this.updatePercent();
+    }
+  
+    // Tính toán ItemLate
+    const actualStartDate = rowData.ActualStartDate ? DateTime.fromISO(rowData.ActualStartDate) : null;
+    const actualEndDate = rowData.ActualEndDate ? DateTime.fromISO(rowData.ActualEndDate) : null;
+    const now = DateTime.now();
+  
+    let itemLate = 0;
+  
+    if (actualStartDate && actualStartDate.isValid && !actualEndDate && planEndDate && planEndDate.isValid) {
+      const startDiff = actualStartDate.startOf('day').diff(planEndDate.startOf('day'), 'days').days;
+      const nowDiff = now.startOf('day').diff(planEndDate.startOf('day'), 'days').days;
+      if (startDiff > 0 || nowDiff > 0) {
+        itemLate = 2;
+      }
+    } else if (actualStartDate && actualStartDate.isValid && actualEndDate && actualEndDate.isValid && planEndDate && planEndDate.isValid) {
+      const endDiff = actualEndDate.startOf('day').diff(planEndDate.startOf('day'), 'days').days;
+      if (endDiff > 0) {
+        itemLate = 1;
+      }
+    } else if (!actualStartDate && !actualEndDate && planEndDate && planEndDate.isValid) {
+      const nowDiff = now.startOf('day').diff(planEndDate.startOf('day'), 'days').days;
+      if (nowDiff > 0) {
+        itemLate = 2;
+      }
+    } else if (planStartDate && planStartDate.isValid && !planEndDate && !actualStartDate && !actualEndDate) {
+      const nowDiff = now.startOf('day').diff(planStartDate.startOf('day'), 'days').days;
+      if (nowDiff > 0) {
+        itemLate = 2;
+      }
+    }
+  
+    row.update({ ItemLate: itemLate });
+  
+    // Cập nhật trạng thái hoàn thành
+    if (fieldName === 'ActualStartDate' || fieldName === 'ActualEndDate') {
+      const newActualStartDate = rowData.ActualStartDate ? DateTime.fromISO(rowData.ActualStartDate) : null;
+      const newActualEndDate = rowData.ActualEndDate ? DateTime.fromISO(rowData.ActualEndDate) : null;
+      
+      // Validate: ngày kết thúc thực tế phải lớn hơn hoặc bằng ngày bắt đầu thực tế
+      if (fieldName === 'ActualEndDate' && newActualEndDate && newActualEndDate.isValid) {
+        if (newActualStartDate && newActualStartDate.isValid) {
+          const daysDiff = newActualEndDate.diff(newActualStartDate, 'days').days;
+          if (daysDiff < 0) {
+            // Ngày kết thúc nhỏ hơn ngày bắt đầu - không hợp lệ
+            this.notification.warning('Cảnh báo', 'Ngày kết thúc thực tế phải lớn hơn hoặc bằng ngày bắt đầu thực tế!');
+            // Revert về giá trị cũ
+            const oldValue = cell.getOldValue();
+            cell.setValue(oldValue);
+            return;
+          }
+        }
+      }
+      
+      // Validate: ngày bắt đầu thực tế phải nhỏ hơn hoặc bằng ngày kết thúc thực tế
+      if (fieldName === 'ActualStartDate' && newActualStartDate && newActualStartDate.isValid) {
+        if (newActualEndDate && newActualEndDate.isValid) {
+          const daysDiff = newActualEndDate.diff(newActualStartDate, 'days').days;
+          if (daysDiff < 0) {
+            // Ngày bắt đầu lớn hơn ngày kết thúc - không hợp lệ
+            this.notification.warning('Cảnh báo', 'Ngày bắt đầu thực tế phải nhỏ hơn hoặc bằng ngày kết thúc thực tế!');
+            // Revert về giá trị cũ
+            const oldValue = cell.getOldValue();
+            cell.setValue(oldValue);
+            return;
+          }
+        }
+      }
+      
+      if (newActualEndDate && newActualEndDate.isValid) {
+        row.update({
+          UpdatedDateActual: now.toISO(),
+          Status: 2
+        });
+   
+        if (planEndDate && planEndDate.isValid) {
+          const endDiff = newActualEndDate.startOf('day').diff(planEndDate.startOf('day'), 'days').days;
+          if (endDiff > 0) {
+            row.update({ IsUpdateLate: true });
+          }
+        }
+      } else {
+        const hasActualStart = newActualStartDate && newActualStartDate.isValid;
+        row.update({
+          UpdatedDateActual: null,
+          Status: hasActualStart ? 1 : 0
+        });
+      }
+    }
+  
+    // Xử lý thay đổi trạng thái
+    if (fieldName === 'Status') {
+      const status = rowData.Status || 0;
+      if (status === 1) {
+        row.update({ ActualStartDate: now.toISO() });
+      } else if (status === 2) {
+        row.update({ ActualEndDate: now.toISO() });
+      }
+    }
+  }
+
+  // Tính toán phần trăm - tương tự updatePercent trong WinForm
+ // Thay thế phương thức updatePercent() của bạn bằng code này:
+
+ updatePercent(): void {
+  console.log('🔄 BẮT ĐẦU TÍNH PHẦN TRĂM...');
+  
+  try {
+    // Lấy root rows
+    const rootRows = this.tb_workItem.getRows();
+    
+    if (!rootRows || rootRows.length === 0) {
+      console.log('⚠️ Không có rows trong table');
+      return;
+    }
+
+    // ✅ QUAN TRỌNG: Flatten tree để lấy TẤT CẢ rows (bao gồm children)
+    const allRows = this.flattenTreeRows(rootRows);
+
+    console.log(`📊 Root rows: ${rootRows.length}, Tổng tất cả rows: ${allRows.length}`);
+
+    // Thu thập dữ liệu từ tất cả rows
+    let totalDays = 0;
+    const rowsInfo: Array<{row: any, data: any, days: number}> = [];
+
+    allRows.forEach((row: any) => {
+      const data = row.getData();
+      const days = parseFloat(data.TotalDayPlan) || 0;
+      
+      totalDays += days;
+      rowsInfo.push({ row, data, days });
+      
+      if (days > 0) {
+        console.log(`  ├─ ID: ${data.ID}, Code: ${data.Code}, Ngày: ${days}`);
+      }
+    });
+
+    console.log(`📈 TỔNG SỐ NGÀY: ${totalDays}`);
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+    // Cập nhật phần trăm
+    if (totalDays > 0) {
+      let updatedCount = 0;
+      
+      rowsInfo.forEach(({ row, data, days }) => {
+        const percent = (days * 100) / totalDays;
+        const roundedPercent = Math.round(percent * 100) / 100;
+        const currentPercent = parseFloat(data.PercentItem) || 0;
+        
+        // Chỉ update nếu khác biệt > 0.01%
+        if (Math.abs(currentPercent - roundedPercent) > 0.01) {
+          row.update({ PercentItem: roundedPercent });
+          updatedCount++;
+          console.log(`  ✓ Updated ID ${data.ID}: ${roundedPercent}%`);
+        }
+      });
+      
+      console.log(`✅ Đã cập nhật ${updatedCount} rows!`);
+    } else {
+      // Reset tất cả về 0
+      rowsInfo.forEach(({ row }) => {
+        row.update({ PercentItem: 0 });
+      });
+      console.log('⚠️ Tổng ngày = 0, reset tất cả về 0%');
+    }
+    
+  } catch (error) {
+    console.error('❌ LỖI khi tính phần trăm:', error);
+  }
+}
+
+
+  
 
   // Method để tạo dropdown control trong tabulator
   createdControl(
@@ -172,6 +533,143 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
       return container;
     };
   }
+
+  // Custom date editor để xử lý date picker đúng cách
+  dateEditor(cell: any, onRendered: any, success: any, cancel: any) {
+    const input = document.createElement('input');
+    input.type = 'date';
+    
+    // Lấy giá trị hiện tại và chuyển đổi sang format yyyy-MM-dd
+    const currentValue = cell.getValue();
+    if (currentValue) {
+      let dateValue = '';
+      if (currentValue instanceof Date) {
+        dateValue = DateTime.fromJSDate(currentValue).toFormat('yyyy-MM-dd');
+      } else if (typeof currentValue === 'string') {
+        const dt = DateTime.fromISO(currentValue);
+        if (dt.isValid) {
+          dateValue = dt.toFormat('yyyy-MM-dd');
+        } else {
+          // Thử format khác
+          const dt2 = DateTime.fromFormat(currentValue, 'dd/MM/yyyy');
+          if (dt2.isValid) {
+            dateValue = dt2.toFormat('yyyy-MM-dd');
+          }
+        }
+      }
+      input.value = dateValue;
+    }
+
+    onRendered(() => input.focus());
+
+    input.addEventListener('change', () => {
+      if (input.value) {
+        // Chuyển đổi từ yyyy-MM-dd sang ISO string
+        const dt = DateTime.fromFormat(input.value, 'yyyy-MM-dd');
+        if (dt.isValid) {
+          success(dt.toISO());
+        } else {
+          success(input.value);
+        }
+      } else {
+        success(null);
+      }
+    });
+
+    input.addEventListener('blur', () => {
+      if (input.value) {
+        const dt = DateTime.fromFormat(input.value, 'yyyy-MM-dd');
+        if (dt.isValid) {
+          success(dt.toISO());
+        } else {
+          success(input.value);
+        }
+      } else {
+        success(null);
+      }
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        if (input.value) {
+          const dt = DateTime.fromFormat(input.value, 'yyyy-MM-dd');
+          if (dt.isValid) {
+            success(dt.toISO());
+          } else {
+            success(input.value);
+          }
+        } else {
+          success(null);
+        }
+      }
+      if (e.key === 'Escape') {
+        cancel();
+      }
+    });
+
+    return input;
+  }
+  // Load tất cả dropdown và đợi hoàn thành
+  loadAllDropdowns(): Promise<void> {
+    return new Promise((resolve) => {
+      let completedCount = 0;
+      const totalCount = 3; // Số lượng dropdown cần load
+      
+      const checkComplete = () => {
+        completedCount++;
+        if (completedCount === totalCount) {
+          console.log('✅ Tất cả dropdown đã load xong');
+          resolve();
+        }
+      };
+      
+      // Load EmployeeRequest
+      this.workItemService.cbbEmployeeRequest().subscribe((response: any) => {
+        if(response.status === 1){
+          console.log('cbbEmployeeRequest', response.data);
+          this.cbbEmployeeRequest = response.data.map((item: any) => ({
+            id: item.ID,
+            name: item.FullName,
+          }));
+        }
+        checkComplete();
+      }, () => checkComplete()); // Hoàn thành ngay cả khi lỗi
+      
+      // Load TypeProject
+      this.workItemService.cbbTypeProject().subscribe((response: any) => {
+        if(response.status === 1){
+          console.log('cbbTypeProject response.data', response.data);
+          this.cbbTypeProject = response.data.map((item: any) => ({
+            id: item.ID,
+            name: item.ProjectTypeName,
+          }));
+          console.log('cbbTypeProject mapped', this.cbbTypeProject);
+        }
+        checkComplete();
+      }, () => checkComplete());
+      
+      // Load Employee/User
+      this.workItemService.cbbUser().subscribe((response: any) => {
+        if(response.status === 1){
+          console.log('cbbUser response.data', response.data);
+          // Map cả ID và UserID để hỗ trợ cả hai trường hợp
+          this.cbbEmployee = response.data.map((item: any) => ({
+            id: item.UserID || item.ID, // Ưu tiên UserID, nếu không có thì dùng ID
+            name: item.FullName,
+          }));
+          this.cbbUser = response.data.map((item: any) => ({
+            id: item.ID,
+            name: item.Code + ' - ' + item.FullName,
+            code:item.Code,
+            fullName:item.FullName,
+          }));
+          console.log('cbbUser', this.cbbUser);
+        }
+        checkComplete();
+      }, () => checkComplete());
+    });
+  }
+
   loadCbbEmployeeRequest(): void {
     this.workItemService.cbbEmployeeRequest().subscribe((response: any) => {
       if(response.status === 1){
@@ -180,6 +678,8 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
           id: item.ID,
           name: item.FullName,
         }));
+        // Reload bảng để cập nhật label
+        this.reloadTableData();
       }
     });
   }
@@ -192,6 +692,8 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
           name: item.ProjectTypeName,
         }));
         console.log('cbbTypeProject mapped', this.cbbTypeProject);
+        // Reload bảng để cập nhật label
+        this.reloadTableData();
       }
     });
   }
@@ -205,12 +707,24 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
           name: item.FullName,
         }));
         this.cbbUser = response.data.map((item: any) => ({
-          id: item.UserID,
-          name: item.FullName,
+          id: item.ID,
+          name: item.Code + ' - ' + item.FullName,
+          code:item.Code,
+          fullName:item.FullName,
         }));
-        console.log('cbbEmployee', this.cbbEmployee);
+        console.log('cbbUser', this.cbbUser);
+        // Reload bảng để cập nhật label
+        this.reloadTableData();
       }
     });
+  }
+  
+  // Reload lại dữ liệu bảng để cập nhật label của dropdown
+  reloadTableData(): void {
+    if (this.tb_workItem && this.dataTableWorkItem && this.dataTableWorkItem.length > 0) {
+      // Redraw để formatter chạy lại và hiển thị label đúng
+      this.tb_workItem.redraw(true);
+    }
   }
   loadData(): void {
     this.isLoadTable = true;
@@ -221,7 +735,14 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
         console.log('Tree data:', this.dataTableWorkItem);
   
         if(this.tb_workItem){
-          this.tb_workItem.setData(this.dataTableWorkItem);
+          this.tb_workItem.setData(this.dataTableWorkItem).then(() => {
+            // Redraw để formatter chạy lại với dropdown data đã load
+            setTimeout(() => {
+              this.tb_workItem.redraw(true);
+              // Áp dụng filter trạng thái sau khi load dữ liệu
+              this.filterByStatus();
+            }, 100);
+          });
         }
       } else {
         this.notification.error('Lỗi', response.message);
@@ -229,168 +750,291 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
       this.isLoadTable = false;
     });
   }
-  saveData(){
-    
+  openModalReson(){
+    this.notification.info("dhjd","thêm")
   }
-  addNewRow(): void {
-    // 1. Khởi tạo biến STT lớn nhất
-    let maxSTT = 0;
-  
-    // 2. Kiểm tra và lọc dữ liệu
-    if (this.dataTableWorkItem && this.dataTableWorkItem.length > 0) {
-      const sttValues = this.dataTableWorkItem
-        .map((item: any) => parseInt(item.STT, 10)) // Chuyển STT sang số nguyên (integer)
-        .filter(
-          // Lọc bỏ các giá trị không hợp lệ (NaN hoặc < 0 nếu STT luôn là số dương)
-          (stt: number) => !isNaN(stt) && stt > 0
-        );
-  
-      // 3. Tìm giá trị lớn nhất
-      if (sttValues.length > 0) {
-        maxSTT = Math.max(...sttValues);
+  openModalProjectItemFile(){
+    this.notification.info("dhjd","File")
+  }
+  // Hàm flatten tree data thành flat array
+  private flattenTreeData(treeData: any[], flatList: any[] = [], parentId: number | null = null): any[] {
+    treeData.forEach((item: any) => {
+      // Lấy dữ liệu từ item, loại bỏ _children
+      const { _children, ...itemData } = item;
+      
+      // Tạo item mới với ParentID đúng
+      const flatItem = {
+        ...itemData,
+        ParentID: parentId !== null ? parentId : (itemData.ParentID || 0)
+      };
+      
+      flatList.push(flatItem);
+      
+      // Đệ quy xử lý children nếu có
+      if (_children && Array.isArray(_children) && _children.length > 0) {
+        this.flattenTreeData(_children, flatList, itemData.ID);
       }
-    }
-  
-    console.log("STT lớn nhất tìm được:", maxSTT);
-  
-    // 4. Giá trị STT mới sẽ là STT lớn nhất + 1
-    const newSTT = maxSTT + 1;
-    this.nextRowId = this.nextRowId -1
-    // 5. Tạo hàng mới
-    const newRow = {
-      ParentID: 0,
-      ID: this.nextRowId,
-      STT: newSTT, // <--- Gán STT mới cho hàng
-      IsApprovedText: 'Chờ duyệt kế hoạch',
-      // Sử dụng STT mới để tạo Code
-      Code: this.projectCode + '_' + (newSTT)
-    };
-  
-    // this.tb_workItem.addRow(newRow);
-    this.dataTableWorkItem.push(newRow);
-  }
-  addChildRow(): void {
-    debugger
-    // 1. Lấy ĐỐI TƯỢNG HÀNG (Row Component) đã chọn
-    // getSelectedRows() trả về mảng các đối tượng Row Component
-    const selectedRowComponents = this.tb_workItem?.getSelectedRows();
+    });
     
-    if (!selectedRowComponents || selectedRowComponents.length !== 1) {
-        this.notification.warning('Thông báo', 'Vui lòng chọn duy nhất 1 hạng mục để thêm hạng mục con!');
+    return flatList;
+  }
+
+  saveData(): void {
+    if (!this.tb_workItem) {
+      this.notification.warning('Thông báo', 'Bảng dữ liệu chưa được khởi tạo!');
+      return;
+    }
+
+    // Lấy tất cả dữ liệu từ Tabulator (tree structure)
+    const treeData = this.tb_workItem.getData('tree');
+    
+    if (!treeData || treeData.length === 0) {
+      this.notification.warning('Thông báo', 'Không có dữ liệu để lưu!');
+      return;
+    }
+
+    console.log('Tree data before flatten:', treeData);
+
+    // Flatten tree thành flat array
+    const flatData = this.flattenTreeData(treeData);
+    
+    console.log('Flat data:', flatData);
+
+    // Map dữ liệu theo format API yêu cầu
+    const projectItems = flatData.map((item: any) => {
+      return {
+        ID: item.ID || 0,
+        Status: item.Status ?? 0,
+        STT: (item.STT !== null && item.STT !== undefined) ? String(item.STT) : '',
+        UserID: item.UserID ?? 0,
+        ProjectID: this.projectId,
+        Mission: item.Mission || '',
+        PlanStartDate: item.PlanStartDate ? new Date(item.PlanStartDate).toISOString() : null,
+        PlanEndDate: item.PlanEndDate ? new Date(item.PlanEndDate).toISOString() : null,
+        ActualStartDate: item.ActualStartDate ? new Date(item.ActualStartDate).toISOString() : null,
+        ActualEndDate: item.ActualEndDate ? new Date(item.ActualEndDate).toISOString() : null,
+        Note: item.Note || '',
+        TotalDayPlan: item.TotalDayPlan ?? 0,
+        PercentItem: item.PercentItem ?? 0,
+        ParentID: item.ParentID ?? 0,
+        TotalDayActual: item.TotalDayActual ?? 0,
+        ItemLate: item.ItemLate ?? 0,
+        TimeSpan: item.TimeSpan ?? 0,
+        TypeProjectItem: item.TypeProjectItem ?? 0,
+        PercentageActual: item.PercentageActual ?? 0,
+        EmployeeIDRequest: item.EmployeeIDRequest ?? 0,
+        UpdatedDateActual: item.UpdatedDateActual ? new Date(item.UpdatedDateActual).toISOString() : null,
+        IsApproved: item.IsApproved ?? 0,
+        Code: item.Code || '',
+        CreatedDate: item.CreatedDate ? new Date(item.CreatedDate).toISOString() : null,
+        CreatedBy: item.CreatedBy || '',
+        UpdatedDate: item.UpdatedDate ? new Date(item.UpdatedDate).toISOString() : null,
+        UpdatedBy: item.UpdatedBy || '',
+        IsUpdateLate: item.IsUpdateLate ?? false,
+        ReasonLate: item.ReasonLate || '',
+        UpdatedDateReasonLate: item.UpdatedDateReasonLate ? new Date(item.UpdatedDateReasonLate).toISOString() : null,
+        IsApprovedLate: item.IsApprovedLate ?? false,
+        EmployeeRequestID: item.EmployeeRequestID ?? 0,
+        EmployeeRequestName: item.EmployeeRequestName || '',
+        IsDeleted: item.IsDeleted ?? false
+      };
+    });
+
+    // Tạo payload
+    const payload = {
+      projectItem: projectItems,
+      ProjectID: this.projectId,
+      DeletedIdsprojectItem: this.deletedIdsWorkItem
+    };
+
+    console.log('Payload to send:', payload);
+
+    // Gửi lên API
+    this.isLoadTable = true;
+    this.workItemService.saveData(payload).subscribe({
+      next: (response: any) => {
+        this.isLoadTable = false;
+        if (response.status === 1) {
+          this.notification.success('Thông báo', 'Lưu dữ liệu thành công!');
+          // Reload data sau khi lưu thành công
+          this.loadData();
+        } else {
+          this.notification.error('Lỗi', response.message || 'Có lỗi xảy ra khi lưu dữ liệu!');
+        }
+      },
+      error: (error: any) => {
+        this.isLoadTable = false;
+        console.error('Error saving data:', error);
+        this.notification.error('Lỗi', error.error?.message || 'Có lỗi xảy ra khi lưu dữ liệu!');
+      }
+    });
+  }
+  private flattenTreeRows(rows: any[]): any[] {
+    const result: any[] = [];
+    
+    rows.forEach((row: any) => {
+      result.push(row);
+      
+      // Lấy tree children từ Tabulator
+      const treeChildren = row.getTreeChildren();
+      if (treeChildren && treeChildren.length > 0) {
+        // Đệ quy flatten children
+        const flatChildren = this.flattenTreeRows(treeChildren);
+        result.push(...flatChildren);
+      }
+    });
+    
+    return result;
+  }
+addNewRow(): void {
+  let maxSTT = 0;
+
+  if (this.dataTableWorkItem && this.dataTableWorkItem.length > 0) {
+    const sttValues = this.dataTableWorkItem
+      .map((item: any) => parseInt(item.STT, 10))
+      .filter((stt: number) => !isNaN(stt) && stt > 0);
+
+    if (sttValues.length > 0) {
+      maxSTT = Math.max(...sttValues);
+    }
+  }
+
+  const newSTT = maxSTT + 1;
+  this.nextRowId = this.nextRowId - 1;
+
+  const newRow = {
+    ParentID: 0,
+    ID: this.nextRowId,
+    STT: newSTT,
+    TotalDayPlan: 0,
+    PercentItem: 0,
+    Status:0,
+    UserID: this.currentUser.ID,
+    IsApprovedText: 'Chờ duyệt kế hoạch',
+    Code: this.projectCode + '_' + newSTT,
+    _children: []
+  };
+
+  console.log('✅ Đã thêm row mới:', newRow);
+  
+  // ✅ QUAN TRỌNG: Tạo array mới thay vì push trực tiếp
+  this.dataTableWorkItem = [...this.dataTableWorkItem, newRow];
+  
+  // Reload table
+  if (this.tb_workItem) {
+    this.tb_workItem.setData(this.dataTableWorkItem);
+    
+    // Tính lại phần trăm sau khi table render xong
+    setTimeout(() => {
+      this.updatePercent();
+    }, 100);
+  }
+}
+
+  addChildRow(): void {
+    if (!this.selectedRow) {
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn một hạng mục trước khi thêm hạng mục con!'
+      );
         return;
     }
-    console.log('JHsghs', selectedRowComponents[0] )
+  
+    this.nextRowId = this.nextRowId - 1;
+    const parentData = this.selectedRow.getData();
+    const parentId = parentData.ID;
     
-    // Đối tượng hàng cha (Row Component)
-    const parentRow = selectedRowComponents[0];
+    console.log('🔨 Thêm child vào parent ID:', parentId);
     
-    // Lấy dữ liệu (data) của hàng cha
-    const parentData = parentRow.getData();
-
-    // 2. Tính toán STT mới một cách chính xác
-    // Lấy tất cả các hàng con trực tiếp của hàng cha (trả về mảng Row Component)
-    const currentChildrenRows = parentRow.getTreeChildren(); 
+    const currentChildren = parentData._children || [];
+    const newSTT = currentChildren.length + 1;
     
-    // STT mới = Số lượng con hiện tại + 1
-    const newSTT = currentChildrenRows.length + 1;
-
-    // 3. Chuẩn bị ID tạm thời (nếu chưa lưu)
-    // Nếu bạn sử dụng nextRowId để gán ID âm tạm thời
-    this.nextRowId = this.nextRowId ? this.nextRowId - 1 : -1;
-
-    // 4. Tạo đối tượng con
-    const childRowData = {
-        ID: this.nextRowId, // ID tạm thời
+    const newCode = parentData.Code 
+      ? `${parentData.Code}_${newSTT}` 
+      : (this.projectCode ? `${this.projectCode}_${newSTT}` : `${newSTT}`);
+    
+    const childRow: any = {
+      ID: this.nextRowId,
         STT: newSTT, 
-        ParentID: parentData['ID'], // ID của cha
-        TypeProjectItem: parentData['TypeProjectItem'],
-        UserID: parentData['UserID'],
-        EmployeeIDRequest: parentData['EmployeeIDRequest'],
-        EmployeeRequestID: parentData['EmployeeRequestID'],
-        EmployeeRequestName: parentData['EmployeeRequestName'],
-        
-        // Code: Sử dụng Code của cha + STT con mới
-        Code: parentData['Code'] + '_' + newSTT, 
-        
+      ParentID: parentData.ID || 0,
+      Code: newCode,
+      TotalDayPlan: 0,
+      PercentItem: 0,
+      Status:0,
+      UserID: this.currentUser.ID,
         IsApprovedText: 'Chờ duyệt kế hoạch',
+      IsDeleted: false,
+      Mission: '',
+      ReasonLate: '',
         _children: []
     };
     
-    // 5. Thêm hàng con và mở rộng cây
-    // Sử dụng phương thức addTreeChild() của Row Component
-    parentRow.addTreeChild(childRowData);
-    parentRow.treeExpand();
-    // Tùy chọn: Bỏ chọn hàng cha sau khi thêm con
-    parentRow.deselect(); 
-}
-  addChildrenRow(): void {
-    debugger
-    // 1. Lấy dữ liệu hàng cha đã chọn
-    const selectedRows = this.tb_workItem?.getSelectedData();
+    // Copy các trường từ parent
+    Object.keys(parentData).forEach(key => {
+      if (!['ID', 'STT', 'ParentID', 'Code', '_children', 'IsDeleted', 'IsApprovedText', 'TotalDayPlan', 'PercentItem'].includes(key)) {
+        childRow[key] = parentData[key];
+      }
+    }); 
     
-    if (!selectedRows || selectedRows.length !== 1) {
-        this.notification.warning('Thông báo', 'Vui lòng chọn duy nhất 1 hạng mục để thêm hạng mục con!');
-        return;
-    }
-
-    const selectedParent = selectedRows[0];
-    const parentID = selectedParent['ID']; 
-
-    // Đảm bảo hàng cha đã có ID (không phải hàng mới chưa lưu)
-    if (!parentID) {
-        this.notification.warning('Thông báo', 'Hạng mục cha chưa được lưu. Vui lòng lưu trước khi thêm con!');
-        return;
-    }
-
-    // 2. TÌM STT LỚN NHẤT CỦA CÁC HẠNG MỤC CON HIỆN TẠI
-    let maxSTT = 0;
-    if (this.dataTableWorkItem && this.dataTableWorkItem.length > 0) {
-        const sttValues = this.dataTableWorkItem
-            // Lọc các hạng mục con của cha đã chọn
-            .filter((item: any) => item.ParentID === parentID) 
-            .map((item: any) => parseInt(item.STT, 10))
-            .filter((stt: number) => !isNaN(stt) && stt > 0);
-
-        if (sttValues.length > 0) {
-            maxSTT = Math.max(...sttValues);
+    console.log('✅ Đã tạo child row:', childRow);
+    
+    // Update tree data
+    const updateTreeData = (items: any[]): any[] => {
+      return items.map(item => {
+        if (item.ID === parentId) {
+          return {
+            ...item,
+            _children: [...(item._children || []), childRow]
+          };
+        } else if (item._children && item._children.length > 0) {
+          return {
+            ...item,
+            _children: updateTreeData(item._children)
+          };
         }
-    }
-    
-    const newSTT = maxSTT + 1;
-
-    // 3. TẠO DÒNG CON MỚI
-    const newRowData = {
-        ID: 0, // ID sẽ được sinh ra khi lưu
-        STT: newSTT, 
-        ParentID: parentID,
-        TypeProjectItem: selectedParent['TypeProjectItem'],
-        UserID: selectedParent['UserID'],
-        EmployeeIDRequest: selectedParent['EmployeeIDRequest'],
-        EmployeeRequestID: selectedParent['EmployeeRequestID'],
-        EmployeeRequestName: selectedParent['EmployeeRequestName'],
-        Code: selectedParent['Code'] + '_' + newSTT,
-        IsApprovedText: 'Chờ duyệt kế hoạch',
-        _children: [] // Khởi tạo mảng con rỗng cho Tabulator
+        return item;
+      });
     };
     
-    // 4. TÌM ĐỐI TƯỢNG HÀNG (ROW COMPONENT) VÀ THÊM CON
-    const parentRow = this.tb_workItem.getSelectedRows();
-    const parentRows = parentRow[0];
-    if (parentRows) {
-        // SỬ DỤNG PHƯƠNG THỨC CHUẨN CỦA TABULATOR CHO DỮ LIỆU CÂY
-        // Phương thức này vừa thêm vào giao diện, vừa cập nhật dữ liệu nền
-        parentRows.addTreeChild(newRowData);
+    this.dataTableWorkItem = updateTreeData(this.dataTableWorkItem);
+    
+    console.log('🔄 Reloading table với data mới...');
+    this.tb_workItem.setData(this.dataTableWorkItem);
+    
+    // ✅ QUAN TRỌNG: Đợi table render xong rồi expand và tính lại
+    setTimeout(() => {
+      console.log('🔍 Tìm parent row để expand...');
+      const parentRow = this.tb_workItem.getRow(parentId);
+      
+      if (parentRow) {
+        console.log('✓ Tìm thấy parent, expanding...');
+        parentRow.treeExpand();
+        this.selectedRow = parentRow;
         
-        // CẬP NHẬT DỮ LIỆU NGUỒN: 
-        // Sau khi Tabulator xử lý, chúng ta cần cập nhật this.dataTableWorkItem 
-        // để lần sau tính toán STT đúng. Tuy nhiên, việc này phức tạp hơn 
-        // (cần chạy lại buildTree), nên ta chấp nhận chỉ cập nhật khi loadData().
-        // *Nếu bạn cần STT luôn đúng trong cùng 1 phiên, bạn cần lấy dữ liệu từ Tabulator:
-        // this.dataTableWorkItem = this.buildTree(this.tb_workItem.getData(), ...);*
-        
+        // Đợi expand xong
+        setTimeout(() => {
+          console.log('🔍 Tìm child row mới...');
+          
+          // Kiểm tra xem child đã được render chưa
+          const treeChildren = parentRow.getTreeChildren();
+          console.log('Tree children:', treeChildren.length);
+          
+          if (treeChildren && treeChildren.length > 0) {
+            const newChildRow = treeChildren[treeChildren.length - 1];
+            console.log('✓ Tìm thấy child row mới');
+            newChildRow.scrollTo();
+          }
+          
+          // ✅ TÍNH LẠI PHẦN TRĂM SAU KHI EXPAND
+          console.log('📊 Tính lại phần trăm...');
+          this.updatePercent();
+        }, 150);
     } else {
-        this.notification.error('Lỗi', 'Không tìm thấy hàng cha trong bảng Tabulator!');
+        console.error('❌ Không tìm thấy parent row!');
+        // Vẫn tính phần trăm dù không tìm thấy parent
+        this.updatePercent();
     }
+    }, 100);
 }
   buildTree(data: any[], idField = 'ID', parentField = 'ParentID', childrenField = '_children') {
     const tree: any[] = [];
@@ -413,6 +1057,33 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
   
     return tree;
   }
+  private removeFromTree(items: any[], idToRemove: number): any[] {
+    return items
+      .filter(item => item.ID !== idToRemove) // Lọc bỏ item có ID trùng
+      .map(item => {
+        // Nếu có children, đệ quy xóa trong children
+        if (item._children && item._children.length > 0) {
+          return {
+            ...item,
+            _children: this.removeFromTree(item._children, idToRemove)
+          };
+        }
+        return item;
+      });
+  }
+  // Method 1: Thu thập tất cả ID trong cây (cha + con + con của con...)
+private collectAllIds(item: any): number[] {
+  const ids: number[] = [item.ID]; // Bắt đầu với ID của cha
+  
+  // Nếu có children, đệ quy thu thập ID của children
+  if (item._children && item._children.length > 0) {
+    item._children.forEach((child: any) => {
+      ids.push(...this.collectAllIds(child)); // Đệ quy
+    });
+  }
+  
+  return ids;
+}
   drawTbWorkItem(container: HTMLElement) {
     this.tb_workItem = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
@@ -467,46 +1138,76 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
             ? `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`
             : '';
         },
-          cellClick: (e, cell) => {
+        cellClick: (e, cell) => {
           let data = cell.getRow().getData();
           let id = data['ID'];
-          let fullName = data['FullName'];
           let isDeleted = data['IsDeleted'];
+          
           if (isDeleted) {
             return;
           }
-              this.modal.confirm({
-            nzTitle: `Bạn có chắc chắn muốn xóa nhân viên`,
-            nzContent: `${fullName}?`,
+          
+          this.modal.confirm({
+            nzTitle: `Bạn có chắc chắn muốn xóa hạng mục`,
+            nzContent: `${data['Code']}?`,
             nzOkText: 'Xóa',
             nzOkType: 'primary',
-                nzCancelText: 'Hủy',
+            nzCancelText: 'Hủy',
             nzOkDanger: true,
-                nzOnOk: () => {
-              // if (id > 0) {
-              //   if (!this.deletedIdsEmployeeDetail.includes(id))
-              //     this.deletedIdsEmployeeDetail.push(id);
-              //   this.tb_EmployeeDetailTable.deleteRow(cell.getRow());
-              // } else {
-              //   this.tb_EmployeeDetailTable.deleteRow(cell.getRow());
-              // }
-                },
+            nzOnOk: () => {
+              // Kiểm tra quyền trước
+              if(data['ID'] > 0) {       
+                if(data['IsApproved'] > 0) {
+                  this.notification.warning('Thông báo', `Hạng mục này đang ${data['IsApprovedText']}`);
+                  return;
+                }
+                
+                const isTBP = this.currentUser.employee == 54 || this.currentUser.EmployeeID == this.currentUser.HeadofDepartment; 
+                const isPBP = this.currentUser.PositionCode == "CV5" || this.currentUser.PositionCode == "CV28"; 
+                
+                if(!isTBP && !isPBP) {
+                  this.notification.warning('Thông báo', 'Bạn không có quyền xóa hạng mục\nVui lòng liên hệ với TBP');
+                  return;
+                }
+              } 
+              const idsToDelete = this.collectAllIds(data);
+              console.log('IDs sẽ xóa (bao gồm children):', idsToDelete);
+              idsToDelete.forEach(deleteId => {
+                if (deleteId > 0 && !this.deletedIdsWorkItem.includes(deleteId)) {
+                  this.deletedIdsWorkItem.push(deleteId);
+                }
               });
+              
+              //  Xóa trong source data
+              this.dataTableWorkItem = this.removeFromTree(this.dataTableWorkItem, id);
+              
+              // Dùng setData thay vì deleteRow để tránh lỗi
+              this.tb_workItem.setData(this.dataTableWorkItem);
+              
+              // Tính lại phần trăm sau khi table render xong
+              setTimeout(() => {
+                this.updatePercent();
+              }, 100);
+              
+              console.log('deletedIdsWorkItem:', this.deletedIdsWorkItem);
+              console.log('dataTableWorkItem sau khi xóa:', this.dataTableWorkItem);
+            },
+          });
         },
       },
       {
-        title:'ID', field:'ID', visible: true
+        title:'ID', field:'ID', visible: false
       },
       {
-        title:'STT', field:'STT',formatter:'rownum', visible: true
+        title:'STT', field:'STT',formatter:'rownum', 
       },
       {
-        title:'ParentID', field:'ParentID', visible: true
+        title:'ParentID', field:'ParentID', visible: false
       },
         { title: "Tình trạng", field: "IsApprovedText", hozAlign: "center",  width: 200,  },
-        { title: "Mã", field: "Code", hozAlign: "center",  },
+        { title: "Mã", field: "Code", hozAlign: "center", width: 150  },
         { 
-          title: "Kiểu", 
+          title: "Kiểu dự án", 
           field: "TypeProjectItem", 
           hozAlign: "center",
           editor: this.createdControl(
@@ -535,8 +1236,9 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
             });
             if (!typeProject) {
               console.log('Không tìm thấy typeProject với val:', val, 'cbbTypeProject:', this.cbbTypeProject);
+              return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted"></p> <i class="fas fa-angle-down"></i></div>';
             }
-            const typeProjectName = typeProject ? typeProject.name : val;
+            const typeProjectName = typeProject.name;
             return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${typeProjectName}</p> <i class="fas fa-angle-down"></i></div>`;
           },
         },
@@ -561,7 +1263,10 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
               return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted">Chọn trạng thái</p> <i class="fas fa-angle-down"></i></div>';
             }
             const status = this.dataStatus.find((s: any) => s.id === val);
-            const statusName = status ? status.name : val;
+            if (!status) {
+              return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted"></p> <i class="fas fa-angle-down"></i></div>';
+            }
+            const statusName = status.name;
             return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${statusName}</p> <i class="fas fa-angle-down"></i></div>`;
           },
         },
@@ -595,8 +1300,9 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
             });
             if (!employee) {
               console.log('Không tìm thấy employee với val:', val, 'cbbEmployee:', this.cbbEmployee);
+              return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted"></p> <i class="fas fa-angle-down"></i></div>';
             }
-            const employeeName = employee ? employee.name : val;
+            const employeeName = employee.name;
             return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${employeeName}</p> <i class="fas fa-angle-down"></i></div>`;
           },
         },
@@ -621,20 +1327,23 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
               return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted">Chọn người giao việc</p> <i class="fas fa-angle-down"></i></div>';
             }
             const employee = this.cbbEmployeeRequest.find((e: any) => e.id === val);
-            const employeeName = employee ? employee.name : val;
+            if (!employee) {
+              return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted"></p> <i class="fas fa-angle-down"></i></div>';
+            }
+            const employeeName = employee.name;
             return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${employeeName}</p> <i class="fas fa-angle-down"></i></div>`;
           },
-          cellEdited: (cell: any) => {
-            const row = cell.getRow();
-            const newValue = cell.getValue();
-            const selectedEmployee = this.cbbEmployeeRequest.find((e: any) => e.id === newValue);
-            if (selectedEmployee) {
-              row.update({
-                EmployeeRequestID: newValue,
-                EmployeeRequestName: selectedEmployee.name,
-              });
-            }
-          },
+          // cellEdited: (cell: any) => {
+          //   const row = cell.getRow();
+          //   const newValue = cell.getValue();
+          //   const selectedEmployee = this.cbbEmployeeRequest.find((e: any) => e.id === newValue);
+          //   if (selectedEmployee) {
+          //     row.update({
+          //       EmployeeRequestID: newValue,
+          //       EmployeeRequestName: selectedEmployee.name,
+          //     });
+          //   }
+          // },
         },
         { 
           title: "Mã người yêu cầu", 
@@ -653,11 +1362,14 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
           formatter: (cell: any) => {
             const val = cell.getValue();
             if (!val) {
-              return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted"></p> <i class="fas fa-angle-down"></i></div>';
+              return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted">Chọn người yêu cầu</p> <i class="fas fa-angle-down"></i></div>';
             }
             const user = this.cbbUser.find((u: any) => u.id === val);
-            const userName = user ? user.name : val;
-            return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${userName}</p> <i class="fas fa-angle-down"></i></div>`;
+            if (!user) {
+              return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted">Chọn người yêu cầu</p> <i class="fas fa-angle-down"></i></div>';
+            }
+            const userCode = user.code;
+            return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${userCode}</p> <i class="fas fa-angle-down"></i></div>`;
           },
           cellEdited: (cell: any) => {
             const row = cell.getRow();
@@ -665,22 +1377,61 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
             const selectedUser = this.cbbUser.find((u: any) => u.id === newValue);
             if (selectedUser) {
               row.update({
-                EmployeeRequestName: selectedUser.name,
+                EmployeeRequestName: selectedUser.fullName,
               });
             }
           },
         },
         { title: "Tên người yêu cầu", field: "EmployeeRequestName", hozAlign: "left",  },
-        { title: "%", field: "PercentageActual", hozAlign: "right", formatter: "progress", formatterParams: { color: "green" } },
-        { title: "Công việc", field: "Mission", hozAlign: "left",  },
+       
+        { 
+          title: "%", 
+          field: "PercentItem", 
+          hozAlign: "right", 
+          editor: 'input',
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (value === null || value === undefined || value === '') {
+              return '';
+            }
+            const numValue = Number(value);
+            if (isNaN(numValue)) {
+              return value;
+            }
+            return numValue.toFixed(2) + '%';
+          }
+        },
+        { title: "Công việc", field: "Mission", hozAlign: "left", editor: 'input', formatter: 'textarea' , width: 300},
   
         // --- KẾ HOẠCH ---
         {
           title: "KẾ HOẠCH",
           columns: [
-            { title: "Ngày bắt đầu", field: "PlanStartDate", hozAlign: "center", formatter: "datetime", formatterParams: { outputFormat: "dd/MM/yyyy" } },
+            { 
+              title: "Ngày bắt đầu", 
+              field: "PlanStartDate", 
+              hozAlign: "center", 
+              editor: this.dateEditor.bind(this),
+              formatter: (cell: any) => {
+                const value = cell.getValue();
+                if (!value) return '';
+                const dt = DateTime.fromISO(value);
+                return dt.isValid ? dt.toFormat('dd/MM/yyyy') : value;
+              }
+            },
             { title: "Số ngày", field: "TotalDayPlan", hozAlign: "center" },
-            { title: "Ngày kết thúc", field: "PlanEndDate", hozAlign: "center", formatter: "datetime", formatterParams: { outputFormat: "dd/MM/yyyy" } },
+            { 
+              title: "Ngày kết thúc", 
+              field: "PlanEndDate", 
+              hozAlign: "center", 
+              editor: this.dateEditor.bind(this),
+              formatter: (cell: any) => {
+                const value = cell.getValue();
+                if (!value) return '';
+                const dt = DateTime.fromISO(value);
+                return dt.isValid ? dt.toFormat('dd/MM/yyyy') : value;
+              }
+            },
           ],
         },
   
@@ -688,22 +1439,283 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
         {
           title: "THỰC TẾ",
           columns: [
-            { title: "Ngày bắt đầu", field: "ActualStartDate", hozAlign: "center", formatter: "datetime", formatterParams: { outputFormat: "dd/MM/yyyy" } },
-            { title: "Ngày kết thúc", field: "ActualEndDate", hozAlign: "center", formatter: "datetime", formatterParams: { outputFormat: "dd/MM/yyyy" } },
-            { title: "%", field: "PercentItem", hozAlign: "right", formatter: "progress", formatterParams: { color: "blue" } },
+            { 
+              title: "Ngày bắt đầu", 
+              field: "ActualStartDate", 
+              hozAlign: "center", 
+              editor: this.dateEditor.bind(this),
+              formatter: (cell: any) => {
+                const value = cell.getValue();
+                if (!value) return '';
+                const dt = DateTime.fromISO(value);
+                return dt.isValid ? dt.toFormat('dd/MM/yyyy') : value;
+              }
+            },
+            { 
+              title: "Ngày kết thúc", 
+              field: "ActualEndDate", 
+              hozAlign: "center", 
+              editor: this.dateEditor.bind(this),
+              formatter: (cell: any) => {
+                const value = cell.getValue();
+                if (!value) return '';
+                const dt = DateTime.fromISO(value);
+                return dt.isValid ? dt.toFormat('dd/MM/yyyy') : value;
+              }
+            },
+            { title: "%", field: "PercentageActual", hozAlign: "right", editor: 'input', },
           ],
         },
   
-        { title: "Lý do phát sinh", field: "ReasonLate", hozAlign: "left",  },
-        { title: "Ghi chú", field: "Note", hozAlign: "left",  },
+        { title: "Lý do phát sinh", field: "ReasonLate", hozAlign: "left", formatter: 'textarea' , width: 300},
+        { title: "Thêm phát sinh",  field: 'openModalReson',
+          hozAlign: 'center',
+          width: 40,
+          headerSort: false,
+        formatter: (cell) => {
+          const data = cell.getRow().getData();
+          let isDeleted = data['IsDeleted'];
+          return !isDeleted
+            ? `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`
+            : '';
+        },
+        cellClick: (e, cell) => {
+          let data = cell.getRow().getData();
+          let projectItemId = data['ID'];
+          if(projectItemId > 0){
+            this.openProjectItemProblemDetail(projectItemId);
+          } else {
+            this.notification.warning('Thông báo', 'Hạng mục chưa được thêm vào dự án');
+            return
+          }
+          }
+      },
+        { title: "Ghi chú", field: "Note", hozAlign: "left", editor: 'input', formatter: 'textarea' },
         { title: "Ngày cập nhật", field: "UpdatedDateActual", hozAlign: "center", formatter: "datetime", formatterParams: { outputFormat: "dd/MM/yyyy HH:mm" } },
-        { title: "Người tạo", field: "CreatedName", hozAlign: "left",  },
+        { title: "Người tạo", field: "CreatedName", hozAlign: "left" },
+        {title: "IsApproved", field: "IsApproved", hozAlign: "center" },
+        { title: "File đính kèm",  field: 'openModalProjectItemFile',
+          hozAlign: 'center',
+          width: 40,
+          headerSort: false,
+        formatter: (cell) => {
+          const data = cell.getRow().getData();
+          let isDeleted = data['IsDeleted'];
+          return !isDeleted
+            ? `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm tệp đính kèm"></i></div>`
+            : '';
+        },
+          cellClick: (e, cell) => {
+          let data = cell.getRow().getData();
+          let projectItemId = data['ID'];
+          if(projectItemId > 0){
+            this.openProjectItemFileDetail(projectItemId);
+          } else {
+            this.notification.warning('Thông báo', 'Hạng mục chưa được thêm vào dự án');
+            return
+          }
+          }
+      },
       ],
+    });
+
+    // Lưu row đã chọn để thêm con - tham khảo logic từ pokh-detail
+    this.tb_workItem.on('rowClick', (e: any, row: any) => {
+      this.selectedRow = row;
+      console.log('selectedRow', this.selectedRow);
+      console.log('_children: ', this.selectedRow.getData()['_children']);
+    });
+
+    // Validate cell editing - tương tự ValidatingEditor trong WinForm
+    this.tb_workItem.on('cellEditing', (cell: any) => {
+      const validation = this.validateCellEditing(cell);
+      if (!validation.valid) {
+        // Prevent edit và hiển thị thông báo lỗi
+        this.notification.warning('Cảnh báo', validation.errorText || 'Không thể chỉnh sửa!');
+        // Cancel edit
+        setTimeout(() => {
+          cell.cancelEdit();
+        }, 0);
+      }
+    });
+
+    // Xử lý sau khi edit - tương tự CellValueChanged trong WinForm
+    this.tb_workItem.on('cellEdited', (cell: any) => {
+      this.handleCellValueChanged(cell);
     });
   }
   
   
   exportExcel(): void {
+    if (!this.tb_workItem) return;
+  
+    const treeData = this.tb_workItem.getData('tree');
+    if (!treeData || treeData.length === 0) {
+      this.notification.warning('Thông báo', 'Không có dữ liệu để xuất Excel!');
+      return;
+    }
+  
+    const allColumns = this.tb_workItem.getColumns();
+    const visibleColumns = allColumns.filter((col: any, index: number) => {
+      // Bỏ qua cột đầu tiên (cột action) và các cột ẩn
+      if (index === 0) return false;
+      const colDef = col.getDefinition();
+      return colDef.visible !== false && colDef.field !== 'addRow';
+    });
+  
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Hạng mục công việc');
+  
+    // === HEADER ===
+    const headerRow = worksheet.addRow(
+      visibleColumns.map((col: any) => col.getDefinition().title)
+    );
+    headerRow.font = { bold: true, color: { argb: 'FFFFFF' }, name: 'Times New Roman', size: 12 };
+    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD700' } };
+    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+    headerRow.height = 25;
+  
+    // === Hàm thêm node (đệ quy) ===
+    const addNodeToSheet = (node: any, level: number = 0) => {
+      const row = worksheet.addRow([]);
+  
+      visibleColumns.forEach((col: any, idx: any) => {
+        const field = col.getDefinition().field;
+        let value = node[field] ?? '';
+  
+        const cell = row.getCell(idx + 1);
+        cell.font = { name: 'Times New Roman', size: 11 };
+  
+        // 1. Thụt lề cho cột Code và STT (tree structure)
+        if ((field === 'Code' || field === 'STT') && level > 0) {
+          value = '  '.repeat(level * 2) + value;
+        }
+  
+        // 2. Xử lý ngày tháng
+        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+          try {
+            const dateValue = new Date(value);
+            if (!isNaN(dateValue.getTime())) {
+              value = dateValue;
+              cell.numFmt = 'dd/mm/yyyy';
+            }
+          } catch (e) {
+            // Giữ nguyên giá trị string nếu không parse được
+          }
+        }
+  
+        // 3. Xử lý datetime (UpdatedDateActual)
+        if (field === 'UpdatedDateActual' && value) {
+          try {
+            const dateValue = new Date(value);
+            if (!isNaN(dateValue.getTime())) {
+              value = dateValue;
+              cell.numFmt = 'dd/mm/yyyy hh:mm';
+            }
+          } catch (e) {
+            // Giữ nguyên giá trị string
+          }
+        }
+  
+        // 4. Cột số: TotalDayPlan, TotalDayActual, PercentItem, PercentageActual, ItemLate
+        const numberFields = ['TotalDayPlan', 'TotalDayActual', 'PercentItem', 'PercentageActual', 'ItemLate', 'Status', 'IsApproved'];
+        if (numberFields.includes(field)) {
+          const num = parseFloat(value);
+          if (!isNaN(num)) {
+            value = num;
+            if (field === 'PercentItem' || field === 'PercentageActual') {
+              cell.numFmt = '0.00';
+              cell.alignment = { horizontal: 'right' };
+            } else {
+              cell.numFmt = '0';
+              cell.alignment = { horizontal: 'right' };
+            }
+          } else {
+            value = '';
+          }
+        }
+  
+        // 5. Format phần trăm với dấu %
+        if ((field === 'PercentItem' || field === 'PercentageActual') && value !== '') {
+          const num = parseFloat(value);
+          if (!isNaN(num)) {
+            cell.numFmt = '0.00"%"';
+          }
+        }
+  
+        // 6. Căn chỉnh text
+        if (field === 'Mission' || field === 'Note' || field === 'ReasonLate') {
+          cell.alignment = { horizontal: 'left', vertical: 'top', wrapText: true };
+          row.height = Math.max(row.height || 20, 30); // Tăng chiều cao cho textarea
+        } else if (['Code', 'STT', 'IsApprovedText'].includes(field)) {
+          cell.alignment = { horizontal: 'center' };
+        } else if (numberFields.includes(field)) {
+          cell.alignment = { horizontal: 'right' };
+        } else {
+          cell.alignment = { horizontal: 'left' };
+        }
+  
+        cell.value = value;
+      });
+  
+      // Thêm con
+      if (node._children && node._children.length > 0) {
+        node._children.forEach((child: any) => addNodeToSheet(child, level + 1));
+      }
+    };
+  
+    // === Duyệt root ===
+    treeData.forEach((root: any) => addNodeToSheet(root));
+  
+    // === Tự động width ===
+    worksheet.columns.forEach((column: any, index: number) => {
+      let maxLength = 10;
+      column.eachCell({ includeEmpty: true }, (cell: any) => {
+        const val = cell.value ? cell.value.toString() : '';
+        maxLength = Math.max(maxLength, val.length + 3);
+      });
+      // Giới hạn width tối đa và tối thiểu
+      const colDef = visibleColumns[index]?.getDefinition();
+      if (colDef) {
+        if (colDef.width) {
+          column.width = Math.min(Math.max(colDef.width / 7, 10), 50); // Chuyển đổi từ pixel sang Excel width
+        } else {
+          column.width = Math.min(Math.max(maxLength, 10), 50);
+        }
+      } else {
+        column.width = Math.min(Math.max(maxLength, 10), 50);
+      }
+    });
+  
+    // === Auto filter ===
+    worksheet.autoFilter = {
+      from: { row: 1, column: 1 },
+      to: { row: 1, column: visibleColumns.length },
+    };
+  
+    // === Freeze header row ===
+    worksheet.views = [
+      {
+        state: 'frozen',
+        ySplit: 1,
+      },
+    ];
+  
+    // === Xuất file ===
+    workbook.xlsx.writeBuffer().then(buffer => {
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `HangMucCongViec_${this.projectCode || 'DuAn'}.xlsx`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      this.notification.success('Thành công', 'Xuất Excel thành công!');
+    }).catch((error) => {
+      console.error('Error exporting Excel:', error);
+      this.notification.error('Lỗi', 'Không thể xuất Excel!');
+    });
   }
   onsearchData(){
 
@@ -712,194 +1724,86 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
     this.modalService.dismissAll();
   }
 
-  // Mở modal lọc trạng thái chậm/fail
-  // openFilterStatusModal(): void {
-  //   let selectedStatus: string = 'fail'; // Mặc định chọn fail
-  //   let filterTable: any;
+  //#region Xử lý filter trạng thái
+  filterByStatus(): void {
+    if (!this.tb_workItem) return;
 
-  //   // Tạo HTML content cho modal
-  //   const modalContent = `
-  //     <div style="padding: 20px; height: 80vh; display: flex; flex-direction: column;">
-  //       <div style="margin-bottom: 20px; display: flex; gap: 20px; align-items: center;">
-  //         <label style="cursor: pointer;">
-  //           <input type="radio" name="statusFilter" value="all" id="filter-all" style="margin-right: 5px;">
-  //           Tất cả
-  //         </label>
-  //         <label style="cursor: pointer;">
-  //           <input type="radio" name="statusFilter" value="slow" id="filter-slow" style="margin-right: 5px;">
-  //           Chậm
-  //         </label>
-  //         <label style="cursor: pointer;">
-  //           <input type="radio" name="statusFilter" value="fail" id="filter-fail" checked style="margin-right: 5px;">
-  //           Fail
-  //         </label>
-  //       </div>
-  //       <div id="filter-status-table" style="flex: 1; overflow: hidden;"></div>
-  //     </div>
-  //   `;
+    // Nếu chọn "Tất cả" (value = 'all' hoặc rỗng), hiển thị tất cả
+    if (!this.filterStatus || this.filterStatus === 'all' || this.filterStatus === '') {
+      this.tb_workItem.clearFilter();
+      return;
+    }
 
-  //   const modalRef = this.modal.create({
-  //     nzTitle: 'Lọc theo trạng thái',
-  //     nzWidth: '90%',
-  //     nzStyle: { top: '20px' },
-  //     nzContent: modalContent,
-  //     nzFooter: [
-  //       {
-  //         label: 'Đóng',
-  //         onClick: () => {
-  //           if (filterTable) {
-  //             filterTable.destroy();
-  //           }
-  //           modalRef.destroy();
-  //         }
-  //       }
-  //     ]
-  //   });
+    // Chuyển đổi string "0,1" thành array [0, 1]
+    const statusArray = this.filterStatus.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+    
+    if (statusArray.length > 0) {
+      // Filter theo nhiều giá trị Status sử dụng custom filter function
+      this.tb_workItem.setFilter((data: any) => {
+        const status = data.Status;
+        // Kiểm tra xem Status có trong danh sách statusArray không
+        return statusArray.includes(status);
+      });
+    } else {
+      // Nếu không có giá trị hợp lệ, clear filter
+      this.tb_workItem.clearFilter();
+    }
+  }
+  //#endregion
 
-  //   // Khởi tạo bảng sau khi modal đã render
-  //   setTimeout(() => {
-  //       // Hàm lọc và sắp xếp dữ liệu
-  //       const filterAndSortData = (status: string) => {
-  //         let data = [...this.dataTableWorkItem];
-          
-  //         if (status === 'fail') {
-  //           // Chỉ lấy các dòng fail (ItemLateActual == 2)
-  //           data = data.filter((item: any) => parseInt(item['ItemLateActual'] || '0') === 2);
-  //           // Sắp xếp: fail trước
-  //           data.sort((a: any, b: any) => {
-  //             const aLate = parseInt(a['ItemLateActual'] || '0');
-  //             const bLate = parseInt(b['ItemLateActual'] || '0');
-  //             return bLate - aLate;
-  //           });
-  //         } else if (status === 'slow') {
-  //           // Chỉ lấy các dòng chậm (ItemLateActual == 1)
-  //           data = data.filter((item: any) => parseInt(item['ItemLateActual'] || '0') === 1);
-  //         } else {
-  //           // Tất cả, nhưng sắp xếp fail trước
-  //           data.sort((a: any, b: any) => {
-  //             const aLate = parseInt(a['ItemLateActual'] || '0');
-  //             const bLate = parseInt(b['ItemLateActual'] || '0');
-  //             return bLate - aLate;
-  //           });
-  //         }
-          
-  //         return data;
-  //       };
+  //#region mở modal 
+  openProjectItemFileDetail(projectItemId: number): void {
+    const modalRef = this.modalService.open(ProjectItemFileComponent, {
+      centered: true,
+      size: 'xl',
+      keyboard: false,
+    });
 
-  //       // Tạo bảng Tabulator
-  //       const createTable = () => {
-  //         const filteredData = filterAndSortData(selectedStatus);
-  //         const tableContainer = document.getElementById('filter-status-table');
-          
-  //         if (!tableContainer) return;
-          
-  //         if (filterTable) {
-  //           filterTable.destroy();
-  //         }
+    // Set các Input properties
+    modalRef.componentInstance.projectItemId = projectItemId;
+    modalRef.result
+      .then((result: any) => {
+        if (result && result.success) {
+          this.loadData();
+        }
+      })
+      .catch((error: any) => {
+        console.error('Error opening project item file detail:', error);
+      });
+  }
+  openProjectItemProblemDetail(projectItemId: number): void {
+    const modalRef = this.modalService.open(ProjectItemProblemComponent, {
+      centered: true,
+      size: 'xl',
+      keyboard: false,
+    });
+    modalRef.componentInstance.projectItemId = projectItemId;
+    modalRef.result
+      .then((result: any) => {
+        if (result && result.success) {
+          // Cập nhật cột ReasonLate cho row tương ứng (giống logic WinForm)
+          if (result.contentProblem !== undefined && this.tb_workItem) {
+            // Flatten tất cả rows (bao gồm children) để tìm row có ID tương ứng
+            const rootRows = this.tb_workItem.getRows();
+            const allRows = this.flattenTreeRows(rootRows);
+            
+            // Tìm row có ID tương ứng với projectItemId
+            const targetRow = allRows.find((row: any) => {
+              const rowData = row.getData();
+              return rowData.ID === projectItemId;
+            });
+            
+            if (targetRow) {
+              // Cập nhật cột ReasonLate với chuỗi đã nối
+              targetRow.update({ ReasonLate: result.contentProblem });
+            }
+          }
+        }
+      })
+      .catch((error: any) => {
+        console.error('Error opening project item problem detail:', error);
+      });
+  }
+//#endregion
 
-  //         filterTable = new Tabulator(tableContainer, {
-  //           ...DEFAULT_TABLE_CONFIG,
-  //           data: filteredData,
-  //           paginationMode: 'local',
-  //           layout: "fitDataStretch",
-  //           selectableRows: 1,
-  //           height: '100%',
-  //           rowFormatter: (row: any) => {
-  //             const data = row.getData();
-  //             const itemLate = parseInt(data['ItemLateActual'] || '0');
-  //             const totalDayExpridSoon = parseInt(data['TotalDayExpridSoon'] || '0');
-  //             const dateEndActual = DateTime.fromISO(data['ActualEndDate']).isValid
-  //               ? DateTime.fromISO(data['ActualEndDate']).toFormat('dd/MM/yyyy')
-  //               : null;
-
-  //             row.getElement().style.backgroundColor = '';
-  //             row.getElement().style.color = '';
-
-  //             if (itemLate == 1) {
-  //               row.getElement().style.backgroundColor = 'Orange';
-  //               row.getElement().style.color = 'white';
-  //             } else if (itemLate == 2) {
-  //               row.getElement().style.backgroundColor = 'Red';
-  //               row.getElement().style.color = 'white';
-  //             } else if (totalDayExpridSoon <= 3 && !dateEndActual) {
-  //               row.getElement().style.backgroundColor = 'LightYellow';
-  //             }
-  //           },
-  //           columns: [
-  //             { title: "Tình trạng", field: "IsApprovedText", hozAlign: "center" },
-  //             { title: "Mã", field: "Code", hozAlign: "center" },
-  //             { title: "Kiểu", field: "TypeProjectItem", hozAlign: "center" },
-  //             { title: "Trạng thái", field: "Status", hozAlign: "center" },
-  //             { title: "Người phụ trách", field: "UserID", hozAlign: "left" },
-  //             { title: "Người giao việc", field: "EmployeeIDRequest", hozAlign: "left" },
-  //             { title: "Công việc", field: "Mission", hozAlign: "left" },
-  //             { 
-  //               title: "Ngày bắt đầu (KH)", 
-  //               field: "PlanStartDate", 
-  //               hozAlign: "center", 
-  //               formatter: "datetime", 
-  //               formatterParams: { outputFormat: "dd/MM/yyyy" } 
-  //             },
-  //             { 
-  //               title: "Ngày kết thúc (KH)", 
-  //               field: "PlanEndDate", 
-  //               hozAlign: "center", 
-  //               formatter: "datetime", 
-  //               formatterParams: { outputFormat: "dd/MM/yyyy" } 
-  //             },
-  //             { 
-  //               title: "Ngày bắt đầu (TT)", 
-  //               field: "ActualStartDate", 
-  //               hozAlign: "center", 
-  //               formatter: "datetime", 
-  //               formatterParams: { outputFormat: "dd/MM/yyyy" } 
-  //             },
-  //             { 
-  //               title: "Ngày kết thúc (TT)", 
-  //               field: "ActualEndDate", 
-  //               hozAlign: "center", 
-  //               formatter: "datetime", 
-  //               formatterParams: { outputFormat: "dd/MM/yyyy" } 
-  //             },
-  //             { title: "Ghi chú", field: "Note", hozAlign: "left" },
-  //           ],
-  //         });
-  //       };
-
-  //       // Event listeners cho radio buttons
-  //       const radioAll = document.getElementById('filter-all') as HTMLInputElement;
-  //       const radioSlow = document.getElementById('filter-slow') as HTMLInputElement;
-  //       const radioFail = document.getElementById('filter-fail') as HTMLInputElement;
-
-  //       if (radioAll) {
-  //         radioAll.addEventListener('change', () => {
-  //           if (radioAll.checked) {
-  //             selectedStatus = 'all';
-  //             createTable();
-  //           }
-  //         });
-  //       }
-
-  //       if (radioSlow) {
-  //         radioSlow.addEventListener('change', () => {
-  //           if (radioSlow.checked) {
-  //             selectedStatus = 'slow';
-  //             createTable();
-  //           }
-  //         });
-  //       }
-
-  //       if (radioFail) {
-  //         radioFail.addEventListener('change', () => {
-  //           if (radioFail.checked) {
-  //             selectedStatus = 'fail';
-  //             createTable();
-  //           }
-  //         });
-  //       }
-
-  //     // Tạo bảng ban đầu với fail được chọn
-  //     createTable();
-  //   }, 300);
-  // }
 }

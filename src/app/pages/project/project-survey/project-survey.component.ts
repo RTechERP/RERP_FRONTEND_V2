@@ -4,6 +4,7 @@ import {
   Input,
   TemplateRef,
   ViewEncapsulation,
+  inject,
 } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule } from '@angular/forms';
@@ -40,10 +41,13 @@ import { Router } from '@angular/router';
 import { ProjectService } from '../project-service/project.service';
 import { CommonModule } from '@angular/common';
 import { ProjectSurveyDetailComponent } from '../project-survey-detail/project-survey-detail.component';
+import { ProjectSurverResultComponent } from './project-surver-result/project-surver-result.component';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
+import { NzFormModule } from 'ng-zorro-antd/form';
 import { AuthService } from '../../../auth/auth.service';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { ReactiveFormsModule, NonNullableFormBuilder, Validators } from '@angular/forms';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
@@ -70,7 +74,10 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
     NzTreeSelectModule,
     NzModalModule,
     CommonModule,
-    NzUploadModule,HasPermissionDirective
+    NzUploadModule,
+    NzFormModule,
+    ReactiveFormsModule,
+    HasPermissionDirective
   ],
   //encapsulation: ViewEncapsulation.None,
   templateUrl: './project-survey.component.html',
@@ -78,6 +85,16 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
 })
 export class ProjectSurveyComponent implements AfterViewInit {
   //#region Khai báo biến
+  private fb = inject(NonNullableFormBuilder);
+  
+  // FormGroup cho modal approval
+  approvalForm = this.fb.group({
+    technicalRequestId: this.fb.control<number | null>(null, [Validators.required]),
+    dateSurvey: this.fb.control<string>('', [Validators.required]),
+    partOfDayId: this.fb.control<number>(0),
+    reason: this.fb.control<string>('')
+  });
+
   constructor(
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
@@ -93,10 +110,6 @@ export class ProjectSurveyComponent implements AfterViewInit {
   tb_projectSurveyContainer!: ElementRef;
   @ViewChild('infoApproved', { static: false })
   infoApprovedContainer!: TemplateRef<any>;
-  @ViewChild('resultSurvey', { static: false })
-  resultSurveyContainer!: TemplateRef<any>;
-  @ViewChild('tb_projectSurveyFile', { static: false })
-  tb_projectSurveyFileContainer!: ElementRef;
 
   tb_projectSurvey: any;
   sizeSearch: string = '0';
@@ -124,13 +137,6 @@ export class ProjectSurveyComponent implements AfterViewInit {
   technicalRequestId: any;
   isDisableReasion: any = false;
 
-  //Kết quả khảo sát
-  employeeIdResult: any;
-  dateResult: any = DateTime.local().toISO();
-  result: any;
-  fileListResult: any[] = [];
-  fileDeletedIds: any[] = [];
-  tb_projectSurveyFile: any;
   //#endregion
   //#region Chạy khi mở chương trình
   ngAfterViewInit(): void {
@@ -273,11 +279,14 @@ export class ProjectSurveyComponent implements AfterViewInit {
     ];
 
     this.tb_projectSurvey = new Tabulator(container, {
+      ...DEFAULT_TABLE_CONFIG,
+      
         height: '100%',
         layout: 'fitColumns',
         locale: 'vi',
         selectableRows:1,
-      pagination: false,
+        rowHeader: false,
+   paginationMode: 'local',
       groupBy: 'ProjectCode',
       groupHeader: function (value, count, data, group) {
         return `Mã dự án: ${value}`;
@@ -332,6 +341,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
               title: 'Khảo sát gấp',
               field: 'IsUrgent',
               width: 150,
+              frozen:true,
               headerHozAlign: 'center',
               formatter: function (cell, formatterParams, onRendered) {
                 const checked = cell.getValue()
@@ -348,6 +358,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
               title: 'Duyệt gấp',
               field: 'IsApprovedUrgent',
               width: 150,
+              frozen:true,
               headerHozAlign: 'center',
               formatter: function (cell, formatterParams, onRendered) {
                 const checked = cell.getValue()
@@ -548,6 +559,13 @@ export class ProjectSurveyComponent implements AfterViewInit {
         );
         return;
       }
+      if(selectedRows[0].EmployeeID != this.currentUser.EmployeeID && !this.currentUser.IsAdmin){
+        this.notification.error(
+          'Thông báo',
+          'Bạn không có quyền sửa yêu cầu khảo sát của người khác!'
+        );
+        return;
+      }
     }
 
     let modalRef = this.modalService.open(ProjectSurveyDetailComponent, {
@@ -563,7 +581,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
         : 0;
     modalRef.componentInstance.projectSurveyId =
       selectedRows[0]['ID'] > 0 && status == 1 ? selectedRows[0]['ID'] : 0;
-
+      modalRef.componentInstance.isEdit = status;
     modalRef.result.catch((reason) => {
       if (reason == true) {
         this.getDataProjectSurvey();
@@ -574,9 +592,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
 
   //#region Duyệt/Hủy duyệt gấp yêu cầu
   approved(approvedStatus: boolean, statusText: string, select: number) {
-    let selectedRows = this.tb_projectSurvey
-      .getData()
-      .filter((row: any) => row['Selected'] == true);
+    var selectedRows = this.tb_projectSurvey.getSelectedData();
     if (selectedRows.length <= 0) {
       this.notification.error(
        NOTIFICATION_TITLE.error,
@@ -636,15 +652,31 @@ export class ProjectSurveyComponent implements AfterViewInit {
         );
         return;
       }
-      this.technicalRequestId = selectedRows[0].EmployeeID;
-      this.partOfDayId = selectedRows[0].SurveySession;
-      this.reason = selectedRows[0].ReasonCancel;
-      this.dateSurvey = selectedRows[0].DateSurvey
-        ? DateTime.fromJSDate(new Date(selectedRows[0].DateSurvey)).toISO()
-        : DateTime.local().toISO();
+      // Khởi tạo form với giá trị từ selected row
+      const initialDateSurvey = selectedRows[0].DateSurvey
+        ? (DateTime.fromJSDate(new Date(selectedRows[0].DateSurvey)).toISO() || '')
+        : (DateTime.local().toISO() || '');
+      
+      this.approvalForm.patchValue({
+        technicalRequestId: selectedRows[0].EmployeeID || null,
+        partOfDayId: selectedRows[0].SurveySession || 0,
+        reason: selectedRows[0].ReasonCancel || '',
+        dateSurvey: initialDateSurvey
+      });
+
+      // Set required validator cho reason nếu là hủy duyệt
+      if (approvedStatus === false) {
+        this.approvalForm.get('reason')?.setValidators([Validators.required]);
+        this.isDisableReasion = true;
+      } else {
+        this.approvalForm.get('reason')?.clearValidators();
+        this.approvalForm.get('reason')?.updateValueAndValidity();
+        this.isDisableReasion = false;
+      }
+
       let leaderID = selectedRows[0].LeaderID;
       let leaderName = selectedRows[0].FullNameLeaderTBP;
-      if (this.projectService.GlobalEmployeeId != leaderID) {
+      if (this.currentUser.EmployeeID != leaderID) {
         this.notification.error(NOTIFICATION_TITLE.error,
           `Bạn không thể ${statusText} yêu cầu của leader [${leaderName}]!`,
           {
@@ -657,6 +689,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
         nzTitle: `${statusText.toUpperCase()} YÊU CẦU`,
         nzContent: this.infoApprovedContainer,
         nzMaskClosable: false,
+        nzWrapClassName: 'modal-primary-header',
         nzFooter: [
           {
             label: 'Hủy',
@@ -670,19 +703,37 @@ export class ProjectSurveyComponent implements AfterViewInit {
             label: 'Lưu',
             type: 'primary',
             onClick: () => {
-              if (!this.technicalRequestId) {
-                this.notification.error(
-                  'Thông báo',
-                  `Vui lòng chọn kỹ thuật yêu cầu!`,
-                  {
-                    nzStyle: { fontSize: '0.75rem' },
-                  }
-                );
+              // Validate form
+              if (this.approvalForm.invalid) {
+                this.approvalForm.markAllAsTouched();
+                const technicalControl = this.approvalForm.get('technicalRequestId');
+                const dateControl = this.approvalForm.get('dateSurvey');
+                const reasonControl = this.approvalForm.get('reason');
+                
+                if (technicalControl?.hasError('required')) {
+                  this.notification.error(
+                    'Thông báo',
+                    'Vui lòng chọn kỹ thuật yêu cầu!',
+                    { nzStyle: { fontSize: '0.75rem' } }
+                  );
+                } else if (dateControl?.hasError('required')) {
+                  this.notification.error(
+                    'Thông báo',
+                    'Vui lòng chọn ngày khảo sát!',
+                    { nzStyle: { fontSize: '0.75rem' } }
+                  );
+                } else if (reasonControl?.hasError('required')) {
+                  this.notification.error(
+                    'Thông báo',
+                    'Vui lòng nhập lý do hủy duyệt!',
+                    { nzStyle: { fontSize: '0.75rem' } }
+                  );
+                }
                 return;
               }
-              let dsv = DateTime.fromJSDate(new Date(this.dateSurvey)).startOf(
-                'day'
-              );
+
+              const formValue = this.approvalForm.getRawValue();
+              let dsv = DateTime.fromISO(formValue.dateSurvey).startOf('day');
 
               let ds = selectedRows[0].DateStart
                 ? DateTime.fromJSDate(
@@ -711,26 +762,14 @@ export class ProjectSurveyComponent implements AfterViewInit {
                 }
               }
 
-              if (approvedStatus == false && !this.reason) {
-                this.notification.error(
-                  'Thông báo',
-                  `Vui lòng nhập lý do hủy duyệt!`,
-                  {
-                    nzStyle: { fontSize: '0.75rem' },
-                  }
-                );
-                return;
-              }
               let dataSave = {
                 id: selectedRows[0].ProjectSurveyDetailID,
                 status: approvedStatus,
-                employeeID: this.technicalRequestId,
-                dateSurvey: DateTime.fromJSDate(
-                  new Date(this.dateSurvey)
-                ).toISO(),
-                reasonCancel: this.reason ?? '',
+                employeeID: formValue.technicalRequestId!,
+                dateSurvey: DateTime.fromISO(formValue.dateSurvey).toISO(),
+                reasonCancel: formValue.reason ?? '',
                 updatedBy: this.projectService.LoginName,
-                surveySession: this.partOfDayId ?? 0,
+                surveySession: formValue.partOfDayId ?? 0,
               };
 
               this.projectService.approved(dataSave).subscribe({
@@ -949,71 +988,76 @@ export class ProjectSurveyComponent implements AfterViewInit {
       );
       return;
     }
-    let emID = selectedRows[0]['EmployeeID'];
-    if (
-      emID != this.currentUser.ID &&
-      !this.projectService.ISADMIN
-    ) {
-      this.notification.error(
-       NOTIFICATION_TITLE.error,
-        `Bạn không thể xóa yêu cầu khảo sát của người khác!`,
-        {
-          nzStyle: { fontSize: '0.75rem' },
-        }
-      );
-      return;
-    }
+    // let emID = selectedRows[0]['EmployeeID'];
+    // if (
+    //   emID != this.currentUser.ID &&
+    //   !this.projectService.ISADMIN
+    // ) {
+    //   this.notification.error(
+    //     'Thông báo',
+    //     `Bạn không thể xóa yêu cầu khảo sát của người khác!`,
+    //     {
+    //       nzStyle: { fontSize: '0.75rem' },
+    //     }
+    //   );
+    //   return;
+    // }
 
     let dataSave = {
       projectSurveyId: selectedRows[0]['ID'],
     };
-
     this.projectService.checkStatusDetail(dataSave).subscribe({
       next: (response: any) => {
-        if (response.data == true && !this.projectService.ISADMIN) {
-          this.notification.error(
-            NOTIFICATION_TITLE.error,
-            `Bạn không thể xóa yêu cầu khảo sát vì Leader Kỹ thuật đã xác nhận!`,
-            {
-              nzStyle: { fontSize: '0.75rem' },
-            }
-          );
-          return;
-        } else {
-          this.projectService.deletedProjectSurvey(dataSave).subscribe({
-            next: (response: any) => {
-              if (response.status == 1) {
-                this.notification.success(
-                  'Thông báo',
-                  `Đã xóa yêu cầu khảo sát dự án`,
-                  {
-                    nzStyle: { fontSize: '0.75rem' },
+        // if (response.data == true && !this.projectService.ISADMIN) {
+        //   this.notification.error(
+        //     'Thông báo',
+        //     `Bạn không thể xóa yêu cầu khảo sát vì Leader Kỹ thuật đã xác nhận!`,
+        //     {
+        //       nzStyle: { fontSize: '0.75rem' },
+        //     }
+        //   );
+        //   return;
+        // } else {
+          this.modal.confirm({
+            nzTitle: `Thông báo`,
+            nzContent: `Bạn có chắc muốn xóa yêu cầu khảo sát dự án đã chọn?`,
+            nzOkText: 'Ok',
+            nzOkType: 'primary',
+            nzCancelText: 'Hủy',
+            nzOnOk: () => {
+              this.projectService.deletedProjectSurvey(dataSave).subscribe({
+                next: (response: any) => {
+                  if (response.status == 1) {
+                    this.notification.success(
+                      'Thông báo',
+                      `Đã xóa yêu cầu khảo sát dự án!`
+                    );
+                    this.getDataProjectSurvey();
+                  }else if(response.status == 2){
+                    this.notification.error(
+                      'Thông báo',
+                      response.message
+                    );
                   }
-                );
-                this.getDataProjectSurvey();
-              }
-            },
-            error: (error) => {
-              console.error('Lỗi:', error);
+                },
+                error: (error: any) => {
+                  const msg = error.message || 'Lỗi không xác định';
+                  this.notification.error(NOTIFICATION_TITLE.error, msg);
+                  console.error('Lỗi:', error.error);
+                },
+              });
             },
           });
         }
-      },
-      error: (error: any) => {
-        const msg = error.message || 'Lỗi không xác định';
-        this.notification.error(NOTIFICATION_TITLE.error, msg);
-        console.error('Lỗi:', error.error);
-      },
+      
     });
   }
   //#endregion
 
   //#region cây thư mục
   openFolder(): void {
-    let selectedRows = this.tb_projectSurvey
-      .getData()
-      .filter((row: any) => row['Selected'] == true);
-    if (selectedRows.length != 1) {
+    var selectedRows = this.tb_projectSurvey.getSelectedData();
+    if (selectedRows.length <= 0) {
       this.notification.error(
        NOTIFICATION_TITLE.error,
         `Vui lòng chọn 1 yêu cầu khảo sát!`,
@@ -1051,16 +1095,11 @@ export class ProjectSurveyComponent implements AfterViewInit {
 
   //#region kết quả khảo sát
   surveyResult(): void {
-    let selectedRows = this.tb_projectSurvey
-      .getData()
-      .filter((row: any) => row['Selected'] == true);
+    var selectedRows = this.tb_projectSurvey.getSelectedData();
     if (selectedRows.length != 1) {
       this.notification.error(
        NOTIFICATION_TITLE.error,
         `Vui lòng chọn 1 yêu cầu khảo sát!`,
-        {
-          nzStyle: { fontSize: '0.75rem' },
-        }
       );
       return;
     }
@@ -1069,223 +1108,35 @@ export class ProjectSurveyComponent implements AfterViewInit {
     let prjSurveyDetailID = selectedRows[0]['ProjectSurveyDetailID'];
 
     if (
-      this.projectService.GlobalEmployeeId != employeeID ||
-      !this.projectService.ISADMIN
+      this.currentUser.EmployeeID != employeeID &&
+      !this.currentUser.IsAdmin
     ) {
       this.notification.error(
        NOTIFICATION_TITLE.error,
         `Bạn không được nhập kết quả của người khác!`,
-        {
-          nzStyle: { fontSize: '0.75rem' },
-        }
       );
       return;
     }
 
-    let dt = {
-      projectSurveyDetailId: prjSurveyDetailID,
-    };
-    this.projectService.getDetailByid(dt).subscribe({
-      next: (response: any) => {
-        const modalRef = this.modal.create({
-          nzTitle: `Kết quả khảo sát`,
-          nzContent: this.resultSurveyContainer,
-          nzMaskClosable: false,
-          nzFooter: [
-            {
-              label: 'Hủy',
-              type: 'default',
-              nzDanger: true,
-              onClick: () => {
-                (this.fileDeletedIds = []),
-                  (this.result = ''),
-                  (this.employeeIdResult = 0),
-                  (this.fileListResult = []);
-                modalRef.close();
-              },
-            },
-            {
-              label: 'Lưu',
-              type: 'primary',
-              onClick: () => {
-                const formData = new FormData();
-                let projectSurveyId = selectedRows[0]['ID'];
-                let projectId = selectedRows[0]['ProjectID'];
-                let projectTypeId = selectedRows[0]['ProjectTypeID'];
-                let projectSurveyDetailId =
-                  selectedRows[0]['ProjectSurveyDetailID'];
-                let data = this.projects.find((p: any) => p.ID === projectId);
-                let year = new Date(data.CreatedDate).getFullYear();
-
-                this.fileListResult.forEach((f) => {
-                  formData.append('files', f.originFile as File, f.name);
-                });
-
-                formData.append('projectSurveyId', `${projectSurveyId}`);
-                formData.append('projectTypeId', projectTypeId);
-                formData.append('result', this.result);
-                formData.append('projectSurveyDetailId', projectSurveyDetailId);
-                formData.append('projectId', projectId);
-                this.projectService
-                  .saveProjectSurveyResult(formData)
-                  .subscribe({
-                    next: (response: any) => {
-                      (this.fileDeletedIds = []),
-                        (this.result = ''),
-                        (this.employeeIdResult = 0),
-                        (this.fileListResult = []);
-                      this.getDataProjectSurvey();
-                    },
-                    error: (error) => {
-                      console.error('Lỗi:', error);
-                      this.notification.error(
-                        'Thông báo',
-                        `Lỗi lưu kết quả khảo sát dự án ${data.ProjectCode}!`,
-                        {
-                          nzStyle: { fontSize: '0.75rem' },
-                        }
-                      );
-                    },
-                  });
-              },
-            },
-          ],
-        });
-
-        modalRef.afterOpen.subscribe(() => {
-          this.drawTbProjectSurveyFile(
-            this.tb_projectSurveyFileContainer.nativeElement,
-            response.data.files
-          );
-          this.employeeIdResult = response.data.detail.EmployeeID;
-          this.dateResult = response.data.detail.DateSurvey
-            ? DateTime.fromJSDate(
-                new Date(response.data.detail.DateSurvey)
-              ).toISO()
-            : DateTime.local().toISO();
-          this.result = response.data.detail.Result;
-
-          console.log(response.data.files);
-          console.log(response.data.detail);
-        });
-      },
-      error: (error) => {
-        console.error('Lỗi:', error);
-        this.notification.error(NOTIFICATION_TITLE.error,
-          `Không tìm thấy nội dung kết quả khảo sát!`,
-          {
-            nzStyle: { fontSize: '0.75rem' },
-          }
-        );
-      },
+    let modalRef = this.modalService.open(ProjectSurverResultComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
     });
-  }
 
-  beforeUpload = (file: any): boolean => {
-    console.log('file', file);
-    const newFile = {
-      uid: Math.random().toString(36).substring(2),
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      status: 'new',
-      originFile: file,
-      FileName: '',
-      ServerPath: '',
-      OriginName: file.name,
-    };
-    this.fileListResult = [...this.fileListResult, newFile];
-    this.updateFileTable();
-    return false;
-  };
+    modalRef.componentInstance.projectSurveyDetailId = prjSurveyDetailID;
+    modalRef.componentInstance.projectSurveyId = selectedRows[0]['ID'];
+    modalRef.componentInstance.projectId = selectedRows[0]['ProjectID'];
+    modalRef.componentInstance.projectTypeId = selectedRows[0]['ProjectTypeID'];
+    modalRef.componentInstance.employeeID = employeeID;
+    modalRef.componentInstance.projects = this.projects;
+    modalRef.componentInstance.employees = this.employees;
 
-  updateFileTable() {
-    if (this.tb_projectSurveyFile) {
-      // Lấy dữ liệu hiện tại trong bảng
-      const currentData = this.tb_projectSurveyFile.getData();
-
-      // Lọc file chưa bị xóa
-      const activeFiles = this.fileListResult.filter(
-        (file: any) => !file.isDeleted && !file.IsDeleted
-      );
-
-      // Lọc ra những file chưa tồn tại trong bảng
-      const newFiles = activeFiles.filter((file: any) => {
-        const fileName = file.name || file.FileName;
-        return !currentData.some((row: any) => row.FileName === fileName);
-      });
-
-      // Map thành đúng định dạng bảng
-      const fileData = newFiles.map((file: any) => ({
-        ID: 0,
-        FileName: file.name || file.FileName,
-        ServerPath: file.ServerPath || '',
-        OriginName: file.name || file.OriginName,
-        file: file,
-      }));
-
-      // Chỉ add nếu có dữ liệu mới
-      if (fileData.length > 0) {
-        this.tb_projectSurveyFile.addData(fileData);
+    modalRef.result.catch((reason) => {
+      if (reason == true || reason?.success) {
+        this.getDataProjectSurvey();
       }
-    }
-  }
-  //#endregion
-  //#region Xử lý bảng file
-  drawTbProjectSurveyFile(container: HTMLElement, data: any) {
-    this.tb_projectSurveyFile = new Tabulator(container, {
-      height: '100%',
-      layout: 'fitDataStretch',
-      locale: 'vi',
-      data: data,
-      columns: [
-        {
-          title: '',
-          headerHozAlign: 'center',
-          headerSort: false,
-          formatter: (cell) => {
-            const data = cell.getRow().getData();
-            let isDeleted = data['IsDeleted'];
-            return !isDeleted && data['ID'] <= 0
-              ? `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`
-              : '';
-          },
-          cellClick: (e, cell) => {
-            let data = cell.getRow().getData();
-            let id = data['ID'];
-            let fileName = data['FileName'];
-            if (id > 0) return;
-            this.modal.confirm({
-              nzTitle: `Bạn có chắc chắn muốn xóa file`,
-              nzContent: `${fileName}?`,
-              nzOkText: 'Xóa',
-              nzOkType: 'primary',
-              nzCancelText: 'Hủy',
-              nzOkDanger: true,
-              nzOnOk: () => {
-                if (id > 0) {
-                  if (!this.fileDeletedIds.includes(id))
-                    this.fileDeletedIds.push(id);
-                  this.tb_projectSurveyFile.deleteRow(cell.getRow());
-                } else {
-                  this.fileListResult = this.fileListResult.filter(
-                    (f) => f.name !== fileName
-                  );
-                  this.tb_projectSurveyFile.deleteRow(cell.getRow());
-                }
-              },
-            });
-          },
-          width: '5px',
-          hozAlign: 'center',
-        },
-        {
-          title: 'Tên file',
-          field: 'FileName',
-          headerHozAlign: 'center',
-          width: '18px',
-        },
-      ],
     });
   }
   //#endregion

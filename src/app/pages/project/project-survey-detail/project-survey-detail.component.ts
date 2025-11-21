@@ -72,15 +72,51 @@ import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
   //#region validate form
   private fb = inject(NonNullableFormBuilder);
+
+  // Custom validator để kiểm tra string không chỉ có khoảng trắng
+  trimRequiredValidator = (control: any) => {
+    if (!control.value || typeof control.value !== 'string') {
+      return { required: true };
+    }
+    if (control.value.trim().length === 0) {
+      return { required: true };
+    }
+    return null;
+  };
+
+  // Custom validator cho số điện thoại (cho phép khoảng trắng, dấu gạch ngang)
+  phoneNumberValidator = (control: any) => {
+    const value = control?.value;
+    if (!value || value.trim().length === 0) {
+      return { required: true };
+    }
+    
+    // Loại bỏ khoảng trắng, dấu gạch ngang, dấu ngoặc để validate
+    const cleanPhone = value.replace(/[\s\-\(\)]/g, '');
+    
+    // Pattern: 0[0-9]{9} hoặc (+84|84)[0-9]{9,10}
+    const phonePattern = /^(0[0-9]{9}|(\+84|84)[0-9]{9,10})$/;
+    
+    if (!phonePattern.test(cleanPhone)) {
+      return { phoneInvalid: true };
+    }
+    
+    return null;
+  };
+
   validateForm = this.fb.group({
     formLayout: this.fb.control<NzFormLayoutType>('vertical'),
     projectId: this.fb.control('', [Validators.required]),
     leaderId: this.fb.control(''),
     reasonUrgent: this.fb.control(''),
-    address: this.fb.control('', [Validators.required]),
-    customerName: this.fb.control('', [Validators.required]),
-    customerPhoneNum: this.fb.control('', [Validators.required]),
-    descripsion: this.fb.control('', [Validators.required]),
+    address: this.fb.control('', [Validators.required, this.trimRequiredValidator]),
+    customerName: this.fb.control('', [Validators.required, this.trimRequiredValidator]),
+    customerPhoneNum: this.fb.control('', [this.phoneNumberValidator]),
+    descripsion: this.fb.control('', [Validators.required, this.trimRequiredValidator]),
+    dateStart: this.fb.control(DateTime.local().plus({ day: 1 }).toISO()),
+    dateEnd: this.fb.control(DateTime.local().plus({ day: 1 }).toISO()),
+    note: this.fb.control(''),
+    isUrgent: this.fb.control(false),
   });
 
   //#endregion
@@ -98,6 +134,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
 
   @Input() projectSurveyId: any = 0;
   @Input() projectId: any = 0;
+  @Input() isEdit: any = 0;
 
   @ViewChild('tb_projectSurveyFile', { static: false })
   tb_projectSurveyFileContainer!: ElementRef;
@@ -106,9 +143,6 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
 
   tb_projectSurveyFile: any;
   tb_projectSurveyDetail: any;
-
-  dateStart: any = DateTime.local().plus({ day: 1 }).toISO();
-  dateEnd: any = DateTime.local().plus({ day: 1 }).toISO();
 
   isAdmin: boolean = false;
   projects: any;
@@ -121,17 +155,8 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
   saleId: any;
   technicalId: any;
   pmId: any;
-  leaderId: any;
   userRequestId: any;
   statusId: any;
-
-  isUrgent: boolean = false;
-  reasonUrgent: any;
-  address: any;
-  customerName: any;
-  customerPhoneNum: any;
-  note: any;
-  descripsion: any;
 
   fileList: any[] = [];
   fileDeletedIds: any[] = [];
@@ -165,9 +190,22 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
     this.getEmployees();
     this.getUserTeams();
     this.getFileDetail();
-    this.getDetail();
-    this.onUrgentChange(this.isUrgent);
     this.getCurrentUser();
+    this.getDetail();
+    this.onUrgentChange(this.validateForm.get('isUrgent')?.value || false);
+
+    // Subscribe to projectId changes
+    this.validateForm.get('projectId')?.valueChanges.subscribe((value) => {
+      if (value) {
+        this.projectId = value;
+        this.getDataByProjectId();
+      }
+    });
+
+    // Subscribe to isUrgent changes
+    this.validateForm.get('isUrgent')?.valueChanges.subscribe((value) => {
+      this.onUrgentChange(value || false);
+    });
   }
   getCurrentUser(){
     this.authService.getCurrentUser().subscribe({
@@ -266,15 +304,31 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
     this.tb_projectSurveyFile = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
       height: '30vh',
-      layout: 'fitDataStretch',
+      layout: 'fitColumns',
       locale: 'vi',
-      rowHeader:false,
-      pagination:false,
+      rowHeader: false,
+      pagination: false,
+      data: this.fileList.map((file: any) => ({
+        ID: file.ID || 0,
+        FileName: file.name || file.FileName,
+        ServerPath: file.ServerPath || '',
+        OriginName: file.name || file.OriginName,
+        File: file.originFile || file.File,
+        file: file,
+      })),
       columns: [
         {
           title: '',
-          headerHozAlign: 'center',
+          field: 'actions',
+          hozAlign: 'center',
+          width: 40,
+          frozen: true,
           headerSort: false,
+          titleFormatter: () =>
+            `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm file"></i></div>`,
+          headerClick: () => {
+            this.openFileSelector();
+          },
           formatter: (cell) => {
             const data = cell.getRow().getData();
             let isDeleted = data['IsDeleted'];
@@ -283,38 +337,46 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
               : '';
           },
           cellClick: (e, cell) => {
-            let data = cell.getRow().getData();
-            let id = data['ID'];
-            let fileName = data['FileName'];
-            this.modal.confirm({
-              nzTitle: `Bạn có chắc chắn muốn xóa file`,
-              nzContent: `${fileName}?`,
-              nzOkText: 'Xóa',
-              nzOkType: 'primary',
-              nzCancelText: 'Hủy',
-              nzOkDanger: true,
-              nzOnOk: () => {
-                if (id > 0) {
-                  if (!this.fileDeletedIds.includes(id))
-                    this.fileDeletedIds.push(id);
-                  this.tb_projectSurveyFile.deleteRow(cell.getRow());
-                } else {
-                  this.fileList = this.fileList.filter(
-                    (f) => f.name !== fileName
+            if ((e.target as HTMLElement).classList.contains('fas')) {
+              const row = cell.getRow();
+              const rowData = row.getData();
+              const id = rowData['ID'];
+              const fileName = rowData['FileName'];
+
+              this.modal.confirm({
+                nzTitle: 'Xác nhận xóa',
+                nzContent: `Bạn có chắc chắn muốn xóa file "${fileName}"?`,
+                nzOkText: 'Đồng ý',
+                nzCancelText: 'Hủy',
+                nzOkDanger: true,
+                nzOnOk: () => {
+                  if (id > 0) {
+                    if (!this.fileDeletedIds.includes(id)) {
+                      this.fileDeletedIds.push(id);
+                    }
+                  }
+                  
+                  // Xóa khỏi fileList
+                  const index = this.fileList.findIndex(
+                    (f) => f.name === fileName || f.FileName === fileName
                   );
-                  this.tb_projectSurveyFile.deleteRow(cell.getRow());
-                }
-              },
-            });
+                  if (index > -1) {
+                    this.fileList.splice(index, 1);
+                  }
+                  
+                  row.delete();
+                },
+              });
+            }
           },
-          width: '5px',
-          hozAlign: 'center',
         },
         {
           title: 'Tên file',
           field: 'FileName',
           headerHozAlign: 'center',
-          width: '18px',
+          hozAlign: 'left',
+          widthGrow: 1,
+          formatter: 'textarea',
         },
       ],
     });
@@ -434,8 +496,8 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
             const val = cell.getValue();
             console.log(this.dictLeader);
             return val
-              ? `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${this.dictLeader[val]}</p> <i class="fas fa-angle-down"></i> <div>`
-              : '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">Chọn leader</p> <i class="fas fa-angle-down"></i> <div>';
+              ? `<div class="d-flex justify-content-between align-items-center" style="width: 100%; min-width: 100%; box-sizing: border-box;"><p class="m-0" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${this.dictLeader[val]}</p> <i class="fas fa-angle-down" style="flex-shrink: 0; margin-left: 8px;"></i></div>`
+              : '<div class="d-flex justify-content-between align-items-center" style="width: 100%; min-width: 100%; box-sizing: border-box;"><p class="m-0" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Chọn leader</p> <i class="fas fa-angle-down" style="flex-shrink: 0; margin-left: 8px;"></i></div>';
           },
           width: 250,
         },
@@ -484,7 +546,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
 
     if (value) {
       leaderCtrl?.setValidators([Validators.required]);
-      reasonUrgentCtrl?.setValidators([Validators.required]);
+      reasonUrgentCtrl?.setValidators([Validators.required, this.trimRequiredValidator]);
     } else {
       leaderCtrl?.clearValidators();
       reasonUrgentCtrl?.clearValidators();
@@ -536,15 +598,108 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
       );
   
       const fileData = activeFiles.map((file: any, index: number) => ({
-        ID: 0,
+        ID: file.ID || 0,
         FileName: file.name || file.FileName,
         ServerPath: file.ServerPath || '',
         OriginName: file.name || file.OriginName,
+        File: file.originFile || file.File,
         file: file,
       }));
       
       this.tb_projectSurveyFile.addData(fileData);
     }
+  }
+
+  openFileSelector() {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.multiple = true;
+    fileInput.style.display = 'none';
+
+    fileInput.addEventListener('change', (event: Event) => {
+      const target = event.target as HTMLInputElement;
+      const files = target.files;
+      if (!files || files.length === 0) return;
+
+      Array.from(files).forEach((file) => {
+        // Check duplicate
+        const isDuplicate = this.fileList.some(f => 
+          f.name === file.name && f.size === file.size
+        );
+        
+        if (isDuplicate) {
+          console.warn('File đã tồn tại:', file.name);
+          return;
+        }
+
+        const newFile = {
+          uid: Math.random().toString(36).substring(2) + Date.now(),
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          status: 'new',
+          originFile: file,
+          FileName: file.name,
+          ServerPath: '',
+          OriginName: file.name,
+          File: file,
+        };
+
+        this.fileList = [...this.fileList, newFile];
+        this.updateFileTable();
+      });
+    });
+
+    document.body.appendChild(fileInput);
+    fileInput.click();
+    setTimeout(() => document.body.removeChild(fileInput), 100);
+  }
+
+  getSubPath(): string {
+    if (this.projects != null && this.projects.length > 0) {
+      const project = this.projects.find((p: any) => p.ID === this.projectId);
+      if (project && project.CreatedDate && project.ProjectCode) {
+        const year = new Date(project.CreatedDate).getFullYear();
+        return `${year}\\${project.ProjectCode}\\TaiLieuChung\\ThongTinKhaoSat`;
+      }
+    }
+    return '';
+  }
+
+  prepareFileData(): any[] {
+    const fileData: any[] = [];
+    
+    // Xử lý file đã có (có ID) - file đã tồn tại trên server
+    this.fileList.forEach((file: any) => {
+      if (!file) return;
+      
+      if (file.ID && file.ID > 0) {
+        // File đã tồn tại, cần update
+        fileData.push({
+          ID: file.ID,
+          FileName: file.FileName || file.name || file.OriginName || '',
+          OriginPath: file.OriginName || file.name || file.FileName || '',
+          ServerPath: file.ServerPath || '',
+          ProjectSurveyID: this.projectSurveyId || 0,
+        });
+      } else if (file.ServerPath) {
+        // File mới đã upload, có ServerPath, cần create
+        fileData.push({
+          ID: 0,
+          FileName: file.FileName || file.name || file.OriginName || '',
+          OriginPath: file.OriginName || file.name || file.FileName || '',
+          ServerPath: file.ServerPath,
+          ProjectSurveyID: this.projectSurveyId || 0,
+        });
+      }
+      // File mới chưa upload (không có ServerPath) sẽ không được thêm vào
+      // Vì đã được upload ở bước trước
+    });
+
+    // Xử lý file đã bị xóa - API sẽ set IsDeleted = true
+    // Không cần thêm vào fileData, chỉ cần có trong deletedFiles
+
+    return fileData;
   }
   //#endregion
   //#region Xử lý select leader
@@ -581,6 +736,10 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
   ) {
     return (cell: any, onRendered: any, success: any, cancel: any) => {
       const container = document.createElement('div');
+      container.style.width = '100%';
+      container.style.minWidth = '100%';
+      container.style.boxSizing = 'border-box';
+      
       const componentRef = createComponent(component, {
         environmentInjector: injector,
       });
@@ -601,6 +760,17 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
         if (container.firstElementChild) {
           (container.firstElementChild as HTMLElement).focus();
         }
+        // Set width cho dropdown sau khi render
+        setTimeout(() => {
+          const cellElement = cell.getElement();
+          if (cellElement) {
+            const cellWidth = cellElement.offsetWidth;
+            const dropdown = document.querySelector('.leader-select-dropdown') as HTMLElement;
+            if (dropdown) {
+              dropdown.style.minWidth = cellWidth + 'px';
+            }
+          }
+        }, 100);
       });
 
       return container;
@@ -617,34 +787,42 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
         next: (response: any) => {
           let data = response.data;
           if (data) {
-            this.leaderId = data.ApprovedUrgentID;
-            this.isUrgent = data.IsUrgent == 0 ? false : true;
-            this.reasonUrgent = data.ReasonUrgent;
-            this.address = data.Address;
-            this.customerName = data.PIC;
-
-            this.dateStart = data.DateStart
+            const dateStart = data.DateStart
               ? DateTime.fromISO(data.DateStart)
                   .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
                   .toUTC()
                   .toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
               : DateTime.local().plus({ day: 1 }).toISO();
-            this.dateEnd = data.DateEnd
+            const dateEnd = data.DateEnd
               ? DateTime.fromISO(data.DateEnd)
                   .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
                   .toUTC()
                   .toFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
               : DateTime.local().plus({ day: 1 }).toISO();
 
-            this.descripsion = data.Description;
-            this.note = data.Note;
-            this.customerPhoneNum = data.PhoneNumber;
+            this.validateForm.patchValue({
+              projectId: this.projectId || '',
+              leaderId: data.ApprovedUrgentID || '',
+              reasonUrgent: data.ReasonUrgent || '',
+              address: data.Address || '',
+              customerName: data.PIC || '',
+              customerPhoneNum: data.PhoneNumber || '',
+              descripsion: data.Description || '',
+              dateStart: dateStart,
+              dateEnd: dateEnd,
+              note: data.Note || '',
+              isUrgent: data.IsUrgent == 0 ? false : true,
+            });
 
+            // Giữ các biến riêng cho các trường không có trong form
             this.userRequestId = data.EmployeeID;
             this.isDisSave =
-              data.EmployeeID == this.projectService.GlobalEmployeeId ||
+              data.EmployeeID == this.currentUser.ID ||
               this.projectSurveyId <= 0 ||
-              !this.projectService.ISADMIN;
+              !this.currentUser.isAdmin;
+
+            // Trigger validation cho isUrgent
+            this.onUrgentChange(this.validateForm.get('isUrgent')?.value || false);
           }
         },
         error: (error) => {
@@ -662,7 +840,26 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
       };
       this.projectService.getFileDetail(data).subscribe({
         next: (response: any) => {
-          this.tb_projectSurveyFile.setData(response.data);
+          if (response.data && Array.isArray(response.data)) {
+            // Map dữ liệu từ server vào fileList
+            this.fileList = response.data.map((file: any) => ({
+              uid: Math.random().toString(36).substring(2) + Date.now(),
+              name: file.FileName || file.FileNameOrigin || '',
+              size: 0,
+              type: '',
+              status: 'done',
+              originFile: null,
+              FileName: file.FileName || file.FileNameOrigin || '',
+              ServerPath: file.ServerPath || '',
+              OriginName: file.FileNameOrigin || file.FileName || '',
+              ID: file.ID || 0,
+            }));
+            
+            // Cập nhật bảng
+            if (this.tb_projectSurveyFile) {
+              this.updateFileTable();
+            }
+          }
         },
         error: (error) => {
           console.error('Lỗi:', error);
@@ -674,25 +871,46 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
 
   //#region Lấy các trường thông tin khảo sát ứng với dự án
   getDataByProjectId() {
-    if (this.projectId > 0) {
-      let data = this.projects.find((p: any) => p.ID === this.projectId);
-      this.saleId = data.UserID;
-      this.technicalId = data.UserTechnicalID;
-      this.statusId = data.ProjectStatus;
-      this.pmId = data.ProjectManager;
-      this.customerId = data.CustomerID;
-      this.endUserId = data.EndUser;
+    const projectIdValue = this.validateForm.get('projectId')?.value || this.projectId || 0;
+    if (projectIdValue > 0) {
+      let data = this.projects.find((p: any) => p.ID === projectIdValue);
+      if (data) {
+        this.saleId = data.UserID;
+        this.technicalId = data.UserTechnicalID;
+        this.statusId = data.ProjectStatus;
+        this.pmId = data.ProjectManager;
+        this.customerId = data.CustomerID;
+        this.endUserId = data.EndUser;
+      }
     }
     this.getTbDetail();
   }
   //#endregion
 
+  //#region Validation methods
+  // Tự động trim tất cả string controls trước khi validate
+  private trimAllStringControls() {
+    Object.keys(this.validateForm.controls).forEach(k => {
+      const c = this.validateForm.get(k);
+      const v = c?.value;
+      if (typeof v === 'string') {
+        c!.setValue(v.trim(), { emitEvent: false });
+      }
+    });
+  }
+  //#endregion
+
   //#region Lưu thông tin khảo sát dự án
   save(): void {
+    // Trim tất cả string controls trước khi validate
+    this.trimAllStringControls();
+    
     if (this.validateForm.valid) {
+      const formValue = this.validateForm.getRawValue();
+      if(this.isEdit == 0){
       let dateNow = DateTime.local();
-      let ds = DateTime.fromJSDate(new Date(this.dateStart));
-      let de = DateTime.fromJSDate(new Date(this.dateEnd));
+      let ds = DateTime.fromJSDate(new Date(formValue.dateStart));
+      let de = DateTime.fromJSDate(new Date(formValue.dateEnd));
 
       if (ds > de) {
         this.notification.error(NOTIFICATION_TITLE.error,
@@ -717,8 +935,9 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
         );
         return;
       }
+    
 
-      if (this.isUrgent == false) {
+      if (formValue.isUrgent == false) {
         if (timeSpan > 1) {
         } else if (timeSpan == 1) {
           const now = new Date();
@@ -728,9 +947,6 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
             this.notification.error(
               'Thông báo',
               `Bạn phải đăng ký trước 17h!`,
-              {
-                nzStyle: { fontSize: '0.75rem' },
-              }
             );
             return;
           }
@@ -745,6 +961,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
           return;
         }
       }
+    }
 
       let prjTypeLinks = this.projectService
         .getSelectedRowsRecursive(this.tb_projectSurveyDetail.getData())
@@ -778,20 +995,20 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
         ID: this.projectSurveyId ?? 0,
         ProjectID: this.projectId,
         EmployeeID: this.userRequestId ?? 0,
-        ApprovedUrgentID: this.leaderId ?? 0,
-        IsUrgent: this.isUrgent,
-        ReasonUrgent: this.reasonUrgent ?? '',
-        Address: this.address ?? '',
-        PIC: this.customerName ?? '',
-        DateStart: this.dateStart
-          ? DateTime.fromJSDate(new Date(this.dateStart)).toISO()
+        ApprovedUrgentID: formValue.leaderId ?? 0,
+        IsUrgent: formValue.isUrgent,
+        ReasonUrgent: formValue.reasonUrgent ?? '',
+        Address: formValue.address ?? '',
+        PIC: formValue.customerName ?? '',
+        DateStart: formValue.dateStart
+          ? DateTime.fromJSDate(new Date(formValue.dateStart)).toISO()
           : null,
-        DateEnd: this.dateEnd
-          ? DateTime.fromJSDate(new Date(this.dateEnd)).toISO()
+        DateEnd: formValue.dateEnd
+          ? DateTime.fromJSDate(new Date(formValue.dateEnd)).toISO()
           : null,
-        Description: this.descripsion ?? '',
-        Note: this.note ?? '',
-        PhoneNumber: this.customerPhoneNum ?? '',
+        Description: formValue.descripsion ?? '',
+        Note: formValue.note ?? '',
+        PhoneNumber: formValue.customerPhoneNum ? formValue.customerPhoneNum.replace(/[\s\-\(\)]/g, '') : '',
       };
 
       // Dữ liệu lưu leader detail
@@ -807,42 +1024,50 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
         prjSurveyDetail.push(item);
       }
 
-      let dataSave = {
-        projectSurvey: projectSurvey,
-        projectSurveyDetails: prjSurveyDetail,
-        deletedFiles: this.fileDeletedIds.length > 0 ? this.fileDeletedIds : [],
-      };
-
-      this.projectService.saveProjectSurvey(dataSave).subscribe({
-        next: (response: any) => {
-          if (response.status == 1) {
-            let data = this.projects.find((p: any) => p.ID === this.projectId);
-            if (
-              this.fileList.length > 0 &&
-              data.CreatedDate &&
-              data.ProjectCode
-            ) {
-              let year = new Date(data.CreatedDate).getFullYear();
-              this.saveProjectSurveyFile(response.data, year, data.ProjectCode);
-            } else {
-              this.notification.success(
-                '',
-                this.projectSurveyId > 0
-                  ? 'Đã cập nhật khảo sát dự án!'
-                  : 'Đã thêm mới khảo sát dự án!',
-                {
-                  nzStyle: { fontSize: '0.75rem' },
+      // Upload file mới trước (nếu có) để lấy ServerPath
+      const filesToUpload: File[] = this.fileList
+        .filter((f) => (f.originFile || f.File) && !f.ServerPath)
+        .map((f) => (f.originFile || f.File)!);
+      
+      const subPath = this.getSubPath();
+      
+      // Nếu có file mới cần upload
+      if (filesToUpload.length > 0 && subPath) {
+        this.notification.info('Đang upload', 'Đang tải file lên...');
+        this.projectService.uploadMultipleFiles(filesToUpload, subPath).subscribe({
+          next: (res: any) => {
+            if (res?.data?.length > 0) {
+              // Cập nhật ServerPath vào fileList sau khi upload thành công
+              let fileIndex = 0;
+              this.fileList.forEach((f) => {
+                if ((f.originFile || f.File) && !f.ServerPath && res.data[fileIndex]) {
+                  f.ServerPath = res.data[fileIndex].FilePath;
+                  fileIndex++;
                 }
-              );
-              this.activeModal.dismiss(true);
+              });
             }
+            
+            // Sau khi upload xong, chuẩn bị dữ liệu và save
+            this.saveProjectSurveyData(projectSurvey, prjSurveyDetail);
+          },
+          error: (error: any) => {
+            console.error('Lỗi upload file:', error);
+            this.notification.error(
+              'Thông báo',
+              'Upload file thất bại. Vui lòng thử lại!',
+              {
+                nzStyle: { fontSize: '0.75rem' },
+              }
+            );
           }
-        },
-        error: (error) => {
-          console.error('Lỗi:', error);
-        },
-      });
+        });
+      } else {
+        // Không có file mới, save trực tiếp
+        this.saveProjectSurveyData(projectSurvey, prjSurveyDetail);
+      }
     } else {
+      // Form invalid - mark all as touched để hiển thị lỗi
+      this.validateForm.markAllAsTouched();
       Object.values(this.validateForm.controls).forEach((control) => {
         if (control.invalid) {
           control.markAsDirty();
@@ -853,22 +1078,19 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
   }
   //#endregion
 
-  //#region Lưu file đính kèm
-  saveProjectSurveyFile(
-    projectSurveyId: number,
-    year: number,
-    projectCode: string
-  ): void {
-    const formData = new FormData();
+  //#region Save project survey data (sau khi upload file)
+  saveProjectSurveyData(projectSurvey: any, prjSurveyDetail: any[]): void {
+    // Chuẩn bị dữ liệu file với ServerPath đã có
+    const fileData = this.prepareFileData();
+    
+    let dataSave = {
+      projectSurvey: projectSurvey,
+      projectSurveyDetails: prjSurveyDetail,
+      projectSurveyFiles: fileData,
+      deletedFiles: this.fileDeletedIds.length > 0 ? this.fileDeletedIds : [],
+    };
 
-    this.fileList.forEach((f) => {
-      formData.append('files', f.originFile as File, f.name);
-    });
-
-    formData.append('projectSurveyID', `${projectSurveyId}`);
-    formData.append('year', `${year}`);
-    formData.append('projectCode', projectCode);
-    this.projectService.saveProjectSurveyFiles(formData).subscribe({
+    this.projectService.saveProjectSurvey(dataSave).subscribe({
       next: (response: any) => {
         if (response.status == 1) {
           this.notification.success(
@@ -881,6 +1103,14 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
             }
           );
           this.activeModal.dismiss(true);
+        } else {
+          this.notification.error(
+            'Thông báo',
+            response.message || 'Không thể lưu dữ liệu',
+            {
+              nzStyle: { fontSize: '0.75rem' },
+            }
+          );
         }
       },
       error: (error: any) => {
@@ -890,6 +1120,8 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
       },
     });
   }
+  //#endregion
+
   //#endregion
   //#region xem file đính kèm
   viewFiles(): void {

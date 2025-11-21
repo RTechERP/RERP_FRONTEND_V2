@@ -230,14 +230,21 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
         selectedVersionID = selectedData[0].ID || 0;
       }
     }
-    const payload = {
+    const payload = 
+    {  
       projectID: this.projectId || 0,
       projectWorkerTypeID: this.projectworkertypeID || 0,
       IsApprovedTBP: this.isApprovedTBP || -1,
       IsDeleted: this.isDeleted || 0,
       KeyWord: this.keyword || '',
       versionID: selectedVersionID || 0,
-    };
+  };
+    // "projectID": 0,
+    // "projectWorkerTypeID": 0,
+    // "IsApprovedTBP": true,
+    // "IsDeleted": true,
+    // "KeyWord": "string",
+    // "versionID": 0
     console.log('payload', payload);
     this.projectWorkerService.getProjectWorker(payload).subscribe({
       next: (response: any) => {
@@ -789,9 +796,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
           headerHozAlign: 'center',
           formatter: (cell: any) => {
             const value = cell.getValue();
-            return value === 1
-              ? '<i class="fa fa-check text-success"></i>'
-              : '<i class="fa fa-times text-danger"></i>';
+            return `<input type="checkbox" ${(value === 1 ? 'checked' : '')} onclick="return false;">`;
           },
         },
         {
@@ -801,9 +806,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
           headerHozAlign: 'center',
           formatter: (cell: any) => {
             const value = cell.getValue();
-            return value === true
-              ? '<i class="fa fa-check text-success"></i>'
-              : '<i class="fa fa-times text-danger"></i>';
+            return `<input type="checkbox" ${(value === true ? 'checked' : '')} onclick="return false;">`;
           },
         },
         {
@@ -813,9 +816,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
           headerHozAlign: 'center',
           formatter: (cell: any) => {
             const value = cell.getValue();
-            return value === true
-              ? '<i class="fa fa-check text-success"></i>'
-              : '<i class="fa fa-times text-danger"></i>';
+            return `<input type="checkbox" ${(value === true ? 'checked' : '')} onclick="return false;">`;
           },
         },
         {
@@ -907,9 +908,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
             headerHozAlign: 'center',
             formatter: (cell: any) => {
               const value = cell.getValue();
-              return value === true
-                ? '<i class="fa fa-check text-success" title="Đang sử dụng"></i>'
-                : '<i class="fa fa-times text-danger" title="Không sử dụng"></i>';
+              return `<input type="checkbox" ${(value === true ? 'checked' : '')} onclick="return false;">`;
             },
           },
           {
@@ -1017,9 +1016,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
             width: 90,
             formatter: (cell: any) => {
               const value = cell.getValue();
-              return value === true
-                ? '<i class="fa fa-check text-success" title="Đang sử dụng"></i>'
-                : '<i class="fa fa-times text-danger" title="Không sử dụng"></i>';
+              return `<input type="checkbox" ${(value === true ? 'checked' : '')} onclick="return false;">`;
             },
           },
           {
@@ -1126,9 +1123,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
             visible: false,
             formatter: (cell: any) => {
               const value = cell.getValue();
-              return value === true
-                ? '<i class="fa fa-check text-success" title="Đã duyệt"></i>'
-                : '<i class="fa fa-times text-secondary" title="Chưa duyệt"></i>';
+              return `<input type="checkbox" ${(value === true ? 'checked' : '')} onclick="return false;">`;
             },
           },
           {

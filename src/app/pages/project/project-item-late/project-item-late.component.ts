@@ -183,6 +183,8 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
       ...DEFAULT_TABLE_CONFIG,
       rowHeader:false,
       pagination: true,
+      layout:'fitDataStretch',
+      height: '87vh',
       paginationMode:'local',
       groupBy: 'ProjectCode',
       groupHeader: function (value) {

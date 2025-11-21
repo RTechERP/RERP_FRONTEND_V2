@@ -216,6 +216,7 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
 
   //#region Tìm kiếm
   search() {
+    debugger
     if (this.dataChange) {
       this.projectIdNew = this.projectId;
       this.projectId = this.projectIdOld;
@@ -243,7 +244,7 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
   drawtbEmployeeSuggest(container: HTMLElement) {
     this.tb_employeeSuggest = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
-      layout: 'fitColumns',
+      layout: 'fitDataStretch',
       rowHeader: false,
       pagination: false,
       locale: 'vi',
@@ -344,7 +345,7 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
   drawTbEmployeeMain(container: HTMLElement) {
     this.tb_employeeMain = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
-      layout: 'fitColumns',
+      layout: 'fitDataStretch',
       rowHeader: false,
       pagination: false, 
       locale: 'vi',
@@ -691,8 +692,9 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
           this.notification.success('', 'Đã cập nhật người tham gia dự án!', {
             nzStyle: { fontSize: '0.75rem' },
           });
-          this.projectId = this.projectIdNew;
-          this.search();
+          // this.projectId = this.projectIdNew;
+          // this.search();
+          this.closeModal();
         }
       },
       error: (error: any) => {
@@ -703,4 +705,8 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
     });
   }
   //#endregion
+
+  closeModal() {
+    this.activeModal.dismiss(true);
+  }
 }

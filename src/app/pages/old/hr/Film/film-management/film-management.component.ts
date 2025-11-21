@@ -216,7 +216,7 @@ export class FilmManagementComponent implements OnInit, AfterViewInit {
 onDeleteFilm() {
   const selectedIds = this.getSelectedIds();
   if (!selectedIds || selectedIds.length === 0) {
-    this.notification.warning('Thông báo', 'Vui lòng chọn bản ghi cần xóa');
+    this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn bản ghi cần xóa');
     return;
   }
   this.modal.confirm({
@@ -234,11 +234,11 @@ onDeleteFilm() {
 
       this.filmManagementService.saveData(payload).subscribe({
         next: () => {
-          this.notification.success('Thành công', 'Xóa film thành công!');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Xóa film thành công!');
           this.drawTable();
         },
         error: () => {
-          this.notification.warning('Lỗi', 'Lỗi kết nối máy chủ!');
+          this.notification.warning(NOTIFICATION_TITLE.error, 'Lỗi kết nối máy chủ!');
         }
       });
     }
@@ -248,7 +248,7 @@ onDeleteFilm() {
     const selectedData = this.filmTable?.getSelectedData?.();
     const detailData = this.filmDetailTable?.getData?.();
     if (!selectedData || selectedData.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn mã film cần sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn mã film cần sửa!');
       return;
     }
     const selectedRow = selectedData[0];

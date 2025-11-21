@@ -1,0 +1,8 @@
+.modal-header {
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+}
+
+.ant-form-item {
+    margin-bottom: 12px !important;
+}

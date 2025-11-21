@@ -316,7 +316,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
           this.selectBillImport = res.data;
           console.log('seelct:', this.selectBillImport);
         } else {
-          this.notification.warning('Thông báo', res.message || 'Lỗi');
+          this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Lỗi');
         }
       },
     });
@@ -374,8 +374,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
         next: (res) => {
           console.log('Approval response:', res);
           if (res.status === 1) {
-            this.notification.success(
-              'Thông báo',
+            this.notification.success(NOTIFICATION_TITLE.success,
               res.message || 'Thành công!'
             );
             this.data = [];
@@ -390,7 +389,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
         },
         error: (err) => {
           const errorMsg = err?.error?.message || 'Có lỗi xảy ra!';
-          this.notification.error('Thông báo', errorMsg);
+          this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
         },
       });
     }
@@ -434,7 +433,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu xuất excel!');
       return;
     }
 
@@ -665,7 +664,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
   //xoa phieu nhap
   deleteBillImport() {
     if (!this.data) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn 1 phiếu muốn xóa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn 1 phiếu muốn xóa!');
       return;
     }
     if (this.data[0].Status == true) {
@@ -691,10 +690,10 @@ export class BillImportComponent implements OnInit, AfterViewInit {
         this.billImportService.saveBillImport(payload).subscribe({
           next: (res) => {
             if (res.status === 1) {
-              this.notification.success('Thông báo', 'Xóa thành công!');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Xóa thành công!');
               this.loadDataBillImport();
             } else {
-              this.notification.warning('Thông báo', 'Xóa thất bại!');
+              this.notification.warning(NOTIFICATION_TITLE.warning, 'Xóa thất bại!');
             }
           },
           error: (err: any) => {

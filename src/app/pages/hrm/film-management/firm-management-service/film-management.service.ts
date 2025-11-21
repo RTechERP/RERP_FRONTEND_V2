@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../../../environments/environment';
 // import { HOST } from '../../../../../../app.config';
 
@@ -50,5 +51,16 @@ export class FilmManagementService {
   }
   saveMasterWithDetails(dto: SaveMasterWithDetailsDto): Observable<any> {
     return this.http.post<any>(`${this.url}master-with-details`, dto);
+  }
+  downloadTemplate(fileName: string): Observable<Blob> {
+    const url = `${environment.host1}api/share/software/Template/ImportExcel/${fileName}`;
+    return this.http.get(url, {
+      responseType: 'blob',
+      observe: 'response'
+    }).pipe(
+      map((response: HttpResponse<Blob>) => {
+        return response.body as Blob;
+      })
+    );
   }
 }

@@ -1,0 +1,62 @@
+<ng-container class="w-100">
+    <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-2 px-0">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex gap-2">
+                    <button nz-button nzType="primary" nzSize="small" class="fs-12" style="width: 4vw;"
+                        (click)="saveEmployeeScheduleWork()"> Lưu
+                    </button>
+                    <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="approvedSW(true)">
+                        <img src="assets/icon/action_approved_16.png" alt="Duyệt" />Duyệt
+                    </button>
+                    <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="approvedSW(false)">
+                        <img src="assets/icon/action_unapproved_16.png" alt="Hủy duyệt" />Hủy Duyệt
+                    </button>
+                    <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportToExcel()">
+                        <img src="assets/icon/action_export_excel_16.png" alt="Xuất excel" />Xuất excel
+                    </button>
+                </div>
+
+                <form [formGroup]="searchForm" class="d-flex flex-wrap align-items-center gap-2">
+
+                    <div class="d-flex align-items-center gap-1">
+                        <label class="mb-0">Tháng</label>
+                        <nz-input-number formControlName="month" [nzMin]="1" [nzMax]="12"
+                            nzSize="small"></nz-input-number>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-1">
+                        <label class="mb-0">Năm</label>
+                        <nz-input-number formControlName="year" [nzMin]="1900" [nzMax]="3000"
+                            nzSize="small"></nz-input-number>
+                    </div>
+
+                    <button class="fs-12" nz-button nzType="default" nzSize="small" type="button"
+                        (click)="loadScheduleWork()">
+                        Tìm kiếm
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card-body p-0 position-relative">
+            <div *ngIf="isLoading">
+                <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
+                position: 'absolute',
+                top: '0',
+                left: '0',
+                width: '100%',
+                height: '100%',
+                background: 'rgba(255,255,255,0.4)',
+                zIndex: '999',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }"></nz-spin>
+            </div>
+            <div id="tb_schedule-work"></div>
+        </div>
+
+
+    </div>
+</ng-container>

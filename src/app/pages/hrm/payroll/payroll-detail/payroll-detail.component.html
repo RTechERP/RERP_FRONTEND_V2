@@ -1,0 +1,76 @@
+<div class="modal-dialog-scrollable">
+    <div class="modal-header bg-primary align-items-center">
+        <div class="d-flex align-items-center">
+            <h6 class="text-light text-uppercase m-0 fw-bold">Chi tiết bảng lương</h6>
+            <button type="button" class="btn-close position-absolute end-0 m-3" aria-label="Close" (click)="activeModal.close()"></button>
+        </div>
+    </div>
+
+    <div class="modal-body">
+
+        <form nz-form [formGroup]="validateForm" class="container-fluid">
+
+            <!-- Hàng đầu tiên -->
+            <div nz-row [nzGutter]="12">
+                <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24" class="fw-semibold p-0">
+                            Tháng<span class="text-danger ms-1">*</span>
+                        </nz-form-label>
+                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn tháng!">
+                            <nz-select (nzOnPanelChange)="updateName()" formControlName="_Month" name="_Month"
+                                class="w-100" nzAllowClear nzPlaceHolder="Chọn tháng">
+                                @for (i of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; track
+                                $index) {
+                                <nz-option class="text-center" [nzValue]="i" [nzLabel]="'Tháng ' + i"></nz-option>
+                                }
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24" class="fw-semibold p-0">
+                            Năm<span class="text-danger ms-1">*</span>
+                        </nz-form-label>
+                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng chọn năm!">
+                            <nz-date-picker (nzOnPanelChange)="updateName()" formControlName="Year" nzMode="year"
+                                name="_Year" class="w-100"></nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <div nz-col [nzSpan]="24">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24" class="fw-semibold p-0">
+                            Tên bảng lương <span class="text-danger ms-1">*</span>
+                        </nz-form-label>
+                        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập tên bảng lương!">
+                            <input nz-input formControlName="Name" name="Name" placeholder="Nhập tên bảng lương" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="24">
+                    <nz-form-item>
+                        <nz-form-label [nzSpan]="24" class="fw-semibold p-0">
+                            Ghi chú
+                        </nz-form-label>
+                        <nz-form-control [nzSpan]="24">
+                            <textarea nz-input rows="6" formControlName="Note" name="Note"
+                                placeholder="Nhập ghi chú..."></textarea>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="modal-footer">
+        <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">
+            Đóng
+        </button>
+        <button nz-button nzType="primary" (click)="onSubmit()">
+            Lưu
+        </button>
+    </div>
+</div>

@@ -234,7 +234,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
     if (this.table) {
       this.table.import("xlsx", [".xlsx", ".csv", ".ods"], "buffer");
     } else {
-      this.notification.warning('Thông báo', 'Bảng chưa được khởi tạo!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Bảng chưa được khởi tạo!');
     }
   }
   openFileExplorer() {
@@ -249,7 +249,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       console.log('File đã chọn:', file.name); // Log để kiểm tra
       console.log('Phần mở rộng:', fileExtension); // Log để kiểm tra
       if (fileExtension !== 'xlsx' && fileExtension !== 'xls') {
-        this.notification.warning('Thông báo', 'Vui lòng chọn tệp Excel (.xlsx hoặc .xls)!');
+        this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn tệp Excel (.xlsx hoặc .xls)!');
         input.value = ''; // Xóa input để có thể chọn lại file
         this.resetExcelImportState(); // Reset trạng thái khi có lỗi định dạng
         return;
@@ -310,7 +310,7 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
             }
           } else {
             console.warn('File Excel không chứa bất kỳ sheet nào.'); // Log
-            this.notification.warning('Thông báo', 'File Excel không có sheet nào!');
+            this.notification.warning(NOTIFICATION_TITLE.warning, 'File Excel không có sheet nào!');
             this.resetExcelImportState();
           }
         } catch (error) {
@@ -854,11 +854,11 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
     console.log(`Tổng sản phẩm: ${totalProducts}, Thành công: ${successCount}, Thất bại: ${errorCount}`);
 
     if (errorCount === 0) {
-      this.notification.success('Thông báo', `Đã lưu ${successCount} sản phẩm thành công`);
+      this.notification.success(NOTIFICATION_TITLE.success, `Đã lưu ${successCount} sản phẩm thành công`);
     } else if (successCount === 0) {
       this.notification.error('Thông báo', `Lưu thất bại ${errorCount}/${totalProducts} sản phẩm`);
     } else {
-      this.notification.warning('Thông báo', `Đã lưu ${successCount} sản phẩm thành công, ${errorCount} sản phẩm thất bại`);
+      this.notification.warning(NOTIFICATION_TITLE.warning, `Đã lưu ${successCount} sản phẩm thành công, ${errorCount} sản phẩm thất bại`);
     }
     this.closeExcelModal();
   }

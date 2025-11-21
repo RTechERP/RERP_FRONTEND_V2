@@ -59,7 +59,7 @@ saveAssetType() {
   const type = this.assetType?.trim();
 
   if (!code || !type) {
-    this.notification.warning('Cảnh báo', 'Vui lòng nhập đầy đủ mã và tên loại tài sản');
+    this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập đầy đủ mã và tên loại tài sản');
     return;
   }
 
@@ -76,7 +76,7 @@ saveAssetType() {
   this.typeAssetService.SaveData(payloadType).subscribe({
     next: (res: any) => {
       if (res?.status === 1) {
-        this.notification.success('Thành công', 'Lưu loại tài sản thành công');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Lưu loại tài sản thành công');
         this.loadAssetType();
         this.formSubmitted.emit();
         this.activeModal.close(true);

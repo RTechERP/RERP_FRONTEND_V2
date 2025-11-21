@@ -40,6 +40,7 @@ import { SelectProjectTypeComponent } from '../project-control/select-project-ty
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { filter } from 'rxjs';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 @Component({
   selector: 'app-project-employee',
   imports: [
@@ -125,7 +126,7 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -152,7 +153,7 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -179,7 +180,7 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -202,7 +203,7 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -606,7 +607,7 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
     let employeeMainIds = dataMain.map((row: any) => row.EmployeeID);
     console.log(employeeMainIds);
     if (empolyeeSuggestIds.length <= 0) {
-      this.notification.error('Thông báo', 'Vui lòng chọn nhân viên gợi ý!', {
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn nhân viên gợi ý!', {
         nzStyle: { fontSize: '0.75rem' },
       });
       return;
@@ -644,7 +645,7 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
 
         if (count > 1) {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             `Nhân viên dòng ${stt} đã tồn tại vui lòng kiểm tra lại!`,
             {
               nzStyle: { fontSize: '0.75rem' },
@@ -655,7 +656,7 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
 
         if (!employeeId || employeeId <= 0) {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             `Vui lòng chọn nhân viên dòng ${stt}!`,
             {
               nzStyle: { fontSize: '0.75rem' },
@@ -666,7 +667,7 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
 
         if (!projectTypeId || projectTypeId <= 0) {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             `Vui lòng chọn kiểu dự án dòng ${stt}!`,
             {
               nzStyle: { fontSize: '0.75rem' },
@@ -696,7 +697,7 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });

@@ -412,6 +412,48 @@ export class FilmManagementImportExcelComponent implements OnInit, AfterViewInit
     if (this.tableExcel) this.tableExcel.replaceData([]);
   }
   closeExcelModal() { this.modalService.dismissAll(true); }
+  
+  /* ===== Download Template ===== */
+  downloadTemplate() {
+    const fileName = 'TemplateImportFilm.xlsx';
+    this.filmService.downloadTemplate(fileName).subscribe({
+      next: (blob: Blob) => {
+        // Kiểm tra xem có phải là blob hợp lệ không
+        if (blob && blob.size > 0) {
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          this.notification.success('Thông báo', 'Tải file mẫu thành công!');
+        } else {
+          this.notification.error('Thông báo', 'File tải về không hợp lệ!');
+        }
+      },
+      error: (res: any) => {
+        console.error('Lỗi khi tải file mẫu:', res);
+        // Nếu error response là blob (có thể server trả về lỗi dạng blob)
+        if (res.error instanceof Blob) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const errorText = JSON.parse(reader.result as string);
+              this.notification.error('Thông báo', errorText.message || 'Tải file mẫu thất bại!');
+            } catch {
+              this.notification.error('Thông báo', 'Tải file mẫu thất bại!');
+            }
+          };
+          reader.readAsText(res.error);
+        } else {
+          const errorMsg = res?.error?.message || res?.message || 'Tải file mẫu thất bại. Vui lòng thử lại!';
+          this.notification.error('Thông báo', errorMsg);
+        }
+      }
+    });
+  }
 
   private buildPayloadForApi(startSTT: number): any[] {
     // Gom master theo STT|Ma|DauMuc|YeuCauKetQua

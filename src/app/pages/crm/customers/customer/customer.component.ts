@@ -61,6 +61,7 @@ import { ViewPokhService } from '../../../old/view-pokh/view-pokh/view-pokh.serv
 import { CustomerDetailComponent } from '../customer-detail/customer-detail.component';
 import { CustomerMajorComponent } from '../customer-specialization/customer-major/customer-major.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 // import { CustomerComponent } from '../../customer/customer.component';
 import { AppUserService } from '../../../../services/app-user.service';
@@ -128,7 +129,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     private customerService: CustomerServiceService,
     private viewPokhService: ViewPokhService
-  ) {}
+  ) { }
 
   customerContactData: any[] = [];
   addressStockData: any[] = [];
@@ -172,7 +173,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
           this.filterTeamData = response.data;
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải tệp POKH: ' + response.message
           );
         }
@@ -193,7 +194,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
           this.filterSaleUserData = response.data;
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải tệp POKH: ' + response.message
           );
         }
@@ -231,14 +232,13 @@ export class CustomerComponent implements OnInit, AfterViewInit {
           this.tb_SaleTable.setData(this.employeeSaleData);
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải dữ liệu: ' + response.message
           );
         }
       },
       error: (error) => {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Lỗi kết nối khi tải dữ liệu: ' + error
         );
       },
@@ -265,7 +265,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
           if (this.tb_MainTable) {
             this.tb_MainTable.setData(null, true);
           }
-        }else{
+        } else {
           this.isEditMode = false;
         }
       },
@@ -274,13 +274,13 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       }
     );
   }
-  setDefautSearch(){
+  setDefautSearch() {
     this.filters.keyword = "";
     this.filters.userId = 0;
     this.filters.teamId = 0;
   }
-  closePanel(){
-    this.sizeTbDetail='0';
+  closePanel() {
+    this.sizeTbDetail = '0';
   }
 
   openMajorModal() {
@@ -290,13 +290,27 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       size: 'xl',
     });
     modalRef.result.then(
-      (result) => {},
+      (result) => { },
       (reason) => {
         console.log('Modal closed');
       }
     );
   }
 
+  // onDelete() {
+  //   const selectedRows = this.tb_MainTable?.getSelectedData();
+  //   if (!selectedRows || selectedRows.length === 0) {
+  //     this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một khách hàng để xóa!');
+  //     return;
+  //   }
+  //   const isDeleted = selectedRows.map((item: any) => item.ID);
+
+  //   // Tạo chuỗi tên khách hàng
+  //   let nameDisplay = '';
+  //   selectedRows.forEach((item: any, index: number) => {
+  //     nameDisplay += item.CustomerName + ',';
+  //   }
+  // }
   async exportExcel() {
     this.customerService.exportExcel().subscribe({
       next: (response: Blob) => {
@@ -363,18 +377,18 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         this.customerService.save(payload).subscribe({
           next: (res: any) => {
             if (res?.status === 1) {
-              this.notification.success('Thông báo', 'Xóa thành công');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Xóa thành công');
               this.tb_MainTable.setData(null, true);
             } else {
               this.notification.error(
-                'Lỗi',
+                NOTIFICATION_TITLE.error,
                 res?.message || 'Không thể xóa dữ liệu'
               );
             }
           },
           error: (err: any) => {
             this.notification.error(
-              'Lỗi',
+              NOTIFICATION_TITLE.error,
               err?.message || 'Không thể xóa dữ liệu'
             );
           },
@@ -385,7 +399,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   // onDelete() {
   //   const selectedRows = this.tb_MainTable?.getSelectedData();
   //   if (!selectedRows || selectedRows.length === 0) {
-  //     this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một khách hàng để xóa!');
+  //     this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một khách hàng để xóa!');
   //     return;
   //   }
 
@@ -438,7 +452,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   //             this.notification.success('Thành công', 'Đã xóa khách hàng thành công!');
   //             this.initMainTable();
   //           } else {
-  //             this.notification.warning('Thông báo', 'Không thể xóa một số khách hàng!');
+  //             this.notification.warning(NOTIFICATION_TITLE.warning, 'Không thể xóa một số khách hàng!');
   //           }
   //         })
   //         .catch((err) => {
@@ -452,11 +466,11 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   onEdit(): void {
     const selectedRows = this.tb_MainTable?.getSelectedData();
     if (!selectedRows || selectedRows.length === 0 || selectedRows.length > 1) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn một khách hàng để sửa!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một khách hàng để sửa!');
       return;
     }
     this.selectedId = selectedRows[0].ID;
-    this.isEditMode=true;
+    this.isEditMode = true;
     console.log(this.selectedId);
     this.openModal();
   }
@@ -521,8 +535,8 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       //     resizable: true,
       //   },
       columns: [
-        { title: 'ID', field: 'ID', visible: false ,frozen: true},
-        { title: 'Mã khách', field: 'CustomerCode',frozen: true  },
+        { title: 'ID', field: 'ID', visible: false, frozen: true },
+        { title: 'Mã khách', field: 'CustomerCode', frozen: true },
         { title: 'Tên kí hiệu', field: 'CustomerShortName', frozen: true, },
         {
           title: 'Tên khách',
@@ -567,7 +581,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
         },
       ],
     });
-    this.tb_MainTable.on('dataLoading',()=>{
+    this.tb_MainTable.on('dataLoading', () => {
       this.tb_MainTable.deselectRow();
       this.sizeTbDetail='0';
       this.selectedIds = [];
@@ -585,7 +599,7 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       (e: any, row: RowComponent) => {
         const rowData = row.getData();
         this.selectedId = rowData['ID'];
-        this.isEditMode=true;
+        this.isEditMode = true;
         this.openModal();
       });
     this.tb_MainTable.on('rowClick', (e: any, row: RowComponent) => {

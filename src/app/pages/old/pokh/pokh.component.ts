@@ -67,6 +67,7 @@ import { PokhDetailComponent } from '../pokh-detail/pokh-detail.component';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { PoRequestPriceRtcComponent } from '../po-request-price-rtc/po-request-price-rtc.component';
+import { HistoryMoneyComponent } from '../history-money/history-money.component';
 @Component({
   selector: 'app-pokh',
   imports: [
@@ -124,7 +125,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
     private modalService: NgbModal,
     private notification: NzNotificationService,
     private viewPOKHService: ViewPokhService
-  ) {}
+  ) { }
 
   //#region : Khai báo
   //Khai báo các bảng
@@ -188,11 +189,11 @@ export class PokhComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     const endDate = new Date();
     endDate.setHours(23, 59, 59, 999);
-    
+
     const startDate = new Date();
     startDate.setMonth(endDate.getMonth() - 3);
     startDate.setHours(0, 0, 0, 0);
-    
+
     this.filters.startDate = startDate;
     this.filters.endDate = endDate;
     this.loadPOKH();
@@ -225,17 +226,17 @@ export class PokhComponent implements OnInit, AfterViewInit {
 
       const formatDateToLocalISO = (date: Date, isStartDate: boolean = true): string => {
         const dateCopy = new Date(date);
-        
+
         if (isStartDate) {
           dateCopy.setHours(0, 0, 0, 0);
         } else {
           dateCopy.setHours(23, 59, 59, 999);
         }
-        
+
         const timezoneOffset = dateCopy.getTimezoneOffset();
-        
+
         const adjustedDate = new Date(dateCopy.getTime() - timezoneOffset * 60 * 1000);
-        
+
         return adjustedDate.toISOString();
       };
 
@@ -296,14 +297,13 @@ export class PokhComponent implements OnInit, AfterViewInit {
           this.dataPOTypes = response.data;
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải loại PO: ' + response.message
           );
         }
       },
       error: (error) => {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Lỗi kết nối khi tải loại PO: ' + error
         );
       },
@@ -320,14 +320,13 @@ export class PokhComponent implements OnInit, AfterViewInit {
           this.tb_POKHProduct.setData(this.dataPOKHProduct);
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải chi tiết POKH: ' + response.message
           );
         }
       },
       error: (error) => {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Lỗi kết nối khi tải chi tiết POKH: ' + error
         );
       },
@@ -341,7 +340,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
           this.tb_POKHFile.setData(this.dataPOKHFiles);
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải tệp POKH: ' + response.message
           );
         }
@@ -361,7 +360,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
           this.filterUserData = response.data;
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải tệp POKH: ' + response.message
           );
         }
@@ -381,7 +380,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
           this.filterEmployeeTeamSale = response.data;
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải tệp POKH: ' + response.message
           );
         }
@@ -401,14 +400,13 @@ export class PokhComponent implements OnInit, AfterViewInit {
           this.dataProducts = response.data;
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải sản phẩm: ' + response.message
           );
         }
       },
       error: (error: any) => {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Lỗi kết nối khi tải sản phẩm: ' + error
         );
       },
@@ -507,7 +505,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
           console.log('Upload files thành công');
         },
         error: (error) => {
-          this.notification.error('Thông báo', 'Lỗi upload files: ' + error);
+          this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi upload files: ' + error);
         },
       });
     }
@@ -649,9 +647,8 @@ export class PokhComponent implements OnInit, AfterViewInit {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `PO_${this.selectedId}_${
-      new Date().toISOString().split('T')[0]
-    }.xlsx`;
+    link.download = `PO_${this.selectedId}_${new Date().toISOString().split('T')[0]
+      }.xlsx`;
     link.click();
     window.URL.revokeObjectURL(url);
   }
@@ -779,9 +776,8 @@ export class PokhComponent implements OnInit, AfterViewInit {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `POKH_List_Page_${currentPage}_${
-      new Date().toISOString().split('T')[0]
-    }.xlsx`;
+    link.download = `POKH_List_Page_${currentPage}_${new Date().toISOString().split('T')[0]
+      }.xlsx`;
     link.click();
     window.URL.revokeObjectURL(url);
   }
@@ -800,7 +796,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
             : row.IndexPO,
         RecivedMoneyDate:
           !row.RecivedMoneyDate ||
-          Object.keys(row.RecivedMoneyDate).length === 0
+            Object.keys(row.RecivedMoneyDate).length === 0
             ? null
             : row.RecivedMoneyDate,
         BillDate:
@@ -809,12 +805,12 @@ export class PokhComponent implements OnInit, AfterViewInit {
             : row.BillDate,
         ActualDeliveryDate:
           !row.ActualDeliveryDate ||
-          Object.keys(row.ActualDeliveryDate).length === 0
+            Object.keys(row.ActualDeliveryDate).length === 0
             ? null
             : row.ActualDeliveryDate,
         DeliveryRequestedDate:
           !row.DeliveryRequestedDate ||
-          Object.keys(row.DeliveryRequestedDate).length === 0
+            Object.keys(row.DeliveryRequestedDate).length === 0
             ? null
             : row.DeliveryRequestedDate,
         PayDate:
@@ -850,7 +846,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
         TT: !row.TT || Object.keys(row.TT).length === 0 ? '' : row.TT,
         ProjectPartListID:
           !row.ProjectPartListID ||
-          Object.keys(row.ProjectPartListID).length === 0
+            Object.keys(row.ProjectPartListID).length === 0
             ? 0
             : row.ProjectPartListID,
         Spec: !row.Spec || Object.keys(row.Spec).length === 0 ? '' : row.Spec,
@@ -990,17 +986,17 @@ export class PokhComponent implements OnInit, AfterViewInit {
         }).subscribe({
           next: (response) => {
             if (response.status === 1) {
-              this.notification.success('Thông báo', 'Xóa PO thành công');
+              this.notification.success(NOTIFICATION_TITLE.success, 'Xóa PO thành công');
               this.loadPOKH();
               this.tb_POKH.setData(null, true);
               this.selectedRow = null;
               this.selectedId = 0;
             } else {
-              this.notification.error('Thông báo', 'Có lỗi xảy ra khi xóa PO');
+              this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xóa PO');
             }
           },
           error: (error) => {
-            this.notification.error('Thông báo', 'Có lỗi xảy ra khi xóa PO');
+            this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xóa PO');
             console.error(error);
           },
         });
@@ -1044,6 +1040,36 @@ export class PokhComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
     });
   }
+  openHistoryMoneyModal() {
+    if (!this.selectedId) {
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn POKH cần xem lịch sử tiền về'
+      );
+      return;
+    }
+    const modalRef = this.modalService.open(HistoryMoneyComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+    });
+
+    if (this.selectedRow && this.selectedRow['POCode']) {
+      modalRef.componentInstance.filterText = this.selectedRow['POCode'];
+    }
+
+    modalRef.result.then(
+      (result: any) => {
+        console.log('Modal closed:', result);
+        if (result && result.success) {
+          // Handle success if needed
+        }
+      },
+      (reason: any) => {
+        console.log('Modal dismissed:', reason);
+      }
+    );
+  }
   onFileSelected(event: any) {
     const files = event.target.files;
     if (files && files.length > 0) {
@@ -1052,7 +1078,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
         const fileObj = file as File;
         if (fileObj.size > MAX_FILE_SIZE) {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             `File ${fileObj.name} vượt quá giới hạn dung lượng cho phép (50MB)`
           );
           return;
@@ -1132,7 +1158,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
   }
   openPORequestBuyModal() {
     if (!this.selectedId) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn POKH trước!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn POKH trước!');
       return;
     }
 
@@ -1186,7 +1212,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
   drawPOKHTable(): void {
     this.tb_POKH = new Tabulator(this.tb_POKHElement.nativeElement, {
       layout: 'fitDataFill',
-      height: '87vh',
+      height: '100%',
       selectableRows: 1,
       pagination: true,
       paginationMode: 'remote',
@@ -1403,7 +1429,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
       dataTreeStartExpanded: true,
       pagination: true,
       paginationSize: 10,
-      height: '55vh',
+      height: '100%',
       movableColumns: true,
       resizableRows: true,
       langs: {
@@ -1739,7 +1765,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
     this.tb_POKHFile = new Tabulator(this.tb_POKHFileElement.nativeElement, {
       data: this.dataPOKHFiles,
       layout: 'fitDataFill',
-      height: '29vh',
+      height: '100%',
       movableColumns: true,
       resizableRows: true,
       columns: [

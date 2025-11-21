@@ -29,6 +29,7 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { DateTime } from 'luxon';
 import { ListProductProjectService } from './list-product-project-service/list-product-project.service';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 @Component({
   selector: 'app-list-product-project',
@@ -102,7 +103,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
         },
         error: (err) => {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Có lỗi xảy ra khi lấy sản phẩm theo dự án'
           );
         },
@@ -114,7 +115,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
         this.cbbProject = res.data;
       },
       error: (err) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dự án');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy dự án');
       },
     });
   }
@@ -126,7 +127,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu xuất excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu xuất excel!');
       return;
     }
 

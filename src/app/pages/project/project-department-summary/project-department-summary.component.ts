@@ -55,6 +55,7 @@ import { ProjectWorkPropressComponent } from '../project-work-propress/project-w
 import { WorkItemComponent } from '../work-item/work-item.component';
 import { ProjectWorkerComponent } from './project-department-summary-form/project-woker/project-worker.component';
 import { ProjectPartListComponent } from './project-department-summary-form/project-part-list/project-part-list.component';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 @Component({
   selector: 'app-project-new',
   standalone: true,
@@ -226,7 +227,7 @@ getUserTeam() {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });

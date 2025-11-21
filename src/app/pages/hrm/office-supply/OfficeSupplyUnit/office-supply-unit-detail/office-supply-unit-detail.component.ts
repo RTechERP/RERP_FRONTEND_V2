@@ -12,6 +12,7 @@ import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { FormGroup, FormControl } from '@angular/forms';
 import { EventEmitter } from '@angular/core';
 import { Output } from '@angular/core';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 interface newOfficeSupplyUnit {
   ID?: number;
   Name: string;
@@ -80,7 +81,7 @@ private trimAllStringControls() {
         c.markAsTouched();
         c.updateValueAndValidity({ onlySelf: true });
       });
-      this.notification.warning('Cảnh báo', 'Vui lòng điền đủ thông tin bắt buộc');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đủ thông tin bắt buộc');
       return;
     }
 
@@ -95,10 +96,10 @@ private trimAllStringControls() {
       next: (res: any) => {
         if (res?.status === 1) {
           if (this.isCheckmode) {
-            this.notification.success('Thông báo', 'Cập nhật thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công!');
             this.activeModal.close('success');
           } else {
-            this.notification.success('Thông báo', 'Thêm thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Thêm thành công!');
             this.reloadData.emit();
             this.selectedItem = null;
 
@@ -112,7 +113,7 @@ private trimAllStringControls() {
         }
       },
       error: (res: any) =>
-        this.notification.error('Thông báo', res.error?.message || 'Có lỗi xảy ra khi lưu dữ liệu!')
+        this.notification.error(NOTIFICATION_TITLE.error, res.error?.message || 'Có lỗi xảy ra khi lưu dữ liệu!')
     });
   }
 

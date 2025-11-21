@@ -748,7 +748,7 @@ export class BillExportDetailComponent
         this.dataCbbSupplier = Array.isArray(res?.data) ? res.data : [];
       },
       error: (err: any) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy dữ liệu');
       },
     });
   }
@@ -759,7 +759,7 @@ export class BillExportDetailComponent
         this.dataCbbUser = Array.isArray(res?.data) ? res.data : [];
       },
       error: (err: any) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy dữ liệu');
       },
     });
   }
@@ -770,7 +770,7 @@ export class BillExportDetailComponent
         this.dataCbbSender = Array.isArray(res?.data) ? res.data : [];
       },
       error: (err: any) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy dữ liệu');
       },
     });
   }
@@ -781,7 +781,7 @@ export class BillExportDetailComponent
         this.dataCbbAdressStock = res.data;
       },
       error: (err: any) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy dữ liệu');
       },
     });
   }
@@ -795,7 +795,7 @@ export class BillExportDetailComponent
         console.log('dataCbbCustomer:', this.dataCbbCustomer);
       },
       error: () => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy dữ liệu');
       },
     });
   }
@@ -836,7 +836,7 @@ export class BillExportDetailComponent
         this.dataCbbProductGroup = Array.isArray(res?.data) ? res.data : [];
       },
       error: (err: any) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy dữ liệu');
       },
     });
   }
@@ -1228,7 +1228,7 @@ export class BillExportDetailComponent
                 const type = 2;
 
                 if (quantity <= 0) {
-                    this.notification.warning('Cảnh báo', 'Vui lòng nhập số lượng xuất lớn hơn 0 trước khi chọn Serial!');
+                    this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập số lượng xuất lớn hơn 0 trước khi chọn Serial!');
                     return;
                 }
 
@@ -1573,7 +1573,7 @@ export class BillExportDetailComponent
       this.billExportService.saveBillExport(payload).subscribe({
         next: (res: any) => {
           if (res.status === 1) {
-            this.notification.success('Thông báo', 'Cập nhật thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công!');
             this.closeModal();
           } else {
             this.notification.warning(
@@ -1632,7 +1632,7 @@ export class BillExportDetailComponent
       this.billExportService.saveBillExport(payload).subscribe({
         next: (res) => {
           if (res.status === 1) {
-            this.notification.success('Thông báo', 'Thêm mới thành công!');
+            this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công!');
             this.closeModal();
           } else {
             this.notification.warning(
@@ -1643,7 +1643,7 @@ export class BillExportDetailComponent
         },
         error: (err: any) => {
           console.error('Save error:', err);
-          this.notification.error('Thông báo', 'Có lỗi xảy ra khi thêm mới!');
+          this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi thêm mới!');
         },
       });
     }

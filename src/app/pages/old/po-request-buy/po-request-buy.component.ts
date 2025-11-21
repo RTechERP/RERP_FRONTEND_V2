@@ -55,6 +55,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 
 import { PokhService } from '../pokh/pokh-service/pokh.service';
 import { PoRequestBuyService } from './po-request-buy/po-request-buy.service';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 @Component({
   selector: 'app-po-request-buy',
   imports: [
@@ -118,14 +119,13 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
           this.dataTable.setData(gridData);
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải chi tiết POKH: ' + response.message
           );
         }
       },
       error: (error) => {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Lỗi kết nối khi tải chi tiết POKH: ' + error
         );
       },
@@ -138,14 +138,13 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
           this.dataEmployee = response.data;
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải Employees: ' + response.message
           );
         }
       },
       error: (error) => {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Lỗi kết nối khi tải Employees: ' + error
         );
       },
@@ -158,14 +157,13 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
           this.dataDepartment = response.data;
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             'Lỗi khi tải Departments: ' + response.message
           );
         }
       },
       error: (error) => {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           'Lỗi kết nối khi tải Departments: ' + error
         );
       },
@@ -209,12 +207,12 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
   }
   saveData(): void {
     if (!this.selectedEmployee) {
-      this.notification.error('Thông báo', 'Vui lòng chọn người yêu cầu!');
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn người yêu cầu!');
       return;
     }
     if (!this.selectedRows || this.selectedRows.length === 0) {
       this.notification.error(
-        'Thông báo',
+       NOTIFICATION_TITLE.error,
         'Vui lòng chọn ít nhất một sản phẩm!'
       );
       return;
@@ -250,11 +248,11 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
           );
           this.closeModal();
         } else {
-          this.notification.error('Thông báo', res?.message || 'Lưu thất bại!');
+          this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Lưu thất bại!');
         }
       },
       error: (err) => {
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lưu dữ liệu!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lưu dữ liệu!');
       },
     });
   }

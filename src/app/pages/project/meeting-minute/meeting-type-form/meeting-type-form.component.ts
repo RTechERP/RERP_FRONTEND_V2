@@ -44,6 +44,7 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { MeetingMinuteComponent } from '../meeting-minute.component';
 import { MeetingMinuteService } from '../meeting-minute-service/meeting-minute.service';
 import { NzFormModule } from 'ng-zorro-antd/form';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 interface MeetingType {
   GroupID: number;
@@ -160,16 +161,16 @@ export class MeetingTypeFormComponent implements OnInit, AfterViewInit {
     this.meetingminuteService.saveDataMeetingType(payload).subscribe({
       next: (res) => {
         if (res.status === 1) {
-          this.notification.success('Thông báo', 'Lưu dữ liệu thành công!');
+          this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công!');
           this.closeModal();
         }else if(res.status === 2) {
-          this.notification.warning('Thông báo', 'Mã loại cuộc họp đã tồn tại!');
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Mã loại cuộc họp đã tồn tại!');
         } else {
-          this.notification.warning('Thông báo', 'Không thể thêm mới!');
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Không thể thêm mới!');
         }
       },
       error: (err) => {
-        this.notification.error('Thông báo', err.message || 'Có lỗi xảy ra khi thêm mới!');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi thêm mới!');
         console.error(err);
       },
     });

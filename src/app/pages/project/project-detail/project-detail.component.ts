@@ -39,6 +39,7 @@ import { CustomerDetailComponent } from '../../crm/customers/customer-detail/cus
 import { FirmBaseDetailComponent } from '../firmbase-detail/firm-base-detail.component';
 // THÊM DÒNG NÀY:
 import { combineLatest, debounceTime, distinctUntilChanged, filter } from 'rxjs';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-project-detail',
@@ -258,7 +259,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -275,7 +276,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -305,7 +306,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -318,7 +319,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -331,7 +332,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -344,7 +345,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -396,7 +397,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
         },
         error: (error: any) => {
           const msg = error.message || 'Lỗi không xác định';
-          this.notification.error('Thông báo', msg);
+          this.notification.error(NOTIFICATION_TITLE.error, msg);
           console.error('Lỗi:', error.error);
         },
       });
@@ -469,7 +470,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
         },
         error: (error: any) => {
           const msg = error.message || 'Lỗi không xác định';
-          this.notification.error('Thông báo', msg);
+          this.notification.error(NOTIFICATION_TITLE.error, msg);
           console.error('Lỗi:', error.error);
         },
       });
@@ -522,7 +523,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
           },
           error: (error: any) => {
             const msg = error.message || 'Lỗi không xác định';
-            this.notification.error('Thông báo', msg);
+            this.notification.error(NOTIFICATION_TITLE.error, msg);
             console.error('Lỗi:', error.error);
           },
         });
@@ -577,7 +578,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -590,7 +591,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -608,7 +609,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
         },
         error: (error: any) => {
           const msg = error.message || 'Lỗi không xác định';
-          this.notification.error('Thông báo', msg);
+          this.notification.error(NOTIFICATION_TITLE.error, msg);
           console.error('Lỗi:', error.error);
         },
       });
@@ -623,7 +624,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -646,7 +647,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
         },
         error: (error: any) => {
           const msg = error.message || 'Lỗi không xác định';
-          this.notification.error('Thông báo', msg);
+          this.notification.error(NOTIFICATION_TITLE.error, msg);
           console.error('Lỗi:', error.error);
         },
       });
@@ -674,7 +675,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
           },
           error: (error: any) => {
             const msg = error.message || 'Lỗi không xác định';
-            this.notification.error('Thông báo', msg);
+            this.notification.error(NOTIFICATION_TITLE.error, msg);
             console.error('Lỗi:', error.error);
           },
         });
@@ -817,7 +818,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -876,7 +877,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -937,7 +938,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -1024,7 +1025,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -1211,7 +1212,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       isValid = false;
     }
     if (!isValid) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn dự án và trạng thái!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn dự án và trạng thái!');
     }
     
     return isValid;

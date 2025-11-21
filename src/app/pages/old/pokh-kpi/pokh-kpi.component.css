@@ -1,3 +1,87 @@
 .ant-splitter {
-    height: 88vh !important;
+    height: 93vh !important;
   }
+
+/* Đảm bảo các splitter panel có height 100% */
+:host ::ng-deep .ant-splitter-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Đảm bảo các card trong splitter panel có height 100% */
+:host ::ng-deep .ant-splitter-panel .card {
+  min-height: 0;
+}
+
+/* Đảm bảo các card-body có thể scroll */
+:host ::ng-deep .ant-splitter-panel .card-body {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Hiển thị màu trong phần selected item của combobox */
+::ng-deep .status-select .ant-select-selector {
+  position: relative;
+}
+
+::ng-deep .status-select .ant-select-selection-item {
+  position: relative;
+  padding-left: 28px !important;
+}
+
+::ng-deep .status-select .ant-select-selection-item::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  z-index: 1;
+}
+
+/* Màu cho từng trạng thái trong selected item */
+::ng-deep .status-select.status-0 .ant-select-selection-item::before {
+  background-color: rgb(255, 255, 0);
+}
+
+::ng-deep .status-select.status-1 .ant-select-selection-item::before {
+  background-color: transparent;
+}
+
+::ng-deep .status-select.status-2 .ant-select-selection-item::before {
+  background-color: rgb(244, 176, 132);
+}
+
+::ng-deep .status-select.status-3 .ant-select-selection-item::before {
+  background-color: rgb(155, 194, 230);
+}
+
+::ng-deep .status-select.status-4 .ant-select-selection-item::before {
+  background-color: rgb(169, 208, 142);
+}
+
+::ng-deep .status-select.status-5 .ant-select-selection-item::before {
+  background-color: rgb(255, 255, 0);
+}
+
+/* Đảm bảo màu hiển thị rõ trong option của dropdown */
+::ng-deep .status-select .ant-select-item-option-content {
+  display: flex;
+  align-items: center;
+}
+
+::ng-deep .status-select .ant-select-item-option-content span {
+  display: inline-block !important;
+  width: 20px !important;
+  height: 20px !important;
+  margin-right: 8px !important;
+  vertical-align: middle !important;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  flex-shrink: 0;
+}

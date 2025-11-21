@@ -194,6 +194,7 @@ export class DailyReportHrComponent implements OnInit, AfterViewInit {
         ...DEFAULT_TABLE_CONFIG,
         layout: 'fitColumns',
         height: '83vh',
+        paginationMode: 'local',
         reactiveData: true,
         columnDefaults: {
           hozAlign: 'left',

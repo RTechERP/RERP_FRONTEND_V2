@@ -59,7 +59,7 @@ import { CustomerPartService } from '../customer-part/customer-part/customer-par
 import { RequestInvoiceDetailService } from '../request-invoice-detail/request-invoice-detail-service/request-invoice-detail-service.service';
 import { AppUserService } from '../../../services/app-user.service';
 import { BillExportDetailComponent } from '../Sale/BillExport/Modal/bill-export-detail/bill-export-detail.component';
-
+import { NOTIFICATION_TITLE } from '../../../app.config';
 interface BillExportDetail {
   ProductID: number;
   Qty: number;
@@ -201,7 +201,7 @@ export class WarehouseReleaseRequestComponent implements OnInit {
         cell.setValue(Number(value));
 
         if (!Number.isInteger(value)) {
-          this.notification.warning('Thông báo', 'Vui lòng nhập số nguyên');
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập số nguyên');
           cell.setValue(0);
           return;
         }
@@ -868,14 +868,14 @@ export class WarehouseReleaseRequestComponent implements OnInit {
             cell.setValue(Number(value));
 
             if (!Number.isInteger(value)) {
-              this.notification.warning('Thông báo', 'Vui lòng nhập số nguyên');
+              this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập số nguyên');
               cell.setValue(0);
               return;
             }
 
             if (value > quantityRemain) {
               this.notification.error(
-                'Lỗi',
+                NOTIFICATION_TITLE.error,
                 'Số lượng yêu cầu xuất không được lớn hơn số lượng còn lại'
               );
               cell.setValue(0);

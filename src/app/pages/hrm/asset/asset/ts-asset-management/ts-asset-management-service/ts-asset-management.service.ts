@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { HttpParams } from '@angular/common/http';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../../../../../environments/environment';
 // import { HOST } from '../../../../app.config';
 @Injectable({
@@ -37,5 +38,16 @@ export class AssetsManagementService {
   }
   getDepartment(): Observable<any> {
     return this.httpclient.get<any>(this.urlDepartment);
+  }
+  downloadTemplate(fileName: string): Observable<Blob> {
+    const url = `${environment.host1}api/share/software/Template/ImportExcel/${fileName}`;
+    return this.httpclient.get(url, {
+      responseType: 'blob',
+      observe: 'response'
+    }).pipe(
+      map((response: HttpResponse<Blob>) => {
+        return response.body as Blob;
+      })
+    );
   }
 }

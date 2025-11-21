@@ -14,6 +14,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { AppUserService } from '../../../services/app-user.service';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 
+import { NOTIFICATION_TITLE } from '../../../app.config';
 @Component({
   selector: 'app-currency-list',
   templateUrl: './currency-list.component.html',
@@ -188,9 +189,9 @@ export class CurrencyListComponent implements OnInit {
 
   handleCurrencySaved(event: any): void {
     if (event.mode === 'add') {
-      this.notification.success('Thành công', 'Thêm mới thành công');
+      this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công');
     } else {
-      this.notification.success('Thành công', 'Cập nhật thành công');
+      this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật thành công');
     }
     this.loadData();
     this.showForm = false;
@@ -208,7 +209,7 @@ export class CurrencyListComponent implements OnInit {
 
   instance.saved.subscribe((event: { mode: 'add' | 'edit' }) => {
     if (event.mode === 'add') {
-      this.notification.success('Thành công', 'Thêm mới thành công');
+      this.notification.success(NOTIFICATION_TITLE.success, 'Thêm mới thành công');
     }
     this.loadData();
   });
@@ -224,7 +225,7 @@ export class CurrencyListComponent implements OnInit {
   const rowData = this.selectedCurrency || this.currencyTable?.getSelectedData()?.[0];
 
   if (!rowData) {
-    this.notification.warning('Thông báo', 'Vui lòng chọn một tiền tệ để sửa!');
+    this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một tiền tệ để sửa!');
     return;
   }
 
@@ -251,7 +252,7 @@ export class CurrencyListComponent implements OnInit {
 
     if (!selected || selected.length === 0) {
       this.notification.error(
-        'Thông báo',
+       NOTIFICATION_TITLE.error,
         'Vui lòng chọn ít nhất một bản ghi cần xóa!',
         { nzStyle: { fontSize: '0.75rem' } }
       );
@@ -305,7 +306,7 @@ export class CurrencyListComponent implements OnInit {
         ).length;
 
         this.notification.success(
-          'Thông báo',
+          NOTIFICATION_TITLE.success,
           `Đã xóa ${successCount} bản ghi thành công!`,
           { nzStyle: { fontSize: '0.75rem' } }
         );
@@ -314,7 +315,7 @@ export class CurrencyListComponent implements OnInit {
       })
       .catch((error) => {
         this.notification.error(
-          'Lỗi',
+          NOTIFICATION_TITLE.error,
           'Không thể xóa: ' + (error.message || 'Unknown error'),
           { nzStyle: { fontSize: '0.75rem' } }
         );

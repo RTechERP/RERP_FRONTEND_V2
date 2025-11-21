@@ -18,6 +18,7 @@ import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { OfficeSupplyService } from '../office-supply-service/office-supply-service.service';
 import { OfficeSupplyUnitDetailComponent } from '../../OfficeSupplyUnit/office-supply-unit-detail/office-supply-unit-detail.component';
 import { OfficeSupplyUnitService } from '../../OfficeSupplyUnit/office-supply-unit-service/office-supply-unit-service.service';
+import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 interface Product {
   ID?: number;

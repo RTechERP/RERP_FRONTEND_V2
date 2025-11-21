@@ -44,8 +44,8 @@ import {
 } from '@angular/forms';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { AuthService } from '../../../auth/auth.service';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
-
 @Component({
   selector: 'app-project-survey-detail',
   imports: [
@@ -176,7 +176,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
     },
     error: (error: any) => {
       const msg = error.message || 'Lỗi không xác định';
-      this.notification.error('Thông báo', msg);
+      this.notification.error(NOTIFICATION_TITLE.error, msg);
       console.error('Lỗi:', error.error);
     },
   })
@@ -202,7 +202,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -215,7 +215,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -232,7 +232,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -254,7 +254,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -557,7 +557,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -695,8 +695,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
       let de = DateTime.fromJSDate(new Date(this.dateEnd));
 
       if (ds > de) {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           `Ngày bắt đầu phải nhỏ hơn bằng ngày kết thúc!`,
           {
             nzStyle: { fontSize: '0.75rem' },
@@ -710,8 +709,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
         .diff(dateNow.startOf('day'), 'days').days;
 
       if (timeSpan < 1) {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           `Bạn không thể đăng ký trước ngày hiện tại!`,
           {
             nzStyle: { fontSize: '0.75rem' },
@@ -738,7 +736,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
           }
         } else {
           this.notification.error(
-            'Thông báo',
+            NOTIFICATION_TITLE.error,
             `Bạn phải đăng ký trước ít nhất 1 ngày!`,
             {
               nzStyle: { fontSize: '0.75rem' },
@@ -753,8 +751,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
         .filter((row) => row.Selected === true);
 
       if (prjTypeLinks.length == 0) {
-        this.notification.error(
-          'Thông báo',
+        this.notification.error(NOTIFICATION_TITLE.error,
           `Bạn phải chọn ít nhất 1 kiểu dự án đi khảo sát!`,
           {
             nzStyle: { fontSize: '0.75rem' },
@@ -888,7 +885,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
-        this.notification.error('Thông báo', msg);
+        this.notification.error(NOTIFICATION_TITLE.error, msg);
         console.error('Lỗi:', error.error);
       },
     });
@@ -901,7 +898,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
     //   .filter((row: any) => row.ID > 0);
 
     // if (files.length <= 0) {
-    //   this.notification.error('Thông báo', `Dự án chưa có file đính kèm!`, {
+    //   this.notification.error(NOTIFICATION_TITLE.error, `Dự án chưa có file đính kèm!`, {
     //     nzStyle: { fontSize: '0.75rem' },
     //   });
 
@@ -912,7 +909,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
       .getSelectedRowsRecursive(this.tb_projectSurveyDetail.getData())
       .filter((row) => row.selectRow === true);
     if (prjTypeLinks.length != 1) {
-      this.notification.error('Thông báo', `Vui lòng chọn một kiểu khảo sát!`, {
+      this.notification.error(NOTIFICATION_TITLE.error, `Vui lòng chọn một kiểu khảo sát!`, {
         nzStyle: { fontSize: '0.75rem' },
       });
       return;

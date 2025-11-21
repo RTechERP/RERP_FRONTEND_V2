@@ -31,7 +31,8 @@ import { FilmManagementService } from '../film-management-service/film-managemen
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { SelectControlComponent } from '../select-control/select-control.component';
-import { UnitService } from '../../../../ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
+import { NOTIFICATION_TITLE } from '../../../../../../app.config';
+import { UnitService } from '../../../../../hrm/asset/asset/ts-asset-unitcount/ts-asset-unit-service/ts-asset-unit.service';
 @Component({
   standalone: true,
   imports: [
@@ -130,7 +131,7 @@ export class FirmManagementDetailComponent implements OnInit, AfterViewInit {
       },
       error: (err: any) => {
         console.error(err);
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy danh sách phim');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy danh sách phim');
       }
     });
   }
@@ -152,7 +153,7 @@ export class FirmManagementDetailComponent implements OnInit, AfterViewInit {
       },
       error: (err: any) => {
         console.error(err);
-        this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy danh sách dự án');
+        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy danh sách dự án');
         this.unitOption = [];
       },
     });
@@ -311,7 +312,7 @@ export class FirmManagementDetailComponent implements OnInit, AfterViewInit {
       Object.values(this.formDeviceInfo.controls).forEach(c => {
         if (c.invalid) { c.markAsTouched(); c.updateValueAndValidity({ onlySelf: true }); }
       });
-      this.notification.warning('Cảnh báo', 'Vui lòng điền đầy đủ thông tin bắt buộc');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
     }
 
@@ -339,7 +340,7 @@ export class FirmManagementDetailComponent implements OnInit, AfterViewInit {
     };
     this.filmManagementService.saveData(payload).subscribe({
       next: () => {
-        this.notification.success('Thành công', 'Lưu phiếu thành công');
+        this.notification.success(NOTIFICATION_TITLE.success, 'Lưu phiếu thành công');
         this.formSubmitted.emit();
         this.activeModal.close();
       },

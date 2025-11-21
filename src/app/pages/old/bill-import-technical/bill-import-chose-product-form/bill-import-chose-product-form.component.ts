@@ -237,7 +237,7 @@ export class BillImportChoseProductFormComponent implements OnInit, AfterViewIni
     const selectedRows = this.productTable.getSelectedData();
 
     if (selectedRows.length === 0) {
-      this.notification.warning('Thông báo', 'Vui lòng chọn ít nhất một sản phẩm.');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một sản phẩm.');
       return;
     }
     const mappedData = selectedRows.map(row => ({

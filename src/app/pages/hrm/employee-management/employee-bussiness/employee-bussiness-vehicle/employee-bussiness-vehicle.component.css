@@ -1,0 +1,115 @@
+.fs-12 {
+    font-size: 0.75rem;
+  }
+  
+  .reset {
+    all: revert;
+  }
+  
+  .ant-splitter-panel {
+    position: relative;
+  }
+  
+  /* Tabulator font-size 12px */
+  #tb_employee_bussiness_vehicle {
+    font-size: 12px !important;
+  }
+  
+  #tb_employee_bussiness_vehicle.tabulator {
+    font-size: 12px !important;
+  }
+  
+  #tb_employee_bussiness_vehicle .tabulator {
+    font-size: 12px !important;
+  }
+  
+  #tb_employee_bussiness_vehicle .tabulator-table {
+    font-size: 12px !important;
+  }
+  
+  #tb_employee_bussiness_vehicle .tabulator-cell {
+    padding: 0px;
+    font-size: 12px !important;
+  }
+  
+  #tb_employee_bussiness_vehicle .tabulator-cell-content {
+    font-size: 12px !important;
+  }
+  
+  #tb_employee_bussiness_vehicle .tabulator-header {
+    font-size: 12px !important;
+  }
+  
+  #tb_employee_bussiness_vehicle .tabulator-col {
+    font-size: 12px !important;
+  }
+  
+  #tb_employee_bussiness_vehicle .tabulator-col-content {
+    font-size: 12px !important;
+  }
+  
+  #tb_employee_bussiness_vehicle .tabulator-col-title {
+    font-size: 12px !important;
+  }
+  
+  #tb_employee_bussiness_vehicle .tabulator-row {
+    font-size: 12px !important;
+  }
+  
+  #tb_employee_bussiness_vehicle .tabulator-row .tabulator-cell {
+    font-size: 12px !important;
+  }
+  
+  #tb_employee_bussiness_vehicle * {
+    font-size: 12px !important;
+  }
+  
+  .tabulator {
+    font-size: 12px !important;
+    /* position: absolute !important; */
+    width: 100% !important;
+  }
+  
+  .inner-content {
+    padding: 0 !important;
+  }
+  
+  .ant-tabs-tab-btn {
+    font-size: 0.75rem;
+  }
+  :host {
+    font-size: 12px !important;
+  }
+  .navbar-toggler-icon {
+    border-radius: 0 !important;
+      width: 20px;
+    height: 20px;
+    background-size: 20px 20px;
+  }
+  .navbar-toggler {
+    border-radius: 0 !important;
+    padding: 3px 8px;
+  }
+  .navbar-toggler:focus,
+  .navbar-toggler:active,
+  .navbar-toggler:focus-visible {
+    outline: none !important;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1) !important; /* viền nhỏ nhẹ hơn */
+    border-color: transparent !important;
+  }
+  
+  @media (max-width: 768px) {
+    .tabulator,
+    .tabulator-tableholder,
+    .tabulator-tableHolder {
+      overflow-x: auto !important;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-x pan-y;
+    }
+  
+    /* Tránh bảng bị bóp hoặc tràn xấu */
+    .tabulator .tabulator-table {
+      min-width: 900px; /* đủ lớn để có thể kéo ngang */
+    }
+  }

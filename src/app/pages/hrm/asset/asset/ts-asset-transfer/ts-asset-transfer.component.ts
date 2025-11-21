@@ -89,7 +89,6 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
     deletedDetailIds: number[] = [];
   modalData: any = [];
   selectedRow: any = "";
-  sizeTbDetail: any = '0';
   DateStart: string = '';
   DateEnd: string = '';
   IsApproved: number | null = null;
@@ -116,6 +115,10 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
     this.getTranferAsset();
     this.getListEmployee();
     this.getCurrentUser();
+    // Khởi tạo bảng detail rỗng ngay từ đầu
+    setTimeout(() => {
+      this.drawDetail();
+    }, 100);
   }
   getCurrentUser() {
     this.authService.getCurrentUser().subscribe((res: any) => {
@@ -180,6 +183,7 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
       this.assetTranferTable = new Tabulator(this.dataAssetTranferEl.nativeElement, {
         data: this.assetTranferData,
         ...DEFAULT_TABLE_CONFIG,
+        height:'53vh',
         paginationMode: 'local',
         layout: "fitDataFill",
 
@@ -287,7 +291,6 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
   this.detailTabTitle = `Thông tin biên bản điều chuyển: ${rowData['CodeReport']}`;
         // set row đang chọn
         this.selectedRow = rowData;
-        this.sizeTbDetail = null;
 
         // load detail
         this.tsAssetTransferService.getAssetTranferDetail(id).subscribe(res => {
@@ -308,7 +311,8 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
         data: this.assetTranferDetailData,
         layout: "fitDataStretch",
         paginationSize: 5,
-        height: '83vh',
+        height: '30vh',
+        paginationMode: 'local',
         movableColumns: true,
         reactiveData: true,
         columns: [
@@ -334,14 +338,14 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
   }
   onDeleteAssetTranfer() {
   if (!this.assetTranferTable) {
-    this.notification.warning('Thông báo', 'Lỗi bảng, không thể thao tác');
+    this.notification.warning(NOTIFICATION_TITLE.warning, 'Lỗi bảng, không thể thao tác');
     return;
   }
 
   const selectedRows = this.assetTranferTable.getSelectedData() as any[];
 
   if (!selectedRows || selectedRows.length === 0) {
-    this.notification.warning('Thông báo', 'Chưa chọn biên bản để xóa!');
+    this.notification.warning(NOTIFICATION_TITLE.warning, 'Chưa chọn biên bản để xóa!');
     return;
   }
 
@@ -396,8 +400,7 @@ export class TsAssetTransferComponent implements OnInit, AfterViewInit {
       );
 
       return forkJoin(requests$).toPromise().then(() => {
-        this.notification.success(
-          'Thành công',
+        this.notification.success(NOTIFICATION_TITLE.success,
           `Đã xóa thành công các biên bản: ${codesText}`
         );
         this.getTranferAsset();
@@ -666,7 +669,6 @@ updateApprove(action: 1 | 2 | 3 | 4 | 5 | 6) {
         this.getTranferAsset();
         this.assetTranferData = [];
         this.drawDetail();
-        this.sizeTbDetail = '0';
       }
     },
     error: (err: any) => {
@@ -746,7 +748,6 @@ private updateOnApproveMultiple(masters: any[]) {
           // );
           this.getTranferAsset();
           this.assetTranferDetailData = [];
-          this.sizeTbDetail = '0';
         },
         error: (err) => {
           console.error('Lỗi saveDataKT (multi transfer):', err);
@@ -885,7 +886,7 @@ onAddATranfer() {
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu để xuất Excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất Excel!');
       return;
     }
 
@@ -966,7 +967,7 @@ onAddATranfer() {
     const details = this.assetTranferDetailTable?.getData();
 
     if (!selectedMaster || !details || details.length === 0) {
-      this.notification.warning('Thông báo', 'Không có dữ liệu để xuất Excel!');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất Excel!');
       return;
     }
     const payload = {
@@ -1004,11 +1005,5 @@ onAddATranfer() {
       }
     });
   }
-  closePanel() {
-    this.sizeTbDetail = '0';
-
-    this.detailTabTitle = 'Thông tin biên bản cấp phát';
-  }
 
 }
-

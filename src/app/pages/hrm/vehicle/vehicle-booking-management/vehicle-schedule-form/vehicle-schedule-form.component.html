@@ -80,7 +80,7 @@
                 </nz-col>
                 <nz-col [nzSpan]="12">
                     <nz-form-item>
-                        <nz-form-label>Tiền chuyển xe</nz-form-label>
+                        <nz-form-label>Tiền chuyến xe</nz-form-label>
                         <nz-form-control [nzErrorTip]="getPriceVehicleError(scheduleForm.get('priceVehicle')!)"
                             [nzValidateStatus]="scheduleForm.get('priceVehicle')!">
                             <nz-input-number formControlName="priceVehicle" [nzMin]="1" [nzMax]="1000000000"
@@ -91,48 +91,8 @@
             </nz-row>
         </fieldset>
 
-        <!-- Fieldset: Lịch trình -->
-        <fieldset class="reset mt-2">
-            <legend class="reset fs-12 p-0">Lịch trình</legend>
 
-            <!-- Thời gian xuất phát và Điểm xuất phát -->
-            <nz-row [nzGutter]="24">
-                <nz-col [nzSpan]="12">
-                    <nz-form-item>
-                        <nz-form-label>Thời gian xuất phát<span style="color: red">(*)</span></nz-form-label>
-                        <nz-form-control [nzErrorTip]="getTimeStartError(scheduleForm.get('timeStart')!)"
-                            [nzValidateStatus]="scheduleForm.get('timeStart')!">
-                            <nz-date-picker formControlName="timeStart" class="w-100" nzShowTime
-                                nzFormat="dd/MM/yyyy HH:mm:ss" nzAllowClear="false"></nz-date-picker>
-                        </nz-form-control>
-                    </nz-form-item>
-                </nz-col>
-                <nz-col [nzSpan]="12">
-                    <nz-form-item>
-                        <nz-form-label>Điểm xuất phát<span style="color: red">(*)</span></nz-form-label>
-                        <nz-form-control [nzErrorTip]="getVPIDError(scheduleForm.get('VPID')!)"
-                            [nzValidateStatus]="scheduleForm.get('VPID')!">
-                            <nz-select formControlName="VPID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn VP ...">
-                                <nz-option *ngFor="let emp of vpList" [nzLabel]="emp.VPText"
-                                    [nzValue]="emp.VP"></nz-option>
-                            </nz-select>
-                        </nz-form-control>
-                    </nz-form-item>
-                </nz-col>
-            </nz-row>
 
-            <!-- Điểm xuất phát cụ thể -->
-            <nz-row [nzGutter]="24">
-                <nz-col [nzSpan]="24">
-                    <nz-form-item>
-                        <nz-form-label>Điểm xuất phát cụ thể</nz-form-label>
-                        <nz-form-control>
-                            <input nz-input formControlName="locationStart" placeholder="Nhập điểm xuất phát cụ thể" />
-                        </nz-form-control>
-                    </nz-form-item>
-                </nz-col>
-            </nz-row>
-        </fieldset>
     </form>
 </div>
 
@@ -141,3 +101,4 @@
     <button nz-button nzType="default" nzDanger (click)="close()">Đóng</button>
     <button nz-button nzType="primary" (click)="saveStatus()">Lưu</button>
 </div>
+<!-- Điểm xuất phát cụ thể -->

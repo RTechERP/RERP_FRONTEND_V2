@@ -171,25 +171,25 @@
           </div>
         </div>
 
-        <nz-splitter style="height: 86vh; font-size: 11px;">
-          <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
-            <div #dataAssetTranfer style="height: 100%; font-size: 11px;"></div>
-          </nz-splitter-panel>
-          <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" [nzSize]="sizeTbDetail">
-            <!-- <div #dataAssetTranferDetail style="height: 100%; font-size: 11px;"></div> -->
-                <ng-template #tabClose>
-              <button nz-button nzType="text" class="btn-close-panel" style="color: red;" (click)="closePanel()">
-                <i nz-icon nzType="close"></i>
-              </button>
-            </ng-template>
-            <nz-tabset style=" padding-left: 10px !important;" [nzTabBarExtraContent]="tabClose">
-
-              <nz-tab [nzTitle]="detailTabTitle">
-            <div #dataAssetTranferDetail style="height: 100%; font-size: 11px;"></div>
-              </nz-tab>
-            </nz-tabset>
-          </nz-splitter-panel>
-        </nz-splitter>
+        <div class="card-body p-0" style="height: calc(100vh - 150px); display: flex; flex-direction: column;">
+          <nz-splitter nzLayout="vertical" style="height: 100%; flex: 1; font-size: 11px;">
+            <!-- Bảng Master (ở trên) - 60% -->
+            <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="false" nzSize="60%">
+              <div #dataAssetTranfer style="height: 100%; width: 100%; overflow: auto;"></div>
+            </nz-splitter-panel>
+            
+            <!-- Bảng Detail (ở dưới) - 40% -->
+            <nz-splitter-panel [nzCollapsible]="false" [nzResizable]="false" nzSize="40%">
+              <div style="height: 100%; display: flex; flex-direction: column;">
+                <nz-tabset style="padding-left: 10px; flex: 1; height: 0;">
+                  <nz-tab [nzTitle]="detailTabTitle">
+                    <div #dataAssetTranferDetail style="height: 100%; width: 100%; overflow: auto;"></div>
+                  </nz-tab>
+                </nz-tabset>
+              </div>
+            </nz-splitter-panel>
+          </nz-splitter>
+        </div>
 
       </div>
     </nz-splitter-panel>

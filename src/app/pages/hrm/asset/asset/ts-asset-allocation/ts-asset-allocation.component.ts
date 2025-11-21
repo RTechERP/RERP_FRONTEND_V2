@@ -81,7 +81,6 @@ export class TsAssetAllocationComponent implements OnInit, AfterViewInit {
     private authService: AuthService
   ) { }
   selectedRow: any = "";
-  sizeTbDetail: any = '0';
   modalData: any = [];
   private ngbModal = inject(NgbModal);
   emPloyeeLists: any[] = [];
@@ -112,6 +111,10 @@ currentUser: any = null;
     this.getAllocation();
     this.getListEmployee();
     this.getCurrentUser();
+    // Khởi tạo bảng detail rỗng ngay từ đầu
+    setTimeout(() => {
+      this.drawDetail();
+    }, 100);
   }
   getAllocation(): void {
     let statusString = '-1';
@@ -183,7 +186,8 @@ currentUser: any = null;
       {
         data: this.assetAllocationData,
         ...DEFAULT_TABLE_CONFIG,
-
+height:'53vh',
+paginationMode: 'local',
         columns: [
 
           {
@@ -251,7 +255,6 @@ currentUser: any = null;
     this.allocationTable.on('rowClick', (evt, row: RowComponent) => {
       const rowData = row.getData();
       this.selectedRow = rowData;
-      this.sizeTbDetail = null;
       this.detailTabTitle = `Thông tin biên bản cấp phát: ${rowData['Code']}`;
       const id = rowData['ID'];
       this.assetAllocationService.getAssetAllocationDetail(id).subscribe(res => {
@@ -285,7 +288,7 @@ currentUser: any = null;
         layout: 'fitColumns',
         paginationSize: 5,
         paginationMode: 'local',
-        height: '82vh',
+        height: '30vh',
         movableColumns: true,
         reactiveData: true,
         columns: [
@@ -704,7 +707,6 @@ validateApprove(
       this.getAllocation();
       this.allocationDetailData = [];
       this.drawDetail();
-      this.sizeTbDetail = '0';
     }
   },
   error: (err: any) => {
@@ -843,7 +845,6 @@ validateApprove(
 
           this.getAllocation();
           this.allocationDetailData = [];
-          this.sizeTbDetail = '0';
         },
         error: (res: any) => {
           console.error('Lỗi khi lưu duyệt tài sản (multi)', res);
@@ -954,7 +955,7 @@ validateApprove(
     if (!selectedMaster || !details || details.length === 0) {
       this.notification.warning(
         'Thông báo',
-        'Không có dữ liệu để xuất Excel! (Chọn một biên bản và đảm bảo đã tải chi tiết)'
+        'Không có dữ liệu để xuất Excel! '
       );
       return;
     }
@@ -1003,9 +1004,4 @@ validateApprove(
     });
   }
 
-  closePanel() {
-    this.sizeTbDetail = '0';
-
-    this.detailTabTitle = 'Thông tin biên bản cấp phát';
-  }
 }

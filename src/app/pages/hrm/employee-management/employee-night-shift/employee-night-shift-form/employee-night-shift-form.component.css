@@ -1,0 +1,71 @@
+.reset {
+  all: revert;
+}
+
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+/* Set font-size 12px for entire modal */
+:host {
+  font-size: 12px !important;
+}
+
+:host ::ng-deep .modal-content,
+:host ::ng-deep .modal-body,
+:host ::ng-deep .modal-footer,
+:host ::ng-deep nz-form-item,
+:host ::ng-deep nz-form-label,
+:host ::ng-deep nz-form-control,
+:host ::ng-deep input,
+:host ::ng-deep select,
+:host ::ng-deep button,
+:host ::ng-deep nz-select,
+:host ::ng-deep nz-option,
+:host ::ng-deep nz-input-number,
+:host ::ng-deep nz-date-picker,
+:host ::ng-deep textarea,
+:host ::ng-deep .ant-select-selection-item,
+:host ::ng-deep .ant-input,
+:host ::ng-deep label {
+  font-size: 0.75rem;
+}
+
+/* Fieldset và Legend styling */
+fieldset.reset {
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+  padding: 10px 15px;
+  margin-bottom: 10px;
+}
+
+legend.reset {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #333;
+  width: auto;
+  padding: 0 8px;
+  margin-bottom: 0;
+  border: none;
+}
+
+/* Đảm bảo modal hiển thị giữa màn hình */
+:host ::ng-deep .modal-dialog {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100% - 1rem);
+  margin: 0.5rem auto;
+}
+
+:host ::ng-deep .modal-dialog-centered {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100% - 1rem);
+}
+
+:host ::ng-deep .modal.show .modal-dialog {
+  transform: none;
+}
+

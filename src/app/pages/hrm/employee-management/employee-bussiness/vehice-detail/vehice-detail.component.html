@@ -1,0 +1,25 @@
+<div class="modal-dialog-scrollable">
+    <div class="modal-header bg-primary align-items-center ps-2">
+        <h6 class="text-light text-uppercase m-0" style="padding: 0, 5rem">
+            Chi tiết phương tiện
+        </h6>
+        <button type="button" class="btn-close me-1" (click)="activeModal.close()" aria-label="Close"></button>
+    </div>
+
+    <div class="modal-body p-2 w-100 pt-0">
+        <div #tb_VehiceDetail class="mt-1"></div>
+    </div>
+
+</div>
+
+<div class="modal-footer br p-1 d-flex align-items-center">
+    <div class="d-flex align-items-center flex-wrap gap-1">
+        <button type="button" class="btn btn-outline-danger" style="border: 1px solid; border-radius: 0;"
+            (click)="activeModal.close()">
+            Đóng
+        </button>
+        <button type="button" style="border-radius: 0;" class="btn btn-primary" (click)="saveVehiceType()">
+            Lưu
+        </button>
+    </div>
+</div>

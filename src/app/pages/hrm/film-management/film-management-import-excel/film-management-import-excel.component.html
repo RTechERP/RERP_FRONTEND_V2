@@ -36,6 +36,9 @@
 
     <div class="modal-footer gap-2">
       <button nz-button nzDanger (click)="closeExcelModal()">Đóng</button>
+      <button nz-button type="button" (click)="downloadTemplate()">
+        <nz-icon nzType="download" nzTheme="outline"></nz-icon> Mẫu
+      </button>
       <button nz-button nzType="primary" (click)="saveExcelData()">Lưu</button>
     </div>
   </div>

@@ -1,0 +1,176 @@
+<div
+  class="modal-dialog-scrollable"
+  style="max-width: unset; width: auto; min-width: 400px"
+>
+  <div class="modal-header bg-primary align-items-center ps-2">
+    <h6 class="text-light text-uppercase m-0">Nhập Excel</h6>
+  </div>
+
+  <div class="modal-body">
+    <div class="container-fluid p-0">
+      <div class="row g-3">
+        <!-- Từ ngày -->
+        <div class="col-md-6">
+          <nz-form-item>
+            <nz-form-label class="fs-12"
+              >Từ ngày <span class="text-danger">*</span></nz-form-label
+            >
+            <nz-date-picker
+              name="fromDate"
+              [(ngModel)]="fromDate"
+              class="w-100"
+              nzPlaceHolder="Chọn từ ngày"
+              [nzDisabled]="isFormDisabled || saving"
+              nzFormat="dd/MM/yyyy"
+              (ngModelChange)="onMonthChange($event)"
+            ></nz-date-picker>
+          </nz-form-item>
+        </div>
+
+        <!-- Đến ngày -->
+        <div class="col-md-6">
+          <nz-form-item>
+            <nz-form-label class="fs-12"
+              >Đến ngày <span class="text-danger">*</span></nz-form-label
+            >
+            <nz-date-picker
+              name="toDate"
+              [(ngModel)]="toDate"
+              class="w-100"
+              nzPlaceHolder="Chọn đến ngày"
+              [nzDisabled]="isFormDisabled || saving"
+              nzFormat="dd/MM/yyyy"
+              (ngModelChange)="onMonthChange($event)"
+            ></nz-date-picker>
+          </nz-form-item>
+        </div>
+
+        <!-- File Excel -->
+        <div class="col-12">
+          <nz-form-item>
+            <nz-form-label class="fs-12"
+              >File Excel <span class="text-danger">*</span></nz-form-label
+            >
+            <input
+              #fileInput
+              nz-input
+              type="file"
+              accept=".xlsx,.xls"
+              (change)="onFileChange($event)"
+              [disabled]="saving || loading"
+            />
+            <!-- <div class="text-muted mt-1 fs-12" *ngIf="fileName">
+              <i class="fa fa-file-excel-o me-1"></i>
+              {{ fileName }}
+            </div> -->
+          </nz-form-item>
+        </div>
+
+        <div class="col-md-6">
+          <nz-form-item>
+            <nz-form-label class="fs-12"
+              >Tên sheet <span class="text-danger">*</span></nz-form-label
+            >
+            <nz-select
+              name="sheetName"
+              class="w-100"
+              nzPlaceHolder="Chọn sheet"
+              [(ngModel)]="sheetName"
+              [nzDisabled]="isFormDisabled || saving || !availableSheets.length"
+              (ngModelChange)="onSheetChange($event)"
+            >
+              <nz-option
+                *ngFor="let sheet of availableSheets"
+                [nzValue]="sheet"
+                [nzLabel]="sheet"
+              ></nz-option>
+            </nz-select>
+          </nz-form-item>
+        </div>
+
+        <div class="col-md-6">
+          <nz-form-item>
+            <nz-form-label class="fs-12"
+              >Văn phòng <span class="text-danger">*</span></nz-form-label
+            >
+            <nz-select
+              name="officeId"
+              class="w-100"
+              nzPlaceHolder="Chọn văn phòng"
+              [(ngModel)]="officeId"
+              [nzDisabled]="isFormDisabled || saving"
+            >
+              <nz-option
+                *ngFor="let department of departments"
+                [nzValue]="department.ID || department.Code"
+                [nzLabel]="department.Name"
+              ></nz-option>
+            </nz-select>
+          </nz-form-item>
+        </div>
+
+        <div class="row mt-2" *ngIf="previewData.length > 0 && !loading">
+          <div class="col-12">
+            <div class="card">
+             
+              <div class="card-body p-0">
+                <div style="height: 400px; overflow: auto">
+                  <nz-spin
+                    *ngIf="loading"
+                    nzSimple
+                    nzSize="large"
+                    class="d-flex justify-content-center align-items-center"
+                    style="height: 100%"
+                  ></nz-spin>
+                  <div #tb_excelPreview *ngIf="!loading"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress bar khi đang lưu -->
+    <div *ngIf="saving" class="px-3 pb-2">
+      <nz-progress
+        [nzPercent]="progressPercent"
+        [nzShowInfo]="true"
+        [nzFormat]="progressFormat"
+      ></nz-progress>
+      <div class="text-center mt-2 fs-12 text-muted">
+        {{ progressText }}
+      </div>
+    </div>
+
+    <div
+      class="modal-footer br p-2 d-flex align-items-center justify-content-between"
+    >
+      <div class="d-flex align-items-center">
+        <div *ngIf="loading || saving" class="d-flex align-items-center me-3">
+          <nz-spin nzSimple nzSize="small" class="me-2"></nz-spin>
+        </div>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button
+          nz-button
+          nzType="default"
+          nzDanger
+          (click)="closeModal()"
+        >
+          {{ saving ? "Đóng (đang lưu)" : "Đóng" }}
+        </button>
+        <button
+          nz-button
+          nzType="primary"
+          [disabled]="!isFormValid() || saving"
+          (click)="save()"
+        >
+          <span *ngIf="saving" nz-icon nzType="loading"></span>
+          {{ saving ? "Đang lưu..." : "Lưu" }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

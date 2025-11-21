@@ -16,11 +16,15 @@ export class VehicleBookingManagementService {
   getVehicleSchedule(request: any) {
     return this.http.post<any>(`${this.url + `get-vehicle-schedule`}`, request);
   }
-  getListImage(request : any[]) {
+  getListImage(request: any[]) {
     return this.http.post<any[]>(`${this.url + `get-list-image`}`, request);
   }
 
   postVehicleBookingManagement(request: any) {
+    return this.http.post<any>(`${this.url + `save-data`}`, request);
+  }
+
+  approveBooking(request: any) {
     return this.http.post<any>(`${this.url + `save-data`}`, request);
   }
   getVehicleManagement() {

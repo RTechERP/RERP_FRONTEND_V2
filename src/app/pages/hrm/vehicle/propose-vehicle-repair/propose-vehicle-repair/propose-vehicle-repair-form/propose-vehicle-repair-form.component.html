@@ -111,7 +111,7 @@
                                                     name="VehicleRepairTypeID" nzPlaceHolder="Chọn loại sửa chữa"
                                                     class="fs-12 w-100" required nzShowSearch nzAllowClear>
                                                     <nz-option *ngFor="let item of TypeList" [nzValue]="item.ID"
-                                                        [nzLabel]="item.STT + ' - ' + item.RepairTypeName">
+                                                        [nzLabel]="item.RepairTypeName">
                                                     </nz-option>
                                                 </nz-select>
                                             </nz-input-group>

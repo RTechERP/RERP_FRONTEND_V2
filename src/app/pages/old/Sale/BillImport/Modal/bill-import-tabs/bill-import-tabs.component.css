@@ -1,0 +1,95 @@
+.modal-header {
+  background-color: #f8f9fa;
+  padding: 1rem 1.5rem;
+}
+
+.modal-title {
+  color: #495057;
+  font-weight: 600;
+  margin: 0;
+}
+
+.modal-body-wrapper {
+  padding: 0;
+  background-color: #ffffff;
+  height: 85vh;
+}
+
+.tab-content-wrapper {
+  padding: 1rem;
+  height: calc(85vh - 50px);
+  overflow-y: auto;
+}
+
+.modal-footer {
+  background-color: #f8f9fa;
+  border-top: 2px solid #dee2e6;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  opacity: 0.5;
+}
+
+.btn-close:hover {
+  opacity: 1;
+}
+
+::ng-deep .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab {
+  background-color: #f0f0f0;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px 4px 0 0;
+  margin-right: 2px;
+}
+
+::ng-deep .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active {
+  background-color: #ffffff;
+  font-weight: 600;
+}
+
+::ng-deep .bill-import-tabs-modal .modal-content {
+  height: 95vh;
+  max-height: 95vh;
+}
+
+::ng-deep .bill-import-tabs-modal .modal-dialog {
+  max-width: 95vw;
+  margin: 1.75rem auto;
+}
+/* TAB KHÔNG ACTIVE */
+:host ::ng-deep .main-warehouse-tab .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab {
+  background: #e0e0e0 !important;   /* xám */
+  color: #000 !important;            /* chữ đen */
+  border: none !important;
+}
+
+/* TAB ACTIVE */
+:host ::ng-deep .main-warehouse-tab .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active {
+  background: #2B4387 !important;    /* xanh đậm */
+  color: #fff !important;            /* chữ trắng */
+  border: none !important;
+  font-weight: 600;
+}
+
+/* Đảm bảo chữ trong tab đổi đúng màu */
+:host ::ng-deep .main-warehouse-tab .ant-tabs-tab-btn {
+  color: inherit !important;
+}
+
+/* Hover tab không active */
+:host ::ng-deep .main-warehouse-tab .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab:hover {
+  background: #d6d6d6 !important;   /* xám đậm hơn chút */
+  color: #000 !important;
+}
+
+/* Hover tab active */
+:host ::ng-deep .main-warehouse-tab .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active:hover {
+  background: #324b9d !important;   /* xanh đậm hơn khi hover */
+  color: #fff !important;
+}

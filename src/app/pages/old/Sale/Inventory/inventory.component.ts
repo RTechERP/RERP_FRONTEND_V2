@@ -41,7 +41,9 @@ import { InventoryBorrowNCCComponent } from './Modal/inventory-borrow-ncc/invent
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
-
+import { MenuEventService } from '../../../systems/menus/menu-service/menu-event.service';
+import { ChiTietSanPhamSaleComponent } from '../chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
+import { log } from 'ng-zorro-antd/core/logger';
 
 interface ProductGroup {
   ID?: number;
@@ -98,8 +100,9 @@ export class InventoryComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private modalService: NgbModal,
     private modal: NzModalService,
-    private zone: NgZone
-  ) { }
+    private zone: NgZone,
+    private menuEventService: MenuEventService
+  ) {}
 
   id: number = 0;
   listLocation: any[] = [];
@@ -145,7 +148,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
     FirmID: 0,
     Note: '',
   };
-  ngOnInit(): void { }
+  ngOnInit(): void {}
   ngAfterViewInit(): void {
     this.drawTable_ProductGroup();
     this.drawTable_PGWareHouse();
@@ -154,18 +157,12 @@ export class InventoryComponent implements OnInit, AfterViewInit {
     this.getDataProductGroupWareHouse(this.productGroupID);
   }
   openModalInventoryBorrowNCC() {
-    const modalRef = this.modalService.open(InventoryBorrowNCCComponent, {
-      centered: true,
-      backdrop: 'static',
-      keyboard: false,
-      size: 'xl',
-    });
-
-    modalRef.result.catch((result) => {
-      if (result == true) {
-        this.ngAfterViewInit();
-      }
-    });
+    // Mở tab mới với component InventoryBorrowNCCComponent
+    this.menuEventService.openNewTab(
+      InventoryBorrowNCCComponent,
+      'Danh sách mượn NCC',
+      {}
+    );
   }
   //#region dong mo modal
   // updateProductSale() {
@@ -198,11 +195,11 @@ export class InventoryComponent implements OnInit, AfterViewInit {
   //     });
   //   }
   // }
-  openModalImportExcel() { }
+  openModalImportExcel() {}
   getAllProductSale() {
     this.getInventory();
   }
-  getdataFind() { }
+  getdataFind() {}
   //#region các hàm lấy dữ liệu và mở mđ ProductGroup
   getProductGroup() {
     this.productsaleSV
@@ -218,7 +215,15 @@ export class InventoryComponent implements OnInit, AfterViewInit {
               this.getInventory();
             }
             if (this.table_productgroupInven) {
-              this.table_productgroupInven.setData(this.dataProductGroup);
+              this.table_productgroupInven
+                .setData(this.dataProductGroup)
+                .then(() => {
+                  // Tự động select dòng đầu tiên
+                  const rows = this.table_productgroupInven.getRows();
+                  if (rows.length > 0) {
+                    rows[0].select();
+                  }
+                });
             } else {
               this.drawTable_ProductGroup();
             }
@@ -297,7 +302,10 @@ export class InventoryComponent implements OnInit, AfterViewInit {
         next: (res) => {
           if (res?.data && res.data.length > 0) {
             this.newProductGroup.EmployeeID = res.data[0].EmployeeID ?? 0;
-            console.log('this.newProductGroup.EmployeeID', this.newProductGroup.EmployeeID);
+            console.log(
+              'this.newProductGroup.EmployeeID',
+              this.newProductGroup.EmployeeID
+            );
             console.log('data', res.data);
           }
           this.newProductGroup.WareHouseID = 1;
@@ -338,7 +346,10 @@ export class InventoryComponent implements OnInit, AfterViewInit {
 
     const data = table.getData();
     if (!data || data.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu xuất excel!');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không có dữ liệu xuất excel!'
+      );
       return;
     }
 
@@ -444,31 +455,35 @@ export class InventoryComponent implements OnInit, AfterViewInit {
   drawTable_ProductGroup() {
     console.log('this.dataProductGroup', this.dataProductGroup);
 
-    this.table_productgroupInven = new Tabulator(this.tableProductGroupRef.nativeElement, {
-      data: this.dataProductGroup,
-      layout: 'fitDataFill',
+    this.table_productgroupInven = new Tabulator(
+      this.tableProductGroupRef.nativeElement,
+      {
+        data: this.dataProductGroup,
+        layout: 'fitDataFill',
 
-      ...DEFAULT_TABLE_CONFIG,
-      paginationMode: 'local',
-      height: '60vh',
-      selectableRows: 1,
-      columns: [
-        {
-          title: 'Mã nhóm',
-          field: 'ProductGroupID',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: '50%',
-        },
-        {
-          title: 'Tên nhóm',
-          field: 'ProductGroupName',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: '50%',
-        },
-      ],
-    });
+        ...DEFAULT_TABLE_CONFIG,
+
+        pagination: false,
+        height: '60vh',
+        selectableRows: 1,
+        columns: [
+          {
+            title: 'Mã nhóm',
+            field: 'ProductGroupID',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            width: '50%',
+          },
+          {
+            title: 'Tên nhóm',
+            field: 'ProductGroupName',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            width: '50%',
+          },
+        ],
+      }
+    );
 
     this.table_productgroupInven.on(
       'rowSelected',
@@ -487,75 +502,103 @@ export class InventoryComponent implements OnInit, AfterViewInit {
         this.getDataProductGroupWareHouse(this.productGroupID);
       }
     );
-    this.table_productgroupInven.on('rowDblClick', (e: MouseEvent, row: any) => {
-      const rowData = row.getData();
+    this.table_productgroupInven.on(
+      'rowDblClick',
+      (e: MouseEvent, row: any) => {
+        const rowData = row.getData();
 
-      this.productGroupID = rowData['ID'];
-      this.zone.run(() => {
-        this.openModalProductGroup();
-      });
-    });
+        this.productGroupID = rowData['ID'];
+        this.zone.run(() => {
+          this.openModalProductGroup();
+        });
+      }
+    );
     this.table_productgroupInven.on('rowDeselected', (row: RowComponent) => {
       const selectedRows = this.table_productgroupInven.getSelectedRows();
       if (selectedRows.length === 0) {
         this.productGroupID = 0;
       }
     });
+
+    // Tự động select dòng đầu tiên sau khi table được khởi tạo
+    this.table_productgroupInven.on('tableBuilt', () => {
+      const rows = this.table_productgroupInven.getRows();
+      if (rows.length > 0) {
+        rows[0].select();
+      }
+    });
   }
   drawTable_PGWareHouse() {
-    this.table_pgwarehouse = new Tabulator(this.tablePGWarehouseRef.nativeElement, {
-      data: this.dataPGWareHouse || [],
-      layout: 'fitDataFill',
-      height: '100%',
-      pagination: true,
-      paginationSize: 15,
-      movableColumns: true,
-      resizableRows: true,
-      reactiveData: true,
-      // ...DEFAULT_TABLE_CONFIG,
+    this.table_pgwarehouse = new Tabulator(
+      this.tablePGWarehouseRef.nativeElement,
+      {
+        data: this.dataPGWareHouse || [],
+        layout: 'fitDataFill',
+        height: '100%',
+        pagination: false,
+        paginationSize: 15,
+        movableColumns: true,
+        resizableRows: true,
+        reactiveData: true,
+        // ...DEFAULT_TABLE_CONFIG,
         langs: {
-    vi: {
-      pagination: {
-        first: '<<',
-        last: '>>',
-        prev: '<',
-        next: '>',
-      },
-    },
-  },
-  columnDefaults: {
-    headerWordWrap: true,
-    headerVertical: false,
-    headerHozAlign: 'center',
-    minWidth: 60,
-    hozAlign: 'left',
-    vertAlign: 'middle',
-    resizable: true,
-  },
-  locale: 'vi',
-      paginationMode: 'local',
-      columns: [
-        {
-          title: 'Kho',
-          field: 'WarehouseCode',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-          width: '50%',
+          vi: {
+            pagination: {
+              first: '<<',
+              last: '>>',
+              prev: '<',
+              next: '>',
+            },
+          },
         },
-        {
-          title: 'NV phụ trách',
-          field: 'FullName',
-          hozAlign: 'left',
+        columnDefaults: {
+          headerWordWrap: true,
+          headerVertical: false,
           headerHozAlign: 'center',
-          width: '50%',
+          minWidth: 60,
+          hozAlign: 'left',
+          vertAlign: 'middle',
+          resizable: true,
         },
-      ],
-    });
+        locale: 'vi',
+        paginationMode: 'local',
+        columns: [
+          {
+            title: 'Kho',
+            field: 'WarehouseCode',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            width: '50%',
+          },
+          {
+            title: 'NV phụ trách',
+            field: 'FullName',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            width: '50%',
+          },
+        ],
+      }
+    );
   }
 
   drawTable_Inventory() {
+    // Context menu cho bảng inventory
+    const contextMenu = [
+      {
+        label: '<i class="fa fa-info-circle"></i> Chi tiết sản phẩm',
+        action: (e: any, row: RowComponent) => {
+          const rowData = row.getData();
+          this.zone.run(() => {
+            this.openChiTietSanPhamSale(rowData);
+          });
+        },
+      },
+    ];
+
     this.table_inventory = new Tabulator(this.tableInventoryRef.nativeElement, {
       data: this.dataInventory || [],
+      ...DEFAULT_TABLE_CONFIG,
       layout: 'fitDataFill',
       height: '89vh',
       pagination: true,
@@ -563,8 +606,8 @@ export class InventoryComponent implements OnInit, AfterViewInit {
       movableColumns: true,
       resizableRows: true,
       reactiveData: true,
-      ...DEFAULT_TABLE_CONFIG,
       paginationMode: 'local',
+      rowContextMenu: contextMenu,
       columns: [
         {
           title: 'Tên nhóm',
@@ -572,9 +615,25 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
+                {
+          title: 'Tích xanh',
+          field: 'IsFix',
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+          formatter: (cell) => {
+              const value = cell.getValue();
+              return `<input type="checkbox" ${value === true ? 'checked' : ''} disabled />`;
+            },
+        },
         {
           title: 'Mã sản phẩm',
           field: 'ProductCode',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+        },
+                {
+          title: 'Tên sản phẩm',
+          field: 'ProductName',
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
@@ -584,12 +643,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
-        {
-          title: 'Tên sản phẩm',
-          field: 'ProductName',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-        },
+
         {
           title: 'NCC',
           field: 'NameNCC',
@@ -615,7 +669,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           headerHozAlign: 'center',
         },
         {
-          title: 'Tồn ĐK',
+          title: 'Tồn đầu kỳ',
           field: 'TotalQuantityFirst',
           hozAlign: 'right',
           headerHozAlign: 'center',
@@ -638,21 +692,34 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           hozAlign: 'right',
           headerHozAlign: 'center',
         },
-        {
-          title: 'Xuất kho giữ',
-          field: 'TotalQuantityExportKeep',
+                {
+          title: 'SL yêu cầu xuất',
+          field: 'QuantityRequestExport',
           hozAlign: 'right',
           headerHozAlign: 'center',
         },
+        // {
+        //   title: 'Xuất kho giữ',
+        //   field: 'TotalQuantityExportKeep',
+        //   hozAlign: 'right',
+        //   headerHozAlign: 'center',
+        // },
         {
           title: 'SL giữ',
           field: 'TotalQuantityKeep',
           hozAlign: 'right',
           headerHozAlign: 'center',
         },
+
         {
-          title: 'Tồn CK',
+          title: 'Tồn CK(được xử dụng)',
           field: 'TotalQuantityLast',
+          hozAlign: 'right',
+          headerHozAlign: 'center',
+        },
+                        {
+          title: 'Tồn sử dụng',
+          field: 'QuantityUse',
           hozAlign: 'right',
           headerHozAlign: 'center',
         },
@@ -674,12 +741,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           hozAlign: 'right',
           headerHozAlign: 'center',
         },
-        {
-          title: 'Vị trí',
-          field: 'AddressBox',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
-        },
+
         {
           title: 'Tổng mượn',
           field: 'ImportPT',
@@ -698,6 +760,12 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           hozAlign: 'right',
           headerHozAlign: 'center',
         },
+                {
+          title: 'Vị trí',
+          field: 'AddressBox',
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+        },
         {
           title: 'Chi tiết nhập',
           field: 'Detail',
@@ -713,5 +781,32 @@ export class InventoryComponent implements OnInit, AfterViewInit {
         },
       ],
     });
+  }
+
+  /**
+   * Mở tab chi tiết sản phẩm sale với các tham số
+   * @param productData Dữ liệu sản phẩm từ inventory
+   */
+  openChiTietSanPhamSale(productData: any) {
+    // Chuẩn bị data để truyền vào component chi-tiet-san-pham-sale
+    const tabData = {
+      code: productData.ProductCode || '',
+      suplier: productData.Supplier || '',
+      productName: productData.ProductName || '',
+      numberDauKy: productData.NumberInStoreDauky?.toString() || '0',
+      numberCuoiKy: productData.NumberInStoreCuoiKy?.toString() || '0',
+      import: productData.Import?.toString() || '0',
+      export: productData.Export?.toString() || '0',
+      productSaleID: productData.ProductSaleID || 0,
+      wareHouseCode: this.wareHouseCode || 'HN',
+      oProductSaleModel: productData,
+    };
+    console.log('tabData', tabData);
+    // Mở tab mới với component ChiTietSanPhamSaleComponent
+    this.menuEventService.openNewTab(
+      ChiTietSanPhamSaleComponent,
+      `Chi tiết: ${productData.ProductCode || 'Sản phẩm'}`,
+      tabData
+    );
   }
 }

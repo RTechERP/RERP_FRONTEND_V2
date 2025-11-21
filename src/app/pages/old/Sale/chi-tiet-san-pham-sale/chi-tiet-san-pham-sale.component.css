@@ -1,0 +1,161 @@
+.font-12 {
+  font-size: 12px !important;
+}
+
+.splitter-main,
+.splitter-horizontal {
+  font-size: 12px;
+}
+
+.splitter-main {
+  height: 80vh !important;
+  max-height: 80vh !important;
+}
+
+/* Đảm bảo các panel con không vượt quá 37vh */
+.splitter-main > nz-splitter-panel {
+  max-height: 39vh !important;
+}
+
+.splitter-main ::ng-deep > .ant-splitter-panel {
+  max-height: 39vh !important;
+}
+
+.filter-section {
+  border-bottom: 1px solid #d9d9d9;
+}
+
+.input-row {
+  margin-top: 8px;
+}
+
+.btn-refresh {
+  margin-bottom: 8px;
+}
+
+.select-product,
+.input-text,
+.input-number {
+  font-size: 12px;
+}
+
+.tabset-font nz-tab-label {
+  font-size: 12px !important;
+}
+
+.tabset-font ::ng-deep .ant-tabs-tab {
+  font-size: 12px;
+}
+
+/* Giới hạn chiều cao của tabset và loại bỏ padding để bảng vừa với 37vh */
+.tabset-font {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tabset-font ::ng-deep .ant-tabs {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tabset-font ::ng-deep .ant-tabs-content-holder {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.tabset-font ::ng-deep .ant-tabs-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tabset-font ::ng-deep .ant-tabs-tabpane {
+  height: 100%;
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Container cho bảng Tabulator */
+.tabset-font ::ng-deep .ant-tabs-tabpane > div {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Đảm bảo nz-splitter-panel chứa tabset có height 100% */
+nz-splitter-panel {
+  overflow: hidden;
+}
+
+/* Giới hạn chiều cao tối đa của splitter panels */
+nz-splitter-panel ::ng-deep .ant-splitter-panel {
+  max-height: 36vh !important;
+  overflow: hidden !important;
+}
+
+/* Loại bỏ padding của tabset */
+.px-3 {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Điều chỉnh height của tab bar */
+.tabset-font ::ng-deep .ant-tabs-nav {
+  margin-bottom: 0 !important;
+  padding: 0 8px;
+}
+
+/* Đảm bảo Tabulator container chiếm đúng không gian */
+.tabset-font ::ng-deep .tabulator {
+  height: 100% !important;
+  max-height: calc(39vh - 42px) !important; /* Trừ đi chiều cao tab header */
+}
+
+/* Cho phép scroll ngang trong Tabulator */
+.tabset-font ::ng-deep .tabulator-tableholder {
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+}
+
+/* Đảm bảo scroll ngang luôn hiển thị khi cần */
+.tabset-font ::ng-deep .tabulator-tableholder::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.tabset-font ::ng-deep .tabulator-tableholder::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.tabset-font ::ng-deep .tabulator-tableholder::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.tabset-font ::ng-deep .tabulator-tableholder::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0.25rem;
+}
+
+.status-box {
+  background-color: #FFD84D; /* màu vàng */
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #333;
+  display: inline-block;
+}

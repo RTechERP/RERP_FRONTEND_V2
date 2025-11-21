@@ -52,6 +52,8 @@ import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { AppUserService } from '../../../services/app-user.service';
+import { bottom } from '@popperjs/core';
+import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-project-partlist-price-request',

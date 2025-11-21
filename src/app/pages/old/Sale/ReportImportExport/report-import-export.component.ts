@@ -4,6 +4,7 @@ import {
   AfterViewInit,
   ViewChild,
   NgZone,
+  Input,
 } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
@@ -92,7 +93,7 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
 
   sizeSearch: string = '0';
   dateFormat = 'dd/MM/yyyy';
-
+@Input() warehousecode: string = 'HN';
   ExportID: number = 0;
 
   searchParams = {
@@ -102,7 +103,7 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
     dateEnd: new Date().toISOString().split('T')[0],
     keyword: '',
     group: 0,
-    warehouseCode: 'HN',
+    warehouseCode: this.warehousecode,
   };
 
   dataEmployees: any[] = [];
@@ -162,7 +163,7 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
       dateEnd: new Date().toISOString().split('T')[0],
       keyword: '',
       group: 0,
-      warehouseCode: 'HN',
+      warehouseCode: this.warehousecode,
     };
   }
 

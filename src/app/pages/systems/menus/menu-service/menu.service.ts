@@ -105,9 +105,9 @@ import { WFHComponent } from '../../../hrm/employee-management/employee-wfh/WFH.
 import { MeetingMinuteTypeComponent } from '../../../project/meeting-minute/meeting-minute-type/meeting-minute-type.component';
 import { ProjectAgvSummaryComponent } from '../../../project/project-agv-summary/project-agv-summary.component';
 import { FoodOrderComponent } from '../../../hrm/food-order/food-order.component';
-import { ProjectPartlistPurchaseRequestComponent } from '../../../purchase/project-partlist-purchase-request/project-partlist-purchase-request.component';
 import { SupplierSaleComponent } from '../../../purchase/supplier-sale/supplier-sale.component';
 import { EmployeeNoFingerprintComponent } from '../../../hrm/employee-management/employee-no-fingerprint/employee-no-fingerprint.component';
+import { ChiTietSanPhamSaleComponent } from '../../../old/Sale/chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
 @Injectable({
   providedIn: 'root',
 })
@@ -1024,20 +1024,20 @@ export class MenuService {
             title: 'Nhà cung cấp',
             isOpen: true,
             isPermission:
-              this.permissionService.hasPermission('N27,N33,N35,N1,N36'), 
+              this.permissionService.hasPermission('N27,N33,N35,N1,N36'),
             comp: SupplierSaleComponent,
             //   icon: 'assets/icon/layers.png',
           },
-          {
-            kind: 'leaf',
-            key: 'ProjectPartlistPurchaseRequestComponent',
-            title: 'Yêu cầu mua hàng',
-            isOpen: true,
-            isPermission:
-              this.permissionService.hasPermission('N33,N35,N1,N36'), 
-            comp: ProjectPartlistPurchaseRequestComponent,
-            //   icon: 'assets/icon/layers.png',
-          },
+          // {
+          //   kind: 'leaf',
+          //   key: 'ProjectPartlistPurchaseRequestComponent',
+          //   title: 'Yêu cầu mua hàng',
+          //   isOpen: true,
+          //   isPermission:
+          //     this.permissionService.hasPermission('N33,N35,N1,N36'),
+          //   comp: ProjectPartlistPurchaseRequestComponent,
+          //   //   icon: 'assets/icon/layers.png',
+          // },
         ],
       },
       //#endregion

@@ -30,6 +30,7 @@ import { DateTime } from 'luxon';
 import { HistoryBorrowSaleService } from './history-borrow-sale-service/history-borrow-sale.service';
 import { BillExportService } from '../BillExport/bill-export-service/bill-export.service';
 import { BillImportDetailComponent } from '../BillImport/Modal/bill-import-detail/bill-import-detail.component';
+import { BillImportTabsComponent } from '../BillImport/Modal/bill-import-tabs/bill-import-tabs.component';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 @Component({
   selector: 'app-history-borrow-sale',
@@ -159,9 +160,6 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    // // 3. Lấy mã kho (giả định)
-    // const warehouseCode = this.getWarehouseCode(this.warehouseID); // Thay bằng logic thực tế
-
     // 4. Lọc các bản ghi chưa trả
     const validData = this.dataCreateImport.filter(row => !row.ReturnedStatus);
 
@@ -173,41 +171,47 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
     // 5. Lấy danh sách ProductGroupID duy nhất
     const distinctGroups = [...new Set(validData.filter(row => row.ProductGroupID != null).map(row => row.ProductGroupID))];
 
-    // 6. Với mỗi ProductGroupID, mở modal
-    distinctGroups.forEach(groupID => {
-      // Lọc dữ liệu theo ProductGroupID
+    if (distinctGroups.length === 0) {
+      this.notification.info('Thông báo', 'Không có nhóm sản phẩm hợp lệ!');
+      return;
+    }
+
+    // 6. Tạo dữ liệu cho từng tab
+    const tabs = distinctGroups.map(groupID => {
       const filterData = validData.filter(row => row.ProductGroupID === groupID);
-      console.log("filterData", filterData);
-      console.log("njdjfd",groupID);
-      if (filterData.length === 0) {
-        this.notification.info('Thông báo', 'Không có dữ liệu hợp lệ cho nhóm sản phẩm này!');
-        return;
-      }
-      // Mở modal
-      const modalRef = this.modalService.open(BillImportDetailComponent, {
-        centered: true,
-        size: 'xl',
-        backdrop: 'static',
-        keyboard: false
-      });
+      const groupName = filterData[0]?.ProductGroupName || `Kho ${groupID}`;
+
+      return {
+        groupID: groupID,
+        groupName: groupName,
+        dataHistory: filterData
+      };
+    });
+
+    console.log("Tabs data:", tabs);
+
+    // 7. Mở component với tabs thay vì nhiều modal
+    const modalRef = this.modalService.open(BillImportTabsComponent, {
+      // centered: true,
+      backdrop: 'static',
+      keyboard: false,
+      windowClass: 'full-screen-modal'
+      ,fullscreen: true
+    });
 
       // Truyền dữ liệu sang BillImportDetailComponent
       modalRef.componentInstance.createImport = true;
-      modalRef.componentInstance.isCheckmode = true;
+      // modalRef.componentInstance.isCheckmode = false;
      // modalRef.componentInstance.warehouseCode = warehouseCode;
-      modalRef.componentInstance.groupID = groupID;
-      modalRef.componentInstance.dataHistory = filterData; // Chứa tất cả bản ghi của nhóm, bao gồm các ProductID
+      // modalRef.componentInstance.groupID = groupID;
+      // modalRef.componentInstance.dataHistory = filterData; // Chứa tất cả bản ghi của nhóm, bao gồm các ProductID
+      modalRef.componentInstance.tabs =tabs ;
       modalRef.componentInstance.billType = 1;
 
-      modalRef.result.finally(
-        () => {
-
-            this.data = [];
-            this.dataCreateImport = [];
-            this.loadData();
-
-        },
-      );
+    modalRef.result.finally(() => {
+      this.data = [];
+      this.dataCreateImport = [];
+      this.loadData();
     });
   }
   loadData() {

@@ -71,10 +71,10 @@ export class LeaderProjectDetailComponent implements OnInit {
     private notification: NzNotificationService,
     private modal: NzModalService,
     public activeModal: NgbActiveModal
-    
+
 
   ) { }
-  
+
   @ViewChild('tb_projectEmployeeLink', { static: false })
   tb_projectEmployeeLinkContainer!: ElementRef;
   tb_projectEmployeeLinks: any;
@@ -178,11 +178,11 @@ export class LeaderProjectDetailComponent implements OnInit {
   getProjectEmployeefilter() {
     // Lưu lại danh sách ID đã chọn trước khi load lại dữ liệu
     const previouslySelected = new Set(this.selectedEmployee);
-  
+
     this.projectService.getProjectEmployeefilter(this.selectedDepartment).subscribe({
       next: (response: any) => {
         let data = response.data || [];
-  
+
         // Lọc theo từ khóa (nếu có)
         if (this.searchKeyword) {
           const keyword = this.searchKeyword.toLowerCase();
@@ -191,7 +191,7 @@ export class LeaderProjectDetailComponent implements OnInit {
             item.Code.toLowerCase().includes(keyword)
           );
         }
-  
+
         // Gán dữ liệu mới cho bảng
         this.tb_projectEmployeeLinks.setData(data).then(() => {
           // Chọn lại các dòng theo ID (chỉ những ID còn tồn tại trong data sẽ được chọn)
@@ -208,10 +208,10 @@ export class LeaderProjectDetailComponent implements OnInit {
         console.error('Lỗi:', error);
       },
     });
-  
+
     // Không re-bind events tại đây để tránh nhân bản listener
   }
-  
+
   getDepartment() {
     this.projectService.getDepartment().subscribe({
       next: (response: any) => {
@@ -247,7 +247,7 @@ onAddLeaders() {
     nzOnOk: () => {
       // Lấy dữ liệu đầy đủ của các nhân viên đã chọn từ bảng
       const selectedRows = this.tb_projectEmployeeLinks.getSelectedRows();
-      
+
       if (!selectedRows || selectedRows.length === 0) {
         this.notification.warning('Thông báo', 'Vui lòng chọn nhân viên để thêm!');
         return;

@@ -40,7 +40,7 @@ export class AssetsManagementService {
     return this.httpclient.get<any>(this.urlDepartment);
   }
   downloadTemplate(fileName: string): Observable<Blob> {
-    const url = `${environment.host1}api/share/software/Template/ImportExcel/${fileName}`;
+    const url = `${environment.host}api/share/software/Template/ImportExcel/${fileName}`;
     return this.httpclient.get(url, {
       responseType: 'blob',
       observe: 'response'

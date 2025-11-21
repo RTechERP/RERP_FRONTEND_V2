@@ -30,7 +30,7 @@
               <nz-form-item class="mt-2">
                 <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
                 <nz-form-control [nzSpan]="24">
-                    <input class="w-100" nz-input placeholder="Nhập từ khóa" [(ngModel)]="searchParams.keyword" name="keyword" nzSize="small" />
+                    <input class="w-100" (keyup.enter)="searchData()" nz-input placeholder="Nhập từ khóa" [(ngModel)]="searchParams.keyword" name="keyword" nzSize="small" />
                 </nz-form-control>
               </nz-form-item>
 

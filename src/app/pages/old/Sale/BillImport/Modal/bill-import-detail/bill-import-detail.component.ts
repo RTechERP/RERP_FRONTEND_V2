@@ -14,11 +14,15 @@ import {
   OnInit,
   AfterViewInit,
   Input,
+  Output,
+  EventEmitter,
   EnvironmentInjector,
   ApplicationRef,
   Type,
   createComponent,
   OnDestroy,
+  ViewChild,
+  ElementRef,
 } from '@angular/core';
 import {
   NgbActiveModal,
@@ -50,6 +54,7 @@ import { ProductsaleServiceService } from '../../../ProductSale/product-sale-ser
 import { DateTime } from 'luxon';
 // Thêm các import này vào đầu file
 import { ProjectComponent } from '../../../../../project/project.component';
+import { ProjectService } from '../../../../../project/project-service/project.service';
 import { BillImportServiceService } from '../../bill-import-service/bill-import-service.service';
 import { BillExportService } from '../../../BillExport/bill-export-service/bill-export.service';
 import { BillImportComponent } from '../../bill-import.component';
@@ -91,7 +96,8 @@ interface BillImport {
   Supplier: string;
   RulePayID: number;
   CreatDate: Date | string | null;
-  DateRequest: Date | string | null;
+  DateRequest?: Date | string | null;
+  DateRequestImport: Date | string | null;
 }
 @Component({
   selector: 'app-bill-import-detail',
@@ -123,6 +129,12 @@ interface BillImport {
 export class BillImportDetailComponent
   implements OnInit, AfterViewInit, OnDestroy
 {
+  cbbStatusPur: any = [
+    { ID: 1, Name: 'Đã bàn giao' },
+    { ID: 2, Name: 'Hủy bàn giao' },
+    { ID: 3, Name: 'Không cần' },
+  ];
+  activePur: boolean = false;
   isVisible: boolean = true;
   private warehouseIdHN: number = 0;
   warehouses: any[] = [];
@@ -154,10 +166,14 @@ export class BillImportDetailComponent
   //tao phieu tra
   @Input() createImport: any;
   @Input() dataHistory: any[] = [];
+  @Input() groupID: number = 0; // Thêm groupID để nhận từ tab
   //
   @Input() isCheckmode: any;
   @Input() selectedList: any[] = [];
   @Input() id: number = 0;
+  @Input() isEmbedded: boolean = false; // Để biết component đang được nhúng trong tab hay modal độc lập
+
+  @Output() saveSuccess = new EventEmitter<void>(); // Emit khi save thành công trong chế độ embedded
 
   cbbStatus: any = [
     { ID: 0, Name: 'Phiếu nhập kho' },
@@ -169,6 +185,9 @@ export class BillImportDetailComponent
     { ID: 1, Name: 'Hàng thương mại' },
     { ID: 2, Name: 'Hàng dự án' },
   ];
+  @ViewChild('table_BillImportDetails') tableBillImportDetails!: ElementRef;
+  @ViewChild('table_DocumnetImport') tableDocumnetImport!: ElementRef;
+
   private initialBillTypeNew: number | null = null; // Thêm biến này
   private isInitialLoad: boolean = true; // Cờ để biết có đang load lần đầu không
   dateFormat = 'dd/MM/yyyy';
@@ -200,7 +219,7 @@ export class BillImportDetailComponent
     Supplier: '',
     CreatDate: new Date(),
     RulePayID: 0,
-    DateRequest: new Date(),
+    DateRequestImport: new Date(),
   };
 
   validateForm: FormGroup;
@@ -217,7 +236,8 @@ export class BillImportDetailComponent
     private appRef: ApplicationRef,
     public activeModal: NgbActiveModal,
     private billExportService: BillExportService,
-    private appUserService: AppUserService
+    private appUserService: AppUserService,
+    private projectService: ProjectService
   ) {
     this.validateForm = this.fb.group({
       BillImportCode: [{ value: '', disabled: true }, [Validators.required]],
@@ -231,12 +251,17 @@ export class BillImportDetailComponent
       CreatDate: [null],
       KhoTypeID: [0, [Validators.required, Validators.min(1)]],
       RulePayID: [0, [Validators.required, Validators.min(1)]],
-      DateRequest: [null],
+      DateRequestImport: [null],
     });
   }
 
   ngOnInit(): void {
-    console.log('iddd', this.id);
+    if (this.appUserService.isAdmin) {
+      this.activePur = true;
+    }
+    if (this.appUserService.departmentID === 4) {
+      this.activePur = true;
+    }
     this.billImportService.getWarehouse().subscribe((res: any) => {
       const list = res.data || [];
       this.warehouses = list;
@@ -281,41 +306,9 @@ export class BillImportDetailComponent
       .get('BillTypeNew')
       ?.valueChanges.pipe(takeUntil(this.destroy$))
       .subscribe((newValue: number) => {
-        // // Bỏ qua lần đầu load dữ liệu
-        // if (this.isInitialLoad) {
-        //   this.isInitialLoad = false;
-        //   this.initialBillTypeNew = newValue;
-        //   return;
-        // }
-        // debugger
-        // // Chỉ gọi changeStatus khi người dùng chủ động thay đổi
-        // // VÀ giá trị mới khác với giá trị ban đầu
-        // if (!this.isCheckmode || newValue !== this.initialBillTypeNew) {
-        //   this.changeStatus();
-        // }
-        console.log(
-          'BillTypeNew changed:',
-          newValue,
-          'isInitialLoad:',
-          this.isInitialLoad,
-          'initial:',
-          this.initialBillTypeNew,
-          'isCheckmode:',
-          this.isCheckmode
-        ); // THÊM: Để debug
 
-        if (this.isInitialLoad) {
-          this.isInitialLoad = false;
-          this.initialBillTypeNew = newValue;
-          console.log('Skipped as initial load'); // THÊM
-          return;
-        }
-
-        if (!this.isCheckmode || newValue !== this.initialBillTypeNew) {
-          console.log('Calling changeStatus'); // THÊM
+        if (!this.isCheckmode) {
           this.changeStatus();
-        } else {
-          console.log('Skipped: same as initial in edit mode'); // THÊM
         }
       });
     // Theo dõi thay đổi Loại kho và NCC để áp dụng lại logic
@@ -341,10 +334,15 @@ export class BillImportDetailComponent
       .subscribe(() => {
         this.updateReceiverDeliver();
       });
+
     if (this.createImport) {
       this.newBillImport.BillTypeNew = 1;
+
       this.initialBillTypeNew = 1;
-      this.isInitialLoad = false; // THÊM: Set false ngay để lần user change đầu gọi getNewCode
+      this.validateForm.patchValue({
+        BillTypeNew: 1,
+      });
+
       this.getNewCode();
       this.patchNewBillImportFromHistory();
     } else if (this.isCheckmode && this.id > 0) {
@@ -361,94 +359,6 @@ export class BillImportDetailComponent
     this.getDataCbbSupplierSale();
     this.loadOptionProject();
     this.loadDocumentImport();
-
-    // //trường hợp tạo phiếu trả
-    // if (this.createImport == true) {
-    //   this.newBillImport.BillTypeNew = 1;
-    //   this.getNewCode();
-    //   console.log("mã phiếu mới: ", this.newBillImport.BillImportCode);
-    //   console.log("binh: ", this.dataHistory);
-    //   this.newBillImport.Deliver = this.dataHistory[0].FullName
-    //   this.newBillImport.DeliverID = this.dataHistory[0].UserID
-    //   this.newBillImport.KhoTypeID = this.dataHistory[0].ProductGroupID
-    //   this.newBillImport.KhoType = this.dataHistory[0].ProductGroupName
-
-    //   this.validateForm.patchValue(this.newBillImport);
-    //   this.changeProductGroup(this.newBillImport.KhoTypeID)
-    //   ///map detail
-    //   this.dataTableBillImportDetail = this.dataHistory.map((item: any) => {
-    //     const productInfo = this.productOptions.find((p: any) => p.value === item.ProductID) || {};
-    //     // Nếu không tìm thấy sản phẩm, gọi getProductById để tải bổ sung
-    //     if (!productInfo.value && item.ProductID) {
-    //       this.getProductById(item.ProductID);
-    //     }
-    //     const projectInfo = this.projectOptions.find((p: any) => p.value === item.ProjectID) || {};
-    //     return {
-    //       ID: item.ID || 0,
-    //       POKHDetailID: item.POKHDetailID || 0,
-    //       ProductID: item.ProductID || 0,
-    //       ProductNewCode: item.ProductNewCode || productInfo.ProductNewCode || '',
-    //       ProductCode: item.ProductCode || productInfo.ProductCode || '',
-    //       ProductName: item.ProductName || productInfo.ProductName || '',
-    //       Unit: item.Unit || productInfo.Unit || '',
-    //       TotalInventory: item.TotalInventory || productInfo.TotalInventory || 0,
-    //       Qty: item.BorrowQty || 0,
-    //       QuantityRemain: item.QuantityRemain || 0,
-    //       ProjectID: item.ProjectID || 0,
-    //       ProjectCodeExport: item.ProjectCodeExport || projectInfo.ProjectCode || '',
-    //       ProjectNameText: item.ProjectNameText || projectInfo.label || '',
-    //       ProductFullName: item.ProductFullName || '',
-    //       Note: item.Note || '',
-    //       UnitPricePOKH: item.UnitPricePOKH || 0,
-    //       UnitPricePurchase: item.UnitPricePurchase || 0,
-    //       BillCode: item.BillCode || '',
-    //       Specifications: item.Specifications || '',
-    //       GroupExport: item.GroupExport || '',
-    //       UserReceiver: item.UserReceiver || '',
-    //       POKHID: item.POKHID || 0,
-    //       'Add Serial': item.SerialNumber || '',
-    //       ProductType: item.ProductType || 0,
-    //       IsInvoice: item.IsInvoice || false,
-    //       InvoiceNumber: item.InvoiceNumber || '',
-    //       SerialNumber: item.SerialNumber || '',
-    //       ReturnedStatus: item.ReturnedStatus || false,
-    //       ProjectPartListID: item.ProjectPartListID || 0,
-    //       TradePriceDetailID: item.TradePriceDetailID || 0,
-    //       BillImportDetailID: item.BillImportDetailID || 0,
-    //       ExpectReturnDate: item.ExpectReturnDate ? new Date(item.ExpectReturnDate) : new Date(),
-    //       InventoryProjectIDs: item.ProjectID ? [item.ProjectID] : [],
-    //     };
-    //   });
-
-    //   if (this.table_billImportDetail) {
-    //     this.table_billImportDetail.replaceData(this.dataTableBillImportDetail);
-    //     setTimeout(() => {
-    //       this.table_billImportDetail.redraw(true);
-    //     }, 100);
-    //   }
-    // }
-    // else if (this.isCheckmode) {
-    //   this.getBillImportByID();
-    // } else {
-    //   this.getNewCode();
-    //   this.newBillImport = {
-    //     BillImportCode: '',
-    //     ReciverID: 0,
-    //     Reciver: '',
-    //     DeliverID: 0,
-    //     Deliver: '',
-    //     KhoType: '',
-    //     KhoTypeID: 0,
-    //     WarehouseID: 1,
-    //     BillTypeNew: 0,
-    //     SupplierID: 0,
-    //     Supplier: '',
-    //     CreatDate: null,
-    //     DateRequest: null,
-    //     RulePayID: 0,
-    //   };
-    //   this.validateForm.patchValue(this.newBillImport);
-    // }
 
     // Theo dõi thay đổi form để đồng bộ với newBillImport
     this.validateForm.valueChanges
@@ -477,15 +387,32 @@ export class BillImportDetailComponent
     this.newBillImport.DeliverID = firstHistory.UserID;
     this.newBillImport.KhoTypeID = firstHistory.ProductGroupID;
     this.newBillImport.KhoType = firstHistory.ProductGroupName;
-    // SỬA: Patch mà không trigger valueChanges
-    this.validateForm.patchValue(this.newBillImport, { emitEvent: false });
+    // GIỮ NGUYÊN BillTypeNew = 1 đã được set trước đó (không ghi đè)
+    // this.newBillImport.BillTypeNew đã = 1 từ ngOnInit
 
-    // THÊM: Đảm bảo flag (dù đã set ở ngOnInit)
+    // Patch vào form mà không trigger valueChanges để tránh gọi getNewCode
+    // CHỈ patch các field cần thiết, KHÔNG patch BillTypeNew để tránh ghi đè
+    this.validateForm.patchValue(
+      {
+        BillImportCode: this.newBillImport.BillImportCode,
+        DeliverID: this.newBillImport.DeliverID,
+        KhoTypeID: this.newBillImport.KhoTypeID,
+        // BillTypeNew: GIỮ NGUYÊN giá trị đã set = 1, không patch lại
+      },
+      { emitEvent: false }
+    );
+
     this.isInitialLoad = false;
-    // Patch vào form
-    // this.validateForm.patchValue(this.newBillImport);
+    if (this.newBillImport.KhoTypeID) {
+      this.changeProductGroup(this.newBillImport.KhoTypeID);
+    }
+  }
 
-    // Map chi tiết sản phẩm từ dataHistory
+  private mapDataHistoryToTable() {
+    if (!this.dataHistory || this.dataHistory.length === 0) {
+      return;
+    }
+
     this.dataTableBillImportDetail = this.dataHistory.map((item: any) => {
       const productInfo =
         this.productOptions.find((p: any) => p.value === item.ProductID) || {};
@@ -549,17 +476,18 @@ export class BillImportDetailComponent
   }
 
   changeStatus() {
-    this.getNewCode();
     const billTypeNew = this.validateForm.get('BillTypeNew')?.value;
+
+    this.getNewCode();
     if (billTypeNew === 4) {
       this.validateForm.patchValue({
         CreatDate: null,
-        DateRequest: new Date(),
+        DateRequestImport: new Date(),
       });
     } else {
       this.validateForm.patchValue({
         DateRequest: null,
-        CreatDate: new Date(),
+        DateRequestImport: new Date(),
       });
     }
   }
@@ -572,35 +500,24 @@ export class BillImportDetailComponent
     });
   }
 
-  /**
-   * LoadDataReciver - Giống WinForm frmBillImportDetail.cs lines 1850-1882
-   * Logic tự động set Receiver và Deliverer dựa trên Warehouse, KhoType, và Supplier
-   */
   private updateReceiverDeliver(): void {
-    // Chỉ chạy khi tạo mới phiếu (giống WinForm: if (billImport.ID > 0) return;)
     if (this.isCheckmode && this.id > 0) return;
 
     const khoTypeId = this.validateForm.controls['KhoTypeID'].value || 0;
     const warehouseId = this.validateForm.controls['WarehouseID'].value || 0;
     const supplierId = this.validateForm.controls['SupplierID'].value || 0;
 
-    // Nếu chưa chọn kho type thì không làm gì
     if (!khoTypeId || !warehouseId) return;
 
     const isHCM = String(this.WarehouseCode).toUpperCase().includes('HCM');
-    const specialSuppliers = [1175, 16677]; // Giống WinForm line 1848
+    const specialSuppliers = [1175, 16677];
 
     if (isHCM) {
-      // === LOGIC KHO HCM (WinForm lines 1868-1881) ===
-
-      // 1. Người nhận = user hiện tại (line 1870)
       this.validateForm.controls['ReciverID'].setValue(
         this.appUserService.id || 0
       );
 
-      // 2. Người giao: Chỉ set nếu NCC thuộc nhóm đặc biệt
       if (specialSuppliers.includes(supplierId) && this.warehouseIdHN) {
-        // Lấy mapping từ kho HN (warehouseID = 1) - line 1871-1873
         this.productSaleService
           .getdataProductGroupWareHouse(khoTypeId, this.warehouseIdHN)
           .subscribe({
@@ -613,35 +530,23 @@ export class BillImportDetailComponent
             },
           });
       } else {
-        // Nếu không phải NCC đặc biệt -> Người giao = 0 (line 1880)
         this.validateForm.controls['DeliverID'].setValue(0);
       }
     } else {
-      // === LOGIC KHO HN hoặc kho khác (WinForm lines 1856-1865) ===
-
-      // Lấy mapping ProductGroupWarehouse cho kho hiện tại
       this.productSaleService
         .getdataProductGroupWareHouse(khoTypeId, warehouseId)
         .subscribe({
           next: (res: any) => {
             const userId = res?.data?.[0]?.UserID || 0;
-            // Set Người nhận từ mapping (line 1863)
             this.validateForm.controls['ReciverID'].setValue(userId);
           },
           error: () => {
             this.validateForm.controls['ReciverID'].setValue(0);
           },
         });
-
-      // Người giao đã được set = Global.UserID ở ngOnInit (line 245)
-      // Không cần set lại ở đây
     }
   }
 
-  /**
-   * RecheckQty - Tính tổng số lượng cho các sản phẩm trùng nhau
-   * Giống WinForm frmBillImportDetail.cs lines 1361-1387
-   */
   private recheckTotalQty(): void {
     if (!this.table_billImportDetail) return;
 
@@ -675,11 +580,6 @@ export class BillImportDetailComponent
     });
   }
 
-  /**
-   * CalculateDueDate - Tính ngày đến hạn dựa trên DateSomeBill + DPO
-   * Giống WinForm frmBillImportDetail.cs lines 1634-1652
-   * @param row - Row component của Tabulator
-   */
   private calculateDueDate(row: any): void {
     const rowData = row.getData();
     const dateSomeBill = rowData.DateSomeBill;
@@ -697,14 +597,10 @@ export class BillImportDetailComponent
     }
   }
 
-  /**
-   * PHASE 2.1: Calculate quantity to keep in InventoryProject
-   * Giống WinForm frmBillImportDetail.cs lines 1119-1129
-   * @param quantityReal - Actual quantity received
-   * @param quantityRequest - Requested quantity to buy
-   * @returns Quantity to keep
-   */
-  private calculateQuantityKeep(quantityReal: number, quantityRequest: number): number {
+  private calculateQuantityKeep(
+    quantityReal: number,
+    quantityRequest: number
+  ): number {
     let quantityKeep = quantityReal;
 
     // If both are > 0, keep the minimum
@@ -715,40 +611,27 @@ export class BillImportDetailComponent
     return quantityKeep;
   }
 
-  /**
-   * PHASE 2.1: Prepare InventoryProject data for detail row
-   * Giống WinForm frmBillImportDetail.cs lines 1092-1170
-   * Note: Actual creation/update should happen on backend
-   */
   private prepareInventoryProjectData(detailRow: any): any | null {
     const formValues = this.validateForm.getRawValue();
 
-    // Skip if "Không giữ" (IsNotKeep) is checked
     if (detailRow.IsNotKeep === true) {
       return null;
     }
 
-    // Skip if not BillTypeNew = 0 (nhập kho)
     if (formValues.BillTypeNew !== 0) {
       return null;
     }
-
-    // Skip if no ProjectID and no POKHDetailID
     const projectID = detailRow.ProjectID || detailRow.ProjectIDKeep || 0;
     const pokhDetailID = detailRow.POKHDetailID || 0;
     if (projectID <= 0 && pokhDetailID <= 0) {
       return null;
     }
-
-    // Calculate quantity to keep
     const quantityReal = parseFloat(detailRow.Qty) || 0;
     const quantityRequest = parseFloat(detailRow.QuantityRequestBuy) || 0;
-    let quantityKeep = this.calculateQuantityKeep(quantityReal, quantityRequest);
-
-    // Note: Backend should call UpdateReturnQuantityLoan to adjust quantityKeep
-    // for auto-refill loan logic (lines 1129)
-
-    // Prepare InventoryProject object (for backend processing)
+    let quantityKeep = this.calculateQuantityKeep(
+      quantityReal,
+      quantityRequest
+    );
     const inventoryProject = {
       ID: detailRow.InventoryProjectID || 0,
       ProjectID: projectID,
@@ -785,21 +668,18 @@ export class BillImportDetailComponent
             BillTypeNew: data.BillTypeNew,
             SupplierID: data.SupplierID,
             CreatDate: data.CreatDate ? new Date(data.CreatDate) : null,
-            DateRequest: data.RequestDate ? new Date(data.RequestDate) : null,
+            DateRequest: data.DateRequestImport ? new Date(data.DateRequestImport) : null,
+            DateRequestImport: data.DateRequestImport ? new Date(data.DateRequestImport) : null,
             RulePayID: data.RulePayID,
           };
-          // Lưu giá trị ban đầu của BillTypeNew
           this.initialBillTypeNew = data.BillTypeNew;
 
-          // SỬA: Patch mà không trigger valueChanges
           this.validateForm.patchValue(this.newBillImport, {
             emitEvent: false,
           });
 
-          // THÊM: Set flag sau patch
           this.isInitialLoad = false;
-          // this.validateForm.patchValue(this.newBillImport); // Đồng bộ dữ liệu vào form
-          this.changeProductGroup(this.newBillImport.KhoTypeID);
+          this.changeProductGroup(this.validateForm.get('KhoTypeID')?.value);
         } else {
           this.notification.warning(
             'Thông báo',
@@ -847,6 +727,34 @@ export class BillImportDetailComponent
       },
     });
   }
+
+  getProjectById(projectId: number) {
+    this.projectService.getProject(projectId).subscribe({
+      next: (res: any) => {
+        if (res?.data) {
+          const project = res.data;
+          if (!this.projectOptions.find((p: any) => p.value === project.ID)) {
+            this.projectOptions.push({
+              label: project.ProjectName,
+              value: project.ID,
+              ProjectCode: project.ProjectCode,
+              ProjectName: project.ProjectName,
+            });
+            if (this.table_billImportDetail) {
+              this.table_billImportDetail.redraw(true); // Làm mới bảng để hiển thị dự án mới
+            }
+          }
+        }
+      },
+      error: (err) => {
+        console.error(err);
+        this.notification.error(
+          'Thông báo',
+          'Có lỗi khi lấy thông tin dự án!'
+        );
+      },
+    });
+  }
   getBillImportDetailID() {
     this.billImportService.getBillImportDetail(this.id).subscribe({
       next: (res) => {
@@ -854,20 +762,48 @@ export class BillImportDetailComponent
           const rawData = Array.isArray(res.data) ? res.data : [res.data];
           this.billID = rawData[0].BillID;
           console.log('datatable', rawData);
-          this.dataTableBillImportDetail = rawData.map((item: any) => {
-            const productInfo =
-              this.productOptions.find(
-                (p: any) => p.value === item.ProductID
-              ) || {};
-            // Nếu không tìm thấy sản phẩm, gọi getProductById để tải bổ sung
-            if (!productInfo.value && item.ProductID) {
-              this.getProductById(item.ProductID);
+
+          // Load tất cả các project cần thiết trước
+          const projectIds = [...new Set(rawData.map((item: any) => item.ProjectID).filter((id: number) => id > 0))] as number[];
+          const projectLoadPromises = projectIds.map((projectId: number) => {
+            if (!this.projectOptions.find((p: any) => p.value === projectId)) {
+              return new Promise<void>((resolve) => {
+                this.projectService.getProject(projectId).subscribe({
+                  next: (res: any) => {
+                    if (res?.data) {
+                      const project = res.data;
+                      this.projectOptions.push({
+                        label: project.ProjectName,
+                        value: project.ID,
+                        ProjectCode: project.ProjectCode,
+                        ProjectName: project.ProjectName,
+                      });
+                    }
+                    resolve();
+                  },
+                  error: () => resolve()
+                });
+              });
             }
-            const projectInfo =
-              this.projectOptions.find(
-                (p: any) => p.value === item.ProjectID
-              ) || {};
-            return {
+            return Promise.resolve();
+          });
+
+          // Đợi tất cả project được load xong
+          Promise.all(projectLoadPromises).then(() => {
+            this.dataTableBillImportDetail = rawData.map((item: any) => {
+              const productInfo =
+                this.productOptions.find(
+                  (p: any) => p.value === item.ProductID
+                ) || {};
+              // Nếu không tìm thấy sản phẩm, gọi getProductById để tải bổ sung
+              if (!productInfo.value && item.ProductID) {
+                this.getProductById(item.ProductID);
+              }
+              const projectInfo =
+                this.projectOptions.find(
+                  (p: any) => p.value === item.ProjectID
+                ) || {};
+              return {
               ID: item.ID || 0,
               POKHDetailID: item.POKHDetailID || 0,
               ProductID: item.ProductID || 0,
@@ -908,7 +844,9 @@ export class BillImportDetailComponent
                 : new Date(),
               InventoryProjectIDs: item.ProjectID ? [item.ProjectID] : [],
               SomeBill: item.SomeBill || '',
-              DateSomeBill: item.DateSomeBill ? new Date(item.DateSomeBill) : null,
+              DateSomeBill: item.DateSomeBill
+                ? new Date(item.DateSomeBill)
+                : null,
               DPO: item.DPO || 0,
               DueDate: item.DueDate ? new Date(item.DueDate) : null,
               TaxReduction: item.TaxReduction || 0,
@@ -917,16 +855,17 @@ export class BillImportDetailComponent
               POKHDetailQuantity: item.POKHDetailQuantity || 0,
               ProjectIDKeep: item.ProjectIDKeep || 0,
             };
-          });
+            });
 
-          if (this.table_billImportDetail) {
-            this.table_billImportDetail.replaceData(
-              this.dataTableBillImportDetail
-            );
-            setTimeout(() => {
-              this.table_billImportDetail.redraw(true);
-            }, 100);
-          }
+            if (this.table_billImportDetail) {
+              this.table_billImportDetail.replaceData(
+                this.dataTableBillImportDetail
+              );
+              setTimeout(() => {
+                this.table_billImportDetail.redraw(true);
+              }, 100);
+            }
+          });
         } else {
           this.notification.warning(
             'Thông báo',
@@ -995,7 +934,8 @@ export class BillImportDetailComponent
     this.billExportService.getCbbUser().subscribe({
       next: (res: any) => {
         this.dataCbbReciver = res.data;
-        this.dataCbbDeliver = this.dataCbbReciver;
+        this.dataCbbDeliver = res.data;
+        console.log('data', this.dataCbbDeliver);
       },
       error: (err: any) => {
         this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
@@ -1013,19 +953,19 @@ export class BillImportDetailComponent
     });
   }
   getNewCode() {
-    this.billImportService
-      .getNewCode(this.newBillImport.BillTypeNew)
-      .subscribe({
-        next: (res: any) => {
-          console.log('New code received:', res.data);
-          this.newBillImport.BillImportCode = res.data;
-          this.validateForm.patchValue({ BillImportCode: res.data });
-        },
-        error: (err: any) => {
-          console.error(err);
-          this.notification.error('Thông báo', 'Có lỗi xảy ra khi mã phiếu');
-        },
-      });
+    console.log('BillTypeNew', this.newBillImport.BillTypeNew);
+    const billTypeNew = this.validateForm.get('BillTypeNew')?.value;
+    this.billImportService.getNewCode(billTypeNew).subscribe({
+      next: (res: any) => {
+        console.log('New code received:', res.data);
+        this.newBillImport.BillImportCode = res.data;
+        this.validateForm.patchValue({ BillImportCode: res.data });
+      },
+      error: (err: any) => {
+        console.error(err);
+        this.notification.error('Thông báo', 'Có lỗi xảy ra khi mã phiếu');
+      },
+    });
   }
   loadOptionProject() {
     this.billExportService.getOptionProject().subscribe({
@@ -1095,7 +1035,19 @@ export class BillImportDetailComponent
   closeModal() {
     this.activeModal.close();
   }
+
   private mapTableDataToBillImportDetails(tableData: any[]): any[] {
+    const parsePOKHList = (pokhString: string) =>
+      pokhString
+        ? pokhString
+            .split(',')
+            .map((s) => {
+              const [id, qty] = s.split('-').map((x) => x.trim());
+              return { POKHDetailID: Number(id), QuantityRequest: Number(qty) };
+            })
+            .filter((x) => x.POKHDetailID > 0 && x.QuantityRequest > 0)
+        : [];
+
     return tableData.map((row: any, index: number) => {
       return {
         ID: row.ID || 0,
@@ -1109,7 +1061,7 @@ export class BillImportDetailComponent
         SomeBill: row.SomeBill || '',
         Note: row.Note || '',
         STT: row.STT || index + 1,
-        TotalQty: row.TotalQty,
+        TotalQty: row.TotalQty || 0,
         CreatedDate: row.CreatedDate
           ? new Date(row.CreatedDate).toISOString()
           : new Date().toISOString(),
@@ -1121,36 +1073,205 @@ export class BillImportDetailComponent
         BillExportDetailID: row.BillExportDetailID || null,
         ProjectPartListID: row.ProjectPartListID || 0,
         IsKeepProject: row.IsKeepProject || false,
-        QtyRequest: row.QtyRequest,
+        QtyRequest: row.QtyRequest || 0,
         BillCodePO: row.BillCodePO || '',
         ReturnedStatus: row.ReturnedStatus || false,
-        InventoryProjectID: row.InventoryProjectID || 0,
+        InventoryProjectID: row.InventoryProjectID || null,
         DateSomeBill: row.DateSomeBill
           ? new Date(row.DateSomeBill).toISOString()
           : null,
         isDeleted: row.isDeleted || false,
         DPO: row.DPO || 0,
-        DueDate: row.DueDate
-          ? new Date(row.DueDate).toISOString()
-          : null,
+        DueDate: row.DueDate ? new Date(row.DueDate).toISOString() : null,
         TaxReduction: row.TaxReduction || 0,
         COFormE: row.COFormE || 0,
         IsNotKeep: row.IsNotKeep || false,
         Unit: row.Unit || 'PCS',
         CreatedBy: 'system',
         UpdatedBy: 'system',
-        POKHDetailID: row.POKHDetailID || 0,
+        POKHDetailID: row.POKHDetailID || null,
+        POKHDetailQuantity: row.POKHDetailQuantity || null,
         CustomerID: row.CustomerID || 0,
         QuantityRequestBuy: row.QuantityRequestBuy || 0,
+        POKHList: parsePOKHList(row.POKHDetailQuantity),
       };
     });
   }
-  saveDataBillImport() {
-    console.log('saveDataBillImport called');
+  // saveDataBillImport() {
+  //   console.log('saveDataBillImport called');
 
+  //   if (!this.validateForm.valid) {
+  //     this.notification.warning(
+  //       'Thông báo',
+  //       'Vui lòng điền đầy đủ thông tin bắt buộc và kiểm tra lỗi!'
+  //     );
+  //     this.validateForm.markAllAsTouched();
+  //     Object.values(this.validateForm.controls).forEach((control) => {
+  //       if (control.invalid) {
+  //         control.markAsDirty();
+  //         control.updateValueAndValidity({ onlySelf: true });
+  //       }
+  //     });
+  //     return;
+  //   }
+  //   const formValues = this.validateForm.getRawValue();
+
+  //   // 1. Validate BillCode (line 1426-1430)
+  //   if (!formValues.BillImportCode || formValues.BillImportCode.trim() === '') {
+  //     this.notification.error(
+  //       NOTIFICATION_TITLE.error,
+  //       'Xin hãy điền số phiếu.'
+  //     );
+  //     return;
+  //   }
+  //   if (!formValues.SupplierID || formValues.SupplierID <= 0) {
+  //     this.notification.error(
+  //       NOTIFICATION_TITLE.error,
+  //       'Xin hãy điền thông tin nhà cung cấp.'
+  //     );
+  //     return;
+  //   }
+
+  //   if (!formValues.ReciverID || formValues.ReciverID <= 0) {
+  //     this.notification.error(
+  //       NOTIFICATION_TITLE.error,
+  //       'Xin hãy điền thông tin người nhập.'
+  //     );
+  //     return;
+  //   }
+  //   if (!formValues.KhoTypeID || formValues.KhoTypeID <= 0) {
+  //     this.notification.error(
+  //       NOTIFICATION_TITLE.error,
+  //       'Xin hãy chọn kho quản lý.'
+  //     );
+  //     return;
+  //   }
+
+  //   if (!formValues.DeliverID || formValues.DeliverID <= 0) {
+  //     this.notification.error(
+  //       NOTIFICATION_TITLE.error,
+  //       'Xin hãy điền thông tin người giao.'
+  //     );
+  //     return;
+  //   }
+
+  //   if (formValues.BillTypeNew !== 4 && !formValues.CreatDate) {
+  //     this.notification.error(
+  //       NOTIFICATION_TITLE.error,
+  //       'Vui lòng nhập Ngày nhập!'
+  //     );
+  //     return;
+  //   }
+
+  //   if (!formValues.RulePayID || formValues.RulePayID <= 0) {
+  //     this.notification.error(
+  //       NOTIFICATION_TITLE.error,
+  //       'Vui lòng nhập Điều khoản TT!'
+  //     );
+  //     return;
+  //   }
+
+  //   const billImportDetailsFromTable = this.table_billImportDetail?.getData();
+  //   if (
+  //     !billImportDetailsFromTable ||
+  //     billImportDetailsFromTable.length === 0
+  //   ) {
+  //     this.notification.warning(
+  //       'Thông báo',
+  //       'Vui lòng thêm ít nhất một sản phẩm vào bảng!'
+  //     );
+  //     return;
+  //   }
+
+  //   const payload = {
+  //     billImport: {
+  //       ID: this.newBillImport.Id || 0,
+  //       BillImportCode: formValues.BillImportCode,
+  //       BillType: false,
+  //       Reciver:
+  //         this.dataCbbReciver.find((item) => item.ID === formValues.ReciverID)
+  //           ?.FullName || '',
+  //       Deliver:
+  //         this.dataCbbDeliver.find((item) => item.ID === formValues.DeliverID)
+  //           ?.FullName || '',
+  //       KhoType:
+  //         this.dataCbbProductGroup.find(
+  //           (item) => item.ID === formValues.KhoTypeID
+  //         )?.ProductGroupName || '',
+  //       GroupID: String(formValues.KhoTypeID || ''),
+  //       Suplier:
+  //         this.dataCbbSupplier.find((item) => item.ID === formValues.SupplierID)
+  //           ?.NameNCC || '',
+  //       SupplierID: formValues.SupplierID,
+  //       ReciverID: formValues.ReciverID,
+  //       DeliverID: formValues.DeliverID,
+  //       KhoTypeID: formValues.KhoTypeID,
+  //       WarehouseID: formValues.WarehouseID || this.newBillImport.WarehouseID,
+  //       CreatDate: formValues.CreatDate,
+  //       DateRequestImport: formValues.DateRequest,
+  //       UpdatedDate: new Date(),
+  //       BillTypeNew: formValues.BillTypeNew,
+  //       BillDocumentImportType: 2,
+  //       CreatedDate: formValues.CreatDate,
+  //       Status: false,
+  //       PTNB: false,
+  //       UnApprove: 1,
+  //       RulePayID: formValues.RulePayID,
+  //       IsDeleted: false,
+  //       CreatedBy: 'system',
+  //       UpdatedBy: 'system',
+  //       DPO: formValues.DPO || 0,
+  //       DueDate: formValues.DueDate
+  //         ? new Date(formValues.DueDate).toISOString()
+  //         : new Date().toISOString(),
+  //       TaxReduction: formValues.TaxReduction || 0,
+  //       COFormE: formValues.COFormE || 0,
+  //       IsNotKeep: formValues.IsNotKeep || false,
+  //     },
+  //     billImportDetail: this.mapTableDataToBillImportDetails(
+  //       billImportDetailsFromTable
+  //     ),
+  //     DeletedDetailIds: this.deletedDetailIds || [],
+  //   };
+
+  //   console.log('Payload before sending:', JSON.stringify(payload, null, 2));
+  //   this.billImportService.saveBillImport(payload).subscribe({
+  //     next: (res) => {
+  //       if (res.status === 1) {
+  //         this.notification.success(
+  //           'Thông báo',
+  //           this.isCheckmode ? 'Cập nhật thành công!' : 'Thêm mới thành công!'
+  //         );
+
+  //         // Nếu đang ở chế độ embedded (trong tab), emit event thay vì đóng modal
+  //         if (this.isEmbedded) {
+  //           this.saveSuccess.emit();
+  //         } else {
+  //           this.closeModal();
+  //         }
+  //       } else {
+  //         this.notification.warning(
+  //           'Thông báo',
+  //           res.message ||
+  //             (this.isCheckmode ? 'Cập nhật thất bại!' : 'Thêm mới thất bại!')
+  //         );
+  //       }
+  //     },
+  //     error: (err: any) => {
+  //       console.error('Save error:', err);
+  //       let errorMessage =
+  //         'Có lỗi xảy ra khi ' + (this.isCheckmode ? 'cập nhật!' : 'thêm mới!');
+  //       if (err.error && err.error.message) {
+  //         errorMessage += ' Chi tiết: ' + err.error.message;
+  //       }
+  //       this.notification.error('Thông báo', errorMessage);
+  //     },
+  //   });
+  // }
+  saveDataBillImport() {
     if (!this.validateForm.valid) {
       this.notification.warning(
-        'Thông báo',
+        NOTIFICATION_TITLE.warning,
         'Vui lòng điền đầy đủ thông tin bắt buộc và kiểm tra lỗi!'
       );
       this.validateForm.markAllAsTouched();
@@ -1165,7 +1286,7 @@ export class BillImportDetailComponent
 
     const formValues = this.validateForm.getRawValue();
 
-    // 1. Validate BillCode (line 1426-1430)
+    // Validate các trường bắt buộc
     if (!formValues.BillImportCode || formValues.BillImportCode.trim() === '') {
       this.notification.error(
         NOTIFICATION_TITLE.error,
@@ -1180,7 +1301,6 @@ export class BillImportDetailComponent
       );
       return;
     }
-
     if (!formValues.ReciverID || formValues.ReciverID <= 0) {
       this.notification.error(
         NOTIFICATION_TITLE.error,
@@ -1195,7 +1315,6 @@ export class BillImportDetailComponent
       );
       return;
     }
-
     if (!formValues.DeliverID || formValues.DeliverID <= 0) {
       this.notification.error(
         NOTIFICATION_TITLE.error,
@@ -1203,7 +1322,6 @@ export class BillImportDetailComponent
       );
       return;
     }
-
     if (formValues.BillTypeNew !== 4 && !formValues.CreatDate) {
       this.notification.error(
         NOTIFICATION_TITLE.error,
@@ -1211,7 +1329,6 @@ export class BillImportDetailComponent
       );
       return;
     }
-
     if (!formValues.RulePayID || formValues.RulePayID <= 0) {
       this.notification.error(
         NOTIFICATION_TITLE.error,
@@ -1226,75 +1343,89 @@ export class BillImportDetailComponent
       billImportDetailsFromTable.length === 0
     ) {
       this.notification.warning(
-        'Thông báo',
+        NOTIFICATION_TITLE.warning,
         'Vui lòng thêm ít nhất một sản phẩm vào bảng!'
       );
       return;
     }
-
-    const payload = {
-      billImport: {
-        ID: this.newBillImport.Id || 0,
-        BillImportCode: formValues.BillImportCode,
-        BillType: false,
-        Reciver:
-          this.dataCbbReciver.find((item) => item.ID === formValues.ReciverID)
-            ?.FullName || '',
-        Deliver:
-          this.dataCbbDeliver.find((item) => item.ID === formValues.DeliverID)
-            ?.FullName || '',
-        KhoType:
-          this.dataCbbProductGroup.find(
-            (item) => item.ID === formValues.KhoTypeID
-          )?.ProductGroupName || '',
-        GroupID: String(formValues.KhoTypeID || ''),
-        Suplier:
-          this.dataCbbSupplier.find((item) => item.ID === formValues.SupplierID)
-            ?.NameNCC || '',
-        SupplierID: formValues.SupplierID,
-        ReciverID: formValues.ReciverID,
-        DeliverID: formValues.DeliverID,
-        KhoTypeID: formValues.KhoTypeID,
-        WarehouseID: formValues.WarehouseID || this.newBillImport.WarehouseID,
-        CreatDate: formValues.CreatDate,
-        DateRequestImport: formValues.DateRequest,
-        UpdatedDate: new Date(),
-        BillTypeNew: formValues.BillTypeNew,
-        BillDocumentImportType: 2,
-        CreatedDate: formValues.CreatDate,
-        Status: false,
-        PTNB: false,
-        UnApprove: 1,
-        RulePayID: formValues.RulePayID,
-        IsDeleted: false,
-        CreatedBy: 'system',
-        UpdatedBy: 'system',
-        DPO: formValues.DPO || 0,
-        DueDate: formValues.DueDate
-          ? new Date(formValues.DueDate).toISOString()
-          : new Date().toISOString(),
-        TaxReduction: formValues.TaxReduction || 0,
-        COFormE: formValues.COFormE || 0,
-        IsNotKeep: formValues.IsNotKeep || false,
+  const documentsFromTable = this.table_DocumnetImport?.getData();
+    // Tạo payload dưới dạng list
+    const payloadList = [
+      {
+        billImport: {
+          ID: this.newBillImport.Id || 0,
+          BillImportCode: formValues.BillImportCode,
+          BillType: false,
+          Reciver:
+            this.dataCbbReciver.find((item) => item.ID === formValues.ReciverID)
+              ?.FullName || '',
+          Deliver:
+            this.dataCbbDeliver.find((item) => item.ID === formValues.DeliverID)
+              ?.FullName || '',
+          KhoType:
+            this.dataCbbProductGroup.find(
+              (item) => item.ID === formValues.KhoTypeID
+            )?.ProductGroupName || '',
+          GroupID: String(formValues.KhoTypeID || ''),
+          Suplier:
+            this.dataCbbSupplier.find(
+              (item) => item.ID === formValues.SupplierID
+            )?.NameNCC || '',
+          SupplierID: formValues.SupplierID,
+          ReciverID: formValues.ReciverID,
+          DeliverID: formValues.DeliverID,
+          KhoTypeID: formValues.KhoTypeID,
+          WarehouseID: formValues.WarehouseID || this.newBillImport.WarehouseID,
+          CreatDate: formValues.CreatDate,
+          DateRequestImport: formValues.DateRequestImport,
+          UpdatedDate: new Date(),
+          BillTypeNew: formValues.BillTypeNew,
+          BillDocumentImportType: 2,
+          CreatedDate: formValues.CreatDate,
+          Status: false,
+          PTNB: false,
+          UnApprove: 1,
+          RulePayID: formValues.RulePayID,
+          IsDeleted: false,
+          CreatedBy: 'system',
+          UpdatedBy: 'system',
+          DPO: formValues.DPO || 0,
+          DueDate: formValues.DueDate
+            ? new Date(formValues.DueDate).toISOString()
+            : new Date().toISOString(),
+          TaxReduction: formValues.TaxReduction || 0,
+          COFormE: formValues.COFormE || 0,
+          IsNotKeep: formValues.IsNotKeep || false,
+        },
+        billImportDetail: this.mapTableDataToBillImportDetails(
+          billImportDetailsFromTable
+        ),
+        DeletedDetailIds: this.deletedDetailIds || [],
+         billDocumentImports: this.mapTableDataToDocumentImports(documentsFromTable || [])
       },
-      billImportDetail: this.mapTableDataToBillImportDetails(
-        billImportDetailsFromTable
-      ),
-      DeletedDetailIds: this.deletedDetailIds || [],
-    };
+    ];
 
-    console.log('Payload before sending:', JSON.stringify(payload, null, 2));
-    this.billImportService.saveBillImport(payload).subscribe({
+    console.log(
+      'Payload list before sending:',
+      JSON.stringify(payloadList, null, 2)
+    );
+
+    this.billImportService.saveBillImport(payloadList).subscribe({
       next: (res) => {
         if (res.status === 1) {
           this.notification.success(
-            'Thông báo',
+            NOTIFICATION_TITLE.success,
             this.isCheckmode ? 'Cập nhật thành công!' : 'Thêm mới thành công!'
           );
-          this.closeModal();
+
+          if (this.isEmbedded) {
+            this.saveSuccess.emit();
+          } else {
+            this.closeModal();
+          }
         } else {
           this.notification.warning(
-            'Thông báo',
+            NOTIFICATION_TITLE.warning,
             res.message ||
               (this.isCheckmode ? 'Cập nhật thất bại!' : 'Thêm mới thất bại!')
           );
@@ -1307,7 +1438,7 @@ export class BillImportDetailComponent
         if (err.error && err.error.message) {
           errorMessage += ' Chi tiết: ' + err.error.message;
         }
-        this.notification.error('Thông báo', errorMessage);
+        this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
       },
     });
   }
@@ -1315,7 +1446,10 @@ export class BillImportDetailComponent
   openModalBillExportDetail(ischeckmode: boolean) {
     this.isCheckmode = ischeckmode;
     if (this.isCheckmode == true && this.id == 0) {
-      this.notification.info('Thông báo', 'Vui lòng chọn 1 phiếu xuất để sửa');
+      this.notification.info(
+        NOTIFICATION_TITLE.success,
+        'Vui lòng chọn 1 phiếu xuất để sửa'
+      );
       this.id = 0;
       return;
     }
@@ -1373,7 +1507,6 @@ export class BillImportDetailComponent
     injector: EnvironmentInjector,
     appRef: ApplicationRef,
     getData: () => any[],
-    // Thêm tham số config để nhận cấu hình
     config: {
       valueField: string;
       labelField: string;
@@ -1386,7 +1519,11 @@ export class BillImportDetailComponent
         environmentInjector: injector,
       });
 
-      const data = getData();
+      let data = getData();
+      data = data.map((p: any) => ({
+        ...p,
+        productLabel: `${p.ProductNewCode || ''} | ${p.ProductCode || ''} | ${p.ProductName || ''}`,
+      }));
       componentRef.instance.id = cell.getValue();
       componentRef.instance.data = data;
 
@@ -1410,7 +1547,6 @@ export class BillImportDetailComponent
   }
 
   onTabChange(index: number): void {
-    console.log('Tab changed to:', index);
     this.isLoading = true;
 
     switch (index) {
@@ -1423,7 +1559,6 @@ export class BillImportDetailComponent
         break;
       case 1:
         if (!this.table_DocumnetImport) {
-          // ví dụ nếu sau có bảng hồ sơ
           this.drawDocumentTable();
         } else {
           this.isLoading = false;
@@ -1442,7 +1577,6 @@ export class BillImportDetailComponent
     this.billImportService.getProductOption(1, ID).subscribe({
       next: (res: any) => {
         const productData = res.data;
-        console.log('productData:', productData); // Log để kiểm tra
         if (Array.isArray(productData)) {
           this.productOptions = productData
             .filter((product) => product.ID > 0)
@@ -1456,21 +1590,24 @@ export class BillImportDetailComponent
               Note: product.Note,
               ProductNewCode: product.ProductNewCode,
             }));
-          console.log('productOptions:', this.productOptions); // Log để kiểm tra
 
-          // Redraw the table to update all existing rows with new product options
           if (this.table_billImportDetail) {
             this.table_billImportDetail.redraw(true);
           }
         } else {
           this.productOptions = [];
           this.notification.warning(
-            'Thông báo',
+            NOTIFICATION_TITLE.warning,
             'Dữ liệu sản phẩm không hợp lệ!'
           );
         }
-        if (this.createImport == true) {
-          //this.getBillExportDetailConvert();
+        // Gọi hàm map data history SAU KHI productOptions đã load xong
+        if (
+          this.createImport == true &&
+          this.dataHistory &&
+          this.dataHistory.length > 0
+        ) {
+          this.mapDataHistoryToTable();
         } else if (this.isCheckmode) {
           this.getBillImportDetailID();
         }
@@ -1478,14 +1615,29 @@ export class BillImportDetailComponent
       error: (err) => {
         console.error(err);
         this.notification.error(
-          'Thông báo',
+          NOTIFICATION_TITLE.error,
           'Có lỗi khi tải danh sách sản phẩm!'
         );
         this.productOptions = [];
       },
     });
   }
+mapTableDataToDocumentImports(documents: any[]): any[] {
+  if (!documents || documents.length === 0) {
+    return [];
+  }
 
+  return documents.map(doc => ({
+    ID: doc.ID || 0,
+    DocumentImportID: doc.DocumentImportID || 0,
+    ReasonCancel: (doc.ReasonCancel || '').trim(),
+    Note: (doc.Note || '').trim(),
+    Status: doc.Status || 0,
+    StatusPurchase: doc.DocumentStatusPur || 0,
+    BillImportID: this.newBillImport.Id || 0,
+    UpdatedDate: new Date().toISOString()
+  }));
+}
   openSerialModal(
     rowData: any,
     row: RowComponent,
@@ -1506,13 +1658,18 @@ export class BillImportDetailComponent
 
     modalRef.result.then(
       (serials: { ID: number; Serial: string }[]) => {
-        console.log('Serials returned:', serials);
         if (Array.isArray(serials) && serials.length > 0) {
           const serialsID = serials.map((s) => s.ID).join(',');
           row.update({ SerialNumber: serialsID });
-          this.notification.success(NOTIFICATION_TITLE.success, 'Cập nhật serial thành công!');
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            'Cập nhật serial thành công!'
+          );
         } else {
-          this.notification.error(NOTIFICATION_TITLE.error, 'Dữ liệu serial không hợp lệ!');
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'Dữ liệu serial không hợp lệ!'
+          );
         }
       },
       (reason) => {
@@ -1526,720 +1683,698 @@ export class BillImportDetailComponent
     if (this.table_billImportDetail) {
       this.table_billImportDetail.replaceData(this.dataTableBillImportDetail);
     } else {
-      this.table_billImportDetail = new Tabulator('#table_BillImportDetails', {
-        data: this.dataTableBillImportDetail,
-        layout: 'fitDataFill',
-        height: '38vh',
-        movableColumns: true,
-        resizableRows: true,
-        reactiveData: true,
-        selectableRows: 1,
-        columns: [
-          {
-            title: '',
-            field: 'addRow',
-            hozAlign: 'center',
-            width: 40,
-            headerSort: false,
-            titleFormatter: () =>
-              `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
-            headerClick: () => {
-              this.addRow();
+      this.table_billImportDetail = new Tabulator(
+        this.tableBillImportDetails.nativeElement,
+        {
+          data: this.dataTableBillImportDetail,
+          layout: 'fitDataFill',
+          height: '38vh',
+          movableColumns: true,
+          resizableRows: true,
+          reactiveData: true,
+          selectableRows: 1,
+          columns: [
+            {
+              title: '',
+              field: 'addRow',
+              hozAlign: 'center',
+              width: 40,
+              headerSort: false,
+              titleFormatter: () =>
+                `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
+              headerClick: () => {
+                this.addRow();
+              },
+              formatter: () =>
+                `<i class="fas fa-times text-danger cursor-pointer delete-btn" title="Xóa dòng"></i>`,
+
+              cellClick: (e, cell) => {
+                if ((e.target as HTMLElement).classList.contains('fas')) {
+                  this.modal.confirm({
+                    nzTitle: 'Xác nhận xóa',
+                    nzContent: 'Bạn có chắc chắn muốn xóa không?',
+                    nzOkText: 'Đồng ý',
+                    nzCancelText: 'Hủy',
+                    nzOnOk: () => {
+                      const row = cell.getRow();
+                      const rowData = row.getData();
+                      if (rowData['ID']) {
+                        this.deletedDetailIds.push(rowData['ID']);
+                      }
+                      row.delete();
+                    },
+                  });
+                }
+              },
             },
-            formatter: () =>
-              `<i class="fas fa-times text-danger cursor-pointer delete-btn" title="Xóa dòng"></i>`,
-
-            cellClick: (e, cell) => {
-              if ((e.target as HTMLElement).classList.contains('fas')) {
-                this.modal.confirm({
-                  nzTitle: 'Xác nhận xóa',
-                  nzContent: 'Bạn có chắc chắn muốn xóa không?',
-                  nzOkText: 'Đồng ý',
-                  nzCancelText: 'Hủy',
-                  nzOnOk: () => {
-                    const row = cell.getRow();
-                    const rowData = row.getData();
-                    if (rowData['ID']) {
-                      this.deletedDetailIds.push(rowData['ID']);
-                    }
-                    row.delete();
-                  },
-                });
-              }
+            {
+              title: 'ID',
+              field: 'ID',
+              hozAlign: 'center',
+              width: 60,
+              headerSort: false,
+              visible: false,
             },
-          },
-          {
-            title: 'ID',
-            field: 'ID',
-            hozAlign: 'center',
-            width: 60,
-            headerSort: false,
-            visible: false,
-          },
-          {
-            title: 'STT',
-            field: 'STT',
-            formatter: 'rownum',
-            hozAlign: 'center',
-            width: 60,
-            headerSort: false,
-          },
-          {
-            title: 'Mã nội bộ',
-            field: 'ProductCode',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'Mã hàng',
-            field: 'ProductID',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            width: 450,
-            editor: this.createdControl(
-              SelectControlComponent,
-              this.injector,
-              this.appRef,
-              () => this.productOptions,
-              {
-                valueField: 'value',
-                labelField: 'label',
-              }
-            ),
-            formatter: (cell) => {
-              const val = cell.getValue();
-              if (!val) {
-                // Hiển thị placeholder nếu chưa có giá trị
-                return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted"></p> <i class="fas fa-angle-down"></i></div>';
-              }
-              const product = this.productOptions.find(
-                (p: any) => p.value === val
-              );
-              const productcode = product ? product.ProductCode : '';
-              const productnewcode = product ? product.ProductNewCode : '';
-              console.log('productnewcode', productnewcode);
-
-              return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${productnewcode} - ${productcode}</p> <i class="fas fa-angle-down"></i></div>`;
+            {
+              title: 'STT',
+              field: 'STT',
+              formatter: 'rownum',
+              hozAlign: 'center',
+              width: 60,
+              headerSort: false,
             },
-            cellEdited: (cell) => {
-              const row = cell.getRow();
-              // Giá trị này có thể là toàn bộ đối tượng sản phẩm hoặc chỉ là ID
-              const selectedValue = cell.getValue();
-
-              let selectedProduct;
-
-              // Kiểm tra xem editor có trả về toàn bộ đối tượng không
-              if (typeof selectedValue === 'object' && selectedValue !== null) {
-                selectedProduct = selectedValue;
-              } else {
-                // Phương án dự phòng: nếu chỉ là ID, tìm đối tượng đầy đủ
-                selectedProduct = this.productOptions.find(
-                  (p: any) => p.value === selectedValue
+            {
+              title: 'Mã nội bộ',
+              field: 'ProductNewCode',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'Mã hàng',
+              field: 'ProductID',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+              width: 450,
+              editor: this.createdControl(
+                SelectControlComponent,
+                this.injector,
+                this.appRef,
+                () => this.productOptions,
+                {
+                  valueField: 'value',
+                  labelField: 'productLabel',
+                }
+              ),
+              formatter: (cell) => {
+                const val = cell.getValue();
+                if (!val) {
+                  // Hiển thị placeholder nếu chưa có giá trị
+                  return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted"></p> <i class="fas fa-angle-down"></i></div>';
+                }
+                const product = this.productOptions.find(
+                  (p: any) => p.value === val
                 );
-              }
+                const productcode = product ? product.ProductCode : '';
+                const productnewcode = product ? product.ProductNewCode : '';
+                console.log('productnewcode', productnewcode);
 
-              // Nếu tìm thấy thông tin sản phẩm, cập nhật toàn bộ hàng
-              if (selectedProduct) {
-                row.update({
-                  // SỬA LỖI QUAN TRỌNG: Đảm bảo ProductID là giá trị số, không phải đối tượng.
-                  ProductID: selectedProduct.value,
+                return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${productcode}</p> <i class="fas fa-angle-down"></i></div>`;
+              },
+              cellEdited: (cell) => {
+                const row = cell.getRow();
+                // Giá trị này có thể là toàn bộ đối tượng sản phẩm hoặc chỉ là ID
+                const selectedValue = cell.getValue();
 
-                  // Cập nhật tất cả các trường liên quan khác
-                  ProductCode: selectedProduct.ProductCode,
-                  ProductNewCode: selectedProduct.ProductNewCode,
-                  Unit: selectedProduct.Unit || '',
-                  ProductName: selectedProduct.ProductName,
-                });
+                let selectedProduct;
 
-                // Tự động tính lại TotalQty khi ProductID thay đổi
+                // Kiểm tra xem editor có trả về toàn bộ đối tượng không
+                if (
+                  typeof selectedValue === 'object' &&
+                  selectedValue !== null
+                ) {
+                  selectedProduct = selectedValue;
+                } else {
+                  // Phương án dự phòng: nếu chỉ là ID, tìm đối tượng đầy đủ
+                  selectedProduct = this.productOptions.find(
+                    (p: any) => p.value === selectedValue
+                  );
+                }
+
+                if (selectedProduct) {
+                  row.update({
+                    ProductID: selectedProduct.value,
+
+                    ProductCode: selectedProduct.ProductCode,
+                    ProductNewCode: selectedProduct.ProductNewCode,
+                    Unit: selectedProduct.Unit || '',
+                    ProductName: selectedProduct.ProductName,
+                  });
+
+                  this.recheckTotalQty();
+                }
+              },
+            },
+            {
+              title: 'Tên sản phẩm',
+              field: 'ProductName',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+              editor: 'input',
+            },
+
+            {
+              title: 'ĐVT',
+              field: 'Unit',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+              editor: 'input',
+            },
+            {
+              title: 'Mã theo dự án',
+              field: 'ProjectPartListID',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+              editor: 'input',
+            },
+            {
+              title: 'SL yêu cầu',
+              field: 'QtyRequest',
+              hozAlign: 'right',
+              headerHozAlign: 'center',
+              editor: 'number',
+            },
+            {
+              title: 'SL thực tế',
+              field: 'Qty',
+              hozAlign: 'right',
+              headerHozAlign: 'center',
+              editor: 'number',
+              cellEdited: (cell) => {
                 this.recheckTotalQty();
-              }
+              },
             },
-          },
-          {
-            title: 'Tên sản phẩm',
-            field: 'ProductName',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            editor: 'input',
-          },
-
-          {
-            title: 'ĐVT',
-            field: 'Unit',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            editor: 'input',
-          },
-          {
-            title: 'Mã theo dự án',
-            field: 'ProjectPartListID',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            editor: 'input',
-          },
-          {
-            title: 'SL yêu cầu',
-            field: 'QtyRequest',
-            hozAlign: 'right',
-            headerHozAlign: 'center',
-            editor: 'number',
-          },
-          {
-            title: 'SL thực tế',
-            field: 'Qty',
-            hozAlign: 'right',
-            headerHozAlign: 'center',
-            editor: 'number',
-            cellEdited: (cell) => {
-              // Tự động tính lại TotalQty khi Qty thay đổi
-              this.recheckTotalQty();
+            {
+              title: 'Tổng SL',
+              field: 'TotalQty',
+              hozAlign: 'right',
+              headerHozAlign: 'center',
+              editor: 'number',
+              tooltip: 'Tổng số lượng (tự động tính khi có sản phẩm trùng)',
+              visible: false,
             },
-          },
-          {
-            title: 'Tổng SL',
-            field: 'TotalQty',
-            hozAlign: 'right',
-            headerHozAlign: 'center',
-            editor: 'number',
-            tooltip: 'Tổng số lượng (tự động tính khi có sản phẩm trùng)',
-          },
-          {
-            title: 'SL còn lại',
-            field: 'QtyRemain',
-            hozAlign: 'right',
-            headerHozAlign: 'center',
-            visible: false,
-          },
-          {
-            title: 'Không giữ',
-            field: 'IsNotKeep',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            editor: 'tickCross',
-            formatter: 'tickCross',
-          },
-          {
-            title: 'ID Kho giữ',
-            field: 'InventoryProjectID',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            visible: false,
-            tooltip: 'ID bản ghi trong bảng InventoryProject',
-          },
-          {
-            title: 'Dự án giữ',
-            field: 'ProjectIDKeep',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            visible: false,
-            tooltip: 'ID dự án để giữ hàng',
-          },
-          {
-            title: 'ID Mượn',
-            field: 'BorrowID',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            visible: false,
-            tooltip: 'ID phiếu mượn để theo dõi trả hàng',
-          },
-          {
-            title: 'ID PO NCC',
-            field: 'PONCCDetailID',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            visible: false,
-            tooltip: 'ID chi tiết đơn mua hàng NCC',
-          },
-          {
-            title: 'ID POKH',
-            field: 'POKHDetailID',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            visible: false,
-            tooltip: 'ID chi tiết POKH',
-          },
-          {
-            title: 'Số POKH',
-            field: 'PONumber',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            visible: false,
-          },
-          {
-            title: 'ID Mapping',
-            field: 'IdMapping',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            visible: false,
-            tooltip: 'ID mapping hóa đơn',
-          },
-          {
-            title: 'Tồn kho?',
-            field: 'IsStock',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            formatter: 'tickCross',
-            visible: false,
-          },
-          {
-            title: 'ID KH',
-            field: 'CustomerID',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            visible: false,
-          },
-          {
-            title: 'SL yêu cầu mua',
-            field: 'QuantityRequestBuy',
-            hozAlign: 'right',
-            headerHozAlign: 'center',
-            visible: false,
-          },
-          {
-            title: 'ID QC',
-            field: 'BillImportQCID',
-            hozAlign: 'center',
-            headerHozAlign: 'center',
-            visible: false,
-            tooltip: 'ID yêu cầu kiểm tra QC',
-          },
-          {
-            title: 'Trạng thái QC',
-            field: 'StatusQCText',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            visible: false,
-          },
-          {
-            title: 'Mã dự án/Công ty',
-            field: 'ProjectID',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            width: 200,
-            editor: this.createdControl(
-              SelectControlComponent,
-              this.injector,
-              this.appRef,
-              () => this.projectOptions,
-              // Cung cấp thêm đối tượng cấu hình
-              {
-                valueField: 'value',
-                labelField: 'label',
-              }
-            ),
-            // SỬ DỤNG FORMATTER MỚI ĐỂ HIỂN THỊ ĐẸP HƠN
-            formatter: (cell) => {
-              const val = cell.getValue();
-              if (!val) {
-                // Hiển thị placeholder nếu chưa có giá trị
-                return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted"></p> <i class="fas fa-angle-down"></i></div>';
-              }
-              // Tìm label tương ứng với value để hiển thị
-              const project = this.projectOptions.find(
-                (p: any) => p.value === val
-              );
-              const ProjectCode = project ? project.ProjectCode : val;
-
-              return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${ProjectCode}</p> <i class="fas fa-angle-down"></i></div>`;
+            {
+              title: 'SL còn lại',
+              field: 'QtyRemain',
+              hozAlign: 'right',
+              headerHozAlign: 'center',
+              visible: false,
             },
-            cellEdited: (cell) => {
-              // cell là component của ô vừa được chỉnh sửa
-              const row = cell.getRow();
-              const newValue = cell.getValue(); // ID của sản phẩm mới
+            {
+              title: 'Không giữ',
+              field: 'IsNotKeep',
+              hozAlign: 'center',
+              headerHozAlign: 'center',
+              formatter: function (cell) {
+                const value = cell.getValue() ? 'checked' : '';
+                return `<input type="checkbox" ${value} class="tabulator-custom-checkbox mt-2 w-100" />`;
+              },
+              editor: function (cell, onRendered, success, cancel) {
+                const value = cell.getValue();
 
-              // 1. Tìm thông tin đầy đủ của sản phẩm vừa được chọn
-              const selectedProject = this.projectOptions.find(
-                (p: any) => p.value === newValue
-              );
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = value;
+                checkbox.classList.add('tabulator-custom-checkbox mt-2 w-100');
 
-              // 2. Nếu tìm thấy sản phẩm, cập nhật các ô khác trên cùng một dòng
-              if (selectedProject) {
-                row.update({
-                  ProjectCodeExport: selectedProject.ProjectCode,
-                  ProjectName: selectedProject.ProjectName,
-                  InventoryProjectIDs: [newValue],
+                checkbox.addEventListener('change', function () {
+                  success(this.checked); // báo Tabulator đã edit xong
                 });
-              }
-            },
-          },
-          {
-            title: 'Tên dự án/Công ty',
-            field: 'ProjectName',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'Khách hàng',
-            field: 'Customer',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            editor: 'input',
-          }, // Giả định có thêm trường Customer
-          {
-            title: 'Đơn mua hàng',
-            field: 'BillCodePO',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'Ghi chú (PO)',
-            field: 'Note',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            editor: 'input',
-          },
-          {
-            title: 'Số hóa đơn',
-            field: 'SomeBill',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            editor: (cell, onRendered, success, cancel) => {
-              // Chỉ cho phép edit nếu là Admin hoặc là người giao
-              const canEdit = !(this.appUserService.id != this.newBillImport.DeliverID && !this.appUserService.isAdmin);
-              if (canEdit) {
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.value = cell.getValue() || '';
-                input.style.width = '100%';
-                input.style.boxSizing = 'border-box';
+
                 onRendered(() => {
-                  input.focus();
+                  checkbox.focus();
                 });
-                input.addEventListener('blur', () => {
-                  success(input.value);
-                });
-                input.addEventListener('keydown', (e) => {
-                  if (e.key === 'Enter') {
+
+                return checkbox;
+              },
+            },
+            {
+              title: 'ID Kho giữ',
+              field: 'InventoryProjectID',
+              hozAlign: 'center',
+              headerHozAlign: 'center',
+              visible: false,
+              tooltip: 'ID bản ghi trong bảng InventoryProject',
+            },
+            {
+              title: 'Dự án giữ',
+              field: 'ProjectIDKeep',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+              visible: false,
+              tooltip: 'ID dự án để giữ hàng',
+            },
+            {
+              title: 'ID Mượn',
+              field: 'BorrowID',
+              hozAlign: 'center',
+              headerHozAlign: 'center',
+              visible: false,
+              tooltip: 'ID phiếu mượn để theo dõi trả hàng',
+            },
+            {
+              title: 'ID PO NCC',
+              field: 'PONCCDetailID',
+              hozAlign: 'center',
+              headerHozAlign: 'center',
+              visible: false,
+              tooltip: 'ID chi tiết đơn mua hàng NCC',
+            },
+            {
+              title: 'ID POKH',
+              field: 'POKHDetailID',
+              hozAlign: 'center',
+              headerHozAlign: 'center',
+              visible: false,
+              tooltip: 'ID chi tiết POKH',
+            },
+            {
+              title: 'Số POKH',
+              field: 'PONumber',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+              visible: false,
+            },
+            {
+              title: 'ID Mapping',
+              field: 'IdMapping',
+              hozAlign: 'center',
+              headerHozAlign: 'center',
+              visible: false,
+              tooltip: 'ID mapping hóa đơn',
+            },
+            {
+              title: 'Tồn kho?',
+              field: 'IsStock',
+              hozAlign: 'center',
+              headerHozAlign: 'center',
+              formatter: 'tickCross',
+              visible: false,
+            },
+            {
+              title: 'ID KH',
+              field: 'CustomerID',
+              hozAlign: 'center',
+              headerHozAlign: 'center',
+              visible: false,
+            },
+            {
+              title: 'SL yêu cầu mua',
+              field: 'QuantityRequestBuy',
+              hozAlign: 'right',
+              headerHozAlign: 'center',
+              visible: false,
+            },
+            {
+              title: 'ID QC',
+              field: 'BillImportQCID',
+              hozAlign: 'center',
+              headerHozAlign: 'center',
+              visible: false,
+              tooltip: 'ID yêu cầu kiểm tra QC',
+            },
+            {
+              title: 'Trạng thái QC',
+              field: 'StatusQCText',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+              visible: false,
+            },
+            {
+              title: 'Mã dự án/Công ty',
+              field: 'ProjectID',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+              width: 200,
+              editor: this.createdControl(
+                SelectControlComponent,
+                this.injector,
+                this.appRef,
+                () => this.projectOptions,
+                {
+                  valueField: 'value',
+                  labelField: 'label',
+                }
+              ),
+              formatter: (cell) => {
+                const val = cell.getValue();
+                if (!val) {
+                  return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted"></p> <i class="fas fa-angle-down"></i></div>';
+                }
+                const project = this.projectOptions.find(
+                  (p: any) => p.value === val
+                );
+                const ProjectCode = project ? project.ProjectCode : val;
+
+                return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${ProjectCode}</p> <i class="fas fa-angle-down"></i></div>`;
+              },
+              cellEdited: (cell) => {
+                const row = cell.getRow();
+                const newValue = cell.getValue();
+                const selectedProject = this.projectOptions.find(
+                  (p: any) => p.value === newValue
+                );
+
+                if (selectedProject) {
+                  row.update({
+                    ProjectCodeExport: selectedProject.ProjectCode,
+                    ProjectName: selectedProject.label,
+                    ProjectNameText: selectedProject.label,
+                    InventoryProjectIDs: [newValue],
+                  });
+                }
+              },
+            },
+            {
+              title: 'Tên dự án/Công ty',
+              field: 'ProjectNameText',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'Khách hàng',
+              field: 'Customer',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+              editor: 'input',
+            },
+            {
+              title: 'Đơn mua hàng',
+              field: 'BillCodePO',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+            },
+            {
+              title: 'Ghi chú (PO)',
+              field: 'Note',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+              editor: 'input',
+            },
+            {
+              title: 'Số hóa đơn',
+              field: 'SomeBill',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+              editor: (cell, onRendered, success, cancel) => {
+                const canEdit = !(
+                  this.appUserService.id != this.newBillImport.DeliverID &&
+                  !this.appUserService.isAdmin
+                );
+                if (canEdit) {
+                  const input = document.createElement('input');
+                  input.type = 'text';
+                  input.value = cell.getValue() || '';
+                  input.style.width = '100%';
+                  input.style.boxSizing = 'border-box';
+                  onRendered(() => {
+                    input.focus();
+                  });
+                  input.addEventListener('blur', () => {
                     success(input.value);
-                  }
-                  if (e.key === 'Escape') {
-                    cancel(cell.getValue());
-                  }
-                });
-                return input;
-              }
-              return false;
-            },
-          },
-          {
-            title: 'Ngày hóa đơn',
-            field: 'DateSomeBill',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            formatter: (cell) => {
-              const value = cell.getValue();
-              console.log('DateSomeBill formatter - value:', value, 'type:', typeof value);
-              if (!value) return '';
-              const date = new Date(value);
-              if (isNaN(date.getTime())) {
-                console.log('DateSomeBill - Invalid date:', value);
-                return '';
-              }
-              const day = String(date.getDate()).padStart(2, '0');
-              const month = String(date.getMonth() + 1).padStart(2, '0');
-              const year = date.getFullYear();
-              return `${day}/${month}/${year}`;
-            },
-            editor: (cell, onRendered, success, cancel) => {
-              // Chỉ cho phép edit nếu là Admin hoặc là người giao
-              const canEdit = !(this.appUserService.id != this.newBillImport.DeliverID && !this.appUserService.isAdmin);
-              if (canEdit) {
-                const input = document.createElement('input');
-                input.type = 'date';
-                const currentValue = cell.getValue();
-                if (currentValue) {
-                  const date = new Date(currentValue);
-                  input.value = date.toISOString().split('T')[0];
+                  });
+                  input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                      success(input.value);
+                    }
+                    if (e.key === 'Escape') {
+                      cancel(cell.getValue());
+                    }
+                  });
+                  return input;
                 }
-                input.style.width = '100%';
-                input.style.boxSizing = 'border-box';
-                onRendered(() => {
-                  input.focus();
-                });
-                input.addEventListener('blur', () => {
-                  success(input.value ? new Date(input.value) : null);
-                });
-                input.addEventListener('keydown', (e) => {
-                  if (e.key === 'Enter') {
+                return false;
+              },
+            },
+            {
+              title: 'Ngày hóa đơn',
+              field: 'DateSomeBill',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+              formatter: (cell) => {
+                const value = cell.getValue();
+                if (!value) return '';
+                const date = new Date(value);
+                if (isNaN(date.getTime())) {
+                  return '';
+                }
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}/${month}/${year}`;
+              },
+              editor: (cell, onRendered, success, cancel) => {
+                const canEdit = !(
+                  this.appUserService.id != this.newBillImport.DeliverID &&
+                  !this.appUserService.isAdmin
+                );
+                if (canEdit) {
+                  const input = document.createElement('input');
+                  input.type = 'date';
+                  const currentValue = cell.getValue();
+                  if (currentValue) {
+                    const date = new Date(currentValue);
+                    input.value = date.toISOString().split('T')[0];
+                  }
+                  input.style.width = '100%';
+                  input.style.boxSizing = 'border-box';
+                  onRendered(() => {
+                    input.focus();
+                  });
+                  input.addEventListener('blur', () => {
                     success(input.value ? new Date(input.value) : null);
-                  }
-                  if (e.key === 'Escape') {
-                    cancel(cell.getValue());
-                  }
-                });
-                return input;
-              }
-              return false;
+                  });
+                  input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                      success(input.value ? new Date(input.value) : null);
+                    }
+                    if (e.key === 'Escape') {
+                      cancel(cell.getValue());
+                    }
+                  });
+                  return input;
+                }
+                return false;
+              },
+              cellEdited: (cell) => {
+                const row = cell.getRow();
+                this.calculateDueDate(row);
+              },
             },
-            cellEdited: (cell) => {
-              // Tự động tính DueDate khi DateSomeBill thay đổi
-              const row = cell.getRow();
-              this.calculateDueDate(row);
-            },
-          },
 
-          {
-            title: 'Số ngày công nợ',
-            field: 'DPO',
-            hozAlign: 'right',
-            headerHozAlign: 'center',
-            editor: (cell, onRendered, success, cancel) => {
-              // Chỉ cho phép edit nếu là Admin hoặc là người giao
-              const canEdit = !(this.appUserService.id != this.newBillImport.DeliverID && !this.appUserService.isAdmin);
-              if (canEdit) {
-                const input = document.createElement('input');
-                input.type = 'number';
-                input.value = cell.getValue() || '';
-                input.style.width = '100%';
-                input.style.boxSizing = 'border-box';
-                onRendered(() => {
-                  input.focus();
-                });
-                input.addEventListener('blur', () => {
-                  success(parseFloat(input.value) || 0);
-                });
-                input.addEventListener('keydown', (e) => {
-                  if (e.key === 'Enter') {
+            {
+              title: 'Số ngày công nợ',
+              field: 'DPO',
+              hozAlign: 'right',
+              headerHozAlign: 'center',
+              editor: (cell, onRendered, success, cancel) => {
+                const canEdit = !(
+                  this.appUserService.id != this.newBillImport.DeliverID &&
+                  !this.appUserService.isAdmin
+                );
+                if (canEdit) {
+                  const input = document.createElement('input');
+                  input.type = 'number';
+                  input.value = cell.getValue() || '';
+                  input.style.width = '100%';
+                  input.style.boxSizing = 'border-box';
+                  onRendered(() => {
+                    input.focus();
+                  });
+                  input.addEventListener('blur', () => {
                     success(parseFloat(input.value) || 0);
-                  }
-                  if (e.key === 'Escape') {
-                    cancel(cell.getValue());
-                  }
-                });
-                return input;
-              }
-              return false;
-            },
-            cellEdited: (cell) => {
-              // Tự động tính DueDate khi DPO thay đổi
-              const row = cell.getRow();
-              this.calculateDueDate(row);
-            },
-          },
-          {
-            title: 'Ngày tới hạn',
-            field: 'DueDate',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            formatter: (cell) => {
-              const value = cell.getValue();
-              if (!value) return '';
-              const date = new Date(value);
-              if (isNaN(date.getTime())) return '';
-              const day = String(date.getDate()).padStart(2, '0');
-              const month = String(date.getMonth() + 1).padStart(2, '0');
-              const year = date.getFullYear();
-              return `${day}/${month}/${year}`;
-            },
-            editor: (cell, onRendered, success, cancel) => {
-              // Chỉ cho phép edit nếu là Admin hoặc là người giao
-              const canEdit = !(this.appUserService.id != this.newBillImport.DeliverID && !this.appUserService.isAdmin);
-              if (canEdit) {
-                const input = document.createElement('input');
-                input.type = 'date';
-                const currentValue = cell.getValue();
-                if (currentValue) {
-                  const date = new Date(currentValue);
-                  input.value = date.toISOString().split('T')[0];
+                  });
+                  input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                      success(parseFloat(input.value) || 0);
+                    }
+                    if (e.key === 'Escape') {
+                      cancel(cell.getValue());
+                    }
+                  });
+                  return input;
                 }
-                input.style.width = '100%';
-                input.style.boxSizing = 'border-box';
-                onRendered(() => {
-                  input.focus();
-                });
-                input.addEventListener('blur', () => {
-                  success(input.value ? new Date(input.value) : null);
-                });
-                input.addEventListener('keydown', (e) => {
-                  if (e.key === 'Enter') {
+                return false;
+              },
+              cellEdited: (cell) => {
+                const row = cell.getRow();
+                this.calculateDueDate(row);
+              },
+            },
+            {
+              title: 'Ngày tới hạn',
+              field: 'DueDate',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+              formatter: (cell) => {
+                const value = cell.getValue();
+                if (!value) return '';
+                const date = new Date(value);
+                if (isNaN(date.getTime())) return '';
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}/${month}/${year}`;
+              },
+              editor: (cell, onRendered, success, cancel) => {
+                const canEdit = !(
+                  this.appUserService.id != this.newBillImport.DeliverID &&
+                  !this.appUserService.isAdmin
+                );
+                if (canEdit) {
+                  const input = document.createElement('input');
+                  input.type = 'date';
+                  const currentValue = cell.getValue();
+                  if (currentValue) {
+                    const date = new Date(currentValue);
+                    input.value = date.toISOString().split('T')[0];
+                  }
+                  input.style.width = '100%';
+                  input.style.boxSizing = 'border-box';
+                  onRendered(() => {
+                    input.focus();
+                  });
+                  input.addEventListener('blur', () => {
                     success(input.value ? new Date(input.value) : null);
-                  }
-                  if (e.key === 'Escape') {
-                    cancel(cell.getValue());
-                  }
-                });
-                return input;
-              }
-              return false;
+                  });
+                  input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                      success(input.value ? new Date(input.value) : null);
+                    }
+                    if (e.key === 'Escape') {
+                      cancel(cell.getValue());
+                    }
+                  });
+                  return input;
+                }
+                return false;
+              },
+              editable: false,
             },
-          },
-          {
-            title: 'Tiền thuế giảm',
-            field: 'TaxReduction',
-            hozAlign: 'right',
-            headerHozAlign: 'center',
-            editor: (cell, onRendered, success, cancel) => {
-              // Chỉ cho phép edit nếu là Admin hoặc là người giao
-              const canEdit = !(this.appUserService.id != this.newBillImport.DeliverID && !this.appUserService.isAdmin);
-              if (canEdit) {
-                const input = document.createElement('input');
-                input.type = 'number';
-                input.value = cell.getValue() || '';
-                input.style.width = '100%';
-                input.style.boxSizing = 'border-box';
-                onRendered(() => {
-                  input.focus();
-                });
-                input.addEventListener('blur', () => {
-                  success(parseFloat(input.value) || 0);
-                });
-                input.addEventListener('keydown', (e) => {
-                  if (e.key === 'Enter') {
+            {
+              title: 'Tiền thuế giảm',
+              field: 'TaxReduction',
+              hozAlign: 'right',
+              headerHozAlign: 'center',
+              editor: (cell, onRendered, success, cancel) => {
+                const canEdit = !(
+                  this.appUserService.id != this.newBillImport.DeliverID &&
+                  !this.appUserService.isAdmin
+                );
+                if (canEdit) {
+                  const input = document.createElement('input');
+                  input.type = 'number';
+                  input.value = cell.getValue() || '';
+                  input.style.width = '100%';
+                  input.style.boxSizing = 'border-box';
+                  onRendered(() => {
+                    input.focus();
+                  });
+                  input.addEventListener('blur', () => {
                     success(parseFloat(input.value) || 0);
-                  }
-                  if (e.key === 'Escape') {
-                    cancel(cell.getValue());
-                  }
+                  });
+                  input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                      success(parseFloat(input.value) || 0);
+                    }
+                    if (e.key === 'Escape') {
+                      cancel(cell.getValue());
+                    }
+                  });
+                  return input;
+                }
+                return false;
+              },
+              formatter: function (cell) {
+                let value = cell.getValue();
+                if (value == null || value === '') return '';
+                return Number(value).toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
                 });
-                return input;
-              }
-              return false;
+              },
             },
-            formatter: function (cell) {
-              let value = cell.getValue();
-              if (value == null || value === '') return '';
-              return Number(value).toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              });
-            },
-          },
-          {
-            title: 'Chi phí FE',
-            field: 'COFormE',
-            hozAlign: 'right',
-            headerHozAlign: 'center',
-            editor: (cell, onRendered, success, cancel) => {
-              // Chỉ cho phép edit nếu là Admin hoặc là người giao
-              const canEdit = !(this.appUserService.id != this.newBillImport.DeliverID && !this.appUserService.isAdmin);
-              if (canEdit) {
-                const input = document.createElement('input');
-                input.type = 'number';
-                input.value = cell.getValue() || '';
-                input.style.width = '100%';
-                input.style.boxSizing = 'border-box';
-                onRendered(() => {
-                  input.focus();
-                });
-                input.addEventListener('blur', () => {
-                  success(parseFloat(input.value) || 0);
-                });
-                input.addEventListener('keydown', (e) => {
-                  if (e.key === 'Enter') {
+            {
+              title: 'Chi phí FE',
+              field: 'COFormE',
+              hozAlign: 'right',
+              headerHozAlign: 'center',
+              editor: (cell, onRendered, success, cancel) => {
+                const canEdit = !(
+                  this.appUserService.id != this.newBillImport.DeliverID &&
+                  !this.appUserService.isAdmin
+                );
+                if (canEdit) {
+                  const input = document.createElement('input');
+                  input.type = 'number';
+                  input.value = cell.getValue() || '';
+                  input.style.width = '100%';
+                  input.style.boxSizing = 'border-box';
+                  onRendered(() => {
+                    input.focus();
+                  });
+                  input.addEventListener('blur', () => {
                     success(parseFloat(input.value) || 0);
-                  }
-                  if (e.key === 'Escape') {
-                    cancel(cell.getValue());
-                  }
+                  });
+                  input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                      success(parseFloat(input.value) || 0);
+                    }
+                    if (e.key === 'Escape') {
+                      cancel(cell.getValue());
+                    }
+                  });
+                  return input;
+                }
+                return false;
+              },
+              formatter: function (cell) {
+                let value = cell.getValue();
+                if (value == null || value === '') return '';
+                return Number(value).toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
                 });
-                return input;
-              }
-              return false;
+              },
             },
-            formatter: function (cell) {
-              let value = cell.getValue();
-              if (value == null || value === '') return '';
-              return Number(value).toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              });
+            {
+              title: 'Phiếu mượn',
+              field: 'CodeMaPhieuMuon',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
             },
-          },
-          {
-            title: 'Phiếu mượn',
-            field: 'CodeMaPhieuMuon',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            editor: 'input',
-          },
-          {
-            title: 'Serial Number',
-            field: 'SerialNumber',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            visible: false,
-          },
-          {
-            title: 'Add Serial',
-            field: 'addRow',
-            hozAlign: 'center',
-            width: 40,
-            headerSort: false,
-            titleFormatter: () => `
+            {
+              title: 'Serial Number',
+              field: 'SerialNumber',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+              visible: false,
+            },
+            {
+              title: 'Add Serial',
+              field: 'addRow',
+              hozAlign: 'center',
+              width: 40,
+              headerSort: false,
+              titleFormatter: () => `
                 <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
                     <i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i>
                 </div>`,
-            formatter: () => `
+              formatter: () => `
                 <i class="fas fa-plus text-success cursor-pointer" title="Thêm serial"></i>
             `,
-            cellClick: (e, cell) => {
-              const row = cell.getRow();
-              const rowData = row.getData();
-              const quantity = rowData['Qty'];
-              const productCode = rowData['ProductID'];
-              const serialIDsRaw = rowData['SerialNumber'];
-              const type = 1; // dành cho phiếu nhập
+              cellClick: (e, cell) => {
+                const row = cell.getRow();
+                const rowData = row.getData();
+                const quantity = rowData['Qty'];
+                const productCode = rowData['ProductID'];
+                const serialIDsRaw = rowData['SerialNumber'];
+                const type = 1; // dành cho phiếu nhập
 
-              if (quantity <= 0) {
-                this.notification.warning(
-                  'Cảnh báo',
-                  'Vui lòng nhập số lượng xuất lớn hơn 0 trước khi chọn Serial!'
-                );
-                return;
-              }
-
-              if (serialIDsRaw && typeof serialIDsRaw === 'string') {
-                const serialIDs = serialIDsRaw
-                  .split(',')
-                  .map((id: string) => parseInt(id.trim())) // Xử lý khoảng trắng
-                  .filter((id: number) => !isNaN(id) && id > 0);
-
-                if (serialIDs.length === 0) {
-                  this.openSerialModal(rowData, row, quantity, productCode, []);
+                if (quantity <= 0) {
+                  this.notification.warning(
+                    NOTIFICATION_TITLE.warning,
+                    'Vui lòng nhập số lượng xuất lớn hơn 0 trước khi chọn Serial!'
+                  );
                   return;
                 }
 
-                const payload = {
-                  Ids: serialIDs,
-                  Type: type,
-                };
+                if (serialIDsRaw && typeof serialIDsRaw === 'string') {
+                  const serialIDs = serialIDsRaw
+                    .split(',')
+                    .map((id: string) => parseInt(id.trim())) // Xử lý khoảng trắng
+                    .filter((id: number) => !isNaN(id) && id > 0);
 
-                this.billExportService.getSerialByIDs(payload).subscribe({
-                  next: (res: any) => {
-                    if (res?.status === 1 && res.data) {
-                      const existingSerials = res.data.map((item: any) => ({
-                        ID: item.ID,
-                        Serial: item.SerialNumber || item.Serial || '',
-                      }));
-                      this.openSerialModal(
-                        rowData,
-                        row,
-                        quantity,
-                        productCode,
-                        existingSerials
-                      );
-                    } else {
-                      this.notification.error(
-                        NOTIFICATION_TITLE.error,
-                        'Không tải được serial!'
-                      );
-                      console.error('Lỗi response:', res);
-                      this.openSerialModal(
-                        rowData,
-                        row,
-                        quantity,
-                        productCode,
-                        []
-                      );
-                    }
-                  },
-                  error: (err: any) => {
-                    this.notification.error(
-                      NOTIFICATION_TITLE.error,
-                      'Lỗi khi tải serial!'
-                    );
-                    console.error('Lỗi API:', err);
+                  if (serialIDs.length === 0) {
                     this.openSerialModal(
                       rowData,
                       row,
@@ -2247,15 +2382,66 @@ export class BillImportDetailComponent
                       productCode,
                       []
                     );
-                  },
-                });
-              } else {
-                this.openSerialModal(rowData, row, quantity, productCode, []);
-              }
+                    return;
+                  }
+
+                  const payload = {
+                    Ids: serialIDs,
+                    Type: type,
+                  };
+
+                  this.billExportService.getSerialByIDs(payload).subscribe({
+                    next: (res: any) => {
+                      if (res?.status === 1 && res.data) {
+                        const existingSerials = res.data.map((item: any) => ({
+                          ID: item.ID,
+                          Serial: item.SerialNumber || item.Serial || '',
+                        }));
+                        this.openSerialModal(
+                          rowData,
+                          row,
+                          quantity,
+                          productCode,
+                          existingSerials
+                        );
+                      } else {
+                        this.notification.error(
+                          NOTIFICATION_TITLE.error,
+                          'Không tải được serial!'
+                        );
+                        console.error('Lỗi response:', res);
+                        this.openSerialModal(
+                          rowData,
+                          row,
+                          quantity,
+                          productCode,
+                          []
+                        );
+                      }
+                    },
+                    error: (err: any) => {
+                      this.notification.error(
+                        NOTIFICATION_TITLE.error,
+                        'Lỗi khi tải serial!'
+                      );
+                      console.error('Lỗi API:', err);
+                      this.openSerialModal(
+                        rowData,
+                        row,
+                        quantity,
+                        productCode,
+                        []
+                      );
+                    },
+                  });
+                } else {
+                  this.openSerialModal(rowData, row, quantity, productCode, []);
+                }
+              },
             },
-          },
-        ],
-      });
+          ],
+        }
+      );
       this.isLoading = false; // Kết thúc loading
     }
   }
@@ -2263,64 +2449,94 @@ export class BillImportDetailComponent
     this.isLoading = true;
 
     setTimeout(() => {
-      this.table_DocumnetImport = new Tabulator('#table_DocumnetImport', {
-        data: this.dataTableDocumnetImport, // mảng chứa dữ liệu JSON
-        layout: 'fitDataFill',
-        height: '38vh',
-        movableColumns: true,
-        resizableRows: true,
-        reactiveData: true,
+      this.table_DocumnetImport = new Tabulator(
+        this.tableDocumnetImport.nativeElement,
+        {
+          data: this.dataTableDocumnetImport, // mảng chứa dữ liệu JSON
+          layout: 'fitDataFill',
+          height: '38vh',
+          movableColumns: true,
+          resizableRows: true,
+          reactiveData: true,
 
-        columns: [
-          {
-            title: 'Mã chứng từ',
-            field: 'DocumentImportCode',
-            headerHozAlign: 'center',
-            hozAlign: 'left',
-          },
-          {
-            title: 'Tên chứng từ',
-            field: 'DocumentImportName',
-            headerHozAlign: 'center',
-            hozAlign: 'left',
-          },
-          {
-            title: 'Trạng thái',
-            field: 'StatusText',
-            headerHozAlign: 'center',
-            hozAlign: 'left',
-          },
-          {
-            title: 'Ngày nhận / hủy nhận',
-            field: 'DateRecive',
-            headerHozAlign: 'center',
-            hozAlign: 'center',
-            formatter: 'datetime',
-            formatterParams: {
-              inputFormat: 'iso',
-              outputFormat: 'dd/MM/yyyy HH:mm',
+          columns: [
+            {
+              title: 'Trạng thái pur',
+              field: 'DocumentStatusPur',
+              hozAlign: 'left',
+              headerHozAlign: 'center',
+              width: 150,
+              editable: this.activePur,
+              editor: this.createdControl(
+                SelectControlComponent,
+                this.injector,
+                this.appRef,
+                () => this.cbbStatusPur,
+                { valueField: 'ID', labelField: 'Name' }
+              ),
+              formatter: (cell) => {
+                const val = cell.getValue();
+                if ((!val && val !== 0) || val == 0)
+                  return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted"></p><i class="fas fa-angle-down"></i></div>';
+                const st = this.cbbStatusPur.find(
+                  (p: any) => p.ID === parseInt(val) || p.ID === val
+                );
+                return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${
+                  st ? st.Name : val
+                }</p><i class="fas fa-angle-down"></i></div>`;
+              },
             },
-          },
-          {
-            title: 'Người nhận / Hủy',
-            field: 'FullNameRecive',
-            headerHozAlign: 'center',
-            hozAlign: 'left',
-          },
-          {
-            title: 'Lý do huỷ',
-            field: 'ReasonCancel',
-            headerHozAlign: 'center',
-            hozAlign: 'left',
-          },
-          {
-            title: 'Ghi chú',
-            field: 'Note',
-            headerHozAlign: 'center',
-            hozAlign: 'left', width: 300,
-          },
-        ],
-      });
+            {
+              title: 'Mã chứng từ',
+              field: 'DocumentImportCode',
+              headerHozAlign: 'center',
+              hozAlign: 'left',
+            },
+            {
+              title: 'Tên chứng từ',
+              field: 'DocumentImportName',
+              headerHozAlign: 'center',
+              hozAlign: 'left',
+            },
+            {
+              title: 'Trạng thái',
+              field: 'StatusText',
+              headerHozAlign: 'center',
+              hozAlign: 'left',
+            },
+            {
+              title: 'Ngày nhận / hủy nhận',
+              field: 'DateRecive',
+              headerHozAlign: 'center',
+              hozAlign: 'center',
+              formatter: 'datetime',
+              formatterParams: {
+                inputFormat: 'iso',
+                outputFormat: 'dd/MM/yyyy HH:mm',
+              },
+            },
+            {
+              title: 'Người nhận / Hủy',
+              field: 'FullNameRecive',
+              headerHozAlign: 'center',
+              hozAlign: 'left',
+            },
+            {
+              title: 'Lý do huỷ',
+              field: 'ReasonCancel',
+              headerHozAlign: 'center',
+              hozAlign: 'left',
+            },
+            {
+              title: 'Ghi chú',
+              field: 'Note',
+              headerHozAlign: 'center',
+              hozAlign: 'left',
+              width: 300,
+            },
+          ],
+        }
+      );
 
       this.isLoading = false;
     }, 300);

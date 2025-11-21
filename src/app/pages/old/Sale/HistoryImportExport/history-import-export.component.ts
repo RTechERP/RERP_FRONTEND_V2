@@ -70,7 +70,7 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
   ];
   dateFormat = 'dd/MM/yyyy';
   disableSplit: boolean = true;
-
+  isLoading: boolean = false;
   table: any;
   dataTable: any[] = [];
   checked: boolean = false;
@@ -223,6 +223,7 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
     const dateStart = DateTime.fromJSDate(
       new Date(this.searchParams.dateStart)
     );
+    this.isLoading = true;
     const dateEnd = DateTime.fromJSDate(new Date(this.searchParams.dateEnd));
     this.historyImportExportService
       .getHistoryImportExport(
@@ -241,15 +242,18 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
             this.dataTable = res.data;
             if (this.table) {
               this.table.replaceData(this.dataTable);
+              this.isLoading = false;
             } else {
               console.log(
                 '>>> Bảng chưa tồn tại, dữ liệu sẽ được load khi drawTable() được gọi'
               );
+              this.isLoading = false;
             }
           }
         },
         error: (err: any) => {
           this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu phiếu xuất');
+          this.isLoading = false;
         },
       });
   }

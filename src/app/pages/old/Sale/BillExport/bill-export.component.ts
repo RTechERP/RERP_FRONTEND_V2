@@ -40,6 +40,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 interface BillExport {
   Id?: number;
   TypeBill: boolean;
@@ -111,6 +112,8 @@ export class BillExportComponent implements OnInit, AfterViewInit {
   id: number = 0;
   selectBillExport: any[] = [];
   billExportID : number =0;
+
+
   isLoadTable: boolean = false;
   isDetailLoad: boolean = false;
 
@@ -145,14 +148,18 @@ export class BillExportComponent implements OnInit, AfterViewInit {
     dateStart: new Date(new Date().setMonth(new Date().getMonth() - 1))
       .toISOString()
       .split('T')[0],
-    dateEnd: new Date().toISOString().split('T')[0],
+      dateEnd: (() => {
+    const d = new Date();
+    d.setHours(23, 59, 59, 999);
+    return d.toISOString();
+  })(),
     listproductgroupID: '',
     status: -1,
     warehousecode: 'HN',
     keyword: '',
     checkAll: false,
     pageNumber: 1,
-    pageSize: 1000,
+    pageSize: 999999999,
   };
 
   searchText: string = '';
@@ -193,7 +200,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
       keyword: '',
       checkAll: false,
       pageNumber: 1,
-      pageSize: 1000,
+      pageSize: 999999999,
     };
     this.searchText = '';
   }
@@ -543,6 +550,9 @@ export class BillExportComponent implements OnInit, AfterViewInit {
       this.table_billExport.replaceData(this.dataTableBillExport);
     } else {
       this.table_billExport = new Tabulator('#table_billExport', {
+        ...DEFAULT_TABLE_CONFIG,
+        paginationMode: 'local',
+
         data: this.dataTableBillExport,
         layout: 'fitDataFill',
         height: '92vh',
@@ -744,7 +754,6 @@ export class BillExportComponent implements OnInit, AfterViewInit {
         data: this.dataTableBillExportDetail,
         layout: 'fitDataStretch',
         height: '92vh',
-        pagination: true,
         movableColumns: true,
         resizableRows: true,
         reactiveData: true,
@@ -866,7 +875,6 @@ export class BillExportComponent implements OnInit, AfterViewInit {
     const worksheet = workbook.addWorksheet('Danh sách phiếu xuất');
 
     const columns = table.getColumns();
-    // Bỏ qua cột đầu tiên
     const filteredColumns = columns.slice(1);
     const headers = [
       'STT',
@@ -894,34 +902,27 @@ export class BillExportComponent implements OnInit, AfterViewInit {
 
       worksheet.addRow(rowData);
       worksheet.views = [
-        { state: 'frozen', ySplit: 1 }, // Freeze hàng đầu tiên
+        { state: 'frozen', ySplit: 1 },
       ];
     });
-
-    // Format cột có giá trị là Date
     worksheet.eachRow((row, rowNumber) => {
-      if (rowNumber === 1) return; // bỏ qua tiêu đề
+      if (rowNumber === 1) return;
       row.eachCell((cell, colNumber) => {
         if (cell.value instanceof Date) {
-          cell.numFmt = 'dd/mm/yyyy'; // hoặc 'yyyy-mm-dd'
+          cell.numFmt = 'dd/mm/yyyy';
         }
       });
     });
-
-    // Tự động căn chỉnh độ rộng cột
     worksheet.columns.forEach((column: any) => {
       let maxLength = 10;
       column.eachCell({ includeEmpty: true }, (cell: any) => {
         const cellValue = cell.value ? cell.value.toString() : '';
-        // Giới hạn độ dài tối đa của cell là 50 ký tự
         maxLength = Math.min(Math.max(maxLength, cellValue.length + 2), 50);
         cell.alignment = { wrapText: true, vertical: 'middle' };
       });
-      // Giới hạn độ rộng cột tối đa là 30
       column.width = Math.min(maxLength, 30);
     });
 
-    // Thêm bộ lọc cho toàn bộ cột (từ A1 đến cột cuối cùng)
     worksheet.autoFilter = {
       from: {
         row: 1,

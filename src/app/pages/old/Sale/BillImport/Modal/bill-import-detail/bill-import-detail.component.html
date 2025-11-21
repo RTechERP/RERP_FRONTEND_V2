@@ -1,4 +1,4 @@
-<div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0">
+<div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0" *ngIf="!isEmbedded">
   <h6 class="modal-title text-white">Chi tiết phiếu nhập</h6>
   <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
 </div>
@@ -23,7 +23,12 @@
         <nz-form-item>
           <nz-form-label class="fs-12" nzRequired >Số phiếu</nz-form-label>
           <nz-form-control [nzErrorTip]="billImportCodeError">
-            <input  [disabled]="true" nz-input formControlName="BillImportCode" readonly />
+            <input title="billImportCode"
+              [disabled]="true"
+              nz-input
+              formControlName="BillImportCode"
+              readonly
+            />
             <ng-template #billImportCodeError let-control>
               <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">
                 Vui lòng nhập số phiếu!
@@ -129,7 +134,11 @@
               nzAllowClear
               nzPlaceHolder="Chọn điều khoản thanh toán"
             >
-              <nz-option *ngFor="let id of dataCbbRulePay" [nzValue]="id.ID" [nzLabel]="id.Note"></nz-option>
+              <nz-option
+                *ngFor="let id of dataCbbRulePay"
+                [nzValue]="id.ID"
+                [nzLabel]="id.Code + '-' + id.Note"
+              ></nz-option>
             </nz-select>
           </nz-form-control>
         </nz-form-item>
@@ -200,7 +209,7 @@
           <nz-form-label class="fs-12">Ngày y/c nhập</nz-form-label>
           <nz-form-control>
             <nz-date-picker
-              formControlName="DateRequest"
+              formControlName="DateRequestImport"
               [nzFormat]="dateFormat"
               class="w-100"
               [nzDisabled]="validateForm.get('BillTypeNew')?.value !== 4"
@@ -214,12 +223,12 @@
   <nz-tabset nzSize="small" [nzAnimated]="false" (nzSelectedIndexChange)="onTabChange($event)">
     <nz-tab nzTitle="Danh sách sản phẩm" nzForceRender="true">
       <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải..." style="height: 100%;">
-        <div id="table_BillImportDetails" style="height: 38vh;"></div>
+        <div #table_BillImportDetails  style="height: 38vh;"></div>
       </nz-spin>
     </nz-tab>
     <nz-tab nzTitle="Hồ sơ đi kèm" nzForceRender="true">
       <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải..." style="height: 100%;">
-        <div id="table_DocumnetImport" style="height: 38vh;"></div>
+        <div #table_DocumnetImport style="height: 38vh;"></div>
       </nz-spin>
     </nz-tab>
   </nz-tabset>

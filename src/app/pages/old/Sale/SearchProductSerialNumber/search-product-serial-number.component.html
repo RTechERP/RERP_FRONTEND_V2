@@ -12,6 +12,7 @@
                     class="fs-12"
                     style="font-style: italic; flex: 1 1 auto; max-width: 300px;" 
                     placeholder="Tìm kiếm"
+                    (keyup.enter)="loadData()"
                   />
                   <button class="fs-12" nz-button nzType="primary" nzSize="small" (click)="loadData()">
                     <nz-icon nzType="search"></nz-icon>

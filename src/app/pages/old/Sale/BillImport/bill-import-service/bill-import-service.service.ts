@@ -53,7 +53,7 @@ export class BillImportServiceService {
   getBillImportByID(id: number) {
     return this.http.get<any>(environment.host + `api/billimport/${id}`);
   }
-  approved(data: any, approved: boolean): Observable<any> {
+  approved(data: any[], approved: boolean): Observable<any> {
     return this.http.post(
       environment.host + `api/BillImport/approved?isapproved=${approved}`,
       data
@@ -73,7 +73,7 @@ export class BillImportServiceService {
         `api/documentimport?poNCCId=${PONCCID}&billImportID=${BillImportID}`
     );
   }
-  saveBillImport(payload: any): Observable<any> {
+  saveBillImport(payload: any[]): Observable<any> {
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
     });

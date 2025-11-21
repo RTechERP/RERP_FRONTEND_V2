@@ -16,11 +16,10 @@ import { ContractComponent } from '../../../hrm/contract/contract.component';
 import { DayOffComponent } from '../../../hrm/day-off/day-off.component';
 import { DepartmentComponent } from '../../../hrm/department/department.component';
 import { EarlyLateComponent } from '../../../hrm/early-late/early-late.component';
-import { EmployeeAttendanceComponent } from '../../../old/employee-attendance/employee-attendance.component';
+import { EmployeeAttendanceComponent } from '../../../hrm/employee-management/employee-attendance/employee-attendance.component';
 import { EmployeeBussinessComponent } from '../../../hrm/employee-bussiness/employee-bussiness.component';
 import { EmployeeComponent } from '../../../hrm/employee/employee.component';
 import { HolidayComponent } from '../../../hrm/holiday/holiday.component';
-import { NightShiftComponent } from '../../../old/night-shift/night-shift.component';
 import { OverTimeComponent } from '../../../hrm/over-time/over-time.component';
 import { PositionsComponent } from '../../../hrm/positions/positions.component';
 import { ProjectItemLateComponent } from '../../../project/project-item-late/project-item-late.component';
@@ -65,7 +64,7 @@ import { CurrencyListComponent } from '../../../general-category/currency-list/c
 import { UnitCountComponent } from '../../../old/Sale/ProductSale/unit-count/unit-count.component';
 import { ProductLocationComponent } from '../../../general-category/product-location/product-location.component';
 import { FirmComponent } from '../../../general-category/firm/firm.component';
-import { CustomerComponent } from '../../../old/customer/customer.component';
+import { CustomerComponent } from '../../../crm/customers/customer/customer.component';
 import { PayrollComponent } from '../../../hrm/payroll/payroll/payroll.component';
 import { FollowProjectBaseComponent } from '../../../old/VisionBase/kho-base/follow-project-base/follow-project-base.component';
 import { InventoryComponent } from '../../../old/Sale/Inventory/inventory.component';
@@ -100,12 +99,16 @@ import { BorrowReportComponent } from '../../../old/Technical/borrow-report/borr
 import { DocumentComponent } from '../../../hrm/document/document.component';
 import { VehicleBookingManagementComponent } from '../../../hrm/vehicle/vehicle-booking-management/vehicle-booking-management.component';
 import { ProtectgearComponent } from '../../../hrm/protectgear/protectgear/protectgear.component';
+import { EmployeeNightShiftComponent } from '../../../hrm/employee-management/employee-night-shift/employee-night-shift/employee-night-shift.component';
+import { WFHComponent } from '../../../hrm/employee-management/employee-wfh/WFH.component';
 import { ProjectPartlistPriceRequestComponent } from '../../../old/project-partlist-price-request/project-partlist-price-request.component';
 import { ProjectPartlistPurchaseRequestComponent } from '../../../purchase/project-partlist-purchase-request/project-partlist-purchase-request.component';
 
 import { MeetingMinuteTypeComponent } from '../../../project/meeting-minute/meeting-minute-type/meeting-minute-type.component';
 import { ProjectAgvSummaryComponent } from '../../../project/project-agv-summary/project-agv-summary.component';
 import { FoodOrderComponent } from '../../../hrm/food-order/food-order.component';
+import { SupplierSaleComponent } from '../../../purchase/supplier-sale/supplier-sale.component';
+import { EmployeeNoFingerprintComponent } from '../../../hrm/employee-management/employee-no-fingerprint/employee-no-fingerprint.component';
 @Injectable({
   providedIn: 'root',
 })
@@ -117,7 +120,7 @@ export class MenuService {
     private permissionService: PermissionService,
     private appUserService: AppUserService,
     private notification: NzNotificationService
-  ) {}
+  ) { }
 
   //   getMenus(id: number): Observable<any> {
   //     return this.http.get<any>(this.apiUrl + `menus/${id}`);
@@ -392,7 +395,7 @@ export class MenuService {
             key: 'HrhiringRequestComponent',
             title: 'TUYỂN DỤNG',
             isOpen: true,
-            isPermission: this.permissionService.hasPermission(''),
+            isPermission: this.permissionService.hasPermission('N2,N34,N1'),
             comp: HrhiringRequestComponent,
             icon: 'assets/icon/hr_hiring_24.svg',
           },
@@ -401,7 +404,7 @@ export class MenuService {
             key: 'DocumentComponent',
             title: 'Quản lí văn bản',
             isOpen: true,
-            isPermission: this.permissionService.hasPermission(''),
+            isPermission: this.permissionService.hasPermission('N2,N34,N1'),
             comp: DocumentComponent,
             icon: 'assets/icon/hr_document_24.svg',
           },
@@ -647,9 +650,7 @@ export class MenuService {
                 key: 'OfficeSupplyRequestsComponent',
                 title: 'Đăng kí VPP',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission(
-                  'N2,N34,N1,N54,N72,N70'
-                ),
+                isPermission: this.permissionService.hasPermission(''),
                 comp: OfficeSupplyRequestsComponent,
               },
               {
@@ -798,21 +799,31 @@ export class MenuService {
               },
               {
                 kind: 'leaf',
-                key: 'NightShiftComponent',
+                key: 'EmployeeNightShiftComponent',
                 title: 'Làm đêm',
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission('N2,N1'),
-                comp: NightShiftComponent,
+                comp: EmployeeNightShiftComponent,
                 //   icon: 'assets/icon/layers.png',
               },
-              //   {
-              //     kind: 'leaf',
-              //     key: 'NightShiftComponent',
-              //     title: 'WFH',
-              //     isOpen: true,
-              //     comp: R,
-              //     //   icon: 'assets/icon/layers.png',
-              //   },
+                {
+                  kind: 'leaf',
+                  key: 'WFH',
+                  title: 'WFH',
+                  isOpen: true,
+                  isPermission: this.permissionService.hasPermission('N2,N1'),
+                  comp: WFHComponent,
+                  //   icon: 'assets/icon/layers.png',
+                },
+                {
+                  kind: 'leaf',
+                  key: 'EmployeeNoFingerprintComponent',
+                  title: 'Quên Vân tay',
+                  isOpen: true,
+                  isPermission: this.permissionService.hasPermission('N2,N1'),
+                  comp: EmployeeNoFingerprintComponent,
+                  //   icon: 'assets/icon/layers.png',
+                },
               {
                 kind: 'leaf',
                 key: 'EmployeeAttendanceComponent',
@@ -1024,6 +1035,26 @@ export class MenuService {
             isPermission:
               this.permissionService.hasPermission('N27,N31,N1,N35'),
             comp: FirmComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+          {
+            kind: 'leaf',
+            key: 'SupplierSaleComponent',
+            title: 'Nhà cung cấp',
+            isOpen: true,
+            isPermission:
+              this.permissionService.hasPermission('N27,N33,N35,N1,N36'),
+            comp: SupplierSaleComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+          {
+            kind: 'leaf',
+            key: 'ProjectPartlistPurchaseRequestComponent',
+            title: 'Yêu cầu mua hàng',
+            isOpen: true,
+            isPermission:
+              this.permissionService.hasPermission('N33,N35,N1,N36'),
+            comp: ProjectPartlistPurchaseRequestComponent,
             //   icon: 'assets/icon/layers.png',
           },
         ],

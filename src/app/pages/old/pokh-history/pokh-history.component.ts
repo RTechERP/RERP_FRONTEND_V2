@@ -53,12 +53,12 @@ import { map, catchError, of, forkJoin } from 'rxjs';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
+import { NOTIFICATION_TITLE } from '../../../app.config';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 
 import { CustomerPartService } from '../customer-part/customer-part/customer-part.service';
 import { PokhHistoryServiceService } from './pokh-history-service/pokh-history-service.service';
 import { ImportExcelComponent } from './import-excel/import-excel.component';
-import { NOTIFICATION_TITLE } from '../../../app.config';
-import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 
 @Component({
   selector: 'app-pokh-history',
@@ -366,12 +366,13 @@ export class PokhHistoryComponent implements OnInit, AfterViewInit {
       return;
     }
     this.tb_Table = new Tabulator(this.tb_TableElement.nativeElement, {
-      // ...DEFAULT_TABLE_CONFIG,
-      paginationMode: 'local',
-      pagination: true,
-      paginationSize: 1000,
+      layout: 'fitDataFill',
       data: this.mainData,
-      height: '88.5vh',
+      pagination: true,
+      paginationSize: 50,
+      height: '100%',
+      movableColumns: true,
+      renderVerticalBuffer: 1000,
       langs: {
         vi: {
           pagination: {
@@ -383,15 +384,6 @@ export class PokhHistoryComponent implements OnInit, AfterViewInit {
         },
       },
       locale: 'vi',
-      columnDefaults: {
-        headerWordWrap: true,
-        headerVertical: false,
-        headerHozAlign: 'center',
-        minWidth: 60,
-        hozAlign: 'left',
-        vertAlign: 'middle',
-        resizable: true,
-      },
       columns: [
         {
           title: 'Mã khách',

@@ -163,15 +163,41 @@ export class CustomerPartComponent implements OnInit, AfterViewInit {
         movableColumns: true,
         resizableRows: true,
         reactiveData: true,
+        langs: {
+          vi: {
+            pagination: {
+              first: '<<',
+              last: '>>',
+              prev: '<',
+              next: '>',
+            },
+          },
+        },
+        locale: 'vi',
+        columnDefaults: {
+          headerWordWrap: true,
+          headerVertical: false,
+          headerHozAlign: 'center',
+          minWidth: 60,
+          hozAlign: 'left',
+          vertAlign: 'middle',
+          resizable: true,
+        },
         columns: [
           {
             title: '',
             field: 'actions',
-            formatter: (cell, formatterParams) => {
-              return `<i class="bi bi-trash3 text-danger" style="font-size:15px; cursor:pointer"></i>`;
+            formatter: (cell) => {
+              return `<img src="/assets/icon/delete-btn.png" class="delete-btn" style="width: 20px; height: 20px; cursor: pointer;" alt="Xóa" />`;
             },
             width: '10%',
+            hozAlign: 'center',
             cellClick: (e, cell) => {
+              const target = e.target as HTMLElement;
+              if (
+                target.classList.contains('delete-btn') ||
+                target.tagName === 'IMG'
+              ) {
               this.modal.confirm({
                 nzTitle: 'Xác nhận xóa',
                 nzContent: 'Bạn có chắc chắn muốn xóa bộ phận này?',
@@ -181,7 +207,8 @@ export class CustomerPartComponent implements OnInit, AfterViewInit {
                   cell.getRow().delete();
                 },
               });
-            },
+            }
+          }
           },
           {
             title: 'Mã bộ phận',

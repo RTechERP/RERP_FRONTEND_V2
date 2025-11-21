@@ -315,7 +315,7 @@ export class DailyreportComponent implements OnInit, AfterViewInit {
   async exportExcel() {
     let table: any = null;
     let sheetName = ''; 
-    debugger
+    
     // Xác định table và tên sheet dựa trên tab đang chọn
     if(this.ischeckmodeExcel == 0 && this.table1){
       table = this.table1;

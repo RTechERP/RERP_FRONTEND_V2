@@ -198,7 +198,7 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
     modalRef.componentInstance.dataInput = this.vehicleBookingListId;
     modalRef.result.then(
       (result) => {
-     
+
         setTimeout(() => this.getVehicleBookingManagement(), 100);
       },
       () => {
@@ -319,7 +319,7 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
 
   Approve(status: boolean) {
     const isApprovedText = status ? "duyệt" : "huỷ duyệt";
-    
+
     // Kiểm tra có chọn dòng không
     if (this.vehicleBookingListId.length <= 0) {
       this.notification.warning("Thông báo", `Vui lòng chọn đăng ký xe muốn ${isApprovedText}!`);
@@ -342,46 +342,61 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
         const currentDepartmentID = this.currentUser.DepartmentID || 0;
         const currentEmployeeID = this.currentUser.EmployeeID || 0;
         const isAdmin = this.currentUser.IsAdmin || false;
-        
+
         // Xử lý logic: Global.DepartmentID = Global.EmployeeID == 54 ? 2 : Global.DepartmentID
         let departmentID = currentDepartmentID;
         if (currentEmployeeID === 54) {
           departmentID = 2;
         }
 
-        // Lọc các item hợp lệ để xử lý
-        const validItems = this.vehicleBookingListId.filter(item => {
+        // Lọc các item hợp lệ để xử lý và thu thập lý do lỗi
+        const validItems: any[] = [];
+        const errors: string[] = [];
+        let noProblemCount = 0;
+
+        this.vehicleBookingListId.forEach(item => {
           // Kiểm tra ID > 0
           if (!item.ID || item.ID <= 0) {
-            return false;
+            return;
           }
-          
+
           // Chỉ xử lý nếu có phát sinh (IsProblemArises == true)
           if (!item.IsProblemArises) {
-            return false;
+            noProblemCount++;
+            return;
           }
-          
+
           // Kiểm tra department permission: Global.DepartmentID != departmentId && !Global.IsAdmin
           const itemDepartmentID = item.DepartmentID || 0;
           if (departmentID !== itemDepartmentID && !isAdmin) {
-            return false;
+            errors.push(`Bạn không phải TBP của phòng ${item.DepartmentName}, không thể duyệt đơn của ${item.FullName}.`);
+            return;
           }
-          
-          return true;
+
+          validItems.push(item);
         });
 
+        if (noProblemCount > 0) {
+          errors.unshift(`Có ${noProblemCount} đơn không có vấn đề phát sinh, không cần duyệt.`);
+        }
+
+        if (errors.length > 0) {
+          // Hiển thị lỗi chi tiết (tối đa 3 lỗi đầu tiên để tránh spam)
+          const errorMsg = errors.slice(0, 3).join('<br>') + (errors.length > 3 ? `<br>...và ${errors.length - 3} lỗi khác.` : '');
+          this.notification.warning("Không thể duyệt một số đơn", errorMsg, { nzDuration: 5000 });
+        }
+
         if (validItems.length === 0) {
-          this.notification.warning("Thông báo", "Không có đơn đăng ký nào hợp lệ để xử lý!");
           return;
         }
 
         // Tạo requests để xử lý đồng thời
         const requests = validItems.map(item => {
           const request = {
-            ID: item.ID,
+            ...item,
             IsApprovedTBP: status
           };
-          return this.vehicleBookingManagementService.postVehicleBookingManagement(request).pipe(
+          return this.vehicleBookingManagementService.approveBooking(request).pipe(
             catchError((error) => {
               console.error(`Lỗi khi ${isApprovedText} đơn ${item.ID}:`, error);
               return of({ success: false, error, item });
@@ -398,7 +413,7 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
             if (successCount > 0) {
               this.notification.success(
                 'Thông báo',
-                `${isApprovedText.charAt(0).toUpperCase() + isApprovedText.slice(1)} thành công cho ${successCount} đơn đăng ký${successCount > 1 ? '' : ''}.`
+                `${isApprovedText.charAt(0).toUpperCase() + isApprovedText.slice(1)} thành công cho ${successCount} đơn đăng ký.`
               );
             }
 
@@ -679,7 +694,7 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
                   return `${dd}/${MM}/${yyyy} ${hh}:${mm}:${ss}`;
                 }
               },
-              { title: "Ghi chú", field: "Note", width: 300 , formatter:'textarea'},
+              { title: "Ghi chú", field: "Note", width: 300, formatter: 'textarea' },
               { title: "Loại phương tiện", field: "VehicleTypeText", width: 140 },
             ],
           },
@@ -783,7 +798,7 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
       this.notification.warning('Lỗi', 'Vui lòng chọn ít nhất một dòng để xếp xe!');
       return false;
     }
-  
+
     return true;
   }
 }

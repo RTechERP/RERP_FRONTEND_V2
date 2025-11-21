@@ -48,6 +48,7 @@ import { VehicleRepairComponentFormComponent } from '../vehicle-repair/vehicle-r
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { forkJoin } from 'rxjs';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { bottom } from '@popperjs/core';
 @Component({
   selector: 'app-vehicle-management',
   imports: [
@@ -72,7 +73,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     NzTreeSelectModule,
     NzModalModule,
     CommonModule,
-    NzUploadModule,HasPermissionDirective
+    NzUploadModule, HasPermissionDirective
   ],
   templateUrl: './vehicle-management.component.html',
   styleUrl: './vehicle-management.component.css',
@@ -87,7 +88,7 @@ export class VehicleManagementComponent implements AfterViewInit {
     private modal: NzModalService,
     private modalService: NgbModal,
     private router: Router
-  ) {}
+  ) { }
 
   searchText: string = '';
   private ngbModal = inject(NgbModal);
@@ -139,8 +140,8 @@ export class VehicleManagementComponent implements AfterViewInit {
       ...DEFAULT_TABLE_CONFIG,
       groupBy: 'VehicleCategoryText',
       selectableRows: true,
-      layout:'fitDataStretch',
-      paginationMode:'local',
+      layout: 'fitDataStretch',
+      paginationMode: 'local',
       data: this.vehicleMnagemens,
       columns: [
         {
@@ -152,13 +153,14 @@ export class VehicleManagementComponent implements AfterViewInit {
           title: 'Tên xe',
           field: 'VehicleName',
           headerHozAlign: 'center',
-          width:300
+          width: 300,
+          bottomCalc: 'count',
         },
         {
           title: 'Biên số',
           field: 'LicensePlate',
           headerHozAlign: 'center',
-          width:300
+          width: 300
         },
         {
           title: 'Chỗ ngồi',
@@ -235,7 +237,7 @@ export class VehicleManagementComponent implements AfterViewInit {
     modalRef.componentInstance.dataInput = this.selectedRow;
     modalRef.result.then(
       (result) => {
-      
+
         setTimeout(() => this.getVehicleManagement(), 100);
       },
       () => {
@@ -262,14 +264,14 @@ export class VehicleManagementComponent implements AfterViewInit {
 
   onDeleteVehicle() {
     const selectedIds = this.getSelectedIds();
-    
+
     if (!selectedIds || selectedIds.length === 0) {
       this.notification.warning('Thông báo', 'Vui lòng chọn xe để xóa!');
       return;
     }
 
     const selectedCount = selectedIds.length;
-    const confirmMessage = selectedCount === 1 
+    const confirmMessage = selectedCount === 1
       ? 'Bạn có chắc muốn xóa xe đã chọn?'
       : `Bạn có chắc muốn xóa ${selectedCount} xe đã chọn?`;
 
@@ -281,10 +283,10 @@ export class VehicleManagementComponent implements AfterViewInit {
       nzOkDanger: true,
       nzOnOk: () => {
         // Tạo mảng các Observable để xóa
-        const deleteObservables = selectedIds.map(id => 
+        const deleteObservables = selectedIds.map(id =>
           this.VehicleManagementService.saveDataVehicleManagement({
             ID: id,
-            IsDeleted  : true,
+            IsDeleted: true,
           })
         );
 
@@ -297,8 +299,8 @@ export class VehicleManagementComponent implements AfterViewInit {
             if (successCount === results.length) {
               this.notification.success(
                 'Thông báo',
-                successCount === 1 
-                  ? 'Xóa xe thành công' 
+                successCount === 1
+                  ? 'Xóa xe thành công'
                   : `Xóa thành công ${successCount} xe`
               );
               setTimeout(() => this.getVehicleManagement(), 100);
@@ -329,7 +331,7 @@ export class VehicleManagementComponent implements AfterViewInit {
     });
 
     modalRef.result.then(
-      (result) => {},
+      (result) => { },
       () => {
         console.log('Modal dismissed');
       }
@@ -349,7 +351,7 @@ export class VehicleManagementComponent implements AfterViewInit {
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Danh sách xe');
-    
+
     // Lọc chỉ lấy columns visible và có field (loại bỏ group header columns)
     const columns = table.getColumns().filter((col: any) => {
       const def = col.getDefinition();
@@ -477,7 +479,7 @@ export class VehicleManagementComponent implements AfterViewInit {
 
     modalRef.result.then(
       () => this.getVehicleManagement(),
-      () => {}
+      () => { }
     );
   }
 }

@@ -83,7 +83,6 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
   pageSize: number = 1000000;
   pageNumber: number = 1;
   selectedRow: any = "";
-  sizeTbDetail: any = '0';
   // Data AssetRecovery
   public detailTabTitle: string = 'Thông tin biên bản thu hồi:';
   private ngbModal = inject(NgbModal);
@@ -112,10 +111,13 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
   }
   ngAfterViewInit(): void {
     this.getRecovery();
-    this.drawDetail();
     this.drawtable();
     this.getListEmployee();
     this.getCurrentUser();
+    // Khởi tạo bảng detail rỗng ngay từ đầu
+    setTimeout(() => {
+      this.drawDetail();
+    }, 100);
   }
   getCurrentUser() {
     this.authService.getCurrentUser().subscribe((res: any) => {
@@ -177,6 +179,7 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
         data: this.assetRecoveryData,
 
         ...DEFAULT_TABLE_CONFIG,
+        height:'53vh',
         paginationMode: 'local',
         pagination: true,
         selectableRows: true,
@@ -317,14 +320,8 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
       });
       this.recoveryTable.on('rowClick', (e: UIEvent, row: RowComponent) => {
         this.selectedRow = row.getData();
-        this.sizeTbDetail = null;
       });
     }
-  }
-  closePanel() {
-    this.sizeTbDetail = '0';
-
-    this.detailTabTitle = 'Thông tin biên bản cấp phát';
   }
   private drawDetail(): void {
     const cols: ColumnDefinition[] = [
@@ -352,7 +349,8 @@ export class TsAssetRecoveryComponent implements OnInit, AfterViewInit {
         data: this.assetRecoveryDetailData,
         layout: "fitDataStretch",
         paginationSize: 5,
-        height: '90vh',
+        height: '30vh',
+        paginationMode: 'local',
         movableColumns: true,
         reactiveData: true,
 
@@ -699,7 +697,6 @@ if (invalidRows.length > 0) {
         this.getRecovery();
         this.assetRecoveryData = [];
         this.drawDetail();
-        this.sizeTbDetail = '0';
       }
     },
     error: (err: any) => {
@@ -778,7 +775,6 @@ if (invalidRows.length > 0) {
 
             this.getRecovery();
             this.assetRecoveryDetailData = [];
-            this.sizeTbDetail = '0';
           },
           error: (err) => {
             console.error('Lỗi saveAssetRecovery (multi):', err);

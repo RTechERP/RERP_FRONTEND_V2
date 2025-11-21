@@ -82,7 +82,7 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
   exportVehicleScheduleList: any[] = [];
   tb_ExportVehicleSchedule: Tabulator | null = null;
   dateStart: any = DateTime.local()
-    .set({ hour: 0, minute: 0, second: 0})
+    .set({ hour: 0, minute: 0, second: 0 })
     .toISO();
   dateEnd: any = DateTime.local()
     .set({ hour: 23, minute: 59, second: 59 })
@@ -93,29 +93,29 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
     if (!this.dateStart) {
       return;
     }
-    
+
     let startDate: DateTime;
     if (this.dateStart instanceof Date) {
       startDate = DateTime.fromJSDate(this.dateStart).set({ hour: 0, minute: 0, second: 0 });
     } else {
       startDate = DateTime.fromISO(this.dateStart).set({ hour: 0, minute: 0, second: 0 });
     }
-    
+
     if (!startDate.isValid) {
       return;
     }
-    
+
     let endDate: DateTime;
     if (this.dateEnd instanceof Date) {
       endDate = DateTime.fromJSDate(this.dateEnd).set({ hour: 23, minute: 59, second: 59 });
     } else {
       endDate = DateTime.fromISO(this.dateEnd).set({ hour: 23, minute: 59, second: 59 });
     }
-    
+
     if (endDate.isValid && endDate < startDate) {
       this.dateEnd = startDate.set({ hour: 23, minute: 59, second: 59 }).toISO();
     }
-    
+
     // Đảm bảo dateStart có đúng format
     this.dateStart = startDate.toISO();
   }
@@ -125,47 +125,47 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
     if (!this.dateEnd) {
       return;
     }
-    
+
     let startDate: DateTime;
     if (this.dateStart instanceof Date) {
       startDate = DateTime.fromJSDate(this.dateStart).set({ hour: 0, minute: 0, second: 0 });
     } else {
       startDate = DateTime.fromISO(this.dateStart).set({ hour: 0, minute: 0, second: 0 });
     }
-    
+
     let endDate: DateTime;
     if (this.dateEnd instanceof Date) {
       endDate = DateTime.fromJSDate(this.dateEnd).set({ hour: 23, minute: 59, second: 59 });
     } else {
       endDate = DateTime.fromISO(this.dateEnd).set({ hour: 23, minute: 59, second: 59 });
     }
-    
+
     if (!endDate.isValid) {
       return;
     }
-    
+
     if (startDate.isValid && endDate < startDate) {
       this.dateEnd = startDate.set({ hour: 23, minute: 59, second: 59 }).toISO();
       this.notification.warning('Thông báo', 'Ngày kết thúc không được nhỏ hơn ngày bắt đầu!');
       return;
     }
-    
+
     // Đảm bảo dateEnd có đúng format
     this.dateEnd = endDate.toISO();
   }
   ngOnInit(): void {
     console.log("DateStart", this.dateStart)
     this.getVehicleSchedule();
-  } 
+  }
 
   onSearch() {
     this.getVehicleSchedule();
   }
-  getVehicleSchedule(){
+  getVehicleSchedule() {
     // Đảm bảo DateStart và DateEnd có đúng format với giờ phút giây
     let startDate: string;
     let endDate: string;
-    
+
     try {
       if (!this.dateStart) {
         startDate = DateTime.local().set({ hour: 0, minute: 0, second: 0 }).toISO() || '';
@@ -187,12 +187,12 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
         this.notification.error('Thông báo', 'Ngày bắt đầu và ngày kết thúc không hợp lệ!');
         return;
       }
-      
+
       const request = {
         StartDate: startDate,
         EndDate: endDate
       };
-      
+
       console.log("request", request);
       this.vehicleBookingManagementService.getVehicleSchedule(request).subscribe({
         next: (response: any) => {
@@ -214,10 +214,10 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
   //#region Vẽ bảng khảo sát dự án
   drawTbVehicleCategory() {
     this.tb_ExportVehicleSchedule = new Tabulator('#tb_ExportVehicleSchedule', {
-    ...DEFAULT_TABLE_CONFIG,
-    height: '81vh',
-    paginationMode: 'local',
-    paginationSizeSelector: [10, 30, 50, 100],
+      ...DEFAULT_TABLE_CONFIG,
+      height: '81vh',
+      paginationMode: 'local',
+      paginationSizeSelector: [10, 30, 50, 100],
       data: this.exportVehicleScheduleList,
       columns: [
         {
@@ -230,6 +230,7 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
           field: 'PassengerNames',
           headerHozAlign: 'center',
           formatter: 'textarea',
+          bottomCalc: 'count'
         },
         {
           title: 'Điểm xuất phát',

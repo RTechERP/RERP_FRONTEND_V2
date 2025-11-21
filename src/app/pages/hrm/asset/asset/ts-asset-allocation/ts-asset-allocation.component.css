@@ -10,9 +10,21 @@
   position: relative;
 }
 
+/* Container cho splitter vertical */
+.splitter-container {
+  height: calc(100vh - 160px); /* Chiều cao = viewport - header */
+  overflow: hidden;
+}
+
+/* Wrapper cho các bảng Tabulator */
+.table-wrapper {
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+}
+
 .tabulator {
   font-size: 0.75rem !important;
-  /* position: absolute !important; */
   width: 100% !important;
 }
 
@@ -26,4 +38,9 @@
 
 .ant-tabs-tab-btn {
   font-size: 0.75rem;
+}
+
+/* Đảm bảo nz-splitter chiếm full height của container */
+nz-splitter[nzDirection="vertical"] {
+  height: 100%;
 }

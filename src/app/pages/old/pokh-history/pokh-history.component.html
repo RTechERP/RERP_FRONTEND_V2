@@ -1,5 +1,5 @@
-<ng-container class="w-100">
-  <div class="card-header bg-white p-1" style="overflow-x: auto;">
+<ng-container class="w-100 h-100 d-flex flex-column">
+  <div class="card-header bg-white p-1" style="overflow-x: auto; flex-shrink: 0;">
 
     <div class="d-flex gap-1">
       <button style="min-width: 25px;" nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
@@ -68,7 +68,7 @@
       </div>
     </nz-splitter-panel>
     <nz-splitter-panel>
-      <div #tb_Table id="tb_Table"></div>
+      <div #tb_Table id="tb_Table" style="height: 100%;"></div>
     </nz-splitter-panel>
   </nz-splitter>
 </ng-container>

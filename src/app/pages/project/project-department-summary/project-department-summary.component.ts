@@ -1267,6 +1267,16 @@ getUserTeam() {
   //#endregion
   //#region Tổng hợp nhân công
   openProjectWorkerSynthetic() {
+    let selectedRows = this.tb_projects.getSelectedRows();
+    let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
+
+    if (selectedIDs.length != 1) {
+      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
+        nzStyle: { fontSize: '0.75rem' },
+      });
+      return;
+    }
+
     const modalRef = this.modalService.open(ProjectWorkerSyntheticComponent, {
       centered: true,
       size: 'xl',
@@ -1281,6 +1291,16 @@ getUserTeam() {
   //#endregion
   //#region Danh sách báo cáo công việc
   openProjectWorkReportModal() {
+    let selectedRows = this.tb_projects.getSelectedRows();
+    let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
+
+    if (selectedIDs.length != 1) {
+      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
+        nzStyle: { fontSize: '0.75rem' },
+      });
+      return;
+    }
+
     const modalRef = this.modalService.open(ProjectListWorkReportComponent, {
       centered: true,
       size: 'xl',

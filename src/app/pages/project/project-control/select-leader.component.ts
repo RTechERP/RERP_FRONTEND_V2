@@ -15,6 +15,7 @@ import { ProjectService } from '../project-service/project.service';
       nzAutoFocus
       nzAllowClear
       nzShowSearch
+      nzDropdownClassName="leader-select-dropdown"
     >
       @for (item of leaders; track $index) {
       <nz-option

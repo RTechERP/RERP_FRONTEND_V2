@@ -246,4 +246,41 @@ export class AssignWorkComponent implements OnInit, AfterViewInit {
   }
   //#endregion
 
+  deleteProjectTypeAssigns() {
+    const selectRows = this.tb_userTeamLinkDetail.getSelectedRows();
+
+    if (!selectRows || selectRows.length === 0) {
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Vui lòng chọn ít nhất một nhân viên cần xóa!'
+      );
+      return;
+    }
+
+    const selectedIds = selectRows.map((x: any) => x.getData().AssignID);
+
+    this.modal.confirm({
+      nzTitle: `Bạn có chắc chắn muốn xóa ${selectedIds.length} nhân viên`,
+      nzOkText: 'Xóa',
+      nzOkType: 'primary',
+      nzCancelText: 'Hủy',
+      nzOkDanger: true,
+      nzClosable: false,
+      nzOnOk: () => {
+        this.assignWorkService.deleteProjectTypeAssigns(selectedIds).subscribe({
+          next: (response: any) => {
+            this.getProjectTypeAssign(this.projectTypeId);
+          },
+          error: (error) => {
+            this.notification.error(
+              NOTIFICATION_TITLE.error,
+              error.error.message
+            );
+          },
+        });
+      },
+    });
+
+  }
+
 }

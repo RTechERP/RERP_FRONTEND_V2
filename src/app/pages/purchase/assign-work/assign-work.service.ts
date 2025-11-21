@@ -29,17 +29,18 @@ export class AssignWorkService {
 
   addEmployees(
     employeeIds: number[],
+    projectTypeId: number
   ): Observable<any> {
     return this.http.post<any>(
-      this.apiUrl + `add-employee`, employeeIds
+      this.apiUrl + `add-employee?projectTypeId=${projectTypeId}`, employeeIds
     );
   }
 
-  deleteEmployees(
-    employeeIds: any[],
+  deleteProjectTypeAssigns(
+    projectTypeAssignIds: any[],
   ): Observable<any> {
     return this.http.post<any>(
-      this.apiUrl + `add-employee`, employeeIds
+      this.apiUrl + `deleted-project-type-assign`, projectTypeAssignIds
     );
   }
 

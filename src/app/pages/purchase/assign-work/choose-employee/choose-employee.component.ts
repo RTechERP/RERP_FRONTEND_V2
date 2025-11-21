@@ -63,10 +63,11 @@ export class ChooseEmployeeComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const selectedIds = selectRows.map((x: any) => x.ID);
+    const selectedIds = selectRows.map((x: any) => x.getData().ID);
 
-    this.assignWorkService.addEmployees(selectedIds).subscribe({
+    this.assignWorkService.addEmployees(selectedIds, this.projectTypeId).subscribe({
       next: (response: any) => {
+        this.activeModal.dismiss();
       },
       error: (error) => {
         this.notification.error(

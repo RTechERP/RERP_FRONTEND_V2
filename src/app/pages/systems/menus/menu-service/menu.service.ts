@@ -104,6 +104,8 @@ import { ProtectgearComponent } from '../../../hrm/protectgear/protectgear/prote
 import { MeetingMinuteTypeComponent } from '../../../project/meeting-minute/meeting-minute-type/meeting-minute-type.component';
 import { ProjectAgvSummaryComponent } from '../../../project/project-agv-summary/project-agv-summary.component';
 import { FoodOrderComponent } from '../../../hrm/food-order/food-order.component';
+import { ProjectPartlistPurchaseRequestComponent } from '../../../purchase/project-partlist-purchase-request/project-partlist-purchase-request.component';
+import { SupplierSaleComponent } from '../../../purchase/supplier-sale/supplier-sale.component';
 @Injectable({
   providedIn: 'root',
 })
@@ -115,7 +117,7 @@ export class MenuService {
     private permissionService: PermissionService,
     private appUserService: AppUserService,
     private notification: NzNotificationService
-  ) {}
+  ) { }
 
   //   getMenus(id: number): Observable<any> {
   //     return this.http.get<any>(this.apiUrl + `menus/${id}`);
@@ -974,6 +976,26 @@ export class MenuService {
             isPermission:
               this.permissionService.hasPermission('N27,N31,N1,N35'),
             comp: FirmComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+          {
+            kind: 'leaf',
+            key: 'SupplierSaleComponent',
+            title: 'Nhà cung cấp',
+            isOpen: true,
+            isPermission:
+              this.permissionService.hasPermission('N27,N33,N35,N1,N36'), 
+            comp: SupplierSaleComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+          {
+            kind: 'leaf',
+            key: 'ProjectPartlistPurchaseRequestComponent',
+            title: 'Yêu cầu mua hàng',
+            isOpen: true,
+            isPermission:
+              this.permissionService.hasPermission('N33,N35,N1,N36'), 
+            comp: ProjectPartlistPurchaseRequestComponent,
             //   icon: 'assets/icon/layers.png',
           },
         ],

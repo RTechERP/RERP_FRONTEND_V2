@@ -178,12 +178,14 @@ export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const names = this.selectedList.map((x) => x.Name).join(', ');
-    this.modal.create({
-      nzTitle: 'Xác nhận',
-      nzContent: `Xóa các đơn vị: ${names} ?`,
-      nzOkText: 'Xóa',
-      nzOkDanger: true,
+    const count = this.selectedList.length;
+    const content = `Bạn có muốn xóa ${count} đơn vị đã chọn không?`;
+
+    this.modal.confirm({
+      nzTitle: 'Xác nhận xóa',
+      nzContent: content,
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
       nzOnOk: () => {
         // tạo danh sách request SaveData cho từng ID
         const requests = this.selectedList.map((x) => {
@@ -211,10 +213,7 @@ export class OfficeSupplyUnitComponent implements OnInit, AfterViewInit {
           this.selectedList = [];
           this.table.deselectRow(); // bỏ chọn
         });
-      },
-      nzCancelText: 'Hủy',
-      nzClosable: true,
-      nzMaskClosable: true,
+      }
     });
   }
   openUnitModal() {

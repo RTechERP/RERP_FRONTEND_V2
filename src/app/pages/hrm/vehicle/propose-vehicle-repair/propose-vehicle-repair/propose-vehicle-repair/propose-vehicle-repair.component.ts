@@ -471,20 +471,26 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
       if (blocked.length) {
         this.notification.warning(
           'Cảnh báo',
-          `Không thể xóa các đề xuất đã có chi tiết được vớt sang theo dõi`
+          `Không thể xóa ${blocked.length} đề xuất đã có chi tiết được duyệt. Chỉ xóa ${allowed.length} đề xuất hợp lệ.`
         );
       }
-      if (!allowed.length) return;
+      if (!allowed.length) {
+        this.notification.warning(
+          'Cảnh báo',
+          'Không có đề xuất nào có thể xóa. Tất cả đề xuất đã chọn đều có nhà cung cấp được duyệt.'
+        );
+        return;
+      }
       this.nzModal.confirm({
         nzTitle: 'Xác nhận xóa',
-        nzContent: `Bạn có chắc chắn muốn xóa ${ids.length} đề xuất đã chọn không?`,
+        nzContent: `Bạn có chắc chắn muốn xóa ${allowed.length} đề xuất${blocked.length > 0 ? ` (${blocked.length} đề xuất có nhà cung cấp được duyệt không thể xóa)` : ''} ?`,
         nzOkText: 'Xóa',
         nzOkType: 'primary',
         nzOkDanger: true,
         nzCancelText: 'Hủy',
         // Trả Promise để hiển thị trạng thái đang xử lý trong modal
         nzOnOk: () => {
-          const calls = ids.map((id) => {
+          const calls = allowed.map((id) => {
             const payload = {
               proposeVehicleRepair: { ID: id, IsDeleted: true },
             };
@@ -511,7 +517,7 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
               if (okCount) {
                 this.notification.success(
                   'Thành công',
-                  `Đã xóa ${okCount}/${ids.length} đề xuất.`
+                  `Đã xóa ${okCount}/${allowed.length} đề xuất.`
                 );
               }
               if (fail.length) {
@@ -873,3 +879,4 @@ export class ProposeVehicleRepairComponent implements OnInit, AfterViewInit {
     });
   }
 }
+

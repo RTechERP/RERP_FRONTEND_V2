@@ -9,4 +9,21 @@
     font-weight: bold;
     color: black;
   }
-  
+  .ant-splitter {
+    height: 93vh !important;
+  }
+  :host ::ng-deep .tabulator-col.follow-project-base
+  {
+    background-color: #f8ff98 !important;
+    
+  }  
+  :host ::ng-deep .tabulator-col.follow-project-plan
+  {
+    background-color: #5184fa !important;
+    
+  }  
+  :host ::ng-deep .tabulator-col.follow-project-actual
+  {
+    background-color: #8eff82 !important;
+    
+  }  

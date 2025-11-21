@@ -44,7 +44,7 @@
                       nzSize="default" class="w-100" [(ngModel)]="selectedCustomer"
                       (ngModelChange)="onCustomerChange($event)">
                       <nz-option *ngFor="let customer of dataCustomers" [nzValue]="customer"
-                        [nzLabel]="customer.CustomerName">
+                        [nzLabel]="customer.CustomerShortName + ' - ' + customer.CustomerName">
                       </nz-option>
                     </nz-select>
                   </div>
@@ -69,7 +69,7 @@
                     <label class="mb-1 fs-12">Tổng tiền PO</label>
                     <nz-input-number name="totalPO" nzPlaceHolder="0" [nzMin]="0" nzSize="default" class="w-100"
                       [(ngModel)]="poFormData.totalPO" [nzFormatter]="formatCurrency" [nzParser]="parseCurrency"
-                      nzReadOnly="true">
+                      nzReadOnly="false" (ngModelChange)="onTotalPOChange($event)">
                     </nz-input-number>
                   </div>
 
@@ -84,7 +84,7 @@
                     <nz-select nzShowSearch name="projectId" nzPlaceHolder="Chọn dự án" nzAllowClear nzSize="default"
                       class="w-100" [(ngModel)]="poFormData.projectId" required #projectId="ngModel">
                       <nz-option *ngFor="let project of dataProjects" [nzValue]="project.ID"
-                        [nzLabel]="project.ProjectName" [nzTitle]="project.ProjectName">
+                        [nzLabel]="project.ProjectCode + ' - ' + project.ProjectName" [nzTitle]="project.ProjectName">
                       </nz-option>
                     </nz-select>
                     <small class="text-danger d-block" *ngIf="(projectId.invalid && projectId.touched) || (isSubmitted && (!poFormData.projectId || poFormData.projectId === 0))">
@@ -178,13 +178,29 @@
               </div>
             </form>
   
-            <!-- Search result section -->
-            <div class="bg-light p-3 rounded mt-3">
-              <div class="mb-3 d-flex align-items-center">
-                <input type="file" multiple class="form-control w-auto me-2 fs-12" #fileInput style="max-width: 300px;"
-                  (change)="onFileSelected($event)">
+            <!-- File upload section -->
+            <div class="bg-light p-3 rounded mt-3 shadow-sm">
+              <div class="d-flex flex-wrap align-items-start justify-content-between gap-3">
+                <div>
+                  <h6 class="mb-1 text-uppercase text-muted">Tệp đính kèm</h6>
+                  <p class="mb-0 text-muted small">
+                    Có thể chọn nhiều tệp cùng lúc.
+                  </p>
+                </div>
+                <div class="d-flex gap-2">
+                  <input type="file" multiple class="d-none" #fileInput (change)="onFileSelected($event)" />
+                  <button nz-button nzType="default" nzSize="small" (click)="fileInput.click()">
+                    <nz-icon nzType="upload"></nz-icon>
+                    <span class="ms-1">Chọn tệp</span>
+                  </button>
+                </div>
               </div>
-              <div id="tb_POKHDetailFile"></div>
+              <div class="border rounded bg-white mt-3 p-2">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="fw-semibold text-secondary">Danh sách file</span>
+                </div>
+                <div id="tb_POKHDetailFile"></div>
+              </div>
             </div>
           </div>
         </nz-tab>
@@ -246,41 +262,9 @@
         </button>
       </div>
       <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
-      <button nz-button nzType="primary" nzSize="default" (click)="savePOKH()" [disabled]="pokhForm.invalid && isSubmitted">Lưu</button>
+      <button nz-button nzType="primary" nzSize="default" (click)="savePOKH()" [disabled]="(pokhForm.invalid && isSubmitted) || isSaving">
+        <nz-spin *ngIf="isSaving" nzSimple nzSize="small"></nz-spin>
+        <span *ngIf="!isSaving">Lưu</span>
+      </button>
     </div>
 
-  
-  <style>
-    .pokh-modal-content {
-      height: calc(100vh - 200px);
-      overflow-y: auto;
-    }
-  
-    .pokh-tabset {
-      height: 100%;
-    }
-  
-    .pokh-tab-content {
-      height: calc(100vh - 300px);
-      overflow-y: auto;
-    }
-  
-    /* Ensure these styles only apply to the POKH modal */
-    ::ng-deep .pokh-modal .ant-modal {
-      width: 90% !important;
-      max-width: 1400px;
-    }
-  
-    ::ng-deep .pokh-modal .ant-modal-body {
-      height: calc(100vh - 200px);
-      overflow: hidden;
-    }
-  
-    ::ng-deep .pokh-modal .ant-tabs-content {
-      height: 100%;
-    }
-  
-    ::ng-deep .pokh-modal .ant-tabs-tabpane {
-      height: 100%;
-    }
-  </style>

@@ -105,7 +105,8 @@ export class MainLayoutComponent implements OnInit {
     private auth: AuthService,
     private router: Router,
     private menuService: MenuService,
-    private notification: NzNotificationService
+    private notification: NzNotificationService,
+    private injector: Injector
   ) {
     this.menus = this.menuService.getMenus();
   }
@@ -171,12 +172,28 @@ export class MainLayoutComponent implements OnInit {
     this.setOpenMenu(saved || null);
     // this.getMenus(43);
   }
-  newTab(comp: Type<any>, title: string, injector?: Injector) {
+  //   newTab(comp: Type<any>, title: string, injector?: Injector) {
+  //     const idx = this.dynamicTabs.findIndex((t) => t.title === title);
+  //     if (idx >= 0) {
+  //       this.selectedIndex = idx;
+  //       return;
+  //     }
+
+  //     this.dynamicTabs = [...this.dynamicTabs, { title, comp, injector }];
+  //     setTimeout(() => (this.selectedIndex = this.dynamicTabs.length - 1));
+  //   }
+
+  newTab(comp: Type<any>, title: string, data?: any) {
     const idx = this.dynamicTabs.findIndex((t) => t.title === title);
     if (idx >= 0) {
       this.selectedIndex = idx;
       return;
     }
+
+    const injector = Injector.create({
+      providers: [{ provide: 'tabData', useValue: data }],
+      parent: this.injector,
+    });
 
     this.dynamicTabs = [...this.dynamicTabs, { title, comp, injector }];
     setTimeout(() => (this.selectedIndex = this.dynamicTabs.length - 1));
@@ -187,20 +204,20 @@ export class MainLayoutComponent implements OnInit {
     if (this.selectedIndex >= this.dynamicTabs.length)
       this.selectedIndex = this.dynamicTabs.length - 1;
   }
-//   getMenus(id: number): void {
-//     this.menuService.getMenus(id).subscribe({
-//       next: (response: any) => {
-//         if (response.status == 1) {
-//           this.menu = response.data;
-//           //   console.log(this.menu);
-//         }
-//       },
-//       error: (err) => {
-//         // console.log(err);
-//         // this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
-//       },
-//     });
-//   }
+  //   getMenus(id: number): void {
+  //     this.menuService.getMenus(id).subscribe({
+  //       next: (response: any) => {
+  //         if (response.status == 1) {
+  //           this.menu = response.data;
+  //           //   console.log(this.menu);
+  //         }
+  //       },
+  //       error: (err) => {
+  //         // console.log(err);
+  //         // this.notification.error(NOTIFICATION_TITLE.error, err.error.message);
+  //       },
+  //     });
+  //   }
 
   logout() {
     this.auth.logout();

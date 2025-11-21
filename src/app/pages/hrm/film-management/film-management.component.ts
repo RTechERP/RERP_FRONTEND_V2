@@ -118,6 +118,8 @@ export class FilmManagementComponent implements OnInit, AfterViewInit, OnDestroy
           keyWord: this.filterText || "",
           page: params.page || 1,
           size: params.size || 30,
+          sortField: "STT",
+          sortOrder: "asc"
         };
         return this.filmManagementService.getFilm(request).toPromise();
       },
@@ -137,7 +139,7 @@ export class FilmManagementComponent implements OnInit, AfterViewInit, OnDestroy
       ],
       columns: [
         { title: "ID", field: "ID", visible: false },
-        { title: "STT", field: "STT", hozAlign: "right", headerHozAlign: "center", width: 70, sorter: "number" },
+        { title: "STT", field: "STT", hozAlign: "right", headerHozAlign: "center", width: 70, sorter: "number" , bottomCalc: "count"},
         { title: "Mã phim", field: "Code", hozAlign: "left", headerHozAlign: "center" },
         { title: "Tên phim", field: "Name", hozAlign: "left", headerHozAlign: "center" },
         {
@@ -229,14 +231,8 @@ export class FilmManagementComponent implements OnInit, AfterViewInit, OnDestroy
     return;
   }
 
-  // Lấy danh sách mã phim từ các dòng chọn
-  const codes = selectedRows
-    .map((row: any) => row.Code)   // hoặc row.Ma nếu field tên khác
-    .filter((x: any) => !!x);
-
-  const content = codes.length
-    ? `Bạn có chắc muốn xóa mã phim: ${codes.join(', ')}?`
-    : `Bạn có chắc muốn xóa ${selectedRows.length} film đã chọn?`;
+  const count = selectedRows.length;
+  const content = `Bạn có muốn xóa ${count} mã phim đã chọn không?`;
 
   this.modal.confirm({
     nzTitle: 'Xác nhận xóa',
@@ -282,30 +278,49 @@ export class FilmManagementComponent implements OnInit, AfterViewInit, OnDestroy
 
   onEditFilm() {
     const selectedData = this.filmTable?.getSelectedData?.();
-    const detailData = this.filmDetailTable?.getData?.();
     if (!selectedData || selectedData.length === 0) {
       this.notification.warning('Cảnh báo', 'Vui lòng chọn mã film cần sửa!');
       return;
     }
     const selectedRow = selectedData[0];
-    const modalRef = this.ngbModal.open(FilmManagementFormComponent, {
-      size: 'xl',
-      backdrop: 'static',
-      keyboard: false,
-      centered: true,
-    });
-    modalRef.componentInstance.dataInput = {
-      master: selectedRow,
-      details: detailData,
-    };
-    modalRef.result.then(
-      (result) => {
-        this.drawTable();
+    const filmID = selectedRow['ID'];
+    
+    // Gọi lại API để lấy detail mới nhất
+    this.filmManagementService.getFilmDetail(filmID).subscribe({
+      next: (response) => {
+        const detailData = response.data || [];
+        
+        const modalRef = this.ngbModal.open(FilmManagementFormComponent, {
+          size: 'xl',
+          backdrop: 'static',
+          keyboard: false,
+          centered: true,
+        });
+        modalRef.componentInstance.dataInput = {
+          master: selectedRow,
+          details: detailData,
+        };
+        modalRef.result.then(
+          (result) => {
+            this.filmTable?.setData?.();
+            // Reload lại detail nếu đang mở
+            if (this.filmDetailData.length > 0) {
+              this.filmManagementService.getFilmDetail(filmID).subscribe(res => {
+                this.filmDetailData = res.data;
+                this.filmDetailTable?.setData?.(this.filmDetailData);
+              });
+            }
+          },
+          (dismissed) => {
+            console.log('Modal dismissed');
+          }
+        );
       },
-      (dismissed) => {
-        console.log('Modal dismissed');
+      error: (err) => {
+        this.notification.error('Lỗi', 'Không thể lấy dữ liệu chi tiết phim');
+        console.error(err);
       }
-    );
+    });
   }
   openModalImportExcel() {
     const modalRef = this.ngbModal.open(FilmManagementImportExcelComponent, {

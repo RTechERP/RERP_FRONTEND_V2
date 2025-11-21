@@ -126,8 +126,8 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
       ID: [0],
       EmployeeID: [this.currenEmployee?.EmployeeID, [Validators.required]],
       DateOrder: [{
-        value: '', 
-        disabled: !this.hasPermission(['N2','N23','N34','N1','N80'])
+        value: '',
+        disabled: !this.hasPermission(['N2', 'N23', 'N34', 'N1', 'N80'])
       }, [Validators.required]],
       Quantity: [1, [Validators.required, Validators.min(1)]],
       IsApproved: [false],
@@ -204,9 +204,8 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     this.foodOrderHNTabulator = new Tabulator(container, {
       data: this.foodOrderHNList,
       layout: 'fitDataStretch',
-      responsiveLayout: true,
       selectableRows: true,
-      height: '85vh',
+      height: '83vh',
       langs: {
         vi: {
           pagination: {
@@ -222,7 +221,7 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
         formatter: "rowSelection",
         titleFormatter: "rowSelection",
         headerSort: false,
-        width: 100,
+        width: 50,
         frozen: true,
         headerHozAlign: "center",
         hozAlign: "center"
@@ -233,7 +232,8 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
           field: 'IsApproved',
           hozAlign: 'center',
           headerHozAlign: 'center',
-          width: 100,
+          width: 60,
+          headerSort: false,
           formatter: function (cell: any) {
             const value = cell.getValue();
             const checked = value === true || value === 'true' || value === 1 || value === '1';
@@ -245,26 +245,33 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
           field: 'Code',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          width: 400
+          width: 200,
+          headerSort: false,
+          bottomCalc: 'count'
         },
         {
           title: 'Họ và tên',
           field: 'FullName',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          width: 500
+          width: 200,
+          headerSort: false,
         },
         {
           title: 'Số lượng',
           field: 'Quantity',
           hozAlign: 'right',
           headerHozAlign: 'center',
+          bottomCalc: 'sum',
+          headerSort: false,
+          width: 200,
         },
         {
           title: 'Ngày',
           field: 'DateOrder',
           hozAlign: 'center',
-          width: 300,
+          minWidth: 200,
+          headerSort: false,
           headerHozAlign: 'center',
           formatter: (cell) => {
             const value = cell.getValue();
@@ -286,9 +293,8 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
     this.foodOrderĐPTabulator = new Tabulator(container, {
       data: this.foodOrderĐPList,
       layout: 'fitDataStretch',
-      responsiveLayout: true,
       selectableRows: true,
-      height: '85vh',
+      height: '83vh',
       langs: {
         vi: {
           pagination: {
@@ -315,7 +321,8 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
           field: 'IsApproved',
           hozAlign: 'center',
           headerHozAlign: 'center',
-          width: 100,
+          width: 60,
+          headerSort: false,
           formatter: function (cell: any) {
             const value = cell.getValue();
             const checked = value === true || value === 'true' || value === 1 || value === '1';
@@ -327,27 +334,34 @@ export class FoodOrderComponent implements OnInit, AfterViewInit {
           field: 'Code',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          width: 400
+          width: 200,
+          headerSort: false,
+          bottomCalc: 'count'
         },
         {
           title: 'Họ và tên',
           field: 'FullName',
           hozAlign: 'left',
           headerHozAlign: 'center',
-          width: 500
+          width: 200,
+          headerSort: false,
         },
         {
           title: 'Số lượng',
           field: 'Quantity',
           hozAlign: 'right',
           headerHozAlign: 'center',
+          bottomCalc: 'sum',
+          headerSort: false,
+          width: 200,
         },
         {
           title: 'Ngày',
           field: 'DateOrder',
           hozAlign: 'center',
+          minWidth: 200,
+          headerSort: false,
           headerHozAlign: 'center',
-          width: 300,
           formatter: (cell) => {
             const value = cell.getValue();
             return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';

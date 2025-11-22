@@ -33,6 +33,7 @@ import {
   MenuItem,
   MenuService,
 } from '../../pages/systems/menus/menu-service/menu.service';
+import { MenuEventService } from '../../pages/systems/menus/menu-service/menu-event.service';
 import { AppUserDropdownComponent } from '../../pages/systems/app-user/app-user-dropdown.component';
 import {
   AppNotifycationDropdownComponent,
@@ -106,7 +107,8 @@ export class MainLayoutComponent implements OnInit {
     private router: Router,
     private menuService: MenuService,
     private notification: NzNotificationService,
-    private injector: Injector
+    private injector: Injector,
+    private menuEventService: MenuEventService
   ) {
     this.menus = this.menuService.getMenus();
   }
@@ -171,6 +173,11 @@ export class MainLayoutComponent implements OnInit {
     console.log(this.menus);
     this.setOpenMenu(saved || null);
     // this.getMenus(43);
+
+    // Subscribe vào event mở tab từ các component con
+    this.menuEventService.onOpenTab$.subscribe((tabData) => {
+      this.newTab(tabData.comp, tabData.title, tabData.data);
+    });
   }
   //   newTab(comp: Type<any>, title: string, injector?: Injector) {
   //     const idx = this.dynamicTabs.findIndex((t) => t.title === title);

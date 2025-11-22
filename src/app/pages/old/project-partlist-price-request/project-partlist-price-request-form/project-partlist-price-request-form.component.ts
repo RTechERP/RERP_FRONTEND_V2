@@ -305,173 +305,175 @@ export class ProjectPartlistPriceRequestFormComponent
                     });
                   }
 
-                row.delete();
-              },
-            },
-            {
-              title: 'ID',
-              field: 'ID',
-              visible: false,
-            },
-            {
-              title: 'STT',
-              headerSort: false,
-              formatter: 'rownum',
-              width: 50,
-              hozAlign: 'center',
-              headerHozAlign: 'center',
-            },
-            {
-              title: 'Mã nội bộ',
-              headerSort: false,
-              field: 'ProductNewCode',
-              hozAlign: 'left',
-              width:'120',
-              headerHozAlign: 'center',
-         editor: this.createdControl1(
-           NSelectComponent,
-           this.injector,
-           this.appRef,
-           this.dtProductSale,
-           'ProductNewCode',
-           'Code',
-           'ID'
-         ),
-         formatter: (cell: any) => {
-           const val = cell.getValue();
-           return (
-             `<div class="d-flex justify-content-between align-items-center">
-               <p class="w-100 m-0">${val ? this.getLabelValue('productSale', val) : 'Chọn sản phẩm'}</p>
-               <i class="fas fa-angle-down"></i>
-             </div>`
-           );
-         },
-         cellEdited: (cell) => {
-          const selectedId = cell.getValue(); // Lấy ID từ giá trị đã chọn
-          const product = this.dtProductSale.find(
-            (p: { ID: any }) => p.ID === selectedId
-          ); // Tìm sản phẩm theo ID
-
-          if (product) {
-            cell.getRow().update({
-              ProductCode: product.ProductCode,
-              ProductName: product.ProductName,
-              Unit: product.Unit,
-              Maker: product.Maker,
-              StatusRequest: product.StatusRequest,
-            });
-          }
-        },
-
-        },{ title: 'Mã sản phẩm',
-              headerSort: false,
-              field: 'ProductCode',
-              editor: 'input',
-              headerHozAlign: 'center',
-              validator: ['required'],
-              width:'120',
-              hozAlign: 'left',
-            },
-            {
-              title: 'Tên sản phẩm',
-              headerSort: false,
-              field: 'ProductName',
-              editor: 'input',
-              headerHozAlign: 'center',
-              validator: ['required'],
-              width:'120',
-              hozAlign: 'left',
-            },
-            {
-              title: 'Hãng',
-              headerSort: false,
-              field: 'Maker',
-              editor: 'input',
-              headerHozAlign: 'center',
-              width:'100',
-              hozAlign: 'left',
-            },
-            {
-              title: 'Deadline',
-              headerSort: false,
-              field: 'Deadline',
-              editor: 'date',
-              formatter: function (cell: any) {
-                const value = cell.getValue();
-                return value ? DateTime.fromJSDate(new Date(value)).toFormat('dd/MM/yyyy') : '';
-              },
-              headerHozAlign: 'center',
-              validator: ['required'],
-              width:'120',
-              hozAlign: 'center',
-            },
-            {
-              title: 'SL yêu cầu',
-              headerSort: false,
-              field: 'Quantity',
-              editor: 'input',
-              headerHozAlign: 'center',
-              validator: ['required'],
-              width:'80',
-              hozAlign: 'right',
-            },
-            {
-              title: 'ĐVT',
-              headerSort: false,
-              field: 'Unit',
-              editor: 'input',
-              headerHozAlign: 'center',
-              validator: ['required'],
-              hozAlign: 'left',
-            },
-            {
-              title: 'Trạng thái',
-              headerSort: false,
-              field: 'StatusRequest',
-              editor: 'input',
-              headerHozAlign: 'center',
-              hozAlign: 'left',
-            },
-            {
-              title: 'Ghi chú',
-              headerSort: false,
-              field: 'Note',
-              editor: 'input',
-              headerHozAlign: 'center',
-              hozAlign: 'left',
-            },
-            // {
-            //   title: 'User',
-            //   headerSort: false,
-            //   field: 'Note',
-            //   headerHozAlign: 'center',
-            //   hozAlign: 'left',
-            //   editor: this.createdControl1(
-            //     NSelectComponent,
-            //     this.injector,
-            //     this.appRef,
-            //     this.users,
-            //     'FullName',
-            //     'FullName',
-            //     'ID'
-            //   ),
-            //   formatter: (cell:any) => {
-            //     const val = cell.getValue();
-            //     return (
-            //       `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${val ? this.getLabelValue("lbusers",val) : 'Chọn người dùng'}</p> <i class="fas fa-angle-down"></i> <div>`
-            //     );
-            //   },
-            // },
-          ],
-          height: '30vh',
-          headerSort: false,
-          reactiveData: true,
-          rowHeader: {
-            headerSort: false,
-            resizable: false,
-            frozen: true,
+            row.delete();
           },
-        })
+        },
+        {
+          title: 'ID',
+          field: 'ID',
+          visible: false,
+        },
+        {
+          title: 'STT',
+          headerSort: false,
+          formatter: 'rownum',
+          width: 50,
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+        },
+        {
+          title: 'Mã nội bộ',
+          headerSort: false,
+          field: 'ProductNewCode',
+          hozAlign: 'left',
+          width: '150',
+          headerHozAlign: 'center',
+          // editor: this.createdControl1(
+          //   NSelectComponent,
+          //   this.injector,
+          //   this.appRef,
+          //   this.dtProductSale,
+          //   'productLabel',
+          //   'productLabel',
+          //   'ProductNewCode'
+          // ),
+          // formatter: (cell: any) => {
+          //   const val = cell.getValue();
+          //   const product = (this.dtProductSale || []).find((p: any) => p.ProductNewCode === val);
+          //   const label = product ? `${product.ProductNewCode}, ${product.ProductName}` : 'Chọn sản phẩm';
+          //   return (
+          //     `<div class="d-flex justify-content-between align-items-center">
+          //       <p class="w-100 m-0">${label}</p>
+          //       <i class="fas fa-angle-down"></i>
+          //     </div>`
+          //   );
+          // },
+          editor: (cell: any, onRendered: any, success: any, cancel: any) => {
+            const container = document.createElement('div');
+            const rowData = cell.getRow().getData();
+            const view = this.vcr.createEmbeddedView(this.selectTemplate, {
+              row: rowData,
+              dt: this.dtProductSale,
+              success,
+            });
+            view.rootNodes.forEach((node) => container.appendChild(node));
+            onRendered(() => {
+              const el = container.querySelector('input, nz-select');
+              if (el) (el as HTMLElement).focus();
+            });
+            return container;
+          },
+          formatter: (cell: any) => {
+            const val = cell.getValue();
+            const product = (this.dtProductSale || []).find(
+              (p: any) => p.ProductNewCode === val
+            );
+            const label = product ? `${product.ProductName}` : 'Chọn sản phẩm';
+            return `<div class="d-flex justify-content-between align-items-center">
+                    <p class="w-100 m-0">${label}</p>
+                    <i class="fas fa-angle-down"></i>
+                  </div>`;
+          },
+          cellEdited: (cell) => {
+            const code = cell.getValue();
+            const product = (this.dtProductSale || []).find(
+              (p: any) => p.ProductNewCode === code
+            );
+            if (product) {
+              cell.getRow().update({
+                ProductCode: product.ProductCode,
+                ProductName: product.ProductName,
+                Unit: product.Unit,
+                Maker: product.Maker,
+                StatusRequest: product.StatusRequest,
+              });
+            }
+          },
+        },
+        {
+          title: 'Mã sản phẩm (*)',
+          headerSort: false,
+          field: 'ProductCode',
+          editor: 'input',
+          headerHozAlign: 'center',
+          validator: ['required'],
+          width: '150',
+          hozAlign: 'left',
+        },
+        {
+          title: 'Tên sản phẩm (*)',
+          headerSort: false,
+          field: 'ProductName',
+          editor: 'input',
+          headerHozAlign: 'center',
+          validator: ['required'],
+          width: '200',
+          hozAlign: 'left',
+        },
+        {
+          title: 'Hãng (*)',
+          headerSort: false,
+          field: 'Maker',
+          editor: 'input',
+          headerHozAlign: 'center',
+          width: '100',
+          hozAlign: 'left',
+        },
+        {
+          title: 'Deadline (*)',
+          headerSort: false,
+          field: 'Deadline',
+          editor: 'date',
+          formatter: function (cell: any) {
+            const value = cell.getValue();
+            return value
+              ? DateTime.fromJSDate(new Date(value)).toFormat('dd/MM/yyyy')
+              : '';
+          },
+          headerHozAlign: 'center',
+          validator: ['required'],
+          width: '120',
+          hozAlign: 'center',
+        },
+        {
+          title: 'SL yêu cầu (*)',
+          headerSort: false,
+          field: 'Quantity',
+          editor: 'input',
+          headerHozAlign: 'center',
+          validator: ['required'],
+          width: '150',
+          hozAlign: 'right',
+        },
+        {
+          title: 'ĐVT (*)',
+          headerSort: false,
+          field: 'Unit',
+          editor: 'input',
+          headerHozAlign: 'center',
+          validator: ['required'],
+          hozAlign: 'left',
+          width: '100',
+        },
+        {
+          title: 'Ghi chú chung',
+          headerSort: false,
+          field: 'RequestNote',
+          editor: this.jobRequirementID > 0 ? undefined : 'input',
+          headerHozAlign: 'center',
+          hozAlign: 'left',
+          width: 200,
+        },
+      ],
+      height: '30vh',
+      headerSort: false,
+      reactiveData: true,
+      rowHeader: {
+        headerSort: false,
+        resizable: false,
+        frozen: true,
+      },
+    });
   }
 
   addRow() {

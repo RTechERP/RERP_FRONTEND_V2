@@ -66,6 +66,13 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
   nccList: any[] = [];
   emPloyeeLists: any[] = [];
   employeeSelectOptions: { label: string, value: number }[] = [];
+  @Input() IDDetail: number = 0;
+@Input() warehouseID: number = 0;
+@Input() openFrmSummary: boolean = false;
+@Input() customerID: number = 0;
+@Input() deliverID: number = 0;
+@Input() supplierID: number = 0;
+@Input() BillCode: string = '';
   // billImportTechnicalService = inject(BillImportTechnicalService);
   private ngbModal = inject(NgbModal);
   constructor(private billExportTechnicalService: BillExportTechnicalService,
@@ -132,6 +139,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
         HistoryProductRTCID: r.HistoryProductRTCID ?? 0,
         ProductRTCQRCodeID: r.ProductRTCQRCodeID ?? 0,
         PONCCDetailID: r.PONCCDetailID ?? 0,
+        BillImportDetailTechnicalID: r.BillImportDetailTechnicalID ?? 0,
       };
     });
   }
@@ -467,7 +475,9 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
       return;
     }
     const formValue = this.formDeviceInfo.value;
-    const payload = {
+    const isBorrow = formValue.BillType === 1;
+
+    const payload: any = {
       billExportTechnical: {
         ID: formValue.ID || 0,
         Code: formValue.Code || 0,
@@ -490,6 +500,7 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
         SupplierID: 0,
         CustomerNam: "",
         SupplierName: "",
+        CheckAddHistoryProductRTC: isBorrow
       },
       billExportDetailTechnicals: this.selectedDevices.map((device, index) => ({
         ID: device.ID || 0,
@@ -501,8 +512,8 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
         Quantity: device.Quantity || 1,
         Note: device.Note || '',
         WarehouseID: 1,
-        TotalQuantity: device.Quantity || 0
-
+        TotalQuantity: device.Quantity || 0,
+        BillImportDetailTechnicalID: device.BillImportDetailTechnicalID || 0
       })),
       inentoryDemos: this.selectedDevices.map((device, index) => ({
         ID: 0,
@@ -522,15 +533,33 @@ export class BillExportTechnicalFormComponent implements OnInit, AfterViewInit {
         }));
       })
     };
+
+    if (isBorrow) {
+      payload.historyProductRTCs = this.selectedDevices.map(device => ({
+        ID: 0,
+        ProductRTCID: device.ProductID,
+        DateBorrow: formValue.CreatedDate,
+        DateReturnExpected: formValue.ExpectedDate,
+        PeopleID: formValue.ReceiverID,
+        Note: `Phiếu xuất ${formValue.Code}${device.Note ? ':\n' + device.Note : ''}`,
+        Project: formValue.ProjectName,
+        Status: 1,
+        BillExportTechnicalID: formValue.ID || 0,
+        NumberBorrow: device.Quantity,
+        WarehouseID: 1,
+        IsDelete: false
+      }));
+    }
+
     this.billExportTechnicalService.saveData(payload).subscribe({
       next: (response: any) => {
-       
+
         this.notification.success(NOTIFICATION_TITLE.success, 'Lưu phiếu thành công');
         this.formSubmitted.emit();
         this.activeModal.close();
       },
       error: (error: any) => {
-     
+
         this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lưu phiếu, vui lòng thử lại sau');
       }
     });

@@ -1,0 +1,49 @@
+<div class="modal-header bg-primary">
+  <h5 class="modal-title text-white">Tạo phiếu trả - Nhiều kho</h5>
+  <button type="button" class="btn-close text-white" (click)="closeModal()" aria-label="Close" title="Đóng"></button>
+</div>
+
+<div class="modal-body-wrapper px-3">
+  <nz-tabset
+    [(nzSelectedIndex)]="selectedIndex"
+    (nzSelectedIndexChange)="onTabChange($event)"
+    [nzTabPosition]="'top'"
+    class="h-100 tabcontainer main-warehouse-tab">
+
+    <nz-tab *ngFor="let tab of tabs; let i = index" [nzTitle]="tab.groupName">
+      <div class="tab-content-wrapper ">
+        <!-- Form header của bill-import-detail -->
+        <!-- <div class="d-flex gap-2 pb-2 border-bottom mb-3"> -->
+          <!-- <button
+            type="button"
+            class="fs-12 btn"
+            nz-button
+            nzType="default"
+            nzSize="small"
+            title="Lưu phiếu"
+            (click)="saveTabData(i)">
+            <nz-icon nzType="save"></nz-icon> Lưu phiếu này
+          </button> -->
+        <!-- </div> -->
+        <app-bill-import-detail
+          #billDetail
+          [hidden]="selectedIndex !== i"
+          [createImport]="createImport"
+          [isCheckmode]="false"
+          [groupID]="tab.groupID"
+          [dataHistory]="tab.dataHistory"
+          [id]="0"
+          [isEmbedded]="true"
+          (saveSuccess)="onTabSaveSuccess(i)">
+        </app-bill-import-detail>
+      </div>
+    </nz-tab>
+
+  </nz-tabset>
+</div>
+<!--
+<div class="modal-footer">
+<button nz-button nzType="default" (click)="closeModal()">Đóng tất cả
+</button>
+
+</div> -->

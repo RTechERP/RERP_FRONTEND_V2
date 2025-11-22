@@ -159,7 +159,11 @@ export class BillExportService {
   getBillExportByID(id: number): Observable<any> {
     return this.http.get<any>(environment.host + `api/billexport/${id}`);
   }
-
+getBillImportDetail(billIDs: number[]): Observable<any> {
+  return this.http.get(
+    environment.host + `api/BillImportDetail/BillImportID/${billIDs.join(',')}`
+  );
+}
   // Get History Delete Bill
   getHistoryDeleteBill(data: any): Observable<any> {
     return this.http.post<any>(

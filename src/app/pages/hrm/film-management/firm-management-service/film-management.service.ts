@@ -53,7 +53,7 @@ export class FilmManagementService {
     return this.http.post<any>(`${this.url}master-with-details`, dto);
   }
   downloadTemplate(fileName: string): Observable<Blob> {
-    const url = `${environment.host1}api/share/software/Template/ImportExcel/${fileName}`;
+    const url = `${environment.host}api/share/software/Template/ImportExcel/${fileName}`;
     return this.http.get(url, {
       responseType: 'blob',
       observe: 'response'

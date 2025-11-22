@@ -94,7 +94,8 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
     { ID: -1, Name: '--Tất cả--' },
     { ID: 0, Name: 'Phiếu nhập kho' },
     { ID: 1, Name: 'Phiếu trả' },
-    { ID: 2, Name: 'Phiếu mượn NCC' },
+    { ID: 3, Name: 'Phiếu mượn NCC' },
+    { ID: 4, Name: 'Yêu cầu nhập kho' },
   ];
   data: data = {
     idsPONCC: [], // array of number
@@ -443,12 +444,13 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
       return menu;
     };
     this.table = new Tabulator('#table_BillImportSynthetic', {
+      ...DEFAULT_TABLE_CONFIG,
       data: this.dataTable,
       layout: 'fitDataFill',
       height: '100%',
-      // ...DEFAULT_TABLE_CONFIG,
       pagination: true,
       paginationSize: 50,
+
       movableColumns: true,
       resizableRows: true,
       reactiveData: true,

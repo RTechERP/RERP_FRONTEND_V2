@@ -72,5 +72,5 @@ export class SupplierSaleService {
       this.apiUrlRulePay + `rule-pay`
     );
   }
-  
+
 }

@@ -109,6 +109,8 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     private appUserService: AppUserService
   ) {}
   sizeSearch: string = '22%';
+  sizeLeftPanel: string = '25%'; // Size của panel bên trái (3 bảng)
+  sizeRightPanel: string = '75%'; // Size của panel bên phải (bảng vật tư)
   @ViewChild('tb_solution', { static: false })
   tb_solutionContainer!: ElementRef;
   @ViewChild('tb_projectPartListVersion', { static: false })
@@ -417,6 +419,136 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       error: (error: any) => {
         console.error('Error updating approve:', error);
         const errorMessage = error?.error?.message || error?.message || 'Không thể cập nhật trạng thái duyệt';
+        this.notification.error('Lỗi', errorMessage);
+      }
+    });
+  }
+  //#endregion
+
+  //#region Duyệt/Hủy duyệt tích xanh sản phẩm
+  approveIsFix(isFix: boolean): void {
+    const actionText = isFix ? 'duyệt' : 'hủy duyệt';
+    const actionTextCapital = isFix ? 'Duyệt' : 'Hủy duyệt';
+    
+    // Kiểm tra phiên bản đang sử dụng (giống logic updateApprove)
+    let selectedVersion: any = null;
+    if (this.type == 1) {
+      const versionRows = this.tb_projectPartListVersion?.getSelectedData();
+      if (!versionRows || versionRows.length === 0) {
+        this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản để cập nhật');
+        return;
+      }
+      selectedVersion = versionRows[0];
+      if (selectedVersion['IsActive'] == false || selectedVersion['IsActive'] == null) {
+        this.notification.warning('Thông báo', `Vui lòng chọn sử dụng phiên bản [${selectedVersion.Code}] trước!`);
+        return;
+      }
+    } else {
+      const versionRows = this.tb_projectPartListVersionPO?.getSelectedData();
+      if (!versionRows || versionRows.length === 0) {
+        this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản PO để cập nhật');
+        return;
+      }
+      selectedVersion = versionRows[0];
+      if (selectedVersion['IsActive'] == false || selectedVersion['IsActive'] == null) {
+        this.notification.warning('Thông báo', `Vui lòng chọn sử dụng phiên bản PO [${selectedVersion.Code}] trước!`);
+        return;
+      }
+    }
+    
+    // Lấy dữ liệu từ bảng
+    const selectedRows = this.tb_projectWorker?.getSelectedData() || [];
+    
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning('Thông báo', `Vui lòng chọn vật tư cần ${actionText} tích xanh`);
+      return;
+    }
+
+    // Lọc chỉ lấy các dòng chưa bị xóa (lấy cả node lá và node cha, backend sẽ xử lý)
+    // Phân biệt node lá và node cha:
+    // - Node cha: có _children và _children.length > 0 (ví dụ: TT = "1" nếu có "1.1", "1.2")
+    // - Node lá: không có _children hoặc _children.length === 0 (ví dụ: TT = "1.1.1" không có con)
+    // Backend sẽ xử lý dựa trên IsLeaf field
+    const validRows = selectedRows.filter((row: any) => {
+      // Kiểm tra bị xóa
+      if (row.IsDeleted == true) {
+        this.notification.warning('Thông báo', `Không thể ${actionText} vì vật tư thứ tự [${row.TT || row.ID}] đã bị xóa!`);
+        return false;
+      }
+      
+      return true;
+    });
+
+    if (validRows.length === 0) {
+      this.notification.warning('Thông báo', `Không có vật tư hợp lệ để ${actionText} tích xanh.\nVui lòng chọn các vật tư`);
+      return;
+    }
+
+    // Chuẩn bị payload theo ProjectPartlistDTO structure (lấy cả node lá và node cha)
+    // Xác định IsLeaf: node lá = không có _children hoặc _children.length === 0
+    const requestItems = validRows.map((row: any) => {
+      // Xác định IsLeaf dựa trên _children
+      // Node lá: không có _children hoặc _children.length === 0
+      // Node cha: có _children và _children.length > 0
+      const hasChildren = row._children && Array.isArray(row._children) && row._children.length > 0;
+      const isLeaf = !hasChildren;
+      
+      return {
+        ID: row.ID || 0,
+        ProjectID: row.ProjectID || 0,
+        ProjectTypeID: row.ProjectTypeID || 0,
+        ProjectPartListVersionID: row.ProjectPartListVersionID || 0,
+        TT: row.TT || '',
+        ProductCode: row.ProductCode || '',
+        GroupMaterial: row.GroupMaterial || '',
+        Manufacturer: row.Manufacturer || '',
+        Unit: row.Unit || '',
+        IsLeaf: isLeaf, // Node lá = true, Node cha = false
+        IsNewCode: row.IsNewCode || false,
+        IsDeleted: row.IsDeleted || false
+      };
+    });
+
+    // Đếm số lượng và lấy danh sách TT
+    const itemCount = requestItems.length;
+    const sttList = requestItems.map((item: any) => item.TT).filter((tt: string) => tt).join(', ');
+
+    // Hiển thị dialog xác nhận
+    this.modal.confirm({
+      nzTitle: `Xác nhận ${actionText} tích xanh`,
+      nzContent: `Bạn có chắc chắn muốn ${actionText} tích xanh cho ${itemCount} vật tư${sttList ? ` (Stt: ${sttList})` : ''}?`,
+      nzOkText: 'Xác nhận',
+      nzCancelText: 'Hủy',
+      nzOkDanger: !isFix,
+      nzOnOk: () => {
+        this.confirmApproveIsFix(requestItems, isFix);
+      }
+    });
+  }
+
+  // Hàm xác nhận và gọi API duyệt/hủy duyệt tích xanh
+  confirmApproveIsFix(requestItems: any[], isFix: boolean): void {
+    console.log('=== SENDING APPROVE IS FIX TO API ===');
+    console.log('Request Items:', requestItems);
+    console.log('IsFix:', isFix);
+
+    this.projectPartListService.approveIsFix(requestItems, isFix).subscribe({
+      next: (response: any) => {
+        console.log('Response từ approveIsFix API:', response);
+        
+        if (response.status === 1) {
+          const actionText = isFix ? 'Duyệt' : 'Hủy duyệt';
+          this.notification.success('Thành công', `${actionText} tích xanh thành công!`);
+          
+          // Reload dữ liệu sau khi duyệt/hủy duyệt thành công
+          this.loadDataProjectPartList();
+        } else {
+          this.notification.warning('Thông báo', response.message || 'Không thể cập nhật trạng thái tích xanh');
+        }
+      },
+      error: (error: any) => {
+        console.error('Error updating approve isFix:', error);
+        const errorMessage = error?.error?.message || error?.message || 'Không thể cập nhật trạng thái tích xanh';
         this.notification.error('Lỗi', errorMessage);
       }
     });
@@ -2187,24 +2319,155 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     const data = cell.getRow().getData();
     const value = cell.getValue();
     
-    // Chỉ áp dụng cho node lá (không có children)
+    // Chỉ áp dụng cho node lá (không có children) - giống WinForm: if (e.Node.HasChildren) return;
     const hasChildren = data._children && data._children.length > 0;
     if (hasChildren) return value || '';
 
-    // Chỉ áp dụng nếu IsNewCode = true
+    // Chỉ áp dụng nếu IsNewCode = true - giống WinForm: if (!isNewCode) return;
     const isNewCode = data.IsNewCode === true;
     if (!isNewCode) return value || '';
 
-    // Kiểm tra totalSame của field tương ứng
+    // Kiểm tra totalSame của field tương ứng - giống WinForm: if (totalSame == 0) → màu hồng
     const totalSame = Number(data[checkField]) || 0;
     
-    // Nếu totalSame = 0 → Background Pink
+    // Nếu totalSame = 0 → Background Pink - giống WinForm: e.Appearance.BackColor = Color.Pink
     if (totalSame === 0) {
       const cellElement = cell.getElement();
-      cellElement.style.backgroundColor = 'pink';
+      if (cellElement) {
+        cellElement.style.backgroundColor = 'pink';
+      }
     }
 
     return value || '';
+  }
+
+  // Hàm áp dụng màu cho cell sau khi render (giống WinForm CustomDrawNodeCell)
+  applyCellColor(cell: any, field: string, checkField: string): void {
+    try {
+      const data = cell.getRow().getData();
+      
+      // Kiểm tra nếu là node cha (có children) thì không vẽ màu (giống WinForm: if (e.Node.HasChildren) return;)
+      if (data._children && data._children.length > 0) {
+        return;
+      }
+      
+      // Kiểm tra isNewCode (giống WinForm: if (!isNewCode) return;)
+      const isNewCode = data.IsNewCode === true;
+      if (!isNewCode) {
+        return;
+      }
+      
+      // Kiểm tra field check tương ứng (giống WinForm: if (totalSame == 0) → màu hồng)
+      const checkValue = Number(data[checkField]) || 0;
+      if (checkValue === 0) {
+        // Vẽ màu hồng cho cell này (giống WinForm: e.Appearance.BackColor = Color.Pink)
+        const cellElement = cell.getElement();
+        if (cellElement) {
+          cellElement.style.backgroundColor = 'pink';
+        }
+      }
+    } catch (e) {
+      console.error('Error applying cell color:', e);
+    }
+  }
+
+  // Hàm áp dụng màu xanh nước biển cho cột Mã thiết bị khi IsFix = true
+  applyIsFixColor(cell: any): void {
+    try {
+      const data = cell.getRow().getData();
+      
+      // Chỉ áp dụng cho node lá (không có children)
+      if (data._children && data._children.length > 0) {
+        return;
+      }
+      
+      // Kiểm tra IsFix = true
+      const isFix = data.IsFix === true;
+      if (isFix) {
+        const cellElement = cell.getElement();
+        if (cellElement) {
+          // Tô màu xanh nước biển (steelblue)
+          cellElement.style.backgroundColor = '#4682B4'; // steelblue
+          cellElement.style.color = 'white'; // Chữ màu trắng để dễ đọc
+        }
+      }
+    } catch (e) {
+      console.error('Error applying IsFix color:', e);
+    }
+  }
+
+  // Hàm áp dụng màu cho tất cả các cell sau khi data được load (giống WinForm CustomDrawNodeCell)
+  applyCellColors(): void {
+    try {
+      if (!this.tb_projectWorker) return;
+      
+      const rows = this.tb_projectWorker.getRows();
+      rows.forEach((row: any) => {
+        const data = row.getData();
+        
+        // Chỉ áp dụng cho node lá (không có children) - giống WinForm: if (e.Node.HasChildren) return;
+        if (data._children && data._children.length > 0) {
+          return;
+        }
+        
+        // Áp dụng màu IsFix cho cột ProductCode (ưu tiên cao hơn)
+        const isFix = data.IsFix === true;
+        if (isFix) {
+          try {
+            const productCodeCell = row.getCell('ProductCode');
+            if (productCodeCell) {
+              const cellElement = productCodeCell.getElement();
+              if (cellElement) {
+                cellElement.style.backgroundColor = '#4682B4'; // steelblue
+                cellElement.style.color = 'white';
+              }
+            }
+          } catch (e) {
+            // Ignore errors for cells that don't exist
+          }
+        }
+        
+        // Chỉ áp dụng khi isNewCode = true - giống WinForm: if (!isNewCode) return;
+        const isNewCode = data.IsNewCode === true;
+        if (!isNewCode) {
+          return;
+        }
+        
+        // Áp dụng màu cho các cột: GroupMaterial, ProductCode, Manufacturer, Unit
+        // (giống WinForm: e.Column == colGroupMaterial, colProductCode, colManufacturer, colUnit)
+        // Lưu ý: ProductCode sẽ bị ghi đè bởi màu IsFix nếu IsFix = true
+        const fieldsToCheck = [
+          { field: 'GroupMaterial', checkField: 'IsSameProductName' },
+          { field: 'ProductCode', checkField: 'IsSameProductCode' },
+          { field: 'Manufacturer', checkField: 'IsSameMaker' },
+          { field: 'Unit', checkField: 'IsSameUnit' }
+        ];
+        
+        fieldsToCheck.forEach(({ field, checkField }) => {
+          // Bỏ qua ProductCode nếu IsFix = true (đã được tô màu xanh nước biển)
+          if (field === 'ProductCode' && isFix) {
+            return;
+          }
+          
+          const checkValue = Number(data[checkField]) || 0;
+          if (checkValue === 0) {
+            try {
+              const cell = row.getCell(field);
+              if (cell) {
+                const cellElement = cell.getElement();
+                if (cellElement) {
+                  cellElement.style.backgroundColor = 'pink'; // giống WinForm: Color.Pink
+                }
+              }
+            } catch (e) {
+              // Ignore errors for cells that don't exist
+            }
+          }
+        });
+      });
+    } catch (e) {
+      console.error('Error applying cell colors:', e);
+    }
   }
 
   drawTbProjectPartList(): void {
@@ -2335,8 +2598,13 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 title: 'Tên vật tư', 
                 field: 'GroupMaterial', 
                 formatter: (cell: any) => {
-                  // Áp dụng logic CustomDrawNodeCell
-                  return this.customDrawNodeCell(cell, 'GroupMaterial', 'IsSameProductName');
+                  // Áp dụng logic CustomDrawNodeCell (giống WinForm treeListData_CustomDrawNodeCell)
+                  const result = this.customDrawNodeCell(cell, 'GroupMaterial', 'IsSameProductName');
+                  // Đảm bảo màu được áp dụng sau khi render
+                  setTimeout(() => {
+                    this.applyCellColor(cell, 'GroupMaterial', 'IsSameProductName');
+                  }, 0);
+                  return result;
                 },
                 widthGrow: 2,
                 maxWidth: 250,
@@ -2347,8 +2615,15 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 field: 'ProductCode', 
               
                 formatter: (cell: any) => {
-                  // Áp dụng logic CustomDrawNodeCell
-                  return this.customDrawNodeCell(cell, 'ProductCode', 'IsSameProductCode');
+                  // Áp dụng logic CustomDrawNodeCell (giống WinForm treeListData_CustomDrawNodeCell)
+                  const result = this.customDrawNodeCell(cell, 'ProductCode', 'IsSameProductCode');
+                  // Đảm bảo màu được áp dụng sau khi render
+                  setTimeout(() => {
+                    this.applyCellColor(cell, 'ProductCode', 'IsSameProductCode');
+                    // Nếu IsFix = true, tô màu xanh nước biển cho cột Mã thiết bị
+                    this.applyIsFixColor(cell);
+                  }, 0);
+                  return result;
                 },
                 widthGrow: 2,
                 maxWidth: 100,
@@ -2382,8 +2657,13 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 title: 'Hãng SX', 
                 field: 'Manufacturer',
                 formatter: (cell: any) => {
-                  // Áp dụng logic CustomDrawNodeCell
-                  return this.customDrawNodeCell(cell, 'Manufacturer', 'IsSameMaker');
+                  // Áp dụng logic CustomDrawNodeCell (giống WinForm treeListData_CustomDrawNodeCell)
+                  const result = this.customDrawNodeCell(cell, 'Manufacturer', 'IsSameMaker');
+                  // Đảm bảo màu được áp dụng sau khi render
+                  setTimeout(() => {
+                    this.applyCellColor(cell, 'Manufacturer', 'IsSameMaker');
+                  }, 0);
+                  return result;
                 },
               },
               { 
@@ -2391,8 +2671,13 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 field: 'Unit', 
                 hozAlign: 'center',
                 formatter: (cell: any) => {
-                  // Áp dụng logic CustomDrawNodeCell
-                  return this.customDrawNodeCell(cell, 'Unit', 'IsSameUnit');
+                  // Áp dụng logic CustomDrawNodeCell (giống WinForm treeListData_CustomDrawNodeCell)
+                  const result = this.customDrawNodeCell(cell, 'Unit', 'IsSameUnit');
+                  // Đảm bảo màu được áp dụng sau khi render
+                  setTimeout(() => {
+                    this.applyCellColor(cell, 'Unit', 'IsSameUnit');
+                  }, 0);
+                  return result;
                 },
               },
               {
@@ -2648,7 +2933,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 const value = cell.getValue();
                 return value != null && value !== '' ? parseFloat(value).toFixed(1) : '';
               }},  // Sửa
-              { title: 'SL đã về', field: 'QtyReturned', hozAlign: 'right', formatter: (cell: any) => {
+              { title: 'SL đã về', field: 'QuantityReturn', hozAlign: 'right', formatter: (cell: any) => {
                 const value = cell.getValue();
                 return value != null && value !== '' ? parseFloat(value).toFixed(1) : '';
               }},  // Sửa: không có QtyReceivePurchase
@@ -2718,17 +3003,33 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
   this.tb_projectWorker.on('dataLoaded', () => {
     setTimeout(() => {
       this.applyDeletedRowStyle();
+      // Áp dụng màu cho các cell (giống WinForm CustomDrawNodeCell)
+      this.applyCellColors();
     }, 50); // Đảm bảo DOM đã render xong
+  });
+
+  // Thêm event cellRendered để áp dụng màu sau khi cell được render
+  this.tb_projectWorker.on('cellRendered', (cell: any) => {
+    const field = cell.getField();
+    const data = cell.getData();
+    
+    // Chỉ áp dụng cho các cột cần vẽ màu (giống WinForm: GroupMaterial, ProductCode, Manufacturer, Unit)
+    if (field === 'GroupMaterial') {
+      this.applyCellColor(cell, 'GroupMaterial', 'IsSameProductName');
+    } else if (field === 'ProductCode') {
+      this.applyCellColor(cell, 'ProductCode', 'IsSameProductCode');
+      // Áp dụng màu xanh nước biển nếu IsFix = true
+      this.applyIsFixColor(cell);
+    } else if (field === 'Manufacturer') {
+      this.applyCellColor(cell, 'Manufacturer', 'IsSameMaker');
+    } else if (field === 'Unit') {
+      this.applyCellColor(cell, 'Unit', 'IsSameUnit');
+    }
   });
 
     // Thêm logic: khi chọn nút cha, tự động chọn tất cả nút con
     // Xử lý cả chọn và bỏ chọn
     this.tb_projectWorker.on('rowSelectionChanged', (data: any[], rows: any[]) => {
-      // Tránh xử lý lại nếu đang trong quá trình toggle children (để tránh vòng lặp)
-      if (this.isTogglingChildren) {
-        return;
-      }
-
       // Lấy danh sách các row ID hiện tại đang được chọn
       const currentSelectedIds = new Set<number>();
       if (rows && rows.length > 0) {
@@ -2747,6 +3048,54 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           deselectedIds.add(id);
         }
       });
+
+      // Kiểm tra xem có đang bỏ chọn node lá không (node không có children - ở bất kỳ cấp nào)
+      // Ví dụ: 1.1.1 là node lá, 1.1 có thể là node cha (có 1.1.1, 1.1.2)
+      let isDeselectingLeaf = false;
+      if (deselectedIds.size > 0) {
+        const allRows = this.tb_projectWorker.getRows();
+        for (const deselectedId of deselectedIds) {
+          for (const row of allRows) {
+            const rowData = row.getData();
+            if (rowData.ID === deselectedId) {
+              // Kiểm tra xem row có phải là node lá không (không có children)
+              // Sử dụng cả getTreeChildren() và _children để đảm bảo chính xác
+              let hasChildren = false;
+              try {
+                const treeChildren = row.getTreeChildren();
+                hasChildren = treeChildren && treeChildren.length > 0;
+              } catch (e) {
+                // Fallback: kiểm tra _children trong data
+                hasChildren = rowData._children && Array.isArray(rowData._children) && rowData._children.length > 0;
+              }
+              
+              // Nếu không có children → là node lá đang bị bỏ chọn (có thể là 1.1.1, 1.2.1, etc.)
+              if (!hasChildren) {
+                isDeselectingLeaf = true;
+                console.log(`Detected deselection of leaf node ID: ${rowData.ID}, TT: ${rowData.TT}`);
+                break;
+              }
+            }
+          }
+          if (isDeselectingLeaf) break;
+        }
+      }
+
+      // Tránh xử lý lại nếu đang trong quá trình toggle children (để tránh vòng lặp)
+      // NHƯNG LUÔN cho phép bỏ chọn node lá độc lập (ở bất kỳ cấp nào: 1.1, 1.1.1, etc.)
+      // Nếu đang bỏ chọn node lá, reset flag NGAY LẬP TỨC và tiếp tục xử lý
+      if (isDeselectingLeaf) {
+        // Đang bỏ chọn node lá → LUÔN cho phép, reset flag nếu cần
+        if (this.isTogglingChildren) {
+          console.log('Resetting isTogglingChildren because deselecting leaf node');
+          this.isTogglingChildren = false;
+        }
+        // Tiếp tục xử lý bình thường (không return)
+      } else if (this.isTogglingChildren) {
+        // Đang toggle children và KHÔNG phải đang bỏ chọn node lá → return
+        console.log('Blocked: isTogglingChildren = true and not deselecting leaf');
+        return;
+      }
 
       // Xử lý các row mới được chọn
       if (rows && rows.length > 0) {
@@ -2767,24 +3116,40 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             
             if (hasChildren) {
               console.log(`rowSelectionChanged - Selecting children of parent ID: ${rowData.ID}`);
+              // Lưu lại ID của parent đang được toggle để chỉ block các event từ children của parent này
+              const parentIdBeingToggled = rowData.ID;
               this.isTogglingChildren = true;
               this.toggleChildrenSelection(row, true);
+              // Cập nhật previousSelectedRows ngay sau khi toggle children xong
               setTimeout(() => {
                 this.isTogglingChildren = false;
-              }, 100);
+                // Cập nhật previousSelectedRows với tất cả các node đã được chọn (bao gồm cả parent và children)
+                const allRows = this.tb_projectWorker.getRows();
+                const finalSelectedIds = new Set<number>();
+                allRows.forEach((r: any) => {
+                  if (r.isSelected()) {
+                    const rData = r.getData();
+                    finalSelectedIds.add(rData.ID);
+                  }
+                });
+                this.previousSelectedRows = finalSelectedIds;
+                console.log(`Updated previousSelectedRows (after toggle children): ${Array.from(finalSelectedIds).join(', ')}`);
+              }, 200); // Tăng timeout lên 200ms để đảm bảo toggle xong
             }
           }
         });
       }
 
       // Xử lý các row đã bị bỏ chọn
+      // CHỈ tự động bỏ chọn children khi bỏ chọn node CHA (có children)
+      // KHÔNG tự động bỏ chọn khi bỏ chọn node CON (không có children)
       if (deselectedIds.size > 0) {
         const allRows = this.tb_projectWorker.getRows();
-        deselectedIds.forEach((parentId: number) => {
+        deselectedIds.forEach((deselectedId: number) => {
           // Tìm row tương ứng với ID
           allRows.forEach((row: any) => {
             const rowData = row.getData();
-            if (rowData.ID === parentId) {
+            if (rowData.ID === deselectedId) {
               // Kiểm tra xem row có phải là parent không (có children)
               let hasChildren = false;
               try {
@@ -2794,37 +3159,56 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 hasChildren = rowData._children && rowData._children.length > 0;
               }
               
+              // CHỈ xử lý nếu là node CHA (có children)
+              // Nếu là node CON (không có children) → cho phép bỏ chọn bình thường, không làm gì
               if (hasChildren) {
                 console.log(`rowSelectionChanged - Deselecting children of parent ID: ${rowData.ID}`);
                 this.isTogglingChildren = true;
                 this.toggleChildrenSelection(row, false);
+                // Cập nhật previousSelectedRows ngay sau khi toggle children xong
                 setTimeout(() => {
                   this.isTogglingChildren = false;
-                }, 100);
+                  // Cập nhật previousSelectedRows với tất cả các node đã được chọn (sau khi bỏ chọn children)
+                  const allRows = this.tb_projectWorker.getRows();
+                  const finalSelectedIds = new Set<number>();
+                  allRows.forEach((r: any) => {
+                    if (r.isSelected()) {
+                      const rData = r.getData();
+                      finalSelectedIds.add(rData.ID);
+                    }
+                  });
+                  this.previousSelectedRows = finalSelectedIds;
+                  console.log(`Updated previousSelectedRows (after deselect children): ${Array.from(finalSelectedIds).join(', ')}`);
+                }, 200);
+              } else {
+                // Node con bị bỏ chọn → cho phép bỏ chọn bình thường, không làm gì
+                console.log(`rowSelectionChanged - Deselecting child node ID: ${rowData.ID} (no children, allowing normal deselection)`);
               }
             }
           });
         });
       }
 
-      // Cập nhật previousSelectedRows (chỉ khi không đang toggle children)
-      // Lưu ý: Khi toggle children, các children sẽ được chọn/bỏ chọn và trigger lại event này
-      // Nhưng vì isTogglingChildren = true nên sẽ return sớm, không cập nhật previousSelectedRows
-      // Chỉ cập nhật khi đã xử lý xong
-      setTimeout(() => {
-        if (!this.isTogglingChildren) {
-          // Lấy lại danh sách selected rows hiện tại để cập nhật
-          const allRows = this.tb_projectWorker.getRows();
-          const finalSelectedIds = new Set<number>();
-          allRows.forEach((row: any) => {
-            if (row.isSelected()) {
-              const rowData = row.getData();
-              finalSelectedIds.add(rowData.ID);
-            }
-          });
-          this.previousSelectedRows = finalSelectedIds;
-        }
-      }, 150); // Đợi sau khi toggle children xong
+      // Cập nhật previousSelectedRows
+      // QUAN TRỌNG: Cập nhật ngay lập tức để đảm bảo khi bỏ chọn nhiều node cùng lúc,
+      // previousSelectedRows luôn phản ánh đúng trạng thái hiện tại
+      // Điều này ngăn chặn việc logic tự động chọn lại các node cũ khi chọn node khác
+      // LƯU Ý: Khi đang toggle children, previousSelectedRows sẽ được cập nhật trong setTimeout của toggleChildrenSelection
+      // Nên ở đây chỉ cập nhật khi KHÔNG đang toggle children
+      if (!this.isTogglingChildren || isDeselectingLeaf) {
+        // Cập nhật ngay lập tức khi không đang toggle children hoặc đang bỏ chọn node lá
+        const allRows = this.tb_projectWorker.getRows();
+        const finalSelectedIds = new Set<number>();
+        allRows.forEach((row: any) => {
+          if (row.isSelected()) {
+            const rowData = row.getData();
+            finalSelectedIds.add(rowData.ID);
+          }
+        });
+        this.previousSelectedRows = finalSelectedIds;
+        console.log(`Updated previousSelectedRows (immediate): ${Array.from(finalSelectedIds).join(', ')}`);
+      }
+      // KHÔNG cập nhật ở đây nếu đang toggle children - sẽ được cập nhật trong setTimeout của toggleChildrenSelection
     });
   }
   //#endregion
@@ -3211,6 +3595,23 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         });
       },
     });
+  }
+  //#endregion
+
+  //#region đóng/mở panel bên trái
+  closeLeftPanel(): void {
+    this.sizeLeftPanel = '0';
+    this.sizeRightPanel = '100%'; // Mở rộng panel vật tư lên 100%
+  }
+
+  toggleLeftPanel(): void {
+    if (this.sizeLeftPanel === '0') {
+      this.sizeLeftPanel = '25%';
+      this.sizeRightPanel = '75%';
+    } else {
+      this.sizeLeftPanel = '0';
+      this.sizeRightPanel = '100%';
+    }
   }
   //#endregion
 }

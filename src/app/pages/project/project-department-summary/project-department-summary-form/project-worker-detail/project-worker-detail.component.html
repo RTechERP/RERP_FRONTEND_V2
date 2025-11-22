@@ -12,171 +12,186 @@
   </div>
 
   <div class="modal-body" style="max-height: 80vh !important; overflow-y: auto;">
-    <form nz-form [formGroup]="form" class="g-3 needs-validation was-validated">
+    <form nz-form [formGroup]="form" nzLayout="vertical" class="g-3 needs-validation was-validated">
       <!-- Hàng 1: TT + ParentID -->
       <div class="row">
         <div class="col-md-12 pb-3">
-          <label class="fs-12">
-            Số thứ tự (TT)
-            <span class="text-danger ps-1 me-1">*</span>
-          </label>
-          <nz-form-control
-            [nzErrorTip]="
-              form.get('TT')?.invalid &&
-              (form.get('TT')?.dirty || form.get('TT')?.touched)
-                ? 'Vui lòng nhập số thứ tự!'
-                : undefined
-            "
-          >
-            <input
-              nz-input
-              formControlName="TT"
-              class="fs-12"
-              placeholder="Nhập số thứ tự (VD: 1, 1.1, 1.2)"
-              [readonly]="isEditMode"
-            />
-          </nz-form-control>
+          <nz-form-item>
+            <nz-form-label class="fs-12">
+              Số thứ tự (TT)
+              <span class="text-danger ps-1 me-1">*</span>
+            </nz-form-label>
+            <nz-form-control
+              [nzErrorTip]="
+                form.get('TT')?.invalid &&
+                (form.get('TT')?.dirty || form.get('TT')?.touched)
+                  ? 'Vui lòng nhập số thứ tự!'
+                  : undefined
+              "
+            >
+              <input
+                nz-input
+                formControlName="TT"
+                class="fs-12"
+                placeholder="Nhập số thứ tự (VD: 1, 1.1, 1.2)"
+                [readonly]="isEditMode"
+              />
+            </nz-form-control>
+          </nz-form-item>
         </div>
       </div>
 
       <!-- Hàng 2: Nội dung công việc -->
       <div class="row">
         <div class="col-md-12 pb-3">
-          <label class="fs-12">
-            Nội dung công việc
-            <span class="text-danger ps-1 me-1">*</span>
-          </label>
-          <nz-form-control
-            [nzErrorTip]="
-              form.get('WorkContent')?.invalid &&
-              (form.get('WorkContent')?.dirty || form.get('WorkContent')?.touched)
-                ? 'Vui lòng nhập nội dung công việc!'
-                : undefined
-            "
-          >
-            <textarea
-              nz-input
-              formControlName="WorkContent"
-              class="fs-12"
-              rows="3"
-              placeholder="Nhập nội dung công việc"
-            ></textarea>
-          </nz-form-control>
+          <nz-form-item>
+            <nz-form-label class="fs-12">
+              Nội dung công việc
+              <span class="text-danger ps-1 me-1">*</span>
+            </nz-form-label>
+            <nz-form-control
+              [nzErrorTip]="
+                form.get('WorkContent')?.invalid &&
+                (form.get('WorkContent')?.dirty || form.get('WorkContent')?.touched)
+                  ? 'Vui lòng nhập nội dung công việc!'
+                  : undefined
+              "
+            >
+              <textarea
+                nz-input
+                formControlName="WorkContent"
+                class="fs-12"
+                rows="3"
+                placeholder="Nhập nội dung công việc"
+              ></textarea>
+            </nz-form-control>
+          </nz-form-item>
         </div>
       </div>
 
       <!-- Hàng 3: Số người + Số ngày + Đơn giá -->
       <div class="row">
         <div class="col-md-4 pb-3">
-          <label class="fs-12">
-            Số người
-            <span class="text-danger ps-1 me-1">*</span>
-          </label>
-          <nz-form-control
-            [nzErrorTip]="
-              form.get('AmountPeople')?.invalid &&
-              (form.get('AmountPeople')?.dirty || form.get('AmountPeople')?.touched)
-                ? 'Vui lòng nhập số người (>= 0)!'
-                : undefined
-            "
-          >
-            <nz-input-number
-              formControlName="AmountPeople"
-              class="fs-12 w-100"
-              [nzMin]="0"
-              [nzStep]="1"
-              [nzPrecision]="0"
-              placeholder="Số người"
-            ></nz-input-number>
-          </nz-form-control>
+          <nz-form-item>
+            <nz-form-label class="fs-12">
+              Số người
+              <span class="text-danger ps-1 me-1">*</span>
+            </nz-form-label>
+            <nz-form-control
+              [nzErrorTip]="
+                form.get('AmountPeople')?.invalid &&
+                (form.get('AmountPeople')?.dirty || form.get('AmountPeople')?.touched)
+                  ? 'Vui lòng nhập số người (>= 0)!'
+                  : undefined
+              "
+            >
+              <nz-input-number
+                formControlName="AmountPeople"
+                class="fs-12 w-100"
+                [nzMin]="0"
+                [nzStep]="1"
+                [nzPrecision]="0"
+                placeholder="Số người"
+              ></nz-input-number>
+            </nz-form-control>
+          </nz-form-item>
         </div>
 
         <div class="col-md-4 pb-3">
-          <label class="fs-12">
-            Số ngày
-            <span class="text-danger ps-1 me-1">*</span>
-          </label>
-          <nz-form-control
-            [nzErrorTip]="
-              form.get('NumberOfDay')?.invalid &&
-              (form.get('NumberOfDay')?.dirty || form.get('NumberOfDay')?.touched)
-                ? 'Vui lòng nhập số ngày (>= 0)!'
-                : undefined
-            "
-          >
-            <nz-input-number
-              formControlName="NumberOfDay"
-              class="fs-12 w-100"
-              [nzMin]="0"
-              [nzStep]="1"
-              [nzPrecision]="0"
-              placeholder="Số ngày"
-            ></nz-input-number>
-          </nz-form-control>
+          <nz-form-item>
+            <nz-form-label class="fs-12">
+              Số ngày
+              <span class="text-danger ps-1 me-1">*</span>
+            </nz-form-label>
+            <nz-form-control
+              [nzErrorTip]="
+                form.get('NumberOfDay')?.invalid &&
+                (form.get('NumberOfDay')?.dirty || form.get('NumberOfDay')?.touched)
+                  ? 'Vui lòng nhập số ngày (>= 0)!'
+                  : undefined
+              "
+            >
+              <nz-input-number
+                formControlName="NumberOfDay"
+                class="fs-12 w-100"
+                [nzMin]="0"
+                [nzStep]="1"
+                [nzPrecision]="0"
+                placeholder="Số ngày"
+              ></nz-input-number>
+            </nz-form-control>
+          </nz-form-item>
         </div>
 
         <div class="col-md-4 pb-3">
-          <label class="fs-12">
-            Đơn giá
-            <span class="text-danger ps-1 me-1">*</span>
-          </label>
-          <nz-form-control
-            [nzErrorTip]="
-              form.get('Price')?.invalid &&
-              (form.get('Price')?.dirty || form.get('Price')?.touched)
-                ? 'Vui lòng nhập đơn giá (>= 0)!'
-                : undefined
-            "
-          >
-            <nz-input-number
-              formControlName="Price"
-              class="fs-12 w-100"
-              [nzMin]="0"
-              [nzStep]="1000"
-              [nzPrecision]="0"
-              [nzFormatter]="formatCurrency"
-              [nzParser]="parseCurrency"
-              placeholder="Đơn giá"
-            ></nz-input-number>
-          </nz-form-control>
+          <nz-form-item>
+            <nz-form-label class="fs-12">
+              Đơn giá
+              <span class="text-danger ps-1 me-1">*</span>
+            </nz-form-label>
+            <nz-form-control
+              [nzErrorTip]="
+                form.get('Price')?.invalid &&
+                (form.get('Price')?.dirty || form.get('Price')?.touched)
+                  ? 'Vui lòng nhập đơn giá (>= 0)!'
+                  : undefined
+              "
+            >
+              <nz-input-number
+                formControlName="Price"
+                class="fs-12 w-100"
+                [nzMin]="0"
+                [nzStep]="1000"
+                [nzPrecision]="0"
+                type = "number"
+                [nzFormatter]="formatCurrency"
+                [nzParser]="parseCurrency"
+                placeholder="Đơn giá"
+              ></nz-input-number>
+            </nz-form-control>
+          </nz-form-item>
         </div>
       </div>
 
       <!-- Hàng 4: Tổng nhân công + Thành tiền (tính tự động, không nhập được) -->
       <div class="row">
         <div class="col-md-6 pb-3">
-          <label class="fs-12">
-            Tổng nhân công
-          </label>
-          <nz-form-control>
-            <nz-input-number
-              formControlName="TotalWorkforce"
-              class="fs-12 w-100"
-              [nzMin]="0"
-              [nzStep]="1"
-              [nzPrecision]="0"
-              [nzDisabled]="true"
-              placeholder="Tự động tính"
-            ></nz-input-number>
-          </nz-form-control>
+          <nz-form-item>
+            <nz-form-label class="fs-12">
+              Tổng nhân công
+            </nz-form-label>
+            <nz-form-control>
+              <nz-input-number
+                formControlName="TotalWorkforce"
+                class="fs-12 w-100"
+                [nzMin]="0"
+                [nzStep]="1"
+                [nzPrecision]="0"
+                [nzDisabled]="true"
+                placeholder="Tự động tính"
+              ></nz-input-number>
+            </nz-form-control>
+          </nz-form-item>
         </div>
 
         <div class="col-md-6 pb-3">
-          <label class="fs-12">
-            Thành tiền
-          </label>
-          <nz-form-control>
-            <nz-input-number
-              formControlName="TotalPrice"
-              class="fs-12 w-100"
-              [nzMin]="0"
-              [nzStep]="1000"
-              [nzPrecision]="0"
-              [nzDisabled]="true"
-              [nzFormatter]="formatCurrency"
-              placeholder="Tự động tính"
-            ></nz-input-number>
-          </nz-form-control>
+          <nz-form-item>
+            <nz-form-label class="fs-12">
+              Thành tiền
+            </nz-form-label>
+            <nz-form-control>
+              <nz-input-number
+                formControlName="TotalPrice"
+                class="fs-12 w-100"
+                [nzMin]="0"
+                [nzStep]="1000"
+                [nzPrecision]="0"
+                [nzDisabled]="true"
+                [nzFormatter]="formatCurrency"
+                placeholder="Tự động tính"
+              ></nz-input-number>
+            </nz-form-control>
+          </nz-form-item>
         </div>
       </div>
 

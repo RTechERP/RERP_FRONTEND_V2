@@ -115,6 +115,7 @@ export class MainLayoutComponent implements OnInit {
   notificationComponent = AppNotifycationDropdownComponent;
   //#region Khai báo biến
   isCollapsed = true;
+  isMobile = window.innerHeight <= 768;
   isDatcom = false;
   selectedIndex = 0;
   trackKey = (_: number, x: any) => x?.key ?? x?.title ?? _;
@@ -191,6 +192,10 @@ export class MainLayoutComponent implements OnInit {
   //   }
 
   newTab(comp: Type<any>, title: string, data?: any) {
+    if (this.isMobile) {
+      this.isCollapsed = !this.isCollapsed;
+    }
+
     const idx = this.dynamicTabs.findIndex((t) => t.title === title);
     if (idx >= 0) {
       this.selectedIndex = idx;

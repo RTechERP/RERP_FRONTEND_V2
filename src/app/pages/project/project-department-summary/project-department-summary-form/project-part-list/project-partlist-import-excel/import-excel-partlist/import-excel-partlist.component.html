@@ -33,6 +33,26 @@
                 <option *ngFor="let sheet of excelSheets" [value]="sheet">{{sheet}}</option>
               </select>
             </div>
+            <div class="d-flex align-items-center gap-2" style="flex: 1;">
+              <label class="mb-0 fs-12" style="white-space: nowrap;">Phiên bản:</label>
+              <nz-select
+                class="w-100"
+                nzSize="small"
+                nzShowSearch
+                nzAllowClear
+                nzPlaceHolder="Chọn phiên bản"
+                [(ngModel)]="selectedVersion"
+                name="version"
+              >
+                <nz-option *ngFor="let version of listVersions" [nzValue]="version.ID" [nzLabel]="version.Name"></nz-option>
+              </nz-select>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <label nz-checkbox [(ngModel)]="isProblemRow" name="isProblemRow" (ngModelChange)="onIsProblemRowChange()" class="mb-0 fs-12">Hàng phát sinh</label>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <label nz-checkbox [(ngModel)]="isUpdate" name="isUpdate" (ngModelChange)="onIsUpdateChange()" class="mb-0 fs-12">Update</label>
+            </div>
           </div>
         </div>
         <div class="card-body p-2">
@@ -49,3 +69,129 @@
       </form>
     </div>   
   </div>
+
+  <!-- BƯỚC 1: FlyoutPanel - Hiển thị danh sách diff đơn giản (chỉ để XEM) -->
+  <!-- Theo logic WinForm: LoadDataDiff() hiển thị FlyoutPanel sau khi có diff từ import-check -->
+  <nz-modal
+    [(nzVisible)]="showFlyoutPanel"
+    nzTitle="Phát hiện sự khác biệt"
+    (nzOnCancel)="onCancelFlyoutPanel()"
+    [nzFooter]="null"
+    [nzWidth]="1100"
+    [nzClosable]="true"
+  >
+    <div *nzModalContent>
+      <div class="alert alert-warning mb-3" role="alert">
+        <strong>Phát hiện {{ diffs.length }} sản phẩm trong Excel khác với sản phẩm trong kho (Stock).</strong>
+      </div>
+      <p class="mb-3">
+        Vui lòng xem thông tin khác nhau bên dưới. Bạn có muốn ghi đè không?
+      </p>
+      <nz-table
+        [nzData]="diffs"
+        [nzPageSize]="10"
+        [nzScroll]="{ x: '1000px', y: '400px' }"
+        nzSize="small"
+        [nzBordered]="true"
+        class="diff-flyout-table"
+      >
+        <thead>
+          <tr style="background-color: #f5f5f5;">
+            <th nzWidth="130px" style="font-weight: bold;">Mã thiết bị</th>
+            <th nzWidth="220px" style="font-weight: bold;">Tên vật tư (Excel)</th>
+            <th nzWidth="220px" style="font-weight: bold;">Tên vật tư (Kho)</th>
+            <th nzWidth="150px" style="font-weight: bold;">Hãng (Excel)</th>
+            <th nzWidth="150px" style="font-weight: bold;">Hãng (Kho)</th>
+            <th nzWidth="100px" style="font-weight: bold;">Đơn vị (Excel)</th>
+            <th nzWidth="100px" style="font-weight: bold;">Đơn vị (Kho)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let diff of diffs" class="diff-row">
+            <td style="font-weight: bold; background-color: #fff3cd;">
+              {{ diff.productCode || diff.ProductCode }}
+            </td>
+            <td style="background-color: #ffeaa7;">
+              {{ diff.groupMaterialPartlist || diff.GroupMaterialPartlist }}
+            </td>
+            <td style="background-color: #d4edda; color: #155724; font-weight: 500;">
+              {{ diff.groupMaterialStock || diff.GroupMaterialStock }}
+            </td>
+            <td style="background-color: #ffeaa7;">
+              {{ diff.manufacturerPartlist || diff.ManufacturerPartlist }}
+            </td>
+            <td style="background-color: #d4edda; color: #155724; font-weight: 500;">
+              {{ diff.manufacturerStock || diff.ManufacturerStock }}
+            </td>
+            <td style="background-color: #ffeaa7;">
+              {{ diff.unitPartlist || diff.UnitPartlist }}
+            </td>
+            <td style="background-color: #d4edda; color: #155724; font-weight: 500;">
+              {{ diff.unitStock || diff.UnitStock }}
+            </td>
+          </tr>
+        </tbody>
+      </nz-table>
+      <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+        <button nz-button nzDanger nzSize="large" (click)="onCancelFlyoutPanel()">
+          <i nz-icon nzType="close-circle" nzTheme="outline"></i> Không
+        </button>
+        <button nz-button nzType="primary" nzSize="large" (click)="onConfirmFlyoutPanel()">
+          <i nz-icon nzType="check-circle" nzTheme="outline"></i> Ghi đè
+        </button>
+      </div>
+    </div>
+  </nz-modal>
+
+  <!-- BƯỚC 2: Modal diff chi tiết - Cho phép chọn Excel/Stock cho từng dòng -->
+  <nz-modal
+    [(nzVisible)]="showDiffModal"
+    nzTitle="Chọn cách xử lý cho từng sản phẩm"
+    (nzOnCancel)="onCancelDiff()"
+    [nzFooter]="null"
+    [nzWidth]="1200"
+  >
+    <div *nzModalContent>
+      <p class="mb-3 text-danger">
+        <strong>Có sự khác nhau giữa Partlist và dữ liệu tích xanh trong kho. Vui lòng xem và chọn cách xử lý:</strong>
+      </p>
+      <nz-table
+        [nzData]="diffs"
+        [nzPageSize]="10"
+        [nzScroll]="{ x: '1000px', y: '400px' }"
+        nzSize="small"
+      >
+        <thead>
+          <tr>
+            <th nzWidth="120px">Mã thiết bị</th>
+            <th nzWidth="200px">Tên vật tư (Partlist)</th>
+            <th nzWidth="200px">Tên vật tư (Kho)</th>
+            <th nzWidth="150px">Hãng (Partlist)</th>
+            <th nzWidth="150px">Hãng (Kho)</th>
+            <th nzWidth="100px">Đơn vị (Partlist)</th>
+            <th nzWidth="100px">Đơn vị (Kho)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let diff of diffs">
+            <td>{{ diff.productCode || diff.ProductCode }}</td>
+            <td>{{ diff.groupMaterialPartlist || diff.GroupMaterialPartlist }}</td>
+            <td class="text-success">{{ diff.groupMaterialStock || diff.GroupMaterialStock }}</td>
+            <td>{{ diff.manufacturerPartlist || diff.ManufacturerPartlist }}</td>
+            <td class="text-success">{{ diff.manufacturerStock || diff.ManufacturerStock }}</td>
+            <td>{{ diff.unitPartlist || diff.UnitPartlist }}</td>
+            <td class="text-success">{{ diff.unitStock || diff.UnitStock }}</td>
+          </tr>
+        </tbody>
+      </nz-table>
+      <div class="d-flex justify-content-end gap-2 mt-3">
+        <button nz-button nzDanger (click)="onCancelDiff()">Hủy</button>
+        <button nz-button nzType="default" (click)="onConfirmDiff(false)">
+          Giữ nguyên Partlist
+        </button>
+        <button nz-button nzType="primary" (click)="onConfirmDiff(true)">
+          Cập nhật theo Kho
+        </button>
+      </div>
+    </div>
+  </nz-modal>

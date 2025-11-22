@@ -26,6 +26,14 @@ export class ProjectPartListService {
   saveProjectPartList(payload: any): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/save-data`, payload);
   }
+  // Import check - validate dữ liệu trước khi lưu
+  importCheck(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/import-check`, payload);
+  }
+  // Apply diff - áp dụng diff và lưu dữ liệu
+  applyDiff(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/apply-diff`, payload);
+  }
   approveProjectPartList(projectpartlistID: number[], approved: boolean): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/approvedTBP`, {
       projectpartlistID: projectpartlistID,
@@ -47,5 +55,9 @@ export class ProjectPartListService {
   //duyệt/hủy duyệt mã mới
   approveNewCode(payload: any[], isApprovedNew: boolean): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/approved-newcode?isApprovedNew=${isApprovedNew}`, payload);
+  }
+  //duyệt/hủy duyệt tích xanh sản phẩm
+  approveIsFix(payload: any[], isFix: boolean): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/approved-fix?isFix=${isFix}`, payload);
   }
 }

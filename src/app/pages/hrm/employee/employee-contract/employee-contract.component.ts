@@ -387,7 +387,7 @@ export class EmployeeContractComponent implements OnInit, OnChanges {
       this.keyword ?? ''
     ).subscribe({
       next: (data: any) => {
-        debugger
+        
         this.employeeContractList = Array.isArray(data.data) ? data.data : [data.data];
         this.initializeTable();
         // this.tabulatorEmployeeContract.setData(data.data);

@@ -301,8 +301,7 @@ button[nz-button] img {
 .bell-icon:hover {
   animation: ring 0.5s ease-in-out infinite;
 }
-
-.btn-action-icon {
-  width: 1.5rem;
+.btn-action-icon{
+  width:1.5rem;
   padding: 0.25rem;
 }

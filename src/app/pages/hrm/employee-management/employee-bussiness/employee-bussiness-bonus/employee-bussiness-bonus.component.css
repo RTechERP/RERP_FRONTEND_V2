@@ -1,0 +1,119 @@
+/* Main Modal Styles */
+.modal-header {
+  border-bottom: none !important;
+}
+
+.modal-body {
+  padding: 0 !important;
+  height: calc(100vh - 56px) !important; /* Full height minus header */
+  overflow: hidden;
+}
+
+/* Ensure splitter and panels have proper height */
+nz-splitter {
+  height: 100% !important;
+}
+
+/* Card styles */
+.card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-header {
+  padding: 0.5rem 1rem !important;
+  flex-shrink: 0;
+}
+
+.card-body {
+  overflow: auto;
+  flex: 1;
+  height: 100%;
+}
+
+/* Splitter Panel */
+nz-splitter-panel {
+  height: 100%;
+}
+
+/* Tabulator styles */
+#tb_employee_bussiness_vehicle,
+#tb_employee_bussiness_type {
+  width: 100%;
+  height: 100%;
+}
+
+/* Ensure tabulator table is visible */
+.tabulator {
+  font-size: 12px !important;
+}
+
+.tabulator-header {
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #ddd;
+}
+
+.tabulator-cell {
+  padding: 4px 8px !important;
+}
+
+/* Button styles */
+button {
+  font-size: 0.75rem !important;
+}
+
+.btn-add,
+.btn-edit,
+.btn-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.btn-add img,
+.btn-edit img,
+.btn-delete img {
+  width: 16px;
+  height: 16px;
+}
+
+/* Gap utility */
+.gap-2 {
+  gap: 0.5rem;
+}
+
+/* Custom Modal Styles */
+::ng-deep .custom-modal .ant-modal-header {
+  background-color: #1890ff !important;
+  padding: 0.5rem 1rem !important;
+}
+
+::ng-deep .custom-modal .ant-modal-title {
+  color: white !important;
+}
+
+::ng-deep .custom-modal .ant-modal-close-x {
+  color: white !important;
+  line-height: 40px !important;
+}
+
+::ng-deep .custom-modal .ant-modal-close-x:hover {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+::ng-deep .custom-modal .ant-modal-footer {
+  padding: 0.5rem 1rem !important;
+  border-top: 1px solid #e8e8e8;
+}
+
+/* Loading and button styles */
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+.gap-1 {
+  gap: 0.25rem;
+}
+

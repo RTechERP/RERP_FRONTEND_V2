@@ -6,14 +6,8 @@
         <div class="card-header bg-white p-1">
           <div class="d-flex justify-content-between align-items-center">
             <h6 class="m-0 ms-2">Tìm kiếm</h6>
-            <button
-              class="border-0 me-2"
-              nz-button
-              nzSize="small"
-              nzType="default"
-              nzDanger
-              (click)="toggleSearchPanel()"
-            >
+            <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+              (click)="toggleSearchPanel()">
               <nz-icon nzType="close" nzTheme="outline" />
             </button>
           </div>
@@ -22,51 +16,26 @@
           <form nz-form nzLayout="vertical">
             <nz-form-item>
               <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
-              <nz-form-control [nzSpan]="24"
-                ><nz-date-picker
-                  name="dateStart"
-                  class="w-100"
-                  nzFormat="dd/MM/yyyy"
-                  nzAllowClear="false"
-                  [(ngModel)]="dateStart"
-                ></nz-date-picker>
+              <nz-form-control [nzSpan]="24"><nz-date-picker name="dateStart" class="w-100" nzFormat="dd/MM/yyyy"
+                  nzAllowClear="false" [(ngModel)]="dateStart"></nz-date-picker>
               </nz-form-control>
             </nz-form-item>
             <nz-form-item class="mt-2">
-              <nz-form-label class="fs-12" [nzSpan]="24"
-                >Đến ngày</nz-form-label
-              >
+              <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <nz-date-picker
-                  name="dateEnd"
-                  class="w-100"
-                  nzFormat="dd/MM/yyyy"
-                  nzAllowClear="false"
-                  [(ngModel)]="dateEnd"
-                ></nz-date-picker>
+                <nz-date-picker name="dateEnd" class="w-100" nzFormat="dd/MM/yyyy" nzAllowClear="false"
+                  [(ngModel)]="dateEnd"></nz-date-picker>
               </nz-form-control>
             </nz-form-item>
             <!-- Phòng ban -->
             <nz-form-item>
-              <nz-form-label class="fs-12" [nzSpan]="24"
-                >Phòng ban</nz-form-label
-              >
+              <nz-form-label class="fs-12" [nzSpan]="24">Phòng ban</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <nz-select
-                  name="selectedDepartmentFilter"
-                  class="w-100"
-                  nzShowSearch
-                  nzAllowClear
-                  nzPlaceHolder="Chọn phòng ban"
-                  [(ngModel)]="selectedDepartmentFilter"
-                  (ngModelChange)="onDepartmentFilterChange()"
-                >
-                  <nz-option
-                    *ngFor="let department of departmentList"
-                    [nzValue]="department.ID"
-                    [nzLabel]="department.Name"
-                    nzCustomContent="true"
-                  >
+                <nz-select name="selectedDepartmentFilter" class="w-100" nzShowSearch nzAllowClear
+                  nzPlaceHolder="Chọn phòng ban" [(ngModel)]="selectedDepartmentFilter"
+                  (ngModelChange)="onDepartmentFilterChange()">
+                  <nz-option *ngFor="let department of departmentList" [nzValue]="department.ID"
+                    [nzLabel]="department.Name" nzCustomContent="true">
                     {{ department.Name }}
                   </nz-option>
                 </nz-select>
@@ -75,18 +44,10 @@
 
             <!-- Trạng thái TBP -->
             <nz-form-item class="mt-2">
-              <nz-form-label class="fs-12" [nzSpan]="24"
-                >Trạng thái TBP</nz-form-label
-              >
+              <nz-form-label class="fs-12" [nzSpan]="24">Trạng thái TBP</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <nz-select
-                  name="selectedTBPStatusFilter"
-                  class="w-100"
-                  nzAllowClear
-                  nzPlaceHolder="Chọn trạng thái TBP"
-                  [(ngModel)]="selectedTBPStatusFilter"
-                  (ngModelChange)="onTBPStatusFilterChange()"
-                >
+                <nz-select name="selectedTBPStatusFilter" class="w-100" nzAllowClear nzPlaceHolder="Chọn trạng thái TBP"
+                  [(ngModel)]="selectedTBPStatusFilter" (ngModelChange)="onTBPStatusFilterChange()">
                   <nz-option [nzValue]="0" nzLabel="Chưa duyệt">
                     <span class="text-warning">Chưa duyệt</span>
                   </nz-option>
@@ -104,32 +65,17 @@
             <nz-form-item class="mt-2">
               <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <input
-                  name="searchValue"
-                  nz-input
-                  placeholder="Tìm tên nhân viên, mã nhân viên, lý do..."
-                  [(ngModel)]="searchValue"
-                  (keyup.enter)="onSearch()"
-                />
+                <input name="searchValue" nz-input placeholder="Tìm tên nhân viên, mã nhân viên, lý do..."
+                  [(ngModel)]="searchValue" (keyup.enter)="onSearch()" />
               </nz-form-control>
             </nz-form-item>
           </form>
         </div>
         <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
-          <button
-            nz-button
-            nzType="default"
-            nzSize="small"
-            (click)="resetSearch()"
-          >
+          <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">
             Đặt lại
           </button>
-          <button
-            nz-button
-            nzType="primary"
-            nzSize="small"
-            (click)="onSearch()"
-          >
+          <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
             Tìm kiếm
           </button>
         </div>
@@ -140,88 +86,53 @@
       <div class="card h-100 border-0 rounded-0">
         <div class="card-header bg-white p-1">
           <div class="d-flex gap-1">
-            <button
-              nz-button
-              nzType="default"
-              nzSize="small"
-              (click)="toggleSearchPanel()"
-            >
+            <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
               <nz-icon nzType="search" />
             </button>
 
-            <button
-              class="fs-12"
-              nz-button
-              nzType="default"
-              nzSize="small"
-              (click)="addenf()"
-            >
-              <nz-icon nzType="plus" /> Thêm
+            <button class="btn-add" nz-button nzType="default" nzSize="small" (click)="addenf()">
+              <img src="assets/icon/action_add_item_16.png" /> Thêm
             </button>
-            <button
-              class="fs-12"
-              nz-button
-              nzType="default"
-              nzSize="small"
-              (click)="editenf()"
-            >
-              <nz-icon nzType="edit" nzTheme="fill" /> Sửa
+            <button class="btn-edit" nz-button nzType="default" nzSize="small" (click)="editenf()">
+              <img src="assets/icon/action_edit_item_16.png" /> Sửa
             </button>
-            <button
-              class="fs-12"
-              nz-button
-              nzType="default"
-              nzSize="small"
-              (click)="deleteenf()"
-            >
-              <nz-icon nzType="delete" nzTheme="fill" /> Xóa
+            <button class="btn-delete" nz-button nzType="default" nzSize="small" (click)="deleteenf()">
+              <img src="assets/icon/action_delete_item_16.png" /> Xóa
             </button>
-            <button
-              class="fs-12"
-              nz-button
-              nzType="default"
-              nzSize="small"
-              (click)="approvedTBP()"
-            >
-              <nz-icon nzType="check-circle" nzTheme="outline" /> TBP Duyệt
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="approvedTBP()">
+              <img src="assets/icon/action_approved_16.png" /> TBP xác nhận
             </button>
-            <button
-              class="fs-12"
-              nz-button
-              nzType="default"
-              nzSize="small"
-              (click)="approvedHR()"
-            >
-              <nz-icon nzType="user-switch" nzTheme="outline" /> HR Duyệt
-            </button>
-            <button
-              class="fs-12"
-              nz-button
-              nzType="default"
-              nzSize="small"
-              (click)="cancelApprovedHR()"
-            >
-              <nz-icon nzType="user-delete" nzTheme="outline" /> HR Hủy Duyệt
-            </button>
-            <button
-              class="fs-12"
-              nz-button
-              nzType="default"
-              nzSize="small"
-              (click)="exportExcel()"
-            >
-              <nz-icon nzType="file-excel" nzTheme="fill" /> Xuất Excel
+
+
+            <div class="btn-group">
+              <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown [nzDropdownMenu]="menuHR"
+                *hasPermission="'N1,N2'">
+                <img src="assets/icon/action_confirm_tbp_16.png" />HR xác nhận
+                <i nz-icon nzType="down"></i>
+              </button>
+
+              <nz-dropdown-menu #menuHR="nzDropdownMenu">
+                <ul nz-menu>
+                  <li nz-menu-item (click)="approvedHR()" *hasPermission="'N1,N2'">
+                    <img src="assets/icon/action_approved_16.png" />
+                    <span class="ms-1">HR duyệt</span>
+                  </li>
+                  <li nz-menu-item (click)="cancelApprovedHR()" *hasPermission="'N1,N2'">
+                    <img src="assets/icon/action_unapproved_16.png" />
+                    <span class="ms-1">HR hủy duyệt</span>
+                  </li>
+
+                </ul>
+              </nz-dropdown-menu>
+            </div>
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
+              <img src="assets/icon/action_export_excel_16.png" /> Xuất Excel
             </button>
           </div>
         </div>
 
-        <div
-          class="card-body p-0 d-flex align-items-center justify-content-center"
-          style="position: relative"
-        >
-          <div
-            *ngIf="isLoadTable"
-            style="
+        <div class="card-body p-0 d-flex align-items-center justify-content-center" style="position: relative">
+          <div *ngIf="isLoadTable" style="
               position: absolute;
               top: 0;
               left: 0;
@@ -232,8 +143,7 @@
               display: flex;
               align-items: center;
               justify-content: center;
-            "
-          >
+            ">
             <nz-spin [nzSpinning]="isLoadTable" nzSimple></nz-spin>
           </div>
 

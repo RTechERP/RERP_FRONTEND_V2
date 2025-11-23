@@ -1,6 +1,6 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
@@ -31,7 +31,7 @@ export interface ENFDetailDto {
   DecilineApprove?: number; // 2: Không đồng ý duyệt; 1: Có đồng ý duyệt
   ReasonDeciline?: string;
   ReasonHREdit?: string;
-  IsDelete?: boolean;
+  IsDeleted?: boolean;
   StatusText?: string;
   StatusHRText?: string;
 }
@@ -42,6 +42,7 @@ export interface ENFDetailDto {
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     NzButtonModule,
     NzDatePickerModule,
     NzFormModule,
@@ -59,14 +60,9 @@ export class ENFDetailComponent implements OnInit {
   @Input() mode: 'add' | 'edit' | 'approve' | 'view' = 'add';
   @Input() userRole: 'employee' | 'tbp' | 'hr' = 'employee';
 
-  // Form fields
-  selectedEmployeeId: number | null = null;
-  selectedApprovedId: number | null = null;
-  dayWork: Date | null = null;
-  selectedType: number | null = 1;
-  note: string = '';
-  reasonHREdit: string = '';
-  reasonDeciline: string = '';
+  // Reactive Form
+  enfForm!: FormGroup;
+  
   saving = false;
   loading = false;
 
@@ -120,12 +116,40 @@ export class ENFDetailComponent implements OnInit {
     public activeModal: NgbActiveModal,
     private message: NzMessageService,
     private notification: NzNotificationService,
-    private enfService: EmployeeNofingerprintService
+    private enfService: EmployeeNofingerprintService,
+    private fb: FormBuilder
   ) {}
 
+  private initForm(): void {
+    this.enfForm = this.fb.group({
+      selectedEmployeeId: [null, [Validators.required]],
+      selectedApprovedId: [null, [Validators.required]],
+      dayWork: [null, [Validators.required]],
+      selectedType: [1, [Validators.required]],
+      note: [''],
+      reasonHREdit: [''] // Validation sẽ được thêm động trong updateReasonHREditValidation
+    });
+  }
+
   ngOnInit(): void {
+    this.initForm();
     this.loadEmployeesAndApprovers();
     this.setupFormData();
+    
+    // Update validation for reasonHREdit based on mode
+    this.updateReasonHREditValidation();
+  }
+
+  private updateReasonHREditValidation(): void {
+    const reasonHREditControl = this.enfForm.get('reasonHREdit');
+    if (reasonHREditControl) {
+      if (this.isEditMode) {
+        reasonHREditControl.setValidators([Validators.required]);
+      } else {
+        reasonHREditControl.clearValidators();
+      }
+      reasonHREditControl.updateValueAndValidity();
+    }
   }
 
   loadEmployeesAndApprovers(): void {
@@ -183,18 +207,30 @@ export class ENFDetailComponent implements OnInit {
 
   setupFormData(): void {
     if (this.enfData) {
-      this.selectedEmployeeId = this.enfData.EmployeeID ?? null;
-      this.selectedApprovedId = this.enfData.ApprovedTP ?? null;
-      this.dayWork = this.enfData.DayWork
-        ? new Date(this.enfData.DayWork)
-        : null;
-      this.selectedType = this.enfData.Type ?? 1;
-      this.note = this.enfData.Note || '';
-      this.reasonHREdit = this.enfData.ReasonHREdit || '';
-      this.reasonDeciline = this.enfData.ReasonDeciline || '';
+      this.enfForm.patchValue({
+        selectedEmployeeId: this.enfData.EmployeeID ?? null,
+        selectedApprovedId: this.enfData.ApprovedTP ?? null,
+        dayWork: this.enfData.DayWork ? new Date(this.enfData.DayWork) : null,
+        selectedType: this.enfData.Type ?? 1,
+        note: this.enfData.Note || '',
+        reasonHREdit: this.enfData.ReasonHREdit || ''
+      });
     } else {
-      this.dayWork = new Date();
-      this.selectedType = 1;
+      this.enfForm.patchValue({
+        dayWork: new Date(),
+        selectedType: 1
+      });
+    }
+    
+    // Disable fields based on mode
+    if (this.isEmployeeDisabled) {
+      this.enfForm.get('selectedEmployeeId')?.disable();
+    }
+    if (this.isApproverDisabled) {
+      this.enfForm.get('selectedApprovedId')?.disable();
+    }
+    if (this.isFormDisabled) {
+      this.enfForm.disable();
     }
   }
 
@@ -209,21 +245,77 @@ export class ENFDetailComponent implements OnInit {
   };
 
   isFormValid(): boolean {
-    return !!(
-      this.selectedEmployeeId &&
-      this.selectedApprovedId &&
-      this.dayWork &&
-      this.selectedType
-    );
+    if (this.enfForm.disabled) {
+      this.enfForm.enable();
+      if (this.isEmployeeDisabled) {
+        this.enfForm.get('selectedEmployeeId')?.disable();
+      }
+      if (this.isApproverDisabled) {
+        this.enfForm.get('selectedApprovedId')?.disable();
+      }
+    }
+    return this.enfForm.valid;
   }
 
   getValidationErrors(): string[] {
     const errors: string[] = [];
-    if (!this.selectedEmployeeId) errors.push('Vui lòng chọn người đăng ký');
-    if (!this.selectedApprovedId) errors.push('Vui lòng chọn người duyệt');
-    if (!this.dayWork) errors.push('Vui lòng chọn ngày');
-    if (!this.selectedType) errors.push('Vui lòng chọn loại quên chấm công');
+    if (this.enfForm.get('selectedEmployeeId')?.hasError('required')) {
+      errors.push('Vui lòng chọn người đăng ký');
+    }
+    if (this.enfForm.get('selectedApprovedId')?.hasError('required')) {
+      errors.push('Vui lòng chọn người duyệt');
+    }
+    if (this.enfForm.get('dayWork')?.hasError('required')) {
+      errors.push('Vui lòng chọn ngày');
+    }
+    if (this.enfForm.get('selectedType')?.hasError('required')) {
+      errors.push('Vui lòng chọn loại quên chấm công');
+    }
+    if (this.isEditMode && this.enfForm.get('reasonHREdit')?.hasError('required')) {
+      errors.push('Vui lòng nhập lý do chỉnh sửa');
+    }
     return errors;
+  }
+
+  // Helper methods for nz-error-tip
+  getEmployeeErrorTip(): string | undefined {
+    const control = this.enfForm.get('selectedEmployeeId');
+    if (control?.hasError('required') && (control?.dirty || control?.touched)) {
+      return 'Vui lòng chọn người đăng ký';
+    }
+    return undefined;
+  }
+
+  getApproverErrorTip(): string | undefined {
+    const control = this.enfForm.get('selectedApprovedId');
+    if (control?.hasError('required') && (control?.dirty || control?.touched)) {
+      return 'Vui lòng chọn người duyệt';
+    }
+    return undefined;
+  }
+
+  getDayWorkErrorTip(): string | undefined {
+    const control = this.enfForm.get('dayWork');
+    if (control?.hasError('required') && (control?.dirty || control?.touched)) {
+      return 'Vui lòng chọn ngày';
+    }
+    return undefined;
+  }
+
+  getTypeErrorTip(): string | undefined {
+    const control = this.enfForm.get('selectedType');
+    if (control?.hasError('required') && (control?.dirty || control?.touched)) {
+      return 'Vui lòng chọn loại quên chấm công';
+    }
+    return undefined;
+  }
+
+  getReasonHREditErrorTip(): string | undefined {
+    const control = this.enfForm.get('reasonHREdit');
+    if (control?.hasError('required') && (control?.dirty || control?.touched)) {
+      return 'Vui lòng nhập lý do chỉnh sửa';
+    }
+    return undefined;
   }
 
   closeModal(): void {
@@ -232,11 +324,12 @@ export class ENFDetailComponent implements OnInit {
 
   async checkDuplicateENF(): Promise<boolean> {
     const id = this.enfData?.ID || 0;
-    const employeeId = this.selectedEmployeeId!;
-    const dayWork = this.dayWork
-      ? this.dayWork.toISOString().split('T')[0]
+    const employeeId = this.enfForm.get('selectedEmployeeId')?.value;
+    const dayWorkValue = this.enfForm.get('dayWork')?.value;
+    const dayWork = dayWorkValue
+      ? (dayWorkValue instanceof Date ? dayWorkValue : new Date(dayWorkValue)).toISOString().split('T')[0]
       : '';
-    const type = this.selectedType!;
+    const type = this.enfForm.get('selectedType')?.value;
     return this.enfService
       .checkDuplicateENF(id, employeeId, dayWork, type)
       .toPromise()
@@ -245,6 +338,11 @@ export class ENFDetailComponent implements OnInit {
   }
 
   async saveENF(): Promise<void> {
+    // Mark all fields as touched to show validation errors
+    Object.keys(this.enfForm.controls).forEach(key => {
+      this.enfForm.get(key)?.markAsTouched();
+    });
+
     if (!this.isFormValid()) {
       this.notification.warning(
         'Thông tin không hợp lệ',
@@ -253,25 +351,18 @@ export class ENFDetailComponent implements OnInit {
       return;
     }
 
-    if (this.isEditMode && !this.reasonHREdit?.trim()) {
-      this.notification.warning(
-        'Lý do chỉnh sửa không hợp lệ',
-        'Vui lòng nhập lý do chỉnh sửa thông tin.'
-      );
-      return;
-    }
-
+    const formValue = this.enfForm.getRawValue(); // Use getRawValue to get disabled values too
     const id = this.enfData?.ID || 0;
-    const employeeId = this.selectedEmployeeId!;
-    const dayWorkStr =
-      this.dayWork instanceof Date
-        ? this.dayWork.toISOString().split('T')[0]
-        : this.dayWork;
-    const type = this.selectedType!;
+    const employeeId = formValue.selectedEmployeeId;
+    const dayWorkValue = formValue.dayWork;
+    const dayWorkStr = dayWorkValue instanceof Date
+      ? dayWorkValue.toISOString().split('T')[0]
+      : (dayWorkValue ? new Date(dayWorkValue).toISOString().split('T')[0] : '');
+    const type = formValue.selectedType;
 
     // Check duplicate trước khi lưu
     const isDuplicate = await this.enfService
-      .checkDuplicateENF(id, employeeId, dayWorkStr!, type)
+      .checkDuplicateENF(id, employeeId, dayWorkStr, type)
       .toPromise()
       .then((res) => res?.status === 1 && res.data === true)
       .catch(() => false);
@@ -288,12 +379,11 @@ export class ENFDetailComponent implements OnInit {
     let formData: ENFDetailDto = {
       ID: id,
       EmployeeID: employeeId,
-      ApprovedTP: this.selectedApprovedId!,
-      DayWork: this.dayWork!,
+      ApprovedTP: formValue.selectedApprovedId,
+      DayWork: dayWorkValue instanceof Date ? dayWorkValue : new Date(dayWorkValue),
       Type: type,
-      Note: this.note?.trim() || '',
-      ReasonHREdit: this.reasonHREdit?.trim() || '',
-      // ... các trường khác nếu cần
+      Note: formValue.note?.trim() || '',
+      ReasonHREdit: formValue.reasonHREdit?.trim() || '',
     };
 
     // Nếu là sửa thì reset trạng thái duyệt về chưa duyệt
@@ -310,23 +400,24 @@ export class ENFDetailComponent implements OnInit {
     this.saving = true;
     this.enfService.saveData(formData).subscribe({
       next: (response: any) => {
+        this.saving = false;
         if (response && (response.status === 1 || response.Success)) {
-          this.notification.success('Thành công', 'Đã lưu dữ liệu thành công!');
+          // Đóng modal trước khi hiển thị notification
           this.activeModal.close({
             action: 'save',
             data: response.data || formData,
           });
+          // Notification sẽ được hiển thị ở component cha
         } else {
           this.notification.error(
             'Lỗi',
             response?.message || 'Có lỗi xảy ra khi lưu dữ liệu!'
           );
         }
-        this.saving = false;
       },
       error: () => {
-        this.notification.error('Lỗi', 'Không thể lưu dữ liệu!');
         this.saving = false;
+        this.notification.error('Lỗi', 'Không thể lưu dữ liệu!');
       },
     });
   }

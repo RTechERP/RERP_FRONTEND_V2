@@ -1,0 +1,114 @@
+/* Set font-size 12px for all elements */
+:host {
+  font-size: 12px !important;
+}
+
+:host * {
+  font-size: 12px !important;
+}
+
+/* Card elements */
+.card {
+  font-size: 12px !important;
+}
+
+.card-header {
+  font-size: 12px !important;
+}
+
+.card-header h6 {
+  font-size: 12px !important;
+}
+
+.card-body {
+  font-size: 12px !important;
+}
+
+.card-footer {
+  font-size: 12px !important;
+}
+
+/* Buttons */
+button {
+  font-size: 12px !important;
+}
+
+button[nz-button] {
+  font-size: 12px !important;
+}
+
+/* Form elements */
+nz-form-label {
+  font-size: 12px !important;
+}
+
+nz-form-control {
+  font-size: 12px !important;
+}
+
+input {
+  font-size: 12px !important;
+}
+
+/* Ant Design components */
+::ng-deep .ant-input {
+  font-size: 12px !important;
+}
+
+::ng-deep .ant-select {
+  font-size: 12px !important;
+}
+
+::ng-deep .ant-select-selector {
+  font-size: 12px !important;
+}
+
+::ng-deep .ant-select-selection-item {
+  font-size: 12px !important;
+}
+
+::ng-deep .ant-select-selection-placeholder {
+  font-size: 12px !important;
+}
+
+::ng-deep .ant-picker {
+  font-size: 12px !important;
+}
+
+::ng-deep .ant-picker-input input {
+  font-size: 12px !important;
+}
+
+::ng-deep .ant-btn {
+  font-size: 12px !important;
+}
+
+::ng-deep .ant-btn-sm {
+  font-size: 12px !important;
+}
+
+/* Tabulator table */
+::ng-deep .tabulator {
+  font-size: 12px !important;
+}
+
+::ng-deep .tabulator-header {
+  font-size: 12px !important;
+}
+
+::ng-deep .tabulator-col {
+  font-size: 12px !important;
+}
+
+::ng-deep .tabulator-col-title {
+  font-size: 12px !important;
+}
+
+::ng-deep .tabulator-row {
+  font-size: 12px !important;
+}
+
+::ng-deep .tabulator-cell {
+  font-size: 12px !important;
+}
+

@@ -1,0 +1,44 @@
+:host {
+  font-size: 12px;
+}
+
+.btn-add,
+.btn-edit,
+.btn-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.btn-add img,
+.btn-edit img,
+.btn-delete img {
+  width: 16px;
+  height: 16px;
+}
+
+fs-12 {
+  font-size: 12px;
+}
+
+.card-header h6 {
+  font-size: 12px;
+}
+
+.card-body {
+  font-size: 12px;
+}
+
+:host ::ng-deep .tabulator {
+  font-size: 12px;
+}
+
+:host ::ng-deep .tabulator .tabulator-cell {
+  font-size: 12px;
+}
+
+:host ::ng-deep .tabulator .tabulator-header .tabulator-col {
+  font-size: 12px;
+}
+

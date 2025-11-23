@@ -135,6 +135,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
   @Input() projectSurveyId: any = 0;
   @Input() projectId: any = 0;
   @Input() isEdit: any = 0;
+  @Input() canEdit: boolean = true; // Quyền sửa, mặc định là true
 
   @ViewChild('tb_projectSurveyFile', { static: false })
   tb_projectSurveyFileContainer!: ElementRef;

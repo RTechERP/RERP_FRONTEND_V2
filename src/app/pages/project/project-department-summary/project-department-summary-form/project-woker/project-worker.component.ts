@@ -99,9 +99,9 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
     private ngbModal: NgbModal,
     private cdr: ChangeDetectorRef
   ) {}
-  sizeSearch: string = '22%';
-  sizeLeftPanel: string = '25%'; // Size của panel bên trái (3 bảng)
-  sizeRightPanel: string = '75%'; // Size của panel bên phải (bảng nhân công)
+
+  sizeLeftPanel: string = ''; // Size của panel bên trái (3 bảng), rỗng để cho phép resize tự do
+  sizeRightPanel: any = null; // Size của panel bên phải (bảng nhân công), null để cho phép resize tự do
   @ViewChild('tb_solution', { static: false })
   tb_solutionContainer!: ElementRef;
   @ViewChild('tb_solutionVersion', { static: false })
@@ -1459,7 +1459,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
       }
     });
 
-    // Hàm đệ quy tính tổng từ con - tham khảo logic từ WinForm CalculateWork
+    // Hàm đệ quy tính tổng từ con
     const calculateNode = (node: any): void => {
       // Lấy thông tin về công việc hiện tại
       const numberOfPeople = Number(node.AmountPeople) || 0;
@@ -1467,35 +1467,34 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
       const laborCostPerDay = Number(node.Price) || 0;
 
       // Xử lý các công việc con
-      let totalLaborFromChildren = 0;
-      let totalCostFromChildren = 0;
+      let totalLaborFromDirectChildren = 0;
+      let totalCostFromDirectChildren = 0;
 
-      // Duyệt qua tất cả con và tính đệ quy
+      // Duyệt qua tất cả con trực tiếp
       node._children.forEach((child: any) => {
-        calculateNode(child); // Tính con trước (đệ quy)
+        // Tính con trước (đệ quy) để đảm bảo con đã có giá trị
+        calculateNode(child);
 
-        // Lấy giá trị từ công việc con (sau khi đã tính)
-        const laborFromChild = Number(child.TotalWorkforce) || 0;
-        const costFromChild = Number(child.TotalPrice) || 0;
-
-        // Tính tổng từ công việc con
-        totalLaborFromChildren += laborFromChild;
-        totalCostFromChildren += costFromChild;
+        // Lấy giá trị từ con trực tiếp (đã được tính từ các con trực tiếp của nó)
+        // Node cha chỉ lấy tổng từ các con trực tiếp, không đệ quy sâu hơn
+        totalLaborFromDirectChildren += Number(child.TotalWorkforce) || 0;
+        totalCostFromDirectChildren += Number(child.TotalPrice) || 0;
       });
 
-      // === ÁP DỤNG CÙNG CÔNG THỨC CHO TẤT CẢ NODE (giống C# WinForm) ===
-      // Tính tổng từ công việc hiện tại và các công việc con
-      // Logic giống WinForm: totalLabor = numberOfPeople * numberOfDays + totalLaborFromChildren
-      // totalCost = totalLabor * laborCostPerDay + totalCostFromChildren
-      const totalLabor = numberOfPeople * numberOfDays + totalLaborFromChildren;
-      const totalCost = totalLabor * laborCostPerDay + totalCostFromChildren;
+      // Kiểm tra xem node có con hay không
+      const hasChildren = node._children && node._children.length > 0;
 
-      // Cập nhật dữ liệu cho công việc hiện tại (chỉ cập nhật TotalPrice như C#)
-      // Note: C# code chỉ cập nhật TotalPrice, các field khác bị comment
-      node.TotalPrice = totalCost;
-      
-      // Cập nhật TotalWorkforce để hiển thị (C# không cập nhật nhưng Angular cần để hiển thị)
-      node.TotalWorkforce = totalLabor;
+      if (hasChildren) {
+        // Node CHA: chỉ tính tổng từ các con trực tiếp (không bao gồm giá trị của chính node cha)
+        node.TotalWorkforce = totalLaborFromDirectChildren;
+        node.TotalPrice = totalCostFromDirectChildren;
+      } else {
+        // Node LÁ: tính từ giá trị của chính node
+        const totalLabor = numberOfPeople * numberOfDays;
+        const totalCost = totalLabor * laborCostPerDay;
+        node.TotalWorkforce = totalLabor;
+        node.TotalPrice = totalCost;
+      }
     };
 
     // Tính từ gốc
@@ -1703,8 +1702,8 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
 
   toggleLeftPanel(): void {
     if (this.sizeLeftPanel === '0') {
-      this.sizeLeftPanel = '25%';
-      this.sizeRightPanel = '75%';
+      this.sizeLeftPanel = ''; // Set rỗng để cho phép resize tự do
+      this.sizeRightPanel = null; // Set null để cho phép resize tự do
     } else {
       this.sizeLeftPanel = '0';
       this.sizeRightPanel = '100%';

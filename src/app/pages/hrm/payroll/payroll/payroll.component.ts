@@ -153,6 +153,13 @@ export class PayrollComponent implements OnInit, AfterViewInit {
           last_page: res.data.totalPage ?? 1,
         };
       },
+      ajaxConfig: {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem('token')}`,
+          "Content-Type": "application/json",
+        }
+      },
       columns: [
         {
           title: "Duyệt",

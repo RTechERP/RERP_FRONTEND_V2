@@ -1,173 +1,148 @@
 <div class="modal-dialog-scrollable">
 
   <div class="modal-header bg-primary align-items-center ps-2">
-    <h6 class="text-light text-uppercase m-0" style="padding: 0, 5rem">
+    <h6 class="text-light text-uppercase m-0 ms-3" style="padding: 0,5rem">
       {{ modalTitle }}
     </h6>
+    <button type="button" class="btn-close position-absolute end-0 m-3" aria-label="Close"
+      (click)="activeModal.dismiss()"></button>
   </div>
 
-<div class="modal-body">
-  <div class="container-fluid">
-    <form [formGroup]="employeePurchaseForm">
-      <div class="row g-3">
-      <!-- Tên nhân viên (bắt buộc) -->
-      <div class="col-md-6">
-        <nz-form-item class="pt-1">
-          <nz-form-label class="fs-12 d-flex align-items-center">
-            Tên nhân viên <span class="text-danger ps-1">(*)</span>
-          </nz-form-label>
-          <nz-select
-            formControlName="selectedEmployeeId"
-            class="w-100"
-            nzShowSearch
-            nzAllowClear
-            nzPlaceHolder="Chọn nhân viên"
-            [nzFilterOption]="filterEmployeeOption"
-            [disabled]="saving"
-            [nzStatus]="(employeePurchaseForm.get('selectedEmployeeId')?.invalid && employeePurchaseForm.get('selectedEmployeeId')?.touched) || isDuplicateWarning ? 'error' : ''"
-          >
-            <nz-option-group 
-              *ngFor="let parent of employees" 
-              [nzLabel]="parent.label || 'Không xác định'">
-              <nz-option 
-                *ngFor="let child of parent.options"
-                nzCustomContent="true"
-                [nzLabel]="child.item.Code + ' - ' + child.item.FullName"
-                [nzValue]="child.item.ID">
-                <div class="employee-option">
-                  <span class="employee-code">{{ child.item.Code }}</span>
-                  <span class="employee-name"> - {{ child.item.FullName }}</span>
-                </div>
-              </nz-option>
-            </nz-option-group>
-          </nz-select>
-          <div *ngIf="employeePurchaseForm.get('selectedEmployeeId')?.invalid && employeePurchaseForm.get('selectedEmployeeId')?.touched" class="text-danger fs-12 mt-1">
-            <i class="fas fa-exclamation-triangle me-1"></i>
-            Vui lòng chọn nhân viên
-          </div>
-          <div *ngIf="isDuplicateWarning" class="text-danger fs-12 mt-1">
-            <i class="fas fa-exclamation-triangle me-1"></i>
-            Nhân viên đã tồn tại trong công ty này
-          </div>
-        </nz-form-item>
-      </div>
+  <div class="modal-body py-1">
+    <div class="container-fluid">
+      <form [formGroup]="employeePurchaseForm" nzLayout="horizontal">
 
-      <!-- Tên công ty (bắt buộc) -->
-      <div class="col-md-6">
-        <nz-form-item class="pt-1">
-          <nz-form-label class="fs-12 d-flex align-items-center">
-            Tên công ty <span class="text-danger ps-1">(*)</span>
-          </nz-form-label>
-          <nz-select
-            formControlName="selectedCompanyId"
-            class="w-100"
-            nzShowSearch
-            nzAllowClear
-            nzPlaceHolder="Chọn công ty"
-            [nzFilterOption]="filterCompanyOption"
-            [disabled]="saving"
-            [nzStatus]="(employeePurchaseForm.get('selectedCompanyId')?.invalid && employeePurchaseForm.get('selectedCompanyId')?.touched) || isDuplicateWarning ? 'error' : ''"
-          >
-            <nz-option 
-              *ngFor="let company of companyList" 
-              [nzValue]="company.ID"
-              [nzLabel]="company.Name">
-              <div class="company-option">
-                <span class="company-name">{{ company.Name }}</span>
+        <!-- DÒNG 1 -->
+        <div nz-row [nzGutter]="16">
+          <!-- Nhân viên -->
+          <div nz-col nzSpan="12">
+            <nz-form-item class="mb-2">
+              <nz-form-label class="fs-12 d-flex align-items-center">
+                Tên nhân viên <span class="text-danger ps-1">(*)</span>
+              </nz-form-label>
+
+              <nz-select formControlName="selectedEmployeeId" class="w-100" nzShowSearch nzAllowClear
+                nzPlaceHolder="Chọn nhân viên" [nzFilterOption]="filterEmployeeOption" [disabled]="saving"
+                [nzStatus]="(employeePurchaseForm.get('selectedEmployeeId')?.invalid && employeePurchaseForm.get('selectedEmployeeId')?.touched) || isDuplicateWarning ? 'error' : ''">
+                <nz-option-group *ngFor="let parent of employees" [nzLabel]="parent.label || 'Không xác định'">
+                  <nz-option *ngFor="let child of parent.options" nzCustomContent="true"
+                    [nzLabel]="child.item.Code + ' - ' + child.item.FullName" [nzValue]="child.item.ID">
+                    <div class="employee-option">
+                      <span class="employee-code">{{ child.item.Code }}</span>
+                      <span class="employee-name"> - {{ child.item.FullName }}</span>
+                    </div>
+                  </nz-option>
+                </nz-option-group>
+              </nz-select>
+
+              <div
+                *ngIf="employeePurchaseForm.get('selectedEmployeeId')?.invalid && employeePurchaseForm.get('selectedEmployeeId')?.touched"
+                class="text-danger fs-12 mt-1">
+                Vui lòng chọn nhân viên
               </div>
-            </nz-option>
-          </nz-select>
-          <div *ngIf="employeePurchaseForm.get('selectedCompanyId')?.invalid && employeePurchaseForm.get('selectedCompanyId')?.touched" class="text-danger fs-12 mt-1">
-            <i class="fas fa-exclamation-triangle me-1"></i>
-            Vui lòng chọn công ty
-          </div>
-          <div *ngIf="isDuplicateWarning" class="text-danger fs-12 mt-1">
-            <i class="fas fa-exclamation-triangle me-1"></i>
-            Công ty này đã có nhân viên đã chọn
-          </div>
-        </nz-form-item>
-      </div>
 
-      <!-- Số điện thoại -->
-      <div class="col-md-6">
-        <nz-form-item class="pt-1">
-          <nz-form-label class="fs-12 d-flex align-items-center">
-            Số điện thoại
-          </nz-form-label>
-          <input
-            formControlName="telephone"
-            nz-input
-            placeholder="Nhập số điện thoại"
-            [disabled]="saving"
-            maxlength="15"
-          />
-        </nz-form-item>
-      </div>
-
-      <!-- Email -->
-      <div class="col-md-6">
-        <nz-form-item class="pt-1">
-          <nz-form-label class="fs-12 d-flex align-items-center">
-            Email
-          </nz-form-label>
-          <input
-            formControlName="email"
-            nz-input
-            placeholder="Nhập địa chỉ email"
-            [disabled]="saving"
-            type="email"
-            [nzStatus]="employeePurchaseForm.get('email')?.invalid && employeePurchaseForm.get('email')?.touched ? 'error' : ''"
-          />
-          <div *ngIf="employeePurchaseForm.get('email')?.invalid && employeePurchaseForm.get('email')?.touched" class="text-danger fs-12 mt-1">
-            <i class="fas fa-exclamation-triangle me-1"></i>
-            Định dạng email không hợp lệ
+              <div *ngIf="isDuplicateWarning" class="text-danger fs-12 mt-1">
+                <i class="fas fa-exclamation-triangle me-1"></i>
+                Nhân viên đã tồn tại trong công ty này
+              </div>
+            </nz-form-item>
           </div>
-        </nz-form-item>
-      </div>
 
-      <!-- Tên hiển thị -->
-      <div class="col-12">
-        <nz-form-item class="pt-1">
-          <nz-form-label class="fs-12 d-flex align-items-center">
-            Tên hiển thị
-          </nz-form-label>
-          <input
-            formControlName="displayName"
-            nz-input
-            placeholder="Nhập tên hiển thị"
-            [disabled]="saving"
-            maxlength="100"
-            [nzStatus]="employeePurchaseForm.get('displayName')?.invalid && employeePurchaseForm.get('displayName')?.touched ? 'error' : ''"
-          />
-          <div *ngIf="employeePurchaseForm.get('displayName')?.invalid && employeePurchaseForm.get('displayName')?.touched" class="text-danger fs-12 mt-1">
-            <i class="fas fa-exclamation-triangle me-1"></i>
-            Tên hiển thị không được vượt quá 100 ký tự
+          <!-- Công ty -->
+          <div nz-col nzSpan="12">
+            <nz-form-item class="mb-2">
+              <nz-form-label class="fs-12 d-flex align-items-center">
+                Tên công ty <span class="text-danger ps-1">(*)</span>
+              </nz-form-label>
+
+              <nz-select formControlName="selectedCompanyId" class="w-100" nzShowSearch nzAllowClear
+                nzPlaceHolder="Chọn công ty" [nzFilterOption]="filterCompanyOption" [disabled]="saving"
+                [nzStatus]="(employeePurchaseForm.get('selectedCompanyId')?.invalid && employeePurchaseForm.get('selectedCompanyId')?.touched) || isDuplicateWarning ? 'error' : ''">
+                <nz-option *ngFor="let company of companyList" [nzValue]="company.ID" [nzLabel]="company.Name">
+                  <div class="company-option">
+                    <span class="company-name">{{ company.Name }}</span>
+                  </div>
+                </nz-option>
+              </nz-select>
+
+              <div
+                *ngIf="employeePurchaseForm.get('selectedCompanyId')?.invalid && employeePurchaseForm.get('selectedCompanyId')?.touched"
+                class="text-danger fs-12 mt-1">
+                Vui lòng chọn công ty
+              </div>
+
+              <div *ngIf="isDuplicateWarning" class="text-danger fs-12 mt-1">
+                <i class="fas fa-exclamation-triangle me-1"></i>
+                Công ty này đã có nhân viên đã chọn
+              </div>
+            </nz-form-item>
           </div>
-        </nz-form-item>
         </div>
-      </div>
-    </form>
+
+        <!-- DÒNG 2 -->
+        <div nz-row [nzGutter]="16">
+          <div nz-col nzSpan="12">
+            <nz-form-item class="mb-2">
+              <nz-form-label class="fs-12 d-flex align-items-center">
+                Số điện thoại
+              </nz-form-label>
+
+              <input formControlName="telephone" nz-input placeholder="Nhập số điện thoại" [disabled]="saving"
+                maxlength="15" />
+            </nz-form-item>
+          </div>
+
+          <div nz-col nzSpan="12">
+            <nz-form-item class="mb-2">
+              <nz-form-label class="fs-12 d-flex align-items-center">
+                Email
+              </nz-form-label>
+              <input formControlName="email" nz-input placeholder="Nhập địa chỉ email" [disabled]="saving" type="email"
+                [nzStatus]="employeePurchaseForm.get('email')?.invalid && employeePurchaseForm.get('email')?.touched ? 'error' : ''" />
+              <div *ngIf="employeePurchaseForm.get('email')?.invalid && employeePurchaseForm.get('email')?.touched"
+                class="text-danger fs-12 mt-1">
+                <i class="fas fa-exclamation-triangle me-1"></i>
+                Định dạng email không hợp lệ
+              </div>
+            </nz-form-item>
+          </div>
+        </div>
+
+        <!-- DÒNG 3 -->
+        <div nz-row [nzGutter]="16">
+          <div nz-col nzSpan="12">
+            <nz-form-item class="mb-2">
+              <nz-form-label class="fs-12 d-flex align-items-center">
+                Tên hiển thị
+              </nz-form-label>
+
+              <input formControlName="displayName" nz-input placeholder="Nhập tên hiển thị" [disabled]="saving"
+                maxlength="100"
+                [nzStatus]="employeePurchaseForm.get('displayName')?.invalid && employeePurchaseForm.get('displayName')?.touched ? 'error' : ''" />
+
+              <div
+                *ngIf="employeePurchaseForm.get('displayName')?.invalid && employeePurchaseForm.get('displayName')?.touched"
+                class="text-danger fs-12 mt-1">
+                <i class="fas fa-exclamation-triangle me-1"></i>
+                Tên hiển thị không được vượt quá 100 ký tự
+              </div>
+            </nz-form-item>
+          </div>
+        </div>
+
+      </form>
+
+    </div>
   </div>
-</div>
 
   <div class="modal-footer br p-1 d-flex align-items-center">
     <div class="d-flex align-items-center flex-wrap gap-1">
-    <button
-        nz-button
-        nzType="default"
-        nzDanger
-        (click)="activeModal.dismiss()"
-        [disabled]="saving"
-    >
-      Đóng
-    </button>
-    <button 
-      nz-button
-      nzType="primary"
-      (click)="saveEmployeePurchase()"
-    >
-      <span *ngIf="saving" class="spinner-border spinner-border-sm me-2"></span>
-      {{ saving ? 'Đang lưu...' : 'Lưu' }}
-    </button>
+      <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()" [disabled]="saving">
+        Đóng
+      </button>
+      <button nz-button nzType="primary" (click)="saveEmployeePurchase()">
+        <span *ngIf="saving" class="spinner-border spinner-border-sm me-2"></span>
+        {{ saving ? 'Đang lưu...' : 'Lưu' }}
+      </button>
+    </div>
   </div>
-</div>

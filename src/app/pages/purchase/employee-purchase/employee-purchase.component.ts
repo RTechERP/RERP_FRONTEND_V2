@@ -82,7 +82,7 @@ export class EmployeePurchaseComponent
 
   // Properties for search panel toggle
   showSearchPanel: boolean = false;
-  sizeSearch: string = '300px';
+  sizeSearch: string = '0';
 
   // Properties for search
   searchValue: string = '';

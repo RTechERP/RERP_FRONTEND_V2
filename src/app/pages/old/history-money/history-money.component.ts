@@ -250,7 +250,7 @@ export class HistoryMoneyComponent implements OnInit, AfterViewInit {
       data: this.dataProduct,
       layout: 'fitColumns',
       pagination: true,
-      paginationSize: 10,
+      paginationSize: 15,
       selectableRows: 1,
       height: '100%',
       movableColumns: true,
@@ -384,7 +384,7 @@ export class HistoryMoneyComponent implements OnInit, AfterViewInit {
       data: this.mainData,
       layout: 'fitColumns',
       pagination: true,
-      paginationSize: 10,
+      paginationSize: 15,
       height: '100%',
       movableColumns: true,
       resizableRows: true,
@@ -512,8 +512,16 @@ export class HistoryMoneyComponent implements OnInit, AfterViewInit {
         {
           title: 'Tên ngân hàng',
           field: 'BankName',
-          sorter: 'number',
-          editor: 'input',
+          sorter: 'string',
+          editor: 'list',
+          editorParams: () => ({
+            values: this.bankNames.map((bank) => ({
+              label: `${bank.BankName}`,
+              value: bank.BankName,
+            })),
+            listOnEmpty: true,
+            autocomplete: true,
+          }),
           width: 250,
         },
         {
@@ -587,9 +595,12 @@ export class HistoryMoneyComponent implements OnInit, AfterViewInit {
     if (sanitized === null) {
       return 0;
     }
-    if (sanitized > 1 && sanitized <= 100) {
+    // Nếu giá trị > 1, coi như là phần trăm và chia cho 100
+    // Ví dụ: 500% -> 5, 10% -> 0.1
+    if (sanitized > 1) {
       return sanitized / 100;
     }
+    // Nếu <= 1, giữ nguyên (đã là decimal)
     return sanitized;
   }
 

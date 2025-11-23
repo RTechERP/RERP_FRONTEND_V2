@@ -72,7 +72,7 @@
                       nzSize="small"
                       class="fs-12 btn-add"
                       (click)="openModal()"
-                      *hasPermission="''"
+                      *hasPermission="'N27,N1'"
                     >
                       <img src="assets/icon/action_add_item_16.png" alt="Thêm " />Thêm
                     </button>
@@ -82,7 +82,7 @@
                       nzType="default"
                       nzSize="small"
                       (click)="onEdit()"
-                      *hasPermission="''"
+                      *hasPermission="'N27,N1'"
                     >
                       <img src="assets/icon/action_edit_item_16.png" alt="Sửa" /> Sửa
                     </button>
@@ -92,17 +92,17 @@
                       nzType="default"
                       nzSize="small"
                       (click)="onDelete()"
-                      *hasPermission="''"
+                      *hasPermission="'N27,N1'"
                     >
                       <img src="assets/icon/action_delete_item_16.png" alt="Xóa" /> Xóa
                     </button>
-                      <button class="fs-12" nz-button nzType="default" nzSize="small" title="Duyệt" (click)="handleQuotationApproval(true)">
+                      <button *hasPermission="'N27,N1'" class="fs-12" nz-button nzType="default" nzSize="small" title="Duyệt" (click)="handleQuotationApproval(true)">
                         <img src="assets/icon/action_approved_16.png" alt="Duyệt" /> Duyệt
                         </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" title="Hủy duyệt" (click)="handleQuotationApproval(false)">
+                        <button *hasPermission="'N27,N1'" class="fs-12" nz-button nzType="default" nzSize="small" title="Hủy duyệt" (click)="handleQuotationApproval(false)">
                           <img src="assets/icon/action_unapproved_16.png" alt="Hủy duyệt" /> Hủy duyệt
                         </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" title="Chuyển PO" (click)="openPOKHModal()">
+                        <button *hasPermission="'N27,N1'" class="fs-12" nz-button nzType="default" nzSize="small" title="Chuyển PO" (click)="openPOKHModal()">
                           <img src="assets/icon/reuse.png" alt="Chuyển PO" /> Chuyển PO
                         </button>
                       <button class="fs-12" nz-button nzType="default" nzSize="small" title="Xuất PO" (click)="exportMainTableToExcel()">

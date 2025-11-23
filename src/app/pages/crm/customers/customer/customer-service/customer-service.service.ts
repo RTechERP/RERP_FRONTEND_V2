@@ -11,11 +11,11 @@ import { environment } from '../../../../../../environments/environment';
 export class CustomerServiceService {
   private _url = environment.host + 'api/Customer/';
   private _urlE = environment.host + 'api/Employee/';
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
-  getCustomers(): Observable<any> {
-    return this.http.get<any>(this._url + 'get-customers');
-  }
+  // getCustomers(): Observable<any> {
+  //   return this.http.get<any>(this._url + 'get-customers');
+  // }
   getMainData(
     pageNumber: number,
     pageSize: number,
@@ -71,7 +71,7 @@ export class CustomerServiceService {
   }
 
   save(payload: any): Observable<any> {
-    return this.http.post<any>(this._url+'save-data', payload);
+    return this.http.post<any>(this._url + 'save-data', payload);
   }
 
   getDetail(id: number): Observable<any> {
@@ -81,7 +81,7 @@ export class CustomerServiceService {
       },
     });
   }
-  deleteMultiple(ids:any): Observable<any> {
+  deleteMultiple(ids: any): Observable<any> {
     return this.http.post<any>(this._url + 'delete-multiple', ids);
   }
   exportExcel(): Observable<Blob> {

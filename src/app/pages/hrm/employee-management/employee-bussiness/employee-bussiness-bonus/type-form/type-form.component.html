@@ -1,0 +1,45 @@
+<form [formGroup]="typeForm">
+  <div class="mb-3">
+    <label class="form-label">Mã loại công tác <span class="text-danger">*</span></label>
+    <input
+      type="text"
+      class="form-control"
+      formControlName="TypeCode"
+      placeholder="Nhập mã loại công tác"
+      [class.is-invalid]="typeForm.get('TypeCode')?.invalid && typeForm.get('TypeCode')?.dirty"
+    />
+    <div class="invalid-feedback" *ngIf="typeForm.get('TypeCode')?.invalid && typeForm.get('TypeCode')?.dirty">
+      Vui lòng nhập mã loại công tác
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Tên loại công tác <span class="text-danger">*</span></label>
+    <input
+      type="text"
+      class="form-control"
+      formControlName="TypeName"
+      placeholder="Nhập tên loại công tác"
+      [class.is-invalid]="typeForm.get('TypeName')?.invalid && typeForm.get('TypeName')?.dirty"
+    />
+    <div class="invalid-feedback" *ngIf="typeForm.get('TypeName')?.invalid && typeForm.get('TypeName')?.dirty">
+      Vui lòng nhập tên loại công tác
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Phụ cấp (VNĐ) <span class="text-danger">*</span></label>
+    <input
+      type="number"
+      class="form-control"
+      formControlName="Cost"
+      placeholder="Nhập phụ cấp"
+      [class.is-invalid]="typeForm.get('Cost')?.invalid && typeForm.get('Cost')?.dirty"
+    />
+    <div class="invalid-feedback" *ngIf="typeForm.get('Cost')?.invalid && typeForm.get('Cost')?.dirty">
+      <span *ngIf="typeForm.get('Cost')?.errors?.['required']">Vui lòng nhập phụ cấp</span>
+      <span *ngIf="typeForm.get('Cost')?.errors?.['min']">Phụ cấp phải lớn hơn hoặc bằng 0</span>
+    </div>
+  </div>
+</form>
+

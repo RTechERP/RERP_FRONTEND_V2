@@ -1,143 +1,151 @@
-<div class="modal-dialog-scrollable">
-  <div class="modal-header bg-primary align-items-center ps-2">
-    <h6 class="text-light text-uppercase m-0" style="padding: 0, 5rem">
-      {{ modalTitle }}
-    </h6>
-  </div>
+<form [formGroup]="enfForm" nz-form nzLayout="vertical">
+  <div class="modal-dialog-scrollable">
+    
 
-  <div class="modal-body">
-    <div class="container-fluid">
-      <div class="row g-3">
-        <!-- Họ và tên -->
-        <div class="col-md-6">
-          <nz-form-item class="pt-1">
-            <nz-form-label class="fs-12 d-flex align-items-center">
-              Họ và tên <span class="text-danger ps-1">(*)</span>
-            </nz-form-label>
-            <nz-select
-              name="selectedEmployeeId"
-              [(ngModel)]="selectedEmployeeId"
-              class="w-100"
-              nzShowSearch
-              nzAllowClear
-              nzPlaceHolder="Chọn người đăng ký"
-              [nzFilterOption]="filterEmployeeOption"
-              [disabled]="isEditMode || isFormDisabled"
-            >
-              <nz-option-group
-                *ngFor="let group of employeeGroups"
-                [nzLabel]="group.label"
-              >
-                <nz-option
-                  *ngFor="let emp of group.options"
-                  [nzLabel]="emp.Code + ' - ' + emp.FullName"
-                  [nzValue]="emp.ID"
+    <div class="modal-header bg-primary p-2">
+      <h6 class="modal-title text-white m-0">
+        {{ modalTitle }}
+      </h6>
+      <button type="button" class="btn-close" aria-label="Close" (click)="closeModal()"></button>
+    </div>
+    <div class="modal-body">
+      <div class="container-fluid">
+        <div class="row g-3">
+          <!-- Họ và tên -->
+          <div class="col-md-6">
+            <nz-form-item class="pt-1">
+              <nz-form-label class="fs-12 d-flex align-items-center">
+                Họ và tên <span class="text-danger ps-1">(*)</span>
+              </nz-form-label>
+              <nz-form-control [nzErrorTip]="getEmployeeErrorTip()">
+                <nz-select
+                  formControlName="selectedEmployeeId"
+                  class="w-100"
+                  nzShowSearch
+                  nzAllowClear
+                  nzPlaceHolder="Chọn người đăng ký"
+                  [nzFilterOption]="filterEmployeeOption"
+                  [disabled]="isEditMode || isFormDisabled"
                 >
-                  <div class="employee-option">
-                    <span class="employee-code">{{ emp.Code }}</span>
-                    <span class="employee-name"> - {{ emp.FullName }}</span>
-                    <small class="text-muted d-block">{{
-                      emp.DepartmentName
-                    }}</small>
-                  </div>
-                </nz-option>
-              </nz-option-group>
-            </nz-select>
-          </nz-form-item>
-        </div>
+                  <nz-option-group
+                    *ngFor="let group of employeeGroups"
+                    [nzLabel]="group.label"
+                  >
+                    <nz-option
+                      *ngFor="let emp of group.options"
+                      [nzLabel]="emp.Code + ' - ' + emp.FullName"
+                      [nzValue]="emp.ID"
+                    >
+                      <div class="employee-option">
+                        <span class="employee-code">{{ emp.Code }}</span>
+                        <span class="employee-name"> - {{ emp.FullName }}</span>
+                        <small class="text-muted d-block">{{
+                          emp.DepartmentName
+                        }}</small>
+                      </div>
+                    </nz-option>
+                  </nz-option-group>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
 
-        <!-- Người duyệt -->
-        <div class="col-md-6">
-          <nz-form-item class="pt-1">
-            <nz-form-label class="fs-12 d-flex align-items-center">
-              Người duyệt <span class="text-danger ps-1">(*)</span>
-            </nz-form-label>
-            <nz-select
-              name="selectedApprovedId"
-              [(ngModel)]="selectedApprovedId"
-              class="w-100"
-              nzShowSearch
-              nzAllowClear
-              nzPlaceHolder="Chọn người duyệt"
-              [nzFilterOption]="filterApproverOption"
-              [disabled]="isEditMode || isFormDisabled"
-            >
-              <nz-option-group
-                *ngFor="let group of approverGroups"
-                [nzLabel]="group.label"
-              >
-                <nz-option
-                  *ngFor="let appr of group.options"
-                  [nzLabel]="appr.Code + ' - ' + appr.FullName"
-                  [nzValue]="appr.ID"
+          <!-- Người duyệt -->
+          <div class="col-md-6">
+            <nz-form-item class="pt-1">
+              <nz-form-label class="fs-12 d-flex align-items-center">
+                Người duyệt <span class="text-danger ps-1">(*)</span>
+              </nz-form-label>
+              <nz-form-control [nzErrorTip]="getApproverErrorTip()">
+                <nz-select
+                  formControlName="selectedApprovedId"
+                  class="w-100"
+                  nzShowSearch
+                  nzAllowClear
+                  nzPlaceHolder="Chọn người duyệt"
+                  [nzFilterOption]="filterApproverOption"
+                  [disabled]="isEditMode || isFormDisabled"
                 >
-                  <div class="approver-option">
-                    <span class="approver-code">{{ appr.Code }}</span>
-                    <span class="approver-name"> - {{ appr.FullName }}</span>
-                    <small class="text-muted d-block">{{
-                      appr.DepartmentName
-                    }}</small>
-                  </div>
-                </nz-option>
-              </nz-option-group>
-            </nz-select>
-          </nz-form-item>
-        </div>
+                  <nz-option-group
+                    *ngFor="let group of approverGroups"
+                    [nzLabel]="group.label"
+                  >
+                    <nz-option
+                      *ngFor="let appr of group.options"
+                      [nzLabel]="appr.Code + ' - ' + appr.FullName"
+                      [nzValue]="appr.ID"
+                    >
+                      <div class="approver-option">
+                        <span class="approver-code">{{ appr.Code }}</span>
+                        <span class="approver-name"> - {{ appr.FullName }}</span>
+                        <small class="text-muted d-block">{{
+                          appr.DepartmentName
+                        }}</small>
+                      </div>
+                    </nz-option>
+                  </nz-option-group>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
 
-        <!-- Ngày -->
-        <div class="col-md-6">
-          <nz-form-item class="pt-1">
-            <nz-form-label class="fs-12 d-flex align-items-center">
-              Ngày <span class="text-danger ps-1">(*)</span>
-            </nz-form-label>
-            <nz-date-picker
-              name="DayWork"
-              [(ngModel)]="dayWork"
-              class="w-100"
-              nzPlaceHolder="Chọn ngày"
-              [nzDisabled]="isFormDisabled"
-              nzFormat="dd/MM/yyyy"
-            ></nz-date-picker>
-          </nz-form-item>
-        </div>
+          <!-- Ngày -->
+          <div class="col-md-6">
+            <nz-form-item class="pt-1">
+              <nz-form-label class="fs-12 d-flex align-items-center">
+                Ngày <span class="text-danger ps-1">(*)</span>
+              </nz-form-label>
+              <nz-form-control [nzErrorTip]="getDayWorkErrorTip()">
+                <nz-date-picker
+                  formControlName="dayWork"
+                  class="w-100"
+                  nzPlaceHolder="Chọn ngày"
+                  [nzDisabled]="isFormDisabled"
+                  nzFormat="dd/MM/yyyy"
+                ></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
 
-        <!-- Radio button Quên lúc đến / Quên lúc về -->
-        <div class="col-md-6">
-          <nz-form-item class="pt-1">
-            <nz-form-label class="fs-12 d-flex align-items-center">
-              Loại quên chấm công <span class="text-danger ps-1">(*)</span>
-            </nz-form-label>
-            <nz-radio-group
-              [(ngModel)]="selectedType"
-              [disabled]="isFormDisabled"
-            >
-              <label nz-radio [nzValue]="1">Quên lúc đến</label>
-              <label nz-radio [nzValue]="2">Quên lúc về</label>
-            </nz-radio-group>
-          </nz-form-item>
-        </div>
+          <!-- Radio button Quên lúc đến / Quên lúc về -->
+          <div class="col-md-6">
+            <nz-form-item class="pt-1">
+              <nz-form-label class="fs-12 d-flex align-items-center">
+                Loại quên chấm công <span class="text-danger ps-1">(*)</span>
+              </nz-form-label>
+              <nz-form-control [nzErrorTip]="getTypeErrorTip()">
+                <nz-radio-group
+                  formControlName="selectedType"
+                  [disabled]="isFormDisabled"
+                >
+                  <label nz-radio [nzValue]="1">Quên lúc đến</label>
+                  <label nz-radio [nzValue]="2">Quên lúc về</label>
+                </nz-radio-group>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
 
-        <!-- Lý do sửa đổi -->
-        <div class="col-12">
-          <nz-form-item class="pt-1">
-            <nz-form-label class="fs-12 d-flex align-items-center">
-              Lý do sửa
-              <span *ngIf="isEditMode" class="text-danger ps-1">(*)</span>
-            </nz-form-label>
-            <textarea
-              name="reasonHREdit"
-              nz-input
-              [(ngModel)]="reasonHREdit"
-              placeholder="Nhập lý do sửa đổi"
-              [disabled]="isFormDisabled"
-              rows="2"
-              maxlength="300"
-            ></textarea>
-          </nz-form-item>
+          <!-- Lý do sửa đổi - chỉ hiện khi sửa -->
+          <div class="col-12" *ngIf="isEditMode">
+            <nz-form-item class="pt-1">
+              <nz-form-label class="fs-12 d-flex align-items-center">
+                Lý do sửa <span class="text-danger ps-1">(*)</span>
+              </nz-form-label>
+              <nz-form-control [nzErrorTip]="getReasonHREditErrorTip()">
+                <textarea
+                  formControlName="reasonHREdit"
+                  nz-input
+                  placeholder="Nhập lý do sửa đổi"
+                  [disabled]="isFormDisabled"
+                  rows="2"
+                  maxlength="300"
+                ></textarea>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
   <div class="modal-footer br p-1 d-flex align-items-center">
     <div class="d-flex align-items-center flex-wrap gap-1">
@@ -159,7 +167,7 @@
         nz-button
         nzType="primary"
         (click)="saveENF()"
-        [disabled]="saving || !isFormValid()"
+        [disabled]="saving"
       >
         <span
           *ngIf="saving"
@@ -170,3 +178,4 @@
     </div>
   </div>
 </div>
+</form>

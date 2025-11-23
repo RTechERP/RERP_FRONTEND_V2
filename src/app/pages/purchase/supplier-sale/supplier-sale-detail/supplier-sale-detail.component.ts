@@ -94,7 +94,10 @@ export class SupplierSaleDetailComponent {
     NganHang: this.fb.control('', [Validators.required]),
     AddressNCC: this.fb.control('', [Validators.required]),
     Company: this.fb.control('', [Validators.required]),
-    PhoneNCC: this.fb.control(''),
+    PhoneNCC: this.fb.control('', [
+      Validators.required,
+      Validators.pattern(/^(?:\+84|0)(3|5|7|8|9)[0-9]{8}$/)
+    ]),
     OrdererNCC: this.fb.control(''),
     Debt: this.fb.control(''),
     LoaiHangHoa: this.fb.control(''),

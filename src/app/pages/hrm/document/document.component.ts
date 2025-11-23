@@ -58,6 +58,7 @@ import { saveAs } from 'file-saver';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { PermissionService } from '../../../services/permission.service';
 interface DocumentType {
   Code: string;
   Name: string;
@@ -113,6 +114,7 @@ export class DocumentComponent implements OnInit, AfterViewInit {
   @ViewChild('DocumentTable') tableRef2!: ElementRef;
   @ViewChild('DocumentTypeTable') tableRef1!: ElementRef;
   @ViewChild('DocumentFileTable') tableRef3!: ElementRef;
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
   splitterLayout: 'horizontal' | 'vertical' = 'horizontal';
 
@@ -178,7 +180,8 @@ export class DocumentComponent implements OnInit, AfterViewInit {
     private modalService: NgbModal,
     private modal: NzModalService,
     private breakpointObserver: BreakpointObserver,
-    private message: NzMessageService
+    private message: NzMessageService,
+    private permissionService: PermissionService
   ) { }
 
   ngOnInit(): void {
@@ -373,13 +376,8 @@ export class DocumentComponent implements OnInit, AfterViewInit {
 
     modalRef.result.catch((result) => {
       if (result == true) {
+        // Reload dữ liệu từ server
         this.getDocument();
-        this.draw_documentTable();
-      }
-      if (this.documentTable) {
-        this.documentTable.setData(this.documentData); // update lại data
-      } else {
-        this.draw_documentTable(); // nếu lần đầu thì vẽ mới
       }
     });
   }
@@ -440,6 +438,28 @@ export class DocumentComponent implements OnInit, AfterViewInit {
       return false;
     }
 
+    this.uploadFile(rawFile);
+    return false;
+  };
+
+  // Xử lý khi chọn file từ input
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      this.uploadFile(file);
+      // Reset input để có thể chọn lại file cùng tên
+      input.value = '';
+    }
+  }
+
+  // Hàm upload file
+  uploadFile(file: File): void {
+    if (!this.selectedDocumentId) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn văn bản để upload file!');
+      return;
+    }
+
     const subPath = `Documents/${this.selectedDocumentId}`;
 
     // Hiển thị loading
@@ -447,7 +467,7 @@ export class DocumentComponent implements OnInit, AfterViewInit {
       nzDuration: 0,
     }).messageId;
 
-    this.documentService.uploadMultipleFiles([rawFile], subPath).subscribe({
+    this.documentService.uploadMultipleFiles([file], subPath).subscribe({
       next: (res) => {
         this.message.remove(loadingMsg);
 
@@ -484,9 +504,16 @@ export class DocumentComponent implements OnInit, AfterViewInit {
         this.notification.error('Lỗi', err?.error?.message || 'Upload file thất bại!');
       },
     });
+  }
 
-    return false;
-  };
+  // Trigger file input từ context menu
+  triggerFileInput(): void {
+    if (!this.selectedDocumentId) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn văn bản để upload file!');
+      return;
+    }
+    this.fileInput.nativeElement.click();
+  }
 
   exportExcel(id: number, customFileName?: string): void {
     const fileName = customFileName || `VBPhatHanh${id}.xlsx`;
@@ -825,32 +852,32 @@ export class DocumentComponent implements OnInit, AfterViewInit {
     if (this.documentFileTable) {
       this.documentFileTable.setData(this.documentFileData);
     } else {
+      // Tạo context menu dựa trên permission
+      const contextMenuItems: any[] = [];
+      
+      if (this.permissionService.hasPermission('N2,N34,N1')) {
+        contextMenuItems.push({
+          label: 'Xóa',
+          action: () => {
+            this.onDeleteDocumentFile();
+          }
+        });
+      }
+      
+      contextMenuItems.push({
+        label: 'Tải xuống',
+        action: () => {
+          this.downloadFile();
+        }
+      });
+
       this.documentFileTable = new Tabulator(this.tableRef3.nativeElement, {
         data: this.documentFileData,
         ...DEFAULT_TABLE_CONFIG,
         selectableRows: 1,
         paginationMode: 'local',
         layout: 'fitDataStretch',
-        // layout: 'fitDataStretch',
-        // pagination: true,
-        // selectableRows: 1,
-        // height: '100%',
-        // movableColumns: true,
-        // paginationSize: 30,
-        // paginationSizeSelector: [5, 10, 20, 50, 100],
-        // reactiveData: true,
-        // placeholder: 'Không có dữ liệu',
-        // addRowPos: 'bottom',
-        // history: true,
-        // rowHeader: {
-        //   headerSort: false,
-        //   resizable: false,
-        //   frozen: true,
-        //   formatter: 'rowSelection',
-        //   headerHozAlign: 'center',
-        //   hozAlign: 'center',
-        //   titleFormatter: 'rowSelection',
-        // },
+        rowContextMenu: contextMenuItems,
         columns: [
           {
             title: 'ID',

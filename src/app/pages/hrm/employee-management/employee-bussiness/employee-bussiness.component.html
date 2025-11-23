@@ -71,43 +71,44 @@
         <div class="card-header bg-white p-2">
           <div class="d-flex justify-content-between align-items-center">
             <div class="d-flex gap-2">
-              <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;"
+              <button nz-button nzType="default" nzSize="small" 
                 (click)="toggleSearchPanel()">
                 <nz-icon nzType="search" />
               </button>
-              <button class="fs-12 btn-add" nz-button nzType="default" nzSize="small" (click)="openAddModal()">
+              <button class="fs-12 btn-add" nz-button nzType="default" nzSize="small" (click)="openAddModal()" *hasPermission="'N1,N2'">
                 <img src="assets/icon/action_add_item_16.png" alt="Thêm " /> Thêm
               </button>
-              <button class="fs-12 btn-edit" nz-button nzType="default" nzSize="small" (click)="openEditModal()">
+              <button class="fs-12 btn-edit" nz-button nzType="default" nzSize="small" (click)="openEditModal()" *hasPermission="'N1,N2'">
                 <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />Sửa
               </button>
-              <button class="fs-12 btn-delete" nz-button nzType="default" nzSize="small" (click)="openDeleteModal()">
+              <button class="fs-12 btn-delete" nz-button nzType="default" nzSize="small" (click)="openDeleteModal()" *hasPermission="'N1,N2'">
                 <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />Xóa
               </button>
-              <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;"
-                (click)="approved(true, true)">
+              <button nz-button nzType="default" nzSize="small" 
+                (click)="approved(true, true)" *hasPermission="'N1'">
                 <img src="assets/icon/action_approved_16.png" alt="Duyệt" /> TBP duyệt
               </button>
-              <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;"
-                (click)="approved(false, true)">
+              <button nz-button nzType="default" nzSize="small" 
+                (click)="approved(false, true)" *hasPermission="'N1'">
                 <img src="assets/icon/action_unapproved_16.png" alt="Hủy duyệt" /> TBP hủy duyệt
               </button>
-              <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;"
-                (click)="approved(true, false)">
+              <button nz-button nzType="default" nzSize="small" 
+                (click)="approved(true, false)" *hasPermission="'N2,N1'">
                 <img src="assets/icon/action_approved_16.png" alt="Duyệt" /> HR duyệt
               </button>
-              <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;"
-                (click)="approved(false, false)">
+              <button nz-button nzType="default" nzSize="small" 
+                (click)="approved(false, false)" *hasPermission="'N2,N1'">
                 <img src="assets/icon/action_unapproved_16.png" alt="Hủy duyệt" /> HR hủy duyệt
               </button>
-              <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;"
-                (click)="openEmployeeBussinessBonusModal()">
+              <button nz-button nzType="default" nzSize="small" 
+                (click)="openEmployeeBussinessBonusModal()" *hasPermission="'N2,N1'">
                 <img src="assets/icon/action_payroll_report_16.png" alt="Phụ phí" /> Phụ phí
               </button>
-              <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;">
+              <button nz-button nzType="default" nzSize="small" 
+                (click)="openWorkReportModal()" *hasPermission="'N2,N1'">
                 <img src="assets/icon/action_confirm_bgd_16.png" alt="Báo cáo công tác" /> Báo cáo công tác
               </button>
-              <button nz-button nzType="default" nzSize="small" style="font-size: 0.75rem; font-weight: bold;"
+              <button nz-button nzType="default" nzSize="small" 
                 (click)="exportExcel()">
                 <img src="assets/icon/action_export_excel_16.png" alt="Xuất excel" /> Xuất excel
               </button>
@@ -136,21 +137,6 @@
   </nz-splitter>
 
 </ng-container>
-
-<div class="modal fade" id="employeeBussinessBonusModal" tabindex="-1"
-  aria-labelledby="employeeBussinessBonusModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-centered modal-fullscreen">
-    <div class="modal-content">
-      <div class="modal-header bg-primary">
-        <h6 class="modal-title text-uppercase text-white" id="overTimeModalLabel">PHỤ PHÍ</h6>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body fs-12 pt-1">
-        <app-employee-bussiness-bonus></app-employee-bussiness-bonus>
-      </div>
-    </div>
-  </div>
-</div>
 
 
 <!-- <div

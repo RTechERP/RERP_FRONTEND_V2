@@ -1,0 +1,99 @@
+<!-- Sửa HTML template - WFH.component.html -->
+<ng-container class="w-100">
+  <nz-splitter>
+    <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-1">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="m-0 ms-2">Tìm kiếm</h6>
+            <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+              (click)="toggleSearchPanel()">
+              <nz-icon nzType="close" nzTheme="outline" />
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <form nz-form nzLayout="vertical">
+            <nz-form-item>
+              <nz-form-label class="fs-12 d-flex align-items-center">
+                Năm
+              </nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-date-picker class="w-100" name="year" [(ngModel)]="year" [nzMode]="'year'" [nzFormat]="'YYYY'"
+                  (ngModelChange)="searchET()" nzAllowClear="false"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+            <!-- Từ khóa -->
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <input name="searchValue" nz-input placeholder="Tìm tên nhân viên, mã nhân viên, lý do..."
+                  [(ngModel)]="searchValue" (keyup.enter)="onSearch()" />
+              </nz-form-control>
+            </nz-form-item>
+          </form>
+        </div>
+        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+          <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">
+            Đặt lại
+          </button>
+          <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
+            Tìm kiếm
+          </button>
+        </div>
+      </div>
+    </nz-splitter-panel>
+
+    <nz-splitter-panel nzDefaultSize="100%">
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-1">
+          <div class="d-flex gap-1">
+            <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
+              <nz-icon nzType="search" />
+            </button>
+
+            <button class="btn-add" nz-button nzType="default" nzSize="small" (click)="addET()">
+              <img src="assets/icon/action_add_item_16.png" />Thêm
+            </button>
+            <button class="btn-edit" nz-button nzType="default" nzSize="small" (click)="editET()">
+              <img src="assets/icon/action_edit_item_16.png" /> Sửa
+            </button>
+            <button class="btn-delete" nz-button nzType="default" nzSize="small" (click)="deleteET()">
+              <img src="assets/icon/action_delete_item_16.png" /> Xóa
+            </button>
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="approvedET()">
+              <img src="assets/icon/action_approved_16.png" /> Duyệt
+            </button>
+
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="cancelApprovedET()">
+              <img src="assets/icon/action_unapproved_16.png" />Hủy duyệt
+            </button>
+
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openManagement()">
+              <nz-icon nzType="table" nzTheme="outline" /> Bảng chấm công chi tiết
+            </button>
+          </div>
+        </div>
+
+        <div class="card-body p-0 d-flex align-items-center justify-content-center" style="position: relative">
+          <div *ngIf="isLoadTable" style="
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              background: rgba(255, 255, 255, 0.4);
+              z-index: 999;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            ">
+            <nz-spin [nzSpinning]="isLoadTable" nzSimple></nz-spin>
+          </div>
+
+          <div class="w-100 h-100" #tb_ET></div>
+        </div>
+      </div>
+    </nz-splitter-panel>
+  </nz-splitter>
+</ng-container>

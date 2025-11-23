@@ -1,0 +1,146 @@
+<div class="modal-dialog-scrollable">
+  <div class="modal-header bg-primary p-2">
+    <h6 class="modal-title text-white" id="errorModalLabel">{{ modalTitle }}</h6>
+    <button type="button" class="btn-close" aria-label="Close" (click)="closeModal()"></button>
+  </div>
+
+  <div class="modal-body">
+    <form [formGroup]="errorForm" nz-form nzLayout="vertical">
+      <!-- Row 1: Nhân viên và Ngày -->
+      <nz-row [nzGutter]="[24, 16]">
+        <nz-col [nzSpan]="12">
+          <nz-form-item class="pt-1">
+            <nz-form-label class="fs-12 d-flex align-items-center">
+              Nhân viên <span class="text-danger ps-1">(*)</span>
+            </nz-form-label>
+            <nz-form-control [nzErrorTip]="hasError('employeeId') ? getErrorMessage('employeeId') : undefined">
+              <nz-select
+                formControlName="employeeId"
+                class="w-100"
+                nzShowSearch
+                nzAllowClear
+                nzPlaceHolder="Chọn nhân viên"
+                [nzFilterOption]="filterEmployeeOption"
+                [nzDisabled]="isFormDisabled"
+                [class.ng-invalid]="hasError('employeeId')"
+              >
+                <nz-option-group *ngFor="let group of employeeGroups" [nzLabel]="group.label">
+                  <nz-option
+                    *ngFor="let emp of group.options"
+                    [nzLabel]="emp.Code + ' - ' + emp.FullName"
+                    [nzValue]="emp.ID"
+                  >
+                    <div class="employee-option">
+                      <span class="employee-code">{{ emp.Code }}</span>
+                      <span class="employee-name"> - {{ emp.FullName }}</span>
+                      <small class="text-muted d-block">{{ emp.DepartmentName }}</small>
+                    </div>
+                  </nz-option>
+                </nz-option-group>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+        <nz-col [nzSpan]="12">
+          <nz-form-item class="pt-1">
+            <nz-form-label class="fs-12 d-flex align-items-center">
+              Ngày <span class="text-danger ps-1">(*)</span>
+            </nz-form-label>
+            <nz-form-control [nzErrorTip]="hasError('date') ? getErrorMessage('date') : undefined">
+              <nz-date-picker
+                formControlName="date"
+                class="w-100"
+                nzPlaceHolder="Chọn ngày"
+                [nzDisabled]="isFormDisabled"
+                [class.ng-invalid]="hasError('date')"
+                nzFormat="dd/MM/yyyy"
+              ></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+
+      <!-- Row 2: Số tiền -->
+      <nz-row [nzGutter]="[24, 16]">
+        <nz-col [nzSpan]="12">
+          <nz-form-item class="pt-1">
+            <nz-form-label class="fs-12 d-flex align-items-center">
+              Số tiền <span class="text-danger ps-1">(*)</span>
+            </nz-form-label>
+            <nz-form-control [nzErrorTip]="hasError('amount') ? getErrorMessage('amount') : undefined">
+              <nz-input-number
+                formControlName="amount"
+                class="w-100"
+                nzPlaceHolder="Nhập số tiền"
+                [nzDisabled]="isFormDisabled"
+                [nzMin]="1"
+                [nzFormatter]="formatCurrency"
+                [nzParser]="parseAmount"
+                (ngModelChange)="onAmountChange($event)"
+                [class.ng-invalid]="hasError('amount')"
+                style="width: 100%;"
+              ></nz-input-number>
+            
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+
+      <!-- Row 3: Ghi chú -->
+      <nz-row [nzGutter]="[24, 16]">
+        <nz-col [nzSpan]="24">
+          <nz-form-item class="pt-1">
+            <nz-form-label class="fs-12 d-flex align-items-center">
+              Ghi chú <span class="text-danger ps-1">(*)</span>
+            </nz-form-label>
+            <nz-form-control [nzErrorTip]="hasError('note') ? getErrorMessage('note') : undefined">
+              <textarea
+                formControlName="note"
+                nz-input
+                placeholder="Nhập ghi chú"
+                [disabled]="isFormDisabled"
+                [class.ng-invalid]="hasError('note')"
+                rows="4"
+                maxlength="500"
+              ></textarea>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+    </form>
+  </div>
+
+  <div class="modal-footer br p-1 d-flex align-items-center">
+    <div class="d-flex align-items-center flex-wrap gap-1">
+      <!-- Loading spinner -->
+      <div *ngIf="loading" class="d-flex align-items-center me-2">
+        <nz-spin nzSimple nzSize="small" class="me-2"></nz-spin>
+        <span class="fs-12">Đang tải...</span>
+      </div>
+
+      <!-- Close button -->
+      <button
+        nz-button
+        nzType="default"
+        nzDanger
+        (click)="closeModal()"
+        [disabled]="saving"
+      >
+        Đóng
+      </button>
+
+      <!-- Save button (Add/Edit mode) -->
+      <button 
+        *ngIf="!isViewMode"
+        nz-button
+        nzType="primary"
+        (click)="saveError()"
+        [disabled]="saving"
+      >
+        <span *ngIf="saving" class="spinner-border spinner-border-sm me-2"></span>
+        {{ saving ? 'Đang lưu...' : 'Lưu' }}
+      </button>
+    </div>
+  </div>
+</div>
+

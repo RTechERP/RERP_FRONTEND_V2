@@ -2,14 +2,27 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { environment } from '../../../../../../environments/environment';
 
 import * as ExcelJS from 'exceljs';
 
+export interface EmployeeNoFingerprintRequestParam {
+  Page?: number;
+  Size?: number;
+  DateStart?: string; // "YYYY-MM-DD" format
+  DateEnd?: string; // "YYYY-MM-DD" format
+  DepartmentID?: number;
+  IDApprovedTP?: number;
+  Status?: number;
+  KeyWord?: string;
+}
+
+// Keep old interface for backward compatibility
 interface ENFSearchParams {
   pageNumber?: number;
   pageSize?: number;
-  dateStart?: string; // Changed to string to match ISO format
-  dateEnd?: string; // Changed to string to match ISO format
+  dateStart?: string;
+  dateEnd?: string;
   keyword?: string;
   departmentId?: number;
   idApprovedTP?: number;
@@ -21,7 +34,7 @@ interface ENFSearchParams {
   providedIn: 'root',
 })
 export class EmployeeNofingerprintService {
-  private apiUrl = 'https://localhost:7187/api/EmployeeNoFingerprint/';
+  private apiUrl = `${environment.host}api/EmployeeNoFingerprint/`;
 
   constructor(
     private http: HttpClient,
@@ -33,9 +46,14 @@ export class EmployeeNofingerprintService {
   ISADMIN: boolean = true;
   GlobalDepartmentId: number = 1;
 
-  // Get departments (keep as is - this works)
+  /**
+   * Get departments list (GET method)
+   */
   getDepartments(): Observable<any> {
-    return this.http.get<any>(this.apiUrl + 'get-department');
+    const headers = new HttpHeaders({
+      Accept: 'application/json',
+    });
+    return this.http.get<any>(this.apiUrl + 'get-department', { headers });
   }
 
   /**
@@ -46,13 +64,43 @@ export class EmployeeNofingerprintService {
     return this.apiUrl + 'get-employee-no-fingerprint';
   }
 
-    getEmloyeeApprover(): Observable<any> {
+  /**
+   * Get ENF list using POST method (for Tabulator ajaxRequestFunc)
+   * @param params Request parameters
+   * @returns Promise with response data
+   */
+  getENFListPost(params: EmployeeNoFingerprintRequestParam): Promise<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    });
 
-    return this.http.get<any>(this.apiUrl + 'get-employee-approver');
-    }
+    const requestBody: EmployeeNoFingerprintRequestParam = {
+      Page: params.Page || 1,
+      Size: params.Size || 100,
+      DateStart: params.DateStart || '',
+      DateEnd: params.DateEnd || '',
+      KeyWord: params.KeyWord || '',
+      DepartmentID: params.DepartmentID || 0,
+      IDApprovedTP: params.IDApprovedTP || 0,
+      Status: params.Status !== null && params.Status !== undefined ? params.Status : -1,
+    };
+
+    return this.http
+      .post<any>(this.apiUrl + 'get-employee-no-fingerprint', requestBody, { headers })
+      .toPromise();
+  }
+
+  getEmloyeeApprover(): Observable<any> {
+    const headers = new HttpHeaders({
+      Accept: 'application/json',
+    });
+    return this.http.get<any>(this.apiUrl + 'get-employee-approver', { headers });
+  }
 
   /**
-   * Get ENF list with proper parameters (similar to WFH)
+   * Get ENF list with proper parameters (deprecated - use getENFListPost instead)
+   * @deprecated Sử dụng getENFListPost thay thế
    */
   getENFList(params?: ENFSearchParams): Observable<any> {
     let httpParams = new HttpParams();

@@ -1,0 +1,73 @@
+:host {
+  font-size: 12px;
+}
+
+.employee-option {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+}
+
+.employee-code {
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.employee-name {
+  font-weight: 400;
+  font-size: 12px;
+}
+
+.modal-dialog-scrollable {
+  max-height: 90vh;
+  overflow-y: auto;
+  font-size: 12px;
+}
+
+.modal-header {
+  font-size: 12px;
+}
+
+.modal-header h6 {
+  font-size: 12px;
+}
+
+.modal-body {
+  padding: 1rem;
+  font-size: 12px;
+}
+
+.modal-footer {
+  padding: 0.5rem 1rem;
+  border-top: 1px solid #e5e5e5;
+  font-size: 12px;
+}
+
+:host ::ng-deep nz-form-label {
+  font-size: 12px !important;
+}
+
+:host ::ng-deep nz-input {
+  font-size: 12px !important;
+}
+
+:host ::ng-deep nz-select {
+  font-size: 12px !important;
+}
+
+:host ::ng-deep nz-date-picker {
+  font-size: 12px !important;
+}
+
+:host ::ng-deep nz-input-number {
+  font-size: 12px !important;
+}
+
+:host ::ng-deep textarea {
+  font-size: 12px !important;
+}
+
+:host ::ng-deep button {
+  font-size: 12px !important;
+}
+

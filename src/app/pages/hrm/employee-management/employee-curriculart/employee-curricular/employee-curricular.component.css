@@ -1,0 +1,25 @@
+:host {
+  font-size: 12px !important;
+}
+
+.tabulator {
+  font-size: 12px;
+}
+
+.my-tall-modal .modal-dialog {
+  max-width: 900px;   /* chiều rộng */
+  width: 75vw;         /* hoặc tự đặt % */
+  height: 80vh;       /* chiều cao 80% viewport */
+  margin: auto;
+}
+
+.my-tall-modal .modal-content {
+  height: 50vh;       /* chiếm toàn bộ chiều cao dialog */
+  display: flex;
+  flex-direction: column;
+}
+
+.my-tall-modal .modal-body {
+  flex: 1 1 auto;     /* modal body co giãn theo chiều cao */
+  overflow-y: auto;   /* bật scroll nếu nội dung dài */
+}

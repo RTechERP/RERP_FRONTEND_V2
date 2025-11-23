@@ -22,9 +22,11 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { firstValueFrom } from 'rxjs';
+import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 
 // NgBootstrap Modal
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 
 // Tabulator
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
@@ -37,6 +39,8 @@ import { DateTime } from 'luxon';
 // Services and Components
 import { EmployeeNofingerprintService } from './employee-no-fingerprint-service/employee-no-fingerprint.service';
 import { ENFDetailComponent } from './ENF-detail/ENF-detail.component';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { AuthService } from '../../../../auth/auth.service';
 
 @Component({
   selector: 'app-enf',
@@ -53,6 +57,10 @@ import { ENFDetailComponent } from './ENF-detail/ENF-detail.component';
     NzSpinModule,
     NzSplitterModule,
     NzModalModule,
+    NgbModalModule, //
+    ENFDetailComponent, 
+    HasPermissionDirective,
+    NzDropDownModule,
   ],
   templateUrl: './employee-no-fingerprint.component.html',
   styleUrls: ['./employee-no-fingerprint.component.css'],
@@ -89,9 +97,16 @@ export class EmployeeNoFingerprintComponent
   departmentList: any[] = [];
 
   // Selection tracking
-  selectedENF: any[] = [];
+  selectedENF: any | null = null;
   selectedRows: any[] = [];
   lastSelectedENF: any | null = null;
+
+  // Current user info
+  currentUser: any = null;
+  currentEmployeeId: number = 0;
+  currentDepartmentId: number = 0;
+  currentDepartmentName: string = '';
+  isAdmin: boolean = false;
   // #endregion
 
   constructor(
@@ -99,12 +114,28 @@ export class EmployeeNoFingerprintComponent
     private message: NzMessageService,
     private enfService: EmployeeNofingerprintService,
     private ngbModal: NgbModal,
-    private nzModal: NzModalService
+    private nzModal: NzModalService,
+    private authService: AuthService
   ) {}
 
   // #region Lifecycle Hooks
   ngOnInit(): void {
     this.loadDepartments();
+    this.getCurrentUser();
+  }
+
+  getCurrentUser(): void {
+    this.authService.getCurrentUser().subscribe((res: any) => {
+      if (res && res.status === 1 && res.data) {
+        const data = Array.isArray(res.data) ? res.data[0] : res.data;
+        this.currentUser = data;
+        this.currentEmployeeId = data.EmployeeID || 0;
+        this.currentDepartmentId = data?.DepartmentID || 0;
+        this.currentDepartmentName = data?.DepartmentName || '';
+        this.isAdmin = data?.IsAdmin === true || data?.ISADMIN === true || false;
+      
+      }
+    });
   }
 
   ngAfterViewInit(): void {
@@ -160,24 +191,48 @@ export class EmployeeNoFingerprintComponent
     console.log('Creating enf table...');
 
     this.tb_ENF = new Tabulator(container, {
-      height: '100%',
-      layout: 'fitColumns',
-      pagination: true,
-      paginationMode: 'remote',
-      paginationSize: 100,
-      paginationSizeSelector: [100, 200, 400, 800, 1000],
-
+   ...DEFAULT_TABLE_CONFIG,
       ajaxURL: this.enfService.getENFListURL(),
-      ajaxConfig: 'GET',
-      ajaxParams: this.getENFAjaxParams(), // Add initial params
+      ajaxConfig: 'POST',
+      ajaxRequestFunc: (url: any, config: any, params: any) => {
+        const requestParams = {
+          Page: params.page || 1,
+          Size: params.size || 100,
+          DateStart: this.toISODate(this.dateStart),
+          DateEnd: this.toISODate(this.dateEnd),
+          KeyWord: this.searchValue?.trim() || '',
+          DepartmentID: this.selectedDepartmentFilter || 0,
+          IDApprovedTP: 0,
+          Status:
+            this.selectedTBPStatusFilter === null ||
+            this.selectedTBPStatusFilter === undefined
+              ? -1
+              : this.selectedTBPStatusFilter,
+        };
+        return this.enfService.getENFListPost(requestParams);
+      },
       ajaxResponse: (url: any, params: any, res: any) => {
-        let totalPage = 0;
-        if (res.data.length != 0) {
-          totalPage = res.data[0].TotalPage;
+        console.log('API Response:', res);
+        // Response structure: { status: 1, data: { data: [...], totalPage: [...] }, message: "..." }
+        if (res && res.status === 1 && res.data) {
+          const data = res.data.data || [];
+          // totalPage có thể là array hoặc number
+          let totalPage = 1;
+          if (Array.isArray(res.data.totalPage)) {
+            totalPage = res.data.totalPage[0]?.TotalPage || res.data.totalPage[0] || 1;
+          } else if (typeof res.data.totalPage === 'number') {
+            totalPage = res.data.totalPage;
+          }
+          console.log('Total pages:', totalPage, 'Data count:', data.length);
+          return {
+            data: data,
+            last_page: totalPage,
+          };
         }
+        console.warn('Unexpected response structure:', res);
         return {
-          data: res.data,
-          last_page: totalPage,
+          data: [],
+          last_page: 1,
         };
       },
       ajaxError: (error: any) => {
@@ -201,7 +256,7 @@ export class EmployeeNoFingerprintComponent
       },
       locale: 'vi',
       selectableRows: true,
-      selectableRowsRangeMode: 'click',
+      selectableRowsRangeMode: false, // Cho phép chọn nhiều bằng checkbox hoặc Ctrl+Click
       groupBy: ['DepartmentName'],
       groupByStartOpen: true,
       groupHeader: (value: any) => `Phòng ban: ${value}`,
@@ -228,40 +283,30 @@ export class EmployeeNoFingerprintComponent
 
   private getTableColumns(): any[] {
     return [
-      {
-        title: 'Chọn',
-        titleFormatter: () => `<input type="checkbox" />`,
-        field: 'Selected',
-        formatter: (cell: any) => {
-          const checked = cell.getValue() ? 'checked' : '';
-          return `<input type='checkbox' ${checked} />`;
-        },
-        headerClick: (e: any, column: any) => {
-          const isChecked = (e.target as HTMLInputElement).checked;
-          column
-            .getTable()
-            .getRows()
-            .forEach((row: any) => {
-              row.update({ Selected: isChecked });
-            });
-        },
-        cellClick: (e: any, cell: any) => {
-          const newValue = !cell.getValue();
-          cell.setValue(newValue);
-        },
-        hozAlign: 'center',
-        headerHozAlign: 'center',
-        headerSort: false,
-        width: 50,
-        frozen: true,
-      },
+
       {
         title: 'TBP Duyệt',
         field: 'StatusText',
         width: 100,
         headerHozAlign: 'center',
         hozAlign: 'center',
-        formatter: (cell: any) => this.formatApprovalBadge(cell.getValue()),
+        formatter: (cell: any) => {
+          const value = cell.getValue();
+          // Nếu là string, convert sang number; nếu là number/null, dùng trực tiếp
+          let numValue = 0;
+          if (value === null || value === undefined) {
+            numValue = 0;
+          } else if (typeof value === 'number') {
+            numValue = value;
+          } else if (typeof value === 'string') {
+            // Map string sang number
+            if (value === 'Đã duyệt') numValue = 1;
+            else if (value === 'Từ chối' || value === 'Không duyệt') numValue = 2;
+            else numValue = 0; // Chưa duyệt hoặc giá trị khác
+          }
+          return this.formatApprovalBadge(numValue);
+        },
+        frozen: true,
       },
       {
         title: 'HR Duyệt',
@@ -269,7 +314,23 @@ export class EmployeeNoFingerprintComponent
         width: 100,
         headerHozAlign: 'center',
         hozAlign: 'center',
-        formatter: (cell: any) => this.formatApprovalBadge(cell.getValue()),
+        formatter: (cell: any) => {
+          const value = cell.getValue();
+          // Nếu là string, convert sang number; nếu là number/null, dùng trực tiếp
+          let numValue = 0;
+          if (value === null || value === undefined) {
+            numValue = 0;
+          } else if (typeof value === 'number') {
+            numValue = value;
+          } else if (typeof value === 'string') {
+            // Map string sang number
+            if (value === 'Đã duyệt') numValue = 1;
+            else if (value === 'Từ chối' || value === 'Không duyệt') numValue = 2;
+            else numValue = 0; // Chưa duyệt hoặc giá trị khác
+          }
+          return this.formatApprovalBadge(numValue);
+        },
+        frozen: true,
       },
       {
         title: 'Mã nhân viên',
@@ -307,13 +368,7 @@ export class EmployeeNoFingerprintComponent
         headerHozAlign: 'center',
         hozAlign: 'center',
       },
-      {
-        title: 'Ghi chú',
-        field: 'Note',
-        width: 120,
-        headerHozAlign: 'center',
-        hozAlign: 'center',
-      },
+     
       {
         title: 'Lý do sửa',
         field: 'ReasonHREdit',
@@ -325,6 +380,14 @@ export class EmployeeNoFingerprintComponent
         field: 'ReasonDeciline',
         width: 180,
         headerHozAlign: 'center',
+      },
+      {
+        title: 'Ghi chú',
+        field: 'Note',
+        width: 420,
+        headerHozAlign: 'center',
+        hozAlign: 'center',
+        formatter: 'textarea',
       },
     ];
   }
@@ -360,7 +423,7 @@ export class EmployeeNoFingerprintComponent
         this.selectedENF = rows[rows.length - 1].getData();
         this.lastSelectedENF = this.selectedENF;
       } else {
-        this.selectedENF = [];
+        this.selectedENF = null;
         this.lastSelectedENF = null;
       }
     });
@@ -368,8 +431,6 @@ export class EmployeeNoFingerprintComponent
     this.tb_ENF.on('tableBuilt', () => {
       console.log('ENF table built successfully');
       this.isTableReady = true;
-      // Load data after table is built
-      this.searchenf();
     });
 
     this.tb_ENF.on('rowDblClick', (e: any, row: any) => {
@@ -395,10 +456,9 @@ export class EmployeeNoFingerprintComponent
       return;
     }
 
-    const params = this.getENFAjaxParams();
-    console.log('Searching ENF with params:', params);
-
-    this.tb_ENF.setData(this.enfService.getENFListURL(), params);
+    console.log('Searching ENF with params:', this.getENFAjaxParams());
+    // Sử dụng replaceData() để trigger ajaxRequestFunc với params mới
+    this.tb_ENF.replaceData();
   }
 
   private getENFAjaxParams(): any {
@@ -406,19 +466,18 @@ export class EmployeeNoFingerprintComponent
     const currentSize = this.tb_ENF ? this.tb_ENF.getPageSize() : 100;
 
     return {
-      pageNumber: currentPage,
-      pageSize: currentSize,
-      dateStart: this.toISODate(this.dateStart), // "YYYY-MM-DD"
-      dateEnd: this.toISODate(this.dateEnd),
-      keyword: this.searchValue?.trim() || '',
-      departmentId: this.selectedDepartmentFilter || 0,
-      idApprovedTP: 0,
-      status:
+      Page: currentPage,
+      Size: currentSize,
+      DateStart: this.toISODate(this.dateStart), // "YYYY-MM-DD"
+      DateEnd: this.toISODate(this.dateEnd),
+      KeyWord: this.searchValue?.trim() || '',
+      DepartmentID: this.selectedDepartmentFilter || 0,
+      IDApprovedTP: 0,
+      Status:
         this.selectedTBPStatusFilter === null ||
         this.selectedTBPStatusFilter === undefined
           ? -1
           : this.selectedTBPStatusFilter,
-      isDelete: 0,
     };
   }
 
@@ -456,24 +515,29 @@ export class EmployeeNoFingerprintComponent
   // #region Selection Management
   selectAllRows(): void {
     if (!this.tb_ENF) return;
-
-    this.tb_ENF.getRows().forEach((row: any) => {
-      row.update({ Selected: true });
-    });
-    this.message.info('Đã chọn tất cả bản ghi trên trang hiện tại');
+    // Sử dụng Tabulator API để chọn tất cả rows trên trang hiện tại
+    const rows = this.tb_ENF.getRows();
+    if (rows.length > 0) {
+      this.tb_ENF.selectRow(rows);
+      const rowCount = rows.length;
+      this.message.info(`Đã chọn ${rowCount} bản ghi trên trang hiện tại`);
+    }
   }
 
   deselectAllRows(): void {
     if (!this.tb_ENF) return;
-
-    this.tb_ENF.getRows().forEach((row: any) => {
-      row.update({ Selected: false });
-    });
+    // Sử dụng Tabulator API để bỏ chọn tất cả rows
+    const selectedRows = this.tb_ENF.getSelectedRows();
+    if (selectedRows.length > 0) {
+      this.tb_ENF.deselectRow(selectedRows);
+    }
   }
 
   getSelectedRows(): any[] {
     if (!this.tb_ENF) return [];
-    return this.tb_ENF.getData().filter((row: any) => row.Selected === true);
+    // Sử dụng getSelectedRows() từ Tabulator thay vì filter
+    const selectedRows = this.tb_ENF.getSelectedRows();
+    return selectedRows.map((row: any) => row.getData());
   }
 
   getSelectedRowsCount(): number {
@@ -489,8 +553,9 @@ export class EmployeeNoFingerprintComponent
   }
 
   private clearSelection(): void {
-    this.selectedENF = [];
+    this.selectedENF = null;
     this.lastSelectedENF = null;
+    this.selectedRows = [];
     this.deselectAllRows();
   }
   // #endregion
@@ -501,6 +566,7 @@ export class EmployeeNoFingerprintComponent
       size: 'lg',
       backdrop: 'static',
       keyboard: false,
+      centered: true,
     });
 
     modalRef.componentInstance.enfData = null;
@@ -510,7 +576,7 @@ export class EmployeeNoFingerprintComponent
     modalRef.result.then((result) => {
       if (result?.action === 'save') {
         this.searchenf();
-        this.notification.success('Thông báo', 'Thêm ENF thành công!', {
+        this.notification.success('Thông báo', 'Lưu dữ liệu thành công!', {
           nzStyle: { fontSize: '0.75rem' },
         });
       }
@@ -521,7 +587,7 @@ export class EmployeeNoFingerprintComponent
     const enfToEdit = this.getCurrentSelectedenf();
 
     if (!enfToEdit) {
-      this.notification.error('Thông báo', 'Vui lòng chọn 1 ENF cần sửa!', {
+      this.notification.error('Thông báo', 'Vui lòng chọn bản ghi cần sửa!', {
         nzStyle: { fontSize: '0.75rem' },
       });
       return;
@@ -531,6 +597,7 @@ export class EmployeeNoFingerprintComponent
       size: 'lg',
       backdrop: 'static',
       keyboard: false,
+      centered: true,
     });
 
     modalRef.componentInstance.enfData = enfToEdit;
@@ -540,7 +607,7 @@ export class EmployeeNoFingerprintComponent
     modalRef.result.then((result) => {
       if (result?.action === 'save') {
         this.searchenf();
-        this.notification.success('Thông báo', 'Sửa ENF thành công!', {
+        this.notification.success('Thông báo', 'Lưu dữ liệu thành công!', {
           nzStyle: { fontSize: '0.75rem' },
         });
       }
@@ -553,7 +620,7 @@ export class EmployeeNoFingerprintComponent
     if (selectedRows.length === 0) {
       this.notification.error(
         'Thông báo',
-        'Vui lòng chọn ít nhất 1 ENF cần xóa!',
+        'Vui lòng chọn bản ghi cần xóa!',
         { nzStyle: { fontSize: '0.75rem' } }
       );
       return;
@@ -574,11 +641,11 @@ export class EmployeeNoFingerprintComponent
       return;
     }
 
-    const count = selectedRows.length;
+    const count = selectedRows.length;    
     const confirmMessage =
       count === 1
-        ? `Bạn có chắc chắn muốn xóa ENF của <strong>"${selectedRows[0].EmployeeName}"</strong> không?`
-        : `Bạn có chắc chắn muốn xóa <strong>${count}</strong> bản ghi ENF đã chọn không?`;
+        ? `Bạn có chắc chắn muốn xóa bản ghi của <strong>"${selectedRows[0].FullName}"</strong> không?`
+        : `Bạn có chắc chắn muốn xóa <strong>${count}</strong> bản ghi  đã chọn không?`;
 
     this.nzModal.confirm({
       nzTitle: 'Xác nhận xóa',
@@ -593,7 +660,7 @@ export class EmployeeNoFingerprintComponent
 
   private confirmDeleteenf(selectedRows: any[] = []): void {
     if (selectedRows.length === 0) {
-      this.notification.error('Thông báo', 'Không có bản ghi hợp lệ để xóa!');
+      this.notification.error('Thông báo', 'Các bản ghi đã duyệt, không thể xóa!');
       return;
     }
 
@@ -610,7 +677,7 @@ export class EmployeeNoFingerprintComponent
       const item = selectedRows[index];
       const deleteData = {
         ...item,
-        IsDelete: true,
+        IsDeleted: true,
         UpdatedBy: this.enfService.LoginName,
         UpdatedDate: new Date().toISOString(),
       };
@@ -639,7 +706,7 @@ export class EmployeeNoFingerprintComponent
     if (successCount > 0) {
       this.notification.success(
         'Thông báo',
-        `Đã xóa ${successCount}/${totalCount} bản ghi ENF thành công!`,
+        `Đã xóa ${successCount}/${totalCount} bản ghi  thành công!`,
         { nzStyle: { fontSize: '0.75rem' } }
       );
       this.searchenf();
@@ -658,16 +725,30 @@ export class EmployeeNoFingerprintComponent
 
   approvedTBP(): void {
     const selectedRows = this.getSelectedRows();
-    if (selectedRows.length === 0) {
+    const rowCount = selectedRows.length;
+    
+    if (rowCount === 0) {
       this.notification.error(
         'Thông báo',
-        'Vui lòng chọn ít nhất 1 ENF cần duyệt!'
+        'Vui lòng chọn nhân viên để duyệt!'
       );
       return;
     }
+    
+    // Lấy tên nhân viên đầu tiên (focused row)
+    const focusedRow = this.tb_ENF?.getSelectedRows()[0];
+    const employeeName = focusedRow ? focusedRow.getData()['FullName'] : selectedRows[0]?.['FullName'] || '';
+    
+    let confirmMessage = '';
+    if (rowCount === 1) {
+      confirmMessage = `Bạn có chắc muốn duyệt cho nhân viên ${employeeName} hay không!`;
+    } else {
+      confirmMessage = `Bạn có chắc muốn duyệt cho những nhân viên này hay không!`;
+    }
+    
     this.nzModal.confirm({
       nzTitle: 'Xác nhận duyệt TBP',
-      nzContent: `Bạn có chắc chắn muốn TBP duyệt ${selectedRows.length} bản ghi ENF đã chọn không?`,
+      nzContent: confirmMessage,
       nzOkText: 'Duyệt',
       nzOkType: 'primary',
       nzCancelText: 'Hủy',
@@ -678,16 +759,15 @@ export class EmployeeNoFingerprintComponent
   private confirmApproveTBP(selectedRows: any[]): void {
     let successCount = 0;
     let failedCount = 0;
-    const empId = this.enfService.GlobalEmployeeId;
-    const isAdmin = this.enfService.ISADMIN;
-    const userDeptId = this.enfService.GlobalDepartmentId;
 
     const approveNext = (index: number) => {
       if (index >= selectedRows.length) {
-        this.notification.success(
-          'Thông báo',
-          `TBP đã duyệt ${successCount}/${selectedRows.length} bản ghi thành công!`
-        );
+        if (successCount > 0) {
+          this.notification.success(
+            'Thông báo',
+            `Duyệt thành công!`
+          );
+        }
         if (failedCount > 0) {
           this.notification.warning(
             'Thông báo',
@@ -698,41 +778,189 @@ export class EmployeeNoFingerprintComponent
         this.clearSelection();
         return;
       }
+      
       const item = selectedRows[index];
+      const departmentId = item.DepartmentID || 0;
+      const employeeName = item.FullName || '';
+      const approvedTP = item.ApprovedTP || 0;
 
-      // Nếu không phải admin, kiểm tra phòng ban và người duyệt
-      if (!isAdmin) {
-        if (item.DepartmentID !== userDeptId && userDeptId !== 1) {
+      // Nếu là admin, bỏ qua tất cả các check phòng ban và người duyệt
+      // Nếu không phải admin, kiểm tra quyền
+      if (!this.isAdmin) {
+        // Bỏ qua nếu departmentId = 0 (chỉ check khi không phải admin)
+        if (departmentId === 0) {
+          approveNext(index + 1);
+          return;
+        }
+
+        // Kiểm tra phòng ban
+        if (departmentId !== this.currentDepartmentId && this.currentDepartmentId !== 1) {
           this.notification.warning(
             'Thông báo',
-            `Nhân viên [${item.FullName}] không thuộc phòng của bạn.`
+            `Nhân viên ${employeeName} không thuộc phòng ${this.currentDepartmentName.toUpperCase()}.\nVui lòng kiểm tra lại!`
           );
           approveNext(index + 1);
           return;
         }
-        if (item.ApprovedTP !== empId) {
+        // Kiểm tra người duyệt
+        if (approvedTP !== this.currentEmployeeId) {
           this.notification.warning(
             'Thông báo',
-            `Bạn không phải người duyệt TBP của nhân viên này.`
+            `Bạn không thể duyệt cho nhân viên thuộc nhóm khác.\nVui lòng kiểm tra lại!`
           );
           approveNext(index + 1);
           return;
         }
       }
 
-      // Chỉ duyệt nếu chưa duyệt TBP
-      if (item.IsApprovedTP) {
+      const id = item.ID || 0;
+      // Bỏ qua nếu ID = 0
+      if (id === 0) {
+        approveNext(index + 1);
+        return;
+      }
+
+      // Kiểm tra đã duyệt chưa
+      if (item.StatusText === 'Đã duyệt' || item.IsApprovedTP) {
         approveNext(index + 1);
         return;
       }
 
       // Gọi API duyệt TBP
-      const approveData = {
-        ...item,
-        IsApprovedTP: true,
-        StatusText: 'Đã duyệt',
-        UpdatedBy: this.enfService.LoginName,
-        UpdatedDate: new Date().toISOString(),
+      const approveData = { ...item, Status: 1, IsApprovedTP: true };
+      this.enfService.saveData(approveData).subscribe({
+        next: (res: any) => {
+          if (res?.status === 1) successCount++;
+          else failedCount++;
+          approveNext(index + 1);
+        },
+        error: () => {
+          failedCount++;
+          approveNext(index + 1);
+        },
+      });
+    };
+    
+    approveNext(0);
+  }
+
+  approvedHR(): void {
+    const selectedRows = this.getSelectedRows();
+    const rowCount = selectedRows.length;
+    
+    if (rowCount === 0) {
+      this.notification.error(
+        'Thông báo',
+        'Vui lòng chọn nhân viên để duyệt!'
+      );
+      return;
+    }
+    
+    // Chỉ cho HR duyệt nếu TBP đã duyệt
+    const notApprovedTBP = selectedRows.filter(
+      (x) => x.StatusText !== 'Đã duyệt'
+    );
+    if (notApprovedTBP.length > 0) {
+      this.notification.warning(
+        'Thông báo',
+        'Chỉ duyệt HR cho các bản ghi đã được TBP duyệt!'
+      );
+      return;
+    }
+    
+    // Lấy tên nhân viên đầu tiên (focused row)
+    const focusedRow = this.tb_ENF?.getSelectedRows()[0];
+    const employeeName = focusedRow ? focusedRow.getData()['FullName'] : selectedRows[0]?.['FullName'] || '';
+    
+    let confirmMessage = '';
+    if (rowCount === 1) {
+      confirmMessage = `Bạn có chắc muốn duyệt nhân viên ${employeeName}?`;
+    } else {
+      confirmMessage = `Bạn có chắc muốn duyệt những nhân viên này không?`;
+    }
+    
+    this.nzModal.confirm({
+      nzTitle: 'Xác nhận duyệt HR',
+      nzContent: confirmMessage,
+      nzOkText: 'Duyệt',
+      nzOkType: 'primary',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => this.confirmApproveHR(selectedRows, true),
+    });
+  }
+
+  private confirmApproveHR(selectedRows: any[], isApproved: boolean = true): void {
+    let successCount = 0;
+    let failedCount = 0;
+    const approved = isApproved ? 'duyệt' : 'hủy duyệt';
+
+    const approveNext = (index: number) => {
+      if (index >= selectedRows.length) {
+        if (successCount > 0) {
+          this.notification.success(
+            'Thông báo',
+            `HR đã ${approved} ${successCount}/${selectedRows.length} bản ghi thành công!`
+          );
+        }
+        if (failedCount > 0) {
+          this.notification.warning(
+            'Thông báo',
+            `${failedCount} bản ghi ${approved} thất bại!`
+          );
+        }
+        this.searchenf();
+        this.clearSelection();
+        return;
+      }
+      
+      const item = selectedRows[index];
+      const departmentId = item.DepartmentID || 0;
+      const approvedTP = item.ApprovedTP || 0;
+      const employeeName = item.FullName || '';
+
+      // Bỏ qua nếu departmentId = 0 và approvedTP = 0
+      if (departmentId === 0 && approvedTP === 0) {
+        approveNext(index + 1);
+        return;
+      }
+
+      // HR duyệt không cần check phòng ban, chỉ cần check TBP đã duyệt
+
+      const id = item.ID || 0;
+      if (id === 0) {
+        approveNext(index + 1);
+        return;
+      }
+
+      // HR chỉ duyệt nếu TBP đã duyệt
+      if (isApproved && item.StatusText !== 'Đã duyệt') {
+        approveNext(index + 1);
+        return;
+      }
+
+      // Khi hủy duyệt HR: chỉ hủy được nếu HR đã duyệt
+      // Nếu HR chưa duyệt thì không có gì để hủy
+      if (!isApproved) {
+        // Kiểm tra HR đã duyệt chưa (có thể check bằng StatusHRText hoặc IsApprovedHR)
+        const isHRApproved = item.StatusHRText === 'Đã duyệt' || item.IsApprovedHR === true || item.StatusHR === 1;
+        if (!isHRApproved) {
+          // HR chưa duyệt thì không thể hủy duyệt
+          console.log('HR chưa duyệt, không thể hủy:', item);
+          approveNext(index + 1);
+          return;
+        }
+        console.log('Hủy duyệt HR cho item:', item, 'approveData sẽ là:', {
+          ...item,
+          StatusHR: 2,
+          IsApprovedHR: false
+        });
+      }
+
+      // Gọi API duyệt/hủy duyệt HR
+      const approveData = { 
+        ...item, 
+        StatusHR: isApproved ? 1 : 2, // 1: Đã duyệt, 2: Không duyệt (hủy duyệt)
+        IsApprovedHR: isApproved 
       };
       this.enfService.saveData(approveData).subscribe({
         next: (res: any) => {
@@ -746,81 +974,7 @@ export class EmployeeNoFingerprintComponent
         },
       });
     };
-    approveNext(0);
-  }
-
-  approvedHR(): void {
-    const selectedRows = this.getSelectedRows();
-    if (selectedRows.length === 0) {
-      this.notification.error(
-        'Thông báo',
-        'Vui lòng chọn ít nhất 1 ENF cần duyệt!'
-      );
-      return;
-    }
-    // Chỉ cho HR duyệt nếu TBP đã duyệt
-    const notApprovedTBP = selectedRows.filter(
-      (x) => x.StatusText !== 'Đã duyệt'
-    );
-    if (notApprovedTBP.length > 0) {
-      this.notification.warning(
-        'Thông báo',
-        'Chỉ duyệt HR cho các bản ghi đã được TBP duyệt!'
-      );
-      return;
-    }
-    this.nzModal.confirm({
-      nzTitle: 'Xác nhận duyệt HR',
-      nzContent: `Bạn có chắc chắn muốn HR duyệt ${selectedRows.length} bản ghi ENF đã chọn không?`,
-      nzOkText: 'Duyệt',
-      nzOkType: 'primary',
-      nzCancelText: 'Hủy',
-      nzOnOk: () => this.confirmApproveHR(selectedRows),
-    });
-  }
-
-  private confirmApproveHR(selectedRows: any[]): void {
-    let successCount = 0;
-    let failedCount = 0;
-
-    const approveNext = (index: number) => {
-      if (index >= selectedRows.length) {
-        this.notification.success(
-          'Thông báo',
-          `HR đã duyệt ${successCount}/${selectedRows.length} bản ghi thành công!`
-        );
-        if (failedCount > 0) {
-          this.notification.warning(
-            'Thông báo',
-            `${failedCount} bản ghi duyệt thất bại!`
-          );
-        }
-        this.searchenf();
-        this.clearSelection();
-        return;
-      }
-      const item = selectedRows[index];
-
-      // HR chỉ duyệt nếu TBP đã duyệt và HR chưa duyệt
-      if (item.StatusText !== 'Đã duyệt' || item.StatusHRText === 'Đã duyệt') {
-        approveNext(index + 1);
-        return;
-      }
-
-      // Gọi API duyệt HR
-      const approveData = { ...item, StatusHR: 1, IsApprovedHR: true };
-      this.enfService.saveData(approveData).subscribe({
-        next: (res: any) => {
-          if (res?.status === 1) successCount++;
-          else failedCount++;
-          approveNext(index + 1);
-        },
-        error: () => {
-          failedCount++;
-          approveNext(index + 1);
-        },
-      });
-    };
+    
     approveNext(0);
   }
 
@@ -835,7 +989,7 @@ export class EmployeeNoFingerprintComponent
     }
     const confirmMsg =
       selectedRows.length === 1
-        ? `Bạn có chắc muốn hủy duyệt HR cho nhân viên [${selectedRows[0].EmployeeName}]?`
+        ? `Bạn có chắc muốn hủy duyệt HR cho nhân viên ${selectedRows[0].FullName}?`
         : `Bạn có chắc muốn hủy duyệt HR cho ${selectedRows.length} nhân viên đã chọn?`;
 
     this.nzModal.confirm({
@@ -844,47 +998,8 @@ export class EmployeeNoFingerprintComponent
       nzOkText: 'Hủy duyệt HR',
       nzOkType: 'primary',
       nzCancelText: 'Đóng',
-      nzOnOk: () => this.confirmCancelApprovedHR(selectedRows),
+      nzOnOk: () => this.confirmApproveHR(selectedRows, false),
     });
-  }
-
-  private confirmCancelApprovedHR(selectedRows: any[]): void {
-    let successCount = 0;
-    let failedCount = 0;
-    const totalCount = selectedRows.length;
-
-    const cancelNext = (index: number) => {
-      if (index >= selectedRows.length) {
-        this.notification.success(
-          'Thông báo',
-          `HR đã hủy duyệt ${successCount}/${totalCount} bản ghi thành công!`
-        );
-        if (failedCount > 0) {
-          this.notification.warning(
-            'Thông báo',
-            `${failedCount} bản ghi hủy duyệt thất bại!`
-          );
-        }
-        this.searchenf();
-        this.clearSelection();
-        return;
-      }
-      const item = selectedRows[index];
-      // Hủy duyệt HR
-      const cancelData = { ...item, IsApprovedHR: false, ApprovedHR: 0 };
-      this.enfService.saveData(cancelData).subscribe({
-        next: (res: any) => {
-          if (res?.status === 1) successCount++;
-          else failedCount++;
-          cancelNext(index + 1);
-        },
-        error: () => {
-          failedCount++;
-          cancelNext(index + 1);
-        },
-      });
-    };
-    cancelNext(0);
   }
 
   cancelApproveTBP(): void {
@@ -892,14 +1007,19 @@ export class EmployeeNoFingerprintComponent
     if (selectedRows.length === 0) {
       this.notification.error(
         'Thông báo',
-        'Vui lòng chọn ít nhất 1 ENF cần hủy duyệt!'
+        'Vui lòng chọn ít nhất 1 ENF cần hủy duyệt TBP!'
       );
       return;
     }
+    const confirmMsg =
+      selectedRows.length === 1
+        ? `Bạn có chắc muốn hủy duyệt TBP cho nhân viên ${selectedRows[0].FullName}?`
+        : `Bạn có chắc muốn hủy duyệt TBP cho ${selectedRows.length} nhân viên đã chọn?`;
+
     this.nzModal.confirm({
       nzTitle: 'Xác nhận hủy duyệt TBP',
-      nzContent: `Bạn có chắc chắn muốn hủy duyệt TBP ${selectedRows.length} bản ghi ENF đã chọn không?`,
-      nzOkText: 'Hủy duyệt',
+      nzContent: confirmMsg,
+      nzOkText: 'Hủy duyệt TBP',
       nzOkType: 'primary',
       nzCancelText: 'Đóng',
       nzOnOk: () => this.confirmCancelApproveTBP(selectedRows),
@@ -909,15 +1029,13 @@ export class EmployeeNoFingerprintComponent
   private confirmCancelApproveTBP(selectedRows: any[]): void {
     let successCount = 0;
     let failedCount = 0;
-    const empId = this.enfService.GlobalEmployeeId;
-    const isAdmin = this.enfService.ISADMIN;
-    const userDeptId = this.enfService.GlobalDepartmentId;
+    const totalCount = selectedRows.length;
 
     const cancelNext = (index: number) => {
       if (index >= selectedRows.length) {
         this.notification.success(
           'Thông báo',
-          `TBP đã hủy duyệt ${successCount}/${selectedRows.length} bản ghi thành công!`
+          `TBP đã hủy duyệt ${successCount}/${totalCount} bản ghi thành công!`
         );
         if (failedCount > 0) {
           this.notification.warning(
@@ -932,49 +1050,42 @@ export class EmployeeNoFingerprintComponent
       const item = selectedRows[index];
 
       // Nếu không phải admin, kiểm tra phòng ban và người duyệt
-      if (!isAdmin) {
-        if (item.DepartmentID !== userDeptId && userDeptId !== 1) {
+      if (!this.isAdmin) {
+        if (item.DepartmentID !== this.currentDepartmentId && this.currentDepartmentId !== 1) {
           this.notification.warning(
             'Thông báo',
-            `Nhân viên [${item.FullName}] không thuộc phòng của bạn.`
+            `Nhân viên ${item.FullName} không thuộc phòng ${this.currentDepartmentName.toUpperCase()}. Vui lòng kiểm tra lại!`
           );
           cancelNext(index + 1);
           return;
         }
-        if (item.ApprovedTP !== empId) {
+        if (item.ApprovedTP !== this.currentEmployeeId) {
           this.notification.warning(
             'Thông báo',
-            `Bạn không phải người duyệt TBP của nhân viên này.`
+            `Bạn không thể hủy duyệt cho nhân viên thuộc nhóm khác. Vui lòng kiểm tra lại!`
           );
           cancelNext(index + 1);
           return;
         }
       }
 
-      // Chỉ hủy duyệt nếu đã duyệt TBP
+      // Nếu chưa duyệt TBP thì bỏ qua
       if (!item.IsApprovedTP) {
         cancelNext(index + 1);
         return;
       }
-
-      // Nếu HR chưa hủy duyệt thì TBP không được hủy duyệt
+      // Nếu HR đã duyệt thì không cho hủy TBP
       if (item.IsApprovedHR) {
         this.notification.warning(
           'Thông báo',
-          `HR chưa hủy duyệt bản ghi của nhân viên [${item.FullName}]. TBP không thể hủy duyệt!`
+          `Nhân viên ${item.FullName} đã được HR duyệt. Vui lòng hủy duyệt HR trước!`
         );
         cancelNext(index + 1);
         return;
       }
 
-      // Gọi API hủy duyệt TBP
-      const cancelData = {
-        ...item,
-        IsApprovedTP: false,
-        StatusText: 'Chưa duyệt',
-        UpdatedBy: this.enfService.LoginName,
-        UpdatedDate: new Date().toISOString(),
-      };
+      // Hủy duyệt TBP - set Status = 2
+      const cancelData = { ...item, IsApprovedTP: false, Status: 2 };
       this.enfService.saveData(cancelData).subscribe({
         next: (res: any) => {
           if (res?.status === 1) successCount++;
@@ -1022,7 +1133,7 @@ export class EmployeeNoFingerprintComponent
       setTimeout(() => {
         this.notification.success(
           'Thông báo',
-          `Đã xuất ${allData.length} bản ghi ENF ra file Excel thành công!`,
+          `Đã xuất ${allData.length} bản ghi ra file Excel thành công!`,
           { nzStyle: { fontSize: '0.75rem' } }
         );
       }, 2000);
@@ -1137,19 +1248,19 @@ export class EmployeeNoFingerprintComponent
       return '';
     }
   }
-
-  private formatApprovalBadge(status: string): string {
-    if (!status) return '';
-
-    const statusMap: { [key: string]: string } = {
-      'Chưa duyệt':
-        '<span class="badge bg-warning text-dark">Chưa duyệt</span>',
-      'Đã duyệt': '<span class="badge bg-success">Đã duyệt</span>',
-      'Từ chối': '<span class="badge bg-danger">Từ chối</span>',
-    };
-
-    return (
-      statusMap[status] || `<span class="badge bg-secondary">${status}</span>`
-    );
+  private formatApprovalBadge(status: number): string {
+    // 0 hoặc null: Chưa duyệt, 1: Đã duyệt, 2: Không duyệt
+    const numStatus = status === null || status === undefined ? 0 : Number(status);
+    
+    switch (numStatus) {
+      case 0:
+        return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center;">Chưa duyệt</span>';
+      case 1:
+        return '<span class="badge bg-success" style="display: inline-block; text-align: center;">Đã duyệt</span>';
+      case 2:
+        return '<span class="badge bg-danger" style="display: inline-block; text-align: center;">Không duyệt</span>';
+      default:
+        return '<span class="badge bg-secondary" style="display: inline-block; text-align: center;">Không xác định</span>';
+    }
   }
 }

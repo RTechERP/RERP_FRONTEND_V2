@@ -1,0 +1,125 @@
+<div class="modal-content h-100">
+  <div class="modal-header bg-primary p-2">
+    <h6 class="modal-title text-uppercase text-white m-0">BÁO CÁO CÔNG TÁC</h6>
+    <button type="button" class="btn-close btn-close-white" (click)="closeModal()"></button>
+  </div>
+
+  <div class="modal-body p-3">
+    <!-- Search Section -->
+    <div class="card mb-3">
+      <div class="card-body p-2">
+        <form nz-form nzLayout="inline" class="d-flex align-items-end gap-2 flex-wrap">
+          <nz-form-item class="mb-0">
+            <nz-form-label class="fs-12">Tháng/Năm</nz-form-label>
+            <nz-form-control>
+              <nz-date-picker
+                name="monthYear"
+                nzFormat="MM/yyyy"
+                nzMode="month"
+                [(ngModel)]="selectedMonthYear"
+                (ngModelChange)="onMonthYearChange()"
+                nzAllowClear="false"
+                nzSize="small"
+                style="width: 150px;"
+              ></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item class="mb-0">
+            <nz-form-label class="fs-12">Phòng ban</nz-form-label>
+            <nz-form-control>
+              <nz-select
+                name="departmentId"
+                nzShowSearch
+                nzAllowClear
+                nzPlaceHolder="Chọn phòng ban"
+                [(ngModel)]="departmentId"
+                (ngModelChange)="onDepartmentChange()"
+                nzSize="small"
+                style="width: 200px;"
+              >
+                <nz-option *ngFor="let dept of departments" [nzValue]="dept.ID" [nzLabel]="dept.Name"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item class="mb-0">
+            <nz-form-label class="fs-12">Nhân viên</nz-form-label>
+            <nz-form-control>
+              <nz-select
+                name="employeeId"
+                nzShowSearch
+                nzAllowClear
+                nzPlaceHolder="Chọn nhân viên"
+                [(ngModel)]="employeeId"
+                nzSize="small"
+                style="width: 200px;"
+              >
+                <nz-option 
+                  *ngFor="let emp of getFilteredEmployees()" 
+                  [nzValue]="emp.ID"
+                  [nzLabel]="emp.Code + ' - ' + emp.FullName">
+                </nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item class="mb-0">
+            <nz-form-label class="fs-12">Từ khóa</nz-form-label>
+            <nz-form-control>
+              <input
+                name="keyword"
+                nz-input
+                placeholder="Nhập từ khóa"
+                [(ngModel)]="keyword"
+                nzSize="small"
+                style="width: 200px;"
+                (keyup.enter)="loadData()"
+              />
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item class="mb-0">
+            <nz-form-control>
+              <div class="d-flex gap-1">
+                <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">Đặt lại</button>
+                <button nz-button nzType="primary" nzSize="small" (click)="loadData()">
+                  <nz-icon nzType="search" nzTheme="outline"></nz-icon>
+                  Tìm kiếm
+                </button>
+                <button nz-button nzType="default" nzSize="small" (click)="exportExcel()">
+                  <img src="assets/icon/action_export_excel_16.png" alt="Xuất excel" style="width: 16px; height: 16px;" />
+                  Xuất excel
+                </button>
+              </div>
+            </nz-form-control>
+          </nz-form-item>
+        </form>
+      </div>
+    </div>
+
+    <!-- Tabs Section -->
+    <div class="position-relative">
+      <!-- Loading Overlay -->
+      <div *ngIf="isLoading" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
+                  background: rgba(255,255,255,0.8); z-index: 1000; 
+                  display: flex; align-items: center; justify-content: center;">
+        <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+      </div>
+
+      <nz-tabset [nzTabBarStyle]="{ 'margin-bottom': '16px' }">
+        <nz-tab nzTitle="Chấm công" [nzForceRender]="true">
+          <div #tb_work class="border"></div>
+        </nz-tab>
+
+        <nz-tab nzTitle="Đi làm sớm" [nzForceRender]="true">
+          <div #tb_early class="border"></div>
+        </nz-tab>
+
+        <nz-tab nzTitle="Tiền xe đi công tác" [nzForceRender]="true">
+          <div #tb_vehicle class="border"></div>
+        </nz-tab>
+      </nz-tabset>
+    </div>
+  </div>
+</div>

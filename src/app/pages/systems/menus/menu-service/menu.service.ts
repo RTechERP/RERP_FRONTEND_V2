@@ -17,7 +17,7 @@ import { DayOffComponent } from '../../../hrm/day-off/day-off.component';
 import { DepartmentComponent } from '../../../hrm/department/department.component';
 import { EarlyLateComponent } from '../../../hrm/early-late/early-late.component';
 import { EmployeeAttendanceComponent } from '../../../hrm/employee-management/employee-attendance/employee-attendance.component';
-import { EmployeeBussinessComponent } from '../../../hrm/employee-bussiness/employee-bussiness.component';
+import { EmployeeBussinessComponent } from '../../../hrm/employee-management/employee-bussiness/employee-bussiness.component';
 import { EmployeeComponent } from '../../../hrm/employee/employee.component';
 import { HolidayComponent } from '../../../hrm/holiday/holiday.component';
 import { OverTimeComponent } from '../../../hrm/over-time/over-time.component';
@@ -108,6 +108,10 @@ import { FoodOrderComponent } from '../../../hrm/food-order/food-order.component
 import { SupplierSaleComponent } from '../../../purchase/supplier-sale/supplier-sale.component';
 import { EmployeeNoFingerprintComponent } from '../../../hrm/employee-management/employee-no-fingerprint/employee-no-fingerprint.component';
 import { ChiTietSanPhamSaleComponent } from '../../../old/Sale/chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
+import { EmployeeCurricularComponent } from '../../../hrm/employee-management/employee-curriculart/employee-curricular/employee-curricular.component';
+import { EmployeeErrorComponent } from '../../../hrm/employee-management/employee-error/employee-error.component';
+import { EmployeeTimekeepingComponent } from '../../../hrm/employee-management/employee-timekeeping/employee-timekeeping.component';
+import { EmployeeSyntheticComponent } from '../../../hrm/employee-management/employee-synthetic/employee-synthetic/employee-synthetic.component';
 import { AssignWorkComponent } from '../../../purchase/assign-work/assign-work.component';
 @Injectable({
   providedIn: 'root',
@@ -387,7 +391,7 @@ export class MenuService {
         title: 'HRM',
         isOpen: true,
         isPermission: this.permissionService.hasPermission(''),
-        icon: 'assets/icon/menu_hrm_24.png',
+        icon: 'assets/icon/menu_hrm_64.svg',
 
         children: [
           {
@@ -397,7 +401,7 @@ export class MenuService {
             isOpen: true,
             isPermission: this.permissionService.hasPermission('N2,N34,N1'),
             comp: HrhiringRequestComponent,
-            icon: 'assets/icon/hr_hiring_24.svg',
+            //   icon: 'assets/icon/hr_hiring_24.svg',
           },
           {
             kind: 'leaf',
@@ -406,7 +410,7 @@ export class MenuService {
             isOpen: true,
             isPermission: this.permissionService.hasPermission('N2,N34,N1'),
             comp: DocumentComponent,
-            icon: 'assets/icon/hr_document_24.svg',
+            //    icon: 'assets/icon/hr_document_24.svg',
           },
           {
             kind: 'group',
@@ -833,6 +837,24 @@ export class MenuService {
                 comp: EmployeeAttendanceComponent,
                 //   icon: 'assets/icon/layers.png',
               },
+              {
+                kind: 'leaf',
+                key: 'EmployeeErrorComponent',
+                title: 'Lỗi 5S',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission('N2,N1'),
+                comp: EmployeeErrorComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+              {
+                kind: 'leaf',
+                key: 'EmployeeCurricularComponent',
+                title: 'Ngoại khóa',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission('N2,N1'),
+                comp: EmployeeCurricularComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
               //   {
               //     kind: 'leaf',
               //     key: 'EmployeeAttendanceComponent',
@@ -863,19 +885,8 @@ export class MenuService {
                 key: 'HandoverComponent',
                 title: 'Biên bản bàn giao',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
+                isPermission: this.permissionService.hasPermission('N1,N2,N34'),
                 comp: HandoverComponent,
-                //   icon: 'assets/icon/layers.png',
-              },
-
-              //#region QUẢN LÝ VPP
-              {
-                kind: 'leaf',
-                key: 'OfficeSupplyComponent',
-                title: 'Danh sách VPP',
-                isOpen: true,
-                isPermission: false,
-                comp: OfficeSupplyComponent,
                 //   icon: 'assets/icon/layers.png',
               },
 
@@ -886,6 +897,25 @@ export class MenuService {
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission('N2,N1,N52'),
                 comp: PayrollComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+
+              {
+                kind: 'leaf',
+                key: 'EmployeeTimekeepingComponent',
+                title: 'Bảng chấm công',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission('N2,N1,N52'),
+                comp: EmployeeTimekeepingComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+              {
+                kind: 'leaf',
+                key: 'EmployeeSyntheticComponent',
+                title: 'Tổng hợp',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: EmployeeSyntheticComponent,
                 //   icon: 'assets/icon/layers.png',
               },
               //#endregion
@@ -1279,7 +1309,8 @@ export class MenuService {
                 key: 'POKHComponent',
                 title: 'Danh sách PO KHÁCH HÀNG',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission('N27,N36,N1,N31'),
+                isPermission:
+                  this.permissionService.hasPermission('N27,N36,N1,N31'),
                 comp: PokhComponent,
               },
               {
@@ -1287,7 +1318,8 @@ export class MenuService {
                 key: 'QuotationKhComponent',
                 title: 'BÁO GIÁ KHÁCH HÀNG',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission('N27,N36,N1'),
+                isPermission:
+                  this.permissionService.hasPermission('N27,N36,N1'),
                 comp: QuotationKhComponent,
               },
               {
@@ -1295,7 +1327,8 @@ export class MenuService {
                 key: 'PokhKpiComponent',
                 title: 'XUẤT PO KHÁCH HÀNG CHI TIẾT',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission('N27,N36,N1'),
+                isPermission:
+                  this.permissionService.hasPermission('N27,N36,N1'),
                 comp: PokhKpiComponent,
               },
               {

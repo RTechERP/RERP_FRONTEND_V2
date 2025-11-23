@@ -1,0 +1,45 @@
+<form [formGroup]="vehicleForm">
+  <div class="mb-3">
+    <label class="form-label">Mã phương tiện <span class="text-danger">*</span></label>
+    <input
+      type="text"
+      class="form-control"
+      formControlName="VehicleCode"
+      placeholder="Nhập mã phương tiện"
+      [class.is-invalid]="vehicleForm.get('VehicleCode')?.invalid && vehicleForm.get('VehicleCode')?.dirty"
+    />
+    <div class="invalid-feedback" *ngIf="vehicleForm.get('VehicleCode')?.invalid && vehicleForm.get('VehicleCode')?.dirty">
+      Vui lòng nhập mã phương tiện
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Tên phương tiện <span class="text-danger">*</span></label>
+    <input
+      type="text"
+      class="form-control"
+      formControlName="VehicleName"
+      placeholder="Nhập tên phương tiện"
+      [class.is-invalid]="vehicleForm.get('VehicleName')?.invalid && vehicleForm.get('VehicleName')?.dirty"
+    />
+    <div class="invalid-feedback" *ngIf="vehicleForm.get('VehicleName')?.invalid && vehicleForm.get('VehicleName')?.dirty">
+      Vui lòng nhập tên phương tiện
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Phụ cấp (VNĐ) <span class="text-danger">*</span></label>
+    <input
+      type="number"
+      class="form-control"
+      formControlName="Cost"
+      placeholder="Nhập phụ cấp"
+      [class.is-invalid]="vehicleForm.get('Cost')?.invalid && vehicleForm.get('Cost')?.dirty"
+    />
+    <div class="invalid-feedback" *ngIf="vehicleForm.get('Cost')?.invalid && vehicleForm.get('Cost')?.dirty">
+      <span *ngIf="vehicleForm.get('Cost')?.errors?.['required']">Vui lòng nhập phụ cấp</span>
+      <span *ngIf="vehicleForm.get('Cost')?.errors?.['min']">Phụ cấp phải lớn hơn hoặc bằng 0</span>
+    </div>
+  </div>
+</form>
+

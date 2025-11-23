@@ -28,7 +28,7 @@
               <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
               <nz-form-control [nzSpan]="24">
                 <nz-date-picker [nzFormat]="dateFormat" class="w-100" nzSize="small" [(ngModel)]="searchParams.dateEnd"
-                  name="dateEnd" [nzDisabled]="checked"></nz-date-picker>
+                  name="dateEnd" [nzDisabled]="checked" (ngModelChange)="onDateEndChange($event)"></nz-date-picker>
               </nz-form-control>
             </nz-form-item>
             <!-- cbb kho -->
@@ -85,9 +85,9 @@
             <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
               <nz-icon nzType="search" />
             </button>
-            <button class="btn-add" nz-button nzType="default" nzSize="small"
+            <button nz-button nzType="default" nzSize="small"
               (click)=" openModalBillImportDetail(false)">
-              <img class="btn-action-icon" src="assets/icon/action_add_item_16.png" *hasPermission="'N27,N1,N33,N34,N69'" alt="Thêm" /> Thêm
+              <img class="btn-action-icon" src="assets/icon/action_add_24.svg" *hasPermission="'N27,N1,N33,N34,N69'" alt="Thêm" /> Thêm
             </button>
             <button class="btn-edit" nz-button nzType="default" nzSize="small" *hasPermission="'N27,N1,N33,N34,N69'"
               (click)=" openModalBillImportDetail(true)">

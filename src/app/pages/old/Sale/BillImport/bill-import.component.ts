@@ -164,7 +164,8 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     { ID: -1, Name: '--Tất cả--' },
     { ID: 0, Name: 'Phiếu nhập kho' },
     { ID: 1, Name: 'Phiếu trả' },
-    { ID: 2, Name: 'Phiếu mượn NCC' },
+    { ID: 3, Name: 'Phiếu mượn NCC' },
+    { ID: 4, Name: 'Yêu cầu nhập kho' },
   ];
   ngOnInit(): void {
     this.getProductGroup();
@@ -177,6 +178,15 @@ export class BillImportComponent implements OnInit, AfterViewInit {
   }
   onCheckboxChange() {
     this.loadDataBillImport();
+  }
+
+  // Tự động set giờ 23:59:59 cho dateEnd khi người dùng chọn ngày
+  onDateEndChange(date: any) {
+    if (date) {
+      const d = new Date(date);
+      d.setHours(23, 59, 59, 999);
+      this.searchParams.dateEnd = d.toISOString();
+    }
   }
   resetform(): void {
     this.selectedKhoTypes = [];
@@ -463,9 +473,10 @@ export class BillImportComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err) => {
+        console.error('Lỗi khi load dữ liệu:', err);
         this.notification.error(
           NOTIFICATION_TITLE.error,
-          'Không thể tải dữ liệu phiếu nhập'
+          err?.error?.message || 'Không thể tải dữ liệu phiếu nhập'
         );
         this.isLoadTable = false;
       },
@@ -733,7 +744,7 @@ const headers = [
   //xoa phieu nhap
 deleteBillImport() {
   const selectedRows:BillImport[] = this.table_billImport?.getSelectedRows();
-
+  debugger
   if (!selectedRows || selectedRows.length === 0) {
     this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất 1 phiếu muốn xóa!');
     return;
@@ -766,7 +777,8 @@ deleteBillImport() {
       IsDeleted: true
     },
     billImportDetail: [],
-    DeletedDetailIDs: []
+    DeletedDetailIDs: [],
+    billDocumentImports: [],
   }));
 
   console.log('payload', payload);
@@ -913,7 +925,7 @@ deleteBillImport() {
       this.table_billImport = new Tabulator('#table_billImport', {
         ...DEFAULT_TABLE_CONFIG,
         data: this.dataTableBillImport,
-        height: '100%',
+        height: '97%',
         layout: 'fitDataStretch',
         pagination: true,
         movableColumns: true,
@@ -932,18 +944,6 @@ deleteBillImport() {
           },
         },
         locale: 'vi',
-        // rowHeader: {
-        //   headerSort: false,
-        //   resizable: false,
-        //   frozen: true,
-        //   formatter: 'rowSelection',
-        //   headerHozAlign: 'center',
-        //   hozAlign: 'center',
-        //   titleFormatter: 'rowSelection',
-        //   cellClick: (e: any, cell: any) => {
-        //     e.stopPropagation();
-        //   },
-        // },
         columns: [
           {
             title: 'Nhận chứng từ',
@@ -1028,14 +1028,18 @@ deleteBillImport() {
             headerHozAlign: 'center',
           },
           {
-            title: 'Ngày tạo',
+            title: 'Ngày nhập',
             field: 'CreatDate',
             hozAlign: 'center',
             headerHozAlign: 'center',
             formatter: (cell) => {
-              const value = cell.getValue();
-              return value
-                ? DateTime.fromISO(value).toFormat('dd/MM/yyyy')
+              const v = cell.getValue();
+              return v
+                ? DateTime.fromISO(v).isValid
+                  ? DateTime.fromISO(v).toFormat('dd/MM/yyyy HH:mm')
+                  : DateTime.fromSQL(v).isValid
+                  ? DateTime.fromSQL(v).toFormat('dd/MM/yyyy HH:mm')
+                  : v
                 : '';
             },
           },
@@ -1052,7 +1056,6 @@ deleteBillImport() {
             headerHozAlign: 'center',
           },
 
-          // ====== Bổ sung đầy đủ các cột yêu cầu ======
           {
             title: 'TotalPage',
             field: 'TotalPage',
@@ -1122,22 +1125,6 @@ deleteBillImport() {
             headerHozAlign: 'center',
             visible: false,
           },
-          // {
-          //   title: 'Ngày tạo',
-          //   field: 'CreatedDate',
-          //   hozAlign: 'center',
-          //   headerHozAlign: 'center',
-          //   formatter: (cell) => {
-          //     const v = cell.getValue();
-          //     return v
-          //       ? DateTime.fromISO(v).isValid
-          //         ? DateTime.fromISO(v).toFormat('dd/MM/yyyy HH:mm')
-          //         : DateTime.fromSQL(v).isValid
-          //         ? DateTime.fromSQL(v).toFormat('dd/MM/yyyy HH:mm')
-          //         : v
-          //       : '';
-          //   },
-          // },
           {
             title: 'UpdatedDate',
             field: 'UpdatedDate',
@@ -1244,9 +1231,6 @@ deleteBillImport() {
             headerHozAlign: 'center',
             visible: false,
           },
-          // BillTypeText đã có ở trên
-          // Code đã có ở trên
-          // DepartmentName đã có ở trên
           {
             title: 'Overdue QC',
             field: 'Overdue',
@@ -1259,6 +1243,22 @@ deleteBillImport() {
             field: 'IsSuccessText',
             hozAlign: 'left',
             headerHozAlign: 'center',
+          },
+                    {
+            title: 'Ngày tạo',
+            field: 'CreatedDate',
+            hozAlign: 'center',
+            headerHozAlign: 'center',
+            formatter: (cell) => {
+              const v = cell.getValue();
+              return v
+                ? DateTime.fromISO(v).isValid
+                  ? DateTime.fromISO(v).toFormat('dd/MM/yyyy HH:mm')
+                  : DateTime.fromSQL(v).isValid
+                  ? DateTime.fromSQL(v).toFormat('dd/MM/yyyy HH:mm')
+                  : v
+                : '';
+            },
           },
           {
             title: 'Người nhận / Hủy CT',
@@ -1294,7 +1294,6 @@ deleteBillImport() {
             headerHozAlign: 'center',
             visible: false,
           },
-          // ====== Hết phần bổ sung ======
         ],
       });
 
@@ -1375,7 +1374,7 @@ deleteBillImport() {
           },
           {
             title: 'Mã theo dự án',
-            field: 'ProjectCodeExport',
+            field: 'ProjectCode',
             hozAlign: 'left',
             headerHozAlign: 'center',
           },
@@ -1412,7 +1411,7 @@ deleteBillImport() {
           },
           {
             title: 'Mã dự án',
-            field: 'ProjectCodeExport',
+            field: 'ProjectCodeText',
             hozAlign: 'left',
             headerHozAlign: 'center',
           },
@@ -1428,6 +1427,12 @@ deleteBillImport() {
             hozAlign: 'left',
             headerHozAlign: 'center',
           },
+                    {
+            title: 'Số POKH',
+            field: 'PONumber',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+          },
           {
             title: 'Đơn mua hàng',
             field: 'BillCodePO',
@@ -1437,6 +1442,24 @@ deleteBillImport() {
           {
             title: 'Ghi chú (PO)',
             field: 'Note',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+          },
+                    {
+            title: 'Hạn QC',
+            field: 'DealineQC',
+            hozAlign: 'center',
+            headerHozAlign: 'center',
+                        formatter: (cell) => {
+              const value = cell.getValue();
+              return value
+                ? DateTime.fromISO(value).toFormat('dd/MM/yyyy')
+                : '';
+            },
+          },
+          {
+            title: 'Trạng thái QC',
+            field: 'StatusQCText',
             hozAlign: 'left',
             headerHozAlign: 'center',
           },

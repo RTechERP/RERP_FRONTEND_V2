@@ -582,7 +582,7 @@ export class BillExportDetailComponent
     this.billExportService.getBillExportDetail(this.id).subscribe({
       next: (res) => {
         if (res?.data) {
-          
+
           const rawData = Array.isArray(res.data) ? res.data : [res.data];
           this.dataTableBillExportDetail = rawData.map((item: any) => {
             const productInfo =
@@ -1203,7 +1203,8 @@ export class BillExportDetailComponent
               console.log('ProductID:', val, 'Found Product:', product);
               const productCode = product ? product.ProductCode : '';
               const productNewCode = product ? product.ProductNewCode : '';
-              return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${productNewCode} - ${productCode}</p> <i class="fas fa-angle-down"></i></div>`;
+              const productName = product ? product.ProductName : '';
+              return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${productNewCode} | ${productCode} | ${productName}</p> <i class="fas fa-angle-down"></i></div>`;
             },
             cellEdited: (cell) => {
               const row = cell.getRow();
@@ -1625,6 +1626,29 @@ export class BillExportDetailComponent
           isValid: false,
           message: `Vui lòng nhập số lượng xuất cho dòng ${i + 1}!`,
         };
+      }
+
+      // Kiểm tra số lượng tồn kho
+      const totalInventory = parseFloat(row.TotalInventory || 0);
+      const qtyExport = parseFloat(row.Qty || 0);
+
+      // Kiểm tra số lượng tồn < 0
+      if (totalInventory < 0) {
+        return {
+          isValid: false,
+          message: `Sản phẩm [${row.ProductNewCode || row.ProductCode || ''}] ở dòng ${i + 1} có số lượng tồn kho không hợp lệ (${totalInventory})!`,
+        };
+      }
+
+      // Kiểm tra số lượng xuất > số lượng tồn (bỏ qua đơn vị là 'm', 'mét')
+      const unitName = (row.Unit || '').toLowerCase().trim();
+      if (unitName !== 'm' && unitName !== 'mét' && unitName !== 'met') {
+        if (qtyExport > totalInventory) {
+          return {
+            isValid: false,
+            message: `Sản phẩm [${row.ProductNewCode || row.ProductCode || ''}] ở dòng ${i + 1} không đủ số lượng tồn!\nSL xuất: ${qtyExport}, SL tồn: ${totalInventory}`,
+          };
+        }
       }
     }
 

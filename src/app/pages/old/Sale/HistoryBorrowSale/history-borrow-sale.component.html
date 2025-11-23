@@ -83,17 +83,17 @@
                         <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
                           <nz-icon nzType="search" />
                       </button>
-                      <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="createImport()">
-                        <nz-icon nzType="plus" nzTheme="outline" /> Tạo phiếu trả
+                      <button class="fs-12 btn" nz-button nzType="default" *hasPermission="'N27,N1'" nzSize="small" (click)="createImport()">
+                        <img class="btn-action-icon" src="assets/icon/action_add_24.svg"/> Tạo phiếu trả
                     </button>
-                      <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="IsApprovedReturned(true)">
-                        <nz-icon nzType="check" nzTheme="outline" style="color: green;" /> Đã trả
+                      <button class="fs-12 btn" *hasPermission="'N27,N1'" nz-button nzType="default" nzSize="small" (click)="IsApprovedReturned(true)">
+                        <img class="btn-action-icon" src="assets/icon/action_check_24.svg"/> Đã trả
                     </button>
-                    <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="IsApprovedReturned(false)">
-                        <nz-icon nzType="close" nzTheme="outline" style="color: red;" /> Hủy trả
+                    <button class="fs-12 btn" *hasPermission="'N27,N1'" nz-button nzType="default" nzSize="small" (click)="IsApprovedReturned(false)">
+                        <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg"/> Hủy trả
                     </button>
                         <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
-                          <nz-icon nzType="file-excel" /> Xuất Excel
+                          <img class="btn-action-icon" src="assets/icon/action_export_excel_24.svg"/> Xuất Excel
                         </button>
                 </div>
               </div>

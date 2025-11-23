@@ -57,7 +57,6 @@ import { ProposeVehicleRepairComponent } from '../../../hrm/vehicle/propose-vehi
 import { DailyReportHrComponent } from '../../../hrm/daily-report-hr/daily-report-hr.component';
 import { PriceHistoryPartlistComponent } from '../../../project/price-history-partlist/price-history-partlist.component';
 import { ProjectTypeComponent } from '../../../project/project-type/project-type.component';
-
 import { EmployeePurchaseComponent } from '../../../purchase/employee-purchase/employee-purchase.component';
 import { RulePayComponent } from '../../../purchase/rulepay/rule-pay.component';
 import { CurrencyListComponent } from '../../../general-category/currency-list/currency-list.component';
@@ -76,7 +75,6 @@ import { QuotationKhComponent } from '../../../old/quotation-kh/quotation-kh.com
 import { PokhKpiComponent } from '../../../old/pokh-kpi/pokh-kpi.component';
 import { PokhHistoryComponent } from '../../../old/pokh-history/pokh-history.component';
 import { PokhComponent } from '../../../old/pokh/pokh.component';
-
 import { SupplierSaleComponentComponent } from '../../../old/supplier-sale-component/supplier-sale-component.component';
 import { AppUserService } from '../../../../services/app-user.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';

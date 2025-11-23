@@ -32,6 +32,7 @@ import { BillExportService } from '../BillExport/bill-export-service/bill-export
 import { BillImportDetailComponent } from '../BillImport/Modal/bill-import-detail/bill-import-detail.component';
 import { BillImportTabsComponent } from '../BillImport/Modal/bill-import-tabs/bill-import-tabs.component';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 @Component({
   selector: 'app-history-borrow-sale',
   standalone: true,
@@ -53,6 +54,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     NzDatePickerModule,
     NzDropDownModule,
     NzMenuModule,
+    HasPermissionDirective
   ],
   templateUrl: './history-borrow-sale.component.html',
   styleUrl: './history-borrow-sale.component.css',
@@ -435,51 +437,60 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
         // Từ ảnh image_248e62.png (Phần đầu bảng)
         {
           title: 'Trạng thái',
-          field: 'ReturnedStatusText', // Ánh xạ từ 'Yêu cầu mượn' trong dữ liệu Swagger
+          field: 'ReturnedStatusText',
           hozAlign: 'center',
           headerHozAlign: 'center',
         },
         {
           title: 'Ngày mượn',
-          field: 'BorrowDate', // Từ dữ liệu Swagger
+          field: 'BorrowDate',
           hozAlign: 'center',
           headerHozAlign: 'center',
           formatter: 'datetime',
-          formatterParams: { outputFormat: 'yyyy-MM-dd' },
+          formatterParams: { outputFormat: 'dd/MM/yyy' },
+        },
+                {
+          title: 'Ngày dự kiến trả',
+          field: 'ExpectReturnDate',
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+          formatter: 'datetime',
+          formatterParams: { outputFormat: 'dd/MM/yyy' },
         },
         {
           title: 'Mã nhân viên',
-          field: 'Code', // Từ dữ liệu Swagger (dường như là mã NV tạo phiếu)
+          field: 'Code',
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'Họ và tên',
-          field: 'FullName', // Từ dữ liệu Swagger
+          field: 'FullName',
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'Mã phiếu mượn',
-          field: 'BorrowCode', // Từ dữ liệu Swagger
+          field: 'BorrowCode',
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'Loại kho',
-          field: 'ProductGroupName', // Có thể ánh xạ từ dữ liệu Swagger
+          field: 'ProductGroupName',
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'Mã Sản Phẩm',
-          field: 'ProductCode', // Từ dữ liệu Swagger
+          field: 'ProductCode',
           hozAlign: 'left',
           headerHozAlign: 'center',
+          bottomCalc:'count'
         },
         {
           title: 'Mã nội bộ',
-          field: 'ProductNewCode', // Từ dữ liệu Swagger
+          field: 'ProductNewCode',
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
@@ -501,31 +512,50 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
-
-        // Từ ảnh image_248e7d.png (Phần sau bảng)
         {
           title: 'Số lượng mượn',
           field: 'BorrowQty', // Từ dữ liệu Swagger
           hozAlign: 'right',
           headerHozAlign: 'center',
 
-          formatterParams: { decimal: '.', thousand: ',', precision: 0 }, // Định dạng số không có số thập phân
+          formatterParams: { decimal: '.', thousand: ',', precision: 0 },
+          bottomCalc:'sum',
+          bottomCalcFormatter:"money",
+          bottomCalcFormatterParams:{
+              decimal: ".",
+              thousand: ",",
+              precision: 0
+          }
         },
         {
           title: 'Số lượng trả',
           field: 'ReturnQty', // Từ dữ liệu Swagger
           hozAlign: 'right',
           headerHozAlign: 'center',
+          bottomCalc:'sum',
 
           formatterParams: { decimal: '.', thousand: ',', precision: 0 },
+          bottomCalcFormatter:"money",
+          bottomCalcFormatterParams:{
+              decimal: ".",
+              thousand: ",",
+              precision: 0
+          }
         },
         {
           title: 'Đang mượn',
           field: 'QtyDifference', // Từ dữ liệu Swagger
           hozAlign: 'right',
           headerHozAlign: 'center',
+          bottomCalc:'count',
 
           formatterParams: { decimal: '.', thousand: ',', precision: 0 },
+          bottomCalcFormatter:"money",
+          bottomCalcFormatterParams:{
+              decimal: ".",
+              thousand: ",",
+              precision: 0
+          }
         },
         {
           title: 'Vị trí (Hộp)',

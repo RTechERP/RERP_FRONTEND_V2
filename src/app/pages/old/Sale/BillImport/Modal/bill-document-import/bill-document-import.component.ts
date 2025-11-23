@@ -213,21 +213,6 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
 
     for (const item of currentData) {
       if (item._edited) {
-        // Validate
-        if (
-          !item.DocumentStatus ||
-          isNaN(item.DocumentStatus) ||
-          item.DocumentStatus <= 0
-        ) {
-          this.notification.error(
-            'Lỗi',
-            `Vui lòng nhập Trạng thái cho chứng từ [${
-              item.DocumentImportCode || 'N/A'
-            }].`
-          );
-          return;
-        }
-
         if (
           item.DocumentStatus === 2 &&
           (!item.ReasonCancel || item.ReasonCancel.trim() === '')
@@ -251,7 +236,6 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
           Note: item.Note || '',
           StatusHr: parseInt(item.DocumentStatusHR, 10) || null,
           StatusPurchase: parseInt(item.DocumentStatusPur, 10) || null,
-          UpdateBy: 'admin',
           UpdateDate: DateTime.now().toISO(),
         });
       }
@@ -464,10 +448,11 @@ export class BillDocumentImportComponent implements OnInit, AfterViewInit {
 
       this.table_billDocumentImport.on('rowSelected', (row: RowComponent) => {
         const rowData = row.getData();
-        this.id = rowData['ID'];
+        this.id = rowData['ID'] || 0;
         console.log('documentimportid',this.id);
 
-        this.documentImportID = rowData['DocumentImportID'];
+        this.documentImportID = rowData['DocumentImportID'] || 0;
+
         this.getBillDocumentImportLog(this.id, this.documentImportID);
       });
 

@@ -16,6 +16,9 @@
 .splitter-main > nz-splitter-panel {
   max-height: 39vh !important;
 }
+.tabulator{
+  font-size: 12px !important;
+}
 
 .splitter-main ::ng-deep > .ant-splitter-panel {
   max-height: 39vh !important;

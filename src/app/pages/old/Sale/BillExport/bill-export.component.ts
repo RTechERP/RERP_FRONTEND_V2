@@ -555,7 +555,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
 
         data: this.dataTableBillExport,
         layout: 'fitDataFill',
-        height: '92vh',
+        height: '97%',
         pagination: true,
         selectableRows: 1,
         movableColumns: true,
@@ -753,7 +753,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
       this.table_billExportDetail = new Tabulator('#table_billexportdetail', {
         data: this.dataTableBillExportDetail,
         layout: 'fitDataStretch',
-        height: '92vh',
+        height: '90%',
         movableColumns: true,
         resizableRows: true,
         reactiveData: true,

@@ -460,7 +460,7 @@
       <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">
         Đóng
       </button>
-      <button nz-button nzType="primary" (click)="save()">
+      <button nz-button nzType="primary" [disabled]="!canEdit || isDisSave" (click)="save()">
         Lưu
       </button>
     </div>

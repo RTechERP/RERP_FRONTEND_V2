@@ -19,7 +19,7 @@
   <div class="modal-body p-0" style="overflow: hidden; min-height: 0;">
     <nz-splitter nzLayout="horizontal" style="height: 100%; min-height: 0;">
       <!-- Phần trái: 3 bảng dọc -->
-      <nz-splitter-panel [nzSize]="sizeLeftPanel" nzMin="20%" nzMax="50%" [nzCollapsible]="true" nzResizable="true">
+      <nz-splitter-panel [nzSize]="sizeLeftPanel === '0' ? '0' : ''" nzMin="10%" nzMax="50%" [nzCollapsible]="true" nzResizable="true">
         <nz-splitter nzLayout="vertical" style="height: 100%">
           <!-- Bảng 1: Giải pháp -->
           <nz-splitter-panel nzDefaultSize="33.33%">
@@ -188,7 +188,7 @@
       </nz-splitter-panel>
 
           <!-- Phần phải: Bảng nhân công -->
-      <nz-splitter-panel [nzSize]="sizeRightPanel" nzMin="50%" nzMax="100%">
+      <nz-splitter-panel [nzSize]="sizeRightPanel" nzMin="50%" nzMax="100%" nzResizable="true">
         <div class="card h-100 border-0 rounded-0 d-flex flex-column">
           <div class="card-header bg-white p-1 d-flex justify-content-between align-items-center" style=" font-weight: bold !important; background-color: #efebebe7 !important;">
             <p class="m-0">Nhân công</p>
@@ -279,6 +279,9 @@
         >
           <img src="assets/icon/action_export_excel_16.png" /> Xuất Excel
         </button>
+          </div>
+
+          <div class="card-header bg-white p-1 d-flex gap-1">
             <div
               style="min-width: 400px"
               class="d-flex gap-1 ms-auto align-items-center"

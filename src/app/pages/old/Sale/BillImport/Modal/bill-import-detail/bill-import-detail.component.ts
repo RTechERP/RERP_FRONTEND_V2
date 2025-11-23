@@ -66,6 +66,7 @@ import { takeUntil } from 'rxjs/operators';
 import { BillImportChoseSerialComponent } from '../../../../bill-import-technical/bill-import-chose-serial/bill-import-chose-serial.component';
 import { AppUserService } from '../../../../../../services/app-user.service';
 import { NOTIFICATION_TITLE } from '../../../../../../app.config';
+import { BillReturnComponent } from '../bill-return/bill-return.component';
 
 interface ProductSale {
   Id?: number;
@@ -163,6 +164,8 @@ export class BillImportDetailComponent
   projectOptions: any = [];
   billID: number = 0;
   deliverID: number = 0;
+
+  isApproved:boolean=false;
   //tao phieu tra
   @Input() createImport: any;
   @Input() dataHistory: any[] = [];
@@ -263,6 +266,18 @@ export class BillImportDetailComponent
     if (this.appUserService.departmentID === 4) {
       this.activePur = true;
     }
+    if(this.id>0){
+      this.billImportService.getBillImportByID(this.id).subscribe((res)=>{
+        const data = res.data;
+        if(data && (data.Status===true ||data.Status===1 )){
+            this.isApproved=true;
+            console.log('approved',this.isApproved);
+
+        }
+      }
+
+      )
+    }
     this.billImportService.getWarehouse().subscribe((res: any) => {
       const list = res.data || [];
       this.warehouses = list;
@@ -294,23 +309,17 @@ export class BillImportDetailComponent
       this.warehouseIdHN = hnId;
       console.log('warehouseIdHN', hnId);
 
-      // Người giao mặc định là user hiện tại
       this.validateForm.controls['DeliverID'].setValue(
         this.appUserService.id || 0
       );
-
-      // Áp dụng logic nhận/giao theo kho và NCC
       this.updateReceiverDeliver();
     });
-    // Theo dõi thay đổi BillTypeNew
     this.validateForm
       .get('BillTypeNew')
       ?.valueChanges.pipe(takeUntil(this.destroy$))
       .subscribe((newValue: number) => {
-        // Luôn cập nhật newCode khi thay đổi BillTypeNew
         this.changeStatus();
       });
-    // Theo dõi thay đổi Loại kho và NCC để áp dụng lại logic
     this.validateForm
       .get('KhoTypeID')
       ?.valueChanges.pipe(takeUntil(this.destroy$))
@@ -334,7 +343,6 @@ export class BillImportDetailComponent
         this.updateReceiverDeliver();
       });
 
-    // Theo dõi thay đổi DeliverID để clear các trường khi không có quyền chỉnh sửa
     this.validateForm
       .get('DeliverID')
       ?.valueChanges.pipe(takeUntil(this.destroy$))
@@ -356,7 +364,7 @@ export class BillImportDetailComponent
       this.getBillImportByID();
     } else if (!this.newBillImport.Id || this.newBillImport.Id === 0) {
       this.initialBillTypeNew = 0;
-      this.isInitialLoad = false; // THÊM: Set false để lần user change đầu gọi getNewCode
+      this.isInitialLoad = false;
       this.getNewCode();
     }
 
@@ -367,7 +375,6 @@ export class BillImportDetailComponent
     this.loadOptionProject();
     this.loadDocumentImport();
 
-    // Theo dõi thay đổi form để đồng bộ với newBillImport
     this.validateForm.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe((values) => {
@@ -394,11 +401,7 @@ export class BillImportDetailComponent
     this.newBillImport.DeliverID = firstHistory.UserID;
     this.newBillImport.KhoTypeID = firstHistory.ProductGroupID;
     this.newBillImport.KhoType = firstHistory.ProductGroupName;
-    // GIỮ NGUYÊN BillTypeNew = 1 đã được set trước đó (không ghi đè)
-    // this.newBillImport.BillTypeNew đã = 1 từ ngOnInit
 
-    // Patch vào form mà không trigger valueChanges để tránh gọi getNewCode
-    // CHỈ patch các field cần thiết, KHÔNG patch BillTypeNew để tránh ghi đè
     this.validateForm.patchValue(
       {
         BillImportCode: this.newBillImport.BillImportCode,
@@ -428,9 +431,9 @@ export class BillImportDetailComponent
 
       return {
         ID: item.ID || 0,
-        POKHDetailID: item.POKHDetailID || 0,
-        ProductID: item.ProductID || 0,
-        ProductNewCode: item.ProductNewCode || productInfo.ProductNewCode || '',
+        POKHDetailID: item.POKHDetailID || null,
+        ProductID: item.ProductID || null,
+        ProductNewCode: item.ProductNewCode || productInfo.ProductNewCode || null,
         ProductCode: item.ProductCode || productInfo.ProductCode || '',
         ProductName: item.ProductName || productInfo.ProductName || '',
         Unit: item.Unit || productInfo.Unit || '',
@@ -497,8 +500,6 @@ export class BillImportDetailComponent
         DateRequestImport: new Date(),
       });
     }
-
-    // Sau đó mới gọi getNewCode() để tránh bị ghi đè
     this.getNewCode();
   }
 
@@ -1092,25 +1093,49 @@ export class BillImportDetailComponent
   }
 
   private mapTableDataToBillImportDetails(tableData: any[]): any[] {
-    const parsePOKHList = (pokhString: string) =>
-      pokhString
-        ? pokhString
-            .split(',')
-            .map((s) => {
-              const [id, qty] = s.split('-').map((x) => x.trim());
-              return { POKHDetailID: Number(id), QuantityRequest: Number(qty) };
-            })
-            .filter((x) => x.POKHDetailID > 0 && x.QuantityRequest > 0)
-        : [];
+    const parsePOKHList = (pokhString: string): Array<{POKHDetailID: number, QuantityRequest: number}> => {
+      if (!pokhString || pokhString.trim() === '') {
+        return [];
+      }
+
+      return pokhString
+        .split(',')
+        .map((s) => {
+          const parts = s.split('-').map((x) => x.trim());
+          if (parts.length !== 2) return null;
+
+          const id = Number(parts[0]);
+          const qty = Number(parts[1]);
+
+          // Chỉ return nếu cả id và qty đều hợp lệ (> 0)
+          if (!isNaN(id) && !isNaN(qty) && id > 0 && qty > 0) {
+            return { POKHDetailID: id, QuantityRequest: qty };
+          }
+          return null;
+        })
+        .filter((x): x is {POKHDetailID: number, QuantityRequest: number} => x !== null);
+    };
 
     return tableData.map((row: any, index: number) => {
+      // Parse POKHList từ POKHDetailQuantity
+      const pokhList = parsePOKHList(row.POKHDetailQuantity || '');
+
+      // Lấy POKHDetailID: ưu tiên từ row, nếu không có thì lấy từ item đầu tiên trong POKHList
+      // Gửi null nếu không có giá trị (match với int? trong C#)
+      let pokhDetailID: number | null = null;
+      if (row.POKHDetailID && Number(row.POKHDetailID) > 0) {
+        pokhDetailID = Number(row.POKHDetailID);
+      } else if (pokhList.length > 0 && pokhList[0].POKHDetailID > 0) {
+        pokhDetailID = pokhList[0].POKHDetailID;
+      }
+
       return {
         ID: row.ID || 0,
         BillImportID: row.BillImportID || 0,
         ProductID: row.ProductID || 0,
         Qty: row.Qty || 0,
         Price: row.Price || 1,
-        TotalPrice: row.Qty * row.Price,
+        TotalPrice: (row.Qty || 0) * (row.Price || 1),
         ProjectName: row.ProjectName || '',
         ProjectCode: row.ProjectCode || '',
         SomeBill: row.SomeBill || '',
@@ -1125,16 +1150,16 @@ export class BillImportDetailComponent
         PONCCDetailID: row.PONCCDetailID || 0,
         SerialNumber: row.SerialNumber || '',
         CodeMaPhieuMuon: row.CodeMaPhieuMuon || '',
-        BillExportDetailID: row.BillExportDetailID || null,
+        BillExportDetailID: row.BillExportDetailID || 0,
         ProjectPartListID:
           row.ProjectPartListID && !isNaN(Number(row.ProjectPartListID))
             ? Number(row.ProjectPartListID)
-            : null,
+            : 0,
         IsKeepProject: row.IsKeepProject || false,
         QtyRequest: row.QtyRequest || 0,
         BillCodePO: row.BillCodePO || '',
         ReturnedStatus: row.ReturnedStatus || false,
-        InventoryProjectID: row.InventoryProjectID || null,
+        InventoryProjectID: row.InventoryProjectID || 0,
         DateSomeBill: row.DateSomeBill
           ? new Date(row.DateSomeBill).toISOString()
           : null,
@@ -1145,11 +1170,11 @@ export class BillImportDetailComponent
         COFormE: row.COFormE || 0,
         IsNotKeep: row.IsNotKeep || false,
         Unit: row.Unit || 'PCS',
-        POKHDetailID: row.POKHDetailID || null,
+        POKHDetailID: pokhDetailID,  // null hoặc number, match với int? trong C#
         POKHDetailQuantity: row.POKHDetailQuantity || null,
-        CustomerID: row.CustomerID || 0,
-        QuantityRequestBuy: row.QuantityRequestBuy || 0,
-        POKHList: parsePOKHList(row.POKHDetailQuantity),
+        CustomerID: row.CustomerID && Number(row.CustomerID) > 0 ? Number(row.CustomerID) : null,
+        QuantityRequestBuy: row.QuantityRequestBuy && Number(row.QuantityRequestBuy) > 0 ? Number(row.QuantityRequestBuy) : null,
+        POKHList: pokhList,
       };
     });
   }
@@ -1234,8 +1259,10 @@ export class BillImportDetailComponent
       return;
     }
     const documentsFromTable = this.table_DocumnetImport?.getData();
-    // Tạo payload dưới dạng list
-    const payloadList = [
+
+    // Gửi array trực tiếp, không wrap trong object
+    // Backend expect: List<BillImportDTO> (array trực tiếp)
+    const payload = [
       {
         billImport: {
           ID: this.newBillImport.Id || 0,
@@ -1272,13 +1299,9 @@ export class BillImportDetailComponent
           UnApprove: 1,
           RulePayID: formValues.RulePayID,
           IsDeleted: false,
-          DPO: formValues.DPO || 0,
-          DueDate: formValues.DueDate
-            ? new Date(formValues.DueDate).toISOString()
-            : new Date().toISOString(),
-          TaxReduction: formValues.TaxReduction || 0,
-          COFormE: formValues.COFormE || 0,
-          IsNotKeep: formValues.IsNotKeep || false,
+          // Loại bỏ các trường không có trong BillImport entity:
+          // DPO, DueDate, TaxReduction, COFormE, IsNotKeep
+          // Các trường này chỉ có trong BillImportDetail
         },
         billImportDetail: this.mapTableDataToBillImportDetails(
           billImportDetailsFromTable
@@ -1291,11 +1314,11 @@ export class BillImportDetailComponent
     ];
 
     console.log(
-      'Payload list before sending:',
-      JSON.stringify(payloadList, null, 2)
+      'Payload before sending:',
+      JSON.stringify(payload, null, 2)
     );
 
-    this.billImportService.saveBillImport(payloadList).subscribe({
+    this.billImportService.saveBillImport(payload).subscribe({
       next: (res) => {
         if (res.status === 1) {
           this.notification.success(
@@ -1564,6 +1587,32 @@ export class BillImportDetailComponent
       }
     );
   }
+
+  openBillReturnModal(rowData: any, row: RowComponent) {
+    const modalRef = this.modalService.open(BillReturnComponent, {
+      size: 'lg',
+      centered: true,
+      backdrop: 'static',
+      keyboard: false,
+    });
+
+    // Set input properties
+    modalRef.componentInstance.productID = rowData.ProductID || 0;
+    modalRef.componentInstance.Type = 1;
+
+    // Subscribe to output event
+    modalRef.componentInstance.maphieuSelected.subscribe((maphieu: string) => {
+      if (maphieu) {
+        row.update({ CodeMaPhieuMuon: maphieu });
+        this.notification.success(
+          NOTIFICATION_TITLE.success,
+          'Cập nhật phiếu mượn thành công!'
+        );
+        modalRef.close();
+      }
+    });
+  }
+
   //vẽ bảng
   drawTable() {
     this.isLoading = true; // Bắt đầu loading
@@ -1587,6 +1636,7 @@ export class BillImportDetailComponent
               hozAlign: 'center',
               width: 40,
               headerSort: false,
+              frozen:true,
               titleFormatter: () =>
                 `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
               headerClick: () => {
@@ -1629,12 +1679,14 @@ export class BillImportDetailComponent
               hozAlign: 'center',
               width: 60,
               headerSort: false,
+              frozen:true
             },
             {
               title: 'Mã nội bộ',
               field: 'ProductNewCode',
               hozAlign: 'left',
               headerHozAlign: 'center',
+              frozen:true
             },
             {
               title: 'Mã hàng',
@@ -1642,6 +1694,7 @@ export class BillImportDetailComponent
               hozAlign: 'left',
               headerHozAlign: 'center',
               width: 450,
+              frozen:true,
               editor: this.createdControl(
                 SelectControlComponent,
                 this.injector,
@@ -1707,6 +1760,7 @@ export class BillImportDetailComponent
               hozAlign: 'left',
               headerHozAlign: 'center',
               editor: 'input',
+              frozen:true
             },
 
             {
@@ -2280,6 +2334,11 @@ export class BillImportDetailComponent
               field: 'CodeMaPhieuMuon',
               hozAlign: 'left',
               headerHozAlign: 'center',
+              cellClick: (_e: any, cell: any) => {
+                const row = cell.getRow();
+                const rowData = row.getData();
+                this.openBillReturnModal(rowData, row);
+              },
             },
             {
               title: 'Serial Number',

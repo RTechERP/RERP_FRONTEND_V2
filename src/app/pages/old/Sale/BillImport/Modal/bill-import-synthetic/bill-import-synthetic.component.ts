@@ -261,8 +261,8 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
       error: (err) => {
         console.error('Lỗi khi lưu dữ liệu:', err);
         this.notification.error(
-          NOTIFICATION_TITLE.error, err.error.message||
-          'Có lỗi xảy ra khi lưu dữ liệu!'
+          NOTIFICATION_TITLE.error,
+          err.error.message || 'Có lỗi xảy ra khi lưu dữ liệu!'
         );
       },
     });
@@ -592,7 +592,7 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
       height: '100%',
       pagination: true,
       paginationSize: 50,
-      paginationMode:'local',
+      paginationMode: 'local',
       movableColumns: true,
       resizableRows: true,
       reactiveData: true,
@@ -676,7 +676,20 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
         { title: 'Mã nội bộ', field: 'ProductNewCode', width: 150 },
         { title: 'SL thực tế', field: 'Qty', width: 120, bottomCalc: 'sum' },
         { title: 'Loại hàng', field: 'Maker', width: 150 },
-        { title: 'Hóa đơn', field: 'IsBill', width: 150 },
+        {
+          title: 'Hóa đơn',
+          field: 'IsBill',
+          width: 150,
+          hozAlign:'center',
+          formatter: function (cell) {
+            const value = cell.getValue();
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.checked = value === true || value === 1;
+            input.disabled = true; // Không cho click + chỉ hiển thị
+            return input;
+          },
+        },
         {
           title: 'Số hóa đơn',
           field: 'SomeBill',

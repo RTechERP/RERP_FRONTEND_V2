@@ -1,0 +1,35 @@
+<div class="modal-header bg-primary text-uppercase py-2 flex-shrink-0">
+  <h6 class="modal-title text-white">Chi Tiết Tổng Hợp Trả</h6>
+  <button
+    type="button"
+    class="btn-close btn-close-white"
+    (click)="closeModal()"
+    aria-label="Close">
+  </button>
+</div>
+
+<div class="modal-body p-2 flex-grow-1 overflow-visible">
+  <div class="d-flex gap-2 pb-2 border-bottom">
+    <button
+      type="button"
+      class="fs-12 btn"
+      nz-button
+      nzType="default"
+      nzSize="small"
+      title="Xuất Excel"
+      (click)="exportExcel()">
+      <nz-icon nzType="file-excel" nzTheme="outline"></nz-icon> Xuất Excel
+    </button>
+    <button
+      type="button"
+      class="fs-12 btn"
+      nz-button
+      nzType="default"
+      nzSize="small"
+      (click)="closeModal()">
+      <nz-icon nzType="close" nzTheme="outline"></nz-icon> Đóng
+    </button>
+  </div>
+
+  <div #summaryTable class="summary-table mt-2"></div>
+</div>

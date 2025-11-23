@@ -209,4 +209,7 @@ export class BillImportServiceService {
       payload
     );
   }
+  getPhieutra(productID:number){
+    return this.http.get(environment.host +`api/billimport/get-phieu-tra?productID=${productID}`);
+  }
 }

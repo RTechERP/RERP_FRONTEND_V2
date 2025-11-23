@@ -237,6 +237,12 @@ export class BillExportDetailComponent
   }
 
   ngOnInit(): void {
+    console.log('=== ngOnInit START ===');
+    console.log('isBorrow:', this.isBorrow);
+    console.log('KhoTypeID:', this.KhoTypeID);
+    console.log('newBillExport:', this.newBillExport);
+    console.log('selectedList:', this.selectedList);
+
     // this.getDataCbbAdressStock();
     this.getDataCbbCustomer();
     this.getDataCbbProductGroup();
@@ -289,7 +295,8 @@ export class BillExportDetailComponent
     // } else
     if (this.isCheckmode) {
       this.getBillExportByID();
-    } else {
+    } else if (!this.isBorrow) {
+      // Skip reset when isBorrow = true (preserve values set from inventory component)
       this.getNewCode();
       this.newBillExport = {
         TypeBill: false,
@@ -326,18 +333,21 @@ export class BillExportDetailComponent
         this.changeProductGroup(this.newBillExport.KhoTypeID);
         this.getNewCode();
       }, 500);
-    } else {
+    } else if (!this.isBorrow) {
+      // Skip getBillExportDetailID when isBorrow = true (data will be filled from selectedList)
       this.getBillExportDetailID();
     }
     if (
       !this.isCheckmode &&
-      (!this.newBillExport.Id || this.newBillExport.Id <= 0)
+      (!this.newBillExport.Id || this.newBillExport.Id <= 0) &&
+      !this.isBorrow // Skip when isBorrow = true (Status will be set to 7 below)
     ) {
       this.validateForm.patchValue({ Status: 2 });
       this.newBillExport.Status = 2;
     }
 
-    if (this.KhoTypeID > 0) {
+    if (this.KhoTypeID > 0 && !this.isBorrow) {
+      // Skip this block when isBorrow = true (will be handled below)
       this.validateForm.patchValue({
         Status: 6, // Yêu cầu xuất kho
         KhoTypeID: this.KhoTypeID,
@@ -357,8 +367,97 @@ export class BillExportDetailComponent
     }
 
     if (this.isBorrow) {
-      this.validateForm.patchValue({ Status: 7 });
+      // Set Status = 7 (Yêu cầu mượn) (C# line 145)
       this.newBillExport.Status = 7;
+      this.newBillExport.KhoTypeID = this.KhoTypeID;
+
+      this.validateForm.patchValue({
+        Status: 7,
+        KhoTypeID: this.KhoTypeID,
+        RequestDate: new Date()
+      });
+
+      // Get new code for borrow bill (after Status is set)
+      this.getNewCode();
+
+      // Get SenderID (người giao) from ProductGroupWareHouse based on KhoTypeID
+      // For borrow bills, SenderID is always determined by KhoTypeID
+      if (this.KhoTypeID > 0 && this.newBillExport.WarehouseID) {
+        this.productSaleService
+          .getdataProductGroupWareHouse(this.KhoTypeID, this.newBillExport.WarehouseID)
+          .subscribe({
+            next: (res: any) => {
+              const userId = res?.data?.[0]?.UserID || 0;
+              console.log('Setting SenderID for borrow bill:', userId);
+              this.validateForm.patchValue({ SenderID: userId });
+              this.newBillExport.SenderID = userId;
+            },
+            error: (err) => {
+              console.error('Error getting SenderID:', err);
+              this.validateForm.patchValue({ SenderID: 0 });
+            },
+          });
+      }
+
+      // Fill detail data from selectedList (matching C# form lines 143-155)
+      if (this.selectedList && this.selectedList.length > 0) {
+        console.log('isBorrow - filling detail data from selectedList:', this.selectedList);
+        this.dataTableBillExportDetail = this.selectedList.map((item: any) => ({
+          ID: item.ID || 0,
+          POKHDetailID: item.POKHDetailID || 0,
+          ProductID: item.ProductSaleID || item.ProductID || 0,
+          ProductNewCode: item.ProductNewCode || '',
+          ProductCode: item.ProductCode || '',
+          ProductName: item.ProductName || '',
+          Unit: item.Unit || '',
+          TotalInventory: item.TotalInventory || item.TotalQuantityLast || 0,
+          Qty: item.Qty || 0, // User will fill this (default 0)
+          QuantityRemain: 0,
+          ProjectID: item.ProjectID || 0,
+          ProjectCodeExport: item.ProjectCodeExport || item.ProjectCode || '',
+          ProjectNameText: item.ProjectNameText || item.ProjectName || '',
+          ProductFullName: item.ProductFullName || '',
+          Note: item.Note || '',
+          UnitPricePOKH: item.UnitPricePOKH || 0,
+          UnitPricePurchase: item.UnitPricePurchase || 0,
+          BillCode: item.BillCode || '',
+          Specifications: item.Specifications || '',
+          GroupExport: item.GroupExport || '',
+          UserReceiver: item.UserReceiver || '',
+          POKHID: item.POKHID || 0,
+          'Add Serial': item['Add Serial'] || '',
+          ProductType: item.ProductType || 0,
+          IsInvoice: item.IsInvoice || false,
+          InvoiceNumber: item.InvoiceNumber || '',
+          SerialNumber: item.SerialNumber || '',
+          ReturnedStatus: item.ReturnedStatus || false,
+          ProjectPartListID: item.ProjectPartListID || 0,
+          TradePriceDetailID: item.TradePriceDetailID || 0,
+          BillImportDetailID: item.BillImportDetailID || 0,
+          ExpectReturnDate: item.ExpectReturnDate ? new Date(item.ExpectReturnDate) : new Date(),
+          InventoryProjectIDs: item.InventoryProjectIDs || [],
+          CustomerResponse: item.CustomerResponse || '',
+          POKHDetailIDActual: item.POKHDetailIDActual || 0,
+          PONumber: item.PONumber || '',
+        }));
+        console.log('Mapped dataTableBillExportDetail:', this.dataTableBillExportDetail);
+
+        // Trigger changeProductGroup to load product options (needed for dropdowns)
+        // Then refresh table after product options are loaded
+        if (this.KhoTypeID > 0) {
+          this.changeProductGroup(this.KhoTypeID);
+
+          // Refresh table after product options are loaded
+          // Increase timeout to ensure changeProductGroup() completes
+          setTimeout(() => {
+            if (this.table_billExportDetail) {
+              console.log('Refreshing table with borrow data:', this.dataTableBillExportDetail);
+              this.table_billExportDetail.replaceData(this.dataTableBillExportDetail);
+              this.table_billExportDetail.redraw(true);
+            }
+          }, 800);
+        }
+      }
     }
 
     if (this.isAddExport) {
@@ -388,6 +487,15 @@ export class BillExportDetailComponent
       .subscribe((newValue: number) => {
         this.changeStatus();
       });
+
+    // Listen for KhoTypeID changes to auto-set SenderID (matching C# cbKhoType_EditValueChanged)
+    this.validateForm
+      .get('KhoTypeID')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((khoTypeID: number) => {
+        this.onKhoTypeChange(khoTypeID);
+      });
+
     this.validateForm.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe((values) => {
@@ -800,11 +908,12 @@ export class BillExportDetailComponent
         }
         if (this.checkConvert == true) {
           this.getBillExportDetailConvert([this.id]);
-        } else if (this.isCheckmode) {
+        } else if (this.isCheckmode && !this.isBorrow) {
+          // Skip reload when isBorrow = true to preserve selectedList data
           this.getBillExportDetailID();
         }
-        // Don't reload when isAddExport is true - data is loaded in ngOnInit
-        // This prevents duplicate loading when converting from bill import
+        // Don't reload when isAddExport or isBorrow is true - data is loaded in ngOnInit
+        // This prevents duplicate loading when converting from bill import or borrow request
       },
       error: (err: any) => {
         console.error(err);
@@ -841,6 +950,54 @@ export class BillExportDetailComponent
 
   changeStatus() {
     this.getNewCode();
+  }
+
+  /**
+   * Handle KhoTypeID change - auto set SenderID from ProductGroupWarehouse
+   * Matching C# cbKhoType_EditValueChanged logic
+   */
+  onKhoTypeChange(khoTypeID: number) {
+    if (!khoTypeID || khoTypeID <= 0) {
+      return;
+    }
+
+    // Load products for this KhoTypeID
+    this.changeProductGroup(khoTypeID);
+
+    // Only auto-set SenderID when creating new bill (not when updating existing bill)
+    // C# line: if (billExport.ID > 0) return;
+    if (this.newBillExport.Id && this.newBillExport.Id > 0) {
+      return;
+    }
+
+    // Get SenderID from ProductGroupWarehouse
+    const warehouseID = this.newBillExport.WarehouseID || 0;
+    if (warehouseID <= 0) {
+      return;
+    }
+
+    this.productSaleService
+      .getdataProductGroupWareHouse(khoTypeID, warehouseID)
+      .subscribe({
+        next: (res: any) => {
+          if (res?.data && res.data.length > 0) {
+            const userId = res.data[0].UserID || 0;
+            console.log('Auto-setting SenderID from KhoType change:', userId);
+            this.validateForm.patchValue({ SenderID: userId });
+            this.newBillExport.SenderID = userId;
+          } else {
+            // Default SenderID logic (C# lines 48-53)
+            // For HCM warehouse: default to 88, for others: current user
+            const defaultSenderId = this.wareHouseCode?.includes('HCM') ? 88 : 0;
+            this.validateForm.patchValue({ SenderID: defaultSenderId });
+          }
+        },
+        error: (err) => {
+          console.error('Error getting SenderID from ProductGroupWarehouse:', err);
+          const defaultSenderId = this.wareHouseCode?.includes('HCM') ? 88 : 0;
+          this.validateForm.patchValue({ SenderID: defaultSenderId });
+        },
+      });
   }
 
   getDataCbbSupplierSale() {
@@ -1203,8 +1360,7 @@ export class BillExportDetailComponent
               console.log('ProductID:', val, 'Found Product:', product);
               const productCode = product ? product.ProductCode : '';
               const productNewCode = product ? product.ProductNewCode : '';
-              const productName = product ? product.ProductName : '';
-              return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${productNewCode} | ${productCode} | ${productName}</p> <i class="fas fa-angle-down"></i></div>`;
+              return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${productNewCode} - ${productCode}</p> <i class="fas fa-angle-down"></i></div>`;
             },
             cellEdited: (cell) => {
               const row = cell.getRow();
@@ -1345,6 +1501,69 @@ export class BillExportDetailComponent
             editor: 'input',
           },
           {
+            title: 'Ngày dự kiến trả',
+            field: 'ExpectReturnDate',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            formatter: (cell) => {
+                const value = cell.getValue();
+                if (!value) return '';
+                const date = new Date(value);
+                if (isNaN(date.getTime())) {
+                  return '';
+                }
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}/${month}/${year}`;
+              },
+              editor: (cell, onRendered, success, cancel) => {
+                  const input = document.createElement('input');
+                  input.type = 'date';
+                  const currentValue = cell.getValue();
+                  if (currentValue) {
+                    const date = new Date(currentValue);
+                    input.value = date.toISOString().split('T')[0];
+                  }
+                  input.style.width = '100%';
+                  input.style.boxSizing = 'border-box';
+
+                  let isProcessed = false;
+
+                  const submitValue = () => {
+                    if (!isProcessed) {
+                      isProcessed = true;
+                      success(input.value ? new Date(input.value) : null);
+                    }
+                  };
+
+                  onRendered(() => {
+                    input.focus();
+                  });
+
+                  input.addEventListener('change', () => {
+                    submitValue();
+                  });
+
+                  input.addEventListener('blur', () => {
+                    submitValue();
+                  });
+
+                  input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                      submitValue();
+                    }
+                    if (e.key === 'Escape') {
+                      if (!isProcessed) {
+                        isProcessed = true;
+                        cancel(cell.getValue());
+                      }
+                    }
+                  });
+                  return input;
+              }
+          },
+          {
             title: 'Đơn giá bán',
             field: 'UnitPricePOKH',
             hozAlign: 'left',
@@ -1365,6 +1584,13 @@ export class BillExportDetailComponent
           {
             title: 'Thông số kỹ thuật',
             field: 'Specifications',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            editor: 'input',
+          },
+           {
+            title: 'Thông số kỹ thuật',
+            field: 'Model',
             hozAlign: 'left',
             headerHozAlign: 'center',
             editor: 'input',
@@ -1527,12 +1753,7 @@ export class BillExportDetailComponent
     }
   }
 
-  // ==================== VALIDATION METHODS (from Desktop Form) ====================
 
-  /**
-   * Validate form data based on desktop form ValidateForm logic
-   * Validates: Code, Customer/Supplier, User, Warehouse, Sender, Status, Dates, Project/ExpectReturnDate for borrow
-   */
   private validateFormData(): { isValid: boolean; message: string } {
     const formValues = this.validateForm.value;
     const status = formValues.Status;
@@ -1627,29 +1848,6 @@ export class BillExportDetailComponent
           message: `Vui lòng nhập số lượng xuất cho dòng ${i + 1}!`,
         };
       }
-
-      // Kiểm tra số lượng tồn kho
-      const totalInventory = parseFloat(row.TotalInventory || 0);
-      const qtyExport = parseFloat(row.Qty || 0);
-
-      // Kiểm tra số lượng tồn < 0
-      if (totalInventory < 0) {
-        return {
-          isValid: false,
-          message: `Sản phẩm [${row.ProductNewCode || row.ProductCode || ''}] ở dòng ${i + 1} có số lượng tồn kho không hợp lệ (${totalInventory})!`,
-        };
-      }
-
-      // Kiểm tra số lượng xuất > số lượng tồn (bỏ qua đơn vị là 'm', 'mét')
-      const unitName = (row.Unit || '').toLowerCase().trim();
-      if (unitName !== 'm' && unitName !== 'mét' && unitName !== 'met') {
-        if (qtyExport > totalInventory) {
-          return {
-            isValid: false,
-            message: `Sản phẩm [${row.ProductNewCode || row.ProductCode || ''}] ở dòng ${i + 1} không đủ số lượng tồn!\nSL xuất: ${qtyExport}, SL tồn: ${totalInventory}`,
-          };
-        }
-      }
     }
 
     return { isValid: true, message: '' };
@@ -1673,8 +1871,6 @@ export class BillExportDetailComponent
       return { isValid: false, message: 'Không có dữ liệu để xuất kho!' };
     }
 
-    // Group by ProductID, ProjectID, POKHDetailID to calculate total quantities
-    // Key format: "ProductID_ProjectID_POKHDetailID"
     const grouped = new Map<string, any>();
 
     tableData.forEach((row: any) => {
@@ -1763,16 +1959,7 @@ export class BillExportDetailComponent
     }
   }
 
-  /**
-   * Load Inventory Project - Auto allocate from kept inventory (kho giữ)
-   * Matches C# form frmBillExportDetailNew.cs lines 2267-2424: loadInventoryProject()
-   *
-   * Logic:
-   * 1. Call API to get inventory projects (kho giữ) and stock (tồn kho)
-   * 2. If kho giữ is sufficient -> allocate from kho giữ and set ChosenInventoryProject
-   * 3. If kho giữ is insufficient but stock is sufficient -> leave ChosenInventoryProject empty (take from general stock)
-   * 4. If both insufficient -> validation will handle error
-   */
+
   loadInventoryProjectForRow(rowData: any, rowIndex?: number): void {
     const qty = parseFloat(rowData.Qty || 0);
     const productID = rowData.ProductID || 0;
@@ -1916,41 +2103,22 @@ export class BillExportDetailComponent
       });
   }
 
-  /**
-   * Validate Kept Inventory (Kho Giữ) - Check if stock is sufficient
-   * Matches C# form frmBillExportDetailNew.cs lines 1131-1306: ValidateKeep()
-   *
-   * Logic:
-   * 1. Skip validation for units 'm' or 'mét'
-   * 2. Group rows by ProductID, ProjectID, POKHDetailID
-   * 3. Call API spGetInventoryProjectImportExport for each group
-   * 4. Calculate: totalStock = totalQuantityKeep + totalQuantityRemain + totalQuantityLast
-   * 5. If totalStock < totalQty => Show error message
-   *
-   * @returns Promise<boolean> - true if validation passes, false if fails
-   */
+
   private async validateKeep(): Promise<boolean> {
     const tableData = this.table_billExportDetail?.getData() || [];
     if (tableData.length === 0) return false;
 
-    // C# line 1126: Skip units 'm', 'mét'
     const skipUnitNames = ['m', 'mét'];
-
-    // C# line 1187-1217: Group by ProductID, ProjectID, POKHDetailID
     const groups = this.groupRowsForValidation(tableData);
 
-    // C# line 1245-1303: Validate each group
     for (const group of groups) {
-      // Skip if unit is 'm' or 'mét'
       if (skipUnitNames.includes((group.UnitName || '').trim().toLowerCase())) {
         continue;
       }
 
       try {
-        // C# line 1258-1260: Call API spGetInventoryProjectImportExport
         const inventoryData = await this.getInventoryDataForValidation(group);
 
-        // C# line 1294: Calculate total stock
         const totalStock =
           inventoryData.totalQuantityKeep +
           inventoryData.totalQuantityRemain +
@@ -1981,10 +2149,6 @@ export class BillExportDetailComponent
     return true;
   }
 
-  /**
-   * Group table rows for validation
-   * Matches C# form lines 1187-1217
-   */
   private groupRowsForValidation(tableData: any[]): any[] {
     const groupMap = new Map<string, any>();
 
@@ -1994,11 +2158,9 @@ export class BillExportDetailComponent
       const pokhDetailId = row.POKHDetailIDActual || row.POKHDetailID || 0;
       const id = row.ID || 0;
 
-      // C# line 1198: If POKH exists, ProjectID = 0
       const effectiveProjectId = pokhDetailId > 0 ? 0 : projectId;
       const effectivePokhDetailId = pokhDetailId > 0 ? pokhDetailId : 0;
 
-      // Create unique key for grouping
       const groupKey = `${productId}-${effectiveProjectId}-${effectivePokhDetailId}-${id}`;
 
       if (!groupMap.has(groupKey)) {
@@ -2016,7 +2178,6 @@ export class BillExportDetailComponent
         });
       }
 
-      // Sum quantities
       const group = groupMap.get(groupKey);
       group.TotalQty += parseFloat(row.Qty || 0);
     });
@@ -2026,10 +2187,7 @@ export class BillExportDetailComponent
     );
   }
 
-  /**
-   * Get inventory data for validation from API
-   * Matches C# form lines 1258-1278
-   */
+
   private getInventoryDataForValidation(group: any): Promise<any> {
     return new Promise((resolve, reject) => {
       const warehouseID = this.newBillExport.WarehouseID || 0;
@@ -2049,8 +2207,6 @@ export class BillExportDetailComponent
               const imports = res.imports || [];
               const exports = res.exports || [];
               const stock = res.stock || [];
-
-              // C# line 1269-1274: Get totals
               const totalQuantityKeep =
                 inventoryProjects.length > 0
                   ? parseFloat(inventoryProjects[0].TotalQuantity || 0)
@@ -2060,7 +2216,6 @@ export class BillExportDetailComponent
                   ? parseFloat(stock[0].TotalQuantityLast || 0)
                   : 0;
 
-              // C# line 1276-1278: Calculate remaining from imports/exports
               const totalImport =
                 imports.length > 0
                   ? parseFloat(imports[0].TotalImport || 0)
@@ -2076,10 +2231,10 @@ export class BillExportDetailComponent
 
               resolve({
                 totalQuantityKeep: Math.max(0, totalQuantityKeep),
-                totalQuantityKeepShow: totalQuantityKeep, // For display (can be negative)
+                totalQuantityKeepShow: totalQuantityKeep,
                 totalQuantityRemain: totalQuantityRemain,
                 totalQuantityLast: Math.max(0, totalQuantityLast),
-                totalQuantityLastShow: totalQuantityLast, // For display (can be negative)
+                totalQuantityLastShow: totalQuantityLast,
               });
             } else {
               reject(new Error('API returned non-success status'));
@@ -2095,10 +2250,8 @@ export class BillExportDetailComponent
   async saveDataBillExport() {
     console.log('saveDataBillExport called');
 
-    // AUTO-CALL RecheckQty before validation (C# form line 791)
     this.onRecheckQty();
 
-    // Step 1: Validate form controls
     if (!this.validateForm.valid) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
@@ -2114,7 +2267,6 @@ export class BillExportDetailComponent
       return;
     }
 
-    // Step 2: Validate form data based on desktop form rules
     const formValidation = this.validateFormData();
     if (!formValidation.isValid) {
       this.notification.warning(
@@ -2123,8 +2275,6 @@ export class BillExportDetailComponent
       );
       return;
     }
-
-    // Step 3: Validate inventory stock
     const inventoryValidation = this.validateInventoryStock();
     if (!inventoryValidation.isValid) {
       this.notification.warning(
@@ -2149,15 +2299,12 @@ export class BillExportDetailComponent
     const formValues = this.validateForm.value;
     const status = formValues.Status || this.newBillExport.Status || 0;
 
-    // C# form line 1096-1098: Validate kho giữ if Status = 2 or 6
     if (status === 2 || status === 6) {
       const isValidKeep = await this.validateKeep();
       if (!isValidKeep) {
-        return; // validateKeep() already shows error message
+        return;
       }
     }
-
-    // C# form line 1099-1120: Validate ProjectID and ExpectReturnDate if Status = 7 or 0
     if (status === 7 || status === 0) {
       for (const row of billExportDetailsFromTable) {
         const expectReturnDate = row.ExpectReturnDate;

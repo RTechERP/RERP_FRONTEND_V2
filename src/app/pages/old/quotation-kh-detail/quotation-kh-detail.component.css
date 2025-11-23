@@ -15,38 +15,45 @@
   text-overflow: ellipsis;
   max-width: 280px;
 }
+
 /* dropdown text scroll */
 ::ng-deep .ant-select-dropdown {
   max-width: 300px !important;
 }
+
 ::ng-deep .ant-select-dropdown .ant-select-item {
   white-space: nowrap !important;
   overflow: visible !important;
 }
+
 ::ng-deep .ant-select-dropdown .ant-select-item-option-content {
   white-space: nowrap !important;
   overflow-x: auto !important;
   text-overflow: initial !important;
   max-width: none !important;
 }
+
 ::ng-deep .ant-select-dropdown .ant-select-item-option-content::-webkit-scrollbar {
   height: 4px;
 }
+
 ::ng-deep .ant-select-dropdown .ant-select-item-option-content::-webkit-scrollbar-thumb {
   background: #ccc;
   border-radius: 2px;
 }
 
 /* Make the select and button look like a single input group */
-.d-flex.align-items-center > button {
+.d-flex.align-items-center>button {
   margin-left: -1px;
   border-top-left-radius: 0 !important;
   border-bottom-left-radius: 0 !important;
-  height: 32px; /* Default height for form-control-sm, adjust if needed */
+  height: 32px;
+  /* Default height for form-control-sm, adjust if needed */
 
 }
-.d-flex.align-items-center > nz-select, 
-.d-flex.align-items-center > .w-100 {
+
+.d-flex.align-items-center>nz-select,
+.d-flex.align-items-center>.w-100 {
   border-top-right-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
 }
@@ -80,4 +87,34 @@ label.d-inline .text-danger {
 ::ng-deep .ant-select.ng-invalid .ant-select-selector:focus {
   border-color: #dc3545;
   box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+.reset {
+  all: revert;
+}
+
+.ant-splitter-panel {
+  position: relative;
+}
+
+.tabulator {
+  font-size: 0.75rem !important;
+  /* position: absolute !important; */
+  width: 100% !important;
+}
+
+.tabulator-cell {
+  padding: 0px;
+}
+
+.inner-content {
+  padding: 0 !important;
+}
+
+.ant-tabs-tab-btn {
+  font-size: 0.75rem;
 }

@@ -124,7 +124,8 @@ export class PokhComponent implements OnInit, AfterViewInit {
     private customerPartService: CustomerPartService,
     private modalService: NgbModal,
     private notification: NzNotificationService,
-    private viewPOKHService: ViewPokhService
+    private viewPOKHService: ViewPokhService,
+
   ) { }
 
   //#region : Khai báo
@@ -161,6 +162,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
   dataCurrencies: any[] = [];
   dataPOKHDetailUser: any[] = [];
   selectedCustomer: any = null;
+  mainIndexes: any[] = [];
 
   filters: any = {
     filterText: '',
@@ -202,7 +204,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
     this.loadEmployeeTeamSale();
     this.loadProjects();
     this.loadTypePO();
-
+    this.loadFilterMainIndexes();
     this.loadProducts();
   }
 
@@ -247,8 +249,9 @@ export class PokhComponent implements OnInit, AfterViewInit {
         filterText: this.filters.filterText || '',
         customerId: this.filters.customerId || 0,
         userId: this.filters.userId || 0,
-        POType: this.filters.POType || 0,
-        status: this.filters.status || 0,
+        POType: this.filters.status || 0,
+        // status: this.filters.status || 0,
+        status: 0,
         group: this.filters.group || 0,
         warehouseId: this.filters.warehouseId || 1,
         employeeTeamSaleId: this.filters.employeeTeamSaleId || 0,
@@ -290,6 +293,25 @@ export class PokhComponent implements OnInit, AfterViewInit {
       }
     );
   }
+
+  loadFilterMainIndexes(): void {
+    this.viewPOKHService.loadMainIndex().subscribe(
+      (response) => {
+        if (response.status === 1) {
+          this.mainIndexes = response.data;
+          console.log("main", this.mainIndexes)
+        } else {
+          this.notification.error('Lỗi khi tải Lọc:', response.message);
+          return;
+        }
+      },
+      (error) => {
+        this.notification.error('Lỗi kết nối khi tải Lọc:', error);
+        return;
+      }
+    );
+  }
+
   loadTypePO(): void {
     this.POKHService.getTypePO().subscribe({
       next: (response) => {
@@ -358,6 +380,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
       next: (response) => {
         if (response.status === 1) {
           this.filterUserData = response.data;
+          console.log("user", this.filterUserData)
         } else {
           this.notification.error(
             NOTIFICATION_TITLE.error,
@@ -1143,7 +1166,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
   //#endregion
   //#region : Các hàm xử lý modal
 
-  
+
   private getContextMenu(): any[] {
     return [
       {
@@ -1173,7 +1196,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
           const rowData = row.getData();
           const fileId = rowData['ID'];
           const fileName = rowData['FileName'] || `file_${fileId}`;
-          
+
           if (fileId) {
             this.POKHService.downloadFile(fileId).subscribe({
               next: (blob: Blob) => {
@@ -1231,11 +1254,11 @@ export class PokhComponent implements OnInit, AfterViewInit {
     window.URL.revokeObjectURL(url);
   }
 
-  openProjectPartlistPurchaseRequest(): void{
+  openProjectPartlistPurchaseRequest(): void {
     this.notification.warning(NOTIFICATION_TITLE.warning, 'Chức năng đang phát triển!');
   }
 
-  openProjectPartlistPriceRequestNew(): void{
+  openProjectPartlistPriceRequestNew(): void {
     this.notification.warning(NOTIFICATION_TITLE.warning, 'Chức năng đang phát triển!');
   }
 
@@ -1248,7 +1271,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
     });
   }
-  
+
   openWarehouseReleaseRequestModal() {
     this.modalService.open(WarehouseReleaseRequestComponent, {
       centered: true,
@@ -1358,6 +1381,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
           field: 'IsApproved',
           sorter: 'boolean',
           width: 80,
+          hozAlign: 'center',
           formatter: (cell) => {
             const checked = cell.getValue() ? 'checked' : '';
             return `<div style="text-align: center;">
@@ -1377,12 +1401,13 @@ export class PokhComponent implements OnInit, AfterViewInit {
           sorter: 'string',
           width: 150,
         },
-        { title: 'Loại', field: 'MainIndex', sorter: 'string', width: 70 },
+        { title: 'Loại', field: 'MainIndex', sorter: 'string', width: 200 },
         {
           title: 'New Account',
           field: 'NewAccount',
           sorter: 'boolean',
           width: 100,
+          hozAlign: 'center',
           formatter: (cell) => {
             const checked = cell.getValue() ? 'checked' : '';
             return `<div style="text-align: center;">
@@ -1396,7 +1421,8 @@ export class PokhComponent implements OnInit, AfterViewInit {
           title: 'Khách hàng',
           field: 'CustomerName',
           sorter: 'string',
-          width: 200,
+          formatter: "textarea",
+          width: 300,
         },
         {
           title: 'Người phụ trách',
@@ -1477,7 +1503,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
           width: 150,
         },
         { title: 'End User', field: 'EndUser', sorter: 'string', width: 150 },
-        { title: 'Ghi chú', field: 'Note', sorter: 'string', width: 120 },
+        { title: 'Ghi chú', field: 'Note', sorter: 'string', formatter: "textarea", width: 120 },
         {
           title: 'Công nợ',
           field: 'Debt',

@@ -1,29 +1,60 @@
 .tabulator-col-group .tabulator-col-group-cols {
-    background-color: inherit !important;
-  }
-  
-  .tabulator-col-group .tabulator-col-title {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: bold;
-    color: black;
-  }
-  .ant-splitter {
-    height: 93vh !important;
-  }
-  :host ::ng-deep .tabulator-col.follow-project-base
-  {
-    background-color: #f8ff98 !important;
-    
-  }  
-  :host ::ng-deep .tabulator-col.follow-project-plan
-  {
-    background-color: #5184fa !important;
-    
-  }  
-  :host ::ng-deep .tabulator-col.follow-project-actual
-  {
-    background-color: #8eff82 !important;
-    
-  }  
+  background-color: inherit !important;
+}
+
+.tabulator-col-group .tabulator-col-title {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  color: black;
+}
+
+.ant-splitter {
+  height: 93vh !important;
+}
+
+:host ::ng-deep .tabulator-col.follow-project-base {
+  background-color: #f8ff98 !important;
+
+}
+
+:host ::ng-deep .tabulator-col.follow-project-plan {
+  background-color: #5184fa !important;
+
+}
+
+:host ::ng-deep .tabulator-col.follow-project-actual {
+  background-color: #8eff82 !important;
+
+}
+
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+.reset {
+  all: revert;
+}
+
+.ant-splitter-panel {
+  position: relative;
+}
+
+.tabulator {
+  font-size: 0.75rem !important;
+  /* position: absolute !important; */
+  width: 100% !important;
+}
+
+.tabulator-cell {
+  padding: 0px;
+}
+
+.inner-content {
+  padding: 0 !important;
+}
+
+.ant-tabs-tab-btn {
+  font-size: 0.75rem;
+}

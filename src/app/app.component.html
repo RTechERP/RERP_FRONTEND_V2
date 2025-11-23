@@ -1,6 +1,6 @@
 <nz-layout class="app-layout">
     <nz-sider class="menu-sidebar" nzCollapsible nzWidth="270px" nzBreakpoint="md" [(nzCollapsed)]="isCollapsed"
-        [nzTrigger]="null" nzTheme="light">
+        [nzCollapsedWidth]="isMobile ? 0:80" [nzTrigger]="null" nzTheme="light">
         <div class="sidebar-logo d-flex justify-content-center align-items-center" nzTheme="light">
             <a routerLink="/home" class="text-center">
                 <!-- <img [src]="" alt="logo" class="img-logo" /> -->

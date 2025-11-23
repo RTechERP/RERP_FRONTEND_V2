@@ -100,6 +100,8 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
     private cdr: ChangeDetectorRef
   ) {}
   sizeSearch: string = '22%';
+  sizeLeftPanel: string = '25%'; // Size của panel bên trái (3 bảng)
+  sizeRightPanel: string = '75%'; // Size của panel bên phải (bảng nhân công)
   @ViewChild('tb_solution', { static: false })
   tb_solutionContainer!: ElementRef;
   @ViewChild('tb_solutionVersion', { static: false })
@@ -144,18 +146,30 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.isDeleted = 0;
     this.isApprovedTBP = -1;
-    this.loadDataSolution();
-    this.loadDataSolutionVersion();
-    this.loadDataPOVersion();
-    this.loadDataProjectWorker();
+    // KHÔNG gọi loadDataSolution() ở đây vì bảng chưa được khởi tạo
+    // Sẽ gọi sau khi drawTbSolution() hoàn thành trong ngAfterViewInit()
   }
   ngAfterViewInit(): void {
+    // Khởi tạo các bảng trước
     this.drawTbSolution();
     this.drawTbSolutionVersion();
     this.drawTbPOVersion();
     this.drawTbProjectWorker();
+    
+    // Sau khi các bảng đã được khởi tạo, mới load dữ liệu
+    // Sử dụng setTimeout để đảm bảo DOM đã render xong
+    setTimeout(() => {
+      this.loadDataSolution();
+    }, 0);
   }
   loadDataSolution(): void {
+    // Kiểm tra bảng đã được khởi tạo chưa
+    if (!this.tb_solution) {
+      console.warn('tb_solution chưa được khởi tạo, đợi khởi tạo xong...');
+      setTimeout(() => this.loadDataSolution(), 100);
+      return;
+    }
+
     this.projectWorkerService.getSolution(this.projectId).subscribe({
       next: (response: any) => {
         if (response.status === 1) {
@@ -163,12 +177,18 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
           this.dataSolution = response.data || [];
           if (this.dataSolution && this.dataSolution.length > 0) {
             this.projectSolutionId = this.dataSolution[0].ID;
-            this.tb_solution.setData(this.dataSolution);
-            this.loadDataSolutionVersion();
-            this.loadDataPOVersion();
+            // Đảm bảo bảng đã được khởi tạo trước khi setData
+            if (this.tb_solution) {
+              this.tb_solution.setData(this.dataSolution);
+              this.loadDataSolutionVersion();
+              this.loadDataPOVersion();
+            }
           } else {
             this.dataSolution = [];
-            this.tb_solution.setData([]);
+            // Đảm bảo bảng đã được khởi tạo trước khi setData
+            if (this.tb_solution) {
+              this.tb_solution.setData([]);
+            }
             this.projectSolutionId = 0;
           }
         } else {
@@ -182,6 +202,13 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
     });
   }
   loadDataSolutionVersion(): void {
+    // Kiểm tra bảng đã được khởi tạo chưa
+    if (!this.tb_solutionVersion) {
+      console.warn('tb_solutionVersion chưa được khởi tạo, đợi khởi tạo xong...');
+      setTimeout(() => this.loadDataSolutionVersion(), 100);
+      return;
+    }
+
     this.projectWorkerService
       .getSolutionVersion(this.projectSolutionId)
       .subscribe({
@@ -189,7 +216,10 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
           if (response.status === 1) {
             console.log('dataSolutionVersion', response.data);
             this.dataSolutionVersion = response.data;
-            this.tb_solutionVersion.setData(this.dataSolutionVersion);
+            // Đảm bảo bảng đã được khởi tạo trước khi setData
+            if (this.tb_solutionVersion) {
+              this.tb_solutionVersion.setData(this.dataSolutionVersion);
+            }
           } else {
             this.notification.error('Lỗi', response.message);
           }
@@ -201,12 +231,22 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
   }
 
   loadDataPOVersion(): void {
+    // Kiểm tra bảng đã được khởi tạo chưa
+    if (!this.tb_POVersion) {
+      console.warn('tb_POVersion chưa được khởi tạo, đợi khởi tạo xong...');
+      setTimeout(() => this.loadDataPOVersion(), 100);
+      return;
+    }
+
     this.projectWorkerService.getPOVersion(this.projectSolutionId).subscribe({
       next: (response: any) => {
         if (response.status === 1) {
           console.log('dataPOVersion', response.data);
           this.dataPOVersion = response.data;
-          this.tb_POVersion.setData(this.dataPOVersion);
+          // Đảm bảo bảng đã được khởi tạo trước khi setData
+          if (this.tb_POVersion) {
+            this.tb_POVersion.setData(this.dataPOVersion);
+          }
         } else {
           this.notification.error('Lỗi', response.message);
         }
@@ -1074,7 +1114,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
         dataTreeStartExpanded: true,
         dataTreeChildField: '_children', // Quan trọng: dùng _children
         pagination: false,
-        layout: 'fitDataStretch',
+        layout: 'fitColumns',
         selectableRows: true,
         height: '100%',
         maxHeight: '100%',
@@ -1114,17 +1154,12 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
             },
           },
           { title: 'ID', field: 'ID', visible: false },
-          { title: 'TT', field: 'TT', width: 150, hozAlign: 'center' },
+          { title: 'TT', field: 'TT', width: 150, hozAlign: 'left' },
           {
-            title: 'TBP',
-            field: 'IsApprovedTBP',
+            title: 'TBP duyệt',
+            field: 'IsApprovedTBPText',
             hozAlign: 'center',
             headerHozAlign: 'center',
-            visible: false,
-            formatter: (cell: any) => {
-              const value = cell.getValue();
-              return `<input type="checkbox" ${(value === true ? 'checked' : '')} onclick="return false;">`;
-            },
           },
           {
             title: 'Nội dung công việc',
@@ -1448,33 +1483,19 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
         totalCostFromChildren += costFromChild;
       });
 
-      // === NODE LÁ (không có con): Tính từ công thức ===
-      if (node._children.length === 0) {
-        const selfWorkforce = numberOfPeople * numberOfDays;
-        const selfPrice = selfWorkforce * laborCostPerDay;
-
-        node.TotalWorkforce = selfWorkforce;
-        node.TotalPrice = selfPrice;
-      }
-      // === NODE CHA: Tính tổng từ công việc hiện tại và các công việc con ===
+      // === ÁP DỤNG CÙNG CÔNG THỨC CHO TẤT CẢ NODE (giống C# WinForm) ===
+      // Tính tổng từ công việc hiện tại và các công việc con
       // Logic giống WinForm: totalLabor = numberOfPeople * numberOfDays + totalLaborFromChildren
       // totalCost = totalLabor * laborCostPerDay + totalCostFromChildren
-      else {
-        // Tính tổng nhân công = nhân công của cha + tổng nhân công của con
-        const totalLabor =
-          numberOfPeople * numberOfDays + totalLaborFromChildren;
+      const totalLabor = numberOfPeople * numberOfDays + totalLaborFromChildren;
+      const totalCost = totalLabor * laborCostPerDay + totalCostFromChildren;
 
-        // Tính tổng giá = (tổng nhân công * đơn giá) + tổng giá của con
-        const totalCost = totalLabor * laborCostPerDay + totalCostFromChildren;
-
-        node.TotalWorkforce = totalLabor;
-        node.TotalPrice = totalCost;
-
-        // XÓA GIÁ TRỊ NHẬP TAY CỦA CHA (nếu có) - chỉ xóa sau khi đã tính toán
-        node.AmountPeople = null;
-        node.NumberOfDay = null;
-        node.Price = null;
-      }
+      // Cập nhật dữ liệu cho công việc hiện tại (chỉ cập nhật TotalPrice như C#)
+      // Note: C# code chỉ cập nhật TotalPrice, các field khác bị comment
+      node.TotalPrice = totalCost;
+      
+      // Cập nhật TotalWorkforce để hiển thị (C# không cập nhật nhưng Angular cần để hiển thị)
+      node.TotalWorkforce = totalLabor;
     };
 
     // Tính từ gốc
@@ -1568,14 +1589,14 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
       .then((result: any) => {
         if (result && result.success) {
           this.loadDataProjectWorker();
-          this.notification.success(
-            'Thành công',
-            isEdit ? 'Sửa nhân công thành công!' : 'Thêm nhân công thành công!'
-          );
+          // Không hiện notification ở đây vì component con đã hiện rồi
         }
       })
       .catch((error: any) => {
-        console.error('Error in project worker detail modal:', error);
+        // Chỉ log error nếu không phải là dismiss với 'cancel' (đóng modal bình thường)
+        if (error !== 'cancel') {
+          console.error('Error in project worker detail modal:', error);
+        }
       });
   }
 
@@ -1673,4 +1694,21 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
       },
     });
   }
+
+  //#region đóng/mở panel bên trái
+  closeLeftPanel(): void {
+    this.sizeLeftPanel = '0';
+    this.sizeRightPanel = '100%'; // Mở rộng panel nhân công lên 100%
+  }
+
+  toggleLeftPanel(): void {
+    if (this.sizeLeftPanel === '0') {
+      this.sizeLeftPanel = '25%';
+      this.sizeRightPanel = '75%';
+    } else {
+      this.sizeLeftPanel = '0';
+      this.sizeRightPanel = '100%';
+    }
+  }
+  //#endregion
 }

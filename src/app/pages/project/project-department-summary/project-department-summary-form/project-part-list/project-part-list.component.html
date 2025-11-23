@@ -19,13 +19,23 @@
     <div class="modal-body p-0" style="overflow: hidden; min-height: 0;">
       <nz-splitter nzLayout="horizontal" style="height: 100%; min-height: 0;">
         <!-- Phần trái: 3 bảng dọc -->
-        <nz-splitter-panel nzDefaultSize="25%" nzMin="20%" nzMax="50%">
+        <nz-splitter-panel [nzSize]="sizeLeftPanel" nzMin="20%" nzMax="50%" [nzCollapsible]="true" nzResizable="true">
           <nz-splitter nzLayout="vertical" style="height: 100%">
             <!-- Bảng 1: Giải pháp -->
             <nz-splitter-panel nzDefaultSize="33.33%">
               <div class="card h-100 border-0 rounded-0 d-flex flex-column">
-                <div class="card-header bg-white p-1">
+                <div class="card-header bg-white p-1 d-flex justify-content-between align-items-center" style=" font-weight: bold !important; background-color: #efebebe7 !important;">
                   <p class="m-0">Giải pháp</p>
+                  <button
+                    nz-button
+                    nzType="text"
+                    class="btn-close-panel"
+                    style="color: red;"
+                    (click)="closeLeftPanel()"
+                    *ngIf="sizeLeftPanel !== '0'"
+                  >
+                    <i nz-icon nzType="close"></i>
+                  </button>
                 </div>
                 <div class="card-header bg-white p-1 d-flex gap-1">
                   <button
@@ -90,7 +100,7 @@
             <!-- Bảng 2: Phiên bản giải pháp -->
             <nz-splitter-panel nzDefaultSize="33.33%">
               <div class="card h-100 border-0 rounded-0 d-flex flex-column">
-                <div class="card-header bg-white p-1">
+                <div class="card-header bg-white p-1" style=" font-weight: bold !important; background-color: #efebebe7 !important;">
                   <p class="m-0">Phiên bản giải pháp</p>
                 </div>
                 <div class="card-header bg-white p-1 d-flex gap-1">
@@ -149,7 +159,7 @@
             <!-- Bảng 3: Phiên bản PO -->
             <nz-splitter-panel nzDefaultSize="33.33%">
               <div class="card h-100 border-0 rounded-0 d-flex flex-column">
-                <div class="card-header bg-white p-1 d-flex gap-1">
+                <div class="card-header bg-white p-1 d-flex gap-1" style=" font-weight: bold !important; background-color: #efebebe7 !important;">
                   <p class="m-0">Phiên bản PO</p>
                 </div>
                 <div class="card-header bg-white p-1 d-flex gap-1">
@@ -207,11 +217,21 @@
           </nz-splitter>
         </nz-splitter-panel>
   
-        <!-- Phần phải: Bảng nhân công -->
-        <nz-splitter-panel nzDefaultSize="75%" nzMin="50%" nzMax="80%">
+        <!-- Phần phải: Bảng vật tư -->
+        <nz-splitter-panel [nzSize]="sizeRightPanel" nzMin="50%" nzMax="100%">
           <div class="card h-100 border-0 rounded-0 d-flex flex-column">
-            <div class="card-header bg-white p-1 d-flex gap-1">
+            <div class="card-header bg-white p-1 d-flex justify-content-between align-items-center" style=" font-weight: bold !important; background-color: #efebebe7 !important;">
               <p class="m-0">Danh mục vật tư dự án {{ projectCodex }} -{{ type ==1 ? 'Giải pháp' : 'PO' }} -{{ projectTypeName }} -{{ CodeName }}</p>
+              <button
+                nz-button
+                nzType="text"
+                class="btn-close-panel"
+                style="color: green;"
+                (click)="toggleLeftPanel()"
+                *ngIf="sizeLeftPanel === '0'"
+              >
+                <i nz-icon nzType="menu-unfold"></i>
+              </button>
             </div>
   
             <div class="card-header bg-white p-1 d-flex gap-1">
@@ -330,6 +350,34 @@
                   </li>
                 </ul>
               </nz-dropdown-menu>
+              <!-- tích xanh -->
+              <ng-container  *hasPermission="'N38,N1,N64'">
+                <button
+                  class="fs-12"
+                  nz-button
+                  nzType="default"
+                  nzSize="small"
+                  nz-dropdown
+                  [nzDropdownMenu]="menuIsFix"
+               
+                >
+                  <img src="assets/icon/action_confirm_tbp_16.png" alt="TBP duyệt" /> Tích Xanh
+                  <i nz-icon nzType="down"></i>
+                </button>
+              </ng-container>
+              <nz-dropdown-menu #menuIsFix="nzDropdownMenu">
+                <ul nz-menu>
+                  <li nz-menu-item (click)="approveIsFix(true)">
+                    <img src="assets/icon/action_approved_16.png" />
+                    <span class="ms-1">Duyệt tích xanh</span>
+                  </li>
+                  <li nz-menu-item (click)="approveIsFix(false)">
+                    <img src="assets/icon/action_unapproved_16.png" />
+                    <span class="ms-1">Hủy duyệt tích xanh</span>
+                  </li>
+                </ul>
+              </nz-dropdown-menu>
+              <!-- end -->
               <button
             class="fs-12"
             nz-button
@@ -337,7 +385,7 @@
             nzSize="small"
             (click)="openImportExcelProjectPartList()"
           >
-            <img src="assets/icon/action_import_excel_16.png" /> Nhập Excel
+            <img src="assets/icon/action_import_16.png" /> Nhập Excel
           </button>
   
           <button

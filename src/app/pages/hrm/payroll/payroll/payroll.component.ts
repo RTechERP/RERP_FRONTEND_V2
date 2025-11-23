@@ -38,6 +38,7 @@ import { PayrollDetailComponent } from '../payroll-detail/payroll-detail.compone
 import { MainLayoutComponent } from '../../../../layouts/main-layout/main-layout.component';
 import { PayrollReportComponent } from '../payroll-report/payroll-report.component';
 import { BonusDeductionComponent } from '../bonus-deduction/bonus-deduction.component';
+import { HasPermissionDirective } from "../../../../directives/has-permission.directive";
 
 @Component({
   selector: 'app-payroll',
@@ -63,7 +64,8 @@ import { BonusDeductionComponent } from '../bonus-deduction/bonus-deduction.comp
     NzTreeSelectModule,
     NzModalModule,
     CommonModule,
-  ],
+    HasPermissionDirective
+],
   templateUrl: './payroll.component.html',
   styleUrl: './payroll.component.css'
 })

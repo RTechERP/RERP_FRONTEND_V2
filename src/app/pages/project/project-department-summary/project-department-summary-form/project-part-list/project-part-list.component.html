@@ -239,7 +239,7 @@
                 nz-button
                 nzSize="small"
                 class="fs-12 button button-succes btn-add"
-                (click)="openProjectWorkerDetail(false)"
+                (click)="openProjectPartlistDetail(false)"
               >
                 <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " />
                 Thêm
@@ -249,7 +249,7 @@
                 nz-button
                 nzType="default"
                 nzSize="small"
-                (click)="openProjectWorkerDetail(true)"
+                (click)="openProjectPartlistDetail(true)"
               >
                 <img src="assets/icon/action_edit_item_16.png" alt="Sửa" /> Sửa
               </button>
@@ -378,6 +378,15 @@
                 </ul>
               </nz-dropdown-menu>
               <!-- end -->
+              <button
+              class="fs-12 btn-edit"
+              nz-button
+              nzType="default"
+              nzSize="small"
+              (click)="SelectProroductPO()"
+            >
+              <img src="assets/icon/action_edit_item_16.png" alt="Sửa" /> Bổ sung PO
+            </button>
               <button
             class="fs-12"
             nz-button

@@ -1,48 +1,31 @@
-<ng-container class="w-100">
+<ng-container>
   <nz-splitter>
     <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
-      <div class="card border-0 rounded-0">
+      <div class="card border-0 rounded-0 h-100">
         <div class="card-header bg-white p-1">
           <div class="d-flex justify-content-between align-items-center">
             <h6 class="m-0 ms-2">Tìm kiếm</h6>
-            <button
-              class="border-0 me-2"
-              nz-button
-              nzSize="small"
-              nzType="default"
-              nzDanger
-              (click)="toggleSearchPanel()"
-            >
+            <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+              (click)="toggleSearchPanel()">
               <nz-icon nzType="close" nzTheme="outline" />
             </button>
           </div>
         </div>
         <div class="card-body">
           <form nz-form nzLayout="vertical">
-   
+
             <nz-form-item>
               <nz-form-label class="fs-12" [nzSpan]="24">Nhân viên</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <nz-select
-                  name="selectedEmployeeFilter"
-                  class="w-100"
-                  nzShowSearch
-                  nzAllowClear
-                  nzPlaceHolder="Chọn nhân viên"
-                  [(ngModel)]="selectedEmployeeFilter"
-                  (ngModelChange)="onEmployeeFilterChange()"
-                >
+                <nz-select name="selectedEmployeeFilter" class="w-100" nzShowSearch nzAllowClear
+                  nzPlaceHolder="Chọn nhân viên" [(ngModel)]="selectedEmployeeFilter"
+                  (ngModelChange)="onEmployeeFilterChange()">
                   @for (parent of employees; track $index) {
                   <nz-option-group [nzLabel]="parent.label">
                     @for (child of parent.options; track $index) {
-                    <nz-option
-                      nzCustomContent="true"
-                      [nzLabel]="child.item.FullName"
-                      [nzValue]="child.item.ID"
-                      >{{
-                        child.item.Code + " - " + child.item.FullName
-                      }}</nz-option
-                    >
+                    <nz-option nzCustomContent="true" [nzLabel]="child.item.FullName" [nzValue]="child.item.ID">{{
+                      child.item.Code + " - " + child.item.FullName
+                      }}</nz-option>
                     }
                   </nz-option-group>
                   }
@@ -50,23 +33,14 @@
               </nz-form-control>
             </nz-form-item>
 
-          
+
             <nz-form-item class="mt-2">
               <nz-form-label class="fs-12" [nzSpan]="24">Công ty</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <nz-select
-                  name="selectedCompanyFilter"
-                  class="w-100"
-                  nzShowSearch
-                  nzAllowClear
-                  nzPlaceHolder="Chọn công ty"
-                  [(ngModel)]="selectedCompanyFilter"
-                  (ngModelChange)="onCompanyFilterChange()"
-                >
-                  <nz-option 
-                    *ngFor="let company of companyList" 
-                    [nzValue]="company.ID"
-                    [nzLabel]="company.Name"
+                <nz-select name="selectedCompanyFilter" class="w-100" nzShowSearch nzAllowClear
+                  nzPlaceHolder="Chọn công ty" [(ngModel)]="selectedCompanyFilter"
+                  (ngModelChange)="onCompanyFilterChange()">
+                  <nz-option *ngFor="let company of companyList" [nzValue]="company.ID" [nzLabel]="company.Name"
                     nzCustomContent="true">
                     {{ company.Name }}
                   </nz-option>
@@ -74,17 +48,12 @@
               </nz-form-control>
             </nz-form-item>
 
-         
+
             <nz-form-item class="mt-2">
               <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <input
-                  name="searchValue"
-                  nz-input
-                  placeholder="Nhập từ khóa..."
-                  [(ngModel)]="searchValue"
-                  (keyup.enter)="onSearch()"
-                />
+                <input name="searchValue" nz-input placeholder="Nhập từ khóa..." [(ngModel)]="searchValue"
+                  (keyup.enter)="onSearch()" />
               </nz-form-control>
             </nz-form-item>
           </form>
@@ -93,77 +62,40 @@
           <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">
             Đặt lại
           </button>
-          <button
-            nz-button
-            nzType="primary"
-            nzSize="small"
-            (click)="onSearch()"
-          >
+          <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
             Tìm kiếm
           </button>
         </div>
       </div>
     </nz-splitter-panel>
-
     <nz-splitter-panel nzDefaultSize="100%">
-      <div class="card border-0 rounded-0">
-        <div class="card-header bg-white p-1">
+      <div class="card border-0 rounded-0 h-100">
+        <div class="card-header bg-white p-1" style="overflow-x: auto;">
           <div class="d-flex gap-1">
-     
-            <button
-              nz-button
-              nzType="default"
-              nzSize="small"
-              (click)="toggleSearchPanel()"
-            >
+
+            <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
               <nz-icon nzType="search" />
             </button>
 
-            <button
-              nz-button
-              nzType="default"
-              nzSize="small"
-              class="btn-add"
-              (click)="addEmployeePurchase()"
-              *hasPermission="'N33,N1'"
-            >
+            <button nz-button nzType="default" nzSize="small" class="btn-add" (click)="addEmployeePurchase()"
+              *hasPermission="'N33,N1'">
               <img src="assets/icon/action_add_item_16.png" alt="Thêm mới" />Thêm
             </button>
-            <button
-              nz-button
-              nzType="default"
-              nzSize="small"
-              class="btn-edit"
-              (click)="editEmployeePurchase()"
-              *hasPermission="'N33,N1'"
-            >
+            <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="editEmployeePurchase()"
+              *hasPermission="'N33,N1'">
               <img src="assets/icon/action_edit_item_16.png" alt="Sửa" />Sửa
             </button>
-            <button
-              nz-button
-              nzType="default"
-              nzSize="small"
-              class="btn-delete"
-              (click)="deleteEmployeePurchase()"
-              *hasPermission="'N33,N1'"
-            >
+            <button nz-button nzType="default" nzSize="small" class="btn-delete" (click)="deleteEmployeePurchase()"
+              *hasPermission="'N33,N1'">
               <img src="assets/icon/action_delete_item_16.png" alt="Xóa" />Xóa
             </button>
-            <button
-              nz-button
-              nzType="default"
-              nzSize="small"
-              class="btn-refresh"
-              (click)="refreshData()"
-              *hasPermission="'N33,N1'"
-            >
+            <button nz-button nzType="default" nzSize="small" class="btn-refresh" (click)="refreshData()"
+              *hasPermission="'N33,N1'">
               <img src="assets/icon/btn_refresh.png" alt="Refresh" />Làm mới
             </button>
           </div>
         </div>
-        <div
-          class="card-body p-0 d-flex align-items-center justify-content-center"
-        >
+        <div class="card-body p-0">
           <div class="w-100" #tb_employeePurchase></div>
         </div>
       </div>

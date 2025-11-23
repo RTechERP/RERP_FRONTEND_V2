@@ -137,6 +137,13 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
       paginationSizeSelector: [30, 50, 100, 200, 500],
       ajaxURL: this.supplierSaleService.getSupplierSale(),
       ajaxParams: { keyword: this.keyword ?? "" },
+      ajaxConfig: {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem('token')}`,
+          "Content-Type": "application/json",
+        }
+      },
       ajaxResponse: (url, params, res) => {
         return {
           data: res.data.data,

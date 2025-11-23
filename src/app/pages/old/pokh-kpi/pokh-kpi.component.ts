@@ -61,6 +61,7 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
 import { CustomerServiceService } from '../../crm/customers/customer/customer-service/customer-service.service';
 import { QuotationKhDetailServiceService } from '../quotation-kh-detail/quotation-kh-detail-service/quotation-kh-detail-service.service';
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
+import { ProjectService } from '../../project/project-service/project.service';
 
 @Component({
   selector: 'app-pokh-kpi',
@@ -97,7 +98,7 @@ import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
 export class PokhKpiComponent implements OnInit, AfterViewInit {
   @ViewChild('tb_POKH', { static: false }) tb_POKHElement!: ElementRef;
   @ViewChild('tb_Detail', { static: false }) tb_DetailElement!: ElementRef;
-  
+
   tb_POKH!: Tabulator;
   tb_Detail!: Tabulator;
   sizeSearch: string = '0';
@@ -173,8 +174,9 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private customerService: CustomerServiceService,
     private quotationKhDetailService: QuotationKhDetailServiceService,
-    private viewPokhService: ViewPokhService
-  ) {}
+    private viewPokhService: ViewPokhService,
+    private projectService: ProjectService
+  ) { }
   ngOnInit(): void {
     const endDate = new Date();
     const startDate = new Date();
@@ -197,7 +199,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
       // Sử dụng selectedIds đã lưu (không phụ thuộc vào data hiện tại)
       // Điều này đảm bảo các ID vẫn được giữ ngay cả khi dòng bị mất khỏi kết quả lọc
       const previouslySelectedIds = [...this.selectedIds];
-      
+
       // Gọi setData() với tham số true để force reload data từ server
       this.tb_POKH.setData(null, true).then(() => {
         // Sau khi reload xong, chọn lại các dòng theo ID đã lưu
@@ -208,12 +210,12 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
               const rowData = row.getData();
               return previouslySelectedIds.includes(rowData.ID);
             });
-            
+
             // Chọn lại các dòng có trong data mới
             if (rowsToSelect.length > 0) {
               this.tb_POKH.selectRow(rowsToSelect);
             }
-            
+
             // Luôn load lại detail với tất cả các ID đã chọn (kể cả những ID không có trong data hiện tại)
             // Điều này đảm bảo detail luôn hiển thị đầy đủ dữ liệu của các dòng đã chọn
             this.loadMultiplePOKHKPIDetail(previouslySelectedIds);
@@ -230,7 +232,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
   }
 
   loadFilterCustomers(): void {
-    this.customerService.getCustomers().subscribe(
+    this.projectService.getCustomers().subscribe(
       (response) => {
         if (response.status === 1) {
           this.customers = response.data;
@@ -338,7 +340,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
   searchPOKH() {
     this.loadPOKH();
   }
-  exportExcel() {}
+  exportExcel() { }
   getPOKHAjaxParams(): any {
     return (params: any) => {
       console.log('Params từ Tabulator:', params);
@@ -499,9 +501,8 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `POKHKPIDetail_List_Page_${currentPage}_${
-      new Date().toISOString().split('T')[0]
-    }.xlsx`;
+    link.download = `POKHKPIDetail_List_Page_${currentPage}_${new Date().toISOString().split('T')[0]
+      }.xlsx`;
     link.click();
     window.URL.revokeObjectURL(url);
   }
@@ -591,7 +592,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
             const status = rowData['Status'];
             const value = cell.getValue() || '';
             let backgroundColor = '';
-            
+
             switch (status) {
               case 0:
                 backgroundColor = 'rgb(255, 255, 0)'; // Vàng
@@ -615,7 +616,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
                 backgroundColor = '';
                 break;
             }
-            
+
             // Set background color cho cell element
             if (backgroundColor) {
               const cellElement = cell.getElement();
@@ -623,7 +624,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
                 (cellElement as HTMLElement).style.backgroundColor = backgroundColor;
               }
             }
-            
+
             return value;
           },
         },
@@ -793,7 +794,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
       // Load lại detail với tất cả các ID đã chọn
       this.loadMultiplePOKHKPIDetail(this.selectedIds);
     });
-    
+
     // Xử lý khi bỏ chọn một dòng
     this.tb_POKH.on('rowDeselected', (row: any) => {
       const rowData = row.getData();
@@ -810,7 +811,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
         }
       }
     });
-    
+
     this.tb_POKH.on('rowSelectionChanged', (data: any[]) => {
       // Cập nhật trạng thái allSelected
       const rows = this.tb_POKH.getRows();

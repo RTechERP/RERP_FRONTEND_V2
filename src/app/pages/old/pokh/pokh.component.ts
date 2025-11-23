@@ -1142,6 +1142,105 @@ export class PokhComponent implements OnInit, AfterViewInit {
   }
   //#endregion
   //#region : Các hàm xử lý modal
+
+  
+  private getContextMenu(): any[] {
+    return [
+      {
+        label:
+          '<span style="font-size: 0.75rem;"><i class="fas fa-eye"></i> Lịch sử tiền về</span>',
+        action: () => this.openHistoryMoneyModal(),
+      },
+      {
+        label:
+          '<span style="font-size: 0.75rem;"><i class="fas fa-eye"></i> Danh sách yêu cầu mua hàng</span>',
+        action: () => this.openProjectPartlistPurchaseRequest(),
+      },
+      {
+        label:
+          '<span style="font-size: 0.75rem;"><i class="fas fa-eye"></i> Danh sách yêu cầu báo giá</span>',
+        action: () => this.openProjectPartlistPriceRequestNew(),
+      },
+    ];
+  }
+
+  private getContextFileMenu(): any[] {
+    return [
+      {
+        label:
+          '<span style="font-size: 0.75rem;"><i class="fas fa-file-download"></i> Tải file</span>',
+        action: (e: any, row: RowComponent) => {
+          const rowData = row.getData();
+          const fileId = rowData['ID'];
+          const fileName = rowData['FileName'] || `file_${fileId}`;
+          
+          if (fileId) {
+            this.POKHService.downloadFile(fileId).subscribe({
+              next: (blob: Blob) => {
+                // Kiểm tra nếu blob thực ra chứa lỗi dạng JSON
+                if (blob.type === 'application/json' || blob.size === 0) {
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    try {
+                      const json = JSON.parse(reader.result as string);
+                      if (json?.status === 0) {
+                        this.notification.error(
+                          NOTIFICATION_TITLE.error,
+                          json.message || 'Không thể tải file!'
+                        );
+                        return;
+                      }
+                    } catch {
+                      // Nếu không parse được JSON, có thể là file thật
+                      this.downloadBlob(blob, fileName);
+                    }
+                  };
+                  reader.readAsText(blob);
+                } else {
+                  // Blob hợp lệ, tải xuống
+                  this.downloadBlob(blob, fileName);
+                }
+              },
+              error: (error) => {
+                this.notification.error(
+                  NOTIFICATION_TITLE.error,
+                  'Lỗi khi tải file: ' + (error?.message || error)
+                );
+                console.error('Error downloading file:', error);
+              },
+            });
+          } else {
+            this.notification.warning(
+              NOTIFICATION_TITLE.warning,
+              'Không tìm thấy ID file để tải!'
+            );
+          }
+        },
+      },
+    ];
+  }
+
+  private downloadBlob(blob: Blob, fileName: string): void {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  }
+
+  openProjectPartlistPurchaseRequest(): void{
+    this.notification.warning(NOTIFICATION_TITLE.warning, 'Chức năng đang phát triển!');
+  }
+
+  openProjectPartlistPriceRequestNew(): void{
+    this.notification.warning(NOTIFICATION_TITLE.warning, 'Chức năng đang phát triển!');
+  }
+
+
+
   openModalViewPOKH() {
     this.modalService.open(ViewPokhComponent, {
       centered: true,
@@ -1149,6 +1248,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
     });
   }
+  
   openWarehouseReleaseRequestModal() {
     this.modalService.open(WarehouseReleaseRequestComponent, {
       centered: true,
@@ -1251,6 +1351,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
         vertAlign: 'middle',
         resizable: true,
       },
+      rowContextMenu: this.getContextMenu(),
       columns: [
         {
           title: 'Duyệt',
@@ -1768,7 +1869,13 @@ export class PokhComponent implements OnInit, AfterViewInit {
       height: '100%',
       movableColumns: true,
       resizableRows: true,
+      rowContextMenu: this.getContextFileMenu(),
       columns: [
+        {
+          title: 'ID',
+          field: 'ID',
+          visible: false
+        },
         {
           title: 'STT',
           formatter: 'rownum',

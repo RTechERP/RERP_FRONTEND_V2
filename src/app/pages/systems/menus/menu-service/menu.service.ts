@@ -1279,7 +1279,7 @@ export class MenuService {
                 key: 'POKHComponent',
                 title: 'Danh sách PO KHÁCH HÀNG',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
+                isPermission: this.permissionService.hasPermission('N27,N36,N1,N31'),
                 comp: PokhComponent,
               },
               {
@@ -1287,7 +1287,7 @@ export class MenuService {
                 key: 'QuotationKhComponent',
                 title: 'BÁO GIÁ KHÁCH HÀNG',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
+                isPermission: this.permissionService.hasPermission('N27,N36,N1'),
                 comp: QuotationKhComponent,
               },
               {
@@ -1295,7 +1295,7 @@ export class MenuService {
                 key: 'PokhKpiComponent',
                 title: 'XUẤT PO KHÁCH HÀNG CHI TIẾT',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
+                isPermission: this.permissionService.hasPermission('N27,N36,N1'),
                 comp: PokhKpiComponent,
               },
               {

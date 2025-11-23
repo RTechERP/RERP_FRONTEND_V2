@@ -149,4 +149,13 @@ export class PokhService {
       })),
     }));
   }
+
+  downloadFile(fileId: number): Observable<Blob> {
+    return this.http.get(this._url + 'download-file', {
+      params: {
+        fileId: fileId.toString(),
+      },
+      responseType: 'blob',
+    });
+  }
 }

@@ -108,6 +108,7 @@ import { FoodOrderComponent } from '../../../hrm/food-order/food-order.component
 import { SupplierSaleComponent } from '../../../purchase/supplier-sale/supplier-sale.component';
 import { EmployeeNoFingerprintComponent } from '../../../hrm/employee-management/employee-no-fingerprint/employee-no-fingerprint.component';
 import { ChiTietSanPhamSaleComponent } from '../../../old/Sale/chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
+import { AssignWorkComponent } from '../../../purchase/assign-work/assign-work.component';
 @Injectable({
   providedIn: 'root',
 })
@@ -119,7 +120,7 @@ export class MenuService {
     private permissionService: PermissionService,
     private appUserService: AppUserService,
     private notification: NzNotificationService
-  ) { }
+  ) {}
 
   //   getMenus(id: number): Observable<any> {
   //     return this.http.get<any>(this.apiUrl + `menus/${id}`);
@@ -805,24 +806,24 @@ export class MenuService {
                 comp: EmployeeNightShiftComponent,
                 //   icon: 'assets/icon/layers.png',
               },
-                {
-                  kind: 'leaf',
-                  key: 'WFH',
-                  title: 'WFH',
-                  isOpen: true,
-                  isPermission: this.permissionService.hasPermission('N2,N1'),
-                  comp: WFHComponent,
-                  //   icon: 'assets/icon/layers.png',
-                },
-                {
-                  kind: 'leaf',
-                  key: 'EmployeeNoFingerprintComponent',
-                  title: 'Quên Vân tay',
-                  isOpen: true,
-                  isPermission: this.permissionService.hasPermission('N2,N1'),
-                  comp: EmployeeNoFingerprintComponent,
-                  //   icon: 'assets/icon/layers.png',
-                },
+              {
+                kind: 'leaf',
+                key: 'WFH',
+                title: 'WFH',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission('N2,N1'),
+                comp: WFHComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+              {
+                kind: 'leaf',
+                key: 'EmployeeNoFingerprintComponent',
+                title: 'Quên Vân tay',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission('N2,N1'),
+                comp: EmployeeNoFingerprintComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
               {
                 kind: 'leaf',
                 key: 'EmployeeAttendanceComponent',
@@ -1038,6 +1039,15 @@ export class MenuService {
           //   comp: ProjectPartlistPurchaseRequestComponent,
           //   //   icon: 'assets/icon/layers.png',
           // },
+          {
+            kind: 'leaf',
+            key: 'AssignWorkComponent',
+            title: 'Phân công công việc',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission('N33,N1'),
+            comp: AssignWorkComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
         ],
       },
       //#endregion

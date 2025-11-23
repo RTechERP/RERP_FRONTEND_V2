@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../../environments/environment';
 
@@ -53,5 +53,28 @@ export class EmployeeBussinessService {
       this._url + 'EmployeeTypeBussiness',
       employeeTypeBussiness
     );
+  }
+
+  getWorkManagement(params: any): Observable<any> {
+    return this.http.post(
+      this._url + 'EmployeeBussiness/get-work-management',
+      params
+    );
+  }
+
+  saveApproveTBP(data: any): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    });
+    return this.http.post<any>(this._url + 'EmployeeBussiness/save-approve-tbp', data, { headers });
+  }
+
+  saveApproveHR(data: any): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    });
+    return this.http.post<any>(this._url + 'EmployeeBussiness/save-approve-hr', data, { headers });
   }
 }

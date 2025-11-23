@@ -1,16 +1,18 @@
-<!-- <h6 class="mt-1">Phụ cấp công tác</h6> -->
 <ng-container class="w-100">
   <div class="card h-100 border-0 rounded-0">
     <div class="card-header bg-white py-2 px-0">
       <div class="d-flex justify-content-between align-items-center">
         <div class="d-flex gap-2">
-          <button nz-button nzType="default" nzSize="small" (click)="openAddModal()" style="font-size: 0.75rem; font-weight: bold;">
+          <button nz-button nzType="default" nzSize="small" (click)="openAddModal()"
+            style="font-size: 0.75rem; font-weight: bold;">
             <nz-icon nzType="plus" /> Thêm
           </button>
-          <button nz-button nzType="default" nzSize="small" (click)="openEditModal()" style="font-size: 0.75rem; font-weight: bold;">
+          <button nz-button nzType="default" nzSize="small" (click)="openEditModal()"
+            style="font-size: 0.75rem; font-weight: bold;">
             <nz-icon nzType="edit" /> Sửa
           </button>
-          <button nz-button nzType="default" nzSize="small" (click)="openDeleteModal()" style="font-size: 0.75rem; font-weight: bold;">
+          <button nz-button nzType="default" nzSize="small" (click)="openDeleteModal()"
+            style="font-size: 0.75rem; font-weight: bold;">
             <nz-icon nzType="delete" /> Xóa
           </button>
         </div>
@@ -18,10 +20,7 @@
     </div>
     <div class="card-body p-0 position-relative">
       <div *ngIf="isLoading">
-        <nz-spin
-          [nzSpinning]="isLoading"
-          nzSimple
-          [style]="{
+        <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
             position: 'absolute',
             top: '0',
             left: '0',
@@ -32,43 +31,55 @@
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center'
-          }"
-        ></nz-spin>
+          }"></nz-spin>
       </div>
       <div id="tb_employee_bussiness_type"></div>
     </div>
   </div>
 </ng-container>
 
-<nz-modal [(nzVisible)]="isVisible" 
-  [nzTitle]="'Chi tiết phụ cấp công tác'"
-  (nzOnCancel)="handleCancel()" 
-  (nzOnOk)="handleOk()"
-  [nzOkText]="'Lưu'"
-  [nzCancelText]="'Hủy'"
-  [nzOkLoading]="isSubmitting">
+<nz-modal [(nzVisible)]="isVisible" [nzTitle]="isEditMode ? 'Sửa loại phụ cấp công tác' : 'Thêm loại phụ cấp công tác'"
+  (nzOnCancel)="handleCancel()" [nzFooter]="modalFooter" [nzWidth]="600">
   <ng-container *nzModalContent>
     <form nz-form [formGroup]="employeeBussinessTypeForm" (ngSubmit)="onSubmit()">
       <nz-form-item>
-        <nz-form-label [nzSpan]="24">Mã loại công tác <sup class="text-danger"> (*)</sup></nz-form-label>
-        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập mã loại công tác">
-          <input nz-input formControlName="TypeCode" placeholder="Nhập mã loại công tác"/>
+        <nz-form-label [nzSpan]="24" nzRequired>Mã loại công tác</nz-form-label>
+        <nz-form-control [nzSpan]="24" [nzValidateStatus]="hasError('TypeCode') ? 'error' : ''"
+          [nzErrorTip]="getErrorMessage('TypeCode')">
+          <input nz-input formControlName="TypeCode" placeholder="Nhập mã loại công tác"
+            [class.border-danger]="hasError('TypeCode')" />
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item>
-        <nz-form-label [nzSpan]="24">Tên loại công tác<sup class="text-danger"> (*)</sup></nz-form-label>
-        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập tên loại công tác">
-          <input nz-input formControlName="TypeName" placeholder="Nhập tên loại công tác" />
+        <nz-form-label [nzSpan]="24" nzRequired>Tên loại công tác</nz-form-label>
+        <nz-form-control [nzSpan]="24" [nzValidateStatus]="hasError('TypeName') ? 'error' : ''"
+          [nzErrorTip]="getErrorMessage('TypeName')">
+          <input nz-input formControlName="TypeName" placeholder="Nhập tên loại công tác"
+            [class.border-danger]="hasError('TypeName')" />
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item>
-        <nz-form-label [nzSpan]="24">Phụ cấp<sup class="text-danger"> (*)</sup></nz-form-label>
-        <nz-form-control [nzSpan]="24" nzErrorTip="Vui lòng nhập phụ cấp">
-          <input nz-input formControlName="Cost" placeholder="Nhập phụ cấp" />
+        <nz-form-label [nzSpan]="24" nzRequired>Phụ cấp</nz-form-label>
+        <nz-form-control [nzSpan]="24" [nzValidateStatus]="hasError('Cost') ? 'error' : ''"
+          [nzErrorTip]="getErrorMessage('Cost')">
+          <nz-input-number formControlName="Cost" [nzMin]="0" [nzStep]="1000" [nzFormatter]="formatter"
+            [nzParser]="parser" placeholder="Nhập phụ cấp" style="width: 100%" [class.border-danger]="hasError('Cost')">
+          </nz-input-number>
         </nz-form-control>
       </nz-form-item>
     </form>
   </ng-container>
+
+  <ng-template #modalFooter>
+    <div class="d-flex justify-content-end gap-2">
+      <button nz-button nzType="default" (click)="handleCancel()" [disabled]="isSubmitting">
+        Hủy
+      </button>
+      <button nz-button nzType="primary" (click)="handleOk()" [nzLoading]="isSubmitting">
+        <nz-icon nzType="save" /> Lưu
+      </button>
+    </div>
+  </ng-template>
 </nz-modal>

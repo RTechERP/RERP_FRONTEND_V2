@@ -1,0 +1,247 @@
+<!-- Sửa HTML template - employee-timekeeping-management.component.html -->
+<div>
+  <!-- Modal Header (chỉ hiển thị khi mở qua modal) -->
+  <div  *ngIf="activeModal" class="modal-header bg-primary p-2">
+    <h6 class="modal-title text-white" id="assetModalLabel">Chi tiết bảng chấm công</h6>
+    <button type="button" class="btn-close" aria-label="Close" (click)="closeModal()"></button>
+  </div>
+  <ng-container class="w-100" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+    <nz-splitter style="height: 100%; flex: 1;">
+    <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-1">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="m-0 ms-2">Tìm kiếm</h6>
+            <button
+              class="border-0 me-2"
+              nz-button
+              nzSize="small"
+              nzType="default"
+              nzDanger
+              (click)="toggleSearchPanel()"
+            >
+              <nz-icon nzType="close" nzTheme="outline" />
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <form nz-form nzLayout="vertical">
+            <nz-form-item>
+              <nz-form-label class="fs-12 d-flex align-items-center">
+                Năm
+              </nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-date-picker
+                  class="w-100"
+                  name="year"
+                  [(ngModel)]="year"
+                  [nzMode]="'year'"
+                  [nzFormat]="'YYYY'"
+                  (ngModelChange)="searchMT()"
+                  nzAllowClear="false"
+                ></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item>
+              <nz-form-label class="fs-12 d-flex align-items-center">
+                Tháng
+              </nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <nz-select
+                  name="month"
+                  class="w-100"
+                  nzAllowClear
+                  nzPlaceHolder="Chọn tháng"
+                  [(ngModel)]="month"
+                  (ngModelChange)="searchMT()"
+                >
+                  @for (i of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]; track
+                  $index) {
+                  <nz-option [nzValue]="i" [nzLabel]="'Tháng ' + i"></nz-option>
+                  }
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <!-- Phòng ban -->
+            <nz-form-item>
+              <nz-form-label class="fs-12" [nzSpan]="24"
+                >Phòng ban</nz-form-label
+              >
+              <nz-form-control [nzSpan]="24">
+                <nz-select
+                  name="selectedDepartmentFilter"
+                  class="w-100"
+                  nzShowSearch
+                  nzAllowClear
+                  nzPlaceHolder="Chọn phòng ban"
+                  [(ngModel)]="selectedDepartment"
+                  (ngModelChange)="onDepartmentChange()"
+                >
+                  <nz-option
+                    *ngFor="let department of departments"
+                    [nzValue]="department.ID"
+                    [nzLabel]="department.Name"
+                    nzCustomContent="true"
+                  >
+                    {{ department.Code }} - {{ department.Name }}
+                  </nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item>
+              <nz-form-label class="fs-12" [nzSpan]="24"
+                >Nhân viên</nz-form-label
+              >
+              <nz-form-control [nzSpan]="24">
+                <nz-select
+                  name="selectedEmployee"
+                  class="w-100"
+                  nzShowSearch
+                  nzAllowClear
+                  nzPlaceHolder="Chọn nhân viên"
+                  [(ngModel)]="selectedEmployee"
+                  (ngModelChange)="onEmployeeChange()"
+                >
+                  @for (parent of employees; track $index) {
+                  <nz-option-group [nzLabel]="parent.label">
+                    @for (child of parent.options; track $index) {
+                    <nz-option
+                      nzCustomContent="true"
+                      [nzLabel]="child.item.FullName"
+                      [nzValue]="child.item.ID"
+                      >{{
+                        child.item.Code + " - " + child.item.FullName
+                      }}</nz-option
+                    >
+                    }
+                  </nz-option-group>
+                  }
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <!-- Từ khóa -->
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+              <nz-form-control [nzSpan]="24">
+                <input
+                  name="searchValue"
+                  nz-input
+                  placeholder="Tìm tên nhân viên, mã nhân viên, lý do..."
+                  [(ngModel)]="searchValue"
+                  (keyup.enter)="onSearch()"
+                />
+              </nz-form-control>
+            </nz-form-item>
+          </form>
+        </div>
+        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+          <button
+            nz-button
+            nzType="default"
+            nzSize="small"
+            (click)="resetSearch()"
+          >
+            Đặt lại
+          </button>
+          <button
+            nz-button
+            nzType="primary"
+            nzSize="small"
+            (click)="onSearch()"
+          >
+            Tìm kiếm
+          </button>
+        </div>
+      </div>
+    </nz-splitter-panel>
+
+    <nz-splitter-panel nzDefaultSize="100%">
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-1">
+          <div class="d-flex gap-1">
+            <button
+              nz-button
+              nzType="default"
+              nzSize="small"
+              (click)="toggleSearchPanel()"
+            >
+              <nz-icon nzType="search" />
+            </button>
+
+        
+            <button nz-button nzType="default" nzSize="small"   (click)="onUpdateOne()">
+              <img class="btn-action-icon" src="assets/icon/action_update_one_24.svg" /> Update </button>
+            <button nz-button nzType="default" nzSize="small"   (click)="onUpdateAll()">
+              <img class="btn-action-icon" src="assets/icon/action_update_all_24.svg" /> Update All</button>
+            <button
+              class="fs-12"
+              nz-button
+              nzType="default"
+              nzSize="small"
+              (click)="exportToExcel()"
+            >
+            <img src="assets/icon/action_export_excel_16.png" />
+              Xuất Excel
+            </button>
+          </div>
+        </div>
+
+        <div
+          class="card-body p-0"
+          style="position: relative; height: calc(100% - 50px)"
+        >
+          <!-- <nz-tabset
+            (nzSelectedIndexChange)="onTabChange($event)"
+            style="height: 100%"
+          >
+            <nz-tab nzTitle="BẢNG CHẤM CÔNG">
+              <div class="border h-100" #tb_MT></div>
+            </nz-tab>
+            <nz-tab nzTitle="CHI TIẾT CÔNG">
+              <div class="border h-100" #tb_DT></div>
+            </nz-tab>
+          </nz-tabset> -->
+
+          <div
+            *ngIf="isLoadTable"
+            style="
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              background: rgba(255, 255, 255, 0.4);
+              z-index: 999;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            "
+          >
+            <nz-spin [nzSpinning]="isLoadTable" nzSimple></nz-spin>
+          </div>
+          <nz-tabset
+            class="timekeeping-tabs"
+            [nzSelectedIndex]="activeTabIndex"
+            (nzSelectedIndexChange)="onTabChange($event)"
+            [nzAnimated]="false"
+            style="height: 100%; display: flex; flex-direction: column"
+          >
+            <nz-tab nzTitle="BẢNG CHẤM CÔNG">
+              <div class="w-100 h-100" style="height: 100%">
+                <div class="border h-100 w-100" #tb_MT></div>
+              </div>
+            </nz-tab>
+            <nz-tab nzTitle="CHI TIẾT CÔNG">
+              <div class="w-100 h-100" style="height: 100%">
+                <div class="border h-100 w-100" #tb_DT></div>
+              </div>
+            </nz-tab>
+          </nz-tabset>
+        </div>
+      </div>
+    </nz-splitter-panel>
+    </nz-splitter>
+  </ng-container>
+</div>

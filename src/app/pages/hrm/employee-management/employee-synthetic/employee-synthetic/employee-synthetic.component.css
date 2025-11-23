@@ -1,0 +1,46 @@
+::ng-deep app-employee-synthetic {
+  font-size: 12px;
+}
+
+::ng-deep app-employee-synthetic .tabulator {
+  font-size: 12px;
+}
+
+::ng-deep app-employee-synthetic .tabulator-cell {
+  font-size: 12px;
+}
+
+::ng-deep app-employee-synthetic .tabulator-col-content {
+  font-size: 12px;
+}
+
+::ng-deep app-employee-synthetic .tabulator-header {
+  font-size: 12px;
+}
+
+::ng-deep app-employee-synthetic .tabulator-group-header {
+  font-size: 12px;
+}
+
+::ng-deep .weekend-header-group .tabulator-col-content {
+  background-color: #e9b003 !important;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+::ng-deep .weekend-header-group .tabulator-col-group {
+  background-color: #e9b003 !important;
+  font-size: 12px;
+}
+
+::ng-deep .weekend-column .tabulator-col-content {
+  background-color:  #e9b003 !important;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+::ng-deep .weekend-column .tabulator-col-group {
+  background-color:  #e9b003 !important;
+  font-size: 12px;
+}
+

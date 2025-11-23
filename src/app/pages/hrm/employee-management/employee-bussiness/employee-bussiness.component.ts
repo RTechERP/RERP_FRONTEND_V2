@@ -21,18 +21,22 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { FormControl } from '@angular/forms';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-import { DepartmentServiceService } from '../../../old/department/department-service/department-service.service';
-import { EmployeeService } from '../../../old/employee/employee-service/employee.service';
+import { DepartmentServiceService } from '../../department/department-service/department-service.service';
+import { EmployeeService } from '../../employee/employee-service/employee.service';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { EmployeeBussinessService } from './employee-bussiness-service/employee-bussiness.service';
 import { EmployeeBussinessDetailComponent } from './employee-bussiness-detail/employee-bussiness-detail.component';
-import { EmployeeBussinessBonusComponent } from "./employee-bussiness-bonus/employee-bussiness-bonus.component";
+
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { ProjectService } from '../../../project/project-service/project.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { VehiceDetailComponent } from './vehice-detail/vehice-detail.component';
+import { EmployeeBussinessBonusComponent } from './employee-bussiness-bonus/employee-bussiness-bonus.component';
+import { EmployeeBussinessSummaryComponent } from './employee-bussiness-summary/employee-bussiness-summary.component';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { AuthService } from '../../../../auth/auth.service';
 
 @Component({
   selector: 'app-employee-bussiness',
@@ -58,7 +62,6 @@ import { VehiceDetailComponent } from './vehice-detail/vehice-detail.component';
     NzSplitterModule,
     NgIf,
     NzSpinModule,
-    EmployeeBussinessBonusComponent,
     HasPermissionDirective
   ]
 })
@@ -74,6 +77,13 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
   employeeBussinessDetailData: any[] = [];
   isLoading = false;
 
+  // Current user info
+  currentUser: any = null;
+  currentEmployeeId: number = 0;
+  currentDepartmentId: number = 0;
+  currentDepartmentName: string = '';
+  isAdmin: boolean = false;
+
   constructor(
     private fb: FormBuilder,
     private notification: NzNotificationService,
@@ -82,12 +92,27 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
     private employeeBussinessService: EmployeeBussinessService,
     private projectService: ProjectService,
     private modalService: NgbModal,
+    private authService: AuthService,
   ) { }
 
   ngOnInit() {
     this.initializeForm();
     this.loadDepartment();
+    this.getCurrentUser();
     this.loadEmployeeBussiness();
+  }
+
+  getCurrentUser(): void {
+    this.authService.getCurrentUser().subscribe((res: any) => {
+      if (res && res.status === 1 && res.data) {
+        const data = Array.isArray(res.data) ? res.data[0] : res.data;
+        this.currentUser = data;
+        this.currentEmployeeId = data.EmployeeID || 0;
+        this.currentDepartmentId = data?.DepartmentID || 0;
+        this.currentDepartmentName = data?.DepartmentName || '';
+        this.isAdmin = data?.ISADMIN || false;
+      }
+    });
   }
 
   private initializeForm(): void {
@@ -153,39 +178,54 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
   private initializeTable(): void {
     this.tabulator = new Tabulator('#tb_employee_bussiness', {
       data: this.employeeBussinessList,
+      ...DEFAULT_TABLE_CONFIG,
       layout: 'fitColumns',
       selectableRows: true,
-      height: '88vh',
-      rowHeader: {
-        formatter: "rowSelection",
-        titleFormatter: "rowSelection",
-        headerSort: false,
-        width: 60,
-        frozen: true,
-        headerHozAlign: "center",
-        hozAlign: "center"
-      },
+      paginationMode: 'local',
+    
       groupBy: 'DepartmentName',
       groupHeader: function (value, count, data, group) {
         return "<span style='color:black'>Phòng ban: </span>" + value;
       },
-      langs: {
-        vi: {
-          pagination: {
-            first: '<<',
-            last: '>>',
-            prev: '<',
-            next: '>',
-          },
-        },
-      },
-      locale: 'vi',
+     
       columns: [
         {
           title: 'TBP duyệt', field: 'StatusText', hozAlign: 'center', headerHozAlign: 'center', width: 110, headerSort: false,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            // Nếu là string, convert sang number; nếu là number/null, dùng trực tiếp
+            let numValue = 0;
+            if (value === null || value === undefined) {
+              numValue = 0;
+            } else if (typeof value === 'number') {
+              numValue = value;
+            } else if (typeof value === 'string') {
+              // Map string sang number
+              if (value === 'Đã duyệt') numValue = 1;
+              else if (value === 'Từ chối' || value === 'Không duyệt') numValue = 2;
+              else numValue = 0; // Chưa duyệt hoặc giá trị khác
+            }
+            return this.formatApprovalBadge(numValue);
+          },
         },
         {
           title: 'HR duyệt', field: 'StatusHRText', hozAlign: 'center', headerHozAlign: 'center', width: 110, headerSort: false,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            // Nếu là string, convert sang number; nếu là number/null, dùng trực tiếp
+            let numValue = 0;
+            if (value === null || value === undefined) {
+              numValue = 0;
+            } else if (typeof value === 'number') {
+              numValue = value;
+            } else if (typeof value === 'string') {
+              // Map string sang number
+              if (value === 'Đã duyệt') numValue = 1;
+              else if (value === 'Từ chối' || value === 'Không duyệt') numValue = 2;
+              else numValue = 0; // Chưa duyệt hoặc giá trị khác
+            }
+            return this.formatApprovalBadge(numValue);
+          },
         },
         {
           title: 'BGD duyệt', field: 'IsApprovedBGD', hozAlign: 'center', headerHozAlign: 'center', width: 110, headerSort: false,
@@ -295,9 +335,7 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
         },
 
       ],
-      pagination: true,
-      paginationSize: 100,
-      paginationSizeSelector: [10, 20, 50, 100]
+     
     });
   }
 
@@ -419,11 +457,393 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
   }
 
   approved(isApproved: boolean, isTBP: boolean) {
+    if (isTBP) {
+      if (isApproved) {
+        this.approvedTBP();
+      } else {
+        this.cancelApprovedTBP();
+      }
+    } else {
+      if (isApproved) {
+        this.approvedHR();
+      } else {
+        this.cancelApprovedHR();
+      }
+    }
+  }
+
+  approvedTBP(): void {
     const selectedRows = this.tabulator.getSelectedRows();
-    if (selectedRows.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn đăng ký công tác cần duyệt');
+    const rowCount = selectedRows.length;
+    
+    if (rowCount === 0) {
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Vui lòng chọn đăng ký công tác để duyệt!'
+      );
       return;
     }
+    
+    const selectedData = selectedRows.map(row => row.getData());
+    
+    // Kiểm tra nghiệp vụ trước khi hiển thị confirm
+    for (const item of selectedData) {
+      const departmentId = item['DepartmentID'] || 0;
+      const employeeId = item['EmployeeID'] || 0;
+      const employeeName = item['FullName'] || '';
+      
+      if (employeeId === 0) continue;
+      
+      // Kiểm tra quyền nếu không phải admin
+      if (!this.isAdmin) {
+        if (departmentId !== this.currentDepartmentId && this.currentDepartmentId !== 1) {
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            `Nhân viên [${employeeName}] không thuộc phòng [${this.currentDepartmentName.toUpperCase()}].\nVui lòng kiểm tra lại!`
+          );
+          return;
+        }
+      }
+      
+      // Không được duyệt cho chính mình
+      if (employeeId === this.currentEmployeeId) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          `Bạn không được duyệt cho chính mình.\nVui lòng liên hệ cấp cao hơn!`
+        );
+        return;
+      }
+    }
+    
+    this.modal.confirm({
+      nzTitle: 'Xác nhận duyệt TBP',
+      nzContent: `Bạn có chắc muốn duyệt danh sách nhân viên đã chọn không?`,
+      nzOkText: 'Duyệt',
+      nzOkType: 'primary',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => this.confirmApproveTBP(selectedData),
+    });
+  }
+
+  private confirmApproveTBP(selectedData: any[]): void {
+    // Lọc và chuẩn bị dữ liệu hợp lệ - chỉ lấy ID
+    const listID: number[] = [];
+
+    selectedData.forEach(item => {
+      const employeeId = item['EmployeeID'] || 0;
+      const id = item['ID'] || 0;
+      
+      if (employeeId === 0 || id === 0) return;
+      
+      // Thêm tất cả ID vào list (theo logic C#: listID.Add cho tất cả khi duyệt TBP)
+      listID.push(id);
+    });
+
+    if (listID.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không có bản ghi hợp lệ để duyệt!'
+      );
+      return;
+    }
+
+    // Gọi API duyệt TBP với danh sách ID
+    const approveData = listID.map(id => ({ ID: id, Status: 1, IsApproved: true }));
+    this.employeeBussinessService.saveApproveTBP(approveData).subscribe({
+      next: (res: any) => {
+        if (res?.status === 1) {
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            `Duyệt TBP thành công ${listID.length} bản ghi!`
+          );
+          this.loadEmployeeBussiness();
+        } else {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            res?.message || 'Duyệt TBP thất bại!'
+          );
+        }
+      },
+      error: (error) => {
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Lỗi khi duyệt TBP: ' + (error?.message || 'Lỗi không xác định')
+        );
+      },
+    });
+  }
+
+  cancelApprovedTBP(): void {
+    const selectedRows = this.tabulator.getSelectedRows();
+    if (selectedRows.length === 0) {
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Vui lòng chọn ít nhất 1 đăng ký công tác cần hủy duyệt TBP!'
+      );
+      return;
+    }
+    const selectedData = selectedRows.map(row => row.getData());
+
+    this.modal.confirm({
+      nzTitle: 'Xác nhận hủy duyệt TBP',
+      nzContent: `Bạn có chắc muốn hủy duyệt danh sách nhân viên đã chọn không?`,
+      nzOkText: 'Hủy duyệt TBP',
+      nzOkType: 'primary',
+      nzCancelText: 'Đóng',
+      nzOnOk: () => this.confirmCancelApprovedTBP(selectedData),
+    });
+  }
+
+  private confirmCancelApprovedTBP(selectedData: any[]): void {
+    // Lọc và chuẩn bị dữ liệu hợp lệ - chỉ lấy ID nếu HR chưa duyệt
+    const listID: number[] = [];
+
+    selectedData.forEach(item => {
+      const id = item['ID'] || 0;
+      if (id === 0) return;
+      
+      // Chỉ thêm ID nếu HR chưa duyệt (theo logic C#: if (!IsApprovedHR))
+      if (!item['IsApprovedHR']) {
+        listID.push(id);
+      }
+    });
+
+    if (listID.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không có bản ghi hợp lệ để hủy duyệt! (HR đã duyệt)'
+      );
+      return;
+    }
+
+    // Gọi API hủy duyệt TBP với danh sách ID
+    const cancelData = listID.map(id => ({ ID: id, IsApproved: false, Status: 2 }));
+    this.employeeBussinessService.saveApproveTBP(cancelData).subscribe({
+      next: (res: any) => {
+        if (res?.status === 1) {
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            `TBP đã hủy duyệt ${listID.length} bản ghi thành công!`
+          );
+          this.loadEmployeeBussiness();
+        } else {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            res?.message || 'Hủy duyệt TBP thất bại!'
+          );
+        }
+      },
+      error: (error) => {
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Lỗi khi hủy duyệt TBP: ' + (error?.message || 'Lỗi không xác định')
+        );
+      },
+    });
+  }
+
+  approvedHR(): void {
+    const selectedRows = this.tabulator.getSelectedRows();
+    const rowCount = selectedRows.length;
+    
+    if (rowCount === 0) {
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Vui lòng chọn đăng ký công tác để duyệt!'
+      );
+      return;
+    }
+    
+    const selectedData = selectedRows.map(row => row.getData());
+    
+    // Kiểm tra nghiệp vụ trước khi hiển thị confirm
+    for (const item of selectedData) {
+      const employeeId = item['EmployeeID'] || 0;
+      const employeeName = item['FullName'] || '';
+      const isApprovedTP = item['IsApproved'] || false;
+      
+      if (employeeId === 0) continue;
+      
+      // Kiểm tra TBP đã duyệt chưa
+      if (!isApprovedTP) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          `Bạn không thể duyệt vì nhân viên [${employeeName}] chưa được TBP duyệt.\nVui lòng kiểm tra lại!`
+        );
+        return;
+      }
+    }
+    
+    this.modal.confirm({
+      nzTitle: 'Xác nhận duyệt HR',
+      nzContent: `Bạn có chắc muốn duyệt danh sách nhân viên đã chọn không?`,
+      nzOkText: 'Duyệt',
+      nzOkType: 'primary',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => this.confirmApproveHR(selectedData, true),
+    });
+  }
+
+  private confirmApproveHR(selectedData: any[], isApproved: boolean = true): void {
+    const approved = isApproved ? 'duyệt' : 'hủy duyệt';
+    
+    // Lọc và chuẩn bị dữ liệu hợp lệ - chỉ lấy ID
+    const listID: number[] = [];
+    const itemsToUpdate: any[] = [];
+
+    // Duyệt từ cuối lên đầu (theo logic C#: for (int i = rowIndex.Length - 1; i >= 0; i--))
+    for (let i = selectedData.length - 1; i >= 0; i--) {
+      const item = selectedData[i];
+      const id = item['ID'] || 0;
+      const isApprovedTP = item['IsApproved'] || false;
+      
+      if (id === 0) continue;
+      
+      if (isApproved) {
+        // HR duyệt: chỉ thêm ID nếu TBP đã duyệt
+        if (isApprovedTP) {
+          listID.push(id);
+          // Cập nhật ApprovedHR = currentEmployeeId (theo logic C#)
+          itemsToUpdate.push({
+            ...item,
+            ID: id,
+            ApprovedHR: this.currentEmployeeId,
+            StatusHR: 1,
+            IsApprovedHR: true
+          });
+        }
+      } else {
+        // HR hủy duyệt: thêm tất cả ID
+        listID.push(id);
+        itemsToUpdate.push({
+          ...item,
+          ID: id,
+          IsApprovedHR: false,
+          StatusHR: 2
+        });
+      }
+    }
+
+    if (listID.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        `Không có bản ghi hợp lệ để ${approved}!`
+      );
+      return;
+    }
+
+    // Gọi API duyệt/hủy duyệt HR với danh sách items
+    this.employeeBussinessService.saveApproveHR(itemsToUpdate).subscribe({
+      next: (res: any) => {
+        if (res?.status === 1) {
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            `HR đã ${approved} ${listID.length} bản ghi thành công!`
+          );
+          this.loadEmployeeBussiness();
+        } else {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            res?.message || `${approved} HR thất bại!`
+          );
+        }
+      },
+      error: (error) => {
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          `Lỗi khi ${approved} HR: ` + (error?.message || 'Lỗi không xác định')
+        );
+      },
+    });
+  }
+
+  cancelApprovedHR(): void {
+    const selectedRows = this.tabulator.getSelectedRows();
+    if (selectedRows.length === 0) {
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Vui lòng chọn ít nhất 1 đăng ký công tác cần hủy duyệt HR!'
+      );
+      return;
+    }
+    const selectedData = selectedRows.map(row => row.getData());
+    
+    // Kiểm tra nghiệp vụ trước khi hiển thị confirm
+    for (const item of selectedData) {
+      const employeeId = item['EmployeeID'] || 0;
+      const employeeName = item['FullName'] || '';
+      const isApprovedTP = item['IsApproved'] || false;
+      
+      if (employeeId === 0) continue;
+      
+      // Kiểm tra TBP đã duyệt chưa
+      if (!isApprovedTP) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          `Bạn không thể hủy duyệt vì nhân viên [${employeeName}] chưa được TBP duyệt.\nVui lòng kiểm tra lại!`
+        );
+        return;
+      }
+    }
+
+    this.modal.confirm({
+      nzTitle: 'Xác nhận hủy duyệt HR',
+      nzContent: `Bạn có chắc muốn hủy duyệt danh sách nhân viên đã chọn không?`,
+      nzOkText: 'Hủy duyệt HR',
+      nzOkType: 'primary',
+      nzCancelText: 'Đóng',
+      nzOnOk: () => this.confirmCancelApprovedHR(selectedData),
+    });
+  }
+
+  private confirmCancelApprovedHR(selectedData: any[]): void {
+    // Lọc và chuẩn bị dữ liệu hợp lệ - thêm tất cả ID (theo logic C#)
+    const itemsToUpdate: any[] = [];
+
+    selectedData.forEach(item => {
+      const id = item['ID'] || 0;
+      if (id === 0) return;
+      
+      // Thêm tất cả ID (theo logic C#: listID.Add cho tất cả khi HR hủy duyệt)
+      itemsToUpdate.push({
+        ...item,
+        ID: id,
+        IsApprovedHR: false,
+        StatusHR: 2
+      });
+    });
+
+    if (itemsToUpdate.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Không có bản ghi hợp lệ để hủy duyệt HR!'
+      );
+      return;
+    }
+
+    // Gọi API hủy duyệt HR với danh sách items
+    this.employeeBussinessService.saveApproveHR(itemsToUpdate).subscribe({
+      next: (res: any) => {
+        if (res?.status === 1) {
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            `HR đã hủy duyệt ${itemsToUpdate.length} bản ghi thành công!`
+          );
+          this.loadEmployeeBussiness();
+        } else {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            res?.message || 'Hủy duyệt HR thất bại!'
+          );
+        }
+      },
+      error: (error) => {
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Lỗi khi hủy duyệt HR: ' + (error?.message || 'Lỗi không xác định')
+        );
+      },
+    });
   }
 
   onEmployeeBussinessDetail() {
@@ -431,9 +851,80 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
     this.initializeTable();
   }
 
+  // openEmployeeBussinessTypeMasterModal() {
+  //   const modalRef = this.modalService.open(EmployeeBussinessTypeMasterComponent, {
+  //     centered: true,
+  //     size: 'xl',
+  //     backdrop: 'static',
+  //     keyboard: false,
+  //     modalDialogClass: 'modal-fullscreen'
+  //   });
+
+  //   modalRef.result.then(
+  //     (result) => {
+  //       console.log('Type Master modal closed:', result);
+  //     },
+  //     (reason) => {
+  //       console.log('Type Master modal dismissed:', reason);
+  //     }
+  //   );
+  // }
+
+  // openEmployeeBussinessVehicleMasterModal() {
+  //   const modalRef = this.modalService.open(EmployeeBussinessVehicleMasterComponent, {
+  //     centered: true,
+  //     size: 'xl',
+  //     backdrop: 'static',
+  //     keyboard: false,
+  //     modalDialogClass: 'modal-fullscreen'
+  //   });
+
+  //   modalRef.result.then(
+  //     (result) => {
+  //       console.log('Vehicle Master modal closed:', result);
+  //     },
+  //     (reason) => {
+  //       console.log('Vehicle Master modal dismissed:', reason);
+  //     }
+  //   );
+  // }
+
   openEmployeeBussinessBonusModal() {
-    const modal = new (window as any).bootstrap.Modal(document.getElementById('employeeBussinessBonusModal'));
-    modal.show();
+    const modalRef = this.modalService.open(EmployeeBussinessBonusComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+      modalDialogClass: 'modal-fullscreen'
+    });
+
+    modalRef.result.then(
+      (result) => {
+        console.log('Bonus modal closed:', result);
+      },
+      (reason) => {
+        console.log('Bonus modal dismissed:', reason);
+      }
+    );
+  }
+
+  openWorkReportModal() {
+    const modalRef = this.modalService.open(EmployeeBussinessSummaryComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+      modalDialogClass: 'modal-fullscreen'
+    });
+
+    modalRef.result.then(
+      (result) => {
+        console.log('Work report modal closed:', result);
+      },
+      (reason) => {
+        console.log('Work report modal dismissed:', reason);
+      }
+    );
   }
 
   exportExcel() {
@@ -455,5 +946,20 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
     this.projectService.exportExcelGroup(this.tabulator, data, 'DanhSachCongtac', `DanhSachCongTac_${dateS}_${dateE}`, 'DepartmentName');
   }
 
+  private formatApprovalBadge(status: number): string {
+    // 0 hoặc null: Chưa duyệt, 1: Đã duyệt, 2: Không duyệt
+    const numStatus = status === null || status === undefined ? 0 : Number(status);
+    
+    switch (numStatus) {
+      case 0:
+        return '<span class="badge bg-warning text-dark" style="display: inline-block; text-align: center;">Chưa duyệt</span>';
+      case 1:
+        return '<span class="badge bg-success" style="display: inline-block; text-align: center;">Đã duyệt</span>';
+      case 2:
+        return '<span class="badge bg-danger" style="display: inline-block; text-align: center;">Không duyệt</span>';
+      default:
+        return '<span class="badge bg-secondary" style="display: inline-block; text-align: center;">Không xác định</span>';
+    }
+  }
 
 }

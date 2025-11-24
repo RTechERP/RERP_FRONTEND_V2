@@ -160,6 +160,13 @@ export class BonusDeductionComponent implements OnInit {
           last_page: res.data.TotalPage,
         };
       },
+      ajaxConfig: {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem('token')}`,
+          "Content-Type": "application/json",
+        }
+      },
       columns: [
         { title: "Mã nhân viên", field: "Code", width: 120, headerHozAlign: "center", hozAlign: "center", frozen: true },
         { title: "Tên nhân viên", field: "FullName", width: 200, headerHozAlign: "center", frozen: true },

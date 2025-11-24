@@ -539,21 +539,21 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
       layout: 'fitColumns',
       height: '89vh',
       selectableRows: 1,
-      pagination: true,
-      paginationSize: 100,
-      movableColumns: true,
-      resizableRows: true,
-      
+      //   pagination: true,
+      //   paginationSize: 100,
+      //   movableColumns: true,
+      //   resizableRows: true,
+
       reactiveData: true,
       autoColumns: true,
-      columnDefaults: {
-        headerWordWrap: true,
-        headerVertical: false,
-        headerHozAlign: 'center',
-        minWidth: 60,
-        resizable: true,
-        cssClass: 'tabulator-cell-wrap',
-      },
+      //   columnDefaults: {
+      //     headerWordWrap: true,
+      //     headerVertical: false,
+      //     headerHozAlign: 'center',
+      //     minWidth: 60,
+      //     resizable: true,
+      //     cssClass: 'tabulator-cell-wrap',
+      //   },
       rowHeader: false,
       autoColumnsDefinitions: (definitions: any[] = []) =>
         definitions.map((def: any) => {

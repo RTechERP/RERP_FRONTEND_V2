@@ -38,6 +38,7 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
 import { ProjectService } from '../../project/project-service/project.service';
 import { SupplierSaleDetailComponent } from './supplier-sale-detail/supplier-sale-detail.component';
 import { SupplierSaleImportExcelComponent } from './supplier-sale-import-excel/supplier-sale-import-excel.component';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 @Component({
   selector: 'app-supplier-sale',
   imports: [
@@ -62,10 +63,10 @@ import { SupplierSaleImportExcelComponent } from './supplier-sale-import-excel/s
     NzSpinModule,
     NzTreeSelectModule,
     NzModalModule,
-    HasPermissionDirective
+    HasPermissionDirective,
   ],
   templateUrl: './supplier-sale.component.html',
-  styleUrl: './supplier-sale.component.css'
+  styleUrl: './supplier-sale.component.css',
 })
 export class SupplierSaleComponent implements OnInit, AfterViewInit {
   //#region Khai báo biến
@@ -77,8 +78,8 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     private modalService: NgbModal,
     private router: Router,
-    private projectService: ProjectService,
-  ) { }
+    private projectService: ProjectService
+  ) {}
   @ViewChild('tb_supplier', { static: false })
   tb_supplierContainer!: ElementRef;
   tb_supplierBody: any;
@@ -90,25 +91,25 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
   tableHeight: any = '89vh';
   isLoadTable: any = false;
   sizeTbDetail: any = '0';
-  keyword: string = "";
+  keyword: string = '';
   selectedArrSupplierSaleID: Set<number> = new Set();
   //#endregion
 
   //#region hàm chạy khi mở chương trình
-  ngOnInit(): void {
-
-  }
+  ngOnInit(): void {}
 
   ngAfterViewInit(): void {
     this.drawTbSupplier(this.tb_supplierContainer.nativeElement);
-    this.drawTbSupplierSaleContact(this.tb_supplierSaleContactContainer.nativeElement);
+    this.drawTbSupplierSaleContact(
+      this.tb_supplierSaleContactContainer.nativeElement
+    );
   }
   //#endregion
 
   //#region Tìm kiếm
   getAjaxParams() {
     return {
-      keyword: this.keyword ?? ''
+      keyword: this.keyword ?? '',
     };
   }
 
@@ -120,14 +121,15 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
   }
 
   resetSearch() {
-    this.keyword = "";
+    this.keyword = '';
     this.onSearch();
   }
   //#endregion
 
-  //#region Khởi tạo bảng 
+  //#region Khởi tạo bảng
   drawTbSupplier(container: HTMLElement) {
     this.tb_supplierBody = new Tabulator(container, {
+      ...DEFAULT_TABLE_CONFIG,
       height: this.tableHeight,
       layout: 'fitDataStretch',
       selectableRows: true,
@@ -136,13 +138,13 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
       paginationSize: 100,
       paginationSizeSelector: [30, 50, 100, 200, 500],
       ajaxURL: this.supplierSaleService.getSupplierSale(),
-      ajaxParams: { keyword: this.keyword ?? "" },
+      ajaxParams: { keyword: this.keyword ?? '' },
       ajaxConfig: {
-        method: "GET",
+        method: 'GET',
         headers: {
-          "Authorization": `Bearer ${localStorage.getItem('token')}`,
-          "Content-Type": "application/json",
-        }
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
       },
       ajaxResponse: (url, params, res) => {
         return {
@@ -177,36 +179,169 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
           },
         },
         {
-          title: 'Ngày update', field: 'NgayUpdate', width: 100, hozAlign: 'center',
+          title: 'Ngày update',
+          field: 'NgayUpdate',
+          width: 100,
+          hozAlign: 'center',
           formatter: function (cell) {
             const raw = cell.getValue();
-            if (!raw) return "";
+            if (!raw) return '';
             try {
               return DateTime.fromISO(raw).toFormat('dd/MM/yyyy');
             } catch {
               return raw;
             }
-          }, headerSort: false, headerWordWrap: true
+          },
+          headerSort: false,
+          headerWordWrap: true,
         },
-        { title: 'Công ty nhập', field: 'CompanyText', width: 150, hozAlign: 'center', headerSort: false, headerWordWrap: true, formatter: 'textarea' },
-        { title: 'Mã NCC', field: 'CodeNCC', width: 150, headerWordWrap: true, formatter: 'textarea', headerSort: false },
-        { title: 'Tên viết tắt', field: 'ShortNameSupplier', width: 150, headerWordWrap: true, formatter: 'textarea', headerSort: false, },
-        { title: 'Tên NCC', field: 'NameNCC', width: 250, headerWordWrap: true, formatter: 'textarea', headerSort: false },
-        { title: 'Tên tiếng Anh', field: 'TenTiengAnh', width: 100, hozAlign: 'center', headerWordWrap: true, formatter: 'textarea', headerSort: false },
-        { title: 'Hãng/Brand', field: 'Brand', width: 100, hozAlign: 'center', headerWordWrap: true, formatter: 'textarea', headerSort: false },
-        { title: 'Mã nhóm', field: 'MaNhom', width: 100, hozAlign: 'center', headerWordWrap: true, formatter: 'textarea', headerSort: false },
-        { title: 'Địa chỉ', field: 'AddressNCC', width: 200, headerWordWrap: true, formatter: 'textarea', headerSort: false },
-        { title: 'NV phụ trách', field: 'NVPhuTrach', width: 100, headerWordWrap: true, formatter: 'textarea', headerSort: false },
-        { title: 'Loại hàng hóa', field: 'LoaiHangHoa', width: 100, hozAlign: 'center', headerWordWrap: true, formatter: 'textarea', headerSort: false },
-        { title: 'Mã số thuế', field: 'MaSoThue', width: 100, hozAlign: 'center', headerWordWrap: true, formatter: 'textarea', headerSort: false },
-        { title: 'Website', field: 'Website', width: 100, hozAlign: 'center', headerWordWrap: true, formatter: 'textarea', headerSort: false },
-        { title: 'Công nợ', field: 'Debt', width: 100, hozAlign: 'center', headerWordWrap: true, formatter: 'textarea', headerSort: false },
-        { title: 'Số TK', field: 'SoTK', width: 300, hozAlign: 'center', headerWordWrap: true, formatter: 'textarea', headerSort: false },
-        { title: 'Điện thoại', field: 'PhoneNCC', width: 100, hozAlign: 'center', headerWordWrap: true, formatter: 'textarea', headerSort: false },
-        { title: 'Người đặt hàng', field: 'OrderNCC', width: 200, headerWordWrap: true, formatter: 'textarea', headerSort: false },
-        { title: 'Ghi chú', field: 'Note', width: 100, headerWordWrap: true, formatter: 'textarea', headerSort: false },
+        {
+          title: 'Công ty nhập',
+          field: 'CompanyText',
+          width: 150,
+          hozAlign: 'center',
+          headerSort: false,
+          headerWordWrap: true,
+          formatter: 'textarea',
+        },
+        {
+          title: 'Mã NCC',
+          field: 'CodeNCC',
+          width: 150,
+          headerWordWrap: true,
+          formatter: 'textarea',
+          headerSort: false,
+        },
+        {
+          title: 'Tên viết tắt',
+          field: 'ShortNameSupplier',
+          width: 150,
+          headerWordWrap: true,
+          formatter: 'textarea',
+          headerSort: false,
+        },
+        {
+          title: 'Tên NCC',
+          field: 'NameNCC',
+          width: 250,
+          headerWordWrap: true,
+          formatter: 'textarea',
+          headerSort: false,
+        },
+        {
+          title: 'Tên tiếng Anh',
+          field: 'TenTiengAnh',
+          width: 100,
+          hozAlign: 'center',
+          headerWordWrap: true,
+          formatter: 'textarea',
+          headerSort: false,
+        },
+        {
+          title: 'Hãng/Brand',
+          field: 'Brand',
+          width: 100,
+          hozAlign: 'center',
+          headerWordWrap: true,
+          formatter: 'textarea',
+          headerSort: false,
+        },
+        {
+          title: 'Mã nhóm',
+          field: 'MaNhom',
+          width: 100,
+          hozAlign: 'center',
+          headerWordWrap: true,
+          formatter: 'textarea',
+          headerSort: false,
+        },
+        {
+          title: 'Địa chỉ',
+          field: 'AddressNCC',
+          width: 200,
+          headerWordWrap: true,
+          formatter: 'textarea',
+          headerSort: false,
+        },
+        {
+          title: 'NV phụ trách',
+          field: 'NVPhuTrach',
+          width: 100,
+          headerWordWrap: true,
+          formatter: 'textarea',
+          headerSort: false,
+        },
+        {
+          title: 'Loại hàng hóa',
+          field: 'LoaiHangHoa',
+          width: 100,
+          hozAlign: 'center',
+          headerWordWrap: true,
+          formatter: 'textarea',
+          headerSort: false,
+        },
+        {
+          title: 'Mã số thuế',
+          field: 'MaSoThue',
+          width: 100,
+          hozAlign: 'center',
+          headerWordWrap: true,
+          formatter: 'textarea',
+          headerSort: false,
+        },
+        {
+          title: 'Website',
+          field: 'Website',
+          width: 100,
+          hozAlign: 'center',
+          headerWordWrap: true,
+          formatter: 'textarea',
+          headerSort: false,
+        },
+        {
+          title: 'Công nợ',
+          field: 'Debt',
+          width: 100,
+          hozAlign: 'center',
+          headerWordWrap: true,
+          formatter: 'textarea',
+          headerSort: false,
+        },
+        {
+          title: 'Số TK',
+          field: 'SoTK',
+          width: 300,
+          hozAlign: 'center',
+          headerWordWrap: true,
+          formatter: 'textarea',
+          headerSort: false,
+        },
+        {
+          title: 'Điện thoại',
+          field: 'PhoneNCC',
+          width: 100,
+          hozAlign: 'center',
+          headerWordWrap: true,
+          formatter: 'textarea',
+          headerSort: false,
+        },
+        {
+          title: 'Người đặt hàng',
+          field: 'OrderNCC',
+          width: 200,
+          headerWordWrap: true,
+          formatter: 'textarea',
+          headerSort: false,
+        },
+        {
+          title: 'Ghi chú',
+          field: 'Note',
+          width: 100,
+          headerWordWrap: true,
+          formatter: 'textarea',
+          headerSort: false,
+        },
       ],
-
     });
     this.selectedArrSupplierSaleID.clear();
     this.tb_supplierBody.on('dataLoading', () => {
@@ -215,13 +350,12 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
     });
     this.tb_supplierBody.on('rowDblClick', (e: any, row: any) => {
       //this.onSaveSupplierSale('update');
-    })
+    });
     // Lắng nghe sự kiện chọn
     this.tb_supplierBody.on('rowSelected', (row: any) => {
       if (this.selectedArrSupplierSaleID.size > 0) {
         this.sizeTbDetail = '0';
-      }
-      else {
+      } else {
         this.sizeTbDetail = null;
       }
       const id = row.getData().ID;
@@ -232,7 +366,9 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
 
     // Click vào row (không phải checkbox) → chỉ chọn 1 row
     this.tb_supplierBody.on('rowClick', (e: any, row: any) => {
-      const clickedField = e.target.closest('.tabulator-cell')?.getAttribute('tabulator-field');
+      const clickedField = e.target
+        .closest('.tabulator-cell')
+        ?.getAttribute('tabulator-field');
       if (clickedField !== 'select') {
         // Bỏ chọn hết và chọn row hiện tại
         this.tb_supplierBody.deselectRow();
@@ -243,15 +379,12 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
     this.tb_supplierBody.on('rowDeselected', (row: any) => {
       if (this.selectedArrSupplierSaleID.size > 0) {
         this.sizeTbDetail = '0';
-      }
-      else {
+      } else {
         this.sizeTbDetail = null;
       }
       const id = row.getData().ID;
       this.selectedArrSupplierSaleID.delete(id);
-
     });
-
   }
 
   //#region Tạo bảng supplier sale contact
@@ -260,10 +393,38 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
       height: this.tableHeight,
       layout: 'fitDataStretch',
       columns: [
-        { title: 'Tên liên hệ', width: 100, field: 'SupplierName', headerWordWrap: true, formatter: 'textarea', headerSort: false },
-        { title: 'Số điện thoại', width: 100, field: 'SupplierPhone', headerWordWrap: true, formatter: 'textarea', headerSort: false },
-        { title: 'Email', width: 150, field: 'SupplierEmail', headerWordWrap: true, formatter: 'textarea', headerSort: false },
-        { title: 'Mô tả', width: 200, field: 'Describe', headerWordWrap: true, formatter: 'textarea', headerSort: false }
+        {
+          title: 'Tên liên hệ',
+          width: 100,
+          field: 'SupplierName',
+          headerWordWrap: true,
+          formatter: 'textarea',
+          headerSort: false,
+        },
+        {
+          title: 'Số điện thoại',
+          width: 100,
+          field: 'SupplierPhone',
+          headerWordWrap: true,
+          formatter: 'textarea',
+          headerSort: false,
+        },
+        {
+          title: 'Email',
+          width: 150,
+          field: 'SupplierEmail',
+          headerWordWrap: true,
+          formatter: 'textarea',
+          headerSort: false,
+        },
+        {
+          title: 'Mô tả',
+          width: 200,
+          field: 'Describe',
+          headerWordWrap: true,
+          formatter: 'textarea',
+          headerSort: false,
+        },
       ],
     });
     this.tb_supplierSaleContactBody.redraw(true);
@@ -275,7 +436,6 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
       next: (data) => {
         if (data.status == 1) {
           this.tb_supplierSaleContactBody.setData(data.data);
-
         } else {
           this.notification.warning(
             NOTIFICATION_TITLE.warning,
@@ -288,7 +448,7 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
           NOTIFICATION_TITLE.error,
           'Không thể tải dữ liệu liên hệ. Vui lòng thử lại sau.'
         );
-      }
+      },
     });
   }
   //#endregion
@@ -313,11 +473,17 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
       .reverse()
       .join('');
 
-    this.projectService.exportExcelGroup(this.tb_supplierBody, data, 'DanhSachNCC', `DanhSachNCC_${formattedDate}`, '');
+    this.projectService.exportExcelGroup(
+      this.tb_supplierBody,
+      data,
+      'DanhSachNCC',
+      `DanhSachNCC_${formattedDate}`,
+      ''
+    );
   }
   //#endregion
 
-  //#region Thêm mới 
+  //#region Thêm mới
   onAddSupplierSale() {
     const modalRef = this.modalService.open(SupplierSaleDetailComponent, {
       backdrop: 'static',
@@ -358,7 +524,9 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
       centered: true,
       windowClass: 'full-screen-modal',
     });
-    modalRef.componentInstance.supplierSaleID = Array.from(this.selectedArrSupplierSaleID).at(-1);
+    modalRef.componentInstance.supplierSaleID = Array.from(
+      this.selectedArrSupplierSaleID
+    ).at(-1);
     modalRef.result.finally(() => {
       this.getSupplierSaleContact(
         Array.from(this.selectedArrSupplierSaleID).at(-1) ?? 0
@@ -368,7 +536,7 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
   }
   //#endregion
 
-  //#region Xóa 
+  //#region Xóa
   onDeleteSupplierSale() {
     if (this.selectedArrSupplierSaleID.size == 0) {
       this.notification.warning(
@@ -376,8 +544,7 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
         'Vui lòng nhà cung cấp cần xóa!'
       );
       return;
-    }
-    else {
+    } else {
       this.modal.confirm({
         nzTitle: 'Xác nhận xóa',
         nzContent: `Bạn có chắc chắn muốn xóa ${this.selectedArrSupplierSaleID.size} nhà cung cấp không?`,
@@ -385,39 +552,50 @@ export class SupplierSaleComponent implements OnInit, AfterViewInit {
         nzCancelText: 'Hủy',
         nzOkDanger: true,
         nzOnOk: () => {
-          const deleteRequests = Array.from(this.selectedArrSupplierSaleID).map(id => {
-            const data = {
-              ID: id,
-              IsDeleted: true
-            };
+          const deleteRequests = Array.from(this.selectedArrSupplierSaleID).map(
+            (id) => {
+              const data = {
+                ID: id,
+                IsDeleted: true,
+              };
 
-            return this.supplierSaleService.saveSupplierSale(data).toPromise()
-              .then(() => ({ id, success: true }))
-              .catch(error => {
-                this.notification.error(
-                  NOTIFICATION_TITLE.error,
-                  `Lỗi xóa NCC ${error.error.message}`
-                );
-                return;
-              });
-          });
+              return this.supplierSaleService
+                .saveSupplierSale(data)
+                .toPromise()
+                .then(() => ({ id, success: true }))
+                .catch((error) => {
+                  this.notification.error(
+                    NOTIFICATION_TITLE.error,
+                    `Lỗi xóa NCC ${error.error.message}`
+                  );
+                  return;
+                });
+            }
+          );
 
-          Promise.all(deleteRequests).then(results => {
+          Promise.all(deleteRequests).then((results) => {
             const successCount = results.filter((r: any) => r.success).length;
-            const failed = results.filter((r: any) => !r.success).map((r: any) => r.id);
+            const failed = results
+              .filter((r: any) => !r.success)
+              .map((r: any) => r.id);
 
             if (successCount > 0) {
               this.drawTbSupplier(this.tb_supplierContainer.nativeElement);
               this.selectedArrSupplierSaleID.clear();
-              this.notification.success(NOTIFICATION_TITLE.success, `Đã xóa ${successCount} nhà cung cấp thành công!`);
+              this.notification.success(
+                NOTIFICATION_TITLE.success,
+                `Đã xóa ${successCount} nhà cung cấp thành công!`
+              );
             }
 
             if (failed.length > 0) {
-              this.notification.error(NOTIFICATION_TITLE.error, `Không thể xóa các nhà cung cấp có id: ${failed.join(', ')}`);
+              this.notification.error(
+                NOTIFICATION_TITLE.error,
+                `Không thể xóa các nhà cung cấp có id: ${failed.join(', ')}`
+              );
             }
           });
-
-        }
+        },
       });
     }
   }

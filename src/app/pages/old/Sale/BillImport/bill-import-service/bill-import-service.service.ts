@@ -20,9 +20,10 @@ export class BillImportServiceService {
     return this.http.get(environment.host + `api/BillExport/get-product-group`, params);
   }
   getBillImport(searchParams: any): Observable<any> {
+    const filterText = (searchParams.keyword || '').trim();
     const params: any = {
-      KhoType: searchParams.listproductgroupID.toString(),
-      Status: searchParams.status,
+      KhoType: searchParams.listproductgroupID?.toString() || '',
+      Status: searchParams.status ?? -1,
       DateStart:
         typeof searchParams.dateStart === 'string'
           ? new Date(searchParams.dateStart).toISOString()
@@ -32,12 +33,16 @@ export class BillImportServiceService {
           ? new Date(searchParams.dateEnd).toISOString()
           : (searchParams.dateEnd?.toISOString() || new Date().toISOString()),
       // GỬI ĐÚNG TÊN THUỘC TÍNH: checkedAll
-      CheckedAll: searchParams.checkAll,
-      WarehouseCode: searchParams.warehousecode.trim(),
-      FilterText: (searchParams.keyword || '').trim(),
-      PageNumber: searchParams.pageNumber,
-      PageSize: searchParams.pageSize,
+      CheckedAll: searchParams.checkAll ?? false,
+      WarehouseCode: searchParams.warehousecode?.trim() || '',
+      FilterText: filterText,
+      filter: filterText, // Thêm trường filter để tránh lỗi validation
+      PageNumber: searchParams.pageNumber ?? 1,
+      PageSize: searchParams.pageSize ?? 1000,
     };
+
+    console.log('>>> Params gửi đi:', params);
+
     return this.http.post(environment.host + `api/BillImport/get-all`, params);
   }
   getBillImportDetail(billID: number): Observable<any> {
@@ -197,5 +202,14 @@ export class BillImportServiceService {
     return this.http.get(
       environment.host + `api/billimport/attachments/tree?billImportId=${billImportId}`
     );
+  }
+  SaveDataBillDetail(payload: any[]): Observable<any> {
+    return this.http.post(
+      environment.host + `api/billimportdetail/save-data`,
+      payload
+    );
+  }
+  getPhieutra(productID:number){
+    return this.http.get(environment.host +`api/billimport/get-phieu-tra?productID=${productID}`);
   }
 }

@@ -31,7 +31,10 @@ import { HistoryBorrowSaleService } from './history-borrow-sale-service/history-
 import { BillExportService } from '../BillExport/bill-export-service/bill-export.service';
 import { BillImportDetailComponent } from '../BillImport/Modal/bill-import-detail/bill-import-detail.component';
 import { BillImportTabsComponent } from '../BillImport/Modal/bill-import-tabs/bill-import-tabs.component';
+import { BillExportDetailComponent } from '../BillExport/Modal/bill-export-detail/bill-export-detail.component';
+import { SummaryReturnDetailComponent } from '../BillImport/Modal/summary-return-detail/summary-return-detail.component';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 @Component({
   selector: 'app-history-borrow-sale',
   standalone: true,
@@ -53,6 +56,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     NzDatePickerModule,
     NzDropDownModule,
     NzMenuModule,
+    HasPermissionDirective
   ],
   templateUrl: './history-borrow-sale.component.html',
   styleUrl: './history-borrow-sale.component.css',
@@ -113,6 +117,11 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
 
   data: number[] = [];
   dataCreateImport: any[] = [];
+  contextMenuVisible = false;
+  contextMenuX = 0;
+  contextMenuY = 0;
+  contextMenuRow: any = null;
+  contextMenuCell: any = null;
 
   ngOnInit(): void {
     this.getCbbEmployee();
@@ -419,6 +428,32 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
       reactiveData: true,
       movableColumns: true,
       resizableRows: true,
+      rowFormatter: (row: RowComponent) => {
+        const data = row.getData();
+        const rowElement = row.getElement();
+
+        // Ưu tiên kiểm tra ExpectReturnDate quá hạn trước -> màu hồng (priority cao)
+        if (data['ExpectReturnDate']) {
+          const expectDate = new Date(data['ExpectReturnDate']);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          expectDate.setHours(0, 0, 0, 0);
+
+          if (expectDate < today) {
+            rowElement.style.backgroundColor = '#ffb3d9';
+            return;
+          }
+        }
+
+        // Kiểm tra DualDate == 1 -> màu vàng (priority thấp hơn)
+        if (data['DualDate'] === 1) {
+          rowElement.style.backgroundColor = '#ffff99';
+          return;
+        }
+
+        // Reset về màu mặc định nếu không có điều kiện nào
+        rowElement.style.backgroundColor = '';
+      },
       rowHeader: {
         headerSort: false,
         resizable: false,
@@ -435,51 +470,66 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
         // Từ ảnh image_248e62.png (Phần đầu bảng)
         {
           title: 'Trạng thái',
-          field: 'ReturnedStatusText', // Ánh xạ từ 'Yêu cầu mượn' trong dữ liệu Swagger
+          field: 'ReturnedStatusText',
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+        },
+                {
+          title: 'Dual Date',
+          field: 'DualDate',
           hozAlign: 'center',
           headerHozAlign: 'center',
         },
         {
           title: 'Ngày mượn',
-          field: 'BorrowDate', // Từ dữ liệu Swagger
+          field: 'BorrowDate',
           hozAlign: 'center',
           headerHozAlign: 'center',
           formatter: 'datetime',
-          formatterParams: { outputFormat: 'yyyy-MM-dd' },
+          formatterParams: { outputFormat: 'dd/MM/yyy' },
+        },
+                {
+          title: 'Ngày dự kiến trả',
+          field: 'ExpectReturnDate',
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+          formatter: 'datetime',
+          formatterParams: { outputFormat: 'dd/MM/yyy' },
         },
         {
           title: 'Mã nhân viên',
-          field: 'Code', // Từ dữ liệu Swagger (dường như là mã NV tạo phiếu)
+          field: 'Code',
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'Họ và tên',
-          field: 'FullName', // Từ dữ liệu Swagger
+          field: 'FullName',
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'Mã phiếu mượn',
-          field: 'BorrowCode', // Từ dữ liệu Swagger
+          field: 'BorrowCode',
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'Loại kho',
-          field: 'ProductGroupName', // Có thể ánh xạ từ dữ liệu Swagger
+          field: 'ProductGroupName',
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
         {
           title: 'Mã Sản Phẩm',
-          field: 'ProductCode', // Từ dữ liệu Swagger
+          field: 'ProductCode',
           hozAlign: 'left',
           headerHozAlign: 'center',
+          bottomCalc:'count'
         },
         {
           title: 'Mã nội bộ',
-          field: 'ProductNewCode', // Từ dữ liệu Swagger
+          field: 'ProductNewCode',
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
@@ -501,31 +551,50 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
-
-        // Từ ảnh image_248e7d.png (Phần sau bảng)
         {
           title: 'Số lượng mượn',
           field: 'BorrowQty', // Từ dữ liệu Swagger
           hozAlign: 'right',
           headerHozAlign: 'center',
 
-          formatterParams: { decimal: '.', thousand: ',', precision: 0 }, // Định dạng số không có số thập phân
+          formatterParams: { decimal: '.', thousand: ',', precision: 0 },
+          bottomCalc:'sum',
+          bottomCalcFormatter:"money",
+          bottomCalcFormatterParams:{
+              decimal: ".",
+              thousand: ",",
+              precision: 0
+          }
         },
         {
           title: 'Số lượng trả',
           field: 'ReturnQty', // Từ dữ liệu Swagger
           hozAlign: 'right',
           headerHozAlign: 'center',
+          bottomCalc:'sum',
 
           formatterParams: { decimal: '.', thousand: ',', precision: 0 },
+          bottomCalcFormatter:"money",
+          bottomCalcFormatterParams:{
+              decimal: ".",
+              thousand: ",",
+              precision: 0
+          }
         },
         {
           title: 'Đang mượn',
           field: 'QtyDifference', // Từ dữ liệu Swagger
           hozAlign: 'right',
           headerHozAlign: 'center',
+          bottomCalc:'count',
 
           formatterParams: { decimal: '.', thousand: ',', precision: 0 },
+          bottomCalcFormatter:"money",
+          bottomCalcFormatterParams:{
+              decimal: ".",
+              thousand: ",",
+              precision: 0
+          }
         },
         {
           title: 'Vị trí (Hộp)',
@@ -560,5 +629,167 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
       this.data = selectedRows.map((row: any) => row.getData().BorrowID); // Cập nhật this.data với các dòng còn được chọn
       this.dataCreateImport = selectedRows.map((row: any) => row.getData());
     });
+
+    // Thêm sự kiện context menu cho bảng
+    this.table.on('rowContext', (e: any, row: RowComponent) => {
+      e.preventDefault();
+      this.showContextMenu(e, row);
+    });
+  }
+
+  showContextMenu(event: MouseEvent, row: RowComponent) {
+    event.preventDefault();
+    this.contextMenuRow = row;
+    this.contextMenuCell = null;
+
+    // Lấy vị trí chuột
+    this.contextMenuX = event.clientX;
+    this.contextMenuY = event.clientY;
+    this.contextMenuVisible = true;
+
+    // Tìm cell được click
+    const target = event.target as HTMLElement;
+    const cellElement = target.closest('.tabulator-cell');
+    if (cellElement) {
+      const field = cellElement.getAttribute('tabulator-field');
+      if (field) {
+        this.contextMenuCell = row.getCell(field);
+      }
+    }
+  }
+
+  hideContextMenu() {
+    this.contextMenuVisible = false;
+    this.contextMenuRow = null;
+    this.contextMenuCell = null;
+  }
+
+  // Copy text từ cell được click
+  copyCell() {
+    if (this.contextMenuCell) {
+      const value = this.contextMenuCell.getValue();
+      const textToCopy = value?.toString() || '';
+
+      navigator.clipboard.writeText(textToCopy).catch(() => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể copy!');
+      });
+    }
+    this.hideContextMenu();
+  }
+
+  // Tạo phiếu trả từ context menu
+  createReturnFromContext() {
+    if (!this.contextMenuRow) {
+      this.hideContextMenu();
+      return;
+    }
+
+    const rowData = this.contextMenuRow.getData();
+
+    // Kiểm tra đã trả chưa
+    if (rowData.ReturnedStatus) {
+      this.notification.info('Thông báo', 'Sản phẩm này đã được trả!');
+      this.hideContextMenu();
+      return;
+    }
+
+    // Tạo mảng chỉ chứa dòng được chọn
+    const dataForReturn = [rowData];
+    const groupID = rowData.ProductGroupID;
+    const groupName = rowData.ProductGroupName || `Kho ${groupID}`;
+
+    const tabs = [{
+      groupID: groupID,
+      groupName: groupName,
+      dataHistory: dataForReturn
+    }];
+
+    // Mở modal tạo phiếu trả
+    const modalRef = this.modalService.open(BillImportTabsComponent, {
+      backdrop: 'static',
+      keyboard: false,
+      windowClass: 'full-screen-modal',
+      fullscreen: true
+    });
+
+    modalRef.componentInstance.createImport = true;
+    modalRef.componentInstance.tabs = tabs;
+    modalRef.componentInstance.billType = 1;
+
+    modalRef.result.finally(() => {
+      this.loadData();
+    });
+
+    this.hideContextMenu();
+  }
+
+  // Xem chi tiết phiếu mượn
+  viewBorrowDetail() {
+    if (!this.contextMenuRow) {
+      this.hideContextMenu();
+      return;
+    }
+
+    const rowData = this.contextMenuRow.getData();
+    const billID = rowData.BillID;
+
+    if (!billID || billID === 0) {
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không tìm thấy ID phiếu mượn!');
+      this.hideContextMenu();
+      return;
+    }
+
+    // Mở modal chi tiết phiếu xuất
+    const modalRef = this.modalService.open(BillExportDetailComponent, {
+      backdrop: 'static',
+      keyboard: false,
+      windowClass: 'full-screen-modal',
+      fullscreen: true
+    });
+
+    // Truyền id và isCheckmode để component tự load dữ liệu
+    modalRef.componentInstance.id = billID;
+    modalRef.componentInstance.isCheckmode = true;
+    modalRef.componentInstance.warehouseCode = 'HN'; // hoặc lấy từ rowData nếu có
+
+    modalRef.result.finally(() => {
+      this.loadData();
+    });
+
+    this.hideContextMenu();
+  }
+
+  // Xem chi tiết trả hàng
+  viewReturnDetail() {
+    if (!this.contextMenuRow) {
+      this.hideContextMenu();
+      return;
+    }
+
+    const rowData = this.contextMenuRow.getData();
+    const borrowID = rowData.BorrowID;
+
+    if (!borrowID || borrowID === 0) {
+      this.notification.error(NOTIFICATION_TITLE.error, 'Không tìm thấy ID phiếu mượn!');
+      this.hideContextMenu();
+      return;
+    }
+
+    // Mở modal chi tiết trả hàng
+    const modalRef = this.modalService.open(SummaryReturnDetailComponent, {
+      backdrop: 'static',
+      keyboard: false,
+      size: 'xl'
+    });
+
+    // Truyền _exportDetailID = borrowID và warehouseID
+    modalRef.componentInstance._exportDetailID = borrowID;
+    modalRef.componentInstance.warehouseID = 1; // hoặc lấy từ rowData nếu có
+
+    modalRef.result.finally(() => {
+      this.loadData();
+    });
+
+    this.hideContextMenu();
   }
 }

@@ -30,6 +30,7 @@ import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { DateTime } from 'luxon';
 import { SearchProductSerialNumberServiceService } from './search-product-serial-number-service/search-product-serial-number-service.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 @Component({
   selector: 'app-search-product-serial-number',
   standalone: true,
@@ -107,13 +108,14 @@ export class SearchProductSerialNumberComponent
   drawTable() {
     this.table_Import = new Tabulator('#table_import', {
       data: this.dataImport,
+      ...DEFAULT_TABLE_CONFIG,
       layout: 'fitDataFill',
-      height: '80vh',
+      height: '89vh',
       selectableRows: true, // Cho phép checkbox chọn dòng
       movableColumns: true,
       resizableRows: true,
       reactiveData: true,
-      pagination: true,
+      paginationMode:'local',
       paginationSize: 50,
       columns: [
         {
@@ -186,13 +188,14 @@ export class SearchProductSerialNumberComponent
     //bang xuat
     this.table_Export = new Tabulator('#table_export', {
       data: this.dataExport,
+      ...DEFAULT_TABLE_CONFIG,
       layout: 'fitDataFill',
-      height: '80vh',
+      height: '89vh',
       selectableRows: true, // Cho phép checkbox chọn dòng
       movableColumns: true,
       resizableRows: true,
       reactiveData: true,
-      pagination: true,
+      paginationMode:'local',
       paginationSize: 50,
 
       columns: [

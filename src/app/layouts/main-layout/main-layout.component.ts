@@ -75,6 +75,11 @@ const COMPONENT_REGISTRY: Record<string, Type<any>> = {
   productRTC: TbProductRtcComponent,
   project: ProjectComponent,
 };
+
+// Reverse mapping để serialize component -> key
+const COMPONENT_TO_KEY: Map<Type<any>, string> = new Map(
+  Object.entries(COMPONENT_REGISTRY).map(([key, comp]) => [comp, key])
+);
 @Component({
   selector: 'app-main-layout',
   imports: [
@@ -173,7 +178,9 @@ export class MainLayoutComponent implements OnInit {
     const saved = localStorage.getItem('openMenuKey') || '';
     console.log(this.menus);
     this.setOpenMenu(saved || null);
-    // this.getMenus(43);
+
+    // Khôi phục các tabs đã mở từ localStorage
+    this.restoreTabs();
 
     // Subscribe vào event mở tab từ các component con
     this.menuEventService.onOpenTab$.subscribe((tabData) => {
@@ -209,12 +216,18 @@ export class MainLayoutComponent implements OnInit {
 
     this.dynamicTabs = [...this.dynamicTabs, { title, comp, injector }];
     setTimeout(() => (this.selectedIndex = this.dynamicTabs.length - 1));
+
+    // Lưu tabs vào localStorage
+    this.saveTabs();
   }
 
   closeTab({ index }: { index: number }) {
     this.dynamicTabs.splice(index, 1);
     if (this.selectedIndex >= this.dynamicTabs.length)
       this.selectedIndex = this.dynamicTabs.length - 1;
+
+    // Lưu tabs vào localStorage sau khi đóng
+    this.saveTabs();
   }
   //   getMenus(id: number): void {
   //     this.menuService.getMenus(id).subscribe({
@@ -261,5 +274,52 @@ export class MainLayoutComponent implements OnInit {
   // dùng khi muốn mở thẳng 1 group từ nơi khác
   openOnly(key: string) {
     this.setOpenMenu(key);
+  }
+
+  /**
+   * Lưu các tabs hiện tại vào localStorage
+   */
+  private saveTabs() {
+    const tabsData = this.dynamicTabs.map((tab) => ({
+      title: tab.title,
+      compKey: COMPONENT_TO_KEY.get(tab.comp) || '',
+    }));
+    localStorage.setItem('openTabs', JSON.stringify(tabsData));
+    localStorage.setItem('selectedTabIndex', String(this.selectedIndex));
+  }
+
+  /**
+   * Khôi phục các tabs từ localStorage
+   */
+  private restoreTabs() {
+    try {
+      const savedTabs = localStorage.getItem('openTabs');
+      const savedIndex = localStorage.getItem('selectedTabIndex');
+
+      if (savedTabs) {
+        const tabsData = JSON.parse(savedTabs) as Array<{
+          title: string;
+          compKey: string;
+        }>;
+
+        tabsData.forEach(({ title, compKey }) => {
+          const comp = COMPONENT_REGISTRY[compKey];
+          if (comp) {
+            const injector = Injector.create({
+              providers: [{ provide: 'tabData', useValue: undefined }],
+              parent: this.injector,
+            });
+            this.dynamicTabs.push({ title, comp, injector });
+          }
+        });
+
+        if (savedIndex && this.dynamicTabs.length > 0) {
+          const index = parseInt(savedIndex, 10);
+          this.selectedIndex = Math.min(index, this.dynamicTabs.length - 1);
+        }
+      }
+    } catch (error) {
+      console.error('Error restoring tabs:', error);
+    }
   }
 }

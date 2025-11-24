@@ -8,6 +8,8 @@ import {
   EventEmitter,
   inject,
   AfterViewInit,
+  ViewChild,
+  ElementRef,
 } from '@angular/core';
 import { BillImportChoseProductFormComponent } from '../bill-import-chose-product-form/bill-import-chose-product-form.component';
 import { DateTime } from 'luxon';
@@ -47,6 +49,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { firstValueFrom } from 'rxjs';
 import { TbProductRtcService } from '../../tb-product-rtc/tb-product-rtc-service/tb-product-rtc.service';
 import { AppUserService } from '../../../../services/app-user.service';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 @Component({
   standalone: true,
@@ -64,6 +67,7 @@ import { AppUserService } from '../../../../services/app-user.service';
     NzButtonModule,
     NzModalModule,
     NzFormModule,
+    NzSpinModule,
   ],
   selector: 'app-bill-import-technical-form',
   templateUrl: './bill-import-technical-form.component.html',
@@ -81,38 +85,48 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     { ID: 6, Name: 'Nhập hàng bảo hành' },
     { ID: 7, Name: 'NCC tặng/cho' },
   ];
-  @Input() masterId!: number;
+  cbbStatusPur: any = [
+    { ID: 1, Name: 'Đã bàn giao' },
+    { ID: 2, Name: 'Hủy bàn giao' },
+    { ID: 3, Name: 'Không cần' },
+  ];
+  activePur: boolean = false;
+  @ViewChild('table_DocumnetImport') tableDocumnetImport!: ElementRef;
+  table_DocumnetImport!: Tabulator;
+  @ViewChild('tableDeviceTemp') tableDeviceTemp!: ElementRef;
+  isLoading: boolean = false;
+  @Input() masterId!: number;//IDDetail
   @Input() dataEdit: any;
   @Input() dataInput: any;
+  @Input() billImport:any;
+
+  @Input() IsEdit: boolean = false;
   formDeviceInfo!: FormGroup;
   @Output() closeModal = new EventEmitter<void>();
   @Output() formSubmitted = new EventEmitter<void>();
-  @Input() warejouseID: number = 1;
+  @Input() warehouseID: number = 1;
+  @Input() dtDetails:any[]=[];
+  @Input() flag:number=0;
+  @Input() POCode:string='';
+  @Input() body:string='';
+  @Input() receiverMailID:number=0;
+@Input() warehouseIDNew:number=0;
   employeeSelectOptions: { label: string; value: number }[] = [];
-  // danh sách chứng từ
   documentBillImport: any[] = [];
-  // Thiết bị được chọn
   selectedDevices: any[] = [];
-  // bảng tạm danh sách thiết bị
   deviceTempTable: Tabulator | null = null;
-  // Danh sách khách hàng
   customerList: any[] = [];
-  // Danh sách nhà cung cấp
   nccList: any[] = [];
-  // Danh sách điều khoản thanh toán
   rulePayList: any[] = [];
-  // Danh sách nhân viên
   emPloyeeLists: any[] = [];
-  // Danh sách sản phẩm cho select dropdown
   productOptions: any[] = [];
 
-  // PHASE 6.3: Permission-related properties
   isAdmin: boolean = false;
   currentUserID: number = 0;
   currentEmployeeID: number = 0;
   currentDepartmentID: number = 0;
-  canEditRestrictedFields: boolean = false; // Can edit SomeBill, DateSomeBill, DPO, TaxReduction, COFormE
-  isFormDisabled: boolean = false; // Disable entire form when approved and not admin
+  canEditRestrictedFields: boolean = false;
+  isFormDisabled: boolean = false;
 
   private ngbModal = inject(NgbModal);
   public activeModal = inject(NgbActiveModal);
@@ -124,7 +138,6 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     private appUserService: AppUserService
   ) {}
 
-  // PHASE 3.1: Custom validator - SupplierSaleID OR CustomerID must be filled
   supplierOrCustomerValidator(
     control: AbstractControl
   ): ValidationErrors | null {
@@ -151,7 +164,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       WarehouseType: ['', Validators.required],
       DeliverID: [null, Validators.required],
       ReceiverID: [null, Validators.required],
-      WarehouseID: [this.warejouseID, Validators.required],
+      WarehouseID: [this.warehouseID, Validators.required],
       SupplierSaleID: [null, this.supplierOrCustomerValidator.bind(this)],
       RulePayID: [34, Validators.required],
       CustomerID: [null, this.supplierOrCustomerValidator.bind(this)],
@@ -278,7 +291,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     this.drawTableSelectedDevices();
   }
 
-  // PHASE 6.3: Initialize user permissions
+ //#region load quyền người dùng
   initializePermissions() {
     const currentUser = this.appUserService.currentUser;
     this.isAdmin = currentUser?.IsAdmin || false;
@@ -286,25 +299,14 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     this.currentEmployeeID = currentUser?.EmployeeID || 0;
     this.currentDepartmentID = currentUser?.DepartmentID || 0;
 
-    console.log('User Permissions:', {
-      isAdmin: this.isAdmin,
-      userID: this.currentUserID,
-      employeeID: this.currentEmployeeID,
-      departmentID: this.currentDepartmentID,
-    });
-
-    // Apply permissions to form controls
     this.applyFormPermissions();
   }
 
-  // PHASE 6.3: Apply permissions to form fields using reactive form validation
   applyFormPermissions() {
-    // Check if user can edit restricted fields (SomeBill, DateSomeBill, DPO, TaxReduction, COFormE)
-    // Only DeliverID or Admin can edit these fields
     const deliverID = this.formDeviceInfo.get('DeliverID')?.value || 0;
-    this.canEditRestrictedFields = this.isAdmin || this.currentUserID === deliverID;
+    this.canEditRestrictedFields =
+      this.isAdmin || this.currentUserID === deliverID;
 
-    // Check if form should be disabled (approved bill and not admin)
     const isApproved = this.formDeviceInfo.get('Status')?.value === true;
     this.isFormDisabled = isApproved && !this.isAdmin;
 
@@ -312,32 +314,46 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       deliverID: deliverID,
       canEditRestrictedFields: this.canEditRestrictedFields,
       isFormDisabled: this.isFormDisabled,
-      isApproved: isApproved
+      isApproved: isApproved,
     });
 
-    // Disable entire form if bill is approved and user is not admin
     if (this.isFormDisabled) {
       this.formDeviceInfo.disable();
       console.log('Form disabled: Bill is approved and user is not admin');
     } else {
       this.formDeviceInfo.enable();
 
-      // BillCode is always read-only (auto-generated)
       this.formDeviceInfo.get('BillCode')?.disable();
     }
-
-    // Note: Grid column restrictions (SomeBill, DateSomeBill, DPO, TaxReduction, COFormE)
-    // will be handled in the Tabulator column definitions using canEditRestrictedFields flag
   }
 
-  // PHASE 6.3: Update permissions when DeliverID changes
   onDeliverIDChanged() {
     this.applyFormPermissions();
   }
+//#endregion
 
+//#Init
   ngOnInit() {
     this.initForm();
+
+    // Khởi tạo BillTypeNew = 0 (--Chọn loại phiếu--)
+    this.formDeviceInfo.patchValue({BillTypeNew: 0});
+
+    // BillCode luôn ReadOnly (auto-generated)
+    this.formDeviceInfo.get('BillCode')?.disable();
+
+    // Nếu là chế độ Edit, disable các nút
+    if(this.IsEdit){
+      this.isFormDisabled = true;
+    }
+
     this.initializePermissions();
+
+    // Nếu phiếu đã được duyệt (Status = true) và không phải Admin
+    if(this.billImport?.Status === true && !this.isAdmin){
+      this.isFormDisabled = true;
+    }
+
     if (this.dataEdit) {
       this.formDeviceInfo.patchValue({
         ...this.dataEdit,
@@ -349,6 +365,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
           : null,
       });
     }
+
     if (this.masterId) {
       this.billImportTechnicalService
         .getBillImportDetail(this.masterId)
@@ -357,14 +374,25 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
           this.drawTableSelectedDevices();
         });
     }
+
     this.getNewCode();
     this.getRulepay();
     this.getNCC();
     this.getCustomer();
     this.getDocumentImport();
     this.getListEmployee();
-    this.getProductList(); // Load danh sách sản phẩm
+    this.getProductList();
+
+    const currentUser = this.appUserService.currentUser;
+    if(currentUser?.ID){
+      this.formDeviceInfo.patchValue({ReceiverID: currentUser.ID});
+
+      if(this.warehouseID === 2){
+        this.formDeviceInfo.patchValue({ReceiverID: 1434});
+      }
+    }
   }
+//#endregion
   changeStatus() {
     this.getNewCode();
   }
@@ -387,8 +415,11 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       },
       error: (err: any) => {
         console.error(err);
-        this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi lấy mã phiếu');
-      }
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Có lỗi xảy ra khi lấy mã phiếu'
+        );
+      },
     });
   }
   openModalChoseProduct() {
@@ -411,7 +442,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
   prevProductID: any = null;
   // Vẽ bảng tạm chọn thiết bị
   drawTableSelectedDevices() {
-    this.deviceTempTable = new Tabulator('#deviceTempTable', {
+    this.deviceTempTable = new Tabulator(this.tableDeviceTemp.nativeElement, {
       layout: 'fitColumns',
       data: this.selectedDevices,
       selectableRows: true,
@@ -433,7 +464,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
           width: 40,
           headerSort: false,
           titleFormatter: () => `
-  <div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i> </div>`,
+          <div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i> </div>`,
           headerClick: () => {
             this.addRow();
           },
@@ -683,7 +714,10 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
             const productCode = rowData['ProductCode'];
             const serialIDsRaw = rowData['SerialIDs'];
             if (quantity <= 0) {
-              this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng nhập số lượng lớn hơn 0 trước khi chọn Serial!');
+              this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                'Vui lòng nhập số lượng lớn hơn 0 trước khi chọn Serial!'
+              );
               return;
             }
             if (serialIDsRaw) {
@@ -971,16 +1005,24 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
           control.updateValueAndValidity({ onlySelf: true });
         }
       });
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ thông tin bắt buộc');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng điền đầy đủ thông tin bắt buộc'
+      );
       return;
     }
     const formValue = this.formDeviceInfo.value;
 
     // Borrow type validation: require EmployeeIDBorrow and DeadlineReturnNCC per row
     if (formValue.BillTypeNew === 1) {
-      const invalidRow = this.selectedDevices.find((d: any) => !d.EmployeeIDBorrow || !d.DeadlineReturnNCC);
+      const invalidRow = this.selectedDevices.find(
+        (d: any) => !d.EmployeeIDBorrow || !d.DeadlineReturnNCC
+      );
       if (invalidRow) {
-        this.notification.warning('Cảnh báo', 'Đối với phiếu Mượn NCC, vui lòng nhập Người mượn và Hạn trả NCC cho từng dòng.');
+        this.notification.warning(
+          'Cảnh báo',
+          'Đối với phiếu Mượn NCC, vui lòng nhập Người mượn và Hạn trả NCC cho từng dòng.'
+        );
         return;
       }
     }
@@ -1072,15 +1114,127 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
 
     this.billImportTechnicalService.saveData(payload).subscribe({
       next: (response: any) => {
-   
-        this.notification.success(NOTIFICATION_TITLE.success, 'Lưu phiếu thành công');
+        this.notification.success(
+          NOTIFICATION_TITLE.success,
+          'Lưu phiếu thành công'
+        );
         this.formSubmitted.emit();
         this.activeModal.close();
       },
       error: (error: any) => {
         console.error('Lỗi khi lưu dữ liệu:', error);
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể lưu phiếu, vui lòng thử lại sau');
-      }
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Không thể lưu phiếu, vui lòng thử lại sau'
+        );
+      },
     });
+  }
+  drawDocumentTable() {
+    this.isLoading = true;
+
+    setTimeout(() => {
+      this.table_DocumnetImport = new Tabulator(
+        this.tableDocumnetImport.nativeElement,
+        {
+          data: this.documentBillImport, // mảng chứa dữ liệu JSON
+          layout: 'fitDataStretch',
+          height: '38vh',
+          movableColumns: true,
+          resizableRows: true,
+          reactiveData: true,
+
+          columns: [
+            {
+              title: 'Trạng thái pur',
+              field: 'DocumentStatusPur',
+              hozAlign: 'center',
+              headerHozAlign: 'center',
+              width: 150,
+              editor: (cell, onRendered, success, cancel) => {
+                // Chỉ cho edit nếu activePur = true
+                if (!this.activePur) {
+                  return false;
+                }
+
+                const value = cell.getValue();
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = value === true;
+
+                checkbox.style.width = '18px';
+                checkbox.style.height = '18px';
+                checkbox.style.cursor = 'pointer';
+
+                checkbox.addEventListener('click', (e) => {
+                  e.stopPropagation();
+                  success(checkbox.checked);
+                });
+
+                return checkbox;
+              },
+
+              formatter: (cell) => {
+                const value = cell.getValue();
+                return value
+                  ? "<div style='text-align:center'><input type='checkbox' checked disabled></div>"
+                  : "<div style='text-align:center'><input type='checkbox' disabled></div>";
+              },
+            },
+
+            {
+              title: 'Mã chứng từ',
+              field: 'DocumentImportCode',
+              headerHozAlign: 'center',
+              hozAlign: 'left',
+            },
+            {
+              title: 'Tên chứng từ',
+              field: 'DocumentImportName',
+              headerHozAlign: 'center',
+              hozAlign: 'left',
+            },
+            {
+              title: 'Trạng thái',
+              field: 'StatusText',
+              headerHozAlign: 'center',
+              hozAlign: 'left',
+            },
+            {
+              title: 'Ngày nhận / hủy nhận',
+              field: 'DateRecive',
+              headerHozAlign: 'center',
+              hozAlign: 'center',
+              formatter: 'datetime',
+              formatterParams: {
+                inputFormat: 'iso',
+                outputFormat: 'dd/MM/yyyy HH:mm',
+              },
+            },
+            {
+              title: 'Người nhận / Hủy',
+              field: 'FullNameRecive',
+              headerHozAlign: 'center',
+              hozAlign: 'left',
+            },
+            {
+              title: 'Lý do huỷ',
+              field: 'ReasonCancel',
+              headerHozAlign: 'center',
+              hozAlign: 'left',
+            },
+            {
+              title: 'Ghi chú',
+              field: 'Note',
+              headerHozAlign: 'center',
+              hozAlign: 'left',
+              width: 300,
+            },
+          ],
+        }
+      );
+
+      this.isLoading = false;
+    }, 300);
   }
 }

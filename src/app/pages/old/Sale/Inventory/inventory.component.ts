@@ -34,6 +34,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { ProductSaleDetailComponent } from '../ProductSale/product-sale-detail/product-sale-detail.component';
 import { ProductGroupDetailComponent } from '../ProductSale/product-group-detail/product-group-detail.component';
 import { ImportExcelProductSaleComponent } from '../ProductSale/import-excel-product-sale/import-excel-product-sale.component';
+import { BillExportDetailComponent } from '../BillExport/Modal/bill-export-detail/bill-export-detail.component';
 
 import { AppUserService } from '../../../../services/app-user.service';
 import { InventoryService } from './inventory-service/inventory.service';
@@ -163,6 +164,152 @@ export class InventoryComponent implements OnInit, AfterViewInit {
       'Danh sách mượn NCC',
       {}
     );
+  }
+
+  requestBorrow() {
+    try {
+      const selectedData = this.table_inventory.getSelectedData();
+      if (!selectedData || selectedData.length === 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Vui lòng chọn ít nhất 1 sản phẩm để mượn!'
+        );
+        return;
+      }
+
+      // Group selected rows by warehouse and product group
+      const groupedData = new Map<string, any[]>();
+
+      selectedData.forEach((row: any) => {
+        const warehouseID = row.WarehouseID || 0;
+        // Use ProductGroupID as KhoTypeID (matching C# logic)
+        const khoTypeID = row.ProductGroupID || 0;
+        const key = `${warehouseID}_${khoTypeID}`;
+
+        if (!groupedData.has(key)) {
+          groupedData.set(key, []);
+        }
+        groupedData.get(key)!.push(row);
+      });
+
+      if (groupedData.size > 1) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          `Bạn chọn sản phẩm từ ${groupedData.size} kho.\nPhần mềm sẽ tự động tạo ${groupedData.size} phiếu mượn`
+        );
+      }
+
+      // Open bill-export-detail modal for each group
+      groupedData.forEach((groupRows: any[], key: string) => {
+        const [warehouseID, khoTypeID] = key.split('_').map(x => parseInt(x));
+
+        // Prepare data table with selected rows
+        const dtDetail = this.prepareDetailData(groupRows);
+
+        // Prepare lstTonCk
+        const lstTonCk = this.prepareTonCkData(groupRows);
+
+        // Create newBillExport object
+        // Open modal
+        this.openBillExportDetailModal(dtDetail, lstTonCk, warehouseID,khoTypeID);
+      });
+    } catch (error) {
+      console.error('Error in requestBorrow:', error);
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Có lỗi xảy ra khi xử lý yêu cầu mượn'
+      );
+    }
+  }
+
+  /**
+   * Prepare detail data from selected inventory rows
+   */
+  private prepareDetailData(selectedRows: any[]): any[] {
+    return selectedRows.map((row: any, index: number) => ({
+      STT: index + 1,
+      ProductCode: row.ProductCode,
+      ProductName: row.ProductName,
+      ProductNewCode: row.ProductNewCode,
+      ProductID: row.ProductSaleID || row.ProductID,
+      ProductSaleID: row.ProductSaleID,
+      Qty: 0, // User will fill this
+      Unit: row.Unit,
+      ProductGroupID: row.KhoTypeID,
+      ProductGroupName: row.ProductGroupName,
+      WarehouseID: row.WarehouseID,
+      WarehouseCode: row.WarehouseCode,
+      TotalQuantityLast: row.TotalQuantityLast,
+      TotalInventory: row.TotalQuantityLast,
+      Maker: row.Maker,
+      NameNCC: row.NameNCC,
+      AddressBox: row.AddressBox,
+    }));
+  }
+
+  /**
+   * Prepare lstTonCk data (stock inventory)
+   */
+  private prepareTonCkData(selectedRows: any[]): any[] {
+    return selectedRows.map((row: any) => ({
+      ProductSaleID: row.ProductSaleID || row.ProductID,
+      TotalQuantityLast: row.TotalQuantityLast,
+    }));
+  }
+
+  /**
+   * Open bill-export-detail modal for borrow request
+   */
+  private openBillExportDetailModal(
+    dtDetail: any[],
+    lstTonCk: any[],
+    warehouseID: number,
+    khoTypeID:number
+  ) {
+    const modalRef = this.modalService.open(BillExportDetailComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+    });
+
+    // Set input properties matching WinForms logic (C# lines 118-128)
+    modalRef.componentInstance.isBorrow = true;
+    modalRef.componentInstance.selectedList = dtDetail;
+    modalRef.componentInstance.lstTonCk = lstTonCk;
+    modalRef.componentInstance.KhoTypeID = khoTypeID;
+    modalRef.componentInstance.wareHouseCode = this.getWarehouseCode(warehouseID);
+    console.log('inventorykhotype',khoTypeID);
+
+    // Set billExport WarehouseID (C# line 121)
+    modalRef.componentInstance.newBillExport = {
+      ...modalRef.componentInstance.newBillExport,
+      WarehouseID: warehouseID,
+      KhoTypeID: khoTypeID,
+    };
+
+    modalRef.result
+      .then((result) => {
+        if (result === true) {
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            'Phiếu mượn đã được tạo thành công!'
+          );
+          this.getAllProductSale();
+        }
+      })
+      .catch((error) => {
+        console.log('Modal dismissed:', error);
+      });
+  }
+
+  /**
+   * Get warehouse code by warehouse ID
+   */
+  private getWarehouseCode(warehouseID: number): string {
+    // Match C# logic: frm.WarehouseCode = VP (where VP is current warehouse)
+    // Use current wareHouseCode from component state
+    return this.wareHouseCode || 'HN';
   }
   //#region dong mo modal
   // updateProductSale() {

@@ -37,6 +37,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { DateTime } from 'luxon';
 
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -124,6 +125,7 @@ interface CustomerContent {
     NzButtonModule,
     NzModalModule,
     NzFormModule,
+    NzAutocompleteModule,
   ],
   templateUrl: './meeting-minute-form.component.html',
   styleUrl: './meeting-minute-form.component.css',
@@ -178,6 +180,10 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
     { ID: 2, Name: 'Phòng họp 2 (Hồ Gươm)' },
     { ID: 3, Name: 'Phòng họp 3 (Hồ Trúc Bạch)' },
   ];
+
+  // Autocomplete suggestions for Place
+  placeSuggestions: string[] = [];
+  placeOptions: string[] = [];
 
   // Deleted IDs tracking
   deletedIdsEmployeeDetail: any[] = [];
@@ -241,6 +247,20 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
           this.loadProjectHistoryProblems();
         }
       }
+    });
+
+    // Initialize place suggestions from placeData
+    this.placeSuggestions = this.placeData
+      .map(place => place.Name)
+      .filter(name => name && name.trim())
+      .sort();
+
+    // Initialize place options with empty value
+    this.placeOptions = this.getPlaceOptions('');
+
+    // Update autocomplete options when Place input changes
+    this.form.get('Place')?.valueChanges.subscribe((value: string) => {
+      this.placeOptions = this.getPlaceOptions(value || '');
     });
 
     // Load options first, then load detail if edit mode
@@ -309,6 +329,10 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             DateEnd: meetingMinute.DateEnd || null,
             Place: meetingMinute.Place || null,
           });
+
+          // Initialize place options with current value
+          const currentPlace = meetingMinute.Place || '';
+          this.placeOptions = this.getPlaceOptions(currentPlace);
 
           // Set selected project
           const project = this.projectData.find(
@@ -1780,6 +1804,17 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
     }
     const year = new Date(this.selectedProject.CreatedDate).getFullYear();
     return `${year}\\${this.selectedProject.ProjectCode}\\TaiLieuChung\\BienBanCuocHop`;
+  }
+
+  // Filter place suggestions based on input value
+  getPlaceOptions(value: string): string[] {
+    if (!value || value.trim() === '') {
+      return this.placeSuggestions.slice(0, 10); // Limit to 10 items when empty
+    }
+    const filterValue = value.toLowerCase();
+    return this.placeSuggestions
+      .filter(option => option.toLowerCase().includes(filterValue))
+      .slice(0, 10); // Limit to 10 items
   }
 
   openFileExplorerForRow(row: RowComponent) {

@@ -565,6 +565,29 @@ export class ProjectService {
       }
     );
   }
+
+  // Lấy dữ liệu vật tư phát sinh với pagination
+  getProjectPartlistProblem(params: {
+    pageNumber: number;
+    pageSize: number;
+    dateStart: string;
+    dateEnd: string;
+    projectId: number;
+    keyword?: string;
+  }): Observable<any> {
+    const httpParams = new HttpParams()
+      .set('pageNumber', params.pageNumber.toString())
+      .set('pageSize', params.pageSize.toString())
+      .set('dateStart', params.dateStart)
+      .set('dateEnd', params.dateEnd)
+      .set('projectId', params.projectId.toString())
+      .set('keyword', params.keyword || '');
+
+    return this.http.get<any>(
+      this.urlSynthesisOfGeneratedMaterials + `get-data`,
+      { params: httpParams }
+    );
+  }
   //#endregion
 
   //#region Tổng hợp dự án theo phòng ban
@@ -875,6 +898,26 @@ export class ProjectService {
       `${this.urlProjectSummary}get-project-current-situation/${projectId}`
     );
   }
+  // Lưu tình hình hiện tại dự án
+  saveProjectCurrentSituation(payload: any): Observable<any> {
+    return this.http.post<any>(
+      `${this.urlProjectSummary}save-project-current-situation`,
+      payload
+    );
+  }
+  // Lấy dữ liệu tình hình hiện tại dự án (API mới)
+  getProjectCurrentSituationData(projectID: number): Observable<any> {
+    return this.http.get<any>(
+      `${this.apiUrl}ProjectCurrentSituation/get-data?projectID=${projectID}`
+    );
+  }
+  // Lưu tình hình hiện tại dự án (API mới)
+  saveProjectCurrentSituationData(payload: any): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}ProjectCurrentSituation/save-data`,
+      payload
+    );
+  }
   //#region Lịch sử giá
   getSupplierSales(): Observable<any> {
     return this.http.get<any>(
@@ -890,6 +933,8 @@ export class ProjectService {
       }
     );
   }
+  
+
   //#endregion
   //#region kiểu dự án
   getFolderByProjectType(projectTypeID: number): Observable<any> {

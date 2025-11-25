@@ -234,16 +234,10 @@ export class ProjectSolutionVersionDetailComponent implements OnInit, AfterViewI
             this.notification.success('Thành công', response.message);
             this.closeModal();
           }
-          else if (response.status === 2) {
-            this.notification.warning('Thông báo', response.message);
-          }
-          else {
-            this.notification.error('Lỗi', response.message);
-          }
         },
         error: (error: any) => {
           console.log("error", error);
-          this.notification.error('Lỗi', error.message);
+          this.notification.error('Lỗi', error.error.message);
         }
       });
     }else{  

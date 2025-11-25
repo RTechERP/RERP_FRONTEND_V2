@@ -216,7 +216,6 @@ export class ProjectEmployeeComponent implements OnInit, AfterViewInit {
 
   //#region Tìm kiếm
   search() {
-    debugger
     if (this.dataChange) {
       this.projectIdNew = this.projectId;
       this.projectId = this.projectIdOld;

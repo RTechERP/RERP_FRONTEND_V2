@@ -1,0 +1,77 @@
+<div style="display: flex; flex-direction: column; height: 100vh;">
+  <!-- Modal Header -->
+  <div class="modal-header bg-primary align-items-center ps-2" style="flex-shrink: 0;">
+    <h6 class="text-light text-uppercase m-0" style="padding: 0 0.5rem;">
+      Lịch sử giá vật tư
+    </h6>
+    <button type="button" class="btn-close" (click)="activeModal.dismiss()" aria-label="Close"></button>
+  </div>
+  
+  <!-- Modal Body với Splitter -->
+  <div class="modal-body p-0" style="flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 0;">
+    <!-- Phần tìm kiếm -->
+    <div class="p-2 border-bottom" style="flex-shrink: 0;">
+      <div class="d-flex align-items-center gap-2">
+        <label class="fs-12 mb-0" style="min-width: 80px;">Từ khóa:</label>
+        <nz-input-group class="fs-12" [nzSuffix]="suffixIconSearch" style="flex: 1;">
+          <input
+            class="fs-12"
+            type="text"
+            nz-input
+            placeholder="Tìm kiếm ..."
+            [(ngModel)]="searchKeyword"
+            (keyup.enter)="onSearch()"
+          />
+        </nz-input-group>
+        <button
+          nz-button
+          nzType="primary"
+          nzSize="small"
+          (click)="onSearch()"
+        >
+          <nz-icon nzType="search" />
+          Tìm kiếm
+        </button>
+      </div>
+    </div>
+
+    <!-- Splitter cho 2 bảng -->
+    <nz-splitter nzLayout="vertical" style="flex: 1; height: 100%; min-height: 0;">
+      <!-- Bảng trên: Tồn kho theo sản phẩm -->
+      <nz-splitter-panel nzDefaultSize="50%" nzMin="20%">
+        <div class="card h-100 border-0 rounded-0" style="display: flex; flex-direction: column; height: 100%;">
+          <div class="card-header bg-white p-1" style="flex-shrink: 0;">
+            <h6 class="m-0 ms-2">Tồn kho theo sản phẩm</h6>
+          </div>
+          <div class="card-body p-0" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+            <div #tb_inventoryTable style="flex: 1; width: 100%; height: 100%;"></div>
+          </div>
+        </div>
+      </nz-splitter-panel>
+
+      <!-- Bảng dưới: Lịch sử giá -->
+      <nz-splitter-panel nzDefaultSize="50%">
+        <div class="card h-100 border-0 rounded-0" style="display: flex; flex-direction: column; height: 100%;">
+          <div class="card-header bg-white p-1" style="flex-shrink: 0;">
+            <h6 class="m-0 ms-2">Lịch sử giá</h6>
+          </div>
+          <div class="card-body p-0" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+            <div #tb_priceHistoryTable style="flex: 1; width: 100%; height: 100%;"></div>
+          </div>
+        </div>
+      </nz-splitter-panel>
+    </nz-splitter>
+  </div>
+
+  <!-- Modal Footer -->
+  <div class="modal-footer bg-whitesmoke br p-1" style="flex-shrink: 0;">
+    <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">
+      Đóng
+    </button>
+  </div>
+</div>
+
+<!-- Biểu tượng tìm kiếm -->
+<ng-template #suffixIconSearch>
+  <nz-icon nzType="search" />
+</ng-template>

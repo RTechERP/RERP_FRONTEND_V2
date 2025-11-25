@@ -260,6 +260,11 @@ export class EmployeeNoFingerprintComponent
       groupBy: ['DepartmentName'],
       groupByStartOpen: true,
       groupHeader: (value: any) => `Phòng ban: ${value}`,
+      groupFooter: (value: any, count: number, data: any[]) => {
+        return `<div style="padding: 8px; background-color: #f5f5f5; font-weight: bold; text-align: right; border-top: 1px solid #e8e8e8;">
+          Tổng số bản ghi: <span style="color: #1890ff; font-size: 1.05em;">${data.length}</span>
+        </div>`;
+      },
       columns: this.getTableColumns(),
     } as any);
 
@@ -307,6 +312,7 @@ export class EmployeeNoFingerprintComponent
           return this.formatApprovalBadge(numValue);
         },
         frozen: true,
+     
       },
       {
         title: 'HR Duyệt',
@@ -331,27 +337,29 @@ export class EmployeeNoFingerprintComponent
           return this.formatApprovalBadge(numValue);
         },
         frozen: true,
+      
       },
       {
         title: 'Mã nhân viên',
         field: 'Code',
         width: 100,
         headerHozAlign: 'center',
-        hozAlign: 'center',
+        hozAlign: 'left',
+        bottomCalc: 'count',
       },
       {
         title: 'Tên nhân viên',
         field: 'FullName',
-        width: 100,
+        width: 200,
         headerHozAlign: 'center',
-        hozAlign: 'center',
+        hozAlign: 'left',
       },
       {
         title: 'Người duyệt ',
         field: 'ApprovedName',
         width: 140,
         headerHozAlign: 'center',
-        hozAlign: 'center',
+        hozAlign: 'left',
       },
       {
         title: 'Ngày',
@@ -366,7 +374,7 @@ export class EmployeeNoFingerprintComponent
         field: 'TypeText',
         width: 140,
         headerHozAlign: 'center',
-        hozAlign: 'center',
+        hozAlign: 'left',
       },
      
       {
@@ -374,19 +382,21 @@ export class EmployeeNoFingerprintComponent
         field: 'ReasonHREdit',
         width: 150,
         headerHozAlign: 'center',
+        hozAlign: 'left',
       },
       {
         title: 'Lý do không đồng ý',
         field: 'ReasonDeciline',
         width: 180,
         headerHozAlign: 'center',
+        hozAlign: 'left',
       },
       {
         title: 'Ghi chú',
         field: 'Note',
         width: 420,
         headerHozAlign: 'center',
-        hozAlign: 'center',
+        hozAlign: 'left',
         formatter: 'textarea',
       },
     ];
@@ -856,27 +866,40 @@ export class EmployeeNoFingerprintComponent
       return;
     }
     
-    // Chỉ cho HR duyệt nếu TBP đã duyệt
-    const notApprovedTBP = selectedRows.filter(
+    // Lọc ra những bản ghi hợp lệ (đã được TBP duyệt) và không hợp lệ
+    const validRows = selectedRows.filter(
+      (x) => x.StatusText === 'Đã duyệt'
+    );
+    const invalidRows = selectedRows.filter(
       (x) => x.StatusText !== 'Đã duyệt'
     );
-    if (notApprovedTBP.length > 0) {
+    
+    // Cảnh báo về những bản ghi không hợp lệ nhưng vẫn tiếp tục duyệt những bản ghi hợp lệ
+    if (invalidRows.length > 0) {
       this.notification.warning(
         'Thông báo',
-        'Chỉ duyệt HR cho các bản ghi đã được TBP duyệt!'
+        `Có ${invalidRows.length} bản ghi chưa được TBP duyệt sẽ được bỏ qua. Chỉ duyệt ${validRows.length} bản ghi hợp lệ.`
+      );
+    }
+    
+    // Nếu không có bản ghi hợp lệ nào thì dừng lại
+    if (validRows.length === 0) {
+      this.notification.error(
+        'Thông báo',
+        'Không có bản ghi nào hợp lệ để duyệt HR! Tất cả bản ghi đã chọn đều chưa được TBP duyệt.'
       );
       return;
     }
     
     // Lấy tên nhân viên đầu tiên (focused row)
     const focusedRow = this.tb_ENF?.getSelectedRows()[0];
-    const employeeName = focusedRow ? focusedRow.getData()['FullName'] : selectedRows[0]?.['FullName'] || '';
+    const employeeName = focusedRow ? focusedRow.getData()['FullName'] : validRows[0]?.['FullName'] || '';
     
     let confirmMessage = '';
-    if (rowCount === 1) {
+    if (validRows.length === 1) {
       confirmMessage = `Bạn có chắc muốn duyệt nhân viên ${employeeName}?`;
     } else {
-      confirmMessage = `Bạn có chắc muốn duyệt những nhân viên này không?`;
+      confirmMessage = `Bạn có chắc muốn duyệt ${validRows.length} nhân viên hợp lệ không?`;
     }
     
     this.nzModal.confirm({
@@ -885,7 +908,7 @@ export class EmployeeNoFingerprintComponent
       nzOkText: 'Duyệt',
       nzOkType: 'primary',
       nzCancelText: 'Hủy',
-      nzOnOk: () => this.confirmApproveHR(selectedRows, true),
+      nzOnOk: () => this.confirmApproveHR(validRows, true),
     });
   }
 
@@ -899,7 +922,7 @@ export class EmployeeNoFingerprintComponent
         if (successCount > 0) {
           this.notification.success(
             'Thông báo',
-            `HR đã ${approved} ${successCount}/${selectedRows.length} bản ghi thành công!`
+            `${approved} ${successCount}/${selectedRows.length} bản ghi thành công!`
           );
         }
         if (failedCount > 0) {

@@ -23,10 +23,12 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { combineLatest } from 'rxjs';
 
 import { DocumentService } from '../document-service/document.service';
 import { DocumentComponent } from '../document.component';
+import { DateTime } from 'luxon';
 
 interface Document {
   STT: number;
@@ -37,6 +39,8 @@ interface Document {
   DatePromulgate: Date | null;
   DateEffective: Date | null;
   GroupType: number;
+  IsPromulgated?: boolean;
+  IsOnWeb?: boolean;
 }
 
 @Component({
@@ -54,7 +58,8 @@ interface Document {
     NzInputModule,
     NzButtonModule,
     NzModalModule,
-    NzFormModule
+    NzFormModule,
+    NzCheckboxModule
   ],
   templateUrl: './document-form.component.html',
   styleUrl: './document-form.component.css',
@@ -80,7 +85,9 @@ export class DocumentFormComponent implements OnInit, AfterViewInit {
   @Input() documentTypeID: number = 0;
   @Input() documentTypeData: any[] = [];
   @Input() dataInput: any;
+  @Input() mode: 'add' | 'edit' = 'add';
    formGroup: FormGroup;
+   saving: boolean = false;
 
 
   constructor(
@@ -99,6 +106,8 @@ export class DocumentFormComponent implements OnInit, AfterViewInit {
         DatePromulgate: ['', [Validators.required]],
         DateEffective: ['', [Validators.required]],
         GroupType: 1,
+        IsPromulgated: [false],
+        IsOnWeb: [false],
       });
   }
 
@@ -112,22 +121,76 @@ export class DocumentFormComponent implements OnInit, AfterViewInit {
     DatePromulgate: ['', Validators.required],
     DateEffective: ['', Validators.required],
     GroupType: [1],
+    IsPromulgated: [false],
+    IsOnWeb: [false],
   });
 
-  // 👇 Lắng nghe sự thay đổi đồng thời của DocumentTypeID và DepartmentID
-  combineLatest([
-    this.formGroup.get('DocumentTypeID')!.valueChanges,
-    this.formGroup.get('DepartmentID')!.valueChanges,
-  ]).subscribe(([typeId, deptId]) => {
-    // Gọi hàm khi có thay đổi
-    this.onTypeOrDepartmentChange(typeId, deptId);
-  });
+  // Load dữ liệu nếu là chế độ edit
+  if (this.mode === 'edit' && this.dataInput) {
+    // Nếu DepartmentID không có (null, undefined, 0) thì set thành 0 (Văn bản chung)
+    const departmentID = (this.dataInput.DepartmentID !== null && this.dataInput.DepartmentID !== undefined && this.dataInput.DepartmentID !== '') 
+      ? this.dataInput.DepartmentID 
+      : 0;
+    
+    this.formGroup.patchValue({
+      STT: this.dataInput.STT || 0,
+      NameDocument: this.dataInput.NameDocument || '',
+      Code: this.dataInput.Code || '',
+      DepartmentID: departmentID,
+      DocumentTypeID: this.dataInput.DocumentTypeID || '',
+      DatePromulgate: this.formatDateForInput(this.dataInput.DatePromulgate),
+      DateEffective: this.formatDateForInput(this.dataInput.DateEffective),
+      GroupType: this.dataInput.GroupType || 1,
+      IsPromulgated: this.dataInput.IsPromulgated || false,
+      IsOnWeb: this.dataInput.IsOnWeb || false,
+    });
+  }
+
+  // 👇 Lắng nghe sự thay đổi đồng thời của DocumentTypeID và DepartmentID (chỉ khi thêm mới)
+  if (this.mode === 'add') {
+    combineLatest([
+      this.formGroup.get('DocumentTypeID')!.valueChanges,
+      this.formGroup.get('DepartmentID')!.valueChanges,
+    ]).subscribe(([typeId, deptId]) => {
+      // Gọi hàm khi có thay đổi
+      this.onTypeOrDepartmentChange(typeId, deptId);
+    });
+  }
     this.getdataDepartment();
     this.getDataDocumentType();
     
   }
 
   ngAfterViewInit(): void {}
+
+  // Hàm format date cho input type="date" (yyyy-MM-dd)
+  formatDateForInput(value: any): string {
+    if (!value) return '';
+    
+    // Nếu là Date object
+    if (value instanceof Date) {
+      const dt = DateTime.fromJSDate(value);
+      return dt.isValid ? dt.toFormat('yyyy-MM-dd') : '';
+    }
+    
+    const str = String(value).trim();
+    if (!str) return '';
+    
+    // Thử parse ISO string
+    let dt = DateTime.fromISO(str);
+    if (dt.isValid) return dt.toFormat('yyyy-MM-dd');
+    
+    // Thử parse dd/MM/yyyy
+    dt = DateTime.fromFormat(str, 'dd/MM/yyyy');
+    if (dt.isValid) return dt.toFormat('yyyy-MM-dd');
+    
+    // Nếu là string dạng yyyy-MM-dd thì trả về luôn
+    if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
+      return str.substring(0, 10);
+    }
+    
+    return '';
+  }
 
  onTypeOrDepartmentChange(typeId?: number, deptId?: number): void {
 
@@ -158,6 +221,10 @@ export class DocumentFormComponent implements OnInit, AfterViewInit {
   }
 
   saveDocument() {
+    if (this.saving) {
+      return; // Ngăn không cho lưu nhiều lần
+    }
+
     this.trimAllStringControls();
       if (this.formGroup.invalid) {
       Object.values(this.formGroup.controls).forEach((c) => {
@@ -171,27 +238,33 @@ export class DocumentFormComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    this.saving = true; // Bắt đầu lưu
+
     const formValue = this.formGroup.value;
-    // if (!this.newDocument.Code || !this.newDocument.NameDocument) {
-    //   this.notification.warning('Thông báo', 'Vui lòng điền đầy đủ thông tin!');
-    //   return;
-    // }
-    // Add new product group
+    // Nếu DepartmentID không có (null, undefined, '') thì set thành 0 (Văn bản chung)
+    const departmentID = (formValue.DepartmentID !== null && formValue.DepartmentID !== undefined && formValue.DepartmentID !== '') 
+      ? formValue.DepartmentID 
+      : 0;
+    
     const payload = {
       ID: this.dataInput?.ID ?? 0,
       STT: formValue.STT,
       Code: formValue.Code,
       DocumentTypeID: formValue.DocumentTypeID,
-      DepartmentID: formValue.DepartmentID,
+      DepartmentID: departmentID,
       NameDocument: formValue.NameDocument,
       DatePromulgate: formValue.DatePromulgate,
       DateEffective: formValue.DateEffective,
       GroupType: formValue.GroupType,
+      IsPromulgated: formValue.IsPromulgated || false,
+      IsOnWeb: formValue.IsOnWeb || false,
     };
     this.documentService.saveDocument(payload).subscribe({
       next: (res) => {
+        this.saving = false; // Kết thúc lưu
         if (res.status === 1) {
-          this.notification.success('Thông báo', 'Thêm mới thành công!');
+          const message = this.mode === 'edit' ? 'Sửa thành công!' : 'Thêm mới thành công!';
+          this.notification.success('Thông báo', message);
           this.close();
         } else {
           this.notification.warning(
@@ -201,6 +274,7 @@ export class DocumentFormComponent implements OnInit, AfterViewInit {
         }
       },
       error: (err) => {
+        this.saving = false; // Kết thúc lưu khi có lỗi
         this.notification.error('Thông báo', 'Có lỗi xảy ra khi thêm mới!');
       },
     });

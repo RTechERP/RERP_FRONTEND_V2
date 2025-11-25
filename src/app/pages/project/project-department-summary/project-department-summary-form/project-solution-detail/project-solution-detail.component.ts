@@ -66,6 +66,9 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
   deletedFile: number[] = [];
   dataRequest: any[] = [];
   ngOnInit(): void {
+     // Set ngày yêu cầu mặc định là ngày hôm nay khi thêm mới
+     const today = new Date();
+     today.setHours(0, 0, 0, 0); // Set về 00:00:00 để tránh vấn đề timezone
     this.form = this.fb.group({
       ProjectID: [
         { value: this.projectId, disabled: this.projectId > 0 },
@@ -75,7 +78,7 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
       SolutionCode: ['', [this.trimRequiredValidator]],
       STT: [1],
       IsPO: [false],
-      SolutionDate: [null],
+      SolutionDate: [!this.isEdit ? today : null],
       DeadlinePrice: [null],
       Content: [''],
     });

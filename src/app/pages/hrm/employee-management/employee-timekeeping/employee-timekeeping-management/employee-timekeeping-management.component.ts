@@ -41,7 +41,8 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { VehicleRepairService } from '../../../vehicle/vehicle-repair/vehicle-repair-service/vehicle-repair.service';
 
 import { ActivatedRoute } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { Title } from '@angular/platform-browser';
+import { forkJoin, firstValueFrom } from 'rxjs';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 
@@ -111,6 +112,7 @@ export class EmployeeTimekeepingManagementComponent
   weekdays: any = {};
 
   isLoadTable = false;
+  isUpdating = false; // Flag để track trạng thái đang update
   year: Date = new Date();
   month: Date = new Date();
   selectedDepartment: any | null = null;
@@ -124,7 +126,7 @@ export class EmployeeTimekeepingManagementComponent
   etId: number = 0;
   masterId: number | null = null;
   etData: any = null; // Data từ parent component
-  
+
   isApproved = false;
   // (nếu chưa có) helper nhỏ
   private toInt(v: any, def = 0) {
@@ -142,7 +144,7 @@ export class EmployeeTimekeepingManagementComponent
     // Ưu tiên lấy ID từ componentInstance (modal) hoặc Input
     // Nếu không có thì mới lấy từ route (để tương thích với route cũ)
     let id = this.etId || this.masterId || 0;
-    
+
     // Nếu đã được set từ modal/input thì dùng luôn
     if (id > 0) {
       this.etId = id;
@@ -151,7 +153,7 @@ export class EmployeeTimekeepingManagementComponent
       this.prefillFromETById(id);
       return;
     }
-    
+
     // Nếu chưa có ID, kiểm tra route params (để tương thích với route cũ)
     if (this.route) {
       this.route.paramMap.subscribe((params) => {
@@ -194,7 +196,7 @@ export class EmployeeTimekeepingManagementComponent
         // Nếu đã có ID nhưng chưa load data, load lại
         this.prefillFromETById(this.etId || this.masterId || 0);
       }
-      
+
       this.initializeDefaultTab();
     }, 500);
   }
@@ -586,10 +588,10 @@ export class EmployeeTimekeepingManagementComponent
     this.selectedDepartment = null;
     this.selectedEmployee = null;
     this.searchValue = '';
-    
+
     // Load lại tất cả nhân viên
     this.loadEmployees();
-    
+
     // Reload dữ liệu bảng
     this.reloadBothFast();
   }
@@ -609,7 +611,7 @@ export class EmployeeTimekeepingManagementComponent
   onDepartmentChange(): void {
     // Reset nhân viên đã chọn khi thay đổi phòng ban
     this.selectedEmployee = null;
-    
+
     // Nếu đã có allEmployees, filter ngay từ đó (không cần gọi API lại)
     if (this.allEmployees && this.allEmployees.length > 0) {
       const filtered =
@@ -618,18 +620,23 @@ export class EmployeeTimekeepingManagementComponent
               (x: any) => Number(x.DepartmentID) === Number(this.selectedDepartment)
             )
           : this.allEmployees;
-      
+
       this.employees = this.groupEmployeesByDepartment(filtered);
     } else {
       // Nếu chưa có allEmployees, load lại từ API
       this.loadEmployees();
     }
-    
+
     // Reload dữ liệu bảng
     this.reloadBothFast();
   }
 
   onUpdateOne(): void {
+    if (this.isUpdating) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Đang cập nhật, vui lòng đợi...');
+      return;
+    }
+
     const p = this.getAjaxParamsMT(); // lấy month/year hiện tại
     const masterId = this.etId; // lấy masterId từ route param
     if (this.isApproved) {
@@ -667,12 +674,14 @@ export class EmployeeTimekeepingManagementComponent
         // dùng LoginName mặc định từ service (ADMIN)
         const login = this.etService.LoginName || 'ADMIN';
 
+        this.isUpdating = true;
         this.isLoadTable = true;
         this.etService
           .updateTimekeepingOne(masterId, p.month, p.year, employeeId, login)
           .subscribe({
             next: (res) => {
               this.isLoadTable = false;
+              this.isUpdating = false;
               if (res?.status === 0) {
                 this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Cập nhật thất bại');
                 return;
@@ -686,6 +695,7 @@ export class EmployeeTimekeepingManagementComponent
             },
             error: () => {
               this.isLoadTable = false;
+              this.isUpdating = false;
               this.notification.error(NOTIFICATION_TITLE.error, 'Không thể cập nhật công nhân viên');
             },
           });
@@ -693,7 +703,12 @@ export class EmployeeTimekeepingManagementComponent
     });
   }
 
-  onUpdateAll(): void {
+  async onUpdateAll(): Promise<void> {
+    if (this.isUpdating) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Đang cập nhật, vui lòng đợi...');
+      return;
+    }
+
     if (this.isApproved) {
       const p = this.getAjaxParamsMT();
       this.notification.warning(
@@ -703,7 +718,7 @@ export class EmployeeTimekeepingManagementComponent
       return;
     }
     const p = this.getAjaxParamsMT();
-    const masterId = this.etId; 
+    const masterId = this.etId;
     if (!masterId) {
       this.notification.error(NOTIFICATION_TITLE.error, 'Không xác định MasterID (etId).');
       return;
@@ -714,34 +729,40 @@ export class EmployeeTimekeepingManagementComponent
       nzContent: `Bạn có chắc muốn cập nhật lại bảng chấm công tháng ${p.month}/${p.year} cho TẤT CẢ nhân viên?`,
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
-      nzOnOk: () => {
+      nzOnOk: async () => {
         const login = this.etService.LoginName || 'ADMIN';
 
+        this.isUpdating = true;
         this.isLoadTable = true;
-        this.etService
-          .updateTimekeepingAll(masterId, p.month, p.year, login)
-          .subscribe({
-            next: (res) => {
-              this.isLoadTable = false;
-              if (res?.status === 0) {
-                this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Cập nhật thất bại');
-                return;
-              }
-              this.notification.success(
-                NOTIFICATION_TITLE.success,
-                'Đã cập nhật toàn bộ bảng công'
-              );
-              if (this.tb_MT) this.loadMTData();
-              if (this.tb_DT) this.loadDTData();
-            },
-            error: () => {
-              this.isLoadTable = false;
-              this.notification.error(
-                NOTIFICATION_TITLE.error,
-                'Không thể cập nhật toàn bộ bảng công'
-              );
-            },
-          });
+
+        try {
+          const res = await firstValueFrom(
+            this.etService.updateTimekeepingAll(masterId, p.month, p.year, login)
+          );
+
+          this.isLoadTable = false;
+          this.isUpdating = false;
+
+          if (res?.status === 0) {
+            this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Cập nhật thất bại');
+            return;
+          }
+
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            'Đã cập nhật toàn bộ bảng công'
+          );
+
+          if (this.tb_MT) this.loadMTData();
+          if (this.tb_DT) this.loadDTData();
+        } catch (error) {
+          this.isLoadTable = false;
+          this.isUpdating = false;
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'Không thể cập nhật toàn bộ bảng công'
+          );
+        }
       }
     });
   }
@@ -763,13 +784,13 @@ export class EmployeeTimekeepingManagementComponent
   // Load employees từ API
   loadEmployees(): void {
     const request = { status: 0, departmentid: 0, keyword: '' };
-    
+
     // Dùng VehicleRepairService.getEmployee() để lấy nhân viên có thông tin phòng ban
     this.vehicleRepairService.getEmployee(request).subscribe({
       next: (res: any) => {
         const all = (res?.data || []).filter((emp: any) => emp.Status === 0); // Filter active employees
         this.allEmployees = all;
-        
+
         // Filter theo phòng ban nếu có chọn
         const filtered =
           this.selectedDepartment && Number(this.selectedDepartment) > 0
@@ -777,7 +798,7 @@ export class EmployeeTimekeepingManagementComponent
                 (x: any) => Number(x.DepartmentID) === Number(this.selectedDepartment)
               )
             : all;
-        
+
         // Group employees by department
         this.employees = this.groupEmployeesByDepartment(filtered);
       },

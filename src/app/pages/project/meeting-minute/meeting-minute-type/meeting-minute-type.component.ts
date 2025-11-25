@@ -100,7 +100,6 @@ export class MeetingMinuteTypeComponent implements OnInit, AfterViewInit{
 
   openModalAddMeetingType(isEdit: boolean) {
     let selectedData;
-    debugger
     if(isEdit == true){
       selectedData = this.tb_meetingMinuteType?.getSelectedData();
       if (!selectedData && selectedData.length < 0) {

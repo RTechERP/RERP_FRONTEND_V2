@@ -95,4 +95,12 @@ export class ProjectWorkerService {
       })
     );
   }
+  // Duyệt/hủy duyệt phiên bản giải pháp hoặc PO
+  approvedActive(projectWorkerVersionID: number, isActive: boolean): Observable<any> {
+    const requestBody = {
+      ProjectWorkerVersionID: projectWorkerVersionID,
+      IsActive: isActive
+    };
+    return this.http.post<any>(this._url + `projectworkerversion/approved-active`, requestBody);
+  }
 }

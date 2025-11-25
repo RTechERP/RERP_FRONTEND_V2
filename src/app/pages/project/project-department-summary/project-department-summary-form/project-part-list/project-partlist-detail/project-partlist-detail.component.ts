@@ -325,7 +325,11 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
     // Logic disable button Save theo WinForm: !(IsApprovedTBP == true || IsApprovedTBPNewCode == true)
     const isApprovedTBP = data.IsApprovedTBP === true || data.IsApprovedTBP === 1;
     const isApprovedTBPNewCode = data.IsApprovedTBPNewCode === true || data.IsApprovedTBPNewCode === 1;
-    this.isDisabled = isApprovedTBP || isApprovedTBPNewCode;
+    if(isApprovedTBP || isApprovedTBPNewCode){
+      this.isDisabled = true;
+    }else{
+      this.isDisabled = false;
+    }
   }
 
   // Method để update state của qtyMin và qtyFull

@@ -102,10 +102,12 @@
               </nz-form-item>
             </form>
           </div>
-          
+
         <div class="card-body w-100" >
-          <div id="table_InventoryBorrowNCC">
-          </div>
+          <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu...">
+            <div id="table_InventoryBorrowNCC">
+            </div>
+          </nz-spin>
         </div>
       </div>     
   </div>

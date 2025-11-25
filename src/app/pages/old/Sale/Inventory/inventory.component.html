@@ -28,7 +28,7 @@
               <div style="display: flex; width: 40%;" class="ms-auto">
                 <label nz-checkbox [(ngModel)]="searchParam.checkedStock" name="checkedStock"  (nzCheckedChange)="getAllProductSale()">Stock</label>
                 <label nz-checkbox [(ngModel)]="searchParam.checkedAll" name="checkedAll"  (nzCheckedChange)="getAllProductSale()">Tất cả</label>
-                <input type="text" nzSize="small" width="100px"  [(ngModel)]="searchParam.Find" name="Find" nz-input class="fs-12" style="font-style: italic; flex: 1;" placeholder="Tìm kiếm" />
+                <input type="text" nzSize="small" width="100px"  [(ngModel)]="searchParam.Find" name="Find" nz-input class="fs-12" style="font-style: italic; flex: 1;" placeholder="Tìm kiếm" (keyup.enter)="getdataFind()" />
                 <button nz-button nzType="primary" nzSize="small" (click)="getdataFind()">
                   <nz-icon nzType="search"></nz-icon>
                 </button>
@@ -41,18 +41,26 @@
                 <nz-splitter nzLayout="vertical">
                     <!-- table productGroup -->
                   <nz-splitter-panel nzSize="70%">
-                    <div #tableProductGroup></div>
-                    <div #tableProductGroup></div>
+                    <div class="position-relative">
+                      <div *ngIf="isLoadingProductGroup" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75" style="z-index: 1000;">
+                        <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+                      </div>
+                      <div #tableProductGroup></div>
+                    </div>
                   </nz-splitter-panel>
                   <!-- table productGroupWareHouse -->
                   <nz-splitter-panel>
-                    <div #tablePGWarehouse></div>
                     <div #tablePGWarehouse></div>
                   </nz-splitter-panel>
                 </nz-splitter>
               </nz-splitter-panel>
               <nz-splitter-panel [nzCollapsible]="true" nzDefaultSize="70%">
-                <div #tableInventory></div>
+                <div class="position-relative">
+                  <div *ngIf="isLoadingInventory" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75" style="z-index: 1000;">
+                    <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+                  </div>
+                  <div #tableInventory></div>
+                </div>
               </nz-splitter-panel>
             </nz-splitter>
           </div>

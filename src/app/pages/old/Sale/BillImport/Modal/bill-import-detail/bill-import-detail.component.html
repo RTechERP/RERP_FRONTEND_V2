@@ -112,7 +112,14 @@
               nzPlaceHolder="Chọn nhà cung cấp"
               (ngModelChange)="changeSuplierSale()"
             >
-              <nz-option *ngFor="let id of dataCbbSupplier" [nzValue]="id.ID" [nzLabel]="id.NameNCC"></nz-option>
+              <nz-option
+                *ngFor="let id of dataCbbSupplier"
+                [nzValue]="id.ID"
+                [nzLabel]="id.NameNCC"
+                nzCustomContent
+              >
+                {{ id.CodeNCC }} - {{ id.NameNCC }}
+              </nz-option>
             </nz-select>
             <ng-template #supplierIdError let-control>
               <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">
@@ -137,8 +144,11 @@
               <nz-option
                 *ngFor="let id of dataCbbRulePay"
                 [nzValue]="id.ID"
-                [nzLabel]="id.Code + '-' + id.Note"
-              ></nz-option>
+                [nzLabel]="id.Note"
+                nzCustomContent
+              >
+                {{ id.Code }} - {{ id.Note }}
+              </nz-option>
             </nz-select>
           </nz-form-control>
         </nz-form-item>
@@ -155,7 +165,14 @@
               nzAllowClear
               nzPlaceHolder="Chọn người nhập"
             >
-              <nz-option *ngFor="let id of dataCbbReciver" [nzValue]="id.ID" [nzLabel]="id.FullName"></nz-option>
+              <nz-option
+                *ngFor="let id of dataCbbReciver"
+                [nzValue]="id.ID"
+                [nzLabel]="id.FullName"
+                nzCustomContent
+              >
+                {{ id.EmployeeCode }} - {{ id.FullName }}
+              </nz-option>
             </nz-select>
             <ng-template #reciverIdError let-control>
               <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">
@@ -177,7 +194,14 @@
               nzAllowClear
               nzPlaceHolder="Chọn người giao"
             >
-              <nz-option *ngFor="let id of dataCbbDeliver"  [nzValue]="id.ID" [nzLabel]="id.FullName "></nz-option>
+              <nz-option
+                *ngFor="let id of dataCbbDeliver"
+                [nzValue]="id.ID"
+                [nzLabel]="id.FullName"
+                nzCustomContent
+              >
+                {{ id.EmployeeCode }} - {{ id.FullName }}
+              </nz-option>
             </nz-select>
             <ng-template #deliverIdError let-control>
               <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">

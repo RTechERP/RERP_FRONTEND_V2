@@ -1,0 +1,157 @@
+<div class="modal-dialog-scrollable">
+  <div class="modal-header bg-primary align-items-center ps-3">
+    <div class="d-flex align-items-center">
+      <h6 class="text-light text-uppercase m-0 fw-bold">Mượn sản phẩm</h6>
+    </div>
+  </div>
+
+  <div class="modal-body p-2">
+<form nz-form>
+  <!-- Hàng đầu tiên -->
+  <div nz-row [nzGutter]="10" class="mb-3">
+    <div nz-col [nzSpan]="12">
+      <div nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="24" class="fw-semibold">
+            Tên sản phẩm
+          </nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <input nz-input [(ngModel)]="ProductName" name="ProductName" [disabled]="true" type="text" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="24" class="fw-semibold">
+            Mã sản phẩm
+          </nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <input nz-input [(ngModel)]="ProductCode" name="ProductCode" [disabled]="true" type="text" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="24" class="fw-semibold">
+            Serial
+          </nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <input nz-input [(ngModel)]="SerialNumber" name="SerialNumber" [disabled]="true" type="text" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="24" class="fw-semibold">
+            Part Number
+          </nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <input nz-input [(ngModel)]="PartNumber" name="PartNumber" [disabled]="true" type="text" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="24" class="fw-semibold">
+            Code
+          </nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <input nz-input [(ngModel)]="Serial" name="Serial" [disabled]="true" type="text" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="24" class="fw-semibold">
+            Hãng
+          </nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <input nz-input [(ngModel)]="Maker" name="Maker" [disabled]="true" type="text" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="24" class="fw-semibold">
+            Số lượng mượn
+          </nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <input nz-input [(ngModel)]="NumberBorrow" name="NumberBorrow" [disabled]="true" type="text" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="24" class="fw-semibold">
+            Vị trí (Hộp)
+          </nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <input nz-input [(ngModel)]="AddressBox" name="AddressBox" [disabled]="true" type="text" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+
+    <div nz-col [nzSpan]="12">
+      <div nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="24" class="fw-semibold">
+            Ngày mượn
+          </nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <nz-date-picker [(ngModel)]="DateBorrow" name="DateBorrow" class="w-100" nzFormat="dd/MM/yyyy"></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="24" class="fw-semibold">
+            Ngày dự kiến trả
+          </nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <nz-date-picker [(ngModel)]="DateReturnExpected" name="DateReturnExpected" class="w-100" nzFormat="dd/MM/yyyy"></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="24" class="fw-semibold">
+            Người mượn
+          </nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <input nz-input [(ngModel)]="FullName" name="FullName" type="text" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="24" class="fw-semibold">
+            Dự án
+          </nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <input nz-input [(ngModel)]="Project" name="Project" type="text"/>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col [nzSpan]="24">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="24" class="fw-semibold">
+            Note
+          </nz-form-label>
+          <nz-form-control [nzSpan]="24">
+            <textarea nz-input [(ngModel)]="Note" name="Note" rows="10" placeholder="Nhập ghi chú..."></textarea>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+  </div>
+</form>
+
+  </div>
+
+  <div class="modal-footer">
+    <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">
+      Đóng
+    </button>
+  </div>
+</div>

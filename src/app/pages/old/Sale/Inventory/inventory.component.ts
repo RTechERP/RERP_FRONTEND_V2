@@ -31,6 +31,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { ProductsaleServiceService } from '../ProductSale/product-sale-service/product-sale-service.service';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { ProductSaleDetailComponent } from '../ProductSale/product-sale-detail/product-sale-detail.component';
 import { ProductGroupDetailComponent } from '../ProductSale/product-group-detail/product-group-detail.component';
 import { ImportExcelProductSaleComponent } from '../ProductSale/import-excel-product-sale/import-excel-product-sale.component';
@@ -44,7 +45,6 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { MenuEventService } from '../../../systems/menus/menu-service/menu-event.service';
 import { ChiTietSanPhamSaleComponent } from '../chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
-import { log } from 'ng-zorro-antd/core/logger';
 
 interface ProductGroup {
   ID?: number;
@@ -84,6 +84,7 @@ interface ProductSale {
     NzFormModule,
     NzInputNumberModule,
     NzCheckboxModule,
+    NzSpinModule,
     NgbModule,
     ProductSaleDetailComponent,
     ImportExcelProductSaleComponent,
@@ -125,6 +126,10 @@ export class InventoryComponent implements OnInit, AfterViewInit {
   //lưu các id khi click vào dòng productsale
   selectedList: any[] = [];
 
+  // Loading states
+  isLoadingProductGroup: boolean = false;
+  isLoadingInventory: boolean = false;
+
   searchParam = {
     checkedAll: true,
     Find: '',
@@ -156,6 +161,11 @@ export class InventoryComponent implements OnInit, AfterViewInit {
     this.drawTable_Inventory();
     this.getProductGroup();
     this.getDataProductGroupWareHouse(this.productGroupID);
+
+    // Disable product group table on init since checkedAll is true by default
+    if (this.searchParam.checkedAll && this.table_productgroupInven) {
+      this.table_productgroupInven.options.selectable = false;
+    }
   }
   openModalInventoryBorrowNCC() {
     // Mở tab mới với component InventoryBorrowNCCComponent
@@ -177,10 +187,42 @@ export class InventoryComponent implements OnInit, AfterViewInit {
         return;
       }
 
-      // Group selected rows by warehouse and product group
+      // Check if any selected product has TotalQuantityLast <= 0
+      const invalidProducts = selectedData.filter((row: any) => {
+        const totalQuantityLast = row.TotalQuantityLast || 0;
+        return totalQuantityLast <= 0;
+      });
+
+      // Filter valid products (TotalQuantityLast > 0)
+      const validProducts = selectedData.filter((row: any) => {
+        const totalQuantityLast = row.TotalQuantityLast || 0;
+        return totalQuantityLast > 0;
+      });
+
+      // Show warning for invalid products
+      if (invalidProducts.length > 0) {
+        const productNames = invalidProducts
+          .map((p: any) => p.ProductCode || p.ProductName)
+          .join(', ');
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          `Các sản phẩm sau có tồn cuối kỳ <= 0 và sẽ không được mượn:\n${productNames}`
+        );
+      }
+
+      // If no valid products remaining, stop
+      if (validProducts.length === 0) {
+        this.notification.warning(
+          NOTIFICATION_TITLE.warning,
+          'Không có sản phẩm nào hợp lệ để mượn!'
+        );
+        return;
+      }
+
+      // Group valid selected rows by warehouse and product group
       const groupedData = new Map<string, any[]>();
 
-      selectedData.forEach((row: any) => {
+      validProducts.forEach((row: any) => {
         const warehouseID = row.WarehouseID || 0;
         // Use ProductGroupID as KhoTypeID (matching C# logic)
         const khoTypeID = row.ProductGroupID || 0;
@@ -345,14 +387,34 @@ export class InventoryComponent implements OnInit, AfterViewInit {
   openModalImportExcel() {}
   getAllProductSale() {
     this.getInventory();
+
+    // Enable/disable product group table based on checkedAll
+    if (this.table_productgroupInven) {
+      if (this.searchParam.checkedAll) {
+        // Disable selection when checkedAll is true
+        this.table_productgroupInven.deselectRow();
+        this.productGroupID = 0;
+        // Disable row selection
+        this.table_productgroupInven.options.selectableRows = false;
+      } else {
+        // Enable row selection
+        this.table_productgroupInven.options.selectableRows = 1;
+      }
+      // Redraw table to apply changes
+      this.table_productgroupInven.redraw();
+    }
   }
-  getdataFind() {}
+  getdataFind() {
+    this.getInventory();
+  }
   //#region các hàm lấy dữ liệu và mở mđ ProductGroup
   getProductGroup() {
+    this.isLoadingProductGroup = true;
     this.productsaleSV
       .getdataProductGroup(this.wareHouseCode, false)
       .subscribe({
         next: (res) => {
+          this.isLoadingProductGroup = false;
           if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
             this.dataProductGroup = res.data;
             console.log('this.dataProductGroupAPI', this.dataProductGroup);
@@ -377,6 +439,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           }
         },
         error: (err) => {
+          this.isLoadingProductGroup = false;
           console.error('Lỗi khi lấy nhóm vật tư:', err);
         },
       });
@@ -400,6 +463,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
     });
   }
   getInventory() {
+    this.isLoadingInventory = true;
     this.inventoryService
       .getInventory(
         this.searchParam.checkedAll,
@@ -410,6 +474,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
       )
       .subscribe({
         next: (res) => {
+          this.isLoadingInventory = false;
           if (res?.data) {
             this.dataInventory = res.data;
             console.log('hehehehe', this.dataInventory);
@@ -421,6 +486,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           }
         },
         error: (err) => {
+          this.isLoadingInventory = false;
           console.error('Lỗi khi lấy dữ liệu sản phẩm:', err);
         },
       });
@@ -612,7 +678,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
 
         pagination: false,
         height: '60vh',
-        selectableRows: 1,
+        selectableRows: this.searchParam.checkedAll ? false : 1, // Disable selection if checkedAll is true
         columns: [
           {
             title: 'Mã nhóm',
@@ -667,11 +733,13 @@ export class InventoryComponent implements OnInit, AfterViewInit {
       }
     });
 
-    // Tự động select dòng đầu tiên sau khi table được khởi tạo
+    // Tự động select dòng đầu tiên sau khi table được khởi tạo (chỉ khi checkedAll = false)
     this.table_productgroupInven.on('tableBuilt', () => {
-      const rows = this.table_productgroupInven.getRows();
-      if (rows.length > 0) {
-        rows[0].select();
+      if (!this.searchParam.checkedAll) {
+        const rows = this.table_productgroupInven.getRows();
+        if (rows.length > 0) {
+          rows[0].select();
+        }
       }
     });
   }
@@ -769,7 +837,9 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           headerHozAlign: 'center',
           formatter: (cell) => {
               const value = cell.getValue();
-              return `<input type="checkbox" ${value === true ? 'checked' : ''} disabled />`;
+              console.log('isFix:',value);
+              
+              return `<input type="checkbox" ${!!value ? 'checked' : ''} disabled />`;
             },
         },
         {
@@ -777,12 +847,14 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           field: 'ProductCode',
           hozAlign: 'left',
           headerHozAlign: 'center',
+          formatter:'textarea'
         },
                 {
           title: 'Tên sản phẩm',
           field: 'ProductName',
           hozAlign: 'left',
           headerHozAlign: 'center',
+          formatter:'textarea'
         },
         {
           title: 'Mã nội bộ',
@@ -796,12 +868,14 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           field: 'NameNCC',
           hozAlign: 'left',
           headerHozAlign: 'center',
+          formatter:'textarea'
         },
         {
           title: 'Người nhập',
           field: 'Deliver',
           hozAlign: 'left',
           headerHozAlign: 'center',
+          formatter:'textarea'
         },
         {
           title: 'Hãng',
@@ -912,6 +986,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           field: 'AddressBox',
           hozAlign: 'left',
           headerHozAlign: 'center',
+          formatter:'textarea'
         },
         {
           title: 'Chi tiết nhập',
@@ -925,6 +1000,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           field: 'Note',
           hozAlign: 'left',
           headerHozAlign: 'center',
+          formatter:'textarea'
         },
       ],
     });

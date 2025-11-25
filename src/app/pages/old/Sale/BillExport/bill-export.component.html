@@ -155,8 +155,9 @@
           <nz-splitter nzLayout="vertical">
             <nz-splitter-panel [nzCollapsible]="false" nzResizable="true">
 
-
-                <div id="table_billExport"></div>
+                <nz-spin [nzSpinning]="isLoadTable" nzTip="Đang tải dữ liệu...">
+                  <div id="table_billExport"></div>
+                </nz-spin>
 
             </nz-splitter-panel>
 
@@ -171,7 +172,9 @@
               <nz-tabset class="main-tab" style=" padding-left: 10px !important;height: 100%;" [nzTabBarExtraContent]="tabClose">
 
                 <nz-tab style="height: 100%;" nzTitle="Thông tin phiếu xuất">
-                <div id="table_billexportdetail"></div>
+                  <nz-spin [nzSpinning]="isDetailLoad" nzTip="Đang tải dữ liệu...">
+                    <div id="table_billexportdetail"></div>
+                  </nz-spin>
                 </nz-tab>
               </nz-tabset>
             </nz-splitter-panel>

@@ -57,6 +57,7 @@ import { HasPermissionDirective } from '../../../../../../directives/has-permiss
 import { ProductSaleDetailComponent } from '../../../ProductSale/product-sale-detail/product-sale-detail.component';
 import { BillImportChoseSerialComponent } from '../../../../bill-import-technical/bill-import-chose-serial/bill-import-chose-serial.component';
 import { HistoryDeleteBillComponent } from '../history-delete-bill/history-delete-bill.component';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 interface ProductSale {
   Id?: number;
@@ -115,6 +116,7 @@ interface BillExport {
     ProductSaleDetailComponent,
     SelectControlComponent,
     HasPermissionDirective,
+    NzSpinModule,
   ],
   templateUrl: './bill-export-detail.component.html',
   styleUrl: './bill-export-detail.component.css',
@@ -237,12 +239,6 @@ export class BillExportDetailComponent
   }
 
   ngOnInit(): void {
-    console.log('=== ngOnInit START ===');
-    console.log('isBorrow:', this.isBorrow);
-    console.log('KhoTypeID:', this.KhoTypeID);
-    console.log('newBillExport:', this.newBillExport);
-    console.log('selectedList:', this.selectedList);
-
     // this.getDataCbbAdressStock();
     this.getDataCbbCustomer();
     this.getDataCbbProductGroup();
@@ -486,6 +482,8 @@ export class BillExportDetailComponent
       ?.valueChanges.pipe(takeUntil(this.destroy$))
       .subscribe((newValue: number) => {
         this.changeStatus();
+        console.log('change status calling.....');
+
       });
 
     // Listen for KhoTypeID changes to auto-set SenderID (matching C# cbKhoType_EditValueChanged)
@@ -534,6 +532,7 @@ export class BillExportDetailComponent
   }
 
   getBillExportByID() {
+    this.isLoading = true;
     this.billExportService.getBillExportByID(this.id).subscribe({
       next: (res) => {
         if (res?.data) {
@@ -576,6 +575,7 @@ export class BillExportDetailComponent
             res.message || 'Không thể lấy thông tin phiếu xuất!'
           );
         }
+        this.isLoading = false;
       },
       error: (err) => {
         this.notification.error(
@@ -583,6 +583,7 @@ export class BillExportDetailComponent
           'Có lỗi xảy ra khi lấy thông tin!'
         );
         console.error(err);
+        this.isLoading = false;
       },
     });
   }
@@ -661,6 +662,7 @@ export class BillExportDetailComponent
               this.table_billExportDetail.redraw(true);
             }, 100);
           }
+          this.isLoading = false;
         } else {
           this.notification.warning(
             'Thông báo',
@@ -670,6 +672,7 @@ export class BillExportDetailComponent
           if (this.table_billExportDetail) {
             this.table_billExportDetail.replaceData([]);
           }
+          this.isLoading = false;
         }
       },
       error: (err) => {
@@ -682,6 +685,7 @@ export class BillExportDetailComponent
         if (this.table_billExportDetail) {
           this.table_billExportDetail.replaceData([]);
         }
+        this.isLoading = false;
       },
     });
   }
@@ -754,6 +758,7 @@ export class BillExportDetailComponent
               this.table_billExportDetail.redraw(true);
             }, 100);
           }
+          this.isLoading = false;
         } else {
           this.notification.warning(
             'Thông báo',
@@ -763,6 +768,7 @@ export class BillExportDetailComponent
           if (this.table_billExportDetail) {
             this.table_billExportDetail.replaceData([]);
           }
+          this.isLoading = false;
         }
       },
       error: (err) => {
@@ -775,6 +781,7 @@ export class BillExportDetailComponent
         if (this.table_billExportDetail) {
           this.table_billExportDetail.replaceData([]);
         }
+        this.isLoading = false;
       },
     });
   }
@@ -930,6 +937,7 @@ export class BillExportDetailComponent
   }
 
   getNewCode() {
+    const status = this.validateForm.get('Status')?.value
     this.billExportService
       .getNewCodeBillExport(this.newBillExport.Status)
       .subscribe({
@@ -1354,12 +1362,21 @@ export class BillExportDetailComponent
               if (!val) {
                 return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted">Chọn sản phẩm</p> <i class="fas fa-angle-down"></i></div>';
               }
-              const product = this.productOptions.find(
-                (p: any) => p.value === val
-              );
-              console.log('ProductID:', val, 'Found Product:', product);
-              const productCode = product ? product.ProductCode : '';
-              const productNewCode = product ? product.ProductNewCode : '';
+
+              // Lấy ProductCode và ProductNewCode từ data của row (đã được bind sẵn)
+              const rowData = cell.getRow().getData();
+              let productCode = rowData['ProductCode'] || '';
+              let productNewCode = rowData['ProductNewCode'] || '';
+
+              // Nếu không có trong rowData, tìm trong productOptions
+              if (!productCode && !productNewCode) {
+                const product = this.productOptions.find(
+                  (p: any) => p.value === val
+                );
+                productCode = product ? product.ProductCode : '';
+                productNewCode = product ? product.ProductNewCode : '';
+              }
+
               return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${productNewCode} - ${productCode}</p> <i class="fas fa-angle-down"></i></div>`;
             },
             cellEdited: (cell) => {
@@ -1584,13 +1601,6 @@ export class BillExportDetailComponent
           {
             title: 'Thông số kỹ thuật',
             field: 'Specifications',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            editor: 'input',
-          },
-           {
-            title: 'Thông số kỹ thuật',
-            field: 'Model',
             hozAlign: 'left',
             headerHozAlign: 'center',
             editor: 'input',

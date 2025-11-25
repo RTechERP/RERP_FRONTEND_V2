@@ -37,6 +37,7 @@ import {
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzModalModule } from 'ng-zorro-antd/modal';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -71,6 +72,7 @@ import { NOTIFICATION_TITLE } from '../../../../../app.config';
     NzFormModule,
     NzDropDownModule,
     NzModalModule,
+    NzSpinModule,
     HasPermissionDirective
   ],
   templateUrl: './unit-count.component.html',
@@ -80,6 +82,7 @@ export class UnitCountComponent implements OnInit, AfterViewInit {
   @ViewChild('unitCountTable', { static: false }) unitCountTableRef!: ElementRef;
   unitCountTable: any;
   listUnitCount: any[] = [];
+  isLoading: boolean = false;
   constructor(
     private productsaleService: ProductsaleServiceService,
     private notification: NzNotificationService,
@@ -93,6 +96,7 @@ export class UnitCountComponent implements OnInit, AfterViewInit {
     this.loadUnitCount();
   }
   loadUnitCount() {
+    this.isLoading = true;
     this.productsaleService.getdataUnitCount().subscribe({
       next: (res) => {
         if (res.status === 1) {
@@ -103,10 +107,12 @@ export class UnitCountComponent implements OnInit, AfterViewInit {
         } else {
           this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể tải đơn vị tính!');
         }
+        this.isLoading = false;
       },
       error: (err) => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi tải đơn vị tính!');
         console.error(err);
+        this.isLoading = false;
       }
     });
   }

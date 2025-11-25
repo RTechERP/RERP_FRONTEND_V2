@@ -260,12 +260,12 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
   //ve bang
   drawTable() {
     this.table = new Tabulator('#table_HistoryImportExport', {
+      ...DEFAULT_TABLE_CONFIG,
       data: this.dataTable,
       layout: 'fitDataFill',
       reactiveData: true,
       movableColumns: true,
       resizableRows: true,
-      ...DEFAULT_TABLE_CONFIG,
       height: '89vh',
       pagination: true,
       paginationMode: 'remote',

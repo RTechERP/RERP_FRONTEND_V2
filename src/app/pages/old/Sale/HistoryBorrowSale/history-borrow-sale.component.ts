@@ -35,6 +35,8 @@ import { BillExportDetailComponent } from '../BillExport/Modal/bill-export-detai
 import { SummaryReturnDetailComponent } from '../BillImport/Modal/summary-return-detail/summary-return-detail.component';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 @Component({
   selector: 'app-history-borrow-sale',
   standalone: true,
@@ -56,7 +58,8 @@ import { HasPermissionDirective } from '../../../../directives/has-permission.di
     NzDatePickerModule,
     NzDropDownModule,
     NzMenuModule,
-    HasPermissionDirective
+    HasPermissionDirective,
+    NzSpinModule
   ],
   templateUrl: './history-borrow-sale.component.html',
   styleUrl: './history-borrow-sale.component.css',
@@ -100,6 +103,7 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
   dataTable: any[] = [];
   checked: boolean = false;
   sizeSearch: string = '0';
+  loading: boolean = false;
   searchParams = {
     dateStart: new Date(`${new Date().getFullYear()}-01-01`)
       .toISOString()
@@ -138,7 +142,10 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
   getCbbEmployee() {
     this.historyBorrowSaleService.getCbbEmployee().subscribe({
       next: (res: any) => {
-        this.cbbEmployee = res.data;
+        this.cbbEmployee = [
+          { ID: 0, FullName: '--Chọn--' },
+          ...res.data
+        ];
       },
       error: (err: any) => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu nhân viên');
@@ -148,7 +155,10 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
   getCbbProductGroup() {
     this.billExportService.getCbbProductGroup().subscribe({
       next: (res: any) => {
-        this.cbbProductGroup = res.data;
+        this.cbbProductGroup = [
+          { ID: 0, ProductGroupName: '--Chọn--' },
+          ...res.data
+        ];
       },
       error: (err: any) => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu kho');
@@ -224,20 +234,21 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
     });
   }
   loadData() {
+    this.loading = true;
     const dateStart = DateTime.fromJSDate(
       new Date(this.searchParams.dateStart)
     );
     const dateEnd = DateTime.fromJSDate(new Date(this.searchParams.dateEnd));
     this.historyBorrowSaleService
       .getHistoryBorrowSale(
-        this.searchParams.status,
+        this.searchParams.status || 0,
         dateStart,
         dateEnd,
-        this.searchParams.keyword,
+        this.searchParams.keyword || '',
         this.searchParams.pageNumber,
         this.searchParams.pageSize,
-        this.searchParams.employeeID,
-        this.searchParams.productGroupID
+        this.searchParams.employeeID || 0,
+        this.searchParams.productGroupID || 0
       )
       .subscribe({
         next: (res: any) => {
@@ -251,12 +262,14 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
               'Lỗi: Bảng Tabulator chưa được khởi tạo khi loadData() được gọi.'
             );
           }
+          this.loading = false;
         },
         error: (err: any) => {
           this.notification.error(
             'Lỗi',
             'Không thể tải dữ liệu lịch sử mượn/trả'
           );
+          this.loading = false;
         },
       });
   }
@@ -283,6 +296,21 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
 
   searchData() {
     this.loadData();
+  }
+
+  // Xử lý khi thay đổi status
+  onStatusChange(value: number | null) {
+    this.searchParams.status = value ?? 0;
+  }
+
+  // Xử lý khi thay đổi product group
+  onProductGroupChange(value: number | null) {
+    this.searchParams.productGroupID = value ?? 0;
+  }
+
+  // Xử lý khi thay đổi employee
+  onEmployeeChange(value: number | null) {
+    this.searchParams.employeeID = value ?? 0;
   }
   async exportExcel() {
     const table = this.table;
@@ -421,8 +449,9 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
 
   drawTable() {
     this.table = new Tabulator('#table_HistoryBorrowSale', {
-      data: this.dataTable, // Khởi tạo với dữ liệu rỗng hoặc dữ liệu ban đầu nếu có
-      layout: 'fitDataFill', // Hoặc "fitColumns" tùy theo mong muốn
+      ...DEFAULT_TABLE_CONFIG,
+      data: this.dataTable, 
+      layout: 'fitDataFill', 
       height: '90vh',
       selectableRows: 15,
       reactiveData: true,
@@ -431,8 +460,6 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
       rowFormatter: (row: RowComponent) => {
         const data = row.getData();
         const rowElement = row.getElement();
-
-        // Ưu tiên kiểm tra ExpectReturnDate quá hạn trước -> màu hồng (priority cao)
         if (data['ExpectReturnDate']) {
           const expectDate = new Date(data['ExpectReturnDate']);
           const today = new Date();
@@ -444,14 +471,10 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
             return;
           }
         }
-
-        // Kiểm tra DualDate == 1 -> màu vàng (priority thấp hơn)
         if (data['DualDate'] === 1) {
           rowElement.style.backgroundColor = '#ffff99';
           return;
         }
-
-        // Reset về màu mặc định nếu không có điều kiện nào
         rowElement.style.backgroundColor = '';
       },
       rowHeader: {
@@ -467,7 +490,6 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
         },
       },
       columns: [
-        // Từ ảnh image_248e62.png (Phần đầu bảng)
         {
           title: 'Trạng thái',
           field: 'ReturnedStatusText',
@@ -486,7 +508,6 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
           hozAlign: 'center',
           headerHozAlign: 'center',
           formatter: 'datetime',
-          formatterParams: { outputFormat: 'dd/MM/yyy' },
         },
                 {
           title: 'Ngày dự kiến trả',
@@ -494,7 +515,6 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
           hozAlign: 'center',
           headerHozAlign: 'center',
           formatter: 'datetime',
-          formatterParams: { outputFormat: 'dd/MM/yyy' },
         },
         {
           title: 'Mã nhân viên',
@@ -604,7 +624,7 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
         },
         {
           title: 'Dự án',
-          field: 'ProjectName', // Từ dữ liệu Swagger
+          field: 'ProjectNameText', // Từ dữ liệu Swagger
           hozAlign: 'left',
           headerHozAlign: 'center',
         },

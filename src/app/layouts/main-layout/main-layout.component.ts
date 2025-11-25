@@ -267,6 +267,7 @@ export class MainLayoutComponent implements OnInit {
   isMenuOpen = (key: string) =>
     this.menus.some((m) => m.key === key && m.isOpen);
   toggleMenu(key: string) {
+    this.menus.forEach((x) => (x.isOpen = false));
     const m = this.menus.find((x) => x.key === key);
     if (m) m.isOpen = !m.isOpen;
   }

@@ -1379,17 +1379,27 @@ export class MenuService {
       Password: this.appUserService.password,
       Router: router,
     };
+    // console.log('window.location:', window.location);
 
-    const url = `http://113.190.234.64:8081${router}`;
+    let urlTo = `http://localhost:19028${router}`;
+    let urlLogin = 'http://localhost:19028/Home/LoginNew';
 
-    const urlOld = 'http://113.190.234.64:8081/Home/LoginNew';
-    // console.log('gotoOldLink:',url);
+    if (window.location.hostname != 'localhost') {
+      urlTo =
+        window.location.origin.replace(window.location.port, '8081') + router;
+      urlLogin =
+        window.location.origin.replace(window.location.port, '8081') +
+        '/Home/LoginNew';
+    }
+
+    // console.log('url redirect to:', urlTo);
+    // console.log('url login:', urlLogin);
 
     return this.http
-      .post<any>(urlOld, data, { withCredentials: true })
+      .post<any>(urlLogin, data, { withCredentials: true })
       .subscribe({
         next: (response) => {
-          window.open(url, '_blank');
+          window.open(urlTo, '_blank');
         },
         error: (err) => {
           // console.log('err:', err);

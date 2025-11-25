@@ -21,9 +21,6 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { NgModule } from '@angular/core';
-
-import { RouterModule } from '@angular/router';
 
 // NgBootstrap Modal
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
@@ -32,16 +29,10 @@ import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 
-// XLSX for Excel export
-import * as XLSX from 'xlsx';
-import { DateTime } from 'luxon';
 // Services and Components
 import { EmployeeTimekeepingService } from './employee-timekeeping-service/employee-timekeeping.service';
 import { EmployeeTimekeepingDetailComponent } from './employee-timekeeping-detail/employee-timekeeping-detail.component';
 import { EmployeeTimekeepingManagementComponent } from './employee-timekeeping-management/employee-timekeeping-management.component';
-import vi from '@angular/common/locales/vi';
-import { Router, RouterOutlet } from '@angular/router';
-import { AppComponent } from '../../../../app.component';
 @Component({
   selector: 'app-employee-timekeeping',
   standalone: true,
@@ -92,9 +83,7 @@ export class EmployeeTimekeepingComponent
     private notification: NzNotificationService,
     private etService: EmployeeTimekeepingService,
     private ngbModal: NgbModal,
-    private nzModal: NzModalService,
-    private router: Router,
-    private app: AppComponent
+    private nzModal: NzModalService
   ) {}
 
   // #region Lifecycle Hooks

@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter, inject, Inject, EnvironmentInjector, ApplicationRef } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, inject,} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -18,16 +18,12 @@ import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { NzNotificationService } from 'ng-zorro-antd/notification'
 import { DateTime } from 'luxon';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
-import type { Editor } from 'tabulator-tables';
 import { NzModalService } from 'ng-zorro-antd/modal';
 export const SERVER_PATH = `D:/RTC_Sw/RTC/ProductRTC/`;
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzFormModule } from 'ng-zorro-antd/form';
-import { filter, distinctUntilChanged } from 'rxjs/operators';
 import { VehicleRepairService } from '../../../../hrm/vehicle/vehicle-repair/vehicle-repair-service/vehicle-repair.service';
-import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { TbProductRtcService } from '../../../tb-product-rtc/tb-product-rtc-service/tb-product-rtc.service';
-import { NzUploadFile } from 'ng-zorro-antd/upload';
 import { TsAssetAllocationPersonalService } from '../../../ts-asset-allocation-personal/ts-asset-allocation-personal-service/ts-asset-allocation-personal.service';
 import { AssetAllocationService } from '../../../../hrm/asset/asset/ts-asset-allocation/ts-asset-allocation-service/ts-asset-allocation.service';
 import { TsAssetManagementPersonalService } from '../../ts-asset-management-personal-service/ts-asset-management-personal.service';

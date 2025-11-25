@@ -1,45 +1,45 @@
 <div class="modal-dialog-scrollable">
-    <div class="modal-header bg-primary text-uppercase py-2" >
-     <h6 class="modal-title text-white" >YÊU CẦU MUA HÀNG</h6>
-      <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
-</div>
-<div class="modal-body p-3">
-    <div class="row g-3">
-        <div class="col-md-3">
-            <label class="form-label mb-2">Người yêu cầu <span class="text-danger">(*)</span></label>
-            <nz-select class="w-100" nzPlaceHolder="Chọn người yêu cầu" [(ngModel)]="selectedEmployee" (ngModelChange)="onEmployeeChange($event)">
-                <nz-option *ngFor="let item of dataEmployee" [nzValue]="item.ID" [nzLabel]="item.Code + ' - ' + item.FullName"></nz-option>
-            </nz-select>
+    <div class="modal-header bg-primary text-uppercase py-2">
+        <h6 class="modal-title text-white">YÊU CẦU MUA HÀNG</h6>
+        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label mb-2">Người yêu cầu <span class="text-danger">(*)</span></label>
+                <nz-select class="w-100" nzPlaceHolder="Chọn người yêu cầu" [(ngModel)]="selectedEmployee"
+                    (ngModelChange)="onEmployeeChange($event)">
+                    <nz-option *ngFor="let item of dataEmployee" [nzValue]="item.ID"
+                        [nzLabel]="item.Code + ' - ' + item.FullName"></nz-option>
+                </nz-select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label mb-2">Phòng ban</label>
+                <nz-select class="w-100" nzPlaceHolder="Chọn phòng ban" [(ngModel)]="selectedDepartment">
+                    <nz-option *ngFor="let item of dataDepartment" [nzValue]="item.ID"
+                        [nzLabel]="item.Code + ' - ' + item.Name"></nz-option>
+                </nz-select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label mb-2">Ngày yêu cầu</label>
+                <nz-date-picker [(ngModel)]="dateRequest" class="w-100" nzFormat="dd/MM/yyyy"
+                    nzDisabled="true"></nz-date-picker>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label mb-2">Ngày yêu cầu giao</label>
+                <nz-date-picker [(ngModel)]="dateReturnExpected" class="w-100" nzFormat="dd/MM/yyyy"></nz-date-picker>
+            </div>
         </div>
-        <div class="col-md-3">
-            <label class="form-label mb-2">Phòng ban</label>
-            <nz-select class="w-100" nzPlaceHolder="Chọn phòng ban" [(ngModel)]="selectedDepartment">
-                <nz-option *ngFor="let item of dataDepartment" [nzValue]="item.ID" [nzLabel]="item.Code + ' - ' + item.Name"></nz-option>
-            </nz-select>
-        </div>
-        <div class="col-md-3">
-            <label class="form-label mb-2">Ngày yêu cầu</label>
-            <nz-date-picker [(ngModel)]="dateRequest" class="w-100" nzFormat="dd/MM/yyyy" nzDisabled="true"></nz-date-picker>
-        </div>
-        <div class="col-md-3">
-            <label class="form-label mb-2">Ngày yêu cầu giao</label>
-            <nz-date-picker [(ngModel)]="dateReturnExpected" class="w-100" nzFormat="dd/MM/yyyy"></nz-date-picker>
+
+        <ng-container class="w-100">
+            <div class="card h-100 border-0 rounded-0">
+                <div class="card-body p-0 mt-2">
+                    <div #dataTable></div>
+                </div>
+            </div>
+        </ng-container>
+        <div class="modal-footer">
+            <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
+            <button nz-button nzType="primary" nzSize="default" (click)="saveData()">Lưu</button>
         </div>
     </div>
-
-    <ng-container class="w-100">
-        <nz-splitter>
-            <nz-splitter-panel nzDefaultSize="100%">
-                <div class="card h-100 border-0 rounded-0">
-                    <div class="card-body p-0 mt-2">
-                        <div #dataTable></div>
-                    </div>
-                </div>
-            </nz-splitter-panel>
-        </nz-splitter>
-    </ng-container>
-    <div class="modal-footer">
-        <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
-        <button nz-button nzType="primary" nzSize="default" (click)="saveData()">Lưu</button>
-      </div>
-</div> 

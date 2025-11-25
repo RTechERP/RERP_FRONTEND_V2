@@ -1,105 +1,136 @@
 .modal-header {
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #dee2e6;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  padding: 1rem;
+
+  .modal-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 500;
+  }
+
+  .close {
     padding: 1rem;
-  
-    .modal-title {
-      margin: 0;
-      font-size: 1.25rem;
-      font-weight: 500;
-    }
-  
-    .close {
-      padding: 1rem;
-      margin: -1rem -1rem -1rem auto;
+    margin: -1rem -1rem -1rem auto;
+  }
+}
+
+.modal-body {
+  padding: 1rem;
+
+  .toolbar {
+    .btn-group {
+      .dropdown-toggle {
+        min-width: 150px;
+      }
     }
   }
-  
-  .modal-body {
+
+  .search-panel {
+    background-color: #f8f9fa;
     padding: 1rem;
-  
-    .toolbar {
-      .btn-group {
-        .dropdown-toggle {
-          min-width: 150px;
-        }
+    border-radius: 0.25rem;
+
+    .form-label {
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+
+    ng-select {
+      width: 100%;
+    }
+
+    .row {
+      margin: 0 -8px;
+
+      >[class*="col-"] {
+        padding: 0 8px;
       }
     }
-  
-    .search-panel {
-      background-color: #f8f9fa;
-      padding: 1rem;
-      border-radius: 0.25rem;
-  
-      .form-label {
-        font-weight: 500;
-        margin-bottom: 0.5rem;
-      }
-  
-      ng-select {
-        width: 100%;
-      }
 
+    button[nz-button] {
+      white-space: nowrap;
+      min-width: 40px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 8px;
+    }
+
+    @media (max-width: 768px) {
       .row {
-        margin: 0 -8px;
-        > [class*="col-"] {
-          padding: 0 8px;
-        }
+        flex-wrap: wrap;
       }
 
-      button[nz-button] {
-        white-space: nowrap;
-        min-width: 40px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+      .col-md-1 {
+        width: 100%;
+        margin-top: 1rem;
         padding: 0 8px;
       }
 
-      @media (max-width: 768px) {
-        .row {
-          flex-wrap: wrap;
-        }
-        
-        .col-md-1 {
-          width: 100%;
-          margin-top: 1rem;
-          padding: 0 8px;
-        }
-        
-        button[nz-button] {
-          width: 100%;
-        }
-      }
-    }
-  
-    .grid-container {
-      margin-top: 1rem;
-      
-      ::ng-deep {
-        .ag-header-cell {
-          font-weight: bold;
-          background-color: #f8f9fa;
-        }
-  
-        .ag-row {
-          border-bottom: 1px solid #dee2e6;
-        }
-  
-        .ag-row-selected {
-          background-color: #e9ecef;
-        }
+      button[nz-button] {
+        width: 100%;
       }
     }
   }
-  
-  .modal-footer {
-    background-color: #f8f9fa;
-    border-top: 1px solid #dee2e6;
-    padding: 1rem;
-  
-    .btn {
-      min-width: 100px;
+
+  .grid-container {
+    margin-top: 1rem;
+
+    ::ng-deep {
+      .ag-header-cell {
+        font-weight: bold;
+        background-color: #f8f9fa;
+      }
+
+      .ag-row {
+        border-bottom: 1px solid #dee2e6;
+      }
+
+      .ag-row-selected {
+        background-color: #e9ecef;
+      }
     }
-  } 
+  }
+}
+
+.modal-footer {
+  background-color: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+  padding: 1rem;
+
+  .btn {
+    min-width: 100px;
+  }
+}
+
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+.reset {
+  all: revert;
+}
+
+.ant-splitter-panel {
+  position: relative;
+}
+
+.tabulator {
+  font-size: 0.75rem !important;
+  /* position: absolute !important; */
+  width: 100% !important;
+}
+
+.tabulator-cell {
+  padding: 0px;
+}
+
+.inner-content {
+  padding: 0 !important;
+}
+
+.ant-tabs-tab-btn {
+  font-size: 0.75rem;
+}

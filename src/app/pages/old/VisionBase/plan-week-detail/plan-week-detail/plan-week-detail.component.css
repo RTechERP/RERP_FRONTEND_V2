@@ -1,0 +1,24 @@
+/* Giới hạn chiều cao modal body và thêm scroll */
+.modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+/* Cố định phần filter khi scroll */
+.modal-body .container-fluid>.row:first-child {
+    position: sticky;
+    top: 0;
+    background-color: #fff;
+    z-index: 10;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+/* Cố định footer ở dưới cùng */
+.modal-footer {
+    position: sticky;
+    bottom: 0;
+    background-color: #fff;
+    border-top: 1px solid #dee2e6;
+    z-index: 10;
+}

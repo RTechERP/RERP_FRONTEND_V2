@@ -9,7 +9,7 @@ import { environment } from '../../../../../environments/environment';
 })
 export class ViewPokhService {
   private _url = environment.host + 'api/ViewPOKH/';
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
   loadViewPOKH(
     datetimeS: Date,
     datetimeE: Date,
@@ -18,7 +18,8 @@ export class ViewPokhService {
     poType: number,
     status: number,
     customerId: number,
-    keyword: string
+    keyword: string,
+    warehouseId: number
   ): Observable<any> {
     return this.http.get<any>(this._url + 'get-viewpokh', {
       params: {
@@ -30,6 +31,7 @@ export class ViewPokhService {
         status: status.toString(),
         customerId: customerId.toString(),
         keyword: keyword,
+        warehouseId: warehouseId.toString(),
       },
     });
   }

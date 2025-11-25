@@ -138,7 +138,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     private planWeekService: PlanWeekService,
     private appUserService: AppUserService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.isMobile = window.innerWidth < 576;
@@ -423,9 +423,8 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
     const DatePlan = dateFromField;
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: `Bạn có chắc chắn muốn xóa kế hoạch ngày ${dateFromField.toLocaleDateString()} của ${
-        this.selectedRow?.FullName
-      }?`,
+      nzContent: `Bạn có chắc chắn muốn xóa kế hoạch ngày ${dateFromField.toLocaleDateString()} của ${this.selectedRow?.FullName
+        }?`,
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
       nzOnOk: () => {

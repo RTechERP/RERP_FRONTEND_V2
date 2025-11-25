@@ -101,7 +101,7 @@ export class FollowProductReturnComponent implements OnInit, AfterViewInit {
     private CustomerService: CustomerPartService,
     private notification: NzNotificationService,
     private viewPokhService: ViewPokhService
-  ) {}
+  ) { }
   ngOnInit(): void {
     this.loadCustomer();
     this.loadGroupSale();
@@ -192,12 +192,33 @@ export class FollowProductReturnComponent implements OnInit, AfterViewInit {
       movableColumns: true,
       pagination: true,
       paginationSize: 50,
-      height: '90vh',
+      height: '89.5vh',
       resizableRows: true,
       reactiveData: true,
       groupBy: 'PONumber',
       selectableRows: true,
       selectableRange: true,
+      columnDefaults: {
+        headerWordWrap: true,
+        headerVertical: false,
+        headerHozAlign: 'center',
+        minWidth: 60,
+        hozAlign: 'left',
+        vertAlign: 'middle',
+        resizable: true,
+      },
+      langs: {
+        vi: {
+          pagination: {
+            first: '<<',
+            last: '>>',
+            prev: '<',
+            next: '>',
+          },
+        },
+      },
+      locale: 'vi',
+
       columns: [
         {
           title: 'Duyệt',
@@ -215,7 +236,7 @@ export class FollowProductReturnComponent implements OnInit, AfterViewInit {
           title: 'Trạng thái',
           field: 'StatusText',
           sorter: 'string',
-          width: 150,
+          width: 200,
           formatter: (cell) => {
             const value = cell.getValue();
             let bgColor = '';
@@ -244,30 +265,47 @@ export class FollowProductReturnComponent implements OnInit, AfterViewInit {
         { title: 'Loại', field: 'MainIndex', sorter: 'number', width: 100 },
         {
           title: 'New Account',
-          field: 'New Account',
-          sorter: 'number',
-          width: 100,
+          field: 'NewAccount',
+          sorter: 'boolean',
+          width: 150,
+          hozAlign: 'center',
+          formatter: (cell) => {
+            const checked = cell.getValue() ? 'checked' : '';
+            return `<div style="text-align: center;">
+            <input type="checkbox" ${checked} disabled style="opacity: 1; pointer-events: none; cursor: default; width: 16px; height: 16px;"/>
+          </div>`;
+          },
         },
-        { title: 'Số POKH', field: 'PONumber', sorter: 'number', width: 100 },
-        { title: 'Mã PO', field: 'POCode', sorter: 'number', width: 100 },
+        { title: 'Số POKH', field: 'PONumber', sorter: 'number', width: 200 },
+        { title: 'Mã PO', field: 'POCode', sorter: 'number', width: 200 },
         {
           title: 'Khách hàng',
           field: 'CustomerName',
           sorter: 'number',
-          width: 100,
+          width: 250,
         },
         {
           title: 'Người phụ trách',
           field: 'FullName',
           sorter: 'number',
-          width: 100,
+          width: 200,
         },
         { title: 'Dự Án', field: 'ProjectName', sorter: 'number', width: 100 },
         {
           title: 'Ngày nhận PO',
           field: 'ReceivedDatePO',
           sorter: 'number',
-          width: 100,
+          width: 200,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (!value) return '';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          }
         },
         {
           title: 'Loại tiền',
@@ -279,25 +317,49 @@ export class FollowProductReturnComponent implements OnInit, AfterViewInit {
           title: 'Tổng tiền nhận PO',
           field: 'TotalMoneyPO',
           sorter: 'number',
-          width: 100,
+          width: 200,
+          formatter: 'money',
+          formatterParams: {
+            precision: 0,
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         {
           title: 'Tổng tiền trước VAT',
           field: 'TotalMoneyKoVAT',
           sorter: 'number',
-          width: 100,
+          width: 200,
+          formatter: 'money',
+          formatterParams: {
+            precision: 0,
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         {
           title: 'Tiền về',
           field: 'ReceiveMoney',
           sorter: 'number',
-          width: 100,
+          width: 200,
+          formatter: 'money',
+          formatterParams: {
+            precision: 0,
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         {
           title: 'Tình trạng tiến độ giao hàng',
           field: 'DeliveryStatusText',
           sorter: 'number',
-          width: 100,
+          width: 200,
         },
         {
           title: 'Tình trạng xuất kho',
@@ -305,33 +367,33 @@ export class FollowProductReturnComponent implements OnInit, AfterViewInit {
           sorter: 'number',
           width: 100,
         },
-        { title: 'End User', field: 'EndUser', sorter: 'number', width: 100 },
-        { title: 'Ghi chú', field: 'Note', sorter: 'number', width: 100 },
-        { title: 'Công nợ', field: 'Debt', sorter: 'number', width: 100 },
+        { title: 'End User', field: 'EndUser', sorter: 'number', width: 200 },
+        { title: 'Ghi chú', field: 'Note', sorter: 'number', width: 250 },
+        { title: 'Công nợ', field: 'Debt', sorter: 'number', width: 200 },
         {
           title: 'Hóa đơn',
           field: 'ImportStatusText',
           sorter: 'number',
-          width: 100,
+          width: 200,
         },
         { title: 'Đặt hàng', field: 'IsOder', sorter: 'number', width: 100 },
         {
           title: 'Mã nội bộ',
           field: 'ProductNewCode',
           sorter: 'number',
-          width: 100,
+          width: 200,
         },
         {
           title: 'Tên sản phẩm',
           field: 'ProductName',
           sorter: 'number',
-          width: 100,
+          width: 200,
         },
         {
           title: 'Mã theo khách',
           field: 'GuestCode',
           sorter: 'number',
-          width: 100,
+          width: 200,
         },
         { title: 'Hãng', field: 'Maker', sorter: 'number', width: 100 },
         { title: 'Số lượng', field: 'Qty', sorter: 'number', width: 100 },
@@ -357,7 +419,7 @@ export class FollowProductReturnComponent implements OnInit, AfterViewInit {
           title: 'Kích thước phim cắt/Model',
           field: 'FilmSize',
           sorter: 'number',
-          width: 100,
+          width: 200,
         },
         { title: 'ĐVT', field: 'Unit', sorter: 'number', width: 100 },
         {
@@ -365,19 +427,43 @@ export class FollowProductReturnComponent implements OnInit, AfterViewInit {
           field: 'UnitPrice',
           sorter: 'number',
           width: 100,
+          formatter: 'money',
+          formatterParams: {
+            precision: 0,
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         {
           title: 'Tổng tiền trước VAT',
           field: 'IntoMoney',
           sorter: 'number',
-          width: 100,
+          width: 200,
+          formatter: 'money',
+          formatterParams: {
+            precision: 0,
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         { title: 'VAT%', field: 'VAT', sorter: 'number', width: 100 },
         {
           title: 'Tổng tiền sau VAT',
           field: 'TotalPriceIncludeVAT',
           sorter: 'number',
-          width: 100,
+          width: 200,
+          formatter: 'money',
+          formatterParams: {
+            precision: 0,
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         {
           title: 'Người nhận',
@@ -388,8 +474,18 @@ export class FollowProductReturnComponent implements OnInit, AfterViewInit {
         {
           title: 'Ngày yêu cầu giao hàng',
           field: 'DeliveryRequestedDate',
-          sorter: 'number',
+          sorter: 'date',
           width: 100,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (!value) return '';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          }
         },
         {
           title: 'Thanh toán dự kiến',
@@ -401,26 +497,56 @@ export class FollowProductReturnComponent implements OnInit, AfterViewInit {
           title: 'Số hóa đơn',
           field: 'BillNumber',
           sorter: 'number',
-          width: 100,
+          width: 200,
         },
         { title: 'Công nợ', field: 'Debt', sorter: 'number', width: 100 },
         {
           title: 'Ngày yêu cầu thanh toán',
           field: 'PayDate',
-          sorter: 'number',
+          sorter: 'date',
           width: 100,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (!value) return '';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          }
         },
         {
           title: 'Ngày giao hàng',
           field: 'ActualDeliveryDate',
-          sorter: 'number',
+          sorter: 'date',
           width: 100,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (!value) return '';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          }
         },
         {
           title: 'Ngày tiền về',
           field: 'RecivedMoneyDate',
-          sorter: 'number',
+          sorter: 'date',
           width: 100,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (!value) return '';
+            const date = new Date(value);
+            if (isNaN(date.getTime())) return value;
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+          }
         },
       ],
     });

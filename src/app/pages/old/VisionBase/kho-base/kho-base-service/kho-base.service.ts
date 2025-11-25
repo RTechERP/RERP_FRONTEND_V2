@@ -109,7 +109,7 @@ export class KhoBaseService {
       this._url + `followprojectbase/getcheckexistprojecttypebase?projectTypeBaseCode=${projectTypeBaseCode}`,
     );
   };
-  
+
   postSaveFollowProjectBase(data: any): Observable<any> {
     return this.http.post<any>(
       this._url + `followprojectbase/savefollowprojectbase`,
@@ -166,6 +166,16 @@ export class KhoBaseService {
       this._url + `followprojectbase/exportfollowprojectbase`,
       {
         params: httpParams,
+        responseType: 'blob'
+      }
+    );
+  }
+
+  // Download Template Excel for Import
+  downloadTemplateExcel(): Observable<Blob> {
+    return this.http.get(
+      this._url + `followprojectbase/download-template-followprojectbase`,
+      {
         responseType: 'blob'
       }
     );

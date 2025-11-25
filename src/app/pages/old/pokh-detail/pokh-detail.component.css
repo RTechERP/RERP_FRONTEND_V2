@@ -58,18 +58,47 @@ label[nz-checkbox] {
   border-radius: 2px;
 }
 
+/* Cố định chiều cao modal và cho phép scroll */
+::ng-deep .modal-xl {
+  max-height: 90vh;
+}
+
+::ng-deep .modal-content {
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+::ng-deep .modal-body {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
 .pokh-modal-content {
-  height: calc(100vh - 200px);
+  height: 100%;
+  max-height: calc(90vh - 120px);
+  /* Trừ đi header và footer */
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .pokh-tabset {
   height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+::ng-deep .pokh-tabset .ant-tabs-content-holder {
+  overflow-y: auto;
+  flex: 1;
 }
 
 .pokh-tab-content {
-  height: calc(100vh - 300px);
+  height: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* Ensure these styles only apply to the POKH modal */

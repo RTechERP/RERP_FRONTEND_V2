@@ -1262,14 +1262,13 @@ export class PokhComponent implements OnInit, AfterViewInit {
     this.notification.warning(NOTIFICATION_TITLE.warning, 'Chức năng đang phát triển!');
   }
 
-
-
   openModalViewPOKH() {
-    this.modalService.open(ViewPokhComponent, {
+    this.modalRef = this.modalService.open(ViewPokhComponent, {
       centered: true,
       windowClass: 'full-screen-modal',
       backdrop: 'static',
     });
+    this.modalRef.componentInstance.warehouseId = 1; //Kho HN
   }
 
   openWarehouseReleaseRequestModal() {
@@ -1310,6 +1309,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
       keyboard: false,
       centered: true,
       size: 'xl',
+      // windowClass: 'full-screen-modal',
     });
 
     // Truyền dữ liệu sang modal con

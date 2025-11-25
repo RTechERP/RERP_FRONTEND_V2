@@ -86,6 +86,7 @@ interface GroupedData {
   styleUrl: './view-pokh.component.css',
 })
 export class ViewPokhComponent implements OnInit, AfterViewInit {
+  @Input() warehouseId: number = 0;
   @ViewChild('ViewPOKH', { static: false }) viewPOKHTableElement!: ElementRef;
   sizeSearch: string = '0';
   private isRecallCellValueChanged: boolean = false;
@@ -104,6 +105,9 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
   public colors: any[] = [];
   public EmployeeTeamSale: any[] = [];
   data: any[] = [];
+  dataExport: any[] = [];
+  dataInvoice: any[] = [];
+  dataAfterGroupNested: any[] = [];
   selectedRows: any[] = [];
   filters: any = {
     groupId: 0,
@@ -124,7 +128,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
     private HandoverMinutesDetailService: HandoverMinutesDetailService,
     private modalService: NgbModal,
     private notification: NzNotificationService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     const endDate = new Date();
@@ -365,10 +369,8 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
     if (Object.keys(groupedData).length > 1) {
       this.notification.info(
         'Thông báo',
-        `Bạn chọn sản phẩm từ ${
-          Object.keys(groupedData).length
-        } khách hàng. Phần mềm sẽ tự động tạo ${
-          Object.keys(groupedData).length
+        `Bạn chọn sản phẩm từ ${Object.keys(groupedData).length
+        } khách hàng. Phần mềm sẽ tự động tạo ${Object.keys(groupedData).length
         } hóa đơn xuất.`
       );
     }
@@ -436,7 +438,9 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
       status: this.filters.status || 0,
       customerId: this.filters.customerId || 0,
       keyword: this.filters.keyword || '',
+      warehouseId: this.warehouseId || 0,
     };
+    console.log("params loadviewpokh", params);
 
     this.viewPokhService
       .loadViewPOKH(
@@ -447,12 +451,16 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
         params.poType,
         params.status,
         params.customerId,
-        params.keyword
+        params.keyword,
+        params.warehouseId
       )
       .subscribe((response) => {
-        this.data = response.data;
+        this.data = response.data.data;
+        this.dataExport = response.data.dataExport;
+        this.dataInvoice = response.data.dataInvoice;
+        this.dataAfterGroupNested = this.groupNested(this.data, this.dataExport, this.dataInvoice, 'ID', 'POKHDetailID');
         if (this.viewPOKH) {
-          this.viewPOKH.setData(this.data);
+          this.viewPOKH.setData(this.dataAfterGroupNested);
         }
       });
   }
@@ -576,11 +584,50 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
       }
     );
   }
+
+  //hàm groupdata để tạo nested table
+  groupNested(
+    parents: any[],
+    exportList: any[],
+    invoiceList: any[],
+    parentKey: string,     // "ID"
+    childKey: string       // "POKHDetailID"
+  ): any[] {
+
+    // Nhóm EXPORT theo ParentID 
+    const exportMap: Record<string, any[]> = {};
+    exportList.forEach(item => {
+      const key = String(item[childKey]);
+      if (!exportMap[key]) exportMap[key] = [];
+      exportMap[key].push(item);
+    });
+
+    // Nhóm INVOICE theo ParentID
+    const invoiceMap: Record<string, any[]> = {};
+    invoiceList.forEach(item => {
+      const key = String(item[childKey]);
+      if (!invoiceMap[key]) invoiceMap[key] = [];
+      invoiceMap[key].push(item);
+    });
+
+    // Gắn vào parent
+    return parents.map(parent => {
+      const key = String(parent[parentKey]);
+      return {
+        ...parent,
+        exportDetails: exportMap[key] || [],
+        invoiceDetails: invoiceMap[key] || [],
+      };
+    });
+  }
+
+
+
   //#endregion
   //#region Hàm vẽ bảng
   initViewPOKHTable(): void {
     this.viewPOKH = new Tabulator(this.viewPOKHTableElement.nativeElement, {
-      data: this.data,
+      data: this.dataAfterGroupNested,
       layout: 'fitDataFill',
       movableColumns: true,
       pagination: true,
@@ -591,12 +638,33 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
       groupBy: 'PONumber',
       selectableRows: true,
       selectableRange: true,
+      langs: {
+        vi: {
+          pagination: {
+            first: '<<',
+            last: '>>',
+            prev: '<',
+            next: '>',
+          },
+        },
+      },
+      locale: 'vi',
+      columnDefaults: {
+        headerWordWrap: true,
+        headerVertical: false,
+        headerHozAlign: 'center',
+        minWidth: 60,
+        hozAlign: 'left',
+        vertAlign: 'middle',
+        resizable: true,
+      },
       groupHeader: (value, count, data, group) => {
         return `<div class="group-header">
           <input type="checkbox" class="group-checkbox" data-group="${value}">
           <span>${value} (${count} items)</span>
         </div>`;
       },
+
       columns: [
         {
           title: '',
@@ -649,7 +717,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
           title: 'Số POKH',
           field: 'PONumber',
           sorter: 'string',
-          width: 70,
+          width: 150,
           frozen: true,
         },
         {
@@ -863,6 +931,82 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
         // { title: 'ProductName', field: 'ProductName', sorter: 'string', width: 200 },
         // { title: 'Trạng thái', field: 'StatusText', sorter: 'string', width: 150 },
       ],
+      rowFormatter: (row) => {
+
+        const data = row.getData();
+        const rowEl = row.getElement();
+
+        // === KHỐI CONTAINER LỚN ===
+        const wrapper = document.createElement("div");
+        wrapper.style.margin = "10px 0";
+        wrapper.style.padding = "10px";
+        wrapper.style.borderTop = "1px solid #ddd";
+
+        // =======================
+        // 1. BẢNG XUẤT KHO
+        // =======================
+        if (data['exportDetails']?.length > 0) {
+          const labelExport = document.createElement("div");
+          labelExport.innerHTML = "<b>XUẤT KHO</b>";
+          labelExport.style.margin = "10px 0 5px 0";
+
+          const exportTableDiv = document.createElement("div");
+          exportTableDiv.style.border = "1px solid #ccc";
+          exportTableDiv.style.marginBottom = "15px";
+
+          wrapper.appendChild(labelExport);
+          wrapper.appendChild(exportTableDiv);
+
+          new Tabulator(exportTableDiv, {
+            data: data['exportDetails'],
+            layout: "fitColumns",
+            reactiveData: true,
+            height: "auto",
+            columns: [
+              { title: 'DetailID', field: 'ID', width: 80, visible: false },
+              { title: 'Mã phiếu xuất', field: 'Code', width: 200 },
+              { title: 'Tổng số lượng PO', field: 'TotalQty', width: 200 },
+              { title: 'Số lượng xuất', field: 'Qty', width: 200 },
+            ]
+          });
+        }
+
+        // =======================
+        // 2. BẢNG HÓA ĐƠN
+        // =======================
+        if (data['invoiceDetails']?.length > 0) {
+          const labelInvoice = document.createElement("div");
+          labelInvoice.innerHTML = "<b>HÓA ĐƠN</b>";
+          labelInvoice.style.margin = "10px 0 5px 0";
+
+          const invoiceTableDiv = document.createElement("div");
+          invoiceTableDiv.style.border = "1px solid #ccc";
+
+          wrapper.appendChild(labelInvoice);
+          wrapper.appendChild(invoiceTableDiv);
+
+          new Tabulator(invoiceTableDiv, {
+            data: data['invoiceDetails'],
+            layout: "fitColumns",
+            reactiveData: true,
+            height: "auto",
+            columns: [
+              { title: 'RequestInvoiceID', field: 'RequestInvoiceID', width: 80, visible: false },
+              { title: 'POKHDetailID', field: 'POKHDetailID', width: 80, visible: false },
+              { title: 'RequestInvoiceDetailID', field: 'RequestInvoiceDetailID', width: 100, visible: false },
+
+              { title: 'Mã lệnh', field: 'RequestInvoiceCode', width: 170 },
+              { title: 'Công ty', field: 'TaxCompanyName', width: 120 },
+              { title: 'Số hóa đơn', field: 'InvoiceNumber', width: 170 },
+              { title: 'Ngày hóa đơn', field: 'InvoiceDate', width: 170 },
+
+            ]
+          });
+        }
+
+        rowEl.appendChild(wrapper);
+      }
+
     });
   }
   //#endregion

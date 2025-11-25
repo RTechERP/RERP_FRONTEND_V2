@@ -14,7 +14,7 @@ export class PoRequestBuyService {
   }
   getEmployees(status: number): Observable<any> {
     return this.http.get<any>(
-      'https://localhost:7187/api/Employee/get-employees',
+      environment.host + 'api/Employee/' + 'get-employees',
       {
         params: {
           status: status.toString(),
@@ -23,7 +23,7 @@ export class PoRequestBuyService {
     );
   }
   getPOKHProduct(id: number = 0, idDetail: number = 0): Observable<any> {
-    return this.http.get<any>(this._url + 'get-pokh-product', {
+    return this.http.get<any>(environment.host + 'api/POKH/' + 'get-pokh-product', {
       params: {
         id: id.toString(),
         idDetail: idDetail.toString(),
@@ -31,6 +31,6 @@ export class PoRequestBuyService {
     });
   }
   getDepartments(): Observable<any> {
-    return this.http.get<any>('https://localhost:7187/api/Department/get-all');
+    return this.http.get<any>(environment.host + 'api/Department/' + 'get-all');
   }
 }

@@ -87,7 +87,7 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
     public activeModal: NgbActiveModal,
     private notification: NzNotificationService,
     private PoRequestBuyService: PoRequestBuyService
-  ) {}
+  ) { }
 
   dataDepartment: any[] = [];
   dataEmployee: any[] = [];
@@ -212,7 +212,7 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
     }
     if (!this.selectedRows || this.selectedRows.length === 0) {
       this.notification.error(
-       NOTIFICATION_TITLE.error,
+        NOTIFICATION_TITLE.error,
         'Vui lòng chọn ít nhất một sản phẩm!'
       );
       return;
@@ -237,7 +237,7 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
       UnitName: row.Unit,
       DateReceive: row.DeliveryRequestedDate,
       ParentProductCode: row.ParentProductCode,
-      
+
     }));
     this.PoRequestBuyService.saveData(requestData).subscribe({
       next: (res) => {
@@ -262,11 +262,27 @@ export class PoRequestBuyComponent implements OnInit, AfterViewInit {
       layout: 'fitDataFill',
       movableColumns: true,
       pagination: true,
-      height: '78vh',
+      height: '73.5vh',
       resizableRows: true,
+      langs: {
+        vi: {
+          pagination: {
+            first: '<<',
+            last: '>>',
+            prev: '<',
+            next: '>',
+          },
+        },
+      },
+      locale: 'vi',
       columnDefaults: {
         headerWordWrap: true,
         headerVertical: false,
+        headerHozAlign: 'center',
+        minWidth: 60,
+        hozAlign: 'left',
+        vertAlign: 'middle',
+        resizable: true,
       },
       columns: [
         {

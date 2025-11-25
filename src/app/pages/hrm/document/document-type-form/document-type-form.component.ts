@@ -62,7 +62,9 @@ export class DocumentTypeFormComponent implements OnInit, AfterViewInit{
 
     @Input() documentTypeID: number = 0;
     @Input() dataInput: any;
+    @Input() mode: 'add' | 'edit' = 'add';
     formGroup: FormGroup;
+    saving: boolean = false;
     // Data: any[] = [];
 
      constructor(
@@ -82,12 +84,13 @@ export class DocumentTypeFormComponent implements OnInit, AfterViewInit{
         Name: '',
       }
 
-  //      if (this.documentTypeID) {
-  //   this.formGroup.patchValue({
-  //     RepairTypeName: this.documentTypeID.Name ?? '',
-  //     RepairTypeCode: this.documentTypeID.Code ?? '',
-  //   });
-  // }
+      // Load dữ liệu nếu là chế độ edit
+      if (this.mode === 'edit' && this.dataInput) {
+        this.formGroup.patchValue({
+          Name: this.dataInput.Name || '',
+          Code: this.dataInput.Code || '',
+        });
+      }
   }
 
   ngAfterViewInit(): void {
@@ -102,32 +105,41 @@ export class DocumentTypeFormComponent implements OnInit, AfterViewInit{
 }
 
   saveDocumentType() {
-      // Add new product group
-       this.trimAllStringControls();
-      if (this.formGroup.invalid) {
+    if (this.saving) {
+      return; // Ngăn không cho lưu nhiều lần
+    }
+
+    this.trimAllStringControls();
+    if (this.formGroup.invalid) {
       this.formGroup.markAllAsTouched();
       return;
     }
+
+    this.saving = true; // Bắt đầu lưu
+
     const formValue = this.formGroup.value;
-     const payload = {
-        ID: this.dataInput?.ID || 0,
-       Name:formValue.Name,
-       Code:formValue.Code,
+    const payload = {
+      ID: this.dataInput?.ID || 0,
+      Name: formValue.Name,
+      Code: formValue.Code,
     };
-      this.documentService.saveDocumentType(payload).subscribe({
-        next: (res) => {
-          if (res.status === 1) {
-            this.notification.success('Thông báo', 'Thêm mới thành công!');
-            this.close();
-          } else {
-            this.notification.warning('Thông báo', res.message || 'Không thể thêm nhóm!');
-          }
-        },
-        error: (err) => {
-          this.notification.error('Thông báo', 'Có lỗi xảy ra khi thêm mới!');
-          console.error(err);
+    this.documentService.saveDocumentType(payload).subscribe({
+      next: (res) => {
+        this.saving = false; // Kết thúc lưu
+        if (res.status === 1) {
+          const message = this.mode === 'edit' ? 'Sửa thành công!' : 'Thêm mới thành công!';
+          this.notification.success('Thông báo', message);
+          this.close();
+        } else {
+          this.notification.warning('Thông báo', res.message || 'Không thể thêm nhóm!');
         }
-      });
+      },
+      error: (err) => {
+        this.saving = false; // Kết thúc lưu khi có lỗi
+        this.notification.error('Thông báo', 'Có lỗi xảy ra khi thêm mới!');
+        console.error(err);
+      }
+    });
   }
     close() {
    

@@ -1134,9 +1134,24 @@ private collectAllIds(item: any): number[] {
         formatter: (cell) => {
           const data = cell.getRow().getData();
           let isDeleted = data['IsDeleted'];
-          return !isDeleted
-            ? `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`
-            : '';
+          if (isDeleted) {
+            return '';
+          }
+          
+          // Kiểm tra màu nền của row để set màu button phù hợp
+          const itemLate = parseInt(data['ItemLateActual'] || '0');
+          const totalDayExpridSoon = parseInt(data['TotalDayExpridSoon'] || '0');
+          const dateEndActual = DateTime.fromISO(data['ActualEndDate']).isValid
+            ? DateTime.fromISO(data['ActualEndDate']).toFormat('dd/MM/yyyy')
+            : null;
+          
+          // Nếu row có nền đỏ hoặc cam, button phải màu trắng
+          let buttonColor = 'text-danger'; // Mặc định màu đỏ
+          if (itemLate == 1 || itemLate == 2) {
+            buttonColor = 'text-white'; // Màu trắng cho nền đỏ/cam
+          }
+          
+          return `<button id="btn-header-click" class="btn ${buttonColor} p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`;
         },
         cellClick: (e, cell) => {
           let data = cell.getRow().getData();

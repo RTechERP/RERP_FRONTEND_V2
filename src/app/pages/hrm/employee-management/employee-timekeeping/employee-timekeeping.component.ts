@@ -447,7 +447,7 @@ export class EmployeeTimekeepingComponent
     modalRef.result.then((result) => {
       if (result?.action === 'save') {
         this.searchET();
-        this.notification.success('Thông báo', 'Thêm ET thành công!', {
+        this.notification.success('Thông báo', 'Thêm bảng chấm công  thành công!', {
           nzStyle: { fontSize: '0.75rem' },
         });
       }
@@ -484,7 +484,7 @@ export class EmployeeTimekeepingComponent
     modalRef.result.then((result) => {
       if (result?.action === 'save') {
         this.searchET();
-        this.notification.success('Thông báo', 'Sửa ET thành công!', {
+        this.notification.success('Thông báo', 'Sửa bảng chấm công  thành công!', {
           nzStyle: { fontSize: '0.75rem' },
         });
       }
@@ -497,27 +497,40 @@ export class EmployeeTimekeepingComponent
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.error(
         'Thông báo',
-        'Vui lòng chọn ít nhất 1 ERR cần xóa!',
+        'Vui lòng chọn ít nhất 1 ET cần xóa!',
         { nzStyle: { fontSize: '0.75rem' } }
       );
       return;
     }
 
-    // Chỉ cho phép xóa bản ghi chưa duyệt
+    // Lọc ra các bản ghi chưa duyệt (chỉ xóa những cái này)
     const notApprovedRows = selectedRows.filter((row) => !row.isApproved);
-    if (notApprovedRows.length !== selectedRows.length) {
+    const approvedRows = selectedRows.filter((row) => row.isApproved);
+    
+    // Nếu không có bản ghi nào chưa duyệt thì báo lỗi
+    if (notApprovedRows.length === 0) {
       this.notification.warning(
         'Thông báo',
-        'Chỉ được xóa bản ghi chưa duyệt. Vui lòng hủy duyệt trước khi xóa!'
+        'Tất cả bản ghi đã chọn đều đã được duyệt. Chỉ có thể xóa bản ghi chưa duyệt!',
+        { nzStyle: { fontSize: '0.75rem' } }
       );
       return;
+    }
+
+    // Nếu có bản ghi đã duyệt, hiển thị cảnh báo nhưng vẫn cho phép xóa những cái chưa duyệt
+    if (approvedRows.length > 0) {
+      this.notification.info(
+        'Thông báo',
+        `Có ${approvedRows.length} bản ghi đã duyệt sẽ được bỏ qua. Chỉ xóa ${notApprovedRows.length} bản ghi chưa duyệt.`,
+        { nzStyle: { fontSize: '0.75rem' }, nzDuration: 3000 }
+      );
     }
 
     const count = notApprovedRows.length;
     const confirmMessage =
       count === 1
-        ? `Bạn có chắc chắn muốn xóa ET của <strong>"Tháng ${notApprovedRows[0]._Month}"</strong> không?`
-        : `Bạn có chắc chắn muốn xóa <strong>${count}</strong> bản ghi ET đã chọn không?`;
+        ? `Bạn có chắc chắn muốn xóa bảng chấm công <strong>"${notApprovedRows[0].Name}"</strong> không?`
+        : `Bạn có chắc chắn muốn xóa <strong>${count}</strong> bản ghi ET chưa duyệt không?`;
 
     this.nzModal.confirm({
       nzTitle: 'Xác nhận xóa',
@@ -526,11 +539,11 @@ export class EmployeeTimekeepingComponent
       nzOkType: 'primary',
       nzOkDanger: true,
       nzCancelText: 'Hủy',
-      nzOnOk: () => this.confirmDeleteET(notApprovedRows),
+      nzOnOk: () => this.confirmDeleteET(notApprovedRows, approvedRows.length),
     });
   }
 
-  private confirmDeleteET(selectedRows: any[] = []): void {
+  private confirmDeleteET(selectedRows: any[] = [], skippedCount: number = 0): void {
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.error('Thông báo', 'Không có bản ghi hợp lệ để xóa!');
       return;
@@ -542,17 +555,17 @@ export class EmployeeTimekeepingComponent
 
     const deleteNext = (index: number) => {
       if (index >= selectedRows.length) {
-        this.handleDeleteComplete(successCount, failedCount, totalCount);
+        this.handleDeleteComplete(successCount, failedCount, totalCount, skippedCount);
         return;
       }
 
       const item = selectedRows[index];
       // Sửa IsDelete thành kiểu số
       const deleteData = {
+        Name: item.Name,
         ID: item.ID,
-        IsDelete: true,
-        UpdatedBy: this.etService.LoginName,
-        UpdatedDate: new Date().toISOString(),
+        IsDeleted: true,
+        
       };
 
       this.etService.saveData(deleteData).subscribe({
@@ -574,16 +587,28 @@ export class EmployeeTimekeepingComponent
   private handleDeleteComplete(
     successCount: number,
     failedCount: number,
-    totalCount: number
+    totalCount: number,
+    skippedCount: number = 0
   ): void {
     if (successCount > 0) {
+      let message = `Đã xóa ${successCount}/${totalCount} bản ghi bảng chấm công thành công!`;
+      if (skippedCount > 0) {
+        message += ` (${skippedCount} bản ghi đã duyệt được bỏ qua)`;
+      }
       this.notification.success(
         'Thông báo',
-        `Đã xóa ${successCount}/${totalCount} bản ghi ET thành công!`,
+        message,
         { nzStyle: { fontSize: '0.75rem' } }
       );
       this.searchET();
       this.clearSelection();
+    } else if (totalCount > 0) {
+      // Nếu không có bản ghi nào xóa thành công
+      this.notification.warning(
+        'Thông báo',
+        `Không thể xóa bất kỳ bản ghi nào!`,
+        { nzStyle: { fontSize: '0.75rem' } }
+      );
     }
 
     if (failedCount > 0) {

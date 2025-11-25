@@ -382,16 +382,12 @@ export class ProjectRequestComponent implements OnInit, AfterViewInit {
           title: 'ID',
           field: 'ID',
           headerHozAlign: 'center',
-        
-          headerSort: false,
           visible: false,
         },
         {
           title: 'STT',
           field:'STT',
-          headerHozAlign: 'center',
-          
-          headerSort: false,
+          headerHozAlign: 'center',  
           hozAlign: 'center',
         },
         {
@@ -494,7 +490,7 @@ export class ProjectRequestComponent implements OnInit, AfterViewInit {
           field: 'ID',
           headerHozAlign: 'center',
         
-          headerSort: false,
+         
           visible: false,
         },
         {
@@ -502,7 +498,7 @@ export class ProjectRequestComponent implements OnInit, AfterViewInit {
           field:'STT',
           headerHozAlign: 'center',
           hozAlign:'center',
-          headerSort: false,
+         
           frozen: true,
         },
         {
@@ -666,6 +662,9 @@ export class ProjectRequestComponent implements OnInit, AfterViewInit {
           if (this.projectID > 0) {
             this.getProjectRequest();
           }
+        }
+        else{
+          this.getProjectRequest();
         }
       })
       .catch((error: any) => {
@@ -838,9 +837,13 @@ export class ProjectRequestComponent implements OnInit, AfterViewInit {
         if (result && result.success) {
           this.getSolution(this.projectRequestID);
         }
+        // Luôn reload getProjectRequest() vì có thể đã thêm request trong modal ProjectSolutionDetailComponent
+        this.getProjectRequest();
       })
       .catch((error: any) => {
         console.error('Error opening project solution detail:', error);
+        // Reload getProjectRequest() khi modal bị dismiss (có thể đã thêm request trong modal con)
+        this.getProjectRequest();
       });
   }
 

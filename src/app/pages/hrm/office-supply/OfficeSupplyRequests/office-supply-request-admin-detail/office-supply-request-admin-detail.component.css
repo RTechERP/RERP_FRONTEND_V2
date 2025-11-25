@@ -1,0 +1,38 @@
+:host ::ng-deep {
+  font-size: 12px !important;
+}
+
+:host ::ng-deep * {
+  font-size: 12px !important;
+}
+
+:host ::ng-deep .tabulator {
+  font-size: 12px !important;
+}
+
+:host ::ng-deep .tabulator-cell {
+  font-size: 12px !important;
+}
+
+:host ::ng-deep .tabulator-header {
+  font-size: 12px !important;
+}
+
+:host ::ng-deep .ant-form-item-label > label {
+  font-size: 12px !important;
+}
+
+:host ::ng-deep .ant-input,
+:host ::ng-deep .ant-select-selector,
+:host ::ng-deep .ant-picker {
+  font-size: 12px !important;
+}
+
+:host ::ng-deep .ant-btn {
+  font-size: 12px !important;
+}
+
+:host ::ng-deep .ant-tabs-tab {
+  font-size: 12px !important;
+}
+

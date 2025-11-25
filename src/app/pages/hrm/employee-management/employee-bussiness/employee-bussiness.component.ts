@@ -346,10 +346,12 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
     // modal.show();
 
     const modalRef = this.modalService.open(EmployeeBussinessDetailComponent, {
-      centered: true,
-      size: 'xl',
+      centered: false,
+      size: 'fullscreen',
       backdrop: 'static',
       keyboard: false,
+      windowClass: 'modal-fullscreen',
+      modalDialogClass: 'modal-fullscreen'
     });
     modalRef.componentInstance.detailData = [];
 
@@ -389,10 +391,12 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
           this.employeeBussinessDetailData = response.data;
           // Open modal
           const modalRef = this.modalService.open(EmployeeBussinessDetailComponent, {
-            centered: true,
-            size: 'xl',
+            centered: false,
+            size: 'fullscreen',
             backdrop: 'static',
             keyboard: false,
+            windowClass: 'modal-fullscreen',
+            modalDialogClass: 'modal-fullscreen'
           });
           modalRef.componentInstance.detailData = response.data;
 
@@ -423,34 +427,78 @@ export class EmployeeBussinessComponent implements OnInit, AfterViewInit, OnChan
       return;
     }
 
-    const approvedRows = selectedRows.filter(row =>
-      row.getData()['IsApprovedHR'] === true && row.getData()['IsApproved'] === true
-    );
+    // Lọc ra các bản ghi đã duyệt (không cho xóa)
+    const approvedRows = selectedRows.filter(row => {
+      const data = row.getData();
+      return data['IsApprovedHR'] === true && data['IsApproved'] === true;
+    });
 
+    // Lọc ra các bản ghi chưa duyệt (cho phép xóa)
+    const notApprovedRows = selectedRows.filter(row => {
+      const data = row.getData();
+      return !(data['IsApprovedHR'] === true && data['IsApproved'] === true);
+    });
+
+    // Nếu có bản ghi đã duyệt, cảnh báo nhưng vẫn cho xóa những cái chưa duyệt
     if (approvedRows.length > 0) {
       const names = approvedRows.map(row => row.getData()['FullName']).join(', ');
-
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
-        `Nhân viên ${names} đã được duyệt. Vui lòng hủy duyệt trước khi xóa!`
+        `Có ${approvedRows.length} bản ghi đã duyệt sẽ được bỏ qua. Chỉ xóa ${notApprovedRows.length} bản ghi chưa duyệt.`
+      );
+    }
+
+    // Nếu không có bản ghi nào chưa duyệt thì dừng
+    if (notApprovedRows.length === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Tất cả bản ghi đã chọn đều đã được duyệt. Chỉ có thể xóa bản ghi chưa duyệt!'
       );
       return;
     }
 
+    const count = notApprovedRows.length;
+    const confirmMessage = count === 1
+      ? `Bạn có chắc chắn muốn xóa đăng ký công tác của <strong>"${notApprovedRows[0].getData()['FullName']}"</strong> không?`
+      : `Bạn có chắc chắn muốn xóa <strong>${count}</strong> đăng ký công tác đã chọn không?`;
+
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: 'Bạn có chắc chắn muốn xóa những nhân viên đã chọn?',
+      nzContent: confirmMessage,
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
-        // Lấy list ID của các row đã chọn
-        const ids = selectedRows.map(row => row.getData()['ID']);
+        // Lấy toàn bộ dữ liệu của các row chưa duyệt và set IsDeleted = true
+        const dataToDelete = notApprovedRows.map(row => {
+          const rowData = row.getData();
+          return {
+            ...rowData,
+            IsDeleted: true
+          };
+        });
 
-        // Gọi API xóa
-        this.employeeBussinessService.deletedEmployeeBussiness(ids).subscribe(res => {
-          this.notification.success(NOTIFICATION_TITLE.success, 'Đã xóa đăng ký bạn chọn!');
-          this.loadEmployeeBussiness();
-          this.initializeTable();
+        // Gọi API save với IsDeleted = true để xóa mềm
+        this.employeeBussinessService.saveEmployeeBussiness(dataToDelete).subscribe({
+          next: (res) => {
+            if (res?.status === 1) {
+              this.notification.success(
+                NOTIFICATION_TITLE.success,
+                `Đã xóa ${count} đăng ký công tác thành công!`
+              );
+              this.loadEmployeeBussiness();
+            } else {
+              this.notification.error(
+                NOTIFICATION_TITLE.error,
+                res?.message || 'Xóa đăng ký công tác thất bại!'
+              );
+            }
+          },
+          error: (error) => {
+            this.notification.error(
+              NOTIFICATION_TITLE.error,
+              'Lỗi khi xóa đăng ký công tác: ' + (error?.message || 'Lỗi không xác định')
+            );
+          }
         });
       }
     });

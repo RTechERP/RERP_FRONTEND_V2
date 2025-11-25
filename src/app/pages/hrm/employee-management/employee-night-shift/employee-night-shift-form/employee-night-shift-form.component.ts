@@ -132,7 +132,7 @@ export class EmployeeNightShiftFormComponent implements OnInit {
       ID: [0],
       EmployeeID: [null, [Validators.required, this.employeeIdValidator]],
       ApprovedTBP: [null, [Validators.required, this.approverIdValidator]],
-      DateRegister: [null, [Validators.required, this.dateRegisterValidator]],
+      DateRegister: [null, [Validators.required]],
       DateStart: [null, [Validators.required, this.dateStartValidator]],
       DateEnd: [null, [Validators.required, this.dateEndValidator]],
       BreaksTime: [0, [Validators.min(0), Validators.max(24), this.breaksTimeValidator]],

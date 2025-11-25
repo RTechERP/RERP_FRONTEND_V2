@@ -58,9 +58,10 @@
       </nz-form-control>
     </div>
     <div class="modal-footer">
-      <button nz-button nzDanger nzType="default" (click)="close()">Đóng</button>
-      <button nz-button nzType="primary" (click)="saveDocumentType()">
-        Lưu
+      <button nz-button nzDanger nzType="default" (click)="close()" [disabled]="saving">Đóng</button>
+      <button nz-button nzType="primary" (click)="saveDocumentType()" [disabled]="saving">
+        <i *ngIf="saving" nz-icon nzType="loading" class="me-2"></i>
+        {{ saving ? 'Đang lưu...' : 'Lưu' }}
       </button>
     </div>
   </form>

@@ -558,6 +558,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
     let canEdit: boolean = true; // Mặc định có quyền sửa
     
     if(status !=0){
+      debugger
       selectedRows = this.tb_projectSurvey.getSelectedData();
       // this.selectedList = dataSelect; // Cập nhật lại selectedList với dữ liệu mới nhất
       // const ids = this.selectedList.map((item) => item.ID);
@@ -976,6 +977,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
   //#endregion
   //#region Xóa khảo sát dự án
   deletedSurvey(): void {
+    debugger;
     // let selectedRows = this.tb_projectSurvey
     //   .getData()
     //   .filter((row: any) => row['Selected'] == true);
@@ -1003,7 +1005,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
     let emID = selectedRows[0]['EmployeeID'];
     if (
       emID != this.currentUser.ID &&
-      !this.currentUser.ISADMIN
+      !this.currentUser.IsAdmin
     ) {
       this.notification.error(
         'Thông báo',

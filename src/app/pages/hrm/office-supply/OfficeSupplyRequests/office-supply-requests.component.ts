@@ -68,6 +68,8 @@ import { DateTime } from 'luxon';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { MenuService } from '../../../systems/menus/menu-service/menu.service';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { OfficeSupplyRequestAdminDetailComponent } from './office-supply-request-admin-detail/office-supply-request-admin-detail.component';
 
 interface Unit {
   Code: string;
@@ -144,10 +146,6 @@ interface Product {
   //encapsulation: ViewEncapsulation.None
 })
 export class OfficeSupplyRequestsComponent implements OnInit {
-  @ViewChild('officeSupplyRequestTable', { static: false })
-  officeSupplyRequestTableRef!: ElementRef;
-
-  private officeSupplyRequestTable!: Tabulator;
   table: any;
   table2: any;
   dataTable1: any[] = [];
@@ -187,6 +185,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
     private lstDKVPP: DangkyvppServiceService,
     private notification: NzNotificationService,
     private modal: NzModalService,
+    private ngbModal: NgbModal,
     public menuService: MenuService
   ) {}
 
@@ -382,7 +381,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
       movableColumns: true,
       resizableRows: true,
       reactiveData: true,
-      selectableRows: 1,
+      selectableRows: true,
       groupBy: 'FullName',
 
       groupHeader: (value, count, data) => {
@@ -681,6 +680,195 @@ export class OfficeSupplyRequestsComponent implements OnInit {
       error: (error: any) => {
         this.notification.error('Thông báo', 'Có lỗi xảy ra khi hủy duyệt!');
       },
+    });
+  }
+
+  // Open admin registration modal
+  openAdminRegistrationModal(): void {
+    const modalRef = this.ngbModal.open(OfficeSupplyRequestAdminDetailComponent, {
+      size: 'xl',
+      centered: true,
+      backdrop: 'static',
+      keyboard: false,
+    });
+
+    modalRef.result.then(
+      (result) => {
+        if (result?.success) {
+          this.getOfficeSupplyRequest();
+        }
+      },
+      (reason) => {
+        // Modal dismissed
+      }
+    );
+  }
+
+  // Delete requests
+  deleteRequests(): void {
+    if (!this.pushSelectedList()) {
+      return;
+    }
+
+    // Lọc các bản ghi chưa duyệt (có thể xóa được)
+    const canDeleteItems = this.selectedList.filter(
+      (item) => !item.IsApproved && !item.IsAdminApproved
+    );
+    
+    // Lọc các bản ghi đã duyệt (không thể xóa)
+    const cannotDeleteItems = this.selectedList.filter(
+      (item) => item.IsApproved || item.IsAdminApproved
+    );
+
+    if (canDeleteItems.length === 0) {
+      this.notification.error(
+        'Thông báo',
+        'Tất cả các bản ghi đã chọn đều đã được duyệt, không thể xóa!'
+      );
+      return;
+    }
+
+    // Nếu có bản ghi đã duyệt, hiển thị cảnh báo
+    if (cannotDeleteItems.length > 0) {
+      this.modal.confirm({
+        nzTitle: 'Cảnh báo',
+        nzContent: `Có ${cannotDeleteItems.length} bản ghi đã được duyệt không thể xóa. Bạn có muốn tiếp tục xóa ${canDeleteItems.length} bản ghi chưa duyệt không?`,
+        nzOkText: 'Đồng ý',
+        nzCancelText: 'Hủy',
+        nzOkDanger: true,
+        nzOnOk: () => {
+          this.processDelete(canDeleteItems);
+        },
+      });
+    } else {
+      this.modal.confirm({
+        nzTitle: 'Xác nhận xóa',
+        nzContent: `Bạn có chắc chắn muốn xóa ${canDeleteItems.length} bản ghi đã chọn không?`,
+        nzOkText: 'Đồng ý',
+        nzCancelText: 'Hủy',
+        nzOkDanger: true,
+        nzOnOk: () => {
+          this.processDelete(canDeleteItems);
+        },
+      });
+    }
+  }
+
+  private processDelete(items: any[]): void {
+    // Xóa từng item bằng cách gọi saveData với IsDeleted = true
+    let deleteCount = 0;
+    let errorCount = 0;
+    const totalItems = items.length;
+
+    items.forEach((item: any, index: number) => {
+      const dto: any = {
+        officeSupplyRequest: {
+          ID: item.ID,
+          IsDeleted: true
+        },
+        officeSupplyRequestsDetails: []
+      };
+
+      this.lstDKVPP.saveData(dto).subscribe({
+        next: (res: any) => {
+          if (res?.status === 1) {
+            deleteCount++;
+          } else {
+            errorCount++;
+          }
+
+          // Kiểm tra xem đã xử lý xong tất cả items chưa
+          if (deleteCount + errorCount === totalItems) {
+            this.getOfficeSupplyRequest();
+            this.selectedList = [];
+            
+            if (deleteCount > 0) {
+              this.notification.success('Thông báo', `Đã xóa thành công ${deleteCount} bản ghi!`);
+            }
+            if (errorCount > 0) {
+              this.notification.warning('Thông báo', `Có ${errorCount} bản ghi xóa không thành công`);
+            }
+          }
+        },
+        error: (error: any) => {
+          errorCount++;
+          
+          // Kiểm tra xem đã xử lý xong tất cả items chưa
+          if (deleteCount + errorCount === totalItems) {
+            this.getOfficeSupplyRequest();
+            this.selectedList = [];
+            
+            if (deleteCount > 0) {
+              this.notification.success('Thông báo', `Đã xóa thành công ${deleteCount} bản ghi!`);
+            }
+            if (errorCount > 0) {
+              this.notification.error('Thông báo', `Có ${errorCount} bản ghi xóa không thành công`);
+            }
+          }
+        },
+      });
+    });
+  }
+
+  // Edit request
+  editRequest(): void {
+    const selectedData = this.table.getSelectedData();
+    if (!selectedData || selectedData.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn bản ghi để sửa');
+      return;
+    }
+
+    const selectedRow = selectedData[0];
+    
+    // Kiểm tra điều kiện chưa duyệt
+    const isApproved = selectedRow['IsApproved'] === true || selectedRow['IsApproved'] === 1 || selectedRow['IsApproved'] === 'true' || selectedRow['IsApproved'] === '1';
+    const isAdminApproved = selectedRow['IsAdminApproved'] === true || selectedRow['IsAdminApproved'] === 1 || selectedRow['IsAdminApproved'] === 'true' || selectedRow['IsAdminApproved'] === '1';
+    
+    if (isApproved || isAdminApproved) {
+      this.notification.warning('Thông báo', 'Không thể sửa bản ghi đã được duyệt');
+      return;
+    }
+
+    const requestId = selectedRow['ID'];
+    if (!requestId || requestId <= 0) {
+      this.notification.error('Thông báo', 'Không tìm thấy ID bản ghi');
+      return;
+    }
+
+    // Load dữ liệu chi tiết
+    this.lstDKVPP.getOfficeSupplyRequestsDetail(requestId).subscribe({
+      next: (res) => {
+        const detailData = res.data || [];
+        
+        // Mở modal với dữ liệu
+        const modalRef = this.ngbModal.open(OfficeSupplyRequestAdminDetailComponent, {
+          size: 'xl',
+          centered: true,
+          backdrop: 'static',
+          keyboard: false,
+        });
+
+        // Truyền dữ liệu vào modal
+        modalRef.componentInstance.editData = {
+          requestId: requestId,
+          requestInfo: selectedRow,
+          detailData: detailData
+        };
+
+        modalRef.result.then(
+          (result) => {
+            if (result?.success) {
+              this.getOfficeSupplyRequest();
+            }
+          },
+          (reason) => {
+            // Modal dismissed
+          }
+        );
+      },
+      error: (error) => {
+        this.notification.error('Thông báo', 'Không thể tải dữ liệu chi tiết: ' + (error?.message || ''));
+      }
     });
   }
 }

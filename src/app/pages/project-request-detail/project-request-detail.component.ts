@@ -63,13 +63,17 @@ export class ProjectRequestDetailComponent implements OnInit, AfterViewInit {
   deletedFile: number[] = [];
 
   ngOnInit(): void {
+    // Set ngày yêu cầu mặc định là ngày hôm nay khi thêm mới
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set về 00:00:00 để tránh vấn đề timezone
+    
     this.form = this.fb.group({
       ProjectID: [
         { value: this.projectId, disabled: this.projectId > 0 },
         [Validators.required],
       ],
       STT: [1],
-      DateRequest: [null],
+      DateRequest: [!this.isEdit ? today : null], // Mặc định là hôm nay khi thêm mới
       CodeRequest: ['', [this.trimRequiredValidator]],
       ContentRequest: ['', [this.trimRequiredValidator]],
       Note: [''],

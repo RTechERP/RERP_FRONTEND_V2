@@ -702,7 +702,7 @@ export class WFHComponent implements OnInit, AfterViewInit, OnDestroy {
 
       const deleteData = {
         ...item,
-        IsDelete: true,
+        IsDeleted: true,
         UpdatedBy: this.currentUser?.LoginName || this.currentUser?.Code || '',
         UpdatedDate: new Date().toISOString(),
       };

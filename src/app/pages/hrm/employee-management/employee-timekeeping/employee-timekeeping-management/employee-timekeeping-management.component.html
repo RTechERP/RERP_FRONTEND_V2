@@ -171,9 +171,9 @@
             </button>
 
         
-            <button nz-button nzType="default" nzSize="small"   (click)="onUpdateOne()">
+            <button nz-button nzType="default" nzSize="small" [disabled]="isUpdating" (click)="onUpdateOne()">
               <img class="btn-action-icon" src="assets/icon/action_update_one_24.svg" /> Update </button>
-            <button nz-button nzType="default" nzSize="small"   (click)="onUpdateAll()">
+            <button nz-button nzType="default" nzSize="small" [disabled]="isUpdating" (click)="onUpdateAll()">
               <img class="btn-action-icon" src="assets/icon/action_update_all_24.svg" /> Update All</button>
             <button
               class="fs-12"

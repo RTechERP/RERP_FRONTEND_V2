@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { catchError, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
-import { environment } from '../../../../../../environments/environment.prod';
+import { environment } from '../../../../../../environments/environment';
 import * as ExcelJS from 'exceljs';
 import { EmployeeTimekeepingComponent } from '../employee-timekeeping.component';
 

@@ -23,6 +23,18 @@
               </nz-select>
             </nz-form-control>
           </nz-form-item>
+          <nz-form-item class="mt-2">
+            <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+            <nz-form-control [nzSpan]="24">
+              <nz-input-group [nzSuffix]="suffixIconSearch">
+                <input type="text" nz-input placeholder="Nhập từ khóa để tìm kiếm" [(ngModel)]="keyword"
+                  (ngModelChange)="onSearchChange()" name="keyword" />
+              </nz-input-group>
+              <ng-template #suffixIconSearch>
+                <nz-icon nzType="search" />
+              </ng-template>
+            </nz-form-control>
+          </nz-form-item>
         </form>
       </div>
       <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
@@ -84,13 +96,6 @@
                   <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel(documentTypeID)">
                     <img src="assets/icon/action_export_excel_16.png" /> Xuất Excel
                   </button>
-                  <nz-input-group [nzSuffix]="suffixIconSearch" class="pt-0 pb-0">
-                    <input type="text" nz-input placeholder="Nhập từ khóa để tìm kiếm" [(ngModel)]="keyword"
-                      (ngModelChange)="onSearchChange()" />
-                  </nz-input-group>
-                  <ng-template #suffixIconSearch>
-                    <nz-icon nzType="search" />
-                  </ng-template>
                 </div>
               </div>
               <div class="card-body p-0">

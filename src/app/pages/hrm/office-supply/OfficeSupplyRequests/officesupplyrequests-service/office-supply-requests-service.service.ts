@@ -52,4 +52,14 @@ export class DangkyvppServiceService {
   UnIsApproved(ids: number[]): Observable<any> {
     return this.httpclient.post<any>(`${this.url}un-is-approved`, ids);
   }
+
+  // Save office supply requests (for admin registration)
+  saveOfficeSupplyRequests(requests: any[]): Observable<any> {
+    return this.httpclient.post<any>(`${this.url}save-office-supply-requests`, requests);
+  }
+
+  // Save office supply request data (using SaveData API)
+  saveData(dto: any): Observable<any> {
+    return this.httpclient.post<any>(`${this.url}save-data`, dto);
+  }
 }

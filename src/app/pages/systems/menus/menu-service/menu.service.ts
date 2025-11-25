@@ -815,7 +815,7 @@ export class MenuService {
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission('N2,N1'),
                 comp: WFHComponent,
-                //   icon: 'assets/icon/layers.png',
+                   icon: 'assets/icon/hr_wfh_24.svg',
               },
               {
                 kind: 'leaf',

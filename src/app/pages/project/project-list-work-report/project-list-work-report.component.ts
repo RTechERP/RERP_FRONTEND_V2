@@ -1,13 +1,13 @@
-import { Component, ElementRef, OnInit, ViewChild, AfterViewInit, AfterViewChecked, IterableDiffers, TemplateRef, Input } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, AfterViewInit, Input } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule } from '@angular/forms';
-import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
+import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
 import { NzSpaceModule } from 'ng-zorro-antd/space';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
-import { NzFlexModule, NzWrap } from 'ng-zorro-antd/flex';
-import { NzDrawerModule, NzDrawerPlacement } from 'ng-zorro-antd/drawer';
+import { NzFlexModule } from 'ng-zorro-antd/flex';
+import { NzDrawerModule } from 'ng-zorro-antd/drawer';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
@@ -18,19 +18,13 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import { ApplicationRef, createComponent, Type } from '@angular/core';
-import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
-import { EnvironmentInjector } from '@angular/core';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DateTime } from 'luxon';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
-import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
-import { NgModel } from '@angular/forms';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { Router } from '@angular/router';
 import { ProjectService } from '../project-service/project.service';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
@@ -80,49 +74,33 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
   @ViewChild('tb_projectlistworkreport', { static: false })
   tb_projectListWorkReportContainer!: ElementRef;
   tb_projectListWorkReport: any;
-  dataProjectListWorkReport: any[] = [];
   dataProject: any[] = [];
   projects: any[] = [];
   keyword: string = '';
   totalTime: number = 0;
-  totalDate: number = 0;
 
   ngOnInit() {
     this.getProject();
   }
 
   ngAfterViewInit() {
-    // Đợi một chút để đảm bảo modal đã render xong và ViewChild đã sẵn sàng
-    // Sử dụng setTimeout với thời gian ngắn hơn hoặc dùng requestAnimationFrame
-    if (this.tb_projectListWorkReportContainer?.nativeElement) {
-      // Đợi một frame để đảm bảo DOM đã được render
-      requestAnimationFrame(() => {
+    // Sử dụng setTimeout để đảm bảo container đã render xong (đặc biệt với modal và splitter)
+    setTimeout(() => {
+      if (this.tb_projectListWorkReportContainer) {
         this.drawTbProjectListWorkReport(this.tb_projectListWorkReportContainer.nativeElement);
-      });
-    } else {
-      // Nếu ViewChild chưa sẵn sàng, thử lại sau một chút
-      setTimeout(() => {
-        if (this.tb_projectListWorkReportContainer?.nativeElement) {
-          this.drawTbProjectListWorkReport(this.tb_projectListWorkReportContainer.nativeElement);
-        } else {
-          console.error('Container element not found for table');
-        }
-      }, 300);
-    }
+        // Trigger load data sau khi khởi tạo bảng
+        setTimeout(() => {
+          if (this.tb_projectListWorkReport) {
+            this.tb_projectListWorkReport.setPage(1);
+          }
+        }, 100);
+      }
+    }, 100);
   }
 
   drawTbProjectListWorkReport(container: HTMLElement) {
     if (!container) {
       console.error('Container element not found');
-      return;
-    }
-
-    // Đảm bảo container có kích thước
-    if (container.offsetWidth === 0 || container.offsetHeight === 0) {
-      console.warn('Container has no dimensions, retrying...');
-      setTimeout(() => {
-        this.drawTbProjectListWorkReport(container);
-      }, 100);
       return;
     }
 
@@ -134,9 +112,85 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
         layout: 'fitDataStretch',
         locale: 'vi',
         index: 'ID',
-        paginationMode: 'local',
+        rowHeader: false,
+        paginationMode: 'remote',
+        paginationSize: 50,
+        paginationSizeSelector: [10, 30, 50, 100, 300, 500],
         selectableRows: true,
+        ajaxURL: 'get-project-list-work-report', // Placeholder URL - ajaxRequestFunc sẽ override
+        ajaxConfig: 'GET',
+        ajaxRequestFunc: (url, config, params) => {
+          const request = {
+            projectId: this.projectId || 0,
+            keyword: this.keyword || '',
+            page: params.page || 1,
+            size: params.size || 50,
+          };
+
+          console.log('Loading project list work report data:', request);
+          return this.projectService.getProjectListWorkReport(
+            request.projectId,
+            request.keyword,
+            request.page,
+            request.size
+          ).toPromise().catch((error) => {
+            console.error('Error loading project list work report data:', error);
+            this.notification.error('Lỗi', 'Không thể tải dữ liệu danh sách báo cáo công việc!');
+            throw error;
+          });
+        },
+        ajaxResponse: (url, params, res) => {
+          console.log('API Response:', res);
+          // API trả về { status: 1, data: [...] } hoặc { status: 1, data: { dt: [...], totalpage: [...] } }
+          if (res && res.status === 1 && res.data) {
+            // Kiểm tra xem data có phải là array trực tiếp không
+            const data = Array.isArray(res.data) ? res.data : (res.data.dt || []);
+            
+            // Tính tổng số giờ từ tất cả dữ liệu hiện tại (chỉ trang hiện tại)
+            const ttime = data.reduce((sum: number, row: any) => {
+              const hours = parseFloat(row.TotalHours) || 0;
+              return sum + (isNaN(hours) ? 0 : hours);
+            }, 0);
+            this.totalTime = ttime / 8;
+
+            // Xử lý totalpage - có thể là array hoặc number
+            let totalPage = 1;
+            if (res.data && res.data.totalpage) {
+              if (Array.isArray(res.data.totalpage)) {
+                // Nếu là array, lấy phần tử đầu tiên (có thể là object với property TotalPage hoặc là number)
+                totalPage = res.data.totalpage[0]?.TotalPage || res.data.totalpage[0] || 1;
+              } else if (typeof res.data.totalpage === 'number') {
+                totalPage = res.data.totalpage;
+              }
+            } else {
+              // Nếu API không trả về totalpage, tính dựa trên data length
+              // Giả sử nếu data.length < size thì đây là trang cuối
+              const pageSize = params.size || 50;
+              totalPage = data.length < pageSize ? (params.page || 1) : (params.page || 1) + 1;
+            }
+
+            console.log('Processed data:', data.length, 'Total pages:', totalPage);
+            return {
+              data: data,
+              last_page: totalPage,
+            };
+          }
+          
+          // Trường hợp lỗi hoặc response không đúng format
+          console.warn('Unexpected response format:', res);
+          return {
+            data: [],
+            last_page: 1,
+          };
+        },
         columns: [
+          {
+            title: 'Mã nhân viên',
+            field: 'EmployeeCode',
+            headerHozAlign: 'center',
+            hozAlign: 'center',
+            frozen: true,
+          },
         {
           title: 'Họ tên',
           field: 'FullName',
@@ -150,6 +204,16 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
         {
           title: 'Phòng ban',
           field: 'DepartmentName',
+          headerHozAlign: 'center',
+          frozen: true,
+          formatter: function (cell, formatterParams, onRendered) {
+            let value = cell.getValue() || '';
+            return value;
+          },
+        },
+        {
+          title: 'Team',
+          field: 'TeamName',
           headerHozAlign: 'center',
           frozen: true,
           formatter: function (cell, formatterParams, onRendered) {
@@ -187,6 +251,28 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
         },
         {
           title: 'Số giờ',
+          field: 'TimeReality',
+          headerHozAlign: 'center',
+          formatter: function (cell, formatterParams, onRendered) {
+            let value = cell.getValue() || '';
+            return value;
+          },
+          hozAlign: 'right',
+          bottomCalc: 'sum',
+        },
+        {
+          title: 'Hệ số',
+          field: 'Ratio',
+          headerHozAlign: 'center',
+          formatter: function (cell, formatterParams, onRendered) {
+            let value = cell.getValue() || '';
+            return value;
+          },
+          hozAlign: 'right',
+        
+        },
+        {
+          title: 'Tổng số giờ',
           field: 'TotalHours',
           headerHozAlign: 'center',
           formatter: function (cell, formatterParams, onRendered) {
@@ -239,17 +325,10 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
         },
       ],
       });
-      this.tb_projectListWorkReport.on('renderComplete', () => {
-        console.log('Table rendered successfully');
-      });
     } catch (error) {
       console.error('Error initializing Tabulator:', error);
       this.notification.error('Lỗi', 'Không thể khởi tạo bảng dữ liệu!');
     }
-  }
-
-  setTotalDay() {
-    // Method để tính tổng số ngày nếu cần
   }
 
   toggleSearchPanel() {
@@ -259,7 +338,7 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
   setDefaultSearch() {
     this.projectId = 0;
     this.keyword = '';
-    this.getProjectListWorkReport();
+    this.refreshTable();
   }
   getProject() {
     this.projectService.getProjectCombobox().subscribe({
@@ -277,33 +356,14 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
   }
   
   getProjectListWorkReport() {
-    if (!this.tb_projectListWorkReport) {
-      console.warn('Bảng chưa được khởi tạo');
-      return;
+    this.refreshTable();
+  }
+
+  refreshTable() {
+    if (this.tb_projectListWorkReport) {
+      // Reload data từ trang đầu tiên
+      this.tb_projectListWorkReport.setPage(1);
     }
-
-    this.projectService.getProjectListWorkReport(this.projectId, this.keyword, 1, 10000).subscribe({
-      next: (response: any) => {
-        if (response.status === 1) {
-          console.log("giá trị dự án:", response.data);
-          this.dataProjectListWorkReport = response.data || [];
-          
-          // Tính tổng số ngày
-          const ttime = this.dataProjectListWorkReport.reduce((sum: number, row: any) => {
-            const hours = parseFloat(row.TotalHours) || 0;
-            return sum + (isNaN(hours) ? 0 : hours);
-          }, 0);
-          this.totalTime = ttime / 8;
-
-          // Cập nhật dữ liệu vào bảng
-          this.tb_projectListWorkReport.setData(this.dataProjectListWorkReport);
-        }
-      },
-      error: (error) => {
-        this.notification.error('Lỗi', 'Không thể tải dữ liệu danh sách báo cáo công việc!');
-        console.error('Error:', error);
-      },
-    });
   }
   exportExcel(){
     const table = this.tb_projectListWorkReport;

@@ -10,7 +10,7 @@
     <form nz-form [formGroup]="form" nzLayout="vertical">
       <!-- Form phần trên -->
       <div class="row gx-2">
-        <div class="col-md-3 pb-3">
+        <div class="col-md-3 ">
           <nz-form-item>
             <nz-form-label class="fs-12">
               Chọn loại cuộc họp <span class="text-danger ps-1">*</span>
@@ -41,7 +41,7 @@
             </nz-form-control>
           </nz-form-item>
         </div>
-        <div class="col-md-3 pb-3">
+        <div class="col-md-3 ">
           <nz-form-item>
             <nz-form-label class="fs-12">
               Chọn dự án <span class="text-danger ps-1">*</span>
@@ -64,7 +64,7 @@
             </nz-form-control>
           </nz-form-item>
         </div>
-        <div class="col-md-6 pb-3">
+        <div class="col-md-6 ">
           <nz-form-item>
             <nz-form-label class="fs-12">
               Tiêu đề <span class="text-danger ps-1">*</span>
@@ -85,7 +85,7 @@
 
       <!-- Các phần khác -->
       <div class="row gx-2">
-        <div class="col-md-3 pb-3">
+        <div class="col-md-3 ">
           <nz-form-item>
             <nz-form-label class="fs-12">
               Thời gian bắt đầu <span class="text-danger ps-1">*</span>
@@ -107,7 +107,7 @@
             </nz-form-control>
           </nz-form-item>
         </div>
-        <div class="col-md-3 pb-3">
+        <div class="col-md-3 ">
           <nz-form-item>
             <nz-form-label class="fs-12">
               Thời gian kết thúc <span class="text-danger ps-1">*</span>
@@ -129,18 +129,21 @@
             </nz-form-control>
           </nz-form-item>
         </div>
-        <div class="col-md-6 pb-3">
+        <div class="col-md-6 ">
           <nz-form-item>
             <nz-form-label class="fs-12">Địa điểm</nz-form-label>
             <nz-form-control>
-              <nz-select formControlName="Place"
-              nzPlaceHolder="Chọn dự án" nzShowSearch nzAllowClear
-              style="width: 100%" name="Place">
-              <nz-option *ngFor="let place of placeData"
-                   [nzLabel]="place.Name"
-                   [nzValue]="place.Name">
-        </nz-option>
-            </nz-select>
+              <input 
+                formControlName="Place" 
+                nz-input 
+                class="fs-12" 
+                placeholder="Nhập địa điểm"
+                [nzAutocomplete]="placeAuto" />
+              <nz-autocomplete 
+                #placeAuto 
+                [nzDataSource]="placeOptions"
+                (selectionChange)="form.patchValue({ Place: $event.nzValue })">
+              </nz-autocomplete>
             </nz-form-control>
           </nz-form-item>
         </div>

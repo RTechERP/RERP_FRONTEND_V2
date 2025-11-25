@@ -81,4 +81,36 @@ export class ProjectPartListService {
   getPartListByID(partlistID: number): Observable<any> {
     return this.http.get<any>(`${this.urlProjectPartList}/get-partlist-by-id?partlistID=${partlistID}`);
   }
+  // Delete PartList
+  deletePartList(payload: any[]): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/delete-partlist`, payload);
+  }
+  // Lấy lịch sử giá và sản phẩm trong kho
+  getHistoryPartList(productCode: string, keyword?: string): Observable<any> {
+    const requestBody = {
+      productCode: productCode,
+      keyword: keyword || productCode
+    };
+    return this.http.post<any>(
+      `${this.urlProjectPartList}/history-partlist`,
+      requestBody
+    );
+  }
+  // Yêu cầu xuất kho
+  requestExport(request: any): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/request-export`, request);
+  }
+  // Thông báo - Thêm thông báo mới
+  addNotify(text: string, employeeID: number, departmentID: number): Observable<any> {
+    return this.http.post<any>(`${this.url}api/Notify/add-notify`, {
+      title: 'Yêu cầu xuất kho',
+      text: text,
+      employeeID: employeeID,
+      departmentID: departmentID || 0
+    });
+  }
+  //hủy đã mua
+  cancelTechBought(id: number): Observable<any> {
+    return this.http.post<any>(`${this.url}api/ProjectPartlistPurchaseRequest/unTech-bought`, id);
+  }
 }

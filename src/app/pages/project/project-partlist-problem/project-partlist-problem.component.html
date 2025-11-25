@@ -1,14 +1,14 @@
 <div style="display: flex; flex-direction: column; height: 100vh;">
   <!-- Modal Header -->
-  <div class="bg-primary align-items-center ps-2 pe-2" style="flex-shrink: 0; display: flex; justify-content: space-between; padding: 0.5rem;">
+  <div class="modal-header bg-primary align-items-center ps-2" style="flex-shrink: 0;">
     <h6 class="text-light text-uppercase m-0" style="padding: 0 0.5rem;">
-      Danh sách báo cáo công việc
+      Tổng Hợp Vật tư phát sinh
     </h6>
     <button type="button" class="btn-close" (click)="activeModal.dismiss()" aria-label="Close"></button>
   </div>
   
   <!-- Modal Body với Splitter -->
-  <div class="p-0" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+  <div class="modal-body p-0" style="flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 0;">
     <nz-splitter style="height: 100%; flex: 1; min-height: 0;">
       <!-- Panel tìm kiếm bên trái -->
       <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
@@ -32,19 +32,51 @@
             <form nz-form nzLayout="vertical">
               <nz-form-item>
                 <nz-form-label class="fs-12 d-flex align-items-center p-0">
+                  Từ ngày
+                </nz-form-label>
+                <nz-form-control [nzSpan]="24">
+                  <nz-date-picker
+                    name="fromDate"
+                    class="w-100 fs-12"
+                    nzFormat="dd/MM/yyyy"
+                    nzPlaceHolder="Chọn từ ngày"
+                    [(ngModel)]="fromDate"
+                    nzSize="small"
+                  ></nz-date-picker>
+                </nz-form-control>
+              </nz-form-item>
+
+              <nz-form-item>
+                <nz-form-label class="fs-12 d-flex align-items-center p-0">
+                  Đến ngày
+                </nz-form-label>
+                <nz-form-control [nzSpan]="24">
+                  <nz-date-picker
+                    name="toDate"
+                    class="w-100 fs-12"
+                    nzFormat="dd/MM/yyyy"
+                    nzPlaceHolder="Chọn đến ngày"
+                    [(ngModel)]="toDate"
+                    nzSize="small"
+                  ></nz-date-picker>
+                </nz-form-control>
+              </nz-form-item>
+
+              <nz-form-item>
+                <nz-form-label class="fs-12 d-flex align-items-center p-0">
                   Dự án
                 </nz-form-label>
                 <nz-form-control [nzSpan]="24">
                   <nz-select
-                    name="projectId"
+                    name="projectID"
                     class="w-100 fs-12"
                     nzShowSearch
                     nzPlaceHolder="Chọn dự án"
-                    [(ngModel)]="projectId"
+                    [(ngModel)]="projectID"
                     nzAllowClear
                     nzSize="small"
                   >
-                    @for (item of projects; track $index) {
+                    @for (item of dataProject; track $index) {
                       <nz-option
                         [nzLabel]="item.ProjectCode + ' - ' + item.ProjectName"
                         [nzValue]="item.ID"
@@ -53,19 +85,20 @@
                   </nz-select>
                 </nz-form-control>
               </nz-form-item>
+
               <nz-form-item>
                 <nz-form-label class="fs-12 d-flex align-items-center p-0">
                   Từ khóa
                 </nz-form-label>
                 <nz-form-control [nzSpan]="24">
                   <input
-                    name="keyword"
+                    name="searchKeyword"
                     nz-input
                     nzSize="small"
                     class="fs-12"
                     placeholder="Nhập từ khóa"
-                    [(ngModel)]="keyword"
-                    (keyup.enter)="onSearch()"
+                    [(ngModel)]="searchKeyword"
+                    (keyup.enter)="getProjectPartlistProblem()"
                   />
                 </nz-form-control>
               </nz-form-item>
@@ -84,7 +117,7 @@
               nz-button 
               nzType="primary" 
               nzSize="small" 
-              (click)="onSearch()"
+              (click)="getProjectPartlistProblem()"
             >
               Tìm kiếm
             </button>
@@ -107,14 +140,11 @@
               </button>
               <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
                 <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" class="me-1" />Xuất excel
-            </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="changeProject()">
-              <img src="assets/icon/compare_project_16.png" alt="Chuyển dự án" class="me-1" />Chuyển dự án
-          </button>
+              </button>
             </div>
           </div>
-          <div class="card-body p-0" style="flex: 1; overflow: auto; display: flex; flex-direction: column; min-height: 0;">
-            <div #tb_projectlistworkreport style="flex: 1; width: 100%; height: 100%; min-width: 0;"></div>
+          <div class="card-body p-0" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+            <div #tb_projectPartlistProblem style="flex: 1; width: 100%; height: 100%;"></div>
           </div>
         </div>
       </nz-splitter-panel>
@@ -122,7 +152,7 @@
   </div>
 
   <!-- Modal Footer -->
-  <div class="modal-footer bg-whitesmoke p-2 d-flex justify-content-end gap-2" style="flex-shrink: 0;">
+  <div class="modal-footer bg-whitesmoke br p-1" style="flex-shrink: 0;">
     <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">
       Đóng
     </button>

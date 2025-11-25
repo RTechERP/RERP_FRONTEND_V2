@@ -245,7 +245,7 @@ export class WarehouseReleaseRequestComponent implements OnInit {
     private RequestInvoiceDetailService: RequestInvoiceDetailService,
     private modalService: NgbModal,
     private appUserService: AppUserService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadWarehouse();
@@ -255,7 +255,10 @@ export class WarehouseReleaseRequestComponent implements OnInit {
     this.loadPOKHExportRequest(1, 0, 0, 0, '');
   }
 
-  ngAfterViewInit(): void {}
+  ngAfterViewInit(): void {
+    // Khởi tạo bảng ngay lập tức với data rỗng
+    this.initWarehouseReleaseTable();
+  }
 
   //#region Các hàm load dữ liệu từ api
   loadWarehouse(): void {
@@ -317,6 +320,7 @@ export class WarehouseReleaseRequestComponent implements OnInit {
       }
     );
   }
+
   loadPOKHExportRequest(
     warehouseId: number,
     customerId: number,
@@ -338,7 +342,10 @@ export class WarehouseReleaseRequestComponent implements OnInit {
           // Chuyển đổi dữ liệu từ flat sang nested structure cho dataTree
           const treeData = this.convertToTreeData(this.gridData);
           this.gridData = treeData;
-          this.initWarehouseReleaseTable();
+          // Cập nhật data vào bảng đã được khởi tạo sẵn
+          if (this.table) {
+            this.table.setData(treeData);
+          }
         } else {
           this.notification.error(
             'Lỗi khi tải dữ liệu bảng:',
@@ -466,7 +473,7 @@ export class WarehouseReleaseRequestComponent implements OnInit {
 
           for (let i = 0; i < validateResults.length; i++) {
             const result = validateResults[i];
-            
+
             if (!result.isValid) {
               continue;
             }
@@ -513,6 +520,7 @@ export class WarehouseReleaseRequestComponent implements OnInit {
               UnitPricePOKH: dataRow['UnitPricePOKH'] || '',
               STT: stt,
               ChildID: String(dataRow['POKHDetailID'] || ''),
+              POKHDetailIDActual: String(dataRow['POKHDetailID'] || ''),
               PONumber: dataRow['PONumber'] || '',
               POCode: dataRow['POCode'] || '',
             });
@@ -583,7 +591,7 @@ export class WarehouseReleaseRequestComponent implements OnInit {
     }
 
     const billExport = this.billExports[index];
-    
+
     const billExportForModal = {
       TypeBill: false,
       Code: '',
@@ -641,7 +649,7 @@ export class WarehouseReleaseRequestComponent implements OnInit {
 
     setTimeout(() => {
       modalRef.componentInstance.dataTableBillExportDetail = detailsForModal;
-      
+
       if (modalRef.componentInstance.table_billExportDetail) {
         modalRef.componentInstance.table_billExportDetail.replaceData(detailsForModal);
       }
@@ -738,7 +746,7 @@ export class WarehouseReleaseRequestComponent implements OnInit {
       dataTreeChildField: '_children',
       dataTreeBranchElement: true,
       dataTreeChildIndent: 15,
-      height: '75vh',
+      height: '73.5vh',
       layout: 'fitColumns',
       reactiveData: true,
       resizableRows: true,
@@ -783,7 +791,7 @@ export class WarehouseReleaseRequestComponent implements OnInit {
           width: 120,
           hozAlign: 'center',
           visible: false,
-        },        
+        },
         {
           title: 'ID cha',
           field: 'ParentID',
@@ -808,55 +816,55 @@ export class WarehouseReleaseRequestComponent implements OnInit {
         {
           title: 'Khách hàng',
           field: 'CustomerName',
-          width: 120,
+          width: 250,
           hozAlign: 'center',
           frozen: true,
         },
         {
           title: 'Dự án',
           field: 'ProjectName',
-          width: 100,
+          width: 250,
           hozAlign: 'center',
           frozen: true,
         },
         {
           title: 'Mã sản phẩm',
           field: 'ProductCode',
-          width: 150,
+          width: 250,
           hozAlign: 'center',
           frozen: true,
         },
         {
           title: 'Mã nội bộ',
           field: 'ProductNewCode',
-          width: 150,
+          width: 250,
           hozAlign: 'center',
         },
         {
           title: 'Mã theo khách',
           field: 'GuestCode',
-          width: 150,
+          width: 250,
           hozAlign: 'center',
         },
         {
           title: 'Tên sản phẩm',
           field: 'ProductName',
-          width: 150,
+          width: 250,
           hozAlign: 'center',
         },
         {
           title: 'Loại kho',
           field: 'ProductGroupName',
-          width: 100,
+          width: 250,
           hozAlign: 'center',
         },
         { title: 'ĐVT', field: 'Unit', width: 100, hozAlign: 'center' },
-        { title: 'Số lượng PO', field: 'Qty', width: 100, hozAlign: 'center' },
+        { title: 'Số lượng PO', field: 'Qty', width: 100, hozAlign: 'right' },
         {
           title: 'SL yêu cầu xuất',
           field: 'QuantityRequestExport',
           width: 150,
-          hozAlign: 'center',
+          hozAlign: 'right',
           editor: 'input',
           validator: 'integer',
           cellEdited: (cell: CellComponent) => {
@@ -887,13 +895,13 @@ export class WarehouseReleaseRequestComponent implements OnInit {
           title: 'SL đã xuất',
           field: 'QuantityExport',
           width: 150,
-          hozAlign: 'center',
+          hozAlign: 'right',
         },
         {
           title: 'SL còn lại',
           field: 'QuantityRemain',
           width: 100,
-          hozAlign: 'center',
+          hozAlign: 'right',
         },
         {
           title: 'Người nhận',
@@ -901,6 +909,12 @@ export class WarehouseReleaseRequestComponent implements OnInit {
           width: 150,
           hozAlign: 'center',
         },
+        {
+          title: 'Mã phiếu xuất',
+          field: 'BillExportCode',
+          width: 150,
+        },
+
       ],
     });
   }

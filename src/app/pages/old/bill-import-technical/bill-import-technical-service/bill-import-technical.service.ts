@@ -84,4 +84,7 @@ export class BillImportTechnicalService {
   approveAction(ids: number[], action: 'approve' | 'unapprove') {
     return this.http.post<any>(`${this.url}approve-action`, { IDs: ids, Action: action });
   }
+  getUser(): Observable<any> {
+    return this.http.get<any>(`${this.url}/get-user`);
+  }
 }

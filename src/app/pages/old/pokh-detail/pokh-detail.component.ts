@@ -67,6 +67,7 @@ import { FollowProductReturnComponent } from '../follow-product-return/follow-pr
 import { PoRequestBuyComponent } from '../po-request-buy/po-request-buy.component';
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
 import { QuotationKhDataComponent } from '../quotation-kh-data/quotation-kh-data.component';
+import { CustomerDetailComponent } from '../../crm/customers/customer-detail/customer-detail.component';
 
 @Component({
   selector: 'app-pokh',
@@ -124,7 +125,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private viewPOKHService: ViewPokhService,
     public activeModal: NgbActiveModal
-  ) {}
+  ) { }
 
   //#region : Khai báo
   //Khai báo các bảng
@@ -179,6 +180,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     accountType: 0,
     totalMoneyDiscount: 0,
     discount: 0,
+    moneyDiscount: 0,
   };
   filters: any = {
     filterText: '',
@@ -480,6 +482,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             warehouseId: pokhData.WarehouseID,
             discount: pokhData.Discount || 0,
             totalMoneyDiscount: pokhData.TotalMoneyDiscount || 0,
+            moneyDiscount: pokhData.MoneyDiscount || 0,
             accountType: pokhData.AccountType || 0,
           };
 
@@ -488,9 +491,8 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           );
           this.isResponsibleUsersEnabled = pokhData.UserType === 1;
 
-          // Tính toán chiết khấu lần đầu khi load dữ liệu (xử lý dữ liệu cũ không có discount)
-          // Nếu discount = 0 hoặc null, totalMoneyDiscount sẽ bằng totalPO
-          this.calculateDiscount();
+          // Tính toán chiết khấu lần đầu khi load dữ liệu: chỉ tính từ moneyDiscount, không tính từ %
+          this.calculateTotalFromMoneyDiscount();
 
           // Nếu đang ở chế độ copy thì reset ID và data file
           if (this.isCopy) {
@@ -576,8 +578,8 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
                     fileType: this.getFileType(fileFromServer.FileName || ''),
                     CreatedDate: fileFromServer.CreatedDate
                       ? new Date(fileFromServer.CreatedDate).toLocaleDateString(
-                          'vi-VN'
-                        )
+                        'vi-VN'
+                      )
                       : new Date().toLocaleDateString('vi-VN'),
                   })
                 );
@@ -600,8 +602,8 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
                 }
               }
 
-              // Tính lại chiết khấu sau khi load xong tất cả dữ liệu
-              this.calculateDiscount();
+              // Tính lại chiết khấu sau khi load xong tất cả dữ liệu: chỉ tính từ moneyDiscount, không tính từ %
+              this.calculateTotalFromMoneyDiscount();
             },
             (forkJoinError) => {
               this.notification.error(
@@ -645,22 +647,22 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     const detailUsers =
       this.isResponsibleUsersEnabled && this.tb_DetailUser
         ? this.tb_DetailUser.getData().map((user: any) => ({
-            ...user,
-            RowHandle:
-              !user.RowHandle || Object.keys(user.RowHandle).length === 0
-                ? 0
-                : user.RowHandle,
-            CreatedDate:
-              !user.CreatedDate || Object.keys(user.CreatedDate).length === 0
-                ? null
-                : user.CreatedDate,
-            STT: !user.STT || Object.keys(user.STT).length === 0 ? 0 : user.STT,
-            ReceiveMoney:
-              !user.ReceiveMoney || Object.keys(user.ReceiveMoney).length === 0
-                ? 0
-                : user.ReceiveMoney,
-            UserID: user.UserID ? Number(user.UserID) : null,
-          }))
+          ...user,
+          RowHandle:
+            !user.RowHandle || Object.keys(user.RowHandle).length === 0
+              ? 0
+              : user.RowHandle,
+          CreatedDate:
+            !user.CreatedDate || Object.keys(user.CreatedDate).length === 0
+              ? null
+              : user.CreatedDate,
+          STT: !user.STT || Object.keys(user.STT).length === 0 ? 0 : user.STT,
+          ReceiveMoney:
+            !user.ReceiveMoney || Object.keys(user.ReceiveMoney).length === 0
+              ? 0
+              : user.ReceiveMoney,
+          UserID: user.UserID ? Number(user.UserID) : null,
+        }))
         : [];
 
     // Add deleted IDs to the request
@@ -929,9 +931,8 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `PO_${this.selectedId}_${
-      new Date().toISOString().split('T')[0]
-    }.xlsx`;
+    link.download = `PO_${this.selectedId}_${new Date().toISOString().split('T')[0]
+      }.xlsx`;
     link.click();
     window.URL.revokeObjectURL(url);
   }
@@ -1062,9 +1063,8 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `POKH_List_Page_${currentPage}_${
-      new Date().toISOString().split('T')[0]
-    }.xlsx`;
+    link.download = `POKH_List_Page_${currentPage}_${new Date().toISOString().split('T')[0]
+      }.xlsx`;
     link.click();
     window.URL.revokeObjectURL(url);
   }
@@ -1083,7 +1083,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             : row.IndexPO,
         RecivedMoneyDate:
           !row.RecivedMoneyDate ||
-          Object.keys(row.RecivedMoneyDate).length === 0
+            Object.keys(row.RecivedMoneyDate).length === 0
             ? null
             : row.RecivedMoneyDate,
         BillDate:
@@ -1092,12 +1092,12 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             : row.BillDate,
         ActualDeliveryDate:
           !row.ActualDeliveryDate ||
-          Object.keys(row.ActualDeliveryDate).length === 0
+            Object.keys(row.ActualDeliveryDate).length === 0
             ? null
             : row.ActualDeliveryDate,
         DeliveryRequestedDate:
           !row.DeliveryRequestedDate ||
-          Object.keys(row.DeliveryRequestedDate).length === 0
+            Object.keys(row.DeliveryRequestedDate).length === 0
             ? null
             : row.DeliveryRequestedDate,
         PayDate:
@@ -1133,7 +1133,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         TT: !row.TT || Object.keys(row.TT).length === 0 ? '' : row.TT,
         ProjectPartListID:
           !row.ProjectPartListID ||
-          Object.keys(row.ProjectPartListID).length === 0
+            Object.keys(row.ProjectPartListID).length === 0
             ? 0
             : row.ProjectPartListID,
         Spec: !row.Spec || Object.keys(row.Spec).length === 0 ? '' : row.Spec,
@@ -1179,6 +1179,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       Month: poDate.getMonth() + 1,
       IsDeleted: false,
       Discount: this.poFormData.discount || 0,
+      MoneyDiscount: this.poFormData.moneyDiscount || 0,
       TotalMoneyDiscount: this.poFormData.totalMoneyDiscount || 0,
       AccountType: this.poFormData.accountType || 0,
     };
@@ -1196,18 +1197,20 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     processRows(this.tb_ProductDetailTreeList.getData());
     return total;
   }
-  formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
+
+  formatAmount = (value: number | string): string => {
+    if (value === null || value === undefined || value === '') return '';
+    const num = Number(value);
+    return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
   };
 
-  parseCurrency = (value: string): number => {
-    return Number(value.replace(/[^0-9-]/g, ''));
+  // Parser: chuyển 12,345.67 → 12345.67
+  parseAmount = (value: string): number => {
+    if (!value) return 0;
+    const cleaned = value.replace(/,/g, '');  // bỏ dấu phẩy
+    return Number(cleaned);
   };
+
   resetForm() {
     this.poFormData = {
       status: 0,
@@ -1230,6 +1233,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       warehouseId: 1,
       totalMoneyDiscount: 0,
       discount: 0,
+      moneyDiscount: 0,
       accountType: 0,
     };
     this.selectedCustomer = null;
@@ -1417,8 +1421,8 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     // Cập nhật lại giá trị tiền trong bảng người phụ trách
     this.updateResponsibleUsersMoney();
 
-    // Tính lại chiết khấu khi totalPO thay đổi
-    this.calculateDiscount();
+    // Tính lại chiết khấu khi totalPO thay đổi: chỉ tính từ moneyDiscount, không tính từ %
+    this.calculateTotalFromMoneyDiscount();
   }
   updateResponsibleUsersMoney(): void {
     if (!this.tb_DetailUser) return;
@@ -1438,23 +1442,79 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     });
   }
   calculateDiscount(): void {
-    // Đảm bảo totalPO và discount luôn là số hợp lệ
+    // Đảm bảo totalPO luôn là số hợp lệ
     const totalPO = isNaN(Number(this.poFormData.totalPO))
       ? 0
       : Number(this.poFormData.totalPO) || 0;
+
+    // Lấy tổng tiền chiết khấu hiện tại
+    const moneyDiscount = isNaN(Number(this.poFormData.moneyDiscount))
+      ? 0
+      : Number(this.poFormData.moneyDiscount) || 0;
+
+    // Ưu tiên tổng tiền chiết khấu: nếu có moneyDiscount thì dùng nó
+    if (moneyDiscount > 0) {
+      // Tính tổng tiền sau chiết khấu từ moneyDiscount
+      const result = totalPO - moneyDiscount;
+      this.poFormData.totalMoneyDiscount = isNaN(result) ? 0 : Math.max(0, result);
+    } else {
+      // Nếu không có moneyDiscount, tính từ % chiết khấu
+      const discount = isNaN(Number(this.poFormData.discount))
+        ? 0
+        : Number(this.poFormData.discount) || 0;
+
+      // Tính số tiền chiết khấu từ %
+      const calculatedMoneyDiscount = (totalPO * discount) / 100;
+      this.poFormData.moneyDiscount = isNaN(calculatedMoneyDiscount) ? 0 : calculatedMoneyDiscount;
+
+      // Tính tổng tiền sau chiết khấu
+      const result = totalPO - calculatedMoneyDiscount;
+      this.poFormData.totalMoneyDiscount = isNaN(result) ? 0 : Math.max(0, result);
+    }
+  }
+
+  // Tính từ % chiết khấu: cập nhật moneyDiscount và totalMoneyDiscount
+  calculateDiscountFromPercent(): void {
+    const totalPO = isNaN(Number(this.poFormData.totalPO))
+      ? 0
+      : Number(this.poFormData.totalPO) || 0;
+
     const discount = isNaN(Number(this.poFormData.discount))
       ? 0
       : Number(this.poFormData.discount) || 0;
 
-    // Tính số tiền chiết khấu
-    const moneyDiscount = (totalPO * discount) / 100;
+    // Tính số tiền chiết khấu từ %
+    const calculatedMoneyDiscount = (totalPO * discount) / 100;
+    this.poFormData.moneyDiscount = isNaN(calculatedMoneyDiscount) ? 0 : calculatedMoneyDiscount;
 
-    // Tính tổng tiền sau chiết khấu, đảm bảo không bị NaN
-    const result = totalPO - moneyDiscount;
-    this.poFormData.totalMoneyDiscount = isNaN(result) ? 0 : result;
+    // Tính tổng tiền sau chiết khấu
+    const result = totalPO - calculatedMoneyDiscount;
+    this.poFormData.totalMoneyDiscount = isNaN(result) ? 0 : Math.max(0, result);
   }
+
+  // Tính từ tổng tiền chiết khấu: chỉ cập nhật totalMoneyDiscount, bỏ qua %
+  calculateTotalFromMoneyDiscount(): void {
+    const totalPO = isNaN(Number(this.poFormData.totalPO))
+      ? 0
+      : Number(this.poFormData.totalPO) || 0;
+
+    const moneyDiscount = isNaN(Number(this.poFormData.moneyDiscount))
+      ? 0
+      : Number(this.poFormData.moneyDiscount) || 0;
+
+    // Tính tổng tiền sau chiết khấu từ moneyDiscount (bỏ qua %)
+    const result = totalPO - moneyDiscount;
+    this.poFormData.totalMoneyDiscount = isNaN(result) ? 0 : Math.max(0, result);
+  }
+
   onDiscountChange(): void {
-    this.calculateDiscount();
+    // Khi nhập % chiết khấu, tính lại moneyDiscount và totalMoneyDiscount từ %
+    this.calculateDiscountFromPercent();
+  }
+
+  onMoneyDiscountChange(): void {
+    // Khi nhập tổng tiền chiết khấu, chỉ tính totalMoneyDiscount, bỏ qua %
+    this.calculateTotalFromMoneyDiscount();
   }
   onTotalPOChange(value: number | string | null | undefined): void {
     let numericValue = 0;
@@ -1475,7 +1535,8 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     this.poFormData.totalPO = numericValue;
 
     this.updateResponsibleUsersMoney();
-    this.calculateDiscount();
+    // Tính lại chiết khấu khi totalPO thay đổi: chỉ tính từ moneyDiscount, không tính từ %
+    this.calculateTotalFromMoneyDiscount();
   }
   formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
@@ -1671,6 +1732,15 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     this.generatePOCode(customerShortName);
     console.log('Customer Short Name:', customerShortName);
   }
+
+  openCustomerModal(): void {
+    const modalRef = this.modalService.open(CustomerDetailComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+    });
+  }
+
   openQuotationKhDataModal() {
     const modalRef = this.modalService.open(QuotationKhDataComponent, {
       centered: true,
@@ -1977,9 +2047,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
                 const shortLabel =
                   `${product.ProductNewCode} ${product.ProductCode}`.length > 50
                     ? `${product.ProductNewCode} ${product.ProductCode}`.substring(
-                        0,
-                        50
-                      ) + '...'
+                      0,
+                      50
+                    ) + '...'
                     : `${product.ProductNewCode} ${product.ProductCode}`;
 
                 return {
@@ -2019,7 +2089,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             field: 'Maker',
             sorter: 'string',
             width: 100,
-            editor: 'input',
+            // editor: 'input',
           },
           {
             title: 'Số lượng',
@@ -2027,6 +2097,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 80,
             editor: 'number',
+            bottomCalc: 'sum',
           },
           {
             title: 'Kích thước phim cắt/Model',
@@ -2047,7 +2118,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             field: 'Unit',
             sorter: 'string',
             width: 100,
-            editor: 'input',
+            // editor: 'input',
           },
           {
             title: 'Đơn giá NET',
@@ -2072,6 +2143,15 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             editor: 'number',
             formatter: 'money',
             formatterParams: {
+              precision: 0,
+              decimal: '.',
+              thousand: ',',
+              symbol: '',
+              symbolAfter: true,
+            },
+            bottomCalc: 'sum',
+            bottomCalcFormatter: 'money',
+            bottomCalcFormatterParams: {
               precision: 0,
               decimal: '.',
               thousand: ',',
@@ -2287,37 +2367,52 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       columns: [
         {
           title: '',
-          field: 'actions',
-          formatter: (cell) => {
-            return `<img src="/assets/icon/delete-btn.png" class="delete-btn" style="width: 20px; height: 20px; cursor: pointer;" alt="Xóa" />`;
-          },
-          width: '5%',
+          field: 'addRow',
           hozAlign: 'center',
+          width: 40,
+          frozen: true,
+          headerSort: false,
+          titleFormatter: () =>
+            `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
+          headerClick: () => {
+            this.addRowDetailUser();
+          },
+          formatter: (cell) => {
+            const data = cell.getRow().getData();
+            let isDeleted = data['IsDeleted'];
+            return !isDeleted
+              ? `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`
+              : '';
+          },
           cellClick: (e, cell) => {
-            const target = e.target as HTMLElement;
-            if (
-              target.classList.contains('delete-btn') ||
-              target.tagName === 'IMG'
-            ) {
-              this.modal.confirm({
-                nzTitle: 'Xác nhận xóa',
-                nzContent: 'Bạn có chắc chắn muốn xóa người phụ trách này?',
-                nzOkText: 'Đồng ý',
-                nzCancelText: 'Hủy',
-                nzOnOk: () => {
-                  const row = cell.getRow();
-                  const rowData = row.getData();
-
-                  // thêm id của người phụ trách đã xóa vào mảng deletedDetailUserIds
-                  if (rowData['ID']) {
-                    this.deletedDetailUserIds.push(rowData['ID']);
-                  }
-
-                  row.delete();
-                  this.dataPOKHDetailUser = this.tb_DetailUser.getData();
-                },
-              });
+            let data = cell.getRow().getData();
+            let id = data['ID'];
+            let fullName = data['ResponsibleUser'] || 'người phụ trách này';
+            let isDeleted = data['IsDeleted'];
+            if (isDeleted) {
+              return;
             }
+            this.modal.confirm({
+              nzTitle: `Bạn có chắc chắn muốn xóa người phụ trách`,
+              nzContent: `${fullName}`,
+              nzOkText: 'Xóa',
+              nzOkType: 'primary',
+              nzCancelText: 'Hủy',
+              nzOkDanger: true,
+              nzOnOk: () => {
+                if (id > 0) {
+                  if (!this.deletedDetailUserIds.includes(id)) {
+                    this.deletedDetailUserIds.push(id);
+                  }
+                  this.tb_DetailUser.deleteRow(cell.getRow());
+                  this.dataPOKHDetailUser = this.tb_DetailUser.getData();
+                  console.log("this.deletedDetailUserIds: ", this.deletedDetailUserIds);
+                } else {
+                  this.tb_DetailUser.deleteRow(cell.getRow());
+                  this.dataPOKHDetailUser = this.tb_DetailUser.getData();
+                }
+              },
+            });
           },
         },
         {

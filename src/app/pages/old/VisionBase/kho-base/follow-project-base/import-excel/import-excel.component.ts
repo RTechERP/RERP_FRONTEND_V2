@@ -314,4 +314,32 @@ export class ImportExcelComponent implements OnInit {
       }
     });
   }
+
+  downloadTemplate() {
+    this.khoBaseService.downloadTemplateExcel().subscribe({
+      next: (blob: Blob) => {
+        // Tạo URL và download file
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+
+        // Tên file mẫu
+        const fileName = `Template_Import_Follow_Project.xlsx`;
+        link.download = fileName;
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Giải phóng URL
+        window.URL.revokeObjectURL(url);
+
+        this.notification.success('Thành công', 'Tải file mẫu thành công!');
+      },
+      error: (err: any) => {
+        console.error('Download template error:', err);
+        this.notification.error('Thông báo', 'Lỗi khi tải file mẫu: ' + (err.error?.message || err.message || 'Vui lòng thử lại'));
+      }
+    });
+  }
 }

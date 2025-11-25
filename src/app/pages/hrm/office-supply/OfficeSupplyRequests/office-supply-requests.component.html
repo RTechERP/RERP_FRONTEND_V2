@@ -73,10 +73,14 @@
                             <!-- <nz-icon nzType="plus" /> Thêm -->
                             <img src="assets/icon/action_add_item_16.png" />Thêm
                         </button>
-                        <button class="btn-edit" nz-button nzType="default" nzSize="small">
+                             
+                        <button class="btn-add" nz-button nzType="default" nzSize="small" (click)="openAdminRegistrationModal()" *hasPermission="'N2,N34,N1,N54,N72'">
+                            <img src="assets/icon/action_add_item_16.png" />Đăng ký VPP Admin
+                        </button>
+                        <button class="btn-edit" nz-button nzType="default" nzSize="small" (click)="editRequest()" *hasPermission="'N2,N34,N1,N54,N72'">
                             <img src="assets/icon/action_edit_item_16.png" />Sửa
                         </button>
-                        <button class="btn-delete" nz-button nzType="default" nzSize="small">
+                        <button class="btn-delete" nz-button nzType="default" nzSize="small" (click)="deleteRequests()" *hasPermission="'N2,N34,N1,N54,N72'">
                             <img src="assets/icon/action_delete_item_16.png" />Xóa
                         </button>
 

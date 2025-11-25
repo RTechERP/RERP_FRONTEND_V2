@@ -19,7 +19,14 @@
   <div class="modal-body p-0" style="overflow: hidden; min-height: 0;">
     <nz-splitter nzLayout="horizontal" style="height: 100%; min-height: 0;">
       <!-- Phần trái: 3 bảng dọc -->
-      <nz-splitter-panel [nzSize]="sizeLeftPanel" nzMin="20%" nzMax="50%" [nzCollapsible]="true" nzResizable="true">
+      <nz-splitter-panel 
+      [nzSize]="sizeLeftPanel === '' ? undefined : sizeLeftPanel" 
+      nzDefaultSize="25%"
+      nzMin="10%" 
+      nzMax="50%" 
+      [nzCollapsible]="true" 
+      nzResizable="true">
+  
         <nz-splitter nzLayout="vertical" style="height: 100%">
           <!-- Bảng 1: Giải pháp -->
           <nz-splitter-panel nzDefaultSize="33.33%">
@@ -188,7 +195,12 @@
       </nz-splitter-panel>
 
           <!-- Phần phải: Bảng nhân công -->
-      <nz-splitter-panel [nzSize]="sizeRightPanel" nzMin="50%" nzMax="100%">
+          <nz-splitter-panel 
+          [nzSize]="sizeRightPanel" 
+          nzDefaultSize="75%"
+          nzMin="50%" 
+          nzMax="100%" 
+          nzResizable="true">
         <div class="card h-100 border-0 rounded-0 d-flex flex-column">
           <div class="card-header bg-white p-1 d-flex justify-content-between align-items-center" style=" font-weight: bold !important; background-color: #efebebe7 !important;">
             <p class="m-0">Nhân công</p>
@@ -279,6 +291,9 @@
         >
           <img src="assets/icon/action_export_excel_16.png" /> Xuất Excel
         </button>
+          </div>
+
+          <div class="card-header bg-white p-1 d-flex gap-1">
             <div
               style="min-width: 400px"
               class="d-flex gap-1 ms-auto align-items-center"
@@ -286,13 +301,11 @@
               <label class="fs-12 mb-0">Trạng thái TBP</label>
               <nz-select
                 name="IsLateActual"
-               
                 nzShowSearch
                 nzAllowClear
                 nzPlaceHolder="Chọn trạng thái"
                 nzSize="small"
-                [ngModel]="isApprovedTBP"
-                (ngModelChange)="isApprovedTBP = $event; searchDataProjectWorker()"
+                [(ngModel)]="isApprovedTBP"
               >
                 <nz-option [nzValue]="-1" nzLabel="--Tất cả--"></nz-option>
                 <nz-option [nzValue]="0" nzLabel="Chưa duyệt"></nz-option>
@@ -302,13 +315,11 @@
               <label class="fs-12 mb-0">Trạng thái</label>
               <nz-select
                 name="IsLateActual"
-               
                 nzShowSearch
                 nzAllowClear
                 nzPlaceHolder="Chọn trạng thái"
                 nzSize="small"
-                [ngModel]="isDeleted"
-                (ngModelChange)="isDeleted = $event; searchDataProjectWorker()"
+                [(ngModel)]="isDeleted"
               >
                 <nz-option [nzValue]="-1" nzLabel="--Tất cả--"></nz-option>
                 <nz-option [nzValue]="0" nzLabel="Chưa xóa"></nz-option>
@@ -319,19 +330,19 @@
                 nzSize="small"
                 placeholder="Nhập từ khóa"
                 style="width: 150px"
-                [ngModel]="keyword"
-                (ngModelChange)="keyword = $event; searchDataProjectWorker()"
+                [(ngModel)]="keyword"
+                (keyup.enter)="searchDataProjectWorker()"
               />
-              <!-- <button
-                type="submit"
+              <button
+                type="button"
                 nz-button
                 nzType="primary"
                 nzSize="small"
                 (click)="searchDataProjectWorker()"
-                (keyup.enter)="searchDataProjectWorker()"
               >
+                <i nz-icon nzType="search"></i>
                 Tìm kiếm
-              </button> -->
+              </button>
             </div>
           </div>
 

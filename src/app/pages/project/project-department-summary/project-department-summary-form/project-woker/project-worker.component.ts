@@ -99,9 +99,12 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
     private ngbModal: NgbModal,
     private cdr: ChangeDetectorRef
   ) {}
-  sizeSearch: string = '22%';
-  sizeLeftPanel: string = '25%'; // Size của panel bên trái (3 bảng)
-  sizeRightPanel: string = '75%'; // Size của panel bên phải (bảng nhân công)
+
+    // Biến lưu dòng đang được focus (click)
+    private lastClickedWorkerRow: any = null;
+
+    sizeLeftPanel: string = ''; // Khởi tạo rỗng
+    sizeRightPanel: string = ''; // Khởi tạo rỗng
   @ViewChild('tb_solution', { static: false })
   tb_solutionContainer!: ElementRef;
   @ViewChild('tb_solutionVersion', { static: false })
@@ -927,6 +930,22 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
         groupStartOpen: true,
         selectableRows: 1,
         groupHeader: (value: any) => `Danh mục: ${value}`,
+        rowContextMenu: [
+          {
+            label: 'Sử dụng',
+            action: (e: any, row: any) => {
+              const rowData = row.getData();
+              this.approvedActiveVersion(rowData["ID"], true, 1);
+            },
+          },
+          {
+            label: 'Không sử dụng',
+            action: (e: any, row: any) => {
+              const rowData = row.getData();
+              this.approvedActiveVersion(rowData["ID"], false, 1);
+            },
+          },
+        ],
         columns: [
           {
             title: 'STT',
@@ -1034,6 +1053,22 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
         groupStartOpen: true,
         selectableRows: 1,
         groupHeader: (value: any) => `Danh mục: ${value}`,
+        rowContextMenu: [
+          {
+            label: 'Sử dụng',
+            action: (e: any, row: any) => {
+              const rowData = row.getData();
+              this.approvedActiveVersion(rowData["ID"], true, 2);
+            },
+          },
+          {
+            label: 'Không sử dụng',
+            action: (e: any, row: any) => {
+              const rowData = row.getData();
+              this.approvedActiveVersion(rowData["ID"], false, 2);
+            },
+          },
+        ],
         columns: [
           {
             title: 'STT',
@@ -1358,6 +1393,30 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
         }, 150); // Đợi sau khi toggle children xong
       }
     );
+    this.tb_projectWorker.on('cellClick', (e: any, cell: any) => {
+      const field = cell.getField();
+      if (field === 'rowSelection') return;
+      
+      // Xóa highlight cũ
+      if (this.lastClickedWorkerRow) {
+        const oldElement = this.lastClickedWorkerRow.getElement();
+        if (oldElement) {
+          oldElement.style.outline = '';
+        }
+      }
+      
+      // Lưu và highlight dòng mới
+      this.lastClickedWorkerRow = cell.getRow();
+      const rowData = this.lastClickedWorkerRow.getData();
+      
+      const newElement = this.lastClickedWorkerRow.getElement();
+      if (newElement) {
+        newElement.style.outline = '3px solid #52c41a';
+        newElement.style.outlineOffset = '-1px';
+      }
+      
+      console.log('Cell clicked - Row TT:', rowData.TT, 'ID:', rowData.ID);
+    });
   }
   //#endregion
 
@@ -1459,7 +1518,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
       }
     });
 
-    // Hàm đệ quy tính tổng từ con - tham khảo logic từ WinForm CalculateWork
+    // Hàm đệ quy tính tổng từ con
     const calculateNode = (node: any): void => {
       // Lấy thông tin về công việc hiện tại
       const numberOfPeople = Number(node.AmountPeople) || 0;
@@ -1467,35 +1526,34 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
       const laborCostPerDay = Number(node.Price) || 0;
 
       // Xử lý các công việc con
-      let totalLaborFromChildren = 0;
-      let totalCostFromChildren = 0;
+      let totalLaborFromDirectChildren = 0;
+      let totalCostFromDirectChildren = 0;
 
-      // Duyệt qua tất cả con và tính đệ quy
+      // Duyệt qua tất cả con trực tiếp
       node._children.forEach((child: any) => {
-        calculateNode(child); // Tính con trước (đệ quy)
+        // Tính con trước (đệ quy) để đảm bảo con đã có giá trị
+        calculateNode(child);
 
-        // Lấy giá trị từ công việc con (sau khi đã tính)
-        const laborFromChild = Number(child.TotalWorkforce) || 0;
-        const costFromChild = Number(child.TotalPrice) || 0;
-
-        // Tính tổng từ công việc con
-        totalLaborFromChildren += laborFromChild;
-        totalCostFromChildren += costFromChild;
+        // Lấy giá trị từ con trực tiếp (đã được tính từ các con trực tiếp của nó)
+        // Node cha chỉ lấy tổng từ các con trực tiếp, không đệ quy sâu hơn
+        totalLaborFromDirectChildren += Number(child.TotalWorkforce) || 0;
+        totalCostFromDirectChildren += Number(child.TotalPrice) || 0;
       });
 
-      // === ÁP DỤNG CÙNG CÔNG THỨC CHO TẤT CẢ NODE (giống C# WinForm) ===
-      // Tính tổng từ công việc hiện tại và các công việc con
-      // Logic giống WinForm: totalLabor = numberOfPeople * numberOfDays + totalLaborFromChildren
-      // totalCost = totalLabor * laborCostPerDay + totalCostFromChildren
-      const totalLabor = numberOfPeople * numberOfDays + totalLaborFromChildren;
-      const totalCost = totalLabor * laborCostPerDay + totalCostFromChildren;
+      // Kiểm tra xem node có con hay không
+      const hasChildren = node._children && node._children.length > 0;
 
-      // Cập nhật dữ liệu cho công việc hiện tại (chỉ cập nhật TotalPrice như C#)
-      // Note: C# code chỉ cập nhật TotalPrice, các field khác bị comment
-      node.TotalPrice = totalCost;
-      
-      // Cập nhật TotalWorkforce để hiển thị (C# không cập nhật nhưng Angular cần để hiển thị)
-      node.TotalWorkforce = totalLabor;
+      if (hasChildren) {
+        // Node CHA: chỉ tính tổng từ các con trực tiếp (không bao gồm giá trị của chính node cha)
+        node.TotalWorkforce = totalLaborFromDirectChildren;
+        node.TotalPrice = totalCostFromDirectChildren;
+      } else {
+        // Node LÁ: tính từ giá trị của chính node
+        const totalLabor = numberOfPeople * numberOfDays;
+        const totalCost = totalLabor * laborCostPerDay;
+        node.TotalWorkforce = totalLabor;
+        node.TotalPrice = totalCost;
+      }
     };
 
     // Tính từ gốc
@@ -1531,75 +1589,82 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
     let workerData: any = null;
     let workerID: number = 0;
 
-    // Nếu là edit mode, lấy dữ liệu từ row đã chọn
+    // Nếu là edit mode, lấy dữ liệu từ dòng đang focus
     if (isEdit) {
-      const selectedRows = this.tb_projectWorker?.getSelectedData();
-      if (!selectedRows || selectedRows.length === 0) {
+      // Thử 3 cách lấy dòng theo thứ tự ưu tiên
+      let targetRow: any = null;
+      
+      // Cách 1: Lấy từ biến đã lưu (khi click vào cell)
+      if (this.lastClickedWorkerRow) {
+        targetRow = this.lastClickedWorkerRow;
+        console.log('Lấy từ lastClickedWorkerRow');
+      }
+      // Cách 2: Lấy dòng đầu tiên trong selected rows (nếu chỉ chọn 1 dòng)
+      else {
+        const selectedRows = this.tb_projectWorker?.getSelectedRows();
+        if (selectedRows && selectedRows.length === 1) {
+          targetRow = selectedRows[0];
+          console.log('Lấy từ selectedRows (1 dòng)');
+        }
+      }
+
+      if (!targetRow) {
         this.notification.warning(
           'Thông báo',
-          'Vui lòng chọn nhân công cần sửa'
+          'Vui lòng click vào nhân công cần sửa'
         );
         return;
       }
 
-      const selectedRow = selectedRows[0];
-      workerID = selectedRow.ID || 0;
+      const focusedRow = targetRow.getData();
+      workerID = focusedRow.ID || 0;
 
-      // Kiểm tra node có con không (chỉ cho sửa node lá)
-      if (selectedRow._children && selectedRow._children.length > 0) {
-        this.notification.warning(
-          'Thông báo',
-          'Chỉ được sửa nhân công ở node lá (không có con)'
-        );
-        return;
-      }
+      console.log('Edit worker - TT:', focusedRow.TT, 'ID:', workerID, 'HasChildren:', (focusedRow._children?.length || 0));
 
       // Kiểm tra đã duyệt TBP chưa
-      if (selectedRow.IsApprovedTBP) {
+      if (focusedRow.IsApprovedTBP) {
         this.notification.warning(
           'Thông báo',
-          `Nhân công TT[${selectedRow.TT}] đã được TBP duyệt! Vui lòng chọn lại.`
+          `Nhân công TT[${focusedRow.TT}] đã được TBP duyệt! Vui lòng chọn lại.`
         );
         return;
       }
 
-      workerData = selectedRow;
+      workerData = focusedRow;
     }
+     // Lấy danh sách parent từ tree data (chỉ lấy các node cha, không phải node lá)
+     const parentList = this.getParentListFromTree(this.treeWorkerData);
 
-    // Lấy danh sách parent từ tree data (chỉ lấy các node cha, không phải node lá)
-    const parentList = this.getParentListFromTree(this.treeWorkerData);
-
-    // Mở modal
-    const modalRef = this.ngbModal.open(ProjectWorkerDetailComponent, {
-      centered: true,
-      size: 'md',
-      backdrop: 'static',
-      keyboard: false,
-    });
-
-    // Set các Input properties
-    modalRef.componentInstance.projectID = this.projectId;
-    modalRef.componentInstance.ProjectWorkerVersionID = selectedVersionID;
-    modalRef.componentInstance.ID = workerID;
-    modalRef.componentInstance.workerData = workerData;
-    modalRef.componentInstance.parentList = parentList;
-
-    // Xử lý kết quả từ modal
-    modalRef.result
-      .then((result: any) => {
-        if (result && result.success) {
-          this.loadDataProjectWorker();
-          // Không hiện notification ở đây vì component con đã hiện rồi
-        }
-      })
-      .catch((error: any) => {
-        // Chỉ log error nếu không phải là dismiss với 'cancel' (đóng modal bình thường)
-        if (error !== 'cancel') {
-          console.error('Error in project worker detail modal:', error);
-        }
-      });
-  }
-
+     // Mở modal
+     const modalRef = this.ngbModal.open(ProjectWorkerDetailComponent, {
+       centered: true,
+       size: 'md',
+       backdrop: 'static',
+       keyboard: false,
+     });
+ 
+     // Set các Input properties
+     modalRef.componentInstance.projectID = this.projectId;
+     modalRef.componentInstance.ProjectWorkerVersionID = selectedVersionID;
+     modalRef.componentInstance.ID = workerID;
+     modalRef.componentInstance.workerData = workerData;
+     modalRef.componentInstance.parentList = parentList;
+ 
+     // Xử lý kết quả từ modal
+     modalRef.result
+       .then((result: any) => {
+         if (result && result.success) {
+           this.loadDataProjectWorker();
+           // Không hiện notification ở đây vì component con đã hiện rồi
+         }
+       })
+       .catch((error: any) => {
+         // Chỉ log error nếu không phải là dismiss với 'cancel' (đóng modal bình thường)
+         if (error !== 'cancel') {
+           console.error('Error in project worker detail modal:', error);
+         }
+       });
+   }
   // Hàm lấy danh sách parent từ tree (chỉ lấy các node cha, có thể làm parent)
   getParentListFromTree(tree: any[]): any[] {
     const parentList: any[] = [];
@@ -1695,6 +1760,31 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
     });
   }
 
+  //#region duyệt/hủy duyệt phiên bản giải pháp hoặc PO
+  approvedActiveVersion(projectWorkerVersionID: number, isActive: boolean, type: number): void {
+    this.projectWorkerService.approvedActive(projectWorkerVersionID, isActive).subscribe({
+      next: (response: any) => {
+        if (response.status === 1) {
+          this.notification.success(
+            'Thành công',
+            response.message || 'Cập nhật thành công!'
+          );
+          // Reload lại dữ liệu cho cả 2 bảng
+          this.loadDataSolutionVersion();
+          this.loadDataPOVersion();
+        } else {
+          this.notification.error('Lỗi', response.message || 'Không thể cập nhật');
+        }
+      },
+      error: (error: any) => {
+        console.error('Error updating approved active:', error);
+        const errorMessage =
+          error?.error?.message || error?.message || 'Không thể cập nhật';
+        this.notification.error('Lỗi', errorMessage);
+      },
+    });
+  }
+  //#endregion
   //#region đóng/mở panel bên trái
   closeLeftPanel(): void {
     this.sizeLeftPanel = '0';
@@ -1703,8 +1793,8 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
 
   toggleLeftPanel(): void {
     if (this.sizeLeftPanel === '0') {
-      this.sizeLeftPanel = '25%';
-      this.sizeRightPanel = '75%';
+      this.sizeLeftPanel = ''; // Rỗng = dùng nzDefaultSize
+      this.sizeRightPanel = ''; // Rỗng = auto
     } else {
       this.sizeLeftPanel = '0';
       this.sizeRightPanel = '100%';

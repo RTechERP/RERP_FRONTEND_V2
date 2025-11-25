@@ -48,3 +48,9 @@
       height: 24px;
       line-height: 22px;
   }
+ ::ng-deep .main-tab .ant-tabs-content{
+    height: 100%;
+  }
+::ng-deep .main-tab .ant-tabs-tabpane {
+  height: 100%;
+}

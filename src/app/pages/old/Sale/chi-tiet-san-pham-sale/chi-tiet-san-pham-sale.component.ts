@@ -469,6 +469,7 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
             field: 'Qty',
             hozAlign: 'right',
             headerHozAlign: 'center',
+            bottomCalc: 'sum',
           },
           {
             title: 'Dự án',
@@ -529,10 +530,11 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
         rowFormatter: (row) => {
           const data = row.getData();
           const remain = parseFloat(data['Remain']) || 0;
-          const status = data['Status'] || data['IsApproved'] || 0;
+          const status = data['Status'] || 0;
+            console.log('statuscc',status);
+            console.log('remain',remain);
 
-          // Yellow background if Remain != 0 and Status == 0
-          if (remain !== 0 && status == 0) {
+          if (remain > 0 && status == 0) {
             row.getElement().style.backgroundColor = '#FFFF00';
           }
         },
@@ -578,18 +580,21 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
             field: 'Qty',
             hozAlign: 'right',
             headerHozAlign: 'center',
+            bottomCalc: 'sum',
           },
           {
             title: 'Số lượng trả',
             field: 'ReturnAmount',
             hozAlign: 'right',
             headerHozAlign: 'center',
+            bottomCalc: 'sum',
           },
           {
             title: 'Số lượng chưa trả',
             field: 'Remain',
             hozAlign: 'right',
             headerHozAlign: 'center',
+            bottomCalc: 'sum',
           },
           {
             title: 'Khách hàng',
@@ -695,18 +700,21 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
             field: 'Qty',
             hozAlign: 'right',
             headerHozAlign: 'center',
+            bottomCalc: 'sum',
           },
           {
             title: 'Số lượng trả',
             field: 'ReturnAmount',
             hozAlign: 'right',
             headerHozAlign: 'center',
+            bottomCalc: 'sum',
           },
           {
             title: 'Số lượng chưa trả',
             field: 'Remain',
             hozAlign: 'right',
             headerHozAlign: 'center',
+            bottomCalc: 'sum',
           },
           {
             title: 'Khách hàng',
@@ -818,6 +826,7 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
             field: 'Qty',
             hozAlign: 'right',
             headerHozAlign: 'center',
+            bottomCalc: 'sum',
           },
           {
             title: 'Dự án',
@@ -881,6 +890,7 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
             hozAlign: 'left',
             headerHozAlign: 'center',
             frozen: true,
+            bottomCalc: 'count',
           },
           {
             title: 'Tên sản phẩm',
@@ -912,18 +922,21 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
             field: 'Quantity',
             hozAlign: 'right',
             headerHozAlign: 'center',
+            bottomCalc: 'sum',
           },
           {
             title: 'SL xuất',
             field: 'TotalQuantityExport',
             hozAlign: 'right',
             headerHozAlign: 'center',
+            bottomCalc: 'sum',
           },
           {
             title: 'SL còn lại',
             field: 'TotalQuantityRemain',
             hozAlign: 'right',
             headerHozAlign: 'center',
+            bottomCalc: 'sum',
           },
           {
             title: 'Mã dự án',

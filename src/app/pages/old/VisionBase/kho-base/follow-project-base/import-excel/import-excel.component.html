@@ -16,13 +16,8 @@
               <nz-icon nzType="file-excel" nzTheme="outline" class="me-2"></nz-icon>
               Chọn file Excel
             </label>
-            <input 
-              type="file" 
-              class="form-control" 
-              accept=".xlsx,.xls" 
-              (change)="onFileChange($event)" 
-              id="excelFileInput"
-            />
+            <input type="file" class="form-control" accept=".xlsx,.xls" (change)="onFileChange($event)"
+              id="excelFileInput" />
           </div>
 
           <!-- Chọn sheet -->
@@ -31,18 +26,9 @@
               <nz-icon nzType="file-text" nzTheme="outline" class="me-2"></nz-icon>
               Chọn sheet
             </label>
-            <nz-select
-              [(ngModel)]="selectedSheet"
-              class="w-100"
-              nzSize="large"
-              (ngModelChange)="onSheetChange()"
-              [nzDisabled]="sheetNames.length === 0"  
-              nzPlaceHolder="Vui lòng chọn sheet"
-            >
-              <nz-option
-                *ngFor="let sheet of sheetNames"
-                [nzValue]="sheet"
-                [nzLabel]="sheet">
+            <nz-select [(ngModel)]="selectedSheet" class="w-100" nzSize="large" (ngModelChange)="onSheetChange()"
+              [nzDisabled]="sheetNames.length === 0" nzPlaceHolder="Vui lòng chọn sheet">
+              <nz-option *ngFor="let sheet of sheetNames" [nzValue]="sheet" [nzLabel]="sheet">
               </nz-option>
             </nz-select>
 
@@ -66,6 +52,10 @@
   </div>
 
   <div class="modal-footer">
+    <button nz-button nzType="default" (click)="downloadTemplate()" class="me-auto">
+      <i class="fas fa-download me-1"></i>
+      Tải file mẫu
+    </button>
     <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">
       Đóng
     </button>

@@ -510,7 +510,6 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
           hozAlign: 'left',
           headerHozAlign: 'center',
           width: '50%',
-          headerFilter: true,
         },
         {
           title: 'Tên nhóm',
@@ -518,7 +517,6 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
           hozAlign: 'left',
           headerHozAlign: 'center',
           width: '50%',
-          headerFilter: true,
         },
       ],
     });

@@ -221,6 +221,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
     this.projectService.getDataProjectSurvey(data).subscribe({
       next: (response: any) => {
         this.tb_projectSurvey.setData(response.data);
+        console.log("kết quả khairoe sát", response.data);
         this.isLoadTable = false;
       },
       error: (error) => {
@@ -520,6 +521,11 @@ export class ProjectSurveyComponent implements AfterViewInit {
               formatter: 'textarea',
             },
             {
+              title: 'EmployeeID1',
+              field: 'EmployeeID1',
+              visible: false,
+            },
+            {
               title: 'Ghi chú',
               field: 'Note',
               width: 150,
@@ -548,8 +554,12 @@ export class ProjectSurveyComponent implements AfterViewInit {
     //   }
     // }
 
+    let selectedRows: any[] = [];
+    let canEdit: boolean = true; // Mặc định có quyền sửa
+    
     if(status !=0){
-      var selectedRows = this.tb_projectSurvey.getSelectedData();
+      debugger
+      selectedRows = this.tb_projectSurvey.getSelectedData();
       // this.selectedList = dataSelect; // Cập nhật lại selectedList với dữ liệu mới nhất
       // const ids = this.selectedList.map((item) => item.ID);
       if (selectedRows.length == 0 || selectedRows.length >1) {
@@ -559,12 +569,9 @@ export class ProjectSurveyComponent implements AfterViewInit {
         );
         return;
       }
+      // Kiểm tra quyền sửa: nếu không phải chủ sở hữu và không phải admin thì không có quyền
       if(selectedRows[0].EmployeeID != this.currentUser.EmployeeID && !this.currentUser.IsAdmin){
-        this.notification.error(
-          'Thông báo',
-          'Bạn không có quyền sửa yêu cầu khảo sát của người khác!'
-        );
-        return;
+        canEdit = false; // Không có quyền sửa, nhưng vẫn mở modal để xem
       }
     }
 
@@ -576,12 +583,13 @@ export class ProjectSurveyComponent implements AfterViewInit {
     });
 
     modalRef.componentInstance.projectId =
-      selectedRows[0]['ProjectID'] > 0 && status == 1
+      selectedRows.length > 0 && selectedRows[0]['ProjectID'] > 0 && status == 1
         ? selectedRows[0]['ProjectID']
         : 0;
     modalRef.componentInstance.projectSurveyId =
-      selectedRows[0]['ID'] > 0 && status == 1 ? selectedRows[0]['ID'] : 0;
-      modalRef.componentInstance.isEdit = status;
+      selectedRows.length > 0 && selectedRows[0]['ID'] > 0 && status == 1 ? selectedRows[0]['ID'] : 0;
+    modalRef.componentInstance.isEdit = status;
+    modalRef.componentInstance.canEdit = canEdit; // Truyền quyền sửa vào form detail
     modalRef.result.catch((reason) => {
       if (reason == true) {
         this.getDataProjectSurvey();
@@ -613,12 +621,12 @@ export class ProjectSurveyComponent implements AfterViewInit {
         nzContent: `Bạn có chắc muốn ${statusText} yêu cầu đã chọn không?`,
         nzOkText: 'Ok',
         nzOkType: 'primary',
-        nzCancelText: 'Hủy',
+       
         nzOnOk: () => {
           let data = {
             approvedStatus: approvedStatus,
-            loginName: this.projectService.LoginName,
-            globalEmployeeId: this.projectService.GlobalEmployeeId,
+            loginName: this.currentUser.LoginName,
+            globalEmployeeId: this.currentUser.EmployeeID,
             ids: requestIds,
           };
 
@@ -657,8 +665,13 @@ export class ProjectSurveyComponent implements AfterViewInit {
         ? (DateTime.fromJSDate(new Date(selectedRows[0].DateSurvey)).toISO() || '')
         : (DateTime.local().toISO() || '');
       
+      // Lấy ID kỹ thuật phụ trách từ selected row
+      // Có thể là TechnicalID, EmployeeIDTechnical, hoặc field khác tùy vào cấu trúc dữ liệu
+      const technicalId = selectedRows[0].EmployeeID1 || 
+                          null
+      
       this.approvalForm.patchValue({
-        technicalRequestId: selectedRows[0].EmployeeID || null,
+        technicalRequestId: selectedRows[0].EmployeeID1|| null,
         partOfDayId: selectedRows[0].SurveySession || 0,
         reason: selectedRows[0].ReasonCancel || '',
         dateSurvey: initialDateSurvey
@@ -964,6 +977,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
   //#endregion
   //#region Xóa khảo sát dự án
   deletedSurvey(): void {
+    debugger;
     // let selectedRows = this.tb_projectSurvey
     //   .getData()
     //   .filter((row: any) => row['Selected'] == true);
@@ -988,27 +1002,21 @@ export class ProjectSurveyComponent implements AfterViewInit {
       );
       return;
     }
-    // let emID = selectedRows[0]['EmployeeID'];
-    // if (
-    //   emID != this.currentUser.ID &&
-    //   !this.projectService.ISADMIN
-    // ) {
-    //   this.notification.error(
-    //     'Thông báo',
-    //     `Bạn không thể xóa yêu cầu khảo sát của người khác!`,
-    //     {
-    //       nzStyle: { fontSize: '0.75rem' },
-    //     }
-    //   );
-    //   return;
-    // }
-
-    let dataSave = {
-      projectSurveyId: selectedRows[0]['ID'],
-    };
-    this.projectService.checkStatusDetail(dataSave).subscribe({
-      next: (response: any) => {
-        // if (response.data == true && !this.projectService.ISADMIN) {
+    let emID = selectedRows[0]['EmployeeID'];
+    if (
+      emID != this.currentUser.ID &&
+      !this.currentUser.IsAdmin
+    ) {
+      this.notification.error(
+        'Thông báo',
+        `Bạn không thể xóa yêu cầu khảo sát của người khác!`,
+        {
+          nzStyle: { fontSize: '0.75rem' },
+        }
+      );
+      return;
+    }
+     // if (response.data == true && !this.projectService.ISADMIN) {
         //   this.notification.error(
         //     'Thông báo',
         //     `Bạn không thể xóa yêu cầu khảo sát vì Leader Kỹ thuật đã xác nhận!`,
@@ -1018,6 +1026,13 @@ export class ProjectSurveyComponent implements AfterViewInit {
         //   );
         //   return;
         // } else {
+
+    let dataSave = {
+      projectSurveyId: selectedRows[0]['ID'],
+    };
+    this.projectService.checkStatusDetail(dataSave).subscribe({
+      next: (response: any) => {
+       
           this.modal.confirm({
             nzTitle: `Thông báo`,
             nzContent: `Bạn có chắc muốn xóa yêu cầu khảo sát dự án đã chọn?`,

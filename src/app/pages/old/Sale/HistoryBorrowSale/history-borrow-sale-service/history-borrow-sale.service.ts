@@ -42,4 +42,7 @@ export class HistoryBorrowSaleService {
       data
     );
   }
+  getSummaryReturn(exportID:number):Observable<any>{
+    return this.http.get(environment.host+`api/historyborrowsale/get-summary-return?exportID=${exportID}`)
+  }
 }

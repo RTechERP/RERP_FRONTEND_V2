@@ -138,7 +138,7 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     private planWeekService: PlanWeekService,
     private appUserService: AppUserService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.isMobile = window.innerWidth < 576;
@@ -423,9 +423,8 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
     const DatePlan = dateFromField;
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: `Bạn có chắc chắn muốn xóa kế hoạch ngày ${dateFromField.toLocaleDateString()} của ${
-        this.selectedRow?.FullName
-      }?`,
+      nzContent: `Bạn có chắc chắn muốn xóa kế hoạch ngày ${dateFromField.toLocaleDateString()} của ${this.selectedRow?.FullName
+        }?`,
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
       nzOnOk: () => {
@@ -539,21 +538,21 @@ export class PlanWeekComponent implements OnInit, AfterViewInit {
       layout: 'fitColumns',
       height: '89vh',
       selectableRows: 1,
-      pagination: true,
-      paginationSize: 100,
-      movableColumns: true,
-      resizableRows: true,
-      
+      //   pagination: true,
+      //   paginationSize: 100,
+      //   movableColumns: true,
+      //   resizableRows: true,
+
       reactiveData: true,
       autoColumns: true,
-      columnDefaults: {
-        headerWordWrap: true,
-        headerVertical: false,
-        headerHozAlign: 'center',
-        minWidth: 60,
-        resizable: true,
-        cssClass: 'tabulator-cell-wrap',
-      },
+      //   columnDefaults: {
+      //     headerWordWrap: true,
+      //     headerVertical: false,
+      //     headerHozAlign: 'center',
+      //     minWidth: 60,
+      //     resizable: true,
+      //     cssClass: 'tabulator-cell-wrap',
+      //   },
       rowHeader: false,
       autoColumnsDefinitions: (definitions: any[] = []) =>
         definitions.map((def: any) => {

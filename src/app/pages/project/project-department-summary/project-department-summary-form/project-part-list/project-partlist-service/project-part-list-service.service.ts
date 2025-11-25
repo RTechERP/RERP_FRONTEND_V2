@@ -10,10 +10,15 @@ export class ProjectPartListService {
   private url = `${environment.host}`;
   private urlProjectPartListVersion = `${this.url}api/ProjectPartListVersion`;
   private urlProjectPartList = `${this.url}api/ProjectPartList`;
+  private urlUnitCount = `${this.url}api/UnitCount`;
   constructor() { }
   getProjectPartListVersion(projectSolutionId: number, isPO: boolean): Observable<any> {
     return this.http.get<any>(`${this.urlProjectPartListVersion}/get-all?projectSolutionId=${projectSolutionId}&isPO=${isPO}`
     );
+  }
+  // Get CBB Version for dropdown
+  getCbbVersion(projectSolutionId: number): Observable<any> {
+    return this.http.get<any>(`${this.urlProjectPartListVersion}/get-cbb-version?projectSolutionId=${projectSolutionId}`);
   }
   saveProjectPartListVersion(payload: any): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartListVersion}/save-data`, payload);
@@ -59,5 +64,53 @@ export class ProjectPartListService {
   //duyệt/hủy duyệt tích xanh sản phẩm
   approveIsFix(payload: any[], isFix: boolean): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/approved-fix?isFix=${isFix}`, payload);
+  }
+  // Get Unit Count for dropdown
+  getUnitCount(): Observable<any> {
+    return this.http.get<any>(`${this.urlUnitCount}`);
+  }
+  // Get suggestions for autocomplete (ProductName and Maker)
+  getSuggestions(): Observable<any> {
+    return this.http.get<any>(`${this.urlProjectPartList}/get-suggestion-name-maker`);
+  }
+  // Save ProjectPartList
+  saveProjectPartListData(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/save-projectpartlist`, payload);
+  }
+  // Get PartList by ID
+  getPartListByID(partlistID: number): Observable<any> {
+    return this.http.get<any>(`${this.urlProjectPartList}/get-partlist-by-id?partlistID=${partlistID}`);
+  }
+  // Delete PartList
+  deletePartList(payload: any[]): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/delete-partlist`, payload);
+  }
+  // Lấy lịch sử giá và sản phẩm trong kho
+  getHistoryPartList(productCode: string, keyword?: string): Observable<any> {
+    const requestBody = {
+      productCode: productCode,
+      keyword: keyword || productCode
+    };
+    return this.http.post<any>(
+      `${this.urlProjectPartList}/history-partlist`,
+      requestBody
+    );
+  }
+  // Yêu cầu xuất kho
+  requestExport(request: any): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/request-export`, request);
+  }
+  // Thông báo - Thêm thông báo mới
+  addNotify(text: string, employeeID: number, departmentID: number): Observable<any> {
+    return this.http.post<any>(`${this.url}api/Notify/add-notify`, {
+      title: 'Yêu cầu xuất kho',
+      text: text,
+      employeeID: employeeID,
+      departmentID: departmentID || 0
+    });
+  }
+  //hủy đã mua
+  cancelTechBought(id: number): Observable<any> {
+    return this.http.post<any>(`${this.url}api/ProjectPartlistPurchaseRequest/unTech-bought`, id);
   }
 }

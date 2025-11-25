@@ -135,6 +135,7 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
   @Input() projectSurveyId: any = 0;
   @Input() projectId: any = 0;
   @Input() isEdit: any = 0;
+  @Input() canEdit: boolean = true; // Quyền sửa, mặc định là true
 
   @ViewChild('tb_projectSurveyFile', { static: false })
   tb_projectSurveyFileContainer!: ElementRef;
@@ -196,10 +197,8 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
 
     // Subscribe to projectId changes
     this.validateForm.get('projectId')?.valueChanges.subscribe((value) => {
-      if (value) {
-        this.projectId = value;
-        this.getDataByProjectId();
-      }
+      this.projectId = value || 0;
+      this.getDataByProjectId();
     });
 
     // Subscribe to isUrgent changes
@@ -882,6 +881,14 @@ export class ProjectSurveyDetailComponent implements OnInit, AfterViewInit {
         this.customerId = data.CustomerID;
         this.endUserId = data.EndUser;
       }
+    } else {
+      // Clear các trường khi bỏ chọn dự án
+      this.saleId = null;
+      this.technicalId = null;
+      this.statusId = null;
+      this.pmId = null;
+      this.customerId = null;
+      this.endUserId = null;
     }
     this.getTbDetail();
   }

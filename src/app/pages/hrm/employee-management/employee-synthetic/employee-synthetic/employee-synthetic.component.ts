@@ -19,10 +19,12 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzFormModule } from 'ng-zorro-antd/form';
 
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzMessageService } from 'ng-zorro-antd/message';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import type { ColumnDefinition, ColumnDefinitionAlign } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { DateTime } from 'luxon';
+import * as XLSX from 'xlsx';
 
 import { EmployeeSyntheticService, EmployeeSyntheticRequestParam } from '../employee-synthetic.service';
 import { ProjectService } from '../../../../project/project-service/project.service';
@@ -54,6 +56,7 @@ export class EmployeeSyntheticComponent implements OnInit, AfterViewInit, OnDest
   constructor(
     private syntheticService: EmployeeSyntheticService,
     private notification: NzNotificationService,
+    private message: NzMessageService,
     private projectService: ProjectService,
     private vehicleRepairService: VehicleRepairService,
   ) {}
@@ -288,7 +291,7 @@ export class EmployeeSyntheticComponent implements OnInit, AfterViewInit, OnDest
               ? `<span style="background-color: #e9b003; padding: 2px 4px; border-radius: 2px; font-weight: bold;">${day}</span>`
               : day.toString(),
             field: day.toString(),
-            width: 100,
+            width: 70,
             hozAlign: ALIGN_LEFT,
             headerHozAlign: ALIGN_CENTER,
             headerSort: false,
@@ -315,8 +318,8 @@ export class EmployeeSyntheticComponent implements OnInit, AfterViewInit, OnDest
           {
             title: 'Tên Nhân Viên',
             field: 'FullName',
-            width: 200,
-            formatter:'textarea',
+            width: 160,
+            formatter:'textarea', 
             headerHozAlign: ALIGN_CENTER,
             hozAlign: ALIGN_LEFT,
            
@@ -324,10 +327,10 @@ export class EmployeeSyntheticComponent implements OnInit, AfterViewInit, OnDest
           {
             title: 'Chức vụ',
             field: 'PositionName',
-            width: 200,
+            width: 160,
             headerHozAlign: ALIGN_CENTER,
             hozAlign: ALIGN_LEFT,
-            formatter: highlight,
+            formatter: 'textarea',
           },
         ],
       },
@@ -344,5 +347,106 @@ export class EmployeeSyntheticComponent implements OnInit, AfterViewInit, OnDest
     if (!this.tb_synthetic) return;
     this.tb_synthetic.setColumns(this.buildColumnsSynthetic());
     this.tb_synthetic.setData(this.syntheticData);
+  }
+
+  // ---------- Export Excel ----------
+  exportExcel(): void {
+    if (!this.tb_synthetic) {
+      this.notification.error('Thông báo', 'Bảng dữ liệu chưa sẵn sàng!');
+      return;
+    }
+
+    const allData = this.tb_synthetic.getData();
+
+    if (allData.length === 0) {
+      this.notification.warning('Thông báo', 'Không có dữ liệu để xuất!');
+      return;
+    }
+
+    try {
+      this.message.loading('Đang xuất file Excel...', { nzDuration: 2000 });
+
+      const exportData = this.prepareExportData(allData);
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+      worksheet['!cols'] = this.getExcelColumnWidths();
+
+      const workbook = XLSX.utils.book_new();
+      const month = this.selectedMonthYear?.getMonth() + 1 || DateTime.now().month;
+      const year = this.selectedMonthYear?.getFullYear() || DateTime.now().year;
+      const monthStr = String(month).padStart(2, '0');
+      const sheetName = `T${monthStr}_${year}`;
+      XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+
+      const filename = this.generateExcelFilename();
+      XLSX.writeFile(workbook, filename);
+
+      setTimeout(() => {
+        this.notification.success(
+          'Thông báo',
+          `Đã xuất ${allData.length} bản ghi ra file Excel thành công!`,
+          { nzStyle: { fontSize: '0.75rem' } }
+        );
+      }, 2000);
+    } catch (error) {
+      console.error('Export Excel error:', error);
+      this.notification.error(
+        'Thông báo',
+        'Lỗi khi xuất file Excel: ' +
+          (error instanceof Error ? error.message : 'Lỗi không xác định')
+      );
+    }
+  }
+
+  private prepareExportData(allData: any[]): any[] {
+    const month = this.selectedMonthYear?.getMonth() + 1 || DateTime.now().month;
+    const year = this.selectedMonthYear?.getFullYear() || DateTime.now().year;
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const firstDayOfMonth = new Date(year, month - 1, 1).getDay();
+    const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+
+    return allData.map((item: any, index: number) => {
+      const row: any = {
+        STT: index + 1,
+        'Tên Nhân Viên': item.FullName || '',
+        'Chức vụ': item.PositionName || '',
+      };
+
+      // Thêm các cột ngày
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dayOfWeek = (firstDayOfMonth + day - 1) % 7;
+        const dayName = dayNames[dayOfWeek];
+        const dayKey = day.toString();
+        row[`${dayName} ${day}`] = item[dayKey] || '';
+      }
+
+      return row;
+    });
+  }
+
+  private getExcelColumnWidths(): any[] {
+    const month = this.selectedMonthYear?.getMonth() + 1 || DateTime.now().month;
+    const year = this.selectedMonthYear?.getFullYear() || DateTime.now().year;
+    const daysInMonth = new Date(year, month, 0).getDate();
+
+    const widths: any[] = [
+      { wch: 5 },   // STT
+      { wch: 25 },  // Tên Nhân Viên
+      { wch: 20 },  // Chức vụ
+    ];
+
+    // Thêm width cho mỗi ngày
+    for (let day = 1; day <= daysInMonth; day++) {
+      widths.push({ wch: 12 });
+    }
+
+    return widths;
+  }
+
+  private generateExcelFilename(): string {
+    const month = this.selectedMonthYear?.getMonth() + 1 || DateTime.now().month;
+    const year = this.selectedMonthYear?.getFullYear() || DateTime.now().year;
+    const monthStr = String(month).padStart(2, '0');
+    return `BangTongHopCong_T${monthStr}_${year}.xlsx`;
   }
 }

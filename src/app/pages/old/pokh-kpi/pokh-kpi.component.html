@@ -42,7 +42,7 @@
                 <nz-select name="customerId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
                   nzPlaceHolder="Khách hàng" [(ngModel)]="filters.customerId">
                   <nz-option *ngFor="let item of customers" [nzValue]="item.ID"
-                  [nzLabel]="item.CustomerCode + ' - ' + item.CustomerName"></nz-option>
+                    [nzLabel]="item.CustomerCode + ' - ' + item.CustomerName"></nz-option>
                 </nz-select>
               </nz-form-control>
             </nz-form-item>
@@ -52,17 +52,17 @@
                 <nz-select name="userId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
                   nzPlaceHolder="Người phụ trách" [(ngModel)]="filters.userId">
                   <nz-option *ngFor="let item of filterUserData" [nzValue]="item.ID"
-                  [nzLabel]="item.FullName"></nz-option>
+                    [nzLabel]="item.Code + ' - ' + item.FullName"></nz-option>
                 </nz-select>
               </nz-form-control>
             </nz-form-item>
             <nz-form-item class="mt-2">
               <nz-form-label class="fs-12" [nzSpan]="24">Nhóm</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <nz-select name="groupId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
-                  nzPlaceHolder="Nhóm" [(ngModel)]="filters.groupId">
+                <nz-select name="groupId" class="w-100" nzShowSearch nzAllowClear nzSize="small" nzPlaceHolder="Nhóm"
+                  [(ngModel)]="filters.groupId">
                   <nz-option *ngFor="let item of groupSales" [nzValue]="item.ID"
-                  [nzLabel]="item.GroupSalesName"></nz-option>
+                    [nzLabel]="item.GroupSalesName"></nz-option>
                 </nz-select>
               </nz-form-control>
             </nz-form-item>
@@ -72,39 +72,44 @@
                 <nz-select name="mainIndexId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
                   nzPlaceHolder="Loại" [(ngModel)]="filters.mainIndexId">
                   <nz-option *ngFor="let item of mainIndexes" [nzValue]="item.ID"
-                  [nzLabel]="item.MainIndex1"></nz-option>
+                    [nzLabel]="item.MainIndex1"></nz-option>
                 </nz-select>
               </nz-form-control>
             </nz-form-item>
             <nz-form-item class="mt-2">
               <nz-form-label class="fs-12" [nzSpan]="24">Lọc màu trạng thái</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <nz-select name="status" class="w-100 status-select" 
+                <nz-select name="status" class="w-100 status-select"
                   [ngClass]="filters.status !== null && filters.status !== undefined ? 'status-' + filters.status : ''"
-                  nzAllowClear nzSize="small"
-                  nzPlaceHolder="Chọn trạng thái" [(ngModel)]="filters.status">
+                  nzAllowClear nzSize="small" nzPlaceHolder="Chọn trạng thái" [(ngModel)]="filters.status">
                   <nz-option [nzValue]="0" nzLabel="Vàng" nzCustomContent="true">
-                    <span style="display: inline-block; width: 20px; height: 20px; background-color: rgb(255, 255, 0); margin-right: 8px; vertical-align: middle; border: 1px solid #ccc; border-radius: 2px;"></span>
+                    <span
+                      style="display: inline-block; width: 20px; height: 20px; background-color: rgb(255, 255, 0); margin-right: 8px; vertical-align: middle; border: 1px solid #ccc; border-radius: 2px;"></span>
                     Vàng
                   </nz-option>
                   <nz-option [nzValue]="1" nzLabel="Không màu" nzCustomContent="true">
-                    <span style="display: inline-block; width: 20px; height: 20px; background-color: transparent; border: 1px solid #ccc; margin-right: 8px; vertical-align: middle; border-radius: 2px;"></span>
+                    <span
+                      style="display: inline-block; width: 20px; height: 20px; background-color: transparent; border: 1px solid #ccc; margin-right: 8px; vertical-align: middle; border-radius: 2px;"></span>
                     Không màu
                   </nz-option>
                   <nz-option [nzValue]="2" nzLabel="Cam nhạt" nzCustomContent="true">
-                    <span style="display: inline-block; width: 20px; height: 20px; background-color: rgb(244, 176, 132); margin-right: 8px; vertical-align: middle; border: 1px solid #ccc; border-radius: 2px;"></span>
+                    <span
+                      style="display: inline-block; width: 20px; height: 20px; background-color: rgb(244, 176, 132); margin-right: 8px; vertical-align: middle; border: 1px solid #ccc; border-radius: 2px;"></span>
                     Cam nhạt
                   </nz-option>
                   <nz-option [nzValue]="3" nzLabel="Xanh dương nhạt" nzCustomContent="true">
-                    <span style="display: inline-block; width: 20px; height: 20px; background-color: rgb(155, 194, 230); margin-right: 8px; vertical-align: middle; border: 1px solid #ccc; border-radius: 2px;"></span>
+                    <span
+                      style="display: inline-block; width: 20px; height: 20px; background-color: rgb(155, 194, 230); margin-right: 8px; vertical-align: middle; border: 1px solid #ccc; border-radius: 2px;"></span>
                     Xanh dương nhạt
                   </nz-option>
                   <nz-option [nzValue]="4" nzLabel="Xanh lá nhạt" nzCustomContent="true">
-                    <span style="display: inline-block; width: 20px; height: 20px; background-color: rgb(169, 208, 142); margin-right: 8px; vertical-align: middle; border: 1px solid #ccc; border-radius: 2px;"></span>
+                    <span
+                      style="display: inline-block; width: 20px; height: 20px; background-color: rgb(169, 208, 142); margin-right: 8px; vertical-align: middle; border: 1px solid #ccc; border-radius: 2px;"></span>
                     Xanh lá nhạt
                   </nz-option>
                   <nz-option [nzValue]="5" nzLabel="Vàng" nzCustomContent="true">
-                    <span style="display: inline-block; width: 20px; height: 20px; background-color: rgb(255, 255, 0); margin-right: 8px; vertical-align: middle; border: 1px solid #ccc; border-radius: 2px;"></span>
+                    <span
+                      style="display: inline-block; width: 20px; height: 20px; background-color: rgb(255, 255, 0); margin-right: 8px; vertical-align: middle; border: 1px solid #ccc; border-radius: 2px;"></span>
                     Vàng
                   </nz-option>
                 </nz-select>
@@ -133,10 +138,12 @@
             <div class="card h-100 border-0 rounded-0 d-flex flex-column">
               <div class="card-header bg-white p-1" style="overflow-x: auto; flex-shrink: 0;">
                 <div class="d-flex gap-1">
-                  <button style="min-width: 25px;" nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
+                  <button style="min-width: 25px;" nz-button nzType="default" nzSize="small"
+                    (click)="toggleSearchPanel()">
                     <nz-icon nzType="search"></nz-icon>
                   </button>
-                  <button class="fs-12" nz-button nzType="default" nzSize="small" title="Xuất PO" (click)="exportDetailTableToExcel()">
+                  <button class="fs-12" nz-button nzType="default" nzSize="small" title="Xuất PO"
+                    (click)="exportDetailTableToExcel()">
                     <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" /> Xuất Excel
                   </button>
                 </div>
@@ -161,4 +168,3 @@
     </nz-splitter-panel>
   </nz-splitter>
 </ng-container>
-   

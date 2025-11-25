@@ -57,7 +57,6 @@ import { ProposeVehicleRepairComponent } from '../../../hrm/vehicle/propose-vehi
 import { DailyReportHrComponent } from '../../../hrm/daily-report-hr/daily-report-hr.component';
 import { PriceHistoryPartlistComponent } from '../../../project/price-history-partlist/price-history-partlist.component';
 import { ProjectTypeComponent } from '../../../project/project-type/project-type.component';
-
 import { EmployeePurchaseComponent } from '../../../purchase/employee-purchase/employee-purchase.component';
 import { RulePayComponent } from '../../../purchase/rulepay/rule-pay.component';
 import { CurrencyListComponent } from '../../../general-category/currency-list/currency-list.component';
@@ -76,7 +75,6 @@ import { QuotationKhComponent } from '../../../old/quotation-kh/quotation-kh.com
 import { PokhKpiComponent } from '../../../old/pokh-kpi/pokh-kpi.component';
 import { PokhHistoryComponent } from '../../../old/pokh-history/pokh-history.component';
 import { PokhComponent } from '../../../old/pokh/pokh.component';
-
 import { SupplierSaleComponentComponent } from '../../../old/supplier-sale-component/supplier-sale-component.component';
 import { AppUserService } from '../../../../services/app-user.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -112,6 +110,7 @@ import { EmployeeCurricularComponent } from '../../../hrm/employee-management/em
 import { EmployeeErrorComponent } from '../../../hrm/employee-management/employee-error/employee-error.component';
 import { EmployeeTimekeepingComponent } from '../../../hrm/employee-management/employee-timekeeping/employee-timekeeping.component';
 import { EmployeeSyntheticComponent } from '../../../hrm/employee-management/employee-synthetic/employee-synthetic/employee-synthetic.component';
+import { AssignWorkComponent } from '../../../purchase/assign-work/assign-work.component';
 @Injectable({
   providedIn: 'root',
 })
@@ -123,7 +122,7 @@ export class MenuService {
     private permissionService: PermissionService,
     private appUserService: AppUserService,
     private notification: NzNotificationService
-  ) { }
+  ) {}
 
   //   getMenus(id: number): Observable<any> {
   //     return this.http.get<any>(this.apiUrl + `menus/${id}`);
@@ -816,7 +815,7 @@ export class MenuService {
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission('N2,N1'),
                 comp: WFHComponent,
-                //   icon: 'assets/icon/layers.png',
+                   icon: 'assets/icon/hr_wfh_24.svg',
               },
               {
                 kind: 'leaf',
@@ -888,8 +887,6 @@ export class MenuService {
                 comp: HandoverComponent,
                 //   icon: 'assets/icon/layers.png',
               },
-
-          
 
               {
                 kind: 'leaf',
@@ -1070,6 +1067,15 @@ export class MenuService {
           //   comp: ProjectPartlistPurchaseRequestComponent,
           //   //   icon: 'assets/icon/layers.png',
           // },
+          {
+            kind: 'leaf',
+            key: 'AssignWorkComponent',
+            title: 'Phân công công việc',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission('N33,N1'),
+            comp: AssignWorkComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
         ],
       },
       //#endregion
@@ -1301,7 +1307,8 @@ export class MenuService {
                 key: 'POKHComponent',
                 title: 'Danh sách PO KHÁCH HÀNG',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission('N27,N36,N1,N31'),
+                isPermission:
+                  this.permissionService.hasPermission('N27,N36,N1,N31'),
                 comp: PokhComponent,
               },
               {
@@ -1309,7 +1316,8 @@ export class MenuService {
                 key: 'QuotationKhComponent',
                 title: 'BÁO GIÁ KHÁCH HÀNG',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission('N27,N36,N1'),
+                isPermission:
+                  this.permissionService.hasPermission('N27,N36,N1'),
                 comp: QuotationKhComponent,
               },
               {
@@ -1317,7 +1325,8 @@ export class MenuService {
                 key: 'PokhKpiComponent',
                 title: 'XUẤT PO KHÁCH HÀNG CHI TIẾT',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission('N27,N36,N1'),
+                isPermission:
+                  this.permissionService.hasPermission('N27,N36,N1'),
                 comp: PokhKpiComponent,
               },
               {
@@ -1370,17 +1379,27 @@ export class MenuService {
       Password: this.appUserService.password,
       Router: router,
     };
+    // console.log('window.location:', window.location);
 
-    const url = `http://113.190.234.64:8081${router}`;
+    let urlTo = `http://localhost:19028${router}`;
+    let urlLogin = 'http://localhost:19028/Home/LoginNew';
 
-    const urlOld = 'http://113.190.234.64:8081/Home/LoginNew';
-    // console.log('gotoOldLink:',url);
+    if (window.location.hostname != 'localhost') {
+      urlTo =
+        window.location.origin.replace(window.location.port, '8081') + router;
+      urlLogin =
+        window.location.origin.replace(window.location.port, '8081') +
+        '/Home/LoginNew';
+    }
+
+    // console.log('url redirect to:', urlTo);
+    // console.log('url login:', urlLogin);
 
     return this.http
-      .post<any>(urlOld, data, { withCredentials: true })
+      .post<any>(urlLogin, data, { withCredentials: true })
       .subscribe({
         next: (response) => {
-          window.open(url, '_blank');
+          window.open(urlTo, '_blank');
         },
         error: (err) => {
           // console.log('err:', err);

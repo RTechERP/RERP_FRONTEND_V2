@@ -68,7 +68,7 @@
               <nz-option
                 *ngFor="let item of rulePayList"
                 [nzValue]="item.ID"
-                [nzLabel]="item.Note"
+                [nzLabel]="item.Code + '-' + item.Note"
               ></nz-option>
             </nz-select>
           </nz-form-control>
@@ -103,6 +103,9 @@
             <nz-select
               formControlName="ReceiverID"
               nzPlaceHolder="Chọn người nhận"
+              allowsearch
+              name="ReceiverID"
+
             >
               <nz-option
                 *ngFor="let item of emPloyeeLists"
@@ -124,6 +127,7 @@
               formControlName="DeliverID"
               nzPlaceHolder="Chọn người giao"
               name="DeliverID"
+              allowsearch
               (ngModelChange)="onDeliverIDChanged()"
             >
               <nz-option
@@ -161,6 +165,8 @@
             <nz-select
               formControlName="SupplierSaleID"
               nzPlaceHolder="Chọn nhà cung cấp"
+              allowsearch
+              name="SupplierSaleID"
             >
               <nz-option
                 *ngFor="let item of nccList"
@@ -177,7 +183,7 @@
             >Kho<span style="color: red">(*)</span></nz-form-label
           >
           <nz-form-control [nzErrorTip]="'Vui lòng chọn kho'">
-            <nz-select formControlName="WarehouseID" [disabled]="false">
+            <nz-select formControlName="WarehouseID" allowSearch [disabled]="false">
               <nz-option nzValue="1" nzLabel="KHO HN"></nz-option>
               <nz-option nzValue="2" nzLabel="KHO HCM"></nz-option>
             </nz-select>
@@ -213,6 +219,7 @@
               formControlName="CustomerID"
               nzPlaceHolder="Chọn khách hàng"
               name="CustomerID"
+              allowsearch
             >
               <nz-option
                 *ngFor="let item of customerList"
@@ -253,6 +260,7 @@
               formControlName="ApproverID"
               nzPlaceHolder="Chọn người duyệt"
               name="ApproverID"
+              allowsearch
             >
               <nz-option
                 *ngFor="let item of emPloyeeLists"
@@ -269,25 +277,12 @@
   </form>
   <nz-tabset class="mt-2" [nzAnimated]="false">
     <nz-tab nzTitle="Danh sách sản phẩm" nzForceRender="true">
-      <div id="deviceTempTable" style="height:47vh;"></div>
+      <div #deviceTempTable style="height:47vh;"></div>
     </nz-tab>
     <nz-tab nzTitle="Hồ sơ đi kèm" nzForceRender="true">
-      <div style="height:47vh; overflow:auto;">
-        <div *ngIf="documentBillImport && documentBillImport.length > 0; else noDoc">
-          <ul class="list-group list-group-flu  sh">
-            <li class="list-group-item" *ngFor="let doc of documentBillImport">
-              <div class="d-flex justify-content-between">
-                <span>{{ doc.Name || doc.DocumentName || doc.FileName || 'Tài liệu' }}</span>
-                <span>{{ doc.CreatedDate | date:'dd/MM/yyyy' }}</span>
-              </div>
-              <div *ngIf="doc.Note">{{ doc.Note }}</div>
-            </li>
-          </ul>
-        </div>
-        <ng-template #noDoc>
-          <div class="text-muted">Không có hồ sơ đi kèm</div>
-        </ng-template>
-      </div>
+  <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải..." style="height: 100%;">
+        <div #table_DocumnetImport style="height: 38vh;"></div>
+      </nz-spin>
     </nz-tab>
   </nz-tabset>
 </div>

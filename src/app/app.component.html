@@ -18,7 +18,7 @@
                 <img [src]="m.icon" class="menu-icon" width="10%" style="margin-right: 8px; vertical-align: middle;" />
                 <p class="m-0 fw-bold">{{ m.title }}</p>
             </ng-template>
-            <li nz-submenu [nzTitle]="nzTitle" *ngIf="isGroup(m) && m.isPermission && m.isOpen">
+            <li nz-submenu [nzTitle]="nzTitle" *ngIf="isGroup(m) && m.isPermission && m.isOpen" nzOpen="">
                 <ul>
                     @for (c1 of m.children; track c1.key) {
                     <li nz-menu-item *ngIf="isLeaf(c1) && c1.isPermission && c1.isOpen"

@@ -1,18 +1,19 @@
 .ant-advanced-search-form {
-    padding: 24px;
-    background: #fbfbfb;
-    border: 1px solid #d9d9d9;
-    border-radius: 6px;
-  }
+  padding: 24px;
+  background: #fbfbfb;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+}
 
- 
-  label[nz-checkbox] {
-    display: flex;
-    align-items: center;
-    gap: 10px; /* Điều chỉnh khoảng cách giữa checkbox và văn bản */
-    margin-left: 20px;
-  }
-  
+
+label[nz-checkbox] {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  /* Điều chỉnh khoảng cách giữa checkbox và văn bản */
+  margin-left: 20px;
+}
+
 :host ::ng-deep .ant-select-selection-item {
   white-space: nowrap;
   overflow: hidden;
@@ -29,40 +30,75 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 420px;
-}  
+}
+
 /* dropdown text scroll */
 ::ng-deep .ant-select-dropdown {
   max-width: 300px !important;
 }
+
 ::ng-deep .ant-select-dropdown .ant-select-item {
   white-space: nowrap !important;
   overflow: visible !important;
 }
+
 ::ng-deep .ant-select-dropdown .ant-select-item-option-content {
   white-space: nowrap !important;
   overflow-x: auto !important;
   text-overflow: initial !important;
   max-width: none !important;
 }
+
 ::ng-deep .ant-select-dropdown .ant-select-item-option-content::-webkit-scrollbar {
   height: 4px;
 }
+
 ::ng-deep .ant-select-dropdown .ant-select-item-option-content::-webkit-scrollbar-thumb {
   background: #ccc;
   border-radius: 2px;
 }
+
+/* Cố định chiều cao modal và cho phép scroll */
+::ng-deep .modal-xl {
+  max-height: 90vh;
+}
+
+::ng-deep .modal-content {
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+::ng-deep .modal-body {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
 .pokh-modal-content {
-  height: calc(100vh - 200px);
+  height: 100%;
+  max-height: calc(90vh - 120px);
+  /* Trừ đi header và footer */
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .pokh-tabset {
   height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+::ng-deep .pokh-tabset .ant-tabs-content-holder {
+  overflow-y: auto;
+  flex: 1;
 }
 
 .pokh-tab-content {
-  height: calc(100vh - 300px);
+  height: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* Ensure these styles only apply to the POKH modal */
@@ -82,4 +118,34 @@
 
 ::ng-deep .pokh-modal .ant-tabs-tabpane {
   height: 100%;
+}
+
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+.reset {
+  all: revert;
+}
+
+.ant-splitter-panel {
+  position: relative;
+}
+
+.tabulator {
+  font-size: 0.75rem !important;
+  /* position: absolute !important; */
+  width: 100% !important;
+}
+
+.tabulator-cell {
+  padding: 0px;
+}
+
+.inner-content {
+  padding: 0 !important;
+}
+
+.ant-tabs-tab-btn {
+  font-size: 0.75rem;
 }

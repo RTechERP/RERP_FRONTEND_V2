@@ -15,7 +15,7 @@
             @for (m of menus; track m.key) {
 
             <ng-template #nzTitle style="padding: 0 16px;">
-                <img [src]="m.icon" class="menu-icon" width="10%" style="margin-right: 8px; vertical-align: middle;" />
+                <img [src]="m.icon" class="menu-icon" width="10%" style="margin-right: 8px; vertical-align: bottom;" />
                 <p class="m-0 fw-bold">{{ m.title }}</p>
             </ng-template>
             <li nz-submenu [nzTitle]="nzTitle" *ngIf="isGroup(m) && m.isPermission && m.isOpen" nzOpen="">

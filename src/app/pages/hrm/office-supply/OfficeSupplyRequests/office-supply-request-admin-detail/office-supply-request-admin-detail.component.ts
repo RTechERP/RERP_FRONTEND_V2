@@ -5,7 +5,6 @@ import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { DateTime } from 'luxon';
-
 // NG-ZORRO modules
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
@@ -23,7 +22,6 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../tabulator-default.config';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
-
 // Services
 import { DangkyvppServiceService } from '../officesupplyrequests-service/office-supply-requests-service.service';
 import { OfficeSupplyService } from '../../OfficeSupply/office-supply-service/office-supply-service.service';
@@ -174,6 +172,7 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
               OfficeSupplyName: vpp.NameRTC || vpp.NameNCC || '',
               UnitName: vpp.Unit || '',
               RequestLimit: vpp.RequestLimit || 0,
+              Quantity: detail.Quantity || detail.RequestLimit || 0,
               QuantityReceived: detail.QuantityReceived || 0,
               ExceedsLimit: detail.ExceedsLimit === true || detail.ExceedsLimit === 1,
               Reason: detail.Reason || ''
@@ -188,10 +187,10 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
 
   ngAfterViewInit(): void {
     setTimeout(() => {
-      if (!this.tbEmployee && this.employeeListForSelect.length > 0) {
+      if (!this.tbEmployee) {
         this.initializeEmployeeTable();
       }
-      if (!this.tbRequestDetail && this.employeeListForSelect.length > 0) {
+      if (!this.tbRequestDetail) {
         setTimeout(() => {
           this.initializeRequestDetailTable();
         }, 200);
@@ -401,7 +400,7 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
       ...DEFAULT_TABLE_CONFIG,
       data: this.employeeTableData,
       layout: 'fitDataStretch',
-      height: '70vh',
+      height: '100%',
       selectableRows: false,
       rowHeader: false,
       columns: [
@@ -609,8 +608,8 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
     this.tbRequestDetail = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
       data: [],
-      layout: 'fitDataStretch',
-      height: '70vh',
+     
+      height: '100%',
       selectableRows: false,
       rowHeader: false,
       columns: [
@@ -650,7 +649,8 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
           hozAlign: 'center',
           headerHozAlign: 'center',
           formatter: 'rownum',
-          frozen: true
+          frozen: true,
+          headerSort: false
         },
         {
           title: 'VPP',
@@ -690,7 +690,8 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
           width: 100,
           hozAlign: 'center',
           headerHozAlign: 'center',
-          editor: false
+          editor: false,
+          headerSort: false
         },
         {
           title: 'Định mức',
@@ -699,30 +700,32 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
           hozAlign: 'right',
           headerHozAlign: 'center',
           editor: false,
+          headerSort: false,
           formatter: (cell: any) => {
             const value = cell.getValue();
             return value || 0;
           }
         },
         {
-          title: 'Số lượng thực nhận',
-          field: 'QuantityReceived',
+          title: 'Số lượng đăng ký',
+          field: 'Quantity',
           width: 150,
           hozAlign: 'right',
           headerHozAlign: 'center',
           editor: 'number',
           editorParams: { min: 0 },
+          headerSort: false,
           formatter: (cell: any) => {
             const value = cell.getValue();
             return value || 0;
           },
           cellEdited: (cell: any) => {
-            const quantityReceived = parseFloat(cell.getValue()) || 0;
+            const quantity = parseFloat(cell.getValue()) || 0;
             const row = cell.getRow();
             const rowData = row.getData();
-            const requestLimit = parseFloat(rowData['RequestLimit']) || 0;
             
-            if (quantityReceived > 1) {
+            // Kiểm tra vượt định mức: nếu số lượng đăng ký > 1 thì tự động tích vượt định mức
+            if (quantity > 1) {
               row.update({
                 ExceedsLimit: true
               });
@@ -741,11 +744,25 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
           }
         },
         {
+          title: 'Số lượng thực nhận',
+          field: 'QuantityReceived',
+          width: 150,
+          hozAlign: 'right',
+          headerHozAlign: 'center',
+          editor: false,
+          headerSort: false,
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            return value || 0;
+          }
+        },
+        {
           title: 'Vượt định mức',
           field: 'ExceedsLimit',
-          width: 120,
+          width: 150,
           hozAlign: 'center',
           headerHozAlign: 'center',
+          headerSort: false,
           formatter: (cell: any) => {
             const value = cell.getValue();
             const checked = value === true || value === 'true' || value === 1 || value === '1';
@@ -771,6 +788,7 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
           field: 'Reason',
           width: 300,
           headerHozAlign: 'center',
+          headerSort: false,
           editor: 'input',
           editorParams: {
             elementAttributes: {
@@ -799,7 +817,8 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
       this.tbRequestDetail.addRow({
         OfficeSupplyID: null,
         RequestLimit: 0,
-        QuantityReceived: 1,
+        Quantity: 1,
+        QuantityReceived: 0,
         ExceedsLimit: false,
         Reason: ''
       });
@@ -810,6 +829,26 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
   onDepartmentChange(): void {
     this.selectedEmployeeList = [];
     this.filterEmployeesByDepartment();
+    
+    // Tự động load nhân viên của phòng ban vào bảng nhân viên
+    if (this.departmentId && this.departmentId > 0 && this.tbEmployee) {
+      const employeesInDept = this.filteredEmployeeList.map((emp: any) => ({
+        EmployeeID: emp.ID || emp.EmployeeID,
+        EmployeeCode: emp.Code || '',
+        EmployeeName: emp.FullName || '',
+        DepartmentName: emp.DepartmentName || '',
+        PositionName: emp.ChucVuHD || ''
+      }));
+      
+      this.tbEmployee.replaceData(employeesInDept);
+      this.updateSelectedEmployeeList();
+    } else if (!this.departmentId || this.departmentId <= 0) {
+      // Nếu không chọn phòng ban, xóa hết dữ liệu
+      if (this.tbEmployee) {
+        this.tbEmployee.replaceData([]);
+        this.updateSelectedEmployeeList();
+      }
+    }
   }
 
   // On tab change
@@ -856,7 +895,7 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
     }
     
     if (employeeCount === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất 1 nhân viên ở tab "Chọn nhân viên"');
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất 1 nhân viên');
       return false;
     }
 
@@ -867,18 +906,18 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
       return false;
     }
       
-      const quantityReceived = parseFloat(rowData['QuantityReceived']) || 0;
-      const requestLimit = parseFloat(rowData['RequestLimit']) || 0;
+      const quantity = parseFloat(rowData['Quantity']) || 0;
       const exceedsLimit = rowData['ExceedsLimit'] === true || rowData['ExceedsLimit'] === 1 || rowData['ExceedsLimit'] === 'true' || rowData['ExceedsLimit'] === '1';
       
-      if (quantityReceived > 1) {
-        const reason = rowData['Reason'] || '';
-        if (!reason || reason.trim() === '') {
-          this.notification.warning(NOTIFICATION_TITLE.warning, `Số lượng thực nhận lớn hơn 1 ở dòng ${i + 1}. Vui lòng nhập lý do vượt định mức`);
+      // Kiểm tra: nếu số lượng đăng ký > 1 thì phải tích vượt định mức và nhập lý do
+      if (quantity > 1) {
+        if (!exceedsLimit) {
+          this.notification.warning(NOTIFICATION_TITLE.warning, `Số lượng đăng ký lớn hơn 1 ở dòng ${i + 1}. Vui lòng tích "Vượt định mức" và nhập lý do`);
           return false;
         }
-        if (!exceedsLimit) {
-          this.notification.warning(NOTIFICATION_TITLE.warning, `Số lượng thực nhận lớn hơn 1 ở dòng ${i + 1}. Vui lòng tích "Vượt định mức" và nhập lý do`);
+        const reason = rowData['Reason'] || '';
+        if (!reason || reason.trim() === '') {
+          this.notification.warning(NOTIFICATION_TITLE.warning, `Số lượng đăng ký lớn hơn 1 ở dòng ${i + 1}. Vui lòng nhập lý do vượt định mức`);
           return false;
         }
       }
@@ -1019,12 +1058,12 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
           continue;
         }
 
-        const requestLimit = parseFloat(rowData['RequestLimit']) || 0;
-        const quantity = requestLimit;
+        const quantity = parseFloat(rowData['Quantity']) || 0;
         const quantityReceived = parseFloat(rowData['QuantityReceived']) || 0;
         const exceedsLimit = rowData['ExceedsLimit'] === true || rowData['ExceedsLimit'] === 1 || rowData['ExceedsLimit'] === 'true' || rowData['ExceedsLimit'] === '1';
         
-        const actualExceedsLimit = quantityReceived > 1;
+        // Nếu số lượng đăng ký > 1 thì tự động set vượt định mức
+        const actualExceedsLimit = quantity > 1;
         const reason = actualExceedsLimit ? (rowData['Reason'] || '') : '';
 
         // Tìm DetailID từ mapping nếu đang edit

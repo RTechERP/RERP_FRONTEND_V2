@@ -282,7 +282,7 @@ export class OfficeSupplyRequestsComponent implements OnInit {
       paginationMode: 'local',
       layout: 'fitDataStretch',
       height: '100%',
-      selectableRows: 1,
+      selectableRows: true,
       pagination: true,
       movableColumns: true,
       resizableRows: true,

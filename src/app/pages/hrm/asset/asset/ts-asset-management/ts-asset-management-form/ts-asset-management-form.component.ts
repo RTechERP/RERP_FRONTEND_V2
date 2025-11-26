@@ -65,6 +65,7 @@ export class TsAssetManagementFormComponent implements OnInit, AfterViewInit {
   sourceData: any[] = [];
   typeData: any[] = [];
   maxSTT: number = 0; 
+  model:string = '';
   activeStatusList = [
     { value: 1, label: 'Chưa Active' },
     { value: 2, label: 'Đã Active' },
@@ -286,6 +287,7 @@ export class TsAssetManagementFormComponent implements OnInit, AfterViewInit {
           TSAssetID: this.dataInput.TSAssetID,
           TSAssetCode: this.dataInput.TSAssetCode,
           TSAssetName: this.dataInput.TSAssetName,
+          Model: this.dataInput.Model,
           SourceID: this.dataInput.SourceID,
           Seri: this.dataInput.Seri,
           SpecificationsAsset: this.dataInput.SpecificationsAsset,

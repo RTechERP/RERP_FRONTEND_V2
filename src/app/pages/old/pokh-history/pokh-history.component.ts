@@ -93,7 +93,7 @@ import { ImportExcelComponent } from './import-excel/import-excel.component';
 })
 export class PokhHistoryComponent implements OnInit, AfterViewInit {
   @ViewChild('tb_Table', { static: false }) tb_TableElement!: ElementRef;
-  
+
   private tb_Table!: Tabulator;
 
   customers: any[] = [];
@@ -146,7 +146,7 @@ export class PokhHistoryComponent implements OnInit, AfterViewInit {
       (response) => {
         if (response.status === 1) {
           this.customers = response.data;
-          console.log(this.customers,'customers');
+          console.log(this.customers, 'customers');
           if (this.customerId > 0) {
             this.selectedCustomer = this.customers.find(
               (c) => c.ID === this.customerId
@@ -169,9 +169,9 @@ export class PokhHistoryComponent implements OnInit, AfterViewInit {
     endDate: Date,
     cusId: number
   ): void {
-    let cusCode = "";
+    let cusCode = '';
     if (cusId && cusId !== 0) {
-      const customer = this.customers.find(c => c.ID === cusId);
+      const customer = this.customers.find((c) => c.ID === cusId);
       if (customer) {
         cusCode = customer.CustomerCode;
       }
@@ -210,7 +210,10 @@ export class PokhHistoryComponent implements OnInit, AfterViewInit {
   }
   async exportDetailTableToExcel() {
     if (!this.tb_Table) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Không có dữ liệu để xuất Excel');
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Không có dữ liệu để xuất Excel'
+      );
       return;
     }
 
@@ -366,6 +369,7 @@ export class PokhHistoryComponent implements OnInit, AfterViewInit {
       return;
     }
     this.tb_Table = new Tabulator(this.tb_TableElement.nativeElement, {
+      ...DEFAULT_TABLE_CONFIG,
       layout: 'fitDataFill',
       data: this.mainData,
       pagination: true,
@@ -373,17 +377,17 @@ export class PokhHistoryComponent implements OnInit, AfterViewInit {
       height: '100%',
       movableColumns: true,
       renderVerticalBuffer: 1000,
-      langs: {
-        vi: {
-          pagination: {
-            first: '<<',
-            last: '>>',
-            prev: '<',
-            next: '>',
-          },
-        },
-      },
-      locale: 'vi',
+      //   langs: {
+      //     vi: {
+      //       pagination: {
+      //         first: '<<',
+      //         last: '>>',
+      //         prev: '<',
+      //         next: '>',
+      //       },
+      //     },
+      //   },
+      //   locale: 'vi',
       columns: [
         {
           title: 'Mã khách',
@@ -532,7 +536,13 @@ export class PokhHistoryComponent implements OnInit, AfterViewInit {
           sorter: 'string',
           width: 150,
         },
-        { title: 'Công nợ', field: 'Dept', sorter: 'string', width: 150, formatter: 'textarea' },
+        {
+          title: 'Công nợ',
+          field: 'Dept',
+          sorter: 'string',
+          width: 150,
+          formatter: 'textarea',
+        },
         { title: 'Sale', field: 'Sale', sorter: 'string', width: 150 },
         { title: 'Pur', field: 'Pur', sorter: 'string', width: 150 },
       ],

@@ -110,7 +110,7 @@ export class MainLayoutComponent implements OnInit {
   constructor(
     private auth: AuthService,
     private router: Router,
-    private menuService: MenuService,
+    public menuService: MenuService,
     private notification: NzNotificationService,
     private injector: Injector,
     private menuEventService: MenuEventService

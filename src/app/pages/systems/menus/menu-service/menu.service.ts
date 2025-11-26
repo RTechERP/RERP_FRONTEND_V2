@@ -111,6 +111,7 @@ import { EmployeeErrorComponent } from '../../../hrm/employee-management/employe
 import { EmployeeTimekeepingComponent } from '../../../hrm/employee-management/employee-timekeeping/employee-timekeeping.component';
 import { EmployeeSyntheticComponent } from '../../../hrm/employee-management/employee-synthetic/employee-synthetic/employee-synthetic.component';
 import { AssignWorkComponent } from '../../../purchase/assign-work/assign-work.component';
+import { AppComponent } from '../../../../app.component';
 @Injectable({
   providedIn: 'root',
 })
@@ -815,7 +816,7 @@ export class MenuService {
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission('N2,N1'),
                 comp: WFHComponent,
-                   icon: 'assets/icon/hr_wfh_24.svg',
+                icon: 'assets/icon/hr_wfh_24.svg',
               },
               {
                 kind: 'leaf',
@@ -1368,12 +1369,127 @@ export class MenuService {
           },
         ],
       },
+      //#endregion
+
+      //#region Cá nhân
+      {
+        kind: 'group',
+        key: 'person',
+        title: 'CÁ NHÂN',
+        isOpen: true,
+        isPermission: this.permissionService.hasPermission(''),
+        icon: 'assets/icon/menu_project_24.png',
+        children: [
+          {
+            kind: 'leaf',
+            key: '/thongtinlienhe',
+            title: 'Thông tin liên hệ',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: AppComponent,
+            router: '/thongtinlienhe',
+          },
+
+          {
+            kind: 'leaf',
+            key: '/sodotochuc',
+            title: 'Sơ đồ tổ chức',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: AppComponent,
+            router: '/sodotochuc',
+          },
+
+          {
+            kind: 'leaf',
+            key: '/vanbanchung',
+            title: 'Quy định / Thông báo',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: AppComponent,
+            router: '/vanbanchung',
+          },
+
+          {
+            kind: 'group',
+            key: 'POKHComponent',
+            title: 'Duyệt cá nhân',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            children: [
+              {
+                kind: 'leaf',
+                key: 'POKHComponent',
+                title: 'Danh sách PO KHÁCH HÀNG',
+                isOpen: true,
+                isPermission:
+                  this.permissionService.hasPermission('N27,N36,N1,N31'),
+                comp: PokhComponent,
+              },
+              {
+                kind: 'leaf',
+                key: 'QuotationKhComponent',
+                title: 'BÁO GIÁ KHÁCH HÀNG',
+                isOpen: true,
+                isPermission:
+                  this.permissionService.hasPermission('N27,N36,N1'),
+                comp: QuotationKhComponent,
+              },
+              {
+                kind: 'leaf',
+                key: 'PokhKpiComponent',
+                title: 'XUẤT PO KHÁCH HÀNG CHI TIẾT',
+                isOpen: true,
+                isPermission:
+                  this.permissionService.hasPermission('N27,N36,N1'),
+                comp: PokhKpiComponent,
+              },
+              {
+                kind: 'leaf',
+                key: 'POKHHistoryComponent',
+                title: 'LỊCH SỬ PO KHÁCH HÀNG',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: PokhHistoryComponent,
+              },
+            ],
+          },
+          {
+            kind: 'group',
+            key: 'ProjectComponent',
+            title: 'Vision Base',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            children: [
+              {
+                kind: 'leaf',
+                key: 'PlanWeekComponent',
+                title: 'Kế hoạch tuần',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(
+                  "'N1,N27,N53,N31,N69'"
+                ),
+                comp: PlanWeekComponent,
+              },
+              {
+                kind: 'leaf',
+                key: 'FollowProjectBaseComponent',
+                title: 'Follow dự án',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: FollowProjectBaseComponent,
+              },
+            ],
+          },
+        ],
+      },
+      //#endregion
     ];
 
     return menus;
   }
 
-  goToOldLink(router: String) {
+  goToOldLink(router: string) {
     let data: any = {
       UserName: this.appUserService.loginName,
       Password: this.appUserService.password,
@@ -1414,9 +1530,10 @@ type BaseItem = {
   stt?: number;
   title: string;
   isOpen: boolean;
-  icon?: string | null; // tùy chọn
+  icon?: string | ''; // tùy chọn
   isPermission: boolean;
   data?: {};
+  router?: string | '';
 };
 
 export type LeafItem = BaseItem & {

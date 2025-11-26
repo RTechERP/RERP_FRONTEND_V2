@@ -23,7 +23,6 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { combineLatest } from 'rxjs';
 
 import { DocumentService } from '../document-service/document.service';
-import { DocumentComponent } from '../document.component';
 import { DateTime } from 'luxon';
 
 interface Document {

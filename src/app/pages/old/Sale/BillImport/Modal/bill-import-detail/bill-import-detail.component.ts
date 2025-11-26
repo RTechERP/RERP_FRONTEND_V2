@@ -36,7 +36,6 @@ import { CommonModule } from '@angular/common';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { RowComponent } from 'tabulator-tables';
-import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
@@ -162,7 +161,7 @@ export class BillImportDetailComponent
   billID: number = 0;
   deliverID: number = 0;
 
-  isApproved:boolean=false;
+  isApproved: boolean = false;
   //tao phieu tra
   @Input() createImport: any;
   @Input() dataHistory: any[] = [];
@@ -279,14 +278,11 @@ export class BillImportDetailComponent
     if(this.id>0){
       this.billImportService.getBillImportByID(this.id).subscribe((res)=>{
         const data = res.data;
-        if(data && (data.Status===true ||data.Status===1 )){
-            this.isApproved=true;
-            console.log('approved',this.isApproved);
-
+        if (data && (data.Status === true || data.Status === 1)) {
+          this.isApproved = true;
+          console.log('approved', this.isApproved);
         }
-      }
-
-      )
+      });
     }
     this.billImportService.getWarehouse().subscribe((res: any) => {
       const list = res.data || [];
@@ -460,7 +456,8 @@ export class BillImportDetailComponent
         ID: item.ID || 0,
         POKHDetailID: item.POKHDetailID || null,
         ProductID: item.ProductID || null,
-        ProductNewCode: item.ProductNewCode || productInfo.ProductNewCode || null,
+        ProductNewCode:
+          item.ProductNewCode || productInfo.ProductNewCode || null,
         ProductCode: item.ProductCode || productInfo.ProductCode || '',
         ProductName: item.ProductName || productInfo.ProductName || '',
         Unit: item.Unit || productInfo.Unit || '',
@@ -914,7 +911,7 @@ export class BillImportDetailComponent
                 this.projectOptions.find(
                   (p: any) => p.value === item.ProjectID
                 ) || {};
-                console.log('projectID',item.ProjectID);
+              console.log('projectID', item.ProjectID);
 
               return {
                 ID: item.ID || 0,
@@ -924,16 +921,14 @@ export class BillImportDetailComponent
                   item.ProductNewCode || productInfo.ProductNewCode || '',
                 ProductCode: item.ProductCode || productInfo.ProductCode || '',
                 ProductName: item.ProductName || productInfo.ProductName || '',
-                Unit: item.Unit ||  '',
+                Unit: item.Unit || '',
                 Qty: item.Qty || 0,
                 QtyRequest: item.QtyRequest || 0,
                 QuantityRemain: item.QuantityRemain || 0,
                 ProjectID: item.ProjectID || 0,
-                ProjectCodeExport:
-                  item.ProjectCodeExport || '',
-                ProjectNameText:
-                  item.ProjectNameText|| '',
-                  CustomerFullName: item.CustomerFullName || '',
+                ProjectCodeExport: item.ProjectCodeExport || '',
+                ProjectNameText: item.ProjectNameText || '',
+                CustomerFullName: item.CustomerFullName || '',
                 CustomerID: item.CustomerID || 0,
                 ProductFullName: item.ProductFullName || '',
                 Note: item.Note || '',
@@ -1159,7 +1154,9 @@ export class BillImportDetailComponent
   }
 
   private mapTableDataToBillImportDetails(tableData: any[]): any[] {
-    const parsePOKHList = (pokhString: string): Array<{POKHDetailID: number, QuantityRequest: number}> => {
+    const parsePOKHList = (
+      pokhString: string
+    ): Array<{ POKHDetailID: number; QuantityRequest: number }> => {
       if (!pokhString || pokhString.trim() === '') {
         return [];
       }
@@ -1179,7 +1176,10 @@ export class BillImportDetailComponent
           }
           return null;
         })
-        .filter((x): x is {POKHDetailID: number, QuantityRequest: number} => x !== null);
+        .filter(
+          (x): x is { POKHDetailID: number; QuantityRequest: number } =>
+            x !== null
+        );
     };
 
     return tableData.map((row: any, index: number) => {
@@ -1236,10 +1236,16 @@ export class BillImportDetailComponent
         COFormE: row.COFormE || 0,
         IsNotKeep: row.IsNotKeep || false,
         Unit: row.Unit || 'PCS',
-        POKHDetailID: pokhDetailID,  // null hoặc number, match với int? trong C#
+        POKHDetailID: pokhDetailID, // null hoặc number, match với int? trong C#
         POKHDetailQuantity: row.POKHDetailQuantity || null,
-        CustomerID: row.CustomerID && Number(row.CustomerID) > 0 ? Number(row.CustomerID) : null,
-        QuantityRequestBuy: row.QuantityRequestBuy && Number(row.QuantityRequestBuy) > 0 ? Number(row.QuantityRequestBuy) : null,
+        CustomerID:
+          row.CustomerID && Number(row.CustomerID) > 0
+            ? Number(row.CustomerID)
+            : null,
+        QuantityRequestBuy:
+          row.QuantityRequestBuy && Number(row.QuantityRequestBuy) > 0
+            ? Number(row.QuantityRequestBuy)
+            : null,
         POKHList: pokhList,
       };
     });
@@ -1379,10 +1385,7 @@ export class BillImportDetailComponent
       },
     ];
 
-    console.log(
-      'Payload before sending:',
-      JSON.stringify(payload, null, 2)
-    );
+    console.log('Payload before sending:', JSON.stringify(payload, null, 2));
 
     this.billImportService.saveBillImport(payload).subscribe({
       next: (res) => {
@@ -1704,7 +1707,7 @@ export class BillImportDetailComponent
               hozAlign: 'center',
               width: 40,
               headerSort: false,
-              frozen:true,
+              frozen: true,
               titleFormatter: () =>
                 `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
               headerClick: () => {
@@ -1747,14 +1750,14 @@ export class BillImportDetailComponent
               hozAlign: 'center',
               width: 60,
               headerSort: false,
-              frozen:true
+              frozen: true,
             },
             {
               title: 'Mã nội bộ',
               field: 'ProductNewCode',
               hozAlign: 'left',
               headerHozAlign: 'center',
-              frozen:true
+              frozen: true,
             },
             {
               title: 'Mã hàng',
@@ -1762,7 +1765,7 @@ export class BillImportDetailComponent
               hozAlign: 'left',
               headerHozAlign: 'center',
               width: 450,
-              frozen:true,
+              frozen: true,
               editor: this.createdControl(
                 SelectControlComponent,
                 this.injector,
@@ -2051,7 +2054,8 @@ export class BillImportDetailComponent
               field: 'BillCodePO',
               hozAlign: 'left',
               headerHozAlign: 'center',
-            },{
+            },
+            {
               title: 'Số POKH',
               field: 'PONumber',
               hozAlign: 'left',
@@ -2399,7 +2403,7 @@ export class BillImportDetailComponent
                 });
               },
             },
-                        {
+            {
               title: 'Trạng thái QC',
               field: 'StatusQCText',
               hozAlign: 'left',

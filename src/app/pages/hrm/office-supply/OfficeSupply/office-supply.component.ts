@@ -1,10 +1,11 @@
-import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, ViewChild } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 import { FormsModule, Validators, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import { RowComponent } from 'tabulator-tables';
 import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
@@ -26,15 +27,11 @@ import { OfficeSupplyService } from './office-supply-service/office-supply-servi
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
-
-
 interface Unit {
   ID: number;
   Name: string;
   Code: string;
 }
-
-
 interface Product {
   ID?: number;
   CodeRTC: string;
@@ -46,8 +43,7 @@ interface Product {
   RequestLimit: number;
   Type: number;
 }
-
-declare var bootstrap: any; // Đảm bảo khai báo bên ngoài class, trước constructor hoặc ngOnInit
+declare var bootstrap: any;
 @Component({
   selector: 'app-office-supply',
   standalone: true,
@@ -72,7 +68,7 @@ declare var bootstrap: any; // Đảm bảo khai báo bên ngoài class, trướ
   templateUrl: './office-supply.component.html',
   styleUrls: ['./office-supply.component.css'],
 })
-export class OfficeSupplyComponent implements OnInit, AfterViewInit {
+export class OfficeSupplyComponent implements OnInit, AfterViewInit, OnDestroy {
 
   validateForm!: FormGroup;
   lstVP: any[] = [];
@@ -95,6 +91,7 @@ export class OfficeSupplyComponent implements OnInit, AfterViewInit {
     Type: 2 // default to Dùng chung
   };
   searchText: string = ''; // chứa từ khoá tìm kiếm
+  private searchSubject = new Subject<string>();
   isCheckmode: boolean = false;
   selectedList: any[] = [];
   selectedItem: any = {};
@@ -121,6 +118,16 @@ export class OfficeSupplyComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.getAll();
 
+    this.searchSubject.pipe(
+      debounceTime(500), 
+      distinctUntilChanged() 
+    ).subscribe(() => {
+      this.getAll();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.searchSubject.complete();
   }
 
   ngAfterViewInit(): void {
@@ -241,7 +248,8 @@ export class OfficeSupplyComponent implements OnInit, AfterViewInit {
     });
   }
   onSearchChange(event: any = null): void {
-    this.getAll();
+    // Emit vào Subject để debounce
+    this.searchSubject.next(this.searchText);
   }
 
   add(): void {

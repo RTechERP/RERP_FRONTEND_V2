@@ -22,25 +22,46 @@
   font-size: 12px;
 }
 
-::ng-deep .weekend-header-group .tabulator-col-content {
+/* Bôi màu toàn bộ ô header cho T7 và CN, không tô màu các cell trong cột */
+/* Header group (T7, CN) - tô màu toàn bộ ô header */
+::ng-deep .weekend-header-group,
+::ng-deep .weekend-header-group *,
+::ng-deep .weekend-header-group .tabulator-col-group,
+::ng-deep .weekend-header-group .tabulator-col-group *,
+::ng-deep .weekend-header-group .tabulator-col-group-element,
+::ng-deep .weekend-header-group .tabulator-col-group-element *,
+::ng-deep .weekend-header-group .tabulator-col-header,
+::ng-deep .weekend-header-group .tabulator-col-header *,
+::ng-deep .weekend-header-group .tabulator-col-content,
+::ng-deep .weekend-header-group .tabulator-col-content * {
   background-color: #e9b003 !important;
   font-weight: bold;
   font-size: 12px;
 }
 
-::ng-deep .weekend-header-group .tabulator-col-group {
+/* Header column (số ngày) - tô màu toàn bộ ô header */
+::ng-deep .weekend-column,
+::ng-deep .weekend-column *,
+::ng-deep .weekend-column .tabulator-col,
+::ng-deep .weekend-column .tabulator-col *,
+::ng-deep .weekend-column .tabulator-col-element,
+::ng-deep .weekend-column .tabulator-col-element *,
+::ng-deep .weekend-column .tabulator-col-header,
+::ng-deep .weekend-column .tabulator-col-header *,
+::ng-deep .weekend-column .tabulator-col-content,
+::ng-deep .weekend-column .tabulator-col-content * {
   background-color: #e9b003 !important;
-  font-size: 12px;
-}
-
-::ng-deep .weekend-column .tabulator-col-content {
-  background-color:  #e9b003 !important;
   font-weight: bold;
   font-size: 12px;
 }
 
-::ng-deep .weekend-column .tabulator-col-group {
-  background-color:  #e9b003 !important;
-  font-size: 12px;
+/* Đảm bảo không tô màu các cell trong cột weekend */
+::ng-deep .weekend-header-group .tabulator-cell,
+::ng-deep .weekend-column .tabulator-cell,
+::ng-deep .weekend-header-group .tabulator-row .tabulator-cell,
+::ng-deep .weekend-column .tabulator-row .tabulator-cell,
+::ng-deep .weekend-header-group .tabulator-row,
+::ng-deep .weekend-column .tabulator-row {
+  background-color: transparent !important;
 }
 

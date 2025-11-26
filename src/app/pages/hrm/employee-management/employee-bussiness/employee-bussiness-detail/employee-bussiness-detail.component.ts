@@ -30,6 +30,7 @@ import { OnChangeType } from 'ng-zorro-antd/core/types';
 import { VehiceDetailComponent } from '../vehice-detail/vehice-detail.component';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { AppUserService } from '../../../../../services/app-user.service';
+import { WFHService } from '../../employee-wfh/WFH-service/WFH.service';
 @Component({
   selector: 'app-employee-bussiness-detail',
   templateUrl: './employee-bussiness-detail.component.html',
@@ -60,11 +61,16 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
 
   @Output() employeeBussinessData = new EventEmitter<void>();
   @Input() detailData: any[] = [];
+  @ViewChild('tbEmployeeBussinessDetail', { static: false }) tabContainer!: ElementRef;
   private tabulator!: Tabulator;
+  private initRetryCount = 0;
+  private readonly MAX_INIT_RETRIES = 10;
   isLoading = false;
   isSaving = false; // Flag để track trạng thái đang lưu
   employeeList: any[] = [];
+  employeeGroups: { label: string; options: any[] }[] = [];
   approverList: any[] = [];
+  approverGroups: { label: string; options: any[] }[] = [];
   searchForm!: FormGroup;
   employeeBussinessDetail: any[] = [];
   employeeTypeBussinessList: any[] = [];
@@ -81,6 +87,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
     private modalService: NgbModal,
     public activeModal: NgbActiveModal,
     private appUserService: AppUserService,
+    private wfhService: WFHService,
   ) { }
 
   overNightTypeList = [
@@ -89,6 +96,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
   ];
 
   ngOnInit() {
+    this.initRetryCount = 0; // Reset retry count
     this.initSearchForm();
     this.loadApprover();
     this.loadEmployee();
@@ -101,6 +109,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
   }
 
   ngAfterViewInit(): void {
+    // Đợi modal render xong và element sẵn sàng
     setTimeout(() => {
       this.initializeTabulator();
       // Đảm bảo vehicleList đã được load trước khi loadDetailData
@@ -112,11 +121,11 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
           this.loadDetailData();
         });
       }
-    }, 100);
+    }, 300);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-
+    this.initRetryCount = 0; // Reset retry count
     this.initSearchForm();
     this.loadApprover();
     this.loadEmployee();
@@ -124,8 +133,11 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
     this.loadVehicleList(() => {
       // Sau khi vehicleList load xong, mới load detailData
       this.loadDetailData();
-      if (this.tabulator) {
-        this.initializeTabulator();
+      // Khởi tạo lại tabulator nếu chưa có hoặc đã bị destroy
+      if (!this.tabulator) {
+        setTimeout(() => {
+          this.initializeTabulator();
+        }, 200);
       }
     });
     this.loadEmployeeBussinessType();
@@ -239,26 +251,132 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
   }
 
   loadEmployee() {
-    this.employeeService.getAllEmployee().subscribe({
-      next: (data: any) => {
-        this.employeeList = data.data;
+    this.wfhService.getEmloyeeApprover().subscribe({
+      next: (res) => {
+        if (res && res.status === 1 && res.data) {
+          // Lưu danh sách employee gốc (để tương thích với code cũ nếu cần)
+          this.employeeList = res.data.employees || [];
+
+          // Group employees by DepartmentName
+          const empGroups: { [key: string]: any[] } = {};
+          (res.data.employees || []).forEach((emp: any) => {
+            const dept = emp.DepartmentName || 'Không xác định';
+            if (!empGroups[dept]) empGroups[dept] = [];
+            empGroups[dept].push({
+              ID: emp.EmployeeID || emp.ID,
+              FullName: emp.FullName,
+              DepartmentName: emp.DepartmentName,
+              Code: emp.Code,
+            });
+          });
+
+          // Sort employees within each group by Code
+          Object.keys(empGroups).forEach((dept) => {
+            empGroups[dept].sort((a, b) => (a.Code || '').localeCompare(b.Code || ''));
+          });
+
+          // Sort groups by department name
+          this.employeeGroups = Object.keys(empGroups)
+            .sort((a, b) => a.localeCompare(b))
+            .map((dept) => ({
+              label: `Phòng ban: ${dept}`,
+              options: empGroups[dept],
+            }));
+        } else {
+          this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Không thể tải dữ liệu nhân viên');
+          this.employeeList = [];
+          this.employeeGroups = [];
+        }
       },
       error: (error: any) => {
         this.notification.warning("Lỗi", "Lỗi khi lấy danh sách nhân viên");
+        this.employeeList = [];
+        this.employeeGroups = [];
       }
-    })
+    });
   }
 
   loadApprover() {
-    this.employeeService.getEmployeeApprove().subscribe({
-      next: (data: any) => {
-        this.approverList = data.data;
+    this.wfhService.getEmloyeeApprover().subscribe({
+      next: (res) => {
+        if (res && res.status === 1 && res.data) {
+          // Lưu danh sách approver gốc (để tương thích với code cũ nếu cần)
+          this.approverList = res.data.approvers || [];
+
+          // Group approvers by DepartmentName
+          const apprGroups: { [key: string]: any[] } = {};
+          (res.data.approvers || []).forEach((appr: any) => {
+            const dept = appr.DepartmentName || 'Không xác định';
+            if (!apprGroups[dept]) apprGroups[dept] = [];
+            apprGroups[dept].push({
+              ID: appr.EmployeeID,
+              FullName: appr.FullName,
+              DepartmentName: appr.DepartmentName,
+              Code: appr.Code,
+            });
+          });
+
+          // Sort approvers within each group by Code
+          Object.keys(apprGroups).forEach((dept) => {
+            apprGroups[dept].sort((a, b) => (a.Code || '').localeCompare(b.Code || ''));
+          });
+
+          // Sort groups by department name
+          this.approverGroups = Object.keys(apprGroups)
+            .sort((a, b) => a.localeCompare(b))
+            .map((dept) => ({
+              label: `Phòng ban: ${dept}`,
+              options: apprGroups[dept],
+            }));
+        } else {
+          this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Không thể tải dữ liệu người duyệt');
+          this.approverList = [];
+          this.approverGroups = [];
+        }
       },
       error: (error: any) => {
         this.notification.warning("Lỗi", "Lỗi khi lấy danh sách người duyệt");
+        this.approverList = [];
+        this.approverGroups = [];
       }
-    })
+    });
   }
+
+  // Filter function for employee select
+  filterEmployeeOption = (input: string, option: any): boolean => {
+    if (!input) return true;
+    const searchText = input.toLowerCase();
+    const optionValue = option.nzValue;
+    const employee = this.employeeGroups
+      .flatMap(g => g.options)
+      .find(e => e.ID === optionValue);
+    
+    if (!employee) return false;
+    
+    return (
+      (employee.Code || '').toLowerCase().includes(searchText) ||
+      (employee.FullName || '').toLowerCase().includes(searchText) ||
+      (employee.DepartmentName || '').toLowerCase().includes(searchText)
+    );
+  };
+
+  // Filter function for approver select
+  filterApproverOption = (input: string, option: any): boolean => {
+    if (!input) return true;
+    const searchText = input.toLowerCase();
+    const optionValue = option.nzValue;
+    const approver = this.approverGroups
+      .flatMap(g => g.options)
+      .find(a => a.ID === optionValue);
+    
+    if (!approver) return false;
+    
+    return (
+      (approver.Code || '').toLowerCase().includes(searchText) ||
+      (approver.FullName || '').toLowerCase().includes(searchText) ||
+      (approver.DepartmentName || '').toLowerCase().includes(searchText)
+    );
+  };
 
   loadEmployeeBussinessType() {
     this.employeeBussinessService.getEmployeeTypeBussiness().subscribe({
@@ -360,10 +478,39 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
 
 
   private initializeTabulator(): void {
-    this.tabulator = new Tabulator('#tb_employee_bussiness_detail', {
+    // Kiểm tra element tồn tại trước khi khởi tạo
+    const element = document.getElementById('tb_employee_bussiness_detail');
+    if (!element) {
+      this.initRetryCount++;
+      if (this.initRetryCount < this.MAX_INIT_RETRIES) {
+        console.warn(`Element #tb_employee_bussiness_detail not found, retrying... (${this.initRetryCount}/${this.MAX_INIT_RETRIES})`);
+        // Thử lại sau một khoảng thời gian ngắn
+        setTimeout(() => {
+          this.initializeTabulator();
+        }, 200);
+      } else {
+        console.error('Element #tb_employee_bussiness_detail not found after multiple retries');
+      }
+      return;
+    }
+
+    // Reset retry count khi tìm thấy element
+    this.initRetryCount = 0;
+
+    // Nếu đã có tabulator, destroy trước
+    if (this.tabulator) {
+      try {
+        this.tabulator.destroy();
+      } catch (e) {
+        console.warn('Error destroying existing tabulator:', e);
+      }
+    }
+
+    try {
+      this.tabulator = new Tabulator('#tb_employee_bussiness_detail', {
       data: this.employeeBussinessDetail, // Initialize with empty array
       layout: 'fitDataStretch',
-      height: '70vh',
+      height: '82vh',
       columns: [
         {
           title: '',
@@ -450,7 +597,7 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
 
             // Add event listener to update cell value when checkbox changes
             input.addEventListener('change', () => {
-              cell.setValue(input.checked);
+              cell.setValue(input.checked); 
               const row = cell.getRow();
               this.setTotalCost(row);
             });
@@ -611,10 +758,42 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
         { title: 'Ghi chú', field: 'Note', editor: 'input', hozAlign: 'left', headerHozAlign: 'center', width: 500, headerSort: false, },
 
       ]
-    });
+      });
+    } catch (error) {
+      console.error('Error initializing Tabulator:', error);
+      return;
+    }
+
+    // Chỉ đăng ký events nếu tabulator được khởi tạo thành công
     if (this.tabulator) {
       this.tabulator.on('cellEdited', (cell: any) => {
         const field = cell.getField();
+        const row = cell.getRow();
+        const rowData = row.getData();
+        
+        // Nếu là dòng đã tồn tại (ID > 0) và không phải đang edit field ReasonHREdit
+        // thì kiểm tra lý do sửa
+        if (rowData.ID > 0 && field !== 'ReasonHREdit') {
+          const isAdmin = this.appUserService.isAdmin;
+          if (!isAdmin) {
+            const reasonHREdit = rowData.ReasonHREdit || '';
+            if (!reasonHREdit || reasonHREdit.trim() === '') {
+              const stt = rowData.STT || row.getPosition() + 1;
+              this.notification.warning(
+                NOTIFICATION_TITLE.error, 
+                `Vui lòng nhập Lý do sửa cho dòng [STT: ${stt}]!`
+              );
+              // Focus vào cell ReasonHREdit
+              setTimeout(() => {
+                const reasonCell = row.getCell('ReasonHREdit');
+                if (reasonCell) {
+                  reasonCell.edit();
+                }
+              }, 100);
+            }
+          }
+        }
+        
         this.hasDataChanges = true;
         this.employeeBussinessDetail = this.tabulator!.getData();
       });
@@ -622,6 +801,24 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
       this.tabulator.on('dataChanged', () => {
         this.hasDataChanges = true;
         this.employeeBussinessDetail = this.tabulator!.getData();
+        
+        // Kiểm tra các dòng đã tồn tại (ID > 0) có lý do sửa chưa
+        const allData = this.tabulator.getData();
+        allData.forEach((rowData: any, index: number) => {
+          if (rowData.ID > 0) {
+            const reasonHREdit = rowData.ReasonHREdit || '';
+            if (!reasonHREdit || reasonHREdit.trim() === '') {
+              const stt = rowData.STT || (index + 1);
+              // Chỉ hiển thị warning một lần, không spam
+              setTimeout(() => {
+                this.notification.warning(
+                  NOTIFICATION_TITLE.error, 
+                  `Vui lòng nhập Lý do sửa cho dòng [STT: ${stt}]!`
+                );
+              }, 100);
+            }
+          }
+        });
       });
 
       this.tabulator.on('rowDeleted', () => {
@@ -747,14 +944,11 @@ export class EmployeeBussinessDetailComponent implements OnInit, AfterViewInit, 
         }
       }
 
-      // Validate ReasonHREdit khi sửa (ID > 0) và không phải admin
+      // Validate ReasonHREdit khi sửa (ID > 0) - bắt buộc cho tất cả user (không chỉ admin)
       if (rowData['ID'] > 0) {
-        const isAdmin = this.appUserService.isAdmin;
-        if (!isAdmin) {
-          if (!rowData['ReasonHREdit'] || rowData['ReasonHREdit'].trim() === '') {
-            this.notification.warning(NOTIFICATION_TITLE.error, `Vui lòng nhập Lý do sửa [STT: ${stt}]!`);
-            return false;
-          }
+        if (!rowData['ReasonHREdit'] || rowData['ReasonHREdit'].trim() === '') {
+          this.notification.warning(NOTIFICATION_TITLE.error, `Vui lòng nhập Lý do sửa [STT: ${stt}]!`);
+          return false;
         }
       }
     }

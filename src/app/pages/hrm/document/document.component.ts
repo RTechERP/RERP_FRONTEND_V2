@@ -64,6 +64,8 @@ interface Document {
   DatePromulgate: Date | null;
   DateEffective: Date | null;
   GroupType: number;
+  IsPromulgated?: boolean;
+  IsOnWeb?: boolean;
 }
 
 interface DocumentFile {
@@ -197,9 +199,15 @@ export class DocumentComponent implements OnInit, AfterViewInit {
     this.documentService.getDataDocumentType().subscribe((response: any) => {
       this.documentTypeData = response.data || [];
       if (this.documentTypeTable) {
-        this.documentTypeTable.setData(this.documentTypeData);
-        this.searchParams.idDocumentType = this.documentTypeData[0].ID;
-        this.getDocument();
+        this.documentTypeTable.replaceData(this.documentTypeData);
+        // Force redraw để đảm bảo bảng được refresh
+        setTimeout(() => {
+          this.documentTypeTable?.redraw(true);
+        }, 100);
+        if (this.documentTypeData.length > 0) {
+          this.searchParams.idDocumentType = this.documentTypeData[0].ID;
+          this.getDocument();
+        }
       } else {
         this.draw_documentTypeTable();
       }
@@ -288,8 +296,37 @@ export class DocumentComponent implements OnInit, AfterViewInit {
 
 
   onAddDocumentType() {
-    const selected = this.documentTypeTable?.getSelectedData() || [];
-    const rowData = { ...selected[0] };
+    const modalRef = this.modalService.open(DocumentTypeFormComponent, {
+      centered: true,
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+    });
+    modalRef.componentInstance.newwarehouse = this.newDocumentType;
+    modalRef.componentInstance.isCheckmode = this.isCheckmode;
+    modalRef.componentInstance.warehouseID = this.documentTypeID;
+    modalRef.componentInstance.dataInput = null;
+    modalRef.componentInstance.mode = 'add';
+
+    modalRef.result.then(
+      (result) => {
+        if (result == true) {
+          this.getDataDocumentType();
+        }
+      },
+      (reason) => {
+        // Modal dismissed - không làm gì
+      }
+    );
+  }
+
+  editDocumentType(documentTypeData?: any) {
+    const dataToEdit = documentTypeData || this.documentTypeTable?.getSelectedData()?.[0];
+
+    if (!dataToEdit) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn một loại văn bản để sửa!');
+      return;
+    }
 
     const modalRef = this.modalService.open(DocumentTypeFormComponent, {
       centered: true,
@@ -300,14 +337,19 @@ export class DocumentComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.newwarehouse = this.newDocumentType;
     modalRef.componentInstance.isCheckmode = this.isCheckmode;
     modalRef.componentInstance.warehouseID = this.documentTypeID;
-    modalRef.componentInstance.dataInput = rowData;
+    modalRef.componentInstance.dataInput = dataToEdit;
+    modalRef.componentInstance.mode = 'edit';
 
-    modalRef.result.catch((result) => {
-      if (result == true) {
-        this.getDataDocumentType();
-        this.draw_documentTypeTable();
+    modalRef.result.then(
+      (result) => {
+        if (result == true) {
+          this.getDataDocumentType();
+        }
+      },
+      (reason) => {
+        // Modal dismissed - không làm gì
       }
-    });
+    );
   }
 
   onDeleteDocumentType() {
@@ -365,6 +407,39 @@ export class DocumentComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.dataDepartment = this.dataDepartment;
     modalRef.componentInstance.searchParams = this.searchParams;
     modalRef.componentInstance.documentTypeID = this.documentTypeID;
+    modalRef.componentInstance.dataInput = null;
+    modalRef.componentInstance.mode = 'add';
+
+    modalRef.result.catch((result) => {
+      if (result == true) {
+        // Reload dữ liệu từ server
+        this.getDocument();
+      }
+    });
+  }
+
+  editDocument(documentData?: any) {
+    const dataToEdit = documentData || this.documentTable?.getSelectedData()?.[0];
+
+    if (!dataToEdit) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn một văn bản để sửa!');
+      return;
+    }
+
+    const modalRef = this.modalService.open(DocumentFormComponent, {
+      centered: true,
+      size: 'lg',
+      backdrop: 'static',
+      keyboard: false,
+    });
+    modalRef.componentInstance.newwarehouse = this.newDocument;
+    modalRef.componentInstance.isCheckmode = this.isCheckmode;
+    modalRef.componentInstance.warehouseID = this.documentID;
+    modalRef.componentInstance.dataDepartment = this.dataDepartment;
+    modalRef.componentInstance.searchParams = this.searchParams;
+    modalRef.componentInstance.documentTypeID = this.documentTypeID;
+    modalRef.componentInstance.dataInput = dataToEdit;
+    modalRef.componentInstance.mode = 'edit';
 
     modalRef.result.catch((result) => {
       if (result == true) {
@@ -679,13 +754,14 @@ export class DocumentComponent implements OnInit, AfterViewInit {
         columns: [
           {
             title: 'Mã loại VB',
-            hozAlign: 'center',
+            hozAlign: 'left',
             headerHozAlign: 'center',
             field: 'Code',
           },
           {
             title: 'Tên loại VB',
             field: 'Name',
+            hozAlign: 'left',
             headerHozAlign: 'center',
             resizable: false,
           },
@@ -697,6 +773,11 @@ export class DocumentComponent implements OnInit, AfterViewInit {
         this.searchParams.idDocumentType = rowData['ID'];
         const mouseEvent = e as MouseEvent;
         this.getDocument();
+      });
+
+      this.documentTypeTable.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
+        const rowData = row.getData();
+        this.editDocumentType(rowData);
       });
 
       //THÊM SỰ KIỆN rowSelected VÀ rowDeselected
@@ -766,29 +847,33 @@ export class DocumentComponent implements OnInit, AfterViewInit {
         columns: [
           {
             title: 'STT',
-            hozAlign: 'center',
+            hozAlign: 'right',
             headerHozAlign: 'center',
             field: 'STT',
+            sorter: 'number',
           },
           {
             title: 'Loại văn bản',
-            field: 'NameDocumentType',
+            field: 'NameDocumentType',  
+            hozAlign: 'left',
             headerHozAlign: 'center',
           },
           {
             title: 'Mã văn bản',
             field: 'Code',
+            hozAlign: 'left',
             headerHozAlign: 'center',
           },
           {
             title: 'Tên văn bản',
             field: 'NameDocument',
+            hozAlign: 'left',
             headerHozAlign: 'center',
           },
           {
             title: 'Ngày ban hành',
             field: 'DatePromulgate',
-            hozAlign: 'left',
+            hozAlign: 'center',
             headerHozAlign: 'center',
             width: 150,
             formatter: (cell: any) => {
@@ -801,7 +886,7 @@ export class DocumentComponent implements OnInit, AfterViewInit {
           {
             title: 'Ngày hiệu lực',
             field: 'DateEffective',
-            hozAlign: 'left',
+            hozAlign: 'center',
             headerHozAlign: 'center',
             width: 150,
             resizable: false,
@@ -813,6 +898,43 @@ export class DocumentComponent implements OnInit, AfterViewInit {
             },
 
           },
+          {
+            title: 'Đã ban hành',
+            field: 'IsPromulgated',
+            hozAlign: 'center',
+            headerHozAlign: 'center',
+            formatter: (cell) => `<input type="checkbox" ${(['true', true, 1, '1'].includes(cell.getValue()) ? 'checked' : '')} onclick="return false;">`
+          },
+          {
+            title: 'Mã bộ phận',
+            field: 'DepartmentCode',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Bộ phận phát hành',
+            field: 'DepartmentName',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Mã người ký',
+            field: 'EmployeeSignCode',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Tên người ký',
+            field: 'EmployeeSignName',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Phạm vi áp dụng',
+            field: 'AffectedScope',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+          },
         ],
       });
 
@@ -821,6 +943,11 @@ export class DocumentComponent implements OnInit, AfterViewInit {
         // Nếu cần dùng property riêng của chuột thì ép kiểu:
         const mouseEvent = e as MouseEvent;
         this.getDocumentFileByID(rowData['ID']);
+      });
+
+      this.documentTable.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
+        const rowData = row.getData();
+        this.editDocument(rowData);
       });
 
       this.documentTable.on('rowSelected', (row: any) => {
@@ -846,7 +973,7 @@ export class DocumentComponent implements OnInit, AfterViewInit {
     } else {
       // Tạo context menu dựa trên permission
       const contextMenuItems: any[] = [];
-      
+
       if (this.permissionService.hasPermission('N2,N34,N1')) {
         contextMenuItems.push({
           label: 'Xóa',
@@ -855,7 +982,7 @@ export class DocumentComponent implements OnInit, AfterViewInit {
           }
         });
       }
-      
+
       contextMenuItems.push({
         label: 'Tải xuống',
         action: () => {
@@ -883,7 +1010,14 @@ export class DocumentComponent implements OnInit, AfterViewInit {
             hozAlign: 'left',
             headerHozAlign: 'center',
             field: 'FileName',
-            resizable: false
+            resizable: false,
+            formatter: (cell: any) => {
+              const value = cell.getValue();
+              if (value) {
+                return `<span style="color: #1890ff; text-decoration: underline; cursor: pointer;">${value}</span>`;
+              }
+              return '';
+            }
           },
         ],
       });
@@ -900,6 +1034,14 @@ export class DocumentComponent implements OnInit, AfterViewInit {
         if (selectedRows.length === 0) {
           this.data = []; // Reset data về mảng rỗng
         }
+      });
+
+      // Double click vào tên file để tải xuống
+      this.documentFileTable.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
+        const rowData = row.getData();
+        // Set data để downloadFile() có thể sử dụng
+        this.data = [rowData];
+        this.downloadFile();
       });
     }
   }

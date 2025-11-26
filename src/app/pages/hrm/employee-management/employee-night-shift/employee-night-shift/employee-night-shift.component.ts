@@ -246,6 +246,10 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
       ...DEFAULT_TABLE_CONFIG,
       ajaxURL: this.employeeNightShiftService.getEmployeeNightShiftAjax(),
       ajaxConfig: 'POST',
+      groupBy: 'DepartmentName',
+      groupHeader: (value: any, count: number, data: any, group: any) => {
+        return `<strong>Phòng ban: ${value || 'Không xác định'}</strong> <span style="color: #666; margin-left: 10px;">(${count} bản ghi)</span>`;
+      },
       ajaxRequestFunc: (url, config, params) => {
         const request = {
           EmployeeID: this.employeeID || 0,
@@ -319,6 +323,7 @@ export class EmployeeNightShiftComponent implements OnInit, AfterViewInit, OnDes
           title: 'Phòng ban',
           field: 'DepartmentName',
           minWidth: 150,
+          visible: false, // Ẩn cột vì đã hiển thị trong group header
         },
         {
           title: 'Bổ sung',

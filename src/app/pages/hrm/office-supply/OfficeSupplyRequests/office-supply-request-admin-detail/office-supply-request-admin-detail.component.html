@@ -1,0 +1,111 @@
+<div class="modal-dialog-scrollable">
+  <div class="modal-header bg-primary align-items-center ps-2">
+    <h6 class="text-light text-uppercase m-0" style="padding: 0, 5rem">
+      ĐĂNG KÝ VPP ADMIN
+    </h6>
+    <button type="button" class="btn-close" (click)="close()" aria-label="Close"></button>
+  </div>
+
+  <div class="modal-body p-2 w-100 pt-0" style="max-height: 80vh; overflow-y: auto; overflow-x: hidden;">
+    <div class="card border-0 rounded-0">
+      <!-- Form Header -->
+   
+        <form nz-form nzLayout="vertical">
+          <nz-row [nzGutter]="16">
+            <nz-col [nzSpan]="8">
+              <nz-form-item>
+                <nz-form-label class="pt-1">Ngày đăng ký</nz-form-label>
+                <nz-form-control [nzErrorTip]="!dateRequest ? 'Vui lòng chọn ngày đăng ký' : undefined"
+                  [nzValidateStatus]="!dateRequest ? 'error' : ''">
+                  <nz-date-picker [(ngModel)]="dateRequest" name="dateRequest" nzFormat="dd/MM/yyyy"
+                    nzPlaceHolder="Chọn ngày đăng ký" class="w-100" nzSize="default"></nz-date-picker>
+                </nz-form-control>
+              </nz-form-item> 
+            </nz-col>
+
+            <nz-col [nzSpan]="8">
+              <nz-form-item>
+                <nz-form-label class="pt-1">Phòng ban</nz-form-label>
+                <nz-form-control
+                  [nzErrorTip]="(!departmentId || departmentId <= 0) ? 'Vui lòng chọn phòng ban' : undefined"
+                  [nzValidateStatus]="(!departmentId || departmentId <= 0) ? 'error' : ''">
+                  <nz-select [(ngModel)]="departmentId" name="departmentId" nzShowSearch nzAllowClear
+                    nzPlaceHolder="Chọn phòng ban" class="w-100" nzSize="default" (ngModelChange)="onDepartmentChange()">
+                    <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID" [nzLabel]="dept.Name">
+                      {{ dept.Code }} - {{ dept.Name }}
+                    </nz-option>
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </nz-col>
+
+            <nz-col [nzSpan]="8">
+              <nz-form-item>
+                <nz-form-label class="pt-1">Người đăng ký</nz-form-label>
+                <nz-form-control
+                  [nzErrorTip]="(!requesterId || requesterId <= 0) ? 'Vui lòng chọn người đăng ký' : undefined"
+                  [nzValidateStatus]="(!requesterId || requesterId <= 0) ? 'error' : ''">
+                  <nz-select [(ngModel)]="requesterId" name="requesterId" nzShowSearch nzAllowClear
+                    nzPlaceHolder="Chọn người đăng ký" class="w-100" nzSize="default">
+                    <nz-option-group *ngFor="let group of employeeGroups" [nzLabel]="group.label">
+                      <nz-option *ngFor="let emp of group.options" [nzValue]="emp.ID || emp.EmployeeID"
+                        [nzLabel]="emp.Code + ' - ' + emp.FullName">
+                        {{ emp.Code }} - {{ emp.FullName }}
+                      </nz-option>
+                    </nz-option-group>
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+            </nz-col>
+          </nz-row>
+        </form>
+
+
+      <!-- Splitter: Nhân viên trên, VPP dưới -->
+      <div class="position-relative" style="height: 100%;">
+        <div *ngIf="isLoading || isSaving">
+          <nz-spin [nzSpinning]="isLoading || isSaving" nzSimple [style]="{
+            position: 'absolute',
+            top: '0',
+            left: '0',
+            width: '100%',
+            height: '100%',
+            background: 'rgba(255,255,255,0.4)',
+            zIndex: '999',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }"></nz-spin>
+        </div>
+
+        <nz-splitter nzLayout="vertical">
+          <!-- Panel trên: Bảng nhân viên -->
+          <nz-splitter-panel>
+            <div #tbEmployee class="border" style="height: 100%;"></div>
+          </nz-splitter-panel>
+
+          <!-- Panel dưới: Bảng VPP -->
+          <nz-splitter-panel>
+            <div #tbRequestDetail class="border" style="height: 100%; "></div>
+          </nz-splitter-panel>
+        </nz-splitter>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer br p-1 d-flex align-items-center">
+    <div class="d-flex align-items-center flex-wrap gap-1">
+      <button type="button" class="btn btn-outline-danger" style="border: 1px solid; border-radius: 0;"
+        (click)="close()" [disabled]="isSaving">
+        Đóng
+      </button>
+      <button type="button" style="border-radius: 0;" class="btn btn-primary" (click)="save()" [disabled]="isSaving">
+        <span *ngIf="!isSaving">Lưu</span>
+        <span *ngIf="isSaving">
+
+          Đang lưu...
+        </span>
+      </button>
+    </div>
+  </div>
+</div>

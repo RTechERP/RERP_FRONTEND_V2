@@ -111,6 +111,7 @@ export class EmployeeTimekeepingManagementComponent
   weekdays: any = {};
 
   isLoadTable = false;
+  isUpdating = false; // Flag để track trạng thái đang update
   year: Date = new Date();
   month: Date = new Date();
   selectedDepartment: any | null = null;
@@ -630,6 +631,11 @@ export class EmployeeTimekeepingManagementComponent
   }
 
   onUpdateOne(): void {
+    if (this.isUpdating) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Đang cập nhật, vui lòng đợi...');
+      return;
+    }
+
     const p = this.getAjaxParamsMT(); // lấy month/year hiện tại
     const masterId = this.etId; // lấy masterId từ route param
     if (this.isApproved) {
@@ -667,12 +673,14 @@ export class EmployeeTimekeepingManagementComponent
         // dùng LoginName mặc định từ service (ADMIN)
         const login = this.etService.LoginName || 'ADMIN';
 
+        this.isUpdating = true;
         this.isLoadTable = true;
         this.etService
           .updateTimekeepingOne(masterId, p.month, p.year, employeeId, login)
           .subscribe({
             next: (res) => {
               this.isLoadTable = false;
+              this.isUpdating = false;
               if (res?.status === 0) {
                 this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Cập nhật thất bại');
                 return;
@@ -686,6 +694,7 @@ export class EmployeeTimekeepingManagementComponent
             },
             error: () => {
               this.isLoadTable = false;
+              this.isUpdating = false;
               this.notification.error(NOTIFICATION_TITLE.error, 'Không thể cập nhật công nhân viên');
             },
           });
@@ -693,7 +702,12 @@ export class EmployeeTimekeepingManagementComponent
     });
   }
 
-  onUpdateAll(): void {
+  async onUpdateAll(): Promise<void> {
+    if (this.isUpdating) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Đang cập nhật, vui lòng đợi...');
+      return;
+    }
+
     if (this.isApproved) {
       const p = this.getAjaxParamsMT();
       this.notification.warning(
@@ -714,34 +728,40 @@ export class EmployeeTimekeepingManagementComponent
       nzContent: `Bạn có chắc muốn cập nhật lại bảng chấm công tháng ${p.month}/${p.year} cho TẤT CẢ nhân viên?`,
       nzOkText: 'Đồng ý',
       nzCancelText: 'Hủy',
-      nzOnOk: () => {
+      nzOnOk: async () => {
         const login = this.etService.LoginName || 'ADMIN';
 
+        this.isUpdating = true;
         this.isLoadTable = true;
-        this.etService
-          .updateTimekeepingAll(masterId, p.month, p.year, login)
-          .subscribe({
-            next: (res) => {
-              this.isLoadTable = false;
-              if (res?.status === 0) {
-                this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Cập nhật thất bại');
-                return;
-              }
-              this.notification.success(
-                NOTIFICATION_TITLE.success,
-                'Đã cập nhật toàn bộ bảng công'
-              );
-              if (this.tb_MT) this.loadMTData();
-              if (this.tb_DT) this.loadDTData();
-            },
-            error: () => {
-              this.isLoadTable = false;
-              this.notification.error(
-                NOTIFICATION_TITLE.error,
-                'Không thể cập nhật toàn bộ bảng công'
-              );
-            },
-          });
+        
+        try {
+          const res = await firstValueFrom(
+            this.etService.updateTimekeepingAll(masterId, p.month, p.year, login)
+          );
+          
+          this.isLoadTable = false;
+          this.isUpdating = false;
+          
+          if (res?.status === 0) {
+            this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Cập nhật thất bại');
+            return;
+          }
+          
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            'Đã cập nhật toàn bộ bảng công'
+          );
+          
+          if (this.tb_MT) this.loadMTData();
+          if (this.tb_DT) this.loadDTData();
+        } catch (error) {
+          this.isLoadTable = false;
+          this.isUpdating = false;
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'Không thể cập nhật toàn bộ bảng công'
+          );
+        }
       }
     });
   }

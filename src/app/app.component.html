@@ -21,8 +21,9 @@
             <li nz-submenu [nzTitle]="nzTitle" *ngIf="isGroup(m) && m.isPermission && m.isOpen" nzOpen="">
                 <ul>
                     @for (c1 of m.children; track c1.key) {
-                    <li nz-menu-item *ngIf="isLeaf(c1) && c1.isPermission && c1.isOpen"
-                        (click)="newTab(c1.comp, c1.title,c1.data)">
+                    <li nz-menu-item *ngIf="isLeaf(c1) && c1.isPermission && c1.isOpen" (click)="c1.router === '' 
+                            ? newTab(c1.comp, c1.title, c1.data) 
+                            : menuService.goToOldLink(c1.router ||'')">
                         <img [src]="c1.icon" class="menu-icon" /> {{c1.title}}
                     </li>
 

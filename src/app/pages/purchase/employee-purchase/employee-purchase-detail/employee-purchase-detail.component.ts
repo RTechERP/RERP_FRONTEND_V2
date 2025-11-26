@@ -1,12 +1,10 @@
-// ✅ employee-purchase-detail.component.ts - Rewritten for NgBootstrap Modal
+
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 
-// ✅ NgBootstrap Modal
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
-// ✅ NG-ZORRO modules
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzInputModule } from 'ng-zorro-antd/input';
@@ -15,7 +13,6 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 
-// ✅ Services
 import { EmployeePurchaseService } from '../employee-purchase-service/employee-purchase.service';
 import {
   EmployeePurchaseDto,

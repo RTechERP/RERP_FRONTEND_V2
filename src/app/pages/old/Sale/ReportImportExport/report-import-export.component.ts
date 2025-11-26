@@ -38,6 +38,7 @@ import { ProductGroupDetailComponent } from '../ProductSale/product-group-detail
 import { ImportExportModalComponent } from './detail-modal/import-export-detail-modal..component';
 import { BillExportDetailComponent } from '../BillExport/Modal/bill-export-detail/bill-export-detail.component';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 
 interface ProductSale {
   Id?: number;
@@ -560,6 +561,8 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
       },
     ];
     this.tableReport = new Tabulator('#table_productsale', {
+      ...DEFAULT_TABLE_CONFIG,
+      pagination:false,
       data: this.dataReport,
       layout: 'fitDataStretch',
       height: '96%',

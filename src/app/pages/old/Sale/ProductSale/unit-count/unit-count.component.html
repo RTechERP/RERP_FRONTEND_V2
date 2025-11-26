@@ -20,7 +20,9 @@
                 </div>
             </div>
             <div class="card-body p-0">
-                <div #unitCountTable></div>
+                <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu...">
+                    <div #unitCountTable></div>
+                </nz-spin>
             </div>
 
 </ng-container>

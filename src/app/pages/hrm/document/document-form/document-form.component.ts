@@ -2,9 +2,6 @@ import {
   Component,
   OnInit,
   Input,
-  Output,
-  EventEmitter,
-  inject,
   AfterViewInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -20,15 +17,12 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { combineLatest } from 'rxjs';
 
 import { DocumentService } from '../document-service/document.service';
-import { DocumentComponent } from '../document.component';
-import { DateTime } from 'luxon';
 
 interface Document {
   STT: number;

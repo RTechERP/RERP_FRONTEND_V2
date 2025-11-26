@@ -25,6 +25,7 @@ import { DateTime } from 'luxon';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 
 @Component({
   standalone: true,
@@ -107,14 +108,14 @@ searchTimeout: any;
       this.exportTable.setData(this.exportDataTable);
     } else {
       this.exportTable = new Tabulator('#exportTable', {
+        ...DEFAULT_TABLE_CONFIG,
         data: this.exportDataTable,
         layout: "fitDataStretch",
         pagination: true,
         selectableRows: 1,
         height: '86vh',
         movableColumns: true,
-        paginationSize: 30,
-        paginationSizeSelector: [5, 10, 20, 50, 100],
+        paginationMode:'local',
         reactiveData: true,
         placeholder: 'Không có dữ liệu',
         dataTree: true,
@@ -148,14 +149,13 @@ searchTimeout: any;
       this.importTable.setData(this.importDataTable);
     } else {
       this.importTable = new Tabulator('#importTable', {
+        ...DEFAULT_TABLE_CONFIG,
         data: this.importDataTable,
         layout: "fitDataStretch",
         pagination: true,
         selectableRows: 1,
         height: '86vh',
-        movableColumns: true,
-        paginationSize: 30,
-        paginationSizeSelector: [5, 10, 20, 50, 100],
+        movableColumns: true,paginationMode:'local',
         reactiveData: true,
         placeholder: 'Không có dữ liệu',
         dataTree: true,

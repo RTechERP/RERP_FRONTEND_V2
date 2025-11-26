@@ -246,7 +246,9 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
       { title: 'Trạng thái', field: 'StatusText' },
       { title: 'Trạng thái duyệt', field: 'ApproveText' },
       { title: 'ID', field: 'ID', visible: false },
-      { title: 'Số phiếu', field: 'Code' },
+      { title: 'Số phiếu', field:'BillCode', visible:isNhap },
+      // { title: 'Số phiếu', field:'Code', visible:isXuat },
+
       { title: 'Nhà cung cấp', field: 'Suplier' },
       { title: 'Khách hàng', field: 'CustomerName' },
       {
@@ -263,7 +265,7 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
       { title: 'Hãng', field: 'Maker' },
       { title: 'Đơn vị', field: 'UnitName' },
       { title: 'Số lượng', field: 'Quantity' },
-      { title: 'Vị trí', field: 'AddressBox' },
+      { title: 'Vị trí', field: 'LocationName' },
       { title: 'Dự án', field: 'ProjectName', visible: isXuat },
       { title: 'Ghi chú', field: 'Note', width: 400 },
       { title: 'Người giao hàng', field: 'Deliver', visible: isNhap },

@@ -124,7 +124,9 @@
 
                     <!-- Cột phải -->
                     <nz-splitter-panel [nzCollapsible]="true" style="overflow: auto;">
-                        <div #tableProductSale style="height: 100%;"></div>
+                        <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu...">
+                            <div #tableProductSale style="height: 100%;"></div>
+                        </nz-spin>
                     </nz-splitter-panel>
                 </nz-splitter>
             </div>

@@ -27,21 +27,9 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzModalModule } from 'ng-zorro-antd/modal';
-import { DateTime } from 'luxon';
 
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { SelectControlComponent } from '../../../old/select-control/select-control.component';
-import {
-  TabulatorFull as Tabulator,
-  CellComponent,
-  ColumnDefinition,
-  RowComponent,
-} from 'tabulator-tables';
-import { NzModalService } from 'ng-zorro-antd/modal';
 
-import { MeetingMinuteComponent } from '../meeting-minute.component';
 import { MeetingMinuteService } from '../meeting-minute-service/meeting-minute.service';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NOTIFICATION_TITLE } from '../../../../app.config';

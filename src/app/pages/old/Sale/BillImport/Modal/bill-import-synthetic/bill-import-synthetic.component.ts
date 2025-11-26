@@ -34,6 +34,7 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { ProductSaleDetailComponent } from '../../../ProductSale/product-sale-detail/product-sale-detail.component';
 import { NzDividerModule } from 'ng-zorro-antd/divider';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { BillImportServiceService } from '../../bill-import-service/bill-import-service.service';
 import { ProductsaleServiceService } from '../../../ProductSale/product-sale-service/product-sale-service.service';
 import { AppUserService } from '../../../../../../services/app-user.service';
@@ -76,6 +77,7 @@ interface data {
     NzFormModule,
     NzDividerModule,
     NzDatePickerModule,
+    NzSpinModule,
     ProductSaleDetailComponent,
     SelectControlComponent,
     NzCheckboxModule,
@@ -90,6 +92,7 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
   table: any;
   isAdmin: boolean = false;
   currentUserID: number = 0;
+  isLoading: boolean = false;
   //
   selectedKhoTypes: number[] = [];
   cbbStatus: any = [
@@ -138,7 +141,6 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
     this.isAdmin = this.appUserService.isAdmin;
     this.currentUserID = this.appUserService.id || 0;
     this.getProductGroup();
-    this.loadDataBillImportSynthetic();
   }
   ngAfterViewInit(): void {
     this.getDataContextMenu();
@@ -394,6 +396,8 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
             );
             this.searchParams.listproductgroupID =
               this.selectedKhoTypes.join(',');
+            // Load dữ liệu sau khi đã set xong listproductgroupID
+            this.loadDataBillImportSynthetic();
           }
         },
         error: (err) => {
@@ -438,6 +442,7 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
       new Date(this.searchParams.dateEnd)
     ).endOf('day');
 
+    this.isLoading = true;
     this.billImportService
       .getBillImportSynthetic(
         this.searchParams.listproductgroupID,
@@ -452,6 +457,7 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
       )
       .subscribe({
         next: (res) => {
+          this.isLoading = false;
           if (res.status === 1) {
             this.dataTable = res.data;
             console.log('jdjhdjd', this.dataTable);
@@ -461,6 +467,7 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
           }
         },
         error: (err) => {
+          this.isLoading = false;
           this.notification.error(
             NOTIFICATION_TITLE.error,
             'Không thể tải dữ liệu phiếu xuất'
@@ -590,6 +597,7 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
       data: this.dataTable,
       layout: 'fitDataFill',
       height: '100%',
+      maxHeight:'100%',
       pagination: true,
       paginationSize: 50,
       paginationMode: 'local',

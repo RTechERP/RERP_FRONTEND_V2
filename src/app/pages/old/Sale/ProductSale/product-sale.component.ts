@@ -32,6 +32,7 @@ import { ImportExcelProductSaleComponent } from './import-excel-product-sale/imp
 import { ISADMIN, NOTIFICATION_TITLE } from '../../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 interface ProductGroup {
   ID?: number;
@@ -72,6 +73,7 @@ interface ProductSale {
     NzInputNumberModule,
     NzCheckboxModule,
     NgbModule,
+    NzSpinModule,
     HasPermissionDirective
     // ProductSaleDetailComponent,
     // ImportExcelProductSaleComponent,
@@ -89,6 +91,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
   table_productsale: any;
   dataProductSale: any[] = [];
   listProductSale: any[] = [];
+  isLoading: boolean = false;
  sizeSearch: string = '0';
   sizeTbDetail: any = '0';
   // biến liên quan đến dữ liệu và bảng của productGroup
@@ -307,6 +310,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
   //#region hàm liên quan productSale
   getAllProductSale() {
     if (this.checkedALL == true) {
+      this.isLoading = true;
       this.productsaleSV
         .getdataProductSalebyID(0, this.keyword, this.checkedALL)
         .subscribe({
@@ -320,9 +324,11 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
                 this.drawTable_ProductSale();
               }
             }
+            this.isLoading = false;
           },
           error: (err) => {
             console.error('Lỗi khi lấy dữ liệu toàn bộ sản phẩm:', err);
+            this.isLoading = false;
           },
         });
     } else {
@@ -331,6 +337,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
   }
   getProductSaleByID(id: number) {
     if (!this.id) return;
+    this.isLoading = true;
     this.productsaleSV
       .getdataProductSalebyID(id, this.keyword, this.checkedALL)
       .subscribe({
@@ -344,14 +351,17 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
               this.drawTable_ProductSale();
             }
           }
+          this.isLoading = false;
         },
         error: (err) => {
           console.error('Lỗi khi lấy dữ liệu sản phẩm:', err);
+          this.isLoading = false;
         },
       });
   }
   getDataProductSaleByIDgroup(id: number) {
     if (this.checkedALL == false) {
+      this.isLoading = true;
       this.productsaleSV
         .getdataProductSalebyID(id, this.keyword, false)
         .subscribe({
@@ -365,9 +375,11 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
                 this.drawTable_ProductSale();
               }
             }
+            this.isLoading = false;
           },
           error: (err) => {
             console.error('Lỗi khi lấy dữ liệu toàn bộ sản phẩm:', err);
+            this.isLoading = false;
           },
         });
     }
@@ -612,6 +624,16 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
           title: 'Tên nhóm',
           field: 'ProductGroupName',
           headerHozAlign: 'center',
+        },
+        {
+          title: 'Tích xanh',
+          field: 'IsFix',
+          hozAlign: 'center',
+          headerHozAlign: 'center',
+          formatter: (cell) => {
+              const value = cell.getValue();
+              return `<input type="checkbox" ${value === true ? 'checked' : ''} disabled />`;
+            },
         },
         {
           title: 'Mã Sản phẩm',

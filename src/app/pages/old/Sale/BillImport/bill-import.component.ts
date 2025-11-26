@@ -888,9 +888,101 @@ export class BillImportComponent implements OnInit, AfterViewInit {
 
   deleteAttachment() {}
   addAttachment() {}
+
+  /**
+   * Cập nhật trạng thái hồ sơ chứng từ
+   * @param row - Row được chọn từ context menu
+   * @param status - true: đã nhận đủ, false: chưa nhận đủ
+   */
+  updateDocumentStatus(row: any, status: boolean): void {
+    const rowData = row.getData();
+    const billID = rowData['ID'];
+    const receiverID = rowData['DoccumentReceiverID'];
+
+    // Validate: Chỉ admin hoặc người nhận hồ sơ mới được cập nhật
+    if (receiverID !== this.appUserService.id && !this.appUserService.isAdmin) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Bạn không có quyền cập nhật trạng thái hồ sơ chứng từ này!\nChỉ admin hoặc người nhận hồ sơ mới có thể cập nhật.'
+      );
+      return;
+    }
+
+    // Hiển thị confirm dialog
+    const statusText = status ? 'đã nhận đủ' : 'chưa nhận đủ';
+    this.modal.confirm({
+      nzTitle: 'Xác nhận',
+      nzContent: `Bạn có chắc muốn cập nhật trạng thái hồ sơ chứng từ thành <strong>"${statusText}"</strong>?`,
+      nzOkText: 'Xác nhận',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        this.callApiUpdateDocumentStatus([billID], status);
+      },
+    });
+  }
+
+  /**
+   * Gọi API để cập nhật trạng thái hồ sơ chứng từ
+   * @param billIDs - Mảng ID các phiếu nhập cần cập nhật
+   * @param status - true: đã nhận đủ, false: chưa nhận đủ
+   */
+  private callApiUpdateDocumentStatus(billIDs: number[], status: boolean): void {
+    // Chuẩn bị payload theo format API yêu cầu
+    const payload = billIDs.map((id) => {
+      // Tìm bill từ dataTableBillImport để lấy DoccumentReceiverID
+      const bill = this.dataTableBillImport.find((b) => b.ID === id);
+      return {
+        ID: id,
+        DoccumentReceiverID: bill?.DoccumentReceiverID || null,
+      };
+    });
+
+    // Gọi API
+    this.billImportService.approveDocumentImport(payload, status).subscribe({
+      next: (res: any) => {
+        if (res?.success) {
+          const statusText = status ? 'đã nhận đủ' : 'chưa nhận đủ';
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            res.message || `Cập nhật trạng thái hồ sơ chứng từ thành "${statusText}" thành công!`
+          );
+          // Reload danh sách phiếu nhập
+          this.loadDataBillImport();
+        } else {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            res.message || 'Cập nhật trạng thái thất bại!'
+          );
+        }
+      },
+      error: (err: any) => {
+        console.error('Error updating document status:', err);
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Có lỗi xảy ra khi cập nhật trạng thái hồ sơ chứng từ!'
+        );
+      },
+    });
+  }
+
   //vẽ bảng
   drawTable() {
     const rowMenu = [
+      {
+        label: '<i class="fas fa-check-circle"></i> Đã nhận đủ hồ sơ chứng từ',
+        action: (e: any, row: any) => {
+          this.updateDocumentStatus(row, true);
+        },
+      },
+      {
+        label: '<i class="fas fa-times-circle"></i> Chưa nhận đủ hồ sơ chứng từ',
+        action: (e: any, row: any) => {
+          this.updateDocumentStatus(row, false);
+        },
+      },
+      {
+        separator: true,
+      },
       {
         label: 'Hủy duyệt phiếu nhập',
         action: (e: any, row: any) => {

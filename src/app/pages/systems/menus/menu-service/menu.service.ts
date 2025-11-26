@@ -106,6 +106,8 @@ import { FoodOrderComponent } from '../../../hrm/food-order/food-order.component
 import { SupplierSaleComponent } from '../../../purchase/supplier-sale/supplier-sale.component';
 import { EmployeeNoFingerprintComponent } from '../../../hrm/employee-management/employee-no-fingerprint/employee-no-fingerprint.component';
 import { ChiTietSanPhamSaleComponent } from '../../../old/Sale/chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
+import { BorrowProductHistoryComponent } from '../../../old/inventory-demo/borrow/borrow-product-history/borrow-product-history.component';
+import { SearchProductTechSerialComponent } from '../../../old/Technical/search-product-tech-serial/search-product-tech-serial.component';
 import { EmployeeCurricularComponent } from '../../../hrm/employee-management/employee-curriculart/employee-curricular/employee-curricular.component';
 import { EmployeeErrorComponent } from '../../../hrm/employee-management/employee-error/employee-error.component';
 import { EmployeeTimekeepingComponent } from '../../../hrm/employee-management/employee-timekeeping/employee-timekeeping.component';
@@ -346,6 +348,22 @@ export class MenuService {
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission(''),
                 comp: BorrowReportComponent,
+              },
+              {
+                kind: 'leaf',
+                key: 'BorrowProductHistoryComponent',
+                title: 'LỊCH SỬ MƯỢN',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: BorrowProductHistoryComponent,
+              },
+                            {
+                kind: 'leaf',
+                key: 'SearchProductTechSerialComponent',
+                title: 'TRA CỨU SERIALNUMBER',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: SearchProductTechSerialComponent,
               },
             ],
           },

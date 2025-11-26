@@ -4,21 +4,11 @@ import {
   OnInit,
   ViewChild,
   AfterViewInit,
-  AfterViewChecked,
-  IterableDiffers,
-  TemplateRef,
-  input,
-  Input,
-  inject,
 } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import {
   FormsModule,
   ReactiveFormsModule,
-  FormBuilder,
-  FormGroup,
-  Validators,
-  NonNullableFormBuilder,
 } from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -36,31 +26,22 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import { ApplicationRef, createComponent, Type } from '@angular/core';
-import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
-import { EnvironmentInjector } from '@angular/core';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
-import { DateTime } from 'luxon';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzModalModule, NzModalRef, NzModalService } from 'ng-zorro-antd/modal';
-import { NgModel } from '@angular/forms';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { Router } from '@angular/router';
-import { NgbActiveModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { CommonModule } from '@angular/common';
 import { EmployeeTimekeepingService } from '../employee-timekeeping-service/employee-timekeeping.service';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
-import { EmployeeTimekeepingComponent } from '../employee-timekeeping.component';
 import { VehicleRepairService } from '../../../vehicle/vehicle-repair/vehicle-repair-service/vehicle-repair.service';
 
 import { ActivatedRoute } from '@angular/router';
-import { Title } from '@angular/platform-browser';
-import { forkJoin, firstValueFrom } from 'rxjs';
+import { forkJoin } from 'rxjs';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 

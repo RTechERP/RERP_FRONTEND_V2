@@ -209,7 +209,9 @@
       </div>
     </div>
   </form>
-  <div id="table_BillExportDetails"></div>
+  <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu...">
+    <div id="table_BillExportDetails"></div>
+  </nz-spin>
 </div>
 
 <div class="modal-footer flex-shrink-0">

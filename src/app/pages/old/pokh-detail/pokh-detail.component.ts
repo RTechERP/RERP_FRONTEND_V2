@@ -68,6 +68,7 @@ import { PoRequestBuyComponent } from '../po-request-buy/po-request-buy.componen
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
 import { QuotationKhDataComponent } from '../quotation-kh-data/quotation-kh-data.component';
 import { CustomerDetailComponent } from '../../crm/customers/customer-detail/customer-detail.component';
+import { ProjectPartListComponent } from '../../project/project-department-summary/project-department-summary-form/project-part-list/project-part-list.component';
 
 @Component({
   selector: 'app-pokh',
@@ -1739,6 +1740,43 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       size: 'xl',
       backdrop: 'static',
     });
+  }
+
+  openProjectPartlistModal(): void {
+
+    const projectId = this.poFormData.projectId;
+    if (!projectId) {
+      this.notification.warning("Thông báo", "Vui lòng chọn dự án");
+      return;
+    }
+
+    const dtTreeData = [...this.dataPOKHProduct]; // tb_ProductDetailTreeList
+    const minLevel = Math.min(...dtTreeData.map(r => r.level));
+    const nodeMinLevelCount = dtTreeData.filter(r => r.level === minLevel).length;
+    const modalRef = this.modalService.open(ProjectPartListComponent, {
+      centered: true,
+      windowClass: 'modal-full-screen',
+      backdrop: 'static',
+    });
+
+    modalRef.componentInstance.isPOKH = true;
+    let project = this.dataProjects.find((p) => p.ID === this.poFormData.projectId);
+    modalRef.componentInstance.project = project;
+    modalRef.componentInstance.isSelectPartlist = true;
+    modalRef.componentInstance.nodeMinLevelCount = nodeMinLevelCount;
+    modalRef.componentInstance.dtAddDetail = dtTreeData;
+
+    modalRef.result.then(
+      (result: any) => {
+        console.log('result: ', result);
+        if (result.success) {
+
+        }
+      },
+      (reason: any) => {
+        console.log('Modal dismissed:', reason);
+      }
+    );
   }
 
   openQuotationKhDataModal() {

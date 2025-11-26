@@ -114,6 +114,7 @@ import { EmployeeTimekeepingComponent } from '../../../hrm/employee-management/e
 import { EmployeeSyntheticComponent } from '../../../hrm/employee-management/employee-synthetic/employee-synthetic/employee-synthetic.component';
 import { AssignWorkComponent } from '../../../purchase/assign-work/assign-work.component';
 import { AppComponent } from '../../../../app.component';
+import { BonusCoefficientComponent } from '../../../old/bonus-coefficient/bonus-coefficient.component';
 @Injectable({
   providedIn: 'root',
 })
@@ -125,7 +126,7 @@ export class MenuService {
     private permissionService: PermissionService,
     private appUserService: AppUserService,
     private notification: NzNotificationService
-  ) {}
+  ) { }
 
   //   getMenus(id: number): Observable<any> {
   //     return this.http.get<any>(this.apiUrl + `menus/${id}`);
@@ -357,7 +358,7 @@ export class MenuService {
                 isPermission: this.permissionService.hasPermission(''),
                 comp: BorrowProductHistoryComponent,
               },
-                            {
+              {
                 kind: 'leaf',
                 key: 'SearchProductTechSerialComponent',
                 title: 'TRA CỨU SERIALNUMBER',
@@ -1382,6 +1383,25 @@ export class MenuService {
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission(''),
                 comp: FollowProjectBaseComponent,
+              },
+            ],
+          },
+          {
+            kind: 'group',
+            key: 'KPIComponent',
+            title: 'KPI',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            children: [
+              {
+                kind: 'leaf',
+                key: 'BonusCoefficientComponent',
+                title: 'Tổng hợp báo cáo',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(
+                  "''"
+                ),
+                comp: BonusCoefficientComponent,
               },
             ],
           },

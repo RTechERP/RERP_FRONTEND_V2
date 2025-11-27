@@ -27,6 +27,7 @@ import { DangkyvppServiceService } from '../officesupplyrequests-service/office-
 import { OfficeSupplyService } from '../../OfficeSupply/office-supply-service/office-supply-service.service';
 import { EmployeeService } from '../../../employee/employee-service/employee.service';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
+import { AuthService } from '../../../../../auth/auth.service';
 
 @Component({
   selector: 'app-office-supply-request-admin-detail',
@@ -61,7 +62,7 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
   private tbRequestDetail!: Tabulator;
   private tbEmployee!: Tabulator;
 
-  dateRequest: Date = new Date();
+  dateRequest: Date | null = null;
   departmentId: number | null = null;
   requesterId: number | null = null;
   requestId: number = 0;
@@ -88,6 +89,7 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
   activeTabIndex = 0;
 
   constructor(
+    private authService: AuthService,
     public activeModal: NgbActiveModal,
     private notification: NzNotificationService,
     private officeSupplyRequestService: DangkyvppServiceService,
@@ -96,6 +98,7 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
   ) { }
 
   ngOnInit(): void {
+    this.getCurrentUser();
     this.loadDepartments();
     this.loadEmployees();
     this.loadOfficeSupplies();
@@ -105,17 +108,53 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
       this.loadEditData();
     }
   }
+  currentUser: any;
+  getCurrentUser() {
+    this.authService.getCurrentUser().subscribe((res) => {
+      this.currentUser = res.data;
+      console.log(this.currentUser);
+    });
+
+  }
+
+  // Disable các ngày ngoài khoảng 1-5 cho user thường (không phải Admin và không phải EmployeeID 395)
+  disabledDate = (current: Date): boolean => {
+    if (!current) {
+      return false;
+    }
+
+    // Nếu user là Admin hoặc EmployeeID = 395, cho phép chọn mọi ngày
+    if (this.currentUser?.IsAdmin || this.currentUser?.EmployeeID === 395) {
+      return false;
+    }
+
+    // Ngược lại, chỉ cho phép chọn ngày 1-5 của tháng hiện tại
+    const now = new Date();
+    const currentYear = current.getFullYear();
+    const currentMonth = current.getMonth();
+    const currentDay = current.getDate();
+    
+    const nowYear = now.getFullYear();
+    const nowMonth = now.getMonth();
+
+    // Nếu khác tháng hoặc khác năm: disable
+    if (currentYear !== nowYear || currentMonth !== nowMonth) {
+      return true;
+    }
+
+    // Nếu cùng tháng/năm: chỉ cho phép ngày 1-5
+    return currentDay < 1 || currentDay > 5;
+  };
 
   loadEditData(): void {
     const requestInfo = this.editData.requestInfo || {};
     const detailData = this.editData.detailData || [];
 
     this.requestId = this.editData.requestId || 0;
-    this.dateRequest = requestInfo.DateRequest ? new Date(requestInfo.DateRequest) : new Date();
+    this.dateRequest = requestInfo.DateRequest ? new Date(requestInfo.DateRequest) : null;
     this.departmentId = requestInfo.DepartmentID || null;
-    // Bỏ auto-fill người đăng ký - để người dùng tự chọn
-    // this.requesterId = requestInfo.EmployeeIDRequest || null;
-    this.requesterId = null;
+    // Bind người đăng ký khi sửa
+    this.requesterId = requestInfo.EmployeeIDRequest || null;
 
     // Reset deleted details và deleted office supply IDs khi load lại
     this.deletedDetails = [];
@@ -1053,16 +1092,18 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
     }
 
     // Kiểm tra ngày đăng ký: chỉ cho phép đăng ký từ ngày 1-5 của tháng
+    // Ngoại trừ Admin hoặc EmployeeID = 395
     const currentDate = new Date();
     const currentDay = currentDate.getDate();
 
-    if (currentDay > 5) {
+    if (currentDay > 5 && !this.currentUser?.IsAdmin && this.currentUser?.EmployeeID !== 395) {
       this.notification.warning(
         NOTIFICATION_TITLE.warning,
         'Chỉ được đăng ký VPP từ ngày 1 đến ngày 5 của tháng. Hiện tại đã quá thời hạn đăng ký!'
       );
       return false;
     }
+
 
     if (!this.departmentId || this.departmentId <= 0) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn phòng ban');

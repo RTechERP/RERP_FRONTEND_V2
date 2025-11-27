@@ -18,7 +18,7 @@
               <nz-form-control [nzErrorTip]="!dateRequest ? 'Vui lòng chọn ngày đăng ký' : undefined"
                 [nzValidateStatus]="!dateRequest ? 'error' : ''">
                 <nz-date-picker [(ngModel)]="dateRequest" name="dateRequest" nzFormat="dd/MM/yyyy"
-                  nzPlaceHolder="Chọn ngày đăng ký" class="w-100" nzSize="default"></nz-date-picker>
+                  nzPlaceHolder="Chọn ngày đăng ký" class="w-100" nzSize="default" [nzDisabledDate]="disabledDate"></nz-date-picker>
               </nz-form-control>
             </nz-form-item>
           </nz-col>

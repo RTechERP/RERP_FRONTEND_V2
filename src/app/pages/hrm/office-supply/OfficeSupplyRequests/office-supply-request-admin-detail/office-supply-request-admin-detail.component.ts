@@ -80,6 +80,8 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
   deletedDetails: any[] = [];
   deletedOfficeSupplyIds: Set<number> = new Set();
   originalDetailData: any[] = [];
+  selectedEmployee: any = null; // Nhân viên được chọn để đăng ký VPP
+  employeeVPPData: Map<number, any[]> = new Map(); // Lưu VPP của từng nhân viên: EmployeeID -> VPP data
 
   isLoading = false;
   isSaving = false;
@@ -401,8 +403,13 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
       data: this.employeeTableData,
       layout: 'fitDataStretch',
       height: '100%',
-      selectableRows: false,
+      selectableRows: true, // Cho phép chọn nhiều dòng
+      selectableRowsRangeMode: "click",
       rowHeader: false,
+      rowClick: (e: any, row: any) => {
+        // Toggle chọn dòng khi click
+        row.toggleSelect();
+      },
       columns: [
         {
           title: '',
@@ -537,6 +544,79 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
       ]
     } as any);
 
+    // Xử lý khi selection thay đổi
+    this.tbEmployee.on('rowSelectionChanged', (data: any[], rows: any[]) => {
+      if (data && data.length > 0) {
+        // Lưu VPP hiện tại của nhân viên đang được chọn trước khi chuyển
+        if (this.selectedEmployee && this.selectedEmployee.EmployeeID && this.tbRequestDetail) {
+          const currentVPPData = this.tbRequestDetail.getData();
+          if (currentVPPData && currentVPPData.length > 0) {
+            // Copy array để tránh reference issue
+            const vppDataCopy = currentVPPData.map((item: any) => ({ ...item }));
+            this.employeeVPPData.set(this.selectedEmployee.EmployeeID, vppDataCopy);
+            console.log(`Saved VPP for employee ${this.selectedEmployee.Code} (ID: ${this.selectedEmployee.EmployeeID}), count=${vppDataCopy.length}`);
+          }
+        }
+        
+        // Lấy tất cả nhân viên được chọn
+        const selectedEmployees: any[] = [];
+        
+        data.forEach((rowData: any) => {
+          const empId = parseInt(rowData['EmployeeID']) || 0;
+          
+          if (empId > 0) {
+            // Tìm thông tin đầy đủ của nhân viên
+            let emp = this.employeeList.find((e: any) => (e.ID || e.EmployeeID) === empId);
+            if (!emp) {
+              emp = this.filteredEmployeeList.find((e: any) => (e.ID || e.EmployeeID) === empId);
+            }
+            
+            if (emp) {
+              selectedEmployees.push({
+                ID: empId,
+                EmployeeID: empId,
+                Code: rowData['EmployeeCode'] || emp.Code || '',
+                FullName: rowData['EmployeeName'] || emp.FullName || '',
+                DepartmentName: rowData['DepartmentName'] || emp.DepartmentName || '',
+                PositionName: rowData['PositionName'] || emp.ChucVuHD || ''
+              });
+            }
+          }
+        });
+        
+        // Lưu danh sách nhân viên được chọn
+        this.selectedEmployeeList = selectedEmployees;
+        
+        // Nếu chỉ có 1 nhân viên được chọn, load VPP của nhân viên đó
+        // Nếu có nhiều nhân viên, để trống bảng VPP (sẽ dùng chung VPP cho tất cả)
+        if (selectedEmployees.length === 1) {
+          this.selectedEmployee = selectedEmployees[0];
+          this.loadVPPForEmployee(selectedEmployees[0].EmployeeID);
+        } else if (selectedEmployees.length > 1) {
+          // Nếu có nhiều nhân viên, để trống bảng VPP (sẽ dùng chung VPP cho tất cả)
+          this.selectedEmployee = null;
+          if (this.tbRequestDetail) {
+            this.tbRequestDetail.replaceData([]);
+          }
+        }
+      } else {
+        // Lưu VPP hiện tại trước khi bỏ chọn
+        if (this.selectedEmployee && this.selectedEmployee.EmployeeID && this.tbRequestDetail) {
+          const currentVPPData = this.tbRequestDetail.getData();
+          if (currentVPPData && currentVPPData.length > 0) {
+            this.employeeVPPData.set(this.selectedEmployee.EmployeeID, currentVPPData);
+          }
+        }
+        
+        // Không có dòng nào được chọn
+        this.selectedEmployee = null;
+        this.selectedEmployeeList = [];
+        if (this.tbRequestDetail) {
+          this.tbRequestDetail.replaceData([]);
+        }
+      }
+    });
+
     this.loadEmployees();
   }
 
@@ -551,6 +631,69 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
         PositionName: ''
       });
     }
+  }
+
+  // Load VPP cho nhân viên được chọn
+  loadVPPForEmployee(employeeId: number): void {
+    if (!this.tbRequestDetail) {
+      setTimeout(() => {
+        this.loadVPPForEmployee(employeeId);
+      }, 100);
+      return;
+    }
+
+    // Ưu tiên: Nếu đã có VPP data được lưu trong employeeVPPData, load từ đó
+    if (this.employeeVPPData.has(employeeId)) {
+      const savedVPPData = this.employeeVPPData.get(employeeId);
+      if (savedVPPData && savedVPPData.length > 0) {
+        // Copy array để tránh reference issue
+        const vppDataCopy = savedVPPData.map((item: any) => ({ ...item }));
+        this.tbRequestDetail.replaceData(vppDataCopy);
+        console.log(`Loaded VPP for employee ID ${employeeId}, count=${vppDataCopy.length}`);
+        return;
+      }
+    }
+
+    // Nếu đang edit và có dữ liệu, load VPP của nhân viên này từ detailData
+    if (this.editData && this.editData.detailData) {
+      const employeeDetails = this.editData.detailData.filter((detail: any) => 
+        detail.EmployeeID === employeeId
+      );
+      
+      if (employeeDetails.length > 0) {
+        const vppRows: any[] = [];
+        const processedVppIds = new Set<number>();
+        
+        employeeDetails.forEach((detail: any) => {
+          const vppId = detail.OfficeSupplyID;
+          if (!processedVppIds.has(vppId)) {
+            processedVppIds.add(vppId);
+            const vpp = this.officeSupplyList.find((v: any) => v.ID === vppId);
+            if (vpp) {
+              vppRows.push({
+                DetailID: detail.ID || 0,
+                OfficeSupplyID: vppId,
+                OfficeSupplyName: vpp.NameRTC || vpp.NameNCC || '',
+                UnitName: vpp.Unit || '',
+                RequestLimit: vpp.RequestLimit || 0,
+                Quantity: detail.Quantity || detail.RequestLimit || 0,
+                QuantityReceived: detail.QuantityReceived || 0,
+                ExceedsLimit: detail.ExceedsLimit === true || detail.ExceedsLimit === 1,
+                Reason: detail.Reason || ''
+              });
+            }
+          }
+        });
+        
+        // Lưu vào employeeVPPData để lần sau load lại
+        this.employeeVPPData.set(employeeId, vppRows);
+        this.tbRequestDetail.replaceData(vppRows);
+        return;
+      }
+    }
+    
+    // Nếu không có dữ liệu, để trống bảng VPP
+    this.tbRequestDetail.replaceData([]);
   }
 
   // Update selected employee list from employee table
@@ -827,8 +970,23 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
 
   // On department change
   onDepartmentChange(): void {
+    // Lưu VPP hiện tại trước khi đổi phòng ban
+    if (this.selectedEmployee && this.selectedEmployee.EmployeeID && this.tbRequestDetail) {
+      const currentVPPData = this.tbRequestDetail.getData();
+      if (currentVPPData && currentVPPData.length > 0) {
+        this.employeeVPPData.set(this.selectedEmployee.EmployeeID, currentVPPData);
+      }
+    }
+    
     this.selectedEmployeeList = [];
+    this.selectedEmployee = null; // Reset nhân viên được chọn
+    this.employeeVPPData.clear(); // Clear VPP data khi đổi phòng ban
     this.filterEmployeesByDepartment();
+    
+    // Xóa dữ liệu VPP khi đổi phòng ban
+    if (this.tbRequestDetail) {
+      this.tbRequestDetail.replaceData([]);
+    }
     
     // Tự động load nhân viên của phòng ban vào bảng nhân viên
     if (this.departmentId && this.departmentId > 0 && this.tbEmployee) {
@@ -888,14 +1046,15 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
       return false;
     }
 
-    let employeeCount = this.selectedEmployeeList.length;
-    if (employeeCount === 0 && this.tbEmployee) {
-      const employeeTableData = this.tbEmployee.getData();
-      employeeCount = employeeTableData.filter((row: any) => row.EmployeeID && row.EmployeeID > 0).length;
-    }
+    // Kiểm tra nhân viên được chọn
+    const selectedRows = this.tbEmployee?.getSelectedData() || [];
+    const validSelectedEmployees = selectedRows.filter((row: any) => {
+      const empId = parseInt(row['EmployeeID']) || 0;
+      return empId > 0;
+    });
     
-    if (employeeCount === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất 1 nhân viên');
+    if (validSelectedEmployees.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất 1 nhân viên để đăng ký VPP (click vào dòng nhân viên)');
       return false;
     }
 
@@ -938,18 +1097,126 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
   save(): void {
     this.updateSelectedEmployeeList();
     
+    // Lưu VPP hiện tại của nhân viên đang được chọn trước khi save
+    if (this.selectedEmployee && this.selectedEmployee.EmployeeID && this.tbRequestDetail) {
+      const currentVPPData = this.tbRequestDetail.getData();
+      if (currentVPPData && currentVPPData.length > 0) {
+        // Copy array để tránh reference issue
+        const vppDataCopy = currentVPPData.map((item: any) => ({ ...item }));
+        this.employeeVPPData.set(this.selectedEmployee.EmployeeID, vppDataCopy);
+        console.log(`Saved VPP for employee ${this.selectedEmployee.Code} (ID: ${this.selectedEmployee.EmployeeID}) before save, count=${vppDataCopy.length}`);
+      }
+    }
+    
     if (!this.validateForm()) {
       return;
     }
 
     this.isSaving = true;
-
-    const tableData = this.tbRequestDetail.getData();
-    if (!tableData || tableData.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng thêm ít nhất 1 dòng đăng ký VPP');
+    
+    // Lấy TẤT CẢ nhân viên có VPP data trong employeeVPPData (không cần chọn lại)
+    let employeesToProcess: any[] = [];
+    
+    // Lấy tất cả EmployeeID có VPP data
+    const employeeIdsWithVPP = Array.from(this.employeeVPPData.keys());
+    
+    if (employeeIdsWithVPP.length === 0) {
+      // Nếu không có VPP data nào được lưu, kiểm tra nhân viên đang được chọn
+      if (this.selectedEmployee && this.selectedEmployee.EmployeeID && this.tbRequestDetail) {
+        const currentVPPData = this.tbRequestDetail.getData();
+        if (currentVPPData && currentVPPData.length > 0) {
+          // Lưu VPP hiện tại và thêm nhân viên vào danh sách
+          const vppDataCopy = currentVPPData.map((item: any) => ({ ...item }));
+          this.employeeVPPData.set(this.selectedEmployee.EmployeeID, vppDataCopy);
+          employeeIdsWithVPP.push(this.selectedEmployee.EmployeeID);
+        }
+      }
+    }
+    
+    if (employeeIdsWithVPP.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu VPP để lưu. Vui lòng đăng ký VPP cho ít nhất 1 nhân viên');
       this.isSaving = false;
       return;
     }
+    
+    // Tìm thông tin đầy đủ của từng nhân viên
+    employeesToProcess = employeeIdsWithVPP
+      .map((empId: number) => {
+        // Tìm trong employeeList
+        let emp = this.employeeList.find((e: any) => {
+          const eId = parseInt(e.ID || e.EmployeeID) || 0;
+          return eId === empId;
+        });
+        
+        // Nếu không tìm thấy, tìm trong filteredEmployeeList
+        if (!emp) {
+          emp = this.filteredEmployeeList.find((e: any) => {
+            const eId = parseInt(e.ID || e.EmployeeID) || 0;
+            return eId === empId;
+          });
+        }
+        
+        // Nếu không tìm thấy, tìm trong selectedEmployeeList
+        if (!emp) {
+          emp = this.selectedEmployeeList.find((e: any) => {
+            const eId = parseInt(e.ID || e.EmployeeID) || 0;
+            return eId === empId;
+          });
+        }
+        
+        // Nếu không tìm thấy, tìm trong bảng nhân viên
+        if (!emp && this.tbEmployee) {
+          const tableData = this.tbEmployee.getData();
+          const rowData = tableData.find((row: any) => {
+            const rEmpId = parseInt(row['EmployeeID']) || 0;
+            return rEmpId === empId;
+          });
+          
+          if (rowData) {
+            return {
+              ID: empId,
+              EmployeeID: empId,
+              Code: rowData['EmployeeCode'] || '',
+              FullName: rowData['EmployeeName'] || '',
+              DepartmentName: rowData['DepartmentName'] || '',
+              PositionName: rowData['PositionName'] || ''
+            };
+          }
+        }
+        
+        if (emp) {
+          return {
+            ID: empId,
+            EmployeeID: empId,
+            Code: emp.Code || '',
+            FullName: emp.FullName || '',
+            DepartmentName: emp.DepartmentName || '',
+            PositionName: emp.ChucVuHD || ''
+          };
+        }
+        
+        return null;
+      })
+      .filter((emp: any) => emp !== null);
+    
+    if (employeesToProcess.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy thông tin nhân viên để lưu');
+      this.isSaving = false;
+      return;
+    }
+    
+    // Debug: Log tất cả nhân viên và VPP data của họ
+    console.log('=== DEBUG SAVE ===');
+    console.log('Total employees with VPP data:', employeesToProcess.length);
+    console.log('employeesToProcess:', employeesToProcess);
+    console.log('employeeVPPData keys:', Array.from(this.employeeVPPData.keys()));
+    employeesToProcess.forEach((emp: any) => {
+      const empId = emp.ID || emp.EmployeeID;
+      const hasVPP = this.employeeVPPData.has(empId);
+      const vppData = hasVPP ? this.employeeVPPData.get(empId) : [];
+      console.log(`Employee ${emp.Code} (ID: ${empId}): hasVPP=${hasVPP}, vppCount=${vppData?.length || 0}`);
+    });
+    console.log('==================');
 
     const dateRequestStr = this.dateRequest ? new Date(this.dateRequest).toISOString() : new Date().toISOString();
 
@@ -962,98 +1229,43 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
       IsDeleted: false,
       IsAdminApproved: false
     };
-
-    // Luôn lấy trực tiếp từ table để đảm bảo có tất cả nhân viên, kể cả nhân viên mới được thêm
-    let employeesToProcess: any[] = [];
-    if (this.tbEmployee) {
-      const employeeTableData = this.tbEmployee.getData();
-      
-      console.log('=== DEBUG: Employee Table Data ===');
-      console.log('Total rows in table:', employeeTableData.length);
-      console.log('Table data:', employeeTableData);
-      
-      // Lọc và map tất cả nhân viên có EmployeeID hợp lệ
-      employeesToProcess = employeeTableData
-        .filter((row: any) => {
-          const empId = parseInt(row.EmployeeID) || 0;
-          const isValid = empId > 0;
-          if (!isValid) {
-            console.log('Skipping row (invalid EmployeeID):', row);
-          }
-          return isValid;
-        })
-        .map((row: any) => {
-          const empId = parseInt(row.EmployeeID) || 0;
-          
-          // Tìm trong tất cả các danh sách nhân viên
-          let fullEmp = this.employeeList.find((e: any) => {
-            const eId = parseInt(e.ID || e.EmployeeID) || 0;
-            return eId === empId;
-          });
-          
-          // Nếu không tìm thấy, tìm trong filteredEmployeeList
-          if (!fullEmp) {
-            fullEmp = this.filteredEmployeeList.find((e: any) => {
-              const eId = parseInt(e.ID || e.EmployeeID) || 0;
-              return eId === empId;
-            });
-          }
-          
-          // Nếu không tìm thấy, tìm trong selectedEmployeeList
-          if (!fullEmp) {
-            fullEmp = this.selectedEmployeeList.find((e: any) => {
-              const eId = parseInt(e.ID || e.EmployeeID) || 0;
-              return eId === empId;
-            });
-          }
-          
-          const employee = {
-            ID: empId,
-            EmployeeID: empId,
-            Code: row.EmployeeCode || fullEmp?.Code || '',
-            FullName: row.EmployeeName || fullEmp?.FullName || '',
-            DepartmentName: row.DepartmentName || fullEmp?.DepartmentName || '',
-            PositionName: row.PositionName || fullEmp?.ChucVuHD || ''
-          };
-          
-          console.log('Mapped employee:', employee);
-          return employee;
-        });
-      
-      // Loại bỏ trùng lặp dựa trên EmployeeID
-      const uniqueEmployees = new Map<number, any>();
-      employeesToProcess.forEach((emp: any) => {
-        if (!uniqueEmployees.has(emp.EmployeeID)) {
-          uniqueEmployees.set(emp.EmployeeID, emp);
-        } else {
-          console.log('Duplicate employee found:', emp);
-        }
-      });
-      employeesToProcess = Array.from(uniqueEmployees.values());
-      
-      console.log('Final employees to process:', employeesToProcess.length);
-      console.log('Final employees:', employeesToProcess);
-      console.log('===================================');
-    }
-    
-    // Fallback: nếu không lấy được từ table, dùng selectedEmployeeList
-    if (employeesToProcess.length === 0) {
-      console.log('No employees from table, using selectedEmployeeList');
-      this.updateSelectedEmployeeList();
-      employeesToProcess = this.selectedEmployeeList;
-      console.log('Fallback employees:', employeesToProcess);
-    }
-
-    if (employeesToProcess.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất 1 nhân viên ở tab "Chọn nhân viên"');
-      this.isSaving = false;
-      return;
-    }
     
     const officeSupplyRequestsDetails: any[] = [];
     
+    // Xử lý từng nhân viên có VPP data
     for (const employee of employeesToProcess) {
-      for (const rowData of tableData) {
+      const employeeId = employee.ID || employee.EmployeeID;
+      
+      // Lấy VPP data của nhân viên này từ employeeVPPData
+      let vppDataForEmployee: any[] = [];
+      
+      // Ưu tiên: Nếu là nhân viên đang được chọn, lấy từ table hiện tại (và cập nhật vào Map)
+      if (employeeId === (this.selectedEmployee?.EmployeeID || this.selectedEmployee?.ID) && this.tbRequestDetail) {
+        const currentData = this.tbRequestDetail.getData();
+        if (currentData && currentData.length > 0) {
+          vppDataForEmployee = currentData.map((item: any) => ({ ...item }));
+          // Cập nhật vào Map để đảm bảo data mới nhất
+          this.employeeVPPData.set(employeeId, vppDataForEmployee.map((item: any) => ({ ...item })));
+          console.log(`Employee ${employee.Code} (ID: ${employeeId}): Using current table data, count=${vppDataForEmployee.length}`);
+        }
+      }
+      
+      // Nếu chưa có data, lấy từ employeeVPPData
+      if (!vppDataForEmployee || vppDataForEmployee.length === 0) {
+        if (this.employeeVPPData.has(employeeId)) {
+          const savedData = this.employeeVPPData.get(employeeId) || [];
+          vppDataForEmployee = savedData.map((item: any) => ({ ...item }));
+          console.log(`Employee ${employee.Code} (ID: ${employeeId}): Using saved VPP data, count=${vppDataForEmployee.length}`);
+        }
+      }
+      
+      // Nếu vẫn không có VPP data, bỏ qua nhân viên này
+      if (!vppDataForEmployee || vppDataForEmployee.length === 0) {
+        console.log(`Employee ${employee.Code} (ID: ${employeeId}): No VPP data, skipping`);
+        continue;
+      }
+      
+      for (const rowData of vppDataForEmployee) {
         if (!rowData['OfficeSupplyID'] || rowData['OfficeSupplyID'] <= 0) {
           continue;
         }

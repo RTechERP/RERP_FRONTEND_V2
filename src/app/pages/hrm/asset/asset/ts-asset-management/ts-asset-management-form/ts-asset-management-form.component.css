@@ -1,3 +1,22 @@
 .fs-12 {
   font-size: 0.75rem;
 }
+
+/* Thêm margin-bottom cho các form control để error tip không đè lên label row dưới */
+::ng-deep nz-form-control {
+  margin-bottom: 0.5rem;
+  min-height: auto;
+}
+
+/* Đảm bảo error tip có đủ không gian và không đè lên nội dung bên dưới */
+::ng-deep .ant-form-item-explain-error {
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+  display: block;
+  line-height: 1.5;
+}
+
+/* Đảm bảo các row có đủ khoảng cách */
+::ng-deep .ant-row {
+  margin-bottom: 1rem;
+}

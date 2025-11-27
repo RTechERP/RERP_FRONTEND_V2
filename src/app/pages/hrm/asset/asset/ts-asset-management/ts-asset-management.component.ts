@@ -412,6 +412,14 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
           formatter: 'textarea',
         },
         {
+          title: 'Model',
+          field: 'Model',
+          headerHozAlign: 'center',
+          width: 200,
+          // hozAlign: 'left',
+          formatter: 'textarea',
+        },
+        {
           title: 'Ngày mua',
           field: 'DateBuy',
           headerHozAlign: 'center',
@@ -526,6 +534,12 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
             return value;
           },
           headerHozAlign: 'center',
+          hozAlign: 'left',
+        },
+        {
+          title: 'Loại tài sản',
+          field: 'AssetType',
+         
           hozAlign: 'left',
         },
         {
@@ -1106,12 +1120,30 @@ export class TsAssetManagementComponent implements OnInit, AfterViewInit {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Danh sách tài sản');
 
-    const columns = this.assetTable
+    let columns = this.assetTable
       .getColumnDefinitions()
       .filter(
         (col: any) =>
           col.visible !== false && col.field && col.field.trim() !== ''
       );
+
+    // Đảm bảo cột Model luôn được xuất ra
+    const hasModelColumn = columns.some((col: any) => col.field === 'Model');
+    if (!hasModelColumn) {
+      const modelColumn = this.assetTable
+        .getColumnDefinitions()
+        .find((col: any) => col.field === 'Model');
+      if (modelColumn) {
+        columns.push(modelColumn);
+      } else {
+        // Nếu không tìm thấy trong định nghĩa cột, thêm thủ công
+        columns.push({
+          title: 'Model',
+          field: 'Model',
+          headerHozAlign: 'center',
+        });
+      }
+    }
 
     console.log(
       'columns:',

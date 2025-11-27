@@ -6,10 +6,7 @@ import {
   AfterViewInit,
 } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
-import {
-  FormsModule,
-  ReactiveFormsModule,
-} from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
@@ -44,7 +41,6 @@ import { ActivatedRoute } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { forkJoin, firstValueFrom } from 'rxjs';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
-
 
 @Component({
   selector: 'app-employee-timekeeping-management',
@@ -310,7 +306,10 @@ export class EmployeeTimekeepingManagementComponent
     };
 
     // gọi song song 2 API – luôn đúng filter hiện tại
-    this.notification.info(NOTIFICATION_TITLE.success, 'Đang lấy dữ liệu MT & DT...');
+    this.notification.info(
+      NOTIFICATION_TITLE.success,
+      'Đang lấy dữ liệu MT & DT...'
+    );
     this.isLoadTable = true;
 
     forkJoin({
@@ -572,7 +571,10 @@ export class EmployeeTimekeepingManagementComponent
       },
       error: (err) => {
         this.isLoadTable = false;
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xuất file Excel');
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Không thể xuất file Excel'
+        );
       },
     });
   }
@@ -617,7 +619,8 @@ export class EmployeeTimekeepingManagementComponent
       const filtered =
         this.selectedDepartment && Number(this.selectedDepartment) > 0
           ? this.allEmployees.filter(
-              (x: any) => Number(x.DepartmentID) === Number(this.selectedDepartment)
+              (x: any) =>
+                Number(x.DepartmentID) === Number(this.selectedDepartment)
             )
           : this.allEmployees;
 
@@ -633,7 +636,10 @@ export class EmployeeTimekeepingManagementComponent
 
   onUpdateOne(): void {
     if (this.isUpdating) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Đang cập nhật, vui lòng đợi...');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Đang cập nhật, vui lòng đợi...'
+      );
       return;
     }
 
@@ -648,7 +654,10 @@ export class EmployeeTimekeepingManagementComponent
       return;
     }
     if (!masterId) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Không lấy được EmployeeID để cập nhật.');
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Không lấy được EmployeeID để cập nhật.'
+      );
       return;
     }
 
@@ -683,7 +692,10 @@ export class EmployeeTimekeepingManagementComponent
               this.isLoadTable = false;
               this.isUpdating = false;
               if (res?.status === 0) {
-                this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Cập nhật thất bại');
+                this.notification.error(
+                  NOTIFICATION_TITLE.error,
+                  res?.message || 'Cập nhật thất bại'
+                );
                 return;
               }
               this.notification.success(
@@ -696,16 +708,22 @@ export class EmployeeTimekeepingManagementComponent
             error: () => {
               this.isLoadTable = false;
               this.isUpdating = false;
-              this.notification.error(NOTIFICATION_TITLE.error, 'Không thể cập nhật công nhân viên');
+              this.notification.error(
+                NOTIFICATION_TITLE.error,
+                'Không thể cập nhật công nhân viên'
+              );
             },
           });
-      }
+      },
     });
   }
 
   async onUpdateAll(): Promise<void> {
     if (this.isUpdating) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Đang cập nhật, vui lòng đợi...');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Đang cập nhật, vui lòng đợi...'
+      );
       return;
     }
 
@@ -720,7 +738,10 @@ export class EmployeeTimekeepingManagementComponent
     const p = this.getAjaxParamsMT();
     const masterId = this.etId;
     if (!masterId) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Không xác định MasterID (etId).');
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Không xác định MasterID (etId).'
+      );
       return;
     }
 
@@ -737,14 +758,22 @@ export class EmployeeTimekeepingManagementComponent
 
         try {
           const res = await firstValueFrom(
-            this.etService.updateTimekeepingAll(masterId, p.month, p.year, login)
+            this.etService.updateTimekeepingAll(
+              masterId,
+              p.month,
+              p.year,
+              login
+            )
           );
 
           this.isLoadTable = false;
           this.isUpdating = false;
 
           if (res?.status === 0) {
-            this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Cập nhật thất bại');
+            this.notification.error(
+              NOTIFICATION_TITLE.error,
+              res?.message || 'Cập nhật thất bại'
+            );
             return;
           }
 
@@ -763,7 +792,7 @@ export class EmployeeTimekeepingManagementComponent
             'Không thể cập nhật toàn bộ bảng công'
           );
         }
-      }
+      },
     });
   }
 
@@ -776,7 +805,10 @@ export class EmployeeTimekeepingManagementComponent
         }
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách phòng ban');
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Không thể tải danh sách phòng ban'
+        );
       },
     });
   }
@@ -795,7 +827,8 @@ export class EmployeeTimekeepingManagementComponent
         const filtered =
           this.selectedDepartment && Number(this.selectedDepartment) > 0
             ? all.filter(
-                (x: any) => Number(x.DepartmentID) === Number(this.selectedDepartment)
+                (x: any) =>
+                  Number(x.DepartmentID) === Number(this.selectedDepartment)
               )
             : all;
 
@@ -803,7 +836,10 @@ export class EmployeeTimekeepingManagementComponent
         this.employees = this.groupEmployeesByDepartment(filtered);
       },
       error: (error: any) => {
-        this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || 'Không thể tải danh sách nhân viên');
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          error?.error?.message || 'Không thể tải danh sách nhân viên'
+        );
       },
     });
   }
@@ -878,7 +914,10 @@ export class EmployeeTimekeepingManagementComponent
         // clear nhẹ cho chắc
         this.tb_MT?.setData([]);
         this.tb_DT?.setData([]);
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu MT/DT');
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Không thể tải dữ liệu MT/DT'
+        );
       },
     });
   }
@@ -928,7 +967,10 @@ export class EmployeeTimekeepingManagementComponent
 
       this.tb_MT.on('dataLoadError', (error: any) => {
         this.isLoadTable = false;
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu bảng chấm công');
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Không thể tải dữ liệu bảng chấm công'
+        );
       });
 
       this.tb_MT.on('rowClick', (e: any, row: any) => {
@@ -948,10 +990,12 @@ export class EmployeeTimekeepingManagementComponent
           this.loadMTData();
         }, 100); // Thêm một chút delay để đảm bảo table đã sẵn sàng
       });
-
     } catch (error) {
       this.isLoadTable = false;
-      this.notification.error(NOTIFICATION_TITLE.error, 'Không thể khởi tạo bảng chấm công');
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Không thể khởi tạo bảng chấm công'
+      );
     }
   }
 
@@ -1330,7 +1374,10 @@ export class EmployeeTimekeepingManagementComponent
         error: (err) => {
           this.isLoadTable = false;
           this.tb_DT.setData([]);
-          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu chi tiết công');
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'Không thể tải dữ liệu chi tiết công'
+          );
         },
       });
   }

@@ -9,53 +9,54 @@
   <div class="modal-body p-2 w-100 pt-0" style="max-height: 80vh; overflow-y: auto; overflow-x: hidden;">
     <div class="card border-0 rounded-0">
       <!-- Form Header -->
-   
-        <form nz-form nzLayout="vertical">
-          <nz-row [nzGutter]="16">
-            <nz-col [nzSpan]="8">
-              <nz-form-item>
-                <nz-form-label class="pt-1">Ngày đăng ký</nz-form-label>
-                <nz-form-control [nzErrorTip]="!dateRequest ? 'Vui lòng chọn ngày đăng ký' : undefined"
-                  [nzValidateStatus]="!dateRequest ? 'error' : ''">
-                  <nz-date-picker [(ngModel)]="dateRequest" name="dateRequest" nzFormat="dd/MM/yyyy"
-                    nzPlaceHolder="Chọn ngày đăng ký" class="w-100" nzSize="default"></nz-date-picker>
-                </nz-form-control>
-              </nz-form-item> 
-            </nz-col>
 
-            <nz-col [nzSpan]="8">
-              <nz-form-item>
-                <nz-form-label class="pt-1">Phòng ban</nz-form-label>
-                <nz-form-control
-                  [nzErrorTip]="(!departmentId || departmentId <= 0) ? 'Vui lòng chọn phòng ban' : undefined"
-                  [nzValidateStatus]="(!departmentId || departmentId <= 0) ? 'error' : ''">
-                  <nz-select [(ngModel)]="departmentId" name="departmentId" nzShowSearch nzAllowClear
-                    nzPlaceHolder="Chọn phòng ban" class="w-100" nzSize="default" (ngModelChange)="onDepartmentChange()">
-                    <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID" [nzLabel]="dept.Name">
-                      {{ dept.Code }} - {{ dept.Name }}
+      <form nz-form nzLayout="vertical">
+        <nz-row [nzGutter]="16">
+          <nz-col [nzSpan]="8">
+            <nz-form-item>
+              <nz-form-label class="pt-1">Ngày đăng ký</nz-form-label>
+              <nz-form-control [nzErrorTip]="!dateRequest ? 'Vui lòng chọn ngày đăng ký' : undefined"
+                [nzValidateStatus]="!dateRequest ? 'error' : ''">
+                <nz-date-picker [(ngModel)]="dateRequest" name="dateRequest" nzFormat="dd/MM/yyyy"
+                  nzPlaceHolder="Chọn ngày đăng ký" class="w-100" nzSize="default"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+
+          <nz-col [nzSpan]="8">
+            <nz-form-item>
+              <nz-form-label class="pt-1">Phòng ban</nz-form-label>
+              <nz-form-control
+                [nzErrorTip]="(!departmentId || departmentId <= 0) ? 'Vui lòng chọn phòng ban' : undefined"
+                [nzValidateStatus]="(!departmentId || departmentId <= 0) ? 'error' : ''">
+                <nz-select [(ngModel)]="departmentId" name="departmentId" nzShowSearch nzAllowClear
+                  nzPlaceHolder="Chọn phòng ban" class="w-100" nzSize="default" (ngModelChange)="onDepartmentChange()">
+                  <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID" [nzLabel]="dept.Name">
+                    {{ dept.Code }} - {{ dept.Name }}
+                  </nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+
+          <nz-col [nzSpan]="8">
+            <nz-form-item>
+              <nz-form-label class="pt-1">Người đăng ký</nz-form-label>
+              <nz-form-control>
+                <nz-select [(ngModel)]="requesterId" name="requesterId" nzShowSearch nzAllowClear class="w-100"
+                  nzSize="default">
+                  <nz-option-group *ngFor="let group of employeeGroups" [nzLabel]="group.label">
+                    <nz-option *ngFor="let emp of group.options" [nzValue]="emp.ID || emp.EmployeeID"
+                      [nzLabel]="emp.Code + ' - ' + emp.FullName">
+                      {{ emp.Code }} - {{ emp.FullName }}
                     </nz-option>
-                  </nz-select>
-                </nz-form-control>
-              </nz-form-item>
-            </nz-col>
-
-            <nz-col [nzSpan]="8">
-              <nz-form-item>
-                <nz-form-label class="pt-1">Người đăng ký</nz-form-label>
-                <nz-form-control>
-                  <nz-select [(ngModel)]="requesterId" name="requesterId" nzDisabled class="w-100" nzSize="default">
-                    <nz-option-group *ngFor="let group of employeeGroups" [nzLabel]="group.label">
-                      <nz-option *ngFor="let emp of group.options" [nzValue]="emp.ID || emp.EmployeeID"
-                        [nzLabel]="emp.Code + ' - ' + emp.FullName">
-                        {{ emp.Code }} - {{ emp.FullName }}
-                      </nz-option>
-                    </nz-option-group>
-                  </nz-select>
-                </nz-form-control>
-              </nz-form-item>
-            </nz-col>
-          </nz-row>
-        </form>
+                  </nz-option-group>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+        </nz-row>
+      </form>
 
 
       <!-- Splitter: Nhân viên trên, VPP dưới -->
@@ -84,7 +85,7 @@
           <!-- Panel dưới: Bảng VPP -->
           <nz-splitter-panel>
             <div *ngIf="selectedEmployee" class="p-2 bg-light border-bottom">
-              <strong>Đang đăng ký VPP cho:</strong> 
+              <strong>Đang đăng ký VPP cho:</strong>
               <span class="text-primary">{{ selectedEmployee.Code }} - {{ selectedEmployee.FullName }}</span>
               <span class="text-muted ms-2">({{ selectedEmployee.DepartmentName }})</span>
             </div>

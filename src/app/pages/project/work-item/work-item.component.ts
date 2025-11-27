@@ -238,6 +238,7 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
     const rowData = row.getData();
     const fieldName = cell.getField();
     const id = rowData.ID || 0;
+    const now = DateTime.now();
     
     console.log(`📝 Cell changed: Field="${fieldName}", ID=${id}`);
     
@@ -322,37 +323,11 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
       this.updatePercent();
     }
   
-    // Tính toán ItemLate
-    const actualStartDate = rowData.ActualStartDate ? DateTime.fromISO(rowData.ActualStartDate) : null;
-    const actualEndDate = rowData.ActualEndDate ? DateTime.fromISO(rowData.ActualEndDate) : null;
-    const now = DateTime.now();
-  
-    let itemLate = 0;
-  
-    if (actualStartDate && actualStartDate.isValid && !actualEndDate && planEndDate && planEndDate.isValid) {
-      const startDiff = actualStartDate.startOf('day').diff(planEndDate.startOf('day'), 'days').days;
-      const nowDiff = now.startOf('day').diff(planEndDate.startOf('day'), 'days').days;
-      if (startDiff > 0 || nowDiff > 0) {
-        itemLate = 2;
-      }
-    } else if (actualStartDate && actualStartDate.isValid && actualEndDate && actualEndDate.isValid && planEndDate && planEndDate.isValid) {
-      const endDiff = actualEndDate.startOf('day').diff(planEndDate.startOf('day'), 'days').days;
-      if (endDiff > 0) {
-        itemLate = 1;
-      }
-    } else if (!actualStartDate && !actualEndDate && planEndDate && planEndDate.isValid) {
-      const nowDiff = now.startOf('day').diff(planEndDate.startOf('day'), 'days').days;
-      if (nowDiff > 0) {
-        itemLate = 2;
-      }
-    } else if (planStartDate && planStartDate.isValid && !planEndDate && !actualStartDate && !actualEndDate) {
-      const nowDiff = now.startOf('day').diff(planStartDate.startOf('day'), 'days').days;
-      if (nowDiff > 0) {
-        itemLate = 2;
-      }
-    }
-  
-    row.update({ ItemLate: itemLate });
+    // Tính toán ItemLate cho tất cả rows (sau khi thay đổi dữ liệu)
+    // Sử dụng setTimeout để đảm bảo dữ liệu đã được cập nhật
+    setTimeout(() => {
+      this.updateItemLate();
+    }, 0);
   
     // Cập nhật trạng thái hoàn thành
     if (fieldName === 'ActualStartDate' || fieldName === 'ActualEndDate') {
@@ -491,6 +466,73 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
   }
 }
 
+  // Tính toán ItemLate cho tất cả rows - tương tự updateItemLate trong WinForm
+  updateItemLate(): void {
+    if (!this.tb_workItem) return;
+    
+    try {
+      // Lấy tất cả rows (bao gồm children)
+      const rootRows = this.tb_workItem.getRows();
+      if (!rootRows || rootRows.length === 0) {
+        return;
+      }
+      
+      const allRows = this.flattenTreeRows(rootRows);
+      const now = DateTime.now();
+      
+      allRows.forEach((row: any) => {
+        const data = row.getData();
+        
+        const planStartDate = data.PlanStartDate ? DateTime.fromISO(data.PlanStartDate) : null;
+        const planEndDate = data.PlanEndDate ? DateTime.fromISO(data.PlanEndDate) : null;
+        const actualStartDate = data.ActualStartDate ? DateTime.fromISO(data.ActualStartDate) : null;
+        const actualEndDate = data.ActualEndDate ? DateTime.fromISO(data.ActualEndDate) : null;
+        
+        let itemLate = 0;
+        
+        // Logic xử lý trễ - giống WinForm
+        if (actualStartDate && actualStartDate.isValid && !actualEndDate && planEndDate && planEndDate.isValid) {
+          const startDiff = actualStartDate.startOf('day').diff(planEndDate.startOf('day'), 'days').days;
+          const nowDiff = now.startOf('day').diff(planEndDate.startOf('day'), 'days').days;
+          if (startDiff > 0 || nowDiff > 0) {
+            itemLate = 2;
+          }
+        }
+        
+        if (actualStartDate && actualStartDate.isValid && actualEndDate && actualEndDate.isValid && planEndDate && planEndDate.isValid) {
+          const endDiff = actualEndDate.startOf('day').diff(planEndDate.startOf('day'), 'days').days;
+          if (endDiff > 0) {
+            itemLate = 1;
+          }
+        }
+        
+        if (!actualStartDate && !actualEndDate && planEndDate && planEndDate.isValid) {
+          const nowDiff = now.startOf('day').diff(planEndDate.startOf('day'), 'days').days;
+          if (nowDiff > 0) {
+            itemLate = 2;
+          }
+        }
+        
+        if (planStartDate && planStartDate.isValid && !planEndDate && !actualStartDate && !actualEndDate) {
+          const nowDiff = now.startOf('day').diff(planStartDate.startOf('day'), 'days').days;
+          if (nowDiff > 0) {
+            itemLate = 2;
+          }
+        }
+        
+        // Cập nhật ItemLate cho row
+        const currentItemLate = data.ItemLate || 0;
+        if (currentItemLate !== itemLate) {
+          row.update({ ItemLate: itemLate });
+        }
+      });
+      
+      // Redraw để áp dụng màu
+      this.tb_workItem.redraw(true);
+    } catch (error) {
+      console.error('❌ LỖI khi tính ItemLate:', error);
+    }
+  }
 
   
 
@@ -508,6 +550,9 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
   ) {
     return (cell: any, onRendered: any, success: any, cancel: any) => {
       const container = document.createElement('div');
+      container.style.width = '100%';
+      container.style.height = '100%';
+      container.style.display = 'block';
       const componentRef = createComponent(component, {
         environmentInjector: injector,
       });
@@ -526,14 +571,18 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
         success(val);
       });
 
-      container.appendChild((componentRef.hostView as any).rootNodes[0]);
+      const hostEl = (componentRef.hostView as any).rootNodes[0];
+      if (hostEl && hostEl.style) {
+        hostEl.style.width = '100%';
+        hostEl.style.display = 'block';
+      }
+      container.appendChild(hostEl);
       appRef.attachView(componentRef.hostView);
-      onRendered(() => { });
+      onRendered(() => {});
 
       return container;
     };
   }
-
   // Custom date editor để xử lý date picker đúng cách
   dateEditor(cell: any, onRendered: any, success: any, cancel: any) {
     const input = document.createElement('input');
@@ -739,6 +788,8 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
             // Redraw để formatter chạy lại với dropdown data đã load
             setTimeout(() => {
               this.tb_workItem.redraw(true);
+              // Tính toán ItemLate cho tất cả rows
+              this.updateItemLate();
               // Áp dụng filter trạng thái sau khi load dữ liệu
               this.filterByStatus();
             }, 100);
@@ -886,6 +937,45 @@ export class WorkItemComponent implements OnInit, AfterViewInit {
     
     return result;
   }
+
+  // Helper function để tính Code mới - tương tự logic WinForm
+  private getNewCode(): string {
+    // Lấy tất cả Code từ dataTableWorkItem (flatten tree để lấy tất cả rows)
+    const getAllCodes = (items: any[]): string[] => {
+      const codes: string[] = [];
+      items.forEach((item: any) => {
+        if (item.Code) {
+          codes.push(item.Code);
+        }
+        if (item._children && item._children.length > 0) {
+          codes.push(...getAllCodes(item._children));
+        }
+      });
+      return codes;
+    };
+
+    const allCodes = this.dataTableWorkItem ? getAllCodes(this.dataTableWorkItem) : [];
+    
+    // Tách số sau dấu "_" từ mỗi Code
+    const codeNumbers: number[] = [];
+    allCodes.forEach((code: string) => {
+      const parts = code.split('_');
+      if (parts.length > 1) {
+        const num = parseInt(parts[parts.length - 1], 10); // Lấy phần cuối sau dấu "_"
+        if (!isNaN(num) && num > 0) {
+          codeNumbers.push(num);
+        }
+      }
+    });
+
+    // Tìm số lớn nhất và +1
+    const maxCodeNumber = codeNumbers.length > 0 ? Math.max(...codeNumbers) : 0;
+    const newCodeNumber = maxCodeNumber + 1;
+
+    // Trả về Code mới: ProjectCode_<số>
+    return `${this.projectCode}_${newCodeNumber}`;
+  }
+
 addNewRow(): void {
   let maxSTT = 0;
 
@@ -902,6 +992,9 @@ addNewRow(): void {
   const newSTT = maxSTT + 1;
   this.nextRowId = this.nextRowId - 1;
 
+  // Tính Code mới dựa trên số lớn nhất trong tất cả Code hiện có
+  const newCode = this.getNewCode();
+
   const newRow = {
     ParentID: 0,
     ID: this.nextRowId,
@@ -911,25 +1004,55 @@ addNewRow(): void {
     Status:0,
     UserID: this.currentUser.ID,
     IsApprovedText: 'Chờ duyệt kế hoạch',
-    Code: this.projectCode + '_' + newSTT,
+    Code: newCode,
     _children: []
   };
 
   console.log('✅ Đã thêm row mới:', newRow);
   
-  // ✅ QUAN TRỌNG: Tạo array mới thay vì push trực tiếp
   this.dataTableWorkItem = [...this.dataTableWorkItem, newRow];
   
   // Reload table
   if (this.tb_workItem) {
     this.tb_workItem.setData(this.dataTableWorkItem);
     
-    // Tính lại phần trăm sau khi table render xong
+    // Đợi table render xong rồi focus vào row mới
     setTimeout(() => {
+      // Tìm row mới theo ID
+      const newRowInstance = this.tb_workItem.getRow(this.nextRowId);
+      if (newRowInstance) {
+        // Select và scroll đến row mới
+        newRowInstance.select();
+        newRowInstance.scrollTo();
+        // Cập nhật selectedRow để có thể thêm con ngay
+        this.selectedRow = newRowInstance;
+        // Trigger click để focus
+        const rowElement = newRowInstance.getElement();
+        if (rowElement) {
+          rowElement.click();
+        }
+        console.log('✅ Đã focus vào row mới:', this.nextRowId);
+      }
+      
+      // Tính lại phần trăm
       this.updatePercent();
-    }, 100);
+    }, 150);
   }
 }
+
+  // Helper function để tìm node trong tree data
+  private findNodeInTree(items: any[], targetId: number): any | null {
+    for (const item of items) {
+      if (item.ID === targetId) {
+        return item;
+      }
+      if (item._children && item._children.length > 0) {
+        const found = this.findNodeInTree(item._children, targetId);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
 
   addChildRow(): void {
     if (!this.selectedRow) {
@@ -940,18 +1063,53 @@ addNewRow(): void {
         return;
     }
   
-    this.nextRowId = this.nextRowId - 1;
     const parentData = this.selectedRow.getData();
     const parentId = parentData.ID;
     
+    // Kiểm tra cấp độ: chỉ cho phép thêm con đến cấp < 2
+    // Nếu parent đã có ParentID > 0 (tức là parent đã là con - cấp 1), thì không cho thêm con (cấp 2)
+    const parentParentID = parentData.ParentID || 0;
+    if (parentParentID > 0) {
+      this.notification.warning(
+        'Thông báo',
+        'Không thể thêm hạng mục cấp thấp hơn!'
+      );
+      return;
+    }
+    
+    this.nextRowId = this.nextRowId - 1;
+    
     console.log('🔨 Thêm child vào parent ID:', parentId);
     
-    const currentChildren = parentData._children || [];
-    const newSTT = currentChildren.length + 1;
+    // ✅ QUAN TRỌNG: Lấy children từ dataTableWorkItem (source data) để đảm bảo dữ liệu mới nhất
+    const parentNode = this.findNodeInTree(this.dataTableWorkItem, parentId);
+    const currentChildren = parentNode ? (parentNode._children || []) : [];
     
-    const newCode = parentData.Code 
-      ? `${parentData.Code}_${newSTT}` 
-      : (this.projectCode ? `${this.projectCode}_${newSTT}` : `${newSTT}`);
+    console.log('📋 Children hiện tại:', currentChildren.length, currentChildren.map((c: any) => ({ ID: c.ID, STT: c.STT })));
+    
+    // Tìm STT lớn nhất trong các anh em (children cùng parent)
+    let maxSTT = 0;
+    if (currentChildren.length > 0) {
+      const sttValues = currentChildren
+        .map((child: any) => {
+          const stt = parseInt(child.STT, 10);
+          console.log(`  - Child ID: ${child.ID}, STT: ${child.STT} (parsed: ${stt})`);
+          return stt;
+        })
+        .filter((stt: number) => !isNaN(stt) && stt > 0);
+      
+      if (sttValues.length > 0) {
+        maxSTT = Math.max(...sttValues);
+        console.log(`📊 Max STT trong children: ${maxSTT}`);
+      }
+    }
+    
+    // STT mới = STT lớn nhất của anh em + 1
+    const newSTT = maxSTT + 1;
+    console.log(`✅ STT mới sẽ là: ${newSTT}`);
+    
+    // Tính Code mới dựa trên số lớn nhất trong tất cả Code hiện có (không phân biệt cha hay con)
+    const newCode = this.getNewCode();
     
     const childRow: any = {
       ID: this.nextRowId,
@@ -966,12 +1124,36 @@ addNewRow(): void {
       IsDeleted: false,
       Mission: '',
       ReasonLate: '',
-        _children: []
+        _children: [],
+      // Không copy các trường này từ cha để row con có màu trắng (mặc định)
+      ItemLate: 0,
+      ItemLateActual: 0,
+      ActualEndDate: null,
+      PlanEndDate: null,
+      TotalDayExpridSoon: 0
     };
     
-    // Copy các trường từ parent
+    // Copy các trường từ parent (loại trừ các trường không cần copy)
     Object.keys(parentData).forEach(key => {
-      if (!['ID', 'STT', 'ParentID', 'Code', '_children', 'IsDeleted', 'IsApprovedText', 'TotalDayPlan', 'PercentItem'].includes(key)) {
+      // Loại trừ các trường không nên copy từ parent
+      const excludeFields = [
+        'ID', 
+        'STT', 
+        'ParentID', 
+        'Code', 
+        '_children', 
+        'IsDeleted', 
+        'IsApprovedText', 
+        'TotalDayPlan', 
+        'PercentItem',
+        'ItemLate',           // Không copy ItemLate từ cha
+        'ItemLateActual',     // Không copy ItemLateActual từ cha
+        'ActualEndDate',      // Không copy ActualEndDate từ cha
+        'PlanEndDate',        // Không copy PlanEndDate từ cha
+        'TotalDayExpridSoon'  // Không copy TotalDayExpridSoon từ cha
+      ];
+      
+      if (!excludeFields.includes(key)) {
         childRow[key] = parentData[key];
       }
     }); 
@@ -1022,7 +1204,18 @@ addNewRow(): void {
           if (treeChildren && treeChildren.length > 0) {
             const newChildRow = treeChildren[treeChildren.length - 1];
             console.log('✓ Tìm thấy child row mới');
+            
+            // Select và scroll đến child row mới
+            newChildRow.select();
             newChildRow.scrollTo();
+            // Cập nhật selectedRow để có thể thêm con tiếp nếu cần
+            this.selectedRow = newChildRow;
+            // Trigger click để focus
+            const rowElement = newChildRow.getElement();
+            if (rowElement) {
+              rowElement.click();
+            }
+            console.log('✅ Đã focus vào child row mới:', newChildRow.getData().ID);
           }
           
           // ✅ TÍNH LẠI PHẦN TRĂM SAU KHI EXPAND
@@ -1098,23 +1291,46 @@ private collectAllIds(item: any): number[] {
       rowFormatter: (row: any) => {
         const data = row.getData();
         
-        const itemLate = parseInt(data['ItemLateActual'] || '0');
-        const totalDayExpridSoon = parseInt(data['TotalDayExpridSoon'] || '0');
-        const dateEndActual = DateTime.fromISO(data['ActualEndDate']).isValid
-          ? DateTime.fromISO(data['ActualEndDate']).toFormat('dd/MM/yyyy')
-          : null;
-
         // Reset màu mặc định
         row.getElement().style.backgroundColor = '';
         row.getElement().style.color = '';
-
-        if (itemLate == 1) {
-          row.getElement().style.backgroundColor = 'Orange';
-          row.getElement().style.color = 'white';
-        } else if (itemLate == 2) {
+        
+        // Kiểm tra xem có children không (parent node)
+        const hasChildren = data._children && data._children.length > 0;
+        
+        // Lấy giá trị ItemLate và ItemLateActual
+        const itemLate = parseInt(data['ItemLate'] || '0');
+        const itemLateActual = parseInt(data['ItemLateActual'] || '0');
+        const totalDayExpridSoon = parseInt(data['TotalDayExpridSoon'] || '0');
+        const planEndDate = data['PlanEndDate'] ? DateTime.fromISO(data['PlanEndDate']) : null;
+        const actualEndDate = data['ActualEndDate'] ? DateTime.fromISO(data['ActualEndDate']) : null;
+        const hasActualEndDate = actualEndDate && actualEndDate.isValid;
+        
+        // Áp dụng màu theo thứ tự ưu tiên (giống WinForm)
+        // Lưu ý: Màu đỏ (ItemLate = 2) ưu tiên cao nhất, kể cả parent nodes
+        
+        // 1. ItemLate = 2 hoặc ItemLateActual = 2: Red + White text (ưu tiên cao nhất, kể cả parent)
+        if (itemLate === 2 || itemLateActual === 2) {
           row.getElement().style.backgroundColor = 'Red';
-          row.getElement().style.color = 'white';
-        } else if (totalDayExpridSoon <= 3 && !dateEndActual) {
+          row.getElement().style.color = 'White';
+          return; // Dừng lại
+        }
+        
+        // 2. ItemLate = 1 hoặc ItemLateActual = 1: Orange (ưu tiên cao hơn parent)
+        if (itemLate === 1 || itemLateActual === 1) {
+          row.getElement().style.backgroundColor = 'Orange';
+          return; // Dừng lại
+        }
+        
+        // 3. Parent nodes: LightGray (chỉ khi không có ItemLate = 1 hoặc 2)
+        if (hasChildren) {
+          row.getElement().style.backgroundColor = 'LightGray';
+          return; // Dừng lại
+        }
+        
+        // 4. Sắp hết hạn: LightYellow (ưu tiên thấp nhất)
+        // Điều kiện: PlanEndDate != null AND TotalDayExpridSoon <= 3 AND (ActualEndDate is null or empty)
+        if (planEndDate && planEndDate.isValid && totalDayExpridSoon <= 3 && !hasActualEndDate) {
           row.getElement().style.backgroundColor = 'LightYellow';
         }
       },
@@ -1127,7 +1343,7 @@ private collectAllIds(item: any): number[] {
         frozen: true,
           headerSort: false,
           titleFormatter: () =>
-          `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
+          `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-white cursor-pointer" title="Thêm dòng"></i></div>`,
           headerClick: () => {
           this.addNewRow();
         },
@@ -1139,15 +1355,12 @@ private collectAllIds(item: any): number[] {
           }
           
           // Kiểm tra màu nền của row để set màu button phù hợp
-          const itemLate = parseInt(data['ItemLateActual'] || '0');
-          const totalDayExpridSoon = parseInt(data['TotalDayExpridSoon'] || '0');
-          const dateEndActual = DateTime.fromISO(data['ActualEndDate']).isValid
-            ? DateTime.fromISO(data['ActualEndDate']).toFormat('dd/MM/yyyy')
-            : null;
+          const itemLate = parseInt(data['ItemLate'] || '0');
+          const itemLateActual = parseInt(data['ItemLateActual'] || '0');
           
-          // Nếu row có nền đỏ hoặc cam, button phải màu trắng
+          // Nếu row có nền đỏ (ItemLate = 2) hoặc cam (ItemLate = 1), button phải màu trắng
           let buttonColor = 'text-danger'; // Mặc định màu đỏ
-          if (itemLate == 1 || itemLate == 2) {
+          if (itemLate === 1 || itemLate === 2 || itemLateActual === 1 || itemLateActual === 2) {
             buttonColor = 'text-white'; // Màu trắng cho nền đỏ/cam
           }
           
@@ -1214,7 +1427,8 @@ private collectAllIds(item: any): number[] {
         title:'ID', field:'ID', visible: false
       },
       {
-        title:'STT', field:'STT',formatter:'rownum', 
+        title:'STT', field:'STT', 
+        hozAlign: 'center',
       },
       {
         title:'ParentID', field:'ParentID', visible: false
@@ -1225,6 +1439,7 @@ private collectAllIds(item: any): number[] {
           title: "Kiểu dự án", 
           field: "TypeProjectItem", 
           hozAlign: "center",
+          width:250,
           editor: this.createdControl(
             SelectControlComponent, 
             this.injector, 
@@ -1288,7 +1503,7 @@ private collectAllIds(item: any): number[] {
         { 
           title: "Người phụ trách", 
           field: "UserID", 
-          hozAlign: "left",
+          hozAlign: "center",
           editor: this.createdControl(
             SelectControlComponent, 
             this.injector, 
@@ -1324,7 +1539,8 @@ private collectAllIds(item: any): number[] {
         { 
           title: "Người giao việc", 
           field: "EmployeeIDRequest", 
-          hozAlign: "right",
+          hozAlign: "center",
+          width:250,
           editor: this.createdControl(
             SelectControlComponent, 
             this.injector, 

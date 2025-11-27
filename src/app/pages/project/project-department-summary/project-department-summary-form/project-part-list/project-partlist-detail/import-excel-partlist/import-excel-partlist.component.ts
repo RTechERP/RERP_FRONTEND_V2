@@ -14,8 +14,11 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { ProjectPartListService } from '../../project-partlist-service/project-part-list-service.service';
-import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { AuthService } from '../../../../../../../auth/auth.service';
+import { DEFAULT_TABLE_CONFIG } from '../../../../../../../tabulator-default.config';
+import { ImportExcelDiffComponent } from './import-excel-diff/import-excel-diff.component';
+import { ImportExcelSaveComponent } from './import-excel-save/import-excel-save.component';
 
 @Component({
   selector: 'app-import-excel-partlist',
@@ -67,18 +70,20 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
   selectedVersion: number = 0; // Phiên bản đã chọn
   isProblemRow: boolean = false; // Checkbox Hàng phát sinh
   isUpdate: boolean = false; // Checkbox Update
+  checkPayload: any;
   
   // Biến cho import check
   diffs: any[] = []; // Danh sách các diff từ API import-check
-  showFlyoutPanel: boolean = false; // Hiển thị FlyoutPanel (BƯỚC 1) - chỉ để xem diff
   showDiffModal: boolean = false; // Hiển thị modal diff chi tiết (BƯỚC 2) - để chọn Excel/Stock
   validDataToSaveForDiff: any[] = []; // Lưu validDataToSave để dùng khi mở modal 2
+  dataDiff: any[] = []; // Lưu dataDiff để dùng khi mở modal 3
   constructor(
     private notification: NzNotificationService,
     private modal: NzModalService,
     private partlistService: ProjectPartListService,
     public activeModal: NgbActiveModal,
-    private authService: AuthService
+    private authService: AuthService,
+    private ngbModal: NgbModal
   ) {}
 
   ngOnInit() {
@@ -90,15 +95,16 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
       this.selectedVersion = this.versionId;
     }
     
-    this.authService.getCurrentUser().subscribe((res: any) => {
+      this.authService.getCurrentUser().subscribe((res: any) => {
       this.currentUser = res?.data;
       this.isAdmin = this.currentUser?.IsAdmin === true;
-      console.log('CurrentUser', this.currentUser);
-      console.log('IsAdmin', this.isAdmin);
       
       // Re-init table với quyền admin nếu đã có table
       if (this.tableExcel) {
         this.updateTableEditable();
+      } else {
+        // Nếu table chưa được init, init lại với quyền đúng
+        this.initTable();
       }
     });
   }
@@ -183,36 +189,41 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
           this.dataTableExcel[rowIndex] = { ...rowData };
         }
       });
+    } else {
+      // Nếu table đã tồn tại, update columns để enable editing
+      const columns = this.getTableColumns();
+      this.tableExcel.setColumns(columns as any);
     }
   }
 
   getTableColumns() {
-    const editable = this.isAdmin;
+    // Cho phép edit luôn (không cần admin)
+    const editable = true;
     return [
-      { title: "TT", field: "TT", hozAlign: "center", headerHozAlign: "center", width: 80, editor: editable ? "input" : false },
-      { title: "Tên VT", field: "GroupMaterial", hozAlign: "left", headerHozAlign: "center", width: 200, formatter: 'textarea', editor: editable ? "input" : false },
-      { title: "Mã VT", field: "ProductCode", hozAlign: "left", headerHozAlign: "center", width: 120, editor: editable ? "input" : false },
-      { title: "Mã đặt hàng", field: "OrderCode", hozAlign: "left", headerHozAlign: "center", width: 120, editor: editable ? "input" : false },
-      { title: "Hãng SX", field: "Manufacturer", hozAlign: "left", headerHozAlign: "center", width: 120, editor: editable ? "input" : false },
-      { title: "Thông số kỹ thuật", field: "Model", hozAlign: "left", headerHozAlign: "center", width: 120, formatter: 'textarea', editor: editable ? "input" : false },
-      { title: "Số lượng/1 máy", field: "QtyMin", hozAlign: "right", headerHozAlign: "center", width: 100, editor: editable ? "number" : false },
-      { title: "Số lượng tổng", field: "QtyFull", hozAlign: "right", headerHozAlign: "center", width: 100, editor: editable ? "number" : false },
-      { title: "Đơn vị", field: "Unit", hozAlign: "center", headerHozAlign: "center", width: 80, editor: editable ? "input" : false },
-      { title: "Đơn giá KT nhập", field: "Price", hozAlign: "right", headerHozAlign: "center", width: 100, editor: editable ? "number" : false },
-      { title: "Thành tiền KT nhập", field: "Amount", hozAlign: "right", headerHozAlign: "center", width: 100, editor: editable ? "number" : false },
-      { title: "Tiến độ", field: "LeadTime", hozAlign: "left", headerHozAlign: "center", width: 100, editor: editable ? "input" : false },
-      { title: "Nhà cung cấp", field: "NCC", hozAlign: "left", headerHozAlign: "center", width: 100, editor: editable ? "input" : false },
-      { title: "Ngày yêu cầu đặt hàng", field: "RequestDate", hozAlign: "center", headerHozAlign: "center", width: 120, editor: editable ? "input" : false },
-      { title: "Thời gian giao hàng yêu cầu", field: "LeadTimeRequest", hozAlign: "left", headerHozAlign: "center", width: 120, editor: editable ? "input" : false },
-      { title: "Số lượng trả lại", field: "QuantityReturn", hozAlign: "right", headerHozAlign: "center", width: 100, editor: editable ? "number" : false },
-      { title: "NCC cuối cùng", field: "NCCFinal", hozAlign: "left", headerHozAlign: "center", width: 120, editor: editable ? "input" : false },
-      { title: "Giá đặt hàng", field: "PriceOrder", hozAlign: "right", headerHozAlign: "center", width: 100, editor: editable ? "number" : false },
-      { title: "Ngày đặt hàng", field: "OrderDate", hozAlign: "center", headerHozAlign: "center", width: 120, editor: editable ? "input" : false },
-      { title: "Ngày dự kiến trả hàng", field: "ExpectedReturnDate", hozAlign: "center", headerHozAlign: "center", width: 120, editor: editable ? "input" : false },
-      { title: "Trạng thái", field: "Status", hozAlign: "center", headerHozAlign: "center", width: 100, editor: editable ? "input" : false },
-      { title: "Chất lượng", field: "Quality", hozAlign: "center", headerHozAlign: "center", width: 100, editor: editable ? "input" : false },
-      { title: "Note", field: "Note", hozAlign: "left", headerHozAlign: "center", width: 200, formatter: 'textarea', editor: editable ? "textarea" : false },
-      { title: "Lý do huỷ", field: "ReasonProblem", hozAlign: "left", headerHozAlign: "center", width: 200, formatter: 'textarea', editor: editable ? "textarea" : false },
+      { title: "TT", field: "TT", hozAlign: "center", headerHozAlign: "center", editor: editable ? "input" : false },
+      { title: "Tên VT", field: "GroupMaterial", hozAlign: "left", headerHozAlign: "center",  formatter: 'textarea', editor: editable ? "input" : false },
+      { title: "Mã VT", field: "ProductCode", hozAlign: "left", headerHozAlign: "center", editor: editable ? "input" : false },
+      { title: "Mã đặt hàng", field: "OrderCode", hozAlign: "left", headerHozAlign: "center",  editor: editable ? "input" : false },
+      { title: "Hãng SX", field: "Manufacturer", hozAlign: "left", headerHozAlign: "center",  editor: editable ? "input" : false },
+      { title: "Thông số kỹ thuật", field: "Model", hozAlign: "left", headerHozAlign: "center", formatter: 'textarea', editor: editable ? "input" : false },
+      { title: "Số lượng/1 máy", field: "QtyMin", hozAlign: "right", headerHozAlign: "center",  editor: editable ? "number" : false },
+      { title: "Số lượng tổng", field: "QtyFull", hozAlign: "right", headerHozAlign: "center", editor: editable ? "number" : false },
+      { title: "Đơn vị", field: "Unit", hozAlign: "center", headerHozAlign: "center", editor: editable ? "input" : false },
+      { title: "Đơn giá KT nhập", field: "Price", hozAlign: "right", headerHozAlign: "center", editor: editable ? "number" : false },
+      { title: "Thành tiền KT nhập", field: "Amount", hozAlign: "right", headerHozAlign: "center",  editor: editable ? "number" : false },
+      { title: "Tiến độ", field: "LeadTime", hozAlign: "left", headerHozAlign: "center", editor: editable ? "input" : false },
+      { title: "Nhà cung cấp", field: "NCC", hozAlign: "left", headerHozAlign: "center",  editor: editable ? "input" : false },
+      { title: "Ngày yêu cầu đặt hàng", field: "RequestDate", hozAlign: "center", headerHozAlign: "center",  editor: editable ? "input" : false },
+      { title: "Thời gian giao hàng yêu cầu", field: "LeadTimeRequest", hozAlign: "left", headerHozAlign: "center", editor: editable ? "input" : false },
+      { title: "Số lượng trả lại", field: "QuantityReturn", hozAlign: "right", headerHozAlign: "center",editor: editable ? "number" : false },
+      { title: "NCC cuối cùng", field: "NCCFinal", hozAlign: "left", headerHozAlign: "center",  editor: editable ? "input" : false },
+      { title: "Giá đặt hàng", field: "PriceOrder", hozAlign: "right", headerHozAlign: "center",  editor: editable ? "number" : false },
+      { title: "Ngày đặt hàng", field: "OrderDate", hozAlign: "center", headerHozAlign: "center", editor: editable ? "input" : false },
+      { title: "Ngày dự kiến trả hàng", field: "ExpectedReturnDate", hozAlign: "center", headerHozAlign: "center",  editor: editable ? "input" : false },
+      { title: "Trạng thái", field: "Status", hozAlign: "center", headerHozAlign: "center", editor: editable ? "input" : false },
+      { title: "Chất lượng", field: "Quality", hozAlign: "center", headerHozAlign: "center",  editor: editable ? "input" : false },
+      { title: "Note", field: "Note", hozAlign: "left", headerHozAlign: "center",formatter: 'textarea', editor: editable ? "textarea" : false },
+      { title: "Lý do phát sinh", field: "ReasonProblem", hozAlign: "left", headerHozAlign: "center", formatter: 'textarea', editor: editable ? "textarea" : false },
     ];
   }
 
@@ -222,6 +233,61 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
       this.tableExcel.setColumns(columns as any);
     }
   }
+
+  // Mở modal import-excel-diff để hiển thị diff
+  openDiffModal() {
+    const modalRef = this.ngbModal.open(ImportExcelDiffComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+    });
+    modalRef.componentInstance.diffs = this.diffs;
+    modalRef.result.then(
+      (result) => {
+        if (result === true) {
+          this.checkExistData();
+        }
+      },
+      (dismissed) => {
+        // Modal bị đóng, không làm gì
+      }
+    );
+  }
+
+  openSaveModal() {
+    const modalRef = this.ngbModal.open(ImportExcelSaveComponent, {
+    centered: true,
+    size: 'xl',
+    backdrop: 'static',
+    keyboard: false,
+  });
+
+  // Truyền dữ liệu diff vào modal
+  modalRef.componentInstance.dataDiff = this.dataDiff;
+
+  // Xử lý khi modal đóng
+  modalRef.result.then(
+    (result) => {
+      // Kiểm tra nếu cần reload bảng partlist
+      if (result && result.reloadPartlist) {
+        // Cập nhật dataDiff từ modal (nếu có)
+        if (result.dataDiff !== undefined) {
+          this.dataDiff = result.dataDiff;
+        }
+        // Nếu không còn dữ liệu diff, đóng modal cha và reload bảng partlist
+        if (!this.dataDiff || this.dataDiff.length === 0) {
+          // Đóng modal ImportExcelPartlistComponent và truyền kết quả để reload bảng partlist
+          this.activeModal.close({ success: true });
+        }
+      }
+    },
+    (dismissed) => {
+      // Modal bị đóng bằng nút "Đóng", không làm gì (không đóng modal cha)
+      // Chỉ cần xử lý logic cần thiết nếu có
+    }
+  );
+}
 
   formatProgressText = (percent: number): string => {
     return this.displayText;
@@ -334,7 +400,7 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
       }
 
       const rows: any[] = [];
-      const regexTT = /^-?[\d\.]+$/;
+      const regexTT = /^\d+(\.\d+)*$/;
       let validRecords = 0;
 
       // Đọc dữ liệu từ hàng thứ 7 trở đi (theo template)
@@ -496,8 +562,6 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
   }
 
   saveExcelData() {
-    console.log('--- Bắt đầu saveExcelData ---');
-
     // Validate phiên bản (theo logic WinForm dòng 110-114)
     if (!this.selectedVersion || this.selectedVersion <= 0) {
       this.notification.error('Lỗi', 'Vui lòng chọn Phiên bản!');
@@ -510,14 +574,26 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    if (!this.dataTableExcel || this.dataTableExcel.length === 0) {
+    // Lấy dữ liệu mới nhất từ bảng Tabulator (để đảm bảo có dữ liệu đã chỉnh sửa)
+    if (!this.tableExcel) {
+      this.notification.warning('Thông báo', 'Bảng dữ liệu chưa được khởi tạo!');
+      return;
+    }
+
+    // Lấy dữ liệu mới nhất từ bảng
+    const currentTableData = this.tableExcel.getData();
+    
+    if (!currentTableData || currentTableData.length === 0) {
       this.notification.warning('Thông báo', 'Không có dữ liệu để lưu!');
       return;
     }
 
+    // Cập nhật dataTableExcel với dữ liệu mới nhất từ bảng
+    this.dataTableExcel = currentTableData;
+
     // Validate dữ liệu: chỉ lấy các dòng có TT hợp lệ (regex)
     const regex = /^-?[\d\.]+$/;
-    const validDataToSave = this.dataTableExcel.filter(row => {
+    const validDataToSave = currentTableData.filter((row: any) => {
       const tt = row.TT?.toString()?.trim() || '';
       return tt && regex.test(tt);
     });
@@ -526,21 +602,29 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
       this.notification.warning('Thông báo', 'Không có dữ liệu hợp lệ để lưu!');
       return;
     }
-
-    // Tiếp tục với import-check (theo logic WinForm: hỏi ghi đè ở BƯỚC DIFF, không phải trước)
+    if (!this.currentUser.IsAdmin && currentTableData.length > 0) {
+      const excelProjectCode = currentTableData[0]?.OrderCode?.toString()?.trim() || '';
+      
+      if (excelProjectCode && excelProjectCode !== this.projectCode.trim()) {
+        this.notification.warning('Cảnh báo', 'Không đúng Mã dự án!');
+        return;
+      }
+    }
+    //hàm check validate và check xem có vật tư tích xanh bị khác không
     this.proceedWithImportCheck(validDataToSave);
   }
 
   // Tiếp tục với import-check
   proceedWithImportCheck(validDataToSave: any[]): void {
     // Reset tiến trình
+    debugger;
     this.processedRowsForSave = 0;
     const totalRowsToSave = validDataToSave.length;
     this.displayText = `Đang kiểm tra: 0/${totalRowsToSave} bản ghi`;
     this.displayProgress = 0;
 
-    // Chuẩn bị payload cho import-check theo PartlistImportRequestDTO structure
-    const checkPayload = {
+    // Chuẩn bị payload cho import-check 
+    this.checkPayload = {
       projectID: this.projectId,
       projectPartListVersionID: this.selectedVersion,
       projectTypeID: this.projectTypeId,
@@ -574,53 +658,66 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
         ReasonProblem: row.ReasonProblem?.toString()?.trim() || "",
     })),    
         diffs: null // Chưa có diffs ở bước check
-      
     };
 
-    console.log('Gọi API import-check với payload:', checkPayload);
-
     // Bước 1: Gọi API import-check để validate
-    this.partlistService.importCheck(checkPayload).subscribe({
+    this.partlistService.importCheck(this.checkPayload).subscribe({
       next: (res: any) => {
         console.log('Response từ import-check API:', res);
         
-        if (!res.success) {
-          // Có lỗi validate
-          this.notification.error('Lỗi', res.message || 'Dữ liệu không hợp lệ!');
-          this.displayText = 'Kiểm tra thất bại!';
+        // Kiểm tra lỗi: status = 0 hoặc success = false
+        if (res.status === 0 || (res.success === false && !res.needConfirm)) {
+          // Có lỗi validate 
+          const errorMessage = res.message || res.Message || 'Dữ liệu không hợp lệ!';
+          this.notification.error('Lỗi', errorMessage); 
+          this.displayText = 'Đang kiểm tra dữ liệu...!';
           this.displayProgress = 0;
           return;
         }
-
-        // Kiểm tra có diffs không
-        if (res.needConfirm && res.diffs && res.diffs.length > 0) {
-          // BƯỚC 1: Có sự khác biệt giữa Excel và Stock, hiển thị FlyoutPanel (theo logic WinForm)
+  
+        // Có Diff → mở modal diff
+        if (res.needConfirm && res.diffs?.length > 0) {
           this.diffs = res.diffs;
-          this.validDataToSaveForDiff = validDataToSave; // Lưu để dùng khi mở modal 2
-          this.displayText = `Phát hiện ${res.diffs.length} sự khác biệt`;
-          
-          // Hiển thị FlyoutPanel (BƯỚC 1) - chỉ để XEM diff, không cho chỉnh sửa
-          this.showFlyoutPanel = true;
+          this.validDataToSaveForDiff = validDataToSave;
+          this.openDiffModal();   // chỉ mở ở đây
           return;
-        } else {
-          // Không có diff, tiếp tục lưu (không có diffs)
-          this.proceedWithSave(validDataToSave, []);
         }
+  
+        // Không có diff
+        this.diffs = [];
+        this.validDataToSaveForDiff = validDataToSave;
+        this.checkExistData(); // chỉ nhảy vào đây
       },
       error: (err: any) => {
-        console.error('Lỗi khi kiểm tra dữ liệu:', err);
-        const msg = err.error?.message || err.message || 'Lỗi kết nối server khi kiểm tra dữ liệu!';
-        this.notification.error('Thông báo', msg);
-        this.displayText = 'Lỗi khi kiểm tra dữ liệu!';
+        console.error('Lỗi khi gọi import-check API:', err);
+        // Xử lý lỗi HTTP (400, 500, etc.)
+        let errorMessage = 'Lỗi kết nối server khi kiểm tra dữ liệu!';
+        
+        if (err.error) {
+          // Nếu có error object từ server
+          if (err.error.message) {
+            errorMessage = err.error.message;
+          } else if (err.error.Message) {
+            errorMessage = err.error.Message;
+          } else if (typeof err.error === 'string') {
+            errorMessage = err.error;
+          }
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+        
+        this.notification.error('Lỗi', errorMessage);
+        this.displayText = 'Kiểm tra thất bại!';
         this.displayProgress = 0;
       }
     });
   }
+ 
 
   // Hàm tiếp tục lưu sau khi đã validate - sử dụng apply-diff endpoint
-  proceedWithSave(validDataToSave: any[], diffsWithChoose: any[] = []) {
+  applyDiff(validDataToSave: any[], diffsWithChoose: any[] = []) {
     const totalRowsToSave = validDataToSave.length;
-    this.displayText = `Đang lưu: 0/${totalRowsToSave} bản ghi`;
+    this.displayText = `Đã lưu: 0/${totalRowsToSave} bản ghi`;
     this.displayProgress = 0;
 
     // Chuẩn bị payload theo PartlistImportRequestDTO structure (match với user đã sửa)
@@ -659,19 +756,25 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
       })),
       diffs: diffsWithChoose && diffsWithChoose.length > 0 ? diffsWithChoose : null
     };
-
+    
     console.log('Dữ liệu gửi đi để apply-diff:', payload);
-
-    // Sử dụng apply-diff endpoint thay vì save-data
     this.partlistService.applyDiff(payload).subscribe({
       next: (res: any) => {
         console.log('Response từ apply-diff API:', res);
-        
+        debugger;
+
         if (res.status === 1 || res.success) {
           this.displayProgress = 100;
           this.displayText = `Đã lưu: ${totalRowsToSave}/${totalRowsToSave} bản ghi`;
           this.notification.success('Thành công', res.message || `Đã lưu ${totalRowsToSave} vật tư thành công!`);
-          
+          if(res.data.DiffData.length > 0)
+             {
+              console.log('Dữ liệu nhận được', res.data.DiffData);
+              this.dataDiff = res.data.DiffData;
+              this.openSaveModal();
+              return;
+             } 
+        
           // Đóng modal và trả về kết quả
           setTimeout(() => {
             this.activeModal.close({ success: true });
@@ -689,39 +792,56 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
       }
     });
   }
-
-  // BƯỚC 1: Xử lý khi user chọn "Ghi đè" ở FlyoutPanel
-  onConfirmFlyoutPanel() {
-    this.showFlyoutPanel = false;
-    // Mở modal diff chi tiết (BƯỚC 2) để user chọn Excel/Stock cho từng dòng
-    this.showDiffModal = true;
-  }
-
-  // BƯỚC 1: Xử lý khi user chọn "Không" ở FlyoutPanel
-  onCancelFlyoutPanel() {
-    this.showFlyoutPanel = false;
-    this.diffs = [];
-    this.validDataToSaveForDiff = [];
-    this.displayText = 'Đã hủy';
-    this.displayProgress = 0;
+  checkExistData() {
+    const hasDiff = this.diffs && this.diffs.length > 0;
+  
+    this.partlistService.checkExist(this.checkPayload).subscribe({
+      next: (res: any) => {
+  
+        // Có dữ liệu cũ
+        if (res.status === 1 && res.data.length > 0) {
+  
+          this.modal.confirm({
+            nzTitle: 'Xác nhận',
+            nzContent: 'Danh mục đã tồn tại. Bạn có muốn ghi đè không?',
+            nzOkText: 'Có',
+            nzCancelText: 'Không',
+  
+            nzOnOk: () => {
+              this.partlistService.overwriteData(this.checkPayload).subscribe({
+                next: () => {
+                  // Sau khi ghi đè
+                  if(hasDiff){
+                    this.onConfirmDiff();
+                  } else {
+                    this.applyDiff(this.validDataToSaveForDiff, []);
+                  }
+                }
+              });
+            },
+  
+            nzOnCancel: () => {
+              this.displayText = 'Đã hủy';
+              this.displayProgress = 0;
+            }
+          });
+  
+          return;
+        }
+  
+        // Không có dữ liệu cũ
+        if (res.status === 1 && res.data.length === 0) {
+            this.applyDiff(this.validDataToSaveForDiff, []);
+        }
+      }
+    });
   }
 
   // BƯỚC 2: Xử lý khi user confirm diff chi tiết (chọn Excel hoặc Stock cho từng dòng)
-  onConfirmDiff(updateByStock: boolean = false) {
-    this.showDiffModal = false;
-    
-    // Set field Choose cho mỗi diff object (theo PartlistDiffDTO structure)
-    // Backend sẽ tự động apply diff vào items dựa trên Choose field
-    const diffsWithChoose = this.diffs.map((diff: any) => ({
-      ...diff,
-      Choose: updateByStock ? 'Stock' : 'Excel' // Set "Stock" hoặc "Excel" (PascalCase để match DTO)
-    }));
-
-    // Tiếp tục lưu với diffs đã được set Choose
-    // Sử dụng validDataToSaveForDiff đã lưu từ BƯỚC 1
-    this.proceedWithSave(this.validDataToSaveForDiff, diffsWithChoose);
+  onConfirmDiff() {
+    const diffsWithChoose = this.diffs.map(x => ({ ...x }));
+    this.applyDiff(this.validDataToSaveForDiff, diffsWithChoose);
   }
-
   // BƯỚC 2: Hủy diff modal chi tiết
   onCancelDiff() {
     this.showDiffModal = false;
@@ -774,17 +894,44 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
     }
   }
 
-  downloadTemplate(fileName: string) {
-    // TODO: Implement download template function if service has it
-    this.notification.info('Thông báo', 'Tính năng tải mẫu đang được phát triển.');
-    // this.partlistService.downloadTemplate(fileName).subscribe({
-    //   next: (response: any) => {
-    //     console.log('Response từ downloadTemplate API:', response);
-    //   },
-    //   error: (err: any) => {
-    //     console.error('Lỗi khi download template:', err);
-    //     this.notification.error('Thông báo', 'Không thể download template!');
-    //   }
-    // });
+  downloadTemplate() {
+    const fileName = 'DanhMucVatTuDuAnTemplate.xlsx';
+    this.partlistService.downloadTemplate(fileName).subscribe({
+      next: (blob: Blob) => {
+        // Kiểm tra xem có phải là blob hợp lệ không
+        if (blob && blob.size > 0) {
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          this.notification.success('Thông báo', 'Tải file mẫu thành công!');
+        } else {
+          this.notification.error('Thông báo', 'File tải về không hợp lệ!');
+        }
+      },
+      error: (res: any) => {
+        console.error('Lỗi khi tải file mẫu:', res);
+        // Nếu error response là blob (có thể server trả về lỗi dạng blob)
+        if (res.error instanceof Blob) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const errorText = JSON.parse(reader.result as string);
+              this.notification.error('Thông báo', errorText.message || 'Tải file mẫu thất bại!');
+            } catch {
+              this.notification.error('Thông báo', 'Tải file mẫu thất bại!');
+            }
+          };
+          reader.readAsText(res.error);
+        } else {
+          const errorMsg = res?.error?.message || res?.message || 'Tải file mẫu thất bại. Vui lòng thử lại!';
+          this.notification.error('Thông báo', errorMsg);
+        }
+      }
+    });
   }
 }

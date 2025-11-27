@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpResponse } from '@angular/common/http';
+import { map, Observable } from 'rxjs';
 import { environment } from '../../../../../../../environments/environment';
 @Injectable({
   providedIn: 'root'
@@ -35,9 +35,17 @@ export class ProjectPartListService {
   importCheck(payload: any): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/import-check`, payload);
   }
+  //check ton tai 
+  checkExist(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/check-tontai`, payload);
+  }
+  //ghi de du lieu 
+  overwriteData(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/over-write-data`, payload);
+  }
   // Apply diff - áp dụng diff và lưu dữ liệu
   applyDiff(payload: any): Observable<any> {
-    return this.http.post<any>(`${this.urlProjectPartList}/apply-diff`, payload);
+    return this.http.post<any>(`${this.urlProjectPartList}/apply-diff2`, payload);
   }
   approveProjectPartList(projectpartlistID: number[], approved: boolean): Observable<any> {
     return this.http.post<any>(`${this.urlProjectPartList}/approvedTBP`, {
@@ -74,8 +82,8 @@ export class ProjectPartListService {
     return this.http.get<any>(`${this.urlProjectPartList}/get-suggestion-name-maker`);
   }
   // Save ProjectPartList
-  saveProjectPartListData(payload: any): Observable<any> {
-    return this.http.post<any>(`${this.urlProjectPartList}/save-projectpartlist`, payload);
+  saveProjectPartListData(payload: any, overrideFix: boolean = false): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/save-projectpartlist?overrideFix=${overrideFix}`, payload);
   }
   // Get PartList by ID
   getPartListByID(partlistID: number): Observable<any> {
@@ -112,5 +120,29 @@ export class ProjectPartListService {
   //hủy đã mua
   cancelTechBought(id: number): Observable<any> {
     return this.http.post<any>(`${this.url}api/ProjectPartlistPurchaseRequest/unTech-bought`, id);
+  }
+  // Lấy giá lịch sử
+  getPriceHistory(payload: any[]): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/get-price-history`, payload);
+  }
+  // Khôi phục dòng đã xóa
+  restoreDelete(payload: any[]): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/restore-delete`, payload);
+  }
+  // Lưu import với status (1 = Partlist, 2 = Stock)
+  saveImport(payload: any[], status: number): Observable<any> {
+    return this.http.post<any>(`${this.urlProjectPartList}/save-import?status=${status}`, payload);
+  }
+   //LƯU MẪU EXCEL
+   downloadTemplate(fileName: string): Observable<Blob> {
+    const url = `${environment.host}api/share/software/Template/ImportExcel/${fileName}`;
+    return this.http.get(url, {
+      responseType: 'blob',
+      observe: 'response'
+    }).pipe(
+      map((response: HttpResponse<Blob>) => {
+        return response.body as Blob;
+      })
+    );
   }
 }

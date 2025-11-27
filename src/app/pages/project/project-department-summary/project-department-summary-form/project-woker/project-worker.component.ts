@@ -145,6 +145,9 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
   versionID: number = 0; //id phiên bản giải pháp
   versionPOID: number = 0; //id phiên bản PO
   type: number = 0; //1: giải pháp, 2: PO
+  isLoading: boolean = false; // Loading state cho toàn bộ component
+  private loadingCounter: number = 0; // Counter để track số lượng request đang chạy
+  private loadingTimeout: any = null; // Timeout để đảm bảo loading không bị kẹt
 
   ngOnInit(): void {
     this.isDeleted = 0;
@@ -165,6 +168,38 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
       this.loadDataSolution();
     }, 0);
   }
+  // Helper methods để quản lý loading state
+  private startLoading(): void {
+    this.loadingCounter++;
+    this.isLoading = true;
+    
+    // Clear timeout cũ nếu có
+    if (this.loadingTimeout) {
+      clearTimeout(this.loadingTimeout);
+    }
+    
+    // Set timeout để đảm bảo loading không bị kẹt quá 30 giây
+    this.loadingTimeout = setTimeout(() => {
+      console.warn('Loading timeout - force stop loading');
+      this.loadingCounter = 0;
+      this.isLoading = false;
+    }, 30000);
+  }
+
+  private stopLoading(): void {
+    this.loadingCounter--;
+    if (this.loadingCounter <= 0) {
+      this.loadingCounter = 0;
+      this.isLoading = false;
+      
+      // Clear timeout khi loading đã dừng
+      if (this.loadingTimeout) {
+        clearTimeout(this.loadingTimeout);
+        this.loadingTimeout = null;
+      }
+    }
+  }
+
   loadDataSolution(): void {
     // Kiểm tra bảng đã được khởi tạo chưa
     if (!this.tb_solution) {
@@ -173,6 +208,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    this.startLoading();
     this.projectWorkerService.getSolution(this.projectId).subscribe({
       next: (response: any) => {
         if (response.status === 1) {
@@ -183,6 +219,9 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
             // Đảm bảo bảng đã được khởi tạo trước khi setData
             if (this.tb_solution) {
               this.tb_solution.setData(this.dataSolution);
+              // Dừng loading của loadDataSolution trước khi gọi 2 hàm con
+              this.stopLoading();
+              // Gọi 2 hàm load version, loading sẽ được quản lý trong các hàm đó
               this.loadDataSolutionVersion();
               this.loadDataPOVersion();
             }
@@ -193,14 +232,17 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
               this.tb_solution.setData([]);
             }
             this.projectSolutionId = 0;
+            this.stopLoading();
           }
         } else {
           this.notification.error('Lỗi', response.message);
+          this.stopLoading();
         }
       },
       error: (error: any) => {
         console.error('Error loading solution:', error);
         this.notification.error('Lỗi', 'Không thể tải dữ liệu giải pháp');
+        this.stopLoading();
       },
     });
   }
@@ -212,6 +254,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    this.startLoading();
     this.projectWorkerService
       .getSolutionVersion(this.projectSolutionId)
       .subscribe({
@@ -226,7 +269,13 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
           } else {
             this.notification.error('Lỗi', response.message);
           }
+          this.stopLoading();
         },
+        error: (error: any) => {
+          console.error('Error loading solution version:', error);
+          this.notification.error('Lỗi', error.message);
+          this.stopLoading();
+        }
       });
   }
   searchDataProjectWorker(): void {
@@ -241,6 +290,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    this.startLoading();
     this.projectWorkerService.getPOVersion(this.projectSolutionId).subscribe({
       next: (response: any) => {
         if (response.status === 1) {
@@ -253,7 +303,13 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
         } else {
           this.notification.error('Lỗi', response.message);
         }
+        this.stopLoading();
       },
+      error: (error: any) => {
+        console.error('Error loading PO version:', error);
+        this.notification.error('Lỗi', error.message);
+        this.stopLoading();
+      }
     });
   }
   //#region load dữ liệu nhân công
@@ -289,6 +345,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
     // "KeyWord": "string",
     // "versionID": 0
     console.log('payload', payload);
+    this.startLoading();
     this.projectWorkerService.getProjectWorker(payload).subscribe({
       next: (response: any) => {
         if (response.status === 1) {
@@ -304,15 +361,20 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
               // Đảm bảo style được áp dụng sau khi setData hoàn tất
               setTimeout(() => {
                 this.applyDeletedRowStyle();
+                this.stopLoading();
               }, 100);
             });
+          } else {
+            this.stopLoading();
           }
         } else {
           this.notification.error('Lỗi', response.message);
+          this.stopLoading();
         }
       },
       error: (error: any) => {
         this.notification.error('Lỗi', 'Không thể tải dữ liệu nhân công');
+        this.stopLoading();
       },
     });
   }
@@ -1149,7 +1211,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
         dataTreeStartExpanded: true,
         dataTreeChildField: '_children', // Quan trọng: dùng _children
         pagination: false,
-        layout: 'fitColumns',
+        layout: 'fitDataStretch',
         selectableRows: true,
         height: '100%',
         maxHeight: '100%',
@@ -1195,6 +1257,7 @@ export class ProjectWorkerComponent implements OnInit, AfterViewInit {
             field: 'IsApprovedTBPText',
             hozAlign: 'center',
             headerHozAlign: 'center',
+            width: 200,
           },
           {
             title: 'Nội dung công việc',

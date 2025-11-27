@@ -2,7 +2,7 @@
   <!-- Modal Header -->
   <div class="bg-primary align-items-center ps-2 pe-2" style="flex-shrink: 0; display: flex; justify-content: space-between; padding: 0.5rem;">
     <h6 class="text-light text-uppercase m-0" style="padding: 0 0.5rem;">
-      Danh sách báo cáo công việc
+      Danh sách báo cáo công việc {{projectCode}}
     </h6>
     <button type="button" class="btn-close" (click)="activeModal.dismiss()" aria-label="Close"></button>
   </div>
@@ -43,6 +43,7 @@
                     [(ngModel)]="projectId"
                     nzAllowClear
                     nzSize="small"
+                    (ngModelChange)="onProjectChange()"
                   >
                     @for (item of projects; track $index) {
                       <nz-option
@@ -122,9 +123,4 @@
   </div>
 
   <!-- Modal Footer -->
-  <div class="modal-footer bg-whitesmoke p-2 d-flex justify-content-end gap-2" style="flex-shrink: 0;">
-    <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">
-      Đóng
-    </button>
-  </div>
 </div>

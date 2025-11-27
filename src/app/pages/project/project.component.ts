@@ -56,6 +56,8 @@ import { ProjectWorkerComponent } from './project-department-summary/project-dep
 import { ProjectPartListComponent } from './project-department-summary/project-department-summary-form/project-part-list/project-part-list.component';
 import { ProjectCurrentSituationComponent } from './project-current-situation/project-current-situation.component';
 import { ProjectPartlistProblemComponent } from './project-partlist-problem/project-partlist-problem.component';
+
+import { PermissionService } from '../../services/permission.service';
 @Component({
   selector: 'app-projects',
   standalone: true,
@@ -114,7 +116,8 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     private modalService: NgbModal,
     private router: Router,
     private route: ActivatedRoute,
-    private authService: AuthService
+    private authService: AuthService,
+    private permissionService: PermissionService
   ) {}
   //Ga
   //#region Khai báo biến
@@ -214,7 +217,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
 
   //#region xử lý bảng danh sách dự án
   drawTbProjects(container: HTMLElement) {
-    let contextMenuProject = [
+       let contextMenuProject = [
       {
         label: `<span style="font-size: 0.75rem;"><img src="assets/icon/priority_level_16.png" alt="Mức độ ưu tiên cá nhân" class="me-1" /> Mức độ ưu tiên cá nhân</span>`,
         menu: [1, 2, 3, 4, 5].map((level) => ({
@@ -225,7 +228,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
         })),
       },
       {
-        label:
+        label:  
           '<span style="font-size: 0.75rem;"><img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" class="me-1" /> Xuất excel</span>',
         action: (e: any, row: any) => {
           this.exportExcel();
@@ -255,13 +258,6 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       },
       {
         label:
-          '<span style="font-size: 0.75rem;"><img src="assets/icon/project_status_16.png" alt="Trạng thái dự án" class="me-1" /> Trạng thái dự án</span>',
-        action: (e: any, row: any) => {
-          this.openProjectStatus();
-        },
-      },
-      {
-        label:
           '<span style="font-size: 0.75rem;"><img src="assets/icon/compare_project_16.png" alt="Chuyển dự án" class="me-1" /> Chuyển dự án</span>',
         action: (e: any, row: any) => {
           this.changeProject();
@@ -269,27 +265,42 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       },
       {
         label:
-          '<span style="font-size: 0.75rem;"><img src="assets/icon/compare_project_16.png" alt="Hàng phát sinh" class="me-1" /> Hàng phát sinh</span>',
+          '<span style="font-size: 0.75rem;"><img src="assets/icon/additional_goods_16.png" alt="Hàng phát sinh" class="me-1" /> Hàng phát sinh</span>',
         action: (e: any, row: any) => {
           this.openProjectPartListProblemModal();
         },
       },
       {
         label:
-          '<span style="font-size: 0.75rem;"><img src="assets/icon/compare_project_16.png" alt="yêu cầu giải pháp" class="me-1" /> Yêu cầu - Giải pháp</span>',
+          '<span style="font-size: 0.75rem;"><img src="assets/icon/solution_16.png" alt="yêu cầu giải pháp" class="me-1" /> Yêu cầu - Giải pháp</span>',
         action: (e: any, row: any) => {
           this.openProjectRequest();
         },
       },
-      {
+    ];
+
+    // Thêm menu item "Trạng thái dự án" nếu có quyền
+    if (this.permissionService.hasPermission('N1,N13,N27')) {
+      contextMenuProject.push({
         label:
-          '<span style="font-size: 0.75rem;"><img src="assets/icon/compare_project_16.png" alt=" class="me-1" />Cập nhật hiện trạng</span>',
+          '<span style="font-size: 0.75rem;"><img src="assets/icon/project_status_16.png" alt="Trạng thái dự án" class="me-1" /> Trạng thái dự án</span>',
+        action: (e: any, row: any) => {
+          this.openProjectStatus();
+        },
+      });
+    }
+
+    // Thêm menu item "Cập nhật hiện trạng" nếu có quyền
+    if (this.permissionService.hasPermission('N1,N13,N27')) {
+      contextMenuProject.push({
+        label:
+          '<span style="font-size: 0.75rem;"><img src="assets/icon/update_status_16.png" alt="Cập nhật hiện trạng" class="me-1" /> Cập nhật hiện trạng</span>',
         action: (e: any, row: any) => {
           this.openUpdateCurrentSituation();
         },
-      },
-      
-    ];
+      });
+    }
+
 
     if (!this.isHide) {
       contextMenuProject = [
@@ -893,27 +904,29 @@ export class ProjectComponent implements OnInit, AfterViewInit {
   //#region xử lý bảng kiểu dự án
   drawTbProjectTypeLinks(container: HTMLElement) {
     this.tb_projectTypeLinks = new Tabulator(container, {
-      ...DEFAULT_TABLE_CONFIG,
-      //   columnDefaults: {
-      //     headerWordWrap: true,
-      //     headerVertical: false,
-      //     headerHozAlign: 'center',
-      //     minWidth: 60,
-      //     hozAlign: 'left',
-      //     vertAlign: 'middle',
-      //     resizable: true,
-      //   },
-      //   height: '80vh',
-      //   dataTree: true,
-      //   dataTreeStartExpanded: true,
-      //   layout: 'fitDataStretch',
-      //   locale: 'vi',
+        columnDefaults: {
+          headerWordWrap: true,
+          headerVertical: false,
+          headerHozAlign: 'center',
+          minWidth: 60,
+          hozAlign: 'left',
+          vertAlign: 'middle',
+          resizable: true,
+        },
+        height: '80vh',
+        dataTree: true,
+        dataTreeStartExpanded: true,
+        layout: 'fitDataStretch',
+        locale: 'vi',
       columns: [
         {
           title: 'Chọn',
           field: 'Selected',
           headerHozAlign: 'center',
-          formatter: 'tickCross',
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            return `<input type="checkbox" ${(value === true ? 'checked' : '')} onclick="return false;">`;
+          }
         },
         {
           title: 'Kiểu dự án',
@@ -1049,9 +1062,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
     if (status == 1) {
       if (selectedIDs.length != 1) {
-        this.notification.error('', this.createdText('Vui lòng chọn dự án!'), {
-          nzStyle: { fontSize: '0.75rem' },
-        });
+        this.notification.error('Lỗi','Vui lòng chọn dự án!')
         return;
       }
     }
@@ -1192,18 +1203,14 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length <= 0) {
-      this.notification.error(
-        '',
-        this.createdText('Vui lòng chọn ít nhất 1 dự án để xóa!'),
-        {
-          nzStyle: { fontSize: '0.75rem' },
-        }
+      this.notification.error("Thông báo",
+       'Vui lòng chọn ít nhất 1 dự án để xóa!'
       );
       return;
     }
 
     this.modal.confirm({
-      nzTitle: this.createdText('Bạn có chắc muốn xóa dự án đã chọn?'),
+      nzTitle: 'Bạn có chắc muốn xóa dự án đã chọn?',
       nzOkText: 'Xóa',
       nzOkType: 'primary',
       nzCancelText: 'Hủy',
@@ -1240,9 +1247,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length <= 0) {
-      this.notification.error('', this.createdText('Vui lòng chọn dự án!'), {
-        nzStyle: { fontSize: '0.75rem' },
-      });
+      this.notification.error('Lỗi','Vui lòng chọn dự án!')
       return;
     }
 
@@ -1478,9 +1483,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
-        nzStyle: { fontSize: '0.75rem' },
-      });
+      this.notification.error('Lỗi','Vui lòng chọn 1 dự án!')
       return;
     }
 
@@ -1503,9 +1506,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
-        nzStyle: { fontSize: '0.75rem' },
-      });
+      this.notification.error('Lỗi','Vui lòng chọn 1 dự án!')
       return;
     }
     const modalRef = this.modalService.open(WorkItemComponent, {
@@ -1530,9 +1531,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
-        nzStyle: { fontSize: '0.75rem' },
-      });
+      this.notification.error('Lỗi','Vui lòng chọn 1 dự án!')
       return;
     }
     const modalRef = this.modalService.open(ProjectWorkerComponent, {
@@ -1557,9 +1556,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
-        nzStyle: { fontSize: '0.75rem' },
-      });
+      this.notification.error('Lỗi','Vui lòng chọn 1 dự án!')
       return;
     }
     const modalRef = this.modalService.open(ProjectPartListComponent, {

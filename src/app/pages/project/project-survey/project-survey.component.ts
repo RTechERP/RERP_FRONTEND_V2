@@ -118,9 +118,10 @@ export class ProjectSurveyComponent implements AfterViewInit {
   employees: any[] = [];
   projects: any[] = [];
 
-  // dateStart: any = DateTime.local().toISO();
+  // dateStart: tính từ ngày hôm nay trừ đi 1 tháng
   dateStart: any = DateTime.local()
-    .set({ hour: 0, minute: 0, second: 0, year: 2023, month: 1, day: 1 })
+    .minus({ month: 1 })
+    .set({ hour: 0, minute: 0, second: 0 })
     .toISO();
   dateEnd: any = DateTime.local().plus({ month: 2 }).toISO();
   dateSurvey: any = DateTime.fromJSDate(new Date());
@@ -194,7 +195,10 @@ export class ProjectSurveyComponent implements AfterViewInit {
   }
 
   reset() {
-    this.dateStart = DateTime.local().toISO();
+    this.dateStart = DateTime.local()
+      .minus({ month: 1 })
+      .set({ hour: 0, minute: 0, second: 0 })
+      .toISO();
     this.dateEnd = DateTime.local().plus({ month: 2 }).toISO();
     this.projectId = 0;
     this.technicalId = 0;
@@ -661,9 +665,16 @@ export class ProjectSurveyComponent implements AfterViewInit {
         return;
       }
       // Khởi tạo form với giá trị từ selected row
-      const initialDateSurvey = selectedRows[0].DateSurvey
-        ? (DateTime.fromJSDate(new Date(selectedRows[0].DateSurvey)).toISO() || '')
-        : (DateTime.local().toISO() || '');
+      // Nếu có DateSurvey thì dùng DateSurvey, nếu không thì dùng DateEnd, nếu không có DateEnd thì dùng ngày hiện tại
+      // nz-date-picker nhận Date object, không phải ISO string
+      let initialDateSurvey: Date;
+      if (selectedRows[0].DateSurvey) {
+        initialDateSurvey = new Date(selectedRows[0].DateSurvey);
+      } else if (selectedRows[0].DateEnd) {
+        initialDateSurvey = new Date(selectedRows[0].DateEnd);
+      } else {
+        initialDateSurvey = new Date();
+      }
       
       // Lấy ID kỹ thuật phụ trách từ selected row
       // Có thể là TechnicalID, EmployeeIDTechnical, hoặc field khác tùy vào cấu trúc dữ liệu
@@ -674,7 +685,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
         technicalRequestId: selectedRows[0].EmployeeID1|| null,
         partOfDayId: selectedRows[0].SurveySession || 0,
         reason: selectedRows[0].ReasonCancel || '',
-        dateSurvey: initialDateSurvey
+        dateSurvey: initialDateSurvey as any // Cast to any vì form control type là string nhưng nz-date-picker trả về Date
       });
 
       // Set required validator cho reason nếu là hủy duyệt
@@ -720,7 +731,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
               if (this.approvalForm.invalid) {
                 this.approvalForm.markAllAsTouched();
                 const technicalControl = this.approvalForm.get('technicalRequestId');
-                const dateControl = this.approvalForm.get('dateSurvey');
+                const dateControl = this.approvalForm.get('dateEnd');
                 const reasonControl = this.approvalForm.get('reason');
                 
                 if (technicalControl?.hasError('required')) {
@@ -746,7 +757,30 @@ export class ProjectSurveyComponent implements AfterViewInit {
               }
 
               const formValue = this.approvalForm.getRawValue();
-              let dsv = DateTime.fromISO(formValue.dateSurvey).startOf('day');
+              // Xử lý dateSurvey: nz-date-picker trả về Date object, nhưng form control type là string
+              const dateSurveyRaw = formValue.dateSurvey as any;
+              
+              // Validate và convert dateSurvey
+              if (!dateSurveyRaw) {
+                this.notification.error('Thông báo', 'Vui lòng chọn ngày khảo sát!');
+                return;
+              }
+
+              let dateSurveyValue: DateTime;
+              let dateSurveyISO: string;
+              
+              if (dateSurveyRaw instanceof Date) {
+                dateSurveyValue = DateTime.fromJSDate(dateSurveyRaw).startOf('day');
+                dateSurveyISO = DateTime.fromJSDate(dateSurveyRaw).toISO() || '';
+              } else if (typeof dateSurveyRaw === 'string' && dateSurveyRaw) {
+                dateSurveyValue = DateTime.fromISO(dateSurveyRaw).startOf('day');
+                dateSurveyISO = DateTime.fromISO(dateSurveyRaw).toISO() || '';
+              } else {
+                this.notification.error('Thông báo', 'Ngày khảo sát không hợp lệ!');
+                return;
+              }
+
+              let dsv = dateSurveyValue;
 
               let ds = selectedRows[0].DateStart
                 ? DateTime.fromJSDate(
@@ -779,9 +813,9 @@ export class ProjectSurveyComponent implements AfterViewInit {
                 id: selectedRows[0].ProjectSurveyDetailID,
                 status: approvedStatus,
                 employeeID: formValue.technicalRequestId!,
-                dateSurvey: DateTime.fromISO(formValue.dateSurvey).toISO(),
+                dateSurvey: dateSurveyISO,
                 reasonCancel: formValue.reason ?? '',
-                updatedBy: this.projectService.LoginName,
+                updatedBy: this.currentUser.FullName,
                 surveySession: formValue.partOfDayId ?? 0,
               };
 
@@ -800,7 +834,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
                   }
                 },
                 error: (error) => {
-                  console.error('Lỗi:', error);
+                  this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
                 },
               });
             },

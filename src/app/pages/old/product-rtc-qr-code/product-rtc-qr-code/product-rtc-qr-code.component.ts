@@ -50,7 +50,7 @@ import * as ExcelJS from 'exceljs';
 })
 export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('qrCodeTableRef', { static: true }) qrCodeTableRef!: ElementRef<HTMLDivElement>;
-  
+
   private ngbModal = inject(NgbModal);
   qrCodeTable: Tabulator | null = null;
   filterText: string = "";
@@ -59,19 +59,19 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
   modulaLocationGroups: any[] = [];
   selectedModulaLocationID: number | null = null;
   private searchSubject = new Subject<string>();
-  
+
   constructor(
     private notification: NzNotificationService,
     private qrCodeService: ProductRtcQrCodeService,
     private modal: NzModalService
   ) { }
-  
+
   ngAfterViewInit(): void {
     this.drawTable();
     this.loadData();
     this.loadModulaLocations();
   }
-  
+
   ngOnInit() {
     // Setup debounce cho tìm kiếm
     this.searchSubject.pipe(
@@ -81,7 +81,7 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
       this.loadData();
     });
   }
-  
+
   ngOnDestroy() {
     this.searchSubject.complete();
   }
@@ -127,7 +127,7 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
   groupModulaLocations(dataList: any[]) {
     // Group theo ModulaLocationID (Tray)
     const grouped = new Map<number, any[]>();
-    
+
     dataList.forEach((item: any) => {
       const trayId = item.ModulaLocationID;
       if (trayId) {
@@ -248,49 +248,52 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
             }
           }
         },
-      
-        { 
-          title: "Mã QR Code", 
-          field: "ProductQRCode",   
+
+        {
+          title: "Mã QR Code",
+          field: "ProductQRCode",
+          hozAlign: "left"
+          , bottomCalc: 'count'
+        },
+        {
+          title: "SerialNumber",
+          field: "SerialNumber",
+          hozAlign: "left"
+          , bottomCalc: 'count'
+        },
+        {
+          title: "Mã sản phẩm",
+          field: "ProductCode",
+          hozAlign: "left"
+          , bottomCalc: 'count'
+        },
+        {
+          title: "Tên sản phẩm",
+          field: "ProductName",
           hozAlign: "left"
         },
-        { 
-          title: "SerialNumber", 
-          field: "SerialNumber", 
+        {
+          title: "Mã nội bộ",
+          field: "ProductCodeRTC",
           hozAlign: "left"
         },
-        { 
-          title: "Mã sản phẩm", 
-          field: "ProductCode", 
+        {
+          title: "Vị trí",
+          field: "AddressBox",
           hozAlign: "left"
         },
-        { 
-          title: "Tên sản phẩm", 
-          field: "ProductName", 
+
+        {
+          title: "Vị trí modula",
+          field: "ModulaLocationName",
           hozAlign: "left"
         },
-        { 
-          title: "Mã nội bộ", 
-          field: "ProductCodeRTC", 
+        {
+          title: "Ghi chú",
+          field: "Note",
           hozAlign: "left"
+
         },
-        { 
-          title: "Vị trí", 
-          field: "AddressBox", 
-          hozAlign: "left"
-        },
-        { 
-          title: "Ghi chú", 
-          field: "Note", 
-          hozAlign: "left"
-    
-        },
-      
-        { 
-          title: "Vị trí modula", 
-          field: "ModulaLocationName", 
-          hozAlign: "left"
-        }
       ]
     });
   }
@@ -320,7 +323,7 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
       return;
     }
     const selectedRow = selectedData[0];
-    
+
     const modalRef = this.ngbModal.open(ProductRtcQrCodeFormComponent, {
       size: 'xl',
       backdrop: 'static',
@@ -442,11 +445,11 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
     // Data rows
     data.forEach((row: any) => {
       const statusText = row.Status === 1 ? 'Trong kho' :
-                        row.Status === 2 ? 'Đang mượn' :
-                        row.Status === 3 ? 'Đã xuất kho' :
-                        row.Status === 4 ? 'Lost' : 
-                        row.StatusText || '';
-      
+        row.Status === 2 ? 'Đang mượn' :
+          row.Status === 3 ? 'Đã xuất kho' :
+            row.Status === 4 ? 'Lost' :
+              row.StatusText || '';
+
       worksheet.addRow([
         statusText,
         row.ID || '',

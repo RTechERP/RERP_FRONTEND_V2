@@ -60,6 +60,7 @@ import { RequestInvoiceDetailService } from '../request-invoice-detail/request-i
 import { AppUserService } from '../../../services/app-user.service';
 import { BillExportDetailComponent } from '../Sale/BillExport/Modal/bill-export-detail/bill-export-detail.component';
 import { NOTIFICATION_TITLE } from '../../../app.config';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 interface BillExportDetail {
   ProductID: number;
   Qty: number;
@@ -743,13 +744,14 @@ export class WarehouseReleaseRequestComponent implements OnInit {
   //#region Hàm vẽ bảng
   initWarehouseReleaseTable(): void {
     this.table = new Tabulator(this.tableElement.nativeElement, {
+      ...DEFAULT_TABLE_CONFIG,
       data: this.gridData,
       dataTree: true,
       dataTreeStartExpanded: true,
       dataTreeChildField: '_children',
       dataTreeBranchElement: true,
       dataTreeChildIndent: 15,
-      height: '73.5vh',
+      height: '73.8vh',
       layout: 'fitColumns',
       reactiveData: true,
       resizableRows: true,
@@ -758,26 +760,7 @@ export class WarehouseReleaseRequestComponent implements OnInit {
       selectableRange: true,
       pagination: true,
       paginationSize: 500,
-      langs: {
-        vi: {
-          pagination: {
-            first: '<<',
-            last: '>>',
-            prev: '<',
-            next: '>',
-          },
-        },
-      },
-      locale: 'vi',
-      columnDefaults: {
-        headerWordWrap: true,
-        headerVertical: false,
-        headerHozAlign: 'center',
-        minWidth: 60,
-        hozAlign: 'left',
-        vertAlign: 'middle',
-        resizable: true,
-      },
+      rowHeader: false,
       columns: [
         {
           title: 'Chọn',
@@ -806,62 +789,53 @@ export class WarehouseReleaseRequestComponent implements OnInit {
           title: 'Trạng thái',
           field: 'StatusText',
           width: 120,
-          hozAlign: 'center',
           frozen: true,
         },
         {
           title: 'Số PO',
           field: 'PONumber',
           width: 100,
-          hozAlign: 'center',
           frozen: true,
         },
         {
           title: 'Khách hàng',
           field: 'CustomerName',
           width: 250,
-          hozAlign: 'center',
           frozen: true,
         },
         {
           title: 'Dự án',
           field: 'ProjectName',
           width: 250,
-          hozAlign: 'center',
           frozen: true,
         },
         {
           title: 'Mã sản phẩm',
           field: 'ProductCode',
           width: 250,
-          hozAlign: 'center',
           frozen: true,
         },
         {
           title: 'Mã nội bộ',
           field: 'ProductNewCode',
           width: 250,
-          hozAlign: 'center',
         },
         {
           title: 'Mã theo khách',
           field: 'GuestCode',
           width: 250,
-          hozAlign: 'center',
         },
         {
           title: 'Tên sản phẩm',
           field: 'ProductName',
           width: 250,
-          hozAlign: 'center',
         },
         {
           title: 'Loại kho',
           field: 'ProductGroupName',
           width: 250,
-          hozAlign: 'center',
         },
-        { title: 'ĐVT', field: 'Unit', width: 100, hozAlign: 'center' },
+        { title: 'ĐVT', field: 'Unit', width: 100 },
         { title: 'Số lượng PO', field: 'Qty', width: 100, hozAlign: 'right' },
         {
           title: 'SL yêu cầu xuất',
@@ -910,7 +884,6 @@ export class WarehouseReleaseRequestComponent implements OnInit {
           title: 'Người nhận',
           field: 'UserReceiver',
           width: 150,
-          hozAlign: 'center',
         },
         {
           title: 'Mã phiếu xuất',

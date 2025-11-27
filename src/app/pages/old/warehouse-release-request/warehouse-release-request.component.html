@@ -1,66 +1,55 @@
-<!-- Modal Dialog -->
-<div class="modal-header bg-primary text-uppercase py-2">
-  <h6 class="modal-title text-white">CHI TIẾT PO KHÁCH HÀNG</h6>
-  <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
-</div>
-
-<div class="modal-body">
-  <!-- Toolbar -->
-  <div class="toolbar mb-3">
-    <div class="btn-group">
-      <button nz-button nz-dropdown [nzDropdownMenu]="menu" >
-        <nz-icon nzType="export">
-        </nz-icon>
-        Yêu cầu xuất kho
-        <nz-icon nzType="down" />
-      </button>
-      <nz-dropdown-menu #menu="nzDropdownMenu">
-        <ul nz-menu>
-          <li nz-menu-item *ngFor="let warehouse of warehouses" (click)="onWarehouseSelect(warehouse)">
-            {{warehouse.WarehouseName}}
-          </li>
-        </ul>
-      </nz-dropdown-menu>
-    </div>
+<div style="display: flex; flex-direction: column; height: 100vh; position: relative;">
+  <!-- Modal Dialog -->
+  <div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">CHI TIẾT PO KHÁCH HÀNG</h6>
+    <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
   </div>
 
-  <!-- Search Panel -->
+  <div class="modal-body">
+    <!-- Toolbar -->
+    <div class="toolbar mb-3">
+      <div class="btn-group">
+        <button nz-button nz-dropdown [nzDropdownMenu]="menu">
+          <nz-icon nzType="export">
+          </nz-icon>
+          Yêu cầu xuất kho
+          <nz-icon nzType="down" />
+        </button>
+        <nz-dropdown-menu #menu="nzDropdownMenu">
+          <ul nz-menu>
+            <li nz-menu-item *ngFor="let warehouse of warehouses" (click)="onWarehouseSelect(warehouse)">
+              {{warehouse.WarehouseName}}
+            </li>
+          </ul>
+        </nz-dropdown-menu>
+      </div>
+    </div>
+
+    <!-- Search Panel -->
 
     <div class="row g-3 align-items-end">
       <div class="col-md-3">
         <label class="form-label mb-2">Khách hàng</label>
-        <nz-select
-          style="width: 100%;"
-          nzPlaceHolder="Chọn khách hàng"
-          [(ngModel)]="selectedCustomer"
-          (ngModelChange)="onCustomerChange($event)"
-          nzAllowClear
-           >
-          <nz-option *ngFor="let customer of customers" [nzValue]="customer.ID" [nzLabel]="customer.CustomerName"></nz-option>
+        <nz-select style="width: 100%;" nzPlaceHolder="Chọn khách hàng" [(ngModel)]="selectedCustomer"
+          (ngModelChange)="onCustomerChange($event)" nzAllowClear>
+          <nz-option *ngFor="let customer of customers" [nzValue]="customer.ID"
+            [nzLabel]="customer.CustomerName"></nz-option>
         </nz-select>
       </div>
       <div class="col-md-3">
         <label class="form-label mb-2">Dự án</label>
-        <nz-select
-          style="width: 100%;"
-          nzPlaceHolder="Chọn dự án"
-          [(ngModel)]="selectedProject"
-          (ngModelChange)="onProjectChange($event)"
-          nzAllowClear
-          nzShowSearch >
-          <nz-option *ngFor="let project of projects" [nzValue]="project.ID" [nzLabel]="project.ProjectName"></nz-option>
+        <nz-select style="width: 100%;" nzPlaceHolder="Chọn dự án" [(ngModel)]="selectedProject"
+          (ngModelChange)="onProjectChange($event)" nzAllowClear nzShowSearch>
+          <nz-option *ngFor="let project of projects" [nzValue]="project.ID"
+            [nzLabel]="project.ProjectName"></nz-option>
         </nz-select>
       </div>
       <div class="col-md-3">
         <label class="form-label mb-2">Loại kho</label>
-        <nz-select
-          style="width: 100%;"
-          nzPlaceHolder="Chọn loại kho"
-          [(ngModel)]="selectedProductGroup"
-          (ngModelChange)="onProductGroupChange($event)"
-          nzAllowClear
-          nzShowSearch >
-          <nz-option *ngFor="let group of productGroups" [nzValue]="group.ID" [nzLabel]="group.ProductGroupName"></nz-option>
+        <nz-select style="width: 100%;" nzPlaceHolder="Chọn loại kho" [(ngModel)]="selectedProductGroup"
+          (ngModelChange)="onProductGroupChange($event)" nzAllowClear nzShowSearch>
+          <nz-option *ngFor="let group of productGroups" [nzValue]="group.ID"
+            [nzLabel]="group.ProductGroupName"></nz-option>
         </nz-select>
       </div>
       <div class="col-md-2">
@@ -75,11 +64,12 @@
     </div>
 
 
-  <!-- Data Grid -->
-  <div class="grid-container">
-    <nz-spin [nzSpinning]="isLoading">
-      <div #tb_WarehouseRelease></div>
-    </nz-spin>
+    <!-- Data Grid -->
+    <div class="grid-container">
+      <nz-spin [nzSpinning]="isLoading">
+        <div #tb_WarehouseRelease></div>
+      </nz-spin>
+    </div>
   </div>
-</div>
 
+</div>

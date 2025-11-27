@@ -1,0 +1,23 @@
+:host {
+  display: block;
+  height: 100vh;
+}
+
+.main-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+.pokh-modal-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.modal-header,
+.modal-footer {
+  flex-shrink: 0;
+}

@@ -116,6 +116,7 @@ import { AssignWorkComponent } from '../../../purchase/assign-work/assign-work.c
 import { AppComponent } from '../../../../app.component';
 import { BonusCoefficientComponent } from '../../../old/bonus-coefficient/bonus-coefficient.component';
 import { ProductRtcQrCodeComponent } from '../../../old/product-rtc-qr-code/product-rtc-qr-code/product-rtc-qr-code.component';
+import { EmployeeSaleManagerComponent } from '../../../old/employee-sale-manager/employee-sale-manager.component';
 @Injectable({
   providedIn: 'root',
 })
@@ -1411,6 +1412,16 @@ export class MenuService {
                   "''"
                 ),
                 comp: BonusCoefficientComponent,
+              },
+              {
+                kind: 'leaf',
+                key: 'EmployeeSaleManagerComponent',
+                title: 'Nhân viên Sale',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(
+                  "''"
+                ),
+                comp: EmployeeSaleManagerComponent,
               },
             ],
           },

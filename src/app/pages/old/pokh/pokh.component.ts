@@ -1308,7 +1308,8 @@ export class PokhComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
       keyboard: false,
       centered: true,
-      size: 'xl',
+      // size: 'xl',
+      windowClass: 'full-screen-modal',
       // windowClass: 'full-screen-modal',
     });
 
@@ -1333,6 +1334,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
   //#endregion
   //#region : Các hàm vẽ bảng
   drawPOKHTable(): void {
+    const token = localStorage.getItem('token');
     this.tb_POKH = new Tabulator(this.tb_POKHElement.nativeElement, {
       layout: 'fitDataFill',
       height: '100%',
@@ -1343,6 +1345,13 @@ export class PokhComponent implements OnInit, AfterViewInit {
       paginationSizeSelector: [10, 30, 50, 100, 300, 500],
       ajaxURL: this.POKHService.getPOKHAjax(),
       ajaxParams: this.getPOKHAjaxParams(),
+      ajaxConfig: {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      },
       ajaxResponse: (url, params, res) => {
         console.log('total', res.totalPages[0].TotalPage);
         console.log('data', res.data);

@@ -111,6 +111,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
   pokhForm!: NgForm;
   @Input() isEditMode: boolean = false;
   @Input() selectedId: number = 0;
+
   sizeSearch: string = '0';
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
@@ -139,6 +140,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
 
   //Lưu dữ liệu
   nextRowId: number = 0;
+  initialPOKHProductData: any[] = [];
   dictDetailUser: { [key: number]: string } = {};
   deletedPOKHDetailIds: number[] = [];
   deletedDetailUserIds: number[] = [];
@@ -568,6 +570,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
           forkJoin([POKHProducts$, POKHFiles$, detailUser$]).subscribe(
             ([productsData, filesData, userDetailsData]) => {
               this.dataPOKHProduct = productsData;
+              this.initialPOKHProductData = JSON.parse(JSON.stringify(this.dataPOKHProduct));
 
               // Nếu không phải copy thì mới set data file
               if (!this.isCopy) {
@@ -1310,32 +1313,48 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi:' + error);
     }
   }
+
   private convertToTreeData(flatData: any[]): any[] {
     const treeData: any[] = [];
     const map = new Map();
+    const pending = new Map<number, any[]>();
 
-    // Đầu tiên, tạo map với key là ID của mỗi item
+    // Tạo map trước
     flatData.forEach((item) => {
       map.set(item.ID, { ...item, _children: [] });
     });
 
-    // Sau đó, xây dựng cấu trúc cây
+    // Gán cha - con
     flatData.forEach((item) => {
       const node = map.get(item.ID);
-      if (item.ParentID === 0 || item.ParentID === null) {
-        // Nếu là node gốc (không có parent)
-        treeData.push(node);
-      } else {
-        // Nếu là node con, thêm vào mảng _children của parent
-        const parent = map.get(item.ParentID);
-        if (parent) {
-          parent._children.push(node);
+      if (item.ParentID && map.has(item.ParentID)) {
+        map.get(item.ParentID)._children.push(node);
+      } else if (item.ParentID) {
+        // Cha chưa có → đưa vào chờ xử lý
+        if (!pending.has(item.ParentID)) {
+          pending.set(item.ParentID, []);
         }
+        pending.get(item.ParentID)!.push(node);
+      } else {
+        // Node root
+        treeData.push(node);
+      }
+    });
+
+    // Xử lý những item chưa tìm được cha
+    pending.forEach((children, parentId) => {
+      const parent = map.get(parentId);
+      if (parent) {
+        children.forEach(child => parent._children.push(child));
+      } else {
+        // ❗ ĐẨY LÊN ROOT → nhưng vẫn GIỮ ParentID
+        treeData.push(...children);
       }
     });
 
     return treeData;
   }
+
   generatePOCode(CustomerName: string): void {
     const { isCopy = false, warehouseId = 1, pokhId = 0 } = this.poFormData;
 
@@ -1947,7 +1966,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
         height: '45vh',
         layout: 'fitDataFill',
         pagination: true,
-        paginationSize: 10,
+        paginationSize: 50,
         movableColumns: true,
         resizableRows: true,
         langs: {
@@ -2097,7 +2116,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             sorter: 'number',
             width: 80,
             editor: 'number',
-            bottomCalc: 'sum',
+            bottomCalc: (values, data) => {
+              return this.accumulateTreeValues(data, 'Qty');
+            },
           },
           {
             title: 'Kích thước phim cắt/Model',
@@ -2149,7 +2170,9 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
               symbol: '',
               symbolAfter: true,
             },
-            bottomCalc: 'sum',
+            bottomCalc: (values, data) => {
+              return this.accumulateTreeValues(data, 'UnitPrice');
+            },
             bottomCalcFormatter: 'money',
             bottomCalcFormatterParams: {
               precision: 0,
@@ -2159,6 +2182,7 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
               symbolAfter: true,
             },
           },
+
           {
             title: 'Tổng tiền trước VAT',
             field: 'IntoMoney',
@@ -2200,6 +2224,17 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             editor: 'number',
             formatter: 'money',
             formatterParams: {
+              precision: 0,
+              decimal: '.',
+              thousand: ',',
+              symbol: '',
+              symbolAfter: true,
+            },
+            bottomCalc: (values, data) => {
+              return this.accumulateTreeValues(data, 'TotalPriceIncludeVAT');
+            },
+            bottomCalcFormatter: 'money',
+            bottomCalcFormatterParams: {
               precision: 0,
               decimal: '.',
               thousand: ',',
@@ -2596,7 +2631,8 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const dtTreeData = [...this.dataPOKHProduct]; // tb_ProductDetailTreeList
+    // const dtTreeData = [...this.dataPOKHProduct]; // tb_ProductDetailTreeList
+    const dtTreeData = this.initialPOKHProductData;
     const minLevel = Math.min(...dtTreeData.map(r => r.level));
     const nodeMinLevelCount = dtTreeData.filter(r => r.level === minLevel).length;
     const modalRef = this.modalService.open(ProjectPartListComponent, {
@@ -2615,21 +2651,76 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.isSelectPartlist = true;
     modalRef.componentInstance.nodeMinLevelCount = nodeMinLevelCount;
     modalRef.componentInstance.dtAddDetail = dtTreeData;
-    console.log('modalRef: ', modalRef);
+    console.log('dataTreeData: ', dtTreeData);
+
     modalRef.result.then(
       (result: any) => {
-        console.log('result: ', result);
-        if (result.success) {
+        if (result && result.success && result.dtAddDetail) {
+          console.log('Data nhận từ PartList:', result);
 
+          this.dataPOKHProduct = [];
+
+          // this.dataPOKHProduct = [...result.dtAddDetail];
+
+          // Map ProductID sang ProductNewCode trước khi set data
+          const mappedData = result.dtAddDetail.map((item: any) => {
+            // Kiểm tra xem cha của item này có trong danh sách không
+            const hasParentInList = result.dtAddDetail.some((parent: any) => parent.ID === item.ParentID);
+
+            // if (item.ParentID && item.ParentID !== 0 && !hasParentInList) {
+            //   item.ParentID = 0; // Chuyển thành dòng cha
+            // }
+
+            if (item.ProductID && !item.ProductNewCode) {
+              const product = this.dataProducts.find(p => p.ID === item.ProductID);
+              if (product) {
+                return {
+                  ...item,
+                  ProductNewCode: product.ProductNewCode,
+                  ProductCode: product.ProductCode,
+                  ProductName: product.ProductName,
+                  Unit: product.Unit,
+                  Maker: product.Maker,
+                  ProductGroupName: product.ProductGroupName,
+                };
+              }
+            }
+            return item;
+          });
+
+          this.dataPOKHProduct = this.convertToTreeData(mappedData);
+
+          console.log("dataPOKHProduct sau update:", this.dataPOKHProduct);
+
+          if (this.tb_ProductDetailTreeList) {
+            this.tb_ProductDetailTreeList.replaceData(this.dataPOKHProduct);
+
+            setTimeout(() => {
+              const rows = this.tb_ProductDetailTreeList.getRows();
+              rows.forEach((row: any) => {
+                row.treeExpand(true);
+
+                row.update(row.getData());
+              });
+
+              this.tb_ProductDetailTreeList.recalc();
+
+            }, 100);
+          }
+
+          this.notification.success("Thành công", "Đã bổ sung vật tư vào PO!");
+
+          // // Mở toàn bộ tree giống TreeData.ExpandAll()
+          // setTimeout(() => this.expandAllTreeNodes(), 200);
         }
       },
       (reason: any) => {
         console.log('Modal dismissed:', reason);
       }
     );
+
   }
   //
-
 
   // Hàm chuẩn bị dữ liệu và gọi API copy-dto
   copyPOKHToDTO() {
@@ -2670,4 +2761,24 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
       }
     });
   }
+
+  //hàm đệ quy tính bottomcalc cho bảng
+  private accumulateTreeValues(rows: any[], field: string): number {
+    let total = 0;
+
+    const accumulate = (node: any) => {
+      const value = Number(node[field]);
+      if (!isNaN(value)) {
+        total += value;
+      }
+      if (node._children && node._children.length > 0) {
+        node._children.forEach((child: any) => accumulate(child));
+      }
+    };
+
+    rows.forEach((row: any) => accumulate(row));
+    return total;
+  }
+
+
 }

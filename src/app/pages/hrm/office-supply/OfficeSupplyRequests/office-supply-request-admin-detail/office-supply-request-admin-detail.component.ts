@@ -80,6 +80,7 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
   detailIdMap: Map<string, number> = new Map();
   deletedDetails: any[] = [];
   deletedOfficeSupplyIds: Set<number> = new Set();
+  deletedEmployeeIds: Set<number> = new Set(); // Lưu các EmployeeID đã bị xóa
   originalDetailData: any[] = [];
   selectedEmployee: any = null; // Nhân viên được chọn để đăng ký VPP
   employeeVPPData: Map<number, any[]> = new Map(); // Lưu VPP của từng nhân viên: EmployeeID -> VPP data
@@ -159,6 +160,7 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
     // Reset deleted details và deleted office supply IDs khi load lại
     this.deletedDetails = [];
     this.deletedOfficeSupplyIds.clear();
+    this.deletedEmployeeIds.clear();
     this.originalDetailData = [...detailData];
 
     // Tạo mapping EmployeeID + OfficeSupplyID -> DetailID
@@ -474,6 +476,32 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
           },
           cellClick: (e: any, cell: any) => {
             const row = cell.getRow();
+            const rowData = row.getData();
+            const employeeId = parseInt(rowData['EmployeeID']) || 0;
+            
+            // Nếu đang edit và nhân viên có EmployeeID hợp lệ, đánh dấu là đã xóa
+            if (this.requestId > 0 && employeeId > 0) {
+              this.deletedEmployeeIds.add(employeeId);
+            }
+            
+            // Xóa VPP data của nhân viên này khỏi employeeVPPData
+            if (employeeId > 0) {
+              this.employeeVPPData.delete(employeeId);
+            }
+            
+            // Nếu nhân viên đang được chọn, clear selectedEmployee và VPP table
+            if (this.selectedEmployee && (this.selectedEmployee.EmployeeID === employeeId || this.selectedEmployee.ID === employeeId)) {
+              this.selectedEmployee = null;
+              if (this.tbRequestDetail) {
+                this.tbRequestDetail.replaceData([]);
+              }
+            }
+            
+            // Xóa khỏi selectedEmployeeList
+            this.selectedEmployeeList = this.selectedEmployeeList.filter((emp: any) => 
+              (emp.ID || emp.EmployeeID) !== employeeId
+            );
+            
             row.delete();
             this.updateSelectedEmployeeList();
           }
@@ -839,6 +867,39 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
 
             // Lưu OfficeSupplyID đã bị xóa
             const officeSupplyId = rowData['OfficeSupplyID'];
+            const detailId = rowData['DetailID'] || 0;
+            
+            // Nếu đang edit và có DetailID, đánh dấu detail này là deleted
+            if (this.requestId > 0 && detailId > 0) {
+              // Tìm detail trong originalDetailData
+              const originalDetail = this.originalDetailData.find((detail: any) => 
+                detail.ID === detailId && detail.OfficeSupplyID === officeSupplyId
+              );
+              
+              if (originalDetail) {
+                // Kiểm tra xem detail này đã được thêm vào deletedDetails chưa
+                const alreadyDeleted = this.deletedDetails.some((del: any) => 
+                  del.ID === detailId && del.OfficeSupplyID === officeSupplyId
+                );
+                
+                if (!alreadyDeleted) {
+                  const deletedDetail: any = {
+                    ID: detailId,
+                    OfficeSupplyRequestsID: this.requestId,
+                    EmployeeID: originalDetail.EmployeeID,
+                    OfficeSupplyID: officeSupplyId,
+                    Quantity: originalDetail.Quantity || 0,
+                    QuantityReceived: originalDetail.QuantityReceived || 0,
+                    ExceedsLimit: originalDetail.ExceedsLimit || false,
+                    Reason: originalDetail.Reason || null,
+                    IsDeleted: true
+                  };
+                  this.deletedDetails.push(deletedDetail);
+                  console.log(`Marked VPP detail as deleted: DetailID=${detailId}, OfficeSupplyID=${officeSupplyId}`);
+                }
+              }
+            }
+            
             if (officeSupplyId && officeSupplyId > 0) {
               this.deletedOfficeSupplyIds.add(officeSupplyId);
             }
@@ -1121,14 +1182,36 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
       return false;
     }
 
-    // Kiểm tra nhân viên được chọn
-    const selectedRows = this.tbEmployee?.getSelectedData() || [];
-    const validSelectedEmployees = selectedRows.filter((row: any) => {
-      const empId = parseInt(row['EmployeeID']) || 0;
-      return empId > 0;
-    });
+    // Kiểm tra nhân viên có VPP data hoặc có trong bảng employee
+    // Lấy danh sách nhân viên có VPP data
+    const employeeIdsWithVPP = Array.from(this.employeeVPPData.keys());
+    
+    // Lấy danh sách nhân viên trong bảng employee
+    const employeeTableData = this.tbEmployee?.getData() || [];
+    const validEmployeeIds = employeeTableData
+      .filter((row: any) => {
+        const empId = parseInt(row['EmployeeID']) || 0;
+        return empId > 0;
+      })
+      .map((row: any) => parseInt(row['EmployeeID']) || 0);
 
-    if (validSelectedEmployees.length === 0) {
+    // Kiểm tra nhân viên đang được chọn
+    const selectedEmployeeId = this.selectedEmployee ? (this.selectedEmployee.EmployeeID || this.selectedEmployee.ID) : null;
+    
+    // Nếu có nhân viên đang được chọn và có VPP data trong table, thêm vào employeeIdsWithVPP
+    if (selectedEmployeeId && this.tbRequestDetail) {
+      const currentVPPData = this.tbRequestDetail.getData();
+      if (currentVPPData && currentVPPData.length > 0 && !employeeIdsWithVPP.includes(selectedEmployeeId)) {
+        employeeIdsWithVPP.push(selectedEmployeeId);
+      }
+    }
+
+    // Kiểm tra: phải có ít nhất 1 nhân viên có VPP data hoặc có trong bảng employee
+    const hasEmployeesWithVPP = employeeIdsWithVPP.length > 0;
+    const hasValidEmployees = validEmployeeIds.length > 0;
+    const hasSelectedEmployee = selectedEmployeeId !== null && selectedEmployeeId > 0;
+
+    if (!hasEmployeesWithVPP && !hasValidEmployees && !hasSelectedEmployee) {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất 1 nhân viên để đăng ký VPP (click vào dòng nhân viên)');
       return false;
     }
@@ -1410,6 +1493,43 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
             this.deletedDetails.push(deletedDetail);
           }
         });
+      });
+    }
+
+    // Tìm và đánh dấu IsDeleted cho các detail có EmployeeID đã bị xóa hoặc không còn trong danh sách nhân viên hiện tại
+    if (this.requestId > 0 && this.originalDetailData.length > 0) {
+      // Lấy danh sách EmployeeID hiện tại (từ employeesToProcess)
+      const currentEmployeeIds = new Set(employeesToProcess.map((emp: any) => emp.ID || emp.EmployeeID));
+      
+      // Kết hợp deletedEmployeeIds với currentEmployeeIds để tìm tất cả nhân viên không còn trong danh sách
+      this.originalDetailData.forEach((originalDetail: any) => {
+        const detailEmployeeId = originalDetail.EmployeeID;
+        const detailId = originalDetail.ID;
+        
+        // Nếu detail này có ID > 0 (đã tồn tại) và EmployeeID không còn trong danh sách hiện tại
+        // (bao gồm cả nhân viên đã bị xóa hoặc không còn trong employeesToProcess)
+        if (detailId > 0 && !currentEmployeeIds.has(detailEmployeeId)) {
+          // Kiểm tra xem detail này đã được thêm vào deletedDetails chưa
+          const alreadyDeleted = this.deletedDetails.some((del: any) => 
+            del.ID === detailId && del.EmployeeID === detailEmployeeId && del.OfficeSupplyID === originalDetail.OfficeSupplyID
+          );
+          
+          if (!alreadyDeleted) {
+            const deletedDetail: any = {
+              ID: detailId,
+              OfficeSupplyRequestsID: this.requestId,
+              EmployeeID: detailEmployeeId,
+              OfficeSupplyID: originalDetail.OfficeSupplyID,
+              Quantity: originalDetail.Quantity || 0,
+              QuantityReceived: originalDetail.QuantityReceived || 0,
+              ExceedsLimit: originalDetail.ExceedsLimit || false,
+              Reason: originalDetail.Reason || null,
+              IsDeleted: true
+            };
+            this.deletedDetails.push(deletedDetail);
+            console.log(`Marked detail as deleted: EmployeeID=${detailEmployeeId}, OfficeSupplyID=${originalDetail.OfficeSupplyID}, DetailID=${detailId}`);
+          }
+        }
       });
     }
 

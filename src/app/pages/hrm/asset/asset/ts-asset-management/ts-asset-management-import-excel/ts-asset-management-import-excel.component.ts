@@ -245,15 +245,8 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
-      const fileExtension = file.name.split('.').pop()?.toLowerCase();
+      // Bỏ validation file extension - chấp nhận mọi file
       console.log('File đã chọn:', file.name); // Log để kiểm tra
-      console.log('Phần mở rộng:', fileExtension); // Log để kiểm tra
-      if (fileExtension !== 'xlsx' && fileExtension !== 'xls') {
-        this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn tệp Excel (.xlsx hoặc .xls)!');
-        input.value = ''; // Xóa input để có thể chọn lại file
-        this.resetExcelImportState(); // Reset trạng thái khi có lỗi định dạng
-        return;
-      }
       this.filePath = file.name;
       this.excelSheets = [];
       this.selectedSheet = '';
@@ -333,75 +326,68 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       .replace(/\s+/g, ' ')      // gộp tất cả khoảng trắng (space, \n, \t, ...) thành 1 space
       .trim();
   }
+  // Mapping từ title Excel sang field name
+  private getFieldFromHeader(headerTitle: string): string {
+    const normalized = this.normalizeHeader(headerTitle);
+    
+    // Mapping các cột từ export Excel
+    if (normalized.includes('stt')) return 'STT';
+    if (normalized.includes('mã tài sản') || normalized.includes('mã ncc')) return 'TSCodeNCC';
+    if (normalized.includes('office active')) return 'OfficeActiveStatusText';
+    if (normalized.includes('windows active')) return 'WindowActiveStatusText';
+    if (normalized.includes('tên tài sản')) return 'TSAssetName';
+    if (normalized.includes('seri')) return 'Seri';
+    if (normalized.includes('đơn vị')) return 'UnitName';
+    if (normalized.includes('thông số')) return 'SpecificationsAsset';
+    if (normalized.includes('model')) return 'Model';
+    if (normalized.includes('ngày mua')) return 'DateBuy';
+    if (normalized.includes('ngày hiệu lực')) return 'DateEffect';
+    if (normalized.includes('bảo hành')) return 'Insurance';
+    if (normalized.includes('loại tài sản')) return 'AssetType';
+    if (normalized.includes('phòng ban')) return 'Name';
+    if (normalized.includes('trạng thái')) return 'Status';
+    if (normalized.includes('nguồn gốc')) return 'SourceName';
+    if (normalized.includes('người quản lý') || normalized.includes('người sử dụng')) return 'FullName';
+    if (normalized.includes('cấp phát')) return 'IsAllocation';
+    if (normalized.includes('mô tả chi tiết')) return 'SpecificationsAsset';
+    if (normalized.includes('ghi chú')) return 'Note';
+    
+    // Mặc định trả về header gốc
+    return headerTitle;
+  }
+
   async readExcelData(workbook: ExcelJS.Workbook, sheetName: string) {
     console.log(`Bắt đầu đọc dữ liệu từ sheet: "${sheetName}"`);
     try {
       const worksheet = workbook.getWorksheet(sheetName);
       if (!worksheet) throw new Error(`Sheet "${sheetName}" không tồn tại.`);
 
-      // Tìm dòng header theo ô cột 1 = "STT"
-      let headerRowIndex = 0;
-      worksheet.eachRow((row, rowNumber) => {
-        const v = row.getCell(1).value;
-        if (!headerRowIndex && v && v.toString().trim().toUpperCase() === 'STT') {
-          headerRowIndex = rowNumber;
-        }
-      });
-
-      if (!headerRowIndex) {
-        throw new Error('Không tìm thấy dòng header có STT ở cột 1.');
-      }
-
-      const headerRow = worksheet.getRow(headerRowIndex);
+      // Đọc header từ dòng đầu tiên (row 1)
+      const headerRow = worksheet.getRow(1);
       const headers: string[] = [];
+      const headerToFieldMap: Map<number, string> = new Map();
+      
       headerRow.eachCell((cell, colNumber) => {
-        headers[colNumber - 1] = getCellText(cell);
-      });
-      const requiredHeaders = [
-        'stt',
-        'mã tài sản',
-        'tên tài sản',
-        'mã loại',
-        'nguồn gốc',
-        'đơn vị',
-        'số lượng'
-      ];
-
-      const normalizedHeaders = headers.map(h => this.normalizeHeader(h));
-
-      const isHeaderValid = requiredHeaders.every(req => {
-        const normReq = this.normalizeHeader(req);
-        return normalizedHeaders.some(h => h.includes(normReq));
+        const headerText = getCellText(cell);
+        headers[colNumber - 1] = headerText;
+        const fieldName = this.getFieldFromHeader(headerText);
+        headerToFieldMap.set(colNumber, fieldName);
       });
 
-      if (!isHeaderValid) {
-        console.warn('Header không hợp lệ:', headers, normalizedHeaders);
-        this.notification.error(
-          'Thông báo',
-          'File Excel không đúng mẫu biên bản tài sản. Vui lòng tải xuống mẫu xuất để có mẫu nhập excel.'
-        );
-        this.resetExcelImportState();
-        return;
-      }
-      const columns: ColumnDefinition[] = [
-        { title: headers[0] || 'STT', field: 'STT', hozAlign: 'center', headerHozAlign: 'center', width: 70 },
-        { title: headers[1] || 'Mã tài sản', field: 'TSCodeNCC', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[2] || 'Tên tài sản', field: 'TSAssetName', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[3] || 'Mã loại tài sản', field: 'AssetCode', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[4] || 'Mã nguồn gốc tài sản', field: 'SourceCode', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[5] || 'Mô tả chi tiết (Model, thông số kỹ thuật…)', field: 'SpecificationsAsset', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[6] || 'Số seri', field: 'Seri', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[7] || 'Đơn vị tính', field: 'UnitName', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[8] || 'Số lượng', field: 'Quantity', hozAlign: 'right', headerHozAlign: 'center' },
-        { title: headers[9] || 'Tình trạng', field: 'Status', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[10] || 'Mã phòng ban', field: 'DepartmentCode', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[11] || 'Mã nhân viên', field: 'EmployeeCode', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[12] || 'Người sử dụng', field: 'EmployeeName', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: headers[13] || 'Thời gian ghi tăng', field: 'DateBuy', hozAlign: 'center', headerHozAlign: 'center', formatter: formatDateCell },
-        { title: headers[14] || 'Thời gian bảo hành (tháng)', field: 'Insurance', hozAlign: 'right', headerHozAlign: 'center' },
-        { title: headers[15] || 'Hiệu lực từ', field: 'DateEffect', hozAlign: 'center', headerHozAlign: 'center', formatter: formatDateCell },
-        { title: headers[16] || 'Ghi chú', field: 'Note', hozAlign: 'left', headerHozAlign: 'center' },
-      ];
+      console.log('Headers từ Excel:', headers);
+      console.log('Mapping:', Array.from(headerToFieldMap.entries()));
+
+      // Tạo columns cho Tabulator dựa trên header
+      const columns: ColumnDefinition[] = headers.map((header, index) => {
+        const fieldName = headerToFieldMap.get(index + 1) || `col_${index}`;
+        return {
+          title: header || `Cột ${index + 1}`,
+          field: fieldName,
+          hozAlign: 'left',
+          headerHozAlign: 'center',
+          formatter: (fieldName === 'DateBuy' || fieldName === 'DateEffect') ? formatDateCell : undefined
+        };
+      });
 
       if (this.tableExcel) {
         this.tableExcel.setColumns(columns);
@@ -410,42 +396,89 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       const data: any[] = [];
       let validRecords = 0;
 
-      // Data bắt đầu từ hàng sau header
+      // Data bắt đầu từ hàng thứ 2 (sau header)
       worksheet.eachRow((row, rowNumber) => {
-        if (rowNumber > headerRowIndex) {
-          const firstCell = row.getCell(1).value;
-          const isEmptyRow =
-            !firstCell &&
-            !row.getCell(2).value &&
-            !row.getCell(3).value;
+        if (rowNumber > 1) {
+          // Kiểm tra xem dòng có rỗng không
+          let isEmptyRow = true;
+          for (let i = 1; i <= headers.length; i++) {
+            const cellValue = row.getCell(i).value;
+            if (cellValue !== null && cellValue !== undefined && String(cellValue).trim() !== '') {
+              isEmptyRow = false;
+              break;
+            }
+          }
 
           if (!isEmptyRow) {
-            const rowData: any = {
-              STT: getCellText(row.getCell(1)),
-              TSCodeNCC: getCellText(row.getCell(2)),   // Mã tài sản
-              TSAssetName: getCellText(row.getCell(3)),   // Tên tài sản
+            const rowData: any = {};
+            
+            // Đọc dữ liệu theo mapping
+            headerToFieldMap.forEach((fieldName, colNumber) => {
+              const cell = row.getCell(colNumber);
+              let cellValue = getCellText(cell);
+              
+              // Xử lý đặc biệt cho Model - nếu là số dạng scientific notation, chuyển về string
+              if (fieldName === 'Model') {
+                const cellRawValue = cell.value;
+                // Nếu là số dạng scientific notation, chuyển về string đầy đủ
+                if (typeof cellRawValue === 'number') {
+                  // Kiểm tra xem có phải scientific notation không
+                  if (cellValue.includes('E+') || cellValue.includes('e+')) {
+                    // Chuyển số về string đầy đủ
+                    cellValue = cellRawValue.toFixed(0);
+                  } else {
+                    cellValue = String(cellRawValue);
+                  }
+                } else {
+                  cellValue = String(cellValue || '');
+                }
+              }
+              
+              // Xử lý đặc biệt cho một số trường
+              if (fieldName === 'IsAllocation') {
+                rowData[fieldName] = (cellValue === 'Có' || cellValue === 'Yes' || cellValue === '1' || cellValue === 'true');
+              } else if (fieldName === 'DateBuy' || fieldName === 'DateEffect') {
+                // Chuyển đổi date từ format Excel
+                rowData[fieldName] = formatDate(cellValue) || cellValue;
+              } else if (fieldName === 'Insurance' || fieldName === 'STT') {
+                // Chuyển đổi số
+                const numValue = parseFloat(cellValue);
+                rowData[fieldName] = isNaN(numValue) ? (fieldName === 'Insurance' ? 0 : '') : numValue;
+              } else {
+                rowData[fieldName] = cellValue;
+              }
+            });
 
-              AssetCode: getCellText(row.getCell(4)),     // Mã loại tài sản
+            // Map các field cần thiết cho saveExcelData
+            // Nếu không có các field này, tạo từ các field khác
+            if (!rowData.TSAssetName && rowData['Tên tài sản']) {
+              rowData.TSAssetName = rowData['Tên tài sản'];
+            }
+            if (!rowData.TSCodeNCC && rowData['Mã tài sản']) {
+              rowData.TSCodeNCC = rowData['Mã tài sản'];
+            }
+            if (!rowData.UnitName && rowData['Đơn vị']) {
+              rowData.UnitName = rowData['Đơn vị'];
+            }
+            if (!rowData.SourceName && rowData['Nguồn gốc']) {
+              rowData.SourceName = rowData['Nguồn gốc'];
+            }
+            if (!rowData.AssetType && rowData['Loại tài sản']) {
+              rowData.AssetType = rowData['Loại tài sản'];
+            }
+            if (!rowData.Name && rowData['Phòng ban']) {
+              rowData.Name = rowData['Phòng ban'];
+            }
+            if (!rowData.FullName && rowData['Người quản lý']) {
+              rowData.FullName = rowData['Người quản lý'];
+            }
+            if (!rowData.EmployeeName && rowData.FullName) {
+              rowData.EmployeeName = rowData.FullName;
+            }
+            if (!rowData.DepartmentName && rowData.Name) {
+              rowData.DepartmentName = rowData.Name;
+            }
 
-              SourceCode: getCellText(row.getCell(5)),    // Mã nguồn gốc tài sản
-              // Mã nhà cung cấp
-
-              SpecificationsAsset: getCellText(row.getCell(6)), // Mô tả chi tiết
-              Seri: getCellText(row.getCell(7)),                // Số seri
-
-              UnitName: getCellText(row.getCell(8)),      // Đơn vị tính
-              Quantity: getCellText(row.getCell(9)),     // Số lượng
-              Status: getCellText(row.getCell(10)),       // Tình trạng
-
-              DepartmentCode: getCellText(row.getCell(11)), // Mã phòng ban
-              EmployeeCode: getCellText(row.getCell(12)),   // Mã nhân viên
-              EmployeeName: getCellText(row.getCell(13)),   // Người sử dụng
-
-              DateBuy: getCellText(row.getCell(14)),     // Thời gian ghi tăng
-              Insurance: getCellText(row.getCell(15)),   // Thời gian bảo hành (Tháng)
-              DateEffect: getCellText(row.getCell(16)),  // Hiệu lực từ
-              Note: getCellText(row.getCell(17)),        // Ghi chú
-            };
             data.push(rowData);
             validRecords++;
           }
@@ -664,29 +697,90 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
   
         console.log(`Bản ghi: Code=${code}, STT=${currentSTT}, BaseCode=${baseCode}, Offset=${groupOffset + idx}`);
   
+        // Xử lý trạng thái
+        let statusID = 1;
+        let statusText = 'Chưa sử dụng';
+        if (row.Status) {
+          const statusLower = String(row.Status).toLowerCase();
+          if (statusLower.includes('đang sử dụng')) {
+            statusID = 2;
+            statusText = 'Đang sử dụng';
+          } else if (statusLower.includes('đã thu hồi')) {
+            statusID = 3;
+            statusText = 'Đã thu hồi';
+          } else if (statusLower.includes('hỏng')) {
+            statusID = 3;
+            statusText = 'Hỏng';
+          } else if (statusLower.includes('mất')) {
+            statusID = 4;
+            statusText = 'Mất';
+          } else if (statusLower.includes('thanh lý')) {
+            statusID = 6;
+            statusText = 'Thanh lý';
+          } else if (statusLower.includes('đề nghị thanh lý')) {
+            statusID = 7;
+            statusText = 'Đề nghị thanh lý';
+          } else if (statusLower.includes('sửa chữa') || statusLower.includes('bảo dưỡng')) {
+            statusID = 5;
+            statusText = 'Sữa chữa, Bảo dưỡng';
+          }
+        }
+
+        // Xử lý Office/Windows Active Status
+        let officeActiveStatus = null;
+        let windowActiveStatus = null;
+        if (row.OfficeActiveStatusText) {
+          const officeText = String(row.OfficeActiveStatusText).toLowerCase();
+          if (officeText.includes('đã active') || officeText.includes('đã kích hoạt')) {
+            officeActiveStatus = 2;
+          } else if (officeText.includes('chưa active') || officeText.includes('chưa kích hoạt')) {
+            officeActiveStatus = 1;
+          } else if (officeText.includes('crack')) {
+            officeActiveStatus = 3;
+          }
+        }
+        if (row.WindowActiveStatusText) {
+          const windowText = String(row.WindowActiveStatusText).toLowerCase();
+          if (windowText.includes('đã active') || windowText.includes('đã kích hoạt')) {
+            windowActiveStatus = 2;
+          } else if (windowText.includes('chưa active') || windowText.includes('chưa kích hoạt')) {
+            windowActiveStatus = 1;
+          } else if (windowText.includes('crack')) {
+            windowActiveStatus = 3;
+          }
+        }
+
+        // Lấy các ID từ tên
+        const unitName = row.UnitName || '';
+        const sourceName = row.SourceName || '';
+        const assetType = row.AssetType || '';
+        const employeeName = row.FullName || row.EmployeeName || '';
+        const departmentName = row.Name || row.DepartmentName || '';
+
         tSAssetManagements.push({
           ID: 0,
           STT: currentSTT,
           TSAssetCode: code || '',
           TSAssetName: row.TSAssetName || '',
-          IsAllocation: false,
-          UnitID: this.getUnitIdByName(row.UnitName),
+          Model: row.Model || '',
+          IsAllocation: row.IsAllocation === true || row.IsAllocation === 'Có' || row.IsAllocation === 'Yes' || false,
+          UnitID: this.getUnitIdByName(unitName),
           Seri: row.Seri || '',
           SpecificationsAsset: row.SpecificationsAsset || '',
           DateBuy: formatDate(row.DateBuy),
           DateEffect: formatDate(row.DateEffect),
-          Insurance: row.Insurance || 0,
+          Insurance: Number(row.Insurance) || 0,
           TSCodeNCC: row.TSCodeNCC || '',
-          OfficeActiveStatus: 0,
-          WindowActiveStatus: 0,
+          OfficeActiveStatus: officeActiveStatus,
+          WindowActiveStatus: windowActiveStatus,
           Note: row.Note || '',
-          StatusID: 1,
-          SourceID: this.getSourceIdByName(row.SourceCode),
-          TSAssetID: this.getTypeIdByName(row.AssetType),
-          Status: 'Chưa sử dụng',
-          EmployeeID: this.getEmployeeIDByName(row.EmployeeName),
+          StatusID: statusID,
+          SourceID: this.getSourceIdByName(sourceName),
+          TSAssetID: this.getTypeIdByName(assetType),
+          Status: statusText,
+          EmployeeID: this.getEmployeeIDByName(employeeName),
           SupplierID: 0,
-          DepartmentID: this.getDepartmentIDByName(row.DepartmentName),
+          DepartmentID: this.getDepartmentIDByName(departmentName),
         });
       });
     };
@@ -868,13 +962,19 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
     return unit ? unit.ID : 0;
   }
 
-  // Hàm helper để lấy ID của hãng từ tên
-  private getSourceIdByName(sourceCode: string): number {
-    const source = this.listSourceAsset.find(s => s.SourceCode === sourceCode);
+  // Hàm helper để lấy ID của hãng từ tên hoặc code
+  private getSourceIdByName(sourceNameOrCode: string): number {
+    if (!sourceNameOrCode) return 0;
+    // Tìm theo SourceName trước
+    let source = this.listSourceAsset.find(s => s.SourceName === sourceNameOrCode);
+    if (source) return source.ID;
+    // Nếu không tìm thấy, tìm theo SourceCode
+    source = this.listSourceAsset.find(s => s.SourceCode === sourceNameOrCode);
     return source ? source.ID : 0;
   }
-  // Hàm helper để lấy ID của ProductGroup từ tên
+  // Hàm helper để lấy ID của loại tài sản từ tên
   private getTypeIdByName(typeName: string): number {
+    if (!typeName) return 0;
     const type = this.listTypeAsset.find(t => t.TypeName === typeName);
     return type ? type.ID : 0;
   }

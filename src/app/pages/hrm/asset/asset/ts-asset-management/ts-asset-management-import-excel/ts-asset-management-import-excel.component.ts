@@ -252,20 +252,20 @@ export class TsAssetManagementImportExcelComponent implements OnInit, AfterViewI
       this.selectedSheet = '';
       this.dataTableExcel = [];
       this.totalRowsAfterFileRead = 0;
-      this.processedRowsForSave = 0; // Reset cho giai đoạn lưu
-      // Đặt trạng thái ban đầu cho thanh tiến trình: Đang đọc file
+      this.processedRowsForSave = 0; 
+    
       this.displayProgress = 0;
       this.displayText = 'Đang đọc file...';
-      console.log('Progress bar state set to: Đang đọc file...'); // Log trạng thái ban đầu
+      console.log('Progress bar state set to: Đang đọc file...'); 
       const reader = new FileReader();
       reader.onprogress = (event) => {
         if (event.lengthComputable) {
           this.displayProgress = Math.round((event.loaded / event.total) * 100);
           this.displayText = `Đang tải file: ${this.displayProgress}%`;
-          // console.log(`Tiến trình đọc file: ${this.displayProgress}%`); // Bỏ comment nếu muốn log chi tiết tiến trình tải
+       
         }
       };
-      let startTime = Date.now(); // Ghi lại thời gian bắt đầu đọc file
+      let startTime = Date.now(); 
       reader.onload = async (e: any) => {
         const data = e.target.result;
         try {

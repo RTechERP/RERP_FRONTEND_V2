@@ -8,32 +8,29 @@
 
 <!-- Main Modal Body -->
 <div class="modal-body p-0">
-<nz-splitter>
-  <nz-splitter-panel nzSize="50%">
-    <!-- Vehicle Panel -->
-    <div class="card h-100 border-0 rounded-0">
-      <div class="card-header bg-white py-2 px-0">
-        <div class="d-flex justify-content-between align-items-center">
-          <h6 class="mb-0">Phụ cấp phương tiện</h6>
-          <div class="d-flex gap-2">
-            <button class="btn-add" nz-button nzType="default" nzSize="small" (click)="openVehicleAddModal()">
-              <img src="assets/icon/action_add_item_16.png" alt="Thêm" /> Thêm
-            </button>
-            <button class="btn-edit" nz-button nzType="default" nzSize="small" (click)="openVehicleEditModal()">
-              <img src="assets/icon/action_edit_item_16.png" alt="Sửa" /> Sửa
-            </button>
-            <button class="btn-delete" nz-button nzType="default" nzSize="small" (click)="openVehicleDeleteModal()">
-              <img src="assets/icon/action_delete_item_16.png" alt="Xóa" /> Xóa
-            </button>
+  <nz-splitter>
+    <nz-splitter-panel nzSize="50%">
+      <!-- Vehicle Panel -->
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white py-2 px-0">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">Phụ cấp phương tiện</h6>
+            <div class="d-flex gap-2">
+              <button class="btn-add" nz-button nzType="default" nzSize="small" (click)="openVehicleAddModal()">
+                <img src="assets/icon/action_add_item_16.png" alt="Thêm" /> Thêm
+              </button>
+              <button class="btn-edit" nz-button nzType="default" nzSize="small" (click)="openVehicleEditModal()">
+                <img src="assets/icon/action_edit_item_16.png" alt="Sửa" /> Sửa
+              </button>
+              <button class="btn-delete" nz-button nzType="default" nzSize="small" (click)="openVehicleDeleteModal()">
+                <img src="assets/icon/action_delete_item_16.png" alt="Xóa" /> Xóa
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="card-body p-0 position-relative">
-        <div *ngIf="isVehicleLoading">
-          <nz-spin
-            [nzSpinning]="isVehicleLoading"
-            nzSimple
-            [style]="{
+        <div class="card-body p-0 position-relative">
+          <div *ngIf="isVehicleLoading">
+            <nz-spin [nzSpinning]="isVehicleLoading" nzSimple [style]="{
               position: 'absolute',
               top: '0',
               left: '0',
@@ -44,39 +41,35 @@
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
-            }"
-          ></nz-spin>
+            }"></nz-spin>
+          </div>
+          <div id="tb_employee_bussiness_vehicle"></div>
         </div>
-        <div id="tb_employee_bussiness_vehicle"></div>
       </div>
-    </div>
-  </nz-splitter-panel>
+    </nz-splitter-panel>
 
-  <nz-splitter-panel nzSize="50%">
-    <!-- Type Panel -->
-    <div class="card h-100 border-0 rounded-0">
-      <div class="card-header bg-white py-2 px-0">
-        <div class="d-flex justify-content-between align-items-center">
-          <h6 class="mb-0">Loại phụ cấp công tác</h6>
-          <div class="d-flex gap-2">
-            <button class="btn-add" nz-button nzType="default" nzSize="small" (click)="openTypeAddModal()">
-              <img src="assets/icon/action_add_item_16.png" alt="Thêm" /> Thêm
-            </button>
-            <button class="btn-edit" nz-button nzType="default" nzSize="small" (click)="openTypeEditModal()">
-              <img src="assets/icon/action_edit_item_16.png" alt="Sửa" /> Sửa
-            </button>
-            <button class="btn-delete" nz-button nzType="default" nzSize="small" (click)="openTypeDeleteModal()">
-              <img src="assets/icon/action_delete_item_16.png" alt="Xóa" /> Xóa
-            </button>
+    <nz-splitter-panel nzSize="50%">
+      <!-- Type Panel -->
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white py-2 px-0">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">Loại phụ cấp công tác</h6>
+            <div class="d-flex gap-2">
+              <button class="btn-add" nz-button nzType="default" nzSize="small" (click)="openTypeAddModal()">
+                <img src="assets/icon/action_add_item_16.png" alt="Thêm" /> Thêm
+              </button>
+              <button class="btn-edit" nz-button nzType="default" nzSize="small" (click)="openTypeEditModal()">
+                <img src="assets/icon/action_edit_item_16.png" alt="Sửa" /> Sửa
+              </button>
+              <button class="btn-delete" nz-button nzType="default" nzSize="small" (click)="openTypeDeleteModal()">
+                <img src="assets/icon/action_delete_item_16.png" alt="Xóa" /> Xóa
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="card-body p-0 position-relative">
-        <div *ngIf="isTypeLoading">
-          <nz-spin
-            [nzSpinning]="isTypeLoading"
-            nzSimple
-            [style]="{
+        <div class="card-body p-0 position-relative">
+          <div *ngIf="isTypeLoading">
+            <nz-spin [nzSpinning]="isTypeLoading" nzSimple [style]="{
               position: 'absolute',
               top: '0',
               left: '0',
@@ -87,31 +80,21 @@
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
-            }"
-          ></nz-spin>
+            }"></nz-spin>
+          </div>
+          <div id="tb_employee_bussiness_type"></div>
         </div>
-        <div id="tb_employee_bussiness_type"></div>
       </div>
-    </div>
-  </nz-splitter-panel>
-</nz-splitter>
+    </nz-splitter-panel>
+  </nz-splitter>
 </div>
 
 <!-- Vehicle Modal -->
-<nz-modal
-  [(nzVisible)]="isVehicleModalVisible"
-  [nzTitle]="vehicleModalTitle"
-  (nzOnCancel)="closeVehicleModal()"
-  [nzFooter]="vehicleModalFooter"
-  [nzWidth]="600"
-  nzClassName="custom-modal">
+<nz-modal [(nzVisible)]="isVehicleModalVisible" [nzTitle]="vehicleModalTitle" (nzOnCancel)="closeVehicleModal()"
+  [nzFooter]="vehicleModalFooter" [nzWidth]="600" nzClassName="custom-modal">
   <ng-container *nzModalContent>
-    <app-vehicle-form
-      #vehicleForm
-      [vehicleData]="selectedVehicle"
-      [isEditMode]="isVehicleEditMode"
-      (formSubmit)="onSubmitVehicle($event)"
-      (formCancel)="closeVehicleModal()">
+    <app-vehicle-form #vehicleForm [vehicleData]="selectedVehicle" [isEditMode]="isVehicleEditMode"
+      (formSubmit)="onSubmitVehicle($event)" (formCancel)="closeVehicleModal()">
     </app-vehicle-form>
   </ng-container>
 </nz-modal>
@@ -132,23 +115,12 @@
     <!-- Buttons aligned to right -->
     <div class="d-flex gap-1">
       <!-- Close button -->
-      <button
-        nz-button
-        nzType="default"
-        nzDanger
-        (click)="closeVehicleModal()"
-        [disabled]="isVehicleSubmitting"
-      >
+      <button nz-button nzType="default" nzDanger (click)="closeVehicleModal()" [disabled]="isVehicleSubmitting">
         Đóng
       </button>
 
       <!-- Save button -->
-      <button 
-        nz-button
-        nzType="primary"
-        (click)="vehicleForm.onSubmit()"
-        [disabled]="isVehicleSubmitting"
-      >
+      <button nz-button nzType="primary" (click)="vehicleForm.onSubmit()" [disabled]="isVehicleSubmitting">
         <span *ngIf="isVehicleSubmitting" class="spinner-border spinner-border-sm me-2"></span>
         {{ isVehicleSubmitting ? 'Đang lưu...' : 'Lưu' }}
       </button>
@@ -157,19 +129,10 @@
 </ng-template>
 
 <!-- Type Modal -->
-<nz-modal
-  [(nzVisible)]="isTypeModalVisible"
-  [nzTitle]="typeModalTitle"
-  (nzOnCancel)="closeTypeModal()"
-  [nzFooter]="typeModalFooter"
-  [nzWidth]="600"
-  nzClassName="custom-modal">
+<nz-modal [(nzVisible)]="isTypeModalVisible" [nzTitle]="typeModalTitle" (nzOnCancel)="closeTypeModal()"
+  [nzFooter]="typeModalFooter" [nzWidth]="600" nzClassName="custom-modal">
   <ng-container *nzModalContent>
-    <app-type-form
-      #typeForm
-      [typeData]="selectedType"
-      [isEditMode]="isTypeEditMode"
-      (formSubmit)="onSubmitType($event)"
+    <app-type-form #typeForm [typeData]="selectedType" [isEditMode]="isTypeEditMode" (formSubmit)="onSubmitType($event)"
       (formCancel)="closeTypeModal()">
     </app-type-form>
   </ng-container>
@@ -191,23 +154,12 @@
     <!-- Buttons aligned to right -->
     <div class="d-flex gap-1">
       <!-- Close button -->
-      <button
-        nz-button
-        nzType="default"
-        nzDanger
-        (click)="closeTypeModal()"
-        [disabled]="isTypeSubmitting"
-      >
+      <button nz-button nzType="default" nzDanger (click)="closeTypeModal()" [disabled]="isTypeSubmitting">
         Đóng
       </button>
 
       <!-- Save button -->
-      <button 
-        nz-button
-        nzType="primary"
-        (click)="typeForm.onSubmit()"
-        [disabled]="isTypeSubmitting"
-      >
+      <button nz-button nzType="primary" (click)="typeForm.onSubmit()" [disabled]="isTypeSubmitting">
         <span *ngIf="isTypeSubmitting" class="spinner-border spinner-border-sm me-2"></span>
         {{ isTypeSubmitting ? 'Đang lưu...' : 'Lưu' }}
       </button>

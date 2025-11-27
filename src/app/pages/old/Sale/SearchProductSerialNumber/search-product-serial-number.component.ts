@@ -58,14 +58,13 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
   styleUrl: './search-product-serial-number.component.css',
 })
 export class SearchProductSerialNumberComponent
-  implements OnInit, AfterViewInit
-{
+  implements OnInit, AfterViewInit {
   constructor(
     private searchProductSerialNumberService: SearchProductSerialNumberServiceService,
     private notification: NzNotificationService,
     private modal: NzModalService,
     private modalService: NgbModal
-  ) {}
+  ) { }
 
   isLoading = false;
 
@@ -115,7 +114,7 @@ export class SearchProductSerialNumberComponent
       movableColumns: true,
       resizableRows: true,
       reactiveData: true,
-      paginationMode:'local',
+      paginationMode: 'local',
       paginationSize: 50,
       columns: [
         {
@@ -126,9 +125,8 @@ export class SearchProductSerialNumberComponent
           width: 80,
           formatter: (cell) => {
             const value = cell.getValue();
-            return `<input type="checkbox" ${
-              value === true ? 'checked' : ''
-            } disabled />`;
+            return `<input type="checkbox" ${value === true ? 'checked' : ''
+              } disabled />`;
           },
         },
         {
@@ -195,7 +193,7 @@ export class SearchProductSerialNumberComponent
       movableColumns: true,
       resizableRows: true,
       reactiveData: true,
-      paginationMode:'local',
+      paginationMode: 'local',
       paginationSize: 50,
 
       columns: [
@@ -207,9 +205,8 @@ export class SearchProductSerialNumberComponent
           width: 80,
           formatter: (cell) => {
             const value = cell.getValue();
-            return `<input type="checkbox" ${
-              value === true ? 'checked' : ''
-            } disabled />`;
+            return `<input type="checkbox" ${value === true ? 'checked' : ''
+              } disabled />`;
           },
         },
         {

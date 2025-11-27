@@ -199,6 +199,11 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
       });
       this.tbEmployee.replaceData(employeeRows);
       this.updateSelectedEmployeeList();
+      
+      // Focus vào nhân viên đầu tiên sau khi load edit data
+      setTimeout(() => {
+        this.focusFirstEmployee();
+      }, 200);
     }
 
     if (this.tbRequestDetail && detailData.length > 0) {
@@ -281,6 +286,11 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
         setTimeout(() => {
           if (!this.tbEmployee) {
             this.initializeEmployeeTable();
+          } else if (!this.editData) {
+            // Nếu không phải edit mode và bảng đã có, focus vào nhân viên đầu tiên
+            setTimeout(() => {
+              this.focusFirstEmployee();
+            }, 200);
           }
           if (!this.tbRequestDetail) {
             setTimeout(() => {
@@ -691,6 +701,54 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
     });
 
     this.loadEmployees();
+    
+    // Focus vào nhân viên đầu tiên sau khi khởi tạo bảng
+    setTimeout(() => {
+      this.focusFirstEmployee();
+    }, 300);
+  }
+
+  // Focus vào nhân viên đầu tiên
+  focusFirstEmployee(): void {
+    if (!this.tbEmployee) return;
+    
+    const rows = this.tbEmployee.getRows();
+    if (rows && rows.length > 0) {
+      const firstRow = rows[0];
+      if (firstRow) {
+        // Select và scroll đến dòng đầu tiên
+        firstRow.select();
+        this.tbEmployee.scrollToRow(firstRow, "top", false);
+        
+        // Trigger row selection để load VPP nếu có
+        const rowData = firstRow.getData();
+        const empId = parseInt(rowData['EmployeeID']) || 0;
+        if (empId > 0) {
+          // Tìm thông tin đầy đủ của nhân viên
+          let emp = this.employeeList.find((e: any) => (e.ID || e.EmployeeID) === empId);
+          if (!emp) {
+            emp = this.filteredEmployeeList.find((e: any) => (e.ID || e.EmployeeID) === empId);
+          }
+          
+          if (emp) {
+            this.selectedEmployee = {
+              ID: empId,
+              EmployeeID: empId,
+              Code: rowData['EmployeeCode'] || emp.Code || '',
+              FullName: rowData['EmployeeName'] || emp.FullName || '',
+              DepartmentName: rowData['DepartmentName'] || emp.DepartmentName || '',
+              PositionName: rowData['PositionName'] || emp.ChucVuHD || ''
+            };
+            
+            // Cập nhật selectedEmployeeList
+            this.selectedEmployeeList = [this.selectedEmployee];
+            
+            // Load VPP cho nhân viên này
+            this.loadVPPForEmployee(empId);
+          }
+        }
+      }
+    }
   }
 
   // Add new employee row
@@ -1122,6 +1180,11 @@ export class OfficeSupplyRequestAdminDetailComponent implements OnInit, AfterVie
 
       this.tbEmployee.replaceData(employeesInDept);
       this.updateSelectedEmployeeList();
+      
+      // Focus vào nhân viên đầu tiên sau khi load nhân viên của phòng ban
+      setTimeout(() => {
+        this.focusFirstEmployee();
+      }, 200);
     } else if (!this.departmentId || this.departmentId <= 0) {
       // Nếu không chọn phòng ban, xóa hết dữ liệu
       if (this.tbEmployee) {

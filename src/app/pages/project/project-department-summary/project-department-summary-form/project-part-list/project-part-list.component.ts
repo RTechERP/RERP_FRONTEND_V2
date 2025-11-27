@@ -164,7 +164,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
   selectionProjectSolutionName: string = '';
   STT: number = 0;
 
-  //dành cho nhân công 
+  //dành cho nhân công
   isDeleted: number = 0; // -1: Tất cả, 0: Chưa xóa, 1: Đã xóa
   isApprovedTBP: number = -1; // -2: Tất cả, 0: Chưa duyệt, 1: Đã duyệt
   keyword: string = '';
@@ -1150,8 +1150,8 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
 
       // Kiểm tra quyền: chỉ người tạo yêu cầu hoặc admin mới được hủy
       if (row.EmployeeIDRequestPrice &&
-        row.EmployeeIDRequestPrice !== currentUser.EmployeeID &&
-        !currentUser.IsAdmin) {
+          row.EmployeeIDRequestPrice !== currentUser.EmployeeID &&
+          !currentUser.IsAdmin) {
         this.notification.warning('Thông báo', `Bạn không thể hủy yêu cầu báo giá của người khác!`);
         return;
       }
@@ -1832,8 +1832,8 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
 
         // 3. Format các cột tiền tệ (sử dụng formatMoney đã có)
         const moneyFields = ['Price', 'Amount', 'UnitPriceQuote', 'TotalPriceQuote1',
-          'UnitPricePurchase', 'TotalPricePurchase',
-          'TotalPriceExchangeQuote', 'TotalPriceExchangePurchase'];
+                            'UnitPricePurchase', 'TotalPricePurchase',
+                            'TotalPriceExchangeQuote', 'TotalPriceExchangePurchase'];
         if (moneyFields.includes(field)) {
           const numValue = parseFloat(value);
           if (!isNaN(numValue)) {
@@ -2971,7 +2971,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
               // { title: 'ProjectPartListVersionID', field: 'ProjectPartListVersionID', visible: false ,  },
               // { title: 'IsDeleted', field: 'IsDeleted', visible: false ,},
               // // Các cột phục vụ yêu cầu mua hàng (ẩn) - chỉ thêm các field chưa có trong bảng
-              // { title: 'IsApprovedTBP', field: 'IsApprovedTBP', visible: false }, // Cần cho 
+              // { title: 'IsApprovedTBP', field: 'IsApprovedTBP', visible: false }, // Cần cho
               // { title: 'DeadlinePur', field: 'DeadlinePur', visible: false },
               // { title: 'SupplierSaleQuoteID', field: 'SupplierSaleQuoteID', visible: false },
               // { title: 'TotalPriceOrder', field: 'TotalPriceOrder', visible: false },
@@ -3237,12 +3237,10 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 },
               },
               { title: 'Loại tiền', field: 'CurrencyQuote', hozAlign: 'center' },
-              {
-                title: 'Tỷ giá báo', field: 'CurrencyRateQuote', hozAlign: 'right', formatter: (cell: any) => {
-                  const value = cell.getValue();
-                  return value != null && value !== '' ? parseFloat(value).toFixed(1) : '';
-                }
-              },
+              { title: 'Tỷ giá báo', field: 'CurrencyRateQuote', hozAlign: 'right', formatter: (cell: any) => {
+                const value = cell.getValue();
+                return value != null && value !== '' ? parseFloat(value).toFixed(1) : '';
+              }},
               {
                 title: 'Thành tiền quy đổi báo giá (VND)',
                 field: 'TotalPriceExchangeQuote',
@@ -3276,9 +3274,8 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             headerHozAlign: 'center',
             hozAlign: 'center',
             columns: [
-              {
-                title: 'Yêu cầu mua', field: 'IsApprovedPurchase',
-                hozAlign: 'center',
+              { title: 'Yêu cầu mua', field: 'IsApprovedPurchase',
+                hozAlign:'center',
                 formatter: (cell: any) => {
                   const value = cell.getValue();
                   return `<input type="checkbox" ${(value === 'Đã ' || value === true ? 'checked' : '')} onclick="return false;">`;
@@ -3346,12 +3343,10 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 },
               },
               { title: 'Loại tiền', field: 'CurrencyPurchase', hozAlign: 'center' },
-              {
-                title: 'Tỷ giá mua', field: 'CurrencyRatePurchase', hozAlign: 'right', formatter: (cell: any) => {
-                  const value = cell.getValue();
-                  return value != null && value !== '' ? parseFloat(value).toFixed(1) : '';
-                }
-              },
+              { title: 'Tỷ giá mua', field: 'CurrencyRatePurchase', hozAlign: 'right', formatter: (cell: any) => {
+                const value = cell.getValue();
+                return value != null && value !== '' ? parseFloat(value).toFixed(1) : '';
+              }},
               {
                 title: 'Thành tiền quy đổi mua hàng (VND)',
                 field: 'TotalPriceExchangePurchase',
@@ -3391,12 +3386,10 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
               },  // Sửa
               { title: 'Mã nội bộ', field: 'ProductNewCode', hozAlign: 'center' },  // Sửa
               { title: 'Phiếu xuất', field: 'BillExportCode', hozAlign: 'center' },  // Sửa
-              {
-                title: 'Ngày nhận hàng', field: 'DateImport', hozAlign: 'center', formatter: (cell: any) => {
-                  const value = cell.getValue();
-                  return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
-                },
-              },  // Sửa
+              { title: 'Ngày nhận hàng', field: 'DateImport', hozAlign: 'center', formatter: (cell: any) => {
+                const value = cell.getValue();
+                return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
+              }, },  // Sửa
 
               { title: 'Ghi chú mua', field: 'NotePurchase', formatter: 'textarea' },
             ]
@@ -3458,62 +3451,62 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         ],
       }
     );
-    this.tb_projectWorker.on('dataLoaded', () => {
-      setTimeout(() => {
-        this.applyDeletedRowStyle();
-        // Áp dụng màu cho các cell
-        this.applyCellColors();
-      }, 50); // Đảm bảo DOM đã render xong
-    });
+  this.tb_projectWorker.on('dataLoaded', () => {
+    setTimeout(() => {
+      this.applyDeletedRowStyle();
+      // Áp dụng màu cho các cell
+      this.applyCellColors();
+    }, 50); // Đảm bảo DOM đã render xong
+  });
 
-    // Lưu row khi chuột phải (context menu) - để có thể lấy productCode
-    this.tb_projectWorker.on('rowContext', (e: any, row: any) => {
-      this.lastClickedPartListRow = row;
-    });
+  // Lưu row khi chuột phải (context menu) - để có thể lấy productCode
+  this.tb_projectWorker.on('rowContext', (e: any, row: any) => {
+    this.lastClickedPartListRow = row;
+  });
 
-    this.tb_projectWorker.on('cellClick', (e: any, cell: any) => {
-      const field = cell.getField();
-      if (field === 'rowSelection') return;
+  this.tb_projectWorker.on('cellClick', (e: any, cell: any) => {
+    const field = cell.getField();
+    if (field === 'rowSelection') return;
 
-      // Xóa highlight cũ
-      if (this.lastClickedPartListRow) {
-        const oldElement = this.lastClickedPartListRow.getElement();
-        if (oldElement) {
-          oldElement.style.outline = '';
-        }
+    // Xóa highlight cũ
+    if (this.lastClickedPartListRow) {
+      const oldElement = this.lastClickedPartListRow.getElement();
+      if (oldElement) {
+        oldElement.style.outline = '';
       }
+    }
 
-      // Lưu và highlight dòng mới
-      this.lastClickedPartListRow = cell.getRow();
-      const rowData = this.lastClickedPartListRow.getData();
+    // Lưu và highlight dòng mới
+    this.lastClickedPartListRow = cell.getRow();
+    const rowData = this.lastClickedPartListRow.getData();
 
-      const newElement = this.lastClickedPartListRow.getElement();
-      if (newElement) {
-        newElement.style.outline = '3px solid rgb(119, 133, 29)';
-        newElement.style.outlineOffset = '2px';
-      }
+    const newElement = this.lastClickedPartListRow.getElement();
+    if (newElement) {
+      newElement.style.outline = '3px solid rgb(119, 133, 29)';
+      newElement.style.outlineOffset = '2px';
+    }
 
-      console.log('Cell clicked - Row TT:', rowData.TT, 'ID:', rowData.ID);
-    });
+    console.log('Cell clicked - Row TT:', rowData.TT, 'ID:', rowData.ID);
+  });
 
-    // Thêm event cellRendered để áp dụng màu sau khi cell được render
-    this.tb_projectWorker.on('cellRendered', (cell: any) => {
-      const field = cell.getField();
-      const data = cell.getData();
+  // Thêm event cellRendered để áp dụng màu sau khi cell được render
+  this.tb_projectWorker.on('cellRendered', (cell: any) => {
+    const field = cell.getField();
+    const data = cell.getData();
 
-      // Chỉ áp dụng cho các cột cần vẽ màu (giống WinForm: GroupMaterial, ProductCode, Manufacturer, Unit)
-      if (field === 'GroupMaterial') {
-        this.applyCellColor(cell, 'GroupMaterial', 'IsSameProductName');
-      } else if (field === 'ProductCode') {
-        this.applyCellColor(cell, 'ProductCode', 'IsSameProductCode');
-        // Áp dụng màu xanh nước biển nếu IsFix = true
-        this.applyIsFixColor(cell);
-      } else if (field === 'Manufacturer') {
-        this.applyCellColor(cell, 'Manufacturer', 'IsSameMaker');
-      } else if (field === 'Unit') {
-        this.applyCellColor(cell, 'Unit', 'IsSameUnit');
-      }
-    });
+    // Chỉ áp dụng cho các cột cần vẽ màu (giống WinForm: GroupMaterial, ProductCode, Manufacturer, Unit)
+    if (field === 'GroupMaterial') {
+      this.applyCellColor(cell, 'GroupMaterial', 'IsSameProductName');
+    } else if (field === 'ProductCode') {
+      this.applyCellColor(cell, 'ProductCode', 'IsSameProductCode');
+      // Áp dụng màu xanh nước biển nếu IsFix = true
+      this.applyIsFixColor(cell);
+    } else if (field === 'Manufacturer') {
+      this.applyCellColor(cell, 'Manufacturer', 'IsSameMaker');
+    } else if (field === 'Unit') {
+      this.applyCellColor(cell, 'Unit', 'IsSameUnit');
+    }
+  });
 
     // Thêm logic: khi chọn nút cha, tự động chọn tất cả nút con
     // Xử lý cả chọn và bỏ chọn
@@ -3982,32 +3975,32 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
 
     // Nếu là edit mode, lấy ID từ row đã chọn và gọi API
     if (isEdit) {
-      // Thử 3 cách lấy dòng theo thứ tự ưu tiên
-      let targetRow: any = null;
+        // Thử 3 cách lấy dòng theo thứ tự ưu tiên
+        let targetRow: any = null;
 
-      // Cách 1: Lấy từ biến đã lưu (khi click vào cell)
-      if (this.lastClickedPartListRow) {
-        targetRow = this.lastClickedPartListRow;
-        console.log('Lấy từ lastClickedWorkerRow');
-      }
-      // Cách 2: Lấy dòng đầu tiên trong selected rows (nếu chỉ chọn 1 dòng)
-      else {
-        const selectedRows = this.tb_projectWorker?.getSelectedRows();
-        if (selectedRows && selectedRows.length === 1) {
-          targetRow = selectedRows[0];
-          console.log('Lấy từ selectedRows (1 dòng)');
+        // Cách 1: Lấy từ biến đã lưu (khi click vào cell)
+        if (this.lastClickedPartListRow) {
+          targetRow = this.lastClickedPartListRow;
+          console.log('Lấy từ lastClickedWorkerRow');
         }
-      }
+        // Cách 2: Lấy dòng đầu tiên trong selected rows (nếu chỉ chọn 1 dòng)
+        else {
+          const selectedRows = this.tb_projectWorker?.getSelectedRows();
+          if (selectedRows && selectedRows.length === 1) {
+            targetRow = selectedRows[0];
+            console.log('Lấy từ selectedRows (1 dòng)');
+          }
+        }
 
-      if (!targetRow) {
-        this.notification.warning(
-          'Thông báo',
-          'Vui lòng chọn vật tư cần sửa'
-        );
-        return;
-      }
+        if (!targetRow) {
+          this.notification.warning(
+            'Thông báo',
+           'Vui lòng chọn vật tư cần sửa'
+          );
+          return;
+        }
 
-      const focusedRow = targetRow.getData();
+        const focusedRow = targetRow.getData();
 
       const partListID = focusedRow.ID || 0;
 
@@ -4087,11 +4080,11 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         ReasonProblem: partListData.ReasonProblem || '',
         // Thông tin báo giá
         SupplierSaleID: partListData.SupplierSaleID || null,
-        NCC: partListData.NCC || '',
-        Price: partListData.Price || 0,
-        Amount: partListData.Amount || 0,
-        UnitMoney: partListData.UnitMoney || '',
-        LeadTime: partListData.LeadTime || "",
+        NCC:partListData.NCC || '',
+        Price:partListData.Price || 0,
+        Amount:partListData.Amount || 0,
+        UnitMoney:partListData.UnitMoney || '',
+        LeadTime:partListData.LeadTime || "",
 
         // Thông tin đặt mua
         OrderCode: partListData.OrderCode || '',
@@ -4105,7 +4098,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         RequestDate: partListData.RequestDate || null, // ngày yêu cầu đặt hàng // ngày nhận hàng
         Status: partListData.Status || 0, // trạng thái đặt hàng
         Quality: partListData.Quality || '', // chất lượng
-        ///check quyền sửa 
+        ///check quyền sửa
         IsApprovedTBP: partListData.IsApprovedTBP || false,
         IsApprovedTBPNewCode: partListData.IsApprovedTBPNewCode || false,
 
@@ -4572,7 +4565,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
   }
   //#endregion
 
-  //#region đã mua 
+  //#region đã mua
   techBought(): void {
     const selectedRows = this.tb_projectWorker?.getSelectedData();
     if (!selectedRows || selectedRows.length === 0) {
@@ -4786,23 +4779,23 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     const bill = billData.Bill || {};
     const details = billData.Details || [];
 
-    // Tạo billExport object để truyền vào modal (giống warehouse-release-request)
+
     const billExportForModal = {
       TypeBill: false,
       Code: bill.Code || '',
       Address: bill.Address || '',
       CustomerID: bill.CustomerID || 0,
-      UserID: bill.UserID || 0,
-      SenderID: bill.SenderID || 0,
+      UserID: bill.UserID || 0,              // Sẽ được auto-fill trong BillExportDetail nếu = 0
+      SenderID: bill.SenderID || 0,          // Sẽ được auto-fill dựa vào KhoTypeID
       WarehouseType: bill.WarehouseType || '',
       GroupID: bill.GroupID || '',
       KhoTypeID: bill.KhoTypeID || 0,
-      ProductType: 0,
-      AddressStockID: 0,
+      ProductType: bill.ProductType || 0,
+      AddressStockID: bill.AddressStockID || 0,
       WarehouseID: bill.WarehouseID || 0,
-      Status: bill.Status || 6, // 6 = Yêu cầu xuất kho
-      SupplierID: 0,
-      CreatDate: bill.RequestDate || new Date(),
+      Status: bill.Status || 6,              // 6 = Yêu cầu xuất kho
+      SupplierID: bill.SupplierID || 0,
+      CreatDate: bill.CreatDate || bill.RequestDate || new Date(),
       RequestDate: bill.RequestDate || new Date(),
     };
 
@@ -4848,13 +4841,18 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
       keyboard: false,
     });
+    console.log('billExportForModal:',billExportForModal);
+    console.log('isPOKH:',bill.IsPOKH);
+    console.log('wareHouseCode:',bill.wareHouseCode);
 
     // Truyền dữ liệu vào modal
     modalRef.componentInstance.newBillExport = billExportForModal;
     modalRef.componentInstance.isCheckmode = false; // Tạo mới
     modalRef.componentInstance.id = 0;
+    modalRef.componentInstance.isAddExport = true;
     modalRef.componentInstance.wareHouseCode = bill.WarehouseCode || '';
-    modalRef.componentInstance.isPOKH = bill.IsPOKH || true;
+    modalRef.componentInstance.isPOKH = bill.IsPOKH || false;
+    modalRef.componentInstance.isFromProjectPartList = true; // FLAG RIÊNG cho luồng ProjectPartList
 
     // Set detail data sau khi modal mở
     setTimeout(() => {

@@ -1,8 +1,11 @@
 ::ng-deep .ant-form-inline .ant-form-item {
-    margin-right: 4px !important; 
-    margin-bottom: 0 !important;  
+    margin-right: 4px !important;
+    margin-bottom: 0 !important;
   }
 
   .table-spinner{
     height: 100% !important;
+  }
+  .tabulator {
+    font-size: 0.75 rem;
   }

@@ -140,10 +140,10 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     this.isAdmin = this.appUserService.isAdmin;
     this.currentUserID = this.appUserService.id || 0;
-    this.getProductGroup();
   }
   ngAfterViewInit(): void {
-    this.getDataContextMenu();
+    // Đảm bảo load data trước khi vẽ bảng
+    this.getProductGroup();
   }
 
   closeModal() {
@@ -396,12 +396,14 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
             );
             this.searchParams.listproductgroupID =
               this.selectedKhoTypes.join(',');
-            // Load dữ liệu sau khi đã set xong listproductgroupID
+            // Load dữ liệu trước, sau đó mới load context menu và vẽ bảng
             this.loadDataBillImportSynthetic();
           }
         },
         error: (err) => {
           console.error('Lỗi khi lấy nhóm vật tư', err);
+          // Vẫn vẽ bảng nếu có lỗi
+          this.getDataContextMenu();
         },
       });
   }
@@ -463,6 +465,9 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
             console.log('jdjhdjd', this.dataTable);
             if (this.table) {
               this.table.replaceData(this.dataTable);
+            } else {
+              // Nếu chưa có bảng, gọi getDataContextMenu để vẽ bảng với dữ liệu
+              this.getDataContextMenu();
             }
           }
         },
@@ -768,8 +773,15 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
           },
           formatter: 'money',
           formatterParams: {
-            decimal: ',',
-            thousand: '.',
+            decimal: '.',
+            thousand: ',',
+            precision: 2,
+          },
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
+          bottomCalcFormatterParams: {
+            decimal: '.',
+            thousand: ',',
             precision: 2,
           },
         },
@@ -784,8 +796,15 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
           },
           formatter: 'money',
           formatterParams: {
-            decimal: ',',
-            thousand: '.',
+            decimal: '.',
+            thousand: ',',
+            precision: 2,
+          },
+          bottomCalc: 'sum',
+          bottomCalcFormatter: 'money',
+          bottomCalcFormatterParams: {
+            decimal: '.',
+            thousand: ',',
             precision: 2,
           },
         },
@@ -816,8 +835,8 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
           width: 100,
           formatter: 'money',
           formatterParams: {
-            decimal: ',',
-            thousand: '.',
+            decimal: '.',
+            thousand: ',',
             precision: 2,
           },
         },
@@ -829,8 +848,14 @@ export class BillImportSyntheticComponent implements OnInit, AfterViewInit {
           bottomCalc: 'sum',
           formatter: 'money',
           formatterParams: {
-            decimal: ',',
-            thousand: '.',
+            decimal: '.',
+            thousand: ',',
+            precision: 2,
+          },
+          bottomCalcFormatter: 'money',
+          bottomCalcFormatterParams: {
+            decimal: '.',
+            thousand: ',',
             precision: 2,
           },
         },

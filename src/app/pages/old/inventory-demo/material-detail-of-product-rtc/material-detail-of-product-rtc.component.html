@@ -1,10 +1,4 @@
-<div class="modal-content" style="height: 99vh; display: flex; flex-direction: column;">
-  <div class="modal-header bg-primary p-2">
-    <h6 class="modal-title text-white" id="assetModalLabel">Báo cáo nhập NCC kho DEMO</h6>
-    <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
-  </div>
-
-  <form nz-form nzLayout="horizontal" class="fs-7 mt-3 tab-content-equal-height">
+<form nz-form nzLayout="horizontal" class="fs-7 form-header">
     <nz-row [nzGutter]="24">
       <!-- Mã sản phẩm-->
       <nz-col [nzSpan]="8" class="me-2 md-2">
@@ -103,21 +97,40 @@
       </nz-col>
     </nz-row>
   </form>
-  <nz-splitter style="height: 80vh;">
-    <nz-splitter-panel nzResizable="true">
-      <div id="tbBorrow"></div>
+
+  <div style="flex: 1; min-height: 0; overflow: hidden;">
+    <!-- Splitter layout giống C# form -->
+  <nz-splitter style="height: 100%;">
+    <!-- Left Panel: Bảng Mượn với Tab -->
+    <nz-splitter-panel nzResizable="true" [nzMin]="20" [nzMax]="80">
+      <nz-tabset class="borrow-tab">
+        <nz-tab nzTitle="Danh sách Mượn">
+          <div id="tbBorrow"></div>
+        </nz-tab>
+      </nz-tabset>
     </nz-splitter-panel>
-    <nz-splitter-panel nzResizable="true">
-      <nz-splitter nzLayout="vertical" style="height: 100%;">
-        <nz-splitter-panel nzResizable="true">
-          <div id="tbExport"></div>
+
+    <!-- Right Panel: Splitter vertical cho Export (trên) và Import (dưới) -->
+    <nz-splitter-panel nzResizable="true" [nzMin]="20" [nzMax]="80">
+      <nz-splitter nzLayout="vertical">
+        <!-- Top: Bảng Xuất với Tab -->
+        <nz-splitter-panel nzResizable="true" [nzMin]="20" [nzMax]="80">
+          <nz-tabset class="export-tab">
+            <nz-tab nzTitle="Danh sách Xuất">
+              <div id="tbExport"></div>
+            </nz-tab>
+          </nz-tabset>
         </nz-splitter-panel>
-        <nz-splitter-panel nzResizable="true">
-          <nz-form-label>SL đang mượn</nz-form-label>
-          <div style="height: 100%; display: flex; flex-direction: column;">
-            <div id="tbImport"></div>
-          </div>
+
+        <!-- Bottom: Bảng Nhập với Tab -->
+        <nz-splitter-panel nzResizable="true" [nzMin]="20" [nzMax]="80">
+          <nz-tabset class="import-tab">
+            <nz-tab nzTitle="Danh sách Nhập">
+              <div id="tbImport"></div>
+            </nz-tab>
+          </nz-tabset>
         </nz-splitter-panel>
       </nz-splitter>
     </nz-splitter-panel>
   </nz-splitter>
+  </div>

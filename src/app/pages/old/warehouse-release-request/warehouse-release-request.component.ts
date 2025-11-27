@@ -413,7 +413,7 @@ export class WarehouseReleaseRequestComponent implements OnInit {
       return this.WRRService.validateKeep(
         warehouse.ID,
         Number(dataRow['ProductID']) || 0,
-        0, // projectID = 0 
+        0, // projectID = 0
         Number(dataRow['POKHDetailID']) || 0,
         0, // billExportDetailID = 0
         dataRow['Unit'] || '',
@@ -571,7 +571,7 @@ export class WarehouseReleaseRequestComponent implements OnInit {
           this.activeModal.close();
 
           // Mở modal chi tiết cho từng bill export (tuần tự)
-          this.openBillExportDetailModals(0);
+          this.openBillExportDetailModals(0, warehouse);
         }
       },
       error: (error) => {
@@ -584,8 +584,9 @@ export class WarehouseReleaseRequestComponent implements OnInit {
   /**
    * Mở modal chi tiết cho từng bill export tuần tự
    * @param index - Index của bill export hiện tại trong mảng billExports
+   * @param warehouse - Warehouse object từ onWarehouseSelect
    */
-  private openBillExportDetailModals(index: number): void {
+  private openBillExportDetailModals(index: number, warehouse: any): void {
     if (index >= this.billExports.length) {
       return;
     }
@@ -598,13 +599,13 @@ export class WarehouseReleaseRequestComponent implements OnInit {
       Address: '',
       CustomerID: billExport.CustomerID,
       UserID: billExport.UserID,
-      SenderID: 0,
+      SenderID: 0, // SenderID will be auto-filled by bill-export-detail based on KhoTypeID + WarehouseID
       WarehouseType: '',
       GroupID: '',
       KhoTypeID: billExport.KhoTypeID,
       ProductType: billExport.ProductType,
       AddressStockID: 0,
-      WarehouseID: 0,
+      WarehouseID: warehouse.ID, // Pass WarehouseID from selected warehouse
       Status: billExport.Status,
       SupplierID: 0,
       CreatDate: billExport.RequestDate,
@@ -621,8 +622,10 @@ export class WarehouseReleaseRequestComponent implements OnInit {
     // Truyền dữ liệu vào modal
     modalRef.componentInstance.newBillExport = billExportForModal;
     modalRef.componentInstance.isCheckmode = false;
+    modalRef.componentInstance.isPOKH = true;
     modalRef.componentInstance.id = 0;
     modalRef.componentInstance.wareHouseCode = billExport.WarehouseCode;
+    modalRef.componentInstance.isFromWarehouseRelease = true; // FLAG RIÊNG cho luồng Warehouse Release Request
 
     const detailsForModal = billExport.Details.map((detail: any) => ({
       ID: 0,
@@ -659,7 +662,7 @@ export class WarehouseReleaseRequestComponent implements OnInit {
       (result) => {
         // Nếu modal đóng thành công, mở modal tiếp theo
         if (result === true && index < this.billExports.length - 1) {
-          this.openBillExportDetailModals(index + 1);
+          this.openBillExportDetailModals(index + 1, warehouse);
         } else if (result === true && index === this.billExports.length - 1) {
 
         }
@@ -667,7 +670,7 @@ export class WarehouseReleaseRequestComponent implements OnInit {
       (dismissed) => {
         // Modal bị dismiss, vẫn tiếp tục mở modal tiếp theo nếu có
         if (index < this.billExports.length - 1) {
-          this.openBillExportDetailModals(index + 1);
+          this.openBillExportDetailModals(index + 1, warehouse);
         }
       }
     );

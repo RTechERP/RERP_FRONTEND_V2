@@ -241,6 +241,7 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
             this.dtRequestExport = res.data.dtRequestExport || [];
             this.dtHold = res.data.dtHold || [];
             this.dtCbProduct = res.data.dtCbProduct || [];
+            console.log('dtCbProduct:',this.dtCbProduct);
 
             // Fill product information from dtProduct
             if (this.dtProduct && this.dtProduct.length > 0) {
@@ -326,7 +327,7 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
       this.productSaleID = productSaleID;
 
       // Find selected product in dropdown to get product name
-      const selectedProduct = this.dtCbProduct.find(p => p.ProductSaleID === productSaleID);
+      const selectedProduct = this.dtProduct.find(p => p.ProductSaleID === productSaleID);
       if (selectedProduct) {
         this.productName = selectedProduct.ProductName || selectedProduct.productname || '';
         this.code = selectedProduct.ProductCode || selectedProduct.productcode || '';

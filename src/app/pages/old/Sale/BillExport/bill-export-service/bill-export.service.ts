@@ -94,7 +94,7 @@ export class BillExportService {
   // Get Address Stock by Customer ID - Using new endpoint
   getCbbAddressStock(id: number): Observable<any> {
     return this.http.get(
-      `${environment.host}api/billexport/get-address-stock/${id}`
+      `${environment.host}api/AddressStock/get-by-customerID/?customerID=${id}`
     );
   }
 

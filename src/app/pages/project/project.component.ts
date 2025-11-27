@@ -594,6 +594,40 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       this.getProjectWorkReports();
       this.getProjectTypeLinks();
     });
+
+    // Event để tự động điều chỉnh vị trí context menu
+    this.tb_projects.on('menuOpened', () => {
+      setTimeout(() => {
+        this.adjustContextMenuPosition();
+      }, 10);
+    });
+  }
+
+  // Hàm điều chỉnh vị trí context menu
+  adjustContextMenuPosition() {
+    const menu = document.querySelector('.tabulator-menu') as HTMLElement;
+    if (!menu) return;
+
+    const menuRect = menu.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+
+    // Điều chỉnh chiều dọc nếu menu vượt quá viewport
+    if (menuRect.bottom > viewportHeight) {
+      const overflow = menuRect.bottom - viewportHeight;
+      const currentTop = parseFloat(menu.style.top || '0');
+      const newTop = currentTop - overflow - 10;
+
+      // Đảm bảo menu không bị âm
+      menu.style.top = `${Math.max(10, newTop)}px`;
+    }
+
+    // Điều chỉnh chiều ngang nếu menu vượt quá viewport
+    if (menuRect.right > viewportWidth) {
+      const overflow = menuRect.right - viewportWidth;
+      const currentLeft = parseFloat(menu.style.left || '0');
+      menu.style.left = `${currentLeft - overflow - 10}px`;
+    }
   }
 
   getProjectAjaxParams() {

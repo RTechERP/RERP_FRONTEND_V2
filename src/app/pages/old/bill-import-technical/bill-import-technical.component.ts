@@ -201,7 +201,7 @@ getListEmployee() {
       history: true,
       columns: [
         { title: "STT", formatter: "rownum", hozAlign: "center", width: 60, frozen: true },
-        { title: "ID", field: "ID", visible: false },
+        // { title: "ID", field: "ID", visible: false },
         {
           title: 'Duyệt',
           field: 'Status',
@@ -213,13 +213,15 @@ getListEmployee() {
           hozAlign: 'center',
           headerHozAlign: 'center',
         },
-        { title: "Số thứ tự", field: "RowNumber", visible: false },
+        // { title: "Số thứ tự", field: "RowNumber", visible: false },
         { title: "Người duyệt", field: "EmployeeApproveName" },
+
+        { title: "Ngày duyệt", field: "DateStatus", formatter: formatDateCell,  },
         { title: "Loại phiếu ", field: "BillTypeNewText" },
-        { title: "Mã phiếu", field: "BillCode" },
-        { title: "Loại chứng từ", field: "BillDocumentImportType", visible: false },
-        { title: "Loại phiếu (bool)", field: "BillType", visible: false },
-        { title: "Loại phiếu", field: "BillTypeNew", visible: false },
+        { title: "Mã phiếu nhập", field: "BillCode" },
+        // { title: "Loại chứng từ", field: "BillDocumentImportType", visible: false },
+        // { title: "Loại phiếu (bool)", field: "BillType", visible: false },
+        // { title: "Loại phiếu", field: "BillTypeNew", visible: false },
         { title: "Nhà cung cấp", field: "NCC" },
         { title: "Khách hàng", field: "CustomerName" },
         { title: "Phòng ban", field: "DepartmentName" },
@@ -227,41 +229,40 @@ getListEmployee() {
         { title: "Người nhận", field: "EmployeeReceiverName" },
         { title: "Ngày tạo", field: "CreatDate", formatter: formatDateCell },
         { title: "Người tạo", field: "CreatedBy" },
-        { title: "Tên kho", field: "WarehouseType" },
-        { title: "Ngày tạo bản ghi", field: "CreatedDate", formatter: formatDateCell, visible: false },
-        { title: "ID khách hàng", field: "CustomerID", visible: false },
-        { title: "Ngày yêu cầu nhập", field: "DateRequestImport", formatter: formatDateCell, visible: false },
-        { title: "Ngày duyệt", field: "DateStatus", formatter: formatDateCell, visible: false },
-        { title: "ID người giao", field: "DeliverID", visible: false },
-        { title: "GroupTypeID", field: "GroupTypeID", visible: false },
-        { title: "Ảnh", field: "Image", visible: false },
-        { title: "Mượn NCC?", field: "IsBorrowSupplier", formatter: (cell) => {
-            const val = cell.getValue();
-            return val === true ? "Có" : (val === false ? "Không" : "");
-          }, visible: false
-        },
-        {
-          title: "Chuẩn hóa?", field: "IsNormalize", formatter: (cell) => {
-            const val = cell.getValue();
-            return val ? "Đã chuẩn hóa" : "Chưa chuẩn hóa";
-          }, visible: false
-        },
-        { title: "ID người nhận", field: "ReceiverID", visible: false },
-        { title: "RulePayID", field: "RulePayID", visible: false },
-        {
-          title: "Trạng thái", field: "Status", formatter: (cell) => {
-            const value = cell.getValue();
-            return value ? `<span class="badge bg-success">Hoạt động</span>` : `<span class="badge bg-danger">Không hoạt động</span>`;
-          }, visible: false
-        },
-        { title: "Nhà cung cấp (text)", field: "Suplier", visible: false },
-        { title: "ID NCC", field: "SuplierID", visible: false },
-        { title: "ID người bán NCC", field: "SupplierSaleID", visible: false },
-        { title: "Người cập nhật", field: "UpdatedBy", visible: false },
-        { title: "Ngày cập nhật", field: "UpdatedDate", formatter: formatDateCell, visible: false },
-        { title: "ID kho", field: "WarehouseID", visible: false },
+        { title: "Loại kho", field: "WarehouseType" },
+        // { title: "Ngày tạo bản ghi", field: "CreatedDate", formatter: formatDateCell, visible: false },
+        // { title: "ID khách hàng", field: "CustomerID", visible: false },
+        // { title: "Ngày yêu cầu nhập", field: "DateRequestImport", formatter: formatDateCell, visible: false },
+        // { title: "ID người giao", field: "DeliverID", visible: false },
+        // { title: "GroupTypeID", field: "GroupTypeID", visible: false },
+        // { title: "Ảnh", field: "Image", visible: false },
+        // { title: "Mượn NCC?", field: "IsBorrowSupplier", formatter: (cell) => {
+        //     const val = cell.getValue();
+        //     return val === true ? "Có" : (val === false ? "Không" : "");
+        //   }, visible: false
+        // },
+        // {
+        //   title: "Chuẩn hóa?", field: "IsNormalize", formatter: (cell) => {
+        //     const val = cell.getValue();
+        //     return val ? "Đã chuẩn hóa" : "Chưa chuẩn hóa";
+        //   }, visible: false
+        // },
+        // { title: "ID người nhận", field: "ReceiverID", visible: false },
+        // { title: "RulePayID", field: "RulePayID", visible: false },
+        // {
+        //   title: "Trạng thái", field: "Status", formatter: (cell) => {
+        //     const value = cell.getValue();
+        //     return value ? `<span class="badge bg-success">Hoạt động</span>` : `<span class="badge bg-danger">Không hoạt động</span>`;
+        //   }, visible: false
+        // },
+        // { title: "Nhà cung cấp (text)", field: "Suplier", visible: false },
+        // { title: "ID NCC", field: "SuplierID", visible: false },
+        // { title: "ID người bán NCC", field: "SupplierSaleID", visible: false },
+        // { title: "Người cập nhật", field: "UpdatedBy", visible: false },
+        // { title: "Ngày cập nhật", field: "UpdatedDate", formatter: formatDateCell, visible: false },
+        // { title: "ID kho", field: "WarehouseID", visible: false },
 
-        { title: "ID người duyệt", field: "ApproverID", visible: false }
+        // { title: "ID người duyệt", field: "ApproverID", visible: false }
       ],
     });
     this.billImportTechnicalTable.on('rowClick', (evt, row: RowComponent) => {
@@ -300,26 +301,21 @@ getListEmployee() {
         reactiveData: true,
         columns: [
           { title: 'Tên sản phẩm', field: 'ProductName' },
-          { title: 'STT', field: 'STT', hozAlign: 'center', width: 60, visible: false },
-          { title: 'Mã phiếu PO', field: 'BillCodePO', visible: false },
           { title: 'Serial', field: 'Serial' },
-          { title: 'Mã QR sản phẩm', field: 'ProductQRCode', visible: false },
-          { title: 'Mã sản phẩm RTC', field: 'ProductCodeRTC', visible: false },
+
           { title: 'Số lượng', field: 'Quantity', hozAlign: 'center' },
-          { title: 'Đơn vị tính', field: 'UnitName', hozAlign: 'center' },
-          { title: 'Tên tài sản', field: 'TSAssetName', visible: false },
+          { title: 'ĐVT', field: 'UnitCountName' },
           { title: 'Tình trạng hàng', field: 'WarehouseType' },
           { title: 'Mã nội bộ', field: 'InternalCode' },
+          { title: 'Đơn mua hàng', field: 'BillCodePO',},
           { title: 'Hãng', field: 'Maker' },
           { title: 'Người cần mượn', field: 'EmployeeBorrowName' },
-          { title: 'Hạn trả NCC', field: 'DeadlineReturnNCC', formatter: formatDateCell },
-          { title: 'Ghi chú', field: 'Note' },
-          { title: 'Mã tài sản NCC', field: 'TSCodeNCC', visible: false },
-          { title: 'Đơn vị tính (count)', field: 'UnitCountName', visible: false },
-          { title: 'Số lượng yêu cầu', field: 'QtyRequest', hozAlign: 'center', visible: false },
-          { title: 'Tổng số lượng', field: 'TotalQuantity', hozAlign: 'center', visible: false },
-          { title: 'Giá', field: 'Price', hozAlign: 'right', formatter: 'money', formatterParams: { thousand: ',', precision: 0 }, visible: false },
-          { title: 'Tổng giá', field: 'TotalPrice', hozAlign: 'right', formatter: 'money', formatterParams: { thousand: ',', precision: 0 }, visible: false },
+          { title: 'Deadline trả NCC', field: 'DeadlineReturnNCC', formatter: formatDateCell },
+          // { title: 'Ghi chú', field: 'Note' },
+          // { title: 'Mã tài sản NCC', field: 'TSCodeNCC', visible: false },
+          // { title: 'Số lượng yêu cầu', field: 'QtyRequest', hozAlign: 'center', visible: false },
+          // { title: 'Giá', field: 'Price', hozAlign: 'right', formatter: 'money', formatterParams: { thousand: ',', precision: 0 }, visible: false },
+          // { title: 'Tổng giá', field: 'TotalPrice', hozAlign: 'right', formatter: 'money', formatterParams: { thousand: ',', precision: 0 }, visible: false },
 
           { title: 'Người tạo', field: 'CreatedBy', visible: false },
           { title: 'Ngày tạo', field: 'CreatedDate', formatter: formatDateCell, visible: false },
@@ -335,17 +331,6 @@ getListEmployee() {
           { title: '  Ngày yêu cầu phiếu', field: 'DateSomeBill', formatter: formatDateCell, visible: false },
           { title: 'Mã dự án', field: 'ProjectCode', visible: false },
           { title: 'Tên dự án', field: 'ProjectName', visible: false },
-          { title: 'ID dự án', field: 'ProjectID', visible: false },
-          { title: 'ID sản phẩm', field: 'ProductID', visible: false },
-          { title: 'ID QR sản phẩm RTC', field: 'ProductRTCQRCodeID', visible: false },
-          { title: 'ID chi tiết PO NCC', field: 'PONCCDetailID', visible: false },
-          { title: 'ID mượn', field: 'EmployeeIDBorrow', visible: false },
-          { title: 'ID lịch sử RTC', field: 'HistoryProductRTCID', visible: false },
-          { title: 'ID phiếu', field: 'BillImportTechID', visible: false },
-          { title: 'ID', field: 'ID', visible: false },
-          { title: 'Một số phiếu liên quan', field: 'SomeBill', visible: false },
-          { title: 'ID đơn vị', field: 'UnitID', visible: false },
-          { title: 'ID kho', field: 'WarehouseID', visible: false },
         ]
       });
     }

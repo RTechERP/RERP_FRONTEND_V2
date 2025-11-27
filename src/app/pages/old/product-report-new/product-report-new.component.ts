@@ -80,6 +80,7 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
   warehouseID: number = 0;
   billType: number = 0;
   receiverID: number = 0;
+  dateFormat = 'dd/MM/yyyy';
   // on off trạng thái lọc
   sizeTbDetail: any = '0';
   isSearchVisible: boolean = false;
@@ -179,7 +180,7 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
       pagination: true,
       selectableRows: 5,
       rowContextMenu: rowMenu,
-      height: '86vh',
+      height: '100%',
       ajaxURL: this.productReportNewService.getInventoryNCCAjax(),
       ajaxConfig: "POST",
       paginationMode: 'remote',

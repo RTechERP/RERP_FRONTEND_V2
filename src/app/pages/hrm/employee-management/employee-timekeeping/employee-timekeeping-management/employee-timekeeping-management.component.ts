@@ -38,7 +38,8 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { VehicleRepairService } from '../../../vehicle/vehicle-repair/vehicle-repair-service/vehicle-repair.service';
 
 import { ActivatedRoute } from '@angular/router';
-import { firstValueFrom, forkJoin } from 'rxjs';
+import { Title } from '@angular/platform-browser';
+import { forkJoin, firstValueFrom } from 'rxjs';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
 @Component({

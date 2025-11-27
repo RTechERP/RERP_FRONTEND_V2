@@ -207,7 +207,7 @@ export class InventoryBorrowSupplierDemoComponent implements OnInit, AfterViewIn
       pagination: true,
       selectableRows: 5,
       rowContextMenu: rowMenu,
-      height: '86vh',
+      height: '70vh',
       ajaxURL: this.inventoryDemoService.getInventoryNCCAjax(),
       ajaxConfig: "POST",
       paginationMode: 'remote',

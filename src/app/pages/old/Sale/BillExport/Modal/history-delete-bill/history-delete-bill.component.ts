@@ -164,7 +164,7 @@ export class HistoryDeleteBillComponent implements OnInit, AfterViewInit {
             width: '25%',
             hozAlign: 'center',
             headerHozAlign: 'center',
-            // formatter: customDateFormatter,
+            formatter: customDateFormatter,
           },
           {
             title: 'Người nhận',

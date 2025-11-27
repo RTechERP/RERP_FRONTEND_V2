@@ -428,7 +428,7 @@ export class MenuService {
             isOpen: true,
             isPermission: this.permissionService.hasPermission('N2,N34,N1'),
             comp: HrhiringRequestComponent,
-            //   icon: 'assets/icon/hr_hiring_24.svg',
+          icon: 'assets/icon/hr_hiring_24.svg',
           },
           {
             kind: 'leaf',
@@ -437,7 +437,7 @@ export class MenuService {
             isOpen: true,
             isPermission: this.permissionService.hasPermission('N2,N34,N1'),
             comp: DocumentComponent,
-            //    icon: 'assets/icon/hr_document_24.svg',
+         //       icon: 'assets/icon/hr_documentt_24.svg',
           },
           {
             kind: 'group',
@@ -445,7 +445,7 @@ export class MenuService {
             title: 'Tài sản/công cụ dụng cụ',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
-            icon: 'assets/icon/hr_asset_management_24.svg',
+            icon: 'assets/icon/hr_asset_24.svg',
             children: [
               {
                 kind: 'leaf',

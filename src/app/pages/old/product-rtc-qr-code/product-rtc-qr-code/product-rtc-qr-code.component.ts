@@ -216,11 +216,11 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
   drawTable() {
     this.qrCodeTable = new Tabulator(this.qrCodeTableRef.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
-      layout: 'fitColumns',
+     
       selectableRows: true,
       data: this.qrCodeData,
       paginationMode: 'local', // Sử dụng phân trang local
-      responsiveLayout: "collapse",
+      layout:'fitDataStretch',
       addRowPos: "bottom",
       history: true,
       initialSort: [
@@ -254,23 +254,27 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
           field: "ProductQRCode",
           hozAlign: "left"
           , bottomCalc: 'count'
+          , width: 120
         },
         {
           title: "SerialNumber",
           field: "SerialNumber",
           hozAlign: "left"
-          , bottomCalc: 'count'
+          , bottomCalc: 'count',
+          width: 120
         },
         {
           title: "Mã sản phẩm",
           field: "ProductCode",
           hozAlign: "left"
-          , bottomCalc: 'count'
+          , bottomCalc: 'count',
+          width: 120
         },
         {
           title: "Tên sản phẩm",
           field: "ProductName",
-          hozAlign: "left"
+          hozAlign: "left",
+          formatter: 'textarea',
         },
         {
           title: "Mã nội bộ",
@@ -281,6 +285,7 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
           title: "Vị trí",
           field: "AddressBox",
           hozAlign: "left"
+          ,width: 120
         },
 
         {
@@ -291,8 +296,24 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
         {
           title: "Ghi chú",
           field: "Note",
-          hozAlign: "left"
-
+          hozAlign: "left",
+          formatter: (cell: any) => {
+            const value = cell.getValue() || '';
+            const maxLength = 50; // Số ký tự tối đa hiển thị
+            
+            if (!value) {
+              return '';
+            }
+            
+            // Nếu text dài hơn maxLength, cắt và thêm "..."
+            if (value.length > maxLength) {
+              const truncated = value.substring(0, maxLength) + '...';
+              // Sử dụng HTML với title attribute để hiển thị tooltip
+              return `<span title="${value.replace(/"/g, '&quot;')}" style="cursor: help;">${truncated.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>`;
+            }
+            
+            return value.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          }
         },
       ]
     });

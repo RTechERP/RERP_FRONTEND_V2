@@ -82,3 +82,6 @@
     height: 24px;
     line-height: 22px;
 }
+::ng-deep .ant-layout-content{
+  margin: 0.25rem !important;
+}

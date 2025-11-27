@@ -76,10 +76,8 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
   checked: boolean = false;
   sizeSearch: string = '0';
   searchParams = {
-    dateStart: new Date(new Date().setDate(new Date().getDate() - 2))
-      .toISOString()
-      .split('T')[0],
-    dateEnd: new Date().toISOString().split('T')[0],
+    dateStart: new Date(new Date().setDate(new Date().getDate() - 2)),
+    dateEnd: new Date(),
     keyword: '',
     group: 0,
     status: -1,
@@ -98,10 +96,8 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
   }
   resetform() {
     this.searchParams = {
-      dateStart: new Date(new Date().setDate(new Date().getDate() - 2))
-        .toISOString()
-        .split('T')[0],
-      dateEnd: new Date().toISOString().split('T')[0],
+      dateStart: new Date(new Date().setDate(new Date().getDate() - 2)),
+      dateEnd: new Date(),
       keyword: '',
       group: 0,
       status: -1,

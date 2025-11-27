@@ -1,5 +1,5 @@
 import { NzNotificationService } from 'ng-zorro-antd/notification'
-import { Component, OnInit, Input, Output, EventEmitter, inject, AfterViewInit, Optional } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, inject, AfterViewInit, Optional, Inject } from '@angular/core';
 import { DateTime } from 'luxon';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -26,6 +26,9 @@ import { NzSplitterModule } from 'ng-zorro-antd/splitter';
 import { BillImportTechnicalService } from '../../bill-import-technical/bill-import-technical-service/bill-import-technical.service';
 import { InventoryDemoService } from '../inventory-demo-service/inventory-demo.service';
 import { filter, last } from 'rxjs';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { BillImportTechnicalFormComponent } from '../../bill-import-technical/bill-import-technical-form/bill-import-technical-form.component';
+import { BillExportTechnicalFormComponent } from '../../bill-export-technical/bill-export-technical-form/bill-export-technical-form.component';
 @Component({
   standalone: true,
   imports: [
@@ -64,19 +67,27 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
   //ds sản phẩm
   productData: any[] = [];
   //requet gọi store
-  warehouseID: number = 0;
-  productRTCID: number = 0;
-  ProductCode: string = '';
-  ProductName: string = '';
-  NumberBegin: number = 0;
-  InventoryLatest: number = 0;
-  NumberImport: number = 0;
-  NumberExport: number = 0;
-  NumberBorrowing: number = 0;
-  InventoryReal: number = 0;
-  constructor(private notification: NzNotificationService,
+@Input()  warehouseID: number = 0;
+ @Input()  productRTCID: number = 0;
+@Input()   ProductCode: string = '';
+@Input()   ProductName: string = '';
+ @Input()  NumberBegin: number = 0;
+ @Input()  InventoryLatest: number = 0;
+ @Input()  NumberImport: number = 0;
+ @Input()  NumberExport: number = 0;
+ @Input()  NumberBorrowing: number = 0;
+ @Input()  InventoryReal: number = 0;
+  // Tabulator instances
+  tableBorrow: Tabulator | null = null;
+  tableImport: Tabulator | null = null;
+  tableExport: Tabulator | null = null;
+
+  constructor(
+    private notification: NzNotificationService,
     private inventoryDemoService: InventoryDemoService,
-    @Optional() public activeModal: NgbActiveModal
+    private ngbModal: NgbModal,
+    @Optional() public activeModal: NgbActiveModal,
+    @Optional() @Inject('tabData') private tabData: any
   ) { }
   initForm() {
     this.formDeviceInfo = new FormBuilder().group({
@@ -85,8 +96,24 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
     });
   }
   ngOnInit() {
+    // Lấy dữ liệu từ tabData injector nếu có
+    if (this.tabData) {
+      this.productRTCID1 = this.tabData.productRTCID1 || 0;
+      this.warehouseID1 = this.tabData.warehouseID1 || 0;
+      this.ProductCode = this.tabData.ProductCode || '';
+      this.ProductName = this.tabData.ProductName || '';
+      this.NumberBegin = this.tabData.NumberBegin || 0;
+      this.InventoryLatest = this.tabData.InventoryLatest || 0;
+      this.NumberImport = this.tabData.NumberImport || 0;
+      this.NumberExport = this.tabData.NumberExport || 0;
+      this.NumberBorrowing = this.tabData.NumberBorrowing || 0;
+      this.InventoryReal = this.tabData.InventoryReal || 0;
+    }
+
+    this.getBorrowImportExportProductRTC();
     console.log("Received productRTCID:", this.productRTCID1);
     console.log("Received warehouseID:", this.warehouseID1);
+    console.log("Received tabData:", this.tabData);
     this.initForm();
   }
 
@@ -95,8 +122,12 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
     this.activeModal?.dismiss('cancel');
   }
   ngAfterViewInit() {
-    this.getBorrowImportExportProductRTC();
-    this.getProduct();
+
+      this.drawTBBorrow();
+      this.drawTBExport();
+      this.drawTBImport();
+    // Không cần gọi getProduct() nữa vì dữ liệu đã được truyền từ parent qua tabData
+    // this.getProduct();
 
   }
   getProduct() {
@@ -128,15 +159,16 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
       console.log('listImport', this.listImport);
       console.log('listExport', this.listExport);
       console.log('listBorrow', this.listBorrow);
-      this.drawTBBorrow();
-      this.drawTBExport();
-      this.drawTBImport();
+      this.tableImport?.replaceData(this.listImport);
+      this.tableExport?.replaceData(this.listExport);
+      this.tableBorrow?.replaceData(this.listBorrow);
     });
   }
   drawTBImport() {
-    const table = new Tabulator('#tbImport', {
+    this.tableImport = new Tabulator('#tbImport', {
       data: this.listImport,
-      layout: 'fitColumns',
+      layout: 'fitData',
+      height: '100%',
       columns: [
         {
           title: "STT",
@@ -146,10 +178,16 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
           width: 60
         },
         {
+          title: "ID",
+          field: "ID",
+          visible: false
+        },
+        {
           title: "Mã phiếu nhập",
           field: "BillCode",
           hozAlign: "left",
-          headerHozAlign: "center"
+          headerHozAlign: "center",
+          width: 150
         },
         {
           title: "Ngày tạo",
@@ -162,34 +200,48 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
             invalidPlaceholder: "-"
           },
           hozAlign: "left",
-          headerHozAlign: "center"
+          headerHozAlign: "center",
+          width: 150
         },
         {
           title: "Số lượng",
           field: "Quantity",
           hozAlign: "right",
-          headerHozAlign: "center"
+          headerHozAlign: "center",
+          width: 150
         },
         {
           title: "Người giao",
           field: "Deliver",
           hozAlign: "left",
-          headerHozAlign: "center"
+          headerHozAlign: "center",
+          width: 200
         },
         {
           title: "Nhà cung cấp",
           field: "Suplier",
           hozAlign: "left",
-          headerHozAlign: "center"
+          headerHozAlign: "center",
+          width: 200
         }
       ]
+    });
 
+    // Double click to open Bill Import Detail
+    this.tableImport.on("rowDblClick", (_e, row) => {
+      const rowData = row.getData();
+      const importID = rowData['ID'];
+      if (importID && importID > 0) {
+        this.openBillImportTechnicalDetail(importID);
+      }
     });
   }
+
   drawTBExport() {
-    const table = new Tabulator('#tbExport', {
+    this.tableExport = new Tabulator('#tbExport', {
       data: this.listExport,
-      layout: 'fitColumns',
+      layout: 'fitData',
+      height: '100%',
       columns: [
         {
           title: "STT",
@@ -199,10 +251,16 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
           width: 60
         },
         {
+          title: "ID",
+          field: "ID",
+          visible: false
+        },
+        {
           title: "Mã phiếu xuất",
           field: "Code",
           hozAlign: "left",
-          headerHozAlign: "center"
+          headerHozAlign: "center",
+          width: 150
         },
         {
           title: "Ngày tạo",
@@ -215,61 +273,70 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
             invalidPlaceholder: "-"
           },
           hozAlign: "left",
-          headerHozAlign: "center"
+          headerHozAlign: "center",
+          width: 150
         },
         {
           title: "Số lượng",
           field: "Quantity",
           hozAlign: "right",
-          headerHozAlign: "center"
+          headerHozAlign: "center",
+          width: 150
         },
         {
           title: "Người nhận",
           field: "Receiver",
           hozAlign: "left",
-          headerHozAlign: "center"
+          headerHozAlign: "center",
+          width: 200
         },
         {
           title: "Nhà cung cấp",
           field: "SupplierName",
           hozAlign: "left",
-          headerHozAlign: "center"
+          headerHozAlign: "center",
+          width: 200
         },
         {
           title: "Loại phiếu",
           field: "BillTypeText",
           hozAlign: "left",
-          headerHozAlign: "center"
+          headerHozAlign: "center",
+          width: 150
         },
-
       ]
+    });
+
+    // Double click to open Bill Export Detail
+    this.tableExport.on("rowDblClick", (_e, row) => {
+      const rowData = row.getData();
+      const exportID = rowData['ID'];
+      if (exportID && exportID > 0) {
+        this.openBillExportTechnicalDetail(exportID);
+      }
     });
   }
   drawTBBorrow() {
-    const table = new Tabulator('#tbBorrow', {
+    this.tableBorrow = new Tabulator('#tbBorrow', {
       data: this.listBorrow,
-      layout: 'fitDataStretch',
-      pagination: true,
-      selectableRows: 5,
-      height: '79vh',
+      layout: 'fitData',
+      height: '100%',
       movableColumns: true,
-      paginationSize: 30,
-      paginationSizeSelector: [5, 10, 20, 50, 100],
       reactiveData: true,
-      history: true,
       columns: [
         {
           title: "STT",
           formatter: "rownum",
           hozAlign: "center",
           headerHozAlign: "center",
-          width: 60 // hoặc điều chỉnh tùy bạn
+          width: 60
         },
         {
           title: "ID",
           field: "ID",
           hozAlign: "right",
-          headerHozAlign: "center"
+          headerHozAlign: "center",
+          width: 150
         },
         {
           title: "Ngày mượn",
@@ -278,11 +345,12 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
           headerHozAlign: "center",
           formatter: "datetime",
           formatterParams: {
-            inputFormat: "iso", // ← đây là quan trọng
+            inputFormat: "iso",
             outputFormat: "dd/MM/yyyy ",
-            timezone: "Asia/Ho_Chi_Minh", // nếu muốn theo giờ VN
+            timezone: "Asia/Ho_Chi_Minh",
             invalidPlaceholder: "-"
-          }
+          },
+          width: 150
         },
         {
           title: "Ngày trả dự kiến",
@@ -295,7 +363,8 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
             outputFormat: "dd/MM/yyyy",
             timezone: "Asia/Ho_Chi_Minh",
             invalidPlaceholder: "-"
-          }
+          },
+          width: 150
         },
         {
           title: "Ngày trả",
@@ -308,41 +377,112 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
             outputFormat: "dd/MM/yyyy",
             timezone: "Asia/Ho_Chi_Minh",
             invalidPlaceholder: "-"
-          }
+          },
+          width: 150
         },
 
         {
           title: "Dự án",
           field: "Project",
           hozAlign: "left",
-          headerHozAlign: "center"
+          headerHozAlign: "center",
+          width: 200
         },
         {
           title: "Ghi chú",
           field: "Note",
           hozAlign: "left",
-          headerHozAlign: "center"
+          headerHozAlign: "center",
+          width: 200
         },
         {
           title: "Số mượn",
           field: "NumberBorrow",
           hozAlign: "right",
-          headerHozAlign: "center"
+          headerHozAlign: "center",
+          width: 150
         },
         {
           title: "Trạng thái",
           field: "StatusText",
           hozAlign: "left",
-          headerHozAlign: "center"
+          headerHozAlign: "center",
+          width: 150
         },
         {
           title: "Người mượn",
           field: "FullName",
           hozAlign: "left",
-          headerHozAlign: "center"
+          headerHozAlign: "center",
+          width: 200
         }
       ]
-
     });
+  }
+
+  // Open Bill Import Technical Detail Modal (matching C# grvDataImport_DoubleClick)
+  openBillImportTechnicalDetail(importID: number): void {
+    if (!importID || importID <= 0) {
+      this.notification.warning('Thông báo', 'ID phiếu nhập không hợp lệ!');
+      return;
+    }
+
+    const modalRef = this.ngbModal.open(BillImportTechnicalFormComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+    });
+
+    // Truyền dữ liệu vào modal
+    modalRef.componentInstance.IDDetail = importID;
+    modalRef.componentInstance.warehouseID = this.warehouseID1;
+
+    // Xử lý kết quả khi modal đóng
+    modalRef.result.then(
+      (result) => {
+        if (result === true) {
+          // Reload data after save
+          this.getBorrowImportExportProductRTC();
+          this.getProduct();
+        }
+      },
+      (dismissed) => {
+        console.log('Modal dismissed:', dismissed);
+      }
+    );
+  }
+
+  // Open Bill Export Technical Detail Modal (matching C# grvDataExport_DoubleClick)
+  openBillExportTechnicalDetail(exportID: number): void {
+    if (!exportID || exportID <= 0) {
+      this.notification.warning('Thông báo', 'ID phiếu xuất không hợp lệ!');
+      return;
+    }
+
+    const modalRef = this.ngbModal.open(BillExportTechnicalFormComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+    });
+
+    // Truyền dữ liệu vào modal
+    modalRef.componentInstance.IDDetail = exportID;
+    modalRef.componentInstance.warehouseID = this.warehouseID1;
+
+    // Xử lý kết quả khi modal đóng
+    modalRef.result.then(
+      (result) => {
+        if (result === true) {
+          // Reload data after save
+          this.getBorrowImportExportProductRTC();
+          this.getProduct();
+        }
+      },
+      (dismissed) => {
+        console.log('Modal dismissed:', dismissed);
+      }
+    );
   }
 }

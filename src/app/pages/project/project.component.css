@@ -31,3 +31,39 @@
   height: 93vh !important;
 }
 
+/* Fix context menu khi mở ở dòng dưới cùng - responsive */
+::ng-deep .tabulator-menu {
+  max-height: min(400px, calc(100vh - 100px)) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  position: fixed !important;
+  z-index: 10000 !important;
+}
+
+/* Đảm bảo context menu không đẩy giao diện */
+::ng-deep .tabulator-menu.tabulator-popup-container {
+  /* max-height: calc(100vh - 40px) !important; */
+  height: 32vh !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Scrollbar cho context menu */
+::ng-deep .tabulator-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+::ng-deep .tabulator-menu::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::ng-deep .tabulator-menu::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+::ng-deep .tabulator-menu::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+

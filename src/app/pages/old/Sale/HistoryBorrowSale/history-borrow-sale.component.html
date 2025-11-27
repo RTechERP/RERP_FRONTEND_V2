@@ -111,9 +111,13 @@
               </div>
           </div>
           <!-- Body chứa 2 bảng -->
-          <div class="card-body p-0 w-100">
-            <nz-spin [nzSpinning]="loading" nzTip="Đang tải dữ liệu...">
-              <div id="table_HistoryBorrowSale"></div>
+          <div class="card-body p-0 w-100 position-relative">
+            <div id="table_HistoryBorrowSale"></div>
+            <nz-spin
+                class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                [nzSpinning]="loading"
+                nzTip="Đang tải dữ liệu..."
+                style="background: rgba(255, 255, 255, 0.8); z-index: 1000;">
             </nz-spin>
           </div>
 
@@ -142,6 +146,18 @@
           <span>Chi tiết phiếu mượn</span>
         </li>
         <li nz-menu-item *hasPermission="'N27,N1'" (click)="viewReturnDetail()">
+          <span nz-icon nzType="file-text" nzTheme="outline"></span>
+          <span>Chi tiết trả hàng</span>
+        </li>
+         <li nz-menu-item *hasPermission="'N27,N1'" (click)="viewReturnDetail()">
+          <span nz-icon nzType="file-text" nzTheme="outline"></span>
+          <span>Chi tiết trả hàng</span>
+        </li>
+                 <li nz-menu-item *hasPermission="'N27,N1'" (click)="viewReturnDetail()">
+          <span nz-icon nzType="file-text" nzTheme="outline"></span>
+          <span>Chi tiết trả hàng</span>
+        </li>
+                 <li nz-menu-item *hasPermission="'N27,N1'" (click)="viewReturnDetail()">
           <span nz-icon nzType="file-text" nzTheme="outline"></span>
           <span>Chi tiết trả hàng</span>
         </li>

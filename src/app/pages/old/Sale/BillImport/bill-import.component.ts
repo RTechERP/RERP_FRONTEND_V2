@@ -155,7 +155,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     keyword: '',
     checkAll: false,
     pageNumber: 1,
-    pageSize: 1000,
+    pageSize: 50,
   };
 
   searchText: string = '';
@@ -215,9 +215,10 @@ export class BillImportComponent implements OnInit, AfterViewInit {
       keyword: '',
       checkAll: false,
       pageNumber: 1,
-      pageSize: 1000,
+      pageSize: 50,
     };
     this.searchText = '';
+    this.loadDataBillImport();
   }
   searchData() {
     this.loadDataBillImport();
@@ -476,34 +477,11 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     });
   }
   loadDataBillImport() {
-    this.isLoadTable = true;
-    const dateStart = DateTime.fromJSDate(
-      new Date(this.searchParams.dateStart)
-    );
-    const dateEnd = DateTime.fromJSDate(new Date(this.searchParams.dateEnd));
-    this.billImportService.getBillImport(this.searchParams).subscribe({
-      next: (res) => {
-        if (res.status === 1) {
-          this.dataTableBillImport = res.data;
-          if (this.table_billImport) {
-            this.table_billImport.replaceData(this.dataTableBillImport);
-          } else {
-            console.log(
-              '>>> Bảng chưa tồn tại, dữ liệu sẽ được load khi drawTable() được gọi'
-            );
-          }
-          this.isLoadTable = false;
-        }
-      },
-      error: (err) => {
-        console.error('Lỗi khi load dữ liệu:', err);
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          err?.error?.message || 'Không thể tải dữ liệu phiếu nhập'
-        );
-        this.isLoadTable = false;
-      },
-    });
+    // Nếu table đã tồn tại, chỉ cần setData để trigger Ajax request
+    if (this.table_billImport) {
+      this.table_billImport.setData();
+    }
+    // Nếu chưa có table, drawTable() sẽ tự động load data
   }
   async exportExcel() {
     const table = this.table_billImport;
@@ -958,7 +936,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
       error: (err: any) => {
         console.error('Error updating document status:', err);
         this.notification.error(
-          NOTIFICATION_TITLE.error,
+          NOTIFICATION_TITLE.error, err.error.message || 
           'Có lỗi xảy ra khi cập nhật trạng thái hồ sơ chứng từ!'
         );
       },
@@ -1016,18 +994,51 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
     if (this.table_billImport) {
-      this.table_billImport.replaceData(this.dataTableBillImport);
+      this.table_billImport.setData();
     } else {
       this.table_billImport = new Tabulator('#table_billImport', {
         ...DEFAULT_TABLE_CONFIG,
-        data: this.dataTableBillImport,
+        paginationMode: 'remote',
+        ajaxURL: 'dummy',
+        ajaxRequestFunc: (_url, _config, params) => {
+          return new Promise((resolve, reject) => {
+            this.isLoadTable = true;
+            const updatedParams = {
+              ...this.searchParams,
+              pageNumber: params.page || 1,
+              pageSize: params.size || 50,
+            };
+
+            this.billImportService.getBillImport(updatedParams).subscribe({
+              next: (res) => {
+                this.isLoadTable = false;
+                if (res.status === 1) {
+                  resolve({
+                    data: res.data,
+                    last_page: res.totalPage || 1,
+                  });
+                } else {
+                  reject('Failed to load data');
+                }
+              },
+              error: (err) => {
+                this.isLoadTable = false;
+                this.notification.error(
+                  NOTIFICATION_TITLE.error,
+                  err?.error?.message || 'Không thể tải dữ liệu phiếu nhập'
+                );
+                reject(err);
+              },
+            });
+          });
+        },
+        paginationSize: 50,
+        paginationSizeSelector: [10, 25, 50, 100, 200],
         height: '97%',
         layout: 'fitDataStretch',
         pagination: true,
         movableColumns: true,
         resizableRows: true,
-        reactiveData: true,
-        paginationMode: 'local',
         rowContextMenu: rowMenu,
         langs: {
           vi: {

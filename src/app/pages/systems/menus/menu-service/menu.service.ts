@@ -316,15 +316,15 @@ export class MenuService {
                 comp: BillExportTechnicalComponent,
                 //   icon: 'assets/icon/layers.png',
               },
-              {
-                kind: 'leaf',
-                key: 'InventoryBorrowNCCComponent',
-                title: 'BÁO CÁO MƯỢN',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: InventoryBorrowNCCComponent,
-                //   icon: 'assets/icon/layers.png',
-              },
+              // {
+              //   kind: 'leaf',
+              //   key: 'InventoryBorrowNCCComponent',
+              //   title: 'BÁO CÁO MƯỢN',
+              //   isOpen: true,
+              //   isPermission: this.permissionService.hasPermission(''),
+              //   comp: InventoryBorrowNCCComponent,
+              //   //   icon: 'assets/icon/layers.png',
+              // },
               {
                 kind: 'leaf',
                 key: 'ProductReportNewRtcComponent',
@@ -344,7 +344,7 @@ export class MenuService {
               {
                 kind: 'leaf',
                 key: 'BorrowReportComponent',
-                title: 'BÁO CÁO MƯỢN NCC DEMO',
+                title: 'BÁO CÁO MƯỢN',
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission(''),
                 comp: BorrowReportComponent,

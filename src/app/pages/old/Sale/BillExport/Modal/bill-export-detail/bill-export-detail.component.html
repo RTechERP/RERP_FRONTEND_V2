@@ -198,10 +198,15 @@
         <nz-form-item>
           <nz-form-label class="fs-12">Địa chỉ<span class="text-danger">*</span></nz-form-label>
           <nz-form-control [nzErrorTip]="addressError">
-            <input nz-input nzSize="default" formControlName="Address" />
+            <nz-select nzSize="default" formControlName="AddressStockID" nzShowSearch nzAllowClear nzPlaceHolder="Chọn địa chỉ">
+              <nz-option *ngFor="let id of dataCbbAdressStock" [nzValue]="id.ID" [nzLabel]="id.Address"></nz-option>
+            </nz-select>
             <ng-template #addressError let-control>
               <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">
-                Vui lòng nhập địa chỉ!
+                Vui lòng chọn địa chỉ!
+              </ng-container>
+              <ng-container *ngIf="control.hasError('min') && (control.dirty || control.touched)">
+                Địa chỉ không hợp lệ!
               </ng-container>
             </ng-template>
           </nz-form-control>
@@ -209,9 +214,9 @@
       </div>
     </div>
   </form>
-  <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải dữ liệu...">
+  <div class="position-relative" style="min-height: 300px;">
     <div id="table_BillExportDetails"></div>
-  </nz-spin>
+  </div>
 </div>
 
 <div class="modal-footer flex-shrink-0">

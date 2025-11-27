@@ -117,7 +117,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
   isLoadTable: boolean = false;
   isDetailLoad: boolean = false;
 
-  newBillExport: BillExport = {
+ @Input() newBillExport: BillExport = {
     TypeBill: false,
     Code: '',
     Address: '',
@@ -159,7 +159,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
     keyword: '',
     checkAll: false,
     pageNumber: 1,
-    pageSize: 999999999,
+    pageSize: 50,
   };
 
   searchText: string = '';
@@ -200,9 +200,10 @@ export class BillExportComponent implements OnInit, AfterViewInit {
       keyword: '',
       checkAll: false,
       pageNumber: 1,
-      pageSize: 999999999,
+      pageSize: 50,
     };
     this.searchText = '';
+    this.loadDataBillExport();
   }
   onKhoTypeChange(selected: number[]): void {
     this.selectedKhoTypes = selected;
@@ -234,42 +235,11 @@ export class BillExportComponent implements OnInit, AfterViewInit {
     });
   }
   loadDataBillExport() {
-    this.isLoadTable = true;
-    const dateStart = DateTime.fromJSDate(
-      new Date(this.searchParams.dateStart)
-    );
-    const dateEnd = DateTime.fromJSDate(new Date(this.searchParams.dateEnd));
-    this.billExportService
-      .getBillExport(
-        this.searchParams.listproductgroupID,
-        this.searchParams.status,
-        dateStart,
-        dateEnd,
-        this.searchParams.keyword,
-        this.checked,
-        this.searchParams.pageNumber,
-        this.searchParams.pageSize,
-        this.searchParams.warehousecode
-      )
-      .subscribe({
-        next: (res) => {
-          if (res.status === 1) {
-            this.dataTableBillExport = res.data;
-            if (this.table_billExport) {
-              this.table_billExport.replaceData(this.dataTableBillExport);
-            } else {
-              console.log(
-                '>>> Bảng chưa tồn tại, dữ liệu sẽ được load khi drawTable() được gọi'
-              );
-            }
-            this.isLoadTable = false;
-          }
-        },
-        error: (err) => {
-          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu phiếu xuất');
-          this.isLoadTable = false;
-        },
-      });
+    // Nếu table đã tồn tại, chỉ cần setData để trigger Ajax request
+    if (this.table_billExport) {
+      this.table_billExport.setData();
+    }
+    // Nếu chưa có table, drawTable() sẽ tự động load data
   }
   getBillExportDetail(id: number) {
     this.isDetailLoad = true;
@@ -547,20 +517,56 @@ export class BillExportComponent implements OnInit, AfterViewInit {
     const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
     if (this.table_billExport) {
-      this.table_billExport.replaceData(this.dataTableBillExport);
+      this.table_billExport.setData();
     } else {
       this.table_billExport = new Tabulator('#table_billExport', {
         ...DEFAULT_TABLE_CONFIG,
-        paginationMode: 'local',
+        paginationMode: 'remote',
+        ajaxURL: 'dummy', // Required but not used, we'll use ajaxRequestFunc
+        ajaxRequestFunc: (_url, _config, params) => {
+          return new Promise((resolve, reject) => {
+            const dateStart = DateTime.fromJSDate(new Date(this.searchParams.dateStart));
+            const dateEnd = DateTime.fromJSDate(new Date(this.searchParams.dateEnd));
 
-        data: this.dataTableBillExport,
+            this.billExportService
+              .getBillExport(
+                this.searchParams.listproductgroupID,
+                this.searchParams.status,
+                dateStart,
+                dateEnd,
+                this.searchParams.keyword,
+                this.checked,
+                params.page || 1,
+                params.size || 50,
+                this.searchParams.warehousecode
+              )
+              .subscribe({
+                next: (res) => {
+                  if (res.status === 1) {
+                    resolve({
+                      data: res.data,
+                      last_page: res.totalPage || 1,
+                    });
+                  } else {
+                    reject('Failed to load data');
+                  }
+                },
+                error: (err) => {
+                  this.isLoadTable = false;
+                  this.notification.error(NOTIFICATION_TITLE.error, err.error?.message || 'Không thể tải dữ liệu phiếu xuất');
+                  reject(err);
+                },
+              });
+          });
+        },
+        paginationSize: 50,
+        paginationSizeSelector: [10, 25, 50, 100, 200],
         layout: 'fitDataFill',
         height: '97%',
         pagination: true,
         selectableRows: 1,
         movableColumns: true,
         resizableRows: true,
-        reactiveData: true,
         rowContextMenu: rowMenu,
         rowHeader: {
           headerSort: false,

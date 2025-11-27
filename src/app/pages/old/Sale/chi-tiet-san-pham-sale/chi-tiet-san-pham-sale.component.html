@@ -33,13 +33,9 @@
             nzDisabled
           >
             <nz-option
-              *ngFor="let item of dtCbProduct"
+              *ngFor="let item of dtProduct"
               [nzValue]="item.ProductSaleID"
-              [nzLabel]="
-                (item.ProductCode || item.productcode) +
-                ' - ' +
-                (item.ProductName || item.productname)
-              "
+              [nzLabel]="item.ProductCode"
             >
             </nz-option>
           </nz-select>

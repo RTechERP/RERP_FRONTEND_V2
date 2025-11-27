@@ -160,8 +160,16 @@ export class BillImportDetailComponent
   projectOptions: any = [];
   billID: number = 0;
   deliverID: number = 0;
-
+  labelReceiver:string='';
   isApproved: boolean = false;
+
+  // Label động theo loại phiếu
+  labelSupplier: string = 'Nhà cung cấp';
+  labelDeliver: string = 'Người giao';
+  placeholderSupplier: string = 'Chọn nhà cung cấp';
+  placeholderDeliver: string = 'Chọn người giao';
+  errorMessageSupplier: string = 'Vui lòng chọn nhà cung cấp!';
+  errorMessageDeliver: string = 'Vui lòng chọn người giao!';
   //tao phieu tra
   @Input() createImport: any;
   @Input() dataHistory: any[] = [];
@@ -374,9 +382,12 @@ export class BillImportDetailComponent
       this.initialBillTypeNew = 1;
       this.validateForm.patchValue({
         BillTypeNew: 1,
-        CreatDate: new Date(), 
-        DateRequestImport: null, 
+        CreatDate: new Date(),
+        DateRequestImport: null,
       });
+
+      // Cập nhật label cho phiếu trả
+      this.updateLabels(1);
 
       this.getNewCode();
       this.patchNewBillImportFromHistory();
@@ -385,6 +396,8 @@ export class BillImportDetailComponent
     } else if (!this.newBillImport.Id || this.newBillImport.Id === 0) {
       this.initialBillTypeNew = 0;
       this.isInitialLoad = false;
+      // Cập nhật label cho loại phiếu mặc định
+      this.updateLabels(0);
       this.getNewCode();
     }
 
@@ -513,8 +526,48 @@ export class BillImportDetailComponent
     }
   }
 
+  // Method để cập nhật label theo loại phiếu
+  private updateLabels(billTypeNew: number) {
+    if (billTypeNew === 0 || billTypeNew === 4) {
+      // Phiếu nhập kho (0) hoặc Yêu cầu nhập kho (4)
+      this.labelSupplier = 'Nhà cung cấp';
+      this.labelDeliver = 'Người giao';
+      this.placeholderSupplier = 'Chọn nhà cung cấp';
+      this.placeholderDeliver = 'Chọn người giao';
+      this.errorMessageSupplier = 'Vui lòng chọn nhà cung cấp!';
+      this.errorMessageDeliver = 'Vui lòng chọn người giao!';
+    } else if (billTypeNew === 1) {
+      // Phiếu trả (1)
+      this.labelSupplier = 'Bộ phận';
+      this.labelDeliver = 'Người trả';
+      this.placeholderSupplier = 'Chọn bộ phận';
+      this.placeholderDeliver = 'Chọn người trả';
+      this.errorMessageSupplier = 'Vui lòng chọn bộ phận!';
+      this.errorMessageDeliver = 'Vui lòng chọn người trả!';
+    } else if (billTypeNew === 3) {
+      // Phiếu mượn NCC (3)
+      this.labelSupplier = 'Nhà cung cấp';
+      this.labelDeliver = 'Người giao';
+      this.placeholderSupplier = 'Chọn nhà cung cấp';
+      this.placeholderDeliver = 'Chọn người giao';
+      this.errorMessageSupplier = 'Vui lòng chọn nhà cung cấp!';
+      this.errorMessageDeliver = 'Vui lòng chọn người giao!';
+    } else {
+      // Các trường hợp khác (default)
+      this.labelSupplier = 'Bộ phận';
+      this.labelDeliver = 'Người trả';
+      this.placeholderSupplier = 'Chọn bộ phận';
+      this.placeholderDeliver = 'Chọn người trả';
+      this.errorMessageSupplier = 'Vui lòng chọn bộ phận!';
+      this.errorMessageDeliver = 'Vui lòng chọn người trả!';
+    }
+  }
+
   changeStatus() {
     const billTypeNew = this.validateForm.get('BillTypeNew')?.value;
+
+    // Cập nhật label theo loại phiếu
+    this.updateLabels(billTypeNew);
 
     // Cập nhật ngày tháng theo loại phiếu
     if (billTypeNew === 1) {
@@ -777,6 +830,9 @@ export class BillImportDetailComponent
           this.validateForm.patchValue(this.newBillImport, {
             emitEvent: false,
           });
+
+          // Cập nhật label theo loại phiếu đã load
+          this.updateLabels(data.BillTypeNew);
 
           // Cập nhật activePur sau khi load dữ liệu
           this.updateActivePur();
@@ -1279,7 +1335,7 @@ export class BillImportDetailComponent
     if (!formValues.SupplierID || formValues.SupplierID <= 0) {
       this.notification.error(
         NOTIFICATION_TITLE.error,
-        'Xin hãy điền thông tin nhà cung cấp.'
+        `Xin hãy điền thông tin ${this.labelSupplier.toLowerCase()}.`
       );
       return;
     }
@@ -1300,7 +1356,7 @@ export class BillImportDetailComponent
     if (!formValues.DeliverID || formValues.DeliverID <= 0) {
       this.notification.error(
         NOTIFICATION_TITLE.error,
-        'Xin hãy điền thông tin người giao.'
+        `Xin hãy điền thông tin ${this.labelDeliver.toLowerCase()}.`
       );
       return;
     }
@@ -1838,7 +1894,7 @@ export class BillImportDetailComponent
               headerHozAlign: 'center',
               editor: 'input',
               frozen:true,
-              
+
               width: 450,
             },
 

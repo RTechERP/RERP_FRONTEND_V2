@@ -252,7 +252,14 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
       )
       .subscribe({
         next: (res: any) => {
-          this.dataTable = res.data;
+          // Format ngày tháng về dd/MM/yyyy trước khi đổ vào bảng
+          this.dataTable = res.data.map((item: any) => {
+            return {
+              ...item,
+              BorrowDate: item.BorrowDate ? this.formatDate(item.BorrowDate) : '',
+              ExpectReturnDate: item.ExpectReturnDate ? this.formatDate(item.ExpectReturnDate) : ''
+            };
+          });
           // Luôn gọi replaceData nếu bảng đã tồn tại
           if (this.table) {
             this.table.replaceData(this.dataTable);
@@ -276,6 +283,16 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
   }
+  // Format date về dd/MM/yyyy
+  formatDate(dateString: string): string {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
   resetform() {
     this.searchParams = {
       dateStart: new Date(`${new Date().getFullYear()}-01-01`)
@@ -450,8 +467,8 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
   drawTable() {
     this.table = new Tabulator('#table_HistoryBorrowSale', {
       ...DEFAULT_TABLE_CONFIG,
-      data: this.dataTable, 
-      layout: 'fitDataFill', 
+      data: this.dataTable,
+      layout: 'fitDataFill',
       height: '90vh',
       selectableRows: 15,
       reactiveData: true,
@@ -507,14 +524,12 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
           field: 'BorrowDate',
           hozAlign: 'center',
           headerHozAlign: 'center',
-          formatter: 'datetime',
         },
-                {
+        {
           title: 'Ngày dự kiến trả',
           field: 'ExpectReturnDate',
           hozAlign: 'center',
           headerHozAlign: 'center',
-          formatter: 'datetime',
         },
         {
           title: 'Mã nhân viên',
@@ -663,9 +678,43 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
     this.contextMenuCell = null;
 
     // Lấy vị trí chuột
-    this.contextMenuX = event.clientX;
-    this.contextMenuY = event.clientY;
+    let x = event.clientX;
+    let y = event.clientY;
+
+    // Hiển thị menu tạm thời để lấy kích thước
     this.contextMenuVisible = true;
+    this.contextMenuX = x;
+    this.contextMenuY = y;
+
+    // Đợi DOM update để lấy kích thước menu
+    setTimeout(() => {
+      const menuElement = document.querySelector('.context-menu') as HTMLElement;
+      if (menuElement) {
+        const menuWidth = menuElement.offsetWidth;
+        const menuHeight = menuElement.offsetHeight;
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+
+        // Điều chỉnh vị trí nếu menu bị tràn ra ngoài màn hình
+        // Kiểm tra bên phải
+        if (x + menuWidth > windowWidth) {
+          x = windowWidth - menuWidth - 10; // 10px padding từ edge
+        }
+
+        // Kiểm tra phía dưới
+        if (y + menuHeight > windowHeight) {
+          y = windowHeight - menuHeight - 10; // 10px padding từ edge
+        }
+
+        // Đảm bảo không âm
+        x = Math.max(10, x);
+        y = Math.max(10, y);
+
+        // Cập nhật lại vị trí
+        this.contextMenuX = x;
+        this.contextMenuY = y;
+      }
+    }, 0);
 
     // Tìm cell được click
     const target = event.target as HTMLElement;

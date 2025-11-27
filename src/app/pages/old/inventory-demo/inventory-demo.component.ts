@@ -30,6 +30,8 @@ import { TbProductRtcService } from '../tb-product-rtc/tb-product-rtc-service/tb
 import { InventoryBorrowSupplierDemoComponent } from './inventory-borrow-supplier-demo/inventory-borrow-supplier-demo.component';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { MaterialDetailOfProductRtcComponent } from './material-detail-of-product-rtc/material-detail-of-product-rtc.component';
+import { MenuEventService } from '../../systems/menus/menu-service/menu-event.service';
 
 @Component({
   standalone: true,
@@ -81,6 +83,7 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
   constructor(private notification: NzNotificationService,
     private tbProductRtcService: TbProductRtcService,
     private inventoryDemoService: InventoryDemoService,
+    private menuEventService: MenuEventService
   ) { }
   ngAfterViewInit(): void {
     this.getGroup();
@@ -133,6 +136,16 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
     this.getProduct();
   }
   drawTable() {
+    const rowMenu = [
+      {
+        label: '<i class="fas fa-eye"></i> Xem chi tiết',
+        action: (e: any, row: any) => {
+          const rowData = row.getData();
+          this.openDetailTab(rowData);
+        },
+      },
+    ];
+
     if (this.productTable) {
       this.productTable.setData(this.productData)
     }
@@ -150,6 +163,7 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
         placeholder: 'Không có dữ liệu',
         dataTree: true,
         history: true,
+        rowContextMenu: rowMenu,
         columns: [
           { title: "ID", field: "ID", hozAlign: "left", headerHozAlign: "center" },
           { title: "Mã SP", field: "ProductCode", hozAlign: "left", headerHozAlign: "center" },
@@ -301,5 +315,24 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(link.href);
+  }
+
+  openDetailTab(rowData: any): void {
+    const title = `Chi tiết: ${rowData.ProductName || rowData.ProductCode}`;
+    const data = {
+      productRTCID1: rowData.ProductRTCID || 0,
+      warehouseID1: this.warehouseID || 1,
+      ProductCode: rowData.ProductCode || '',
+      ProductName: rowData.ProductName || '',
+      NumberBegin: rowData.Number || 0,
+      InventoryLatest: rowData.InventoryLatest || 0,
+      NumberImport: rowData.NumberImport || 0,
+      NumberExport: rowData.NumberExport || 0,
+      NumberBorrowing: rowData.NumberBorrowing || 0,
+      InventoryReal: rowData.InventoryReal || 0
+    };
+    console.log('data: ',data);
+
+    this.menuEventService.openNewTab(MaterialDetailOfProductRtcComponent, title, data);
   }
 }

@@ -9,7 +9,7 @@ import { environment } from '../../../../../environments/environment';
 })
 export class PokhHistoryServiceService {
   private _url = environment.host + 'api/POKHHistory/';
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
   loadData(
     keywords: string,
     startDate: Date,
@@ -21,7 +21,7 @@ export class PokhHistoryServiceService {
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
     };
-    
+
     if (cusCode && cusCode.trim() !== '') {
       params.cusCode = cusCode.toString();
     }

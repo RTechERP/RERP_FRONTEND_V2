@@ -70,8 +70,9 @@
                     <nz-form-item class="mb-2">
                       <nz-form-label class="mb-1 mt-2 ps-1">Nội dung</nz-form-label>
                       <nz-form-control>
-                        <textarea nz-input rows="2" [(ngModel)]="item.ContentPlan" [name]="'contentPlan_' + i"
-                          (ngModelChange)="onFieldChange(item)" placeholder="Nhập nội dung công việc">
+                        <textarea nz-input [nzAutosize]="{ minRows: 2, maxRows: 6 }" [(ngModel)]="item.ContentPlan"
+                          [name]="'contentPlan_' + i" (ngModelChange)="onFieldChange(item)"
+                          placeholder="Nhập nội dung công việc">
                         </textarea>
                       </nz-form-control>
                     </nz-form-item>
@@ -81,8 +82,9 @@
                     <nz-form-item class="mb-2">
                       <nz-form-label class="mb-1 mt-2 ps-1">Kết quả mong đợi</nz-form-label>
                       <nz-form-control class="mb-3">
-                        <textarea nz-input rows="2" [(ngModel)]="item.Result" [name]="'result_' + i"
-                          (ngModelChange)="onFieldChange(item)" placeholder="Nhập kết quả mong đợi">
+                        <textarea nz-input [nzAutosize]="{ minRows: 2, maxRows: 6 }" [(ngModel)]="item.Result"
+                          [name]="'result_' + i" (ngModelChange)="onFieldChange(item)"
+                          placeholder="Nhập kết quả mong đợi">
                         </textarea>
                       </nz-form-control>
                     </nz-form-item>

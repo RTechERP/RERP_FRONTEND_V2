@@ -42,11 +42,8 @@
             <nz-col [nzSpan]="8">
               <nz-form-item>
                 <nz-form-label class="pt-1">Người đăng ký</nz-form-label>
-                <nz-form-control
-                  [nzErrorTip]="(!requesterId || requesterId <= 0) ? 'Vui lòng chọn người đăng ký' : undefined"
-                  [nzValidateStatus]="(!requesterId || requesterId <= 0) ? 'error' : ''">
-                  <nz-select [(ngModel)]="requesterId" name="requesterId" nzShowSearch nzAllowClear
-                    nzPlaceHolder="Chọn người đăng ký" class="w-100" nzSize="default">
+                <nz-form-control>
+                  <nz-select [(ngModel)]="requesterId" name="requesterId" nzDisabled class="w-100" nzSize="default">
                     <nz-option-group *ngFor="let group of employeeGroups" [nzLabel]="group.label">
                       <nz-option *ngFor="let emp of group.options" [nzValue]="emp.ID || emp.EmployeeID"
                         [nzLabel]="emp.Code + ' - ' + emp.FullName">
@@ -86,7 +83,12 @@
 
           <!-- Panel dưới: Bảng VPP -->
           <nz-splitter-panel>
-            <div #tbRequestDetail class="border" style="height: 100%; "></div>
+            <div *ngIf="selectedEmployee" class="p-2 bg-light border-bottom">
+              <strong>Đang đăng ký VPP cho:</strong> 
+              <span class="text-primary">{{ selectedEmployee.Code }} - {{ selectedEmployee.FullName }}</span>
+              <span class="text-muted ms-2">({{ selectedEmployee.DepartmentName }})</span>
+            </div>
+            <div #tbRequestDetail class="border" [style.height]="selectedEmployee ? 'calc(100% - 50px)' : '100%'"></div>
           </nz-splitter-panel>
         </nz-splitter>
       </div>

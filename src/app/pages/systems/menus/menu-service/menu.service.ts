@@ -114,6 +114,7 @@ import { EmployeeTimekeepingComponent } from '../../../hrm/employee-management/e
 import { EmployeeSyntheticComponent } from '../../../hrm/employee-management/employee-synthetic/employee-synthetic/employee-synthetic.component';
 import { AssignWorkComponent } from '../../../purchase/assign-work/assign-work.component';
 import { AppComponent } from '../../../../app.component';
+import { ProductRtcQrCodeComponent } from '../../../old/product-rtc-qr-code/product-rtc-qr-code/product-rtc-qr-code.component';
 @Injectable({
   providedIn: 'root',
 })
@@ -125,7 +126,7 @@ export class MenuService {
     private permissionService: PermissionService,
     private appUserService: AppUserService,
     private notification: NzNotificationService
-  ) {}
+  ) { }
 
   //   getMenus(id: number): Observable<any> {
   //     return this.http.get<any>(this.apiUrl + `menus/${id}`);
@@ -357,13 +358,21 @@ export class MenuService {
                 isPermission: this.permissionService.hasPermission(''),
                 comp: BorrowProductHistoryComponent,
               },
-                            {
+              {
                 kind: 'leaf',
                 key: 'SearchProductTechSerialComponent',
                 title: 'TRA CỨU SERIALNUMBER',
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission(''),
                 comp: SearchProductTechSerialComponent,
+              },
+              {
+                kind: 'leaf',
+                key: 'ProductRtcQrCodeComponent',
+                title: 'Quản lý QR Code',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: ProductRtcQrCodeComponent,
               },
             ],
           },

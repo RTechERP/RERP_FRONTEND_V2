@@ -13,6 +13,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { ProjectService } from '../../../../project-service/project.service';
 import { ProjectPartListService } from '../project-partlist-service/project-part-list-service.service';
 import { CurrencyService } from '../../../../../general-category/currency-list/currency.service';
@@ -36,7 +37,8 @@ import { AuthService } from '../../../../../../auth/auth.service';
     NzDatePickerModule,
     NzCheckboxModule,
     NzGridModule,
-    NzAutocompleteModule
+    NzAutocompleteModule,
+    NzModalModule
   ],
   templateUrl: './project-partlist-detail.component.html',
   styleUrl: './project-partlist-detail.component.css'
@@ -76,6 +78,10 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
   isDisabled: boolean = false;
   currentIsApprovedTBP: boolean = false; // Lưu trữ giá trị IsApprovedTBP hiện tại
   currentPartListId: number = 0; // Lưu trữ ID của partlist đang edit
+  
+  // Regex pattern cho TT
+  private regexTT = /^\d+(\.\d+)*$/;
+  
   constructor(
     public activeModal: NgbActiveModal,
     private fb: FormBuilder,
@@ -83,22 +89,23 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
     private projectPartListService: ProjectPartListService,
     private currencyService: CurrencyService,
     private notification: NzNotificationService,
-    private authService: AuthService
+    private authService: AuthService,
+    private modal: NzModalService
   ) {
     this.formGroup = this.fb.group({
       // Tab 1: Thông tin chung
       projectId: [null, [Validators.required]],
       versionId: [null, [Validators.required]],
-      tt: [null, [Validators.required]],
+      tt: [null, [Validators.required, this.ttPatternValidator.bind(this)]],
       productCode: ['', [Validators.required]],
       specialCode: [''],
       isDeleted: [false],
       productName: [''],
-      maker: [''],
+      maker: ['', [Validators.required]],
       technicalInfo: [''],
-      qtyMin: [0],
-      qtyFull: [0],
-      unit: [''],
+      qtyMin: [0, [Validators.min(0)]],
+      qtyFull: [0, [Validators.required, Validators.min(0)]],
+      unit: ['', [Validators.required]],
       employeeId: [null],
       isProblem: [false],
       reasonProblem: [''],
@@ -143,12 +150,12 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
       this.updateQtyFieldsState(isProblem, this.currentIsApprovedTBP);
     });
 
-    // Format qtyMin and qtyFull to 2 decimal places
+    // Format qtyMin and qtyFull to integer (vì bước nhảy là 1)
     this.formGroup.get('qtyMin')?.valueChanges.subscribe((value: any) => {
       if (value !== null && value !== undefined && value !== '') {
         const numValue = parseFloat(value);
         if (!isNaN(numValue)) {
-          const formatted = parseFloat(numValue.toFixed(2));
+          const formatted = Math.round(numValue);
           if (formatted !== numValue) {
             this.formGroup.get('qtyMin')?.setValue(formatted, { emitEvent: false });
           }
@@ -160,7 +167,7 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
       if (value !== null && value !== undefined && value !== '') {
         const numValue = parseFloat(value);
         if (!isNaN(numValue)) {
-          const formatted = parseFloat(numValue.toFixed(2));
+          const formatted = Math.round(numValue);
           if (formatted !== numValue) {
             this.formGroup.get('qtyFull')?.setValue(formatted, { emitEvent: false });
           }
@@ -589,11 +596,39 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
     this.currentTab = index;
   }
 
+  // Custom validator cho TT pattern
+  ttPatternValidator(control: any): { [key: string]: any } | null {
+    if (!control.value) {
+      return null; // Let required validator handle empty values
+    }
+    const value = control.value.toString().trim();
+    if (value && !this.regexTT.test(value)) {
+      return { ttPattern: true };
+    }
+    return null;
+  }
+
+
   getFieldError(fieldName: string): string | undefined {
     const control = this.formGroup.get(fieldName);
     if (control?.invalid && (control?.dirty || control?.touched)) {
       if (control.errors?.['required']) {
+        if (fieldName === 'unit') {
+          return 'Đơn vị không được để trống!';
+        }
+        if (fieldName === 'maker') {
+          return 'Hãng sản xuất không được để trống!';
+        }
         return 'Trường này là bắt buộc!';
+      }
+      if (control.errors?.['ttPattern']) {
+        return 'TT phải có định dạng số (ví dụ: 1, 1.1, 1.1.1, ...)!';
+      }
+      if (control.errors?.['min']) {
+        if (fieldName === 'qtyMin' || fieldName === 'qtyFull') {
+          return 'Số lượng phải lớn hơn hoặc bằng 0!';
+        }
+        return 'Giá trị phải lớn hơn hoặc bằng 0!';
       }
     }
     return undefined;
@@ -602,7 +637,7 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
   validateForm(): boolean {
     if (this.currentTab === 0) {
       // Validate tab 1
-      const requiredFields = ['projectId', 'versionId', 'tt', 'productCode'];
+      const requiredFields = ['projectId', 'versionId', 'tt', 'productCode', 'unit', 'maker'];
       const invalidFields = requiredFields.filter(key => {
         const control = this.formGroup.get(key);
         return !control || control.invalid || control.value === null || control.value === '';
@@ -610,8 +645,54 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
 
       if (invalidFields.length > 0) {
         this.formGroup.markAllAsTouched();
+        
+        // Kiểm tra lỗi cụ thể cho TT
+        const ttControl = this.formGroup.get('tt');
+        if (ttControl?.errors?.['ttPattern']) {
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'TT phải có định dạng số (ví dụ: 1, 1.1, 1.1.1, ...)!');
+          return false;
+        }
+        
+        // Kiểm tra lỗi cho Unit
+        const unitControl = this.formGroup.get('unit');
+        if (unitControl?.errors?.['required']) {
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Đơn vị không được để trống!');
+          return false;
+        }
+        
+        // Kiểm tra lỗi cho Maker
+        const makerControl = this.formGroup.get('maker');
+        if (makerControl?.errors?.['required']) {
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Hãng sản xuất không được để trống!');
+          return false;
+        }
+        
         this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng điền đầy đủ các trường bắt buộc!');
         return false;
+      }
+
+      // Validate qtyMin và qtyFull - chỉ validate nếu không có giá trị hoặc < 0
+      const qtyMinControl = this.formGroup.get('qtyMin');
+      const qtyFullControl = this.formGroup.get('qtyFull');
+      
+      if (qtyMinControl?.invalid) {
+        this.formGroup.markAllAsTouched();
+        if (qtyMinControl.errors?.['min']) {
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Số lượng/1 máy phải lớn hơn hoặc bằng 0!');
+          return false;
+        }
+      }
+      
+      if (qtyFullControl?.invalid) {
+        this.formGroup.markAllAsTouched();
+        if (qtyFullControl.errors?.['required']) {
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Số lượng tổng không được để trống!');
+          return false;
+        }
+        if (qtyFullControl.errors?.['min']) {
+          this.notification.warning(NOTIFICATION_TITLE.warning, 'Số lượng tổng phải lớn hơn hoặc bằng 0!');
+          return false;
+        }
       }
     }
     return true;
@@ -675,13 +756,26 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
     };
     console.log("dataToSave", dataToSave);
     // Gọi API để lưu dữ liệu
-    this.projectPartListService.saveProjectPartListData(dataToSave).subscribe({
+    this.executeSave(dataToSave, false);
+  }
+
+  // Hàm thực hiện lưu dữ liệu
+  executeSave(dataToSave: any, overrideFix: boolean = false): void {
+    this.projectPartListService.saveProjectPartListData(dataToSave, overrideFix).subscribe({
       next: (response: any) => {
-        if (response.status === 1) {
+        // Kiểm tra nếu có lỗi ValidateFixProduct (status = 0 hoặc success = false)
+        if (response.status === 0 || response.success === false) {
+          // Hiển thị modal xác nhận với 3 options
+          this.showValidateFixProductModal(response.message || 'Có lỗi xảy ra khi lưu dữ liệu!', dataToSave);
+          return;
+        }
+
+        // Lưu thành công
+        if (response.status === 1 || response.success) {
           this.notification.success(NOTIFICATION_TITLE.success, response.message || 'Lưu dữ liệu thành công!');
           this.activeModal.close({ success: true, data: response.data || dataToSave });
         } else {
-          // Hiển thị lỗi từ server (validation errors)
+          // Hiển thị lỗi từ server (validation errors khác)
           this.notification.error(NOTIFICATION_TITLE.error, response.message || 'Lưu dữ liệu thất bại!');
         }
       },
@@ -690,6 +784,44 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
         const errorMessage = error?.error?.message || error?.message || 'Có lỗi xảy ra khi lưu dữ liệu!';
         this.notification.error(NOTIFICATION_TITLE.error, errorMessage);
       }
+    });
+  }
+
+  // Hiển thị modal xác nhận khi có lỗi ValidateFixProduct
+  showValidateFixProductModal(errorMessage: string, dataToSave: any): void {
+    const modalRef = this.modal.create({
+      nzTitle: 'Xác nhận',
+      nzContent: `
+        <div>
+          <p style="margin-bottom: 10px; white-space: pre-line;">${errorMessage}</p>
+          <p><strong>Bạn có muốn cập nhật dữ liệu theo tích xanh? </strong></p>
+        </div>
+      `,
+      nzFooter: [
+        {
+          label: 'Đồng ý',
+          type: 'primary',
+          onClick: () => {
+            modalRef.close();
+            this.activeModal.dismiss();
+          }
+        },
+        {
+          label: 'Không',
+          nzType: 'warning',
+          onClick: () => {
+            modalRef.close();
+            this.executeSave(dataToSave, true);
+          }
+        },
+        {
+          label: 'Hủy',
+          onClick: () => {
+            // Cancel: Giữ lại form (không làm gì)
+            modalRef.close();
+          }
+        }
+      ]
     });
   }
 }

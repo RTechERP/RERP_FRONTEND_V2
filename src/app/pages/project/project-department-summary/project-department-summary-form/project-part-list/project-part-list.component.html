@@ -1,4 +1,9 @@
-<div style="display: flex; flex-direction: column; height: 100vh">
+<div style="display: flex; flex-direction: column; height: 100vh; position: relative;">
+    <!-- Loading Indicator -->
+    <div *ngIf="isLoading" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75 z-3" style="z-index: 1000;">
+      <nz-spin nzSimple></nz-spin>
+    </div>
+    
     <!-- Modal Header -->
     <div
       class="modal-header bg-primary align-items-center ps-2"
@@ -10,7 +15,7 @@
       <button
         type="button"
         class="btn-close"
-        (click)="activeModal.dismiss()"
+        (click)="closeModal()"
         aria-label="Close"
       ></button>
     </div>
@@ -104,7 +109,7 @@
             </nz-splitter-panel>
   
             <!-- Bảng 2: Phiên bản giải pháp -->
-            <nz-splitter-panel nzDefaultSize="33.33%">
+            <nz-splitter-panel nzDefaultSize="33.33%" *ngIf="!isPOKH">
               <div class="card h-100 border-0 rounded-0 d-flex flex-column">
                 <div class="card-header bg-white p-1" style=" font-weight: bold !important; background-color: #efebebe7 !important;">
                   <p class="m-0">Phiên bản giải pháp</p>
@@ -250,12 +255,12 @@
                     style="background-color: #4682B4">
                     Tích xanh
                 </button>
-                <button class="fs-12 text-white" nz-button nzType="text" nzSize="small"
-                    style="background-color: lightgreen">
+                <button class="fs-12" nz-button nzType="text" nzSize="small"
+                    style="background-color: lightgreen ;">
                     Hàng đã về
                 </button>
                 <button class="fs-12 border" nz-button nzType="text" nzSize="small"
-                    style="background-color: lightyellow">
+                    style="background-color: lightyellow ;color: black">
                     Có trong kho
                 </button>
                 <button
@@ -326,11 +331,11 @@
                     <span class="ms-1">Hủy yêu cầu báo giá</span>
                   </li>
                   <li nz-menu-item (click)="requestPurchase()">
-                    <img src="assets/icon/action_approved_16.png" />
+                    <img src="assets/icon/purchase_16.png" />
                     <span class="ms-1">Yêu cầu mua hàng</span>
                   </li>
                   <li nz-menu-item (click)="cancelPurchaseRequest()">
-                    <img src="assets/icon/action_unapproved_16.png" />
+                    <img src="assets/icon/cancel_purchase_16.png" />
                     <span class="ms-1">Hủy yêu cầu mua hàng</span>
                   </li>
                 </ul>
@@ -433,26 +438,31 @@
               <nz-dropdown-menu #menuExport="nzDropdownMenu">
                 <ul nz-menu>
                   <li nz-menu-item (click)="requestExportByWarehouse('HN')">
-                    <img src="assets/icon/action_approved_16.png" />
+                    <img src="assets/icon/warehouse_16.png" />
                     <span class="ms-1">Kho HN</span>
                   </li>
                   <li nz-menu-item (click)="requestExportByWarehouse('HCM')">
-                    <img src="assets/icon/action_approved_16.png" />
+                    <img src="assets/icon/warehouse_16.png" />
                     <span class="ms-1">Kho HCM</span>
                   </li>
                   <li nz-menu-item (click)="requestExportByWarehouse('BN')">
-                    <img src="assets/icon/action_approved_16.png" />
+                    <img src="assets/icon/warehouse_16.png" />
                     <span class="ms-1">Kho Bắc Ninh</span>
                   </li>
                   <li nz-menu-item (click)="requestExportByWarehouse('HP')">
-                    <img src="assets/icon/action_approved_16.png" />
+                    <img src="assets/icon/warehouse_16.png" />
                     <span class="ms-1">Kho Hải Phòng</span>
+                  </li>
+                  <li nz-menu-item (click)="requestExportByWarehouse('ĐP')">
+                    <img src="assets/icon/warehouse_16.png" />
+                    <span class="ms-1">Kho Đan Phượng</span>
                   </li>
                  
                 </ul>
               </nz-dropdown-menu>
               <!-- end -->
               <button
+              *ngIf="isPOKH"
               class="fs-12 btn-edit"
               nz-button
               nzType="default"
@@ -556,11 +566,6 @@
       </nz-splitter>
     </div>
     <!-- Modal Footer -->
-    <div class="modal-footer bg-whitesmoke p-1" style="flex-shrink: 0">
-      <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">
-        Đóng
-      </button>
-    </div>
   </div>
 
   <!-- Template cho modal yêu cầu báo giá -->
@@ -585,9 +590,9 @@
         <i nz-icon nzType="info-circle" nzTheme="outline"></i>
         <span class="ms-1">
           <strong>Lưu ý:</strong><br/>
-          - Deadline phải lớn hơn hôm nay ít nhất 2 ngày làm việc<br/>
-          - Nếu yêu cầu sau 15h: deadline sẽ bắt đầu tính từ ngày hôm sau<br/>
-          - Chỉ chọn được các ngày làm việc (Thứ 2 - Thứ 6)
+          - Nếu trước 15h: deadline tối thiểu là ngày mai<br/>
+          - Nếu sau 15h: deadline tối thiểu là 2 ngày tới<br/>
+          - Nếu chọn Thứ 7 hoặc Chủ nhật, deadline sẽ tự động chuyển thành Thứ 2 tuần sau
         </span>
       </div>
     </div>

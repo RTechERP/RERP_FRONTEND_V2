@@ -1,6 +1,6 @@
 import { ProjectService } from './../project-service/project.service';
 import { Component, Input, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -11,12 +11,14 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
+import { NzFormModule } from 'ng-zorro-antd/form';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 
 @Component({
   selector: 'app-project-form-priority-detail',
   imports: [
-    FormsModule,
+    ReactiveFormsModule,
+    NzFormModule,
     NzSelectModule,
     NzInputModule,
     NzModalModule,
@@ -40,21 +42,30 @@ export class ProjectFormPriorityDetailComponent implements OnInit {
     { point: 5, ID: 5 },
   ];
 
-  point: any;
-  priority: any;
-  priorityCode: any;
-  projectCheckpoint: any;
-  rate: any;
+  priorityForm!: FormGroup;
 
   constructor(
     public activeModal: NgbActiveModal,
     private projectService: ProjectService,
     private modal: NzModalService,
-    private notification: NzNotificationService
-  ) {}
+    private notification: NzNotificationService,
+    private fb: FormBuilder
+  ) {
+    this.initForm();
+  }
   ngOnInit(): void {
     this.getPriorityType();
     this.getProjectPriorityDetail();
+  }
+
+  initForm() {
+    this.priorityForm = this.fb.group({
+      priorityCode: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9_-]+$/)]],
+      priority: [null, [Validators.required]],
+      rate: [null, [Validators.required, Validators.min(0), Validators.max(1)]],
+      point: [null, [Validators.required]],
+      projectCheckpoint: ['', [Validators.required]]
+    });
   }
 
   getPriorityType() {
@@ -75,11 +86,13 @@ export class ProjectFormPriorityDetailComponent implements OnInit {
       next: (response: any) => {
         const dt = response.data;
         if (dt) {
-          this.point = dt.Score;
-          this.priority = dt.ParentID;
-          this.priorityCode = dt.Code;
-          this.projectCheckpoint = dt.ProjectCheckpoint;
-          this.rate = dt.Rate;
+          this.priorityForm.patchValue({
+            priorityCode: dt.Code,
+            priority: dt.ParentID,
+            rate: dt.Rate,
+            point: dt.Score,
+            projectCheckpoint: dt.ProjectCheckpoint
+          });
         }
       },
       error: (error: any) => {
@@ -90,72 +103,96 @@ export class ProjectFormPriorityDetailComponent implements OnInit {
     });
   }
 
+  // Helper method để mark all fields as touched
+  markFormGroupTouched() {
+    Object.keys(this.priorityForm.controls).forEach(key => {
+      const control = this.priorityForm.get(key);
+      control?.markAsTouched();
+      control?.updateValueAndValidity();
+    });
+  }
+
+  // Helper method để get error message
+  getErrorMessage(controlName: string): string {
+    const control = this.priorityForm.get(controlName);
+    if (control?.hasError('required')) {
+      return 'Trường này là bắt buộc';
+    }
+    if (control?.hasError('pattern')) {
+      return 'Mã ưu tiên không được chứa kí tự tiếng Việt và khoảng trắng!';
+    }
+    if (control?.hasError('min') || control?.hasError('max')) {
+      return 'Trọng số phải từ 0 đến 1';
+    }
+    return '';
+  }
+
   saveProjectPriority() {
-    if (!this.priorityCode || this.priorityCode.trim() === '') {
-      this.notification.error('', 'Vui lòng nhập Mã ưu tiên!', {
-        nzStyle: { fontSize: '0.75rem' },
-      });
-      return;
-    }
-
-    if (!this.priority) {
-      this.notification.error('', 'Vui lòng chọn Loại ưu tiên!', {
-        nzStyle: { fontSize: '0.75rem' },
-      });
-      return;
-    }
-
-    if (!this.projectCheckpoint || this.projectCheckpoint.trim() === '') {
-      this.notification.error('', 'Vui lòng nhập Checkpoint!', {
-        nzStyle: { fontSize: '0.75rem' },
-      });
-      return;
-    }
-
-    if (!this.rate) {
-      this.notification.error('', 'Vui lòng nhập Trọng số!', {
-        nzStyle: { fontSize: '0.75rem' },
-      });
-      return;
-    }
-    if (!this.point) {
-      this.notification.error('', 'Vui lòng chọn điểm!', {
-        nzStyle: { fontSize: '0.75rem' },
-      });
-      return;
-    }
-    if (!this.priority) {
-      this.notification.error('', 'Vui lòng chọn Loại ưu tiên!', {
-        nzStyle: { fontSize: '0.75rem' },
-      });
-      return;
-    }
-
-    const pattern = /^[a-zA-Z0-9_-]+$/;
-
-    if (!pattern.test(this.priorityCode.trim())) {
-      this.notification.error(
-        '',
-        'Mã ưu tiên không được chứa kí tự tiếng Việt và khoảng trắng!',
-        {
+    // Mark all fields as touched để hiển thị lỗi
+    if (this.priorityForm.invalid) {
+      this.markFormGroupTouched();
+      
+      // Hiển thị thông báo lỗi cho từng trường
+      if (this.priorityForm.get('priorityCode')?.hasError('required')) {
+        this.notification.error('', 'Vui lòng nhập Mã ưu tiên!', {
           nzStyle: { fontSize: '0.75rem' },
-        }
-      );
+        });
+        return;
+      }
+      if (this.priorityForm.get('priorityCode')?.hasError('pattern')) {
+        this.notification.error('', 'Mã ưu tiên không được chứa kí tự tiếng Việt và khoảng trắng!', {
+          nzStyle: { fontSize: '0.75rem' },
+        });
+        return;
+      }
+      if (this.priorityForm.get('priority')?.hasError('required')) {
+        this.notification.error('', 'Vui lòng chọn Loại ưu tiên!', {
+          nzStyle: { fontSize: '0.75rem' },
+        });
+        return;
+      }
+      if (this.priorityForm.get('rate')?.hasError('required')) {
+        this.notification.error('', 'Vui lòng nhập Trọng số!', {
+          nzStyle: { fontSize: '0.75rem' },
+        });
+        return;
+      }
+      if (this.priorityForm.get('rate')?.hasError('min') || this.priorityForm.get('rate')?.hasError('max')) {
+        this.notification.error('', 'Trọng số phải từ 0 đến 1!', {
+          nzStyle: { fontSize: '0.75rem' },
+        });
+        return;
+      }
+      if (this.priorityForm.get('point')?.hasError('required')) {
+        this.notification.error('', 'Vui lòng chọn điểm!', {
+          nzStyle: { fontSize: '0.75rem' },
+        });
+        return;
+      }
+      if (this.priorityForm.get('projectCheckpoint')?.hasError('required')) {
+        this.notification.error('', 'Vui lòng nhập Checkpoint!', {
+          nzStyle: { fontSize: '0.75rem' },
+        });
+        return;
+      }
       return;
     }
+
+    const formValue = this.priorityForm.value;
+    const priorityCode = formValue.priorityCode?.trim();
 
     this.projectService
-      .checkProjectPriority(this.priorityId, this.priorityCode)
+      .checkProjectPriority(this.priorityId, priorityCode)
       .subscribe({
         next: (response: any) => {
           if (response.data == false) {
             const dataSave = {
               ID: this.priorityId,
-              Code: this.priorityCode,
-              ProjectCheckpoint: this.projectCheckpoint,
-              Rate: this.rate,
-              Score: this.point,
-              ParentID: this.priority,
+              Code: priorityCode,
+              ProjectCheckpoint: formValue.projectCheckpoint,
+              Rate: formValue.rate,
+              Score: formValue.point,
+              ParentID: formValue.priority,
             };
             this.projectService.saveprojectpriority(dataSave).subscribe({
               next: (response: any) => {

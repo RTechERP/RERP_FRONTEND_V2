@@ -112,20 +112,20 @@ export class ImportExcelProjectWorkerComponent implements OnInit, AfterViewInit 
     if (!this.tableExcel) { // Chỉ khởi tạo nếu chưa có
       this.tableExcel = new Tabulator('#datatableExcel', {
         data: this.dataTableExcel, // Dữ liệu ban đầu rỗng
-        layout: 'fitDataFill',
+        layout: 'fitDataStretch',
         height: '300px', // Chiều cao cố định cho bảng trong modal
         selectableRows: false,
         movableColumns: true,
         resizableRows: true,
         reactiveData: true,
         columns: [
-          { title: "TT", field: "TT", hozAlign: "center", headerHozAlign: "center", width: 80 },
-          { title: "Nội dung công việc", field: "WorkContent", hozAlign: "left", headerHozAlign: "center", width: 300, formatter: 'textarea' },
-          { title: "Số người", field: "AmountPeople", hozAlign: "right", headerHozAlign: "center", width: 100 },
-          { title: "Số ngày", field: "NumberOfDay", hozAlign: "right", headerHozAlign: "center", width: 100 },
-          { title: "Tổng nhân công", field: "TotalWorkforce", hozAlign: "right", headerHozAlign: "center", width: 120 },
-          { title: "Đơn giá", field: "Price", hozAlign: "right", headerHozAlign: "center", width: 150 },
-          { title: "Thành tiền", field: "TotalPrice", hozAlign: "right", headerHozAlign: "center", width: 150 }
+          { title: "TT", field: "TT", hozAlign: "center", headerHozAlign: "center"},
+          { title: "Nội dung công việc", field: "WorkContent", hozAlign: "left", headerHozAlign: "center",  formatter: 'textarea' },
+          { title: "Số người", field: "AmountPeople", hozAlign: "right", headerHozAlign: "center", },
+          { title: "Số ngày", field: "NumberOfDay", hozAlign: "right", headerHozAlign: "center",  },
+          { title: "Tổng nhân công", field: "TotalWorkforce", hozAlign: "right", headerHozAlign: "center", },
+          { title: "Đơn giá", field: "Price", hozAlign: "right", headerHozAlign: "center",  },
+          { title: "Thành tiền", field: "TotalPrice", hozAlign: "right", headerHozAlign: "center",  }
         ]
       });   
     }
@@ -587,7 +587,7 @@ export class ImportExcelProjectWorkerComponent implements OnInit, AfterViewInit 
     this.activeModal.close({ success: true });
   }
   downloadTemplate() {
-    const fileName = 'Danh_Muc_Vat_Tu.xlsx';
+    const fileName = 'NhanCongDuAnTemplate.xlsx';
     this.projectWorkerService.downloadTemplate(fileName).subscribe({
       next: (blob: Blob) => {
         // Kiểm tra xem có phải là blob hợp lệ không

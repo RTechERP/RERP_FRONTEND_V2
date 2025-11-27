@@ -1061,7 +1061,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             frozen: true,
             headerSort: false,
             titleFormatter: () =>
-              `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
+              `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-white cursor-pointer" title="Thêm dòng"></i></div>`,
             headerClick: () => {
               this.addNewEmployeeRow();
             },
@@ -1229,7 +1229,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             frozen: true,
             headerSort: false,
             titleFormatter: () =>
-              `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
+              `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-white cursor-pointer" title="Thêm dòng"></i></div>`,
             headerClick: () => {
               this.addNewCustomerRow();
             },
@@ -1340,7 +1340,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             frozen: true,
             headerSort: false,
             titleFormatter: () =>
-              `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
+              `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-white cursor-pointer" title="Thêm dòng"></i></div>`,
             headerClick: () => {
               this.addNewEmployeeContentRow();
             },
@@ -1546,7 +1546,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             frozen: true,
             headerSort: false,
             titleFormatter: () =>
-              `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
+              `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-white cursor-pointer" title="Thêm dòng"></i></div>`,
             headerClick: () => {
               this.addNewCustomerContentRow();
             },

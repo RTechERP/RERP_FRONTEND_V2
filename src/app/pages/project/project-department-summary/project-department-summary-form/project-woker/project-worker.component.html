@@ -1,4 +1,9 @@
-<div style="display: flex; flex-direction: column; height: 100vh">
+<div style="display: flex; flex-direction: column; height: 100vh; position: relative;">
+  <!-- Loading Indicator -->
+  <div *ngIf="isLoading" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75 z-3" style="z-index: 1000;">
+    <nz-spin nzSimple></nz-spin>
+  </div>
+  
   <!-- Modal Header -->
   <div
     class="modal-header bg-primary align-items-center ps-2"
@@ -354,9 +359,4 @@
     </nz-splitter>
   </div>
   <!-- Modal Footer -->
-  <div class="modal-footer bg-whitesmoke p-1" style="flex-shrink: 0">
-    <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">
-      Đóng
-    </button>
-  </div>
 </div>

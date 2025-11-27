@@ -1,3 +1,4 @@
+import { DEFAULT_TABLE_CONFIG } from './../../../../tabulator-default.config';
 import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
@@ -27,6 +28,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { DateTime } from 'luxon';
 import { ListProductProjectService } from './list-product-project-service/list-product-project.service';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
@@ -52,6 +54,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     NzDatePickerModule,
     NzDropDownModule,
     NzMenuModule,
+    NzSpinModule,
   ],
   templateUrl: './list-product-project.component.html',
   styleUrl: './list-product-project.component.css',
@@ -59,6 +62,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 export class ListProductProjectComponent implements OnInit, AfterViewInit {
   table: any;
   dataTable: any[] = [];
+  isLoading: boolean = false;
   sreachParam = {
     selectedProject: {
       ProjectCode: '',
@@ -90,6 +94,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
         ID: 0,
       };
     }
+    this.isLoading = true;
     this.listproductprojectService
       .getData(
         this.sreachParam.selectedProject.ProjectCode,
@@ -100,12 +105,14 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
         next: (res) => {
           this.dataTable = res.data;
           this.table?.replaceData(this.dataTable);
+          this.isLoading = false;
         },
         error: (err) => {
           this.notification.error(
             NOTIFICATION_TITLE.error,
             'Có lỗi xảy ra khi lấy sản phẩm theo dự án'
           );
+          this.isLoading = false;
         },
       });
   }
@@ -233,10 +240,11 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
   //#endregion
   drawTable() {
     this.table = new Tabulator('#table_ListProductProject', {
+      ...DEFAULT_TABLE_CONFIG,
       index: 'ProductID',
       data: this.dataTable,
-      layout: 'fitColumns', // ✅ Tự chia đều
-      responsiveLayout: 'collapse', // ✅ Tự co lại nếu không đủ không gian
+      paginationMode:'local',
+      layout: 'fitColumns', 
       height: '80vh',
       movableColumns: true,
       resizableRows: true,
@@ -256,42 +264,31 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
       groupStartOpen: true,
       groupToggleElement: 'header',
       groupHeader: (value, count, data, group) => {
-        // Không hiện (3), (5) v.v.
-        return value;
-      },
+  return `${value} <span style="color:#999; font-size:12px">(${count})</span>`;
+},
       columns: [
         {
           title: 'Mã dự án',
           field: 'ProjectCode',
-          hozAlign: 'center',
-          headerHozAlign: 'center',
         },
         {
           title: 'Mã sản phẩm',
           field: 'ProductCode',
-          hozAlign: 'center',
-          headerHozAlign: 'center',
         },
         {
           title: 'Tên sản phẩm',
           field: 'ProductName',
-          hozAlign: 'left',
-          headerHozAlign: 'center',
         },
         {
           title: 'Mã nội bộ',
           field: 'ProductNewCode',
-          hozAlign: 'center',
-          headerHozAlign: 'center',
         },
         {
           title: 'Tồn đầu kỳ',
           field: 'NumberInStoreDauky',
-          hozAlign: 'right',
-          headerHozAlign: 'center',
           formatter: 'money',
           formatterParams: {
-            precision: 2, // ✅ hiển thị 2 chữ số sau dấu thập phân: 1234.50
+            precision: 2,
             thousand: ',',
             decimal: '.',
           },
@@ -299,11 +296,9 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
         {
           title: 'Nhập dự án',
           field: 'Import',
-          hozAlign: 'right',
-          headerHozAlign: 'center',
           formatter: 'money',
           formatterParams: {
-            precision: 2, // ✅ hiển thị 2 chữ số sau dấu thập phân: 1234.50
+            precision: 2, 
             thousand: ',',
             decimal: '.',
           },
@@ -311,11 +306,9 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
         {
           title: 'Xuất dự án',
           field: 'Export',
-          hozAlign: 'right',
-          headerHozAlign: 'center',
           formatter: 'money',
           formatterParams: {
-            precision: 2, // ✅ hiển thị 2 chữ số sau dấu thập phân: 1234.50
+            precision: 2, 
             thousand: ',',
             decimal: '.',
           },
@@ -323,11 +316,9 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
         {
           title: 'Tồn dự án',
           field: 'QuantityImportExport',
-          hozAlign: 'right',
-          headerHozAlign: 'center',
           formatter: 'money',
           formatterParams: {
-            precision: 2, // ✅ hiển thị 2 chữ số sau dấu thập phân: 1234.50
+            precision: 2, 
             thousand: ',',
             decimal: '.',
           },
@@ -335,11 +326,9 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
         {
           title: 'Tồn cuối kỳ',
           field: 'NumberInStoreCuoiKy',
-          hozAlign: 'right',
-          headerHozAlign: 'center',
           formatter: 'money',
           formatterParams: {
-            precision: 2, // ✅ hiển thị 2 chữ số sau dấu thập phân: 1234.50
+            precision: 2, 
             thousand: ',',
             decimal: '.',
           },

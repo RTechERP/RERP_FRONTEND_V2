@@ -43,14 +43,9 @@ import {
 } from 'tabulator-tables';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import { ApplicationRef, createComponent, Type } from '@angular/core';
-import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
-import { EnvironmentInjector } from '@angular/core';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DateTime } from 'luxon';
 
-declare var bootstrap: any;
-import { updateCSS } from 'ng-zorro-antd/core/util';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { HandoverService } from './handover-service/handover.service';
 import { HandoverFormComponent } from './handover-form/handover-form.component';

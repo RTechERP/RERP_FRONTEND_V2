@@ -35,6 +35,8 @@ import { BillExportDetailComponent } from '../BillExport/Modal/bill-export-detai
 import { SummaryReturnDetailComponent } from '../BillImport/Modal/summary-return-detail/summary-return-detail.component';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 @Component({
   selector: 'app-history-borrow-sale',
   standalone: true,
@@ -56,7 +58,8 @@ import { HasPermissionDirective } from '../../../../directives/has-permission.di
     NzDatePickerModule,
     NzDropDownModule,
     NzMenuModule,
-    HasPermissionDirective
+    HasPermissionDirective,
+    NzSpinModule
   ],
   templateUrl: './history-borrow-sale.component.html',
   styleUrl: './history-borrow-sale.component.css',
@@ -100,6 +103,7 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
   dataTable: any[] = [];
   checked: boolean = false;
   sizeSearch: string = '0';
+  loading: boolean = false;
   searchParams = {
     dateStart: new Date(`${new Date().getFullYear()}-01-01`)
       .toISOString()
@@ -138,7 +142,10 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
   getCbbEmployee() {
     this.historyBorrowSaleService.getCbbEmployee().subscribe({
       next: (res: any) => {
-        this.cbbEmployee = res.data;
+        this.cbbEmployee = [
+          { ID: 0, FullName: '--Chọn--' },
+          ...res.data
+        ];
       },
       error: (err: any) => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu nhân viên');
@@ -148,7 +155,10 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
   getCbbProductGroup() {
     this.billExportService.getCbbProductGroup().subscribe({
       next: (res: any) => {
-        this.cbbProductGroup = res.data;
+        this.cbbProductGroup = [
+          { ID: 0, ProductGroupName: '--Chọn--' },
+          ...res.data
+        ];
       },
       error: (err: any) => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu kho');
@@ -224,24 +234,32 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
     });
   }
   loadData() {
+    this.loading = true;
     const dateStart = DateTime.fromJSDate(
       new Date(this.searchParams.dateStart)
     );
     const dateEnd = DateTime.fromJSDate(new Date(this.searchParams.dateEnd));
     this.historyBorrowSaleService
       .getHistoryBorrowSale(
-        this.searchParams.status,
+        this.searchParams.status || 0,
         dateStart,
         dateEnd,
-        this.searchParams.keyword,
+        this.searchParams.keyword || '',
         this.searchParams.pageNumber,
         this.searchParams.pageSize,
-        this.searchParams.employeeID,
-        this.searchParams.productGroupID
+        this.searchParams.employeeID || 0,
+        this.searchParams.productGroupID || 0
       )
       .subscribe({
         next: (res: any) => {
-          this.dataTable = res.data;
+          // Format ngày tháng về dd/MM/yyyy trước khi đổ vào bảng
+          this.dataTable = res.data.map((item: any) => {
+            return {
+              ...item,
+              BorrowDate: item.BorrowDate ? this.formatDate(item.BorrowDate) : '',
+              ExpectReturnDate: item.ExpectReturnDate ? this.formatDate(item.ExpectReturnDate) : ''
+            };
+          });
           // Luôn gọi replaceData nếu bảng đã tồn tại
           if (this.table) {
             this.table.replaceData(this.dataTable);
@@ -251,18 +269,30 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
               'Lỗi: Bảng Tabulator chưa được khởi tạo khi loadData() được gọi.'
             );
           }
+          this.loading = false;
         },
         error: (err: any) => {
           this.notification.error(
             'Lỗi',
             'Không thể tải dữ liệu lịch sử mượn/trả'
           );
+          this.loading = false;
         },
       });
   }
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
   }
+  // Format date về dd/MM/yyyy
+  formatDate(dateString: string): string {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
   resetform() {
     this.searchParams = {
       dateStart: new Date(`${new Date().getFullYear()}-01-01`)
@@ -283,6 +313,21 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
 
   searchData() {
     this.loadData();
+  }
+
+  // Xử lý khi thay đổi status
+  onStatusChange(value: number | null) {
+    this.searchParams.status = value ?? 0;
+  }
+
+  // Xử lý khi thay đổi product group
+  onProductGroupChange(value: number | null) {
+    this.searchParams.productGroupID = value ?? 0;
+  }
+
+  // Xử lý khi thay đổi employee
+  onEmployeeChange(value: number | null) {
+    this.searchParams.employeeID = value ?? 0;
   }
   async exportExcel() {
     const table = this.table;
@@ -421,8 +466,9 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
 
   drawTable() {
     this.table = new Tabulator('#table_HistoryBorrowSale', {
-      data: this.dataTable, // Khởi tạo với dữ liệu rỗng hoặc dữ liệu ban đầu nếu có
-      layout: 'fitDataFill', // Hoặc "fitColumns" tùy theo mong muốn
+      ...DEFAULT_TABLE_CONFIG,
+      data: this.dataTable,
+      layout: 'fitDataFill',
       height: '90vh',
       selectableRows: 15,
       reactiveData: true,
@@ -431,8 +477,6 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
       rowFormatter: (row: RowComponent) => {
         const data = row.getData();
         const rowElement = row.getElement();
-
-        // Ưu tiên kiểm tra ExpectReturnDate quá hạn trước -> màu hồng (priority cao)
         if (data['ExpectReturnDate']) {
           const expectDate = new Date(data['ExpectReturnDate']);
           const today = new Date();
@@ -444,14 +488,10 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
             return;
           }
         }
-
-        // Kiểm tra DualDate == 1 -> màu vàng (priority thấp hơn)
         if (data['DualDate'] === 1) {
           rowElement.style.backgroundColor = '#ffff99';
           return;
         }
-
-        // Reset về màu mặc định nếu không có điều kiện nào
         rowElement.style.backgroundColor = '';
       },
       rowHeader: {
@@ -467,7 +507,6 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
         },
       },
       columns: [
-        // Từ ảnh image_248e62.png (Phần đầu bảng)
         {
           title: 'Trạng thái',
           field: 'ReturnedStatusText',
@@ -485,16 +524,12 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
           field: 'BorrowDate',
           hozAlign: 'center',
           headerHozAlign: 'center',
-          formatter: 'datetime',
-          formatterParams: { outputFormat: 'dd/MM/yyy' },
         },
-                {
+        {
           title: 'Ngày dự kiến trả',
           field: 'ExpectReturnDate',
           hozAlign: 'center',
           headerHozAlign: 'center',
-          formatter: 'datetime',
-          formatterParams: { outputFormat: 'dd/MM/yyy' },
         },
         {
           title: 'Mã nhân viên',
@@ -604,7 +639,7 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
         },
         {
           title: 'Dự án',
-          field: 'ProjectName', // Từ dữ liệu Swagger
+          field: 'ProjectNameText', // Từ dữ liệu Swagger
           hozAlign: 'left',
           headerHozAlign: 'center',
         },
@@ -643,9 +678,43 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
     this.contextMenuCell = null;
 
     // Lấy vị trí chuột
-    this.contextMenuX = event.clientX;
-    this.contextMenuY = event.clientY;
+    let x = event.clientX;
+    let y = event.clientY;
+
+    // Hiển thị menu tạm thời để lấy kích thước
     this.contextMenuVisible = true;
+    this.contextMenuX = x;
+    this.contextMenuY = y;
+
+    // Đợi DOM update để lấy kích thước menu
+    setTimeout(() => {
+      const menuElement = document.querySelector('.context-menu') as HTMLElement;
+      if (menuElement) {
+        const menuWidth = menuElement.offsetWidth;
+        const menuHeight = menuElement.offsetHeight;
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+
+        // Điều chỉnh vị trí nếu menu bị tràn ra ngoài màn hình
+        // Kiểm tra bên phải
+        if (x + menuWidth > windowWidth) {
+          x = windowWidth - menuWidth - 10; // 10px padding từ edge
+        }
+
+        // Kiểm tra phía dưới
+        if (y + menuHeight > windowHeight) {
+          y = windowHeight - menuHeight - 10; // 10px padding từ edge
+        }
+
+        // Đảm bảo không âm
+        x = Math.max(10, x);
+        y = Math.max(10, y);
+
+        // Cập nhật lại vị trí
+        this.contextMenuX = x;
+        this.contextMenuY = y;
+      }
+    }, 0);
 
     // Tìm cell được click
     const target = event.target as HTMLElement;

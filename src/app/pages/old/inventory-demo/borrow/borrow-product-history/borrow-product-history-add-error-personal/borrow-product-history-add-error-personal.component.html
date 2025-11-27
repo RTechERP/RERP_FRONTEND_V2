@@ -1,0 +1,27 @@
+<div class="modal-dialog-scrollable">
+  <div class="modal-header bg-primary align-items-center ps-3">
+    <div class="d-flex align-items-center">
+      <h6 class="text-light text-uppercase m-0 fw-bold">Mô tả lỗi</h6>
+    </div>
+  </div>
+
+  <div class="modal-body p-2" style="height: 60vh;">
+     <div nz-col [nzSpan]="24">
+            <nz-form-item>
+              <nz-form-label class="fs-12">Lỗi mô tả</nz-form-label>
+              <nz-form-control>
+                <textarea nz-input rows="24" [(ngModel)]="DescriptionError" name="DescriptionError" placeholder="Nhập mô tả lỗi..."></textarea>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+  </div>
+
+  <div class="modal-footer">
+    <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">
+      Đóng
+    </button>
+     <button nz-button nzType="primary" style="margin-left: 8px;" (click)="onSubmit()">
+      Lưu
+    </button>
+  </div>
+</div>

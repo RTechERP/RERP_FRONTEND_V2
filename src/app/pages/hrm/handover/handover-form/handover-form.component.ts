@@ -36,16 +36,11 @@ import { NzUploadModule } from 'ng-zorro-antd/upload';
 // import { SelectControlComponent } from '../../select-control/select-control.component';
 import {
   TabulatorFull as Tabulator,
-  CellComponent,
-  ColumnDefinition,
-  RowComponent,
 } from 'tabulator-tables';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
-import dayjs from 'dayjs';
 import { forkJoin } from 'rxjs';
 import { HandoverService } from '../handover-service/handover.service';
-import { HandoverComponent } from '../handover.component';
 import { SelectControlComponent } from '../../../old/select-control/select-control.component';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 

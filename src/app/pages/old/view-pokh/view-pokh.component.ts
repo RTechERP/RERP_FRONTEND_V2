@@ -58,6 +58,7 @@ import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
 import { HandoverMinutesDetailService } from '../handover-minutes-detail/handover-minutes-detail/handover-minutes-detail.service';
 import { RequestInvoiceDetailComponent } from '../request-invoice-detail/request-invoice-detail.component';
 import { HandoverMinutesDetailComponent } from '../handover-minutes-detail/handover-minutes-detail.component';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 
 interface GroupedData {
   CustomerName: string;
@@ -91,6 +92,10 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
   sizeSearch: string = '0';
   private isRecallCellValueChanged: boolean = false;
   private modifiedRows: Set<number> = new Set();
+  private modifiedInvoiceRows: Set<number> = new Set();
+
+  private nestedExportTables: Map<any, Tabulator> = new Map();
+  private skipChildUpdate: boolean = false;
 
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch === '0' ? '22%' : '0';
@@ -324,38 +329,74 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
     // Nhóm dữ liệu theo CustomerID
     const groupedData = this.selectedRows.reduce<Record<string, any[]>>(
       (acc, row) => {
+
+        // if (!row.selectedExports || row.selectedExports.length === 0) {
+        //   return acc;  // Không có export được chọn → bỏ dòng cha
+        // }
+
         const customerID = row.CustomerID;
         const key = `${customerID}`;
 
-        if (!acc[key]) {
-          acc[key] = [];
-        }
+        if (!acc[key]) acc[key] = [];
 
-        acc[key].push({
-          POKHDetailID: row.ID,
-          STT: acc[key].length + 1,
-          ProductSaleID: row.ProductID,
-          CustomerID: row.CustomerID,
-          Quantity: row.Qty,
-          ProductName: row.ProductName,
-          ProductCode: row.ProductCode,
-          CustomerName: this.customers.find((x) => x.ID == customerID)
-            ?.CustomerName,
-          ProductNewCode: row.ProductNewCode,
-          ProjectCode: row.ProjectCode,
-          ProjectID: row.ProjectID,
-          ProjectName: row.ProjectName,
-          POCode: row.POCode,
-          Address: row.Address,
-          Unit: row.Unit,
-          InvoiceDate: null,
-          InvoiceNumber: null,
+        const hasExports =
+          row.selectedExports && Array.isArray(row.selectedExports) && row.selectedExports.length > 0;
+
+        // Nếu KHÔNG có dòng con → tạo 1 export rỗng mặc định
+        const exportsToProcess = hasExports
+          ? row.selectedExports
+          : [
+            {
+              Qty: 0,
+              Code: '',
+              TotalQty: 0
+            }
+          ];
+
+        exportsToProcess.forEach((ex: any) => {
+          acc[key].push({
+            // from parent
+            POKHID: row.POKHID,
+            POKHDetailID: row.ID,
+            ProductName: row.ProductName,
+            ProductSaleID: row.ProductID,
+            ProjectCode: row.ProjectCode,
+            ProjectName: row.ProjectName,
+            ProductNewCode: row.ProductNewCode,
+            POCode: row.POCode,
+            Unit: row.Unit,
+            CustomerName: this.customers.find(x => x.ID == customerID)?.CustomerName,
+            RequestDate: row.RequestDate,
+            DateRequestImport: row.DateRequestImport,
+            ExpectedDate: row.ExpectedDate,
+            SupplierName: row.SupplierName,
+            SomeBill: row.SomeBill,
+            BillImportCode: row.BillImportCode,
+            ProjectID: row.ProjectID,
+            PONumber: row.PONumber,
+            GuestCode: row.GuestCode,
+
+            // from nested export
+            Quantity: ex.Qty || row.Qty,
+            Code: ex.Code || '',
+            TotalQty: ex.TotalQty || 0,
+            BillExportCode: ex.Code || '',
+
+            // CustomerID: row.CustomerID,
+            // ProductCode: row.ProductCode,
+            // ProjectID: row.ProjectID,
+            // Address: row.Address,
+
+            STT: acc[key].length + 1,
+            InvoiceDate: null,
+            InvoiceNumber: null,
+          });
         });
 
         return acc;
-      },
-      {}
+      }, {}
     );
+
 
     if (Object.keys(groupedData).length === 0) {
       this.notification.warning(
@@ -540,43 +581,57 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
   //#endregion
   //#region Hàm xử lý SavePOKHDetail
   savePOKHDetail(): void {
-    if (this.modifiedRows.size === 0) {
+    const hasMainChanges = this.modifiedRows.size > 0;
+    const hasInvoiceChanges = this.modifiedInvoiceRows.size > 0;
+
+    if (!hasMainChanges && !hasInvoiceChanges) {
       this.notification.info('Thông báo', 'Không có dữ liệu cần lưu thay đổi.');
       return;
     }
-
-    // Lấy tất cả dữ liệu từ table
     const allData = this.viewPOKH.getData();
 
-    // Lọc những dòng đã chỉnh sửa
-    const modifiedData = allData.filter((row) => this.modifiedRows.has(row.ID));
+    //Xử lí bảng nested invoice
+    let invoiceUpdates: any[] = [];
+    if (hasInvoiceChanges) {
+      allData.forEach(parent => {
+        if (parent.invoiceDetails) {
+          parent.invoiceDetails.forEach((inv: any) => {
+            if (this.modifiedInvoiceRows.has(inv.RequestInvoiceDetailID)) {
+              invoiceUpdates.push({
+                ID: inv.RequestInvoiceDetailID,
+                InvoiceNumber: inv.InvoiceNumber,
+                InvoiceDate: inv.InvoiceDate
+              });
+            }
+          });
+        }
+      });
+    }
+    ////
 
-    // Tạo một Set để lưu các ID đã được cập nhật
-    const updatedrowID = new Set(modifiedData.map((row) => row.ID));
+    const pokhUpdates: any[] = [];
 
-    // Tìm tất cả các dòng có cùng ID với các dòng đã chỉnh sửa
-    const allRelatedRows = allData.filter((row) => updatedrowID.has(row.ID));
+    if (hasMainChanges) {
+      allData.forEach(row => {
+        if (this.modifiedRows.has(row.ID)) {
+          pokhUpdates.push({
+            ...row,
+            UpdatedDate: new Date()
+          });
+        }
+      });
+    }
 
-    // Cập nhật dữ liệu cho tất cả các dòng liên quan
-    const finalData = allRelatedRows.map((row) => {
-      // Tìm dòng đã chỉnh sửa có cùng ID
-      const modifiedRow = modifiedData.find((mr) => mr.ID === row.ID);
-      if (modifiedRow) {
-        return {
-          ...row,
-          BillNumber: modifiedRow.BillNumber,
-          BillDate: modifiedRow.BillDate,
-          DeliveryRequestedDate: modifiedRow.DeliveryRequestedDate,
-          UpdatedDate: new Date(),
-        };
-      }
-      return row;
-    });
+    const dto = {
+      pokhDetails: pokhUpdates,
+      requestInvoiceDetails: invoiceUpdates
+    };
 
-    this.viewPokhService.saveData(finalData).subscribe(
+    this.viewPokhService.saveData(dto).subscribe(
       (response) => {
         this.notification.success('Lưu thành công:', 'Lưu thành công!');
         this.modifiedRows.clear();
+        this.modifiedInvoiceRows.clear();
         this.loadData();
       },
       (error) => {
@@ -627,37 +682,40 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
   //#region Hàm vẽ bảng
   initViewPOKHTable(): void {
     this.viewPOKH = new Tabulator(this.viewPOKHTableElement.nativeElement, {
+      ...DEFAULT_TABLE_CONFIG,
       data: this.dataAfterGroupNested,
       layout: 'fitDataFill',
       movableColumns: true,
       pagination: true,
       paginationSize: 50,
-      height: '90vh',
+      paginationSizeSelector: [10, 20, 50, 100],
+      height: '87vh',
       resizableRows: true,
       reactiveData: true,
       groupBy: 'PONumber',
       selectableRows: true,
       selectableRange: true,
-      langs: {
-        vi: {
-          pagination: {
-            first: '<<',
-            last: '>>',
-            prev: '<',
-            next: '>',
-          },
-        },
-      },
-      locale: 'vi',
-      columnDefaults: {
-        headerWordWrap: true,
-        headerVertical: false,
-        headerHozAlign: 'center',
-        minWidth: 60,
-        hozAlign: 'left',
-        vertAlign: 'middle',
-        resizable: true,
-      },
+      // langs: {
+      //   vi: {
+      //     pagination: {
+      //       first: '<<',
+      //       last: '>>',
+      //       prev: '<',
+      //       next: '>',
+      //     },
+      //   },
+      // },
+      // locale: 'vi',
+      // columnDefaults: {
+      //   headerWordWrap: true,
+      //   headerVertical: false,
+      //   headerHozAlign: 'center',
+      //   minWidth: 60,
+      //   hozAlign: 'left',
+      //   vertAlign: 'middle',
+      //   resizable: true,
+      // },
+      rowHeader: false,
       groupHeader: (value, count, data, group) => {
         return `<div class="group-header">
           <input type="checkbox" class="group-checkbox" data-group="${value}">
@@ -667,6 +725,56 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
 
       columns: [
         {
+          title: "",
+          width: 40,
+          hozAlign: "center",
+          formatter: (cell) => {
+            const data = cell.getRow().getData();
+            const hasNested =
+              (data['exportDetails'] && data['exportDetails'].length > 0) ||
+              (data['invoiceDetails'] && data['invoiceDetails'].length > 0);
+
+            if (!hasNested) {
+              return `<span class="toggle-nested disabled">▸</span>`;
+            }
+
+            return `<span class="toggle-nested">▸</span>`;
+          },
+
+          cellClick: (e, cell) => {
+            e.stopPropagation();
+            e.preventDefault();
+
+            const row = cell.getRow();
+            const data = row.getData();
+
+
+            const hasNested =
+              (data['exportDetails'] && data['exportDetails'].length > 0) ||
+              (data['invoiceDetails'] && data['invoiceDetails'].length > 0);
+
+            if (!hasNested) return;
+
+            const el = cell.getElement();
+            const icon = el.querySelector(".toggle-nested") as HTMLElement | null;
+            if (!icon) return;
+
+            const nestedWrapper = row.getElement().querySelector(".nested-wrapper") as HTMLElement | null;
+            if (!nestedWrapper) return;
+
+            const isOpen = nestedWrapper.style.display === "block";
+
+            if (isOpen) {
+              nestedWrapper.style.display = "none";
+              icon.textContent = "▸";
+            } else {
+              nestedWrapper.style.display = "block";
+              icon.textContent = "▾";
+            }
+          }
+
+        },
+        {
           title: '',
           formatter: 'rowSelection',
           titleFormatter: 'rowSelection',
@@ -674,30 +782,12 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
           headerSort: false,
           frozen: true,
           width: 40,
+
           cellClick: (e, cell) => {
-            // Sửa logic chọn dòng đơn lẻ
-            const row = cell.getRow();
-            const rowData = row.getData();
-
-            // Kiểm tra trạng thái hiện tại của dòng TRƯỚC khi toggle
-            const isCurrentlySelected = row.isSelected();
-
-            if (isCurrentlySelected) {
-              // Nếu đang được chọn -> bỏ chọn
-              row.deselect();
-              this.selectedRows = this.selectedRows.filter(
-                (r) => r['ID'] !== rowData['ID']
-              );
-            } else {
-              // Nếu chưa được chọn -> chọn
-              row.select();
-              if (!this.selectedRows.some((r) => r['ID'] === rowData['ID'])) {
-                this.selectedRows.push(rowData);
-              }
-            }
-            console.log('Selected Rows:', this.selectedRows);
-          },
+            // Logic xử lý click nếu cần
+          }
         },
+
         {
           title: 'ID',
           field: 'ID',
@@ -724,7 +814,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
           title: 'Trạng thái',
           field: 'StatusText',
           sorter: 'string',
-          width: 150,
+          width: 200,
           formatter: (cell) => {
             const value = cell.getValue();
             let bgColor = '';
@@ -798,18 +888,42 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
           field: 'NetUnitPrice',
           sorter: 'number',
           width: 120,
+          formatter: 'money',
+          formatterParams: {
+            precision: 0,
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         {
           title: 'Đơn giá (chưa VAT)',
           field: 'UnitPrice',
           sorter: 'number',
           width: 120,
+          formatter: 'money',
+          formatterParams: {
+            precision: 0,
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         {
           title: 'Tổng giá (chưa VAT)',
           field: 'IntoMoney',
           sorter: 'number',
           width: 120,
+          formatter: 'money',
+          formatterParams: {
+            precision: 0,
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         { title: 'VAT(%)', field: 'VAT', sorter: 'number', width: 80 },
         {
@@ -817,6 +931,14 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
           field: 'TotalPriceIncludeVAT',
           sorter: 'number',
           width: 150,
+          formatter: 'money',
+          formatterParams: {
+            precision: 0,
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         {
           title: 'Ngày dự kiến giao hàng',
@@ -862,14 +984,32 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
           width: 150,
         },
         {
-          title: 'Số hóa đơn',
+          title: 'Số hóa đơn ( từ yc xuất)',
+          field: 'InvoiceNumberShow',
+          sorter: 'string',
+          width: 120,
+          editor: 'input',
+        },
+        {
+          title: 'Ngày hóa đơn ( từ yêu cầu)',
+          field: 'InvoiceDateShow',
+          sorter: 'date',
+          formatter: (cell) => {
+            const date = cell.getValue();
+            return date ? new Date(date).toLocaleDateString('vi-VN') : '';
+          },
+          width: 100,
+          editor: 'date',
+        },
+        {
+          title: 'Số hóa đơn đầu ra',
           field: 'BillNumber',
           sorter: 'string',
           width: 120,
           editor: 'input',
         },
         {
-          title: 'Ngày hóa đơn',
+          title: 'Ngày hóa đơn đầu ra',
           field: 'BillDate',
           sorter: 'date',
           formatter: (cell) => {
@@ -903,6 +1043,7 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
           title: 'Nhà cung cấp',
           field: 'SupplierName',
           sorter: 'string',
+          formatter: 'textarea',
           width: 150,
         },
         {
@@ -932,63 +1073,134 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
         // { title: 'Trạng thái', field: 'StatusText', sorter: 'string', width: 150 },
       ],
       rowFormatter: (row) => {
-
         const data = row.getData();
         const rowEl = row.getElement();
 
-        // === KHỐI CONTAINER LỚN ===
         const wrapper = document.createElement("div");
+        wrapper.className = "nested-wrapper";
+        wrapper.style.display = "none";
         wrapper.style.margin = "10px 0";
         wrapper.style.padding = "10px";
         wrapper.style.borderTop = "1px solid #ddd";
 
-        // =======================
-        // 1. BẢNG XUẤT KHO
-        // =======================
+        const tabs = document.createElement("div");
+        tabs.className = "nested-tabs";
+
+        // TAB HEADER
+        const tabHeader = document.createElement("div");
+        tabHeader.className = "nested-tab-header";
+
+        // TAB CONTENT
+        const tabContent = document.createElement("div");
+        tabContent.className = "nested-tab-content";
+
+        // CREATE DIVS
+        const exportDiv = document.createElement("div");
+        exportDiv.id = "export";
+
+        const invoiceDiv = document.createElement("div");
+        invoiceDiv.id = "invoice";
+
+        let tabCount = 0;
+
+        // TAB: EXPORT
         if (data['exportDetails']?.length > 0) {
-          const labelExport = document.createElement("div");
-          labelExport.innerHTML = "<b>XUẤT KHO</b>";
-          labelExport.style.margin = "10px 0 5px 0";
+          const btnExport = document.createElement("button");
+          btnExport.className = "nested-tab-btn active";
+          btnExport.innerHTML = `
+            <span style="display: flex; align-items: center; gap: 6px;">
+              Xuất kho
+            </span>`;
+          btnExport.setAttribute("data-tab", "export");
+          tabHeader.appendChild(btnExport);
+          tabCount++;
 
-          const exportTableDiv = document.createElement("div");
-          exportTableDiv.style.border = "1px solid #ccc";
-          exportTableDiv.style.marginBottom = "15px";
-
-          wrapper.appendChild(labelExport);
-          wrapper.appendChild(exportTableDiv);
-
-          new Tabulator(exportTableDiv, {
+          exportDiv.style.display = "block"; // mặc định mở
+          const exportTable = new Tabulator(exportDiv, {
             data: data['exportDetails'],
             layout: "fitColumns",
-            reactiveData: true,
             height: "auto",
+            index: "ID",
             columns: [
+              {
+                title: '',
+                formatter: 'rowSelection',
+                titleFormatter: 'rowSelection',
+                hozAlign: 'center',
+                headerSort: false,
+                frozen: true,
+                width: 40,
+                cellClick: (e, cell) => {
+                  console.log('Selected Rows:', this.selectedRows);
+                },
+              },
               { title: 'DetailID', field: 'ID', width: 80, visible: false },
               { title: 'Mã phiếu xuất', field: 'Code', width: 200 },
               { title: 'Tổng số lượng PO', field: 'TotalQty', width: 200 },
               { title: 'Số lượng xuất', field: 'Qty', width: 200 },
             ]
           });
+          this.nestedExportTables.set(data['ID'], exportTable);
+
+          // Đồng bộ trạng thái chọn ban đầu
+          const selectedExports = data['selectedExports'];
+          if (selectedExports && selectedExports.length > 0) {
+            const ids = selectedExports.map((x: any) => x.ID);
+            exportTable.selectRow(ids);
+          } else if (row.isSelected()) {
+            exportTable.selectRow();
+          }
+
+          exportTable.on("rowSelectionChanged", (selected) => {
+            const parent = row.getData();
+            parent['selectedExports'] = selected;
+
+            // Logic chọn dòng cha dựa trên dòng con
+            if (selected.length > 0) {
+              if (!row.isSelected()) {
+                this.skipChildUpdate = true;
+                row.select();
+                this.skipChildUpdate = false;
+
+                // Ensure parent is in selectedRows
+                const rowData = row.getData();
+                if (!this.selectedRows.some(r => r.ID === rowData['ID'])) {
+                  this.selectedRows.push(rowData);
+                }
+              }
+            } else {
+              // Nếu bỏ chọn hết dòng con -> bỏ chọn dòng cha
+              if (row.isSelected()) {
+                this.skipChildUpdate = true;
+                row.deselect();
+                this.skipChildUpdate = false;
+
+                // Ensure parent is removed from selectedRows
+                const rowData = row.getData();
+                this.selectedRows = this.selectedRows.filter(r => r.ID !== rowData['ID']);
+              }
+            }
+          });
         }
 
-        // =======================
-        // 2. BẢNG HÓA ĐƠN
-        // =======================
+        // TAB: INVOICE
         if (data['invoiceDetails']?.length > 0) {
-          const labelInvoice = document.createElement("div");
-          labelInvoice.innerHTML = "<b>HÓA ĐƠN</b>";
-          labelInvoice.style.margin = "10px 0 5px 0";
+          const btnInvoice = document.createElement("button");
+          btnInvoice.className = tabCount === 0 ? "nested-tab-btn active" : "nested-tab-btn";
+          btnInvoice.innerHTML = `
+            <span style="display: flex; align-items: center; gap: 6px;">
+              Hóa đơn
+            </span>`;
+          btnInvoice.setAttribute("data-tab", "invoice");
 
-          const invoiceTableDiv = document.createElement("div");
-          invoiceTableDiv.style.border = "1px solid #ccc";
+          if (tabCount > 0) invoiceDiv.style.display = "none";
 
-          wrapper.appendChild(labelInvoice);
-          wrapper.appendChild(invoiceTableDiv);
+          tabHeader.appendChild(btnInvoice);
+          tabCount++;
 
-          new Tabulator(invoiceTableDiv, {
+          const invoiceTable = new Tabulator(invoiceDiv, {
             data: data['invoiceDetails'],
             layout: "fitColumns",
-            reactiveData: true,
             height: "auto",
             columns: [
               { title: 'RequestInvoiceID', field: 'RequestInvoiceID', width: 80, visible: false },
@@ -997,16 +1209,88 @@ export class ViewPokhComponent implements OnInit, AfterViewInit {
 
               { title: 'Mã lệnh', field: 'RequestInvoiceCode', width: 170 },
               { title: 'Công ty', field: 'TaxCompanyName', width: 120 },
-              { title: 'Số hóa đơn', field: 'InvoiceNumber', width: 170 },
-              { title: 'Ngày hóa đơn', field: 'InvoiceDate', width: 170 },
+              { title: 'Số hóa đơn', field: 'InvoiceNumber', width: 170, editor: 'input' },
+              {
+                title: 'Ngày hóa đơn', field: 'InvoiceDate', width: 170, editor: 'date', formatter: (cell: any) => {
+                  const value = cell.getValue();
+                  if (!value) return '';
+                  const date = new Date(value);
+                  if (isNaN(date.getTime())) return value;
+                  const day = String(date.getDate()).padStart(2, '0');
+                  const month = String(date.getMonth() + 1).padStart(2, '0');
+                  const year = date.getFullYear();
+                  return `${day}/${month}/${year}`;
+                }
+              },
 
             ]
           });
+
+          invoiceTable.on("cellEdited", (cell) => {
+            const rowData = cell.getRow().getData();
+            this.modifiedInvoiceRows.add(rowData["RequestInvoiceDetailID"]);
+          });
         }
 
-        rowEl.appendChild(wrapper);
+        // ẨN TAB HEADER NẾU CHỈ CÓ 1 TAB
+        if (tabCount <= 1) {
+          tabHeader.style.display = "none";
+        }
+
+        // ADD CONTENT
+        if (tabCount > 0) {
+          tabContent.appendChild(exportDiv);
+          tabContent.appendChild(invoiceDiv);
+          tabs.appendChild(tabHeader);
+          tabs.appendChild(tabContent);
+          wrapper.appendChild(tabs);
+          rowEl.appendChild(wrapper);
+        }
+
+        // TAB SWITCH LOGIC
+        tabHeader.querySelectorAll(".nested-tab-btn").forEach(btn => {
+          btn.addEventListener("click", (e: any) => {
+            e.stopPropagation();
+            e.preventDefault();
+
+            tabHeader.querySelectorAll(".nested-tab-btn")
+              .forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+
+            const tab = btn.getAttribute("data-tab");
+            exportDiv.style.display = tab === "export" ? "block" : "none";
+            invoiceDiv.style.display = tab === "invoice" ? "block" : "none";
+          });
+        });
       }
 
+
+    });
+
+    this.viewPOKH.on('rowSelected', (row) => {
+      if (this.skipChildUpdate) return;
+
+      const rowData = row.getData();
+
+      const nestedTable = this.nestedExportTables.get(rowData['ID']);
+      if (nestedTable) {
+        nestedTable.selectRow();
+      } else if (rowData['exportDetails']?.length > 0) {
+        rowData['selectedExports'] = [...rowData['exportDetails']];
+      }
+    });
+
+    this.viewPOKH.on('rowDeselected', (row) => {
+      if (this.skipChildUpdate) return;
+
+      const rowData = row.getData();
+
+      const nestedTable = this.nestedExportTables.get(rowData['ID']);
+      if (nestedTable) {
+        nestedTable.deselectRow();
+      }
+
+      rowData['selectedExports'] = [];
     });
   }
   //#endregion

@@ -62,7 +62,7 @@ import { CustomerMajorService } from '../customer-major-service/customer-major.s
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 @Component({
-  selector: 'app-customer-major',
+  selector: 'app-customer-major-detail',
   imports: [
     NzCardModule,
     FormsModule,

@@ -76,16 +76,14 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
   checked: boolean = false;
   sizeSearch: string = '0';
   searchParams = {
-    dateStart: new Date(new Date().setDate(new Date().getDate() - 2))
-      .toISOString()
-      .split('T')[0],
-    dateEnd: new Date().toISOString().split('T')[0],
+    dateStart: new Date(new Date().setDate(new Date().getDate() - 2)),
+    dateEnd: new Date(),
     keyword: '',
     group: 0,
     status: -1,
     warehouseCode: 'HN',
     pageNumber: 1,
-    pageSize: 10000,
+    pageSize: 100000,
   };
   ngOnInit(): void {
     this.loadData();
@@ -98,16 +96,14 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
   }
   resetform() {
     this.searchParams = {
-      dateStart: new Date(new Date().setDate(new Date().getDate() - 2))
-        .toISOString()
-        .split('T')[0],
-      dateEnd: new Date().toISOString().split('T')[0],
+      dateStart: new Date(new Date().setDate(new Date().getDate() - 2)),
+      dateEnd: new Date(),
       keyword: '',
       group: 0,
       status: -1,
       warehouseCode: this.warehouseCode,
       pageNumber: 1,
-      pageSize: 10000,
+      pageSize: 100000,
     };
   }
   searchData() {
@@ -227,11 +223,11 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
     const dateEnd = DateTime.fromJSDate(new Date(this.searchParams.dateEnd));
     this.historyImportExportService
       .getHistoryImportExport(
-        this.searchParams.status,
+        this.searchParams.status || 0,
         dateStart,
         dateEnd,
-        this.searchParams.keyword,
-        this.checked,
+        this.searchParams.keyword || '',
+        this.checked || false,
         this.searchParams.pageNumber,
         this.searchParams.pageSize,
         this.searchParams.warehouseCode
@@ -260,12 +256,12 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
   //ve bang
   drawTable() {
     this.table = new Tabulator('#table_HistoryImportExport', {
+      ...DEFAULT_TABLE_CONFIG,
       data: this.dataTable,
       layout: 'fitDataFill',
       reactiveData: true,
       movableColumns: true,
       resizableRows: true,
-      ...DEFAULT_TABLE_CONFIG,
       height: '89vh',
       pagination: true,
       paginationMode: 'remote',

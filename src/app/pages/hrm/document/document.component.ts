@@ -35,24 +35,16 @@ import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import {
   TabulatorFull as Tabulator,
-  CellComponent,
-  ColumnDefinition,
   RowComponent,
 } from 'tabulator-tables';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import { ApplicationRef, createComponent, Type } from '@angular/core';
-import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
-import { EnvironmentInjector } from '@angular/core';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DateTime } from 'luxon';
-declare var bootstrap: any;
-import { updateCSS } from 'ng-zorro-antd/core/util';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { DocumentService } from './document-service/document.service';
 import { DocumentTypeFormComponent } from './document-type-form/document-type-form.component';
 import { DocumentFormComponent } from './document-form/document-form.component';
-import { DocumentFileFormComponent } from './document-file-form/document-file-form.component';
 import { NzUploadFile } from 'ng-zorro-antd/upload';
 import { saveAs } from 'file-saver';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';

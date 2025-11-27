@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormControl, Validators } from '@angular/forms';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
-// NG-ZORRO imports
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -15,11 +14,9 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 
-// Import Service
-import { WFHService, WFHDto } from '../WFH-service/WFH.service';
+import { WFHService } from '../WFH-service/WFH.service';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
 
-// Interfaces
 export interface EmployeeDto {
   ID: number;
   Code: string;

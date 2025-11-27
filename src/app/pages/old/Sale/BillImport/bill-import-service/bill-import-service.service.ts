@@ -64,6 +64,19 @@ export class BillImportServiceService {
       data
     );
   }
+
+  /**
+   * Cập nhật trạng thái hồ sơ chứng từ (đã nhận đủ / chưa nhận đủ)
+   * @param data - Mảng các object chứa BillImportID
+   * @param status - true: đã nhận đủ, false: chưa nhận đủ
+   */
+  approveDocumentImport(data: any[], status: boolean): Observable<any> {
+    return this.http.post(
+      environment.host + `api/BillImport/approve-document-import?status=${status}`,
+      data
+    );
+  }
+
   getDataRulePay() {
     return this.http.get<any>(environment.host + `api/rulepay`);
   }

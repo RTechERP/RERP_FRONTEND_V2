@@ -5,21 +5,21 @@
 </div>
 
 <!-- Thông báo khi mở từ POKH -->
-<div *ngIf="isFromPOKH && customerName" class="alert alert-info m-2 py-2" style="font-size: 12px;">
+<!-- <div *ngIf="isFromPOKH && customerName" class="alert alert-info m-2 py-2" style="font-size: 12px;">
     <i class="bi bi-info-circle me-2"></i>
     Đang tạo yêu cầu xuất hóa đơn cho khách hàng: <strong>{{ customerName }}</strong>
-</div>
+</div> -->
 
 <div class="modal-body">
     <form>
         <div class="row">
-            <!-- Column 1: Customer Info --> 
+            <!-- Column 1: Customer Info -->
             <div class="col-md-4 pe-2">
                 <div class="row">
                     <div class="col-md-6 mb-2">
                         <label class="mb-0 fs-12">Số phiếu</label>
-                        <input type="text" class="form-control form-control-sm fs-12"
-                            [(ngModel)]="formData.Code" name="Code" disabled>
+                        <input type="text" class="form-control form-control-sm fs-12" [(ngModel)]="formData.Code"
+                            name="Code" disabled>
                     </div>
                     <div class="col-md-6 mb-2">
                         <label class="mb-0 fs-12">Công ty bán</label>
@@ -45,8 +45,8 @@
                     </div>
                     <div class="col-md-12 mb-2">
                         <label class="mb-0 fs-12">Ghi chú</label>
-                        <textarea class="form-control form-control-sm fs-12" [(ngModel)]="formData.note"
-                            name="note" rows="1" placeholder="Nhập ghi chú"></textarea>
+                        <textarea class="form-control form-control-sm fs-12" [(ngModel)]="formData.note" name="note"
+                            rows="1" placeholder="Nhập ghi chú"></textarea>
                     </div>
                 </div>
             </div>
@@ -57,8 +57,7 @@
                     <div class="col-md-12 mb-2">
                         <label class="mb-0 fs-12">Người yêu cầu</label>
                         <nz-select nzShowSearch name="userId" nzPlaceHolder="Chọn người yêu cầu" nzAllowClear
-                            nzSize="default" class="w-100" [(ngModel)]="formData.userId"
-                            >
+                            nzSize="default" class="w-100" [(ngModel)]="formData.userId">
                             <nz-option *ngFor="let user of employees" [nzValue]="user.ID"
                                 [nzLabel]="user.FullName"></nz-option>
                         </nz-select>
@@ -66,7 +65,7 @@
                     <div class="col-md-12 mb-2">
                         <label class="mb-0 fs-12">Ngày yêu cầu</label>
                         <input type="date" class="form-control form-control-sm fs-12" [(ngModel)]="formData.requestDate"
-                            name="requestDate" >
+                            name="requestDate">
                     </div>
                     <div class="col-md-12 mb-2">
                         <label class="mb-0 fs-12">Ngày xuất</label>

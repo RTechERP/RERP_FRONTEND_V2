@@ -155,7 +155,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     keyword: '',
     checkAll: false,
     pageNumber: 1,
-    pageSize: 1000,
+    pageSize: 50,
   };
 
   searchText: string = '';
@@ -215,9 +215,10 @@ export class BillImportComponent implements OnInit, AfterViewInit {
       keyword: '',
       checkAll: false,
       pageNumber: 1,
-      pageSize: 1000,
+      pageSize: 50,
     };
     this.searchText = '';
+    this.loadDataBillImport();
   }
   searchData() {
     this.loadDataBillImport();
@@ -476,34 +477,11 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     });
   }
   loadDataBillImport() {
-    this.isLoadTable = true;
-    const dateStart = DateTime.fromJSDate(
-      new Date(this.searchParams.dateStart)
-    );
-    const dateEnd = DateTime.fromJSDate(new Date(this.searchParams.dateEnd));
-    this.billImportService.getBillImport(this.searchParams).subscribe({
-      next: (res) => {
-        if (res.status === 1) {
-          this.dataTableBillImport = res.data;
-          if (this.table_billImport) {
-            this.table_billImport.replaceData(this.dataTableBillImport);
-          } else {
-            console.log(
-              '>>> Bảng chưa tồn tại, dữ liệu sẽ được load khi drawTable() được gọi'
-            );
-          }
-          this.isLoadTable = false;
-        }
-      },
-      error: (err) => {
-        console.error('Lỗi khi load dữ liệu:', err);
-        this.notification.error(
-          NOTIFICATION_TITLE.error,
-          err?.error?.message || 'Không thể tải dữ liệu phiếu nhập'
-        );
-        this.isLoadTable = false;
-      },
-    });
+    // Nếu table đã tồn tại, chỉ cần setData để trigger Ajax request
+    if (this.table_billImport) {
+      this.table_billImport.setData();
+    }
+    // Nếu chưa có table, drawTable() sẽ tự động load data
   }
   async exportExcel() {
     const table = this.table_billImport;
@@ -888,9 +866,101 @@ export class BillImportComponent implements OnInit, AfterViewInit {
 
   deleteAttachment() {}
   addAttachment() {}
+
+  /**
+   * Cập nhật trạng thái hồ sơ chứng từ
+   * @param row - Row được chọn từ context menu
+   * @param status - true: đã nhận đủ, false: chưa nhận đủ
+   */
+  updateDocumentStatus(row: any, status: boolean): void {
+    const rowData = row.getData();
+    const billID = rowData['ID'];
+    const receiverID = rowData['DoccumentReceiverID'];
+
+    // Validate: Chỉ admin hoặc người nhận hồ sơ mới được cập nhật
+    if (receiverID !== this.appUserService.id && !this.appUserService.isAdmin) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Bạn không có quyền cập nhật trạng thái hồ sơ chứng từ này!\nChỉ admin hoặc người nhận hồ sơ mới có thể cập nhật.'
+      );
+      return;
+    }
+
+    // Hiển thị confirm dialog
+    const statusText = status ? 'đã nhận đủ' : 'chưa nhận đủ';
+    this.modal.confirm({
+      nzTitle: 'Xác nhận',
+      nzContent: `Bạn có chắc muốn cập nhật trạng thái hồ sơ chứng từ thành <strong>"${statusText}"</strong>?`,
+      nzOkText: 'Xác nhận',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        this.callApiUpdateDocumentStatus([billID], status);
+      },
+    });
+  }
+
+  /**
+   * Gọi API để cập nhật trạng thái hồ sơ chứng từ
+   * @param billIDs - Mảng ID các phiếu nhập cần cập nhật
+   * @param status - true: đã nhận đủ, false: chưa nhận đủ
+   */
+  private callApiUpdateDocumentStatus(billIDs: number[], status: boolean): void {
+    // Chuẩn bị payload theo format API yêu cầu
+    const payload = billIDs.map((id) => {
+      // Tìm bill từ dataTableBillImport để lấy DoccumentReceiverID
+      const bill = this.dataTableBillImport.find((b) => b.ID === id);
+      return {
+        ID: id,
+        DoccumentReceiverID: bill?.DoccumentReceiverID || null,
+      };
+    });
+
+    // Gọi API
+    this.billImportService.approveDocumentImport(payload, status).subscribe({
+      next: (res: any) => {
+        if (res?.success) {
+          const statusText = status ? 'đã nhận đủ' : 'chưa nhận đủ';
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            res.message || `Cập nhật trạng thái hồ sơ chứng từ thành "${statusText}" thành công!`
+          );
+          // Reload danh sách phiếu nhập
+          this.loadDataBillImport();
+        } else {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            res.message || 'Cập nhật trạng thái thất bại!'
+          );
+        }
+      },
+      error: (err: any) => {
+        console.error('Error updating document status:', err);
+        this.notification.error(
+          NOTIFICATION_TITLE.error, err.error.message || 
+          'Có lỗi xảy ra khi cập nhật trạng thái hồ sơ chứng từ!'
+        );
+      },
+    });
+  }
+
   //vẽ bảng
   drawTable() {
     const rowMenu = [
+      {
+        label: '<i class="fas fa-check-circle"></i> Đã nhận đủ hồ sơ chứng từ',
+        action: (e: any, row: any) => {
+          this.updateDocumentStatus(row, true);
+        },
+      },
+      {
+        label: '<i class="fas fa-times-circle"></i> Chưa nhận đủ hồ sơ chứng từ',
+        action: (e: any, row: any) => {
+          this.updateDocumentStatus(row, false);
+        },
+      },
+      {
+        separator: true,
+      },
       {
         label: 'Hủy duyệt phiếu nhập',
         action: (e: any, row: any) => {
@@ -924,18 +994,51 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     const isMobile = window.matchMedia('(max-width: 768px)').matches;
 
     if (this.table_billImport) {
-      this.table_billImport.replaceData(this.dataTableBillImport);
+      this.table_billImport.setData();
     } else {
       this.table_billImport = new Tabulator('#table_billImport', {
         ...DEFAULT_TABLE_CONFIG,
-        data: this.dataTableBillImport,
+        paginationMode: 'remote',
+        ajaxURL: 'dummy',
+        ajaxRequestFunc: (_url, _config, params) => {
+          return new Promise((resolve, reject) => {
+            this.isLoadTable = true;
+            const updatedParams = {
+              ...this.searchParams,
+              pageNumber: params.page || 1,
+              pageSize: params.size || 50,
+            };
+
+            this.billImportService.getBillImport(updatedParams).subscribe({
+              next: (res) => {
+                this.isLoadTable = false;
+                if (res.status === 1) {
+                  resolve({
+                    data: res.data,
+                    last_page: res.totalPage || 1,
+                  });
+                } else {
+                  reject('Failed to load data');
+                }
+              },
+              error: (err) => {
+                this.isLoadTable = false;
+                this.notification.error(
+                  NOTIFICATION_TITLE.error,
+                  err?.error?.message || 'Không thể tải dữ liệu phiếu nhập'
+                );
+                reject(err);
+              },
+            });
+          });
+        },
+        paginationSize: 50,
+        paginationSizeSelector: [10, 25, 50, 100, 200],
         height: '97%',
         layout: 'fitDataStretch',
         pagination: true,
         movableColumns: true,
         resizableRows: true,
-        reactiveData: true,
-        paginationMode: 'local',
         rowContextMenu: rowMenu,
         langs: {
           vi: {

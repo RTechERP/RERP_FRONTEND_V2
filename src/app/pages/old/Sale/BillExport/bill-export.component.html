@@ -154,10 +154,10 @@
         <div class="card-body p-0">
           <nz-splitter nzLayout="vertical">
             <nz-splitter-panel [nzCollapsible]="false" nzResizable="true">
-
-
-                <div id="table_billExport"></div>
-
+                <div class="position-relative h-100">
+                  <div id="table_billExport"></div>
+                
+                </div>
             </nz-splitter-panel>
 
             <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" [nzSize]="sizeTbDetail">
@@ -171,7 +171,15 @@
               <nz-tabset class="main-tab" style=" padding-left: 10px !important;height: 100%;" [nzTabBarExtraContent]="tabClose">
 
                 <nz-tab style="height: 100%;" nzTitle="Thông tin phiếu xuất">
-                <div id="table_billexportdetail"></div>
+                  <div class="position-relative h-100">
+                    <div id="table_billexportdetail"></div>
+                    <nz-spin
+                        class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                        [nzSpinning]="isDetailLoad"
+                        nzTip="Đang tải dữ liệu..."
+                        style="background: rgba(255, 255, 255, 0.8); z-index: 1000;">
+                    </nz-spin>
+                  </div>
                 </nz-tab>
               </nz-tabset>
             </nz-splitter-panel>

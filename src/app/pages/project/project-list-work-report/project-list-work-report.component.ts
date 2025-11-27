@@ -61,7 +61,7 @@ import { ProjectChangeComponent } from '../project-change/project-change.compone
 })
 export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
   @Input() projectId: number = 0;
-  sizeSearch: string = '22%';
+  sizeSearch: string = '0';
 
   constructor(
     private projectService: ProjectService,
@@ -78,6 +78,7 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
   projects: any[] = [];
   keyword: string = '';
   totalTime: number = 0;
+  projectCode: string = '';
 
   ngOnInit() {
     this.getProject();
@@ -318,10 +319,7 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
           title: 'Ghi chú',
           field: 'Note',
           headerHozAlign: 'center',
-          formatter: function (cell, formatterParams, onRendered) {
-            let value = cell.getValue() || '';
-            return value;
-          },
+          formatter: 'textarea'
         },
       ],
       });
@@ -338,7 +336,22 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
   setDefaultSearch() {
     this.projectId = 0;
     this.keyword = '';
+    this.projectCode = '';
     this.refreshTable();
+  }
+
+  onProjectChange() {
+    this.updateProjectCode();
+    this.onSearch();
+  }
+
+  updateProjectCode() {
+    if (this.projectId > 0) {
+      const selectedProject = this.projects.find(p => p.ID === this.projectId);
+      this.projectCode = selectedProject ? selectedProject.ProjectCode : '';
+    } else {
+      this.projectCode = '';
+    }
   }
   getProject() {
     this.projectService.getProjectCombobox().subscribe({
@@ -347,6 +360,10 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
           this.dataProject = response.data;
           this.projects = response.data;
           console.log('dataProject', this.dataProject);
+          // Cập nhật projectCode nếu đã có projectId từ @Input
+          if (this.projectId > 0) {
+            this.updateProjectCode();
+          }
         }
       },
       error: (error) => {

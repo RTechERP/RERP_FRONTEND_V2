@@ -82,5 +82,71 @@
 }
 
 .ant-splitter {
-  height: 90.5vh !important;
+  height: 90.6vh !important;
+}
+
+.nz-form-item,
+nz-form-item {
+  margin-bottom: 10px !important;
+}
+
+.card-body {
+  padding: 10px !important;
+}
+
+/* Wrapper for tab header */
+::ng-deep .nested-tab-header {
+  display: inline-flex;
+  background: #f1f3f5;
+  padding: 4px;
+  border-radius: 8px;
+  gap: 4px;
+  margin-bottom: 12px;
+  border-bottom: none;
+}
+
+/* Tab button */
+::ng-deep .nested-tab-btn {
+  padding: 6px 14px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6c757d;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+::ng-deep .nested-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.6);
+  color: #495057;
+}
+
+/* Active tab */
+::ng-deep .nested-tab-btn.active {
+  background: #ffffff;
+  color: #1890ff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+  font-weight: 600;
+  border: none;
+}
+
+::ng-deep .toggle-nested {
+  cursor: pointer;
+  font-size: 25px;
+  user-select: none;
+}
+
+::ng-deep .toggle-nested:hover {
+  color: #1890ff;
+}
+
+::ng-deep .toggle-nested.disabled {
+  opacity: 0.3 !important;
+  cursor: not-allowed !important;
+  color: #999 !important;
 }

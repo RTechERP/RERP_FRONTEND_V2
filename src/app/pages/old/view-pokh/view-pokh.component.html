@@ -21,9 +21,9 @@
         <button class="fs-12" nz-button nzType="default" nzSize="small" title="Xuất excel">
             <nz-icon nzType="file-excel"></nz-icon> Xuất excel
         </button>
-        <button class="fs-12" nz-button nzType="default" nzSize="small" title="Đã bàn giao">
+        <!-- <button class="fs-12" nz-button nzType="default" nzSize="small" title="Đã bàn giao">
             <nz-icon nzType="exception"></nz-icon> Đã bàn giao
-        </button>
+        </button> -->
     </div>
     <ng-container class="w-100">
         <nz-splitter>
@@ -112,7 +112,7 @@
                             <nz-form-item class="mt-1">
                                 <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
                                 <nz-form-control [nzSpan]="24">
-                                    <nz-input-group>
+                                    <nz-input-group nzSize="small">
                                         <input name="keyword" nz-input nzSize="small" type="text" class="w-100"
                                             placeholder="Từ khóa" [(ngModel)]="filters.keyword">
                                     </nz-input-group>

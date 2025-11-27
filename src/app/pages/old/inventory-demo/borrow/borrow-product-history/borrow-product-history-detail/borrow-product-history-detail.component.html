@@ -1,0 +1,143 @@
+<div class="modal-dialog modal-fullscreen modal-dialog-scrollable">
+  <div class="modal-content"> <!-- PHẢI có wrapper này -->
+    <div class="modal-header bg-primary align-items-center ps-2 d-flex justify-content-between">
+      <h6 class="text-light m-0">ĐĂNG KÝ MƯỢN SẢN PHẨM</h6>
+      <button type="button" class="btn-close btn-close-white" (click)="activeModal.dismiss()" aria-label="Close">
+        <i class="fas fa-times text-white"></i>
+      </button>
+    </div>
+
+
+    <div class="modal-body w-100">
+      <!-- Form section ở trên -->
+      <div class="form-section mb-3">
+        <div nz-row [nzGutter]="16">
+          <!-- Cột trái -->
+          <div nz-col [nzSpan]="12">
+            <div nz-row [nzGutter]="12">
+              <div nz-col [nzSpan]="12">
+                <nz-form-item>
+                  <nz-form-label class="fs-12"> Ngày mượn <span class="text-danger">(*)</span></nz-form-label>
+                  <nz-form-control>
+                    <nz-date-picker class="w-100" [(ngModel)]="DateBorrow" nzFormat="dd/MM/yyyy"></nz-date-picker>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+              <div nz-col [nzSpan]="12">
+                <nz-form-item>
+                  <nz-form-label class="fs-12">Ngày dự kiến trả (<span class="text-danger">*</span>)</nz-form-label>
+                  <nz-form-control>
+                    <nz-date-picker class="w-100" [(ngModel)]="DateReturnExpected"
+                      nzFormat="dd/MM/yyyy"></nz-date-picker>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+            </div>
+            <div nz-row>
+              <div nz-col [nzSpan]="24">
+                <nz-form-item>
+                  <nz-form-label class="fs-12">Người mượn (<span class="text-danger">*</span>)</nz-form-label>
+                  <nz-form-control>
+                    <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Chọn người dùng" [(ngModel)]="PeopleID">
+                      <ng-container *ngFor="let dept of users">
+                        <nz-option-group [nzLabel]="'-- Phòng ban: ' + dept.label">
+                          <ng-container *ngFor="let team of dept.teams">
+                            <nz-option *ngFor="let child of team.options"
+                              [nzLabel]="child.item.FullName +' (Team: ' + team.label + ') '" [nzValue]="child.item.ID">
+                            </nz-option>
+                          </ng-container>
+                        </nz-option-group>
+                      </ng-container>
+                    </nz-select>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+            </div>
+            <div nz-row>
+              <div nz-col [nzSpan]="24">
+                <nz-form-item>
+                  <nz-form-label class="fs-12">Dự án</nz-form-label>
+                  <nz-form-control>
+                    <input nz-input class="w-100" name="project" [(ngModel)]="Project" placeholder="Nhập dự án" />
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cột phải -->
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label class="fs-12">Note</nz-form-label>
+              <nz-form-control>
+                <textarea nz-input rows="6" [(ngModel)]="Note" placeholder="Nhập ghi chú..."></textarea>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tables section ở dưới -->
+      <div class="tables-section">
+        <div nz-row [nzGutter]="16" class="h-100">
+          <!-- Bảng trái -->
+
+          <div nz-col [nzSpan]="14">
+            <div class="table-container">
+              <div class="table-header p-2 bg-light border-bottom">
+                <div nz-row>
+                  <!-- Bên trái -->
+                  <div nz-col [nzSpan]="12" class="d-flex align-items-center">
+                    <span class="fw-bold">Danh sách sản phẩm</span>
+                  </div>
+
+                  <!-- Bên phải -->
+                  <div nz-col [nzSpan]="12" class="d-flex justify-content-end">
+                    <input nz-input placeholder="Tìm kiếm..." style="width: 400px;" (input)="onSearch($event)" />
+                  </div>
+                </div>
+              </div>
+
+              <div #tb_productRTCDetail style="overflow: auto;">
+                <!-- Bảng 1 sẽ được tạo ở đây -->
+              </div>
+            </div>
+          </div>
+
+
+          <!-- Controls ở giữa -->
+          <div nz-col [nzSpan]="2" class="d-flex flex-column justify-content-center align-items-center">
+            <button nz-button nzType="default" nzShape="circle" class="mb-2" title="Chuyển sang phải"
+              (click)="moveData()">
+              <i class="fas fa-arrow-right"></i>
+            </button>
+            <button nz-button nzType="default" nzShape="circle" title="Chuyển sang trái" (click)="removeData()">
+              <i class="fas fa-arrow-left"></i>
+            </button>
+          </div>
+
+          <!-- Bảng phải -->
+          <div nz-col [nzSpan]="8">
+            <div class="table-container">
+              <div class="table-header p-2 bg-light border-bottom d-flex justify-content-between align-items-center">
+                <div>
+                  <span class="fw-bold">Sản phẩm mượn</span>
+                </div>
+
+
+              </div>
+              <div #tb_productRTCDetailBorrow style="overflow: auto;">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-footer p-1">
+      <button nz-button nzDanger (click)="activeModal.dismiss()">Đóng</button>
+      <button nz-button nzType="primary" (click)="onSubmit()">Lưu</button>
+    </div>
+  </div>
+</div>

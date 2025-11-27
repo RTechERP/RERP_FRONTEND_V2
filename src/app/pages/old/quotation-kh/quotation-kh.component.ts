@@ -113,7 +113,7 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
     private quotationKhServices: QuotationKhServicesService,
     private quotationKhDetailService: QuotationKhDetailServiceService,
     private customerPartService: CustomerPartService
-  ) {}
+  ) { }
 
   filterUserData: any[] = [];
   filterCustomerData: any[] = [];
@@ -467,9 +467,9 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
           value =
             value !== undefined && value !== null && value !== ''
               ? new Intl.NumberFormat('vi-VN', {
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 0,
-                }).format(Number(value))
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+              }).format(Number(value))
               : '';
         } else if (percentFields.includes(field)) {
           // Format phần trăm
@@ -548,9 +548,8 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `QUOTATIONKH_List_Page_${currentPage}_${
-      new Date().toISOString().split('T')[0]
-    }.xlsx`;
+    link.download = `QUOTATIONKH_List_Page_${currentPage}_${new Date().toISOString().split('T')[0]
+      }.xlsx`;
     link.click();
     window.URL.revokeObjectURL(url);
   }
@@ -757,12 +756,21 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
           field: 'UnitPrice',
           sorter: 'string',
           width: 150,
+          formatter: 'money',
+          formatterParams: {
+            precision: 0,
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         {
           title: 'Thành tiền trước VAT',
           field: 'IntoMoney',
           sorter: 'number',
           width: 200,
+          formatter: 'money',
           formatterParams: {
             precision: 0,
             decimal: '.',
@@ -803,14 +811,40 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
           field: 'UnitPriceImport',
           sorter: 'string',
           width: 150,
+          formatter: 'money',
+          formatterParams: {
+            precision: 0,
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
         {
           title: 'Tổng giá nhập',
           field: 'TotalPriceImport',
           sorter: 'string',
           width: 150,
+          formatter: 'money',
+          formatterParams: {
+            precision: 0,
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
         },
-        { title: 'Giá net', field: 'GiaNet', sorter: 'string', width: 150 },
+        {
+          title: 'Giá net', field: 'GiaNet', sorter: 'string', width: 150,
+          formatter: 'money',
+          formatterParams: {
+            precision: 0,
+            decimal: '.',
+            thousand: ',',
+            symbol: '',
+            symbolAfter: true,
+          },
+        },
         { title: 'Nhóm', field: 'GroupQuota', sorter: 'string', width: 150 },
         { title: 'Ghi chú', field: 'Note', sorter: 'string', width: 150 },
       ],

@@ -268,8 +268,12 @@ button[nz-button] img {
 .tabulator .tabulator-header .tabulator-col {
   justify-content: center !important;
   align-items: center !important;
-  /* background: rgb(190, 190, 190) !important; */
-  color: black;
+  background-color: #3066c5 !important;
+  color: #ffffff !important;
+  font-weight: bold !important;
+  /* padding: 6px 8px !important; */
+  font-size: 12px !important;
+  text-align: center !important;
 }
 
 .ant-splitter {

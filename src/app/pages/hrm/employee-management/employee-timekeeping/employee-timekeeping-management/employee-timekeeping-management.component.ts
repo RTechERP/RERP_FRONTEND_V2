@@ -4,22 +4,9 @@ import {
   OnInit,
   ViewChild,
   AfterViewInit,
-  AfterViewChecked,
-  IterableDiffers,
-  TemplateRef,
-  input,
-  Input,
-  inject,
 } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
-import {
-  FormsModule,
-  ReactiveFormsModule,
-  FormBuilder,
-  FormGroup,
-  Validators,
-  NonNullableFormBuilder,
-} from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
@@ -36,33 +23,24 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import { ApplicationRef, createComponent, Type } from '@angular/core';
-import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
-import { EnvironmentInjector } from '@angular/core';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
-import { DateTime } from 'luxon';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzModalModule, NzModalRef, NzModalService } from 'ng-zorro-antd/modal';
-import { NgModel } from '@angular/forms';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { Router } from '@angular/router';
-import { NgbActiveModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { CommonModule } from '@angular/common';
 import { EmployeeTimekeepingService } from '../employee-timekeeping-service/employee-timekeeping.service';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
-import { EmployeeTimekeepingComponent } from '../employee-timekeeping.component';
 import { VehicleRepairService } from '../../../vehicle/vehicle-repair/vehicle-repair-service/vehicle-repair.service';
 
 import { ActivatedRoute } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { forkJoin, firstValueFrom } from 'rxjs';
 import { NOTIFICATION_TITLE } from '../../../../../app.config';
-
 
 @Component({
   selector: 'app-employee-timekeeping-management',
@@ -144,7 +122,7 @@ export class EmployeeTimekeepingManagementComponent
   etId: number = 0;
   masterId: number | null = null;
   etData: any = null; // Data từ parent component
-  
+
   isApproved = false;
   // (nếu chưa có) helper nhỏ
   private toInt(v: any, def = 0) {
@@ -162,7 +140,7 @@ export class EmployeeTimekeepingManagementComponent
     // Ưu tiên lấy ID từ componentInstance (modal) hoặc Input
     // Nếu không có thì mới lấy từ route (để tương thích với route cũ)
     let id = this.etId || this.masterId || 0;
-    
+
     // Nếu đã được set từ modal/input thì dùng luôn
     if (id > 0) {
       this.etId = id;
@@ -171,7 +149,7 @@ export class EmployeeTimekeepingManagementComponent
       this.prefillFromETById(id);
       return;
     }
-    
+
     // Nếu chưa có ID, kiểm tra route params (để tương thích với route cũ)
     if (this.route) {
       this.route.paramMap.subscribe((params) => {
@@ -214,7 +192,7 @@ export class EmployeeTimekeepingManagementComponent
         // Nếu đã có ID nhưng chưa load data, load lại
         this.prefillFromETById(this.etId || this.masterId || 0);
       }
-      
+
       this.initializeDefaultTab();
     }, 500);
   }
@@ -328,7 +306,10 @@ export class EmployeeTimekeepingManagementComponent
     };
 
     // gọi song song 2 API – luôn đúng filter hiện tại
-    this.notification.info(NOTIFICATION_TITLE.success, 'Đang lấy dữ liệu MT & DT...');
+    this.notification.info(
+      NOTIFICATION_TITLE.success,
+      'Đang lấy dữ liệu MT & DT...'
+    );
     this.isLoadTable = true;
 
     forkJoin({
@@ -590,7 +571,10 @@ export class EmployeeTimekeepingManagementComponent
       },
       error: (err) => {
         this.isLoadTable = false;
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xuất file Excel');
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Không thể xuất file Excel'
+        );
       },
     });
   }
@@ -606,10 +590,10 @@ export class EmployeeTimekeepingManagementComponent
     this.selectedDepartment = null;
     this.selectedEmployee = null;
     this.searchValue = '';
-    
+
     // Load lại tất cả nhân viên
     this.loadEmployees();
-    
+
     // Reload dữ liệu bảng
     this.reloadBothFast();
   }
@@ -629,29 +613,33 @@ export class EmployeeTimekeepingManagementComponent
   onDepartmentChange(): void {
     // Reset nhân viên đã chọn khi thay đổi phòng ban
     this.selectedEmployee = null;
-    
+
     // Nếu đã có allEmployees, filter ngay từ đó (không cần gọi API lại)
     if (this.allEmployees && this.allEmployees.length > 0) {
       const filtered =
         this.selectedDepartment && Number(this.selectedDepartment) > 0
           ? this.allEmployees.filter(
-              (x: any) => Number(x.DepartmentID) === Number(this.selectedDepartment)
+              (x: any) =>
+                Number(x.DepartmentID) === Number(this.selectedDepartment)
             )
           : this.allEmployees;
-      
+
       this.employees = this.groupEmployeesByDepartment(filtered);
     } else {
       // Nếu chưa có allEmployees, load lại từ API
       this.loadEmployees();
     }
-    
+
     // Reload dữ liệu bảng
     this.reloadBothFast();
   }
 
   onUpdateOne(): void {
     if (this.isUpdating) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Đang cập nhật, vui lòng đợi...');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Đang cập nhật, vui lòng đợi...'
+      );
       return;
     }
 
@@ -666,7 +654,10 @@ export class EmployeeTimekeepingManagementComponent
       return;
     }
     if (!masterId) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Không lấy được EmployeeID để cập nhật.');
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Không lấy được EmployeeID để cập nhật.'
+      );
       return;
     }
 
@@ -701,7 +692,10 @@ export class EmployeeTimekeepingManagementComponent
               this.isLoadTable = false;
               this.isUpdating = false;
               if (res?.status === 0) {
-                this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Cập nhật thất bại');
+                this.notification.error(
+                  NOTIFICATION_TITLE.error,
+                  res?.message || 'Cập nhật thất bại'
+                );
                 return;
               }
               this.notification.success(
@@ -714,16 +708,22 @@ export class EmployeeTimekeepingManagementComponent
             error: () => {
               this.isLoadTable = false;
               this.isUpdating = false;
-              this.notification.error(NOTIFICATION_TITLE.error, 'Không thể cập nhật công nhân viên');
+              this.notification.error(
+                NOTIFICATION_TITLE.error,
+                'Không thể cập nhật công nhân viên'
+              );
             },
           });
-      }
+      },
     });
   }
 
   async onUpdateAll(): Promise<void> {
     if (this.isUpdating) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Đang cập nhật, vui lòng đợi...');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Đang cập nhật, vui lòng đợi...'
+      );
       return;
     }
 
@@ -736,9 +736,12 @@ export class EmployeeTimekeepingManagementComponent
       return;
     }
     const p = this.getAjaxParamsMT();
-    const masterId = this.etId; 
+    const masterId = this.etId;
     if (!masterId) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Không xác định MasterID (etId).');
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Không xác định MasterID (etId).'
+      );
       return;
     }
 
@@ -752,25 +755,33 @@ export class EmployeeTimekeepingManagementComponent
 
         this.isUpdating = true;
         this.isLoadTable = true;
-        
+
         try {
           const res = await firstValueFrom(
-            this.etService.updateTimekeepingAll(masterId, p.month, p.year, login)
+            this.etService.updateTimekeepingAll(
+              masterId,
+              p.month,
+              p.year,
+              login
+            )
           );
-          
+
           this.isLoadTable = false;
           this.isUpdating = false;
-          
+
           if (res?.status === 0) {
-            this.notification.error(NOTIFICATION_TITLE.error, res?.message || 'Cập nhật thất bại');
+            this.notification.error(
+              NOTIFICATION_TITLE.error,
+              res?.message || 'Cập nhật thất bại'
+            );
             return;
           }
-          
+
           this.notification.success(
             NOTIFICATION_TITLE.success,
             'Đã cập nhật toàn bộ bảng công'
           );
-          
+
           if (this.tb_MT) this.loadMTData();
           if (this.tb_DT) this.loadDTData();
         } catch (error) {
@@ -781,7 +792,7 @@ export class EmployeeTimekeepingManagementComponent
             'Không thể cập nhật toàn bộ bảng công'
           );
         }
-      }
+      },
     });
   }
 
@@ -794,7 +805,10 @@ export class EmployeeTimekeepingManagementComponent
         }
       },
       error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải danh sách phòng ban');
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Không thể tải danh sách phòng ban'
+        );
       },
     });
   }
@@ -802,26 +816,30 @@ export class EmployeeTimekeepingManagementComponent
   // Load employees từ API
   loadEmployees(): void {
     const request = { status: 0, departmentid: 0, keyword: '' };
-    
+
     // Dùng VehicleRepairService.getEmployee() để lấy nhân viên có thông tin phòng ban
     this.vehicleRepairService.getEmployee(request).subscribe({
       next: (res: any) => {
         const all = (res?.data || []).filter((emp: any) => emp.Status === 0); // Filter active employees
         this.allEmployees = all;
-        
+
         // Filter theo phòng ban nếu có chọn
         const filtered =
           this.selectedDepartment && Number(this.selectedDepartment) > 0
             ? all.filter(
-                (x: any) => Number(x.DepartmentID) === Number(this.selectedDepartment)
+                (x: any) =>
+                  Number(x.DepartmentID) === Number(this.selectedDepartment)
               )
             : all;
-        
+
         // Group employees by department
         this.employees = this.groupEmployeesByDepartment(filtered);
       },
       error: (error: any) => {
-        this.notification.error(NOTIFICATION_TITLE.error, error?.error?.message || 'Không thể tải danh sách nhân viên');
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          error?.error?.message || 'Không thể tải danh sách nhân viên'
+        );
       },
     });
   }
@@ -896,7 +914,10 @@ export class EmployeeTimekeepingManagementComponent
         // clear nhẹ cho chắc
         this.tb_MT?.setData([]);
         this.tb_DT?.setData([]);
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu MT/DT');
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Không thể tải dữ liệu MT/DT'
+        );
       },
     });
   }
@@ -946,7 +967,10 @@ export class EmployeeTimekeepingManagementComponent
 
       this.tb_MT.on('dataLoadError', (error: any) => {
         this.isLoadTable = false;
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu bảng chấm công');
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Không thể tải dữ liệu bảng chấm công'
+        );
       });
 
       this.tb_MT.on('rowClick', (e: any, row: any) => {
@@ -966,10 +990,12 @@ export class EmployeeTimekeepingManagementComponent
           this.loadMTData();
         }, 100); // Thêm một chút delay để đảm bảo table đã sẵn sàng
       });
-
     } catch (error) {
       this.isLoadTable = false;
-      this.notification.error(NOTIFICATION_TITLE.error, 'Không thể khởi tạo bảng chấm công');
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Không thể khởi tạo bảng chấm công'
+      );
     }
   }
 
@@ -1348,7 +1374,10 @@ export class EmployeeTimekeepingManagementComponent
         error: (err) => {
           this.isLoadTable = false;
           this.tb_DT.setData([]);
-          this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu chi tiết công');
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'Không thể tải dữ liệu chi tiết công'
+          );
         },
       });
   }

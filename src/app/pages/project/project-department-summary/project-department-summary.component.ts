@@ -59,6 +59,8 @@ import { ProjectCurrentSituationComponent } from '../project-current-situation/p
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { ProjectRequestComponent } from '../../project-request/project-request.component';
 import { ProjectPartlistProblemComponent } from '../project-partlist-problem/project-partlist-problem.component';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { PermissionService } from '../../../services/permission.service';
 @Component({
   selector: 'app-project-new',
   standalone: true,
@@ -85,7 +87,8 @@ import { ProjectPartlistProblemComponent } from '../project-partlist-problem/pro
     NzModalModule,
     CommonModule,
     NzFormModule,
-    ProjectWorkerComponent
+    ProjectWorkerComponent,
+    HasPermissionDirective
   ],
   templateUrl: './project-department-summary.component.html',
   styleUrl: './project-department-summary.component.css'
@@ -114,6 +117,7 @@ export class ProjectDepartmentSummaryComponent implements AfterViewInit {
     private router: Router,
     private route: ActivatedRoute,
     private authService: AuthService,
+    private permissionService: PermissionService,
   ) {}
   //Ga
   //#region Khai báo biến
@@ -321,13 +325,6 @@ getUserTeam() {
       },
       {
         label:
-          '<span style="font-size: 0.75rem;"><img src="assets/icon/project_status_16.png" alt="Trạng thái dự án" class="me-1" /> Trạng thái dự án</span>',
-        action: (e: any, row: any) => {
-          this.openProjectStatus();
-        },
-      },
-      {
-        label:
           '<span style="font-size: 0.75rem;"><img src="assets/icon/compare_project_16.png" alt="Chuyển dự án" class="me-1" /> Chuyển dự án</span>',
         action: (e: any, row: any) => {
           this.changeProject();
@@ -335,26 +332,41 @@ getUserTeam() {
       },
       {
         label:
-          '<span style="font-size: 0.75rem;"><img src="assets/icon/compare_project_16.png" alt="Yêu cầu dự án" class="me-1" /> Yêu cầu - Giải pháp</span>',
-        action: (e: any, row: any) => {
-          this.openProjectRequest();
-        },
-      },
-      {
-        label:
-          '<span style="font-size: 0.75rem;"><img src="assets/icon/compare_project_16.png" alt="Hàng phát sinh" class="me-1" /> Hàng phát sinh</span>',
+          '<span style="font-size: 0.75rem;"><img src="assets/icon/additional_goods_16.png" alt="Hàng phát sinh" class="me-1" /> Hàng phát sinh</span>',
         action: (e: any, row: any) => {
           this.openProjectPartListProblemModal();
         },
       },
       {
         label:
-          '<span style="font-size: 0.75rem;"><img src="assets/icon/compare_project_16.png" alt=" class="me-1" />Cập nhật hiện trạng</span>',
+          '<span style="font-size: 0.75rem;"><img src="assets/icon/solution_16.png" alt="yêu cầu giải pháp" class="me-1" /> Yêu cầu - Giải pháp</span>',
         action: (e: any, row: any) => {
-          this.openUpdateCurrentSituation();
+          this.openProjectRequest();
         },
       },
     ];
+
+    // Thêm menu item "Trạng thái dự án" nếu có quyền
+    if (this.permissionService.hasPermission('N1,N13,N27')) {
+      contextMenuProject.push({
+        label:
+          '<span style="font-size: 0.75rem;"><img src="assets/icon/project_status_16.png" alt="Trạng thái dự án" class="me-1" /> Trạng thái dự án</span>',
+        action: (e: any, row: any) => {
+          this.openProjectStatus();
+        },
+      });
+    }
+
+    // Thêm menu item "Cập nhật hiện trạng" nếu có quyền
+    if (this.permissionService.hasPermission('N1,N13,N27')) {
+      contextMenuProject.push({
+        label:
+          '<span style="font-size: 0.75rem;"><img src="assets/icon/update_status_16.png" alt="Cập nhật hiện trạng" class="me-1" /> Cập nhật hiện trạng</span>',
+        action: (e: any, row: any) => {
+          this.openUpdateCurrentSituation();
+        },
+      });
+    }
 
     if (!this.isHide) {
       contextMenuProject = [
@@ -918,7 +930,10 @@ getUserTeam() {
           title: 'Chọn',
           field: 'Selected',
           headerHozAlign: 'center',
-          formatter: 'tickCross',
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            return `<input type="checkbox" ${(value === true ? 'checked' : '')} onclick="return false;">`;
+          }
         },
         {
           title: 'Kiểu dự án',
@@ -1392,15 +1407,13 @@ getUserTeam() {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
-        nzStyle: { fontSize: '0.75rem' },
-      });
+      this.notification.error('Lỗi','Vui lòng chọn 1 dự án!')
       return;
     }
 
     const modalRef = this.modalService.open(ProjectListWorkReportComponent, {
       centered: true,
-      size: 'xl',
+      windowClass: 'full-screen-modal', 
     });
     modalRef.componentInstance.projectId = this.projectId;
     modalRef.result.then((result) => {
@@ -1430,9 +1443,7 @@ getUserTeam() {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
-        nzStyle: { fontSize: '0.75rem' },
-      });
+      this.notification.error('Lỗi','Vui lòng chọn 1 dự án!')
       return;
     }
     const modalRef = this.modalService.open(WorkItemComponent, {
@@ -1456,9 +1467,7 @@ getUserTeam() {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
-        nzStyle: { fontSize: '0.75rem' },
-      });
+      this.notification.error('Lỗi','Vui lòng chọn 1 dự án!')
       return;
     }
     const modalRef = this.modalService.open(ProjectWorkerComponent, {
@@ -1482,9 +1491,7 @@ getUserTeam() {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
-        nzStyle: { fontSize: '0.75rem' },
-      });
+      this.notification.error('Lỗi','Vui lòng chọn 1 dự án!')
       return;
     }
     const modalRef = this.modalService.open(ProjectPartListComponent, {
@@ -1493,6 +1500,7 @@ getUserTeam() {
       keyboard: false,
       windowClass: 'full-screen-modal',
     });
+    modalRef.componentInstance.project = selectedRows[0];
     modalRef.componentInstance.projectId = this.projectId;
     modalRef.componentInstance.projectCodex = this.tb_projects.getSelectedData()[0].ProjectCode;
     modalRef.result.then((result) => {

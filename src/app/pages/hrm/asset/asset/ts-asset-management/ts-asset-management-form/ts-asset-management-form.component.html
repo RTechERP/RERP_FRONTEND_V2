@@ -3,58 +3,67 @@
   <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
 </div>
 
-  <div class="modal-body p-1 " style="max-height: 80vh; overflow-y: auto; overflow-x: hidden;">
-  <form nz-form nzLayout="vertical" class="fs-7 mt-2 me-2">
+<div class="modal-body p-1 " style="max-height: 80vh; overflow-y: auto; overflow-x: hidden;">
+  <form [formGroup]="formGroup" nz-form nzLayout="vertical" class="fs-7 mt-2 me-2">
     <!-- Mã tài sản / Mã NCC -->
-    <nz-row [nzGutter]="16">
+    <nz-row [nzGutter]="16" class="mb-3">
 
 
       <nz-col [nzXs]="24" [nzSm]="6" [nzMd]="6">
         <nz-form-label>STT<span class="text-danger ps-1 me-1"> (*)</span></nz-form-label>
         <nz-form-control>
-          <input nz-input type="number"
-           [(ngModel)]="dataInput.STT"
-           name="STT" disabled />
+          <input nz-input type="number" formControlName="STT" />
         </nz-form-control>
       </nz-col>
       <nz-col [nzXs]="24" [nzSm]="18" [nzMd]="9">
         <nz-form-label>Mã tài sản<span class="text-danger ps-1 me-1"> (*)</span></nz-form-label>
-        <nz-form-control>
-          <input nz-input type="text" [(ngModel)]="dataInput.TSCodeNCC" name="TSCodeNCC" />
+        <nz-form-control [nzErrorTip]="getFieldError('TSCodeNCC')">
+          <input nz-input type="text" formControlName="TSCodeNCC" />
         </nz-form-control>
       </nz-col>
-       <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="9">
+      <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="9">
         <nz-form-label>
           Số Seri <span class="text-danger ps-1 me-1"> (*)</span>
         </nz-form-label>
-        <nz-form-control>
-          <input nz-input type="text" [(ngModel)]="dataInput.Seri" name="Seri" />
+        <nz-form-control [nzErrorTip]="getFieldError('Seri')">
+          <input nz-input type="text" formControlName="Seri" />
         </nz-form-control>
       </nz-col>
     </nz-row>
-    <nz-row [nzGutter]="16">
+    <nz-row [nzGutter]="16" class="mb-3">
+      <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24">
+        <nz-form-label>
+          Model<span class="text-danger ps-1 me-1"> (*)</span>
+        </nz-form-label>
+        <nz-form-control [nzErrorTip]="getFieldError('Model')">
+          <input nz-input formControlName="Model" rows="3" placeholder="Model tài sản"
+            style="width: 100%">
+        </nz-form-control>
+      </nz-col>
+
+    </nz-row>
+    <nz-row [nzGutter]="16" class="mb-3">
       <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24">
         <nz-form-label>
           Tên tài sản<span class="text-danger ps-1 me-1"> (*)</span>
         </nz-form-label>
-        <nz-form-control>
-        
-            <textarea nz-input name="TSAssetName" [(ngModel)]="dataInput.TSAssetName" rows="3" placeholder="Tên tài sản"
+        <nz-form-control [nzErrorTip]="getFieldError('TSAssetName')">
+          <textarea nz-input formControlName="TSAssetName" rows="3" placeholder="Tên tài sản"
             style="width: 100%">
           </textarea>
         </nz-form-control>
       </nz-col>
-     
+
     </nz-row>
     <!-- Người quản lý / Phòng ban -->
-    <nz-row [nzGutter]="16" class="mb-2">
+    <nz-row [nzGutter]="16" class="mb-3">
       <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="12">
         <nz-form-label>
           Người quản lí<span class="text-danger ps-1 me-1"> (*)</span>
         </nz-form-label>
-        <nz-form-control>
+        <nz-form-control [nzErrorTip]="getFieldError('EmployeeID')">
           <nz-select class="w-100 fs-12" nzShowSearch nzAllowClear nzPlaceHolder="Chọn nhân viên..."
-            [(ngModel)]="dataInput.EmployeeID" name="employeeID" (ngModelChange)="onEmployeeChange($event)">
+            formControlName="EmployeeID">
             <nz-option *ngFor="let emp of emPloyeeLists" [nzLabel]="emp.Code + ' - ' + emp.FullName" [nzValue]="emp.ID">
             </nz-option>
           </nz-select>
@@ -66,13 +75,13 @@
           Phòng ban <span class="text-danger ps-1 me-1"> (*)</span>
         </nz-form-label>
         <nz-form-control>
-          <input nz-input type="text" [(ngModel)]="dataInput.Name" name="DepartmentName" disabled />
+          <input nz-input type="text" formControlName="Name" />
         </nz-form-control>
       </nz-col>
     </nz-row>
 
     <!-- Loại tài sản / Đơn vị / Nguồn gốc -->
-    <nz-row [nzGutter]="16" class="mb-2">
+    <nz-row [nzGutter]="16" class="mb-3">
       <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8">
         <nz-form-label>
           Loại tài sản <span class="text-danger ">(*)</span>
@@ -81,9 +90,9 @@
             <nz-icon nzType="plus"></nz-icon>
           </button>
         </nz-form-label>
-        <nz-form-control>
+        <nz-form-control [nzErrorTip]="getFieldError('TSAssetID')">
           <nz-select class="w-100 fs-12" nzShowSearch nzAllowClear nzPlaceHolder="Chọn loại tài sản"
-            [(ngModel)]="dataInput.TSAssetID" name="AssetType">
+            formControlName="TSAssetID">
             <nz-option *ngFor="let type of typeData" [nzLabel]="type.AssetType" [nzValue]="type.ID">
             </nz-option>
           </nz-select>
@@ -91,13 +100,14 @@
       </nz-col>
 
       <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8">
-        <nz-form-label >Đơn vị tính <span class="text-danger">(*)</span>   <button nz-button nzSize="small" class="fs-9 button button-succes ms-2" type="button" title="Thêm nguồn gốc"
-            (click)="addSource()" *hasPermission="'N23,N1'">
+        <nz-form-label>Đơn vị tính <span class="text-danger">(*)</span> <button nz-button nzSize="small"
+            class="fs-9 button button-succes ms-2" type="button" title="Thêm nguồn gốc" (click)="addSource()"
+            *hasPermission="'N23,N1'">
             <nz-icon nzType="plus"></nz-icon>
           </button></nz-form-label>
-        <nz-form-control>
+        <nz-form-control [nzErrorTip]="getFieldError('UnitID')">
           <nz-select class="w-100 fs-10" nzShowSearch nzAllowClear nzPlaceHolder="Chọn đơn vị tính"
-            [(ngModel)]="dataInput.UnitID" name="AssetUnit">
+            formControlName="UnitID">
             <nz-option *ngFor="let unit of unitData" [nzLabel]=" unit.UnitName" [nzValue]="unit.ID">
             </nz-option>
           </nz-select>
@@ -112,9 +122,9 @@
             <nz-icon nzType="plus"></nz-icon>
           </button>
         </nz-form-label>
-        <nz-form-control>
+        <nz-form-control [nzErrorTip]="getFieldError('SourceID')">
           <nz-select class="w-100 fs-12" nzShowSearch nzAllowClear nzPlaceHolder="Chọn nguồn gốc"
-            [(ngModel)]="dataInput.SourceID" name="AssetSource">
+            formControlName="SourceID">
             <nz-option *ngFor="let s of sourceData" [nzLabel]=" s.SourceName" [nzValue]="s.ID">
             </nz-option>
           </nz-select>
@@ -125,35 +135,35 @@
 
 
     <!-- Ngày mua / Bảo hành / Hiệu lực -->
-    <nz-row [nzGutter]="16" class="mb-2">
+    <nz-row [nzGutter]="16" class="mb-3">
       <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8">
         <nz-form-label>Ngày mua</nz-form-label>
         <nz-form-control>
-          <input nz-input type="date" [(ngModel)]="dataInput.DateBuy" name="DateBuy" />
+          <input nz-input type="date" formControlName="DateBuy" />
         </nz-form-control>
       </nz-col>
 
       <nz-col [nzXs]="24" [nzSm]="12" [nzMd]="8">
         <nz-form-label>Thời gian bảo hành (tháng)</nz-form-label>
         <nz-form-control>
-          <input nz-input type="number" [(ngModel)]="dataInput.Insurance" name="Warranty" />
+          <input nz-input type="number" formControlName="Insurance" />
         </nz-form-control>
       </nz-col>
 
       <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8">
         <nz-form-label>Hiệu lực từ</nz-form-label>
         <nz-form-control>
-          <input nz-input type="date" [(ngModel)]="dataInput.DateEffect" name="DateEffect" />
+          <input nz-input type="date" formControlName="DateEffect" />
         </nz-form-control>
       </nz-col>
     </nz-row>
 
     <!-- Ghi chú -->
-    <nz-row [nzGutter]="16" class="mb-2">
+    <nz-row [nzGutter]="16" class="mb-3">
       <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12">
         <nz-form-label>Mô tả chi tiết</nz-form-label>
         <nz-form-control>
-          <textarea nz-input name="SpecificationsAsset" [(ngModel)]="dataInput.SpecificationsAsset" rows="3"
+          <textarea nz-input formControlName="SpecificationsAsset" rows="3"
             placeholder="Mô tả chi tiết" style="width: 100%">
           </textarea>
         </nz-form-control>
@@ -161,7 +171,7 @@
       <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12">
         <nz-form-label>Ghi chú</nz-form-label>
         <nz-form-control>
-          <textarea nz-input name="Note" [(ngModel)]="dataInput.Note" rows="3" placeholder="Ghi chú"
+          <textarea nz-input formControlName="Note" rows="3" placeholder="Ghi chú"
             style="width: 100%">
           </textarea>
         </nz-form-control>
@@ -169,11 +179,11 @@
     </nz-row>
 
     <!-- Cấp phát / Active Windows / Active Office -->
-    <nz-row [nzGutter]="16" class="mb-2">
+    <nz-row [nzGutter]="16" class="mb-3">
       <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" class="d-flex align-items-center">
         <nz-form-control>
-          <input type="checkbox" [(ngModel)]="dataInput.IsAllocation" class="form-check-input me-2"
-            id="isAllocationCheck" name="isAllocation" />
+          <input type="checkbox" formControlName="IsAllocation" class="form-check-input me-2"
+            id="isAllocationCheck" />
           <label for="isAllocationCheck">Cấp phát</label>
         </nz-form-control>
       </nz-col>
@@ -183,7 +193,7 @@
           <nz-form-label [nzSpan]="24" class="fs-12">Active Windows</nz-form-label>
           <nz-form-control [nzSpan]="24">
             <nz-select class="w-100 fs-12" nzSize="small" nzAllowClear nzPlaceHolder="Chọn trạng thái"
-              [(ngModel)]="dataInput.WindowActiveStatus" name="WindowActiveStatus">
+              formControlName="WindowActiveStatus">
               <nz-option *ngFor="let s of activeStatusList" [nzValue]="s.value" [nzLabel]="s.label">
               </nz-option>
             </nz-select>
@@ -196,7 +206,7 @@
           <nz-form-label [nzSpan]="24" class="fs-12">Active Office</nz-form-label>
           <nz-form-control [nzSpan]="24">
             <nz-select class="w-100 fs-12" nzSize="small" nzAllowClear nzPlaceHolder="Chọn trạng thái"
-              [(ngModel)]="dataInput.OfficeActiveStatus" name="OfficeActiveStatus">
+              formControlName="OfficeActiveStatus">
               <nz-option *ngFor="let s of activeStatusList" [nzValue]="s.value" [nzLabel]="s.label">
               </nz-option>
             </nz-select>

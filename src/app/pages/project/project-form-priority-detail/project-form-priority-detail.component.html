@@ -6,101 +6,111 @@
   </div>
 
   <div class="modal-body pt-0 pb-0 p-2 pb-2 w-100">
-    <nz-row [nzGutter]="12">
-      <nz-col [nzSpan]="12">
-        <nz-form-item class="pt-1">
-          <nz-form-label class="fs-12 d-flex align-items-center">
-            Mã ưu tiên <span class="text-danger ps-1">(*)</span>
-          </nz-form-label>
-          <input
-            name="keyword"
-            nz-input
-            [(ngModel)]="priorityCode"
-            placeholder="Mã ưu tiên"
-          />
-        </nz-form-item>
-      </nz-col>
-      <nz-col [nzSpan]="12">
-        <nz-form-item class="pt-1">
-          <nz-form-label class="fs-12 d-flex align-items-center">
-            Loại ưu tiên <span class="text-danger ps-1">(*)</span>
-          </nz-form-label>
-          <nz-select
-            name="firmBaseId"
-            [(ngModel)]="priority"
-            class="w-100"
-            nzShowSearch
-            nzAllowClear
-            nzPlaceHolder="Chọn hãng"
-          >
-            <!-- Nội dung option của bạn ở đây -->
-            @for (item of prioritys; track $index) {
-            <nz-option
-              nzCustomContent="true"
-              [nzLabel]="item.ProjectCheckpoint"
-              [nzValue]="item.ID"
-              >{{ item.ProjectCheckpoint }}</nz-option
-            >
-            }
-          </nz-select>
-        </nz-form-item>
-      </nz-col>
-      <nz-col [nzSpan]="12">
-        <nz-form-item class="pt-1">
-          <nz-form-label class="fs-12 d-flex align-items-center">
-            Trọng số <span class="text-danger ps-1">(*)</span>
-          </nz-form-label>
-          <nz-input-number
-            class="w-100"
-            [(ngModel)]="rate"
-            nzMin="0"
-            nzMax="1"
-            nzStep="0.01"
-            name="keyword"
-            [nzKeyboard]="'false'"
-          />
-        </nz-form-item>
-      </nz-col>
-      <nz-col [nzSpan]="12">
-        <nz-form-item class="pt-1">
-          <nz-form-label class="fs-12 d-flex align-items-center">
-            Điểm <span class="text-danger ps-1">(*)</span>
-          </nz-form-label>
-          <nz-select
-            name="firmBaseId"
-            [(ngModel)]="point"
-            class="w-100"
-            nzShowSearch
-            nzAllowClear
-            nzPlaceHolder="Chọn điểm"
-          >
-            <!-- Nội dung option của bạn ở đây -->
-            @for (item of points; track $index) {
-            <nz-option
-              nzCustomContent="true"
-              [nzLabel]="item.point"
-              [nzValue]="item.ID"
-              >{{ item.point }}</nz-option
-            >
-            }
-          </nz-select>
-        </nz-form-item>
-      </nz-col>
-      <nz-col [nzSpan]="24">
-        <nz-form-item class="pt-1">
-          <nz-form-label class="fs-12 d-flex align-items-center">
-            CheckPoint <span class="text-danger ps-1">(*)</span>
-          </nz-form-label>
-          <textarea
-            [(ngModel)]="projectCheckpoint"
-            name="note"
-            rows="5"
-            nz-input
-            placeholder="CheckPoint..."
-          ></textarea>
-        </nz-form-item>
-      </nz-col>
-    </nz-row>
+    <form [formGroup]="priorityForm" nz-form nzLayout="vertical">
+      <nz-row [nzGutter]="12">
+        <nz-col [nzSpan]="12">
+          <nz-form-item class="pt-1">
+            <nz-form-label class="fs-12 d-flex align-items-center">
+              Mã ưu tiên <span class="text-danger ps-1">*</span>
+            </nz-form-label>
+            <nz-form-control [nzErrorTip]="getErrorMessage('priorityCode')">
+              <input
+                nz-input
+                formControlName="priorityCode"
+                placeholder="Mã ưu tiên"
+                [class.ng-invalid]="priorityForm.get('priorityCode')?.invalid && priorityForm.get('priorityCode')?.touched"
+              />
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+        <nz-col [nzSpan]="12">
+          <nz-form-item class="pt-1">
+            <nz-form-label class="fs-12 d-flex align-items-center">
+              Loại ưu tiên <span class="text-danger ps-1">*</span>
+            </nz-form-label>
+            <nz-form-control [nzErrorTip]="getErrorMessage('priority')">
+              <nz-select
+                formControlName="priority"
+                class="w-100"
+                nzShowSearch
+                nzAllowClear
+                nzPlaceHolder="Chọn loại ưu tiên"
+                [class.ng-invalid]="priorityForm.get('priority')?.invalid && priorityForm.get('priority')?.touched"
+              >
+                @for (item of prioritys; track $index) {
+                <nz-option
+                  nzCustomContent="true"
+                  [nzLabel]="item.ProjectCheckpoint"
+                  [nzValue]="item.ID"
+                  >{{ item.ProjectCheckpoint }}</nz-option
+                >
+                }
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+        <nz-col [nzSpan]="12">
+          <nz-form-item class="pt-1">
+            <nz-form-label class="fs-12 d-flex align-items-center">
+              Trọng số <span class="text-danger ps-1">*</span>
+            </nz-form-label>
+            <nz-form-control [nzErrorTip]="getErrorMessage('rate')">
+              <nz-input-number
+                formControlName="rate"
+                class="w-100"
+                nzMin="0"
+                nzMax="1"
+                nzStep="0.01"
+                [nzKeyboard]="false"
+                [class.ng-invalid]="priorityForm.get('rate')?.invalid && priorityForm.get('rate')?.touched"
+              />
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+        <nz-col [nzSpan]="12">
+          <nz-form-item class="pt-1">
+            <nz-form-label class="fs-12 d-flex align-items-center">
+              Điểm <span class="text-danger ps-1">*</span>
+            </nz-form-label>
+            <nz-form-control [nzErrorTip]="getErrorMessage('point')">
+              <nz-select
+                formControlName="point"
+                class="w-100"
+                nzShowSearch
+                nzAllowClear
+                nzPlaceHolder="Chọn điểm"
+                [class.ng-invalid]="priorityForm.get('point')?.invalid && priorityForm.get('point')?.touched"
+              >
+                @for (item of points; track $index) {
+                <nz-option
+                  nzCustomContent="true"
+                  [nzLabel]="item.point"
+                  [nzValue]="item.ID"
+                  >{{ item.point }}</nz-option
+                >
+                }
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+        <nz-col [nzSpan]="24">
+          <nz-form-item class="pt-1">
+            <nz-form-label class="fs-12 d-flex align-items-center">
+              CheckPoint <span class="text-danger ps-1">*</span>
+            </nz-form-label>
+            <nz-form-control [nzErrorTip]="getErrorMessage('projectCheckpoint')">
+              <textarea
+                formControlName="projectCheckpoint"
+                rows="5"
+                nz-input
+                placeholder="CheckPoint..."
+                [class.ng-invalid]="priorityForm.get('projectCheckpoint')?.invalid && priorityForm.get('projectCheckpoint')?.touched"
+              ></textarea>
+            </nz-form-control>
+          </nz-form-item>
+        </nz-col>
+      </nz-row>
+    </form>
   </div>
 
   <div class="modal-footer br p-1 d-flex align-items-center">

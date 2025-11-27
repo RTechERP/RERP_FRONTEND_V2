@@ -36,7 +36,6 @@ import { CommonModule } from '@angular/common';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { RowComponent } from 'tabulator-tables';
-import * as ExcelJS from 'exceljs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
@@ -52,12 +51,9 @@ import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 
 import { ProductsaleServiceService } from '../../../ProductSale/product-sale-service/product-sale-service.service';
 import { DateTime } from 'luxon';
-// Thêm các import này vào đầu file
-import { ProjectComponent } from '../../../../../project/project.component';
 import { ProjectService } from '../../../../../project/project-service/project.service';
 import { BillImportServiceService } from '../../bill-import-service/bill-import-service.service';
 import { BillExportService } from '../../../BillExport/bill-export-service/bill-export.service';
-import { BillImportComponent } from '../../bill-import.component';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { SelectControlComponent } from '../../../BillExport/Modal/select-control/select-control.component';
@@ -164,8 +160,16 @@ export class BillImportDetailComponent
   projectOptions: any = [];
   billID: number = 0;
   deliverID: number = 0;
+  labelReceiver:string='';
+  isApproved: boolean = false;
 
-  isApproved:boolean=false;
+  // Label động theo loại phiếu
+  labelSupplier: string = 'Nhà cung cấp';
+  labelDeliver: string = 'Người giao';
+  placeholderSupplier: string = 'Chọn nhà cung cấp';
+  placeholderDeliver: string = 'Chọn người giao';
+  errorMessageSupplier: string = 'Vui lòng chọn nhà cung cấp!';
+  errorMessageDeliver: string = 'Vui lòng chọn người giao!';
   //tao phieu tra
   @Input() createImport: any;
   @Input() dataHistory: any[] = [];
@@ -178,6 +182,7 @@ export class BillImportDetailComponent
 
   @Output() saveSuccess = new EventEmitter<void>(); // Emit khi save thành công trong chế độ embedded
 
+  isEditPM:boolean=true;
   cbbStatus: any = [
     { ID: 0, Name: 'Phiếu nhập kho' },
     { ID: 1, Name: 'Phiếu trả' },
@@ -258,25 +263,34 @@ export class BillImportDetailComponent
     });
   }
 
+  /**
+   * Cập nhật quyền sửa StatusPur dựa trên:
+   * - Admin: luôn có quyền
+   * - Phòng Purchasing (departmentID === 4): luôn có quyền
+   * - Người giao (DeliverID === user.id): có quyền
+   */
+  private updateActivePur(): void {
+    const currentDeliverID = this.validateForm.get('DeliverID')?.value || 0;
+    const isDeliverer = currentDeliverID === this.appUserService.id;
+
+    this.activePur =
+      this.appUserService.isAdmin ||
+      this.appUserService.departmentID === 4 ||
+      isDeliverer;
+  }
+
   ngOnInit(): void {
-    debugger;
-    if (this.appUserService.isAdmin) {
-      this.activePur = true;
-    }
-    if (this.appUserService.departmentID === 4) {
-      this.activePur = true;
-    }
+    // Khởi tạo activePur ban đầu
+    this.updateActivePur();
+
     if(this.id>0){
       this.billImportService.getBillImportByID(this.id).subscribe((res)=>{
         const data = res.data;
-        if(data && (data.Status===true ||data.Status===1 )){
-            this.isApproved=true;
-            console.log('approved',this.isApproved);
-
+        if (data && (data.Status === true || data.Status === 1)) {
+          this.isApproved = true;
+          console.log('approved', this.isApproved);
         }
-      }
-
-      )
+      });
     }
     this.billImportService.getWarehouse().subscribe((res: any) => {
       const list = res.data || [];
@@ -309,9 +323,12 @@ export class BillImportDetailComponent
       this.warehouseIdHN = hnId;
       console.log('warehouseIdHN', hnId);
 
-      this.validateForm.controls['DeliverID'].setValue(
-        this.appUserService.id || 0
-      );
+      // Chỉ set DeliverID mặc định nếu KHÔNG có dataHistory
+      if (!this.dataHistory || this.dataHistory.length === 0) {
+        this.validateForm.controls['DeliverID'].setValue(
+          this.appUserService.id || 0
+        );
+      }
       this.updateReceiverDeliver();
     });
     this.validateForm
@@ -335,6 +352,15 @@ export class BillImportDetailComponent
         this.changeSuplierSale();
         this.updateReceiverDeliver();
       });
+    this.validateForm
+      .get('DeliverID')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.updateActivePur();
+        if (this.table_DocumnetImport) {
+          this.drawDocumentTable();
+        }
+      });
 
     this.validateForm
       .get('WarehouseID')
@@ -356,7 +382,12 @@ export class BillImportDetailComponent
       this.initialBillTypeNew = 1;
       this.validateForm.patchValue({
         BillTypeNew: 1,
+        CreatDate: new Date(),
+        DateRequestImport: null,
       });
+
+      // Cập nhật label cho phiếu trả
+      this.updateLabels(1);
 
       this.getNewCode();
       this.patchNewBillImportFromHistory();
@@ -365,6 +396,8 @@ export class BillImportDetailComponent
     } else if (!this.newBillImport.Id || this.newBillImport.Id === 0) {
       this.initialBillTypeNew = 0;
       this.isInitialLoad = false;
+      // Cập nhật label cho loại phiếu mặc định
+      this.updateLabels(0);
       this.getNewCode();
     }
 
@@ -412,6 +445,9 @@ export class BillImportDetailComponent
       { emitEvent: false }
     );
 
+    // Cập nhật activePur sau khi patch DeliverID từ history
+    this.updateActivePur();
+
     this.isInitialLoad = false;
     if (this.newBillImport.KhoTypeID) {
       this.changeProductGroup(this.newBillImport.KhoTypeID);
@@ -433,7 +469,8 @@ export class BillImportDetailComponent
         ID: item.ID || 0,
         POKHDetailID: item.POKHDetailID || null,
         ProductID: item.ProductID || null,
-        ProductNewCode: item.ProductNewCode || productInfo.ProductNewCode || null,
+        ProductNewCode:
+          item.ProductNewCode || productInfo.ProductNewCode || null,
         ProductCode: item.ProductCode || productInfo.ProductCode || '',
         ProductName: item.ProductName || productInfo.ProductName || '',
         Unit: item.Unit || productInfo.Unit || '',
@@ -473,6 +510,10 @@ export class BillImportDetailComponent
         DueDate: item.DueDate ? new Date(item.DueDate) : null,
         TaxReduction: item.TaxReduction || 0,
         COFormE: item.COFormE || 0,
+        ReturnStatus:item.ReturnStatus||0,
+        BillExportDetailID:item.BorrowID || 0,
+        CodeMaPhieuMuon:item.BorrowCode ||'',
+        ProjectCode:item.ProjectCode || ''
       };
     });
 
@@ -485,16 +526,66 @@ export class BillImportDetailComponent
     }
   }
 
+  // Method để cập nhật label theo loại phiếu
+  private updateLabels(billTypeNew: number) {
+    if (billTypeNew === 0 || billTypeNew === 4) {
+      // Phiếu nhập kho (0) hoặc Yêu cầu nhập kho (4)
+      this.labelSupplier = 'Nhà cung cấp';
+      this.labelDeliver = 'Người giao';
+      this.placeholderSupplier = 'Chọn nhà cung cấp';
+      this.placeholderDeliver = 'Chọn người giao';
+      this.errorMessageSupplier = 'Vui lòng chọn nhà cung cấp!';
+      this.errorMessageDeliver = 'Vui lòng chọn người giao!';
+    } else if (billTypeNew === 1) {
+      // Phiếu trả (1)
+      this.labelSupplier = 'Bộ phận';
+      this.labelDeliver = 'Người trả';
+      this.placeholderSupplier = 'Chọn bộ phận';
+      this.placeholderDeliver = 'Chọn người trả';
+      this.errorMessageSupplier = 'Vui lòng chọn bộ phận!';
+      this.errorMessageDeliver = 'Vui lòng chọn người trả!';
+    } else if (billTypeNew === 3) {
+      // Phiếu mượn NCC (3)
+      this.labelSupplier = 'Nhà cung cấp';
+      this.labelDeliver = 'Người giao';
+      this.placeholderSupplier = 'Chọn nhà cung cấp';
+      this.placeholderDeliver = 'Chọn người giao';
+      this.errorMessageSupplier = 'Vui lòng chọn nhà cung cấp!';
+      this.errorMessageDeliver = 'Vui lòng chọn người giao!';
+    } else {
+      // Các trường hợp khác (default)
+      this.labelSupplier = 'Bộ phận';
+      this.labelDeliver = 'Người trả';
+      this.placeholderSupplier = 'Chọn bộ phận';
+      this.placeholderDeliver = 'Chọn người trả';
+      this.errorMessageSupplier = 'Vui lòng chọn bộ phận!';
+      this.errorMessageDeliver = 'Vui lòng chọn người trả!';
+    }
+  }
+
   changeStatus() {
     const billTypeNew = this.validateForm.get('BillTypeNew')?.value;
 
-    // Cập nhật ngày tháng trước
-    if (billTypeNew === 4) {
+    // Cập nhật label theo loại phiếu
+    this.updateLabels(billTypeNew);
+
+    // Cập nhật ngày tháng theo loại phiếu
+    if (billTypeNew === 1) {
+      // Phiếu trả: CreatDate = ngày hiện tại, DateRequestImport = null
+      this.validateForm.patchValue({
+        CreatDate: new Date(),
+        DateRequestImport: null,
+        DateRequest: null,
+      });
+    } else if (billTypeNew === 4) {
+      // Loại phiếu 4: CreatDate = null, DateRequestImport = ngày hiện tại
       this.validateForm.patchValue({
         CreatDate: null,
         DateRequestImport: new Date(),
+        DateRequest: null,
       });
     } else {
+      // Các loại phiếu khác: DateRequest = null, DateRequestImport = ngày hiện tại
       this.validateForm.patchValue({
         DateRequest: null,
         DateRequestImport: new Date(),
@@ -523,6 +614,10 @@ export class BillImportDetailComponent
     const isHCM = String(this.WarehouseCode).toUpperCase().includes('HCM');
     const specialSuppliers = [1175, 16677];
 
+    // Nếu đang load từ history và có dataHistory, không ghi đè DeliverID
+    const hasHistoryDeliverer = this.dataHistory && this.dataHistory.length > 0 && this.dataHistory[0].UserID;
+    const shouldPreserveDeliverer = hasHistoryDeliverer && this.isInitialLoad;
+
     if (isHCM) {
       this.validateForm.controls['ReciverID'].setValue(
         this.appUserService.id || 0
@@ -534,14 +629,22 @@ export class BillImportDetailComponent
           .subscribe({
             next: (res: any) => {
               const userId = res?.data?.[0]?.UserID || 0;
-              this.validateForm.controls['DeliverID'].setValue(userId); // line 1878
+              // Chỉ set DeliverID nếu không đang load từ history
+              if (!shouldPreserveDeliverer) {
+                this.validateForm.controls['DeliverID'].setValue(userId); // line 1878
+              }
             },
             error: () => {
-              this.validateForm.controls['DeliverID'].setValue(0);
+              if (!shouldPreserveDeliverer) {
+                this.validateForm.controls['DeliverID'].setValue(0);
+              }
             },
           });
       } else {
-        this.validateForm.controls['DeliverID'].setValue(0);
+        // Chỉ set DeliverID = 0 nếu không đang load từ history
+        if (!shouldPreserveDeliverer) {
+          this.validateForm.controls['DeliverID'].setValue(0);
+        }
       }
     } else {
       this.productSaleService
@@ -695,6 +798,7 @@ export class BillImportDetailComponent
   }
 
   getBillImportByID() {
+    this.isLoading = true;
     this.billImportService.getBillImportByID(this.id).subscribe({
       next: (res) => {
         if (res?.data) {
@@ -727,6 +831,12 @@ export class BillImportDetailComponent
             emitEvent: false,
           });
 
+          // Cập nhật label theo loại phiếu đã load
+          this.updateLabels(data.BillTypeNew);
+
+          // Cập nhật activePur sau khi load dữ liệu
+          this.updateActivePur();
+
           this.isInitialLoad = false;
           this.changeProductGroup(this.validateForm.get('KhoTypeID')?.value);
         } else {
@@ -735,6 +845,7 @@ export class BillImportDetailComponent
             res.message || 'Không thể lấy thông tin phiếu nhập!'
           );
         }
+        this.isLoading = false;
       },
       error: (err) => {
         this.notification.error(
@@ -742,6 +853,7 @@ export class BillImportDetailComponent
           'Có lỗi xảy ra khi lấy thông tin!'
         );
         console.error(err);
+        this.isLoading = false;
       },
     });
   }
@@ -802,6 +914,7 @@ export class BillImportDetailComponent
     });
   }
   getBillImportDetailID() {
+    this.isLoading = true;
     this.billImportService.getBillImportDetail(this.id).subscribe({
       next: (res) => {
         if (res?.data) {
@@ -854,7 +967,7 @@ export class BillImportDetailComponent
                 this.projectOptions.find(
                   (p: any) => p.value === item.ProjectID
                 ) || {};
-                console.log('projectID',item.ProjectID);
+              console.log('projectID', item.ProjectID);
 
               return {
                 ID: item.ID || 0,
@@ -864,16 +977,14 @@ export class BillImportDetailComponent
                   item.ProductNewCode || productInfo.ProductNewCode || '',
                 ProductCode: item.ProductCode || productInfo.ProductCode || '',
                 ProductName: item.ProductName || productInfo.ProductName || '',
-                Unit: item.Unit ||  '',
+                Unit: item.Unit || '',
                 Qty: item.Qty || 0,
                 QtyRequest: item.QtyRequest || 0,
                 QuantityRemain: item.QuantityRemain || 0,
                 ProjectID: item.ProjectID || 0,
-                ProjectCodeExport:
-                  item.ProjectCodeExport || '',
-                ProjectNameText:
-                  item.ProjectNameText|| '',
-                  CustomerFullName: item.CustomerFullName || '',
+                ProjectCodeExport: item.ProjectCodeExport || '',
+                ProjectNameText: item.ProjectNameText || '',
+                CustomerFullName: item.CustomerFullName || '',
                 CustomerID: item.CustomerID || 0,
                 ProductFullName: item.ProductFullName || '',
                 Note: item.Note || '',
@@ -921,6 +1032,7 @@ export class BillImportDetailComponent
                 this.table_billImportDetail.redraw(true);
               }, 100);
             }
+            this.isLoading = false;
           });
         } else {
           this.notification.warning(
@@ -931,6 +1043,7 @@ export class BillImportDetailComponent
           if (this.table_billImportDetail) {
             this.table_billImportDetail.replaceData([]);
           }
+          this.isLoading = false;
         }
       },
       error: (err) => {
@@ -943,10 +1056,12 @@ export class BillImportDetailComponent
         if (this.table_billImportDetail) {
           this.table_billImportDetail.replaceData([]);
         }
+        this.isLoading = false;
       },
     });
   }
   loadDocumentImport() {
+    this.isLoading = true;
     this.billImportService.getDocumentImport(0, this.id).subscribe({
       next: (res) => {
         if (res.status === 1) {
@@ -957,12 +1072,14 @@ export class BillImportDetailComponent
             this.drawDocumentTable();
           }
         }
+        this.isLoading = false;
       },
       error: (err) => {
         this.notification.error(
           NOTIFICATION_TITLE.error,
           'Không thể tải dữ liệu documentImport'
         );
+        this.isLoading = false;
       },
     });
   }
@@ -1093,7 +1210,9 @@ export class BillImportDetailComponent
   }
 
   private mapTableDataToBillImportDetails(tableData: any[]): any[] {
-    const parsePOKHList = (pokhString: string): Array<{POKHDetailID: number, QuantityRequest: number}> => {
+    const parsePOKHList = (
+      pokhString: string
+    ): Array<{ POKHDetailID: number; QuantityRequest: number }> => {
       if (!pokhString || pokhString.trim() === '') {
         return [];
       }
@@ -1113,7 +1232,10 @@ export class BillImportDetailComponent
           }
           return null;
         })
-        .filter((x): x is {POKHDetailID: number, QuantityRequest: number} => x !== null);
+        .filter(
+          (x): x is { POKHDetailID: number; QuantityRequest: number } =>
+            x !== null
+        );
     };
 
     return tableData.map((row: any, index: number) => {
@@ -1170,10 +1292,16 @@ export class BillImportDetailComponent
         COFormE: row.COFormE || 0,
         IsNotKeep: row.IsNotKeep || false,
         Unit: row.Unit || 'PCS',
-        POKHDetailID: pokhDetailID,  // null hoặc number, match với int? trong C#
+        POKHDetailID: pokhDetailID, // null hoặc number, match với int? trong C#
         POKHDetailQuantity: row.POKHDetailQuantity || null,
-        CustomerID: row.CustomerID && Number(row.CustomerID) > 0 ? Number(row.CustomerID) : null,
-        QuantityRequestBuy: row.QuantityRequestBuy && Number(row.QuantityRequestBuy) > 0 ? Number(row.QuantityRequestBuy) : null,
+        CustomerID:
+          row.CustomerID && Number(row.CustomerID) > 0
+            ? Number(row.CustomerID)
+            : null,
+        QuantityRequestBuy:
+          row.QuantityRequestBuy && Number(row.QuantityRequestBuy) > 0
+            ? Number(row.QuantityRequestBuy)
+            : null,
         POKHList: pokhList,
       };
     });
@@ -1207,7 +1335,7 @@ export class BillImportDetailComponent
     if (!formValues.SupplierID || formValues.SupplierID <= 0) {
       this.notification.error(
         NOTIFICATION_TITLE.error,
-        'Xin hãy điền thông tin nhà cung cấp.'
+        `Xin hãy điền thông tin ${this.labelSupplier.toLowerCase()}.`
       );
       return;
     }
@@ -1228,7 +1356,7 @@ export class BillImportDetailComponent
     if (!formValues.DeliverID || formValues.DeliverID <= 0) {
       this.notification.error(
         NOTIFICATION_TITLE.error,
-        'Xin hãy điền thông tin người giao.'
+        `Xin hãy điền thông tin ${this.labelDeliver.toLowerCase()}.`
       );
       return;
     }
@@ -1313,10 +1441,7 @@ export class BillImportDetailComponent
       },
     ];
 
-    console.log(
-      'Payload before sending:',
-      JSON.stringify(payload, null, 2)
-    );
+    console.log('Payload before sending:', JSON.stringify(payload, null, 2));
 
     this.billImportService.saveBillImport(payload).subscribe({
       next: (res) => {
@@ -1517,7 +1642,9 @@ export class BillImportDetailComponent
           this.dataHistory &&
           this.dataHistory.length > 0
         ) {
+          this.isEditPM=false;
           this.mapDataHistoryToTable();
+
         } else if (this.isCheckmode) {
           this.getBillImportDetailID();
         }
@@ -1636,7 +1763,7 @@ export class BillImportDetailComponent
               hozAlign: 'center',
               width: 40,
               headerSort: false,
-              frozen:true,
+              frozen: true,
               titleFormatter: () =>
                 `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm dòng"></i></div>`,
               headerClick: () => {
@@ -1679,14 +1806,14 @@ export class BillImportDetailComponent
               hozAlign: 'center',
               width: 60,
               headerSort: false,
-              frozen:true
+              frozen: true,
             },
             {
               title: 'Mã nội bộ',
               field: 'ProductNewCode',
               hozAlign: 'left',
               headerHozAlign: 'center',
-              frozen:true
+              frozen: true,
             },
             {
               title: 'Mã hàng',
@@ -1694,7 +1821,7 @@ export class BillImportDetailComponent
               hozAlign: 'left',
               headerHozAlign: 'center',
               width: 450,
-              frozen:true,
+              frozen: true,
               editor: this.createdControl(
                 SelectControlComponent,
                 this.injector,
@@ -1711,12 +1838,18 @@ export class BillImportDetailComponent
                   // Hiển thị placeholder nếu chưa có giá trị
                   return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted"></p> <i class="fas fa-angle-down"></i></div>';
                 }
-                const product = this.productOptions.find(
-                  (p: any) => p.value === val
-                );
-                const productcode = product ? product.ProductCode : '';
-                const productnewcode = product ? product.ProductNewCode : '';
-                console.log('productnewcode', productnewcode);
+
+                // Lấy ProductCode từ data của row (đã được bind sẵn)
+                const rowData = cell.getRow().getData();
+                let productcode = rowData['ProductCode'] || '';
+
+                // Nếu không có trong rowData, tìm trong productOptions
+                if (!productcode) {
+                  const product = this.productOptions.find(
+                    (p: any) => p.value === val
+                  );
+                  productcode = product ? product.ProductCode : '';
+                }
 
                 return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${productcode}</p> <i class="fas fa-angle-down"></i></div>`;
               },
@@ -1760,7 +1893,9 @@ export class BillImportDetailComponent
               hozAlign: 'left',
               headerHozAlign: 'center',
               editor: 'input',
-              frozen:true
+              frozen:true,
+
+              width: 450,
             },
 
             {
@@ -1794,22 +1929,22 @@ export class BillImportDetailComponent
                 this.recheckTotalQty();
               },
             },
-            {
-              title: 'Tổng SL',
-              field: 'TotalQty',
-              hozAlign: 'right',
-              headerHozAlign: 'center',
-              editor: 'number',
-              tooltip: 'Tổng số lượng (tự động tính khi có sản phẩm trùng)',
-              visible: false,
-            },
-            {
-              title: 'SL còn lại',
-              field: 'QtyRemain',
-              hozAlign: 'right',
-              headerHozAlign: 'center',
-              visible: false,
-            },
+            // {
+            //   title: 'Tổng SL',
+            //   field: 'TotalQty',
+            //   hozAlign: 'right',
+            //   headerHozAlign: 'center',
+            //   editor: 'number',
+            //   tooltip: 'Tổng số lượng (tự động tính khi có sản phẩm trùng)',
+            //   visible: false,
+            // },
+            // {
+            //   title: 'SL còn lại',
+            //   field: 'QtyRemain',
+            //   hozAlign: 'right',
+            //   headerHozAlign: 'center',
+            //   visible: false,
+            // },
             {
               title: 'Không giữ',
               field: 'IsNotKeep',
@@ -1826,92 +1961,92 @@ export class BillImportDetailComponent
                 cell.setValue(!currentValue);
               },
             },
-            {
-              title: 'ID Kho giữ',
-              field: 'InventoryProjectID',
-              hozAlign: 'center',
-              headerHozAlign: 'center',
-              visible: false,
-              tooltip: 'ID bản ghi trong bảng InventoryProject',
-            },
-            {
-              title: 'Dự án giữ',
-              field: 'ProjectIDKeep',
-              hozAlign: 'left',
-              headerHozAlign: 'center',
-              visible: false,
-              tooltip: 'ID dự án để giữ hàng',
-            },
-            {
-              title: 'ID Mượn',
-              field: 'BorrowID',
-              hozAlign: 'center',
-              headerHozAlign: 'center',
-              visible: false,
-              tooltip: 'ID phiếu mượn để theo dõi trả hàng',
-            },
-            {
-              title: 'ID PO NCC',
-              field: 'PONCCDetailID',
-              hozAlign: 'center',
-              headerHozAlign: 'center',
-              visible: false,
-              tooltip: 'ID chi tiết đơn mua hàng NCC',
-            },
-            {
-              title: 'ID POKH',
-              field: 'POKHDetailID',
-              hozAlign: 'center',
-              headerHozAlign: 'center',
-              visible: false,
-              tooltip: 'ID chi tiết POKH',
-            },
+            // {
+            //   title: 'ID Kho giữ',
+            //   field: 'InventoryProjectID',
+            //   hozAlign: 'center',
+            //   headerHozAlign: 'center',
+            //   visible: false,
+            //   tooltip: 'ID bản ghi trong bảng InventoryProject',
+            // },
+            // {
+            //   title: 'Dự án giữ',
+            //   field: 'ProjectIDKeep',
+            //   hozAlign: 'left',
+            //   headerHozAlign: 'center',
+            //   visible: false,
+            //   tooltip: 'ID dự án để giữ hàng',
+            // },
+            // {
+            //   title: 'ID Mượn',
+            //   field: 'BorrowID',
+            //   hozAlign: 'center',
+            //   headerHozAlign: 'center',
+            //   visible: false,
+            //   tooltip: 'ID phiếu mượn để theo dõi trả hàng',
+            // },
+            // {
+            //   title: 'ID PO NCC',
+            //   field: 'PONCCDetailID',
+            //   hozAlign: 'center',
+            //   headerHozAlign: 'center',
+            //   visible: false,
+            //   tooltip: 'ID chi tiết đơn mua hàng NCC',
+            // },
+            // {
+            //   title: 'ID POKH',
+            //   field: 'POKHDetailID',
+            //   hozAlign: 'center',
+            //   headerHozAlign: 'center',
+            //   visible: false,
+            //   tooltip: 'ID chi tiết POKH',
+            // },
 
-            {
-              title: 'ID Mapping',
-              field: 'IdMapping',
-              hozAlign: 'center',
-              headerHozAlign: 'center',
-              visible: false,
-              tooltip: 'ID mapping hóa đơn',
-            },
-            {
-              title: 'Tồn kho?',
-              field: 'IsStock',
-              hozAlign: 'center',
-              headerHozAlign: 'center',
-              formatter: 'tickCross',
-              visible: false,
-            },
-            {
-              title: 'ID KH',
-              field: 'CustomerID',
-              hozAlign: 'center',
-              headerHozAlign: 'center',
-              visible: false,
-            },
-            {
-              title: 'SL yêu cầu mua',
-              field: 'QuantityRequestBuy',
-              hozAlign: 'right',
-              headerHozAlign: 'center',
-              visible: false,
-            },
-            {
-              title: 'ID QC',
-              field: 'BillImportQCID',
-              hozAlign: 'center',
-              headerHozAlign: 'center',
-              visible: false,
-              tooltip: 'ID yêu cầu kiểm tra QC',
-            },
-            {
-              title: 'Trạng thái QC',
-              field: 'StatusQCText',
-              hozAlign: 'left',
-              headerHozAlign: 'center',
-              visible: false,
-            },
+            // {
+            //   title: 'ID Mapping',
+            //   field: 'IdMapping',
+            //   hozAlign: 'center',
+            //   headerHozAlign: 'center',
+            //   visible: false,
+            //   tooltip: 'ID mapping hóa đơn',
+            // },
+            // {
+            //   title: 'Tồn kho?',
+            //   field: 'IsStock',
+            //   hozAlign: 'center',
+            //   headerHozAlign: 'center',
+            //   formatter: 'tickCross',
+            //   visible: false,
+            // },
+            // {
+            //   title: 'ID KH',
+            //   field: 'CustomerID',
+            //   hozAlign: 'center',
+            //   headerHozAlign: 'center',
+            //   visible: false,
+            // },
+            // {
+            //   title: 'SL yêu cầu mua',
+            //   field: 'QuantityRequestBuy',
+            //   hozAlign: 'right',
+            //   headerHozAlign: 'center',
+            //   visible: false,
+            // },
+            // {
+            //   title: 'ID QC',
+            //   field: 'BillImportQCID',
+            //   hozAlign: 'center',
+            //   headerHozAlign: 'center',
+            //   visible: false,
+            //   tooltip: 'ID yêu cầu kiểm tra QC',
+            // },
+            // {
+            //   title: 'Trạng thái QC',
+            //   field: 'StatusQCText',
+            //   hozAlign: 'left',
+            //   headerHozAlign: 'center',
+            //   visible: false,
+            // },
             {
               title: 'Mã dự án/Công ty',
               field: 'ProjectID',
@@ -1975,7 +2110,8 @@ export class BillImportDetailComponent
               field: 'BillCodePO',
               hozAlign: 'left',
               headerHozAlign: 'center',
-            },{
+            },
+            {
               title: 'Số POKH',
               field: 'PONumber',
               hozAlign: 'left',
@@ -2323,7 +2459,7 @@ export class BillImportDetailComponent
                 });
               },
             },
-                        {
+            {
               title: 'Trạng thái QC',
               field: 'StatusQCText',
               hozAlign: 'left',
@@ -2335,18 +2471,19 @@ export class BillImportDetailComponent
               hozAlign: 'left',
               headerHozAlign: 'center',
               cellClick: (_e: any, cell: any) => {
+                if(!this.isEditPM) return;
                 const row = cell.getRow();
                 const rowData = row.getData();
                 this.openBillReturnModal(rowData, row);
               },
             },
-            {
-              title: 'Serial Number',
-              field: 'SerialNumber',
-              hozAlign: 'left',
-              headerHozAlign: 'center',
-              visible: false,
-            },
+            // {
+            //   title: 'Serial Number',
+            //   field: 'SerialNumber',
+            //   hozAlign: 'left',
+            //   headerHozAlign: 'center',
+            //   visible: false,
+            // },
             {
               title: 'Add Serial',
               field: 'addRow',

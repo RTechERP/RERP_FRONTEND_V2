@@ -37,6 +37,7 @@ declare var bootstrap: any;
 import { CommonModule } from '@angular/common';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NSelectComponent } from '../../n-select/n-select.component';
+import { NOTIFICATION_TITLE } from '../../../../app.config';
 
 
 @Component({

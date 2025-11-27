@@ -23,6 +23,7 @@ import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { InventoryService } from '../../inventory-service/inventory.service';
 import { DateTime } from 'luxon';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../../tabulator-default.config';
@@ -49,6 +50,7 @@ import { NOTIFICATION_TITLE } from '../../../../../../app.config';
     NzDatePickerModule,
     NzDropDownModule,
     NzMenuModule,
+    NzSpinModule,
   ],
   templateUrl: './inventory-borrow-ncc.component.html',
   styleUrl: './inventory-borrow-ncc.component.css'
@@ -60,6 +62,7 @@ export class InventoryBorrowNCCComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     private modalService: NgbModal,
   ) { }
+  isLoading: boolean = false;
   sizeSearch: string = '0';
   searchParams = {
     dateStart: new Date(`${new Date().getFullYear()}-01-01`).toISOString().split('T')[0],
@@ -115,6 +118,7 @@ export class InventoryBorrowNCCComponent implements OnInit, AfterViewInit {
   loadDataInventoryBorrowNCC() {
     const dateStart = DateTime.fromJSDate(new Date(this.searchParams.dateStart));
     const dateEnd = DateTime.fromJSDate(new Date(this.searchParams.dateEnd));
+    this.isLoading = true;
     this.inventoryService.getInventoryBorrowNCC(
       dateStart,
       dateEnd,
@@ -133,9 +137,11 @@ export class InventoryBorrowNCCComponent implements OnInit, AfterViewInit {
             console.log('>>> Bảng chưa tồn tại, dữ liệu sẽ được load khi drawTable() được gọi');
           }
         }
+        this.isLoading = false;
       },
       error: (err: any) => {
         this.notification.error(NOTIFICATION_TITLE.error, 'Không thể tải dữ liệu inventoryborrow!');
+        this.isLoading = false;
       }
     });
   }

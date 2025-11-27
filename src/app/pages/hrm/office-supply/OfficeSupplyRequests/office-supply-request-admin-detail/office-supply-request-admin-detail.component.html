@@ -6,46 +6,32 @@
     <button type="button" class="btn-close" (click)="close()" aria-label="Close"></button>
   </div>
 
-  <div class="modal-body p-2 w-100 pt-0">
-    <div class="card h-100 border-0 rounded-0">
+  <div class="modal-body p-2 w-100 pt-0" style="max-height: 80vh; overflow-y: auto; overflow-x: hidden;">
+    <div class="card border-0 rounded-0">
       <!-- Form Header -->
-      <div class="card-header bg-white p-2">
+
+      <form nz-form nzLayout="vertical">
         <nz-row [nzGutter]="16">
           <nz-col [nzSpan]="8">
             <nz-form-item>
-              <nz-form-label>Ngày đăng ký</nz-form-label>
-              <nz-form-control>
-                <nz-date-picker
-                  [(ngModel)]="dateRequest"
-                  name="dateRequest"
-                  nzFormat="dd/MM/yyyy"
-                  nzPlaceHolder="Chọn ngày đăng ký"
-                  class="w-100"
-                  nzSize="small"
-                ></nz-date-picker>
+              <nz-form-label class="pt-1">Ngày đăng ký</nz-form-label>
+              <nz-form-control [nzErrorTip]="!dateRequest ? 'Vui lòng chọn ngày đăng ký' : undefined"
+                [nzValidateStatus]="!dateRequest ? 'error' : ''">
+                <nz-date-picker [(ngModel)]="dateRequest" name="dateRequest" nzFormat="dd/MM/yyyy"
+                  nzPlaceHolder="Chọn ngày đăng ký" class="w-100" nzSize="default" [nzDisabledDate]="disabledDate"></nz-date-picker>
               </nz-form-control>
             </nz-form-item>
           </nz-col>
 
           <nz-col [nzSpan]="8">
             <nz-form-item>
-              <nz-form-label>Phòng ban</nz-form-label>
-              <nz-form-control>
-                <nz-select
-                  [(ngModel)]="departmentId"
-                  name="departmentId"
-                  nzShowSearch
-                  nzAllowClear
-                  nzPlaceHolder="Chọn phòng ban"
-                  class="w-100"
-                  nzSize="small"
-                  (ngModelChange)="onDepartmentChange()"
-                >
-                  <nz-option
-                    *ngFor="let dept of departmentList"
-                    [nzValue]="dept.ID"
-                    [nzLabel]="dept.Name"
-                  >
+              <nz-form-label class="pt-1">Phòng ban</nz-form-label>
+              <nz-form-control
+                [nzErrorTip]="(!departmentId || departmentId <= 0) ? 'Vui lòng chọn phòng ban' : undefined"
+                [nzValidateStatus]="(!departmentId || departmentId <= 0) ? 'error' : ''">
+                <nz-select [(ngModel)]="departmentId" name="departmentId" nzShowSearch nzAllowClear
+                  nzPlaceHolder="Chọn phòng ban" class="w-100" nzSize="default" (ngModelChange)="onDepartmentChange()">
+                  <nz-option *ngFor="let dept of departmentList" [nzValue]="dept.ID" [nzLabel]="dept.Name">
                     {{ dept.Code }} - {{ dept.Name }}
                   </nz-option>
                 </nz-select>
@@ -55,26 +41,13 @@
 
           <nz-col [nzSpan]="8">
             <nz-form-item>
-              <nz-form-label>Người đăng ký</nz-form-label>
+              <nz-form-label class="pt-1">Người đăng ký</nz-form-label>
               <nz-form-control>
-                <nz-select
-                  [(ngModel)]="requesterId"
-                  name="requesterId"
-                  nzShowSearch
-                  nzAllowClear
-                  nzPlaceHolder="Chọn người đăng ký"
-                  class="w-100"
-                  nzSize="small"
-                >
-                  <nz-option-group
-                    *ngFor="let group of employeeGroups"
-                    [nzLabel]="group.label"
-                  >
-                    <nz-option
-                      *ngFor="let emp of group.options"
-                      [nzValue]="emp.ID || emp.EmployeeID"
-                      [nzLabel]="emp.Code + ' - ' + emp.FullName"
-                    >
+                <nz-select [(ngModel)]="requesterId" name="requesterId" nzShowSearch nzAllowClear class="w-100"
+                  nzSize="default">
+                  <nz-option-group *ngFor="let group of employeeGroups" [nzLabel]="group.label">
+                    <nz-option *ngFor="let emp of group.options" [nzValue]="emp.ID || emp.EmployeeID"
+                      [nzLabel]="emp.Code + ' - ' + emp.FullName">
                       {{ emp.Code }} - {{ emp.FullName }}
                     </nz-option>
                   </nz-option-group>
@@ -83,10 +56,11 @@
             </nz-form-item>
           </nz-col>
         </nz-row>
-      </div>
+      </form>
 
-      <!-- Tabs -->
-      <div class="card-body p-2 position-relative">
+
+      <!-- Splitter: Nhân viên trên, VPP dưới -->
+      <div class="position-relative" style="height: 100%;">
         <div *ngIf="isLoading || isSaving">
           <nz-spin [nzSpinning]="isLoading || isSaving" nzSimple [style]="{
             position: 'absolute',
@@ -102,42 +76,36 @@
           }"></nz-spin>
         </div>
 
-        <nz-tabset [nzSelectedIndex]="activeTabIndex" (nzSelectChange)="onTabChange($event)">
-          <!-- Tab 1: Chọn nhân viên -->
-          <nz-tab nzTitle="Chọn nhân viên">
-            <div #tbEmployee class="border" style="height: 70vh; overflow: auto;"></div>
-          </nz-tab>
+        <nz-splitter nzLayout="vertical">
+          <!-- Panel trên: Bảng nhân viên -->
+          <nz-splitter-panel>
+            <div #tbEmployee class="border" style="height: 100%;"></div>
+          </nz-splitter-panel>
 
-          <!-- Tab 2: Đăng ký VPP -->
-          <nz-tab nzTitle="Đăng ký VPP">
-            <div #tbRequestDetail class="border" style="height: 70vh; overflow: auto;"></div>
-          </nz-tab>
-        </nz-tabset>
+          <!-- Panel dưới: Bảng VPP -->
+          <nz-splitter-panel>
+            <div *ngIf="selectedEmployee" class="p-2 bg-light border-bottom">
+              <strong>Đang đăng ký VPP cho:</strong>
+              <span class="text-primary">{{ selectedEmployee.Code }} - {{ selectedEmployee.FullName }}</span>
+              <span class="text-muted ms-2">({{ selectedEmployee.DepartmentName }})</span>
+            </div>
+            <div #tbRequestDetail class="border" [style.height]="selectedEmployee ? 'calc(100% - 50px)' : '100%'"></div>
+          </nz-splitter-panel>
+        </nz-splitter>
       </div>
     </div>
   </div>
 
   <div class="modal-footer br p-1 d-flex align-items-center">
     <div class="d-flex align-items-center flex-wrap gap-1">
-      <button
-        type="button"
-        class="btn btn-outline-danger"
-        style="border: 1px solid; border-radius: 0;"
-        (click)="close()"
-        [disabled]="isSaving"
-      >
+      <button type="button" class="btn btn-outline-danger" style="border: 1px solid; border-radius: 0;"
+        (click)="close()" [disabled]="isSaving">
         Đóng
       </button>
-      <button
-        type="button"
-        style="border-radius: 0;"
-        class="btn btn-primary"
-        (click)="save()"
-        [disabled]="isSaving"
-      >
+      <button type="button" style="border-radius: 0;" class="btn btn-primary" (click)="save()" [disabled]="isSaving">
         <span *ngIf="!isSaving">Lưu</span>
         <span *ngIf="isSaving">
-       
+
           Đang lưu...
         </span>
       </button>

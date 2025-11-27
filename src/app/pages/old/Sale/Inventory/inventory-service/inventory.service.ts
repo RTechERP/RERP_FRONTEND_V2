@@ -34,6 +34,30 @@ export class InventoryService {
       params
     );
   }
+
+  getInventoryPagination(
+    checkAll: boolean,
+    Find: string,
+    WarehouseCode: string,
+    IsStock: boolean,
+    productGroupID: number,
+    pageSize: number,
+    pageNumber: number
+  ): Observable<any> {
+    const params: any = {
+      checkAll: checkAll,
+      Find: Find.trim(),
+      WarehouseCode: WarehouseCode.trim(),
+      IsStock: IsStock,
+      productGroupID: productGroupID.toString(),
+      PageSize: pageSize,
+      PageNumber: pageNumber,
+    };
+    return this.httpclient.post(
+      environment.host + `api/inventory/get-inventory-pagination`,
+      params
+    );
+  }
   getInventoryByID(id: number): Observable<any> {
     return this.httpclient.get<any>(environment.host + `api/inventory/${id}`);
   }

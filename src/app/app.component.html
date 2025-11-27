@@ -15,14 +15,15 @@
             @for (m of menus; track m.key) {
 
             <ng-template #nzTitle style="padding: 0 16px;">
-                <img [src]="m.icon" class="menu-icon" width="10%" style="margin-right: 8px; vertical-align: middle;" />
+                <img [src]="m.icon" class="menu-icon" width="10%" style="margin-right: 8px; vertical-align: bottom;" />
                 <p class="m-0 fw-bold">{{ m.title }}</p>
             </ng-template>
             <li nz-submenu [nzTitle]="nzTitle" *ngIf="isGroup(m) && m.isPermission && m.isOpen" nzOpen="">
                 <ul>
                     @for (c1 of m.children; track c1.key) {
-                    <li nz-menu-item *ngIf="isLeaf(c1) && c1.isPermission && c1.isOpen"
-                        (click)="newTab(c1.comp, c1.title,c1.data)">
+                    <li nz-menu-item *ngIf="isLeaf(c1) && c1.isPermission && c1.isOpen" (click)="(c1.router || '') === '' 
+                            ? newTab(c1.comp, c1.title, c1.data) 
+                            : menuService.goToOldLink(c1.router ||'')">
                         <img [src]="c1.icon" class="menu-icon" /> {{c1.title}}
                     </li>
 
@@ -34,15 +35,17 @@
                     <li nz-submenu [nzTitle]="c1.title" *ngIf="isGroup(c1) && c1.isPermission && c1.isOpen">
                         <ul>
                             @for (c2 of c1.children; track c2.key) {
-                            <li nz-menu-item *ngIf="isLeaf(c2) && c2.isPermission && c2.isOpen"
-                                (click)="newTab(c2.comp, c2.title,c2.data)">
+                            <li nz-menu-item *ngIf="isLeaf(c2) && c2.isPermission && c2.isOpen" (click)="(c2.router || '') === '' 
+                            ? newTab(c2.comp, c2.title, c2.data) 
+                            : menuService.goToOldLink(c2.router ||'')">
                                 <img [src]="c2.icon" class="menu-icon" /> {{c2.title}}
                             </li>
                             <li nz-submenu nzTitle="{{c2.title}}" *ngIf="isGroup(c2) && c2.isPermission && c2.isOpen">
                                 <ul>
                                     @for (c3 of c2.children; track c3.key) {
-                                    <li nz-menu-item *ngIf="isLeaf(c3) && c3.isPermission && c3.isOpen"
-                                        (click)="newTab(c3.comp, c3.title,c3.data)">
+                                    <li nz-menu-item *ngIf="isLeaf(c3) && c3.isPermission && c3.isOpen" (click)="(c3.router || '') === '' 
+                            ? newTab(c3.comp, c3.title, c3.data) 
+                            : menuService.goToOldLink(c3.router ||'')">
                                         <img [src]="c3.icon" class="menu-icon" /> {{c3.title}}
                                     </li>
                                     }

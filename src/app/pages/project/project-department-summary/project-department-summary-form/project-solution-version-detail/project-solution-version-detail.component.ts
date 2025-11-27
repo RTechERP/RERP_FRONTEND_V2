@@ -234,9 +234,11 @@ export class ProjectSolutionVersionDetailComponent implements OnInit, AfterViewI
             this.notification.success('Thành công', response.message);
             this.closeModal();
           }
+          else{
+            this.notification.error('Lỗi', response.message);
+          }
         },
         error: (error: any) => {
-          console.log("error", error);
           this.notification.error('Lỗi', error.error.message);
         }
       });
@@ -253,7 +255,7 @@ export class ProjectSolutionVersionDetailComponent implements OnInit, AfterViewI
       },
       error: (error: any) => {
         console.log("error", error);
-        this.notification.error('Lỗi', error.message);
+        this.notification.error('Lỗi', error.error.message);
       }
     });
     }

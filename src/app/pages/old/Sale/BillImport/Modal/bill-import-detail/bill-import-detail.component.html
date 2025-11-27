@@ -100,26 +100,33 @@
 
     <!-- Hàng 2: 3 nhóm cột -->
     <div nz-row [nzGutter]="16" class="mt-2">
-      <!-- Nhóm trái (2/4): Nhà cung cấp + Điều khoản TT -->
+      <!-- Nhóm trái (2/4): Nhà cung cấp/Bộ phận + Điều khoản TT -->
       <div nz-col nzXs="24" nzSm="24" nzMd="12" nzLg="12">
         <nz-form-item>
-          <nz-form-label class="fs-12" nzRequired>Nhà cung cấp</nz-form-label>
+          <nz-form-label class="fs-12" nzRequired>{{ labelSupplier }}</nz-form-label>
           <nz-form-control [nzErrorTip]="supplierIdError">
             <nz-select
               formControlName="SupplierID"
               nzShowSearch
               nzAllowClear
-              nzPlaceHolder="Chọn nhà cung cấp"
+              [nzPlaceHolder]="placeholderSupplier"
               (ngModelChange)="changeSuplierSale()"
             >
-              <nz-option *ngFor="let id of dataCbbSupplier" [nzValue]="id.ID" [nzLabel]="id.NameNCC"></nz-option>
+              <nz-option
+                *ngFor="let id of dataCbbSupplier"
+                [nzValue]="id.ID"
+                [nzLabel]="id.NameNCC"
+                nzCustomContent
+              >
+                {{ id.CodeNCC }} - {{ id.NameNCC }}
+              </nz-option>
             </nz-select>
             <ng-template #supplierIdError let-control>
               <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">
-                Vui lòng chọn nhà cung cấp!
+                {{ errorMessageSupplier }}
               </ng-container>
               <ng-container *ngIf="control.hasError('min') && (control.dirty || control.touched)">
-                Vui lòng chọn nhà cung cấp!
+                {{ errorMessageSupplier }}
               </ng-container>
             </ng-template>
           </nz-form-control>
@@ -137,8 +144,11 @@
               <nz-option
                 *ngFor="let id of dataCbbRulePay"
                 [nzValue]="id.ID"
-                [nzLabel]="id.Code + '-' + id.Note"
-              ></nz-option>
+                [nzLabel]="id.Note"
+                nzCustomContent
+              >
+                {{ id.Code }} - {{ id.Note }}
+              </nz-option>
             </nz-select>
           </nz-form-control>
         </nz-form-item>
@@ -155,7 +165,14 @@
               nzAllowClear
               nzPlaceHolder="Chọn người nhập"
             >
-              <nz-option *ngFor="let id of dataCbbReciver" [nzValue]="id.ID" [nzLabel]="id.FullName"></nz-option>
+              <nz-option
+                *ngFor="let id of dataCbbReciver"
+                [nzValue]="id.ID"
+                [nzLabel]="id.FullName"
+                nzCustomContent
+              >
+                {{ id.EmployeeCode }} - {{ id.FullName }}
+              </nz-option>
             </nz-select>
             <ng-template #reciverIdError let-control>
               <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">
@@ -169,22 +186,29 @@
         </nz-form-item>
 
         <nz-form-item class="mt-2">
-          <nz-form-label class="fs-12" nzRequired>Người giao</nz-form-label>
+          <nz-form-label class="fs-12" nzRequired>{{ labelDeliver }}</nz-form-label>
           <nz-form-control [nzErrorTip]="deliverIdError">
             <nz-select
               formControlName="DeliverID"
               nzShowSearch
               nzAllowClear
-              nzPlaceHolder="Chọn người giao"
+              [nzPlaceHolder]="placeholderDeliver"
             >
-              <nz-option *ngFor="let id of dataCbbDeliver"  [nzValue]="id.ID" [nzLabel]="id.FullName "></nz-option>
+              <nz-option
+                *ngFor="let id of dataCbbDeliver"
+                [nzValue]="id.ID"
+                [nzLabel]="id.FullName"
+                nzCustomContent
+              >
+                {{ id.EmployeeCode }} - {{ id.FullName }}
+              </nz-option>
             </nz-select>
             <ng-template #deliverIdError let-control>
               <ng-container *ngIf="control.hasError('required') && (control.dirty || control.touched)">
-                Vui lòng chọn người giao!
+                {{ errorMessageDeliver }}
               </ng-container>
               <ng-container *ngIf="control.hasError('min') && (control.dirty || control.touched)">
-                Vui lòng chọn người giao!
+                {{ errorMessageDeliver }}
               </ng-container>
             </ng-template>
           </nz-form-control>
@@ -222,14 +246,16 @@
 
   <nz-tabset nzSize="small" [nzAnimated]="false" (nzSelectedIndexChange)="onTabChange($event)">
     <nz-tab nzTitle="Danh sách sản phẩm" nzForceRender="true">
-      <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải..." style="height: 100%;">
-        <div #table_BillImportDetails  style="height: 38vh;"></div>
-      </nz-spin>
+      <div class="position-relative" style="height: 38vh;">
+        <div #table_BillImportDetails style="height: 100%;"></div>
+
+      </div>
     </nz-tab>
     <nz-tab nzTitle="Hồ sơ đi kèm" nzForceRender="true">
-      <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải..." style="height: 100%;">
-        <div #table_DocumnetImport style="height: 38vh;"></div>
-      </nz-spin>
+      <div class="position-relative" style="height: 38vh;">
+        <div #table_DocumnetImport style="height: 100%;"></div>
+
+      </div>
     </nz-tab>
   </nz-tabset>
 </div>

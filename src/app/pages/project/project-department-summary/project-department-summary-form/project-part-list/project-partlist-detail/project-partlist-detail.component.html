@@ -85,12 +85,7 @@
                   <span class="text-danger ps-1 me-1">*</span>
                 </nz-form-label>
                 <nz-form-control
-                  [nzErrorTip]="
-                    formGroup.get('tt')?.invalid &&
-                    (formGroup.get('tt')?.dirty || formGroup.get('tt')?.touched)
-                      ? 'Vui lòng nhập TT!'
-                      : undefined
-                  "
+                  [nzErrorTip]="getFieldError('tt')"
                 >
                   <input 
                     formControlName="tt" 
@@ -179,8 +174,10 @@
             </div>
             <div class="col-md-4 ">
               <nz-form-item>
-                <nz-form-label class="fs-12">Hãng SX</nz-form-label>
-                <nz-form-control>
+                <nz-form-label class="fs-12">Hãng SX <span class="text-danger ps-1 me-1">*</span></nz-form-label>
+                <nz-form-control
+                  [nzErrorTip]="getFieldError('maker')"
+                >
                   <input 
                     formControlName="maker" 
                     nz-input 
@@ -197,8 +194,10 @@
             </div>
             <div class="col-md-4 ">
               <nz-form-item>
-                <nz-form-label class="fs-12">Đơn vị</nz-form-label>
-                <nz-form-control>
+                <nz-form-label class="fs-12">Đơn vị <span class="text-danger ps-1 me-1">*</span></nz-form-label>
+                <nz-form-control
+                  [nzErrorTip]="getFieldError('unit')"
+                >
                   <nz-select 
                   formControlName="unit" 
                   class="fs-12 w-100" 
@@ -235,15 +234,17 @@
           <div class="row">
             <div class="col-md-4 ">
               <nz-form-item>
-                <nz-form-label class="fs-12">Số lượng/1 máy</nz-form-label>
-                <nz-form-control>
+                <nz-form-label class="fs-12">Số lượng/1 máy </nz-form-label>
+                <nz-form-control
+                  [nzErrorTip]="getFieldError('qtyMin')"
+                >
                   <nz-input-number
                     formControlName="qtyMin"
                     class="fs-12 w-100"
                     [nzMin]="0"
-                    [nzStep]="0.01"
-                    [nzPrecision]="2"
-                    placeholder="0.00">
+                    [nzStep]="1"
+                    [nzPrecision]="0"
+                    placeholder="0">
                   </nz-input-number>
                 </nz-form-control>
               </nz-form-item>
@@ -251,14 +252,16 @@
             <div class="col-md-4 ">
               <nz-form-item>
                 <nz-form-label class="fs-12">Số lượng tổng</nz-form-label>
-                <nz-form-control>
+                <nz-form-control
+                  [nzErrorTip]="getFieldError('qtyFull')"
+                >
                   <nz-input-number
                     formControlName="qtyFull"
                     class="fs-12 w-100"
                     [nzMin]="0"
-                    [nzStep]="0.01"
-                    [nzPrecision]="2"
-                    placeholder="0.00">
+                    [nzStep]="1"
+                    [nzPrecision]="0"
+                    placeholder="0">
                   </nz-input-number>
                 </nz-form-control>
               </nz-form-item>

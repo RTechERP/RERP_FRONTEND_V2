@@ -57,6 +57,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { ViewPokhService } from '../view-pokh/view-pokh/view-pokh.service';
 import { RequestInvoiceDetailService } from './request-invoice-detail-service/request-invoice-detail-service.service';
 import { NOTIFICATION_TITLE } from '../../../app.config';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 
 @Component({
   selector: 'app-request-invoice-detail',
@@ -142,7 +143,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
     private viewPokhService: ViewPokhService,
     private RIDService: RequestInvoiceDetailService,
     private modal: NzModalService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.formData = this.getDefaultFormData();
@@ -419,12 +420,12 @@ export class RequestInvoiceDetailComponent implements OnInit {
     this.tb_InvoiceFile = new Tabulator(
       this.tb_InvoiceFileElement.nativeElement,
       {
+        ...DEFAULT_TABLE_CONFIG,
         data: this.files,
+        pagination: false,
         layout: 'fitDataFill',
         movableColumns: true,
-        pagination: true,
         height: '21vh',
-        paginationSize: 5,
         columns: [
           {
             title: '',
@@ -469,6 +470,7 @@ export class RequestInvoiceDetailComponent implements OnInit {
   }
   initDataTable(): void {
     this.tb_DataTable = new Tabulator(this.tb_DataTableElement.nativeElement, {
+      ...DEFAULT_TABLE_CONFIG,
       data: this.details,
       layout: 'fitDataFill',
       movableColumns: true,
@@ -482,149 +484,242 @@ export class RequestInvoiceDetailComponent implements OnInit {
       columns: [
         {
           title: '',
-          field: 'actions',
-          formatter: (cell) => {
-            return `<i class="bi bi-trash3 text-danger delete-btn" style="font-size:15px; cursor: pointer;"></i>`;
-          },
-          width: '5%',
-          hozAlign: 'center',
-          cellClick: (e, cell) => {
-            if ((e.target as HTMLElement).classList.contains('delete-btn')) {
-              this.modal.confirm({
-                nzTitle: 'Xác nhận xóa',
-                nzContent: 'Bạn có chắc chắn muốn xóa dòng này?',
-                nzOkText: 'Đồng ý',
-                nzCancelText: 'Hủy',
-                nzOnOk: () => {
-                  const row = cell.getRow();
-                  const rowData = row.getData();
+          field: '',
+          columns: [
+            {
+              title: '',
+              field: 'actions',
+              formatter: (cell) => {
+                return `<i class="bi bi-trash3 text-danger delete-btn" style="font-size:15px; cursor: pointer;"></i>`;
+              },
+              width: '5%',
+              hozAlign: 'center',
+              cellClick: (e, cell) => {
+                if ((e.target as HTMLElement).classList.contains('delete-btn')) {
+                  this.modal.confirm({
+                    nzTitle: 'Xác nhận xóa',
+                    nzContent: 'Bạn có chắc chắn muốn xóa dòng này?',
+                    nzOkText: 'Đồng ý',
+                    nzCancelText: 'Hủy',
+                    nzOnOk: () => {
+                      const row = cell.getRow();
+                      const rowData = row.getData();
 
-                  if (rowData['ID']) {
-                    this.deletedRequestInvoiceDetailIds.push(rowData['ID']);
-                  }
+                      if (rowData['ID']) {
+                        this.deletedRequestInvoiceDetailIds.push(rowData['ID']);
+                      }
 
-                  row.delete();
-                  this.details = this.tb_DataTable.getData();
-                },
-              });
-            }
-          },
+                      row.delete();
+                      this.details = this.tb_DataTable.getData();
+                    },
+                  });
+                }
+              },
+            },
+            {
+              title: 'STT',
+              field: 'STT',
+              sorter: 'number',
+              width: '5%',
+              hozAlign: 'center',
+              frozen: true,
+            },
+            {
+              title: 'Mã nội bộ',
+              field: 'ProductNewCode',
+              sorter: 'string',
+              width: 200,
+              frozen: true,
+            },
+            {
+              title: 'Mã sản phẩm',
+              field: 'ProductSaleID',
+              sorter: 'string',
+              width: 200,
+              editor: 'list',
+              frozen: true,
+              editorParams: {
+                values: this.products.map((product) => ({
+                  label: product.ProductCode,
+                  value: product.ID,
+                })),
+              },
+              formatter: (cell) => {
+                const value = cell.getValue();
+                const product = this.products.find((p) => p.ID === value);
+                return product ? product.ProductCode : value;
+              },
+              cellEdited: (cell: CellComponent) => {
+                this.onProductSaleIDChanged(cell);
+              },
+            },
+            {
+              title: 'Mã theo khách',
+              field: 'GuestCode',
+              sorter: 'string',
+              width: 200,
+            },
+            {
+              title: 'Tên sản phẩm',
+              field: 'ProductName',
+              sorter: 'string',
+              width: 200,
+            },
+            { title: 'ĐVT', field: 'Unit', sorter: 'string', width: 100 },
+            {
+              title: 'Số lượng',
+              field: 'Quantity',
+              sorter: 'number',
+              width: 150,
+              hozAlign: 'right',
+              editor: 'number',
+            },
+            {
+              title: 'Mã dự án',
+              field: 'ProjectCode',
+              sorter: 'string',
+              width: 200,
+            },
+            {
+              title: 'Dự án',
+              field: 'ProjectID',
+              sorter: 'string',
+              width: '15%',
+              editor: 'list',
+              editorParams: {
+                values: this.projects.map((project) => ({
+                  label: project.ProjectName,
+                  value: project.ID,
+                })),
+              },
+              formatter: (cell) => {
+                const value = cell.getValue();
+                const project = this.projects.find((p) => p.ID === value);
+                return project ? project.ProjectName : value;
+              },
+              cellEdited: (cell: CellComponent) => {
+                this.onProjectChanged(cell);
+              },
+            },
+            // { title: 'Số PO', field: 'POCode', sorter: 'string', width: "8%" },
+            {
+              title: 'Ghi chú',
+              field: 'Note',
+              sorter: 'string',
+              width: 200,
+              editor: 'textarea',
+            },
+            {
+              title: 'Số POKH',
+              field: 'PONumber',
+              sorter: 'string',
+              width: 100,
+            },
+            {
+              title: 'Thông số kỹ thuật',
+              field: 'Specifications',
+              sorter: 'string',
+              width: '10%',
+              editor: 'input',
+              visible: false,
+            },
+            {
+              title: 'Số hóa đơn',
+              field: 'InvoiceNumber',
+              sorter: 'string',
+              width: 200,
+              editor: 'input',
+            },
+            {
+              title: 'Ngày hóa đơn',
+              field: 'InvoiceDate',
+              sorter: 'date',
+              width: '10%',
+              editor: 'date',
+              formatter: (cell) => {
+                const date = cell.getValue();
+                return date ? new Date(date).toLocaleDateString('vi-VN') : '';
+              },
+            },
+            {
+              title: 'Tồn kho',
+              field: 'IsStock',
+              sorter: 'boolean',
+              width: 80,
+              hozAlign: 'center',
+              formatter: (cell) => {
+                const checked = cell.getValue() ? 'checked' : '';
+                return `<div style="text-align: center;">
+            <input type="checkbox" ${checked} disabled style="opacity: 1; pointer-events: none; cursor: default; width: 16px; height: 16px;"/>
+          </div>`;
+              },
+            },
+            {
+              title: 'Mã phiếu xuất',
+              field: 'BillExportCode',
+              sorter: 'string',
+              width: 200,
+            },
+          ]
         },
         {
-          title: 'STT',
-          field: 'STT',
-          sorter: 'number',
-          width: '5%',
-          hozAlign: 'center',
-        },
-        {
-          title: 'Mã nội bộ',
-          field: 'ProductNewCode',
+          title: 'Thông tin đầu vào',
+          field: '',
           sorter: 'string',
-          width: '12%',
-        },
-        {
-          title: 'Mã sản phẩm',
-          field: 'ProductSaleID',
-          sorter: 'string',
-          width: '12%',
-          editor: 'list',
-          editorParams: {
-            values: this.products.map((product) => ({
-              label: product.ProductCode,
-              value: product.ID,
-            })),
-          },
-          formatter: (cell) => {
-            const value = cell.getValue();
-            const product = this.products.find((p) => p.ID === value);
-            return product ? product.ProductCode : value;
-          },
-          cellEdited: (cell: CellComponent) => {
-            this.onProductSaleIDChanged(cell);
-          },
-        },
-        {
-          title: 'Mã sản phẩm theo dự án',
-          field: 'ProductByProject',
-          sorter: 'string',
-          width: '12%',
-        },
-        {
-          title: 'Tên sản phẩm',
-          field: 'ProductName',
-          sorter: 'string',
-          width: '20%',
-        },
-        { title: 'ĐVT', field: 'Unit', sorter: 'string', width: '8%' },
-        {
-          title: 'Số lượng',
-          field: 'Quantity',
-          sorter: 'number',
-          width: '8%',
-          hozAlign: 'right',
-          editor: 'number',
-        },
-        {
-          title: 'Mã dự án',
-          field: 'ProjectCode',
-          sorter: 'string',
-          width: '12%',
-        },
-        {
-          title: 'Dự án',
-          field: 'ProjectID',
-          sorter: 'string',
-          width: '15%',
-          editor: 'list',
-          editorParams: {
-            values: this.projects.map((project) => ({
-              label: project.ProjectName,
-              value: project.ID,
-            })),
-          },
-          formatter: (cell) => {
-            const value = cell.getValue();
-            const project = this.projects.find((p) => p.ID === value);
-            return project ? project.ProjectName : value;
-          },
-          cellEdited: (cell: CellComponent) => {
-            this.onProjectChanged(cell);
-          },
-        },
-        // { title: 'Số PO', field: 'POCode', sorter: 'string', width: "8%" },
-        {
-          title: 'Ghi chú',
-          field: 'Note',
-          sorter: 'string',
-          width: '10%',
-          editor: 'input',
-        },
-        {
-          title: 'Thông số kỹ thuật',
-          field: 'Specifications',
-          sorter: 'string',
-          width: '10%',
-          editor: 'input',
-        },
-        {
-          title: 'Số hóa đơn',
-          field: 'InvoiceNumber',
-          sorter: 'string',
-          width: '10%',
-          editor: 'input',
-        },
-        {
-          title: 'Ngày hóa đơn',
-          field: 'InvoiceDate',
-          sorter: 'date',
-          width: '10%',
-          editor: 'date',
-          formatter: (cell) => {
-            const date = cell.getValue();
-            return date ? new Date(date).toLocaleDateString('vi-VN') : '';
-          },
-        },
+          width: 200,
+          columns: [
+            {
+              title: 'Ngày đặt hàng',
+              field: 'RequestDate',
+              sorter: 'string',
+              width: 150,
+              formatter: (cell) => {
+                const date = cell.getValue();
+                return date ? new Date(date).toLocaleDateString('vi-VN') : '';
+              },
+            },
+            {
+              title: 'Ngày hàng về',
+              field: 'DateRequestImport',
+              sorter: 'string',
+              width: 150,
+              formatter: (cell) => {
+                const date = cell.getValue();
+                return date ? new Date(date).toLocaleDateString('vi-VN') : '';
+              },
+            },
+            {
+              title: 'Nhà cung cấp',
+              field: 'SupplierName',
+              sorter: 'string',
+              formatter: 'textarea',
+              width: 250,
+            },
+            {
+              title: 'Hóa đơn đầu vào',
+              field: 'SomeBill',
+              sorter: 'string',
+              width: 250,
+            },
+            {
+              title: 'Ngày hàng về dự kiến',
+              field: 'ExpectedDate',
+              sorter: 'string',
+              width: 150,
+              formatter: (cell) => {
+                const date = cell.getValue();
+                return date ? new Date(date).toLocaleDateString('vi-VN') : '';
+              },
+            },
+            {
+              title: 'PNK',
+              field: 'BillImportCode',
+              sorter: 'string',
+              width: 250,
+            },
+          ]
+        }
+
       ],
     });
   }
@@ -643,6 +738,8 @@ export class RequestInvoiceDetailComponent implements OnInit {
       this.formData.customerCode =
         customer?.CustomerName || firstRow.CustomerName || '';
       this.formData.address = customer?.Address || firstRow.Address || '';
+      this.formData.status = 1;
+      this.formData.taxCompanyId = 1;
 
       // Cập nhật products array để hiển thị trong bảng
       this.details = this.selectedRowsData.map((row, index) => ({

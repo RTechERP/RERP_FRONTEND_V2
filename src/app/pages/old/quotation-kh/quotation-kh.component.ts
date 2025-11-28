@@ -554,12 +554,20 @@ export class QuotationKhComponent implements OnInit, AfterViewInit {
     window.URL.revokeObjectURL(url);
   }
   initMainTable(): void {
+    const token = localStorage.getItem('token');
     this.mainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       selectableRows: 1,
       height: '100%',
       ajaxURL: this.quotationKhServices.getQuotationKHAjax(),
       ajaxParams: this.getQuotationKHAjaxParams(),
+      ajaxConfig: {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      },
       ajaxResponse: (url, params, res) => {
         console.log('total', res.data[0].TotalPage);
         console.log('data', res.data);

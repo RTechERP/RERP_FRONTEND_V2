@@ -1,0 +1,26 @@
+<ng-container class="w-100 h-100 d-flex flex-column">
+    <!-- quotation-kh-detail.component.html -->
+    <div class="modal-header bg-primary text-uppercase py-2">
+        <h6 class="modal-title text-white">CHI TIẾT TÌNH TRẠNG YÊU CẦU XUẤT HÓA ĐƠN</h6>
+        <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+    </div>
+    <div class="card-header bg-white p-1" style="overflow-x: auto; flex-shrink: 0;">
+        <div class="d-flex gap-1">
+            <button class="fs-12" nz-button nzType="default" nzSize="small" title="Quản lý trạng thái" (click)="openRequestInvoiceStatusModal()">
+                <img src="assets/icon/action_import_16.png" alt="Quản lý trạng thái" /> Quản lý trạng thái
+            </button>
+        </div>
+    </div>
+    <nz-splitter>
+        <nz-splitter-panel>
+            <div #tb_Table id="tb_Table" style="height: 100%;"></div>
+        </nz-splitter-panel>
+        <nz-splitter-panel nzDefaultSize="20%" [nzCollapsible]="true" nzResizable="true">
+            <div #tb_File id="tb_File" style="height: 100%;"></div>
+        </nz-splitter-panel>
+    </nz-splitter>
+    <div class="modal-footer py-1">
+        <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
+        <button nz-button nzType="primary" nzSize="default" (click)="saveAndClose()">Lưu</button>
+    </div>
+</ng-container>

@@ -236,6 +236,7 @@ export class FollowProjectBaseComponent implements OnInit {
       warehouseID: this.warehouseID,
       groupSaleID: this.groupSaleID
     }
+    const token = localStorage.getItem('token');
     this.tb_followProjectBody = new Tabulator(container, {
       height: '88vh',
       layout: 'fitDataStretch',
@@ -265,6 +266,13 @@ export class FollowProjectBaseComponent implements OnInit {
         resizable: true,
       },
       ajaxURL: this.khoBaseService.getAPIFollowProjectBase(),
+      ajaxConfig: {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      },
       ajaxParams: {
         ...params
       },

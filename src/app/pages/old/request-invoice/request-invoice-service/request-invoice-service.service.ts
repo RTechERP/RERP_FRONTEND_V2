@@ -14,13 +14,15 @@ export class RequestInvoiceService {
   getRequestInvoice(
     dateStart: Date,
     dateEnd: Date,
-    filterText: string
+    filterText: string,
+    warehouseId: number
   ): Observable<any> {
     return this.http.get<any>(this._url, {
       params: {
         dateStart: dateStart.toISOString(),
         dateEnd: dateEnd.toISOString(),
         filterText: filterText,
+        warehouseId: warehouseId.toString(),
       },
     });
   }

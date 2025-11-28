@@ -2064,12 +2064,12 @@ export class PokhDetailComponent implements OnInit, AfterViewInit {
             editorParams: {
               values: this.dataProducts.map((product) => {
                 const shortLabel =
-                  `${product.ProductNewCode} ${product.ProductCode}`.length > 50
-                    ? `${product.ProductNewCode} ${product.ProductCode}`.substring(
+                  `${product.ProductNewCode} - ${product.ProductCode}`.length > 50
+                    ? `${product.ProductNewCode} - ${product.ProductCode}`.substring(
                       0,
                       50
                     ) + '...'
-                    : `${product.ProductNewCode} ${product.ProductCode}`;
+                    : `${product.ProductNewCode} - ${product.ProductCode}`;
 
                 return {
                   label: shortLabel,

@@ -1,14 +1,6 @@
 :host {
   display: block;
-  height: 100vh;
-}
-
-.main-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
-  background-color: #fff;
+  height: 99.8vh;
 }
 
 .pokh-modal-content {

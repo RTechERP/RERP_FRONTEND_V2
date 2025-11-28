@@ -536,32 +536,36 @@ export class CustomerComponent implements OnInit, AfterViewInit {
       //   },
       columns: [
         { title: 'ID', field: 'ID', visible: false, frozen: true },
-        { title: 'Mã khách', field: 'CustomerCode', frozen: true },
-        { title: 'Tên kí hiệu', field: 'CustomerShortName', frozen: true, },
+        { title: 'Mã khách', field: 'CustomerCode', frozen: true, width:'150' },
+        { title: 'Tên kí hiệu', field: 'CustomerShortName', frozen: true, width:'100'  },
         {
           title: 'Tên khách',
           field: 'CustomerName',
           formatter: 'textarea',
           bottomCalc: 'count',
+          width:'250'
         },
-        { title: 'Địa chỉ', field: 'Address', formatter: 'textarea' },
-        { title: 'Mã số thuế', field: 'TaxCode' },
-        { title: 'Loại hình', field: 'TypeName' },
+        { title: 'Địa chỉ', field: 'Address', formatter: 'textarea', width:'350' },
+        { title: 'Mã số thuế', field: 'TaxCode', width:'200' },
+        { title: 'Loại hình', field: 'TypeName', width:'100' },
         {
           title: 'Lưu ý giao hàng',
           field: 'NoteDelivery',
           formatter: 'textarea',
+          width:'250'
         },
         {
           title: 'Lưu ý chứng từ',
           field: 'NoteVoucher',
           formatter: 'textarea',
+          width:'250'
         },
-        { title: 'Đầu mối gửi check chứng từ', field: 'CheckVoucher' },
-        { title: 'Đầu mối gửi chứng từ bản cứng', field: 'HardCopyVoucher' },
+        { title: 'Đầu mối gửi check chứng từ', field: 'CheckVoucher', width:'250' },
+        { title: 'Đầu mối gửi chứng từ bản cứng', field: 'HardCopyVoucher', width:'250' },
         {
           title: 'Ngày chốt công nợ',
           field: 'ClosingDateDebt',
+          width:'100',
           formatter: (cell: any) => {
             const value = cell.getValue();
             if (!value) return '';
@@ -573,11 +577,12 @@ export class CustomerComponent implements OnInit, AfterViewInit {
             return `${day}/${month}/${year}`;
           }
         },
-        { title: 'Công nợ', field: 'Debt' },
+        { title: 'Công nợ', field: 'Debt', width:'100' },
         {
           title: 'Địa chỉ giao hàng',
           field: 'AdressStock',
           formatter: 'textarea',
+          width:'250'
         },
       ],
     });

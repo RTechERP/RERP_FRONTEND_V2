@@ -1,0 +1,44 @@
+/* Popup table styling */
+.child-row-container {
+  background: white;
+  border: 1px solid #ccc;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2),
+              0 4px 8px rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+  padding: 12px;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
+}
+
+.btn-toggle-detail {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.btn-toggle-detail .product-code-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  text-align: left;
+  margin-right: 4px;
+}
+
+.btn-toggle-detail .arrow {
+  flex-shrink: 0;
+  margin-left: 4px;
+  display: inline-block;
+  transition: transform 0.2s;
+}
+
+.child-open .btn-toggle-detail .arrow {
+  transform: rotate(180deg);
+}

@@ -451,7 +451,6 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
       column.width = Math.min(maxLength, 30);
     });
 
-    // Thêm bộ lọc cho toàn bộ cột (từ A1 đến cột cuối cùng)
     worksheet.autoFilter = {
       from: {
         row: 1,

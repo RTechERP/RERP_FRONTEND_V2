@@ -77,6 +77,7 @@ import { ProductSaleDetailComponent } from '../../../ProductSale/product-sale-de
 })
 export class BillExportSyntheticComponent implements OnInit, AfterViewInit {
   dataProductGroup: any[] = [];
+  dataDocumentImport: any[] = [];
   checked: any;
   dataTable: any[] = [];
   table: any;
@@ -119,10 +120,11 @@ export class BillExportSyntheticComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.getProductGroup();
-    this.loadDataBillExportSynthetic();
+    this.getDocumentImport();
   }
   ngAfterViewInit(): void {
-    this.drawTable();
+    // drawTable() sẽ được gọi sau khi load xong DocumentImport
+    // this.loadDataBillExportSynthetic();
   }
   getProductGroup() {
     this.billExportService
@@ -140,13 +142,44 @@ export class BillExportSyntheticComponent implements OnInit, AfterViewInit {
             );
             this.searchParams.listproductgroupID =
               this.selectedKhoTypes.join(',');
+            // Load data sau khi đã có product group
+            this.loadDataBillExportSynthetic();
+          } else {
+            // Nếu không có data, vẫn load với listproductgroupID rỗng
+            this.searchParams.listproductgroupID = '';
+            this.loadDataBillExportSynthetic();
           }
         },
         error: (err) => {
           console.error('Lỗi khi lấy nhóm vật tư', err);
+          // Vẫn load data ngay cả khi lỗi getProductGroup
+          this.searchParams.listproductgroupID = '';
+          this.loadDataBillExportSynthetic();
         },
       });
   }
+  getDocumentImport() {
+    this.billExportService.getDocumentImportDropdown().subscribe({
+      next: (res) => {
+        if (res?.status === 1 && Array.isArray(res.data)) {
+          this.dataDocumentImport = res.data;
+          console.log('>>> Document Import loaded:', res.data);
+          // Vẽ table sau khi đã load xong DocumentImport
+          this.drawTable();
+        } else {
+          console.warn('No document import data');
+          this.dataDocumentImport = [];
+          this.drawTable();
+        }
+      },
+      error: (err) => {
+        console.error('Lỗi khi lấy document import', err);
+        this.dataDocumentImport = [];
+        this.drawTable();
+      },
+    });
+  }
+
   onKhoTypeChange(selected: number[]): void {
     this.selectedKhoTypes = selected;
     this.searchParams.listproductgroupID = selected.join(',');
@@ -310,6 +343,35 @@ export class BillExportSyntheticComponent implements OnInit, AfterViewInit {
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(link.href);
+  }
+  //#endregion
+
+  //#region Generate dynamic columns from DocumentImport
+  generateDynamicColumns(): any[] {
+    const dynamicColumns: any[] = [];
+
+    // Tạo cột động cho mỗi DocumentImport
+    this.dataDocumentImport.forEach((doc) => {
+      dynamicColumns.push({
+        title: doc.DocumentImportName || `D${doc.ID}`,
+        field: `D${doc.ID}`,
+        hozAlign: 'center',
+        headerHozAlign: 'center',
+        width: 200,
+        formatter: (cell: any) => {
+          const value = cell.getValue();
+          // Hiển thị checkbox hoặc icon dựa vào giá trị
+          if (value === true || value === 1) {
+            return '<i class="fas fa-check-circle text-success"></i>';
+          } else if (value === false || value === 0) {
+            return '<i class="fas fa-times-circle text-danger"></i>';
+          }
+          return value || '';
+        },
+      });
+    });
+
+    return dynamicColumns;
   }
   //#endregion
 
@@ -585,10 +647,21 @@ export class BillExportSyntheticComponent implements OnInit, AfterViewInit {
           {
             title: 'Ghi chú',
             field: 'Note',
+            width: 250,
             hozAlign: 'left',
             headerHozAlign: 'center',
             editor: 'input',
           },
+          // Cột Trạng thái chứng từ (cố định)
+          {
+            title: 'Trạng thái chứng từ',
+            field: 'IsSuccessText',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            width: 150,
+          },
+          // Các cột động từ DocumentImport
+          ...this.generateDynamicColumns(),
         ],
       });
     }

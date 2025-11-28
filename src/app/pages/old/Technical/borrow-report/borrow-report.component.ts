@@ -81,7 +81,7 @@ export class BorrowReportComponent implements OnInit {
       selectableRows: 5,
       rowHeader:false,
       paginationMode: 'local',
-  
+
       columns: [
         { title: "Tổng số ngày", field: "TotalDay", sorter: "number", hozAlign: "right" },
         { title: "Ngày nhập", field: "CreateDate", sorter: "datetime", hozAlign: "center", formatter: dateFormatter },
@@ -103,7 +103,11 @@ export class BorrowReportComponent implements OnInit {
         { title: "Code", field: "Serial", sorter: "string", hozAlign: "left" },
         { title: "Mã kế toàn", visible: false, field: "ProductCodeRTC", sorter: "string", hozAlign: "left" },
 
-        { title: "Trạng thái", field: "StatusProduct", formatter: "tickCross", hozAlign: "center" },
+        { title: "Trạng thái", field: "StatusProduct",   formatter: function (cell: any) {
+            const value = cell.getValue();
+            const checked = value === true || value === 'true' || value === 1 || value === '1';
+            return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
+          }, hozAlign: "center" },
         { title: "SL kiểm", field: "SLKiemKe", sorter: "number", hozAlign: "right" },
         { title: "Người tạo", field: "CreatedBy", sorter: "string", hozAlign: "left" },
 

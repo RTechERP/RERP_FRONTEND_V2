@@ -338,4 +338,17 @@ getBillImportDetail(billIDs: number[]): Observable<any> {
       filter
     );
   }
+
+  // Get Document Import for dynamic columns
+  getDocumentImportDropdown(): Observable<any> {
+    return this.http.get(environment.host + `api/DocumentImport/dropdownmenu`);
+  }
+
+  // Export Excel KT - Using template based export
+  exportExcelKT(id: number, warehouseCode: string): Observable<Blob> {
+    const url = `${environment.host}api/billexport/excel-kt?id=${id}&warehouseCode=${warehouseCode}`;
+    return this.http.get(url, {
+      responseType: 'blob',
+    });
+  }
 }

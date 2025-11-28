@@ -114,7 +114,7 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
     status: 1,
     warehouseCode: 'HN',
     pageNumber: 1,
-    pageSize: 10000,
+    pageSize: 50, // Giảm xuống 50 để phân trang
     productGroupID: 0,
     employeeID: 0,
   };
@@ -135,8 +135,7 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
   }
   ngAfterViewInit(): void {
     this.drawTable();
-    // Sau khi bảng được vẽ, mới load dữ liệu
-    this.loadData();
+    // Với phân trang AJAX, không cần gọi loadData() vì table tự động load
   }
   //get ccbEmployee
   getCbbEmployee() {
@@ -233,52 +232,74 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
       this.loadData();
     });
   }
-  loadData() {
-    this.loading = true;
-    const dateStart = DateTime.fromJSDate(
-      new Date(this.searchParams.dateStart)
-    );
-    const dateEnd = DateTime.fromJSDate(new Date(this.searchParams.dateEnd));
-    this.historyBorrowSaleService
-      .getHistoryBorrowSale(
-        this.searchParams.status || 0,
-        dateStart,
-        dateEnd,
-        this.searchParams.keyword || '',
-        this.searchParams.pageNumber,
-        this.searchParams.pageSize,
-        this.searchParams.employeeID || 0,
-        this.searchParams.productGroupID || 0
-      )
-      .subscribe({
-        next: (res: any) => {
-          // Format ngày tháng về dd/MM/yyyy trước khi đổ vào bảng
-          this.dataTable = res.data.map((item: any) => {
-            return {
-              ...item,
-              BorrowDate: item.BorrowDate ? this.formatDate(item.BorrowDate) : '',
-              ExpectReturnDate: item.ExpectReturnDate ? this.formatDate(item.ExpectReturnDate) : ''
-            };
-          });
-          // Luôn gọi replaceData nếu bảng đã tồn tại
-          if (this.table) {
-            this.table.replaceData(this.dataTable);
-          } else {
-            // Trường hợp này sẽ không xảy ra nếu loadData() được gọi sau drawTable()
-            console.error(
-              'Lỗi: Bảng Tabulator chưa được khởi tạo khi loadData() được gọi.'
+  // Phương thức AJAX request cho Tabulator
+  ajaxRequest(params: any): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.loading = true;
+
+      // Lấy page và size từ params của Tabulator
+      const page = params.page || 1;
+      const size = params.size || 50;
+
+      console.log('ajaxRequest called with params:', params);
+
+      const dateStart = DateTime.fromJSDate(
+        new Date(this.searchParams.dateStart)
+      );
+      const dateEnd = DateTime.fromJSDate(new Date(this.searchParams.dateEnd));
+
+      this.historyBorrowSaleService
+        .getHistoryBorrowSale(
+          this.searchParams.status || 0,
+          dateStart,
+          dateEnd,
+          this.searchParams.keyword || '',
+          page,
+          size,
+          this.searchParams.employeeID || 0,
+          this.searchParams.productGroupID || 0
+        )
+        .subscribe({
+          next: (res: any) => {
+            // Format ngày tháng về dd/MM/yyyy
+            const formattedData = (res.data || []).map((item: any) => {
+              return {
+                ...item,
+                BorrowDate: item.BorrowDate ? this.formatDate(item.BorrowDate) : '',
+                ExpectReturnDate: item.ExpectReturnDate ? this.formatDate(item.ExpectReturnDate) : ''
+              };
+            });
+
+            this.loading = false;
+
+            // Trả về cấu trúc dữ liệu cho Tabulator
+            // Lấy TotalPage từ dòng đầu tiên của data (API chỉ trả về TotalPage)
+            const totalPages = formattedData.length > 0 && formattedData[0].TotalPage
+              ? formattedData[0].TotalPage
+              : 1;
+
+            resolve({
+              data: formattedData,
+              last_page: totalPages
+            });
+          },
+          error: (err: any) => {
+            this.notification.error(
+              'Lỗi',
+              'Không thể tải dữ liệu lịch sử mượn/trả'
             );
-          }
-          this.loading = false;
-        },
-        error: (err: any) => {
-          this.notification.error(
-            'Lỗi',
-            'Không thể tải dữ liệu lịch sử mượn/trả'
-          );
-          this.loading = false;
-        },
-      });
+            this.loading = false;
+            reject(err);
+          },
+        });
+    });
+  }
+
+  // Reload lại dữ liệu hiện tại (dùng khi cần refresh)
+  loadData() {
+    if (this.table) {
+      this.table.setData();
+    }
   }
   toggleSearchPanel() {
     this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
@@ -304,14 +325,22 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
       status: 0,
       warehouseCode: 'HN',
       pageNumber: 1,
-      pageSize: 10000,
+      pageSize: 50,
       productGroupID: 0,
       employeeID: 0,
     };
-    this.loadData(); // Gọi lại loadData sau khi reset form để cập nhật bảng
+    // Reset về trang đầu và reload dữ liệu
+    if (this.table) {
+      this.table.setPage(1);
+    }
+    this.loadData();
   }
 
   searchData() {
+    // Reset về trang đầu khi tìm kiếm
+    if (this.table) {
+      this.table.setPage(1);
+    }
     this.loadData();
   }
 
@@ -467,13 +496,28 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
   drawTable() {
     this.table = new Tabulator('#table_HistoryBorrowSale', {
       ...DEFAULT_TABLE_CONFIG,
-      data: this.dataTable,
+      reactiveData: false, // Tắt reactiveData khi dùng AJAX
       layout: 'fitDataFill',
       height: '90vh',
       selectableRows: 15,
-      reactiveData: true,
       movableColumns: true,
       resizableRows: true,
+      // Cấu hình phân trang từ server
+      pagination: true,
+      paginationMode: 'remote',
+      paginationSize: 50,
+      paginationSizeSelector: [25, 50, 100, 200, 500],
+      paginationCounter: 'rows',
+      ajaxURL: 'dummy', // Cần URL để trigger ajaxRequestFunc
+      // Sử dụng ajaxRequestFunc để tùy chỉnh request
+      ajaxRequestFunc: (_url: string, _config: any, params: any) => {
+        return this.ajaxRequest(params);
+      },
+      ajaxResponse: (_url: string, _params: any, response: any) => {
+        // Trả về dữ liệu cho Tabulator
+        // response đã có cấu trúc đúng từ ajaxRequest: { data, last_page }
+        return response;
+      },
       rowFormatter: (row: RowComponent) => {
         const data = row.getData();
         const rowElement = row.getElement();

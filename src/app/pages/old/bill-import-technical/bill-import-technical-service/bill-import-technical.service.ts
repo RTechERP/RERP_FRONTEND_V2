@@ -81,10 +81,22 @@ export class BillImportTechnicalService {
       responseType: 'blob',
     });
   }
-  approveAction(ids: number[], action: 'approve' | 'unapprove') {
-    return this.http.post<any>(`${this.url}approve-action`, { IDs: ids, Action: action });
+  // Approve bills - send list of full bill objects
+  approveBills(bills: any[]) {
+    return this.http.post<any>(`${this.url}approve`, bills);
+  }
+
+  // Unapprove bills - send list of full bill objects
+  unapproveBills(bills: any[]) {
+    return this.http.post<any>(`${this.url}unapprove`, bills);
   }
   getUser(): Observable<any> {
-    return this.http.get<any>(`${this.url}/get-user`);
+    return this.http.get<any>(`${environment.host}api/Users/cbb-user`);
+  }
+  getWarehouse(): Observable<any> {
+    return this.http.get<any>(environment.host + `api/warehouse/`);
+  }
+    getemployee(): Observable<any> {
+    return this.http.get<any>(environment.host + `api/employee/employees`);
   }
 }

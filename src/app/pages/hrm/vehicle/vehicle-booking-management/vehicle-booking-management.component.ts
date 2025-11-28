@@ -219,7 +219,7 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
     modalRef.componentInstance.dataInput = this.vehicleBookingListId;
     modalRef.result.then(
       (result) => {
-        this.notification.success("Thông báo", "Tạo sản phẩm thành công");
+      
         setTimeout(() => this.getVehicleBookingManagement(), 100);
       },
       () => {
@@ -236,7 +236,7 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
     });
     modalRef.result.then(
       (result) => {
-        this.notification.success("Thông báo", "Tạo sản phẩm thành công");
+     
         setTimeout(() => this.getVehicleBookingManagement(), 100);
       },
       () => {
@@ -448,8 +448,44 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
       return;
     }
 
+    // Lấy danh sách ảnh cho các item giao hàng (Category 2: Đăng ký giao hàng, Category 6: Đăng ký lấy hàng)
+    const deliveryItems = data.filter((item: any) => item.Category === 2 || item.Category === 6);
+    const deliveryItemRequests = deliveryItems.map((item: any) => ({
+      ID: item.ID,
+      ReceiverName: item.ReceiverName || '',
+      TimeNeedPresent: item.TimeNeedPresent || '',
+      ReceiverPhoneNumber: item.ReceiverPhoneNumber || '',
+      PackageName: item.PackageName || '',
+      SpecificDestinationAddress: item.SpecificDestinationAddress || ''
+    }));
+    
+    let imageMap: Map<number, string[]> = new Map();
+    
+    if (deliveryItemRequests.length > 0) {
+      try {
+        const imageResponse: any = await this.vehicleBookingManagementService.getListImage(deliveryItemRequests).toPromise();
+        if (imageResponse?.data && Array.isArray(imageResponse.data)) {
+          // Dữ liệu được group theo Title (ID của booking dạng string)
+          imageResponse.data.forEach((imgItem: any) => {
+            // Title chứa ID của booking
+            const bookingIdStr = imgItem.Title ? imgItem.Title.toString() : '';
+            const bookingId = bookingIdStr && !isNaN(parseInt(bookingIdStr)) ? parseInt(bookingIdStr) : null;
+            
+            if (bookingId && imgItem.urlImage) {
+              if (!imageMap.has(bookingId)) {
+                imageMap.set(bookingId, []);
+              }
+              imageMap.get(bookingId)!.push(imgItem.urlImage);
+            }
+          });
+        }
+      } catch (error) {
+        console.warn('Không thể lấy danh sách ảnh:', error);
+      }
+    }
+
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Lĩnh vực dự án');
+    const worksheet = workbook.addWorksheet('Đăng ký xe');
     const columns = table.getColumns();
 
     // Bỏ cột đầu tiên bằng cách slice từ index 1
@@ -458,20 +494,43 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
     const filteredColumnsID = filteredColumns.filter((col: any) => col.getDefinition().title !== 'ID');
     // Thêm dòng header
     const headers = filteredColumnsID.map((col: any) => col.getDefinition().title);
+    
+    // Thêm cột "Link ảnh" vào cuối
+    headers.push('Link ảnh');
 
     // Thêm dòng header và lưu lại dòng đó để thao tác
     const headerRow = worksheet.addRow(headers);
 
-    // Gán style màu xám cho từng ô trong dòng header
+    // Gán style màu cho header (màu xanh dương đậm)
     headerRow.eachCell((cell, colNumber) => {
       cell.fill = {
         type: 'pattern',
         pattern: 'solid',
-        fgColor: { argb: 'D9D9D9' }, // Màu xám nhạt
+        fgColor: { argb: 'FF4472C4' }, // Màu xanh dương
       };
-      cell.font = { bold: true };
-      cell.alignment = { vertical: 'middle', horizontal: 'center' };
+      cell.font = { 
+        bold: true, 
+        color: { argb: 'FFFFFFFF' }, // Màu trắng cho chữ
+        size: 11
+      };
+      cell.alignment = { 
+        vertical: 'middle', 
+        horizontal: 'center',
+        wrapText: true
+      };
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FF000000' } },
+        left: { style: 'thin', color: { argb: 'FF000000' } },
+        bottom: { style: 'thin', color: { argb: 'FF000000' } },
+        right: { style: 'thin', color: { argb: 'FF000000' } }
+      };
     });
+
+    // Đặt chiều cao cho header
+    headerRow.height = 25;
+
+    // Tìm index của cột "Tiền xe" để format số tiền
+    const vehicleMoneyColIndex = filteredColumnsID.findIndex((col: any) => col.getField() === 'VehicleMoney');
 
     data.forEach((row: any) => {
       const rowData = filteredColumnsID.map((col: any) => {
@@ -484,6 +543,10 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
 
         return value;
       });
+
+      // Thêm link ảnh vào cuối mỗi dòng
+      const imageLinks = imageMap.get(row.ID) || [];
+      rowData.push(imageLinks.length > 0 ? imageLinks.join('\n') : '');
 
       worksheet.addRow(rowData);
     });
@@ -505,24 +568,87 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
       }
     }
 
-    // Format cột có giá trị là Date
+    // Format cột có giá trị là Date và format số tiền
     worksheet.eachRow((row, rowNumber) => {
       if (rowNumber === 1) return; // bỏ qua tiêu đề
       row.eachCell((cell, colNumber) => {
+        // Format Date
         if (cell.value instanceof Date) {
-          cell.numFmt = 'dd/mm/yyyy'; // hoặc 'yyyy-mm-dd'
+          cell.numFmt = 'dd/mm/yyyy hh:mm'; // Format ngày giờ đầy đủ
         }
+        
+        // Format số tiền cho cột VehicleMoney
+        if (vehicleMoneyColIndex !== -1 && colNumber === vehicleMoneyColIndex + 1) {
+          const numValue = typeof cell.value === 'number' ? cell.value : 
+                          (typeof cell.value === 'string' && cell.value.trim() !== '' ? parseFloat(cell.value.replace(/[^\d.-]/g, '')) : null);
+          if (numValue !== null && !isNaN(numValue)) {
+            cell.value = numValue;
+            cell.numFmt = '#,##0'; // Format số với dấu phẩy ngăn cách hàng nghìn
+          }
+        }
+        
+        // Thêm border cho tất cả các ô
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFD3D3D3' } },
+          left: { style: 'thin', color: { argb: 'FFD3D3D3' } },
+          bottom: { style: 'thin', color: { argb: 'FFD3D3D3' } },
+          right: { style: 'thin', color: { argb: 'FFD3D3D3' } }
+        };
       });
     });
 
-    // Tự động căn chỉnh độ rộng cột
-    worksheet.columns.forEach((column: any) => {
+    // Tự động căn chỉnh độ rộng cột với tính toán tốt hơn
+    worksheet.columns.forEach((column: any, index: number) => {
       let maxLength = 10;
+      let maxLines = 1;
+      
+      // Tính độ dài cho header
+      const headerValue = headers[index] ? headers[index].toString() : '';
+      maxLength = Math.max(maxLength, headerValue.length);
+      
+      // Tính độ dài cho các ô dữ liệu
       column.eachCell({ includeEmpty: true }, (cell: any) => {
-        const cellValue = cell.value ? cell.value.toString() : '';
-        maxLength = Math.max(maxLength, cellValue.length + 2);
+        if (cell.value !== null && cell.value !== undefined) {
+          const cellValue = cell.value.toString();
+          // Đếm số dòng nếu có xuống dòng
+          const lines = cellValue.split('\n').length;
+          maxLines = Math.max(maxLines, lines);
+          
+          // Tính độ dài tối đa của một dòng
+          const maxLineLength = Math.max(...cellValue.split('\n').map((line: string) => line.length));
+          maxLength = Math.max(maxLength, maxLineLength);
+        }
       });
-      column.width = maxLength;
+      
+      // Đặt độ rộng cột (tối thiểu 10, tối đa 80 để đảm bảo hiển thị đầy đủ)
+      // Cộng thêm 2 cho padding
+      column.width = Math.min(Math.max(maxLength + 2, 10), 80);
+    });
+
+    // Áp dụng text wrapping và căn chỉnh cho tất cả các ô
+    worksheet.eachRow((row, rowNumber) => {
+      row.eachCell((cell, colNumber) => {
+        cell.alignment = {
+          ...cell.alignment,
+          wrapText: true,
+          vertical: 'top', // Căn trên để dễ đọc khi có nhiều dòng
+          horizontal: colNumber === 1 ? 'center' : 'left' // Cột đầu căn giữa, các cột khác căn trái
+        };
+      });
+      
+      // Tự động điều chỉnh chiều cao hàng dựa trên nội dung
+      if (rowNumber > 1) {
+        let maxLines = 1;
+        row.eachCell((cell) => {
+          if (cell.value !== null && cell.value !== undefined) {
+            const cellValue = cell.value.toString();
+            const lines = cellValue.split('\n').length;
+            maxLines = Math.max(maxLines, lines);
+          }
+        });
+        // Đặt chiều cao hàng (tối thiểu 15, mỗi dòng thêm 15)
+        row.height = Math.max(15, maxLines * 15);
+      }
     });
 
     // Thêm bộ lọc cho toàn bộ cột (từ A1 đến cột cuối cùng)
@@ -533,19 +659,9 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
       },
       to: {
         row: 1,
-        column: columns.length,
+        column: headers.length,
       },
     };
-
-    worksheet.eachRow((row, rowNumber) => {
-      row.eachCell((cell, colNumber) => {
-        cell.alignment = {
-          ...cell.alignment,
-          wrapText: true,
-          vertical: 'middle', // tùy chọn: căn giữa theo chiều dọc
-        };
-      });
-    });
 
     // Xuất file
     const buffer = await workbook.xlsx.writeBuffer();
@@ -553,15 +669,13 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     });
 
-    const formattedDate = new Date()
-      .toISOString()
-      .slice(2, 10)
-      .split('-')
-      .reverse()
-      .join('');
+    // Format ngày tháng hiện tại: dd-MM-yyyy
+    const now = DateTime.local();
+    const formattedDate = now.toFormat('dd-MM-yyyy');
+
     const link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
-    link.download = `LichTrinhXe.xlsx`;
+    link.download = `Đăng ký xe - ${formattedDate}.xlsx`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

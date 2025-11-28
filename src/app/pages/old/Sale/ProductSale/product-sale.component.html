@@ -9,7 +9,7 @@
                             <div class="d-flex gap-1 flex-nowrap">
                                 <!-- giữ nguyên các nút hiện có -->
                                 <button nz-button nzType="default" nzSize="small" class=" btn-add"
-                                    (click)="openModalProductGroup(false)" 
+                                    (click)="openModalProductGroup(false)"
                                     *hasPermission="'N27,N1'">
                                     <img src="assets/icon/action_add_group_16.png" alt="Thêm mới " />Thêm nhóm TB
                                 </button>
@@ -74,21 +74,21 @@
                                 <button ngbDropdownItem (click)="deleteProductGroup()" *hasPermission="'N27,N1'" class="d-flex align-items-center">
                                     Xóa nhóm TB
                                 </button>
-                                
+
                                 <div class="dropdown-divider"></div>
-                                
+
                                 <button ngbDropdownItem (click)="openModalForNewProductSale()" *hasPermission="'N27,N35,N1,N33,N34'" class="d-flex align-items-center">
                                     Thêm
                                 </button>
                                 <button ngbDropdownItem (click)="updateProductSale()" *hasPermission="'N27,N35,N1,N33,N34'" class="d-flex align-items-center">
-                                    Sửa 
+                                    Sửa
                                 </button>
                                 <button ngbDropdownItem (click)="deleteProductSale()" *hasPermission="'N27,N35,N1,N33,N34'" class="d-flex align-items-center">
                                     Xóa
                                 </button>
-                                
+
                                 <div class="dropdown-divider"></div>
-                                
+
                                 <button ngbDropdownItem (click)="openModalImportExcel()" *hasPermission="'N27,N1'" class="d-flex align-items-center">
                                     Nhập excel
                                 </button>
@@ -97,7 +97,7 @@
                                 </button>
                             </div>
                         </div>
-                        
+
                         <!-- cụm tìm kiếm mobile -->
                         <div class="d-flex align-items-center" style="flex: 1; min-width: 0;">
                             <label nz-checkbox [(ngModel)]="checkedALL" name="checkedALL" (nzCheckedChange)="getAllProductSale()" class="me-2 text-nowrap">Tất cả</label>
@@ -118,7 +118,7 @@
                           </nz-splitter-panel>
                           <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" style="overflow: auto;">
                             <div #tablePGWarehouse style="height: 100%;"></div>
-                          </nz-splitter-panel> 
+                          </nz-splitter-panel>
                         </nz-splitter>
                     </nz-splitter-panel>
 
@@ -126,12 +126,7 @@
                     <nz-splitter-panel [nzCollapsible]="true" style="overflow: auto;">
                         <div class="position-relative h-100">
                             <div #tableProductSale style="height: 100%;"></div>
-                            <nz-spin
-                                class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
-                                [nzSpinning]="isLoading"
-                                nzTip="Đang tải dữ liệu..."
-                                style="background: rgba(255, 255, 255, 0.8); z-index: 1000;">
-                            </nz-spin>
+
                         </div>
                     </nz-splitter-panel>
                 </nz-splitter>

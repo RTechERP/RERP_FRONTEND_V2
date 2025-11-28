@@ -28,6 +28,7 @@ import { InventoryService } from '../../inventory-service/inventory.service';
 import { DateTime } from 'luxon';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../../tabulator-default.config';
 import { NOTIFICATION_TITLE } from '../../../../../../app.config';
+import { BillExportDetailComponent } from '../../../BillExport/Modal/bill-export-detail/bill-export-detail.component';
 
 @Component({
   selector: 'app-inventory-borrow-ncc',
@@ -256,6 +257,105 @@ export class InventoryBorrowNCCComponent implements OnInit, AfterViewInit {
   }
   IsApprovedReturned(stt: boolean) {
 
+  }
+
+  // Method to add return bill to supplier (Status = 5: Xuất trả NCC)
+  addBillReturnNCC() {
+    const table = this.table;
+    if (!table) return;
+
+    // Get selected rows
+    const selectedRows = table.getSelectedData();
+
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn sản phẩm cần trả!');
+      return;
+    }
+
+    // Validate: all selected rows must have same supplier
+    const listSupplierSales: number[] = [];
+    const productGroupIDs: number[] = [];
+    let billImportId = 0;
+
+    for (const row of selectedRows) {
+      const supplierId = row.SupplierSaleID || 0;
+      const productGroupID = row.ProductGroupID || 0;
+      billImportId = row.BillImportID || 0;
+
+      if (!listSupplierSales.includes(supplierId)) {
+        listSupplierSales.push(supplierId);
+      }
+      if (!productGroupIDs.includes(productGroupID)) {
+        productGroupIDs.push(productGroupID);
+      }
+
+      if (listSupplierSales.length > 1) {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Bạn cần chọn các sản phẩm cùng NCC!');
+        return;
+      }
+
+      if (productGroupIDs.length > 1) {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Bạn cần chọn các sản phẩm cùng Kho!');
+        return;
+      }
+    }
+
+    // Prepare data for bill export detail modal
+    const detailData = selectedRows.map((row: any, index: number) => ({
+      ID: 0, // New detail record
+      ProductID: row.ProductSaleID || 0,
+      ProductCode: row.ProductCode || '',
+      ProductName: row.ProductName || '',
+      ProductNewCode: row.ProductNewCode || '',
+      ProductFullName: row.ProductName || '',
+      Specifications: row.Specifications || '',
+      Unit: row.Unit || '',
+      Qty: row.TotalQuantityReturnNCC || 0, // Số lượng phải trả
+      TotalInventory: row.TotalInventory || 0,
+      Note: row.ImportCode || '', // Số phiếu nhập
+      GroupExport: row.GroupExport || '',
+      UserReceiver: row.UserReceiver || '',
+      SerialNumber: row.SerialNumber || '',
+      BillImportDetailID: row.BillImportDetailID || 0,
+      ProductGroupID: row.ProductGroupID || 0,
+    }));
+
+    // Open bill export detail modal with Status = 5 (Xuất trả NCC)
+    const modalRef = this.modalService.open(BillExportDetailComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+    });
+
+    const componentInstance = modalRef.componentInstance;
+
+    // Set input data for the modal
+    componentInstance.isReturnToSupplier = true; // Flag to indicate this is return to supplier flow
+    componentInstance.newBillExport = {
+      Status: 5, // Xuất trả NCC
+      SupplierID: listSupplierSales[0] || 0,
+      KhoTypeID: productGroupIDs[0] || 0,
+      WarehouseID: this.searchParams.group || 0,
+      Code: '', // Will be auto-generated
+      CreatDate: new Date(),
+      RequestDate: new Date(),
+    };
+
+    // Pass detail data
+    componentInstance.selectedList = detailData;
+
+    // Handle modal close
+    modalRef.result.then(
+      (result: any) => {
+        if (result) {
+          this.notification.success(NOTIFICATION_TITLE.success, 'Tạo phiếu trả NCC thành công!');
+          this.loadDataInventoryBorrowNCC(); // Reload data
+        }
+      },
+      (reason: any) => {
+        console.log('Modal dismissed:', reason);
+      }
+    );
   }
   drawTable() {
 

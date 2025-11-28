@@ -1,8 +1,16 @@
-import { inject } from '@angular/core'
+import { inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
-import { AfterViewInit, Component, OnInit, ViewEncapsulation, ViewChild, ElementRef, Input } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  OnInit,
+  ViewEncapsulation,
+  ViewChild,
+  ElementRef,
+  Input,
+} from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -18,7 +26,12 @@ import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
-import { TabulatorFull as Tabulator, CellComponent, ColumnDefinition, RowComponent } from 'tabulator-tables';
+import {
+  TabulatorFull as Tabulator,
+  CellComponent,
+  ColumnDefinition,
+  RowComponent,
+} from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DateTime } from 'luxon';
@@ -59,7 +72,7 @@ import { MenuEventService } from '../../systems/menus/menu-service/menu-event.se
   ],
   selector: 'app-inventory-demo',
   templateUrl: './inventory-demo.component.html',
-  styleUrls: ['./inventory-demo.component.css']
+  styleUrls: ['./inventory-demo.component.css'],
 })
 export class InventoryDemoComponent implements OnInit, AfterViewInit {
   private ngbModal = inject(NgbModal);
@@ -72,19 +85,20 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
   productData: any[] = [];
   // lọc theo Store
   productGroupID: number = 0;
-  keyWord: string = "";
+  keyWord: string = '';
   checkAll: number = 0;
   warehouseID: number = 0;
   productRTCID: number = 0;
-  productGroupNo: string = "";
+  productGroupNo: string = '';
   searchMode: string = 'group';
   // tb sản phẩm kho Demo
   productTable: Tabulator | null = null;
-  constructor(private notification: NzNotificationService,
+  constructor(
+    private notification: NzNotificationService,
     private tbProductRtcService: TbProductRtcService,
     private inventoryDemoService: InventoryDemoService,
     private menuEventService: MenuEventService
-  ) { }
+  ) {}
   ngAfterViewInit(): void {
     this.getGroup();
     this.getProduct();
@@ -93,9 +107,7 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
       this.drawTable();
     }, 0);
   }
-  ngOnInit(): void {
-
-  }
+  ngOnInit(): void {}
   getGroup() {
     this.tbProductRtcService.getProductRTCGroup().subscribe((resppon: any) => {
       this.productGroupData = resppon.data;
@@ -112,17 +124,18 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
   getProduct() {
     const request = {
       productGroupID: this.productGroupID || 0,
-      keyWord: this.keyWord || "",
+      keyWord: this.keyWord || '',
       checkAll: 1,
       warehouseID: this.warehouseID || 1,
       productRTCID: this.productRTCID || 0,
     };
-    this.inventoryDemoService.getInventoryDemo(request).subscribe((response: any) => {
-      this.productData = response.products || [];
-      console.log("product", this.productData);
-      this.productTable?.setData(this.productData);
-
-    });
+    this.inventoryDemoService
+      .getInventoryDemo(request)
+      .subscribe((response: any) => {
+        this.productData = response.products || [];
+        console.log('product', this.productData);
+        this.productTable?.setData(this.productData);
+      });
   }
   onGroupChange(groupID: number): void {
     this.productGroupID = groupID;
@@ -147,12 +160,11 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
     ];
 
     if (this.productTable) {
-      this.productTable.setData(this.productData)
-    }
-    else {
+      this.productTable.setData(this.productData);
+    } else {
       this.productTable = new Tabulator('#dataTableProductInventory', {
         ...DEFAULT_TABLE_CONFIG,
-        layout: "fitDataStretch",
+        layout: 'fitDataStretch',
         pagination: true,
         selectableRows: 5,
         height: '100%',
@@ -160,56 +172,223 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
         paginationSize: 30,
         paginationSizeSelector: [5, 10, 20, 50, 100],
         reactiveData: true,
+        paginationMode: 'local',
         placeholder: 'Không có dữ liệu',
         dataTree: true,
         history: true,
         rowContextMenu: rowMenu,
         columns: [
-          { title: "ID", field: "ID", hozAlign: "left", headerHozAlign: "center" },
-          { title: "Mã SP", field: "ProductCode", hozAlign: "left", headerHozAlign: "center" },
-          { title: "Tên SP", field: "ProductName", hozAlign: "left", headerHozAlign: "center" },
-          { title: "Mã nhóm", field: "ProductGroupName", hozAlign: "left", headerHozAlign: "center" },
-          { title: "ĐVT", field: "UnitCountName", hozAlign: "left", headerHozAlign: "center" },
-          { title: "Hãng", field: "Maker", hozAlign: "left", headerHozAlign: "center" },
-          { title: "Số lượng", field: "Number", hozAlign: "right", headerHozAlign: "center", visible: false },
-          { title: "Serial", field: "Serial", hozAlign: "left", headerHozAlign: "center", visible: false },
-          { title: "Serial Number", field: "SerialNumber", hozAlign: "left", headerHozAlign: "center", visible: false },
-          { title: "Part Number", field: "PartNumber", hozAlign: "left", headerHozAlign: "center", visible: false },
-          { title: "Tình trạng", field: "StatusProduct", hozAlign: "left", headerHozAlign: "center", formatter: "tickCross", visible: false },
-          { title: "Ngày tạo", field: "CreateDate", hozAlign: "left", headerHozAlign: "center", formatter: "datetime", formatterParams: { outputFormat: "dd/MM/yyyy HH:mm" }, visible: false },
-          { title: "Người tạo", field: "CreatedBy", hozAlign: "left", headerHozAlign: "center", visible: false },
-          { title: "Vị trí", field: "LocationName", hozAlign: "left", headerHozAlign: "center" },
-          { title: "Mã RTC", field: "ProductCodeRTC", hozAlign: "left", headerHozAlign: "center", visible: false },
-          { title: "SL kiểm kê", field: "SLKiemKe", hozAlign: "right", headerHozAlign: "center" },
-          { title: "Maker", field: "Maker", hozAlign: "left", headerHozAlign: "center" },
-          { title: "Công suất", field: "LampPower", hozAlign: "left", headerHozAlign: "center", visible: false },
-          { title: "Wattage", field: "LampWattage", hozAlign: "left", headerHozAlign: "center", visible: false },
-          { title: "Mã HCM", field: "CodeHCM", hozAlign: "left", headerHozAlign: "center", visible: false },
-          { title: "SL xuất", field: "NumberExport", bottomCalc: "sum", hozAlign: "right", headerHozAlign: "center" },
-          { title: "SL nhập", field: "NumberImport", bottomCalc: "sum", hozAlign: "right", headerHozAlign: "center" },
-          { title: "Đang mượn", field: "NumberBorrowing", bottomCalc: "sum", hozAlign: "right", headerHozAlign: "center" },
           {
-            title: "Tồn thực",
-            field: "InventoryReal",
-            hozAlign: "right",
-            headerHozAlign: "center", bottomCalc: "sum", // tính tổng
-
+            title: 'ID',
+            field: 'ID',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
           },
-          { title: "Tồn trễ", field: "InventoryLate", bottomCalc: "sum", hozAlign: "right", headerHozAlign: "center" },
-          { title: "SL quản lý", field: "QuantityManager", bottomCalc: "sum", hozAlign: "right", headerHozAlign: "center" },
-          { title: "Đồ mượn KH", field: "BorrowCustomer", hozAlign: "left", headerHozAlign: "center", formatter: "tickCross" },
-          { title: "Ghi chú", field: "Note", hozAlign: "left", headerHozAlign: "center" },
-        ]
-
+          {
+            title: 'Mã SP',
+            field: 'ProductCode',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Tên SP',
+            field: 'ProductName',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Mã nhóm',
+            field: 'ProductGroupName',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'ĐVT',
+            field: 'UnitCountName',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Hãng',
+            field: 'Maker',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Số lượng',
+            field: 'Number',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+            visible: false,
+          },
+          {
+            title: 'Serial',
+            field: 'Serial',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            visible: false,
+          },
+          {
+            title: 'Serial Number',
+            field: 'SerialNumber',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            visible: false,
+          },
+          {
+            title: 'Part Number',
+            field: 'PartNumber',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            visible: false,
+          },
+          {
+            title: 'Tình trạng',
+            field: 'StatusProduct',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            formatter: 'tickCross',
+            visible: false,
+          },
+          {
+            title: 'Ngày tạo',
+            field: 'CreateDate',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            formatter: 'datetime',
+            formatterParams: { outputFormat: 'dd/MM/yyyy HH:mm' },
+            visible: false,
+          },
+          {
+            title: 'Người tạo',
+            field: 'CreatedBy',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            visible: false,
+          },
+          {
+            title: 'Vị trí',
+            field: 'LocationName',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Mã RTC',
+            field: 'ProductCodeRTC',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            visible: false,
+          },
+          {
+            title: 'SL kiểm kê',
+            field: 'SLKiemKe',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Maker',
+            field: 'Maker',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Công suất',
+            field: 'LampPower',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            visible: false,
+          },
+          {
+            title: 'Wattage',
+            field: 'LampWattage',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            visible: false,
+          },
+          {
+            title: 'Mã HCM',
+            field: 'CodeHCM',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+            visible: false,
+          },
+          {
+            title: 'SL xuất',
+            field: 'NumberExport',
+            bottomCalc: 'sum',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'SL nhập',
+            field: 'NumberImport',
+            bottomCalc: 'sum',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Đang mượn',
+            field: 'NumberBorrowing',
+            bottomCalc: 'sum',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Tồn thực',
+            field: 'InventoryReal',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+            bottomCalc: 'sum', // tính tổng
+          },
+          {
+            title: 'Tồn trễ',
+            field: 'InventoryLate',
+            bottomCalc: 'sum',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'SL quản lý',
+            field: 'QuantityManager',
+            bottomCalc: 'sum',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Đồ mượn KH',
+            field: 'BorrowCustomer',
+            hozAlign: 'center',
+            headerHozAlign: 'center',
+            formatter: function (cell: any) {
+              const value = cell.getValue();
+              const checked =
+                value === true ||
+                value === 'true' ||
+                value === 1 ||
+                value === '1';
+              return `<input type="checkbox" ${
+                checked ? 'checked' : ''
+              } style="pointer-events: none; accent-color: #1677ff;" />`;
+            },
+          },
+          {
+            title: 'Ghi chú',
+            field: 'Note',
+            hozAlign: 'left',
+            headerHozAlign: 'center',
+          },
+        ],
       });
-
     }
   }
   onUpdateQrCode() {
     const selectedData = this.productTable?.getSelectedData()[0];
 
     if (!selectedData) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, "Vui lòng chọn một dòng để cập nhật mã QR!");
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn một dòng để cập nhật mã QR!'
+      );
       return;
     }
 
@@ -221,9 +400,9 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
     });
     modalRef.componentInstance.dataInput = {
       ID: selectedData.ID,
-      ProductName: selectedData.ProductName
+      ProductName: selectedData.ProductName,
     };
-    console.log("dataInput", modalRef.componentInstance.dataInput);
+    console.log('dataInput', modalRef.componentInstance.dataInput);
     modalRef.result.then(
       (result) => {
         this.getGroup();
@@ -261,11 +440,16 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Danh sách thiết bị');
 
-    const columns = this.productTable.getColumnDefinitions().filter((col: any) =>
-      col.visible !== false && col.field && col.field.trim() !== ''
-    );
+    const columns = this.productTable
+      .getColumnDefinitions()
+      .filter(
+        (col: any) =>
+          col.visible !== false && col.field && col.field.trim() !== ''
+      );
 
-    const headerRow = worksheet.addRow(columns.map(col => col.title || col.field));
+    const headerRow = worksheet.addRow(
+      columns.map((col) => col.title || col.field)
+    );
     headerRow.font = { bold: true };
     headerRow.fill = {
       type: 'pattern',
@@ -310,7 +494,9 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
     });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `danh-sach-thiet-bi-${new Date().toISOString().split('T')[0]}.xlsx`;
+    link.download = `danh-sach-thiet-bi-${
+      new Date().toISOString().split('T')[0]
+    }.xlsx`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -329,10 +515,14 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
       NumberImport: rowData.NumberImport || 0,
       NumberExport: rowData.NumberExport || 0,
       NumberBorrowing: rowData.NumberBorrowing || 0,
-      InventoryReal: rowData.InventoryReal || 0
+      InventoryReal: rowData.InventoryReal || 0,
     };
-    console.log('data: ',data);
+    console.log('data: ', data);
 
-    this.menuEventService.openNewTab(MaterialDetailOfProductRtcComponent, title, data);
+    this.menuEventService.openNewTab(
+      MaterialDetailOfProductRtcComponent,
+      title,
+      data
+    );
   }
 }

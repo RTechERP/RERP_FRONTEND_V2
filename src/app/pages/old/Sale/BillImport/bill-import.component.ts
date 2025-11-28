@@ -936,7 +936,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
       error: (err: any) => {
         console.error('Error updating document status:', err);
         this.notification.error(
-          NOTIFICATION_TITLE.error, err.error.message || 
+          NOTIFICATION_TITLE.error, err.error.message ||
           'Có lỗi xảy ra khi cập nhật trạng thái hồ sơ chứng từ!'
         );
       },
@@ -1015,7 +1015,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
                 if (res.status === 1) {
                   resolve({
                     data: res.data,
-                    last_page: res.totalPage || 1,
+                    last_page: res.data[0].TotalPage || 1,
                   });
                 } else {
                   reject('Failed to load data');

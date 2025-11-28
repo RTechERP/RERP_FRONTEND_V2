@@ -264,7 +264,7 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
       resizableRows: true,
       height: '89vh',
       pagination: true,
-      paginationMode: 'remote',
+      paginationMode: 'local',
       columns: [
         {
           title: 'Trạng thái',

@@ -290,7 +290,6 @@ export class BillExportComponent implements OnInit, AfterViewInit {
             );
             this.data = [];
             this.loadDataBillExport();
-            this.table_billExport?.replaceData(this.dataTableBillExport);
           } else {
             this.notification.error(
               'Thông báo',
@@ -528,6 +527,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
             const dateStart = DateTime.fromJSDate(new Date(this.searchParams.dateStart));
             const dateEnd = DateTime.fromJSDate(new Date(this.searchParams.dateEnd));
 
+            this.isLoadTable = true;
             this.billExportService
               .getBillExport(
                 this.searchParams.listproductgroupID,
@@ -543,11 +543,18 @@ export class BillExportComponent implements OnInit, AfterViewInit {
               .subscribe({
                 next: (res) => {
                   if (res.status === 1) {
+                    this.isLoadTable = false;
+                    // Lấy TotalPage từ dòng đầu tiên của data (nếu có)
+                    const totalPage = res.data && res.data.length > 0
+                      ? res.data[0].TotalPage
+                      : res.totalPage || 1;
+
                     resolve({
                       data: res.data,
-                      last_page: res.totalPage || 1,
+                      last_page: totalPage,
                     });
                   } else {
+                    this.isLoadTable = false;
                     reject('Failed to load data');
                   }
                 },
@@ -962,6 +969,85 @@ export class BillExportComponent implements OnInit, AfterViewInit {
     window.URL.revokeObjectURL(link.href);
   }
   //#endregion
+
+  //#region xuất excel KT
+  exportExcelKT() {
+    let exportId = this.id;
+
+    // Nếu chưa có ID, lấy từ hàng được chọn
+    if (!exportId || exportId === 0) {
+      const selectedRows = this.table_billExport?.getSelectedRows?.() || [];
+      if (selectedRows.length > 0) {
+        const rowData = selectedRows[0].getData();
+        exportId = rowData?.ID || 0;
+      }
+    }
+
+    // Kiểm tra xem đã chọn phiếu chưa
+    if (!exportId || exportId === 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn 1 phiếu xuất để xuất Excel KT!'
+      );
+      return;
+    }
+
+    // Hiển thị thông báo đang tải
+    const loadingNotification = this.notification.info(
+      'Đang xử lý',
+      'Đang tải file Excel...',
+      { nzDuration: 0 } // Không tự đóng
+    );
+
+    // Lấy warehouse code từ searchParams hoặc warehouseCode input
+    const warehouseCode = this.searchParams.warehousecode || this.warehouseCode || 'HN';
+
+    // Gọi API xuất Excel KT
+    this.billExportService.exportExcelKT(exportId, warehouseCode).subscribe({
+      next: (res) => {
+        const url = window.URL.createObjectURL(res);
+        const a = document.createElement('a');
+        const now = new Date();
+        const dateString = `${now.getDate().toString().padStart(2, '0')}_${(now.getMonth() + 1)
+          .toString()
+          .padStart(2, '0')}_${now.getFullYear()}_${now.getHours().toString().padStart(2, '0')}_${now
+          .getMinutes()
+          .toString()
+          .padStart(2, '0')}_${now.getSeconds().toString().padStart(2, '0')}`;
+
+        // Lấy mã phiếu để đặt tên file
+        const selectedBill = this.data?.find?.((item) => item.ID === exportId);
+        const billCode = selectedBill?.Code || 'PhieuXuat';
+        const fileName = `${billCode}_${dateString}.xlsx`;
+
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+        // Đóng notification loading
+        this.notification.remove(loadingNotification.messageId);
+
+        // Hiển thị thông báo thành công
+        this.notification.success(
+          NOTIFICATION_TITLE.success,
+          'Xuất Excel KT thành công!'
+        );
+      },
+      error: (err) => {
+        // Đóng notification loading
+        this.notification.remove(loadingNotification.messageId);
+
+        const errorMsg = err?.error?.message || 'Có lỗi xảy ra khi xuất Excel KT.';
+        this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
+        console.error(err);
+      },
+    });
+  }
+  //#endregion
+
   onExportGroupItem(type: number) {
     let exportId = this.id;
     if (!exportId || exportId === 0) {

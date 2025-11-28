@@ -116,6 +116,7 @@ import { AssignWorkComponent } from '../../../purchase/assign-work/assign-work.c
 import { AppComponent } from '../../../../app.component';
 import { BonusCoefficientComponent } from '../../../old/bonus-coefficient/bonus-coefficient.component';
 import { ProductRtcQrCodeComponent } from '../../../old/product-rtc-qr-code/product-rtc-qr-code/product-rtc-qr-code.component';
+import { ProjectPartlistPriceRequestComponent } from '../../../old/project-partlist-price-request/project-partlist-price-request.component';
 import { EmployeeSaleManagerComponent } from '../../../old/employee-sale-manager/employee-sale-manager.component';
 @Injectable({
   providedIn: 'root',
@@ -1117,16 +1118,16 @@ export class MenuService {
             comp: SupplierSaleComponent,
             //   icon: 'assets/icon/layers.png',
           },
-          // {
-          //   kind: 'leaf',
-          //   key: 'ProjectPartlistPurchaseRequestComponent',
-          //   title: 'Yêu cầu mua hàng',
-          //   isOpen: true,
-          //   isPermission:
-          //     this.permissionService.hasPermission('N33,N35,N1,N36'),
-          //   comp: ProjectPartlistPurchaseRequestComponent,
-          //   //   icon: 'assets/icon/layers.png',
-          // },
+          {
+            kind: 'leaf',
+            key: 'ProjectPartlistPriceRequestComponent',
+            title: 'Yêu cầu mua hàng',
+            isOpen: true,
+            isPermission:
+              this.permissionService.hasPermission('N33,N35,N1,N36'),
+            comp: ProjectPartlistPriceRequestComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
           {
             kind: 'leaf',
             key: 'AssignWorkComponent',

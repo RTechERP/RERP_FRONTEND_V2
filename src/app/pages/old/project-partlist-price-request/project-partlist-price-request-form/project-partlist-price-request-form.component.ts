@@ -349,47 +349,47 @@ export class ProjectPartlistPriceRequestFormComponent
           //     </div>`
           //   );
           // },
-          editor: (cell: any, onRendered: any, success: any, cancel: any) => {
-            const container = document.createElement('div');
-            const rowData = cell.getRow().getData();
-            const view = this.vcr.createEmbeddedView(this.selectTemplate, {
-              row: rowData,
-              dt: this.dtProductSale,
-              success,
-            });
-            view.rootNodes.forEach((node) => container.appendChild(node));
-            onRendered(() => {
-              const el = container.querySelector('input, nz-select');
-              if (el) (el as HTMLElement).focus();
-            });
-            return container;
-          },
-          formatter: (cell: any) => {
-            const val = cell.getValue();
-            const product = (this.dtProductSale || []).find(
-              (p: any) => p.ProductNewCode === val
-            );
-            const label = product ? `${product.ProductName}` : 'Chọn sản phẩm';
-            return `<div class="d-flex justify-content-between align-items-center">
-                    <p class="w-100 m-0">${label}</p>
-                    <i class="fas fa-angle-down"></i>
-                  </div>`;
-          },
-          cellEdited: (cell) => {
-            const code = cell.getValue();
-            const product = (this.dtProductSale || []).find(
-              (p: any) => p.ProductNewCode === code
-            );
-            if (product) {
-              cell.getRow().update({
-                ProductCode: product.ProductCode,
-                ProductName: product.ProductName,
-                Unit: product.Unit,
-                Maker: product.Maker,
-                StatusRequest: product.StatusRequest,
-              });
-            }
-          },
+          // editor: (cell: any, onRendered: any, success: any, cancel: any) => {
+          //   const container = document.createElement('div');
+          //   const rowData = cell.getRow().getData();
+          //   const view = this.vcr.createEmbeddedView(this.selectTemplate, {
+          //     row: rowData,
+          //     dt: this.dtProductSale,
+          //     success,
+          //   });
+          //   view.rootNodes.forEach((node) => container.appendChild(node));
+          //   onRendered(() => {
+          //     const el = container.querySelector('input, nz-select');
+          //     if (el) (el as HTMLElement).focus();
+          //   });
+          //   return container;
+          // },
+          // formatter: (cell: any) => {
+          //   const val = cell.getValue();
+          //   const product = (this.dtProductSale || []).find(
+          //     (p: any) => p.ProductNewCode === val
+          //   );
+          //   const label = product ? `${product.ProductName}` : 'Chọn sản phẩm';
+          //   return `<div class="d-flex justify-content-between align-items-center">
+          //           <p class="w-100 m-0">${label}</p>
+          //           <i class="fas fa-angle-down"></i>
+          //         </div>`;
+          // },
+          // cellEdited: (cell) => {
+          //   const code = cell.getValue();
+          //   const product = (this.dtProductSale || []).find(
+          //     (p: any) => p.ProductNewCode === code
+          //   );
+          //   if (product) {
+          //     cell.getRow().update({
+          //       ProductCode: product.ProductCode,
+          //       ProductName: product.ProductName,
+          //       Unit: product.Unit,
+          //       Maker: product.Maker,
+          //       StatusRequest: product.StatusRequest,
+          //     });
+          //   }
+          // },
         },
         {
           title: 'Mã sản phẩm (*)',
@@ -460,7 +460,7 @@ export class ProjectPartlistPriceRequestFormComponent
           title: 'Ghi chú chung',
           headerSort: false,
           field: 'RequestNote',
-          editor: this.jobRequirementID > 0 ? undefined : 'input',
+          // editor: this.jobRequirementID > 0 ? undefined : 'input',
           headerHozAlign: 'center',
           hozAlign: 'left',
           width: 200,

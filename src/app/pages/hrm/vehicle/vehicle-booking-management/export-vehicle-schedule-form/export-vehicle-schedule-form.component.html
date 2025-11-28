@@ -33,8 +33,68 @@
             </div>
 
             <div class="card-body p-0">
-                <div style="height: 100%">
-                    <div id="tb_ExportVehicleSchedule" style="height: 100%;"></div>
+                <div style="height: 81vh; overflow-y: auto;">
+                    <nz-table
+                        [nzData]="groupedScheduleData" 
+                        [nzShowPagination]="false"
+                        [nzBordered]="true"
+                        [nzSize]="'small'"
+                        style="border-top: 2px solid #808080; border-bottom: 2px solid #808080; border-left: 1px solid #D3D3D3; border-right: 1px solid #D3D3D3; min-height: calc(81vh - 2px); display: table; width: 100%;">
+                        <thead>
+                            <tr>
+                                <th [attr.colspan]="9" 
+                                    style="background-color: #00ba25; color: white; font-weight: bold; text-align: center; font-size: 14px; padding: 10px;">
+                                    LỊCH TRÌNH XE
+                                </th>
+                            </tr>
+                            <tr>
+                                <th nzWidth="70px" style="background-color: #4472C4; color: white; font-weight: bold; text-align: center; font-size: 12px;">Ngày</th>
+                                <th nzWidth="50px" style="background-color: #4472C4; color: white; font-weight: bold; text-align: center; font-size: 12px;">Buổi</th>
+                                <th nzWidth="150px" style="background-color: #4472C4; color: white; font-weight: bold; text-align: center; font-size: 12px;">Người đi</th>
+                                <th nzWidth="150px" style="background-color: #4472C4; color: white; font-weight: bold; text-align: center; font-size: 12px;">Điểm xuất phát</th>
+                                <th nzWidth="150px" style="background-color: #4472C4; color: white; font-weight: bold; text-align: center; font-size: 12px;">Điểm đến</th>
+                                <th nzWidth="120px" style="background-color:  #e39540; color: white; font-weight: bold; text-align: center; font-size: 12px;">Giờ xuất phát</th>
+                                <th nzWidth="120px" style="background-color: #e39540; color: white; font-weight: bold; text-align: center; font-size: 12px;">Thời gian đến</th>
+                                <th nzWidth="120px" style="background-color: #e39540; color: white; font-weight: bold; text-align: center; font-size: 12px;">Giờ về</th>
+                                <th nzWidth="200px" style="background-color: #4472C4; color: white; font-weight: bold; text-align: center; font-size: 12px;">Ghi chú</th>
+                            </tr>
+                        </thead>    
+                        <tbody>
+                            <ng-container *ngFor="let vehicleGroup of groupedScheduleData">
+                                <!-- Dòng header cho thông tin xe -->
+                                <tr class="vehicle-group-header">
+                                    <td [attr.colspan]="9" 
+                                        style="background-color: #ffcbee; color: #000000; font-weight: bold; text-align: center; padding: 8px; font-size: 12px;">
+                                        Thông tin xe: {{ vehicleGroup.vehicleInfo }}
+                                    </td>
+                                </tr>
+                                <ng-container *ngFor="let daySession of vehicleGroup.daySessions; let dayIndex = index">
+                                    <tr *ngFor="let item of daySession.items; let itemIndex = index"
+                                        [ngClass]="{'first-row': dayIndex === 0 && itemIndex === 0, 'last-row': dayIndex === vehicleGroup.daySessions.length - 1 && itemIndex === daySession.items.length - 1}">
+                                        <td *ngIf="itemIndex === 0" 
+                                            [attr.rowspan]="daySession.items.length"
+                                            [ngStyle]="getCellBorderStyle(dayIndex === 0 && itemIndex === 0, dayIndex === vehicleGroup.daySessions.length - 1 && itemIndex === daySession.items.length - 1, true)"
+                                            style="vertical-align: middle; text-align: center; font-size: 12px;">
+                                            {{ formatDate(daySession.date) || formatDate(item.DepartureDateRegister) }}
+                                        </td>
+                                        <td *ngIf="itemIndex === 0" 
+                                            [attr.rowspan]="daySession.items.length"
+                                            [ngStyle]="getCellBorderStyle(dayIndex === 0 && itemIndex === 0, dayIndex === vehicleGroup.daySessions.length - 1 && itemIndex === daySession.items.length - 1, true)"
+                                            style="vertical-align: middle; text-align: center; font-size: 12px;">
+                                            {{ daySession.session }}
+                                        </td>
+                                        <td [ngStyle]="getCellBorderStyle(dayIndex === 0 && itemIndex === 0, dayIndex === vehicleGroup.daySessions.length - 1 && itemIndex === daySession.items.length - 1, false)" style="white-space: pre-wrap; text-align: left; font-size: 12px;">{{ item.PassengerNames || '' }}</td>
+                                        <td [ngStyle]="getCellBorderStyle(dayIndex === 0 && itemIndex === 0, dayIndex === vehicleGroup.daySessions.length - 1 && itemIndex === daySession.items.length - 1, false)" style="white-space: pre-wrap; text-align: left; font-size: 12px;">{{ item.DepartureAddress || '' }}</td>
+                                        <td [ngStyle]="getCellBorderStyle(dayIndex === 0 && itemIndex === 0, dayIndex === vehicleGroup.daySessions.length - 1 && itemIndex === daySession.items.length - 1, false)" style="white-space: pre-wrap; text-align: left; font-size: 12px;">{{ item.CompanyNameArrives || '' }}</td>
+                                        <td [ngStyle]="getCellBorderStyle(dayIndex === 0 && itemIndex === 0, dayIndex === vehicleGroup.daySessions.length - 1 && itemIndex === daySession.items.length - 1, false)" style="text-align: center; font-size: 12px;">{{ formatDateTime(item.DepartureDate) }}</td>
+                                        <td [ngStyle]="getCellBorderStyle(dayIndex === 0 && itemIndex === 0, dayIndex === vehicleGroup.daySessions.length - 1 && itemIndex === daySession.items.length - 1, false)" style="text-align: center; font-size: 12px;">{{ formatDateTime(item.TimeNeedPresent) }}</td>
+                                        <td [ngStyle]="getCellBorderStyle(dayIndex === 0 && itemIndex === 0, dayIndex === vehicleGroup.daySessions.length - 1 && itemIndex === daySession.items.length - 1, false)" style="text-align: center; font-size: 12px;">{{ formatDateTime(item.ReturnDate) }}</td>
+                                        <td [ngStyle]="getCellBorderStyle(dayIndex === 0 && itemIndex === 0, dayIndex === vehicleGroup.daySessions.length - 1 && itemIndex === daySession.items.length - 1, false)" style="white-space: pre-wrap; text-align: left; font-size: 12px;">{{ item.Notes || '' }}</td>
+                                    </tr>
+                                </ng-container>
+                            </ng-container>
+                        </tbody>
+                    </nz-table>
                 </div>
             </div>
         </div>

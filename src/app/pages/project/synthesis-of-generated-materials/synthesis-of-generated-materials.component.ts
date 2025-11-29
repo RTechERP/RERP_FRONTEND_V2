@@ -18,7 +18,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
-import { OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { OnInit, AfterViewInit, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
 import { EnvironmentInjector } from '@angular/core';
@@ -80,7 +80,8 @@ export class SynthesisOfGeneratedMaterialsComponent
     private notification: NzNotificationService,
     private modal: NzModalService,
     private modalService: NgbModal,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   @ViewChild('tb_synthesisOfGeneratedMaterials', { static: false })
@@ -284,12 +285,28 @@ export class SynthesisOfGeneratedMaterialsComponent
 
   //#region load dũ liệu bảng
   async getDataProjectSurvey() {
-    this.isLoadTable = true;
+    // Kiểm tra table đã được khởi tạo chưa
+    if (!this.tb_synthesisOfGeneratedMaterials) {
+      console.warn('Table chưa được khởi tạo');
+      return;
+    }
 
-    let pageSize = this.tb_synthesisOfGeneratedMaterials.getPageSize();
+    // Sử dụng setTimeout để tránh ExpressionChangedAfterItHasBeenCheckedError
+    setTimeout(() => {
+      this.isLoadTable = true;
+      this.cdr.detectChanges();
+    }, 0);
+
+    let pageSize = 100;
+    try {
+      pageSize = this.tb_synthesisOfGeneratedMaterials.getPageSize() || 100;
+    } catch (error) {
+      console.debug('Không thể lấy pageSize, sử dụng giá trị mặc định:', error);
+    }
+
     let data = {
       pageNumber: 1,
-      pageSize: pageSize ? pageSize : 100,
+      pageSize: pageSize,
       dateStart: this.dateStart
         ? DateTime.fromJSDate(new Date(this.dateStart)).toISO()
         : null,
@@ -302,12 +319,36 @@ export class SynthesisOfGeneratedMaterialsComponent
 
     this.projectService.getSynthesisOfGeneratedMaterials(data).subscribe({
       next: (response: any) => {
-        this.tb_synthesisOfGeneratedMaterials.setData(response.data);
-        this.isLoadTable = false;
+        // Đảm bảo response.data là array trước khi set vào Tabulator
+        let dataArray: any[] = [];
+        
+        if (Array.isArray(response.data)) {
+          dataArray = response.data;
+        } else if (response.data && Array.isArray(response.data.dt)) {
+          dataArray = response.data.dt;
+          console.log(dataArray);
+        } else if (response.data && typeof response.data === 'object') {
+          // Nếu response.data là object, thử lấy các thuộc tính có thể là array
+          dataArray = [];
+        }
+        
+        if (this.tb_synthesisOfGeneratedMaterials) {
+          this.tb_synthesisOfGeneratedMaterials.setData(dataArray);
+        }
+        
+        // Sử dụng setTimeout để tránh ExpressionChangedAfterItHasBeenCheckedError
+        setTimeout(() => {
+          this.isLoadTable = false;
+          this.cdr.detectChanges();
+        }, 0);
       },
       error: (error) => {
         console.error('Lỗi:', error);
-        this.isLoadTable = false;
+        // Sử dụng setTimeout để tránh ExpressionChangedAfterItHasBeenCheckedError
+        setTimeout(() => {
+          this.isLoadTable = false;
+          this.cdr.detectChanges();
+        }, 0);
       },
     });
   }

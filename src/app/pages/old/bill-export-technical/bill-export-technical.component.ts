@@ -103,6 +103,7 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
   public drawTable(): void {
     this.billExportTechnicalTable = new Tabulator('#dataTableBillExportTechnical', {
       layout: "fitDataStretch",
+      height: '90vh',
       pagination: true,
       selectableRows: 5,
       movableColumns: true,

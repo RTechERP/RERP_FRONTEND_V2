@@ -61,6 +61,7 @@ import { ProjectRequestComponent } from '../../project-request/project-request.c
 import { ProjectPartlistProblemComponent } from '../project-partlist-problem/project-partlist-problem.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { PermissionService } from '../../../services/permission.service';
+import { ProjectTypeLinkDetailComponent } from '../project-type-link-detail/project-type-link-detail.component';
 @Component({
   selector: 'app-project-new',
   standalone: true,
@@ -342,6 +343,13 @@ getUserTeam() {
           '<span style="font-size: 0.75rem;"><img src="assets/icon/solution_16.png" alt="yêu cầu giải pháp" class="me-1" /> Yêu cầu - Giải pháp</span>',
         action: (e: any, row: any) => {
           this.openProjectRequest();
+        },
+      },
+      {
+        label:
+          '<span style="font-size: 0.75rem;"><img src="assets/icon/solution_16.png" alt="Cập nhật Leader" class="me-1" /> Cập nhật Leader</span>',
+        action: (e: any, row: any) => {
+          this.openProjectTypeLinkDetail();
         },
       },
     ];
@@ -703,10 +711,33 @@ getUserTeam() {
       height: '78vh',
       selectableRows: 1,
       layout: 'fitDataFill',
-      ajaxURL: this.projectService.getProjectItems(),
-      ajaxParams: { id: this.projectId },
-      ajaxResponse: (url, params, res) => {
-        return res.data;
+      ajaxURL: 'dummy', // Required but not used with ajaxRequestFunc
+      ajaxRequestFunc: (_url: string, _config: any, params: any) => {
+        return new Promise((resolve, reject) => {
+          // Kiểm tra projectId hợp lệ
+          if (!this.projectId || this.projectId === 0) {
+            resolve([]);
+            return;
+          }
+
+          this.projectService
+            .getProjectItemsData(this.projectId)
+            .subscribe({
+              next: (res) => {
+                if (res?.data) {
+                  // Tabulator expects array data directly
+                  const dataArray = Array.isArray(res.data) ? res.data : [];
+                  resolve(dataArray);
+                } else {
+                  resolve([]);
+                }
+              },
+              error: (err) => {
+                console.error('Error loading project work reports data:', err);
+                reject(err);
+              },
+            });
+        });
       },
       locale: 'vi',
       rowFormatter: function (row) {
@@ -902,9 +933,10 @@ getUserTeam() {
   }
 
   getProjectWorkReports() {
-    this.tb_projectWorkReports.setData(this.projectService.getProjectItems(), {
-      id: this.projectId,
-    });
+    // With ajaxRequestFunc, we just need to replace data and it will use the current projectId
+    if (this.tb_projectWorkReports) {
+      this.tb_projectWorkReports.replaceData();
+    }
   }
   //#endregion
 
@@ -1013,7 +1045,7 @@ getUserTeam() {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
     if (status == 1) {
       if (selectedIDs.length != 1) {
-        this.notification.error('', this.createdText('Vui lòng chọn dự án!'), {
+        this.notification.error('Thông báo', this.createdText('Vui lòng chọn dự án!'), {
           nzStyle: { fontSize: '0.75rem' },
         });
         return;
@@ -1076,7 +1108,7 @@ getUserTeam() {
 
     if (selectedIDs.length <= 0) {
       this.notification.error(
-        '',
+        'Thông báo',
         this.createdText('Vui lòng chọn ít nhất 1 dự án để xóa!'),
         {
           nzStyle: { fontSize: '0.75rem' },
@@ -1156,7 +1188,7 @@ getUserTeam() {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('', 'Vui lòng chọn 1 dự án cần chuyển!', {
+      this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án cần chuyển!', {
         nzStyle: { fontSize: '0.75rem' },
       });
       return;
@@ -1195,6 +1227,38 @@ getUserTeam() {
     });
     modalRef.componentInstance.projectID = selectedIDs[0];
   }
+  //#region Cập nhật Leader
+  openProjectTypeLinkDetail() {
+    let selectedRows = this.tb_projects.getSelectedRows();
+    let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
+
+    if (selectedIDs.length != 1) {
+      this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!');
+      return;
+    }
+
+    const modalRef = this.modalService.open(ProjectTypeLinkDetailComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+    });
+
+    modalRef.componentInstance.projectId = selectedIDs[0] ?? 0;
+
+    modalRef.result.then((result) => {
+      // Xử lý khi modal đóng bằng close() (resolve)
+      if (result?.success) {
+        this.searchProjects();
+      }
+    }).catch((reason) => {
+      // Xử lý khi modal đóng bằng dismiss() (reject)
+      if (reason == true || reason?.success) {
+        this.searchProjects();
+      }
+    });
+  }
+  //#endregion
   //#region Yêu cầu - Giải pháp
   openProjectRequest() {
     let selectedRows = this.tb_projects.getSelectedRows();
@@ -1227,7 +1291,7 @@ getUserTeam() {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
+      this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!', {
         nzStyle: { fontSize: '0.75rem' },
       });
       return;
@@ -1256,7 +1320,7 @@ getUserTeam() {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
+      this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!', {
         nzStyle: { fontSize: '0.75rem' },
       });
       return;
@@ -1277,7 +1341,7 @@ getUserTeam() {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
+      this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!', {
         nzStyle: { fontSize: '0.75rem' },
       });
       return;
@@ -1352,7 +1416,7 @@ getUserTeam() {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
+      this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!', {
         nzStyle: { fontSize: '0.75rem' },
       });
       return;
@@ -1383,7 +1447,7 @@ getUserTeam() {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
+      this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!', {
         nzStyle: { fontSize: '0.75rem' },
       });
       return;
@@ -1407,7 +1471,7 @@ getUserTeam() {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('Lỗi','Vui lòng chọn 1 dự án!')
+      this.notification.error('Thông báo','Vui lòng chọn 1 dự án!')
       return;
     }
 
@@ -1443,7 +1507,7 @@ getUserTeam() {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('Lỗi','Vui lòng chọn 1 dự án!')
+      this.notification.error('Thông báo','Vui lòng chọn 1 dự án!')
       return;
     }
     const modalRef = this.modalService.open(WorkItemComponent, {
@@ -1467,7 +1531,7 @@ getUserTeam() {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('Lỗi','Vui lòng chọn 1 dự án!')
+      this.notification.error('Thông báo','Vui lòng chọn 1 dự án!')
       return;
     }
     const modalRef = this.modalService.open(ProjectWorkerComponent, {
@@ -1491,7 +1555,7 @@ getUserTeam() {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('Lỗi','Vui lòng chọn 1 dự án!')
+      this.notification.error('Thông báo','Vui lòng chọn 1 dự án!')
       return;
     }
     const modalRef = this.modalService.open(ProjectPartListComponent, {
@@ -1502,6 +1566,7 @@ getUserTeam() {
     });
     modalRef.componentInstance.project = selectedRows[0];
     modalRef.componentInstance.projectId = this.projectId;
+    modalRef.componentInstance.projectNameX = this.tb_projects.getSelectedData()[0].ProjectName;
     modalRef.componentInstance.projectCodex = this.tb_projects.getSelectedData()[0].ProjectCode;
     modalRef.result.then((result) => {
       if (result == true) {

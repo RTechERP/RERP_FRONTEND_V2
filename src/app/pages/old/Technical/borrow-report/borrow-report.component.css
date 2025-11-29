@@ -1,5 +1,74 @@
-.container-fluid {
-      margin: 0 0 0 12px;
-      padding: 0;
-}
-
+:host {
+      font-size: 12px;
+    }
+    
+    :host ::ng-deep {
+      font-size: 12px;
+    }
+    
+    :host ::ng-deep .tabulator {
+      font-size: 12px !important;
+    }
+    
+    :host ::ng-deep .tabulator .tabulator-header {
+      font-size: 12px !important;
+    }
+    
+    :host ::ng-deep .tabulator .tabulator-header .tabulator-col {
+      font-size: 12px !important;
+    }
+    
+    :host ::ng-deep .tabulator .tabulator-header .tabulator-col-content {
+      font-size: 12px !important;
+    }
+    
+    :host ::ng-deep .tabulator .tabulator-cell {
+      font-size: 12px !important;
+    }
+    
+    :host ::ng-deep .tabulator .tabulator-footer {
+      font-size: 12px !important;
+    }
+    
+    :host ::ng-deep .tabulator .tabulator-paginator {
+      font-size: 12px !important;
+    }
+    
+    :host ::ng-deep .card-header {
+      font-size: 12px !important;
+    }
+    
+    :host ::ng-deep .card-header button {
+      font-size: 12px !important;
+    }
+    
+    :host ::ng-deep .card-header input {
+      font-size: 12px !important;
+    }
+    
+    :host ::ng-deep .card-body {
+      font-size: 12px !important;
+    }
+    
+    :host ::ng-deep .tabulator-cell-12px {
+      font-size: 12px !important;
+    }
+    
+    /* Style cho nút Set */
+    :host ::ng-deep .btn-set {
+      background-color: #ff9800 !important;
+      color: #fff !important;
+      border: none !important;
+    }
+    
+    :host ::ng-deep .btn-set:hover {
+      background-color: #f57c00 !important;
+      color: #fff !important;
+    }
+    
+    :host ::ng-deep .btn-set:focus {
+      background-color: #f57c00 !important;
+      color: #fff !important;
+    }
+    
+    

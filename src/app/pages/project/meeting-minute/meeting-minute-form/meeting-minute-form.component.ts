@@ -57,6 +57,8 @@ import { forkJoin, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { ProjectService } from '../../project-service/project.service';
+import { AuthService } from '../../../../auth/auth.service';
 
 interface MeetingMinutes {
   STT: number;
@@ -169,6 +171,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
 
   // Options data
   employeeOptions: any[] = [];
+  employeeOptionsGrouped: any[] = []; // Dữ liệu nhân viên đã group theo phòng ban
   userTeamOptions: any[] = [];
   projectProblemOptions: any[] = [];
   meetingTypeGroupsData: any[] = [];
@@ -200,7 +203,8 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
     ProjectCode?: string;
     CreatedDate?: string | Date;
   } = {};
-
+  currentUser: any;
+  departmentID: number = 0;
   constructor(
     private notification: NzNotificationService,
     private meetingminuteService: MeetingMinuteService,
@@ -210,7 +214,9 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
     private cdr: ChangeDetectorRef,
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private projectService: ProjectService,
+    private authService: AuthService
   ) {
     this.form = this.fb.group({
       MeetingTypeID: [null, [Validators.required]],
@@ -219,13 +225,14 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
       DateStart: [null, [Validators.required]],
       DateEnd: [null, [Validators.required]],
       Place: [null],
+      CreatedByID: [null, [Validators.required]],
     });
   }
 
   ngOnInit(): void {
     this.loadProjectData();
     this.getMeetingTypeGroup();
-
+    this.getCurrentUser();
     // Cascade behaviors
     this.form.get('MeetingTypeID')?.valueChanges.subscribe((val) => {
       if (val) {
@@ -275,6 +282,11 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
           }
           this.loadDetailEditMode(this.MeetingMinutesID);
         }
+        else {
+          this.form.patchValue({
+            CreatedByID: this.currentUser?.EmployeeID || 0,
+          });
+        }
       },
       error: (err) => {
         console.error('Error loading options:', err);
@@ -287,6 +299,14 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
           this.loadDetailEditMode(this.MeetingMinutesID);
         }
       },
+    });
+  }
+
+  getCurrentUser(): void {
+    this.authService.getCurrentUser().subscribe((res: any) => {
+      this.currentUser = res.data;
+      console.log('CurrentUser', this.currentUser);
+    
     });
   }
 
@@ -326,6 +346,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             DateStart: meetingMinute.DateStart || null,
             DateEnd: meetingMinute.DateEnd || null,
             Place: meetingMinute.Place || null,
+            CreatedByID: meetingMinute.CreatorID ||0,
           });
 
           // Initialize place options with current value
@@ -469,6 +490,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             // Force resize to maintain size
             setTimeout(() => {
               this.tb_EmployeeDetailTable.redraw(true);
+              this.tb_EmployeeDetailTable.setHeight('450px');
             }, 50);
           }
           if (this.tb_CustomerDetailTable) {
@@ -476,6 +498,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             this.tb_CustomerDetailTable.redraw(true);
             setTimeout(() => {
               this.tb_CustomerDetailTable.redraw(true);
+              this.tb_CustomerDetailTable.setHeight('450px');
             }, 50);
           }
         }
@@ -489,6 +512,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             this.tb_EmployeeDetailContentTable.redraw(true);
             setTimeout(() => {
               this.tb_EmployeeDetailContentTable.redraw(true);
+              this.tb_EmployeeDetailContentTable.setHeight('450px');
             }, 50);
           }
           if (this.tb_CustomerDetailContentTable) {
@@ -498,6 +522,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             this.tb_CustomerDetailContentTable.redraw(true);
             setTimeout(() => {
               this.tb_CustomerDetailContentTable.redraw(true);
+              this.tb_CustomerDetailContentTable.setHeight('450px');
             }, 50);
           }
         }
@@ -509,6 +534,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             this.tb_FileTable.redraw(true);
             setTimeout(() => {
               this.tb_FileTable.redraw(true);
+              this.tb_FileTable.setHeight('450px');
             }, 50);
           }
         }
@@ -609,7 +635,8 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
         console.log('employeeDatadfrdfd', res.data);
         const employeeData = res.data.asset;
         if (Array.isArray(employeeData)) {
-          this.employeeOptions = employeeData
+          // Lọc và map dữ liệu nhân viên
+          const filteredEmployees = employeeData
             .filter(
               (employee) =>
                 employee.ID !== null &&
@@ -617,16 +644,36 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
                 employee.ID !== 0
             )
             .map((employee) => ({
-              label: employee.Code + '-' + employee.FullName,
-              value: employee.ID,
-              FullName: employee.FullName,
+              ID: employee.ID,
               Code: employee.Code,
+              FullName: employee.FullName,
+              DepartmentName: employee.DepartmentName || employee.Department || '',
+              DepartmentID: employee.DepartmentID || null,
               ChucVu: employee.ChucVu || employee.Section || '',
               TeamID: employee.TeamID || employee.UserTeamID || null,
               SDTCaNhan: employee.SDTCaNhan || '',
             }));
+
+          // Giữ lại employeeOptions cho các bảng khác (nếu cần)
+          this.employeeOptions = filteredEmployees.map((employee) => ({
+            label: employee.Code + '-' + employee.FullName,
+            value: employee.ID,
+            FullName: employee.FullName,
+            Code: employee.Code,
+            ChucVu: employee.ChucVu,
+            TeamID: employee.TeamID,
+            SDTCaNhan: employee.SDTCaNhan,
+            DepartmentID: employee.DepartmentID || null,
+          }));
+
+          // Group theo phòng ban cho combobox "Người tạo"
+          this.employeeOptionsGrouped = this.projectService.createdDataGroup(
+            filteredEmployees,
+            'DepartmentName'
+          );
         } else {
           this.employeeOptions = [];
+          this.employeeOptionsGrouped = [];
         }
         return this.employeeOptions;
       }),
@@ -636,6 +683,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
           'Có lỗi xảy ra khi lấy danh sách nhân viên'
         );
         this.employeeOptions = [];
+        this.employeeOptionsGrouped = [];
         return of([]);
       })
     );
@@ -705,7 +753,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
   }
 
   loadOptionUserTeam() {
-    return this.meetingminuteService.getUserTeam(0).pipe(
+    return this.meetingminuteService.getUserTeam(this.departmentID).pipe(
       map((res: any) => {
         console.log('UserTeamData', res.data);
         const userTeamData = res.data.asset;
@@ -717,11 +765,16 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
                 userteam.ID !== undefined &&
                 userteam.ID !== 0
             )
-            .map((userteam) => ({
-              label: userteam.Department + '-' + userteam.Name,
-              value: userteam.ID,
-              Name: userteam.Name,
-            }));
+            .map((userteam) => {
+              console.log('Mapping userteam:', userteam);
+              return {
+                label: userteam.Team || userteam.Name || '',
+                value: userteam.UserTeamID || userteam.ID, // Dùng UserTeamID làm value cho select
+                Name: userteam.Name || '',
+                EmployeeID: userteam.EmployeeID || null,
+                UserTeamID: userteam.UserTeamID || userteam.ID, // Dùng UserTeamID từ dữ liệu gốc
+              };
+            });
         } else {
           this.userTeamOptions = [];
         }
@@ -970,6 +1023,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
           ? this.toLocalISOString(formValues.DateEnd)
           : '',
         Place: formValues.Place ?? '',
+        CreatorID: formValues.CreatedByID ?? 0,
       },
       MeetingMinutesAttendance: [...employeeAttendance, ...customerAttendance],
       MeetingMinutesDetail: [...customerDetails, ...employeeDetails],
@@ -1046,12 +1100,16 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
       {
         ...DEFAULT_TABLE_CONFIG,
         data: this.employeeDetailData,
-        height: '100%',
+        height: '450px',
         rowHeader: false,
         selectableRows: 1,
-        layout: 'fitColumns',
+        layout: 'fitDataStretch',
         pagination: false,
         responsiveLayout: 'hide',
+        columnDefaults: {
+          ...DEFAULT_TABLE_CONFIG.columnDefaults,
+          headerWordWrap: false,
+        },
         columns: [
           {
             title: '',
@@ -1105,7 +1163,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             field: 'EmployeeID',
 
             headerHozAlign: 'center',
-            frozen: true,
+            minWidth: 250,
             editor: this.createdControl(
               SelectControlComponent,
               this.injector,
@@ -1137,8 +1195,34 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
                 row.update({
                   FullName: selectedEmployee.FullName,
                   Section: selectedEmployee.ChucVu,
-                  UserTeamID: selectedEmployee.TeamID,
                 });
+                
+                // Lấy DepartmentID từ selectedEmployee
+                if (selectedEmployee.DepartmentID) {
+                  this.departmentID = selectedEmployee.DepartmentID;
+                  
+                  // Load UserTeam và sau đó update UserTeamID
+                  this.loadOptionUserTeam().subscribe({
+                    next: (userTeams) => {
+                      if (userTeams && userTeams.length > 0) {
+                        // Tìm UserTeam theo EmployeeID (newValue là EmployeeID)
+                        // Chuyển đổi sang number để so sánh chính xác
+                        const employeeIdNum = Number(newValue);
+                        const userTeam = userTeams.find(
+                          (p: any) => Number(p.EmployeeID) === employeeIdNum
+                        );
+                        if (userTeam && userTeam.UserTeamID) {
+                          row.update({
+                            UserTeamID: userTeam.UserTeamID,
+                          });
+                        }
+                      }
+                    },
+                    error: (err) => {
+                      console.error('Error loading UserTeam:', err);
+                    }
+                  });
+                }
               }
             },
           },
@@ -1147,13 +1231,14 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             field: 'FullName',
             headerHozAlign: 'center',
             editor: true,
-            frozen: true,
+            width:250,
           },
           {
             title: 'Team',
             field: 'UserTeamID',
             hozAlign: 'center',
             headerHozAlign: 'center',
+            width:250,
             editable: false, // 🔒 Không cho chỉnh sửa
             editor: this.createdControl(
               SelectControlComponent,
@@ -1171,9 +1256,9 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
                 return '<div class="d-flex justify-content-between align-items-center" style="width: 100% !important;"><p class="w-100 m-0 text-muted"></p> <i class="fas fa-angle-down"></i></div>';
               }
               const userteam = this.userTeamOptions.find(
-                (p: any) => p.value === val
+                (p: any) => p.value === val || p.UserTeamID === val
               );
-              const userTeamName = userteam ? userteam.Name : val;
+              const userTeamName = userteam ? (userteam.label || userteam.Name || val) : val;
               return `<div class="d-flex justify-content-between align-items-center" style="width: 100% !important;"><p class="w-100 m-0">${userTeamName}</p> <i class="fas fa-angle-down"></i></div>`;
             },
           },
@@ -1214,12 +1299,16 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
       {
         ...DEFAULT_TABLE_CONFIG,
         data: this.customerDetailData,
-        height: '100%',
+        height: '450px',
         rowHeader: false,
         selectableRows: 1,
-        layout: 'fitColumns',
+        layout: 'fitDataStretch',
         pagination: false,
         responsiveLayout: 'hide',
+        columnDefaults: {
+          ...DEFAULT_TABLE_CONFIG.columnDefaults,
+          headerWordWrap: false,
+        },
         columns: [
           {
             title: '',
@@ -1274,7 +1363,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             hozAlign: 'left',
             headerHozAlign: 'center',
             editor: true,
-            frozen: true,
+            width: 300,
           },
           {
             title: 'Số điện thoại',
@@ -1325,12 +1414,16 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
       {
         ...DEFAULT_TABLE_CONFIG,
         data: this.employeeDetailContentData,
-        height: '100%',
+        height: '450px',
         rowHeader: false,
         selectableRows: 1,
         layout: 'fitDataStretch',
         pagination: false,
         responsiveLayout: 'hide',
+        columnDefaults: {
+          ...DEFAULT_TABLE_CONFIG.columnDefaults,
+          headerWordWrap: false,
+        },
         columns: [
           {
             title: '',
@@ -1398,7 +1491,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
             field: 'EmployeeID',
             hozAlign: 'left',
             headerHozAlign: 'center',
-
+            minWidth: 250,
             editor: this.createdControl(
               SelectControlComponent,
               this.injector,
@@ -1531,12 +1624,16 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
       {
         ...DEFAULT_TABLE_CONFIG,
         data: this.customerDetailContentData,
-        height: '100%',
+        height: '450px',
         rowHeader: false,
         selectableRows: 1,
         layout: 'fitDataStretch',
         pagination: false,
         responsiveLayout: 'hide',
+        columnDefaults: {
+          ...DEFAULT_TABLE_CONFIG.columnDefaults,
+          headerWordWrap: false,
+        },
         columns: [
           {
             title: '',
@@ -1692,12 +1789,16 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
     this.tb_FileTable = new Tabulator(this.tb_FileTableElement.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       data: this.fileDatas,
-      height: '100%',
+      height: '400px',
       rowHeader: false,
       selectableRows: 1,
-      layout: 'fitColumns',
+      layout: 'fitDataStretch',
       pagination: false,
       responsiveLayout: 'hide',
+      columnDefaults: {
+        ...DEFAULT_TABLE_CONFIG.columnDefaults,
+        headerWordWrap: false,
+      },
       placeholder: 'Chưa có file đính kèm. Click nút + để thêm.',
       columns: [
         {
@@ -1708,7 +1809,7 @@ export class MeetingMinuteFormComponent implements OnInit, AfterViewInit {
           frozen: true,
           headerSort: false,
           titleFormatter: () =>
-            `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm file"></i></div>`,
+            `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-white cursor-pointer" title="Thêm file"></i></div>`,
           headerClick: () => {
             this.openFileSelector();
           },

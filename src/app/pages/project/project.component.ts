@@ -56,8 +56,10 @@ import { ProjectWorkerComponent } from './project-department-summary/project-dep
 import { ProjectPartListComponent } from './project-department-summary/project-department-summary-form/project-part-list/project-part-list.component';
 import { ProjectCurrentSituationComponent } from './project-current-situation/project-current-situation.component';
 import { ProjectPartlistProblemComponent } from './project-partlist-problem/project-partlist-problem.component';
+import { ProjectTypeLinkDetailComponent } from './project-type-link-detail/project-type-link-detail.component';
 
 import { PermissionService } from '../../services/permission.service';
+import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-projects',
   standalone: true,
@@ -277,6 +279,13 @@ export class ProjectComponent implements OnInit, AfterViewInit {
           this.openProjectRequest();
         },
       },
+      {
+        label:
+          '<span style="font-size: 0.75rem;"><img src="assets/icon/solution_16.png" alt=="Cập nhật Leader" class="me-1" /> Cập nhật Leader</span>',
+        action: (e: any, row: any) => {
+          this.openProjectTypeLinkDetail();
+        },
+      },
     ];
 
     // Thêm menu item "Trạng thái dự án" nếu có quyền
@@ -327,14 +336,33 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       //   paginationMode: 'remote',
       //   paginationSize: 100,
       //   paginationSizeSelector: [100, 200, 400, 800, 1000],
-      ajaxURL: this.projectService.getAPIProjects(),
-      ajaxParams: this.getProjectAjaxParams(),
-      ajaxResponse: (url, params, res) => {
-        // console.log('total', res.totalPage);
-        return {
-          data: res.data.project,
-          last_page: res.data.totalPage,
-        };
+      ajaxURL: 'dummy', // Required but not used with ajaxRequestFunc
+      ajaxRequestFunc: (_url: string, _config: any, params: any) => {
+        return new Promise((resolve, reject) => {
+          const page = params.page || 1;
+          const size = params.size || 50;
+          const ajaxParams = this.getProjectAjaxParams();
+
+          this.projectService
+            .getProjectsPagination(ajaxParams, page, size)
+            .subscribe({
+              next: (res) => {
+                if (res?.data) {
+                  // Tabulator expects { last_page, data } format
+                  resolve({
+                    last_page: res.data.totalPage || Math.ceil((res.data.totalRecords || 0) / size),
+                    data: res.data.project || [],
+                  });
+                } else {
+                  resolve({ last_page: 1, data: [] });
+                }
+              },
+              error: (err) => {
+                console.error('Error loading project data:', err);
+                reject(err);
+              },
+            });
+        });
       },
       rowContextMenu: contextMenuProject,
       //   langs: {
@@ -654,16 +682,16 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       dateTimeE: DateTime.fromJSDate(new Date(this.dateEnd))
         .set({ hour: 23, minute: 59, second: 59 })
         .toFormat('yyyy-MM-dd HH:mm:ss'),
-      keyword: this.keyword ?? '',
-      customerID: this.customerId ?? 0,
-      saleID: this.userId ?? 0,
-      projectType: projectTypeStr ?? '',
-      leaderID: this.technicalId ?? 0,
+      keyword: this.keyword || '',
+      customerID: this.customerId || 0,
+      saleID: this.userId || 0,
+      projectType: projectTypeStr || '',
+      leaderID: this.technicalId || 0,
       userTechID: 0,
-      pmID: this.pmId ?? 0,
-      globalUserID: this.currentUser?.EmployeeID ?? 0,
-      bussinessFieldID: this.businessFieldId ?? 0,
-      projectStatus: projectStatusStr ?? '',
+      pmID: this.pmId || 0,
+      globalUserID: this.currentUser?.EmployeeID || 0,
+      bussinessFieldID: this.businessFieldId || 0,
+      projectStatus: projectStatusStr || '',
       isAGV: this.isHide,
     };
   }
@@ -696,10 +724,33 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       height: '78vh',
       selectableRows: 1,
       layout: 'fitDataFill',
-      ajaxURL: this.projectService.getProjectItems(),
-      ajaxParams: { id: this.projectId },
-      ajaxResponse: (url, params, res) => {
-        return res.data;
+      ajaxURL: 'dummy', // Required but not used with ajaxRequestFunc
+      ajaxRequestFunc: (_url: string, _config: any, params: any) => {
+        return new Promise((resolve, reject) => {
+          // Kiểm tra projectId hợp lệ
+          if (!this.projectId || this.projectId === 0) {
+            resolve([]);
+            return;
+          }
+
+          this.projectService
+            .getProjectItemsData(this.projectId)
+            .subscribe({
+              next: (res) => {
+                if (res?.data) {
+                  // Tabulator expects array data directly
+                  const dataArray = Array.isArray(res.data) ? res.data : [];
+                  resolve(dataArray);
+                } else {
+                  resolve([]);
+                }
+              },
+              error: (err) => {
+                console.error('Error loading project work reports data:', err);
+                reject(err);
+              },
+            });
+        });
       },
       locale: 'vi',
       rowFormatter: function (row) {
@@ -895,9 +946,10 @@ export class ProjectComponent implements OnInit, AfterViewInit {
   }
 
   getProjectWorkReports() {
-    this.tb_projectWorkReports.setData(this.projectService.getProjectItems(), {
-      id: this.projectId,
-    });
+    // With ajaxRequestFunc, we just need to replace data and it will use the current projectId
+    if (this.tb_projectWorkReports) {
+      this.tb_projectWorkReports.replaceData();
+    }
   }
   //#endregion
 
@@ -1055,6 +1107,12 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     this.keyword = '';
   }
   //#endregion
+  openFolder() {
+    window.open(
+      environment.host + 'api/share/software/Template/ExportExcel/',
+      '_blank'
+    );
+  }
 
   //#region thêm/sửa dự án 0 thêm 1 sửa
   updateProject(status: number) {
@@ -1062,7 +1120,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
     if (status == 1) {
       if (selectedIDs.length != 1) {
-        this.notification.error('Lỗi','Vui lòng chọn dự án!')
+        this.notification.error('Thông báo','Vui lòng chọn dự án!')
         return;
       }
     }
@@ -1247,7 +1305,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length <= 0) {
-      this.notification.error('Lỗi','Vui lòng chọn dự án!')
+      this.notification.error('Thông báo','Vui lòng chọn dự án!')
       return;
     }
 
@@ -1283,7 +1341,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('', 'Vui lòng chọn 1 dự án cần chuyển!', {
+      this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án cần chuyển!', {
         nzStyle: { fontSize: '0.75rem' },
       });
       return;
@@ -1355,7 +1413,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
+      this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!', {
         nzStyle: { fontSize: '0.75rem' },
       });
       return;
@@ -1400,6 +1458,39 @@ export class ProjectComponent implements OnInit, AfterViewInit {
 
     modalRef.result.catch((reason) => {
       if (reason == true) {
+        this.searchProjects();
+      }
+    });
+  }
+  //#endregion
+
+  //#region Cập nhật Leader
+  openProjectTypeLinkDetail() {
+    let selectedRows = this.tb_projects.getSelectedRows();
+    let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
+
+    if (selectedIDs.length != 1) {
+      this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!');
+      return;
+    }
+
+    const modalRef = this.modalService.open(ProjectTypeLinkDetailComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+    });
+
+    modalRef.componentInstance.projectId = selectedIDs[0] ?? 0;
+
+    modalRef.result.then((result) => {
+      // Xử lý khi modal đóng bằng close() (resolve)
+      if (result?.success) {
+        this.searchProjects();
+      }
+    }).catch((reason) => {
+      // Xử lý khi modal đóng bằng dismiss() (reject)
+      if (reason == true || reason?.success) {
         this.searchProjects();
       }
     });
@@ -1458,7 +1549,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('', 'Vui lòng chọn 1 dự án!', {
+      this.notification.error('Thông báo', 'Vui lòng chọn 1 dự án!', {
         nzStyle: { fontSize: '0.75rem' },
       });
       return;
@@ -1483,7 +1574,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('Lỗi','Vui lòng chọn 1 dự án!')
+      this.notification.error('Thông báo','Vui lòng chọn 1 dự án!')
       return;
     }
 
@@ -1506,7 +1597,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('Lỗi','Vui lòng chọn 1 dự án!')
+      this.notification.error('Thông báo','Vui lòng chọn 1 dự án!')
       return;
     }
     const modalRef = this.modalService.open(WorkItemComponent, {
@@ -1531,7 +1622,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('Lỗi','Vui lòng chọn 1 dự án!')
+      this.notification.error('Thông báo','Vui lòng chọn 1 dự án!')
       return;
     }
     const modalRef = this.modalService.open(ProjectWorkerComponent, {
@@ -1556,7 +1647,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length != 1) {
-      this.notification.error('Lỗi','Vui lòng chọn 1 dự án!')
+      this.notification.error('Thông báo','Vui lòng chọn 1 dự án!')
       return;
     }
     const modalRef = this.modalService.open(ProjectPartListComponent, {
@@ -1566,6 +1657,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       windowClass: 'full-screen-modal',
     });
     modalRef.componentInstance.projectId = this.projectId;
+    modalRef.componentInstance.projectNameX = this.tb_projects.getSelectedData()[0].ProjectName;
     modalRef.componentInstance.projectCodex = this.tb_projects.getSelectedData()[0].ProjectCode;
     modalRef.result.then((result) => {
       if (result == true) {

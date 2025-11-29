@@ -1,63 +1,56 @@
+
 .card {
-    height: 100%;
-  }
-  
-  .row {
-    height: 100%;
-  }
-
-  ::ng-deep ng-select .ng-value-container {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    white-space: nowrap !important;
-  }
-  
-  .tabulator {
-    font-size: 0.75rem;
-  }
-  
-  .tabulator-cell {
-    padding: 0px;
-  }
-  
-  .fs-12 {
-    font-size: 0.75rem;
-  }
-  
-  
-  
-  ::ng-deep ng-select.form-control .ng-clear-wrapper {
-    display: flex;
-    align-items: center;
-    margin-left: 20px;
-  }
-  
-  ::ng-deep ng-select.form-control .ng-clear-wrapper:hover {
-    color: #d9363e;
-  }
-  
-  ::ng-deep .ng-select.ng-select-multiple .ng-select-container .ng-value-container .ng-value {
-      margin-top: 3px;
-      margin-right: 1px;
-      font-size: .75rem;
-      background-color: #fafafa;
-      border: none;
-      border-radius: 2px;
-      height: 24px;
-      line-height: 22px;
-  }
-
-/* Hiển thị burger trên màn hình nhỏ, ẩn dải nút */
-.action-burger { display: none; }
-@media (max-width: 768px) {
-  .action-bar { display: none !important; }
-  .action-burger { display: inline-flex; }
+  height: 100%;
 }
 
-/* Menu burger có thanh cuộn khi danh sách dài */
-:host ::ng-deep .ant-dropdown-menu {
-  max-height: 70vh;
-  overflow-y: auto;
-  overflow-x: hidden;
+.row {
+  height: 100%;
+}
+
+::ng-deep ng-select .ng-value-container {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  white-space: nowrap !important;
+}
+
+.tabulator {
+  font-size: 0.75rem;
+}
+
+.tabulator-cell {
+  padding: 0px;
+}
+
+.fs-12 {
+  font-size: 0.75rem;
+}
+
+
+
+::ng-deep ng-select.form-control .ng-clear-wrapper {
+  display: flex;
+  align-items: center;
+  margin-left: 20px;
+}
+
+::ng-deep ng-select.form-control .ng-clear-wrapper:hover {
+  color: #d9363e;
+}
+
+::ng-deep .ng-select.ng-select-multiple .ng-select-container .ng-value-container .ng-value {
+    margin-top: 3px;
+    margin-right: 1px;
+    font-size: .75rem;
+    background-color: #fafafa;
+    border: none;
+    border-radius: 2px;
+    height: 24px;
+    line-height: 22px;
+}
+::ng-deep .main-tab .ant-tabs-content{
+  height: 100%;
+}
+::ng-deep .main-tab .ant-tabs-tabpane {
+height: 100%;
 }

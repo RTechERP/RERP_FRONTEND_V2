@@ -1,0 +1,51 @@
+.ant-splitter {
+    height: 90vh !important;
+}
+
+/* Đảm bảo các splitter panel có height 100% */
+:host ::ng-deep .ant-splitter-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* Đảm bảo các card trong splitter panel có height 100% */
+:host ::ng-deep .ant-splitter-panel .card {
+    min-height: 0;
+}
+
+/* Đảm bảo các card-body có thể scroll */
+:host ::ng-deep .ant-splitter-panel .card-body {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.fs-12 {
+    font-size: 0.75rem;
+}
+
+.reset {
+    all: revert;
+}
+
+.ant-splitter-panel {
+    position: relative;
+}
+
+.tabulator {
+    font-size: 0.75rem !important;
+    width: 100% !important;
+}
+
+.tabulator-cell {
+    padding: 0px;
+}
+
+.inner-content {
+    padding: 0 !important;
+}
+
+.ant-tabs-tab-btn {
+    font-size: 0.75rem;
+}

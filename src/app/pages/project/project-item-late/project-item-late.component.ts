@@ -182,6 +182,7 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
 
       ...DEFAULT_TABLE_CONFIG,
       rowHeader:false,
+      columnCalcs: 'both',
       pagination: true,
       layout:'fitDataStretch',
       height: '87vh',

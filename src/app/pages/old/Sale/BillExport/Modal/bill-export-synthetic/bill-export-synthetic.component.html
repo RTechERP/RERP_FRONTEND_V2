@@ -7,7 +7,7 @@
     <button class="fs-12 btn" nz-button nzType="default" nzSize="small" title="Xuất Excel" (click)="exportExcel()">
       <nz-icon nzType="file-excel"></nz-icon> Xuất Excel
     </button>
-  </div>   
+  </div>
     <div class="tab-content">
       <div class="d-flex gap-2 p-2 border-bottom">
         <form nz-form nzLayout="inline" class="filter-bar d-flex flex-wrap align-items-center">
@@ -25,7 +25,7 @@
               ></nz-date-picker>
             </nz-form-control>
           </nz-form-item>
-  
+
           <!-- Đến ngày -->
           <nz-form-item class="filter-item filter-item--date">
             <nz-form-control>
@@ -40,7 +40,7 @@
               ></nz-date-picker>
             </nz-form-control>
           </nz-form-item>
-  
+
           <!-- Checkbox: Tất cả -->
           <nz-form-item class="filter-item filter-item--auto mb-0">
             <nz-form-control>
@@ -49,7 +49,7 @@
               </label>
             </nz-form-control>
           </nz-form-item>
-  
+
           <!-- Lọc kho -->
           <nz-form-item class="filter-item filter-item--kho">
             <nz-form-control>
@@ -71,7 +71,7 @@
               </nz-select>
             </nz-form-control>
           </nz-form-item>
-  
+
           <!-- Lọc phiếu -->
           <nz-form-item class="filter-item filter-item--status">
             <nz-form-control>
@@ -93,7 +93,7 @@
               </nz-select>
             </nz-form-control>
           </nz-form-item>
-  
+
           <!-- Từ khóa -->
           <nz-form-item class="filter-item filter-item--keyword">
             <nz-form-control>
@@ -107,7 +107,7 @@
               />
             </nz-form-control>
           </nz-form-item>
-  
+
           <!-- Nút tìm kiếm -->
           <nz-form-item class="filter-item filter-item--button">
             <nz-form-control>
@@ -117,12 +117,12 @@
             </nz-form-control>
           </nz-form-item>
         </form>
-      </div>   
+      </div>
         <div class="card-body w-100" style="overflow-x: auto;">
           <div id="table_BillExportSynthetic" style="min-width: 100%;">
           </div>
         </div>
-      </div>     
+      </div>
 </div>
 <div class="modal-footer flex-shrink-0">
   <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">Đóng</button>

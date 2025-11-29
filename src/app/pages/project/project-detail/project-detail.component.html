@@ -6,9 +6,9 @@
       <button type="button" class="btn-close" (click)="activeModal.dismiss()" aria-label="Close"></button>
   </div>
   <div class="modal-body pt-0 pb-0 p-2 w-100" style="width: 800px; min-height: 60vh">
-      <nz-tabset class="p-0" (nzSelectedIndexChange)="onChangeIndexTab($event)">
+      <nz-tabset class="p-0" (nzSelectedIndexChange)="onChangeIndexTab($event)" style="height: 70vh; display: flex; flex-direction: column;">
         <nz-tab nzTitle="Chi tiết dự án">
-            <div style="max-height: 70vh; overflow-y: auto; padding-right: 4px; overflow-x: hidden;">
+            <div style="height: calc(70vh - 50px); overflow-y: auto; padding-right: 4px; overflow-x: hidden;">
               <form nz-form [formGroup]="formGroup" class="g-3 needs-validation was-validated">
                 <div nz-row [nzGutter]="16" class="pb-2">
           
@@ -406,8 +406,9 @@
               </form>
               </div>
           </nz-tab>
-          <nz-tab nzTitle="Cập nhật leader">
-            <form nz-form [formGroup]="formGroup" class="g-3 needs-validation was-validated">
+          <nz-tab nzTitle="Cập nhật leader" *ngIf="true">
+            <div style="height: calc(70vh - 50px); overflow-y: auto; padding-right: 4px; overflow-x: hidden;">
+              <form nz-form [formGroup]="formGroup" class="g-3 needs-validation was-validated">
               <div nz-row [nzGutter]="16" class="pt-1 pb-1 w-100 m-0">
                 <!-- Cột: Dự án -->
                 <div nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="12" [nzXl]="12" class="ps-0">
@@ -493,6 +494,7 @@
           
               </div>
             </form>
+            </div>
           </nz-tab>
       </nz-tabset>
   </div>

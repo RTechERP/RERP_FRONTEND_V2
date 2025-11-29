@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { NzModalService } from 'ng-zorro-antd/modal';
+import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../../../../tabulator-default.config';
@@ -12,7 +12,7 @@ import { ProjectPartListService } from '../../../project-partlist-service/projec
 @Component({
   selector: 'app-import-excel-save',
   standalone: true,
-  imports: [CommonModule, NzButtonModule],
+  imports: [CommonModule, NzButtonModule, NzModalModule],
   templateUrl: './import-excel-save.component.html',
   styleUrl: './import-excel-save.component.css'
 })
@@ -78,6 +78,7 @@ export class ImportExcelSaveComponent implements OnInit, AfterViewInit {
           headerHozAlign: "center",
           hozAlign: "center",
           frozen: true,
+          editor: "input",
           formatter: (cell: any) => {
             const rowData = cell.getRow().getData();
             const value = cell.getValue() || rowData.ProductCode || '';
@@ -93,7 +94,7 @@ export class ImportExcelSaveComponent implements OnInit, AfterViewInit {
             if (isSameProductCode === 0) {
               cellElement.style.backgroundColor = '#FFC0CB'; // Pink
             } else {
-            cellElement.style.backgroundColor = '#fff3cd';
+              cellElement.style.backgroundColor = '#fff3cd';
             }
             return value;
           }
@@ -103,12 +104,12 @@ export class ImportExcelSaveComponent implements OnInit, AfterViewInit {
           field: "GroupMaterial",
           headerHozAlign: "center",
           hozAlign: "left",
+          editor: "input",
           formatter: (cell: any) => {
             const rowData = cell.getRow().getData();
             const value = cell.getValue() || '';
             const cellElement = cell.getElement();
            
-            
             // Kiểm tra IsSameProductName, nếu = 0 thì bôi màu hồng
             const isSameProductName = parseInt(rowData.IsSameProductName) || 0;
             if (isSameProductName === 0) {
@@ -124,12 +125,12 @@ export class ImportExcelSaveComponent implements OnInit, AfterViewInit {
           field: "GroupMaterialStock",
           headerHozAlign: "center",
           hozAlign: "left",
+          editor: "input",
           formatter: (cell: any) => {
             const rowData = cell.getRow().getData();
             const value = cell.getValue() || '';
             const cellElement = cell.getElement();
           
-            
             // Kiểm tra IsSameProductName, nếu = 0 thì bôi màu hồng
             const isSameProductName = parseInt(rowData.IsSameProductName) || 0;
             if (isSameProductName === 0) {
@@ -145,12 +146,12 @@ export class ImportExcelSaveComponent implements OnInit, AfterViewInit {
           field: "Manufacturer",
           headerHozAlign: "center",
           hozAlign: "left",
+          editor: "input",
           formatter: (cell: any) => {
             const rowData = cell.getRow().getData();
             const value = cell.getValue() || '';
             const cellElement = cell.getElement();
           
-            
             // Kiểm tra IsSameMaker, nếu = 0 thì bôi màu hồng
             const isSameMaker = parseInt(rowData.IsSameMaker) || 0;
             if (isSameMaker === 0) {
@@ -166,12 +167,12 @@ export class ImportExcelSaveComponent implements OnInit, AfterViewInit {
           field: "ManufacturerStock",
           headerHozAlign: "center",
           hozAlign: "left",
+          editor: "input",
           formatter: (cell: any) => {
             const rowData = cell.getRow().getData();
             const value = cell.getValue() || '';
             const cellElement = cell.getElement();
         
-            
             // Kiểm tra IsSameMaker, nếu = 0 thì bôi màu hồng
             const isSameMaker = parseInt(rowData.IsSameMaker) || 0;
             if (isSameMaker === 0) {
@@ -187,6 +188,7 @@ export class ImportExcelSaveComponent implements OnInit, AfterViewInit {
           field: "Unit",
           headerHozAlign: "center",
           hozAlign: "center",
+          editor: "input",
           formatter: (cell: any) => {
             const rowData = cell.getRow().getData();
             const value = cell.getValue() || '';
@@ -207,6 +209,7 @@ export class ImportExcelSaveComponent implements OnInit, AfterViewInit {
           field: "UnitStock",
           headerHozAlign: "center",
           hozAlign: "center",
+          editor: "input",
           formatter: (cell: any) => {
             const rowData = cell.getRow().getData();
             const value = cell.getValue() || '';

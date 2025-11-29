@@ -783,6 +783,12 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
             headerHozAlign: 'center',
           },
           {
+            title: 'Người tạo',
+            field: 'CreatorName',
+            headerHozAlign: 'center',
+            hozAlign: 'left',
+          },
+          {
             title: 'Ngày bắt đầu',
             field: 'DateStart',
             hozAlign: 'left',

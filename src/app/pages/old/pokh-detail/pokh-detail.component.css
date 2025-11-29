@@ -1,0 +1,15 @@
+:host {
+  display: block;
+  height: 99.8vh;
+}
+
+.pokh-modal-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.modal-header,
+.modal-footer {
+  flex-shrink: 0;
+}

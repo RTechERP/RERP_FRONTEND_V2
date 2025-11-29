@@ -40,6 +40,7 @@ import { FirmBaseDetailComponent } from '../firmbase-detail/firm-base-detail.com
 // THÊM DÒNG NÀY:
 import { combineLatest, debounceTime, distinctUntilChanged, filter } from 'rxjs';
 import { NOTIFICATION_TITLE } from '../../../app.config';
+import { AuthService } from '../../../auth/auth.service';
 
 @Component({
   selector: 'app-project-detail',
@@ -126,7 +127,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   currentTab: any = 0;
 
   dictLeader: { [key: number]: string } = {};
-  
+  currentUser: any = {};
   // Form validation
   formGroup: FormGroup;
   //#endregion
@@ -139,7 +140,8 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
     private modalService: NgbModal,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private authService: AuthService
   ) {
     this.formGroup = this.fb.group({
       customerId: [null, [Validators.required]],
@@ -246,11 +248,19 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     this.getUserTeams();
     this.loadProject(this.projectId);
     this.getProject();
-    this.getProjectCurrentSituation();
     this.projectIdleader = this.projectId;
+    // Đảm bảo getCurrentUser() hoàn thành trước khi gọi getProjectCurrentSituation()
+    this.getCurrentUser();
   }
   //#endregion
 
+  getCurrentUser() {
+    this.authService.getCurrentUser().subscribe((res: any) => {
+      this.currentUser = res.data;
+      // Gọi getProjectCurrentSituation() sau khi currentUser đã được load
+      this.getProjectCurrentSituation();
+    });
+  }
   //#region load dữ liệu từ API
   getCustomers() {
     this.projectService.getCustomers().subscribe({
@@ -598,10 +608,15 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   }
 
   getProjectCurrentSituation() {
+    // Đảm bảo currentUser đã được load trước khi gọi API
+    if (!this.currentUser || !this.currentUser.EmployeeID) {
+      // Nếu currentUser chưa có, đợi một chút rồi thử lại hoặc bỏ qua
+      return;
+    }
     this.projectService
       .getProjectCurrentSituation(
         this.projectIdleader,
-        this.projectService.GlobalEmployeeId
+        this.currentUser.EmployeeID || 0
       )
       .subscribe({
         next: (response: any) => {
@@ -767,7 +782,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
         TypeProject: this.projectTypeId ?? 0,
       },
       projectStatusLog: {
-        EmployeeID: this.projectService.GlobalEmployeeId ?? 0, // ID người đăng nhập
+        EmployeeID: this.currentUser.EmployeeID ?? 0, // ID người đăng nhập
         DateLog: this.dateChangeStatus
           ? DateTime.fromJSDate(new Date(this.dateChangeStatus)).toISO()
           : undefined,
@@ -862,7 +877,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     const dataSave = {
       ProjectID: projectIdleader,
       ProjectStatus: projectStatusIdDetail,
-      GlobalEmployeeId: this.projectService.GlobalEmployeeId,
+      GlobalEmployeeId: this.currentUser.EmployeeID,
       prjTypeLinks: prjTypeLinks,
       Situlator: situlatorDetail ?? '',
     };
@@ -887,7 +902,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   //#region Xử lý bẳng chi tiết dự án
   drawTbProjectTypeLinks(container: HTMLElement) {
     this.tb_projectTypeLinks = new Tabulator(container, {
-      height: '24.5vh',
+      height: '28vh',
       dataTree: true,
       dataTreeStartExpanded: true,
       layout: 'fitDataStretch',
@@ -1039,6 +1054,9 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   ) {
     return (cell: any, onRendered: any, success: any, cancel: any) => {
       const container = document.createElement('div');
+      container.style.width = '100%';
+      container.style.height = '100%';
+      container.style.display = 'block';
       const componentRef = createComponent(component, {
         environmentInjector: injector,
       });

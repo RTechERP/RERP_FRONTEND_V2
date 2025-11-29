@@ -468,9 +468,8 @@ nz-sider {
   border-right: 3px solid #ef4723 !important;
 }
 
-/* ::ng-deep .ant-menu-submenu-expand-icon,
-.ant-menu-submenu-arrow {
-  color: #ef4723 !important;
-} */
+::ng-deep .ant-menu-light .ant-menu-item::before {
+  content: icon;
+}
 
 /*end style active menu */

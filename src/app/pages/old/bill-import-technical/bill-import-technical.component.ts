@@ -31,7 +31,6 @@ import { BillImportTechnicalService } from './bill-import-technical-service/bill
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { BillImportTechnicalFormComponent } from './bill-import-technical-form/bill-import-technical-form.component';
 import { NOTIFICATION_TITLE } from '../../../app.config';
-import { AppUserService } from '../../../services/app-user.service';
 function formatDateCell(cell: CellComponent): string {
   const val = cell.getValue();
   return val ? DateTime.fromISO(val).toFormat('dd/MM/yyyy') : '';
@@ -67,8 +66,7 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
   constructor(private notification: NzNotificationService,
     private billImportTechnicalService: BillImportTechnicalService,
     private modalService: NgbModal,
-    private TsAssetManagementPersonalService: TsAssetManagementPersonalService,
-    private appUserService: AppUserService) { }
+    private TsAssetManagementPersonalService: TsAssetManagementPersonalService) { }
   private ngbModal = inject(NgbModal);
   selectedRow: any = "";
   sizeTbDetail: any = '0';
@@ -76,8 +74,8 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
   billImportTechnicalDetailData: any[] = [];
   billImportTechnicalTable: Tabulator | null = null;
   billImportTechnicalDetailTable: Tabulator | null = null;
-  dateStart: string = '';
-  dateEnd: string = '';
+  dateStart: Date | null = null;
+  dateEnd: Date | null = null;
   employeeID: number | null = null;
   status: number[] = [];
   filterText: string = '';
@@ -92,9 +90,20 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
     { ID: 0, Name: 'Chưa duyệt' },
     { ID: 1, Name: 'Đã duyệt' }
   ];
-  ngOnInit() {}
+  ngOnInit() {
+    // Khởi tạo giá trị mặc định cho dateStart (đầu tháng hiện tại) và dateEnd (hôm nay)
+    const now = new Date();
+    this.dateStart = new Date(now.getFullYear(), now.getMonth(), 1); // Ngày đầu tháng
+    this.dateEnd = new Date(); // Hôm nay
+  }
   ngAfterViewInit(): void {
     this.drawTable();
+  }
+  
+  // Helper method to format date to yyyy-MM-dd
+  private formatDateToString(date: Date | null): string {
+    if (!date) return '';
+    return DateTime.fromJSDate(date).toFormat('yyyy-MM-dd');
   }
   getBillImportTechnical() {
     let statusString = '-1';
@@ -104,8 +113,8 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
     const request = {
       Page: this.Page,
       Size: this.Size,
-      dateStart: this.dateStart || '2024-12-01',
-      dateEnd: this.dateEnd || '2025-12-31',
+      dateStart: this.formatDateToString(this.dateStart) || '2024-12-01',
+      dateEnd: this.formatDateToString(this.dateEnd) || '2025-12-31',
       status: statusString,
       filterText: this.filterText || '',
       warehouseID: this.warehouseID || 1,
@@ -123,19 +132,22 @@ getListEmployee() {
       departmentid: 0,
       keyword: '',
     };
-    this.TsAssetManagementPersonalService
-      .getEmployee(request)
+    this.billImportTechnicalService
+      .getUser()
       .subscribe((respon: any) => {
         this.emPloyeeLists = respon.data;
       });
   }
   getProjectAjaxParams() {
+    const startDate = this.dateStart || new Date('2024-12-01');
+    const endDate = this.dateEnd || new Date('2025-12-31');
+    
     return {
-      dateTimeS: DateTime.fromJSDate(new Date(this.dateStart || '2024-12-01'))
+      dateTimeS: DateTime.fromJSDate(startDate)
         .set({ hour: 0, minute: 0, second: 0 })
         .toFormat('yyyy-MM-dd HH:mm:ss'),
 
-      dateTimeE: DateTime.fromJSDate(new Date(this.dateEnd || '2025-12-31'))
+      dateTimeE: DateTime.fromJSDate(endDate)
         .set({ hour: 23, minute: 59, second: 59 })
         .toFormat('yyyy-MM-dd HH:mm:ss'),
       filterText: this.filterText || '',
@@ -168,8 +180,8 @@ getListEmployee() {
         const request = {
           Page: params.page,
           Size: params.size,
-          dateStart: this.dateStart || '2024-12-01',
-          dateEnd: this.dateEnd || '2025-12-31',
+          dateStart: this.formatDateToString(this.dateStart) || '2024-12-01',
+          dateEnd: this.formatDateToString(this.dateEnd) || '2025-12-31',
           status: this.selectedApproval !== null ? (this.selectedApproval === 1 ? '1' : '0') : '-1',
           filterText: this.filterText || '',
           warehouseID: this.warehouseID || 1,
@@ -410,100 +422,113 @@ getListEmployee() {
       }
     });
   }
-  // PHASE 3.2: Enhanced approval with permission checks
+  // Approve multiple bills
   onApprove() {
-    const selectedIds = this.getSelectedIds();
+    const selectedBills = this.billImportTechnicalTable?.getSelectedData();
 
-    if (!selectedIds || selectedIds.length === 0) {
+    if (!selectedBills || selectedBills.length === 0) {
       this.notification.warning('Cảnh báo', 'Vui lòng chọn phiếu cần duyệt!');
       return;
     }
 
-    const selectedBill = this.billImportTechnicalTable?.getSelectedData()?.[0];
+    // Show confirmation dialog
+    const billCount = selectedBills.length;
+    const confirmMsg = billCount === 1
+      ? `Bạn có chắc chắn muốn duyệt phiếu "${selectedBills[0].BillCode || selectedBills[0].ID}" không?`
+      : `Bạn có chắc chắn muốn duyệt ${billCount} phiếu đã chọn không?`;
 
-    if (!selectedBill) {
-      this.notification.warning('Cảnh báo', 'Không tìm thấy thông tin phiếu!');
+    if (!confirm(confirmMsg)) {
       return;
     }
 
-    // Check if already approved
-    if (selectedBill.Status === true || selectedBill.Status === 1) {
-      this.notification.warning('Cảnh báo', 'Phiếu này đã được duyệt rồi!');
-      return;
-    }
+    // Gửi chỉ ID của bills cần duyệt
+    const billsToApprove = selectedBills.map(bill => ({ ID: bill.ID }));
 
-    // PHASE 3.2: Check if current user is the approver
-    const currentEmployeeID = this.appUserService.employeeID;
-    if (selectedBill.ApproverID && currentEmployeeID && selectedBill.ApproverID !== currentEmployeeID) {
-      this.notification.error('Lỗi', `Chỉ người duyệt được chỉ định (ID: ${selectedBill.ApproverID}) mới có quyền duyệt phiếu này!`);
-      return;
-    }
+    this.billImportTechnicalService.approveBills(billsToApprove).subscribe({
+      next: (response) => {
+        console.log('Approve response:', response);
 
-    // PHASE 3.2: Show confirmation dialog
-    const billCode = selectedBill.BillCode || `ID ${selectedIds[0]}`;
-    if (!confirm(`Bạn có chắc chắn muốn duyệt phiếu "${billCode}" không?`)) {
-      return;
-    }
+        if (response?.success) {
+          // Backend trả về success = true
+          const data = response.data || {};
+          const successCount = data.SuccessCount || 0;
+          const totalProcessed = data.TotalProcessed || billCount;
 
-    this.billImportTechnicalService.approveAction(selectedIds, 'approve').subscribe({
-      next: () => {
-        this.notification.success(NOTIFICATION_TITLE.success, 'Duyệt biên bản thành công!');
-        this.getBillImportTechnical();
-        this.drawTable();
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            response.message || `Duyệt thành công ${successCount}/${totalProcessed} phiếu!`
+          );
+        } else {
+          // Backend trả về success = false nhưng vẫn OK status
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            response?.message || 'Không có phiếu nào được duyệt.'
+          );
+        }
+
+        // Refresh data without recreating table
+        if (this.billImportTechnicalTable) {
+          this.billImportTechnicalTable.setData();
+        }
       },
       error: (err) => {
-
-        this.notification.warning(NOTIFICATION_TITLE.error, 'Lỗi kết nối máy chủ!');
+        console.error('Approve error:', err);
+        const errorMsg = err?.error?.message || err?.message || 'Lỗi kết nối máy chủ!';
+        this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
       }
     });
   }
 
-  // PHASE 3.2: Enhanced unapproval with strict permission check
+  // Unapprove multiple bills
   onUnApprove() {
-    const selectedIds = this.getSelectedIds();
+    const selectedBills = this.billImportTechnicalTable?.getSelectedData();
 
-    if (!selectedIds || selectedIds.length === 0) {
-      this.notification.warning('Cảnh báo', 'Vui lòng chọn phiếu cần bỏ duyệt!');
+    if (!selectedBills || selectedBills.length === 0) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn phiếu cần hủy duyệt!');
       return;
     }
 
-    const selectedBill = this.billImportTechnicalTable?.getSelectedData()?.[0];
+    // Show confirmation dialog
+    const billCount = selectedBills.length;
+    const confirmMsg = billCount === 1
+      ? `Bạn có chắc chắn muốn HỦY DUYỆT phiếu "${selectedBills[0].BillCode || selectedBills[0].ID}" không?`
+      : `Bạn có chắc chắn muốn HỦY DUYỆT ${billCount} phiếu đã chọn không?`;
 
-    if (!selectedBill) {
-      this.notification.warning('Cảnh báo', 'Không tìm thấy thông tin phiếu!');
+    if (!confirm(confirmMsg)) {
       return;
     }
 
-    // Check if not approved yet
-    if (selectedBill.Status === false || selectedBill.Status === 0) {
-      this.notification.warning('Cảnh báo', 'Phiếu này chưa được duyệt!');
-      return;
-    }
+    // Gửi chỉ ID của bills cần hủy duyệt
+    const billsToUnapprove = selectedBills.map(bill => ({ ID: bill.ID }));
 
-    // PHASE 3.2: Hardcoded permission check - Only ApproverID = 54 can unapprove
-    const currentEmployeeID = this.appUserService.employeeID;
-    const ALLOWED_UNAPPROVER_ID = 54; // A QUYỀN
+    this.billImportTechnicalService.unapproveBills(billsToUnapprove).subscribe({
+      next: (response) => {
+        console.log('Unapprove response:', response);
 
-    if (currentEmployeeID !== ALLOWED_UNAPPROVER_ID) {
-      this.notification.error('Lỗi', `Chỉ người có ID ${ALLOWED_UNAPPROVER_ID} (A QUYỀN) mới có quyền bỏ duyệt phiếu!`);
-      return;
-    }
+        if (response?.success) {
+          // Backend trả về success = true
+          const data = response.data || {};
+          const successCount = data.SuccessCount || 0;
+          const totalProcessed = data.TotalProcessed || billCount;
 
-    // PHASE 3.2: Show confirmation dialog
-    const billCode = selectedBill.BillCode || `ID ${selectedIds[0]}`;
-    if (!confirm(`Bạn có chắc chắn muốn BỎ DUYỆT phiếu "${billCode}" không?`)) {
-      return;
-    }
+          this.notification.success(
+            NOTIFICATION_TITLE.success,
+            response.message || `Hủy duyệt thành công ${successCount}/${totalProcessed} phiếu!`
+          );
+        } else {
+          // Backend trả về success = false nhưng vẫn OK status
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            response?.message || 'Không có phiếu nào được hủy duyệt.'
+          );
+        }
 
-    this.billImportTechnicalService.approveAction(selectedIds, 'unapprove').subscribe({
-      next: () => {
-        this.notification.success(NOTIFICATION_TITLE.success, 'duyệt biên bản thành công!');
-        this.getBillImportTechnical();
         this.drawTable();
       },
       error: (err) => {
-
-        this.notification.warning(NOTIFICATION_TITLE.error, 'Lỗi kết nối máy chủ!');
+        console.error('Unapprove error:', err);
+        const errorMsg = err?.error?.message || err?.message || 'Lỗi kết nối máy chủ!';
+        this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
       }
     });
   }

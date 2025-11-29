@@ -30,4 +30,38 @@
   .ant-splitter {
     height: 100% !important;
   }
-  
+
+  .tabulator-menu,
+  .tabulator-context-menu {
+    max-height: 120px !important;
+    overflow-y: auto !important;
+  }
+
+  .tabulator-menu-item {
+    padding: 4px 12px !important;
+    font-size: 0.75rem !important;
+    line-height: 1.4 !important;
+  }
+  /* dành cho màu của focus last row
+   */
+/* Hightlight dòng được chọn bằng pseudo-element */
+.tabulator-row.tabulator-row-focus-highlight {
+  position: relative !important;
+  z-index: 10000 !important; /* ép trên background */
+}
+
+.tabulator-row.tabulator-row-focus-highlight::after {
+  content: "";
+  position: absolute;
+  inset: 0; /* phủ toàn bộ row */
+  border: 3px solid #77851d; /* màu viền */
+  pointer-events: none; /* không chặn click */
+  z-index: 10000 !important; /* nằm trên màu nền của row */
+  box-sizing: border-box;
+}
+/* .tabulator-menu.tabulator-popup-container {
+  height: 10vh !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+} */

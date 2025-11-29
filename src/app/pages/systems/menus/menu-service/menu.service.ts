@@ -117,9 +117,11 @@ import { EmployeeSyntheticComponent } from '../../../hrm/employee-management/emp
 import { AppComponent } from '../../../../app.component';
 import { BonusCoefficientComponent } from '../../../old/bonus-coefficient/bonus-coefficient.component';
 import { ProductRtcQrCodeComponent } from '../../../old/product-rtc-qr-code/product-rtc-qr-code/product-rtc-qr-code.component';
-import { ProjectPartlistPriceRequestComponent } from '../../../old/project-partlist-price-request/project-partlist-price-request.component';
-import { PonccComponent } from '../../../purchase/poncc/poncc.component';
 import { ProjectPartlistPurchaseRequestComponent } from '../../../purchase/project-partlist-purchase-request/project-partlist-purchase-request.component';
+import { ProjectPartlistPriceRequestComponent } from '../../../old/project-partlist-price-request/project-partlist-price-request.component';
+import { PONCCComponent } from '../../../purchase/poncc/poncc.component';
+import { EmployeeSaleManagerComponent } from '../../../old/employee-sale-manager/employee-sale-manager.component';
+import { RequestInvoiceComponent } from '../../../old/request-invoice/request-invoice.component';
 @Injectable({
   providedIn: 'root',
 })
@@ -131,7 +133,7 @@ export class MenuService {
     private permissionService: PermissionService,
     private appUserService: AppUserService,
     private notification: NzNotificationService
-  ) { }
+  ) {}
 
   //   getMenus(id: number): Observable<any> {
   //     return this.http.get<any>(this.apiUrl + `menus/${id}`);
@@ -432,7 +434,7 @@ export class MenuService {
             isOpen: true,
             isPermission: this.permissionService.hasPermission('N2,N34,N1'),
             comp: HrhiringRequestComponent,
-            //   icon: 'assets/icon/hr_hiring_24.svg',
+            icon: 'assets/icon/hr_hiring_24.svg',
           },
           {
             kind: 'leaf',
@@ -441,7 +443,7 @@ export class MenuService {
             isOpen: true,
             isPermission: this.permissionService.hasPermission('N2,N34,N1'),
             comp: DocumentComponent,
-            //    icon: 'assets/icon/hr_document_24.svg',
+            //       icon: 'assets/icon/hr_documentt_24.svg',
           },
           {
             kind: 'group',
@@ -449,7 +451,7 @@ export class MenuService {
             title: 'Tài sản/công cụ dụng cụ',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
-            icon: 'assets/icon/hr_asset_management_24.svg',
+            icon: 'assets/icon/hr_asset_24.svg',
             children: [
               {
                 kind: 'leaf',
@@ -1020,6 +1022,36 @@ export class MenuService {
             comp: ProductLocationComponent,
             //   icon: 'assets/icon/layers.png',
           },
+
+          {
+            kind: 'leaf',
+            key: '/thongtinlienhe',
+            title: 'Thông tin liên hệ',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: AppComponent,
+            router: '/thongtinlienhe',
+          },
+
+          {
+            kind: 'leaf',
+            key: '/sodotochuc',
+            title: 'Sơ đồ tổ chức',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: AppComponent,
+            router: '/sodotochuc',
+          },
+
+          {
+            kind: 'leaf',
+            key: '/vanbanchung',
+            title: 'Quy định / Thông báo',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: AppComponent,
+            router: '/vanbanchung',
+          },
         ],
       },
 
@@ -1092,6 +1124,16 @@ export class MenuService {
           },
           {
             kind: 'leaf',
+            key: 'ProjectPartlistPriceRequestComponent',
+            title: 'Yêu cầu mua hàng',
+            isOpen: true,
+            isPermission:
+              this.permissionService.hasPermission('N33,N35,N1,N36'),
+            comp: ProjectPartlistPriceRequestComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+          {
+            kind: 'leaf',
             key: 'AssignWorkComponent',
             title: 'Phân công công việc',
             isOpen: true,
@@ -1107,7 +1149,7 @@ export class MenuService {
             isOpen: true,
             isPermission:
               this.permissionService.hasPermission('N33,N35,N36,N1,N52,N38,N54'), 
-            comp: PonccComponent,
+            comp: PONCCComponent,
             //   icon: 'assets/icon/layers.png',
           },
           {
@@ -1441,12 +1483,27 @@ export class MenuService {
                 key: 'BonusCoefficientComponent',
                 title: 'Tổng hợp báo cáo',
                 isOpen: true,
-                isPermission: this.permissionService.hasPermission(
-                  "''"
-                ),
+                isPermission: this.permissionService.hasPermission("''"),
                 comp: BonusCoefficientComponent,
               },
+              {
+                kind: 'leaf',
+                key: 'EmployeeSaleManagerComponent',
+                title: 'Nhân viên Sale',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission("''"),
+                comp: EmployeeSaleManagerComponent,
+              },
             ],
+          },
+          {
+            kind: 'leaf',
+            key: 'RequestInvoiceComponent',
+            title: 'YÊU CẦU XUẤT HÓA ĐƠN',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: RequestInvoiceComponent,
+            data: { warehouseId: 1 },
           },
         ],
       },
@@ -1461,36 +1518,7 @@ export class MenuService {
         isPermission: this.permissionService.hasPermission(''),
         icon: 'assets/icon/menu_project_24.png',
         children: [
-          {
-            kind: 'leaf',
-            key: '/thongtinlienhe',
-            title: 'Thông tin liên hệ',
-            isOpen: true,
-            isPermission: this.permissionService.hasPermission(''),
-            comp: AppComponent,
-            router: '/thongtinlienhe',
-          },
-
-          {
-            kind: 'leaf',
-            key: '/sodotochuc',
-            title: 'Sơ đồ tổ chức',
-            isOpen: true,
-            isPermission: this.permissionService.hasPermission(''),
-            comp: AppComponent,
-            router: '/sodotochuc',
-          },
-
-          {
-            kind: 'leaf',
-            key: '/vanbanchung',
-            title: 'Quy định / Thông báo',
-            isOpen: true,
-            isPermission: this.permissionService.hasPermission(''),
-            comp: AppComponent,
-            router: '/vanbanchung',
-          },
-
+          //#region Duyệt cá nhân
           {
             kind: 'group',
             key: 'appvovedperson',
@@ -1624,7 +1652,9 @@ export class MenuService {
               },
             ],
           },
+          //#endregion
 
+          //#region Đăng ký công
           {
             kind: 'group',
             key: '',
@@ -1731,7 +1761,9 @@ export class MenuService {
               },
             ],
           },
+          //#endregion
 
+          //#region Đăng ký chung
           {
             kind: 'group',
             key: '',
@@ -1828,6 +1860,7 @@ export class MenuService {
               },
             ],
           },
+          //#endregion
 
           {
             kind: 'leaf',
@@ -1848,9 +1881,10 @@ export class MenuService {
             router: '/taisancanhan',
           },
 
+          //#region Báo cáo công việc
           {
             kind: 'group',
-            key: 'appvovedperson',
+            key: 'dailyreport',
             title: 'Báo cáo công việc',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
@@ -1866,7 +1900,7 @@ export class MenuService {
               },
               {
                 kind: 'group',
-                key: 'tbpapproved',
+                key: 'dailyreportsale',
                 title: 'Phòng sale',
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission(''),
@@ -1906,7 +1940,7 @@ export class MenuService {
 
               {
                 kind: 'group',
-                key: 'tbpapproved',
+                key: 'dailyreporthr',
                 title: 'Phòng Hành chính - Nhân sự',
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission(''),
@@ -1955,6 +1989,103 @@ export class MenuService {
               },
             ],
           },
+          //#endregion
+
+          //#region KẾ HOẠCH TUẦN
+          {
+            kind: 'group',
+            key: 'planweek',
+            title: 'Kế hoạch tuần',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            children: [
+              {
+                kind: 'leaf',
+                key: 'kehoachcongvieccanhan',
+                title: 'Cá nhân',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: AppComponent,
+                router: '/kehoachcongvieccanhan',
+              },
+
+              {
+                kind: 'leaf',
+                key: 'kehoachcongviectonghop',
+                title: 'Tổng hợp',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: AppComponent,
+                router: '/kehoachcongviectonghop',
+              },
+
+              {
+                kind: 'leaf',
+                key: 'kehoachcongviectonghopnew',
+                title: 'Tổng hợp new',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: AppComponent,
+                router: '/kehoachcongviectonghopnew',
+              },
+            ],
+          },
+          //#endregion
+
+          //#region Biểu mẫu văn bản chung
+          {
+            kind: 'group',
+            key: 'document',
+            title: 'Biểu mẫu văn bản chung',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            children: [
+              {
+                kind: 'leaf',
+                key: 'bieumauvanbanchung3',
+                title: 'Phòng kinh doanh',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: AppComponent,
+                router: '/bieumauvanbanchung',
+                data: { departmentID: 3 },
+              },
+
+              {
+                kind: 'leaf',
+                key: 'bieumauvanbanchung2',
+                title: 'Phòng kỹ thuật',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: AppComponent,
+                router: '/bieumauvanbanchung',
+                data: { departmentID: 2 },
+              },
+
+              {
+                kind: 'leaf',
+                key: 'bieumauvanbanchung9',
+                title: 'Phòng AGV',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: AppComponent,
+                router: '/bieumauvanbanchung',
+                data: { departmentID: 9 },
+              },
+
+              {
+                kind: 'leaf',
+                key: 'bieumauvanbanchung10',
+                title: 'Phòng Thiết kế cơ khí',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: AppComponent,
+                router: '/bieumauvanbanchung',
+                data: { departmentID: 10 },
+              },
+            ],
+          },
+          //#endregion
         ],
       },
       //#endregion
@@ -1963,7 +2094,7 @@ export class MenuService {
     return menus;
   }
 
-  goToOldLink(router: string) {
+  goToOldLink(router: string, param: any) {
     let data: any = {
       UserName: this.appUserService.loginName,
       Password: this.appUserService.password,
@@ -1971,7 +2102,10 @@ export class MenuService {
     };
     // console.log('window.location:', window.location);
 
+    let params = new URLSearchParams(param).toString();
+
     let urlTo = `http://localhost:19028${router}`;
+    if (params) urlTo = `${urlTo}?${params}`;
     let urlLogin = 'http://localhost:19028/Home/LoginNew';
 
     if (window.location.hostname != 'localhost') {

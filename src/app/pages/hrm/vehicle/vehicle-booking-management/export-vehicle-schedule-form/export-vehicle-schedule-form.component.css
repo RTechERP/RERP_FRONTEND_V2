@@ -22,3 +22,27 @@
 
 }
 
+/* Đảm bảo empty state hiển thị đúng trong bảng */
+::ng-deep .ant-table-tbody > tr.ant-table-placeholder {
+  height: calc(81vh - 100px) !important;
+}
+
+::ng-deep .ant-table-tbody > tr.ant-table-placeholder td {
+  height: calc(81vh - 100px) !important;
+  vertical-align: middle !important;
+}
+
+/* CSS cho ô empty state tự vẽ */
+.empty-state-cell {
+  text-align: center;
+  vertical-align: middle;
+  font-size: 12px;
+  color: #999;
+  height: calc(81vh - 100px);
+  padding: 0;
+  border-top: 2px solid #808080;
+  border-bottom: 2px solid #808080;
+  border-left: 1px solid #D3D3D3;
+  border-right: 1px solid #D3D3D3;
+}
+

@@ -231,7 +231,7 @@ export class ProjectSolutionVersionDetailComponent implements OnInit, AfterViewI
         next: (response: any) => {
           console.log("response", response);
           if (response.status === 1) {
-            this.notification.success('Thành công', response.message);
+            this.notification.success('Thông báo', response.message);
             this.closeModal();
           }
           else{
@@ -247,7 +247,7 @@ export class ProjectSolutionVersionDetailComponent implements OnInit, AfterViewI
       next: (response: any) => {
         console.log("response", response);
         if (response.status === 1) {
-          this.notification.success('Thành công', response.message);
+          this.notification.success('Thông báo', response.message);
           this.closeModal();
         } else {
           this.notification.error('Lỗi', response.message);

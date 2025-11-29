@@ -511,6 +511,7 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
       console.error('tb_POKH element not found');
       return;
     }
+    const token = localStorage.getItem('token');
     this.tb_POKH = new Tabulator(this.tb_POKHElement.nativeElement, {
       layout: 'fitDataFill',
       height: '100%',
@@ -521,6 +522,13 @@ export class PokhKpiComponent implements OnInit, AfterViewInit {
       // paginationSizeSelector: [10, 30, 50, 100, 300, 500],
       ajaxURL: this.POKHService.getPOKHAjax(),
       ajaxParams: this.getPOKHAjaxParams(),
+      ajaxConfig: {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      },
       ajaxResponse: (url, params, res) => {
         console.log('total', res.totalPages[0].TotalPage);
         console.log('data', res.data);

@@ -1,0 +1,47 @@
+<ng-container class="w-100 h-100 d-flex flex-column bg-white rounded-2 shadow-sm">
+
+    <!-- HEADER -->
+    <div class="modal-header bg-primary text-uppercase py-2">
+      <h6 class="modal-title text-white m-0">
+        {{ isEditMode ? 'CẬP NHẬT TRẠNG THÁI' : 'THÊM TRẠNG THÁI MỚI' }}
+      </h6>
+      <button type="button" class="btn-close btn-close-white" (click)="closeModal()"></button>
+    </div>
+  
+    <!-- FORM -->
+    <div class="p-3" style="flex:1">
+      <div class="row gy-3">
+  
+        <div class="col-6">
+          <label class="form-label fw-semibold">Mã trạng thái <span class="text-danger">*</span></label>
+          <input nz-input type="text"
+                 [(ngModel)]="StatusCode"
+                 name="code"
+                 placeholder="Nhập mã trạng thái"
+                 class="form-control form-control-sm" />
+        </div>
+  
+        <div class="col-6">
+          <label class="form-label fw-semibold">Tên trạng thái <span class="text-danger">*</span></label>
+          <input nz-input type="text"
+                 [(ngModel)]="StatusName"
+                 name="name"
+                 placeholder="Nhập tên trạng thái"
+                 class="form-control form-control-sm" />
+        </div>
+  
+      </div>
+    </div>
+  
+    <!-- FOOTER -->
+    <div class="modal-footer py-2 justify-content-end border-0">
+      <button nz-button nzType="default" nzSize="default" nzDanger (click)="closeModal()">
+        Đóng
+      </button>
+  
+      <button nz-button nzType="primary" nzSize="default" (click)="saveAndClose()"> Lưu
+      </button>
+    </div>
+  
+  </ng-container>
+  

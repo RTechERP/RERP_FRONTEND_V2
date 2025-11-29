@@ -45,6 +45,7 @@ export const DEFAULT_TABLE_CONFIG: Options = {
       cell.getRow().toggleSelect();
     },
   },
+  columnCalcs: 'both',
 };
 // export const DEFAULT_TABLE_CONFIG_NOT_PAGINATIONMODE_REMOTE: Options = {
 //   layout: 'fitDataFill',

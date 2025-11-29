@@ -24,7 +24,12 @@ import { NzTreeSelectModule } from 'ng-zorro-antd/tree-select';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { TabulatorFull as Tabulator, CellComponent, ColumnDefinition, RowComponent } from 'tabulator-tables';
+import {
+  TabulatorFull as Tabulator,
+  CellComponent,
+  ColumnDefinition,
+  RowComponent,
+} from 'tabulator-tables';
 import { VehicleBookingManagementService } from './vehicle-booking-management.service';
 import * as ExcelJS from 'exceljs';
 import { DateTime } from 'luxon';
@@ -65,13 +70,14 @@ import { AuthService } from '../../../../auth/auth.service';
     NzTreeSelectModule,
     NzModalModule,
     CommonModule,
-    HasPermissionDirective
+    HasPermissionDirective,
   ],
   templateUrl: './vehicle-booking-management.component.html',
-  styleUrl: './vehicle-booking-management.component.css'
+  styleUrl: './vehicle-booking-management.component.css',
 })
-export class VehicleBookingManagementComponent implements OnInit, AfterViewInit {
-
+export class VehicleBookingManagementComponent
+  implements OnInit, AfterViewInit
+{
   constructor(
     private notification: NzNotificationService,
     private modal: NzModalService,
@@ -79,10 +85,10 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
     private vehicleBookingManagementService: VehicleBookingManagementService,
     private cdRef: ChangeDetectorRef,
     private authService: AuthService
-
-  ) { }
+  ) {}
   private ngbModal = inject(NgbModal);
-  @ViewChild('dataTableVehicleBookingManagement', { static: false }) tableElementRef!: ElementRef;
+  @ViewChild('dataTableVehicleBookingManagement', { static: false })
+  tableElementRef!: ElementRef;
   vehicleBookingManagementTable: Tabulator | null = null;
   vehicleBookingManagementList: any[] = [];
   keyWord: string = '';
@@ -112,18 +118,18 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
 
   // Tạo mảng category
   lstCategory = [
-    { Category: 0, CategoryText: "Tất cả" },
-    { Category: 1, CategoryText: "Đăng ký đi" },
-    { Category: 5, CategoryText: "Đăng ký về" },
-    { Category: 4, CategoryText: "Chủ động phương tiện" },
-    { Category: 2, CategoryText: "Đăng ký giao hàng" },
-    { Category: 6, CategoryText: "Đăng ký lấy hàng" }
+    { Category: 0, CategoryText: 'Tất cả' },
+    { Category: 1, CategoryText: 'Đăng ký đi' },
+    { Category: 5, CategoryText: 'Đăng ký về' },
+    { Category: 4, CategoryText: 'Chủ động phương tiện' },
+    { Category: 2, CategoryText: 'Đăng ký giao hàng' },
+    { Category: 6, CategoryText: 'Đăng ký lấy hàng' },
   ];
   lstStatus = [
-    { Status: 0, StatusText: "Tất cả" },
-    { Status: 1, StatusText: "Chờ xếp" },
-    { Status: 2, StatusText: "Đã xếp" },
-    { Status: 4, StatusText: "Chủ động phương tiện" }
+    { Status: 0, StatusText: 'Tất cả' },
+    { Status: 1, StatusText: 'Chờ xếp' },
+    { Status: 2, StatusText: 'Đã xếp' },
+    { Status: 4, StatusText: 'Chủ động phương tiện' },
   ];
   //#region chạy khi mở chương trình
   currentUser: any = null;
@@ -152,11 +158,11 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
   }
 
   onCategoryChange(categoryId: number) {
-    this.categoryId = categoryId
+    this.categoryId = categoryId;
   }
 
   onStatusChange(statusId: number) {
-    this.statusId = statusId
+    this.statusId = statusId;
   }
 
   onKeywordChange(value: string): void {
@@ -187,18 +193,20 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
   onVehicleBookingFileImages() {
     if (this.vehicleBookingListId.length === 0) {
       this.notification.warning('Lỗi', 'Vui lòng chọn ít nhất một dòng!');
-      return
+      return;
     }
-    const modalRef = this.modalService.open(VehicleBookingFileImagesFormComponent, {
-      size: 'lg',
-      backdrop: 'static',
-      keyboard: false,
-      centered: true,
-    });
+    const modalRef = this.modalService.open(
+      VehicleBookingFileImagesFormComponent,
+      {
+        size: 'lg',
+        backdrop: 'static',
+        keyboard: false,
+        centered: true,
+      }
+    );
     modalRef.componentInstance.dataInput = this.vehicleBookingListId;
     modalRef.result.then(
       (result) => {
-
         setTimeout(() => this.getVehicleBookingManagement(), 100);
       },
       () => {
@@ -219,7 +227,6 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
     modalRef.componentInstance.dataInput = this.vehicleBookingListId;
     modalRef.result.then(
       (result) => {
-      
         setTimeout(() => this.getVehicleBookingManagement(), 100);
       },
       () => {
@@ -228,15 +235,17 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
     );
   }
   onExportVehicleSchedule() {
-    const modalRef = this.modalService.open(ExportVehicleScheduleFormComponent, {
-      backdrop: 'static',
-      keyboard: false,
-      scrollable: true,
-      modalDialogClass: 'modal-fullscreen modal-dialog-scrollable'
-    });
+    const modalRef = this.modalService.open(
+      ExportVehicleScheduleFormComponent,
+      {
+        backdrop: 'static',
+        keyboard: false,
+        scrollable: true,
+        modalDialogClass: 'modal-fullscreen modal-dialog-scrollable',
+      }
+    );
     modalRef.result.then(
       (result) => {
-     
         setTimeout(() => this.getVehicleBookingManagement(), 100);
       },
       () => {
@@ -246,83 +255,82 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
   }
   onWatingArrange() {
     if (this.vehicleBookingListId.length <= 0) {
-      this.notification.error("Thông báo", "Chọn ít nhất một thông tin xe");
+      this.notification.error('Thông báo', 'Chọn ít nhất một thông tin xe');
       setTimeout(() => this.getVehicleBookingManagement(), 100);
       return;
     }
-    console.log("vehicleBookingListId.length ", this.vehicleBookingListId.length);
+    console.log(
+      'vehicleBookingListId.length ',
+      this.vehicleBookingListId.length
+    );
     var checkUpdatesuccess = true;
-    this.vehicleBookingListId.forEach(item => {
+    this.vehicleBookingListId.forEach((item) => {
       const request = {
         ID: item.ID,
         Status: 1,
-        IsCancel: false
+        IsCancel: false,
       };
-      this.vehicleBookingManagementService.postVehicleBookingManagement(request).subscribe({
-        next: () => {
-
-        },
-        error: () => {
-          checkUpdatesuccess = false;
-        }
-      });
+      this.vehicleBookingManagementService
+        .postVehicleBookingManagement(request)
+        .subscribe({
+          next: () => {},
+          error: () => {
+            checkUpdatesuccess = false;
+          },
+        });
     });
     if (checkUpdatesuccess) {
-      this.notification.success("Thông báo", "Xếp xe thành công");
+      this.notification.success('Thông báo', 'Xếp xe thành công');
       setTimeout(() => this.getVehicleBookingManagement(), 100);
-    }
-    else {
-      this.notification.create(
-        'error',
-        'Thông báo',
-        'Lỗi lưu!'
-      );
+    } else {
+      this.notification.create('error', 'Thông báo', 'Lỗi lưu!');
       setTimeout(() => this.getVehicleBookingManagement(), 100);
     }
   }
   Cancel_Click() {
     if (this.vehicleBookingListId.length <= 0) {
-      this.notification.error("Thông báo", "Chọn ít nhất một thông tin xe");
+      this.notification.error('Thông báo', 'Chọn ít nhất một thông tin xe');
       setTimeout(() => this.getVehicleBookingManagement(), 100);
       return;
     }
-    console.log("vehicleBookingListId.length ", this.vehicleBookingListId.length);
+    console.log(
+      'vehicleBookingListId.length ',
+      this.vehicleBookingListId.length
+    );
     var checkUpdatesuccess = true;
-    this.vehicleBookingListId.forEach(item => {
+    this.vehicleBookingListId.forEach((item) => {
       const request = {
         ID: item.ID,
         Status: 3,
-        IsCancel: true
+        IsCancel: true,
       };
-      this.vehicleBookingManagementService.postVehicleBookingManagement(request).subscribe({
-        next: () => {
-
-        },
-        error: () => {
-          checkUpdatesuccess = false;
-        }
-      });
+      this.vehicleBookingManagementService
+        .postVehicleBookingManagement(request)
+        .subscribe({
+          next: () => {},
+          error: () => {
+            checkUpdatesuccess = false;
+          },
+        });
     });
     if (checkUpdatesuccess) {
-      this.notification.success("Thông báo", "Hủy lịch đặt thành công");
+      this.notification.success('Thông báo', 'Hủy lịch đặt thành công');
       setTimeout(() => this.getVehicleBookingManagement(), 100);
-    }
-    else {
-      this.notification.create(
-        'error',
-        'Thông báo',
-        'Lỗi lưu!'
-      );
+    } else {
+      this.notification.create('error', 'Thông báo', 'Lỗi lưu!');
       setTimeout(() => this.getVehicleBookingManagement(), 100);
     }
   }
 
   Approve(status: boolean) {
-    const isApprovedText = status ? "duyệt" : "huỷ duyệt";
+    const isApprovedText = status ? 'duyệt' : 'huỷ duyệt';
 
     // Kiểm tra có chọn dòng không
     if (this.vehicleBookingListId.length <= 0) {
-      this.notification.warning("Thông báo", `Vui lòng chọn đăng ký xe muốn ${isApprovedText}!`);
+      this.notification.warning(
+        'Thông báo',
+        `Vui lòng chọn đăng ký xe muốn ${isApprovedText}!`
+      );
       return;
     }
 
@@ -335,7 +343,10 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
       nzOnOk: () => {
         // Lấy thông tin user hiện tại
         if (!this.currentUser) {
-          this.notification.warning("Thông báo", "Không thể lấy thông tin user hiện tại!");
+          this.notification.warning(
+            'Thông báo',
+            'Không thể lấy thông tin user hiện tại!'
+          );
           return;
         }
 
@@ -354,7 +365,7 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
         const errors: string[] = [];
         let noProblemCount = 0;
 
-        this.vehicleBookingListId.forEach(item => {
+        this.vehicleBookingListId.forEach((item) => {
           // Kiểm tra ID > 0
           if (!item.ID || item.ID <= 0) {
             return;
@@ -369,7 +380,9 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
           // Kiểm tra department permission: Global.DepartmentID != departmentId && !Global.IsAdmin
           const itemDepartmentID = item.DepartmentID || 0;
           if (departmentID !== itemDepartmentID && !isAdmin) {
-            errors.push(`Bạn không phải TBP của phòng ${item.DepartmentName}, không thể duyệt đơn của ${item.FullName}.`);
+            errors.push(
+              `Bạn không phải TBP của phòng ${item.DepartmentName}, không thể duyệt đơn của ${item.FullName}.`
+            );
             return;
           }
 
@@ -377,13 +390,21 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
         });
 
         if (noProblemCount > 0) {
-          errors.unshift(`Có ${noProblemCount} đơn không có vấn đề phát sinh, không cần duyệt.`);
+          errors.unshift(
+            `Có ${noProblemCount} đơn không có vấn đề phát sinh, không cần duyệt.`
+          );
         }
 
         if (errors.length > 0) {
           // Hiển thị lỗi chi tiết (tối đa 3 lỗi đầu tiên để tránh spam)
-          const errorMsg = errors.slice(0, 3).join('<br>') + (errors.length > 3 ? `<br>...và ${errors.length - 3} lỗi khác.` : '');
-          this.notification.warning("Không thể duyệt một số đơn", errorMsg, { nzDuration: 5000 });
+          const errorMsg =
+            errors.slice(0, 3).join('<br>') +
+            (errors.length > 3
+              ? `<br>...và ${errors.length - 3} lỗi khác.`
+              : '');
+          this.notification.warning('Không thể duyệt một số đơn', errorMsg, {
+            nzDuration: 5000,
+          });
         }
 
         if (validItems.length === 0) {
@@ -391,29 +412,41 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
         }
 
         // Tạo requests để xử lý đồng thời
-        const requests = validItems.map(item => {
+        const requests = validItems.map((item) => {
           const request = {
             ...item,
-            IsApprovedTBP: status
+            IsApprovedTBP: status,
           };
-          return this.vehicleBookingManagementService.approveBooking(request).pipe(
-            catchError((error) => {
-              console.error(`Lỗi khi ${isApprovedText} đơn ${item.ID}:`, error);
-              return of({ success: false, error, item });
-            })
-          );
+          return this.vehicleBookingManagementService
+            .approveBooking(request)
+            .pipe(
+              catchError((error) => {
+                console.error(
+                  `Lỗi khi ${isApprovedText} đơn ${item.ID}:`,
+                  error
+                );
+                return of({ success: false, error, item });
+              })
+            );
         });
 
         // Xử lý tất cả requests đồng thời
         forkJoin(requests).subscribe({
           next: (responses: any[]) => {
-            const successCount = responses.filter(r => r.success !== false).length;
-            const failCount = responses.filter(r => r.success === false).length;
+            const successCount = responses.filter(
+              (r) => r.success !== false
+            ).length;
+            const failCount = responses.filter(
+              (r) => r.success === false
+            ).length;
 
             if (successCount > 0) {
               this.notification.success(
                 'Thông báo',
-                `${isApprovedText.charAt(0).toUpperCase() + isApprovedText.slice(1)} thành công cho ${successCount} đơn đăng ký.`
+                `${
+                  isApprovedText.charAt(0).toUpperCase() +
+                  isApprovedText.slice(1)
+                } thành công cho ${successCount} đơn đăng ký.`
               );
             }
 
@@ -431,12 +464,12 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
             console.error(`Lỗi khi ${isApprovedText}:`, error);
             this.notification.error('Thông báo', `Lỗi khi ${isApprovedText}!`);
             setTimeout(() => this.getVehicleBookingManagement(), 100);
-          }
+          },
         });
-      }
+      },
     });
   }
-  test() { }
+  test() {}
   async exportToExcel() {
     let table = this.vehicleBookingManagementTable;
     if (!table) return;
@@ -449,28 +482,35 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
     }
 
     // Lấy danh sách ảnh cho các item giao hàng (Category 2: Đăng ký giao hàng, Category 6: Đăng ký lấy hàng)
-    const deliveryItems = data.filter((item: any) => item.Category === 2 || item.Category === 6);
+    const deliveryItems = data.filter(
+      (item: any) => item.Category === 2 || item.Category === 6
+    );
     const deliveryItemRequests = deliveryItems.map((item: any) => ({
       ID: item.ID,
       ReceiverName: item.ReceiverName || '',
       TimeNeedPresent: item.TimeNeedPresent || '',
       ReceiverPhoneNumber: item.ReceiverPhoneNumber || '',
       PackageName: item.PackageName || '',
-      SpecificDestinationAddress: item.SpecificDestinationAddress || ''
+      SpecificDestinationAddress: item.SpecificDestinationAddress || '',
     }));
-    
+
     let imageMap: Map<number, string[]> = new Map();
-    
+
     if (deliveryItemRequests.length > 0) {
       try {
-        const imageResponse: any = await this.vehicleBookingManagementService.getListImage(deliveryItemRequests).toPromise();
+        const imageResponse: any = await this.vehicleBookingManagementService
+          .getListImage(deliveryItemRequests)
+          .toPromise();
         if (imageResponse?.data && Array.isArray(imageResponse.data)) {
           // Dữ liệu được group theo Title (ID của booking dạng string)
           imageResponse.data.forEach((imgItem: any) => {
             // Title chứa ID của booking
             const bookingIdStr = imgItem.Title ? imgItem.Title.toString() : '';
-            const bookingId = bookingIdStr && !isNaN(parseInt(bookingIdStr)) ? parseInt(bookingIdStr) : null;
-            
+            const bookingId =
+              bookingIdStr && !isNaN(parseInt(bookingIdStr))
+                ? parseInt(bookingIdStr)
+                : null;
+
             if (bookingId && imgItem.urlImage) {
               if (!imageMap.has(bookingId)) {
                 imageMap.set(bookingId, []);
@@ -491,10 +531,14 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
     // Bỏ cột đầu tiên bằng cách slice từ index 1
     const filteredColumns = columns.slice(1);
     // Lọc bỏ cột có title là 'ID'
-    const filteredColumnsID = filteredColumns.filter((col: any) => col.getDefinition().title !== 'ID');
+    const filteredColumnsID = filteredColumns.filter(
+      (col: any) => col.getDefinition().title !== 'ID'
+    );
     // Thêm dòng header
-    const headers = filteredColumnsID.map((col: any) => col.getDefinition().title);
-    
+    const headers = filteredColumnsID.map(
+      (col: any) => col.getDefinition().title
+    );
+
     // Thêm cột "Link ảnh" vào cuối
     headers.push('Link ảnh');
 
@@ -508,21 +552,21 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
         pattern: 'solid',
         fgColor: { argb: 'FF4472C4' }, // Màu xanh dương
       };
-      cell.font = { 
-        bold: true, 
+      cell.font = {
+        bold: true,
         color: { argb: 'FFFFFFFF' }, // Màu trắng cho chữ
-        size: 11
+        size: 11,
       };
-      cell.alignment = { 
-        vertical: 'middle', 
+      cell.alignment = {
+        vertical: 'middle',
         horizontal: 'center',
-        wrapText: true
+        wrapText: true,
       };
       cell.border = {
         top: { style: 'thin', color: { argb: 'FF000000' } },
         left: { style: 'thin', color: { argb: 'FF000000' } },
         bottom: { style: 'thin', color: { argb: 'FF000000' } },
-        right: { style: 'thin', color: { argb: 'FF000000' } }
+        right: { style: 'thin', color: { argb: 'FF000000' } },
       };
     });
 
@@ -530,7 +574,9 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
     headerRow.height = 25;
 
     // Tìm index của cột "Tiền xe" để format số tiền
-    const vehicleMoneyColIndex = filteredColumnsID.findIndex((col: any) => col.getField() === 'VehicleMoney');
+    const vehicleMoneyColIndex = filteredColumnsID.findIndex(
+      (col: any) => col.getField() === 'VehicleMoney'
+    );
 
     data.forEach((row: any) => {
       const rowData = filteredColumnsID.map((col: any) => {
@@ -576,23 +622,30 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
         if (cell.value instanceof Date) {
           cell.numFmt = 'dd/mm/yyyy hh:mm'; // Format ngày giờ đầy đủ
         }
-        
+
         // Format số tiền cho cột VehicleMoney
-        if (vehicleMoneyColIndex !== -1 && colNumber === vehicleMoneyColIndex + 1) {
-          const numValue = typeof cell.value === 'number' ? cell.value : 
-                          (typeof cell.value === 'string' && cell.value.trim() !== '' ? parseFloat(cell.value.replace(/[^\d.-]/g, '')) : null);
+        if (
+          vehicleMoneyColIndex !== -1 &&
+          colNumber === vehicleMoneyColIndex + 1
+        ) {
+          const numValue =
+            typeof cell.value === 'number'
+              ? cell.value
+              : typeof cell.value === 'string' && cell.value.trim() !== ''
+              ? parseFloat(cell.value.replace(/[^\d.-]/g, ''))
+              : null;
           if (numValue !== null && !isNaN(numValue)) {
             cell.value = numValue;
             cell.numFmt = '#,##0'; // Format số với dấu phẩy ngăn cách hàng nghìn
           }
         }
-        
+
         // Thêm border cho tất cả các ô
         cell.border = {
           top: { style: 'thin', color: { argb: 'FFD3D3D3' } },
           left: { style: 'thin', color: { argb: 'FFD3D3D3' } },
           bottom: { style: 'thin', color: { argb: 'FFD3D3D3' } },
-          right: { style: 'thin', color: { argb: 'FFD3D3D3' } }
+          right: { style: 'thin', color: { argb: 'FFD3D3D3' } },
         };
       });
     });
@@ -601,11 +654,11 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
     worksheet.columns.forEach((column: any, index: number) => {
       let maxLength = 10;
       let maxLines = 1;
-      
+
       // Tính độ dài cho header
       const headerValue = headers[index] ? headers[index].toString() : '';
       maxLength = Math.max(maxLength, headerValue.length);
-      
+
       // Tính độ dài cho các ô dữ liệu
       column.eachCell({ includeEmpty: true }, (cell: any) => {
         if (cell.value !== null && cell.value !== undefined) {
@@ -613,13 +666,15 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
           // Đếm số dòng nếu có xuống dòng
           const lines = cellValue.split('\n').length;
           maxLines = Math.max(maxLines, lines);
-          
+
           // Tính độ dài tối đa của một dòng
-          const maxLineLength = Math.max(...cellValue.split('\n').map((line: string) => line.length));
+          const maxLineLength = Math.max(
+            ...cellValue.split('\n').map((line: string) => line.length)
+          );
           maxLength = Math.max(maxLength, maxLineLength);
         }
       });
-      
+
       // Đặt độ rộng cột (tối thiểu 10, tối đa 80 để đảm bảo hiển thị đầy đủ)
       // Cộng thêm 2 cho padding
       column.width = Math.min(Math.max(maxLength + 2, 10), 80);
@@ -632,10 +687,10 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
           ...cell.alignment,
           wrapText: true,
           vertical: 'top', // Căn trên để dễ đọc khi có nhiều dòng
-          horizontal: colNumber === 1 ? 'center' : 'left' // Cột đầu căn giữa, các cột khác căn trái
+          horizontal: colNumber === 1 ? 'center' : 'left', // Cột đầu căn giữa, các cột khác căn trái
         };
       });
-      
+
       // Tự động điều chỉnh chiều cao hàng dựa trên nội dung
       if (rowNumber > 1) {
         let maxLines = 1;
@@ -682,24 +737,24 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
     window.URL.revokeObjectURL(link.href);
   }
 
-
   getVehicleBookingManagement() {
     const request = {
       StartDate: this.dateStart,
       EndDate: this.dateEnd,
       Category: this.categoryId || 0,
       Status: this.statusId || 0,
-      Keyword: this.keyWord || "",
-      IsCancel: this.checked
+      Keyword: this.keyWord || '',
+      IsCancel: this.checked,
     };
-    console.log("request:", request);
-    this.vehicleBookingManagementService.getVehicleBookingManagement(request).subscribe((response: any) => {
-      this.vehicleBookingManagementList = response.data || [];
-      console.log(this.vehicleBookingManagementList);
-      this.drawTable();
-    });
+    console.log('request:', request);
+    this.vehicleBookingManagementService
+      .getVehicleBookingManagement(request)
+      .subscribe((response: any) => {
+        this.vehicleBookingManagementList = response.data || [];
+        console.log(this.vehicleBookingManagementList);
+        this.drawTable();
+      });
   }
-
 
   //#region Drawtable
   private initTable(): void {
@@ -708,189 +763,259 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
     }
 
     if (!this.vehicleBookingManagementTable) {
-      this.vehicleBookingManagementTable = new Tabulator(this.tableElementRef.nativeElement, {
-        ...DEFAULT_TABLE_CONFIG,
-        layout: "fitColumns",
-        paginationMode: 'local',
-        groupBy: (row: any) => row.VehicleInformation || null,
-        groupHeader: (value: string, count: number) => {
-          if (!value) return `Thông tin xe: Chưa có thông tin (${count} dòng)`;
-          return `Thông tin xe: ${value} (${count} dòng)`;
-        },
-        initialSort: [
-          {
-            column: "VehicleInformation",
-            dir: "asc",
+      this.vehicleBookingManagementTable = new Tabulator(
+        this.tableElementRef.nativeElement,
+        {
+          ...DEFAULT_TABLE_CONFIG,
+          layout: 'fitColumns',
+          paginationMode: 'local',
+          groupBy: (row: any) => row.VehicleInformation || null,
+          groupHeader: (value: string, count: number) => {
+            if (!value)
+              return `Thông tin xe: Chưa có thông tin (${count} dòng)`;
+            return `Thông tin xe: ${value} (${count} dòng)`;
           },
-        ],
-        // 👇 Thêm formatter cho hàng - tô màu theo Status
-        rowFormatter: (row: any) => {
-          const data = row.getData();
-          const status = data.Status;
-          const isApprovedTBP = data.IsApprovedTBP;
-          const isProblemArises = data.IsProblemArises;
-          const element = row.getElement();
+          initialSort: [
+            {
+              column: 'VehicleInformation',
+              dir: 'asc',
+            },
+          ],
 
-          // Status == 3 (Hủy xếp) - background đỏ, chữ trắng
-          if (status === 3) {
-            element.style.backgroundColor = "#dc3545"; // Màu đỏ
-            element.style.color = "#ffffff"; // Chữ trắng
-          }
-          // Status == 1 hoặc 4 (Chưa xếp) - background vàng
-          else if (status === 1 || status === 4) {
-            // Nếu !isApprovedTBP && isProblemArises - background xám nhạt
-            if (!isApprovedTBP && isProblemArises) {
-              element.style.backgroundColor = "#d3d3d3"; // Màu xám nhạt
-              element.style.color = ""; // Màu chữ mặc định
-            } else {
-              element.style.backgroundColor = "#ffc107"; // Màu vàng
-              element.style.color = ""; // Màu chữ mặc định
+          // 👇 Thêm formatter cho hàng - tô màu theo Status
+          rowFormatter: (row: any) => {
+            const data = row.getData();
+            const status = data.Status;
+            const isApprovedTBP = data.IsApprovedTBP;
+            const isProblemArises = data.IsProblemArises;
+            const element = row.getElement();
+
+            // Status == 3 (Hủy xếp) - background đỏ, chữ trắng
+            if (status === 3) {
+              element.style.backgroundColor = '#dc3545'; // Màu đỏ
+              element.style.color = '#ffffff'; // Chữ trắng
             }
-          }
-          // Giữ logic cũ cho IsCancel nếu cần
-          else if (data.IsCancel === true) {
-            element.style.backgroundColor = "#ffcccc"; // đỏ nhạt
-          }
-          else {
-            // Reset về mặc định cho các trường hợp khác
-            element.style.backgroundColor = "";
-            element.style.color = "";
-          }
-        },
-        columns: [
-
-          {//create column group
-            cssClass: "group-booking-info",
-            title: "Thông tin đặt xe",
-            columns: [
-              { title: "TBP duyệt", field: "ApprovedTBPText", width: 100 },
-              { title: "Tên TBP duyệt", field: "FullNameTBP", width: 120 },
-              { title: "Lý do phát sinh", field: "ProblemArises", width: 120 },
-              { title: "Hình thức đặt", field: "CategoryText", width: 120 },
-              { title: "Họ tên", field: "FullName", width: 150, bottomCalc: 'count' },
-              { title: "Phòng ban", field: "DepartmentName", width: 120 },
-              { title: "Điểm xuất phát", field: "DepartureAddress", width: 150 },
-              {
-                title: "Thời gian xuất phát",
-                field: "DepartureDate",
-                hozAlign: "center",
-                width: 150,
-                formatter: (cell) => {
-                  const value = cell.getValue();
-                  if (!value) return "";
-                  const date = new Date(value);
-
-                  const dd = String(date.getDate()).padStart(2, "0");
-                  const MM = String(date.getMonth() + 1).padStart(2, "0");
-                  const yyyy = date.getFullYear();
-                  const hh = String(date.getHours()).padStart(2, "0");
-                  const mm = String(date.getMinutes()).padStart(2, "0");
-                  const ss = String(date.getSeconds()).padStart(2, "0");
-
-                  return `${dd}/${MM}/${yyyy} ${hh}:${mm}:${ss}`;
-                }
+            // Status == 1 hoặc 4 (Chưa xếp) - background vàng
+            else if (status === 1 || status === 4) {
+              // Nếu !isApprovedTBP && isProblemArises - background xám nhạt
+              if (!isApprovedTBP && isProblemArises) {
+                element.style.backgroundColor = '#d3d3d3'; // Màu xám nhạt
+                element.style.color = ''; // Màu chữ mặc định
+              } else {
+                element.style.backgroundColor = '#ffc107'; // Màu vàng
+                element.style.color = ''; // Màu chữ mặc định
               }
-              ,
-              {
-                title: "Thời gian xuất phát thực tế", field: "DepartureDateActual", hozAlign: "center", width: 200,
-                formatter: (cell) => {
-                  const value = cell.getValue();
-                  if (!value) return "";
-                  const date = new Date(value);
-
-                  const dd = String(date.getDate()).padStart(2, "0");
-                  const MM = String(date.getMonth() + 1).padStart(2, "0");
-                  const yyyy = date.getFullYear();
-                  const hh = String(date.getHours()).padStart(2, "0");
-                  const mm = String(date.getMinutes()).padStart(2, "0");
-                  const ss = String(date.getSeconds()).padStart(2, "0");
-
-                  return `${dd}/${MM}/${yyyy} ${hh}:${mm}:${ss}`;
-                }
-              },
-              { title: "Ghi chú", field: "Note", width: 300, formatter: 'textarea' },
-              { title: "Loại phương tiện", field: "VehicleTypeText", width: 140 },
-            ],
+            }
+            // Giữ logic cũ cho IsCancel nếu cần
+            else if (data.IsCancel === true) {
+              element.style.backgroundColor = '#ffcccc'; // đỏ nhạt
+            } else {
+              // Reset về mặc định cho các trường hợp khác
+              element.style.backgroundColor = '';
+              element.style.color = '';
+            }
           },
-          {//create column group
-            cssClass: "group-destination",
-            title: "Thông tin điểm đến",
-            columns: [
-              { title: "Tên công ty", field: "CompanyNameArrives", width: 100 },
-              { title: "Tỉnh", field: "ProvinceName", width: 120 },
-              { title: "Địa chỉ cụ thể", field: "SpecificDestinationAddress", width: 160 },
-              {
-                title: "Thời gian cần đến", field: "TimeNeedPresent", width: 160,
-                formatter: (cell) => {
-                  const value = cell.getValue();
-                  if (!value) return "";
-                  const date = new Date(value);
+          columns: [
+            {
+              //create column group
+              cssClass: 'group-booking-info',
+              title: 'Thông tin đặt xe',
+              columns: [
+                { title: 'TBP duyệt', field: 'ApprovedTBPText', width: 100 },
+                { title: 'Tên TBP duyệt', field: 'FullNameTBP', width: 120 },
+                {
+                  title: 'Lý do phát sinh',
+                  field: 'ProblemArises',
+                  width: 120,
+                },
+                { title: 'Hình thức đặt', field: 'CategoryText', width: 120 },
+                {
+                  title: 'Họ tên',
+                  field: 'FullName',
+                  width: 150,
+                  bottomCalc: 'count',
+                },
+                { title: 'Phòng ban', field: 'DepartmentName', width: 120 },
+                {
+                  title: 'Điểm xuất phát',
+                  field: 'DepartureAddress',
+                  width: 150,
+                },
+                {
+                  title: 'Thời gian xuất phát',
+                  field: 'DepartureDate',
+                  hozAlign: 'center',
+                  width: 150,
+                  formatter: (cell) => {
+                    const value = cell.getValue();
+                    if (!value) return '';
+                    const date = new Date(value);
 
-                  const dd = String(date.getDate()).padStart(2, "0");
-                  const MM = String(date.getMonth() + 1).padStart(2, "0");
-                  const yyyy = date.getFullYear();
-                  const hh = String(date.getHours()).padStart(2, "0");
-                  const mm = String(date.getMinutes()).padStart(2, "0");
-                  const ss = String(date.getSeconds()).padStart(2, "0");
+                    const dd = String(date.getDate()).padStart(2, '0');
+                    const MM = String(date.getMonth() + 1).padStart(2, '0');
+                    const yyyy = date.getFullYear();
+                    const hh = String(date.getHours()).padStart(2, '0');
+                    const mm = String(date.getMinutes()).padStart(2, '0');
+                    const ss = String(date.getSeconds()).padStart(2, '0');
 
-                  return `${dd}/${MM}/${yyyy} ${hh}:${mm}:${ss}`;
-                }
-              },
-              {
-                title: "Thời gian về", field: "TimeReturn", width: 150,
-                formatter: (cell) => {
-                  const value = cell.getValue();
-                  if (!value) return "";
-                  const date = new Date(value);
+                    return `${dd}/${MM}/${yyyy} ${hh}:${mm}:${ss}`;
+                  },
+                },
+                {
+                  title: 'Thời gian xuất phát thực tế',
+                  field: 'DepartureDateActual',
+                  hozAlign: 'center',
+                  width: 200,
+                  formatter: (cell) => {
+                    const value = cell.getValue();
+                    if (!value) return '';
+                    const date = new Date(value);
 
-                  const dd = String(date.getDate()).padStart(2, "0");
-                  const MM = String(date.getMonth() + 1).padStart(2, "0");
-                  const yyyy = date.getFullYear();
-                  const hh = String(date.getHours()).padStart(2, "0");
-                  const mm = String(date.getMinutes()).padStart(2, "0");
-                  const ss = String(date.getSeconds()).padStart(2, "0");
+                    const dd = String(date.getDate()).padStart(2, '0');
+                    const MM = String(date.getMonth() + 1).padStart(2, '0');
+                    const yyyy = date.getFullYear();
+                    const hh = String(date.getHours()).padStart(2, '0');
+                    const mm = String(date.getMinutes()).padStart(2, '0');
+                    const ss = String(date.getSeconds()).padStart(2, '0');
 
-                  return `${dd}/${MM}/${yyyy} ${hh}:${mm}:${ss}`;
-                }
-              }
-            ],
-          },
-          {//create column group
-            cssClass: "group-passenger",
-            title: "Thông tin người đi",
-            columns: [
-              { title: "Tên người đi", field: "PassengerName", hozAlign: "center", width: 150 },
-              { title: "SDT Người đi", field: "PassengerPhoneNumber", hozAlign: "center", width: 120 }
-            ],
-          },
-          {//create column group
-            cssClass: "group-delivery",
-            title: "Thông tin hàng giao",
-            columns: [
-              { title: "Tên người giao", field: "DeliverName", width: 150 },
-              { title: "SDT người giao", field: "DeliverPhoneNumber", width: 120 },
-              { title: "Tên người nhận", field: "ReceiverName", width: 120 },
-              { title: "SDT người nhận", field: "ReceiverPhoneNumber", width: 120 },
-              { title: "Tên kiện hàng", field: "PackageName", width: 80 },
-              { title: "Kích thước(cm)", field: "PackageSize", width: 120 },
-              { title: "Cân nặng(kg)", field: "PackageWeight", width: 120 },
-              { title: "Số lượng kiện hàng", field: "PackageQuantity", width: 160 },
-              { title: "Tiền xe", field: "VehicleMoney", width: 200 },
-              { title: "Dự án", field: "ProjectFullName", width: 300 }
-            ],
-          },
-        ]
-      });
+                    return `${dd}/${MM}/${yyyy} ${hh}:${mm}:${ss}`;
+                  },
+                },
+                {
+                  title: 'Ghi chú',
+                  field: 'Note',
+                  width: 300,
+                  formatter: 'textarea',
+                },
+                {
+                  title: 'Loại phương tiện',
+                  field: 'VehicleTypeText',
+                  width: 140,
+                },
+              ],
+            },
+            {
+              //create column group
+              cssClass: 'group-destination',
+              title: 'Thông tin điểm đến',
+              columns: [
+                {
+                  title: 'Tên công ty',
+                  field: 'CompanyNameArrives',
+                  width: 100,
+                },
+                { title: 'Tỉnh', field: 'ProvinceName', width: 120 },
+                {
+                  title: 'Địa chỉ cụ thể',
+                  field: 'SpecificDestinationAddress',
+                  width: 160,
+                },
+                {
+                  title: 'Thời gian cần đến',
+                  field: 'TimeNeedPresent',
+                  width: 160,
+                  formatter: (cell) => {
+                    const value = cell.getValue();
+                    if (!value) return '';
+                    const date = new Date(value);
 
-      this.vehicleBookingManagementTable.on('rowDblClick', (e: any, row: any) => {
-        this.selected = row.getData();
+                    const dd = String(date.getDate()).padStart(2, '0');
+                    const MM = String(date.getMonth() + 1).padStart(2, '0');
+                    const yyyy = date.getFullYear();
+                    const hh = String(date.getHours()).padStart(2, '0');
+                    const mm = String(date.getMinutes()).padStart(2, '0');
+                    const ss = String(date.getSeconds()).padStart(2, '0');
 
-      });
+                    return `${dd}/${MM}/${yyyy} ${hh}:${mm}:${ss}`;
+                  },
+                },
+                {
+                  title: 'Thời gian về',
+                  field: 'TimeReturn',
+                  width: 150,
+                  formatter: (cell) => {
+                    const value = cell.getValue();
+                    if (!value) return '';
+                    const date = new Date(value);
 
-      this.vehicleBookingManagementTable.on("rowSelectionChanged", (data: any[]) => {
-        this.vehicleBookingListId = data;  // Cập nhật danh sách ID được chọn
-        console.log("vehicleBookingListId", this.vehicleBookingListId);
-      });
+                    const dd = String(date.getDate()).padStart(2, '0');
+                    const MM = String(date.getMonth() + 1).padStart(2, '0');
+                    const yyyy = date.getFullYear();
+                    const hh = String(date.getHours()).padStart(2, '0');
+                    const mm = String(date.getMinutes()).padStart(2, '0');
+                    const ss = String(date.getSeconds()).padStart(2, '0');
+
+                    return `${dd}/${MM}/${yyyy} ${hh}:${mm}:${ss}`;
+                  },
+                },
+              ],
+            },
+            {
+              //create column group
+              cssClass: 'group-passenger',
+              title: 'Thông tin người đi',
+              columns: [
+                {
+                  title: 'Tên người đi',
+                  field: 'PassengerName',
+                  hozAlign: 'center',
+                  width: 150,
+                },
+                {
+                  title: 'SDT Người đi',
+                  field: 'PassengerPhoneNumber',
+                  hozAlign: 'center',
+                  width: 120,
+                },
+              ],
+            },
+            {
+              //create column group
+              cssClass: 'group-delivery',
+              title: 'Thông tin hàng giao',
+              columns: [
+                { title: 'Tên người giao', field: 'DeliverName', width: 150 },
+                {
+                  title: 'SDT người giao',
+                  field: 'DeliverPhoneNumber',
+                  width: 120,
+                },
+                { title: 'Tên người nhận', field: 'ReceiverName', width: 120 },
+                {
+                  title: 'SDT người nhận',
+                  field: 'ReceiverPhoneNumber',
+                  width: 120,
+                },
+                { title: 'Tên kiện hàng', field: 'PackageName', width: 80 },
+                { title: 'Kích thước(cm)', field: 'PackageSize', width: 120 },
+                { title: 'Cân nặng(kg)', field: 'PackageWeight', width: 120 },
+                {
+                  title: 'Số lượng kiện hàng',
+                  field: 'PackageQuantity',
+                  width: 160,
+                },
+                { title: 'Tiền xe', field: 'VehicleMoney', width: 200 },
+                { title: 'Dự án', field: 'ProjectFullName', width: 300 },
+              ],
+            },
+          ],
+        }
+      );
+
+      this.vehicleBookingManagementTable.on(
+        'rowDblClick',
+        (e: any, row: any) => {
+          this.selected = row.getData();
+        }
+      );
+
+      this.vehicleBookingManagementTable.on(
+        'rowSelectionChanged',
+        (data: any[]) => {
+          this.vehicleBookingListId = data; // Cập nhật danh sách ID được chọn
+          console.log('vehicleBookingListId', this.vehicleBookingListId);
+        }
+      );
     }
   }
 
@@ -901,7 +1026,9 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
     }
 
     if (this.vehicleBookingManagementTable) {
-      this.vehicleBookingManagementTable.setData(this.vehicleBookingManagementList);
+      this.vehicleBookingManagementTable.setData(
+        this.vehicleBookingManagementList
+      );
     }
   }
 
@@ -909,7 +1036,10 @@ export class VehicleBookingManagementComponent implements OnInit, AfterViewInit 
 
   validatechecked(): boolean {
     if (this.vehicleBookingListId.length === 0) {
-      this.notification.warning('Lỗi', 'Vui lòng chọn ít nhất một dòng để xếp xe!');
+      this.notification.warning(
+        'Lỗi',
+        'Vui lòng chọn ít nhất một dòng để xếp xe!'
+      );
       return false;
     }
 

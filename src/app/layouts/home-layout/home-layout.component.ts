@@ -66,6 +66,7 @@ import {
   MenuService,
 } from '../../pages/systems/menus/menu-service/menu.service';
 import { NOTIFICATION_TITLE } from '../../app.config';
+import { BehaviorSubject } from 'rxjs';
 
 interface dynamicApps {
   MenuName: string;
@@ -163,13 +164,6 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
 
   effect = 'effect';
 
-  // Dữ liệu lịch làm việc tháng
-  // currentMonth = 'Sept 2025';
-  //   calendarDays: number[] = [];
-  //   currentDay = new Date().getDate();
-
-  //   logout() {}
-
   // Dữ liệu danh sách nghỉ và WFH
   employeeOnleaves: any = [];
   employeeWfhs: any = [];
@@ -179,18 +173,6 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
 
   //   date = new Date();
   mode: NzCalendarMode = 'month';
-
-  //   isSunday(date: Date): boolean {
-  //     // console.log(date, date.getDay());
-  //     return date.getDay() === 0;
-  //   }
-
-  //   isCurrentMonth(date: Date): boolean {
-  //     return (
-  //       date.getMonth() === this.today.getMonth() &&
-  //       date.getFullYear() === this.today.getFullYear()
-  //     );
-  //   }
 
   // Dữ liệu hiệu suất công việc theo phòng ban
   departmentPerformance: DepartmentPerformance[] = [
@@ -266,20 +248,6 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
     this.getEmployeeOnleaveAndWFH();
     this.getHoliday(this.today.getFullYear(), this.today.getMonth());
   }
-
-  //   private generateCalendarDays(): void {
-  //     // Tạo dữ liệu lịch cho tháng 9/2025
-  //     // Tháng 9/2025 bắt đầu từ thứ 2 (T2)
-  //     this.calendarDays = [];
-
-  //     // Thêm các ngày trống cho tuần đầu (nếu cần)
-  //     // Tháng 9/2025 bắt đầu từ thứ 2, nên không cần ngày trống
-
-  //     // Thêm các ngày trong tháng
-  //     for (let i = 1; i <= 30; i++) {
-  //       this.calendarDays.push(i);
-  //     }
-  //   }
 
   ngAfterViewInit(): void {}
 
@@ -543,7 +511,9 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
   onPanelChange(change: { date: Date; mode: string }): void {}
 
   openModule(key: string) {
-    localStorage.setItem('openMenuKey', key);
+    // localStorage.setItem('openMenuKey', key);
+    // this.setMenuKey(key);
+    this.menuService.setMenuKey(key);
     this.router.navigate(['/app']); // hoặc route tới MainLayout
   }
 }

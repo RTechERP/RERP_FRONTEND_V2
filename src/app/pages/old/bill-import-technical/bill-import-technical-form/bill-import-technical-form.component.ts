@@ -249,11 +249,15 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         currentId = currentWarehouse?.ID ?? 0;
       }
 
-      console.log('Current WarehouseID:', currentId);
+      console.log('DEBUG getWarehouse - Current WarehouseID:', currentId);
+      console.log('DEBUG getWarehouse - this.warehouseID before:', this.warehouseID);
 
       // Set WarehouseID và disable control để người dùng không thay đổi
       if (currentId > 0) {
         this.formDeviceInfo.patchValue({ WarehouseID: currentId });
+        // Lưu giá trị WarehouseID vào biến instance để sử dụng khi lưu
+        this.warehouseID = currentId;
+        console.log('DEBUG getWarehouse - this.warehouseID after:', this.warehouseID);
         this.formDeviceInfo.get('WarehouseID')?.disable();
       }
     });
@@ -344,9 +348,9 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     // Logic cho StatusPur: chỉ cho edit khi:
     // 1. DeliverID = currentUserID (người giao là người đăng nhập)
     // 2. DepartmentID = 4 HOẶC isAdmin = true
-    this.activePur =
-      this.currentUserID === deliverID ||
-      (this.currentDepartmentID === 4 || this.isAdmin);
+    this.activePur =true;
+      // this.currentUserID === deliverID ||
+      // (this.currentDepartmentID === 4 || this.isAdmin);
 
     console.log('Form Permissions:', {
       deliverID: deliverID,
@@ -1128,6 +1132,13 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     // Sử dụng getRawValue() để lấy cả field bị disable như BillCode
     const formValue = this.formDeviceInfo.getRawValue();
 
+    // Debug: Log giá trị WarehouseID
+    console.log('DEBUG - WarehouseID values:', {
+      fromForm: formValue.WarehouseID,
+      fromInstance: this.warehouseID,
+      finalValue: formValue.WarehouseID || this.warehouseID || 1
+    });
+
     // Validate that all devices have ProductID
     const invalidProduct = this.selectedDevices.find(
       (d: any) => !d.ProductID || d.ProductID <= 0
@@ -1153,13 +1164,22 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         return;
       }
     }
+
+    // Lấy text hiển thị từ dropdown (giống WinForm: cboDeliver.Text, cboReceiver.Text)
+    const deliverEmployee = this.emPloyeeLists.find(e => e.ID === formValue.DeliverID);
+    const receiverEmployee = this.emPloyeeLists.find(e => e.ID === formValue.ReceiverID);
+
+    // Nếu có textbox Deliver thì ưu tiên textbox, không thì lấy từ dropdown
+    const deliverText = formValue.Deliver || deliverEmployee?.FullName || '';
+    const receiverText = receiverEmployee?.FullName || '';
+
     const payload = {
       billImportTechnical: {
         ID: formValue.ID || 0,
         BillCode: formValue.BillCode,
         CreatDate: formValue.CreatDate,
-        Deliver: formValue.Deliver,
-        Receiver: formValue.Receiver || '',
+        Deliver: deliverText,
+        Receiver: receiverText,
         Status: formValue.Status || false,
         Suplier: formValue.Suplier || '',
         BillType: false,
@@ -1169,7 +1189,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         SuplierID: 0,
         GroupTypeID: 0,
         Image: formValue.Image || '',
-        WarehouseID: formValue.WarehouseID || 1,
+        WarehouseID: formValue.WarehouseID || this.warehouseID || 1,
         SupplierSaleID: formValue.SupplierSaleID || 0,
         BillTypeNew: formValue.BillTypeNew || 0,
         IsBorrowSupplier: formValue.IsBorrowSupplier || 0,
@@ -1242,6 +1262,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
           HistoryProductRTCID: device.HistoryProductRTCID || 0,
           ProductRTCQRCodeID: device.ProductRTCQRCodeID || 0,
           EmployeeIDBorrow: device.EmployeeIDBorrow || 0,
+          WarehouseID: formValue.WarehouseID || this.warehouseID || 1,
         };
       }),
       billImportTechDetailSerials: this.selectedDevices
@@ -1254,7 +1275,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
           return serialIDs.map((serialID: number) => ({
             ID: serialID || 0,
             STT: stt,
-            WarehouseID: formValue.WarehouseID || 1,
+            WarehouseID: formValue.WarehouseID || this.warehouseID || 1,
           }));
         })
         .flat(),
@@ -1268,9 +1289,19 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         StatusPurchase: doc.DocumentStatusPur === true ? 1 : 2,
         UpdatedDate: new Date().toISOString(),
       })),
+      PonccID: null, // Sẽ được set khi vớt từ PO sang
     };
 
-    console.log('Payload being sent:', JSON.stringify(payload, null, 2));
+    console.log('========== PAYLOAD BEING SENT ==========');
+    console.log('BillImportTechnical:', {
+      WarehouseID: payload.billImportTechnical.WarehouseID,
+      Deliver: payload.billImportTechnical.Deliver,
+      Receiver: payload.billImportTechnical.Receiver,
+      DeliverID: payload.billImportTechnical.DeliverID,
+      ReceiverID: payload.billImportTechnical.ReceiverID,
+    });
+    console.log('Full Payload:', JSON.stringify(payload, null, 2));
+    console.log('========================================');
 
     this.billImportTechnicalService.saveData(payload).subscribe({
       next: (response: any) => {
@@ -1336,7 +1367,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
                 }
 
                 const value = cell.getValue();
-                
+
                 // Create wrapper div for centering
                 const wrapper = document.createElement('div');
                 wrapper.style.display = 'flex';
@@ -1344,7 +1375,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
                 wrapper.style.alignItems = 'center';
                 wrapper.style.height = '100%';
                 wrapper.style.width = '100%';
-                
+
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
                 checkbox.checked = value === true;

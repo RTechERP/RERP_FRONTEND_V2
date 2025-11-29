@@ -639,6 +639,8 @@ export class BillExportComponent implements OnInit, AfterViewInit {
             hozAlign: 'left',
             headerHozAlign: 'center',
             width: 160,
+
+            bottomCalc: 'count',
           },
           {
             title: 'Phòng ban',
@@ -648,7 +650,6 @@ export class BillExportComponent implements OnInit, AfterViewInit {
             width: 200,
             resizable: true,
             variableHeight: true,
-            bottomCalc: 'count',
           },
           {
             title: 'Mã NV',

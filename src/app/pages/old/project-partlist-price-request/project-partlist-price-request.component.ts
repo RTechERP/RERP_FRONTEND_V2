@@ -1,3 +1,4 @@
+import { DEFAULT_TABLE_CONFIG } from './../../../tabulator-default.config';
 import {
   Component,
   inject,
@@ -118,8 +119,8 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
 
   ngOnInit() {
     this.filters = {
-      dateStart: DateTime.local(2025, 1, 1).toJSDate(), // Lưu dạng Date
-      dateEnd: DateTime.local(2025, 5, 30).toJSDate(), // Lưu dạng Date
+      dateStart: DateTime.local().startOf('month').toJSDate(), // Ngày đầu tháng hiện tại
+      dateEnd: DateTime.local().toJSDate(), // Ngày hiện tại
       statusRequest: 1,
       projectId: 0,
       keyword: '',
@@ -394,10 +395,33 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       console.log('Types:', this.projectTypes);
 
       setTimeout(() => {
-        this.projectTypes.forEach((type) => {
-          this.CreateTableForType(type.ProjectTypeID);
+        // Tạo tables tuần tự để tránh conflict khi load data đồng thời
+        let delay = 0;
+        this.projectTypes.forEach((type, index) => {
+          setTimeout(() => {
+            this.CreateTableForType(type.ProjectTypeID);
+
+            // Sau khi tạo xong table cuối cùng, load dữ liệu cho tất cả các tab
+            if (index === this.projectTypes.length - 1) {
+              setTimeout(() => {
+                this.LoadAllTablesData();
+              }, 500); // Chờ table cuối cùng được tạo xong
+            }
+          }, delay);
+          delay += 300; // Chờ 300ms giữa mỗi table creation
         });
       }, 100);
+    });
+  }
+
+  private LoadAllTablesData(): void {
+    // Load dữ liệu cho tất cả các bảng tuần tự
+    let delay = 0;
+    this.tables.forEach((table) => {
+      setTimeout(() => {
+        table.setData();
+      }, delay);
+      delay += 200; // Chờ 200ms giữa mỗi request
     });
   }
   ToggleSearchPanel() {
@@ -433,15 +457,13 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   public ApplyFilters(): void {
     console.log(this.filters.poKHID);
     // Reload tất cả các table đã được tạo
-    this.tables.forEach((table) => {
-      table.setData();
-    });
+    this.LoadAllTablesData();
   }
 
   public ResetFilters(): void {
     this.filters = {
-      dateStart: DateTime.local(2025, 1, 1).toJSDate(),
-      dateEnd: DateTime.local().toJSDate(),
+      dateStart: DateTime.local().startOf('month').toJSDate(), // Ngày đầu tháng hiện tại
+      dateEnd: DateTime.local().toJSDate(), // Ngày hiện tại
       statusRequest: 1,
       projectId: 0,
       keyword: '',
@@ -452,9 +474,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
     };
 
     // Reload tất cả các table
-    this.tables.forEach((table) => {
-      table.setData();
-    });
+    this.LoadAllTablesData();
   }
 
   public SelectProjectType(typeId: number): void {
@@ -1565,6 +1585,49 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   }
   labels: { [key: number]: string } = {};
   labeln: { [key: number]: string } = {};
+
+  // Custom editor cho số tiền với format en-US
+  moneyEditor(cell: any, onRendered: any, success: any, cancel: any) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.style.width = '100%';
+    input.style.padding = '4px';
+    input.style.boxSizing = 'border-box';
+
+    // Format giá trị hiện tại
+    const currentValue = cell.getValue() || 0;
+    input.value = new Intl.NumberFormat('en-US').format(currentValue);
+
+    // Format khi nhập
+    input.addEventListener('input', (e: any) => {
+      const value = e.target.value.replace(/[^0-9.]/g, '');
+      const numValue = parseFloat(value) || 0;
+      e.target.value = new Intl.NumberFormat('en-US').format(numValue);
+    });
+
+    // Xử lý khi hoàn thành
+    input.addEventListener('blur', () => {
+      const cleanValue = input.value.replace(/[^0-9.]/g, '');
+      success(parseFloat(cleanValue) || 0);
+    });
+
+    input.addEventListener('keydown', (e: any) => {
+      if (e.key === 'Enter') {
+        const cleanValue = input.value.replace(/[^0-9.]/g, '');
+        success(parseFloat(cleanValue) || 0);
+      } else if (e.key === 'Escape') {
+        cancel();
+      }
+    });
+
+    onRendered(() => {
+      input.focus();
+      input.select();
+    });
+
+    return input;
+  }
+
   createLables(
     data: any[],
     keyField: string = 'ID',
@@ -1592,27 +1655,27 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   private GetTableConfig(): any {
     return {
       // data: this.dtprojectPartlistPriceRequest,
-      layout: 'fitDataFill',
-      height: 700,
-      maxheight: '80vh',
+      ...DEFAULT_TABLE_CONFIG,
+      layout: 'fitDataStretch',
+      height:'96%',
       virtualDom: true,
       virtualDomBuffer: 300, // Thêm buffer để giảm lag
 
       // Cải thiện performance
       renderVertical: 'virtual',
       renderHorizontal: 'virtual',
-      rowHeader: {
-        headerSort: false,
-        resizable: false,
-        frozen: true,
-        headerHozAlign: 'center',
-        hozAlign: 'center',
-        formatter: 'rowSelection',
-        titleFormatter: 'rowSelection',
-        cellClick: function (e: any, cell: any) {
-          cell.getRow().toggleSelect();
-        },
-      },
+      // rowHeader: {
+      //   headerSort: false,
+      //   resizable: false,
+      //   frozen: true,
+      //   headerHozAlign: 'center',
+      //   hozAlign: 'center',
+      //   formatter: 'rowSelection',
+      //   titleFormatter: 'rowSelection',
+      //   cellClick: function (e: any, cell: any) {
+      //     cell.getRow().toggleSelect();
+      //   },
+      // },
       ajaxURL: this.PriceRequetsService.getAPIPricerequest(),
       ajaxParams: () => {
         const filters = this.filters;
@@ -1653,13 +1716,15 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       paginationMode: 'remote',
       pagination: true,
       paginationSize: 25,
-      paginationvSizeSelector: [10, 25, 50, 100],
+      paginationSizeSelector: [10, 25, 50, 100],
       paginationInitialPage: 1,
       ajaxResponse: function (url: string, params: any, response: any) {
         // Xử lý dữ liệu trả về từ API
+        const dtData = response.data.dtData || [];
+        const totalPages = dtData.length > 0 ? dtData[0].TotalPage : 1;
         return {
-          data: response.data.dtData,
-          last_page: response.data.totalPages,
+          data: dtData,
+          last_page: totalPages,
         };
       },
       ajaxError: function (xhr: any, textStatus: any, errorThrown: any) {
@@ -1668,18 +1733,18 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           'Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại sau.'
         );
       },
-      langs: {
-        vi: {
-          pagination: {
-            first: '<<',
-            last: '>>',
-            prev: '<',
-            next: '>',
-            page_size: 'Số dòng:',
-          },
-        },
-      },
-      locale: 'vi',
+      // langs: {
+      //   vi: {
+      //     pagination: {
+      //       first: '<<',
+      //       last: '>>',
+      //       prev: '<',
+      //       next: '>',
+      //     },
+      //   },
+      // },
+      // locale: 'vi',
+       columnCalcs: 'both',
       groupBy: 'ProjectFullName',
       groupHeader: function (value: any, count: number, data: any) {
         return `${value} <span>(${count})</span>`;
@@ -1724,11 +1789,10 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           hozAlign: 'center',
           headerSort: false,
           headerHozAlign: 'center',
-          formatter: function (cell: any) {
+formatter: function (cell: any) {
             const value = cell.getValue();
-            return value === true
-              ? '<i class="fa fa-check" style="color:green;"></i>'
-              : '<i style="color:red;" class="fa fa-times"></i>';
+            const checked = value === true || value === 'true' || value === 1 || value === '1';
+            return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
           },
           frozen: true,
           width: 100,
@@ -1753,7 +1817,8 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           headerHozAlign: 'center',
           frozen: true,
           hozAlign: 'left',
-          width: 100,
+          width: 150,
+          bottomCalc:'count'
         },
         {
           title: 'Tên sản phẩm',
@@ -1761,7 +1826,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           headerHozAlign: 'center',
           frozen: true,
           hozAlign: 'left',
-          width: 100,
+          width: 150,
         },
         {
           title: 'Hãng',
@@ -1777,6 +1842,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           hozAlign: 'right',
           headerHozAlign: 'center',
           width: 100,
+          bottomCalc:'sum'
         },
         {
           title: 'ĐVT',
@@ -1790,7 +1856,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           field: 'StatusRequestText',
           headerHozAlign: 'center',
           hozAlign: 'left',
-          width: 100,
+          width: 150,
         },
         {
           title: 'Người yêu cầu',
@@ -1804,7 +1870,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           field: 'FullNameSale',
           headerHozAlign: 'center',
           hozAlign: 'left',
-          width: 100,
+          width: 150,
         },
         {
           title: 'NV báo giá',
@@ -1907,18 +1973,20 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           title: 'Tỷ giá',
           field: 'CurrencyRate',
           headerHozAlign: 'center',
-          width: '10vw',
+          width: '100',
           hozAlign: 'right',
         },
         {
           title: 'Đơn giá',
           field: 'UnitPrice',
           headerHozAlign: 'center',
-          editor: 'input',
+          editor: this.moneyEditor.bind(this),
+          formatter: 'money',
           hozAlign: 'right',
           formatterParams: {
             thousand: ',',
-            precision: 0, // không có số lẻ
+            decimal: '.',
+            precision: 0,
           },
           cellEdited: (cell: any) => this.HandleCellEdited(cell),
           width: 100,
@@ -1927,11 +1995,13 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           title: 'Giá lịch sử',
           field: 'HistoryPrice',
           headerHozAlign: 'center',
-          editor: 'input',
+          editor: this.moneyEditor.bind(this),
+          formatter: 'money',
           hozAlign: 'right',
           formatterParams: {
             thousand: ',',
-            precision: 0, // không có số lẻ
+            decimal: '.',
+            precision: 0,
           },
           width: 100,
         },
@@ -1939,17 +2009,19 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           title: 'Thành tiền chưa VAT',
           field: 'TotalPrice',
           headerHozAlign: 'center',
+          formatter: 'money',
           hozAlign: 'right',
           width: 100,
           formatterParams: {
             thousand: ',',
+            decimal: '.',
             precision: 0,
           },
           bottomCalc: 'sum',
           bottomCalcFormatter: 'money',
-
           bottomCalcFormatterParams: {
             thousand: ',',
+            decimal: '.',
             precision: 0,
           },
         },
@@ -1957,7 +2029,13 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           title: 'Thành tiền quy đổi (VNĐ)',
           field: 'TotalPriceExchange',
           headerHozAlign: 'center',
+          formatter: 'money',
           hozAlign: 'right',
+          formatterParams: {
+            thousand: ',',
+            decimal: '.',
+            precision: 0,
+          },
           width: 100,
         },
         {
@@ -1973,12 +2051,13 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           title: 'Thành tiền có VAT',
           field: 'TotaMoneyVAT',
           headerHozAlign: 'center',
-          editor: 'input',
+          formatter: 'money',
           hozAlign: 'right',
           width: 100,
           formatterParams: {
             thousand: ',',
-            precision: 0, // không có số lẻ
+            decimal: '.',
+            precision: 0,
           },
         },
         {
@@ -2081,14 +2160,14 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           width: 100,
         },
         {
-          title: 'Ghi chú',
+          title: 'Ghi chú Pur',
           field: 'Note',
           headerHozAlign: 'center',
           width: 100,
           hozAlign: 'left',
         },
         {
-          title: 'Ghi chú KT',
+          title: 'Ghi chú (Người Y/C)',
           field: 'NotePartlist',
           width: 200,
           headerHozAlign: 'center',
@@ -2101,14 +2180,30 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           hozAlign: 'left',
           width: 100,
         },
+                {
+          title: 'Mã đặc biệt',
+          field: 'Model',
+          headerHozAlign: 'center',
+          hozAlign: 'left',
+          width: 100,
+        },
+                {
+          title: 'Hàng nhập khẩu',
+          field: 'Model',
+          headerHozAlign: 'center',
+          hozAlign: 'left',
+          width: 100,
+        },
         {
           title: 'Đơn giá xuất xưởng',
           field: 'UnitFactoryExportPrice',
-          editor: 'input',
+          editor: this.moneyEditor.bind(this),
+          formatter: 'money',
           headerHozAlign: 'center',
           formatterParams: {
             thousand: ',',
-            precision: 0, // không có số lẻ
+            decimal: '.',
+            precision: 0,
           },
           width: 100,
           hozAlign: 'right',
@@ -2116,20 +2211,15 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
         {
           title: 'Đơn giá nhập khẩu',
           field: 'UnitImportPrice',
+          editor: this.moneyEditor.bind(this),
+          formatter: 'money',
           headerHozAlign: 'center',
           formatterParams: {
             thousand: ',',
-            precision: 0, // không có số lẻ
+            decimal: '.',
+            precision: 0,
           },
           width: 100,
-          formatter: function (
-            cell: any,
-            formatterParams: any,
-            onRendered: any
-          ) {
-            let value = cell.getValue() || '';
-            return value;
-          },
           cellEdited: (cell: any) => this.HandleCellEdited(cell),
           hozAlign: 'right',
         },
@@ -2138,18 +2228,12 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
           field: 'TotalImportPrice',
           hozAlign: 'right',
           headerHozAlign: 'center',
+          formatter: 'money',
           width: 100,
-          formatter: function (
-            cell: any,
-            formatterParams: any,
-            onRendered: any
-          ) {
-            let value = cell.getValue() || '';
-            return value;
-          },
           formatterParams: {
             thousand: ',',
-            precision: 0, // không có số lẻ
+            decimal: '.',
+            precision: 0,
           },
         },
         {

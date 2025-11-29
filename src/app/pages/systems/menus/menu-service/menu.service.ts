@@ -118,6 +118,7 @@ import { BonusCoefficientComponent } from '../../../old/bonus-coefficient/bonus-
 import { ProductRtcQrCodeComponent } from '../../../old/product-rtc-qr-code/product-rtc-qr-code/product-rtc-qr-code.component';
 import { ProjectPartlistPriceRequestComponent } from '../../../old/project-partlist-price-request/project-partlist-price-request.component';
 import { EmployeeSaleManagerComponent } from '../../../old/employee-sale-manager/employee-sale-manager.component';
+
 import { RequestInvoiceComponent } from '../../../old/request-invoice/request-invoice.component';
 @Injectable({
   providedIn: 'root',
@@ -1122,7 +1123,7 @@ export class MenuService {
           {
             kind: 'leaf',
             key: 'ProjectPartlistPriceRequestComponent',
-            title: 'Yêu cầu mua hàng',
+            title: 'Yêu cầu báo giá',
             isOpen: true,
             isPermission:
               this.permissionService.hasPermission('N33,N35,N1,N36'),

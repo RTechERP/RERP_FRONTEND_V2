@@ -77,14 +77,14 @@
               <img src="assets/icon/action_export_excel_16.png" /> Hủy duyệt
             </button>
 
-       
+
             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onExportExcel()" >
               <nz-icon nzType="file-excel" nzTheme="outline" /> Xuất Phiếu
             </button>
           </div>
         </div>
 
-        <nz-splitter style="height: 87vh;">
+        <nz-splitter nzLayout="vertical" style="height: 87vh;">
           <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
             <div id="dataTableBillExportTechnical" style="height: 100%;"></div>
           </nz-splitter-panel>

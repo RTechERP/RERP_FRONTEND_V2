@@ -28,3 +28,10 @@
 ::ng-deep .ant-select-selection-item {
   color: black !important;
 }
+#customTabContent{
+  height: 90vh;
+}
+.table-container{
+  height: 90vh;
+}
+

@@ -179,154 +179,37 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
         rowContextMenu: rowMenu,
         columns: [
           {
-            title: 'ID',
-            field: 'ID',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'Mã SP',
+            title: 'Mã sản phẩm',
             field: 'ProductCode',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
           },
           {
-            title: 'Tên SP',
+            title: 'Tên sản phẩm',
             field: 'ProductName',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
           },
-          {
-            title: 'Mã nhóm',
-            field: 'ProductGroupName',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
+                    {
+            title: 'Vị trí (Hộp)',
+            field: 'LocationName',
           },
-          {
-            title: 'ĐVT',
-            field: 'UnitCountName',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
+                              {
+            title: 'Vị trí Modula',
+            field: 'ModulaLocationName',
           },
+          // {
+          //   title: 'Mã nhóm',
+          //   field: 'ProductGroupName',
+          //   hozAlign: 'left',
+          //   headerHozAlign: 'center',
+          // },
+
           {
             title: 'Hãng',
             field: 'Maker',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
           },
-          {
-            title: 'Số lượng',
-            field: 'Number',
-            hozAlign: 'right',
-            headerHozAlign: 'center',
-            visible: false,
+                    {
+            title: 'ĐVT',
+            field: 'UnitCountName',
           },
-          {
-            title: 'Serial',
-            field: 'Serial',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            visible: false,
-          },
-          {
-            title: 'Serial Number',
-            field: 'SerialNumber',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            visible: false,
-          },
-          {
-            title: 'Part Number',
-            field: 'PartNumber',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            visible: false,
-          },
-          {
-            title: 'Tình trạng',
-            field: 'StatusProduct',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            formatter: 'tickCross',
-            visible: false,
-          },
-          {
-            title: 'Ngày tạo',
-            field: 'CreateDate',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            formatter: 'datetime',
-            formatterParams: { outputFormat: 'dd/MM/yyyy HH:mm' },
-            visible: false,
-          },
-          {
-            title: 'Người tạo',
-            field: 'CreatedBy',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            visible: false,
-          },
-          {
-            title: 'Vị trí',
-            field: 'LocationName',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'Mã RTC',
-            field: 'ProductCodeRTC',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            visible: false,
-          },
-          {
-            title: 'SL kiểm kê',
-            field: 'SLKiemKe',
-            hozAlign: 'right',
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'Maker',
-            field: 'Maker',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'Công suất',
-            field: 'LampPower',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            visible: false,
-          },
-          {
-            title: 'Wattage',
-            field: 'LampWattage',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            visible: false,
-          },
-          {
-            title: 'Mã HCM',
-            field: 'CodeHCM',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
-            visible: false,
-          },
-          {
-            title: 'SL xuất',
-            field: 'NumberExport',
-            bottomCalc: 'sum',
-            hozAlign: 'right',
-            headerHozAlign: 'center',
-          },
-          {
-            title: 'SL nhập',
-            field: 'NumberImport',
-            bottomCalc: 'sum',
-            hozAlign: 'right',
-            headerHozAlign: 'center',
-          },
-          {
+                    {
             title: 'Đang mượn',
             field: 'NumberBorrowing',
             bottomCalc: 'sum',
@@ -334,48 +217,130 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
             headerHozAlign: 'center',
           },
           {
-            title: 'Tồn thực',
+            title: 'SL trong kho',
             field: 'InventoryReal',
+            bottomCalc: 'sum',
             hozAlign: 'right',
             headerHozAlign: 'center',
-            bottomCalc: 'sum', // tính tổng
           },
           {
-            title: 'Tồn trễ',
+            title: 'SL khách hàng mượn',
+            field: 'QuantityExportMuon',
+            bottomCalc: 'sum',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+          },
+                    {
+            title: 'SL kế toán',
             field: 'InventoryLate',
             bottomCalc: 'sum',
             hozAlign: 'right',
             headerHozAlign: 'center',
           },
-          {
-            title: 'SL quản lý',
+                    {
+            title: 'SL kho quản lý',
             field: 'QuantityManager',
             bottomCalc: 'sum',
             hozAlign: 'right',
             headerHozAlign: 'center',
           },
+          // {
+          //   title: 'SL kiểm kê',
+          //   field: 'SLKiemKe',
+          //   hozAlign: 'right',
+          //   headerHozAlign: 'center',
+          // },
+          {
+            title: 'Phiếu xuất',
+            field: 'NumberExport',
+            bottomCalc: 'sum',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Phiếu nhập',
+            field: 'NumberImport',
+            bottomCalc: 'sum',
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+          },
+{
+            title: 'Tồn kho Modula',
+            field: 'TotalQuantityInArea',
+            bottomCalc: 'sum', // tính tổng
+            hozAlign: 'right',
+            headerHozAlign: 'center',
+          },
+          {
+            title: 'Mã kho HCM',
+            field: 'CodeHCM',
+          },
+                    {
+            title: 'Ảnh',
+            field: 'LocationImg',
+          },
+          {
+            title: 'Tên nhóm',
+            field: 'ProductGroupName',
+          },
+                    {
+            title: 'Mã kế toán',
+            field: 'ProductCodeRTC',
+          },
+          {
+            title: 'Ngày tạo',
+            field: 'CreateDate',
+          },
           {
             title: 'Đồ mượn KH',
-            field: 'BorrowCustomer',
+            field: 'BorrowCustomerText',
             hozAlign: 'center',
             headerHozAlign: 'center',
-            formatter: function (cell: any) {
-              const value = cell.getValue();
-              const checked =
-                value === true ||
-                value === 'true' ||
-                value === 1 ||
-                value === '1';
-              return `<input type="checkbox" ${
-                checked ? 'checked' : ''
-              } style="pointer-events: none; accent-color: #1677ff;" />`;
-            },
+            // formatter: function (cell: any) {
+            //   const value = cell.getValue();
+            //   const checked =
+            //     value === true ||
+            //     value === 'true' ||
+            //     value === 1 ||
+            //     value === '1';
+            //   return `<input type="checkbox" ${
+            //     checked ? 'checked' : ''
+            //   } style="pointer-events: none; accent-color: #1677ff;" />`;
+            // },
+          },
+                    {
+            title: 'Part Number',
+            field: 'PartNumber',
+          },
+                    {
+            title: 'Serial',
+            field: 'SerialNumber',
+          },          {
+            title: 'Code',
+            field: 'Serial',
+          },
+                    {
+            title: 'NCC',
+            field: 'NmaeNCC',
+          },
+                              {
+            title: 'Người nhập',
+            field: 'Deliver',
+          },
+                              {
+            title: 'Mã phiếu nhập',
+            field: 'BillCode',
           },
           {
             title: 'Ghi chú',
             field: 'Note',
-            hozAlign: 'left',
-            headerHozAlign: 'center',
+            width: 400,
+            tooltip: true,
+            formatter: function (cell: any) {
+              const value = cell.getValue();
+              if (!value) return '';
+              return `<div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${value}</div>`;
+            },
           },
         ],
       });

@@ -1,0 +1,128 @@
+<div class="modal-dialog-scrollable">
+  <div class="modal-header bg-primary text-uppercase py-2">
+    <h6 class="modal-title text-white">Chi tiết Leader kiểu dự án</h6>
+    <button
+      type="button"
+      class="btn-close"
+      (click)="closeModal()"
+      aria-label="Close"
+    ></button>
+  </div>
+
+  <div class="modal-body" style="height: 70vh; overflow-y: auto;">
+    <form nz-form [formGroup]="form" nzLayout="vertical" class="g-3 needs-validation was-validated">
+      <!-- Hàng 1: Dự án và Trạng thái -->
+      <div class="row">
+        <div class="col-md-6 pb-3">
+          <nz-form-item>
+            <nz-form-label class="fs-12">
+              Dự án
+              <span class="text-danger ps-1 me-1">*</span>
+            </nz-form-label>
+            <nz-form-control
+              [nzErrorTip]="
+                form.get('projectId')?.invalid &&
+                (form.get('projectId')?.dirty || form.get('projectId')?.touched)
+                  ? 'Vui lòng chọn dự án!'
+                  : undefined
+              "
+            >
+              <nz-select
+                formControlName="projectId"
+                nzPlaceHolder="Chọn dự án"
+                class="fs-12 w-100"
+                nzShowSearch
+                nzAllowClear
+              >
+                @for (item of projects; track $index) {
+                  <nz-option
+                    nzCustomContent="true"
+                    [nzLabel]="item.ProjectName"
+                    [nzValue]="item.ID"
+                  >
+                    {{ item.ProjectCode + " - " + item.ProjectName }}
+                  </nz-option>
+                }
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div class="col-md-6 pb-3">
+          <nz-form-item>
+            <nz-form-label class="fs-12">
+              Trạng thái
+              <span class="text-danger ps-1 me-1">*</span>
+            </nz-form-label>
+            <nz-form-control
+              [nzErrorTip]="
+                form.get('statusId')?.invalid &&
+                (form.get('statusId')?.dirty || form.get('statusId')?.touched)
+                  ? 'Vui lòng chọn trạng thái!'
+                  : undefined
+              "
+            >
+              <nz-select
+                formControlName="statusId"
+                nzPlaceHolder="Chọn trạng thái"
+                class="fs-12 w-100"
+                nzShowSearch
+                nzAllowClear
+              >
+                @for (status of statusList; track $index) {
+                  <nz-option
+                    nzCustomContent="true"
+                    [nzLabel]="status.StatusName"
+                    [nzValue]="status.ID"
+                  >
+                    {{ status.StatusName }}
+                  </nz-option>
+                }
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+
+      <!-- Hàng 2: Hiện trạng -->
+      <div class="row">
+        <div class="col-md-12 pb-3">
+          <nz-form-item>
+            <nz-form-label class="fs-12">Hiện trạng</nz-form-label>
+            <nz-form-control>
+              <textarea
+                nz-input
+                formControlName="currentSituation"
+                placeholder="Nhập hiện trạng"
+                class="fs-12"
+                rows="4"
+              ></textarea>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+
+      <!-- Bảng dữ liệu -->
+      <div class="row">
+        <div class="col-md-12 pb-3">
+          <div class="card">
+            <div class="card-header bg-white p-2">
+              <h6 class="m-0 fs-12">Danh sách</h6>
+            </div>
+            <div class="card-body p-0">
+              <div #tb_ProjectTypeLink style="width: 100%; min-height: 300px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal-footer">
+    <button class="fs-12 btn" nz-button nzDanger (click)="closeModal()">
+      Đóng
+    </button>
+    <button class="fs-12 btn" nz-button nzType="primary" (click)="saveData()">
+      Lưu
+    </button>
+  </div>
+</div>

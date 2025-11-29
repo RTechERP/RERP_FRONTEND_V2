@@ -76,13 +76,6 @@ import { AuthService } from '../../../auth/auth.service';
 //   encapsulation: ViewEncapsulation.None,
 })
 export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
-  // Khai báo format ngày giờ
-  /**
-   console.log(now.toFormat('yyyy-MM-dd')); // 👉 2025-06-05
-    console.log(now.toFormat('dd/MM/yyyy')); // 👉 05/06/2025
-    console.log(now.toFormat('HH:mm:ss dd-MM-yyyy')); // 👉 14:30:59 05-06-2025
-    console.log(now.toFormat('EEEE, dd LLL yyyy')); // 👉 Thursday, 05 Jun 2025
-   */
   @Input() value: string = '';
   @Output() valueChange = new EventEmitter<string>();
 
@@ -208,6 +201,7 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
 
   //#region xử lý bảng danh sách dự án
   drawTbProjects(container: HTMLElement) {
+    const token = localStorage.getItem('token');
     this.tb_projects = new Tabulator(container, {
       // data:[{ID:1}],
       //   height: '100%',
@@ -218,12 +212,15 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
       selectableRows: 1,
       layout:'fitDataStretch',
       height: '85vh',
-      //   pagination: true,
-      //   paginationMode: 'remote',
-      //   paginationSize: 100,
-      //   paginationSizeSelector: [100, 200, 400, 800, 1000],
       ajaxURL: this.projectService.getAPIProjects(),
      ajaxParams: this.getProjectAjaxParams(),
+     ajaxConfig: {
+      method: "GET",
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    },
       ajaxResponse: (url, params, res) => {
         // console.log('total', res.totalPage);
         return {
@@ -420,7 +417,7 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
             },
             {
               title: 'Ngày kết thúc',
-              field: 'PlanDateEnd',
+              field: 'PlanDateEndSummary',
               formatter: function (cell, formatterParams, onRendered) {
                 let value = cell.getValue() || '';
                 const dateTime = DateTime.fromISO(value);
@@ -540,6 +537,7 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
 
   //#region xử lý bảng danh sách hạng mục công việc
   drawTbProjectWorkReports(container: HTMLElement) {
+    const token = localStorage.getItem('token');
     this.tb_projectWorkReports = new Tabulator(container, {
       // ...DEFAULT_TABLE_CONFIG,
       columnDefaults: {
@@ -557,6 +555,13 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
       layout: 'fitDataFill',
       ajaxURL: this.projectService.getProjectItems(),
       ajaxParams: { id: this.projectId },
+      ajaxConfig: {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      },
       ajaxResponse: (url, params, res) => {
         return res.data;
       },
@@ -762,6 +767,7 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
 
   //#region xử lý bảng kiểu dự án
   drawTbProjectTypeLinks(container: HTMLElement) {
+    
     this.tb_projectTypeLinks = new Tabulator(container, {
       columnDefaults: {
         headerWordWrap: true,
@@ -782,7 +788,10 @@ export class ProjectAgvSummaryComponent implements OnInit, AfterViewInit {
           title: 'Chọn',
           field: 'Selected',
           headerHozAlign: 'center',
-          formatter: 'tickCross',
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            return `<input type="checkbox" ${(value === true ? 'checked' : '')} onclick="return false;">`;
+          }
         },
         {
           title: 'Kiểu dự án',

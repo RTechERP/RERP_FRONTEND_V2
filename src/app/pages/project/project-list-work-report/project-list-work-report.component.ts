@@ -282,11 +282,37 @@ export class ProjectListWorkReportComponent implements OnInit, AfterViewInit {
           },
           hozAlign: 'right',
           bottomCalc: 'sum',
+          bottomCalcFormatter: (cell: any) => {
+            const value = cell.getValue();
+            if (value !== null && value !== undefined) {
+              return parseFloat(value).toFixed(2);
+            }
+            return '';
+          },
         },
         {
           title: 'Kết quả',
           field: 'Results',
           headerHozAlign: 'center',
+          width: 300,
+          bottomCalc: (values: any[], data: any[]) => {
+            // Tính tổng số giờ từ cột TotalHours
+            const totalHours = data.reduce((sum: number, row: any) => {
+              const hours = parseFloat(row.TotalHours) || 0;
+              return sum + (isNaN(hours) ? 0 : hours);
+            }, 0);
+            // Tính tổng số ngày = tổng giờ / 8
+            const totalDays = totalHours / 8.0;
+            return totalDays;
+          },
+          bottomCalcFormatter: (cell: any) => {
+            const totalDays = cell.getValue();
+            if (totalDays && totalDays > 0) {
+              return `Tổng số ngày = ${totalDays.toFixed(1)}`;
+            }
+            return '';
+          },
+          hozAlign: 'left',
         },
         {
           title: 'Vấn đề phát sinh',

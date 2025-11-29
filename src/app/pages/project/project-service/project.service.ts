@@ -75,6 +75,10 @@ export class ProjectService {
   getProjectItems(): string {
     return this.urlProject + `get-project-items`;
   }
+  // Load Hạng mục công việc với Observable
+  getProjectItemsData(projectId: number): Observable<any> {
+    return this.http.get<any>(this.urlProject + `get-project-items?id=${projectId}`);
+  }
   // Load lĩnh vực kinh doanh dự án
   getBusinessFields(): Observable<any> {
     return this.http.get<any>(this.urlProject + `get-business-fields`);
@@ -125,6 +129,27 @@ export class ProjectService {
   getAPIProjects(): string {
     return this.urlProject + 'get-projects';
   }
+  // Danh sách dự án với pagination
+  getProjectsPagination(params: any, page: number, size: number): Observable<any> {
+    let httpParams = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString())
+      .set('dateTimeS', params.dateTimeS || '')
+      .set('dateTimeE', params.dateTimeE || '')
+      .set('keyword', params.keyword || '')
+      .set('customerID', params.customerID?.toString() || '0')
+      .set('saleID', params.saleID?.toString() || '0')
+      .set('projectType', params.projectType || '')
+      .set('leaderID', params.leaderID?.toString() || '0')
+      .set('userTechID', params.userTechID?.toString() || '0')
+      .set('pmID', params.pmID?.toString() || '0')
+      .set('globalUserID', params.globalUserID?.toString() || '0')
+      .set('bussinessFieldID', params.bussinessFieldID?.toString() || '0')
+      .set('projectStatus', params.projectStatus || '')
+      .set('isAGV', params.isAGV?.toString() || 'false');
+
+    return this.http.get<any>(this.urlProject + 'get-projects', { params: httpParams });
+  }
   // Lấy chi tiết công việc
   getProjectDetails(id: number): Observable<any> {
     return this.http.get<any>(this.urlProject + `get-project-details?id=${id}`);
@@ -132,6 +157,10 @@ export class ProjectService {
   // lấy chi tiết dự án
   getProject(id: number): Observable<any> {
     return this.http.get<any>(this.urlProject + `get-project?id=${id}`);
+  }
+  // lấy dữ liệu dự án theo ID (API mới)
+  getProjectById(id: number): Observable<any> {
+    return this.http.get<any>(this.urlProject + `get-project-id?id=${id}`);
   }
   // lấy chi tiết dự án
   getProjectStatusById(projectId: number): Observable<any> {
@@ -169,6 +198,12 @@ export class ProjectService {
     return this.http.get<any>(
       this.urlProject +
       `get-project-current-situation?projectId=${projectId}&employeeId=${employeeId}`
+    );
+  }
+  // lấy dữ liệu hiện trạng theo projectID (API mới)
+  getDataByProjectID(projectID: number): Observable<any> {
+    return this.http.get<any>(
+      this.apiUrl + `ProjectCurrentSituation/get-data-by-projectID?projectID=${projectID}`
     );
   }
   // lấy độ ưu tiên cá nhân
@@ -302,17 +337,27 @@ export class ProjectService {
 
   getSelectedRowsRecursive(data: any[]): any[] {
     let selected: any[] = [];
-
+  
     data.forEach((row) => {
-      selected.push(row);
-      selected.push(row);
+      // Chỉ lấy dòng được chọn (Selected === true)
+      if (row.Selected === true) {
+        selected.push({
+          ProjectTypeLinkID: row.ProjectTypeLinkID || row.ID || 0,
+          ID: row.ID,
+          LeaderID: row.LeaderID || 0,
+          Selected: row.Selected,
+          projectTypeID: row.ProjectTypeID || row.ID
+        });
+      }
+      
+      // Đệ quy kiểm tra children
       if (row._children && Array.isArray(row._children)) {
         selected = selected.concat(
           this.getSelectedRowsRecursive(row._children)
         );
       }
     });
-
+  
     return selected;
   }
   // Chức năng người tham gia dự án

@@ -54,6 +54,7 @@ import { ProjectSolutionDetailComponent } from '../project-solution-detail/proje
 import { ProjectWorkerDetailComponent } from '../project-worker-detail/project-worker-detail.component';
 import { max } from 'rxjs';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { HasPermissionDirective } from '../../../../../directives/has-permission.directive';
 import { CommonModule } from '@angular/common';
 import { ImportExcelProjectWorkerComponent } from '../import-excel-project-worker/import-excel-project-worker.component';
@@ -67,6 +68,8 @@ import { BillExportDetailComponent } from '../../../../old/Sale/BillExport/Modal
 import { BillExportService } from '../../../../old/Sale/BillExport/bill-export-service/bill-export.service';
 import { AuthService } from '../../../../../auth/auth.service';
 import { PokhDetailComponent } from '../../../../old/pokh-detail/pokh-detail.component';
+import { FormExportExcelPartlistComponent } from './project-partlist-detail/form-export-excel-partlist/form-export-excel-partlist.component';
+// import { ProjectPartlistPurchaseRequestDetailComponent } from './project-partlist-detail/project-partlist-purchase-request-detail/project-partlist-purchase-request-detail.component';
 @Component({
   selector: 'app-project-worker',
   standalone: true,
@@ -94,6 +97,7 @@ import { PokhDetailComponent } from '../../../../old/pokh-detail/pokh-detail.com
     NzModalModule,
     NzFormModule,
     NzDropDownModule,
+    NzCheckboxModule,
     HasPermissionDirective,
   ],
   templateUrl: './project-part-list.component.html',
@@ -102,7 +106,7 @@ import { PokhDetailComponent } from '../../../../old/pokh-detail/pokh-detail.com
 export class ProjectPartListComponent implements OnInit, AfterViewInit {
   @Input() projectId: number = 0;
   @Input() projectCodex: string = '';
-
+  @Input() projectNameX: string = '';
   //nhận từ POKHDetailComponent
   @Input() project: any;
   @Input() isPOKH: boolean = false;
@@ -111,11 +115,9 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
   @Input() isSelectPartlist: any;
   //0: phiên bản partlist, 1: phiên bản nhân công ( danh cho thêm sửa giải pháp)
   typecheck: number = 0;
-  
   // Callback function để truyền dữ liệu về component cha (khi mở bằng modal)
   @Input() onSelectProductPOCallback?: (data: { listIDInsert: number[], processedData: any[] }) => void;
-  
-  // Biến lưu trữ dữ liệu từ SelectProroductPO để trả về khi đóng modal
+  // Biến lưu trữ dữ liệu từ SelectProroduct để trả về khi đóng modal
   private selectProductPOData: { listIDInsert: number[], processedData: any[] } | null = null;
   constructor(
     private projectService: ProjectService,
@@ -146,13 +148,12 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
   purchaseRequestModalContent!: TemplateRef<any>;
   @ViewChild('deletePartListModalContent', { static: false })
   deletePartListModalContent!: TemplateRef<any>;
-
   @ViewChild('deleteVersionModalContent', { static: false })
   deleteVersionModalContent!: TemplateRef<any>;
-
+  @ViewChild('additionalPartListPOModalContent', { static: false })
+  additionalPartListPOModalContent!: TemplateRef<any>;
   // Biến lưu dòng đang được focus (click)
   private lastClickedPartListRow: any = null;
-
   // Biến cho yêu cầu xuất kho
   warehouses: any[] = [];
   tb_solution: any;
@@ -171,7 +172,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
   searchKeyword: string = '';
   dataProjectWorkerType: any[] = [];
   projectSolutionId: number = 0;
-
   //truyền qua modal
   selectionCode: string = '';
   projectTypeID: number = 0;
@@ -179,7 +179,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
   projectCode: string = '';
   selectionProjectSolutionName: string = '';
   STT: number = 0;
-
   //dành cho nhân công
   isDeleted: number = 0; // -1: Tất cả, 0: Chưa xóa, 1: Đã xóa
   isApprovedTBP: number = -1; // -2: Tất cả, 0: Chưa duyệt, 1: Đã duyệt
@@ -195,15 +194,12 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
   isLoading: boolean = false; // Loading state cho toàn bộ component
   private loadingCounter: number = 0; // Counter để track số lượng request đang chạy
   private loadingTimeout: any = null; // Timeout để đảm bảo loading không bị kẹt
-
-
   ngOnInit(): void {
     this.isDeleted = 0;
     this.isApprovedTBP = -1;
     this.isApprovedPurchase = -1;
     // Không load data ở đây vì bảng chưa được khởi tạo
     // Data sẽ được load sau khi bảng được khởi tạo trong ngAfterViewInit
-
   }
   ngAfterViewInit(): void {
     // Đảm bảo ViewChild đã được khởi tạo bằng cách sử dụng setTimeout
@@ -216,19 +212,15 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       }
       this.drawTbProjectPartListVersionPO();
       this.drawTbProjectPartList();
-      
       // Sau khi bảng đã được khởi tạo, mới load data
       this.loadDataSolution();
-      
       // Load danh sách kho để phục vụ yêu cầu xuất kho
       this.loadWarehouses();
     }, 0);
-    
     this.authService.getCurrentUser().subscribe((user: any) => {
       this.currentUser = user.data;
     });
   }
-
   // Load danh sách kho
   loadWarehouses(): void {
     this.billExportService.getWarehouses().subscribe({
@@ -248,12 +240,10 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
   private startLoading(): void {
     this.loadingCounter++;
     this.isLoading = true;
-    
     // Clear timeout cũ nếu có
     if (this.loadingTimeout) {
       clearTimeout(this.loadingTimeout);
     }
-    
     // Set timeout để đảm bảo loading không bị kẹt quá 30 giây
     this.loadingTimeout = setTimeout(() => {
       console.warn('Loading timeout - force stop loading');
@@ -261,13 +251,11 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       this.isLoading = false;
     }, 30000);
   }
-
   private stopLoading(): void {
     this.loadingCounter--;
     if (this.loadingCounter <= 0) {
       this.loadingCounter = 0;
       this.isLoading = false;
-      
       // Clear timeout khi loading đã dừng
       if (this.loadingTimeout) {
         clearTimeout(this.loadingTimeout);
@@ -275,7 +263,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       }
     }
   }
-
   loadDataSolution(): void {
     // Kiểm tra bảng đã được khởi tạo chưa
     if (!this.tb_solution) {
@@ -283,7 +270,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       setTimeout(() => this.loadDataSolution(), 100);
       return;
     }
-
     this.startLoading();
     this.projectWorkerService.getSolution(this.projectId).subscribe({
       next: (response: any) => {
@@ -334,7 +320,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       setTimeout(() => this.loadDataProjectPartListVersion(), 100);
       return;
     }
-
     this.startLoading();
     this.projectPartListService.getProjectPartListVersion(this.projectSolutionId, false).subscribe({
         next: (response: any) => {
@@ -359,7 +344,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
   searchDataProjectWorker(): void {
     this.loadDataProjectPartList();
   }
-
   loadDataProjectPartListVersionPO(): void {
     // Kiểm tra bảng đã được khởi tạo chưa
     if (!this.tb_projectPartListVersionPO) {
@@ -367,7 +351,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       setTimeout(() => this.loadDataProjectPartListVersionPO(), 100);
       return;
     }
-
     this.startLoading();
     this.projectPartListService.getProjectPartListVersion(this.projectSolutionId, true).subscribe({
       next: (response: any) => {
@@ -397,7 +380,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       setTimeout(() => this.loadDataProjectPartList(), 100);
       return;
     }
-
     // Lấy versionID từ bảng đã chọn
     let selectedVersionID: number = 0;
     let projectTypeID: number = 0;
@@ -433,7 +415,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       // IsDeleted: this.isDeleted || 0,
       // KeyWord: this.keyword || '',
       // versionID: selectedVersionID || 0
-
     };
     console.log('payload', payload);
     this.startLoading();
@@ -441,11 +422,9 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         if (response.status === 1) {
           let rawData = response.data || [];
-
           // Tính tổng theo cây
           const treeData = this.calculateWorkerTree(rawData);
           this.treeWorkerData = treeData; // Lưu lại để dùng cho parent list
-
           // Cập nhật vào Tabulator
           if (this.tb_projectWorker) {
             this.tb_projectWorker.setData(treeData).then(() => {
@@ -475,14 +454,12 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
   updateApprove(action: number): void {
     const isApproved = action === 1;
     const isApprovedText = isApproved ? 'duyệt' : 'hủy duyệt';
-
     // Lấy danh sách vật tư đã chọn
     const selectedRows = this.tb_projectWorker?.getSelectedData();
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.warning('Thông báo', `Vui lòng chọn vật tư cần ${isApprovedText}`);
       return;
     }
-
     // Kiểm tra phiên bản đang sử dụng
     let selectedVersion: any = null;
     if (this.type == 1) {
@@ -508,7 +485,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         return;
       }
     }
-
     // Validate từng vật tư được chọn
     const projectpartlistIDs: number[] = [];
     for (let row of selectedRows) {
@@ -517,22 +493,18 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         this.notification.warning('Thông báo', 'Vui lòng chọn vật tư!');
         return;
       }
-
       // Kiểm tra vật tư đã bị xóa
       if (row.IsDeleted == true) {
         this.notification.warning('Thông báo', `Không thể ${isApprovedText} vì vật tư thứ tự [${row.TT || row.ID}] đã bị xóa!`);
         return;
       }
-
       // Chỉ kiểm tra IsApprovedPurchase khi hủy duyệt
       if (!isApproved && row.IsApprovedPurchase == true) {
         this.notification.warning('Thông báo', `Không thể ${isApprovedText} vì vật tư thứ tự [${row.TT || row.ID}] đã được Yêu cầu mua!`);
         return;
       }
-
       projectpartlistIDs.push(row.ID);
     }
-
     // Gọi API để duyệt/hủy duyệt
     this.projectPartListService.approveProjectPartList(projectpartlistIDs, isApproved).subscribe({
       next: (response: any) => {
@@ -554,12 +526,10 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     });
   }
   //#endregion
-
   //#region Duyệt/Hủy duyệt tích xanh sản phẩm
   approveIsFix(isFix: boolean): void {
     const actionText = isFix ? 'duyệt' : 'hủy duyệt';
     const actionTextCapital = isFix ? 'Duyệt' : 'Hủy duyệt';
-
     // Kiểm tra phiên bản đang sử dụng (giống logic updateApprove)
     let selectedVersion: any = null;
     if (this.type == 1) {
@@ -585,15 +555,12 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         return;
       }
     }
-
     // Lấy dữ liệu từ bảng
     const selectedRows = this.tb_projectWorker?.getSelectedData() || [];
-
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.warning('Thông báo', `Vui lòng chọn vật tư cần ${actionText} tích xanh`);
       return;
     }
-
     // Lọc chỉ lấy các dòng chưa bị xóa (lấy cả node lá và node cha, backend sẽ xử lý)
     // Phân biệt node lá và node cha:
     // - Node cha: có _children và _children.length > 0 (ví dụ: TT = "1" nếu có "1.1", "1.2")
@@ -605,15 +572,12 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         this.notification.warning('Thông báo', `Không thể ${actionText} vì vật tư thứ tự [${row.TT || row.ID}] đã bị xóa!`);
         return false;
       }
-
       return true;
     });
-
     if (validRows.length === 0) {
       this.notification.warning('Thông báo', `Không có vật tư hợp lệ để ${actionText} tích xanh.\nVui lòng chọn các vật tư`);
       return;
     }
-
     // Chuẩn bị payload theo ProjectPartlistDTO structure (lấy cả node lá và node cha)
     // Xác định IsLeaf: node lá = không có _children hoặc _children.length === 0
     const requestItems = validRows.map((row: any) => {
@@ -622,7 +586,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       // Node cha: có _children và _children.length > 0
       const hasChildren = row._children && Array.isArray(row._children) && row._children.length > 0;
       const isLeaf = !hasChildren;
-
       return {
         ID: row.ID || 0,
         ProjectID: row.ProjectID || 0,
@@ -638,11 +601,9 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         IsDeleted: row.IsDeleted || false
       };
     });
-
     // Đếm số lượng và lấy danh sách TT
     const itemCount = requestItems.length;
     const sttList = requestItems.map((item: any) => item.TT).filter((tt: string) => tt).join(', ');
-
     // Hiển thị dialog xác nhận
     this.modal.confirm({
       nzTitle: `Xác nhận ${actionText} tích xanh`,
@@ -655,21 +616,17 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       }
     });
   }
-
   // Hàm xác nhận và gọi API duyệt/hủy duyệt tích xanh
   confirmApproveIsFix(requestItems: any[], isFix: boolean): void {
     console.log('=== SENDING APPROVE IS FIX TO API ===');
     console.log('Request Items:', requestItems);
     console.log('IsFix:', isFix);
-
     this.projectPartListService.approveIsFix(requestItems, isFix).subscribe({
       next: (response: any) => {
         console.log('Response từ approveIsFix API:', response);
-
         if (response.status === 1) {
           const actionText = isFix ? 'Duyệt' : 'Hủy duyệt';
           this.notification.success('Thành công', `${actionText} tích xanh thành công!`);
-
           // Reload dữ liệu sau khi duyệt/hủy duyệt thành công
           this.loadDataProjectPartList();
         } else {
@@ -684,18 +641,15 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     });
   }
   //#endregion
-
   //#region Duyệt/Hủy duyệt mã mới
   approveNewCode(isApproved: boolean): void {
     const isApprovedText = isApproved ? 'duyệt' : 'hủy duyệt';
-
     // Lấy danh sách vật tư đã chọn
     const selectedRows = this.tb_projectWorker?.getSelectedData();
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.warning('Thông báo', `Vui lòng chọn vật tư cần ${isApprovedText} mã mới`);
       return;
     }
-
     // Kiểm tra phiên bản đang sử dụng
     let selectedVersion: any = null;
     if (this.type == 1) {
@@ -721,7 +675,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         return;
       }
     }
-
     // Validate từng vật tư được chọn
     const requestItems: any[] = [];
     for (let row of selectedRows) {
@@ -730,32 +683,26 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         this.notification.warning('Thông báo', 'Vui lòng chọn vật tư hợp lệ!');
         return;
       }
-
       // Kiểm tra vật tư đã bị xóa
       if (row.IsDeleted == true) {
         this.notification.warning('Thông báo', `Không thể ${isApprovedText} vì vật tư thứ tự [${row.TT}] đã bị xóa!`);
         return;
       }
-
       // Xác định IsLeaf
       const isLeaf = !row._children || row._children.length === 0;
-
       // Chỉ xử lý node lá (IsLeaf = true)
       if (!isLeaf) {
         continue;
       }
-
       // Kiểm tra IsNewCode = false và đang duyệt → bỏ qua (theo logic API)
       if (row.IsNewCode == false && isApproved) {
         continue;
       }
-
       // Kiểm tra ProductCode không được rỗng
       if (!row.ProductCode || row.ProductCode.trim() === '') {
         this.notification.warning('Thông báo', `Vật tư thứ tự [${row.TT || row.ID}] không có mã thiết bị!`);
         return;
       }
-
       // Thêm vào danh sách yêu cầu
       requestItems.push({
         ID: row.ID || 0,
@@ -776,17 +723,14 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         UnitPriceQuote: row.UnitPriceQuote || null,
       });
     }
-
     // Kiểm tra có item nào để xử lý không
     if (requestItems.length === 0) {
       this.notification.warning('Thông báo', `Không có vật tư hợp lệ để ${isApprovedText} mã mới.\nVui lòng chọn các vật tư có mã mới (node lá)`);
       return;
     }
-
     // Hiển thị modal xác nhận
     const itemCount = requestItems.length;
     const sttList = requestItems.map((item: any) => item.TT).join(', ');
-
     this.modal.confirm({
       nzTitle: `Xác nhận ${isApprovedText} mã mới`,
       nzContent: `Bạn có chắc chắn muốn ${isApprovedText} mã mới cho ${itemCount} vật tư (Stt: ${sttList})?`,
@@ -799,7 +743,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       }
     });
   }
-
   // Hàm xác nhận và gọi API duyệt/hủy duyệt mã mới
   confirmApproveNewCode(requestItems: any[], isApproved: boolean): void {
     this.projectPartListService.approveNewCode(requestItems, isApproved).subscribe({
@@ -822,18 +765,19 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     });
   }
   //#endregion
-
   //#region yêu cầu báo giá
   // Biến lưu deadline cho modal
   deadlinePriceRequest: Date | null = null;
-
   //#region yêu cầu mua hàng
   // Biến lưu deadline cho modal mua hàng
   deadlinePurchaseRequest: Date | null = null;
   // Biến lưu lý do xóa cho modal xóa partlist
   reasonDeleted: string = '';
   reasonDeletedVersion: string = '';
-
+  // Biến lưu lý do phát sinh cho modal bổ sung PO
+  reasonProblem: string = '';
+  // Biến lưu trạng thái checkbox hàng phát sinh
+  isGeneratedItem: boolean = false;
   requestPriceQuote(): void {
     // Lấy danh sách vật tư đã chọn
     const selectedRows = this.tb_projectWorker?.getSelectedData();
@@ -841,7 +785,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       this.notification.warning('Thông báo', 'Vui lòng chọn vật tư cần yêu cầu báo giá');
       return;
     }
-
     // Kiểm tra phiên bản đang sử dụng
     let selectedVersion: any = null;
     if (this.type == 1) {
@@ -871,7 +814,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         return;
       }
     }
-
     // Validate từng vật tư được chọn
     const requestItems: any[] = [];
     for (let row of selectedRows) {
@@ -880,16 +822,13 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         this.notification.warning('Thông báo', 'Vui lòng chọn vật tư hợp lệ!');
         return;
       }
-
       // Kiểm tra vật tư đã bị xóa
       if (row.IsDeleted == true) {
         this.notification.warning('Thông báo', `Không thể yêu cầu báo giá vì vật tư thứ tự [${row.TT}] đã bị xóa!`);
         return;
       }
-
       // Xác định IsLeaf trước để validate đúng
       const isLeaf = !row._children || row._children.length === 0;
-
       // ===== VALIDATION CHỈ ÁP DỤNG CHO NODE LÁ (giống API) =====
       if (isLeaf) {
         // Kiểm tra IsNewCode và IsApprovedTBPNewCode
@@ -902,35 +841,29 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           this.notification.warning('Thông báo', `Vật tư Stt [${row.TT}] đã được yêu cầu báo giá.\nVui lòng kiểm tra lại!`);
           return;
         }
-
         // Validate các trường bắt buộc theo CheckValidate (CHỈ CHO NODE LÁ)
         if (!row.ProductCode || row.ProductCode.trim() === '') {
           this.notification.warning('Thông báo', `[Mã thiết bị] có số thứ tự [${row.TT}] không được trống!\nVui lòng kiểm tra lại!`);
           return;
         }
-
         if (!row.GroupMaterial || row.GroupMaterial.trim() === '') {
           this.notification.warning('Thông báo', `[Tên vật tư] có số thứ tự [${row.TT}] không được trống!\nVui lòng kiểm tra lại!`);
           return;
         }
-
         if (!row.Manufacturer || row.Manufacturer.trim() === '') {
           this.notification.warning('Thông báo', `[Hãng SX] có số thứ tự [${row.TT}] không được trống!\nVui lòng kiểm tra lại!`);
           return;
         }
-
         if (!row.QtyMin || row.QtyMin <= 0) {
           this.notification.warning('Thông báo', `[Số lượng / 1 máy] có số thứ tự [${row.TT}] phải lớn hơn 0!\nVui lòng kiểm tra lại!`);
           return;
         }
-
         if (!row.QtyFull || row.QtyFull <= 0) {
           this.notification.warning('Thông báo', `[Số lượng tổng] có số thứ tự [${row.TT}] phải lớn hơn 0!\nVui lòng kiểm tra lại!`);
           return;
         }
       }
       // ===== KẾT THÚC VALIDATION CHO NODE LÁ =====
-
       // Thêm vào danh sách yêu cầu
       requestItems.push({
         ID: row.ID,
@@ -948,19 +881,16 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         DeadlinePriceRequest: null // Sẽ được set sau khi chọn ngày
       });
     }
-
     // Reset deadline và mở modal chọn deadline
     this.deadlinePriceRequest = null;
     this.showPriceRequestModal(requestItems);
   }
-
   // Hàm tính ngày deadline tối thiểu (chỉ để disable ngày quá khứ)
   getMinDeadlineDate(): Date {
     const now = new Date();
     const currentHour = now.getHours();
     let minDate = new Date(now);
     minDate.setHours(0, 0, 0, 0);
-    
     // Nếu sau 15h: ngày đầu tiên có thể chọn là 2 ngày tới (ngày kia)
     // Nếu trước 15h: ngày đầu tiên có thể chọn là 1 ngày tới (ngày mai)
     if (currentHour >= 15) {
@@ -968,40 +898,32 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     } else {
       minDate.setDate(minDate.getDate() + 1);
     }
-    
     return minDate;
   }
-
   // Hàm chuyển Thứ 7/Chủ nhật thành Thứ 2 tuần sau
   convertWeekendToMonday(date: Date): Date {
     const result = new Date(date);
     const day = result.getDay();
-    
     // 0 = Chủ nhật, 6 = Thứ 7 -> chuyển sang Thứ 2 tuần sau
     if (day === 0) { // Chủ nhật -> chuyển sang Thứ 2 tuần sau
       result.setDate(result.getDate() + 1);
     } else if (day === 6) { // Thứ 7 -> chuyển sang Thứ 2 tuần sau
       result.setDate(result.getDate() + 2);
     }
-    
     return result;
   }
-
   // Hàm lấy ngày làm việc tiếp theo (T2-T6)
   getNextWorkingDay(date: Date): Date {
     const result = new Date(date);
     const day = result.getDay();
-
     // 0 = CN, 6 = T7
     if (day === 0) { // Chủ nhật -> chuyển sang thứ 2
       result.setDate(result.getDate() + 1);
     } else if (day === 6) { // Thứ 7 -> chuyển sang thứ 2
       result.setDate(result.getDate() + 2);
     }
-
     return result;
   }
-
   // Hàm đếm số ngày cuối tuần giữa ngày hiện tại và deadline
   countWeekendDays(startDate: Date, endDate: Date): number {
     let count = 0;
@@ -1009,47 +931,37 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     const end = new Date(endDate);
     start.setHours(0, 0, 0, 0);
     end.setHours(0, 0, 0, 0);
-
     // Tính số ngày giữa start và end
     const timeSpan = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-
     // Đếm số ngày cuối tuần
     for (let i = 0; i <= timeSpan; i++) {
       const dateValue = new Date(start);
       dateValue.setDate(dateValue.getDate() + i);
       const dayOfWeek = dateValue.getDay();
-
       // 0 = Chủ nhật, 6 = Thứ 7
       if (dayOfWeek === 0 || dayOfWeek === 6) {
         count++;
       }
     }
-
     return count;
   }
-
   // Hàm disable các ngày không hợp lệ trong date picker
   // Chỉ disable ngày quá khứ, cho phép chọn Thứ 7 và Chủ nhật (sẽ tự động chuyển thành Thứ 2 tuần sau)
   disabledDate = (current: Date): boolean => {
     if (!current) {
       return false;
     }
-
     const minDate = this.getMinDeadlineDate();
     minDate.setHours(0, 0, 0, 0);
-
     const currentDate = new Date(current);
     currentDate.setHours(0, 0, 0, 0);
-    
     // Chỉ disable nếu trước ngày tối thiểu (không disable Thứ 7 và Chủ nhật)
     return currentDate < minDate;
   };
-
   // Hiển thị modal chọn deadline
   showPriceRequestModal(requestItems: any[]): void {
     const ttList = requestItems.map((item: any) => item.STT).join(', ');
     const itemCount = requestItems.length;
-
     this.modal.confirm({
       nzTitle: 'Yêu cầu báo giá',
       nzContent: this.priceRequestModalContent,
@@ -1064,7 +976,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         this.deadlinePriceRequest = null;
       }
     });
-
     // Sau khi modal mở, cập nhật nội dung động
     setTimeout(() => {
       const modalData = {
@@ -1074,7 +985,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       this.cdr.detectChanges();
     }, 0);
   }
-
   // Validate và xác nhận deadline (có thể trả về Promise để xử lý modal lồng nhau)
   validateAndConfirmDeadline(requestItems: any[]): Promise<boolean> {
     return new Promise((resolve, reject) => {
@@ -1084,37 +994,30 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         resolve(false); // Không đóng modal
         return;
       }
-
       // Kiểm tra deadline có hợp lệ không
       const minDate = this.getMinDeadlineDate();
       minDate.setHours(0, 0, 0, 0);
       let selectedDate = new Date(this.deadlinePriceRequest);
       selectedDate.setHours(0, 0, 0, 0);
-
       if (selectedDate < minDate) {
         this.notification.warning('Thông báo', 'Deadline phải từ ' + minDate.toLocaleDateString('vi-VN') + ' trở đi!');
         resolve(false);
         return;
       }
-
       // Nếu chọn Thứ 7 hoặc Chủ nhật, tự động chuyển thành Thứ 2 tuần sau
       const day = selectedDate.getDay();
       const originalDate = new Date(selectedDate);
       let wasConverted = false;
-      
       if (day === 0 || day === 6) {
         selectedDate = this.convertWeekendToMonday(selectedDate);
         wasConverted = true;
       }
-
       // Cập nhật deadline với giá trị đã chuyển đổi
       this.deadlinePriceRequest = selectedDate;
-
       // Đếm số ngày cuối tuần giữa hôm nay và deadline
       const now = new Date();
       now.setHours(0, 0, 0, 0);
       const countWeekend = this.countWeekendDays(now, selectedDate);
-
       // Nếu có ngày cuối tuần hoặc đã chuyển đổi từ Thứ 7/CN, hiển thị thông báo xác nhận
       if (countWeekend > 0 || wasConverted) {
         let message = '';
@@ -1127,7 +1030,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           const deadlineStr = selectedDate.toLocaleDateString('vi-VN');
           message = `Deadline sẽ không tính Thứ 7 và Chủ nhật (có ${countWeekend} ngày cuối tuần).\nBạn có chắc muốn chọn Deadline là ngày [${deadlineStr}] không?`;
         }
-        
         this.modal.confirm({
           nzTitle: 'Xác nhận Deadline',
           nzContent: message,
@@ -1153,23 +1055,19 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       }
     });
   }
-
   // Hàm gán deadline vào các items trong payload
   assignDeadlineToItems(requestItems: any[]): void {
     if (!this.deadlinePriceRequest) {
       console.error('Deadline is null or undefined');
       return;
     }
-
     // Convert Date sang ISO string để gửi lên API
     // Backend ASP.NET Core sẽ tự động parse ISO string thành DateTime
     const deadlineISO = new Date(this.deadlinePriceRequest).toISOString();
-
     requestItems.forEach((item: any) => {
       // Gán deadline vào đúng trường DeadlinePriceRequest
       item.DeadlinePriceRequest = deadlineISO;
     });
-
     console.log('Deadline assigned to items:', {
       selectedDate: this.deadlinePriceRequest,
       isoFormat: deadlineISO,
@@ -1177,7 +1075,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       sampleItem: requestItems[0]
     });
   }
-
   // Hàm xác nhận và gọi API
   confirmPriceRequest(requestItems: any[]): void {
     // Log payload trước khi gửi API để debug
@@ -1187,7 +1084,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     console.log('Sample item:', requestItems[0]);
     console.log('DeadlinePriceRequest value:', requestItems[0]?.DeadlinePriceRequest);
     console.log('====================================');
-
     this.projectPartListService.requestPrice(requestItems).subscribe({
       next: (response: any) => {
         console.log('API Response:', response);
@@ -1217,7 +1113,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     });
   }
   //#endregion
-
   //#region hủy yêu cầu báo giá
   cancelPriceRequest(): void {
     // Lấy danh sách vật tư đã chọn
@@ -1226,14 +1121,12 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       this.notification.warning('Thông báo', 'Vui lòng chọn vật tư cần hủy yêu cầu báo giá');
       return;
     }
-
     // Lấy thông tin user hiện tại
     const currentUser = this.appUserService.currentUser;
     if (!currentUser) {
       this.notification.error('Lỗi', 'Không thể lấy thông tin người dùng');
       return;
     }
-
     // Validate và chuẩn bị payload
     const requestItems: any[] = [];
     for (let row of selectedRows) {
@@ -1241,27 +1134,22 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       if (!row.ID || row.ID <= 0) {
         continue; // Bỏ qua nếu ID không hợp lệ
       }
-
       // Xác định IsLeaf
       const isLeaf = !row._children || row._children.length === 0;
-
       // Bỏ qua TẤT CẢ node cha (mọi cấp) - chỉ xử lý node lá
       if (!isLeaf) {
         continue;
       }
-
       // Kiểm tra đã yêu cầu báo giá chưa (StatusPriceRequest > 0)
       if (!row.StatusPriceRequest || row.StatusPriceRequest <= 0) {
         this.notification.warning('Thông báo', `Vật tư Stt [${row.TT}] chưa được yêu cầu báo giá.\nKhông thể hủy yêu cầu báo giá!`);
         return;
       }
-
       // Kiểm tra phòng mua đã check giá chưa
       if (row.IsCheckPrice === true) {
         this.notification.warning('Thông báo', `Phòng mua đã check giá sản phẩm Stt [${row.TT}].\nBạn không thể hủy y/c báo giá`);
         return;
       }
-
       // Kiểm tra quyền: chỉ người tạo yêu cầu hoặc admin mới được hủy
       if (row.EmployeeIDRequestPrice &&
           row.EmployeeIDRequestPrice !== currentUser.EmployeeID &&
@@ -1269,7 +1157,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         this.notification.warning('Thông báo', `Bạn không thể hủy yêu cầu báo giá của người khác!`);
         return;
       }
-
       // Thêm vào danh sách yêu cầu hủy
       requestItems.push({
         ID: row.ID,
@@ -1279,17 +1166,14 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         EmployeeIDRequestPrice: row.EmployeeIDRequestPrice || null
       });
     }
-
     // Kiểm tra có item nào để hủy không
     if (requestItems.length === 0) {
       this.notification.warning('Thông báo', 'Không có vật tư hợp lệ để hủy yêu cầu báo giá.\nVui lòng chọn các vật tư đã được yêu cầu báo giá (node lá)');
       return;
     }
-
     // Hiển thị modal xác nhận
     const itemCount = requestItems.length;
     const sttList = requestItems.map((item: any) => item.STT).join(', ');
-
     this.modal.confirm({
       nzTitle: 'Xác nhận hủy yêu cầu báo giá',
       nzContent: `Bạn có chắc chắn muốn hủy yêu cầu báo giá cho ${itemCount} vật tư (Stt: ${sttList})?`,
@@ -1302,13 +1186,11 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       }
     });
   }
-
   // Hàm xác nhận và gọi API hủy yêu cầu báo giá
   confirmCancelPriceRequest(requestItems: any[]): void {
     console.log('=== SENDING CANCEL PRICE REQUEST TO API ===');
     console.log('Total items:', requestItems.length);
     console.log('Payload:', JSON.stringify(requestItems, null, 2));
-
     this.projectPartListService.cancelPriceRequest(requestItems).subscribe({
       next: (response: any) => {
         console.log('API Response:', response);
@@ -1337,7 +1219,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     });
   }
   //#endregion
-
   //#region yêu cầu mua hàng
   requestPurchase(): void {
     // Lấy danh sách vật tư đã chọn
@@ -1346,7 +1227,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       this.notification.warning('Thông báo', 'Vui lòng chọn vật tư cần yêu cầu mua hàng');
       return;
     }
-
     // Kiểm tra phiên bản đang sử dụng
     let selectedVersion: any = null;
     let projectTypeID: number = 0;
@@ -1375,7 +1255,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         return;
       }
     }
-
     // Validate từng vật tư được chọn
     const requestItems: any[] = [];
     for (let row of selectedRows) {
@@ -1384,39 +1263,32 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         this.notification.warning('Thông báo', 'Vui lòng chọn vật tư hợp lệ!');
         return;
       }
-
       // Kiểm tra vật tư đã bị xóa
       if (row.IsDeleted == true) {
         this.notification.warning('Thông báo', `Không thể yêu cầu mua hàng vì vật tư thứ tự [${row.TT || row.STT || row.ID}] đã bị xóa!`);
         return;
       }
-
       // Xác định IsLeaf
       const isLeaf = !row._children || row._children.length === 0;
-
       // Chỉ xử lý node lá
       if (!isLeaf) {
         continue;
       }
-
       // Kiểm tra đã được TBP duyệt chưa
       if (row.IsApprovedTBP == false) {
         this.notification.warning('Thông báo', `Không thể yêu cầu mua hàng vì vật tư thứ tự [${row.TT || row.STT || row.ID}] chưa được TBP duyệt!`);
         return;
       }
-
       // Kiểm tra đã được TBP duyệt mới chưa (nếu là mã mới)
       if (row.IsNewCode == true && row.IsApprovedTBPNewCode == false) {
         this.notification.warning('Thông báo', `Không thể yêu cầu mua hàng vì vật tư thứ tự [${row.TT || row.STT || row.ID}] chưa được TBP duyệt mới!`);
         return;
       }
-
       // Kiểm tra đã được yêu cầu mua chưa
       if (row.IsApprovedPurchase == true) {
         this.notification.warning('Thông báo', `Vật tư thứ tự [${row.TT || row.STT || row.ID}] đã được Y/c mua.\nVui lòng kiểm tra lại!`);
         return;
       }
-
       // Thêm vào danh sách yêu cầu
       requestItems.push({
         ID: row.ID,
@@ -1437,23 +1309,19 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         UnitMoney: row.UnitMoney || ""
       });
     }
-
     // Kiểm tra có item nào để yêu cầu không
     if (requestItems.length === 0) {
       this.notification.warning('Thông báo', 'Không có vật tư hợp lệ để yêu cầu mua hàng.\nVui lòng chọn các vật tư đã được TBP duyệt (node lá)');
       return;
     }
-
     // Reset deadline và mở modal chọn deadline
     this.deadlinePurchaseRequest = null;
     this.showPurchaseRequestModal(requestItems, projectTypeID);
   }
-
   // Hiển thị modal chọn deadline mua hàng
   showPurchaseRequestModal(requestItems: any[], projectTypeID: number): void {
     const ttList = requestItems.map((item: any) => item.STT || item.TT).join(', ');
     const itemCount = requestItems.length;
-
     this.modal.confirm({
       nzTitle: 'Yêu cầu mua hàng',
       nzContent: this.purchaseRequestModalContent,
@@ -1468,57 +1336,45 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         this.deadlinePurchaseRequest = null;
       }
     });
-
     // Sau khi modal mở, cập nhật nội dung động
     setTimeout(() => {
       this.cdr.detectChanges();
     }, 0);
   }
-
   // Hàm tính ngày deadline tối thiểu cho mua hàng
   getMinDeadlinePurchaseDate(): Date {
     const now = new Date();
     const currentHour = now.getHours();
-
     // Nếu sau 15h, bắt đầu từ ngày mai + 2 ngày
     // Nếu trước 15h, bắt đầu từ hôm nay + 2 ngày
     let minDays = 2;
     let startDate = new Date(now);
-
     if (currentHour >= 15) {
       // Sau 15h: bắt đầu từ ngày mai
       startDate.setDate(startDate.getDate() + 1);
     }
-
     // Thêm 2 ngày làm việc
     startDate.setDate(startDate.getDate() + minDays);
-
     // Đảm bảo là ngày làm việc (T2-T6)
     return this.getNextWorkingDay(startDate);
   }
-
   // Hàm disable các ngày không hợp lệ trong date picker mua hàng
   disabledDatePurchase = (current: Date): boolean => {
     if (!current) {
       return false;
     }
-
     const minDate = this.getMinDeadlinePurchaseDate();
     minDate.setHours(0, 0, 0, 0);
-
     const currentDate = new Date(current);
     currentDate.setHours(0, 0, 0, 0);
-
     // Disable nếu trước ngày tối thiểu
     if (currentDate < minDate) {
       return true;
     }
-
     // Disable thứ 7 và chủ nhật
     const day = currentDate.getDay();
     return day === 0 || day === 6;
   };
-
   // Validate và xác nhận deadline mua hàng
   validateAndConfirmPurchaseDeadline(requestItems: any[], projectTypeID: number): Promise<boolean> {
     return new Promise((resolve, reject) => {
@@ -1528,17 +1384,14 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         resolve(false);
         return;
       }
-
       const now = new Date();
       const selectedDate = new Date(this.deadlinePurchaseRequest);
       selectedDate.setHours(0, 0, 0, 0);
       const today = new Date(now);
       today.setHours(0, 0, 0, 0);
-
       // Tính số ngày (timeSpan) - giống logic WinForm: (deadline.Date - dateNow.Date).TotalDays + 1
       const timeSpan = Math.ceil((selectedDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) + 1;
       const currentHour = now.getHours();
-
       // Validation 1: Kiểm tra số ngày tối thiểu
       if (currentHour < 15) {
         // Trước 15h: deadline phải >= 2 ngày
@@ -1555,7 +1408,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           return;
         }
       }
-
       // Validation 2: Kiểm tra deadline phải là ngày làm việc (T2-T6)
       const day = selectedDate.getDay();
       if (day === 0 || day === 6) {
@@ -1563,15 +1415,12 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         resolve(false);
         return;
       }
-
       // Validation 3: Đếm số ngày cuối tuần trong khoảng thời gian
       const countWeekend = this.countWeekendDays(today, selectedDate);
-
       // Nếu có ngày cuối tuần, hiển thị thông báo xác nhận
       if (countWeekend > 0) {
         const deadlineStr = selectedDate.toLocaleDateString('vi-VN');
         const message = `Deadline sẽ không tính Thứ 7 và Chủ nhật (có ${countWeekend} ngày cuối tuần).\nBạn có chắc muốn chọn Deadline là ngày [${deadlineStr}] không?`;
-
         this.modal.confirm({
           nzTitle: 'Xác nhận Deadline',
           nzContent: message,
@@ -1597,31 +1446,25 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       }
     });
   }
-
   // Hàm gán deadline vào các items trong payload
   assignDeadlineToPurchaseItems(requestItems: any[]): void {
     if (!this.deadlinePurchaseRequest) {
       console.error('Deadline is null or undefined');
       return;
     }
-
     // Convert Date sang ISO string để gửi lên API
     const deadlineISO = new Date(this.deadlinePurchaseRequest).toISOString();
-
     requestItems.forEach((item: any) => {
       item.DeadlinePur = deadlineISO;
     });
   }
-
   // Hàm xác nhận và gọi API yêu cầu mua hàng
   confirmPurchaseRequest(requestItems: any[], projectTypeID: number): void {
     console.log('=== SENDING PURCHASE REQUEST TO API ===');
     console.log('Total items:', requestItems.length);
     console.log('Payload:', JSON.stringify(requestItems, null, 2));
-
     const projectSolutionID = this.projectSolutionId || 0;
     const projectID = this.projectId || 0;
-
     this.projectPartListService.approvePurchaseRequest(requestItems, true, projectTypeID, projectSolutionID, projectID).subscribe({
       next: (response: any) => {
         console.log('API Response:', response);
@@ -1640,7 +1483,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       }
     });
   }
-
   // Hàm hủy yêu cầu mua hàng
   cancelPurchaseRequest(): void {
     // Lấy danh sách vật tư đã chọn
@@ -1649,7 +1491,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       this.notification.warning('Thông báo', 'Vui lòng chọn vật tư cần hủy yêu cầu mua hàng');
       return;
     }
-
     // Kiểm tra phiên bản đang sử dụng
     let selectedVersion: any = null;
     let projectTypeID: number = 0;
@@ -1670,7 +1511,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       selectedVersion = versionRows[0];
       projectTypeID = selectedVersion.ProjectTypeID || 0;
     }
-
     // Validate và chuẩn bị payload
     const requestItems: any[] = [];
     for (let row of selectedRows) {
@@ -1678,21 +1518,17 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       if (!row.ID || row.ID <= 0) {
         continue;
       }
-
       // Xác định IsLeaf
       const isLeaf = !row._children || row._children.length === 0;
-
       // Bỏ qua TẤT CẢ node cha - chỉ xử lý node lá
       if (!isLeaf) {
         continue;
       }
-
       // Kiểm tra đã được yêu cầu mua chưa
       if (!row.IsApprovedPurchase || row.IsApprovedPurchase == false) {
         this.notification.warning('Thông báo', `Vật tư Stt [${row.STT || row.TT || row.ID}] chưa được yêu cầu mua hàng.\nKhông thể hủy yêu cầu mua hàng!`);
         return;
       }
-
       // Thêm vào danh sách yêu cầu hủy
       requestItems.push({
         ID: row.ID,
@@ -1702,17 +1538,14 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         IsApprovedPurchase: row.IsApprovedPurchase || false
       });
     }
-
     // Kiểm tra có item nào để hủy không
     if (requestItems.length === 0) {
       this.notification.warning('Thông báo', 'Không có vật tư hợp lệ để hủy yêu cầu mua hàng.\nVui lòng chọn các vật tư đã được yêu cầu mua hàng (node lá)');
       return;
     }
-
     // Hiển thị modal xác nhận
     const itemCount = requestItems.length;
     const sttList = requestItems.map((item: any) => item.STT || item.TT).join(', ');
-
     this.modal.confirm({
       nzTitle: 'Xác nhận hủy yêu cầu mua hàng',
       nzContent: `Bạn có chắc chắn muốn hủy yêu cầu mua hàng cho ${itemCount} vật tư (Stt: ${sttList})?`,
@@ -1725,16 +1558,13 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       }
     });
   }
-
   // Hàm xác nhận và gọi API hủy yêu cầu mua hàng
   confirmCancelPurchaseRequest(requestItems: any[], projectTypeID: number): void {
     console.log('=== SENDING CANCEL PURCHASE REQUEST TO API ===');
     console.log('Total items:', requestItems.length);
     console.log('Payload:', JSON.stringify(requestItems, null, 2));
-
     const projectSolutionID = this.projectSolutionId || 0;
     const projectID = this.projectId || 0;
-
     this.projectPartListService.approvePurchaseRequest(requestItems, false, projectTypeID, projectSolutionID, projectID).subscribe({
       next: (response: any) => {
         console.log('API Response:', response);
@@ -1763,7 +1593,18 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     });
   }
   //#endregion
-
+  openFormExportExcelPartlist(): void {
+    const modalRef = this.ngbModal.open(FormExportExcelPartlistComponent, {
+      centered: true,
+      windowClass: 'full-screen-modal',
+      keyboard: false,
+    });
+    modalRef.componentInstance.projectId = this.projectId;
+    modalRef.componentInstance.projectCode = this.projectCodex || '';
+    modalRef.componentInstance.projectName = this.projectNameX || '';
+    modalRef.componentInstance.versionPOID = this.versionPOID;
+    modalRef.componentInstance.partListData = this.tb_projectWorker?.getData('tree') || [];
+  }
   //#region open modal import excel nhân công
   openImportExcelProjectPartList(): void {
     const modalRef = this.ngbModal.open(ImportExcelPartlistComponent, {
@@ -1788,26 +1629,22 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
   //#region export excel vật tư
   async onExportExcel(): Promise<void> {
     if (!this.tb_projectWorker) return;
-
     const treeData = this.tb_projectWorker.getData('tree');
     if (!treeData || treeData.length === 0) {
       this.notification.warning('Thông báo', 'Không có dữ liệu để xuất Excel!');
       return;
     }
-
     // Lấy thông tin từ các bảng đã chọn (theo logic WinForm)
     let codeSolution = '';
     let versionCode = '';
     let partlistVersionID = 0;
     let partListTypeID = 0;
     let projectTypeName = '';
-
     // Lấy CodeSolution từ bảng giải pháp
     const solutionSelected = this.tb_solution?.getSelectedData();
     if (solutionSelected && solutionSelected.length > 0) {
       codeSolution = solutionSelected[0].CodeSolution || solutionSelected[0].Code || '';
     }
-
     // Lấy thông tin version từ bảng đã chọn (GP hoặc PO)
     if (this.type === 1) {
       // Giải pháp (GP)
@@ -1830,18 +1667,14 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         projectTypeName = `${codeSolution}_PO_${versionCode}_${typeName}`;
       }
     }
-
     // Nếu không có thông tin version, dùng thông tin mặc định
     if (!projectTypeName) {
       projectTypeName = this.projectTypeName || 'PartList';
     }
-
     // Tạo tên file theo format WinForm: DanhMucVatTuDuAn_{projectCode}_{projectTypeName}.xlsx
     const fileName = `DanhMucVatTuDuAn_${this.projectCodex || 'Project'}_${projectTypeName}.xlsx`;
-
     // Lấy tất cả columns từ Tabulator
     const allColumns = this.tb_projectWorker.getColumns();
-
     // Hàm flatten các nested columns (group columns) để lấy tất cả cột con
     const flattenColumns = (columns: any[]): any[] => {
       const result: any[] = [];
@@ -1868,16 +1701,13 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       });
       return result;
     };
-
     // Flatten các nested columns
     const flattenedCols = flattenColumns(allColumns);
-
     // Filter: bỏ cột rowSelection và các cột không có field
     const visibleColumns = flattenedCols.filter((col: any) => {
       try {
         const colDef = col.getDefinition();
         const field = col.getField ? col.getField() : colDef.field;
-
         // Bỏ cột rowSelection
         if (colDef.formatter === 'rowSelection' || colDef.title === 'rowSelection' || field === 'rowSelection') {
           return false;
@@ -1888,11 +1718,9 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         return false;
       }
     });
-
     // Sử dụng visibleColumns từ getColumns() thay vì flattenColumns
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Danh mục vật tư');
-
     // === HEADER ===
     const headerRow = worksheet.addRow(
       visibleColumns.map((col: any) => {
@@ -1904,23 +1732,18 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD700' } };
     headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
     headerRow.height = 25;
-
     // === Hàm thêm node (đệ quy) ===
     const addNodeToSheet = (node: any, level: number = 0) => {
       const row = worksheet.addRow([]);
-
       visibleColumns.forEach((col: any, idx: number) => {
         const field = col.getField ? col.getField() : col.getDefinition().field;
         let value = node[field] ?? '';
-
         const cell = row.getCell(idx + 1);
         cell.font = { name: 'Times New Roman', size: 11 };
-
         // 1. Thụt lề cho cột TT (tree structure)
         if (field === 'TT' && level > 0) {
           value = '  '.repeat(level * 2) + (value || '');
         }
-
         // 2. Xử lý ngày tháng
         if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
           try {
@@ -1933,7 +1756,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             // Giữ nguyên giá trị string nếu không parse được
           }
         }
-
         // 3. Format các cột tiền tệ (sử dụng formatMoney đã có)
         const moneyFields = ['Price', 'Amount', 'UnitPriceQuote', 'TotalPriceQuote1',
                             'UnitPricePurchase', 'TotalPricePurchase',
@@ -1949,7 +1771,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             value = '';
           }
         }
-
         // 4. Cột số: format số thập phân
         const numberFields = ['QtyMin', 'QtyFull', 'VAT', 'CurrencyRateQuote', 'CurrencyRatePurchase',
           'QuantityReturn', 'TotalExport', 'RemainQuantity',
@@ -1964,7 +1785,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             value = '';
           }
         }
-
         // 5. Format checkbox fields (boolean)
         const checkboxFields = ['IsFix', 'IsApprovedTBPText', 'IsNewCode', 'IsApprovedTBPNewCode',
           'IsApprovedPurchase', 'IsCheckPrice'];
@@ -1975,13 +1795,11 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             value = '';
           }
         }
-
         // 6. Áp dụng màu nền theo logic trong bảng
         const hasChildren = node._children && node._children.length > 0;
         const isDeleted = node.IsDeleted === true;
         const isProblem = node.IsProblem === true;
         const quantityReturn = Number(node.QuantityReturn) || 0;
-
         if (isDeleted) {
           cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF0000' } }; // Đỏ
           cell.font = { name: 'Times New Roman', size: 11, color: { argb: 'FFFFFFFF' } }; // Trắng
@@ -1993,7 +1811,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFACD' } }; // Light yellow
           cell.font = { name: 'Times New Roman', size: 11, bold: true };
         }
-
         // 7. Áp dụng màu cho các cell đặc biệt (IsNewCode, IsFix)
         if (node.IsNewCode === true && !hasChildren) {
           // Hàng mới - màu hồng cho các cột GroupMaterial, ProductCode, Manufacturer, Unit
@@ -2007,25 +1824,20 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             }
           }
         }
-
         // Tích xanh - màu xanh dương cho ProductCode
         if (node.IsFix === true && field === 'ProductCode' && !hasChildren) {
           cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4682B4' } }; // Xanh dương
           cell.font = { name: 'Times New Roman', size: 11, color: { argb: 'FFFFFFFF' } }; // Trắng
         }
-
         cell.value = value;
       });
-
       // Thêm con (đệ quy)
       if (node._children && node._children.length > 0) {
         node._children.forEach((child: any) => addNodeToSheet(child, level + 1));
       }
     };
-
     // === Duyệt root nodes ===
     treeData.forEach((root: any) => addNodeToSheet(root));
-
     // === Tự động điều chỉnh độ rộng cột ===
     worksheet.columns.forEach((column: any) => {
       let maxLength = 10;
@@ -2035,7 +1847,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       });
       column.width = Math.min(maxLength, 50);
     });
-
     // === Auto filter ===
     if (visibleColumns.length > 0) {
       worksheet.autoFilter = {
@@ -2043,7 +1854,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         to: { row: 1, column: visibleColumns.length },
       };
     }
-
     // === Border cho tất cả các cell ===
     worksheet.eachRow((row, rowNumber) => {
       row.eachCell((cell) => {
@@ -2055,7 +1865,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         };
       });
     });
-
     // === Xuất file ===
     try {
       const buffer = await workbook.xlsx.writeBuffer();
@@ -2069,7 +1878,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(link.href);
-
       this.notification.success('Thành công', `Xuất Excel thành công: ${fileName}`);
     } catch (error) {
       console.error('Error exporting Excel:', error);
@@ -2102,7 +1910,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
   //#region open modal giải pháp
   openProjectSolutionDetail(isEdit: boolean): void {
     let selectedData: any = null;
-
     if (isEdit === true) {
       const data = this.tb_solution.getSelectedData();
       if (data.length <= 0) {
@@ -2114,24 +1921,20 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     } else {
       this.projectSolutionId = 0;
     }
-
     const modalRef = this.ngbModal.open(ProjectSolutionDetailComponent, {
       centered: true,
       size: 'xl',
       keyboard: false,
     });
-
     // Set các Input properties
     modalRef.componentInstance.projectId = this.projectId;
     modalRef.componentInstance.dataSolution = this.dataSolution;
     modalRef.componentInstance.isEdit = isEdit;
     modalRef.componentInstance.solutionId = this.projectSolutionId;
-
     // Nếu là edit mode, truyền dữ liệu vào modal
     if (isEdit === true && selectedData) {
       modalRef.componentInstance.solutionData = selectedData;
     }
-
     modalRef.result
       .then((result: any) => {
         if (result && result.success) {
@@ -2149,7 +1952,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       this.notification.warning('Thông báo', 'Vui lòng chọn giải pháp');
       return;
     }
-
     //#region Kiểm tra điều kiện edit trước khi mở modal
     if (isEdit === true) {
       if (typenumber === 1) {
@@ -2173,9 +1975,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       }
     }
     //#endregion
-
-
-
     // Mở modal sau khi đã kiểm tra tất cả điều kiện
     const modalRef = this.ngbModal.open(ProjectSolutionVersionDetailComponent, {
       centered: true,
@@ -2183,13 +1982,11 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
       keyboard: false,
     });
-
     modalRef.componentInstance.projectSolutionId = this.projectSolutionId;
     modalRef.componentInstance.ProjectID = this.projectId;
     modalRef.componentInstance.typeNumber = typenumber;
     modalRef.componentInstance.isEdit = isEdit;
     modalRef.componentInstance.typecheck = 1;
-
     //#region Set giá trị cho modal
     if (isEdit === true) {
       if (typenumber === 1) {
@@ -2226,7 +2023,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         typenumber === 1 ? this.dataSolutionVersion : this.dataPOVersion;
     }
     //#endregion
-
     modalRef.result.then((result: any) => {
       if (result.success) {
         this.loadDataProjectPartListVersion();
@@ -2242,41 +2038,34 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
   }
   applyDeletedRowStyle(): void {
     if (!this.tb_projectWorker) return;
-
     const rows = this.tb_projectWorker.getRows();
     rows.forEach((row: any) => {
       const data = row.getData();
       const el = row.getElement();
       if (!el) return; // Kiểm tra element tồn tại
-
       // Reset style
       el.style.cssText = '';
-
       // === LOGIC VẼ MÀU GIỐNG WINFORM NodeCellStyle ===
       const hasChildren = data._children && data._children.length > 0;
       const isDeleted = data.IsDeleted === true;
       const isProblem = data.IsProblem === true;
       const quantityReturn = Number(data.QuantityReturn) || 0;
-
       // 1. Ưu tiên cao nhất: Dòng bị xóa → Red + White text
       if (isDeleted) {
         el.style.backgroundColor = 'red';
         el.style.color = 'black';
         return;
       }
-
       // 2. Dòng có vấn đề → Orange
       if (isProblem) {
         el.style.backgroundColor = 'orange';
         return;
       }
-
       // 3. Số lượng trả về > 0 → LightGreen
       if (quantityReturn > 0) {
         el.style.backgroundColor = 'lightgreen';
         return;
       }
-
       // 4. Node cha (có children) → LightGray + Bold
       if (hasChildren) {
         el.style.backgroundColor = 'lightgray';
@@ -2284,14 +2073,11 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         return;
       }
     });
-
     // === CẬP NHẬT TIÊU ĐỀ CỘT NHÓM ĐẦU TIÊN ===
     let newTitle = 'Vật tư dự án';
-
     if (this.projectCodex) {
       newTitle += ` - ${this.projectCodex}`;
     }
-
     if (this.type === 1) {
       this.selectedData = this.tb_projectPartListVersion?.getSelectedData() || [];
       newTitle += ' - Giải pháp';
@@ -2299,19 +2085,16 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       this.selectedData = this.tb_projectPartListVersionPO?.getSelectedData() || [];
       newTitle += ' - PO';
     }
-
     if (this.selectedData.length > 0) {
       const item = this.selectedData[0];
       if (item.ProjectTypeName) newTitle += ` - ${item.ProjectTypeName}`;
       if (item.Code) newTitle += ` - ${item.Code}`;
     }
-
     // === CẬP NHẬT TITLE CỦA CỘT NHÓM ĐẦU TIÊN (group column) ===
     try {
       const columns = this.tb_projectWorker.getColumns();
       if (columns && columns.length > 0) {
         const firstColumn = columns[0];
-
         // Kiểm tra xem cột đầu tiên có phải là group không
         if (firstColumn.getDefinition().columns) {
           // Là group → cập nhật title của group
@@ -2326,7 +2109,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             firstColumn.updateDefinition({ title: newTitle });
           }
         }
-
         // BẮT BUỘC: Redraw header để hiển thị title mới
         this.tb_projectWorker.redraw(true); // true = force full redraw
       }
@@ -2338,7 +2120,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
   //#region xóa phiên bản giải pháp
   deleteProjectPartListVersion(typenumber: number): void {
     let selectedVersion: any = null;
-
     if (typenumber === 1) {
       const data = this.tb_projectPartListVersion.getSelectedData();
       if (data.length <= 0) {
@@ -2357,7 +2138,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       }
       selectedVersion = data[0];
     }
-
     // Kiểm tra điều kiện xóa trước khi hiển thị modal
     if (selectedVersion.IsActive === true) {
       this.notification.warning(
@@ -2366,7 +2146,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       );
       return;
     }
-
     if (selectedVersion.IsApproved === true) {
       this.notification.warning(
         'Thông báo',
@@ -2374,10 +2153,8 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       );
       return;
     }
-
     // Reset lý do xóa
     this.reasonDeletedVersion = '';
-
     // Tạo modal nhập lý do xóa
     this.modal.confirm({
       nzTitle: `Xác nhận xóa phiên bản [${selectedVersion.Code || ''}]`,
@@ -2394,13 +2171,11 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         this.reasonDeletedVersion = '';
       }
     });
-
     // Sau khi modal mở, cập nhật nội dung động
     setTimeout(() => {
       this.cdr.detectChanges();
     }, 0);
   }
-
   // Validate và xác nhận xóa phiên bản
   validateAndConfirmDeleteVersion(selectedVersion: any): Promise<boolean> {
     return new Promise((resolve, reject) => {
@@ -2410,7 +2185,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         resolve(false); // Không đóng modal
         return;
       }
-
       // Tạo payload đầy đủ theo ProjectPartListVersion entity
       const payload: any = {
         ID: selectedVersion.ID || 0,
@@ -2431,7 +2205,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         IsDeleted: true,
         ReasonDeleted: this.reasonDeletedVersion.trim()
       };
-
       // Gọi API xóa
       this.projectPartListService.saveProjectPartListVersion(payload).subscribe({
         next: (response: any) => {
@@ -2546,7 +2319,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           hozAlign: 'left',
           headerHozAlign: 'center',
           editor: 'textarea',
-
           formatter: 'textarea', // Hiển thị multiline
         },
       ],
@@ -2571,7 +2343,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       setTimeout(() => this.drawTbProjectPartListVersion(), 100);
       return;
     }
-
     this.tb_projectPartListVersion = new Tabulator(
       this.tb_projectPartListVersionContainer.nativeElement,
       {
@@ -2670,12 +2441,10 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
   setDataTree(flatData: any[], valueField: string): any[] {
     const map = new Map<number, any>();
     const tree: any[] = [];
-
     // Bước 1: Map từng item theo ID
     flatData.forEach((item) => {
       map.set(item[valueField], { ...item, _children: [] });
     });
-
     // Bước 2: Gắn item vào parent hoặc top-level
     flatData.forEach((item) => {
       const current = map.get(item[valueField]);
@@ -2690,7 +2459,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         tree.push(current);
       }
     });
-
     return tree;
   }
   //end
@@ -2701,7 +2469,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       setTimeout(() => this.drawTbProjectPartListVersionPO(), 100);
       return;
     }
-
     this.tb_projectPartListVersionPO = new Tabulator(
       this.tb_projectPartListVersionPOContainer.nativeElement,
       {
@@ -2714,7 +2481,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         groupBy: 'ProjectTypeName',
         groupStartOpen: true,
         selectableRows: 1,
-
         groupHeader: (value: any) => `Danh mục: ${value}`,
         columns: [
           {
@@ -2754,7 +2520,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             field: 'DescriptionVersion',
             hozAlign: 'left',
             headerHozAlign: 'center',
-
             formatter: 'textarea',
             variableHeight: true,
             width: 300,
@@ -2807,23 +2572,18 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       this.loadDataProjectPartList();
     });
   }
-
   // Helper function: Vẽ màu cho cell giống CustomDrawNodeCell trong WinForm
   customDrawNodeCell(cell: any, field: string, checkField: string): string {
     const data = cell.getRow().getData();
     const value = cell.getValue();
-
     // Chỉ áp dụng cho node lá (không có children) - giống WinForm: if (e.Node.HasChildren) return;
     const hasChildren = data._children && data._children.length > 0;
     if (hasChildren) return value || '';
-
     // Chỉ áp dụng nếu IsNewCode = true - giống WinForm: if (!isNewCode) return;
     const isNewCode = data.IsNewCode === true;
     if (!isNewCode) return value || '';
-
     // Kiểm tra totalSame của field tương ứng - giống WinForm: if (totalSame == 0) → màu hồng
     const totalSame = Number(data[checkField]) || 0;
-
     // Nếu totalSame = 0 → Background Pink - giống WinForm: e.Appearance.BackColor = Color.Pink
     if (totalSame === 0) {
       const cellElement = cell.getElement();
@@ -2831,69 +2591,55 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         cellElement.style.backgroundColor = 'pink';
       }
     }
-
     return value || '';
   }
-
   // Hàm áp dụng màu cho cell sau khi render (giống WinForm CustomDrawNodeCell)
   applyCellColor(cell: any, field: string, checkField: string, element?: HTMLElement): void {
     try {
       const data = cell.getRow().getData();
-  
       // Nếu có truyền element thì dùng element; nếu không thì lấy từ cell
       const el = element || cell.getElement();
       if (!el) return;
-  
       // 1) Nếu node có children → không tô màu
       if (data._children && data._children.length > 0) {
         return;
       }
-  
       // 2) Các trạng thái ưu tiên không áp dụng màu
       if (data.IsDeleted === true) return;      // đỏ
       if (data.IsProblem === true) return;      // cam
       if ((Number(data.QuantityReturn) || 0) > 0) return; // xanh lá
-  
       // 3) Kiểm tra isNewCode
       if (data.IsNewCode !== true) return;
-  
       // 4) Kiểm tra checkField → nếu = 0 tô hồng
       const checkValue = Number(data[checkField]) || 0;
       if (checkValue === 0) {
         el.style.backgroundColor = 'pink';
       }
-  
     } catch (e) {
       console.error('Error applying cell color:', e);
     }
   }
-
   // Hàm áp dụng màu xanh nước biển cho cột Mã thiết bị khi IsFix = true
   applyIsFixColor(cell: any): void {
     try {
       const data = cell.getRow().getData();
-
       // Chỉ áp dụng cho node lá (không có children)
       if (data._children && data._children.length > 0) {
         return;
       }
-      
       // Kiểm tra IsDeleted → không áp dụng (ưu tiên màu đỏ)
       if (data.IsDeleted === true) {
         return;
       }
-      
       // Kiểm tra IsProblem → không áp dụng (ưu tiên màu cam)
       if (data.IsProblem === true) {
         return;
       }
-      
       // Kiểm tra QuantityReturn > 0 → không áp dụng (ưu tiên màu xanh lá cây)
       const quantityReturn = Number(data.QuantityReturn) || 0;
       if (quantityReturn > 0) {
         return;
       }
-      
       // Kiểm tra IsFix = true
       const isFix = data.IsFix === true;
       if (isFix) {
@@ -2908,51 +2654,42 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       console.error('Error applying IsFix color:', e);
     }
   }
-
   // Hàm áp dụng màu light yellow cho cột Mã thiết bị khi IsProductSale không null/empty và IsFix không bằng true
   // Chỉ áp dụng khi không có màu khác (ưu tiên thấp nhất)
   applyIsProductSaleColor(cell: any): void {
     try {
       const data = cell.getRow().getData();
-      
       // Chỉ áp dụng cho node lá (không có children)
       if (data._children && data._children.length > 0) {
         return;
       }
-      
       // Kiểm tra IsDeleted → không áp dụng (ưu tiên màu đỏ)
       if (data.IsDeleted === true) {
         return;
       }
-      
       // Kiểm tra IsProblem → không áp dụng (ưu tiên màu cam)
       if (data.IsProblem === true) {
         return;
       }
-      
       // Kiểm tra QuantityReturn > 0 → không áp dụng (ưu tiên màu xanh lá cây)
       const quantityReturn = Number(data.QuantityReturn) || 0;
       if (quantityReturn > 0) {
         return;
       }
-      
       // Kiểm tra IsFix = true → không áp dụng màu light yellow (ưu tiên màu xanh nước biển)
       const isFix = data.IsFix === true;
       if (isFix) {
         return;
       }
-      
       // Kiểm tra IsNewCode và IsSameProductCode = 0 → không áp dụng màu light yellow (ưu tiên màu hồng)
       const isNewCode = data.IsNewCode === true;
       const isSameProductCode = parseInt(data.IsSameProductCode) || 0;
       if (isNewCode && isSameProductCode === 0) {
         return;
       }
-      
       // Kiểm tra IsProductSale không null và không empty
       const isProductSale = data.IsProductSale;
       const hasIsProductSale = isProductSale != null && isProductSale !== '' && isProductSale !== undefined;
-      
       if (hasIsProductSale) {
         const cellElement = cell.getElement();
         if (cellElement) {
@@ -2964,21 +2701,17 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       console.error('Error applying IsProductSale color:', e);
     }
   }
-
   // Hàm áp dụng màu cho tất cả các cell sau khi data được load (giống WinForm CustomDrawNodeCell)
   applyCellColors(): void {
     try {
       if (!this.tb_projectWorker) return;
-
       const rows = this.tb_projectWorker.getRows();
       rows.forEach((row: any) => {
         const data = row.getData();
-
         // Chỉ áp dụng cho node lá (không có children) - giống WinForm: if (e.Node.HasChildren) return;
         if (data._children && data._children.length > 0) {
           return;
         }
-        
         // Kiểm tra các điều kiện màu theo thứ tự ưu tiên
         const isDeleted = data.IsDeleted === true;
         const isProblem = data.IsProblem === true;
@@ -2986,7 +2719,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         const isFix = data.IsFix === true;
         const isNewCode = data.IsNewCode === true;
         const isSameProductCode = parseInt(data.IsSameProductCode) || 0;
-        
         // Chỉ áp dụng màu cho ProductCode nếu không có màu row-level (đỏ, cam, xanh lá)
         if (!isDeleted && !isProblem && quantityReturn === 0) {
           if (isFix) {
@@ -3015,7 +2747,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 if (productCodeCell) {
                   const isProductSale = data.IsProductSale;
                   const hasIsProductSale = isProductSale != null && isProductSale !== '' && isProductSale !== undefined;
-                  
                   if (hasIsProductSale) {
                     const cellElement = productCodeCell.getElement();
                     if (cellElement) {
@@ -3030,7 +2761,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             }
           }
         }
-        
         // Áp dụng màu hồng cho các cột khi IsNewCode = true và IsSame* = 0
         // (giống WinForm: e.Column == colGroupMaterial, colProductCode, colManufacturer, colUnit)
         // Lưu ý: ProductCode sẽ bị ghi đè bởi màu IsFix nếu IsFix = true
@@ -3041,18 +2771,15 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             { field: 'Manufacturer', checkField: 'IsSameMaker' },
             { field: 'Unit', checkField: 'IsSameUnit' }
           ];
-          
           fieldsToCheck.forEach(({ field, checkField }) => {
             // Bỏ qua ProductCode nếu IsFix = true (đã được tô màu xanh nước biển)
             if (field === 'ProductCode' && isFix) {
               return;
             }
-            
             // Bỏ qua ProductCode nếu đã có màu light yellow (IsProductSale)
             if (field === 'ProductCode' && !isFix && !isNewCode) {
               return;
             }
-            
             const checkValue = Number(data[checkField]) || 0;
             if (checkValue === 0) {
               try {
@@ -3066,7 +2793,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                       currentBgColor !== 'transparent' && 
                       currentBgColor !== 'rgba(0, 0, 0, 0)' &&
                       currentBgColor !== '';
-                    
                     if (!hasOtherColor) {
                       cellElement.style.backgroundColor = 'pink'; // giống WinForm: Color.Pink
                     }
@@ -3083,12 +2809,11 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       console.error('Error applying cell colors:', e);
     }
   }
-
   // Method để build context menu động dựa trên type
   getContextMenuItems(): any[] {
     const menuItems: any[] = [
       {
-        label: 'Xem sản phẩm trong kho + Lịch sử giá',
+        label: '<span style="font-size: 0.75rem;"><img src="assets/icon/price_history_16.png" alt="Chuyển dự án" class="me-1" /> Xem sản phẩm trong kho, lịch sử giá</span>',
         action: (e: any, row: any) => {
           // Lưu row vào lastClickedPartListRow để method có thể lấy productCode (theo yêu cầu)
           this.lastClickedPartListRow = row;
@@ -3097,44 +2822,49 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         },
       },
       {
-        label: 'Lấy giá lịch sử',
+        label: '<span style="font-size: 0.75rem;"><img src="assets/icon/money_16.png" alt="Lấy giá lịch sử" class="me-1" /> Lấy giá lịch sử</span>',
         action: (e: any, row: any) => {
           this.lastClickedPartListRow = row;
           this.getPriceHistory();
         },
       },  
       {
-        label: 'Khôi phục',
+        label: '<span style="font-size: 0.75rem;"><img src="assets/icon/revert_16.png" alt="Khôi phục" class="me-1" /> Khôi phục</span>',
         action: (e: any, row: any) => {
           this.lastClickedPartListRow = row;
           this.restoreDelete();
         }
+      }, 
+       {
+        label: '<span style="font-size: 0.75rem;"><img src="assets/icon/add_PO_16.png" alt="Hủy đã mua" class="me-1" />Bổ sung vào PO</span>',
+        action: (e: any, row: any) => {
+          this.lastClickedPartListRow = row;
+         this.additionalPartListPO();
+        },
       }
     ];
-
     // Chỉ thêm 2 action "Đã mua" và "Hủy đã mua" khi type === 2 (bảng PO)
     if (this.type === 2) {
       menuItems.push(
         {
-          label: 'Đã mua',
+          label: '<span style="font-size: 0.75rem;"><img src="assets/icon/buy_16.png" alt="Đã mua" class="me-1" /> Đã mua</span>',
           action: (e: any, row: any) => {
             this.lastClickedPartListRow = row;
             this.techBought();
           },
         },
         {
-          label: 'Hủy đã mua',
+          label: '<span style="font-size: 0.75rem;"><img src="assets/icon/unbuy_16.png" alt="Hủy đã mua" class="me-1" /> Hủy đã mua</span>',
           action: (e: any, row: any) => {
             this.lastClickedPartListRow = row;
             this.unTechBought();
           },
-        }
+        },
+      
       );
     }
-
     return menuItems;
   }
-
   drawTbProjectPartList(): void {
     // Kiểm tra ViewChild đã được khởi tạo chưa
     if (!this.tb_projectWorkerContainer) {
@@ -3149,7 +2879,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     //    } else if (this.type === 2) {
     //   // PO
     //   selectedData= this.tb_projectPartListVersionPO?.getSelectedData();
-
     // }
     this.tb_projectWorker = new Tabulator(
       this.tb_projectWorkerContainer.nativeElement,
@@ -3169,50 +2898,41 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         rowFormatter: (row: any) => {
           const data = row.getData();
           const el = row.getElement();
-
           // Reset style
           el.style.cssText = '';
-
           // === LOGIC VẼ MÀU GIỐNG WINFORM NodeCellStyle ===
           const hasChildren = data._children && data._children.length > 0;
           const isDeleted = data.IsDeleted === true;
           const isProblem = data.IsProblem === true;
           const quantityReturn = Number(data.QuantityReturn) || 0;
-
           // 1. Ưu tiên cao nhất: Dòng bị xóa → Red + White text
           if (isDeleted) {
             el.style.backgroundColor = 'red';
             el.style.color = 'black';
             return;
           }
-
           // 2. Dòng có vấn đề → Orange
           if (isProblem) {
             el.style.backgroundColor = 'orange';
             return;
           }
-
           // 3. Số lượng trả về > 0 → LightGreen
           if (quantityReturn > 0) {
             el.style.backgroundColor = 'lightgreen';
             return;
           }
-
           // 4. Node cha (có children) → LightGray + Bold
           if (hasChildren) {
             el.style.backgroundColor = 'lightgray';
             el.style.fontWeight = 'bold';
             return;
           }
-
           // 5. Node lá không có điều kiện đặc biệt → màu trắng mặc định
         },
         columns: [
-      
           {
             title: 'Vật tư dự án',
             frozen: true,
-
             columns: [
               // === CỘT CHỌN DÒNG ===
               {
@@ -3223,29 +2943,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 formatter: 'rowSelection',
                 titleFormatter: 'rowSelection',
                 frozen: true,
-
-
               },
-              // // === CỘT ẨN ===
-              // { title: 'ParentID', field: 'ParentID', visible: false ,},
-              // { title: 'ID', field: 'ID', visible: false ,  },
-              // { title: 'ProjectPartListVersionID', field: 'ProjectPartListVersionID', visible: false ,  },
-              // { title: 'IsDeleted', field: 'IsDeleted', visible: false ,},
-              // // Các cột phục vụ yêu cầu mua hàng (ẩn) - chỉ thêm các field chưa có trong bảng
-              // { title: 'IsApprovedTBP', field: 'IsApprovedTBP', visible: false }, // Cần cho
-              // { title: 'DeadlinePur', field: 'DeadlinePur', visible: false },
-              // { title: 'SupplierSaleQuoteID', field: 'SupplierSaleQuoteID', visible: false },
-              // { title: 'TotalPriceOrder', field: 'TotalPriceOrder', visible: false },
-              // { title: 'TotalPriceQuote', field: 'TotalPriceQuote', visible: false },
-              // { title: 'TotalPrice', field: 'TotalPrice', visible: false },
-              // { title: 'LeadTime', field: 'LeadTime', visible: false },
-              // { title: 'UnitMoney', field: 'UnitMoney', visible: false },
-              // // Các cột phục vụ duyệt mã mới
-              // { title: 'IsLeaf', field: 'IsLeaf', visible: false },
-              // { title: 'HasChildren', field: 'HasChildren', visible: false },
-              // { title: 'UnitPriceQuote', field: 'UnitPriceQuote', visible: false },
-
-              // === DANH MỤC VẬT TƯ ===
               {
                 title: 'TT',
                 field: 'TT',
@@ -3253,7 +2951,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 headerHozAlign: 'center',
                 width: 100,
                 frozen: true,
-
                 // formatter: 'rowSelection',
                 // titleFormatter: 'rowSelection',
               },
@@ -3263,19 +2960,15 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 formatter: (cell: any) => {
                   // Lấy giá trị đã xử lý từ customDrawNodeCell
                   const value = this.customDrawNodeCell(cell, 'GroupMaterial', 'IsSameProductName');
-              
                   // Tạo element để Tabulator tính đúng chiều cao
                   const div = document.createElement('div');
                   div.innerText = value;
-              
                   // Style để không bị hụt khi chữ dài
                   div.style.whiteSpace = 'pre-wrap';
                   div.style.wordWrap = 'break-word';
                   div.style.lineHeight = '1.4';
-              
                   // Áp dụng màu (nếu có)
                   this.applyCellColor(cell, 'GroupMaterial', 'IsSameProductName', div);
-              
                   return div;
                 },
                 variableHeight: true,   // quan trọng để auto giãn dòng
@@ -3655,7 +3348,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 const value = cell.getValue();
                 return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
               }, },  // Sửa
-
               { title: 'Ghi chú mua', field: 'NotePurchase', formatter: 'textarea' },
             ]
           },
@@ -3723,16 +3415,13 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       this.applyCellColors();
     }, 50); // Đảm bảo DOM đã render xong
   });
-
   // Lưu row khi chuột phải (context menu) - để có thể lấy productCode
   this.tb_projectWorker.on('rowContext', (e: any, row: any) => {
     this.lastClickedPartListRow = row;
   });
-
   this.tb_projectWorker.on('cellClick', (e: any, cell: any) => {
     const field = cell.getField();
     if (field === 'rowSelection') return;
-
     // Xóa highlight cũ
     if (this.lastClickedPartListRow) {
       const oldElement = this.lastClickedPartListRow.getElement();
@@ -3740,25 +3429,20 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         oldElement.style.outline = '';
       }
     }
-
     // Lưu và highlight dòng mới
     this.lastClickedPartListRow = cell.getRow();
     const rowData = this.lastClickedPartListRow.getData();
-
     const newElement = this.lastClickedPartListRow.getElement();
     if (newElement) {
       newElement.style.outline = '3px solid rgb(119, 133, 29)';
       newElement.style.outlineOffset = '2px';
     }
-
     console.log('Cell clicked - Row TT:', rowData.TT, 'ID:', rowData.ID);
   });
-
   // Thêm event cellRendered để áp dụng màu sau khi cell được render
   this.tb_projectWorker.on('cellRendered', (cell: any) => {
     const field = cell.getField();
     const data = cell.getData();
-
     // Chỉ áp dụng cho các cột cần vẽ màu (giống WinForm: GroupMaterial, ProductCode, Manufacturer, Unit)
     if (field === 'GroupMaterial') {
       this.applyCellColor(cell, 'GroupMaterial', 'IsSameProductName');
@@ -3774,7 +3458,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       this.applyCellColor(cell, 'Unit', 'IsSameUnit');
     }
   });
-
     // Thêm logic: khi chọn nút cha, tự động chọn tất cả nút con
     // Xử lý cả chọn và bỏ chọn
     this.tb_projectWorker.on('rowSelectionChanged', (data: any[], rows: any[]) => {
@@ -3788,7 +3471,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           }
         });
       }
-
       // Tìm các row đã bị bỏ chọn (có trong previous nhưng không có trong current)
       const deselectedIds = new Set<number>();
       this.previousSelectedRows.forEach((id: number) => {
@@ -3796,7 +3478,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           deselectedIds.add(id);
         }
       });
-
       // Kiểm tra xem có đang bỏ chọn node lá không (node không có children - ở bất kỳ cấp nào)
       // Ví dụ: 1.1.1 là node lá, 1.1 có thể là node cha (có 1.1.1, 1.1.2)
       let isDeselectingLeaf = false;
@@ -3816,7 +3497,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
                 // Fallback: kiểm tra _children trong data
                 hasChildren = rowData._children && Array.isArray(rowData._children) && rowData._children.length > 0;
               }
-
               // Nếu không có children → là node lá đang bị bỏ chọn (có thể là 1.1.1, 1.2.1, etc.)
               if (!hasChildren) {
                 isDeselectingLeaf = true;
@@ -3828,7 +3508,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           if (isDeselectingLeaf) break;
         }
       }
-
       // Tránh xử lý lại nếu đang trong quá trình toggle children (để tránh vòng lặp)
       // NHƯNG LUÔN cho phép bỏ chọn node lá độc lập (ở bất kỳ cấp nào: 1.1, 1.1.1, etc.)
       // Nếu đang bỏ chọn node lá, reset flag NGAY LẬP TỨC và tiếp tục xử lý
@@ -3844,13 +3523,11 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         console.log('Blocked: isTogglingChildren = true and not deselecting leaf');
         return;
       }
-
       // Xử lý các row mới được chọn
       if (rows && rows.length > 0) {
         rows.forEach((row: any) => {
           const rowData = row.getData();
           const isSelected = row.isSelected();
-
           // Chỉ xử lý nếu row mới được chọn (không có trong previous)
           if (isSelected && !this.previousSelectedRows.has(rowData.ID)) {
             // Kiểm tra xem row có phải là parent không (có children)
@@ -3861,7 +3538,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             } catch (e) {
               hasChildren = rowData._children && rowData._children.length > 0;
             }
-
             if (hasChildren) {
               console.log(`rowSelectionChanged - Selecting children of parent ID: ${rowData.ID}`);
               // Lưu lại ID của parent đang được toggle để chỉ block các event từ children của parent này
@@ -3887,7 +3563,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           }
         });
       }
-
       // Xử lý các row đã bị bỏ chọn
       // CHỈ tự động bỏ chọn children khi bỏ chọn node CHA (có children)
       // KHÔNG tự động bỏ chọn khi bỏ chọn node CON (không có children)
@@ -3906,7 +3581,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
               } catch (e) {
                 hasChildren = rowData._children && rowData._children.length > 0;
               }
-
               // CHỈ xử lý nếu là node CHA (có children)
               // Nếu là node CON (không có children) → cho phép bỏ chọn bình thường, không làm gì
               if (hasChildren) {
@@ -3936,7 +3610,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           });
         });
       }
-
       // Cập nhật previousSelectedRows
       // QUAN TRỌNG: Cập nhật ngay lập tức để đảm bảo khi bỏ chọn nhiều node cùng lúc,
       // previousSelectedRows luôn phản ánh đúng trạng thái hiện tại
@@ -3960,16 +3633,13 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     });
   }
   //#endregion
-
   // Hàm đệ quy để chọn/bỏ chọn tất cả node con
   toggleChildrenSelection(parentRow: any, isSelected: boolean): void {
     try {
       const parentData = parentRow.getData();
       console.log(`Toggle children for parent ID: ${parentData.ID}, TT: ${parentData.TT}, isSelected: ${isSelected}`);
-
       // Sử dụng getTreeChildren() của Tabulator để lấy children
       let childRows: any[] = [];
-
       try {
         // Thử dùng getTreeChildren() - method chính thức của Tabulator
         childRows = parentRow.getTreeChildren();
@@ -3979,7 +3649,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         // Fallback: nếu không có getTreeChildren(), dùng cách khác
         const parentID = parentData.ID;
         const allRows = this.tb_projectWorker.getRows();
-
         allRows.forEach((row: any) => {
           const rowData = row.getData();
           if (rowData.ParentID === parentID) {
@@ -3988,17 +3657,14 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         });
         console.log(`Found ${childRows.length} children using fallback method`);
       }
-
       if (!childRows || childRows.length === 0) {
         console.log('No children found');
         return;
       }
-
       // Xử lý từng child
       childRows.forEach((childRow: any) => {
         const childData = childRow.getData();
         console.log(`Processing child ID: ${childData.ID}, TT: ${childData.TT}`);
-
         // Chọn hoặc bỏ chọn node con
         if (isSelected) {
           childRow.select();
@@ -4007,7 +3673,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           childRow.deselect();
           console.log(`Deselected child ID: ${childData.ID}`);
         }
-
         // Đệ quy: kiểm tra xem node con có con không
         let hasGrandChildren = false;
         try {
@@ -4016,7 +3681,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         } catch (e) {
           hasGrandChildren = childData._children && childData._children.length > 0;
         }
-
         if (hasGrandChildren) {
           console.log(`Child ID: ${childData.ID} has children, recursing...`);
           this.toggleChildrenSelection(childRow, isSelected);
@@ -4030,21 +3694,17 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
   // Hàm tính toán dữ liệu tree (giống CalculatorData trong WinForm)
   calculateWorkerTree(data: any[]): any[] {
     if (!data || data.length === 0) return [];
-
     const map = new Map<number, any>();
     const tree: any[] = [];
-
     // Bước 1: Clone và khởi tạo _children
     data.forEach(item => {
       const node = { ...item, _children: [] };
       map.set(node.ID, node);
     });
-
     // Bước 2: Xây dựng cây (build tree structure)
     data.forEach(item => {
       const node = map.get(item.ID);
       if (!node) return;
-
       // Kiểm tra điều kiện parent
       if (item.ParentID && item.ParentID !== 0 && item.ParentID !== null) {
         const parent = map.get(item.ParentID);
@@ -4059,7 +3719,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         tree.push(node);
       }
     });
-
     // Bước 3: Tính tổng từ dưới lên (post-order traversal - giống WinForm loop từ cuối lên)
     const calculateTotals = (nodes: any[]): void => {
       nodes.forEach(node => {
@@ -4067,17 +3726,14 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         if (!node._children || node._children.length === 0) {
           return;
         }
-
         // Đệ quy tính con trước (bottom-up)
         calculateTotals(node._children);
-
         // Khởi tạo biến tổng
         let totalAmount = 0;
         let totalAmountQuote = 0;
         let totalAmountPurchase = 0;
         let totalPriceExchangePurchase = 0;
         let totalPriceExchangeQuote = 0;
-
         // Tính tổng từ tất cả children (giống foreach trong WinForm)
         node._children.forEach((child: any) => {
           totalAmount += Number(child.Amount) || 0;
@@ -4086,36 +3742,30 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           totalPriceExchangePurchase += Number(child.TotalPriceExchangePurchase) || 0;
           totalPriceExchangeQuote += Number(child.TotalPriceExchangeQuote) || 0;
         });
-
         // Gán giá trị vào parent node (giống SetValue trong WinForm)
         // Parent có children → Price = 0
         if (node._children.length > 0) {
           node.Price = 0;
         }
-
         // Gán tổng vào parent
         node.Amount = totalAmount;
         node.TotalPriceQuote1 = totalAmountQuote;
         node.TotalPricePurchaseExport = totalAmountPurchase;
         node.TotalPriceExchangePurchase = totalPriceExchangePurchase;
         node.TotalPriceExchangeQuote = totalPriceExchangeQuote;
-
         // Set các flag cho parent (node cha không có các flag này)
         node.IsNewCode = false;
         node.IsApprovedTBPNewCode = false;
         node.IsFix = false; // Tích xanh chỉ dành cho node lá
       });
     };
-
     // Bắt đầu tính toán từ root
     calculateTotals(tree);
-
     return tree;
   }
   // Hàm lấy danh sách parent từ tree (chỉ lấy các node cha, có thể làm parent)
   getParentListFromTree(tree: any[]): any[] {
     const parentList: any[] = [];
-
     const traverse = (nodes: any[]) => {
       nodes.forEach((node: any) => {
         // Thêm node vào danh sách parent (cả node cha và node lá đều có thể làm parent)
@@ -4125,18 +3775,15 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           WorkContent: node.WorkContent,
           _children: node._children || []
         });
-
         // Duyệt đệ quy các con
         if (node._children && node._children.length > 0) {
           traverse(node._children);
         }
       });
     };
-
     traverse(tree);
     return parentList;
   }
-
   // Mở modal thêm/sửa vật tư
   openProjectPartlistDetail(isEdit: boolean): void {
     // Lấy versionID từ bảng đã chọn
@@ -4152,17 +3799,14 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         selectedVersionID = selectedData[0].ID || 0;
       }
     }
-
     // if (selectedVersionID <= 0) {
     //   this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản giải pháp hoặc PO');
     //   return;
     // }
-
     // Nếu là edit mode, lấy ID từ row đã chọn và gọi API
     if (isEdit) {
         // Thử 3 cách lấy dòng theo thứ tự ưu tiên
         let targetRow: any = null;
-
         // Cách 1: Lấy từ biến đã lưu (khi click vào cell)
         if (this.lastClickedPartListRow) {
           targetRow = this.lastClickedPartListRow;
@@ -4176,7 +3820,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
             console.log('Lấy từ selectedRows (1 dòng)');
           }
         }
-
         if (!targetRow) {
           this.notification.warning(
             'Thông báo',
@@ -4184,11 +3827,8 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           );
           return;
         }
-
         const focusedRow = targetRow.getData();
-
       const partListID = focusedRow.ID || 0;
-
       // Gọi API để lấy dữ liệu partlist theo ID
       this.projectPartListService.getPartListByID(partListID).subscribe({
         next: (response: any) => {
@@ -4206,11 +3846,9 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       });
       return; // Return để không tiếp tục mở modal ở dưới
     }
-
     // Nếu không phải edit mode, mở modal bình thường
     this.openPartListDetailModal(isEdit, selectedVersionID, null);
   }
-
   // Hàm mở modal detail (tách riêng để tái sử dụng)
   private openPartListDetailModal(isEdit: boolean, selectedVersionID: number, partListData: any): void {
     // Lấy thông tin phiên bản để truyền vào modal
@@ -4220,7 +3858,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     } else if (this.type === 2) {
       versionData = this.tb_projectPartListVersionPO?.getSelectedData()?.[0];
     }
-
     // Mở modal
     const modalRef = this.ngbModal.open(ProjectPartlistDetailComponent, {
       centered: true,
@@ -4228,7 +3865,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
       keyboard: false,
     });
-
     // Set các Input properties
     modalRef.componentInstance.projectId = this.projectId;
     modalRef.componentInstance.projectCodex = this.projectCodex;
@@ -4237,7 +3873,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.CodeName = versionData?.Code || this.CodeName;
     modalRef.componentInstance.projectTypeName = this.projectTypeName;
     modalRef.componentInstance.projectSolutionId = this.projectSolutionId || 0;
-
     // Nếu là edit mode, map dữ liệu từ API vào selectedData
     if (isEdit && partListData) {
       modalRef.componentInstance.selectedData = [{
@@ -4270,7 +3905,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         Amount:partListData.Amount || 0,
         UnitMoney:partListData.UnitMoney || '',
         LeadTime:partListData.LeadTime || "",
-
         // Thông tin đặt mua
         OrderCode: partListData.OrderCode || '',
         NCCFinal: partListData.NCCFinal || '',
@@ -4286,16 +3920,11 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         ///check quyền sửa
         IsApprovedTBP: partListData.IsApprovedTBP || false,
         IsApprovedTBPNewCode: partListData.IsApprovedTBPNewCode || false,
-
-
-
-
       }];
     } else {
       // Add mode: selectedData rỗng hoặc không có
       modalRef.componentInstance.selectedData = [];
     }
-
     // Xử lý kết quả từ modal
     modalRef.result
       .then((result: any) => {
@@ -4315,7 +3944,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       this.notification.warning('Thông báo', 'Vui lòng chọn vật tư cần xóa');
       return;
     }
-
     // Validate từng vật tư được chọn
     for (let row of selectedRows) {
       // Kiểm tra ID hợp lệ
@@ -4323,14 +3951,12 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         this.notification.warning('Thông báo', 'Vui lòng chọn vật tư hợp lệ!');
         return;
       }
-
       // Kiểm tra vật tư đã được yêu cầu mua hàng chưa
       if (row.IsApprovedPurchase == true) {
         const tt = row.TT
         this.notification.warning('Thông báo', `Vật tư TT ${tt} đã được yêu cầu mua hàng. Vui lòng hủy yêu cầu mua trước`);
         return;
       }
-
       // Kiểm tra vật tư đã được TBP duyệt chưa
       if (row.IsApprovedTBP == true) {
         const tt = row.TT
@@ -4338,14 +3964,12 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         return;
       }
     }
-
     // Tạo danh sách TT để hiển thị trong thông báo
     const ttList = selectedRows.map((row: any) => row.TT || row.STT).join(', ');
     const itemCount = selectedRows.length;
     const message = itemCount === 1
       ? `Bạn có chắc chắn muốn xóa vật tư TT[${ttList}] không?`
       : `Bạn có chắc chắn muốn xóa ${itemCount} vật tư (TT: ${ttList}) không?`;
-
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
       nzContent: message,
@@ -4360,12 +3984,10 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       }
     });
   }
-
   // Hiển thị modal nhập lý do xóa
   showDeletePartListModal(selectedRows: any[]): void {
     const ttList = selectedRows.map((item: any) => item.TT || item.STT).join(', ');
     const itemCount = selectedRows.length;
-
     this.modal.confirm({
       nzTitle: 'Xóa vật tư',
       nzContent: this.deletePartListModalContent,
@@ -4381,13 +4003,11 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         this.reasonDeleted = '';
       }
     });
-
     // Sau khi modal mở, cập nhật nội dung động
     setTimeout(() => {
       this.cdr.detectChanges();
     }, 0);
   }
-
   // Validate và xác nhận xóa
   validateAndConfirmDelete(selectedRows: any[]): Promise<boolean> {
     return new Promise((resolve, reject) => {
@@ -4397,13 +4017,11 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         resolve(false); // Không đóng modal
         return;
       }
-
       // Gán lý do xóa vào từng item và gọi API
       this.confirmDeletePartList(selectedRows);
       resolve(true); // Đóng modal
     });
   }
-
   // Hàm xác nhận và gọi API xóa
   confirmDeletePartList(selectedRows: any[]): void {
     // Tạo payload với lý do xóa cho mỗi item
@@ -4413,7 +4031,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       IsDeleted: true,
       ReasonDeleted: this.reasonDeleted.trim()
     }));
-
     this.projectPartListService.deletePartList(payload).subscribe({
       next: (response: any) => {
         console.log('API Response:', response);
@@ -4450,9 +4067,7 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       ID: row.ID,
       IsDeleted: true
     }));
-
     console.log('Delete payload:', JSON.stringify(payload, null, 2));
-
     // Gọi API để xóa (API nhận List<ProjectWorker>, chỉ cần ID và IsDeleted)
     this.projectWorkerService.saveWorker(payload).subscribe({
       next: (response: any) => {
@@ -4470,7 +4085,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       }
     });
   }
-
   //#region Duyệt/Hủy duyệt PO
   ApprovePO(isApproveAction: boolean): void {
     // Lấy dữ liệu từ bảng solution đã chọn
@@ -4479,21 +4093,17 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       this.notification.warning('Thông báo', 'Vui lòng chọn giải pháp cần duyệt/hủy duyệt PO!');
       return;
     }
-
     const selectedData = selectedRows[0];
     const solutionId = selectedData.ID;
-
     if (!solutionId || solutionId <= 0) {
       this.notification.warning('Thông báo', 'Không tìm thấy giải pháp!');
       return;
     }
-
     // Validate: Nếu duyệt PO nhưng giải pháp không có PO
     if (isApproveAction && selectedData.StatusSolution !== 1) {
       this.notification.warning('Thông báo', 'Bạn không thể duyệt PO cho giải pháp không có PO!');
       return;
     }
-
     // Validate: Kiểm tra trạng thái hiện tại
     if (isApproveAction && selectedData.IsApprovedPO === true) {
       this.notification.warning('Thông báo', 'Giải pháp này đã được duyệt PO trước đó.');
@@ -4503,10 +4113,8 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       this.notification.warning('Thông báo', 'Giải pháp này chưa được duyệt PO để hủy.');
       return;
     }
-
     const actionText = isApproveAction ? 'duyệt' : 'hủy duyệt';
     const confirmMessage = `Bạn có chắc chắn muốn ${actionText} PO cho giải pháp "${selectedData.CodeSolution || 'này'}" không?`;
-
     this.modal.confirm({
       nzTitle: 'Xác nhận',
       nzContent: confirmMessage,
@@ -4519,7 +4127,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           ApproveStatus: 2, // 2: PO (1: Báo giá)
           IsApproveAction: isApproveAction, // true: Duyệt, false: Hủy duyệt
         };
-
         this.projectWorkerService.saveSolution(payload).subscribe({
           next: (response: any) => {
             if (response.status === 1) {
@@ -4540,30 +4147,24 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     });
   }
   //#endregion
-
   //#region Bổ sung PO
-  SelectProroductPO(): void {
+  SelectProroduct(): void {
     // Lấy tất cả các row đã chọn từ bảng (bao gồm cả children nếu parent được chọn)
     const selectedRows = this.tb_projectWorker?.getSelectedRows() || [];
-
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.warning('Thông báo', 'Vui lòng chọn vật tư cần bổ sung PO!');
       return;
     }
-
     // Lấy dữ liệu từ tất cả các row đã chọn (getSelectedRows đã bao gồm children nếu parent được chọn)
     const allSelectedNodes: any[] = selectedRows
       .filter((row: any) => row.isSelected())
       .map((row: any) => row.getData());
-
     if (allSelectedNodes.length === 0) {
       this.notification.warning('Thông báo', 'Không có vật tư nào được chọn!');
       return;
     }
-
     // Lấy tất cả dữ liệu từ dtAddDetail (nếu có) hoặc từ bảng để tính max STT
     const allTableData = this.tb_projectWorker?.getData() || [];
-    
     // Tính max STT từ dtAddDetail hoặc từ tất cả dữ liệu (bao gồm cả nested children)
     let maxSTT = 1;
     if (this.dtAddDetail && Array.isArray(this.dtAddDetail)) {
@@ -4591,27 +4192,21 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       };
       getAllRowsRecursive(allTableData);
     }
-
     // Tính minLevel từ các node đã chọn
     const getNodeLevel = (tt: string): number => {
       if (!tt) return 0;
       return (tt.match(/\./g) || []).length;
     };
-
     const minLevel = Math.min(...allSelectedNodes.map((node: any) => getNodeLevel(node.TT || '')));
-
     // Biến đếm STT cho mỗi level (khởi tạo mảng 10 phần tử với giá trị 0)
     const nodeLevelSTT: number[] = new Array(10).fill(0);
     // Sử dụng nodeMinLevelCount từ Input, nếu không có thì dùng maxSTT
     let nodeMinLevelCount = this.nodeMinLevelCount || maxSTT;
-
     // Xử lý từng node đã chọn
     const processedData: any[] = [];
     const listIDInsert: number[] = [];
-
     allSelectedNodes.forEach((node: any) => {
       const nodeLevel = getNodeLevel(node.TT || '');
-
       // Tạo object dữ liệu mới
       const newRow: any = {
         ProductID: node.ProductID || 0,
@@ -4625,7 +4220,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         ProjectPartListID: node.ID || 0,
         ID: node.ID || 0,
       };
-
       // Tính STT dựa trên level (giống logic C# chính xác)
       if (nodeLevel === minLevel) {
         // Với node có level = minLevel: STT = nodeMinLevelCount + 1, sau đó tăng nodeMinLevelCount
@@ -4641,15 +4235,12 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           newRow.STT = nodeLevelSTT[nodeLevel];
         }
       }
-
       // Xử lý ParentID (giống logic C# chính xác)
       const childTT = (node.TT || '').toString();
       const indexLast = childTT.lastIndexOf('.');
-      
       if (indexLast >= 0) {
         // Có dấu chấm trong TT, extract parentTT
         const parentTT = childTT.substring(0, indexLast);
-        
         // Kiểm tra nếu childTT === parentTT (trường hợp đặc biệt)
         if (childTT === parentTT) {
           newRow.ParentID = 0;
@@ -4691,66 +4282,40 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         // Không có dấu chấm trong TT, là root node
         newRow.ParentID = 0;
       }
-
       // Thêm ID vào danh sách insert
       if (newRow.ID > 0) {
         listIDInsert.push(newRow.ID);
       }
-
       processedData.push(newRow);
     });
-
+    // Gộp dữ liệu cũ và dữ liệu mới đã xử lý
+    const mergedData = [
+      ...this.dtAddDetail, // dữ liệu cũ
+      ...processedData     // dữ liệu mới
+    ];
     // Lưu dữ liệu để trả về khi đóng modal
     this.selectProductPOData = {
       listIDInsert: listIDInsert,
-      processedData: processedData
+      processedData: mergedData
     };
-
     // Truyền dữ liệu về component cha (nếu có callback)
     if (this.onSelectProductPOCallback) {
       this.onSelectProductPOCallback(this.selectProductPOData);
     }
-
-    // Mở modal PODetail với dữ liệu đã xử lý
-    const modalRef = this.ngbModal.open(PokhDetailComponent, {
-      centered: true,
-      size: 'xl',
-      backdrop: 'static',
-      keyboard: false,
+    console.log("Dữ liệu trả về POKHDetail: ", this.selectProductPOData);
+    // Đóng modal và trả dữ liệu về POKHDetail
+    this.activeModal.close({
+      success: true,
+      dtAddDetail: mergedData,
+      listIDInsert: listIDInsert,
+      isPartlist: true
     });
-
-    // Set các Input properties cho modal
-    modalRef.componentInstance.dtAddDetail = processedData;
-    modalRef.componentInstance.listIDInsert = listIDInsert;
-    modalRef.componentInstance.isPartlist= true;
-    // modalRef.componentInstance.projectId = this.projectId;
-    // // modalRef.componentInstance.projectCodex = this.projectCodex;
-    // modalRef.componentInstance.type = this.type;
-    // modalRef.componentInstance.versionPOID = this.versionPOID;
-    // modalRef.componentInstance.CodeName = this.CodeName;
-    // modalRef.componentInstance.projectTypeName = this.projectTypeName;
-
-    // Xử lý kết quả từ modal
-    modalRef.result
-      .then((result: any) => {
-        if (result && result.success) {
-          this.loadDataProjectPartList();
-          this.notification.success('Thành công', 'Bổ sung PO thành công!');
-        }
-      })
-      .catch((error: any) => {
-        // Modal bị đóng (ESC, click outside, etc.)
-        console.log('Modal dismissed:', error);
-      });
   }
   //#endregion
-
   //#region mở modal xem lịch sử giá và tồn kho
   openProjectPartListHistory(productCode?: string): void {
-
     // Sử dụng logic lastClickedPartListRow để lấy đúng productCode
     let finalProductCode = '';
-
     if (this.lastClickedPartListRow) {
       const rowData = this.lastClickedPartListRow.getData();
       finalProductCode = rowData.ProductCode || '';
@@ -4758,21 +4323,17 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       // Fallback: nếu không có lastClickedPartListRow thì dùng tham số
       finalProductCode = productCode;
     }
-
     if (!finalProductCode || finalProductCode.trim() === '') {
       this.notification.warning('Thông báo', 'Không tìm thấy mã sản phẩm!');
       return;
     }
-
     const modalRef = this.ngbModal.open(ProjectPartListHistoryComponent, {
       centered: true,
       windowClass: 'full-screen-modal',
       keyboard: false,
     });
-
     // Truyền productCode vào modal
     modalRef.componentInstance.productCode = finalProductCode;
-
     modalRef.result.then(
       (result: any) => {
         // Xử lý kết quả nếu cần
@@ -4784,7 +4345,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     );
   }
   //#endregion
-
   //#region đã mua
   techBought(): void {
     const selectedRows = this.tb_projectWorker?.getSelectedData();
@@ -4797,26 +4357,28 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       this.notification.warning('Thông báo', `Mã sản phẩm ${selectedRow.ProductCode} đã được có đơn mua ${selectedRow.BillCodePurchase}, bạn không thể mua!`);
       return;
     }
-    const modalRef = this.ngbModal.open(ProjectPartListHistoryComponent, {
-      centered: true,
-      windowClass: 'full-screen-modal',
-      keyboard: false,
-    });
-
-    // Truyền productCode vào modal
-    modalRef.componentInstance.IsTechBought = selectedRow.ID > 0 ? true : false;
-    modalRef.componentInstance.ProjectPartListID = selectedRow.ID;
-    modalRef.componentInstance.ProductCode = selectedRow.ProductCode;
-    modalRef.componentInstance.ProductName = selectedRow.ProductName;
-    modalRef.componentInstance.Quantity = selectedRow.QtyFull;
-    modalRef.result.then(
-      (result: any) => {
-        // Xử lý kết quả nếu cần
-        if (result && result.success) {
-          this.loadDataProjectPartList();
-        }
-      }
-    );
+    // const modalRef = this.ngbModal.open(ProjectPartlistPurchaseRequestDetailComponent , {
+    //   centered: true,
+    //   windowClass: 'full-screen-modal',
+    //   keyboard: false,
+    // });
+    // // Truyền productCode vào modal
+    // var projectPartlistDetail : any = {
+    //   IsTechBought: selectedRow.ID > 0 ? true : false,
+    //   ProjectPartListID: selectedRow.ID,
+    //   ProductCode: selectedRow.ProductCode,
+    //   ProductName: selectedRow.ProductName,
+    //   Quantity: selectedRow.QtyFull,
+    // };
+    // modalRef.componentInstance.projectPartlistDetail = projectPartlistDetail;
+    // modalRef.result.then(
+    //   (result: any) => {
+    //     // Xử lý kết quả nếu cần
+    //     if (result && result.success) {
+    //       this.loadDataProjectPartList();
+    //     }
+    //   }
+    // );
   }
   //#endregion
   //#region hủy đã mua
@@ -4850,7 +4412,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     }
   });
   }
-
   // Helper function để flatten tree rows
   private flattenAllRows(rows: any[]): any[] {
     const result: any[] = [];
@@ -4863,21 +4424,18 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     });
     return result;
   }
-
   // Lấy giá lịch sử
   getPriceHistory(): void {
     if (!this.tb_projectWorker) {
       this.notification.warning('Thông báo', 'Bảng dữ liệu chưa được khởi tạo!');
       return;
     }
-
     // Lấy danh sách vật tư đã chọn (tương tự requestPriceQuote)
     const selectedRows = this.tb_projectWorker?.getSelectedData();
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.warning('Thông báo', 'Vui lòng chọn vật tư!');
       return;
     }
-
     // Lấy tất cả rows có ID > 0 và có UnitPriceHistory (cả cha và con, backend sẽ xử lý)
     const requestItems: any[] = [];
     for (let row of selectedRows) {
@@ -4885,15 +4443,12 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       if (!row.ID || row.ID <= 0) {
         continue;
       }
-
       // Kiểm tra có UnitPriceHistory
       if (row.UnitPriceHistory == null || row.UnitPriceHistory === '') {
         continue;
       }
-
       // Xác định IsLeaf (tương tự requestPriceQuote)
       const isLeaf = !row._children || row._children.length === 0;
-
       // Thêm vào danh sách
       requestItems.push({
         ID: row.ID,
@@ -4902,12 +4457,10 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         QtyFull: row.QtyFull || 0
       });
     }
-
     if (requestItems.length === 0) {
       this.notification.warning('Thông báo', 'Không có dòng nào được chọn hoặc các dòng được chọn không có giá lịch sử!');
       return;
     }
-
     // Hiển thị modal xác nhận (tương tự requestPriceQuote)
     this.modal.confirm({
       nzTitle: 'Xác nhận lấy giá lịch sử',
@@ -4938,21 +4491,18 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     });
   }
   //#endregion
-
   //#region Khôi phục dòng đã xóa
   restoreDelete(): void {
     if (!this.tb_projectWorker) {
       this.notification.warning('Thông báo', 'Bảng dữ liệu chưa được khởi tạo!');
       return;
     }
-
     // Lấy danh sách vật tư đã chọn (tương tự requestPriceQuote)
     const selectedRows = this.tb_projectWorker?.getSelectedData();
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.warning('Thông báo', 'Không có dòng nào được chọn!');
       return;
     }
-
     // Lấy tất cả rows đã bị xóa (IsDeleted = true) và có ID > 0
     const requestItems: any[] = [];
     for (let row of selectedRows) {
@@ -4962,26 +4512,22 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       }
       // Xác định IsLeaf (tương tự requestPriceQuote)
       const isLeaf = !row._children || row._children.length === 0;
-
       // Thêm vào danh sách
       requestItems.push({
         ID: row.ID,
         IsLeaf: isLeaf
       });
     }
-
     if (requestItems.length === 0) {
       this.notification.warning('Thông báo', 'Không có dòng nào được chọn!');
       return;
     }
-
     // Hiển thị modal xác nhận
     const itemCount = requestItems.length;
     const sttList = selectedRows
       .filter((row: any) => row.IsDeleted === true && row.ID > 0)
       .map((row: any) => row.TT || row.STT)
       .join(', ');
-
     this.modal.confirm({
       nzTitle: 'Xác nhận khôi phục',
       nzContent: `Bạn có chắc chắn muốn khôi phục ${itemCount} dòng đã xóa (Stt: ${sttList})?`,
@@ -5011,15 +4557,154 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     });
   }
   //#endregion
-
+  //#region Bổ sung PartList vào PO
+  additionalPartListPO(): void {
+    // Lấy danh sách vật tư đã chọn
+    const selectedRows = this.tb_projectWorker?.getSelectedData();
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn vật tư cần bổ sung vào PO');
+      return;
+    }
+    // Kiểm tra phiên bản đang sử dụng (phải là phiên bản giải pháp - type === 1)
+    if (this.type !== 1) {
+      this.notification.warning('Thông báo', 'Chức năng này chỉ áp dụng cho phiên bản giải pháp (GP)');
+      return;
+    }
+    let selectedVersion: any = null;
+    const versionRows = this.tb_projectPartListVersion?.getSelectedData();
+    if (!versionRows || versionRows.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn phiên bản giải pháp để bổ sung vào PO');
+      return;
+    }
+    selectedVersion = versionRows[0];
+    if (selectedVersion['IsActive'] == false || selectedVersion['IsActive'] == null) {
+      this.notification.warning('Thông báo', `Vui lòng chọn sử dụng phiên bản [${selectedVersion.Code}] trước!`);
+      return;
+    }
+    // Validate từng vật tư được chọn
+    const requestItems: any[] = [];
+    for (let row of selectedRows) {
+      // Kiểm tra ID hợp lệ
+      if (!row.ID || row.ID <= 0) {
+        this.notification.warning('Thông báo', 'Vui lòng chọn vật tư hợp lệ!');
+        return;
+      }
+      // Kiểm tra vật tư đã bị xóa
+      if (row.IsDeleted == true) {
+        this.notification.warning('Thông báo', `Không thể bổ sung vì vật tư thứ tự [${row.TT || row.ID}] đã bị xóa!`);
+        return;
+      }
+      // Xác định IsLeaf (node lá = không có children)
+      const isLeaf = !row._children || row._children.length === 0;
+      // Thêm vào danh sách yêu cầu (chỉ gửi các trường cần thiết)
+      requestItems.push({
+        ID: row.ID || 0,
+        TT: row.TT || '',
+        IsLeaf: isLeaf
+      });
+    }
+    // Kiểm tra có item nào để bổ sung không
+    if (requestItems.length === 0) {
+      this.notification.warning('Thông báo', 'Không có vật tư hợp lệ để bổ sung vào PO');
+      return;
+    }
+    // Reset lý do phát sinh và checkbox, mở modal nhập lý do
+    this.reasonProblem = '';
+    this.isGeneratedItem = false;
+    this.showAdditionalPartListPOModal(requestItems, selectedVersion);
+  }
+  // Hiển thị modal nhập lý do phát sinh
+  showAdditionalPartListPOModal(requestItems: any[], selectedVersion: any): void {
+    const itemCount = requestItems.length;
+    const sttList = requestItems.map((item: any) => item.TT).filter((tt: string) => tt).join(', ');
+    this.modal.confirm({
+      nzTitle: 'Bổ sung vật tư vào PO',
+      nzContent: this.additionalPartListPOModalContent,
+      nzOkText: 'Xác nhận',
+      nzCancelText: 'Hủy',
+      nzOkType: 'primary',
+      nzWidth: 500,
+      nzOnOk: () => {
+        return this.validateAndConfirmAdditionalPartListPO(requestItems, selectedVersion);
+      },
+      nzOnCancel: () => {
+        this.reasonProblem = '';
+        this.isGeneratedItem = false;
+      }
+    });
+    // Sau khi modal mở, cập nhật nội dung động
+    setTimeout(() => {
+      this.cdr.detectChanges();
+    }, 0);
+  }
+  // Xử lý sự kiện thay đổi checkbox hàng phát sinh
+  onIsGeneratedItemChange(): void {
+    if (!this.isGeneratedItem) {
+      // Nếu bỏ chọn checkbox, reset lý do phát sinh
+      this.reasonProblem = '';
+    }
+  }
+  // Validate và xác nhận bổ sung PO
+  validateAndConfirmAdditionalPartListPO(requestItems: any[], selectedVersion: any): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      // Validate lý do phát sinh chỉ khi checkbox được chọn
+      if (this.isGeneratedItem) {
+        if (!this.reasonProblem || this.reasonProblem.trim() === '') {
+          this.notification.warning('Thông báo', 'Vui lòng nhập lý do phát sinh!');
+          resolve(false); // Không đóng modal
+          return;
+        }
+      }
+      // Gọi API bổ sung PO
+      this.confirmAdditionalPartListPO(requestItems, selectedVersion);
+      resolve(true); // Đóng modal
+    });
+  }
+  // Hàm xác nhận và gọi API bổ sung PO
+  confirmAdditionalPartListPO(requestItems: any[], selectedVersion: any): void {
+    // Chuẩn bị payload theo AdditionPartlistPoDTO
+    const payload = {
+      ListItem: requestItems,
+      VersionID: selectedVersion.ID || 0,
+      ProjectTypeID: selectedVersion.ProjectTypeID || 0,
+      ProjectTypeName: selectedVersion.ProjectTypeName || '',
+      ProjectSolutionID: this.projectSolutionId || 0,
+      projectID: this.projectId || 0,
+      ReasonProblem: this.reasonProblem.trim()
+    };
+    console.log('=== SENDING ADDITIONAL PARTLIST PO TO API ===');
+    console.log('Payload:', JSON.stringify(payload, null, 2));
+    this.startLoading();
+    this.projectPartListService.additionalPartListPO(payload).subscribe({
+      next: (response: any) => {
+        this.stopLoading();
+        console.log('API Response:', response);
+        if (response.status === 1) {
+          this.notification.success('Thành công', response.message || 'Bổ sung vật tư vào PO thành công!');
+          this.loadDataProjectPartList();
+          this.loadDataProjectPartListVersionPO(); // Reload phiên bản PO
+          this.reasonProblem = '';
+          this.isGeneratedItem = false;
+        } else if (response.status === 2) {
+          this.notification.warning('Thông báo', response.message || 'Không thể bổ sung vật tư vào PO');
+        } else {
+          this.notification.error('Lỗi', response.message || 'Không thể bổ sung vật tư vào PO');
+        }
+      },
+      error: (error: any) => {
+        const errorMessage = error?.error?.message || error?.message || 'Không thể bổ sung vật tư vào PO';
+        this.notification.error('Lỗi', errorMessage);
+      }
+    });
+  }
+  //#endregion
   //#region đóng/mở panel bên trái
   closeLeftPanel(): void {
     this.sizeLeftPanel = '0';
     this.sizeRightPanel = '100%'; // Mở rộng panel vật tư lên 100%
   }
-
   closeModal(): void {
-    // Nếu có dữ liệu từ SelectProroductPO, trả về khi đóng modal
+    // Nếu có dữ liệu từ SelectProroduct, trả về khi đóng modal
     if (this.selectProductPOData) {
       this.activeModal.close({
         success: true,
@@ -5030,7 +4715,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       this.activeModal.dismiss();
     }
   }
-
   toggleLeftPanel(): void {
     if (this.sizeLeftPanel === '0') {
       this.sizeLeftPanel = ''; // Rỗng = dùng nzDefaultSize
@@ -5041,51 +4725,42 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     }
   }
   //#endregion
-
   //#region Yêu cầu xuất kho
   requestExport(warehouseCode?: string): void {
     // Lấy danh sách vật tư đã chọn
     const selectedRows = this.tb_projectWorker?.getSelectedData() || [];
-
     if (!selectedRows || selectedRows.length === 0) {
       this.notification.warning('Thông báo', 'Vui lòng chọn sản phẩm muốn yêu cầu xuất kho!');
       return;
     }
-
     // Lọc chỉ lấy node lá (không có children) - bỏ comment để validate
     const leafNodes = selectedRows.filter((row: any) => {
       const hasChildren = row._children && Array.isArray(row._children) && row._children.length > 0;
       return !hasChildren;
     });
-
     if (leafNodes.length === 0) {
       this.notification.warning('Thông báo', 'Vui lòng chọn các sản phẩm (node lá) để yêu cầu xuất kho!');
       return;
     }
-
     // Nếu đã có warehouseCode, xử lý trực tiếp
     if (warehouseCode) {
       this.confirmRequestExport(leafNodes, warehouseCode);
       return;
     }
-
     // Nếu chưa có warehouseCode, mở modal chọn kho
     if (!this.warehouses || this.warehouses.length === 0) {
       this.notification.error('Lỗi', 'Không có kho nào để chọn!');
       return;
     }
   }
-
   // Yêu cầu xuất kho theo kho cụ thể
   requestExportByWarehouse(warehouseCode: string): void {
     this.requestExport(warehouseCode);
   }
-
   // Xác nhận và gọi API yêu cầu xuất kho
   confirmRequestExport(selectedNodes: any[], warehouseCode: string): void {
     const itemCount = selectedNodes.length;
     const ttList = selectedNodes.map((node: any) => node.TT || node.STT).join(', ');
-
     this.modal.confirm({
       nzTitle: 'Xác nhận yêu cầu xuất kho',
       nzContent: `Bạn có chắc muốn yêu cầu xuất kho ${itemCount} sản phẩm (TT: ${ttList}) không?`,
@@ -5097,7 +4772,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       }
     });
   }
-
   // Thực hiện yêu cầu xuất kho
   executeRequestExport(selectedNodes: any[], warehouseCode: string): void {
     // Chuẩn bị payload theo ProjectPartListExportDTO structure mới
@@ -5116,37 +4790,31 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
         ProjectID: node.ProjectID || 0,
         // Các field khác nếu cần cho ValidateKeep
         ProductID: node.ProductID || 0,
+        TT: node.TT || '',
         WarehouseID: 0 // Backend sẽ xử lý từ warehouseCode, có thể để 0 hoặc không cần gửi
       };
-
       return item;
     });
-
     const request = {
       WarehouseCode: warehouseCode,
       ListItem: listItem
     };
-
     this.projectPartListService.requestExport(request).subscribe({
       next: (response: any) => {
         if (response.status === 1 && response.data) {
           const billsData = response.data.Bills || [];
           const warningMessage = response.data.Warning || '';
-
           // Hiển thị cảnh báo nếu có
           if (warningMessage) {
             this.notification.warning('Thông báo', warningMessage);
           }
-
           // Kiểm tra có bills để mở modal không
           if (billsData.length === 0) {
             this.notification.warning('Thông báo', 'Không có dữ liệu để xuất kho!');
             return;
           }
-
           // Mở modal BillExportDetail tuần tự cho từng bill
           this.openBillExportDetailModals(billsData, 0);
-
           // Reload data sau khi hoàn thành (sẽ được gọi trong openBillExportDetailModals)
         } else {
           this.notification.error('Lỗi', response.message || 'Không thể yêu cầu xuất kho!');
@@ -5159,7 +4827,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       }
     });
   }
-
   // Mở modal BillExportDetail tuần tự cho từng bill
   private openBillExportDetailModals(billsData: any[], index: number): void {
     if (index >= billsData.length) {
@@ -5167,12 +4834,9 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       this.loadDataProjectPartList();
       return;
     }
-
     const billData = billsData[index];
     const bill = billData.Bill || {};
     const details = billData.Details || [];
-
-
     const billExportForModal = {
       TypeBill: false,
       Code: bill.Code || '',
@@ -5191,14 +4855,12 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       CreatDate: bill.CreatDate || bill.RequestDate || new Date(),
       RequestDate: bill.RequestDate || new Date(),
     };
-
     // Map details cho modal theo BillExportDetailRQPDTO structure
     const detailsForModal = details.map((detail: any) => ({
       ID: 0, // Detail mới, chưa có ID
       STT: detail.STT || 0,
       ChildID: detail.ChildID || 0,
       ParentID: detail.ParentID || 0,
-
       // Thông tin sản phẩm
       ProductID: detail.ProductID || 0,
       ProductCode: detail.ProductCode || '',
@@ -5206,28 +4868,23 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       ProductName: detail.ProductName || '', // Từ ProductName
       ProductFullName: detail.ProductFullName || '', // Từ ProductFullName
       Unit: detail.Unit || '',
-
       // Số lượng - Qty đã được tính toán trong backend (qtyToExport)
       Qty: detail.Qty || 0, // Số lượng xuất (đã tính toán từ backend)
       TotalQty: detail.TotalQty || 0, // Tổng số lượng
       QuantityRemain: detail.Qty || 0, // Số lượng còn lại = số lượng yêu cầu (để hiển thị)
-
       // Thông tin dự án
       ProjectID: detail.ProjectID || 0,
       ProjectName: detail.ProjectName || '',
       ProjectCodeText: detail.ProjectCodeText || '',
       ProjectCodeExport: detail.ProjectCodeExport || '',
-
       // Thông tin khác
       ProjectPartListID: detail.ProjectPartListID || 0,
       Note: detail.Note || '',
       SerialNumber: detail.SerialNumber || '',
-
       // Các field để hiển thị trong modal (nếu cần)
       ProjectNameText: detail.ProjectName || '',
       TotalInventory: detail.TotalQty || 0
     }));
-
     const modalRef = this.ngbModal.open(BillExportDetailComponent, {
       centered: true,
       size: 'xl',
@@ -5237,7 +4894,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     console.log('billExportForModal:',billExportForModal);
     console.log('isPOKH:',bill.IsPOKH);
     console.log('wareHouseCode:',bill.wareHouseCode);
-
     // Truyền dữ liệu vào modal
     modalRef.componentInstance.newBillExport = billExportForModal;
     modalRef.componentInstance.isCheckmode = false; // Tạo mới
@@ -5246,16 +4902,13 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.wareHouseCode = bill.WarehouseCode || '';
     modalRef.componentInstance.isPOKH = bill.IsPOKH || false;
     modalRef.componentInstance.isFromProjectPartList = true; // FLAG RIÊNG cho luồng ProjectPartList
-
     // Set detail data sau khi modal mở
     setTimeout(() => {
       modalRef.componentInstance.dataTableBillExportDetail = detailsForModal;
-
       if (modalRef.componentInstance.table_billExportDetail) {
         modalRef.componentInstance.table_billExportDetail.replaceData(detailsForModal);
       }
     }, 200);
-
     // Xử lý khi modal đóng
     modalRef.result.then(
       (result) => {
@@ -5267,7 +4920,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
           const text = "Mã phiếu xuất: " + bill.Code + "\nNgười yêu cầu: " + (this.currentUser?.FullName || '');
           const employeeID = this.currentUser?.ID || this.currentUser?.EmployeeID || 0;
           const departmentID = 0;
-
           // Gọi API thông báo
           this.projectPartListService.addNotify(text, employeeID, departmentID).subscribe({
             next: (response: any) => {
@@ -5282,7 +4934,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
               // Không hiển thị notification để không làm gián đoạn flow chính
             }
           });
-
           this.loadDataProjectPartList();
         }
       },
@@ -5298,7 +4949,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
     );
   }
   //#endregion
-
   //#region: Helper để tính tổng theo node cha
   /**
    * Tạo bottomCalc function để tính tổng chỉ cho các node cha (không có parent)
@@ -5324,7 +4974,6 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       return total;
     };
   }
-
   /**
    * Format số tiền với dấu phân cách hàng nghìn và phần thập phân
    * Định dạng: 1.000.000,00 (dấu chấm cho hàng nghìn, dấu phẩy cho phần thập phân)
@@ -5334,32 +4983,25 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
    */
   private formatMoney(value: any, decimals: number = 2): string {
     if (value == null || value === '' || value === undefined) return '';
-
     const numValue = parseFloat(value);
     if (isNaN(numValue)) return '';
-
     // Format với số thập phân
     const formatted = numValue.toFixed(decimals);
-
     // Tách phần nguyên và phần thập phân
     const parts = formatted.split('.');
     let integerPart = parts[0];
     const decimalPart = parts[1] || '';
-
     // Xử lý số âm
     const isNegative = integerPart.startsWith('-');
     if (isNegative) {
       integerPart = integerPart.substring(1);
     }
-
     // Thêm dấu chấm phân cách hàng nghìn
     integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-
     // Thêm lại dấu âm nếu có
     if (isNegative) {
       integerPart = '-' + integerPart;
     }
-
     // Kết hợp với dấu phẩy cho phần thập phân
     if (decimalPart) {
       return `${integerPart},${decimalPart}`;

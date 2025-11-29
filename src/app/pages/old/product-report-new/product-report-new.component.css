@@ -1,0 +1,51 @@
+.fs-12 {
+    font-size: 0.75rem;
+  }
+  
+  .reset {
+    all: revert;
+  }
+  
+  .ant-splitter-panel{
+    position: relative;
+  }
+  
+  .tabulator {
+    font-size: 0.75rem;
+    position: absolute;
+    width: 100%;
+  }
+  
+  .tabulator-cell {
+    padding: 0px;
+  }
+  
+  .inner-content {
+    padding: 0 !important;
+  }
+  
+  .ant-tabs-tab-btn {
+  font-size: 0.75rem;
+}
+
+/* Ẩn scrollbar ngang của splitter */
+:host ::ng-deep nz-splitter,
+:host ::ng-deep .ant-splitter {
+  overflow-x: hidden !important;
+}
+
+/* Ẩn scrollbar ngang của bảng Tabulator */
+:host ::ng-deep .tabulator,
+:host ::ng-deep #dataTableHistoryBill .tabulator {
+  overflow-x: hidden !important;
+}
+
+:host ::ng-deep .tabulator-tableHolder {
+  overflow-x: hidden !important;
+}
+
+/* Ẩn scrollbar ngang của card-body */
+.card-body {
+  overflow-x: hidden !important;
+}
+

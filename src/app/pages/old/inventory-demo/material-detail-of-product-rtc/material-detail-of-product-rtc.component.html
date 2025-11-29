@@ -1,3 +1,5 @@
+<div class="card-body">
+
 <form nz-form nzLayout="horizontal" class="fs-7 form-header">
     <nz-row [nzGutter]="24">
       <!-- Mã sản phẩm-->
@@ -98,35 +100,35 @@
     </nz-row>
   </form>
 
-  <div style="flex: 1; min-height: 0; overflow: hidden;">
+  <div style="flex: 1; min-height: 0; overflow: hidden; height: 80vh;">
     <!-- Splitter layout giống C# form -->
-  <nz-splitter style="height: 100%;">
+  <nz-splitter >
     <!-- Left Panel: Bảng Mượn với Tab -->
-    <nz-splitter-panel nzResizable="true" [nzMin]="20" [nzMax]="80">
-      <nz-tabset class="borrow-tab">
+    <nz-splitter-panel nzResizable="false" [nzMin]="20" [nzMax]="80">
+      <nz-tabset class="borrow-tab custom-tab-title">
         <nz-tab nzTitle="Danh sách Mượn">
-          <div id="tbBorrow"></div>
+          <div id="tbBorrow" style="height: 100%; width: 100%;"></div>
         </nz-tab>
       </nz-tabset>
     </nz-splitter-panel>
 
     <!-- Right Panel: Splitter vertical cho Export (trên) và Import (dưới) -->
-    <nz-splitter-panel nzResizable="true" [nzMin]="20" [nzMax]="80">
+    <nz-splitter-panel nzResizable="false" [nzMin]="20" [nzMax]="80">
       <nz-splitter nzLayout="vertical">
         <!-- Top: Bảng Xuất với Tab -->
         <nz-splitter-panel nzResizable="true" [nzMin]="20" [nzMax]="80">
-          <nz-tabset class="export-tab">
+          <nz-tabset class="export-tab custom-tab-title">
             <nz-tab nzTitle="Danh sách Xuất">
-              <div id="tbExport"></div>
+              <div id="tbExport" style="height: 100%; width: 100%;"></div>
             </nz-tab>
           </nz-tabset>
         </nz-splitter-panel>
 
         <!-- Bottom: Bảng Nhập với Tab -->
-        <nz-splitter-panel nzResizable="true" [nzMin]="20" [nzMax]="80">
-          <nz-tabset class="import-tab">
+        <nz-splitter-panel nzResizable="false" [nzMin]="20" [nzMax]="80">
+          <nz-tabset class="import-tab custom-tab-title">
             <nz-tab nzTitle="Danh sách Nhập">
-              <div id="tbImport"></div>
+              <div id="tbImport" style="height: 100%; width: 100%;"></div>
             </nz-tab>
           </nz-tabset>
         </nz-splitter-panel>
@@ -134,3 +136,4 @@
     </nz-splitter-panel>
   </nz-splitter>
   </div>
+</div>

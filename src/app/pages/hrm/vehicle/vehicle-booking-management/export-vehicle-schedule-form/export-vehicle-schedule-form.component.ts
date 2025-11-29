@@ -88,6 +88,12 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
     .set({ hour: 23, minute: 59, second: 59 })
     .toISO();
 
+  // Hàm lấy title với ngày cho UI
+  getScheduleTitle(): string {
+    const lastDate = this.getLastDateFromSchedule();
+    return lastDate ? `LỊCH TRÌNH XE NGÀY ${this.formatDate(lastDate).toUpperCase()}` : 'LỊCH TRÌNH XE';
+  }
+
   onDateStartChange() {
     // Khi ngày bắt đầu thay đổi, cập nhật dateEnd nếu dateEnd < dateStart
     if (!this.dateStart) {
@@ -433,24 +439,56 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
         'border-right': '1px solid #D3D3D3'
       };
       
-      // Border top: đậm cho dòng đầu, mỏng cho các dòng khác
-      if (isFirstRow) {
-        style['border-top'] = '2px solid #808080';
-      } else {
-        style['border-top'] = '1px solid #D3D3D3';
-      }
+      // Border top: mỏng cho tất cả các dòng
+      style['border-top'] = '1px solid #D3D3D3';
       
-      // Border bottom: đậm cho dòng cuối, mỏng cho các dòng khác
-      if (isLastRow) {
-        style['border-bottom'] = '2px solid #808080';
-      } else {
-        style['border-bottom'] = '1px solid #D3D3D3';
-      }
+      // Border bottom: mỏng cho tất cả các dòng
+      style['border-bottom'] = '1px solid #D3D3D3';
       
       return style;
     }
 
+    // Hàm lấy màu cho dòng "Thông tin xe" dựa trên index
+    getVehicleHeaderColor(index: number): string {
+      const vehicleColors = [
+        '#ffcbee', // Hồng
+        '#cfe2f3', // Xanh nhạt
+        '#d9ead3', // Xanh lá nhạt
+        '#Fce5cd', // Cam nhạt
+        '#ead1dc', // Hồng đậm nhạt
+        '#d5e8d4', // Xanh lá đậm nhạt
+        '#fff2cc', // Vàng nhạt
+        '#e1d5e7', // Tím nhạt
+        '#dae8fc', // Xanh dương nhạt
+        '#f4cccc'  // Đỏ nhạt
+      ];
+      return vehicleColors[index % vehicleColors.length];
+    }
+
   //#endregion
+  
+  // Hàm lấy ngày cuối cùng từ groupedScheduleData
+  getLastDateFromSchedule(): string {
+    let lastDate = '';
+    const allDates: string[] = [];
+    
+    this.groupedScheduleData.forEach((vehicleGroup) => {
+      vehicleGroup.daySessions.forEach((daySession: any) => {
+        if (daySession.date && daySession.date.trim() !== '') {
+          allDates.push(daySession.date);
+        }
+      });
+    });
+    
+    if (allDates.length > 0) {
+      // Sắp xếp và lấy ngày cuối cùng
+      allDates.sort();
+      lastDate = allDates[allDates.length - 1];
+    }
+    
+    return lastDate;
+  }
+
   async exportToExcel() {
       if (!this.groupedScheduleData || this.groupedScheduleData.length === 0) {
       this.notification.error('', 'Không có dữ liệu để xuất!', {
@@ -462,13 +500,31 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
     const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('Lịch trình xe');
 
+      // Lấy ngày cuối cùng để hiển thị trong title
+      const lastDate = this.getLastDateFromSchedule();
+      const titleText = lastDate ? `Lịch Trình Xe ngày ${this.formatDate(lastDate)}` : 'Lịch Trình Xe';
+      
+      // Mảng màu cho các xe (mỗi xe một màu khác nhau)
+      const vehicleColors = [
+        'FFffcbee', // Hồng
+        'FFcfe2f3', // Xanh nhạt
+        'FFd9ead3', // Xanh lá nhạt
+        'FFFce5cd', // Cam nhạt
+        'FFead1dc', // Hồng đậm nhạt
+        'FFd5e8d4', // Xanh lá đậm nhạt
+        'FFfff2cc', // Vàng nhạt
+        'FFe1d5e7', // Tím nhạt
+        'FFdae8fc', // Xanh dương nhạt
+        'FFf4cccc'  // Đỏ nhạt
+      ];
+
       // Thêm dòng header "Lịch Trình Xe" bọc toàn bộ
-    const titleRow = worksheet.addRow(['Lịch Trình Xe']);
+    const titleRow = worksheet.addRow([titleText]);
     
-    // Merge tất cả các cột cho dòng title (merge trước khi set style)
-    worksheet.mergeCells(1, 1, 1, 9);
+    // Merge tất cả các cột cho dòng title (merge trước khi set style) - bỏ cột Ngày nên còn 8 cột
+    worksheet.mergeCells(1, 1, 1, 8);
     
-    // Set style cho merged cell
+    // Set style cho merged cell - phải set sau khi merge
     const titleCell = titleRow.getCell(1);
     titleCell.fill = {
       type: 'pattern',
@@ -478,29 +534,37 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
     titleCell.font = { 
       bold: true, 
       color: { argb: 'FFFFFFFF' }, // Màu trắng
-      size: 14
+      size: 12,
+      name: 'Times New Roman'
     };
+    titleCell.border = {
+      top: { style: 'thin', color: { argb: 'FF808080' } },
+      left: { style: 'thin', color: { argb: 'FF808080' } },
+      bottom: { style: 'thin', color: { argb: 'FF808080' } },
+      right: { style: 'thin', color: { argb: 'FF808080' } }
+    };
+    // Căn giữa cho merged cell - set lại sau khi đã set các style khác
     titleCell.alignment = { 
       vertical: 'middle', 
       horizontal: 'center',
       wrapText: false
     };
-    titleCell.border = {
-      top: { style: 'thin', color: { argb: 'FF000000' } },
-      left: { style: 'thin', color: { argb: 'FF000000' } },
-      bottom: { style: 'thin', color: { argb: 'FF000000' } },
-      right: { style: 'thin', color: { argb: 'FF000000' } }
+    // Set alignment cho toàn bộ row để đảm bảo merged cell căn giữa
+    titleRow.alignment = {
+      vertical: 'middle',
+      horizontal: 'center'
     };
     titleRow.height = 30;
 
-    const headers = ['Ngày', 'Buổi', 'Người đi', 'Điểm xuất phát', 'Điểm đến', 'Giờ xuất phát', 'Thời gian đến', 'Giờ về', 'Ghi chú'];
+    // Bỏ cột "Ngày", chỉ còn 8 cột
+    const headers = ['Buổi', 'Người đi', 'Điểm xuất phát', 'Điểm đến', 'Giờ xuất phát', 'Thời gian đến', 'Giờ về', 'Ghi chú'];
     const headerRow = worksheet.addRow(headers);
 
       // Gán style màu cho header (màu xanh dương cho các cột thường, màu cam cho cột giờ)
     headerRow.eachCell((cell, colNumber) => {
-      // Cột 6, 7, 8 (Giờ xuất phát, Thời gian đến, Giờ về) dùng màu cam #e39540
+      // Cột 5, 6, 7 (Giờ xuất phát, Thời gian đến, Giờ về) dùng màu cam #e39540 (đã bỏ cột Ngày nên index giảm 1)
       // Các cột khác dùng màu xanh dương #4472C4
-      const isTimeColumn = colNumber === 6 || colNumber === 7 || colNumber === 8;
+      const isTimeColumn = colNumber === 5 || colNumber === 6 || colNumber === 7;
       cell.fill = {
         type: 'pattern',
         pattern: 'solid',
@@ -509,7 +573,8 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
       cell.font = { 
         bold: true, 
         color: { argb: 'FFFFFFFF' }, // Màu trắng cho chữ
-        size: 12
+        size: 9,
+        name: 'Times New Roman'
       };
       cell.alignment = { 
         vertical: 'middle', 
@@ -517,28 +582,35 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
         wrapText: true
       };
       cell.border = {
-        top: { style: 'thin', color: { argb: 'FF000000' } },
-        left: { style: 'thin', color: { argb: 'FF000000' } },
-        bottom: { style: 'thin', color: { argb: 'FF000000' } },
-        right: { style: 'thin', color: { argb: 'FF000000' } }
+        top: { style: 'thin', color: { argb: 'FF808080' } },
+        left: { style: 'thin', color: { argb: 'FF808080' } },
+        bottom: { style: 'thin', color: { argb: 'FF808080' } },
+        right: { style: 'thin', color: { argb: 'FF808080' } }
       };
     });
 
       // Đặt chiều cao cho header
       headerRow.height = 25;
 
-      // Set width cố định cho các cột (trước khi tự động tính)
-      worksheet.getColumn(1).width = 10; // Ngày
-      worksheet.getColumn(2).width = 12; // Buổi (tăng từ 8)
-      worksheet.getColumn(6).width = 15; // Giờ xuất phát
-      worksheet.getColumn(7).width = 15; // Thời gian đến
-      worksheet.getColumn(8).width = 15; // Giờ về
+      // Set width cố định cho các cột (trước khi tự động tính) - giãn cột ra thêm nữa
+      worksheet.getColumn(1).width = 16; // Buổi
+      worksheet.getColumn(2).width = 30; // Người đi
+      worksheet.getColumn(3).width = 35; // Điểm xuất phát
+      worksheet.getColumn(4).width = 45; // Điểm đến
+      worksheet.getColumn(5).width = 20; // Giờ xuất phát
+      worksheet.getColumn(6).width = 20; // Thời gian đến
+      worksheet.getColumn(7).width = 20; // Giờ về
+      worksheet.getColumn(8).width = 65; // Ghi chú
 
       let currentRow = 3; // Bắt đầu từ dòng 3 (dòng 1: title, dòng 2: header)
       
       // Duyệt qua từng nhóm xe
-      this.groupedScheduleData.forEach((vehicleGroup) => {
+      this.groupedScheduleData.forEach((vehicleGroup, vehicleIndex) => {
         const vehicleInfo = vehicleGroup.vehicleInfo;
+        
+        // Lấy màu cho xe này (mỗi xe một màu khác nhau)
+        const colorIndex = vehicleIndex % vehicleColors.length;
+        const vehicleColor = vehicleColors[colorIndex];
         
         // Thêm dòng header cho thông tin xe
         const vehicleHeaderRow = worksheet.addRow([`Thông tin xe: ${vehicleInfo}`]);
@@ -551,24 +623,32 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
         mergedCell.fill = {
           type: 'pattern',
           pattern: 'solid',
-          fgColor: { argb: 'FFffcbee' }, // Màu hồng (#ffcbee) giống HTML
+          fgColor: { argb: vehicleColor }, // Màu custom cho mỗi xe
         };
         mergedCell.font = { 
           bold: true, 
           color: { argb: 'FF000000' }, // Màu đen
-          size: 12
-        };
-        mergedCell.alignment = { 
-          vertical: 'middle', 
-          horizontal: 'center'
+          size: 9,
+          name: 'Times New Roman'
         };
         mergedCell.border = {
-          top: { style: 'medium', color: { argb: 'FF000000' } },
-          left: { style: 'thin', color: { argb: 'FF000000' } },
-          bottom: { style: 'medium', color: { argb: 'FF000000' } },
-          right: { style: 'thin', color: { argb: 'FF000000' } }
+          top: { style: 'thin', color: { argb: 'FF808080' } },
+          left: { style: 'thin', color: { argb: 'FF808080' } },
+          bottom: { style: 'thin', color: { argb: 'FF808080' } },
+          right: { style: 'thin', color: { argb: 'FF808080' } }
         };
-        vehicleHeaderRow.height = 20;
+        // Căn giữa cho merged cell - set sau khi đã set các style khác
+        mergedCell.alignment = { 
+          vertical: 'middle', 
+          horizontal: 'center',
+          wrapText: false
+        };
+        // Set alignment cho toàn bộ row để đảm bảo merged cell căn giữa
+        vehicleHeaderRow.alignment = {
+          vertical: 'middle',
+          horizontal: 'center'
+        };
+        // Không set height để Excel tự động dùng height mặc định (1 dòng bình thường)
         
         currentRow++;
         
@@ -589,8 +669,7 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
             }
             
             const rowData = [
-              // Chỉ set giá trị cho dòng đầu, các dòng sau để '' để merge cho đẹp
-              itemIndex === 0 ? displayDate : '',
+              // Bỏ cột Ngày, chỉ còn Buổi (chỉ set giá trị cho dòng đầu, các dòng sau để '' để merge cho đẹp)
               itemIndex === 0 ? session : '',
               item.PassengerNames || '',               // Người đi
               item.DepartureAddress || '',             // Điểm xuất phát
@@ -605,20 +684,15 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
             currentRow++;
           });
           
-          // Merge cột "Ngày" (col 1) và "Buổi" (col 2) để giống rowspan trên UI
+          // Merge cột "Buổi" (col 1) để giống rowspan trên UI (đã bỏ cột Ngày)
           const endRowForDaySession = currentRow - 1;
           
           if (endRowForDaySession > startRowForDaySession) {
-            // Merge cột Ngày
-            worksheet.mergeCells(startRowForDaySession, 1, endRowForDaySession, 1);
             // Merge cột Buổi
-            worksheet.mergeCells(startRowForDaySession, 2, endRowForDaySession, 2);
+            worksheet.mergeCells(startRowForDaySession, 1, endRowForDaySession, 1);
             
             // Căn giữa + giữa dọc cho cell đã merge
-            const dateCell = worksheet.getCell(startRowForDaySession, 1);
-            dateCell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-            
-            const sessionCell = worksheet.getCell(startRowForDaySession, 2);
+            const sessionCell = worksheet.getCell(startRowForDaySession, 1);
             sessionCell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
           }
         });
@@ -627,21 +701,6 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
       // Format cột có giá trị là Date và thêm border
       worksheet.eachRow((row, rowNumber) => {
         if (rowNumber === 1 || rowNumber === 2) return; // bỏ qua dòng title và header
-        
-        // Kiểm tra xem có phải dòng header xe không (chứa "Thông tin xe:")
-        const firstCellValue = row.getCell(1).value;
-        const isVehicleHeader = typeof firstCellValue === 'string' && firstCellValue.includes('Thông tin xe:');
-        
-        if (isVehicleHeader) {
-          // Dòng header xe đã được format ở trên, chỉ cần thêm border (chỉ border ngang đậm)
-          row.getCell(1).border = {
-            top: { style: 'medium', color: { argb: 'FF000000' } },
-            left: { style: 'thin', color: { argb: 'FF000000' } },
-            bottom: { style: 'medium', color: { argb: 'FF000000' } },
-            right: { style: 'thin', color: { argb: 'FF000000' } }
-          };
-          return;
-        }
         
         // Xác định dòng đầu và cuối của nhóm xe
         let isFirstDataRow = false;
@@ -661,10 +720,10 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
         isLastDataRow = isNextRowVehicleHeader || rowNumber === worksheet.rowCount;
         
       row.eachCell((cell, colNumber) => {
-        // Set font size 12px cho tất cả các cell
-        cell.font = { ...cell.font, size: 12 };
+        // Set font Times New Roman và size 9px cho tất cả các cell
+        cell.font = { ...cell.font, size: 9, name: 'Times New Roman' };
         
-        // Format cho các cột thời gian (cột 6, 7, 8: Giờ xuất phát, Thời gian đến, Giờ về)
+        // Format cho các cột thời gian (cột 5, 6, 7: Giờ xuất phát, Thời gian đến, Giờ về - đã bỏ cột Ngày)
         if (cell.value instanceof Date) {
           // Nếu là Date thì format đầy đủ ngày giờ
           cell.numFmt = 'dd/mm/yyyy hh:mm:ss';
@@ -673,116 +732,113 @@ export class ExportVehicleScheduleFormComponent implements OnInit {
           // Excel sẽ hiển thị như text
         }
         
-        // Set alignment theo loại cột
-        // Cột 1: Ngày - căn giữa
-        // Cột 2: Buổi - căn giữa
-        // Cột 3, 4, 5, 9: Chữ (Người đi, Điểm xuất phát, Điểm đến, Ghi chú) - căn trái
-        // Cột 6, 7, 8: Giờ (Giờ xuất phát, Thời gian đến, Giờ về) - căn giữa
-        if (colNumber === 1 || colNumber === 2) {
-          // Ngày và Buổi: căn giữa
-          cell.alignment = { ...cell.alignment, horizontal: 'center', vertical: 'middle' };
-        } else if (colNumber === 6 || colNumber === 7 || colNumber === 8) {
+        // Set alignment theo loại cột (đã bỏ cột Ngày)
+        // Cột 1: Buổi - căn giữa
+        // Cột 2, 3, 4, 8: Chữ (Người đi, Điểm xuất phát, Điểm đến, Ghi chú) - căn trái, xuống dòng khi quá width
+        // Cột 5, 6, 7: Giờ (Giờ xuất phát, Thời gian đến, Giờ về) - căn giữa
+        // Đảm bảo các cột Người đi (2), Điểm xuất phát (3), Điểm đến (4) xuống dòng khi quá width
+        if (colNumber === 1) {
+          // Buổi: căn giữa
+          cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        } else if (colNumber === 5 || colNumber === 6 || colNumber === 7) {
           // Các cột giờ: căn giữa
-          cell.alignment = { ...cell.alignment, horizontal: 'center', vertical: 'middle' };
+          cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        } else if (colNumber === 2 || colNumber === 3 || colNumber === 4 || colNumber === 8) {
+          // Các cột chữ: Người đi, Điểm xuất phát, Điểm đến, Ghi chú - căn trái, xuống dòng
+          cell.alignment = { horizontal: 'left', vertical: 'top', wrapText: true };
         } else {
-          // Các cột chữ: căn trái
-          cell.alignment = { ...cell.alignment, horizontal: 'left', vertical: 'top', wrapText: true };
+          // Các cột khác
+          cell.alignment = { horizontal: 'left', vertical: 'top', wrapText: true };
         }
         
-        // Thêm border: đậm cho dòng đầu/cuối, mỏng cho các dòng khác
-        const border: any = {
-          left: { style: 'thin', color: { argb: 'FFD3D3D3' } },
-          right: { style: 'thin', color: { argb: 'FFD3D3D3' } }
+        // Thêm border cho tất cả các cell dữ liệu
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FF808080' } },
+          left: { style: 'thin', color: { argb: 'FF808080' } },
+          bottom: { style: 'thin', color: { argb: 'FF808080' } },
+          right: { style: 'thin', color: { argb: 'FF808080' } }
         };
-        
-        // Border top: đậm cho dòng đầu, mỏng cho các dòng khác
-        if (isFirstDataRow) {
-          border.top = { style: 'medium', color: { argb: 'FF808080' } };
-        } else {
-          border.top = { style: 'thin', color: { argb: 'FFD3D3D3' } };
-        }
-        
-        // Border bottom: đậm cho dòng cuối, mỏng cho các dòng khác
-        if (isLastDataRow) {
-          border.bottom = { style: 'medium', color: { argb: 'FF808080' } };
-        } else {
-          border.bottom = { style: 'thin', color: { argb: 'FFD3D3D3' } };
-        }
-        
-        cell.border = border;
       });
     });
 
         // Tự động căn chỉnh độ rộng cột với tính toán tốt hơn (bỏ qua các cột đã set width cố định)
       worksheet.columns.forEach((column: any, index: number) => {
-        // Bỏ qua các cột đã set width cố định: 1 (Ngày), 2 (Buổi), 6 (Giờ xuất phát), 7 (Thời gian đến), 8 (Giờ về)
-        if (index === 0 || index === 1 || index === 5 || index === 6 || index === 7) {
-          return; // Giữ nguyên width đã set
-        }
-        
-        let maxLength = 10;
-        let maxLines = 1;
-        
-        // Tính độ dài cho header
-        const headerValue = headers[index] ? headers[index].toString() : '';
-        maxLength = Math.max(maxLength, headerValue.length);
-        
-        // Tính độ dài cho các ô dữ liệu
-        column.eachCell({ includeEmpty: true }, (cell: any) => {
-          if (cell.value !== null && cell.value !== undefined) {
-            const cellValue = cell.value.toString();
-            // Đếm số dòng nếu có xuống dòng
-            const lines = cellValue.split('\n').length;
-            maxLines = Math.max(maxLines, lines);
-            
-            // Tính độ dài tối đa của một dòng
-            const maxLineLength = Math.max(...cellValue.split('\n').map((line: string) => line.length));
-            maxLength = Math.max(maxLength, maxLineLength);
-          }
-        });
-        
-        // Đặt độ rộng cột (tối thiểu 10, tối đa 80 để đảm bảo hiển thị đầy đủ)
-        // Cộng thêm 2 cho padding
-        column.width = Math.min(Math.max(maxLength + 2, 10), 80);
+        // Bỏ qua các cột đã set width cố định: tất cả các cột đã được set width
+        // Không cần tự động tính nữa vì đã set width cố định cho tất cả
+        return;
       });
 
-      // Áp dụng text wrapping và căn chỉnh cho tất cả các ô
+      // Áp dụng text wrapping và căn chỉnh cho tất cả các ô (bỏ qua row 1 - title, row 2 - header và các dòng "Thông tin xe")
       worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber === 1) return; // Bỏ qua title row, đã set alignment riêng
+        if (rowNumber === 2) return; // Bỏ qua header row, đã set alignment riêng (căn giữa)
+        
+        // Kiểm tra xem có phải dòng "Thông tin xe" không
+        const firstCellValue = row.getCell(1).value;
+        const isVehicleHeader = typeof firstCellValue === 'string' && firstCellValue.includes('Thông tin xe:');
+        if (isVehicleHeader) return; // Bỏ qua dòng "Thông tin xe", đã set alignment riêng (căn giữa)
+        
         row.eachCell((cell, colNumber) => {
+          // Cột Buổi (1) căn giữa, các cột giờ (5,6,7) căn giữa, còn lại căn trái
+          // Đảm bảo các cột Người đi (2), Điểm xuất phát (3), Điểm đến (4) có wrapText: true
+          const isCenterColumn = colNumber === 1 || colNumber === 5 || colNumber === 6 || colNumber === 7;
           cell.alignment = {
             ...cell.alignment,
             wrapText: true,
-            vertical: 'top', // Căn trên để dễ đọc khi có nhiều dòng
-            horizontal: colNumber === 1 ? 'center' : 'left' // Cột đầu căn giữa, các cột khác căn trái
+            vertical: isCenterColumn ? 'middle' : 'top',
+            horizontal: isCenterColumn ? 'center' : 'left'
           };
         });
         
-        // Tự động điều chỉnh chiều cao hàng dựa trên nội dung
-        if (rowNumber > 1) {
+        // Tự động điều chỉnh chiều cao hàng dựa trên nội dung (bỏ qua row 1, 2 và các dòng "Thông tin xe")
+        if (rowNumber > 2) {
+          // Kiểm tra xem có phải dòng "Thông tin xe" không
+          const firstCellValue = row.getCell(1).value;
+          const isVehicleHeader = typeof firstCellValue === 'string' && firstCellValue.includes('Thông tin xe:');
+          
+          // Bỏ qua dòng "Thông tin xe" - giữ height mặc định (1 dòng bình thường)
+          if (isVehicleHeader) {
+            return;
+          }
+          
           let maxLines = 1;
-          row.eachCell((cell) => {
-            if (cell.value !== null && cell.value !== undefined) {
-              const cellValue = cell.value.toString();
-              const lines = cellValue.split('\n').length;
-              maxLines = Math.max(maxLines, lines);
+          row.eachCell((cell, colNumber) => {
+            if (cell.value !== null && cell.value !== undefined && cell.value !== '') {
+              const cellValue = cell.value.toString().trim();
+              if (cellValue === '') return;
+              
+              // Đếm số dòng từ \n có sẵn
+              const explicitLines = cellValue.split('\n').length;
+              
+              // Tính toán số dòng dựa trên width cột và độ dài text
+              // Với font size 9 Times New Roman, mỗi ký tự chiếm khoảng 0.6-0.65 đơn vị width
+              const column = worksheet.getColumn(colNumber);
+              const columnWidth = column.width || 20; // Default width nếu chưa set
+              
+              // Ước tính số ký tự trên 1 dòng: width * 1.5 (vì font size 9, Times New Roman)
+              // Trừ đi 2 cho padding
+              const charsPerLine = Math.max(1, Math.floor((columnWidth - 2) * 1.5));
+              
+              // Tính số dòng cần thiết khi wrap text
+              const wrappedLines = Math.ceil(cellValue.length / charsPerLine);
+              
+              // Lấy số dòng lớn nhất giữa explicit lines và wrapped lines
+              const totalLines = Math.max(explicitLines, wrappedLines, 1);
+              maxLines = Math.max(maxLines, totalLines);
             }
           });
-          // Đặt chiều cao hàng (tối thiểu 15, mỗi dòng thêm 15)
-          row.height = Math.max(15, maxLines * 15);
+          // Đặt chiều cao hàng (tối thiểu 20, mỗi dòng thêm 18 để đảm bảo đủ không gian)
+          // Tăng hệ số từ 15 lên 18 để đảm bảo không bị che
+          row.height = Math.max(20, maxLines * 18);
         }
     });
 
-    // Thêm bộ lọc cho toàn bộ cột (từ dòng header - dòng 2)
-    worksheet.autoFilter = {
-      from: {
-        row: 2,
-        column: 1,
-      },
-      to: {
-        row: 2,
-        column: headers.length,
-      },
-    };
+    // Set zoom level về 100%
+    worksheet.views = [
+      {
+        zoomScale: 100
+      }
+    ];
 
     // Xuất file
     const buffer = await workbook.xlsx.writeBuffer();

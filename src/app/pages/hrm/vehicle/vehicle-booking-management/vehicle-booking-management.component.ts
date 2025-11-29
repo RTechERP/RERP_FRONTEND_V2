@@ -97,6 +97,7 @@ export class VehicleBookingManagementComponent
   checked = false;
   selected: any;
   vehicleBookingListId: any[] = [];
+  exportingExcel: boolean = false;
   dateStart: any = DateTime.local()
     .set({ hour: 0, minute: 0, second: 0 })
     .toISO();
@@ -481,6 +482,21 @@ export class VehicleBookingManagementComponent
       return;
     }
 
+    this.exportingExcel = true;
+    
+    // Hiển thị notification đang chuẩn bị file
+    const loadingNotification = this.notification.create(
+      'info',
+      'Đang chuẩn bị file để xuất',
+      'Vui lòng đợi trong giây lát...',
+      {
+        nzDuration: 0, // Không tự động đóng
+        nzStyle: { fontSize: '0.75rem' }
+      }
+    );
+    
+    try {
+
     // Lấy danh sách ảnh cho các item giao hàng (Category 2: Đăng ký giao hàng, Category 6: Đăng ký lấy hàng)
     const deliveryItems = data.filter(
       (item: any) => item.Category === 2 || item.Category === 6
@@ -498,29 +514,58 @@ export class VehicleBookingManagementComponent
 
     if (deliveryItemRequests.length > 0) {
       try {
-        const imageResponse: any = await this.vehicleBookingManagementService
-          .getListImage(deliveryItemRequests)
-          .toPromise();
+        const imageResponse: any = await this.vehicleBookingManagementService.getListImage(deliveryItemRequests).toPromise();
+        console.log('Image response:', imageResponse);
         if (imageResponse?.data && Array.isArray(imageResponse.data)) {
-          // Dữ liệu được group theo Title (ID của booking dạng string)
+          // Duyệt qua từng item trong response
           imageResponse.data.forEach((imgItem: any) => {
-            // Title chứa ID của booking
-            const bookingIdStr = imgItem.Title ? imgItem.Title.toString() : '';
-            const bookingId =
-              bookingIdStr && !isNaN(parseInt(bookingIdStr))
-                ? parseInt(bookingIdStr)
-                : null;
-
+            console.log('Image item:', imgItem);
+            
+            // Thử nhiều cách để lấy booking ID:
+            // 1. Từ Title (nếu Title là ID dạng string)
+            let bookingId: number | null = null;
+            if (imgItem.Title) {
+              const titleStr = imgItem.Title.toString().trim();
+              if (titleStr && !isNaN(parseInt(titleStr))) {
+                bookingId = parseInt(titleStr);
+              }
+            }
+            
+            // 2. Nếu không có từ Title, thử tìm trong deliveryItemRequests theo các field khác
+            if (!bookingId && imgItem.urlImage) {
+              // Tìm item matching dựa trên ReceiverName, PackageName, hoặc các field khác
+              const matchedItem = deliveryItemRequests.find((req: any) => {
+                return (req.ReceiverName && imgItem.ReceiverName && req.ReceiverName === imgItem.ReceiverName) ||
+                       (req.PackageName && imgItem.PackageName && req.PackageName === imgItem.PackageName) ||
+                       (req.ID && imgItem.ID && req.ID === imgItem.ID);
+              });
+              if (matchedItem) {
+                bookingId = matchedItem.ID;
+              }
+            }
+            
+            // 3. Nếu vẫn không có, thử dùng ID trực tiếp từ imgItem (nếu có)
+            if (!bookingId && imgItem.ID) {
+              bookingId = typeof imgItem.ID === 'number' ? imgItem.ID : 
+                          (typeof imgItem.ID === 'string' && !isNaN(parseInt(imgItem.ID)) ? parseInt(imgItem.ID) : null);
+            }
+            
+            // Thêm vào map nếu có bookingId và urlImage
             if (bookingId && imgItem.urlImage) {
               if (!imageMap.has(bookingId)) {
                 imageMap.set(bookingId, []);
               }
               imageMap.get(bookingId)!.push(imgItem.urlImage);
+              console.log(`Mapped image for booking ID ${bookingId}:`, imgItem.urlImage);
+            } else {
+              console.warn('Cannot map image item:', imgItem, 'bookingId:', bookingId);
             }
           });
+          
+          console.log('Final imageMap:', Array.from(imageMap.entries()));
         }
       } catch (error) {
-        console.warn('Không thể lấy danh sách ảnh:', error);
+        console.error('Không thể lấy danh sách ảnh:', error);
       }
     }
 
@@ -574,11 +619,11 @@ export class VehicleBookingManagementComponent
     headerRow.height = 25;
 
     // Tìm index của cột "Tiền xe" để format số tiền
-    const vehicleMoneyColIndex = filteredColumnsID.findIndex(
-      (col: any) => col.getField() === 'VehicleMoney'
-    );
+    const vehicleMoneyColIndex = filteredColumnsID.findIndex((col: any) => col.getField() === 'VehicleMoney');
+    // Tìm index của cột "Link ảnh" (cột cuối cùng)
+    const imageLinkColIndex = headers.length - 1;
 
-    data.forEach((row: any) => {
+    data.forEach((row: any, rowIndex: number) => {
       const rowData = filteredColumnsID.map((col: any) => {
         const field = col.getField();
         let value = row[field];
@@ -590,11 +635,44 @@ export class VehicleBookingManagementComponent
         return value;
       });
 
-      // Thêm link ảnh vào cuối mỗi dòng
+      // Thêm link ảnh vào cuối mỗi dòng (tạm thời để rỗng, sẽ set hyperlink sau)
       const imageLinks = imageMap.get(row.ID) || [];
       rowData.push(imageLinks.length > 0 ? imageLinks.join('\n') : '');
 
-      worksheet.addRow(rowData);
+      const excelRow = worksheet.addRow(rowData);
+      
+      // Tạo hyperlink cho các link ảnh
+      if (imageLinks.length > 0) {
+        const imageCell = excelRow.getCell(imageLinkColIndex + 1);
+        // Nếu có nhiều link, tạo text với hyperlink cho từng link
+        if (imageLinks.length === 1) {
+          // Chỉ có 1 link, tạo hyperlink trực tiếp
+          imageCell.value = {
+            text: imageLinks[0],
+            hyperlink: imageLinks[0],
+            tooltip: 'Click để mở ảnh trong trình duyệt'
+          };
+          imageCell.font = { color: { argb: 'FF0000FF' }, underline: true };
+        } else {
+          // Nhiều link, tạo hyperlink cho link đầu tiên, các link khác hiển thị text
+          imageCell.value = {
+            text: imageLinks[0],
+            hyperlink: imageLinks[0],
+            tooltip: 'Click để mở ảnh trong trình duyệt'
+          };
+          imageCell.font = { color: { argb: 'FF0000FF' }, underline: true };
+          // Thêm các link còn lại vào cell (người dùng có thể copy)
+          if (imageLinks.length > 1) {
+            const remainingLinks = imageLinks.slice(1).map((link: string, idx: number) => {
+              return `Link ${idx + 2}: ${link}`;
+            });
+            const currentValue = imageCell.value.text || imageCell.value;
+            imageCell.value = typeof currentValue === 'string' 
+              ? `${currentValue}\n${remainingLinks.join('\n')}`
+              : { text: `${currentValue.text}\n${remainingLinks.join('\n')}`, hyperlink: currentValue.hyperlink };
+          }
+        }
+      }
     });
 
     const startRow = 2;
@@ -735,7 +813,21 @@ export class VehicleBookingManagementComponent
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(link.href);
+    
+    // Hiển thị thông báo thành công (notification loading sẽ tự đóng hoặc người dùng đóng)
+    this.notification.success('Thông báo', 'Xuất Excel thành công!', {
+      nzStyle: { fontSize: '0.75rem' }
+    });
+    } catch (error) {
+      console.error('Lỗi khi xuất Excel:', error);
+      this.notification.error('Thông báo', 'Lỗi khi xuất file Excel!', {
+        nzStyle: { fontSize: '0.75rem' }
+      });
+    } finally {
+      this.exportingExcel = false;
+    }
   }
+
 
   getVehicleBookingManagement() {
     const request = {

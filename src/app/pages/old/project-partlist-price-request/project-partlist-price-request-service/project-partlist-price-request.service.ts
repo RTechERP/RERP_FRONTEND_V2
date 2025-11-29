@@ -9,7 +9,7 @@ import { environment } from '../../../../../environments/environment';
 })
 export class ProjectPartlistPriceRequestService {
   private http = inject(HttpClient);
-  private baseUrl = `${environment.host}/api/ProjectPartlistPriceRequest`;
+  private baseUrl = `${environment.host}api/ProjectPartlistPriceRequest`;
 
   // Sửa đổi method getAllPartlist để có thể lấy nhiều dữ liệu hơn
   getAllPartlist(
@@ -44,7 +44,7 @@ export class ProjectPartlistPriceRequestService {
     );
   }
   getAPIPricerequest() {
-    return this.baseUrl + '/getallProjectParListPriceRequest';
+    return this.baseUrl + '/get-all-project-parList-price-request';
   }
   // Gọi API lấy danh sách types
   getTypes(employeeID: number): Observable<any> {
@@ -77,6 +77,9 @@ export class ProjectPartlistPriceRequestService {
   getSuplierSale(): Observable<any> {
     return this.http.get(`${this.baseUrl}/getSupplierSale`);
   }
+  getPriceRequestType(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/get-price-request-type`);
+  }
   saveChangedData(data: any[]) {
     return this.http.post(`${this.baseUrl}/saveData`, data);
   }
@@ -88,5 +91,8 @@ export class ProjectPartlistPriceRequestService {
     return this.http.post(`${this.baseUrl}/download`, payload, {
       responseType: 'blob',
     });
+  }
+  saveRequestNote(notes: any[]): Observable<any> {
+    return this.http.post(`${this.baseUrl}/save-request-note`, notes);
   }
 }

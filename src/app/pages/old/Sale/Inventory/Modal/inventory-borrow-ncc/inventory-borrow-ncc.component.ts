@@ -64,7 +64,7 @@ export class InventoryBorrowNCCComponent implements OnInit, AfterViewInit {
     private modalService: NgbModal,
   ) { }
   isLoading: boolean = false;
-  sizeSearch: string = '0';
+  isSearchVisible: boolean = false;
   searchParams = {
     dateStart: new Date(`${new Date().getFullYear()}-01-01`).toISOString().split('T')[0],
     dateEnd: new Date().toISOString().split('T')[0],
@@ -88,7 +88,7 @@ export class InventoryBorrowNCCComponent implements OnInit, AfterViewInit {
     this.drawTable();
   }
   toggleSearchPanel() {
-    this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+    this.isSearchVisible = !this.isSearchVisible;
   }
   resetform() {
     this.searchParams = {
@@ -435,7 +435,7 @@ export class InventoryBorrowNCCComponent implements OnInit, AfterViewInit {
       ...DEFAULT_TABLE_CONFIG,
       paginationMode: 'local',
       layout: 'fitDataFill',
-      height: "83vh",
+      height: "95vh",
       columnDefaults: {
         resizable: true,
       },

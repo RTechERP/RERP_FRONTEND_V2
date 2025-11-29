@@ -129,7 +129,42 @@
             </nz-form-control>
           </nz-form-item>
         </div>
-        <div class="col-md-6 ">
+        <div class="col-md-3 ">
+          <nz-form-item>
+            <nz-form-label class="fs-12">
+              Người tạo <span class="text-danger ps-1">*</span>
+            </nz-form-label>
+            <nz-form-control
+              [nzErrorTip]="
+                form.get('CreatedByID')?.invalid &&
+                (form.get('CreatedByID')?.dirty || form.get('CreatedByID')?.touched)
+                  ? 'Vui lòng chọn người tạo'
+                  : undefined
+              "
+            >
+              <nz-select 
+                formControlName="CreatedByID"
+                nzPlaceHolder="Chọn người tạo" 
+                nzShowSearch 
+                nzAllowClear
+                style="width: 100%">
+                @for (parent of employeeOptionsGrouped; track $index) {
+                  <nz-option-group [nzLabel]="parent.label">
+                    @for (child of parent.options; track $index) {
+                      <nz-option 
+                        nzCustomContent="true"
+                        [nzLabel]="child.item.FullName" 
+                        [nzValue]="child.item.ID">
+                        {{ child.item.Code + " - " + child.item.FullName }}
+                      </nz-option>
+                    }
+                  </nz-option-group>
+                }
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div class="col-md-3 ">
           <nz-form-item>
             <nz-form-label class="fs-12">Địa điểm</nz-form-label>
             <nz-form-control>
@@ -156,14 +191,14 @@
         <nz-splitter-panel  [nzCollapsible]="true" nzResizable="true">
           <nz-tabset>
             <nz-tab nzTitle="Nhân viên tham gia">
-              <nz-splitter nzLayout="vertical" style="height: 100%;">
+              <nz-splitter nzLayout="vertical" style="height: 450px;">
                 <nz-splitter-panel nzDefaultSize="50%" nzMin="20%" nzMax="100%">
-                  <div #tb_EmployeeDetailTable id="tb_EmployeeDetailTable" style="height: 100%; min-height: 300px;"></div>
+                  <div #tb_EmployeeDetailTable id="tb_EmployeeDetailTable" style="height: 450px;"></div>
                 </nz-splitter-panel>
                 <nz-splitter-panel>
                   <div #tb_CustomerDetailTable 
                        id="tb_CustomerDetailTable"
-                       style="height: 100%; min-height: 300px;"
+                       style="height: 450px;"
                        [style.display]="(selectedGroupId === 1 || selectedGroupId === null) ? 'block' : 'none'">
                   </div>
                 </nz-splitter-panel>
@@ -171,14 +206,14 @@
             </nz-tab>
             <!-- TAB: Nội dung -->
             <nz-tab nzTitle="Nội dung">
-              <nz-splitter nzLayout="vertical" style="height: 60vh;">
+              <nz-splitter nzLayout="vertical" style="height: 450px;">
                 <nz-splitter-panel nzDefaultSize="50%" nzMin="20%" nzMax="100%">
-                  <div #tb_EmployeeDetailContentTable id="tb_EmployeeDetailContentTable" style="height: 100%; min-height: 300px;"></div>
+                  <div #tb_EmployeeDetailContentTable id="tb_EmployeeDetailContentTable" style="height: 450px;"></div>
                 </nz-splitter-panel>
                 <nz-splitter-panel>
                   <div #tb_CustomerDetailContentTable 
                        id="tb_CustomerDetailContentTable"
-                       style="height: 100%; min-height: 300px;"
+                       style="height: 450px;"
                        [style.display]="(selectedGroupId === 1 || selectedGroupId === null) ? 'block' : 'none'">
                   </div>
                 </nz-splitter-panel>
@@ -186,7 +221,7 @@
             </nz-tab>
             
             <nz-tab nzTitle="File đính kèm">
-              <div #tb_FileTable id="tb_FileTable" style="height: 60vh; min-height: 500px;"></div>
+              <div #tb_FileTable id="tb_FileTable" style="height: 450px;"></div>
             </nz-tab>
           </nz-tabset>
         </nz-splitter-panel>

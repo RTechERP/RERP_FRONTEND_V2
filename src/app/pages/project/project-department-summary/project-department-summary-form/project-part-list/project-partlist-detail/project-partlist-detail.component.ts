@@ -218,6 +218,11 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
     if (this.projectSolutionId > 0) {
       // Load versions sẽ được gọi trong loadInitialData
     }
+
+    // Subscribe to projectId changes
+    this.formGroup.get('projectId')?.valueChanges.subscribe((projectId: number) => {
+      this.onProjectChange(projectId);
+    });
   }
 
   ngAfterViewInit(): void {
@@ -332,7 +337,9 @@ export class ProjectPartlistDetailComponent implements OnInit, AfterViewInit {
     // Logic disable button Save theo WinForm: !(IsApprovedTBP == true || IsApprovedTBPNewCode == true)
     const isApprovedTBP = data.IsApprovedTBP === true || data.IsApprovedTBP === 1;
     const isApprovedTBPNewCode = data.IsApprovedTBPNewCode === true || data.IsApprovedTBPNewCode === 1;
-    if(isApprovedTBP || isApprovedTBPNewCode){
+    const IsCheckPrice = data.IsCheckPrice;
+    const StatusRequest = data.StatusRequest;
+    if(isApprovedTBP || isApprovedTBPNewCode || IsCheckPrice || StatusRequest===2 || StatusRequest===3){
       this.isDisabled = true;
     }else{
       this.isDisabled = false;

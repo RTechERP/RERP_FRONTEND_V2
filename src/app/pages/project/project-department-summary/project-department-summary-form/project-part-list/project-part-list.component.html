@@ -1,9 +1,4 @@
 <div style="display: flex; flex-direction: column; height: 100vh; position: relative;">
-    <!-- Loading Indicator -->
-    <div *ngIf="isLoading" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75 z-3" style="z-index: 1000;">
-      <nz-spin nzSimple></nz-spin>
-    </div>
-    
     <!-- Modal Header -->
     <div
       class="modal-header bg-primary align-items-center ps-2"
@@ -237,7 +232,7 @@
           nzResizable="true">
           <div class="card h-100 border-0 rounded-0 d-flex flex-column">
             <div class="card-header bg-white p-1 d-flex justify-content-between align-items-center" style=" font-weight: bold !important; background-color: #efebebe7 !important;">
-              <p class="m-0">Danh mục vật tư dự án {{ projectCodex }} -{{ type ==1 ? 'Giải pháp' : 'PO' }} -{{ projectTypeName }} -{{ CodeName }}</p>
+              <p class="m-0">Danh mục vật tư dự án {{ projectCodex }} {{ type ==1 ? '-Giải pháp-' : type == 2 ? '-PO-' : '' }} {{ projectTypeName }} -{{ CodeName }}</p>
               <div class="d-flex align-items-center gap-1">
                 <button class="fs-12 text-white" nz-button nzType="text" nzSize="small"
                     style="background-color: red">
@@ -330,11 +325,11 @@
                     <img src="assets/icon/action_unapproved_16.png" />
                     <span class="ms-1">Hủy yêu cầu báo giá</span>
                   </li>
-                  <li nz-menu-item (click)="requestPurchase()">
+                  <li nz-menu-item (click)="requestPurchase()" *ngIf="type == 2">
                     <img src="assets/icon/purchase_16.png" />
                     <span class="ms-1">Yêu cầu mua hàng</span>
                   </li>
-                  <li nz-menu-item (click)="cancelPurchaseRequest()">
+                  <li nz-menu-item (click)="cancelPurchaseRequest()" *ngIf="type == 2">
                     <img src="assets/icon/cancel_purchase_16.png" />
                     <span class="ms-1">Hủy yêu cầu mua hàng</span>
                   </li>
@@ -364,29 +359,11 @@
                     <img src="assets/icon/action_unapproved_16.png" />
                     <span class="ms-1">TBP hủy duyệt mới</span>
                   </li>
-                </ul>
-              </nz-dropdown-menu>
-              <ng-container  *hasPermission="'N38,N1,N64'">
-                <button
-                  class="fs-12"
-                  nz-button
-                  nzType="default"
-                  nzSize="small"
-                  nz-dropdown
-                  [nzDropdownMenu]="menuTBP"
-                  *ngIf="type == 2"
-                >
-                  <img src="assets/icon/action_confirm_tbp_16.png" alt="TBP duyệt" /> TBP xác nhận
-                  <i nz-icon nzType="down"></i>
-                </button>
-              </ng-container>
-              <nz-dropdown-menu #menuTBP="nzDropdownMenu">
-                <ul nz-menu>
-                  <li nz-menu-item (click)="updateApprove(1)">
+                  <li nz-menu-item (click)="updateApprove(1)"  *ngIf="type == 2">
                     <img src="assets/icon/action_approved_16.png" />
                     <span class="ms-1">TBP duyệt</span>
                   </li>
-                  <li nz-menu-item (click)="updateApprove(2)">
+                  <li nz-menu-item (click)="updateApprove(2)"  *ngIf="type == 2">
                     <img src="assets/icon/action_unapproved_16.png" />
                     <span class="ms-1">TBP hủy duyệt</span>
                   </li>
@@ -467,9 +444,9 @@
               nz-button
               nzType="default"
               nzSize="small"
-              (click)="SelectProroductPO()"
+              (click)="SelectProroduct()"
             >
-              <img src="assets/icon/action_edit_item_16.png" alt="Sửa" /> Bổ sung PO
+              <img src="assets/icon/action_edit_item_16.png" alt="Sửa" /> Chọn sản phẩm
             </button>
               <button
             class="fs-12"
@@ -486,7 +463,7 @@
             nz-button
             nzType="default"
             nzSize="small"
-            (click)="onExportExcel()"
+            (click)="openFormExportExcelPartlist()"
           >
               <img src="assets/icon/action_export_excel_16.png" /> Xuất Excel
           </button>
@@ -558,7 +535,11 @@
               </div>
             </div>
   
-            <div class="card-body p-0 flex-grow-1 overflow-hidden" style="min-height: 0;">
+            <div class="card-body p-0 flex-grow-1 overflow-hidden" style="min-height: 0; position: relative;">
+              <!-- Loading cho bảng projectPartList -->
+              <div *ngIf="isLoading" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75" style="z-index: 10;">
+                <nz-spin nzSimple></nz-spin>
+              </div>
               <div #tb_projectWorker style="width: 100%; height: 100%; min-height: 0;"></div>
             </div>
           </div>
@@ -636,7 +617,7 @@
       </p>
       <div class="mb-3">
         <label class="d-block mb-2">
-          <span class="text-danger">*</span> Lý do xóa:
+          Lý do xóa  <span class="text-danger ps-1">*</span>
         </label>
         <textarea
           nz-input
@@ -657,12 +638,36 @@
       </p>
       <div class="mb-3">
         <label class="d-block mb-2">
-          <span class="text-danger">*</span> Lý do xóa:
+          Lý do xóa  <span class="text-danger ps-1">*</span>
         </label>
         <textarea
           nz-input
           [(ngModel)]="reasonDeletedVersion"
           placeholder="Nhập lý do xóa"
+          rows="4"
+          style="width: 100%; resize: vertical;"
+        ></textarea>
+      </div>
+    </div>
+  </ng-template>
+
+  <!-- Modal nhập lý do phát sinh bổ sung PO -->
+  <ng-template #additionalPartListPOModalContent>
+    <div style="padding: 20px;">
+      <div class="mb-3">
+        <label nz-checkbox [(ngModel)]="isGeneratedItem" (ngModelChange)="onIsGeneratedItemChange()">
+          Hàng phát sinh
+        </label>
+      </div>
+      <div class="mb-3">
+        <label class="d-block mb-2">
+          Lý do phát sinh <span class="text-danger ps-1" *ngIf="isGeneratedItem">*</span>
+        </label>
+        <textarea
+          nz-input
+          [(ngModel)]="reasonProblem"
+          [disabled]="!isGeneratedItem"
+          placeholder="Nhập lý do phát sinh..."
           rows="4"
           style="width: 100%; resize: vertical;"
         ></textarea>

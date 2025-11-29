@@ -1,4 +1,4 @@
-<ng-container  class="w-100">
+<ng-container class="w-100">
     <nz-splitter>
         <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
             <div class="card h-100 border-0 rounded-0">
@@ -87,7 +87,8 @@
                                 <nz-select name="businessFieldId" class="w-100" nzShowSearch nzAllowClear
                                     nzPlaceHolder="Chọn lĩnh vực dự án" [(ngModel)]="businessFieldId">
                                     @for (item of businessFields; track $index) {
-                                    <nz-option nzCustomContent="true" [nzLabel]="item.Name + ' - ' + item.Code" [nzValue]="item.ID">{{
+                                    <nz-option nzCustomContent="true" [nzLabel]="item.Name + ' - ' + item.Code"
+                                        [nzValue]="item.ID">{{
                                         item.Code + " - " + item.Name }}</nz-option>
                                     }
                                 </nz-select>
@@ -136,7 +137,8 @@
                         <nz-form-item class="mt-2">
                             <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
                             <nz-form-control [nzSpan]="24">
-                                <input name="keyword" nz-input placeholder="Nhập từ khóa" [(ngModel)]="keyword" />
+                                <input nzAllowClear name="keyword" nz-input placeholder="Nhập từ khóa"
+                                    [(ngModel)]="keyword" />
                             </nz-form-control>
                         </nz-form-item>
                     </form>
@@ -163,6 +165,7 @@
                             <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " /> Thêm
                         </button>
 
+
                         <button class="fs-12 btn-edit" nz-button nzType="default" nzSize="small" nzD
                             (click)="updateProject(1)" *ngIf="isHide">
                             <img src="assets/icon/action_edit_item_16.png" alt="Sửa">Sửa
@@ -171,19 +174,28 @@
                             (click)="deletedProjects()" *ngIf="isHide">
                             <img src="assets/icon/action_delete_item_16.png" alt="Xóa " />Xóa
                         </button>
+                        <button nz-button nzType="default" nzSize="small" (click)="openFolder()" *ngIf="isHide">
+                            <img src="assets/icon/tree_folder_16.png" alt="Thêm mới " /> Cây thư mục
+                        </button>
                         <!-- <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openProjectWorkerSynthetic()">
                             <img src="assets/icon/summary_assignments_16.png" alt="Tổng hợp nhân công" class="me-1" /> Tổng hợp nhân công
                         </button> -->
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openProjectWorkReportModal()">
-                            <img src="assets/icon/list_project_report_16.png" alt="Danh sách báo cáo công việc" class="me-1" /> Ds báo cáo công việc
+                        <button class="fs-12" nz-button nzType="default" nzSize="small"
+                            (click)="openProjectWorkReportModal()">
+                            <img src="assets/icon/list_project_report_16.png" alt="Danh sách báo cáo công việc"
+                                class="me-1" /> Ds báo cáo công việc
                         </button>
                         <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openWorkItemModal()">
-                            <img src="assets/icon/work_item_16.png" alt="Hạng mục công việc" class="me-1" /> Hạng mục công việc
+                            <img src="assets/icon/work_item_16.png" alt="Hạng mục công việc" class="me-1" /> Hạng mục
+                            công việc
                         </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openProjectWorkerModal()">
-                            <img src="assets/icon/project_woker_16.png" alt="Nhân công dự án" class="me-1" /> Nhân công dự án
+                        <button class="fs-12" nz-button nzType="default" nzSize="small"
+                            (click)="openProjectWorkerModal()">
+                            <img src="assets/icon/project_woker_16.png" alt="Nhân công dự án" class="me-1" /> Nhân công
+                            dự án
                         </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="openProjectPartListModal()">
+                        <button class="fs-12" nz-button nzType="default" nzSize="small"
+                            (click)="openProjectPartListModal()">
                             <img src="assets/icon/partlist_16.png" alt="Danh mục vật tư" class="me-1" /> Danh mục vật tư
                         </button>
                     </div>

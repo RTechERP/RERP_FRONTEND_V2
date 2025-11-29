@@ -1,0 +1,57 @@
+<div class="modal-dialog-scrollable">
+    <div class="modal-header bg-primary align-items-center ps-3">
+        <h6 class="text-light text-uppercase m-0 fw-bold">Lịch sử giá sản phẩm</h6>
+        <button type="button" class="btn-close position-absolute end-0 m-3" aria-label="Close"
+            (click)="onClose()"></button>
+    </div>
+
+    <div class="modal-body">
+        <!-- Search Section -->
+        <div class="search-section mb-3">
+            <div class="d-flex align-items-center justify-content-between gap-2">
+                <nz-input-group [nzSuffix]="suffixIconSearch" class="flex-grow-1">
+                    <input type="text" nz-input placeholder="Nhập từ khóa tìm kiếm..." [(ngModel)]="searchKeyword" nzSize="small"
+                        nzSize="small" (keyup.enter)="onSearch()" />
+                </nz-input-group>
+                <ng-template #suffixIconSearch>
+                    <span nz-icon nzType="search"></span>
+                </ng-template>
+
+                <div class="d-flex gap-2">
+                    <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">
+                        <span nz-icon nzType="search"></span>
+                        Tìm kiếm
+                    </button>
+                    <button nz-button nzType="default" nzSize="small" (click)="exportToExcel()">
+                        <img class="btn-action-icon" src="assets/icon/action_export_excel_24.svg" />
+                        Xuất Excel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Tabulator Table -->
+        <div class="table-container">
+            <div *ngIf="isLoading">
+                <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
+                            position: 'absolute',
+                            top: '0',
+                            left: '0',
+                            width: '100%',
+                            height: '100%',
+                            background: 'rgba(255,255,255,0.4)',
+                            zIndex: '999',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                            }"></nz-spin>
+            </div>
+            <div #productTable class="tabulator-table"></div>
+        </div>
+    </div>
+
+    <div class="modal-footer py-2">
+        <button nz-button nzType="default" nzDanger (click)="onClose()">Đóng</button>
+    </div>
+</div>

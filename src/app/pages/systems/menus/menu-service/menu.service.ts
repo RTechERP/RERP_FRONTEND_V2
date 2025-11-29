@@ -105,6 +105,7 @@ import { ProjectAgvSummaryComponent } from '../../../project/project-agv-summary
 import { FoodOrderComponent } from '../../../hrm/food-order/food-order.component';
 import { SupplierSaleComponent } from '../../../purchase/supplier-sale/supplier-sale.component';
 import { EmployeeNoFingerprintComponent } from '../../../hrm/employee-management/employee-no-fingerprint/employee-no-fingerprint.component';
+import { AssignWorkComponent } from '../../../purchase/assign-work/assign-work.component';
 import { ChiTietSanPhamSaleComponent } from '../../../old/Sale/chi-tiet-san-pham-sale/chi-tiet-san-pham-sale.component';
 import { BorrowProductHistoryComponent } from '../../../old/inventory-demo/borrow/borrow-product-history/borrow-product-history.component';
 import { SearchProductTechSerialComponent } from '../../../old/Technical/search-product-tech-serial/search-product-tech-serial.component';
@@ -112,10 +113,13 @@ import { EmployeeCurricularComponent } from '../../../hrm/employee-management/em
 import { EmployeeErrorComponent } from '../../../hrm/employee-management/employee-error/employee-error.component';
 import { EmployeeTimekeepingComponent } from '../../../hrm/employee-management/employee-timekeeping/employee-timekeeping.component';
 import { EmployeeSyntheticComponent } from '../../../hrm/employee-management/employee-synthetic/employee-synthetic/employee-synthetic.component';
-import { AssignWorkComponent } from '../../../purchase/assign-work/assign-work.component';
+
 import { AppComponent } from '../../../../app.component';
 import { BonusCoefficientComponent } from '../../../old/bonus-coefficient/bonus-coefficient.component';
 import { ProductRtcQrCodeComponent } from '../../../old/product-rtc-qr-code/product-rtc-qr-code/product-rtc-qr-code.component';
+import { ProjectPartlistPriceRequestComponent } from '../../../old/project-partlist-price-request/project-partlist-price-request.component';
+import { PonccComponent } from '../../../purchase/poncc/poncc.component';
+import { ProjectPartlistPurchaseRequestComponent } from '../../../purchase/project-partlist-purchase-request/project-partlist-purchase-request.component';
 @Injectable({
   providedIn: 'root',
 })
@@ -1086,25 +1090,55 @@ export class MenuService {
             comp: SupplierSaleComponent,
             //   icon: 'assets/icon/layers.png',
           },
-          // {
-          //   kind: 'leaf',
-          //   key: 'ProjectPartlistPurchaseRequestComponent',
-          //   title: 'Yêu cầu mua hàng',
-          //   isOpen: true,
-          //   isPermission:
-          //     this.permissionService.hasPermission('N33,N35,N1,N36'),
-          //   comp: ProjectPartlistPurchaseRequestComponent,
-          //   //   icon: 'assets/icon/layers.png',
-          // },
           {
             kind: 'leaf',
             key: 'AssignWorkComponent',
             title: 'Phân công công việc',
             isOpen: true,
-            isPermission: this.permissionService.hasPermission('N33,N1'),
+            isPermission:
+              this.permissionService.hasPermission('N33,N1'), 
             comp: AssignWorkComponent,
             //   icon: 'assets/icon/layers.png',
           },
+          {
+            kind: 'leaf',
+            key: 'PonccComponent',
+            title: 'PO NCC',
+            isOpen: true,
+            isPermission:
+              this.permissionService.hasPermission('N33,N35,N36,N1,N52,N38,N54'), 
+            comp: PonccComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+          {
+            kind: 'leaf',
+            key: 'ProjectPartlistPurchaseRequestComponent',
+            title: 'Yêu cầu mua hàng',
+            isOpen: true,
+            isPermission:
+              this.permissionService.hasPermission('N33,N35,N1,N36'), 
+            comp: ProjectPartlistPurchaseRequestComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+          // {
+          //   kind: 'leaf',
+          //   key: 'ProjectPartlistPriceRequestComponent',
+          //   title: 'Yêu cầu báo giá',
+          //   isOpen: true,
+          //   isPermission:
+          //     this.permissionService.hasPermission('N33,N35,N1,N36'),
+          //   comp: ProjectPartlistPriceRequestComponent,
+          //   //   icon: 'assets/icon/layers.png',
+          // },
+          // {
+          //   kind: 'leaf',
+          //   key: 'AssignWorkComponent',
+          //   title: 'Phân công công việc',
+          //   isOpen: true,
+          //   isPermission: this.permissionService.hasPermission('N33,N1'),
+          //   comp: AssignWorkComponent,
+          //   //   icon: 'assets/icon/layers.png',
+          // },
         ],
       },
       //#endregion
@@ -1148,7 +1182,7 @@ export class MenuService {
             title: 'Nhà cung cấp',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
-            comp: SupplierSaleComponentComponent,
+            comp: SupplierSaleComponent,
           },
           {
             kind: 'leaf',

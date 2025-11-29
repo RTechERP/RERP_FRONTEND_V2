@@ -630,9 +630,16 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
           field: 'IsFix',
           hozAlign: 'center',
           headerHozAlign: 'center',
-          formatter: (cell) => {
+         formatter: function (cell: any) {
               const value = cell.getValue();
-              return `<input type="checkbox" ${value === true ? 'checked' : ''} disabled />`;
+              const checked =
+                value === true ||
+                value === 'true' ||
+                value === 1 ||
+                value === '1';
+              return `<input type="checkbox" ${
+                checked ? 'checked' : ''
+              } style="pointer-events: none; accent-color: #1677ff;" />`;
             },
         },
         {

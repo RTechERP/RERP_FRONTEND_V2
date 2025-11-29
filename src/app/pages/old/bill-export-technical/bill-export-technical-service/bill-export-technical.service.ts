@@ -48,6 +48,9 @@ export class BillExportTechnicalService {
   approveAction(ids: number[], action: 'approve' | 'unapprove') {
     return this.http.post<any>(`${this.url}approve-action`, { IDs: ids, Action: action });
   }
+  approveBill(billID: number, isApproved: boolean) {
+    return this.http.post<any>(`${this.url}approve-bill`, { BillID: billID, IsApproved: isApproved });
+  }
   getEmployees(request: { status: number; departmentid: number; keyword: string }): Observable<any> {
     const params = new HttpParams()
       .set('status', String(request.status ?? 0))
@@ -66,5 +69,20 @@ export class BillExportTechnicalService {
   }
   getNCC(): Observable<any> {
     return this.http.get<any>(`${environment.host}api/SupplierSale`);
+  }
+  getProject(){
+    return this.http.get<any>(`${this.url}get-all-project/`)
+  }
+  getemployee(): Observable<any> {
+    return this.http.get<any>(`${environment.host}api/Employee`);
+  }
+  getUser(): Observable<any> {
+    return this.http.get<any>(`${environment.host}api/Users/cbb-user`);
+  }
+  loadProduct(status: number, warehouseID: number): Observable<any> {
+    const params = new HttpParams()
+      .set('status', String(status))
+      .set('warehouseID', String(warehouseID));
+    return this.http.get<any>(`${this.url}load-product`, { params });
   }
 }

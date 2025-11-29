@@ -583,14 +583,17 @@ export class BorrowProductHistoryComponent implements OnInit {
         {
           title: 'Duyệt',
           field: 'AdminConfirm',
-          formatter: (cell) => {
-            const value = cell.getValue();
-            console.log('isFix:', value);
-
-            return `<input type="checkbox" ${
-              !!value ? 'checked' : ''
-            } disabled />`;
-          },
+formatter: function (cell: any) {
+              const value = cell.getValue();
+              const checked =
+                value === true ||
+                value === 'true' ||
+                value === 1 ||
+                value === '1';
+              return `<input type="checkbox" ${
+                checked ? 'checked' : ''
+              } style="pointer-events: none; accent-color: #1677ff;" />`;
+            },
           hozAlign: 'center',
           headerHozAlign: 'center',
         },

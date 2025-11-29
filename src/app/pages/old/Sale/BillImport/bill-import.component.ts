@@ -1057,11 +1057,16 @@ export class BillImportComponent implements OnInit, AfterViewInit {
             field: 'Status',
             hozAlign: 'center',
             headerHozAlign: 'center',
-            formatter: (cell) => {
+formatter: function (cell: any) {
               const value = cell.getValue();
+              const checked =
+                value === true ||
+                value === 'true' ||
+                value === 1 ||
+                value === '1';
               return `<input type="checkbox" ${
-                value === true ? 'checked' : ''
-              } disabled />`;
+                checked ? 'checked' : ''
+              } style="pointer-events: none; accent-color: #1677ff;" />`;
             },
           },
           {
@@ -1379,21 +1384,21 @@ export class BillImportComponent implements OnInit, AfterViewInit {
             field: 'CurrencyList',
             hozAlign: 'left',
             headerHozAlign: 'center',
-            // visible: false,
+            visible: false,
           },
           {
             title: 'VAT',
             field: 'VAT',
             hozAlign: 'right',
             headerHozAlign: 'center',
-            // visible: false,
+            visible: false,
           },
           {
             title: 'PONCCCodeList',
             field: 'PONCCCodeList',
             hozAlign: 'left',
             headerHozAlign: 'center',
-            // visible: false,
+            visible: false,
           },
         ],
       });

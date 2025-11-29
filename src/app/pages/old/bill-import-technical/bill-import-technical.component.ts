@@ -18,6 +18,7 @@ import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
+import { NzModalModule } from 'ng-zorro-antd/modal';
 import { TabulatorFull as Tabulator, CellComponent, RowComponent } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
@@ -29,6 +30,7 @@ import { saveAs } from 'file-saver';
 import * as ExcelJS from 'exceljs';
 import { BillImportTechnicalService } from './bill-import-technical-service/bill-import-technical.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzModalService } from 'ng-zorro-antd/modal';
 import { BillImportTechnicalFormComponent } from './bill-import-technical-form/bill-import-technical-form.component';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 function formatDateCell(cell: CellComponent): string {
@@ -56,6 +58,7 @@ function formatDateCell(cell: CellComponent): string {
     NzSelectModule,
     NzTableModule,
     NzTabsModule,
+    NzModalModule,
     NgbModalModule
   ],
   selector: 'app-bill-import-technical',
@@ -66,6 +69,7 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
   constructor(private notification: NzNotificationService,
     private billImportTechnicalService: BillImportTechnicalService,
     private modalService: NgbModal,
+    private modal: NzModalService,
     private TsAssetManagementPersonalService: TsAssetManagementPersonalService) { }
   private ngbModal = inject(NgbModal);
   selectedRow: any = "";
@@ -99,7 +103,7 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     this.drawTable();
   }
-  
+
   // Helper method to format date to yyyy-MM-dd
   private formatDateToString(date: Date | null): string {
     if (!date) return '';
@@ -141,7 +145,7 @@ getListEmployee() {
   getProjectAjaxParams() {
     const startDate = this.dateStart || new Date('2024-12-01');
     const endDate = this.dateEnd || new Date('2025-12-31');
-    
+
     return {
       dateTimeS: DateTime.fromJSDate(startDate)
         .set({ hour: 0, minute: 0, second: 0 })
@@ -218,10 +222,16 @@ getListEmployee() {
           title: 'Duyệt',
           field: 'Status',
           formatter: function (cell: any) {
-            const value = cell.getValue();
-            const checked = value === true || value === 'true' || value === 1 || value === '1';
-            return `<input type="checkbox" ${checked ? 'checked' : ''} disabled/>`;
-          },
+              const value = cell.getValue();
+              const checked =
+                value === true ||
+                value === 'true' ||
+                value === 1 ||
+                value === '1';
+              return `<input type="checkbox" ${
+                checked ? 'checked' : ''
+              } style="pointer-events: none; accent-color: #1677ff;" />`;
+            },
           hozAlign: 'center',
           headerHozAlign: 'center',
         },
@@ -354,6 +364,11 @@ getListEmployee() {
       keyboard: false,
       windowClass: 'full-screen-modal',
     });
+    // Truyền warehouseID từ component cha vào modal
+    modalRef.componentInstance.warehouseID = this.warehouseID;
+    modalRef.componentInstance.formSubmitted.subscribe(() => {
+      this.getBillImportTechnical();
+    });
   }
   onEditBillImportTechnical() {
     const selectedData = this.billImportTechnicalTable?.getSelectedData?.();
@@ -374,6 +389,11 @@ getListEmployee() {
     });
     modalRef.componentInstance.masterId = selectedRow.ID;
     modalRef.componentInstance.dataEdit = selectedRow;
+    // Truyền warehouseID từ component cha vào modal
+    modalRef.componentInstance.warehouseID = this.warehouseID;
+    modalRef.componentInstance.formSubmitted.subscribe(() => {
+      this.getBillImportTechnical();
+    });
   }
 
   getSelectedIds(): number[] {
@@ -437,44 +457,48 @@ getListEmployee() {
       ? `Bạn có chắc chắn muốn duyệt phiếu "${selectedBills[0].BillCode || selectedBills[0].ID}" không?`
       : `Bạn có chắc chắn muốn duyệt ${billCount} phiếu đã chọn không?`;
 
-    if (!confirm(confirmMsg)) {
-      return;
-    }
+    this.modal.confirm({
+      nzTitle: 'Xác nhận duyệt phiếu',
+      nzContent: confirmMsg,
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        // Gửi chỉ ID của bills cần duyệt
+        const billsToApprove = selectedBills.map(bill => ({ ID: bill.ID }));
 
-    // Gửi chỉ ID của bills cần duyệt
-    const billsToApprove = selectedBills.map(bill => ({ ID: bill.ID }));
+        this.billImportTechnicalService.approveBills(billsToApprove).subscribe({
+          next: (response) => {
+            console.log('Approve response:', response);
 
-    this.billImportTechnicalService.approveBills(billsToApprove).subscribe({
-      next: (response) => {
-        console.log('Approve response:', response);
+            if (response?.success) {
+              // Backend trả về success = true
+              const data = response.data || {};
+              const successCount = data.SuccessCount || 0;
+              const totalProcessed = data.TotalProcessed || billCount;
 
-        if (response?.success) {
-          // Backend trả về success = true
-          const data = response.data || {};
-          const successCount = data.SuccessCount || 0;
-          const totalProcessed = data.TotalProcessed || billCount;
+              this.notification.success(
+                NOTIFICATION_TITLE.success,
+                response.message || `Duyệt thành công ${successCount}/${totalProcessed} phiếu!`
+              );
+            } else {
+              // Backend trả về success = false nhưng vẫn OK status
+              this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                response?.message || 'Không có phiếu nào được duyệt.'
+              );
+            }
 
-          this.notification.success(
-            NOTIFICATION_TITLE.success,
-            response.message || `Duyệt thành công ${successCount}/${totalProcessed} phiếu!`
-          );
-        } else {
-          // Backend trả về success = false nhưng vẫn OK status
-          this.notification.warning(
-            NOTIFICATION_TITLE.warning,
-            response?.message || 'Không có phiếu nào được duyệt.'
-          );
-        }
-
-        // Refresh data without recreating table
-        if (this.billImportTechnicalTable) {
-          this.billImportTechnicalTable.setData();
-        }
-      },
-      error: (err) => {
-        console.error('Approve error:', err);
-        const errorMsg = err?.error?.message || err?.message || 'Lỗi kết nối máy chủ!';
-        this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
+            // Refresh data without recreating table
+            if (this.billImportTechnicalTable) {
+              this.billImportTechnicalTable.setData();
+            }
+          },
+          error: (err) => {
+            console.error('Approve error:', err);
+            const errorMsg = err?.error?.message || err?.message || 'Lỗi kết nối máy chủ!';
+            this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
+          }
+        });
       }
     });
   }
@@ -494,41 +518,46 @@ getListEmployee() {
       ? `Bạn có chắc chắn muốn HỦY DUYỆT phiếu "${selectedBills[0].BillCode || selectedBills[0].ID}" không?`
       : `Bạn có chắc chắn muốn HỦY DUYỆT ${billCount} phiếu đã chọn không?`;
 
-    if (!confirm(confirmMsg)) {
-      return;
-    }
+    this.modal.confirm({
+      nzTitle: 'Xác nhận hủy duyệt phiếu',
+      nzContent: confirmMsg,
+      nzOkText: 'Đồng ý',
+      nzCancelText: 'Hủy',
+      nzOkDanger: true,
+      nzOnOk: () => {
+        // Gửi chỉ ID của bills cần hủy duyệt
+        const billsToUnapprove = selectedBills.map(bill => ({ ID: bill.ID }));
 
-    // Gửi chỉ ID của bills cần hủy duyệt
-    const billsToUnapprove = selectedBills.map(bill => ({ ID: bill.ID }));
+        this.billImportTechnicalService.unapproveBills(billsToUnapprove).subscribe({
+          next: (response) => {
+            console.log('Unapprove response:', response);
 
-    this.billImportTechnicalService.unapproveBills(billsToUnapprove).subscribe({
-      next: (response) => {
-        console.log('Unapprove response:', response);
+            if (response?.success) {
+              // Backend trả về success = true
+              const data = response.data || {};
+              const successCount = data.SuccessCount || 0;
+              const totalProcessed = data.TotalProcessed || billCount;
 
-        if (response?.success) {
-          // Backend trả về success = true
-          const data = response.data || {};
-          const successCount = data.SuccessCount || 0;
-          const totalProcessed = data.TotalProcessed || billCount;
+              this.notification.success(
+                NOTIFICATION_TITLE.success,
+                response.message || `Hủy duyệt thành công ${successCount}/${totalProcessed} phiếu!`
+              );
+            } else {
+              // Backend trả về success = false nhưng vẫn OK status
+              this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                response?.message || 'Không có phiếu nào được hủy duyệt.'
+              );
+            }
 
-          this.notification.success(
-            NOTIFICATION_TITLE.success,
-            response.message || `Hủy duyệt thành công ${successCount}/${totalProcessed} phiếu!`
-          );
-        } else {
-          // Backend trả về success = false nhưng vẫn OK status
-          this.notification.warning(
-            NOTIFICATION_TITLE.warning,
-            response?.message || 'Không có phiếu nào được hủy duyệt.'
-          );
-        }
-
-        this.drawTable();
-      },
-      error: (err) => {
-        console.error('Unapprove error:', err);
-        const errorMsg = err?.error?.message || err?.message || 'Lỗi kết nối máy chủ!';
-        this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
+            this.drawTable();
+          },
+          error: (err) => {
+            console.error('Unapprove error:', err);
+            const errorMsg = err?.error?.message || err?.message || 'Lỗi kết nối máy chủ!';
+            this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
+          }
+        });
       }
     });
   }
@@ -540,6 +569,13 @@ getListEmployee() {
       this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất Excel!');
       return;
     }
+
+    // Hiển thị thông báo đang tải
+    const loadingNotification = this.notification.info(
+      'Đang xử lý',
+      'Đang tải dữ liệu...',
+      { nzDuration: 0 } // Không tự đóng
+    );
 
     const payload = {
       master: {
@@ -568,10 +604,21 @@ getListEmployee() {
       next: (blob: Blob) => {
         const fileName = `PhieuNhapKT_${selectedMaster.BillCode}.xlsx`;
         saveAs(blob, fileName);
+
+        // Đóng notification loading
+        this.notification.remove(loadingNotification.messageId);
+
+        // Hiển thị thông báo thành công
+        this.notification.success(
+          NOTIFICATION_TITLE.success,
+          'Xuất Excel thành công!'
+        );
       },
       error: (err) => {
+        // Đóng notification loading
+        this.notification.remove(loadingNotification.messageId);
+
         console.error(err);
-        this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xuất phiếu nhập kỹ thuật!');
         this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xuất phiếu nhập kỹ thuật!');
       }
     });

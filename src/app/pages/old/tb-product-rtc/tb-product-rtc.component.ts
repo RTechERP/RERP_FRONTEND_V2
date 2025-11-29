@@ -256,11 +256,17 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
           title: 'Đồ mượn khách',
           field: 'BorrowCustomer',
           hozAlign: 'center',
-          formatter: 'tickCross',
-          formatterParams: {
-            allowEmpty: true,
-            allowTruthy: true, // Cho phép true hiển thị tick
-          },
+       formatter: function (cell: any) {
+              const value = cell.getValue();
+              const checked =
+                value === true ||
+                value === 'true' ||
+                value === 1 ||
+                value === '1';
+              return `<input type="checkbox" ${
+                checked ? 'checked' : ''
+              } style="pointer-events: none; accent-color: #1677ff;" />`;
+            },
         },
         { title: 'Part Number', field: 'PartNumber', minWidth: 120 },
         { title: 'Serial Number', field: 'SerialNumber', minWidth: 120 },

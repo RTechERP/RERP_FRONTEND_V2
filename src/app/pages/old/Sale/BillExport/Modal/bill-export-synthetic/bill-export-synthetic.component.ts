@@ -124,7 +124,6 @@ export class BillExportSyntheticComponent implements OnInit, AfterViewInit {
   }
   ngAfterViewInit(): void {
     // drawTable() sẽ được gọi sau khi load xong DocumentImport
-    // this.loadDataBillExportSynthetic();
   }
   getProductGroup() {
     this.billExportService
@@ -371,6 +370,8 @@ export class BillExportSyntheticComponent implements OnInit, AfterViewInit {
       });
     });
 
+    console.log('>>> Dynamic columns generated:', dynamicColumns);
+    console.log('>>> dataDocumentImport:', this.dataDocumentImport);
     return dynamicColumns;
   }
   //#endregion
@@ -471,7 +472,6 @@ export class BillExportSyntheticComponent implements OnInit, AfterViewInit {
                 value === true ? 'checked' : ''
               } disabled />`;
             },
-            headerMenu: headerMenu,
           },
           {
             title: 'Ngày nhận',

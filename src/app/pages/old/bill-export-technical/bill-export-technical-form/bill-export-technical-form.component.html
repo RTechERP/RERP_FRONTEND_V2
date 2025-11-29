@@ -1,3 +1,11 @@
+<!-- Template cho popup table -->
+<ng-template #childTableTemplate let-row="row">
+  <div class="child-tabulator"></div>
+</ng-template>
+
+<!-- Host để render vào cell -->
+<ng-container #vcHost></ng-container>
+
 <div class="modal-header bg-primary p-2">
   <h6 class="modal-title text-white" id="assetModalLabel">Phiếu xuất tồn kho DEMO</h6>
   <button type="button" class="btn-close" aria-label="Close" (click)="close()"></button>
@@ -16,17 +24,22 @@
           </nz-form-control>
         </nz-form-item>
       </nz-col>
-      <!-- Mười mượn-->
+      <!-- Người mượn-->
       <nz-col [nzSpan]="7">
         <nz-form-item>
           <nz-form-label required>Người mượn<span style="color: red">(*)</span></nz-form-label>
           <nz-form-control [nzErrorTip]="'Vui lòng chọn người mượn'">
-            <nz-select formControlName="ReceiverID" nzPlaceHolder="Chọn người nhận" name="ReceiverID"> <nz-option
-                *ngFor="let item of emPloyeeLists" [nzValue]="item.ID" [nzLabel]="item.Code + ' - ' + item.FullName">
-              </nz-option></nz-select>
+            <nz-select formControlName="ReceiverID" nzPlaceHolder="Chọn người nhận" name="ReceiverID" nzShowSearch>
+              <nz-option
+                *ngFor="let item of emPloyeeLists"
+                [nzValue]="item.ID"
+                [nzLabel]="item.FullName"
+                nzCustomContent>
+                {{ item.EmployeeCode }} - {{ item.FullName }}
+              </nz-option>
+            </nz-select>
           </nz-form-control>
         </nz-form-item>
-
       </nz-col>
       <!-- liên hệ-->
       <nz-col [nzSpan]="5">
@@ -57,8 +70,19 @@
       <nz-col [nzSpan]="7">
         <nz-form-item>
           <nz-form-label>Dự án<span style="color: red">(*)</span></nz-form-label>
-          <nz-form-control  [nzErrorTip]="'Vui lòng nhập dự án'">
-            <input nz-input formControlName="ProjectName" name="ProjectName" />
+          <nz-form-control [nzErrorTip]="'Vui lòng chọn dự án'">
+            <nz-select
+              formControlName="ProjectID"
+              nzPlaceHolder="Chọn dự án"
+              name="ProjectID"
+              nzShowSearch
+              (ngModelChange)="onProjectChange($event)">
+              <nz-option
+                *ngFor="let item of projectList"
+                [nzValue]="item.ID"
+                [nzLabel]="item.ProjectCode + ' - ' + (item.ProjectName || item.Name)">
+              </nz-option>
+            </nz-select>
           </nz-form-control>
         </nz-form-item>
       </nz-col>
@@ -78,10 +102,16 @@
       <nz-col [nzSpan]="5">
         <nz-form-item>
           <nz-form-label required>Người nhận<span style="color: red">(*)</span></nz-form-label>
-             <nz-form-control [nzErrorTip]="'Vui lòng chọn người mượn'">
-            <nz-select formControlName="ReceiverID" nzPlaceHolder="Chọn người nhận" name="ReceiverID"> <nz-option
-                *ngFor="let item of emPloyeeLists" [nzValue]="item.ID" [nzLabel]="item.Code + ' - ' + item.FullName">
-              </nz-option></nz-select>
+          <nz-form-control [nzErrorTip]="'Vui lòng chọn người nhận'">
+            <nz-select formControlName="ReceiverID" nzPlaceHolder="Chọn người nhận" name="ReceiverID" nzShowSearch>
+              <nz-option
+                *ngFor="let item of emPloyeeLists"
+                [nzValue]="item.ID"
+                [nzLabel]="item.FullName"
+                nzCustomContent>
+                {{ item.EmployeeCode }} - {{ item.FullName }}
+              </nz-option>
+            </nz-select>
           </nz-form-control>
         </nz-form-item>
       </nz-col>
@@ -91,9 +121,15 @@
         <nz-form-item>
           <nz-form-label required>Người duyệt<span style="color: red">(*)</span></nz-form-label>
           <nz-form-control [nzErrorTip]="'Vui lòng chọn người duyệt'">
-            <nz-select formControlName="ApproverID" nzPlaceHolder="Chọn người duyệt" name="ApproverID"> <nz-option
-                *ngFor="let item of emPloyeeLists" [nzValue]="item.ID" [nzLabel]="item.Code + ' - ' + item.FullName">
-              </nz-option></nz-select>
+            <nz-select formControlName="ApproverID" nzPlaceHolder="Chọn người duyệt" name="ApproverID" nzShowSearch>
+              <nz-option
+                *ngFor="let item of approveEmployee"
+                [nzValue]="item.ID"
+                [nzLabel]="item.FullName"
+                nzCustomContent>
+                {{ item.Code }} - {{ item.FullName }}
+              </nz-option>
+            </nz-select>
           </nz-form-control>
         </nz-form-item>
       </nz-col>
@@ -146,16 +182,15 @@
         <nz-form-item>
           <nz-form-label>Loại <span style="color: red">(*)</span></nz-form-label>
           <nz-form-control  [nzErrorTip]="'Vui lòng chọn loại phiếu '">
-            <nz-select formControlName="BillType" nzPlaceHolder="Chọn loại phiếu" name="BillType">
-              <nz-option nzValue="0" nzLabel="Trả"></nz-option>
-              <nz-option nzValue="1" nzLabel="Cho mượn"></nz-option>
-              <nz-option nzValue="2" nzLabel="Tặng / Bán"></nz-option>
-              <nz-option nzValue="3" nzLabel="Mất"></nz-option>
-              <nz-option nzValue=" 4" nzLabel="Bảo hành"></nz-option>
-              <nz-option nzValue="5" nzLabel="Xuất dự án"></nz-option>
-              <nz-option nzValue="6" nzLabel="Hỏng"></nz-option>
-              <nz-option nzValue="7
-              1" nzLabel="Xuất kho"></nz-option>
+            <nz-select formControlName="BillType" nzPlaceHolder="Chọn loại phiếu" name="BillType" (ngModelChange)="onBillTypeChange($event)">
+              <nz-option [nzValue]="0" nzLabel="Trả"></nz-option>
+              <nz-option [nzValue]="1" nzLabel="Cho mượn"></nz-option>
+              <nz-option [nzValue]="2" nzLabel="Tặng / Bán"></nz-option>
+              <nz-option [nzValue]="3" nzLabel="Mất"></nz-option>
+              <nz-option [nzValue]="4" nzLabel="Bảo hành"></nz-option>
+              <nz-option [nzValue]="5" nzLabel="Xuất dự án"></nz-option>
+              <nz-option [nzValue]="6" nzLabel="Hỏng"></nz-option>
+              <nz-option [nzValue]="7" nzLabel="Xuất kho"></nz-option>
             </nz-select>
           </nz-form-control>
         </nz-form-item>
@@ -171,6 +206,6 @@
 <div class="modal-footer">
   <button nz-button nzType="default" (click)="close()">Đóng</button>
   <!-- <button nz-button nzType="primary" (click)="openModalChoseProduct()">Chọn sản phẩm</button> -->
-  <button nz-button nzType="primary" (click)="openModalAddProduct()">Thêm sản phẩm</button>
-  <button nz-button nzType="primary" (click)="saveData()">Lưu dữ liệu</button>
+  <!-- <button nz-button nzType="primary" (click)="openModalAddProduct()">Thêm sản phẩm</button> -->
+  <button nz-button nzType="primary" (click)="saveData()">Lưu</button>
 </div>

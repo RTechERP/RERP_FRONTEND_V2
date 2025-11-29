@@ -72,16 +72,16 @@ export class ProjectPartlistPriceRequestService {
     return this.http.post(`${this.baseUrl}/save-data`, lstModel);
   }
   getCurrency(): Observable<any> {
-    return this.http.get(`${this.baseUrl}/getCurrency`);
+    return this.http.get(`${this.baseUrl}/get-Currency`);
   }
   getSuplierSale(): Observable<any> {
-    return this.http.get(`${this.baseUrl}/getSupplierSale`);
+    return this.http.get(`${this.baseUrl}/get-Supplier-Sale`);
   }
   getPriceRequestType(): Observable<any> {
     return this.http.get(`${this.baseUrl}/get-price-request-type`);
   }
   saveChangedData(data: any[]) {
-    return this.http.post(`${this.baseUrl}/saveData`, data);
+    return this.http.post(`${this.baseUrl}/save-data`, data);
   }
   downloadFile(payload: {
     projectId: number;

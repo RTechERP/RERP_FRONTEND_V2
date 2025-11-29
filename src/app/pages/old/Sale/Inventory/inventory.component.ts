@@ -852,7 +852,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
                 if (res?.data) {
                   // Tabulator expects { last_page, data } format
                   resolve({
-                    last_page: res.totalPages || Math.ceil(res.totalRecords / size),
+                    last_page: res.data[0].TotalPage,
                     data: res.data,
                   });
                 } else {
@@ -879,11 +879,16 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           field: 'IsFix',
           hozAlign: 'center',
           headerHozAlign: 'center',
-          formatter: (cell) => {
+        formatter: function (cell: any) {
               const value = cell.getValue();
-              console.log('isFix:',value);
-              
-              return `<input type="checkbox" ${!!value ? 'checked' : ''} disabled />`;
+              const checked =
+                value === true ||
+                value === 'true' ||
+                value === 1 ||
+                value === '1';
+              return `<input type="checkbox" ${
+                checked ? 'checked' : ''
+              } style="pointer-events: none; accent-color: #1677ff;" />`;
             },
         },
         {

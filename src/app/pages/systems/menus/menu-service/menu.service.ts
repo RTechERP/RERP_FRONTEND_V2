@@ -118,6 +118,7 @@ import { BonusCoefficientComponent } from '../../../old/bonus-coefficient/bonus-
 import { ProductRtcQrCodeComponent } from '../../../old/product-rtc-qr-code/product-rtc-qr-code/product-rtc-qr-code.component';
 import { ProjectPartlistPriceRequestComponent } from '../../../old/project-partlist-price-request/project-partlist-price-request.component';
 import { EmployeeSaleManagerComponent } from '../../../old/employee-sale-manager/employee-sale-manager.component';
+import { RequestInvoiceComponent } from '../../../old/request-invoice/request-invoice.component';
 @Injectable({
   providedIn: 'root',
 })
@@ -1451,6 +1452,15 @@ export class MenuService {
                 comp: EmployeeSaleManagerComponent,
               },
             ],
+          },
+          {
+            kind: 'leaf',
+            key: 'RequestInvoiceComponent',
+            title: 'YÊU CẦU XUẤT HÓA ĐƠN',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            comp: RequestInvoiceComponent,
+            data: { warehouseId: 1 },
           },
         ],
       },

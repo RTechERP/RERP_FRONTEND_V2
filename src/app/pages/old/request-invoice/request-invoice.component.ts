@@ -6,6 +6,8 @@ import {
   ElementRef,
   Input,
   IterableDiffers,
+  Optional,
+  Inject,
 } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -58,6 +60,9 @@ import { RequestInvoiceService } from './request-invoice-service/request-invoice
 import { RequestInvoiceDetailService } from '../request-invoice-detail/request-invoice-detail-service/request-invoice-detail-service.service';
 import { RequestInvoiceDetailComponent } from '../request-invoice-detail/request-invoice-detail.component';
 import { NOTIFICATION_TITLE } from '../../../app.config';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { RequestInvoiceStatusLinkComponent } from '../request-invoice-status-link/request-invoice-status-link.component';
 
 @Component({
   selector: 'app-request-invoice',
@@ -86,11 +91,14 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
     NzSwitchModule,
     NzCheckboxModule,
     CommonModule,
+    HasPermissionDirective,
   ],
   templateUrl: './request-invoice.component.html',
   styleUrl: './request-invoice.component.css',
 })
 export class RequestInvoiceComponent implements OnInit, AfterViewInit {
+
+  @Input() warehouseId: number = 0;
   @ViewChild('tb_MainTable', { static: false })
   tb_MainTableElement!: ElementRef;
   @ViewChild('tb_Detail', { static: false }) tb_DetailTableElement!: ElementRef;
@@ -107,8 +115,9 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
-    private RequestInvoiceDetailService: RequestInvoiceDetailService
-  ) {}
+    private RequestInvoiceDetailService: RequestInvoiceDetailService,
+    @Optional() @Inject('tabData') private tabData: any
+  ) { }
 
   data: any[] = [];
   dataDetail: any[] = [];
@@ -127,6 +136,11 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
+    // Lấy dữ liệu từ tabData injector nếu có
+    if (this.tabData && this.tabData.warehouseId) {
+      this.warehouseId = this.tabData.warehouseId;
+    }
+
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 1); // Lấy dữ liệu 1000 ngày trước tạm thời
@@ -156,7 +170,8 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
     this.RequestInvoiceService.getRequestInvoice(
       start,
       end,
-      keywords
+      keywords,
+      this.warehouseId
     ).subscribe({
       next: (response) => {
         if (response.status === 1) {
@@ -252,6 +267,34 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
     });
   }
 
+  openRequestInvoiceStatusLinkModal(): void {
+    if (this.selectedId <= 0) {
+      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn yêu cầu xuất hóa đơn');
+      return;
+    }
+    const modalRef = this.modalService.open(RequestInvoiceStatusLinkComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+    });
+    modalRef.componentInstance.requestInvoiceID = this.selectedId;
+
+    modalRef.result.then(
+      (result) => {
+        if (result.success && result.reloadData) {
+          this.loadMainData(
+            this.filters.startDate,
+            this.filters.endDate,
+            this.filters.filterText
+          );
+        }
+      },
+      (reason) => {
+        console.log('Modal closed');
+      }
+    );
+  }
+
   openModal() {
     const modalRef = this.modalService.open(RequestInvoiceDetailComponent, {
       centered: true,
@@ -326,40 +369,51 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
   }
   initMainTable(): void {
     this.mainTable = new Tabulator(this.tb_MainTableElement.nativeElement, {
+      ...DEFAULT_TABLE_CONFIG,
       data: this.data,
       layout: 'fitDataFill',
       height: '100%',
       selectableRows: 1,
-      pagination: true,
-      paginationSize: 50,
-      movableColumns: true,
-      resizableRows: true,
-      reactiveData: true,
-      columnDefaults: {
-        headerWordWrap: true,
-        headerVertical: false,
-        headerHozAlign: 'center',
-        minWidth: 60,
-        resizable: true,
+      rowHeader: false,
+      rowFormatter: (row: RowComponent) => {
+        const data = row.getData();
+        const element = row.getElement();
+        if (element) {
+          if (data['IsUrgency']) {
+            element.style.backgroundColor = '#FFA500';
+          } else {
+            element.style.backgroundColor = '';
+          }
+        }
       },
       columns: [
-        { title: 'ID', field: 'ID', sorter: 'string', width: 50 },
+        { title: 'ID', field: 'ID', sorter: 'string', width: 50, visible: false },
+        {
+          title: 'Yêu cầu gấp',
+          field: 'IsUrgency',
+          sorter: 'boolean',
+          width: 50,
+          hozAlign: 'center',
+          formatter: (cell) => {
+            const checked = cell.getValue() ? 'checked' : '';
+            return `<div style="text-align: center;">
+            <input type="checkbox" ${checked} disabled style="opacity: 1; pointer-events: none; cursor: default; width: 16px; height: 16px;"/>
+          </div>`;
+          },
+        },
         {
           title: 'Trạng thái',
           field: 'StatusText',
           sorter: 'string',
+          width: 200,
+        },
+        {
+          title: 'Deadline',
+          field: 'DealineUrgency',
+          sorter: 'string',
           width: 100,
         },
         { title: 'Mã lệnh', field: 'Code', sorter: 'string', width: 200 },
-        {
-          title: 'Khách hàng',
-          field: 'CustomerName',
-          sorter: 'string',
-          width: 215,
-        },
-        { title: 'Địa chỉ', field: 'Address', sorter: 'string', width: 200 },
-        { title: 'Công ty bán', field: 'Name', sorter: 'string', width: 140 },
-        { title: 'Ghi chú', field: 'Note', sorter: 'string', width: 200 },
         {
           title: 'Ngày yêu cầu',
           field: 'DateRequest',
@@ -370,6 +424,42 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
             return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
           },
         },
+        {
+          title: 'Người yêu cầu',
+          field: 'FullName',
+          sorter: 'string',
+          width: 150,
+        },
+        {
+          title: 'Tờ khai HQ',
+          field: 'IsCustomsDeclared',
+          sorter: 'boolean',
+          width: 100,
+          hozAlign: 'center',
+          formatter: (cell) => {
+            const checked = cell.getValue() ? 'checked' : '';
+            return `<div style="text-align: center;">
+            <input type="checkbox" ${checked} disabled style="opacity: 1; pointer-events: none; cursor: default; width: 16px; height: 16px;"/>
+          </div>`;
+          },
+        },
+        {
+          title: 'Khách hàng',
+          field: 'CustomerName',
+          sorter: 'string',
+          formatter: 'textarea',
+          width: 250,
+        },
+        { title: 'Địa chỉ', field: 'Address', sorter: 'string', width: 300, formatter: 'textarea' },
+        { title: 'Công ty bán', field: 'Name', sorter: 'string', width: 140 },
+        {
+          title: 'Lý do yêu cầu bổ sung',
+          field: 'AmendReason',
+          sorter: 'string',
+          width: 215,
+          formatter: 'textarea'
+        },
+        { title: 'Ghi chú', field: 'Note', sorter: 'string', width: 200, formatter: 'textarea' },
       ],
     });
     this.mainTable.on('rowClick', (e: any, row: RowComponent) => {
@@ -380,100 +470,151 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
   }
   initDetailTable(): void {
     this.detailTable = new Tabulator(this.tb_DetailTableElement.nativeElement, {
+      ...DEFAULT_TABLE_CONFIG,
       data: this.dataDetail,
       layout: 'fitDataFill',
-      height: '50vh',
+      height: '100%',
       selectableRows: 1,
-      pagination: true,
-      paginationSize: 50,
-      movableColumns: true,
-      resizableRows: true,
-      reactiveData: true,
-      columnDefaults: {
-        headerWordWrap: true,
-        headerVertical: false,
-        headerHozAlign: 'center',
-        minWidth: 60,
-        resizable: true,
-      },
+      rowHeader: false,
       columns: [
         {
-          title: 'Mã nội bộ',
-          field: 'ProductNewCode',
-          sorter: 'string',
-          width: 100,
+          title: '',
+          columns: [
+            {
+              title: 'STT',
+              field: 'STT',
+              sorter: 'number',
+              width: 100,
+              frozen: true,
+            },
+            {
+              title: 'Mã nội bộ',
+              field: 'ProductNewCode',
+              sorter: 'string',
+              width: 100,
+              frozen: true,
+            },
+            {
+              title: 'Mã sản phẩm',
+              field: 'ProductCode',
+              sorter: 'string',
+              width: 150,
+              frozen: true,
+            },
+            {
+              title: 'Mã theo khách',
+              field: 'GuestCode',
+              sorter: 'string',
+              width: 150,
+            },
+            {
+              title: 'Tên sản phẩm',
+              field: 'ProductName',
+              sorter: 'string',
+              width: 150,
+            },
+            { title: 'ĐVT', field: 'Unit', sorter: 'string', width: 150 },
+            { title: 'Số lượng', field: 'Quantity', sorter: 'string', width: 150 },
+            {
+              title: 'Mã dự án',
+              field: 'ProjectCode',
+              sorter: 'string',
+              width: 150,
+            },
+            { title: 'Dự án', field: 'ProjectName', sorter: 'string', width: 150 },
+            { title: 'Ghi chú (PO)', field: 'Note', sorter: 'string', width: 150 },
+            {
+              title: 'Thông số kỹ thuật',
+              field: 'Specifications',
+              sorter: 'string',
+              width: 150,
+            },
+            {
+              title: 'Số hóa đơn',
+              field: 'InvoiceNumber',
+              sorter: 'string',
+              width: 150,
+            },
+            {
+              title: 'Ngày hóa đơn',
+              field: 'InvoiceDate',
+              sorter: 'string',
+              width: 150,
+              formatter: (cell) => {
+                const value = cell.getValue();
+                return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
+              },
+            },
+          ]
         },
         {
-          title: 'Mã sản phẩm',
-          field: 'ProductCode',
+          title: 'Thông tin đầu vào',
+          field: '',
           sorter: 'string',
-          width: 150,
-        },
-        {
-          title: 'Mã sản phẩm theo dự án',
-          field: 'ProductByProject',
-          sorter: 'string',
-          width: 150,
-        },
-        {
-          title: 'Tên sản phẩm',
-          field: 'ProductName',
-          sorter: 'string',
-          width: 150,
-        },
-        { title: 'ĐVT', field: 'Unit', sorter: 'string', width: 150 },
-        { title: 'Số lượng', field: 'Quantity', sorter: 'string', width: 150 },
-        { title: 'Dự án', field: 'ProjectName', sorter: 'string', width: 150 },
-        {
-          title: 'Mã dự án',
-          field: 'ProjectCode',
-          sorter: 'string',
-          width: 150,
-        },
-        { title: 'Ghi chú (PO)', field: 'Note', sorter: 'string', width: 150 },
-        {
-          title: 'Thông số kỹ thuật',
-          field: 'Specifications',
-          sorter: 'string',
-          width: 150,
-        },
-        {
-          title: 'Số hóa đơn',
-          field: 'InvoiceNumber',
-          sorter: 'string',
-          width: 150,
-        },
-        {
-          title: 'Ngày hóa đơn',
-          field: 'InvoiceDate',
-          sorter: 'string',
-          width: 150,
-          formatter: (cell) => {
-            const value = cell.getValue();
-            return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
-          },
-        },
+          width: 200,
+          columns: [
+            {
+              title: 'Ngày đặt hàng',
+              field: 'RequestDate',
+              sorter: 'string',
+              width: 150,
+              formatter: (cell) => {
+                const date = cell.getValue();
+                return date ? new Date(date).toLocaleDateString('vi-VN') : '';
+              },
+            },
+            {
+              title: 'Ngày hàng về',
+              field: 'DateRequestImport',
+              sorter: 'string',
+              width: 150,
+              formatter: (cell) => {
+                const date = cell.getValue();
+                return date ? new Date(date).toLocaleDateString('vi-VN') : '';
+              },
+            },
+            {
+              title: 'Nhà cung cấp',
+              field: 'SupplierName',
+              sorter: 'string',
+              formatter: 'textarea',
+              width: 250,
+            },
+            {
+              title: 'Hóa đơn đầu vào',
+              field: 'SomeBill',
+              sorter: 'string',
+              width: 250,
+            },
+            {
+              title: 'Ngày hàng về dự kiến',
+              field: 'ExpectedDate',
+              sorter: 'string',
+              width: 150,
+              formatter: (cell) => {
+                const date = cell.getValue();
+                return date ? new Date(date).toLocaleDateString('vi-VN') : '';
+              },
+            },
+            {
+              title: 'PNK',
+              field: 'BillImportCode',
+              sorter: 'string',
+              width: 250,
+            },
+          ]
+        }
       ],
     });
   }
   initFileTable(): void {
     this.fileTable = new Tabulator(this.tb_FileTableElement.nativeElement, {
+      ...DEFAULT_TABLE_CONFIG,
       data: this.dataFile,
       layout: 'fitDataFill',
-      height: '34.9vh',
+      height: '100%',
       selectableRows: 1,
-      pagination: true,
-      paginationSize: 50,
-      movableColumns: true,
-      resizableRows: true,
-      reactiveData: true,
-      columnDefaults: {
-        headerWordWrap: true,
-        headerVertical: false,
-        headerHozAlign: 'center',
-        minWidth: 60,
-        resizable: true,
-      },
+      rowHeader: false,
       columns: [
         {
           title: 'Tên file',

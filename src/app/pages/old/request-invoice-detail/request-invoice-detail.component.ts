@@ -423,9 +423,10 @@ export class RequestInvoiceDetailComponent implements OnInit {
         ...DEFAULT_TABLE_CONFIG,
         data: this.files,
         pagination: false,
-        layout: 'fitDataFill',
+        layout: 'fitColumns',
         movableColumns: true,
         height: '21vh',
+        rowHeader: false,
         columns: [
           {
             title: '',

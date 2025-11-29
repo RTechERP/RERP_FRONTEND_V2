@@ -1,5 +1,5 @@
-<ng-container>
-  <nz-splitter style="height: 100%; ">
+<ng-container class="w-100">
+  <nz-splitter>
     <nz-splitter-panel *ngIf="isSearchVisible" [nzSize]="'20%'" [nzResizable]="false">
       <div class="card h-100 border-0 rounded-0">
         <!-- Header -->
@@ -77,9 +77,9 @@
       </div>
     </nz-splitter-panel>
     <nz-splitter-panel [nzSize]="isSearchVisible ? '80%' : '100%'">
-      <div class="card  border-0 rounded-0">
-        <div class="card-header  bg-white p-1">
-          <div class="d-flex h-40  gap-1">
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-1">
+          <div class="d-flex gap-1">
             <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
               <nz-icon nzType="search" />
             </button>
@@ -89,12 +89,9 @@
           </div>
         </div>
 
-        <nz-splitter style="height: 87vh;">
-          <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
-            <div id="dataTableHistoryBill" style="height: 100%;"></div>
-          </nz-splitter-panel>
-
-        </nz-splitter>
+        <div class="card-body p-0 d-flex align-items-center justify-content-center" style="position: relative">
+          <div id="dataTableHistoryBill" class="w-100 h-100"></div>
+        </div>
       </div>
     </nz-splitter-panel>
   </nz-splitter>

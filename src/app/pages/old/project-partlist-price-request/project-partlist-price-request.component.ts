@@ -50,7 +50,7 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { DateTime } from 'luxon';
 import * as ExcelJS from 'exceljs';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { AppUserService } from '../../../services/app-user.service';
 import { bottom } from '@popperjs/core';
 import { NOTIFICATION_TITLE } from '../../../app.config';
@@ -85,6 +85,7 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
     NzLayoutModule,
     NzCardModule,
     NSelectComponent,
+        NgbModalModule,
   ],
 })
 export class ProjectPartlistPriceRequestComponent implements OnInit {
@@ -105,14 +106,15 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   // Filters
   filters: any;
   dtSupplierSale: any[] = [];
-
+  dtProductSale: any[] = [];
   PriceRequetsService = inject(ProjectPartlistPriceRequestService);
   private notification = inject(NzNotificationService);
   private modal = inject(NzModalService);
   injector = inject(EnvironmentInjector);
   appRef = inject(ApplicationRef);
-  private ngbModal = inject(NgbModal);
+
   appUserService = inject(AppUserService);
+  private ngbModal = inject(NgbModal);
 
   constructor() {}
 
@@ -131,6 +133,7 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
 
     this.GetCurrency();
     this.GetSupplierSale();
+      this.GetProductSale();//NXL Update 29/11/25
     this.LoadProjectTypes();
     this.GetallProject();
     this.GetAllPOKH();
@@ -139,29 +142,51 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
     this.LoadPriceRequests();
     this.showDetailModal = false;
   }
-  OnAddClick() {
+ OnAddClick() {
     this.modalData = [];
-    const modalRef = this.ngbModal.open(
-      ProjectPartlistPriceRequestFormComponent,
-      {
-        size: 'xl',
-        backdrop: 'static',
-        keyboard: false,
-      }
-    );
-
+    
+    // Map projectTypeID (activeTabId) sang projectPartlistPriceRequestTypeID
+    const projectPartlistPriceRequestTypeID = this.getProjectPartlistPriceRequestTypeID(this.activeTabId);
+    
+    const modalRef = this.ngbModal.open(ProjectPartlistPriceRequestFormComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+    });
     modalRef.componentInstance.dataInput = this.modalData;
-
+    modalRef.componentInstance.jobRequirementID = 0;
+    modalRef.componentInstance.projectTypeID = this.activeTabId;
+    modalRef.componentInstance.initialPriceRequestTypeID = projectPartlistPriceRequestTypeID;
+    
     modalRef.result.then(
       (result) => {
-        // Modal đóng với kết quả
-        this.OnFormSubmit();
+        if (result === 'saved') {
+          this.OnFormSubmit();
+        }
       },
       (dismissed) => {
-        // Modal bị dismiss
         console.log('Modal dismissed');
       }
     );
+  }
+
+  // Map projectTypeID sang projectPartlistPriceRequestTypeID theo logic WinForm
+  private getProjectPartlistPriceRequestTypeID(projectTypeID: number): number {//NXL Update 29/11/25
+    const mapping: { [key: number]: number } = {
+      0: 5,
+      '-1': 2,
+      '-2': 3,
+      '-3': 4
+    };
+    
+    const key = String(projectTypeID);
+    if (mapping.hasOwnProperty(key)) {
+      return mapping[key as any];
+    }
+    
+    // Nếu projectTypeID > 0 thì trả về 1
+    return projectTypeID > 0 ? 1 : 0;
   }
 
   OnEditClick() {
@@ -200,35 +225,56 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
       return;
     }
 
-    // Gán STT cho từng dòng được chọn
-    const processedRows = selectedRows.map((row, index) => ({
-      ...row,
-      STT: index + 1,
-    }));
-
-    const modalRef = this.ngbModal.open(
-      ProjectPartlistPriceRequestFormComponent,
-      {
-        size: 'xl',
-        backdrop: 'static',
-        keyboard: false,
+    // Gán STT và map các field cần thiết cho từng dòng được chọn
+    const processedRows = selectedRows.map((row, index) => {
+      // Tìm ProductNewCode từ ProductCode trong danh sách sản phẩm
+      let productNewCode = row.ProductNewCode;
+      if (!productNewCode && row.ProductCode) {
+        const product = this.dtProductSale.find(
+          (p: any) => p.ProductCode === row.ProductCode
+        );
+        productNewCode = product ? product.ProductNewCode : null;
       }
-    );
+      
+      return {
+        ...row,
+        STT: index + 1,
+        ProductNewCode: productNewCode || row.ProductNewCode || null,
+        Maker: row.Maker || row.Manufacturer || '',
+        Unit: row.Unit || row.UnitCount || '',
+        ProjectPartlistPriceRequestTypeID: row.ProjectPartlistPriceRequestTypeID ?? null,
+      };
+    });
 
+    const modalRef = this.ngbModal.open(ProjectPartlistPriceRequestFormComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+    });
     modalRef.componentInstance.dataInput = processedRows;
+    modalRef.componentInstance.jobRequirementID = 0;
+    modalRef.componentInstance.projectTypeID = this.activeTabId;
+    modalRef.componentInstance.initialPriceRequestTypeID = this.getProjectPartlistPriceRequestTypeID(this.activeTabId);
 
     modalRef.result.then(
       (result) => {
-        // Modal đóng với kết quả
-        this.OnFormSubmit();
+        if (result === 'saved') {
+          this.OnFormSubmit();
+        }
       },
       (dismissed) => {
-        // Modal bị dismiss
         console.log('Modal dismissed');
       }
     );
   }
 
+  private GetProductSale() {//NXL Update 29/11/25
+    this.PriceRequetsService.getProductSale().subscribe((response) => {
+      this.dtProductSale = response.data || [];
+      console.log('ProductSale:', this.dtProductSale);
+    });
+  }
   OnDeleteClick() {
     const table = this.tables.get(this.activeTabId);
     if (!table) return;

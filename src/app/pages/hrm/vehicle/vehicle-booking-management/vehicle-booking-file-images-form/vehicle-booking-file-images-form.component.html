@@ -10,8 +10,21 @@
         <div class="modal-body">
         <div class="card  border-0 rounded-0">
             <div class="card-body p-0">
-                <div style="height: 100%">
-                    <div id="example-table" style="height: 100%;"></div>
+                <div style="height: 100%; position: relative; min-height: 400px;">
+                    <!-- Bảng luôn tồn tại để Tabulator có thể khởi tạo, chỉ ẩn khi không có ảnh -->
+                    <div id="example-table" [style.visibility]="hasImages ? 'visible' : 'hidden'" style="height: 100%;"></div>
+                    
+                    <!-- Hiển thị thông báo khi không có ảnh và không đang loading -->
+                    <div *ngIf="!loading && !hasImages" style="height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 5;">
+                        <nz-icon nzType="file-image" nzTheme="outline" style="font-size: 64px; color: #d9d9d9; margin-bottom: 16px;"></nz-icon>
+                        <p style="font-size: 16px; color: #8c8c8c; margin: 0;">Không có ảnh đính kèm để xem</p>
+                    </div>
+                    
+                    <!-- Spinner overlay khi đang loading -->
+                    <div *ngIf="loading" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 10; background-color: rgba(255, 255, 255, 0.9); display: flex; align-items: center; justify-content: center;">
+                        <nz-spin [nzSpinning]="true">
+                        </nz-spin>
+                    </div>
                 </div>
             </div>
         </div>

@@ -60,11 +60,12 @@
                             </tr>
                         </thead>    
                         <tbody>
-                            <ng-container *ngFor="let vehicleGroup of groupedScheduleData">
+                            <ng-container *ngFor="let vehicleGroup of groupedScheduleData; let vehicleIndex = index">
                                 <!-- Dòng header cho thông tin xe -->
                                 <tr class="vehicle-group-header">
                                     <td [attr.colspan]="9" 
-                                        style="background-color: #ffcbee; color: #000000; font-weight: bold; text-align: center; padding: 8px; font-size: 12px;">
+                                        [style.background-color]="getVehicleHeaderColor(vehicleIndex)"
+                                        style="color: #000000; font-weight: bold; text-align: center; padding: 8px; font-size: 12px;">
                                         Thông tin xe: {{ vehicleGroup.vehicleInfo }}
                                     </td>
                                 </tr>

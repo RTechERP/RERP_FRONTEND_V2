@@ -58,6 +58,7 @@ import { ProjectCurrentSituationComponent } from './project-current-situation/pr
 import { ProjectPartlistProblemComponent } from './project-partlist-problem/project-partlist-problem.component';
 import { ProjectTypeLinkDetailComponent } from './project-type-link-detail/project-type-link-detail.component';
 
+
 import { PermissionService } from '../../services/permission.service';
 import { environment } from '../../../environments/environment';
 @Component({

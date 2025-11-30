@@ -663,7 +663,7 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
   
   draw_fileTable(container: HTMLElement) {
     if (!container) {
-      console.warn('⚠️ fileTableContainer chưa sẵn sàng để vẽ bảng.');
+      console.warn('fileTableContainer chưa sẵn sàng để vẽ bảng.');
       return;
     }
     // Tính toán chiều cao dựa trên container

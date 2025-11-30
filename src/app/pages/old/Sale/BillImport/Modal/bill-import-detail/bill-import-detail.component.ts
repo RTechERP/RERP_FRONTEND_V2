@@ -33,7 +33,7 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 // import * as bootstrap from 'bootstrap';
 
 import { CommonModule } from '@angular/common';
-import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { TabulatorFull as Tabulator, ColumnDefinition } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { RowComponent } from 'tabulator-tables';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -57,6 +57,7 @@ import { BillExportService } from '../../../BillExport/bill-export-service/bill-
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { SelectControlComponent } from '../../../BillExport/Modal/select-control/select-control.component';
+import { TabulatorPopupComponent } from '../../../../../../shared/components/tabulator-popup/tabulator-popup.component';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { BillImportChoseSerialComponent } from '../../../../bill-import-technical/bill-import-chose-serial/bill-import-chose-serial.component';
@@ -119,6 +120,7 @@ interface BillImport {
     ProductSaleDetailComponent,
     NzTabsModule,
     NzSpinModule,
+    TabulatorPopupComponent,
   ],
   templateUrl: './bill-import-detail.component.html',
   styleUrl: './bill-import-detail.component.css',
@@ -233,6 +235,30 @@ export class BillImportDetailComponent
   validateForm: FormGroup;
   private destroy$ = new Subject<void>();
 
+  // Popup state management
+  showProductPopup: boolean = false;
+  showProjectPopup: boolean = false;
+  currentEditingCell: any = null;
+  popupPosition: { top: string; left: string } = { top: '0px', left: '0px' };
+
+  // Product popup columns
+  productPopupColumns: ColumnDefinition[] = [
+    { title: 'Mã SP', field: 'ProductCode', width: 120, headerHozAlign: 'center' },
+    { title: 'Mã nội bộ', field: 'ProductNewCode', width: 120, headerHozAlign: 'center' },
+    { title: 'Tên SP', field: 'ProductName', width: 250, headerHozAlign: 'center' },
+    { title: 'ĐVT', field: 'Unit', width: 80, headerHozAlign: 'center' },
+  ];
+
+  productSearchFields: string[] = ['ProductCode', 'ProductNewCode', 'ProductName'];
+
+  // Project popup columns
+  projectPopupColumns: ColumnDefinition[] = [
+    { title: 'Mã dự án', field: 'ProjectCode', width: 150, headerHozAlign: 'center' },
+    { title: 'Tên dự án', field: 'label', width: 300, headerHozAlign: 'center' },
+  ];
+
+  projectSearchFields: string[] = ['ProjectCode', 'label'];
+
   constructor(
     private modalService: NgbModal,
     private modal: NzModalService,
@@ -288,15 +314,12 @@ export class BillImportDetailComponent
         const data = res.data;
         if (data && (data.Status === true || data.Status === 1)) {
           this.isApproved = true;
-          console.log('approved', this.isApproved);
         }
       });
     }
     this.billImportService.getWarehouse().subscribe((res: any) => {
       const list = res.data || [];
       this.warehouses = list;
-      console.log('list', list);
-
       // Xác định kho hiện tại dựa trên mã WarehouseName (ví dụ: HN, HCM)
       const currentWarehouse = list.find(
         (item: any) =>
@@ -311,7 +334,6 @@ export class BillImportDetailComponent
           String(item.WareHouseCode).toUpperCase().includes('HN')
         )?.ID ?? 1;
 
-      console.log('WarehouseId', currentId);
 
       // Set WarehouseID và hiển thị tên kho; đồng thời khóa control để người dùng không chỉnh
       this.validateForm.controls['WarehouseID'].setValue(currentId);
@@ -321,7 +343,6 @@ export class BillImportDetailComponent
       this.validateForm.controls['WarehouseID'].disable();
 
       this.warehouseIdHN = hnId;
-      console.log('warehouseIdHN', hnId);
 
       // Chỉ set DeliverID mặc định nếu KHÔNG có dataHistory
       if (!this.dataHistory || this.dataHistory.length === 0) {
@@ -919,7 +940,6 @@ export class BillImportDetailComponent
       next: (res) => {
         if (res?.data) {
           const rawData = Array.isArray(res.data) ? res.data : [res.data];
-          console.log('datatable', rawData);
 
           // Load tất cả các project cần thiết trước
           const projectIds = [
@@ -967,7 +987,6 @@ export class BillImportDetailComponent
                 this.projectOptions.find(
                   (p: any) => p.value === item.ProjectID
                 ) || {};
-              console.log('projectID', item.ProjectID);
 
               return {
                 ID: item.ID || 0,
@@ -1108,7 +1127,6 @@ export class BillImportDetailComponent
       next: (res: any) => {
         this.dataCbbReciver = res.data;
         this.dataCbbDeliver = res.data;
-        console.log('data', this.dataCbbDeliver);
       },
       error: (err: any) => {
         this.notification.error('Thông báo', 'Có lỗi xảy ra khi lấy dữ liệu');
@@ -1126,11 +1144,9 @@ export class BillImportDetailComponent
     });
   }
   getNewCode() {
-    console.log('BillTypeNew', this.newBillImport.BillTypeNew);
     const billTypeNew = this.validateForm.get('BillTypeNew')?.value;
     this.billImportService.getNewCode(billTypeNew).subscribe({
       next: (res: any) => {
-        console.log('New code received:', res.data);
         this.newBillImport.BillImportCode = res.data;
         this.validateForm.patchValue({ BillImportCode: res.data });
       },
@@ -1143,7 +1159,6 @@ export class BillImportDetailComponent
   loadOptionProject() {
     this.billExportService.getOptionProject().subscribe({
       next: (res: any) => {
-        console.log('pj', res.data);
         const projectData = res.data;
         if (Array.isArray(projectData)) {
           this.projectOptions = projectData
@@ -1441,7 +1456,6 @@ export class BillImportDetailComponent
       },
     ];
 
-    console.log('Payload before sending:', JSON.stringify(payload, null, 2));
 
     this.billImportService.saveBillImport(payload).subscribe({
       next: (res) => {
@@ -1486,7 +1500,6 @@ export class BillImportDetailComponent
       this.id = 0;
       return;
     }
-    console.log('is', this.isCheckmode);
     const modalRef = this.modalService.open(BillImportDetailComponent, {
       centered: true,
       // windowClass: 'full-screen-modal',
@@ -1579,6 +1592,102 @@ export class BillImportDetailComponent
 
       return container;
     };
+  }
+
+  // Toggle Product Popup
+  toggleProductPopup(cell: any) {
+    this.currentEditingCell = cell;
+    const cellElement = cell.getElement();
+    const rect = cellElement.getBoundingClientRect();
+    
+    const viewportHeight = window.innerHeight;
+    const popupHeight = 350;
+    const spaceBelow = viewportHeight - rect.bottom;
+    
+    if (spaceBelow >= popupHeight) {
+      this.popupPosition = {
+        top: `${rect.bottom + window.scrollY}px`,
+        left: `${rect.left + window.scrollX}px`
+      };
+    } else {
+      this.popupPosition = {
+        top: `${rect.top + window.scrollY - popupHeight}px`,
+        left: `${rect.left + window.scrollX}px`
+      };
+    }
+    
+    this.showProductPopup = true;
+  }
+
+  // Toggle Project Popup
+  toggleProjectPopup(cell: any) {
+    this.currentEditingCell = cell;
+    const cellElement = cell.getElement();
+    const rect = cellElement.getBoundingClientRect();
+    
+    const viewportHeight = window.innerHeight;
+    const popupHeight = 350;
+    const spaceBelow = viewportHeight - rect.bottom;
+    
+    if (spaceBelow >= popupHeight) {
+      this.popupPosition = {
+        top: `${rect.bottom + window.scrollY}px`,
+        left: `${rect.left + window.scrollX}px`
+      };
+    } else {
+      this.popupPosition = {
+        top: `${rect.top + window.scrollY - popupHeight}px`,
+        left: `${rect.left + window.scrollX}px`
+      };
+    }
+    
+    this.showProjectPopup = true;
+  }
+
+  // Handle Product Selection
+  onProductSelected(selectedProduct: any) {
+    if (!this.currentEditingCell) return;
+    
+    const row = this.currentEditingCell.getRow();
+    const productValue = selectedProduct.value || selectedProduct.ID;
+    
+    row.update({
+      ProductID: productValue,
+      ProductCode: selectedProduct.ProductCode,
+      ProductNewCode: selectedProduct.ProductNewCode,
+      Unit: selectedProduct.Unit || '',
+      ProductName: selectedProduct.ProductName,
+    });
+
+    this.recheckTotalQty();
+    this.showProductPopup = false;
+    this.currentEditingCell = null;
+  }
+
+  // Handle Project Selection
+  onProjectSelected(selectedProject: any) {
+    if (!this.currentEditingCell) return;
+    
+    const row = this.currentEditingCell.getRow();
+    const projectValue = selectedProject.value || selectedProject.ID;
+    
+    row.update({
+      ProjectID: projectValue,
+      ProjectCodeExport: selectedProject.ProjectCode,
+      ProjectName: selectedProject.label,
+      ProjectNameText: selectedProject.label,
+      InventoryProjectIDs: [projectValue],
+    });
+
+    this.showProjectPopup = false;
+    this.currentEditingCell = null;
+  }
+
+  // Handle Popup Close
+  onPopupClosed() {
+    this.showProductPopup = false;
+    this.showProjectPopup = false;
+    this.currentEditingCell = null;
   }
 
   onTabChange(index: number): void {
@@ -1822,28 +1931,15 @@ export class BillImportDetailComponent
               headerHozAlign: 'center',
               width: 450,
               frozen: true,
-              editor: this.createdControl(
-                SelectControlComponent,
-                this.injector,
-                this.appRef,
-                () => this.productOptions,
-                {
-                  valueField: 'value',
-                  labelField: 'productLabel',
-                }
-              ),
               formatter: (cell) => {
                 const val = cell.getValue();
                 if (!val) {
-                  // Hiển thị placeholder nếu chưa có giá trị
                   return '<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0 text-muted"></p> <i class="fas fa-angle-down"></i></div>';
                 }
 
-                // Lấy ProductCode từ data của row (đã được bind sẵn)
                 const rowData = cell.getRow().getData();
                 let productcode = rowData['ProductCode'] || '';
 
-                // Nếu không có trong rowData, tìm trong productOptions
                 if (!productcode) {
                   const product = this.productOptions.find(
                     (p: any) => p.value === val
@@ -1853,38 +1949,8 @@ export class BillImportDetailComponent
 
                 return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${productcode}</p> <i class="fas fa-angle-down"></i></div>`;
               },
-              cellEdited: (cell) => {
-                const row = cell.getRow();
-                // Giá trị này có thể là toàn bộ đối tượng sản phẩm hoặc chỉ là ID
-                const selectedValue = cell.getValue();
-
-                let selectedProduct;
-
-                // Kiểm tra xem editor có trả về toàn bộ đối tượng không
-                if (
-                  typeof selectedValue === 'object' &&
-                  selectedValue !== null
-                ) {
-                  selectedProduct = selectedValue;
-                } else {
-                  // Phương án dự phòng: nếu chỉ là ID, tìm đối tượng đầy đủ
-                  selectedProduct = this.productOptions.find(
-                    (p: any) => p.value === selectedValue
-                  );
-                }
-
-                if (selectedProduct) {
-                  row.update({
-                    ProductID: selectedProduct.value,
-
-                    ProductCode: selectedProduct.ProductCode,
-                    ProductNewCode: selectedProduct.ProductNewCode,
-                    Unit: selectedProduct.Unit || '',
-                    ProductName: selectedProduct.ProductName,
-                  });
-
-                  this.recheckTotalQty();
-                }
+              cellClick: (e, cell) => {
+                this.toggleProductPopup(cell);
               },
             },
             {
@@ -2053,16 +2119,6 @@ export class BillImportDetailComponent
               hozAlign: 'left',
               headerHozAlign: 'center',
               width: 200,
-              editor: this.createdControl(
-                SelectControlComponent,
-                this.injector,
-                this.appRef,
-                () => this.projectOptions,
-                {
-                  valueField: 'value',
-                  labelField: 'label',
-                }
-              ),
               formatter: (cell) => {
                 const val = cell.getValue();
                 if (!val) {
@@ -2075,21 +2131,8 @@ export class BillImportDetailComponent
 
                 return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${ProjectCode}</p> <i class="fas fa-angle-down"></i></div>`;
               },
-              cellEdited: (cell) => {
-                const row = cell.getRow();
-                const newValue = cell.getValue();
-                const selectedProject = this.projectOptions.find(
-                  (p: any) => p.value === newValue
-                );
-
-                if (selectedProject) {
-                  row.update({
-                    ProjectCodeExport: selectedProject.ProjectCode,
-                    ProjectName: selectedProject.label,
-                    ProjectNameText: selectedProject.label,
-                    InventoryProjectIDs: [newValue],
-                  });
-                }
+              cellClick: (e, cell) => {
+                this.toggleProjectPopup(cell);
               },
             },
             {

@@ -10,8 +10,9 @@ import {
   AfterViewInit,
   ViewChild,
   ElementRef,
-  TemplateRef,
-  ViewContainerRef,
+  // REFACTOR: Không cần nữa vì đã dùng TabulatorPopupService
+  // TemplateRef,
+  // ViewContainerRef,
 } from '@angular/core';
 import { BillImportChoseProductFormComponent } from '../bill-import-chose-product-form/bill-import-chose-product-form.component';
 import { DateTime } from 'luxon';
@@ -52,6 +53,9 @@ import { firstValueFrom } from 'rxjs';
 import { TbProductRtcService } from '../../tb-product-rtc/tb-product-rtc-service/tb-product-rtc.service';
 import { AppUserService } from '../../../../services/app-user.service';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+// REFACTOR: Import TabulatorPopupService để sử dụng reusable popup component
+import { TabulatorPopupService } from '../../../../shared/components/tabulator-popup';
+
 
 @Component({
   standalone: true,
@@ -97,10 +101,12 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
   table_DocumnetImport!: Tabulator;
   dataTableDocumnetImport: any[] = [];
   @ViewChild('tableDeviceTemp') tableDeviceTemp!: ElementRef;
-  @ViewChild('childTableTemplate', { static: true })
-  childTableTemplate!: TemplateRef<any>;
-  @ViewChild('vcHost', { read: ViewContainerRef, static: true })
-  vcr!: ViewContainerRef;
+  // REFACTOR: Không cần nữa vì đã dùng TabulatorPopupService
+  // @ViewChild('childTableTemplate', { static: true })
+  // childTableTemplate!: TemplateRef<any>;
+  // @ViewChild('vcHost', { read: ViewContainerRef, static: true })
+  // vcr!: ViewContainerRef;
+
 
   isLoading: boolean = false;
   @Input() masterId!: number; //IDDetail
@@ -131,6 +137,34 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
   productOptions: any[] = [];
   warehouses: any[] = [];
 
+  // REFACTOR: Định nghĩa columns cho product popup (tái sử dụng được)
+  productPopupColumns: ColumnDefinition[] = [
+    {
+      title: 'Mã SP',
+      field: 'ProductCode',
+      width: 120,
+      headerSort: false,
+    },
+    {
+      title: 'Tên sản phẩm',
+      field: 'ProductName',
+      width: 200,
+      headerSort: false,
+    },
+    {
+      title: 'Mã nội bộ',
+      field: 'ProductCodeRTC',
+      width: 120,
+      headerSort: false,
+    },
+    {
+      title: 'ĐVT',
+      field: 'UnitCountName',
+      width: 80,
+      headerSort: false,
+    },
+  ];
+
   isAdmin: boolean = false;
   currentUserID: number = 0;
   currentEmployeeID: number = 0;
@@ -145,7 +179,9 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     private billImportTechnicalService: BillImportTechnicalService,
     private notification: NzNotificationService,
     private tbProductRtcService: TbProductRtcService,
-    private appUserService: AppUserService
+    private appUserService: AppUserService,
+    // REFACTOR: Inject TabulatorPopupService
+    private tabulatorPopupService: TabulatorPopupService
   ) {}
 
   supplierOrCustomerValidator(
@@ -449,6 +485,75 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     this.closeModal.emit();
     this.activeModal.dismiss('cancel');
   }
+
+  // INTEGRATION: Mở modal lịch sử mượn
+  async openBorrowHistory() {
+    // Dynamic import để tránh circular dependency
+    const { BorrowProductHistoryComponent } = await import(
+      '../../inventory-demo/borrow/borrow-product-history/borrow-product-history.component'
+    );
+
+    const modalRef = this.ngbModal.open(BorrowProductHistoryComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+      centered: false,
+      scrollable: true,
+      modalDialogClass: 'modal-fullscreen',
+    });
+
+    // Set isModalMode = true để hiển thị nút Xuất
+    modalRef.componentInstance.isModalMode = true;
+
+    // FIX: Chỉ dùng modalRef.result, không dùng productsExported.subscribe
+    // để tránh xử lý data 2 lần (gây ra duplicate rows)
+    modalRef.result.then(
+      (products: any[]) => {
+        if (products && products.length > 0) {
+          this.handleExportedProducts(products);
+        }
+      },
+      () => {
+        // Modal dismissed
+      }
+    );
+  }
+
+  // INTEGRATION: Xử lý dữ liệu sản phẩm được xuất từ lịch sử mượn
+  private handleExportedProducts(products: any[]) {
+    if (!products || products.length === 0) return;
+
+    // Map dữ liệu từ history sang format của bill import
+    const mappedProducts = products.map((product) => ({
+      UID: Date.now() + Math.random(),
+      ProductID: product.ProductRTCID || 0,
+      ProductCode: product.ProductCode || '',
+      ProductName: product.ProductName || '',
+      ProductCodeRTC: product.ProductCodeRTC || '',
+      UnitCountName: product.UnitCountName || '',
+      UnitCountID: product.UnitCountID || 0,
+      Maker: product.Maker || '',
+      NumberInStore: product.NumberInStore || 0,
+      Quantity: product.NumberBorrow || 1,
+      Price: 0,
+      TotalPrice: 0,
+      TotalQuantity: product.NumberBorrow || 1,
+      SerialNumber: product.SerialNumber || '',
+      PartNumber: product.PartNumber || '',
+      Serial: product.Serial || '',
+      Note: product.Note || '',
+      EmployeeIDBorrow: product.EmployeeID || 0,
+      DeadlineReturnNCC: product.DateReturnExpected || null,
+    }));
+
+    // Thêm vào selectedDevices
+    this.selectedDevices = [...this.selectedDevices, ...mappedProducts];
+
+    // Refresh table
+    if (this.deviceTempTable) {
+      this.deviceTempTable.setData(this.selectedDevices);
+    }
+  }
   getDocumentImport() {
     this.billImportTechnicalService
       .getDocumentBillImport(0, this.masterId || 0)
@@ -480,7 +585,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
           }
           this.isLoading = false;
         },
-        error: (err) => {
+        error: (err) => { 
           console.error('Error loading document import:', err);
           this.isLoading = false;
         },
@@ -534,7 +639,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       layout: 'fitColumns',
       data: this.selectedDevices,
       selectableRows: true,
-      height: '38vh',
+      height: '50vh',
       columnDefaults: {
         headerWordWrap: true,
         headerVertical: false,
@@ -556,7 +661,17 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
           formatter: () =>
             `<i class="fas fa-times text-danger cursor-pointer" title="Xóa dòng"></i>`,
           cellClick: (e, cell) => {
-            cell.getRow().delete();
+            const row = cell.getRow();
+            const rowData = row.getData();
+            const rowUID = rowData['UID'];
+            
+            // FIX: Xóa khỏi selectedDevices array trước khi xóa khỏi Tabulator
+            this.selectedDevices = this.selectedDevices.filter(
+              (device) => device['UID'] !== rowUID
+            );
+            
+            // Sau đó xóa khỏi Tabulator
+            row.delete();
           },
         },
         { title: 'STT', formatter: 'rownum', hozAlign: 'center', width: 60 },
@@ -582,7 +697,8 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
             `;
           },
           cellClick: (e, cell) => {
-            this.toggleProductTable(cell);
+            // REFACTOR: Gọi hàm mới showProductPopup thay vì toggleProductTable
+            this.showProductPopup(cell);
           },
         },
         { title: 'Tên sản phẩm', field: 'ProductName', width: 200 },
@@ -831,7 +947,9 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         TotalQuantity: 0,
       };
       this.selectedDevices.push(newRow);
-      this.deviceTempTable.setData(this.selectedDevices);
+      
+      // FIX: Sử dụng addRow() thay vì setData() để tránh re-render toàn bộ table
+      this.deviceTempTable.addRow(newRow);
     }
   }
 
@@ -1342,7 +1460,7 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
         {
           data: this.dataTableDocumnetImport, // mảng chứa dữ liệu JSON
           layout: 'fitDataFill',
-          height: '38vh',
+          height: '50vh',
           movableColumns: true,
           resizableRows: true,
           reactiveData: true,
@@ -1460,6 +1578,53 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
     }, 300);
   }
 
+  // REFACTOR: Hàm mới thay thế toggleProductTable - sử dụng TabulatorPopupService
+  // Code cũ: 231 dòng, phức tạp, dễ memory leak
+  // Code mới: 43 dòng, đơn giản, tự động cleanup
+  showProductPopup(cell: CellComponent) {
+    const cellElement = cell.getElement();
+    
+    // Toggle: nếu đang mở thì đóng
+    if (cellElement.classList.contains('popup-open')) {
+      this.tabulatorPopupService.close();
+      return;
+    }
+
+    // Mở popup mới với TabulatorPopupService
+    this.tabulatorPopupService.open({
+      data: this.productOptions || [],
+      columns: this.productPopupColumns,
+      searchFields: ['ProductCode', 'ProductName', 'ProductCodeRTC'],
+      searchPlaceholder: 'Tìm kiếm sản phẩm...',
+      height: '300px',
+      selectableRows: 1,
+      layout: 'fitColumns',
+      minWidth: '500px',
+      maxWidth: '700px',
+      onRowSelected: (selectedProduct) => {
+        // Fill dữ liệu vào row cha
+        const parentRow = cell.getRow();
+        parentRow.update({
+          ProductID: selectedProduct.ID,
+          ProductCode: selectedProduct.ProductCode,
+          ProductName: selectedProduct.ProductName,
+          ProductCodeRTC: selectedProduct.ProductCodeRTC,
+          UnitCountName: selectedProduct.UnitCountName,
+          UnitCountID: selectedProduct.UnitCountID,
+          Maker: selectedProduct.Maker,
+          NumberInStore: selectedProduct.NumberInStore,
+        });
+
+        // Đóng popup
+        this.tabulatorPopupService.close();
+      },
+      onClosed: () => {
+        // Optional: xử lý khi popup đóng
+      }
+    }, cellElement);
+  }
+
+  /* REFACTOR NOTE: Code cũ đã được comment lại bên dưới để tham khảo
   // Toggle popup table cho chọn sản phẩm
   toggleProductTable(cell: any) {
     const cellElement = cell.getElement();
@@ -1472,6 +1637,20 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
           '"]'
       );
       if (existingChild) {
+        // FIX: Destroy Tabulator instance trước khi remove DOM để tránh memory leak
+        const tabulatorInstance = (existingChild as any)._tabulatorInstance;
+        if (tabulatorInstance) {
+          tabulatorInstance.destroy();
+          // console.log('✅ Destroyed Tabulator instance');
+        }
+        
+        // FIX: Remove click event listener để tránh memory leak
+        const clickHandler = (existingChild as any)._clickHandler;
+        if (clickHandler) {
+          document.removeEventListener('click', clickHandler);
+          // console.log('✅ Removed click event listener');
+        }
+        
         const viewRef = (existingChild as any)._viewRef;
         if (viewRef) {
           viewRef.destroy();
@@ -1524,6 +1703,13 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
           '.child-row-container[data-cell-id="' + cellId + '"]'
         );
         if (existingChild) {
+          // FIX: Destroy Tabulator instance trước khi remove DOM để tránh memory leak
+          const tabulatorInstance = (existingChild as any)._tabulatorInstance;
+          if (tabulatorInstance) {
+            tabulatorInstance.destroy();
+            // console.log('✅ Destroyed Tabulator instance on click outside');
+          }
+          
           const viewRef = (existingChild as any)._viewRef;
           if (viewRef) {
             viewRef.destroy();
@@ -1531,9 +1717,13 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
           existingChild.remove();
         }
         cellElement.classList.remove('child-open');
+        // FIX: Remove event listener sau khi đã xử lý
         document.removeEventListener('click', closeOnClickOutside);
       }
     };
+
+    // FIX: Lưu reference của event handler để có thể remove sau này
+    (childRow as any)._clickHandler = closeOnClickOutside;
 
     // Delay để không trigger ngay lập tức
     setTimeout(() => {
@@ -1604,6 +1794,9 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
           ],
         });
 
+        // FIX: Lưu reference của Tabulator instance để có thể destroy sau này
+        (childRow as any)._tabulatorInstance = childTable;
+
         // Tìm kiếm trong bảng
         searchInput.addEventListener('input', (e) => {
           const value = (e.target as HTMLInputElement).value;
@@ -1639,6 +1832,20 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
               '"]'
           );
           if (existingChild) {
+            // FIX: Destroy Tabulator instance trước khi remove DOM để tránh memory leak
+            const tabulatorInstance = (existingChild as any)._tabulatorInstance;
+            if (tabulatorInstance) {
+              tabulatorInstance.destroy();
+              // console.log('✅ Destroyed Tabulator instance on product select');
+            }
+            
+            // FIX: Remove click event listener để tránh memory leak
+            const clickHandler = (existingChild as any)._clickHandler;
+            if (clickHandler) {
+              document.removeEventListener('click', clickHandler);
+              // console.log('✅ Removed click event listener on product select');
+            }
+            
             const viewRef = (existingChild as any)._viewRef;
             if (viewRef) {
               viewRef.destroy();
@@ -1650,4 +1857,5 @@ export class BillImportTechnicalFormComponent implements OnInit, AfterViewInit {
       }
     }, 0);
   }
+  */
 }

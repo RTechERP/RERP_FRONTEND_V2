@@ -335,6 +335,9 @@
                   </li>
                 </ul>
               </nz-dropdown-menu>
+              <button nz-button nzType="default" nzSize="small" class="btn-edit" (click)="techBought()" *ngIf="type == 2">
+                <img src="assets/icon/purchase_16.png" alt="Yêu cầu mua" /> Yêu cầu mua (Form)
+              </button>
               <ng-container *hasPermission="'N38,N1,N64'">
                 <button
                   class="fs-12"

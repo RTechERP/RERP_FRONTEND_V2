@@ -2,7 +2,7 @@
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
-import { AfterViewInit, Component, OnInit, inject, ViewEncapsulation, ViewChild, ElementRef, Input } from '@angular/core';
+import { AfterViewInit, Component, OnInit, inject, ViewEncapsulation, ViewChild, ElementRef, Inject, Optional } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -74,9 +74,13 @@ export class ProductExportAndBorrowComponent implements OnInit, AfterViewInit {
   constructor(
     private notification: NzNotificationService,
     private modalService: NgbModal,
-    private productExportAndBorrowService: ProductExportAndBorrowService
+    private productExportAndBorrowService: ProductExportAndBorrowService,
+    @Optional() @Inject('tabData') private tabData: any
   ) { }
   ngOnInit() {
+    if (this.tabData?.warehouseID) {
+      this.warehouseID = this.tabData.warehouseID;
+    }
   }
   ngAfterViewInit(): void {
     this.drawTbProducts();

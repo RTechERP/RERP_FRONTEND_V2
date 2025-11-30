@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, HostListener } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, HostListener, Inject, Optional } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import * as bootstrap from '@ng-bootstrap/ng-bootstrap';
@@ -86,7 +86,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     @ViewChild('tableProductGroup') tableProductGroupRef!: ElementRef;
   @ViewChild('tablePGWarehouse') tablePGWarehouseRef!: ElementRef;
   @ViewChild('tableProductSale') tableProductSaleRef!: ElementRef;
-  wareHouseCode: string = 'HN';
+  warehouseCode: string = 'HN';
   //biến liên quan đến dữ liệu và bảng của productSale
   table_productsale: any;
   dataProductSale: any[] = [];
@@ -159,7 +159,8 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     private productsaleSV: ProductsaleServiceService,
     private notification: NzNotificationService,
     private modalService: NgbModal,
-    private modal: NzModalService
+    private modal: NzModalService,
+    @Optional() @Inject('tabData') private tabData: any
   ) {}
   @HostListener('window:resize')
   onWindowResize() {
@@ -175,6 +176,9 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
     this.sizeLeft = this.isMobile ? '100%' : '25%';
   }
   ngOnInit(): void {
+    if (this.tabData?.warehouseCode) {
+      this.warehouseCode = this.tabData.warehouseCode;
+    }
     this.updateResponsiveFlags();
   }
   ngAfterViewInit(): void {
@@ -190,7 +194,7 @@ export class ProductSaleComponent implements OnInit, AfterViewInit {
   //#region các hàm lấy dữ liệu và mở mđ ProductGroup
   getProductGroup() {
     this.productsaleSV
-      .getdataProductGroup(this.wareHouseCode, false)
+      .getdataProductGroup(this.warehouseCode, false)
       .subscribe({
         next: (res) => {
           if (res?.data && Array.isArray(res.data) && res.data.length > 0) {

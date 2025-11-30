@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, Input, Inject, Optional } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
@@ -59,11 +59,13 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 })
 export class SearchProductSerialNumberComponent
   implements OnInit, AfterViewInit {
+  wearHouseID: number = 1;
   constructor(
     private searchProductSerialNumberService: SearchProductSerialNumberServiceService,
     private notification: NzNotificationService,
     private modal: NzModalService,
-    private modalService: NgbModal
+    private modalService: NgbModal,
+    @Optional() @Inject('tabData') private tabData: any
   ) { }
 
   isLoading = false;
@@ -76,6 +78,9 @@ export class SearchProductSerialNumberComponent
 
   keyword: string = '';
   ngOnInit(): void {
+    if (this.tabData?.warehouseID) {
+      this.wearHouseID = this.tabData.warehouseID;
+    }
     this.loadData();
   }
   ngAfterViewInit(): void {

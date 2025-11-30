@@ -1,4 +1,4 @@
-import { inject } from '@angular/core';
+import { inject, Inject, Optional } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
@@ -54,7 +54,7 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
   private ngbModal = inject(NgbModal);
   qrCodeTable: Tabulator | null = null;
   filterText: string = "";
-  warehouseID: number = 1; // Default warehouse ID, can be configured
+ warehouseID: number = 1; // Default warehouse ID, can be configured
   qrCodeData: any[] = [];
   modulaLocationGroups: any[] = [];
   selectedModulaLocationID: number | null = null;
@@ -63,7 +63,8 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
   constructor(
     private notification: NzNotificationService,
     private qrCodeService: ProductRtcQrCodeService,
-    private modal: NzModalService
+    private modal: NzModalService,
+    @Optional() @Inject('tabData') private tabData: any
   ) { }
 
   ngAfterViewInit(): void {
@@ -73,6 +74,9 @@ export class ProductRtcQrCodeComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   ngOnInit() {
+    if (this.tabData?.warehouseID) {
+      this.warehouseID = this.tabData.warehouseID;
+    }
     // Setup debounce cho tìm kiếm
     this.searchSubject.pipe(
       debounceTime(500),

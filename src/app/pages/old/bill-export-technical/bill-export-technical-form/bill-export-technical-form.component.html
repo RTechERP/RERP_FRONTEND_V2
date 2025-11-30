@@ -69,20 +69,9 @@
     <nz-row [nzGutter]="24">
       <nz-col [nzSpan]="7">
         <nz-form-item>
-          <nz-form-label>Dự án<span style="color: red">(*)</span></nz-form-label>
-          <nz-form-control [nzErrorTip]="'Vui lòng chọn dự án'">
-            <nz-select
-              formControlName="ProjectID"
-              nzPlaceHolder="Chọn dự án"
-              name="ProjectID"
-              nzShowSearch
-              (ngModelChange)="onProjectChange($event)">
-              <nz-option
-                *ngFor="let item of projectList"
-                [nzValue]="item.ID"
-                [nzLabel]="item.ProjectCode + ' - ' + (item.ProjectName || item.Name)">
-              </nz-option>
-            </nz-select>
+          <nz-form-label>Dự án</nz-form-label>
+          <nz-form-control>
+            <input nz-input formControlName="ProjectName" name="ProjectName" placeholder="Nhập tên dự án" />
           </nz-form-control>
         </nz-form-item>
       </nz-col>
@@ -169,10 +158,8 @@
       <nz-col [nzSpan]="5">
         <nz-form-item>
           <nz-form-label>QR Code<span style="color: red">(*)</span></nz-form-label>
-          <nz-form-control [nzErrorTip]="'Vui lòng chọn người giao'">
-
-            <input nz-input formControlName="Code" name="Code" />
-
+          <nz-form-control>
+            <input nz-input formControlName="QRCode" name="QRCode" />
           </nz-form-control>
 
         </nz-form-item>
@@ -198,7 +185,7 @@
     </nz-row>
   </form>
   <div class="mt-4">
-    <div id="deviceTempTable" style="height: 510px;"></div>
+    <div id="deviceTempTable" style="height: 50vh;"></div>
   </div>
 
 </div>

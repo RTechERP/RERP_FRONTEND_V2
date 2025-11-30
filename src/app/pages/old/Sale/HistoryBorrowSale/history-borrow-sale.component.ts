@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, Inject, Optional } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { CommonModule } from '@angular/common';
@@ -71,6 +71,7 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     private modalService: NgbModal,
     private billExportService: BillExportService,
+    @Optional() @Inject('tabData') private tabData: any
   ) { }
 
   newBillImport: any = {
@@ -98,7 +99,7 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
 
   cbbProductGroup: any[] = [];
   cbbEmployee: any[] = [];
-
+  warehouseCode: string = 'HN';  
   table: any;
   dataTable: any[] = [];
   checked: boolean = false;
@@ -112,7 +113,7 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
     keyword: '',
     group: 0,
     status: 1,
-    warehouseCode: 'HN',
+    warehouseCode: this.warehouseCode,
     pageNumber: 1,
     pageSize: 50, // Giảm xuống 50 để phân trang
     productGroupID: 0,
@@ -128,6 +129,9 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
   contextMenuCell: any = null;
 
   ngOnInit(): void {
+    if (this.tabData?.warehouseCode) {
+      this.warehouseCode = this.tabData.warehouseCode;
+    }
     this.getCbbEmployee();
     this.getCbbProductGroup();
     // Không gọi loadData() ở đây
@@ -206,7 +210,6 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
       };
     });
 
-    console.log("Tabs data:", tabs);
 
     // 7. Mở component với tabs thay vì nhiều modal
     const modalRef = this.modalService.open(BillImportTabsComponent, {
@@ -241,7 +244,6 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
       const page = params.page || 1;
       const size = params.size || 50;
 
-      console.log('ajaxRequest called with params:', params);
 
       const dateStart = DateTime.fromJSDate(
         new Date(this.searchParams.dateStart)
@@ -477,7 +479,6 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
     }
     this.historyBorrowSaleService.approvedReturned(this.data, apr).subscribe({
       next: (res) => {
-        console.log('Approval response:', res);
         if (res.status === 1) {
           this.notification.success(NOTIFICATION_TITLE.success, res.message || 'Thành công!');
           this.data = [];
@@ -700,7 +701,6 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
       const selectedRows = this.table.getSelectedRows();
       this.data = selectedRows.map((row: any) => row.getData().BorrowID); // Lấy dữ liệu của tất cả các dòng được chọn
       this.dataCreateImport = selectedRows.map((row: any) => row.getData());
-      console.log('data', this.data);
     });
 
     this.table.on('rowDeselected', (row: RowComponent) => {

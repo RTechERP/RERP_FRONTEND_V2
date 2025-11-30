@@ -307,11 +307,15 @@
 <!-- Footer nút -->
 <div class="modal-footer">
   <button nz-button nzType="default" (click)="close()">Đóng</button>
+  <button nz-button nzType="default" (click)="openBorrowHistory()">Lịch sử mượn</button>
   <button nz-button nzType="primary" (click)="saveData()">Lưu</button>
 </div>
 
+<!-- REFACTOR: Không cần nữa vì đã dùng TabulatorPopupService -->
+<!-- 
 <ng-template #childTableTemplate let-row="row">
   <div class="child-tabulator"></div>
 </ng-template>
 
 <ng-container #vcHost></ng-container>
+-->

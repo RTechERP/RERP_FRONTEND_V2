@@ -13,9 +13,9 @@ export class CustomerServiceService {
   private _urlE = environment.host + 'api/Employee/';
   constructor(private http: HttpClient) { }
 
-  // getCustomers(): Observable<any> {
-  //   return this.http.get<any>(this._url + 'get-customers');
-  // }
+  getCustomers(): Observable<any> {
+    return this.http.get<any>(this._url + 'get-customers');
+  }
   getMainData(
     pageNumber: number,
     pageSize: number,

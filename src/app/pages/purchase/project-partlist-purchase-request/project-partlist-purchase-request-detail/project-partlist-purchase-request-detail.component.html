@@ -1,0 +1,348 @@
+<div class="modal-dialog-scrollable">
+    <div class="modal-header bg-primary align-items-center ps-3">
+        <h6 class="text-light text-uppercase m-0 fw-bold">Chi tiết yêu cầu mua hàng</h6>
+        <button type="button" class="btn-close position-absolute end-0 m-3" aria-label="Close"
+            (click)="activeModal.dismiss()"></button>
+    </div>
+
+    <div class="modal-body">
+        <form nz-form [formGroup]="validateForm" class="container-fluid" nzLayout="vertical">
+            <div nz-row [nzGutter]="16">
+                <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                        <nz-form-label>Khách hàng</nz-form-label>
+                        <nz-form-control>
+                            <nz-select formControlName="CustomerID" nzPlaceHolder="Chọn khách hàng" name="CustomerID"
+                                nzShowSearch="true">
+                                <nz-option *ngFor="let item of customers" [nzValue]="item.ID"
+                                    [nzLabel]="item.CustomerCode + '-' + item.CustomerName">
+                                </nz-option></nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="6">
+                    <nz-form-item>
+                        <nz-form-label>Hãng</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input name="Maker" formControlName="Maker" placeholder="Nhập hãng" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="6">
+                    <nz-form-item>
+                        <nz-form-label>Trạng thái</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input name="StatusRequest" formControlName="StatusRequest"
+                                placeholder="Yêu cầu mua hàng" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+            </div>
+            <div nz-row [nzGutter]="16">
+                <div nz-col [nzSpan]="6">
+                    <nz-form-item>
+                        <nz-form-label class="fs-12 d-flex align-items-center" [nzSpan]="24">
+                            <div class="d-flex"> Mã sản phẩm
+                                <button class="p-0 m-0 fs-12 px-1 h-auto" nz-button nzSize="small" title="Mã sản phẩm"
+                                    nzType="text" (click)="onAddProductSale()">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </nz-form-label>
+
+                        <nz-form-control>
+                            <div class="d-flex align-items-center">
+                                <nz-select formControlName="ProductSaleID" nzPlaceHolder="Chọn sản phẩm"
+                                    nzShowSearch="true" name="ProductSaleID">
+                                    <nz-option *ngFor="let item of products" [nzValue]="item.ID"
+                                        [nzLabel]="item.ProductCode + '-' + item.ProductName">
+                                    </nz-option>
+                                </nz-select>
+                            </div>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="6">
+                    <nz-form-item>
+                        <nz-form-label>Tên sản phẩm <span class="text-danger">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng nhập tên sản phẩm!">
+                            <input nz-input name="ProductName" formControlName="ProductName"
+                                placeholder="Nhập tên sản phẩm" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="4">
+                    <nz-form-item>
+                        <nz-form-label>Đơn vị</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input name="Unit" formControlName="Unit" placeholder="Nhập đơn vị" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="4">
+                    <nz-form-item>
+                        <label class="form-label mb-2">Người yêu cầu</label>
+
+                        <nz-select name="EmployeeRequestID" formControlName="EmployeeRequestID" class="w-100"
+                            nzShowSearch nzPlaceHolder="Chọn người yêu cầu">
+                            <ng-container *ngFor="let group of employeeRequests">
+                                <nz-option-group [nzLabel]="group.label">
+                                    <nz-option *ngFor="let option of group.options"
+                                        [nzLabel]="option.item.Code +' - '+ option.item.FullName"
+                                        [nzValue]="option.item.EmployeeID">
+                                    </nz-option>
+                                </nz-option-group>
+                            </ng-container>
+                        </nz-select>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="4">
+                    <nz-form-item>
+                        <label class="form-label mb-2">Loại kho</label>
+                        <nz-select class="w-100" nzPlaceHolder="Chọn loại kho" name="ProductGroupID"
+                            formControlName="ProductGroupID">
+                            <nz-option *ngFor="let item of productGroup" [nzValue]="item.ID"
+                                [nzLabel]="item.ProductGroupName"></nz-option>
+                        </nz-select>
+                    </nz-form-item>
+                </div>
+            </div>
+            <div nz-row [nzGutter]="16">
+                <div nz-col [nzSpan]="4">
+                    <nz-form-item>
+                        <label class="form-label mb-2">Nhân viên mua </label>
+                        <nz-form-control nzErrorTip="Vui lòng chọn nhân viên mua!">
+                            <nz-select name="EmployeeBuyID" formControlName="EmployeeBuyID" class="w-100" nzShowSearch
+                                nzPlaceHolder="Chọn nhân viên mua">
+                                <ng-container *ngFor="let group of employeeBuys">
+                                    <nz-option-group [nzLabel]="group.label">
+                                        <nz-option *ngFor="let option of group.options"
+                                            [nzLabel]="option.item.Code +' - '+ option.item.FullName"
+                                            [nzValue]="option.item.EmployeeID">
+                                        </nz-option>
+                                    </nz-option-group>
+                                </ng-container>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="4">
+                    <nz-form-item>
+                        <nz-form-label>Ngày yêu cầu</nz-form-label>
+                        <nz-form-control>
+                            <nz-date-picker class="w-100" nzFormat="dd/MM/yyyy" name="DateRequest"
+                                formControlName="DateRequest"></nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="4">
+                    <nz-form-item>
+                        <nz-form-label>Deadline <span class="text-danger">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng chọn deadline!">
+                            <nz-date-picker class="w-100" nzFormat="dd/MM/yyyy" name="DateReturnExpected"
+                                formControlName="DateReturnExpected"></nz-date-picker>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="4">
+                    <nz-form-item>
+                        <nz-form-label>Đơn giá </nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng nhập đơn giá!">
+                            <nz-input-number nzMin="0" name="UnitPrice" formControlName="UnitPrice"
+                                [nzFormatter]="formatAmount" [nzParser]="parseAmount"
+                                class="form-control form-control-sm fs-12 w-100">
+                            </nz-input-number>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <div nz-col [nzSpan]="4">
+                    <nz-form-item>
+                        <label class="form-label mb-2">Loại tiền</label>
+                        <nz-form-control nzErrorTip="Vui lòng chọn loại tiền!">
+                            <nz-select class="w-100" nzPlaceHolder="Chọn loại tiền" name="CurrencyID"
+                                (ngModelChange)="onCurrencyChange($event)" formControlName="CurrencyID">
+                                <nz-option *ngFor="let item of currencys" [nzValue]="item.ID"
+                                    [nzLabel]="item.Code"></nz-option>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <div nz-col [nzSpan]="4">
+                    <nz-form-item>
+                        <nz-form-label>Số lượng <span class="text-danger">(*)</span></nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng nhập số lượng!">
+                            <nz-input-number nzMin="0" name="Quantity" formControlName="Quantity"
+                                class="form-control form-control-sm fs-12 w-100">
+                            </nz-input-number>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+            </div>
+            <div nz-row [nzGutter]="16">
+                <div nz-col [nzSpan]="12">
+                    <nz-form-item>
+                        <nz-form-label>Nhà cung cấp </nz-form-label>
+                        <nz-form-control nzErrorTip="Vui lòng chọn NCC!">
+                            <nz-select name="SupplierSaleID" formControlName="SupplierSaleID" nzPlaceHolder="Chọn NCC">
+                                <nz-option *ngFor="let item of supplierSales" [nzValue]="item.ID"
+                                    [nzLabel]="item.CodeNCC+' - '+ item.NameNCC">
+                                </nz-option></nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <div nz-col [nzSpan]="4">
+                    <nz-form-item>
+                        <nz-form-label>Thành tiền quy đổi (VNĐ) </nz-form-label>
+                        <nz-form-control>
+                            <nz-input-number nzMin="0" name="TotalPriceExchange" formControlName="TotalPriceExchange"
+                                [nzFormatter]="formatAmount" [nzParser]="parseAmount"
+                                class="form-control form-control-sm fs-12 w-100">
+                            </nz-input-number>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="4">
+                    <nz-form-item>
+                        <nz-form-label>Thành tiền chưa VAT </nz-form-label>
+                        <nz-form-control>
+                            <nz-input-number nzMin="0" name="TotalPrice" formControlName="TotalPrice"
+                                [nzFormatter]="formatAmount" [nzParser]="parseAmount"
+                                class="form-control form-control-sm fs-12 w-100">
+                            </nz-input-number>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="4">
+                    <nz-form-item>
+                        <nz-form-label>Thành tiền có VAT </nz-form-label>
+                        <nz-form-control>
+                            <nz-input-number nzMin="0" name="TotalMoneyVAT" formControlName="TotalMoneyVAT"
+                                [nzFormatter]="formatAmount" [nzParser]="parseAmount"
+                                class="form-control form-control-sm fs-12 w-100">
+                            </nz-input-number>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <div nz-col [nzSpan]="4">
+                    <nz-form-item>
+                        <nz-form-label>Đơn giá xuất xưởng</nz-form-label>
+                        <nz-form-control>
+                            <nz-input-number nzMin="0" name="UnitFactoryExportPrice" [nzFormatter]="formatAmount"
+                                [nzParser]="parseAmount" formControlName="UnitFactoryExportPrice"
+                                class="form-control form-control-sm fs-12 w-100">
+                            </nz-input-number>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="4">
+                    <nz-form-item>
+                        <nz-form-label>Giá nhập khẩu</nz-form-label>
+                        <nz-form-control>
+                            <nz-input-number nzMin="0" name="UnitImportPrice" formControlName="UnitImportPrice"
+                                [nzFormatter]="formatAmount" [nzParser]="parseAmount"
+                                class="form-control form-control-sm fs-12 w-100" />
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="4">
+                    <nz-form-item>
+                        <nz-form-label>Tổng tiền nhập khẩu</nz-form-label>
+                        <nz-form-control>
+                            <nz-input-number nzMin="0" name="TotalImportPrice" formControlName="TotalImportPrice"
+                                [nzFormatter]="formatAmount" [nzParser]="parseAmount"
+                                class="form-control form-control-sm fs-12 w-100">
+                            </nz-input-number>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="4">
+                    <nz-form-item>
+                        <nz-form-label>Giá lịch sử</nz-form-label>
+                        <nz-form-control>
+                            <nz-input-number nzMin="0" name="HistoryPrice" formControlName="HistoryPrice"
+                                [nzFormatter]="formatAmount" [nzParser]="parseAmount"
+                                class="form-control form-control-sm fs-12 w-100">
+                            </nz-input-number>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="4">
+                    <nz-form-item>
+                        <nz-form-label>Tỷ giá</nz-form-label>
+                        <nz-form-control>
+                            <nz-input-number nzMin="0" name="CurrencyRate" formControlName="CurrencyRate"
+                                [nzFormatter]="formatAmount" [nzParser]="parseAmount"
+                                class="form-control form-control-sm fs-12 w-100">
+                            </nz-input-number>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+                <div nz-col [nzSpan]="4">
+                    <nz-form-item>
+                        <nz-form-label>% VAT</nz-form-label>
+                        <nz-form-control>
+                            <nz-input-number nzMin="0" nzMax="100" nzStep="1" name="VAT" formControlName="VAT"
+                                class="form-control form-control-sm fs-12 w-100">
+                            </nz-input-number>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+            </div>
+            <div nz-row [nzGutter]="16">
+                <div nz-col [nzSpan]="16">
+                    <nz-form-item *ngIf="!IsTechBought">
+                        <nz-form-label>Ghi chú</nz-form-label>
+                        <nz-form-control>
+                            <input nz-input formControlName="Note" class="form-control form-control-sm w-100" />
+                        </nz-form-control>
+                    </nz-form-item>
+
+                    <nz-form-item *ngIf="IsTechBought">
+                        <nz-form-label>Ghi chú</nz-form-label>
+                        <nz-form-control>
+                            <nz-select (ngModelChange)="onStatusChange($event)" nzAllowClear="true">
+                                <nz-option nzValue="0" nzLabel="Chưa làm gì"></nz-option>
+                                <nz-option nzValue="1" nzLabel="Đã về"></nz-option>
+                                <nz-option nzValue="2" nzLabel="Chưa về"></nz-option>
+                            </nz-select>
+                        </nz-form-control>
+                    </nz-form-item>
+
+                </div>
+                <div nz-col [nzSpan]="4">
+                    <nz-form-item>
+                        <nz-form-label>Lead Time</nz-form-label>
+                        <nz-form-control>
+                            <nz-input-number nzMin="0" nzMax="10000000000" nzStep="1" formControlName="LeadTime"
+                                class="form-control form-control-sm fs-12 w-100">
+                            </nz-input-number>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+
+                <div nz-col [nzSpan]="4">
+                    <nz-form-item>
+                        <nz-form-label>&nbsp;</nz-form-label>
+
+                        <nz-form-control>
+                            <label nz-checkbox formControlName="IsImport">
+                                Hàng nhập khẩu
+                            </label>
+                        </nz-form-control>
+                    </nz-form-item>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="modal-footer py-1">
+        <button nz-button nzType="default" nzDanger (click)="activeModal.dismiss()">Đóng</button>
+        <button nz-button nzType="primary" (click)="onSave()">
+            <i class="fas fa-save me-1"></i> Lưu
+        </button>
+    </div>
+</div>

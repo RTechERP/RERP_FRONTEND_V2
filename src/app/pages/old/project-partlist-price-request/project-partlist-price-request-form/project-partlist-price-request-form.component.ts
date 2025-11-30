@@ -12,11 +12,10 @@ import {
   EnvironmentInjector,
   ApplicationRef,
   Type,
-  TemplateRef,
-  ViewContainerRef,
 } from '@angular/core';
 import {
   TabulatorFull as Tabulator,
+  ColumnDefinition,
 } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { FormsModule } from '@angular/forms';
@@ -40,6 +39,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { AuthService } from '../../../../auth/auth.service';
 import { FirmService } from '../../../general-category/firm/firm-service/firm.service';
 import { SelectControlComponent } from '../../select-control/select-control.component';
+import { TabulatorPopupComponent } from '../../../../shared/components/tabulator-popup/tabulator-popup.component';
 
 
 @Component({
@@ -55,8 +55,9 @@ import { SelectControlComponent } from '../../select-control/select-control.comp
     NzGridModule,
     NzButtonModule,
     NzIconModule,
-      NgbModalModule,
-      SelectControlComponent
+    NgbModalModule,
+    SelectControlComponent,
+    TabulatorPopupComponent
   ],
   selector: 'app-project-partlist-price-request-form',
   templateUrl: './project-partlist-price-request-form.component.html',
@@ -79,10 +80,7 @@ export class ProjectPartlistPriceRequestFormComponent
 
   @Output() closeModal = new EventEmitter<void>();
   @Output() formSubmitted = new EventEmitter<void>();
-  @ViewChild('childTableTemplate', { static: true })
-  childTableTemplate!: TemplateRef<any>;
-  @ViewChild('vcHost', { read: ViewContainerRef, static: true })
-  vcr!: ViewContainerRef;
+
   close(result?: any) {
     this.activeModal.close(result);
   }
@@ -109,8 +107,20 @@ export class ProjectPartlistPriceRequestFormComponent
   originalRowsMap: Map<number, any> = new Map();
   originalIds: number[] = [];
   
-    // Map để lưu mapping HR Note: ProjectPartlistPriceRequestID -> { ID, Note }
-    hrNotesMap: Map<number, { id: number; note: string }> = new Map();
+  // Map để lưu mapping HR Note: ProjectPartlistPriceRequestID -> { ID, Note }
+  hrNotesMap: Map<number, { id: number; note: string }> = new Map();
+
+  // Popup state management
+  showProductPopup: boolean = false;
+  currentEditingCell: any = null;
+  productPopupPosition: { top: string; left: string } = { top: '0px', left: '0px' };
+  productColumns: ColumnDefinition[] = [
+    { title: 'Mã SP', field: 'ProductCode', width: 120, headerSort: false },
+    { title: 'Tên sản phẩm', field: 'ProductName', width: 200, headerSort: false },
+    { title: 'Mã nội bộ', field: 'ProductNewCode', width: 120, headerSort: false },
+    { title: 'ĐVT', field: 'Unit', width: 80, headerSort: false },
+  ];
+  productSearchFields: string[] = ['ProductCode', 'ProductName', 'ProductNewCode'];
 
   constructor(public activeModal: NgbActiveModal) {}
 
@@ -781,172 +791,72 @@ export class ProjectPartlistPriceRequestFormComponent
   }
 
   toggleProductTable(cell: any) {
+    // Store the current cell being edited
+    this.currentEditingCell = cell;
+    
+    // Calculate popup position based on cell location
     const cellElement = cell.getElement();
-    if (cellElement.classList.contains('child-open')) {
-      const existingChild = document.body.querySelector(
-        '.child-row-container[data-cell-id="' +
-          cellElement.dataset['cellId'] +
-          '"]'
-      );
-      if (existingChild) {
-        const viewRef = (existingChild as any)._viewRef;
-        if (viewRef) {
-          viewRef.destroy();
-        }
-        existingChild.remove();
-      }
-      cellElement.classList.remove('child-open');
-      return;
-    }
-    cellElement.classList.add('child-open');
-    const cellId = 'cell-' + Date.now();
-    cellElement.dataset['cellId'] = cellId;
-    const childRow = document.createElement('div');
-    childRow.classList.add('child-row-container');
-    childRow.dataset['cellId'] = cellId;
     const cellRect = cellElement.getBoundingClientRect();
     const viewportHeight = window.innerHeight;
     const spaceBelow = viewportHeight - cellRect.bottom;
     const spaceAbove = cellRect.top;
-    childRow.style.position = 'fixed';
-    childRow.style.left = cellRect.left + 'px';
-    childRow.style.minWidth = '500px';
-    childRow.style.maxWidth = '700px';
-    childRow.style.zIndex = '10000';
+    
+    // Position popup below or above cell depending on available space
     if (spaceBelow < 300 && spaceAbove > spaceBelow) {
-      childRow.style.bottom = viewportHeight - cellRect.top + 'px';
+      this.productPopupPosition = {
+        top: 'auto',
+        left: cellRect.left + 'px'
+      };
     } else {
-      childRow.style.top = cellRect.bottom + 'px';
+      this.productPopupPosition = {
+        top: cellRect.bottom + 'px',
+        left: cellRect.left + 'px'
+      };
     }
-    document.body.appendChild(childRow);
-    const closeOnClickOutside = (event: MouseEvent) => {
-      if (
-        !childRow.contains(event.target as Node) &&
-        !cellElement.contains(event.target as Node)
-      ) {
-        const existingChild = document.body.querySelector(
-          '.child-row-container[data-cell-id="' + cellId + '"]'
-        );
-        if (existingChild) {
-          const viewRef = (existingChild as any)._viewRef;
-          if (viewRef) {
-            viewRef.destroy();
-          }
-          existingChild.remove();
-        }
-        cellElement.classList.remove('child-open');
-        document.removeEventListener('click', closeOnClickOutside);
-      }
-    };
-    setTimeout(() => {
-      document.addEventListener('click', closeOnClickOutside);
-    }, 100);
-    const view = this.vcr.createEmbeddedView(this.childTableTemplate, {
-      row: cell.getRow().getData(),
+    
+    // Show the popup
+    this.showProductPopup = true;
+  }
+
+  onProductSelected(selectedProduct: any) {
+    if (!this.currentEditingCell) return;
+    
+    const parentRow = this.currentEditingCell.getRow();
+    const productNewCode = selectedProduct.ProductNewCode;
+    const currentRowData = parentRow.getData();
+    
+    // Check for duplicates
+    const exists = this.table.getData().some((r: any) => {
+      if (r.ID === currentRowData.ID) return false;
+      return r.ProductNewCode === productNewCode;
     });
-    (childRow as any)._viewRef = view;
-    view.detectChanges();
-    view.rootNodes.forEach((node) => {
-      childRow.appendChild(node);
-    });
-    setTimeout(() => {
-      const tabDiv = view.rootNodes.find(
-        (node) =>
-          node.nodeType === Node.ELEMENT_NODE &&
-          node.classList?.contains('child-tabulator')
+
+    if (exists) {
+      this.notification.warning(
+        'Thông báo',
+        `Sản phẩm có Mã nội bộ [${productNewCode}] đã tồn tại trong danh sách!`
       );
-      if (tabDiv) {
-        const parentRow = cell.getRow();
-        const searchInput = document.createElement('input');
-        searchInput.type = 'text';
-        searchInput.placeholder = 'Tìm kiếm sản phẩm...';
-        searchInput.style.cssText =
-          'width: 100%; padding: 8px; margin-bottom: 5px; border: 1px solid #ddd; border-radius: 4px;';
-        childRow.insertBefore(searchInput, tabDiv);
-        const childTable = new Tabulator(tabDiv as HTMLElement, {
-          height: '300px',
-          data: this.dtProductSale || [],
-          layout: 'fitColumns',
-          selectableRows: 1,
-          columns: [
-            {
-              title: 'Mã SP',
-              field: 'ProductCode',
-              width: 120,
-              headerSort: false,
-            },
-            {
-              title: 'Tên sản phẩm',
-              field: 'ProductName',
-              width: 200,
-              headerSort: false,
-            },
-            {
-              title: 'Mã nội bộ',
-              field: 'ProductNewCode',
-              width: 120,
-              headerSort: false,
-            },
-            {
-              title: 'ĐVT',
-              field: 'Unit',
-              width: 80,
-              headerSort: false,
-            },
-          ],
-        });
-        searchInput.addEventListener('input', (e) => {
-          const value = (e.target as HTMLInputElement).value;
-          childTable.setFilter([
-            [
-              { field: 'ProductCode', type: 'like', value: value },
-              { field: 'ProductName', type: 'like', value: value },
-              { field: 'ProductNewCode', type: 'like', value: value },
-            ],
-          ]);
-        });
-        childTable.on('rowClick', (_e, childRow) => {
-          const selectedProduct = childRow.getData() as any;
-          const productNewCode = selectedProduct.ProductNewCode;
-          const currentRowData = parentRow.getData();
-          
-          const exists = this.table.getData().some((r: any) => {
-            if (r.ID === currentRowData.ID) return false;
-            return r.ProductNewCode === productNewCode;
-          });
+      return;
+    }
 
-          if (exists) {
-            this.notification.warning(
-              'Thông báo',
-              `Sản phẩm có Mã nội bộ [${productNewCode}] đã tồn tại trong danh sách!`
-            );
-            return;
-          }
+    // Update row with selected product data
+    parentRow.update({
+      ProductNewCode: selectedProduct.ProductNewCode,
+      ProductCode: selectedProduct.ProductCode,
+      ProductName: selectedProduct.ProductName,
+      Unit: selectedProduct.Unit,
+      Maker: selectedProduct.Maker,
+      StatusRequest: selectedProduct.StatusRequest,
+    });
+    
+    // Close the popup
+    this.showProductPopup = false;
+    this.currentEditingCell = null;
+  }
 
-          parentRow.update({
-            ProductNewCode: selectedProduct.ProductNewCode,
-            ProductCode: selectedProduct.ProductCode,
-            ProductName: selectedProduct.ProductName,
-            Unit: selectedProduct.Unit,
-            Maker: selectedProduct.Maker,
-            StatusRequest: selectedProduct.StatusRequest,
-          });
-          const existingChild = document.body.querySelector(
-            '.child-row-container[data-cell-id="' +
-              cellElement.dataset['cellId'] +
-              '"]'
-          );
-          if (existingChild) {
-            const viewRef = (existingChild as any)._viewRef;
-            if (viewRef) {
-              viewRef.destroy();
-            }
-            existingChild.remove();
-          }
-          cellElement.classList.remove('child-open');
-        });
-      }
-    }, 0);
+  onPopupClosed() {
+    this.showProductPopup = false;
+    this.currentEditingCell = null;
   }
 
   checkDeadline(deadline: Date): boolean {

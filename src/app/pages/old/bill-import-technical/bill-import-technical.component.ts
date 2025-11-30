@@ -1,4 +1,4 @@
-import { inject, Input } from '@angular/core';
+import { inject, Inject, Optional } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
@@ -70,7 +70,8 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
     private billImportTechnicalService: BillImportTechnicalService,
     private modalService: NgbModal,
     private modal: NzModalService,
-    private TsAssetManagementPersonalService: TsAssetManagementPersonalService) { }
+    private TsAssetManagementPersonalService: TsAssetManagementPersonalService,
+    @Optional() @Inject('tabData') private tabData: any) { }
   private ngbModal = inject(NgbModal);
   selectedRow: any = "";
   sizeTbDetail: any = '0';
@@ -85,7 +86,7 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
   filterText: string = '';
   Size: number = 100000;
   Page: number = 1;
-  @Input() warehouseID: number =1;
+  warehouseID: number =1;
   selectedApproval: number | null = null;
   isSearchVisible: boolean = false;
   // Danh sách nhân viên
@@ -99,6 +100,9 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
     const now = new Date();
     this.dateStart = new Date(now.getFullYear(), now.getMonth(), 1); // Ngày đầu tháng
     this.dateEnd = new Date(); // Hôm nay
+    if (this.tabData?.warehouseID) {
+      this.warehouseID = this.tabData.warehouseID;
+    }
   }
   ngAfterViewInit(): void {
     this.drawTable();
@@ -359,15 +363,18 @@ getListEmployee() {
   }
   openModalImportExcel() {
     const modalRef = this.ngbModal.open(BillImportTechnicalFormComponent, {
-      centered: true,
+      size: 'xl',
       backdrop: 'static',
       keyboard: false,
-      windowClass: 'full-screen-modal',
+      centered: false,
+      scrollable: true,
+      modalDialogClass: 'modal-fullscreen',
     });
     // Truyền warehouseID từ component cha vào modal
     modalRef.componentInstance.warehouseID = this.warehouseID;
     modalRef.componentInstance.formSubmitted.subscribe(() => {
-      this.getBillImportTechnical();
+      // Reload table after successful save
+      this.drawTable();
     });
   }
   onEditBillImportTechnical() {
@@ -382,17 +389,20 @@ getListEmployee() {
       return;
     }
     const modalRef = this.ngbModal.open(BillImportTechnicalFormComponent, {
-      centered: true,
+      size: 'xl',
       backdrop: 'static',
       keyboard: false,
-      windowClass: 'full-screen-modal',
+      centered: false,
+      scrollable: true,
+      modalDialogClass: 'modal-fullscreen',
     });
     modalRef.componentInstance.masterId = selectedRow.ID;
     modalRef.componentInstance.dataEdit = selectedRow;
     // Truyền warehouseID từ component cha vào modal
     modalRef.componentInstance.warehouseID = this.warehouseID;
     modalRef.componentInstance.formSubmitted.subscribe(() => {
-      this.getBillImportTechnical();
+      // Reload table after successful edit
+      this.drawTable();
     });
   }
 
@@ -434,7 +444,7 @@ getListEmployee() {
     this.billImportTechnicalService.saveData(payload).subscribe({
       next: () => {
         this.notification.success(NOTIFICATION_TITLE.success, 'Xóa biên bản thành công!');
-        this.getBillImportTechnical();
+        // Reload table after successful delete
         this.drawTable();
       },
       error: (err) => {
@@ -488,9 +498,9 @@ getListEmployee() {
               );
             }
 
-            // Refresh data without recreating table
+            // Reload table after successful approve
             if (this.billImportTechnicalTable) {
-              this.billImportTechnicalTable.setData();
+              this.drawTable();
             }
           },
           error: (err) => {

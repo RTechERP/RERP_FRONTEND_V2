@@ -1,5 +1,5 @@
 import { FormsModule } from '@angular/forms';
-import { Component, Input, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, Input, OnInit, ViewChild, ElementRef, Inject, Optional } from '@angular/core';
 import {
   CommonModule
 } from '@angular/common';
@@ -24,16 +24,21 @@ import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 })
 export class BorrowReportComponent implements OnInit {
   @ViewChild('table', { static: true }) table!: ElementRef;
-  @Input() warehouseID: number = 1;
+  warehouseID: number = 1;
   searchText: string = '';
   data: any[] = [];
   warehouseData: any[] = [];
   productTable: Tabulator | null = null;
   title: string = 'BÁO CÁO MƯỢN THIẾT BỊ';
   isLoading: boolean = false;
-  constructor(private service: ProductExportAndBorrowService, private notification: NzNotificationService) { }
+  constructor(private service: ProductExportAndBorrowService, private notification: NzNotificationService,
+    @Optional() @Inject('tabData') private tabData: any
+  ) { }
 
   ngOnInit() {
+    if (this.tabData?.warehouseID) {
+      this.warehouseID = this.tabData.warehouseID;
+    }
     this.drawtable();
     this.loadData();
     this.loadWarehouse();

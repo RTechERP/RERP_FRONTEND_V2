@@ -14,6 +14,8 @@ import {
   createComponent,
   TemplateRef,
   ViewChild,
+  Optional,
+  Inject,
 } from '@angular/core';
 import { ProjectPartlistPriceRequestService } from './project-partlist-price-request-service/project-partlist-price-request.service';
 import { ProjectPartlistPriceRequestFormComponent } from './project-partlist-price-request-form/project-partlist-price-request-form.component';
@@ -153,7 +155,30 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
   requestBuyJobRequirementID: number = 0;
   lastSelectedRowsForBuy: any[] = [];
 
-  constructor() { }
+  constructor(
+    @Optional() @Inject('tabData') private tabData: any
+  ) {
+    // Khi mở từ new tab, data được truyền qua injector
+    if (this.tabData) {
+      // Nếu có initialTabId trong tabData, set activeTabId trực tiếp
+      if (this.tabData.initialTabId !== null && this.tabData.initialTabId !== undefined) {
+        this.activeTabId = this.tabData.initialTabId;
+      }
+      // Nếu có projectPartlistPriceRequestTypeID trong tabData, set và map sang activeTabId
+      if (this.tabData.projectPartlistPriceRequestTypeID !== null && this.tabData.projectPartlistPriceRequestTypeID !== undefined) {
+        this.projectPartlistPriceRequestTypeID = this.tabData.projectPartlistPriceRequestTypeID;
+        if (this.projectPartlistPriceRequestTypeID === 3) {
+          this.activeTabId = -2; // HCNS tab
+        } else if (this.projectPartlistPriceRequestTypeID === 4) {
+          this.activeTabId = -3; // Tab tương ứng với type 4
+        }
+      }
+      // Nếu có isVPP trong tabData, set nó
+      if (this.tabData.isVPP !== undefined) {
+        this.isVPP = this.tabData.isVPP;
+      }
+    }
+  }
 
   ngOnInit() {
     // Nếu có projectPartlistPriceRequestTypeID được truyền vào, set activeTabId tương ứng
@@ -500,8 +525,14 @@ export class ProjectPartlistPriceRequestComponent implements OnInit {
             if (index === this.projectTypes.length - 1) {
               setTimeout(() => {
                 this.LoadAllTablesData();
+                // Nếu có initialTabId từ tabData, chọn tab đó sau khi load xong
+                if (this.tabData && this.tabData.initialTabId !== null && this.tabData.initialTabId !== undefined) {
+                  setTimeout(() => {
+                    this.SelectProjectType(this.tabData.initialTabId);
+                  }, 300);
+                }
                 // Nếu có projectPartlistPriceRequestTypeID, chọn tab tương ứng sau khi load xong
-                if (this.projectPartlistPriceRequestTypeID === 3) {
+                else if (this.projectPartlistPriceRequestTypeID === 3) {
                   setTimeout(() => {
                     this.SelectProjectType(-2); // HCNS tab
                   }, 300);

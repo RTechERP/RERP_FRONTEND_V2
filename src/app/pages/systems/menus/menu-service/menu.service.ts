@@ -2827,11 +2827,12 @@ export class MenuService {
     if (params) urlTo = `${urlTo}?${params}`;
     let urlLogin = 'http://localhost:19028/Home/LoginNew';
 
+    const urlOld = 'http://113.190.234.64:8081';
     if (window.location.hostname != 'localhost') {
-      urlTo =
-        window.location.origin.replace(window.location.port, '8081') + router;
-      urlLogin =
-        window.location.origin.replace(window.location.port, '8081') +
+      urlTo = urlOld + router;
+      // window.location.origin.replace(window.location.port, '8081') + router;
+      urlLogin = urlOld + '/Home/LoginNew';
+      window.location.origin.replace(window.location.port, '8081') +
         '/Home/LoginNew';
     }
 

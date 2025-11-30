@@ -2361,7 +2361,7 @@ export class MenuService {
           //#region Đăng ký công
           {
             kind: 'group',
-            key: '',
+            key: 'registerpayroll',
             title: 'Đăng ký công',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
@@ -2470,7 +2470,7 @@ export class MenuService {
           //#region Đăng ký chung
           {
             kind: 'group',
-            key: '',
+            key: 'registercommon',
             title: 'Đăng ký chung',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),

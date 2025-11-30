@@ -14,7 +14,7 @@
                 </form> -->
             <app-app-notifycation-dropdown [items]="notifItems" (itemClick)="onPick($event)">
                 <button nz-button nzType="text" class="text-light fs-7" trigger>
-                    <nz-badge [nzOverflowCount]="9" [nzCount]="notifItems.length + 67" class="fs-7">
+                    <nz-badge [nzOverflowCount]="9" [nzCount]="notifItems.length" class="fs-7">
                         <img src="assets/icon/notification_home.svg" class="bell-icon">
                     </nz-badge>
                 </button>
@@ -144,29 +144,77 @@
                         </div>
                         <div class="card-body p-1" style="height: 24.5rem; overflow: auto;">
 
-                            <nz-list nzItemLayout="vertical">
-                                <nz-list-item>
-                                    <nz-list-item-meta class="m-0">
-                                        <nz-list-item-meta-avatar [nzSrc]=""></nz-list-item-meta-avatar>
-                                        <nz-list-item-meta-title>
-                                            <a (click)="menuService.goToOldLink('/baocaocongviec','')"
-                                                target="_blank">Báo
-                                                cáo
-                                                công việc</a>
-                                        </nz-list-item-meta-title>
-                                    </nz-list-item-meta>
-                                </nz-list-item>
-                                <nz-list-item>
-                                    <nz-list-item-meta class="m-0">
-                                        <nz-list-item-meta-avatar [nzSrc]=""></nz-list-item-meta-avatar>
-                                        <nz-list-item-meta-title>
-                                            <a (click)="menuService.goToOldLink('/lamthem','')" target="_blank">Làm
-                                                thêm</a>
-                                        </nz-list-item-meta-title>
-                                    </nz-list-item-meta>
-                                </nz-list-item>
+                            <nz-collapse style="height: 22.7rem; overflow: auto;">
+                                @for (m of menuQuickAccess; track m.key) {
+                                <nz-collapse-panel class="fw-bold" [nzHeader]="m.title" [nzActive]="true">
 
-                            </nz-list>
+                                    <nz-list nzSize="small" class="fw-normal">
+                                        @for (c1 of m.children; track c1;let i = $index) {
+                                        <nz-list-item *ngIf="c1.isPermission && c1.isOpen && (c1.router || '') != ''">
+                                            <nz-list-item-meta class="m-0">
+                                                <nz-list-item-meta-avatar [nzSrc]=""></nz-list-item-meta-avatar>
+                                                <nz-list-item-meta-title>
+                                                    <a (click)="menuService.goToOldLink(c1.router,c1.data)"
+                                                        target="_blank">{{m.title}}</a>
+                                                </nz-list-item-meta-title>
+                                            </nz-list-item-meta>
+                                        </nz-list-item>
+
+                                        }
+                                    </nz-list>
+                                </nz-collapse-panel>
+                                }
+                            </nz-collapse>
+
+                            <!-- <nz-list nzItemLayout="vertical">
+
+                                @for (m of menuPersons; track m.key) {
+                                <nz-list-item *ngIf="m.isPermission && m.isOpen && (m.router || '') != ''">
+                                    <nz-list-item-meta class="m-0">
+                                        <nz-list-item-meta-avatar [nzSrc]=""></nz-list-item-meta-avatar>
+                                        <nz-list-item-meta-title>
+                                            <a (click)="menuService.goToOldLink(m.router,m.data)"
+                                                target="_blank">{{m.title}}</a>
+                                        </nz-list-item-meta-title>
+                                    </nz-list-item-meta>
+                                </nz-list-item>
+                                @for (c1 of m.children; track c1.key) {
+                                <nz-list-item *ngIf="c1.isPermission && c1.isOpen && (c1.router || '') != ''">
+                                    <nz-list-item-meta class="m-0">
+                                        <nz-list-item-meta-avatar [nzSrc]=""></nz-list-item-meta-avatar>
+                                        <nz-list-item-meta-title>
+                                            <a (click)="menuService.goToOldLink(c1.router,c1.data)"
+                                                target="_blank">{{c1.title}}</a>
+                                        </nz-list-item-meta-title>
+                                    </nz-list-item-meta>
+                                </nz-list-item>
+                                @for (c2 of c1.children; track c2.key) {
+                                <nz-list-item *ngIf="c2.isPermission && c2.isOpen && (c2.router || '') != ''">
+                                    <nz-list-item-meta class="m-0">
+                                        <nz-list-item-meta-avatar [nzSrc]=""></nz-list-item-meta-avatar>
+                                        <nz-list-item-meta-title>
+                                            <a (click)="menuService.goToOldLink(c2.router,c2.data)"
+                                                target="_blank">{{c2.title}}</a>
+                                        </nz-list-item-meta-title>
+                                    </nz-list-item-meta>
+                                </nz-list-item>
+                                @for (c3 of c2.children; track c3.key) {
+                                <nz-list-item *ngIf="c3.isPermission && c3.isOpen && (c3.router || '') != ''">
+                                    <nz-list-item-meta class="m-0">
+                                        <nz-list-item-meta-avatar [nzSrc]=""></nz-list-item-meta-avatar>
+                                        <nz-list-item-meta-title>
+                                            <a (click)="menuService.goToOldLink(c3.router,c3.data)"
+                                                target="_blank">{{c3.title}}</a>
+                                        </nz-list-item-meta-title>
+                                    </nz-list-item-meta>
+                                </nz-list-item>
+                                }
+                                }
+                                }
+                                }
+                                
+
+                            </nz-list> -->
                         </div>
                     </div>
 

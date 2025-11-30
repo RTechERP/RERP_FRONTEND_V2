@@ -1140,11 +1140,11 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     modalRef.result.catch((reason) => {
       if (reason == true) {
         if (status == 0) {
-          this.notification.success('', this.createdText('Đã thêm dự án!'), {
+          this.notification.success('Thông báo', this.createdText('Đã thêm dự án tahnfh c!'), {
             nzStyle: { fontSize: '0.75rem' },
           });
         } else {
-          this.notification.success('', this.createdText('Đã sửa dự án!'), {
+          this.notification.success('Cập nhật', this.createdText('Đã sửa dự án! thành công'), {
             nzStyle: { fontSize: '0.75rem' },
           });
         }

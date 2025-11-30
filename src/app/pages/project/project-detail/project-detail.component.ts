@@ -224,16 +224,21 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.drawTbProjectTypeLinks(
-      this.tb_projectTypeLinksContainer.nativeElement
-    );
+    if (this.tb_projectTypeLinksContainer?.nativeElement) {
+      this.drawTbProjectTypeLinks(
+        this.tb_projectTypeLinksContainer.nativeElement
+      );
+      this.getProjectTypeLinks();
+    }
 
-    this.drawTbProjectTypeLinksDetail(
-      this.tb_projectTypeLinksDetailContainer.nativeElement
-    );
-
-    this.getProjectTypeLinks();
-    this.getProjectTypeLinksDetail();
+    // Khởi tạo bảng detail chỉ khi element tồn tại
+    // Nếu element chưa tồn tại (tab chưa được render), sẽ khởi tạo khi tab được active
+    if (this.tb_projectTypeLinksDetailContainer?.nativeElement) {
+      this.drawTbProjectTypeLinksDetail(
+        this.tb_projectTypeLinksDetailContainer.nativeElement
+      );
+      this.getProjectTypeLinksDetail();
+    }
 
     this.getCustomers();
     this.getFollowProjectBase();
@@ -700,8 +705,6 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   }
 
   save() {
-   
-   
     const allData = this.tb_projectTypeLinks.getData();
     const projectTypeLinks =
       this.projectService.getSelectedRowsRecursive(allData);
@@ -1032,11 +1035,26 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
   }
 
   getProjectTypeLinksDetail() {
+    // Kiểm tra bảng đã được khởi tạo chưa
+    if (!this.tb_projectTypeLinksDetail) {
+      // Nếu chưa khởi tạo và element đã tồn tại, khởi tạo ngay
+      if (this.tb_projectTypeLinksDetailContainer?.nativeElement) {
+        this.drawTbProjectTypeLinksDetail(
+          this.tb_projectTypeLinksDetailContainer.nativeElement
+        );
+      } else {
+        // Nếu element chưa tồn tại, bỏ qua (sẽ được khởi tạo khi tab được active)
+        return;
+      }
+    }
+    
     this.projectService.getProjectTypeLinks(this.projectIdleader).subscribe({
       next: (response: any) => {
-        this.tb_projectTypeLinksDetail.setData(
-          this.projectService.setDataTree(response.data, 'ID')
-        );
+        if (this.tb_projectTypeLinksDetail) {
+          this.tb_projectTypeLinksDetail.setData(
+            this.projectService.setDataTree(response.data, 'ID')
+          );
+        }
       },
       error: (error: any) => {
         const msg = error.message || 'Lỗi không xác định';
@@ -1093,8 +1111,17 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     if (index == 1) {
       this.projectIdleader = this.projectId;
       this.projectStatusIdDetail = this.projectTypeId;
-      this.loadAll();
       this.currentTab = 1;
+      
+      // Đợi DOM render xong rồi mới khởi tạo bảng
+      setTimeout(() => {
+        if (this.tb_projectTypeLinksDetailContainer?.nativeElement && !this.tb_projectTypeLinksDetail) {
+          this.drawTbProjectTypeLinksDetail(
+            this.tb_projectTypeLinksDetailContainer.nativeElement
+          );
+        }
+        this.loadAll();
+      }, 0);
     } else {
       this.currentTab = 0;
     }

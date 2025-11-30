@@ -136,6 +136,7 @@ export class PriceHistoryPartlistComponent implements OnInit, AfterViewInit{
         this.isLoadTable = false;
       },
       error: (error) => {
+        this.notification.error('Lỗi', error.error.message);
         console.error('Lỗi:', error);
         this.isLoadTable = false;
       },

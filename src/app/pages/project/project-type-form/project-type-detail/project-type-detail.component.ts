@@ -145,7 +145,7 @@ export class ProjectTypeDetailComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error:any) => {
-        console.error('Lỗi:', error);
+        this.notification.error('Thông báo', error.error.message);
       },
     });
   }

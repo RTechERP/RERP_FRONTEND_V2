@@ -1,5 +1,5 @@
 import { DEFAULT_TABLE_CONFIG } from './../../../../tabulator-default.config';
-import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, Inject, Optional } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 
@@ -63,6 +63,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
   table: any;
   dataTable: any[] = [];
   isLoading: boolean = false;
+  warehouseCode: string = 'HN';
   sreachParam = {
     selectedProject: {
       ProjectCode: '',
@@ -70,7 +71,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
       // Có thể thêm ProjectName nếu cần
       // ProjectName: ""
     },
-    WareHouseCode: 'HN',
+    WareHouseCode: this.warehouseCode,
   };
   cbbProject: any;
 
@@ -78,9 +79,14 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
     private listproductprojectService: ListProductProjectService,
     private notification: NzNotificationService,
     private modal: NzModalService,
-    private modalService: NgbModal
+    private modalService: NgbModal,
+    @Optional() @Inject('tabData') private tabData: any
   ) {}
   ngOnInit(): void {
+    if (this.tabData?.warehouseCode) {
+      this.warehouseCode = this.tabData.warehouseCode;
+      this.sreachParam.WareHouseCode = this.warehouseCode;
+    }
     this.loadData();
     this.getProject();
   }

@@ -46,6 +46,7 @@ type TabItem = {
   title: string;
   comp: Type<any>;
   injector?: Injector;
+  data?: any; // Lưu data để so sánh unique key
 };
 // export type BaseItem = {
 //   key: string;
@@ -210,7 +211,16 @@ export class MainLayoutComponent implements OnInit {
       this.isCollapsed = !this.isCollapsed;
     }
 
-    const idx = this.dynamicTabs.findIndex((t) => t.title === title);
+    // Tạo unique key dựa trên component và data để phân biệt các tab cùng component nhưng khác data
+    const getTabKey = (tab: TabItem): string => {
+      const compName = tab.comp?.name || '';
+      const dataKey = tab.data ? JSON.stringify(tab.data) : '';
+      return `${compName}_${dataKey}`;
+    };
+
+    const currentTabKey = `${comp?.name || ''}_${data ? JSON.stringify(data) : ''}`;
+    const idx = this.dynamicTabs.findIndex((t) => getTabKey(t) === currentTabKey);
+    
     if (idx >= 0) {
       this.selectedIndex = idx;
       return;
@@ -221,7 +231,7 @@ export class MainLayoutComponent implements OnInit {
       parent: this.injector,
     });
 
-    this.dynamicTabs = [...this.dynamicTabs, { title, comp, injector }];
+    this.dynamicTabs = [...this.dynamicTabs, { title, comp, injector, data }];
     setTimeout(() => (this.selectedIndex = this.dynamicTabs.length - 1));
 
     // Lưu tabs vào localStorage

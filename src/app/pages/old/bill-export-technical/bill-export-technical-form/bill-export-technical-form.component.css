@@ -1,17 +1,19 @@
 /* Popup table styling */
-.child-row-container {
+::ng-deep .child-row-container {
   background: white;
   border: 1px solid #ccc;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2),
               0 4px 8px rgba(0, 0, 0, 0.15);
   border-radius: 6px;
-  padding: 12px;
+  padding: 0.5rem;
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
 }
 
-.btn-toggle-detail {
-  background: transparent;
-  border: none;
+::ng-deep .btn-toggle-detail {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
   cursor: pointer;
   padding: 4px 8px;
   font-size: 14px;
@@ -21,6 +23,25 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
+}
+
+.btn-toggle-detail:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
+  border: none !important;
+  outline: none !important;
+}
+
+.btn-toggle-detail:focus {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.btn-toggle-detail:active {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
 }
 
 .btn-toggle-detail .product-code-text {
@@ -43,7 +64,7 @@
   transform: rotate(180deg);
 }
 
-/* Responsive cho màn hình nhÏ */
+/* Responsive cho mï¿½n hï¿½nh nhï¿½ */
 @media (max-width: 768px) {
   .child-row-container {
     max-height: 400px;

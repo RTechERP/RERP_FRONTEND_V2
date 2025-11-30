@@ -1,4 +1,4 @@
-import { Component, ViewEncapsulation } from '@angular/core';
+import { Component, ViewEncapsulation, Input, Output, EventEmitter, inject } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
@@ -20,7 +20,7 @@ import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { ApplicationRef, createComponent, Type } from '@angular/core';
 import { setThrowInvalidWriteToSignalError } from '@angular/core/primitives/signals';
-import { EnvironmentInjector } from '@angular/core';
+import { EnvironmentInjector, Inject, Optional } from '@angular/core';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { DateTime } from 'luxon';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
@@ -41,6 +41,7 @@ import { CommonModule } from '@angular/common';
 import { BorrowProductHistoryEditPersonComponent } from './borrow-product-history-edit-person/borrow-product-history-edit-person.component';
 import { BorrowProductHistoryPersonalHistoryErrorComponent } from './borrow-product-history-personal-history-error/borrow-product-history-personal-history-error.component';
 import { AppUserService } from '../../../../../services/app-user.service';
+import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 
 @Component({
   selector: 'app-borrow-product-history',
@@ -72,6 +73,11 @@ import { AppUserService } from '../../../../../services/app-user.service';
   encapsulation: ViewEncapsulation.None,
 })
 export class BorrowProductHistoryComponent implements OnInit {
+  // INTEGRATION: Input/Output để hoạt động như modal từ bill import technical
+  @Input() isModalMode: boolean = false; // Chế độ modal hay standalone
+  @Output() productsExported = new EventEmitter<any[]>(); // Emit data khi xuất
+  public activeModal = inject(NgbActiveModal); // Để đóng modal
+
   constructor(
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
@@ -80,7 +86,8 @@ export class BorrowProductHistoryComponent implements OnInit {
     private modalService: NgbModal,
     private router: Router,
     private borrowService: BorrowService,
-    private appUserService: AppUserService
+    private appUserService: AppUserService,
+    @Optional() @Inject('tabData') private tabData: any
   ) {}
 
   @ViewChild('tb_productHistory', { static: false })
@@ -110,6 +117,9 @@ export class BorrowProductHistoryComponent implements OnInit {
   //#endregion
   //#region Hàm chạy khi mở chương trình
   ngOnInit(): void {
+    if (this.tabData?.warehouseID) {
+      this.warehouseID = this.tabData.warehouseID;
+    }
     this.loadDate();
     this.loadEmployee();
     this.drawTbProductHistory(this.tb_productHistoryContainer.nativeElement);
@@ -871,6 +881,36 @@ formatter: function (cell: any) {
         );
       });
     }
+  }
+
+  // INTEGRATION: Xuất sản phẩm đã chọn sang bill import technical
+  exportSelectedProducts() {
+    if (this.selectedArrHistoryProductID.size === 0) {
+      this.notification.warning(
+        'Thông báo',
+        'Vui lòng chọn sản phẩm cần xuất!'
+      );
+      return;
+    }
+
+    // Lấy data từ selectedProductsMap
+    const selectedProducts = Array.from(this.selectedArrHistoryProductID).map(id => {
+      return this.selectedProductsMap.get(id);
+    }).filter(product => product != null);
+
+    if (selectedProducts.length === 0) {
+      this.notification.warning(
+        'Thông báo',
+        'Không có sản phẩm hợp lệ để xuất!'
+      );
+      return;
+    }
+
+    // Emit data về parent component
+    this.productsExported.emit(selectedProducts);
+    
+    // Đóng modal
+    this.activeModal.close(selectedProducts);
   }
   productHistoryBorrowDetail() {
     const modalRef = this.modalService.open(

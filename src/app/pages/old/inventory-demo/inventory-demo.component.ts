@@ -9,7 +9,8 @@ import {
   ViewEncapsulation,
   ViewChild,
   ElementRef,
-  Input,
+  Inject,
+  Optional,
 } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
@@ -91,13 +92,20 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
   productRTCID: number = 0;
   productGroupNo: string = '';
   searchMode: string = 'group';
+  // List BillType for Orange color (Gift/Sell/Return)
+  listBillType: number[] = [0, 3]; 
   // tb sản phẩm kho Demo
   productTable: Tabulator | null = null;
+  
+  @ViewChild('tableDeviceTemp') tableDeviceTemp!: ElementRef;
+  @ViewChild('productTableRef', { static: true }) productTableRef!: ElementRef;
+
   constructor(
     private notification: NzNotificationService,
     private tbProductRtcService: TbProductRtcService,
     private inventoryDemoService: InventoryDemoService,
-    private menuEventService: MenuEventService
+    private menuEventService: MenuEventService,
+    @Optional() @Inject('tabData') private tabData: any
   ) {}
   ngAfterViewInit(): void {
     this.getGroup();
@@ -107,7 +115,11 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
       this.drawTable();
     }, 0);
   }
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    if (this.tabData?.warehouseID) {
+      this.warehouseID = this.tabData.warehouseID;
+    }
+  }
   getGroup() {
     this.tbProductRtcService.getProductRTCGroup().subscribe((resppon: any) => {
       this.productGroupData = resppon.data;
@@ -148,6 +160,28 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
     }
     this.getProduct();
   }
+
+  cellColorFormatter(cell: any): any {
+    const data = cell.getData();
+    const value = cell.getValue();
+    const billType = data.BillType; // Ensure BillType is available in data
+    const numberInStore = data.InventoryLate;
+
+    const element = cell.getElement();
+    // Reset styles first
+    element.style.backgroundColor = '';
+    element.style.color = '';
+
+    if (this.listBillType.includes(billType) && numberInStore === 0) {
+      element.style.backgroundColor = 'rgb(255, 231, 187)'; // Orange
+      element.style.color = 'black';
+    } else if (billType === 7 && numberInStore === 0) {
+      element.style.backgroundColor = '#ffd3dd'; // Pink
+      element.style.color = 'black';
+    }
+    return value;
+  }
+
   drawTable() {
     const rowMenu = [
       {
@@ -162,10 +196,9 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
     if (this.productTable) {
       this.productTable.setData(this.productData);
     } else {
-      this.productTable = new Tabulator('#dataTableProductInventory', {
+      this.productTable = new Tabulator(this.productTableRef.nativeElement, {
         ...DEFAULT_TABLE_CONFIG,
         layout: 'fitDataStretch',
-        pagination: true,
         selectableRows: 5,
         height: '100%',
         movableColumns: true,
@@ -181,10 +214,12 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
           {
             title: 'Mã sản phẩm',
             field: 'ProductCode',
+            formatter: this.cellColorFormatter.bind(this),
           },
           {
             title: 'Tên sản phẩm',
             field: 'ProductName',
+            formatter: this.cellColorFormatter.bind(this),
           },
                     {
             title: 'Vị trí (Hộp)',

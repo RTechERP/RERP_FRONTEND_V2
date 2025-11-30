@@ -2,7 +2,7 @@ import { SearchProductTechSerialService } from './search-tech-product-/search-pr
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
-import { AfterViewInit, Component, OnInit, inject, ViewEncapsulation, ViewChild, ElementRef, Input } from '@angular/core';
+import { AfterViewInit, Component, OnInit, inject, ViewEncapsulation, ViewChild, ElementRef, Inject, Optional } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -66,10 +66,16 @@ export class SearchProductTechSerialComponent implements OnInit, AfterViewInit {
   exportTable: Tabulator | null = null;
   constructor(private notification: NzNotificationService,
     private modalService: NgbModal,
-    private searchProductTechSerialService: SearchProductTechSerialService
+    private searchProductTechSerialService: SearchProductTechSerialService,
+    @Optional() @Inject('tabData') private tabData: any
   ) { }
 searchTimeout: any;
   ngOnInit() {
+    if (this.tabData?.wearHouseID) {
+      this.wearHouseID = this.tabData.wearHouseID;
+    } else if (this.tabData?.warehouseID) {
+      this.wearHouseID = this.tabData.warehouseID;
+    }
   }
   ngAfterViewInit(): void {
     this.drawExportTB();
@@ -92,10 +98,6 @@ searchTimeout: any;
       .subscribe((response: any) => {
         this.exportDataTable = response.export;
         this.importDataTable = response.import;
-
-        console.log("export", this.exportDataTable);
-        console.log("import", this.importDataTable);
-
         if (this.exportDataTable && this.exportDataTable.length > 0) {
           this.drawExportTB();
         } else if (this.importDataTable && this.importDataTable.length > 0) {

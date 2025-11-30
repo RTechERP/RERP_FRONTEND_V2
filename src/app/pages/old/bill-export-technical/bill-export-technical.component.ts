@@ -1,4 +1,4 @@
-import { inject, Input } from '@angular/core';
+import { inject, Inject, Optional } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
@@ -65,6 +65,7 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
   constructor(private notification: NzNotificationService,
     private billExportTechnicalService: BillExportTechnicalService,
     private appUserService: AppUserService,
+    @Optional() @Inject('tabData') private tabData: any
   ) { }
   private ngbModal = inject(NgbModal);
   selectedRow: any = "";
@@ -76,7 +77,7 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
   filterText: string = '';
   Size: number = 100000;
   Page: number = 1;
- @Input() warehouseID: number =1;
+ warehouseID: number =1;
   selectedApproval: number | null = null;
   isSearchVisible: boolean = false;
   //List  Dữ liệu phiếu xuất
@@ -95,6 +96,9 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
     { ID: 1, Name: 'Đã duyệt' }
   ];
   ngOnInit() {
+    if (this.tabData?.warehouseID) {
+      this.warehouseID = this.tabData.warehouseID;
+    }
   }
   ngAfterViewInit(): void {
     this.drawTable();
@@ -103,7 +107,7 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
   public drawTable(): void {
     this.billExportTechnicalTable = new Tabulator('#dataTableBillExportTechnical', {
       layout: "fitDataStretch",
-      height: '90vh',
+      height: '100%',
       pagination: true,
       selectableRows: 5,
       movableColumns: true,
@@ -176,7 +180,7 @@ formatter: function (cell: any) {
         { title: "Loại", field: "BillTypeText" },
         { title: "Mã phiếu xuất", field: "Code" },
         { title: "Dự án", field: "ProjectName" },
-        { title: "Nhà cung cấp", field: "SupplierName" },
+        { title: "Nhà cung cấp", field: "NameNCC" },
         { title: "Khách hàng", field: "CustomerName" },
         { title: "Người giao", field: "Deliver" },
         { title: "Phòng ban", field: "DepartmentName" },
@@ -189,7 +193,7 @@ formatter: function (cell: any) {
           hozAlign: "center"
         },
         { title: "Loại kho", field: "WarehouseType" },
-        { title: "Ghi chú", field: "Note" },
+        { title: "Địa chỉ", field: "Addres" },
       ],
     });
     this.billExportTechnicalTable.on('rowClick', (evt: UIEvent, row: RowComponent) => {
@@ -213,8 +217,8 @@ formatter: function (cell: any) {
       this.billExportTechnicalDetailTable = new Tabulator('#dataexportDetail', {
         data: this.billExportTechnicalDetailData,
         layout: "fitDataStretch",
-        paginationSize: 5,
-        height: '86vh',
+        pagination:false,
+        height: '100%',
         movableColumns: true,
         reactiveData: true,
         columns: [

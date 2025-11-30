@@ -224,6 +224,38 @@
   <div class="position-relative" style="min-height: 300px;">
     <div id="table_BillExportDetails"></div>
   </div>
+
+  <!-- Product Selection Popup -->
+  <div *ngIf="showProductPopup" 
+       style="position: fixed; z-index: 10000; min-width: 600px; max-width: 800px;"
+       [style.top]="popupPosition.top"
+       [style.left]="popupPosition.left">
+    <app-tabulator-popup
+      [data]="productOptions"
+      [columns]="productPopupColumns"
+      [searchFields]="productSearchFields"
+      [searchPlaceholder]="'Tìm kiếm sản phẩm...'"
+      [height]="'350px'"
+      (rowSelected)="onProductSelected($event)"
+      (closed)="onPopupClosed()"
+    ></app-tabulator-popup>
+  </div>
+
+  <!-- Project Selection Popup -->
+  <div *ngIf="showProjectPopup" 
+       style="position: fixed; z-index: 10000; min-width: 500px; max-width: 700px;"
+       [style.top]="popupPosition.top"
+       [style.left]="popupPosition.left">
+    <app-tabulator-popup
+      [data]="projectOptions"
+      [columns]="projectPopupColumns"
+      [searchFields]="projectSearchFields"
+      [searchPlaceholder]="'Tìm kiếm dự án...'"
+      [height]="'350px'"
+      (rowSelected)="onProjectSelected($event)"
+      (closed)="onPopupClosed()"
+    ></app-tabulator-popup>
+  </div>
 </div>
 
 <div class="modal-footer flex-shrink-0">

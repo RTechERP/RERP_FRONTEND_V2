@@ -107,6 +107,11 @@
               <nz-icon nzType="alert" nzTheme="outline" />Danh sách lỗi
             </button>
 
+            <!-- INTEGRATION: Nút Xuất chỉ hiển thị khi mở từ bill import technical -->
+            <button *ngIf="isModalMode" class="fs-12" nz-button nzType="primary" nzSize="small" (click)="exportSelectedProducts()">
+              <nz-icon nzType="export" nzTheme="outline" /> Xuất
+            </button>
+
             <span class="ms-auto">
               <nz-form-label style="text-align: right;padding-right: 5px;"><span>Gia hạn đến: </span></nz-form-label>
               <nz-date-picker name="dateExtend" [(ngModel)]="dateExtend" class="fs-12 w-40" nzSize="small"

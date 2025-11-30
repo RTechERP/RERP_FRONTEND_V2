@@ -26,6 +26,9 @@ export class SupplierSaleService {
   getSupplierSale() {
     return this.apiUrl + `supplier-sale`;
   }
+  getAllSupplierSale(): Observable<any> {
+    return this.http.get<any>(this.apiUrl + `get-supplier-sale`);
+  }
   // Danh sách sale supplier sale contact
   getSupplierSaleContact(supplierID: number): Observable<any> {
     return this.http.get<any>(

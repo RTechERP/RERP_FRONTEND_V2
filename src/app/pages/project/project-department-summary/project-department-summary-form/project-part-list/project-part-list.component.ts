@@ -69,7 +69,7 @@ import { BillExportService } from '../../../../old/Sale/BillExport/bill-export-s
 import { AuthService } from '../../../../../auth/auth.service';
 import { PokhDetailComponent } from '../../../../old/pokh-detail/pokh-detail.component';
 import { FormExportExcelPartlistComponent } from './project-partlist-detail/form-export-excel-partlist/form-export-excel-partlist.component';
-// import { ProjectPartlistPurchaseRequestDetailComponent } from './project-partlist-detail/project-partlist-purchase-request-detail/project-partlist-purchase-request-detail.component';
+import { ProjectPartlistPurchaseRequestDetailComponent } from '../../../../purchase/project-partlist-purchase-request/project-partlist-purchase-request-detail/project-partlist-purchase-request-detail.component';
 @Component({
   selector: 'app-project-worker',
   standalone: true,
@@ -4357,28 +4357,28 @@ export class ProjectPartListComponent implements OnInit, AfterViewInit {
       this.notification.warning('Thông báo', `Mã sản phẩm ${selectedRow.ProductCode} đã được có đơn mua ${selectedRow.BillCodePurchase}, bạn không thể mua!`);
       return;
     }
-    // const modalRef = this.ngbModal.open(ProjectPartlistPurchaseRequestDetailComponent , {
-    //   centered: true,
-    //   windowClass: 'full-screen-modal',
-    //   keyboard: false,
-    // });
-    // // Truyền productCode vào modal
-    // var projectPartlistDetail : any = {
-    //   IsTechBought: selectedRow.ID > 0 ? true : false,
-    //   ProjectPartListID: selectedRow.ID,
-    //   ProductCode: selectedRow.ProductCode,
-    //   ProductName: selectedRow.ProductName,
-    //   Quantity: selectedRow.QtyFull,
-    // };
-    // modalRef.componentInstance.projectPartlistDetail = projectPartlistDetail;
-    // modalRef.result.then(
-    //   (result: any) => {
-    //     // Xử lý kết quả nếu cần
-    //     if (result && result.success) {
-    //       this.loadDataProjectPartList();
-    //     }
-    //   }
-    // );
+    const modalRef = this.ngbModal.open(ProjectPartlistPurchaseRequestDetailComponent, {
+      centered: true,
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false
+    });
+    const projectPartlistDetail: any = {
+      ID: 0,
+      IsTechBought: false,
+      ProjectPartListID: selectedRow.ID,
+      ProductSaleID: selectedRow.ProductSaleID || 0,
+      ProductCode: selectedRow.ProductCode || '',
+      ProductName: selectedRow.ProductName || '',
+      UnitName: selectedRow.Unit || '',
+      Manufacturer: selectedRow.Maker || '',
+      Quantity: selectedRow.QtyFull || 0,
+      EmployeeID: selectedRow.EmployeeID || 0
+    };
+    modalRef.componentInstance.projectPartlistDetail = projectPartlistDetail;
+    modalRef.result.finally(() => {
+      this.loadDataProjectPartList();
+    });
   }
   //#endregion
   //#region hủy đã mua

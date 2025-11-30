@@ -56,7 +56,7 @@
 }
 
 .btn {
-    font-weight: bold;
+  font-weight: bold;
   height: 2.5vh;
   font-size: 0.75rem;
   border: none;
@@ -73,14 +73,14 @@
 }
 
 ::ng-deep .ng-select.ng-select-multiple .ng-select-container .ng-value-container .ng-value {
-    margin-top: 3px;
-    margin-right: 1px;
-    font-size: .75rem;
-    background-color: #fafafa;
-    border: none;
-    border-radius: 2px;
-    height: 24px;
-    line-height: 22px;
+  margin-top: 3px;
+  margin-right: 1px;
+  font-size: .75rem;
+  background-color: #fafafa;
+  border: none;
+  border-radius: 2px;
+  height: 24px;
+  line-height: 22px;
 }
 ::ng-deep .ant-layout-content{
   margin: 0.25rem !important;

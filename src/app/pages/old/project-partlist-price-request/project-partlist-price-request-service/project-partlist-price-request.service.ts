@@ -95,4 +95,11 @@ export class ProjectPartlistPriceRequestService {
   saveRequestNote(notes: any[]): Observable<any> {
     return this.http.post(`${this.baseUrl}/save-request-note`, notes);
   }
+
+  updatePriceRequestStatus(payload: { ListModel: any[], ListDataMail: any[] }): Observable<any> {
+    return this.http.post(`${this.baseUrl}/update-price-request-status`, payload);
+  }
+  requestBuy(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}/request-buy`, payload);
+  }
 }

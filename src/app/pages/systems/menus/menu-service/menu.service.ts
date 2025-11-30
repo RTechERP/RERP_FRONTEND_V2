@@ -124,7 +124,7 @@ export class MenuService {
     private permissionService: PermissionService,
     private appUserService: AppUserService,
     private notification: NzNotificationService
-  ) {}
+  ) { }
 
   private menuKeySource = new BehaviorSubject<string>('');
   menuKey$ = this.menuKeySource.asObservable();
@@ -188,208 +188,873 @@ export class MenuService {
         icon: 'assets/icon/menu_warehouse.svg',
         children: [
           {
-            kind: 'leaf',
-            key: 'ProductSaleComponent',
-            title: 'SẢN PHẨM KHO SALE',
-            isOpen: true,
-            isPermission:
-              this.permissionService.hasPermission('N26,N1,N36,N73,N30'),
-            comp: ProductSaleComponent,
-            //   icon: 'assets/icon/layers.png',
-          },
-          {
-            kind: 'leaf',
-            key: 'TbProductRtcComponent',
-            title: 'SẢN PHẨM KHO DEMO',
-            isOpen: true,
-            isPermission:
-              this.permissionService.hasPermission('N26,N1,N36,N73,N30'),
-            comp: TbProductRtcComponent /* không icon */,
-          },
-          {
             kind: 'group',
-            key: 'Sale',
-            title: 'Phòng Sale',
-            isOpen: true,
-            isPermission:
-              this.permissionService.hasPermission('N26,N1,N36,N73,N30'),
-            // icon: 'assets/icon/menu_sale_24.png',
-            children: [
-              {
-                kind: 'leaf',
-                key: 'InventoryComponent',
-                title: 'TỒN KHO',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(
-                  'N27,N29,N31,N30,N1,N36'
-                ),
-                comp: InventoryComponent,
-                //   icon: 'assets/icon/layers.png',
-              },
-              {
-                kind: 'leaf',
-                key: 'BillImportComponent',
-                title: 'PHIẾU NHẬP',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(
-                  'N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'
-                ),
-                comp: BillImportComponent,
-                //   icon: 'assets/icon/layers.png',
-              },
-              {
-                kind: 'leaf',
-                key: 'BillExportComponent',
-                title: 'PHIẾU XUẤT',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(
-                  'N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'
-                ),
-                comp: BillExportComponent,
-                //   icon: 'assets/icon/layers.png',
-              },
-              {
-                kind: 'leaf',
-                key: 'HistoryImportExportComponent',
-                title: 'LỊCH SỬ NHẬP XUẤT',
-                isOpen: true,
-                isPermission:
-                  this.permissionService.hasPermission('N27,N29,N1,N36,N35'),
-                comp: HistoryImportExportComponent,
-                //   icon: 'assets/icon/layers.png',
-              },
-              {
-                kind: 'leaf',
-                key: 'HistoryBorrowSaleComponent',
-                title: 'LỊCH SỬ MƯỢN SẢN PHẨM',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: HistoryBorrowSaleComponent,
-                //   icon: 'assets/icon/layers.png',
-              },
-              {
-                kind: 'leaf',
-                key: 'ReportImportExportComponent',
-                title: 'BÁO CÁO NHẬP XUẤT',
-                isOpen: true,
-                isPermission:
-                  this.permissionService.hasPermission('N27,N29,N1,N36,N35'),
-                comp: ReportImportExportComponent,
-                //   icon: 'assets/icon/layers.png',
-              },
-              {
-                kind: 'leaf',
-                key: 'ListProductProjectComponent',
-                title: 'DANH SÁCH SẢN PHẨM THEO DỰ ÁN',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: ListProductProjectComponent,
-              },
-              {
-                kind: 'leaf',
-                key: 'SearchProductSerialNumberComponent',
-                title: 'TRA CỨU SERIAL NUMBER',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: SearchProductSerialNumberComponent,
-              },
-            ],
-          },
-          {
-            kind: 'group',
-            key: 'Demo',
-            title: 'Phòng Kỹ Thuật',
+            key: 'HN',
+            stt: 2,
+            title: 'Hà Nội',
             isOpen: true,
             isPermission: this.permissionService.hasPermission(''),
-            //   icon: 'assets/icon/layers.png',
+            icon: 'assets/icon/menu_warehouse.svg',
             children: [
+            
               {
-                kind: 'leaf',
-                key: 'InventoryDemoComponent',
-                title: 'TỒN KHO DEMO',
+                kind: 'group',
+                key: 'Sale',
+                title: 'Phòng Sale',
+                isOpen: true,
+                isPermission:
+                  this.permissionService.hasPermission('N26,N1,N36,N73,N30'),
+                // icon: 'assets/icon/menu_sale_24.png',
+                children: [
+                  {
+                    kind: 'leaf',
+                    key: 'InventoryComponent',
+                    title: 'TỒN KHO HN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(
+                      'N27,N29,N31,N30,N1,N36'
+                    ),
+                    comp: InventoryComponent,
+                    data: {
+                      warehouseCode: 'HN'
+                    }
+                    //   icon: 'assets/icon/layers.png',
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'BillImportComponent',
+                    title: 'PHIẾU NHẬP HN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(
+                      'N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'
+                    ),
+                    comp: BillImportComponent,
+                    data: {
+                      warehouseCode: 'HN'
+                    }
+                    //   icon: 'assets/icon/layers.png',
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'BillExportComponent',
+                    title: 'PHIẾU XUẤT HN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(
+                      'N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'
+                    ),
+                    comp: BillExportComponent,
+                    data: {
+                      warehouseCode: 'HN'
+                    }
+                    //   icon: 'assets/icon/layers.png',
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'HistoryImportExportComponent',
+                    title: 'LỊCH SỬ NHẬP XUẤT HN',
+                    isOpen: true,
+                    isPermission:
+                      this.permissionService.hasPermission('N27,N29,N1,N36,N35'),
+                    comp: HistoryImportExportComponent,
+                    data: {
+                      warehouseCode: 'HN'
+                    }
+                    //   icon: 'assets/icon/layers.png',
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'HistoryBorrowSaleComponent',
+                    title: 'LỊCH SỬ MƯỢN SẢN PHẨM HN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: HistoryBorrowSaleComponent,
+                    data: {
+                      warehouseCode: 'HN'
+                    }
+                    //   icon: 'assets/icon/layers.png',
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'ReportImportExportComponent',
+                    title: 'BÁO CÁO NHẬP XUẤT HN',
+                    isOpen: true,
+                    isPermission:
+                      this.permissionService.hasPermission('N27,N29,N1,N36,N35'),
+                    comp: ReportImportExportComponent,
+                    data: {
+                      warehousecode: 'HN'
+                    }
+                    //   icon: 'assets/icon/layers.png',
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'ListProductProjectComponent',
+                    title: 'DANH SÁCH SẢN PHẨM THEO DỰ ÁN HN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: ListProductProjectComponent,
+                    data: {
+                      warehouseCode: 'HN'
+                    }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'SearchProductSerialNumberComponent',
+                    title: 'TRA CỨU SERIAL NUMBER HN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: SearchProductSerialNumberComponent,
+                    data: {
+                      warehouseID: 1
+                    }
+                  },
+                ],
+              },
+              {
+                kind: 'group',
+                key: 'Demo',
+                title: 'Phòng Kỹ Thuật',
                 isOpen: true,
                 isPermission: this.permissionService.hasPermission(''),
-                comp: InventoryDemoComponent,
                 //   icon: 'assets/icon/layers.png',
-              },
+                children: [
+                  {
+                    kind: 'leaf',
+                    key: 'InventoryDemoComponent',
+                    title: 'TỒN KHO DEMO HN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: InventoryDemoComponent,
+                    data: {
+                      warehouseID: 1
+                    }
+                    //   icon: 'assets/icon/layers.png',
+                  },
 
-              {
-                kind: 'leaf',
-                key: 'BillImportTechnicalComponent',
-                title: 'PHIẾU NHẬP KHO DEMO',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: BillImportTechnicalComponent,
-                //   icon: 'assets/icon/layers.png',
-              },
-              {
-                kind: 'leaf',
-                key: 'BillExportTechnicalComponent',
-                title: 'PHIẾU XUẤT KHO DEMO',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: BillExportTechnicalComponent,
-                //   icon: 'assets/icon/layers.png',
-              },
-              // {
-              //   kind: 'leaf',
-              //   key: 'InventoryBorrowNCCComponent',
-              //   title: 'BÁO CÁO MƯỢN',
-              //   isOpen: true,
-              //   isPermission: this.permissionService.hasPermission(''),
-              //   comp: InventoryBorrowNCCComponent,
-              //   //   icon: 'assets/icon/layers.png',
-              // },
-              {
-                kind: 'leaf',
-                key: 'ProductReportNewRtcComponent',
-                title: 'LỊCH SỬ NHÂP XUẤT',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: ProductReportNewComponent,
-              },
-              {
-                kind: 'leaf',
-                key: 'ProductExportAndBorrowComponent',
-                title: 'DANH SÁCH SẢN PHẨM KHÔNG DÙNG',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: ProductExportAndBorrowComponent,
-              },
-              {
-                kind: 'leaf',
-                key: 'BorrowReportComponent',
-                title: 'BÁO CÁO MƯỢN',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: BorrowReportComponent,
-              },
-              {
-                kind: 'leaf',
-                key: 'BorrowProductHistoryComponent',
-                title: 'LỊCH SỬ MƯỢN',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: BorrowProductHistoryComponent,
-              },
-              {
-                kind: 'leaf',
-                key: 'SearchProductTechSerialComponent',
-                title: 'TRA CỨU SERIALNUMBER',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: SearchProductTechSerialComponent,
-              },
-              {
-                kind: 'leaf',
-                key: 'ProductRtcQrCodeComponent',
-                title: 'Quản lý QR Code',
-                isOpen: true,
-                isPermission: this.permissionService.hasPermission(''),
-                comp: ProductRtcQrCodeComponent,
+                  {
+                    kind: 'leaf',
+                    key: 'BillImportTechnicalComponent',
+                    title: 'PHIẾU NHẬP KHO DEMO HN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: BillImportTechnicalComponent,
+                    data: {
+                      warehouseID: 1
+                    }
+                    //   icon: 'assets/icon/layers.png',
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'BillExportTechnicalComponent',
+                    title: 'PHIẾU XUẤT KHO DEMO HN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: BillExportTechnicalComponent,
+                    data: {
+                      warehouseID: 1
+                    }
+                    //   icon: 'assets/icon/layers.png',
+                  },
+                  // {
+                  //   kind: 'leaf',
+                  //   key: 'InventoryBorrowNCCComponent',
+                  //   title: 'BÁO CÁO MƯỢN',
+                  //   isOpen: true,
+                  //   isPermission: this.permissionService.hasPermission(''),
+                  //   comp: InventoryBorrowNCCComponent,
+                  //   //   icon: 'assets/icon/layers.png',
+                  // },
+                  {
+                    kind: 'leaf',
+                    key: 'ProductReportNewRtcComponent',
+                    title: 'LỊCH SỬ NHÂP XUẤT HN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: ProductReportNewComponent,
+                    data: {
+                      warehouseID: 1
+                    }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'ProductExportAndBorrowComponent',
+                    title: 'DANH SÁCH SẢN PHẨM KHÔNG DÙNG HN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: ProductExportAndBorrowComponent,
+                    data: {
+                      warehouseID: 1
+                    }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'BorrowReportComponent',
+                    title: 'BÁO CÁO MƯỢN HN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: BorrowReportComponent,
+                    data: {
+                      warehouseID: 1
+                    }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'BorrowProductHistoryComponent',
+                    title: 'LỊCH SỬ MƯỢN HN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: BorrowProductHistoryComponent,
+                    data: {
+                      warehouseID: 1
+                    }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'SearchProductTechSerialComponent',
+                    title: 'TRA CỨU SERIALNUMBER HN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: SearchProductTechSerialComponent,
+                    data: {
+                      wearHouseID: 1
+                    }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'ProductRtcQrCodeComponent',
+                    title: 'Quản lý QR Code HN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: ProductRtcQrCodeComponent,
+                    data: {
+                      warehouseID: 1
+                    }
+                  }
+                ],
               },
             ],
           },
+          {
+            kind: 'group',
+            key: 'HCM',
+            stt: 3,
+            title: 'HỒ CHÍ MINH',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            icon: 'assets/icon/menu_warehouse.svg',
+            children: [
+              {
+                kind: 'leaf',
+                key: 'ProductSaleComponent',
+                title: 'SẢN PHẨM KHO SALE HCM',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission('N26,N1,N36,N73,N30'),
+                comp: ProductSaleComponent,
+                data: { warehouseCode: 'HCM' }
+              },
+              {
+                kind: 'leaf',
+                key: 'TbProductRtcComponent',
+                title: 'SẢN PHẨM KHO DEMO HCM',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission('N26,N1,N36,N73,N30'),
+                comp: TbProductRtcComponent,
+                data: { warehouseID: 2 }
+              },
+              {
+                kind: 'group',
+                key: 'Sale',
+                title: 'Phòng Sale',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission('N26,N1,N36,N73,N30'),
+                children: [
+                  {
+                    kind: 'leaf',
+                    key: 'InventoryComponent',
+                    title: 'TỒN KHO HCM',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission('N27,N29,N31,N30,N1,N36'),
+                    comp: InventoryComponent,
+                    data: { warehouseCode: 'HCM' }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'BillImportComponent',
+                    title: 'PHIẾU NHẬP HCM',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission('N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'),
+                    comp: BillImportComponent,
+                    data: { warehouseCode: 'HCM' }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'BillExportComponent',
+                    title: 'PHIẾU XUẤT HCM',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission('N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'),
+                    comp: BillExportComponent,
+                    data: { warehouseCode: 'HCM' }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'HistoryImportExportComponent',
+                    title: 'LỊCH SỬ NHẬP XUẤT HCM',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission('N27,N29,N1,N36,N35'),
+                    comp: HistoryImportExportComponent,
+                    data: { warehouseCode: 'HCM' }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'HistoryBorrowSaleComponent',
+                    title: 'LỊCH SỬ MƯỢN SẢN PHẨM HCM',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: HistoryBorrowSaleComponent,
+                    data: { warehouseCode: 'HCM' }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'ReportImportExportComponent',
+                    title: 'BÁO CÁO NHẬP XUẤT HCM',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission('N27,N29,N1,N36,N35'),
+                    comp: ReportImportExportComponent,
+                    data: { warehousecode: 'HCM' } // giữ nguyên lowercase như HN
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'ListProductProjectComponent',
+                    title: 'DANH SÁCH SẢN PHẨM THEO DỰ ÁN HCM',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: ListProductProjectComponent,
+                    data: { warehouseCode: 'HCM' }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'SearchProductSerialNumberComponent',
+                    title: 'TRA CỨU SERIAL NUMBER HCM',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: SearchProductSerialNumberComponent,
+                    data: { warehouseID: 2 }
+                  }
+                ]
+              },
+              {
+                kind: 'group',
+                key: 'Demo',
+                title: 'Phòng Kỹ Thuật',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                children: [
+                  {
+                    kind: 'leaf',
+                    key: 'InventoryDemoComponent',
+                    title: 'TỒN KHO DEMO HCM',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: InventoryDemoComponent,
+                    data: { warehouseID: 2 }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'BillImportTechnicalComponent',
+                    title: 'PHIẾU NHẬP KHO DEMO HCM',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: BillImportTechnicalComponent,
+                    data: { warehouseID: 2 }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'BillExportTechnicalComponent',
+                    title: 'PHIẾU XUẤT KHO DEMO HCM',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: BillExportTechnicalComponent,
+                    data: { warehouseID: 2 }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'ProductReportNewRtcComponent',
+                    title: 'LỊCH SỬ NHẬP XUẤT HCM',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: ProductReportNewComponent,
+                    data: { warehouseID: 2 }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'ProductExportAndBorrowComponent',
+                    title: 'DANH SÁCH SẢN PHẨM KHÔNG DÙNG HCM',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: ProductExportAndBorrowComponent,
+                    data: { warehouseID: 2 }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'BorrowReportComponent',
+                    title: 'BÁO CÁO MƯỢN HCM',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: BorrowReportComponent,
+                    data: { warehouseID: 2 }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'BorrowProductHistoryComponent',
+                    title: 'LỊCH SỬ MƯỢN HCM',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: BorrowProductHistoryComponent,
+                    data: { warehouseID: 2 }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'SearchProductTechSerialComponent',
+                    title: 'TRA CỨU SERIALNUMBER HCM',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: SearchProductTechSerialComponent,
+                    data: { wearHouseID: 2 } // giữ nguyên spelling sai
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'ProductRtcQrCodeComponent',
+                    title: 'Quản lý QR Code HCM',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: ProductRtcQrCodeComponent,
+                    data: { warehouseID: 2 }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            kind: 'group',
+            key: 'BN',
+            stt: 4,
+            title: 'BẮC NINH',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            icon: 'assets/icon/menu_warehouse.svg',
+            children: [
+ 
+              {
+                kind: 'group',
+                key: 'Sale',
+                title: 'Phòng Sale',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission('N26,N1,N36,N73,N30'),
+                children: [
+                  {
+                    kind: 'leaf',
+                    key: 'InventoryComponent',
+                    title: 'TỒN KHO BN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission('N27,N29,N31,N30,N1,N36'),
+                    comp: InventoryComponent,
+                    data: { warehouseCode: 'BN' }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'BillImportComponent',
+                    title: 'PHIẾU NHẬP BN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission('N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'),
+                    comp: BillImportComponent,
+                    data: { warehouseCode: 'BN' }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'BillExportComponent',
+                    title: 'PHIẾU XUẤT BN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission('N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'),
+                    comp: BillExportComponent,
+                    data: { warehouseCode: 'BN' }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'HistoryImportExportComponent',
+                    title: 'LỊCH SỬ NHẬP XUẤT BN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission('N27,N29,N1,N36,N35'),
+                    comp: HistoryImportExportComponent,
+                    data: { warehouseCode: 'BN' }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'HistoryBorrowSaleComponent',
+                    title: 'LỊCH SỬ MƯỢN SẢN PHẨM BN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: HistoryBorrowSaleComponent,
+                    data: { warehouseCode: 'BN' }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'ReportImportExportComponent',
+                    title: 'BÁO CÁO NHẬP XUẤT BN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission('N27,N29,N1,N36,N35'),
+                    comp: ReportImportExportComponent,
+                    data: { warehousecode: 'BN' }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'ListProductProjectComponent',
+                    title: 'DANH SÁCH SẢN PHẨM THEO DỰ ÁN BN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: ListProductProjectComponent,
+                    data: { warehouseCode: 'BN' }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'SearchProductSerialNumberComponent',
+                    title: 'TRA CỨU SERIAL NUMBER BN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: SearchProductSerialNumberComponent,
+                    data: { warehouseID: 3 }
+                  }
+                ]
+              },
+              {
+                kind: 'group',
+                key: 'Demo',
+                title: 'Phòng Kỹ Thuật',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                children: [
+                  {
+                    kind: 'leaf',
+                    key: 'InventoryDemoComponent',
+                    title: 'TỒN KHO DEMO BN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: InventoryDemoComponent,
+                    data: { warehouseID: 3 }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'BillImportTechnicalComponent',
+                    title: 'PHIẾU NHẬP KHO DEMO BN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: BillImportTechnicalComponent,
+                    data: { warehouseID: 3 }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'BillExportTechnicalComponent',
+                    title: 'PHIẾU XUẤT KHO DEMO BN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: BillExportTechnicalComponent,
+                    data: { warehouseID: 3 }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'ProductReportNewRtcComponent',
+                    title: 'LỊCH SỬ NHẬP XUẤT BN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: ProductReportNewComponent,
+                    data: { warehouseID: 3 }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'ProductExportAndBorrowComponent',
+                    title: 'DANH SÁCH SẢN PHẨM KHÔNG DÙNG BN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: ProductExportAndBorrowComponent,
+                    data: { warehouseID: 3 }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'BorrowReportComponent',
+                    title: 'BÁO CÁO MƯỢN BN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: BorrowReportComponent,
+                    data: { warehouseID: 3 }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'BorrowProductHistoryComponent',
+                    title: 'LỊCH SỬ MƯỢN BN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: BorrowProductHistoryComponent,
+                    data: { warehouseID: 3 }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'SearchProductTechSerialComponent',
+                    title: 'TRA CỨU SERIALNUMBER BN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: SearchProductTechSerialComponent,
+                    data: { wearHouseID: 3 }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'ProductRtcQrCodeComponent',
+                    title: 'Quản lý QR Code BN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: ProductRtcQrCodeComponent,
+                    data: { warehouseID: 3 }
+                  }
+                ]
+              }
+            ]
+          }
+          ,
+          {
+            kind: 'group',
+            key: 'DP',
+            stt: 3,
+            title: 'ĐAN PHƯỢNG',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            icon: 'assets/icon/menu_warehouse.svg',
+            children: [
+              
+              {
+                kind: 'group',
+                key: 'Sale',
+                title: 'Phòng Sale',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission('N26,N1,N36,N73,N30'),
+                children: [
+                  {
+                    kind: 'leaf',
+                    key: 'InventoryComponent',
+                    title: 'TỒN KHO DP',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission('N27,N29,N31,N30,N1,N36'),
+                    comp: InventoryComponent,
+                    data: { warehouseCode: 'DP' }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'BillImportComponent',
+                    title: 'PHIẾU NHẬP DP',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission('N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'),
+                    comp: BillImportComponent,
+                    data: { warehouseCode: 'DP' }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'BillExportComponent',
+                    title: 'PHIẾU XUẤT DP',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission('N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'),
+                    comp: BillExportComponent,
+                    data: { warehouseCode: 'DP' }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'HistoryImportExportComponent',
+                    title: 'LỊCH SỬ NHẬP XUẤT DP',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission('N27,N29,N1,N36,N35'),
+                    comp: HistoryImportExportComponent,
+                    data: { warehouseCode: 'DP' }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'HistoryBorrowSaleComponent',
+                    title: 'LỊCH SỬ MƯỢN SẢN PHẨM DP',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: HistoryBorrowSaleComponent,
+                    data: { warehouseCode: 'DP' }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'ReportImportExportComponent',
+                    title: 'BÁO CÁO NHẬP XUẤT DP',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission('N27,N29,N1,N36,N35'),
+                    comp: ReportImportExportComponent,
+                    data: { warehousecode: 'DP' }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'ListProductProjectComponent',
+                    title: 'DANH SÁCH SẢN PHẨM THEO DỰ ÁN DP',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: ListProductProjectComponent,
+                    data: { warehouseCode: 'DP' }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'SearchProductSerialNumberComponent',
+                    title: 'TRA CỨU SERIAL NUMBER DP',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: SearchProductSerialNumberComponent,
+                    data: { warehouseID: 6 }
+                  }
+                ]
+              },
+              {
+                kind: 'group',
+                key: 'Demo',
+                title: 'Phòng Kỹ Thuật',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                children: [
+                  {
+                    kind: 'leaf',
+                    key: 'InventoryDemoComponent',
+                    title: 'TỒN KHO DEMO DP',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: InventoryDemoComponent,
+                    data: { warehouseID: 6 }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'BillImportTechnicalComponent',
+                    title: 'PHIẾU NHẬP KHO DEMO DP',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: BillImportTechnicalComponent,
+                    data: { warehouseID: 6 }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'BillExportTechnicalComponent',
+                    title: 'PHIẾU XUẤT KHO DEMO DP',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: BillExportTechnicalComponent,
+                    data: { warehouseID: 6 }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'ProductReportNewRtcComponent',
+                    title: 'LỊCH SỬ NHẬP XUẤT DP',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: ProductReportNewComponent,
+                    data: { warehouseID: 6 }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'ProductExportAndBorrowComponent',
+                    title: 'DANH SÁCH SẢN PHẨM KHÔNG DÙNG DP',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: ProductExportAndBorrowComponent,
+                    data: { warehouseID: 6 }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'BorrowReportComponent',
+                    title: 'BÁO CÁO MƯỢN DP',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: BorrowReportComponent,
+                    data: { warehouseID: 6 }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'BorrowProductHistoryComponent',
+                    title: 'LỊCH SỬ MƯỢN DP',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: BorrowProductHistoryComponent,
+                    data: { warehouseID: 6 }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'SearchProductTechSerialComponent',
+                    title: 'TRA CỨU SERIALNUMBER DP',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: SearchProductTechSerialComponent,
+                    data: { wearHouseID: 6 }
+                  },
+                  {
+                    kind: 'leaf',
+                    key: 'ProductRtcQrCodeComponent',
+                    title: 'Quản lý QR Code DP',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: ProductRtcQrCodeComponent,
+                    data: { warehouseID: 6 }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            kind: 'group',
+            key: 'Settings',
+            title: 'Cài đặt',
+            isOpen: true,
+            isPermission: this.permissionService.hasPermission(''),
+            icon: 'assets/icon/icon_setting.svg',
+            children: [
+              {
+                kind: 'leaf',
+                key: 'ProductLocationComponent',
+                title: 'Vị trí thiết bị',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                comp: ProductLocationComponent,
+              },
+              {
+                kind: 'leaf',
+                key: 'FirmComponent',
+                title: 'HÃNG',
+                isOpen: true,
+                isPermission:
+                  this.permissionService.hasPermission('N27,N31,N1,N35'),
+                comp: FirmComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+              {
+                kind: 'leaf',
+                key: 'UnitCountComponent',
+                title: 'ĐƠN VỊ TÍNH',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission('N27,N1'),
+                comp: UnitCountComponent,
+                //   icon: 'assets/icon/layers.png',
+              },
+              {
+                kind: 'leaf',
+                key: 'ProductSaleComponent',
+                title: 'SẢN PHẨM KHO SALE ',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission('N26,N1,N36,N73,N30'),
+                comp: ProductSaleComponent,
+              },
+              {
+                kind: 'leaf',
+                key: 'TbProductRtcComponent',
+                title: 'SẢN PHẨM KHO DEMO',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission('N26,N1,N36,N73,N30'),
+                comp: TbProductRtcComponent,
+              },
+            ]
+          }
+          ,
           //   {
           //     kind: 'group',
           //     key: 'agv',
@@ -1100,25 +1765,8 @@ export class MenuService {
             comp: CurrencyListComponent,
             //   icon: 'assets/icon/layers.png',
           },
-          {
-            kind: 'leaf',
-            key: 'UnitCountComponent',
-            title: 'ĐƠN VỊ TÍNH',
-            isOpen: true,
-            isPermission: this.permissionService.hasPermission('N27,N1'),
-            comp: UnitCountComponent,
-            //   icon: 'assets/icon/layers.png',
-          },
-          {
-            kind: 'leaf',
-            key: 'FirmComponent',
-            title: 'HÃNG',
-            isOpen: true,
-            isPermission:
-              this.permissionService.hasPermission('N27,N31,N1,N35'),
-            comp: FirmComponent,
-            //   icon: 'assets/icon/layers.png',
-          },
+
+
           {
             kind: 'leaf',
             key: 'SupplierSaleComponent',

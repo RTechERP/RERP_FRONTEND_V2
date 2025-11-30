@@ -135,7 +135,6 @@ export class BillExportSyntheticComponent implements OnInit, AfterViewInit {
         next: (res) => {
           if (res?.data && Array.isArray(res.data)) {
             this.dataProductGroup = res.data;
-            console.log('>>> Kết quả getProductGroup:', res);
             this.selectedKhoTypes = this.dataProductGroup.map(
               (item) => item.ID
             );
@@ -162,7 +161,6 @@ export class BillExportSyntheticComponent implements OnInit, AfterViewInit {
       next: (res) => {
         if (res?.status === 1 && Array.isArray(res.data)) {
           this.dataDocumentImport = res.data;
-          console.log('>>> Document Import loaded:', res.data);
           // Vẽ table sau khi đã load xong DocumentImport
           this.drawTable();
         } else {
@@ -223,7 +221,6 @@ export class BillExportSyntheticComponent implements OnInit, AfterViewInit {
         next: (res) => {
           if (res.status === 1) {
             this.dataTable = res.data;
-            console.log('dataSynthetic', this.dataTable);
             if (this.table) {
               this.table.replaceData(this.dataTable);
             }
@@ -370,8 +367,6 @@ export class BillExportSyntheticComponent implements OnInit, AfterViewInit {
       });
     });
 
-    console.log('>>> Dynamic columns generated:', dynamicColumns);
-    console.log('>>> dataDocumentImport:', this.dataDocumentImport);
     return dynamicColumns;
   }
   //#endregion

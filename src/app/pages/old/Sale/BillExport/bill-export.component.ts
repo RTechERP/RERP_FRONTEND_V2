@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild, Inject, Optional, Input } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, Inject, Optional, Input, ElementRef } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 
@@ -96,6 +96,9 @@ interface BillExport {
 })
 
 export class BillExportComponent implements OnInit, AfterViewInit {
+  @ViewChild('tableBillExportRef', { static: true }) tableBillExportRef!: ElementRef;
+  @ViewChild('tableBillExportDetailRef', { static: true }) tableBillExportDetailRef!: ElementRef;
+
   warehouseCode: string = "HN";
     selectedRow: any = "";
   dataProductGroup: any[] = [];
@@ -181,6 +184,8 @@ export class BillExportComponent implements OnInit, AfterViewInit {
   });
     if (this.tabData?.warehouseCode) {
       this.warehouseCode = this.tabData.warehouseCode;
+      // Cập nhật searchParams với giá trị từ tabData
+      this.searchParams.warehousecode = this.warehouseCode;
     }
     this.getProductGroup();
   }
@@ -199,7 +204,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
       dateEnd: new Date().toISOString().split('T')[0],
       listproductgroupID: '',
       status: -1,
-      warehousecode: 'HN',
+      warehousecode: this.warehouseCode,
       keyword: '',
       checkAll: false,
       pageNumber: 1,
@@ -516,7 +521,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
     if (this.table_billExport) {
       this.table_billExport.setData();
     } else {
-      this.table_billExport = new Tabulator('#table_billExport', {
+      this.table_billExport = new Tabulator(this.tableBillExportRef.nativeElement, {
         ...DEFAULT_TABLE_CONFIG,
         paginationMode: 'remote',
         ajaxURL: 'dummy', // Required but not used, we'll use ajaxRequestFunc
@@ -762,7 +767,7 @@ export class BillExportComponent implements OnInit, AfterViewInit {
     if (this.table_billExportDetail) {
       this.table_billExportDetail.replaceData(this.dataTableBillExportDetail);
     } else {
-      this.table_billExportDetail = new Tabulator('#table_billexportdetail', {
+      this.table_billExportDetail = new Tabulator(this.tableBillExportDetailRef.nativeElement, {
         data: this.dataTableBillExportDetail,
         layout: 'fitDataStretch',
         height: '90%',

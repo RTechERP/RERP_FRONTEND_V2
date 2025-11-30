@@ -2,7 +2,7 @@ import { inject, Inject, Optional } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
-import { AfterViewInit, Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -95,6 +95,10 @@ export class BillImportTechnicalComponent implements OnInit, AfterViewInit {
     { ID: 0, Name: 'Chưa duyệt' },
     { ID: 1, Name: 'Đã duyệt' }
   ];
+
+  @ViewChild('billImportTechnicalTableRef', { static: true }) billImportTechnicalTableRef!: ElementRef;
+  @ViewChild('billImportTechnicalDetailTableRef', { static: true }) billImportTechnicalDetailTableRef!: ElementRef;
+
   ngOnInit() {
     // Khởi tạo giá trị mặc định cho dateStart (đầu tháng hiện tại) và dateEnd (hôm nay)
     const now = new Date();
@@ -166,7 +170,7 @@ getListEmployee() {
     };
   }
   public drawTable(): void {
-    this.billImportTechnicalTable = new Tabulator('#dataTableBillImportTechnical', {
+    this.billImportTechnicalTable = new Tabulator(this.billImportTechnicalTableRef.nativeElement, {
       layout: "fitDataStretch",
       pagination: true,
       selectableRows: 5,
@@ -200,7 +204,7 @@ getListEmployee() {
       ajaxResponse: (url, params, response) => {
         return {
           data: response.billImportTechnical || [],
-          last_page: response.TotalPage?.[0]?.TotalPage || 1
+          last_page: response.billImportTechnical?.[0]?.TotalPage || 1
         };
       },
 
@@ -318,7 +322,7 @@ getListEmployee() {
     if (this.billImportTechnicalDetailTable) {
       this.billImportTechnicalDetailTable.setData(this.billImportTechnicalDetailData);
     } else {
-      this.billImportTechnicalDetailTable = new Tabulator('#databledetailta', {
+      this.billImportTechnicalDetailTable = new Tabulator(this.billImportTechnicalDetailTableRef.nativeElement, {
         data: this.billImportTechnicalDetailData,
         layout: "fitDataStretch",
         paginationSize: 5,

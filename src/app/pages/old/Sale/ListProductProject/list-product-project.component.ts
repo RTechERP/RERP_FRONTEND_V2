@@ -1,5 +1,5 @@
 import { DEFAULT_TABLE_CONFIG } from './../../../../tabulator-default.config';
-import { Component, OnInit, AfterViewInit, ViewChild, Inject, Optional } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, Inject, Optional, ElementRef } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 
@@ -60,6 +60,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
   styleUrl: './list-product-project.component.css',
 })
 export class ListProductProjectComponent implements OnInit, AfterViewInit {
+  @ViewChild('tableListProductProjectRef', { static: true }) tableListProductProjectRef!: ElementRef;
   table: any;
   dataTable: any[] = [];
   isLoading: boolean = false;
@@ -245,7 +246,7 @@ export class ListProductProjectComponent implements OnInit, AfterViewInit {
   }
   //#endregion
   drawTable() {
-    this.table = new Tabulator('#table_ListProductProject', {
+    this.table = new Tabulator(this.tableListProductProjectRef.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       index: 'ProductID',
       data: this.dataTable,

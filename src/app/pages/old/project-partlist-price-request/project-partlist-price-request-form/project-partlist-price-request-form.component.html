@@ -27,7 +27,7 @@
                 (nzSearchChange)="requesterSearchChange($event)"
                 [nzNotFoundContent]="notFoundContent"
                 [nzLoading]="requesterLoading"
-                [nzDisabled]="isEditMode"
+                [nzDisabled]="isEditMode && !isVPP"
               >
                 <nz-option-group *ngFor="let group of employeeGroups" [nzLabel]="group.department">
                   <nz-option

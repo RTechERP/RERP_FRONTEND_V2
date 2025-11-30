@@ -426,7 +426,6 @@ export class ProjectRequestDetailComponent implements OnInit, AfterViewInit {
         });
       }
     });
-
     return fileData;
   }
 

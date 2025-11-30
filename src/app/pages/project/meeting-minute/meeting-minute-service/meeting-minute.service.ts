@@ -100,7 +100,7 @@ export class MeetingMinuteService {
     files.forEach((file) => {
       formData.append('files', file);
     });
-    formData.append('key', 'MeetingMinutes');
+    formData.append('key', 'TrainingRegistration');
     if (subPath && subPath.trim()) {
       formData.append('subPath', subPath.trim());
     }

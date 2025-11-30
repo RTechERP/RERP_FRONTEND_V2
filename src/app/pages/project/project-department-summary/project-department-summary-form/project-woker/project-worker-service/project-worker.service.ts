@@ -77,7 +77,7 @@ export class ProjectWorkerService {
     files.forEach((file) => {
       formData.append('files', file);
     });
-    formData.append('key', 'MeetingMinutes'); //192.168.1.190/duan/projects
+    formData.append('key', 'TrainingRegistration'); //192.168.1.190/duan/projects
     if (subPath && subPath.trim()) {
       formData.append('subPath', subPath.trim());
     }

@@ -450,26 +450,26 @@ export class MenuService {
             isPermission: this.permissionService.hasPermission(''),
             icon: 'assets/icon/menu_warehouse.svg',
             children: [
-              {
-                kind: 'leaf',
-                key: 'ProductSaleComponent_HCM',
-                title: 'SẢN PHẨM KHO SALE HCM',
-                isOpen: true,
-                isPermission:
-                  this.permissionService.hasPermission('N26,N1,N36,N73,N30'),
-                comp: ProductSaleComponent,
-                data: { warehouseCode: 'HCM' },
-              },
-              {
-                kind: 'leaf',
-                key: 'TbProductRtcComponent_HCM',
-                title: 'SẢN PHẨM KHO DEMO HCM',
-                isOpen: true,
-                isPermission:
-                  this.permissionService.hasPermission('N26,N1,N36,N73,N30'),
-                comp: TbProductRtcComponent,
-                data: { warehouseID: 2 },
-              },
+              //   {
+              //     kind: 'leaf',
+              //     key: 'ProductSaleComponent_HCM',
+              //     title: 'SẢN PHẨM KHO SALE HCM',
+              //     isOpen: true,
+              //     isPermission:
+              //       this.permissionService.hasPermission('N26,N1,N36,N73,N30'),
+              //     comp: ProductSaleComponent,
+              //     data: { warehouseCode: 'HCM' },
+              //   },
+              //   {
+              //     kind: 'leaf',
+              //     key: 'TbProductRtcComponent_HCM',
+              //     title: 'SẢN PHẨM KHO DEMO HCM',
+              //     isOpen: true,
+              //     isPermission:
+              //       this.permissionService.hasPermission('N26,N1,N36,N73,N30'),
+              //     comp: TbProductRtcComponent,
+              //     data: { warehouseID: 2 },
+              //   },
               {
                 kind: 'group',
                 key: 'Sale',
@@ -1084,7 +1084,7 @@ export class MenuService {
               {
                 kind: 'leaf',
                 key: 'ProductSaleComponent_BN',
-                title: 'SẢN PHẨM KHO SALE BN',
+                title: 'SẢN PHẨM KHO SALE',
                 isOpen: true,
                 isPermission:
                   this.permissionService.hasPermission('N26,N1,N36,N73,N30'),
@@ -1093,7 +1093,7 @@ export class MenuService {
               {
                 kind: 'leaf',
                 key: 'TbProductRtcComponent_BN',
-                title: 'SẢN PHẨM KHO DEMO BN',
+                title: 'SẢN PHẨM KHO DEMO',
                 isOpen: true,
                 isPermission:
                   this.permissionService.hasPermission('N26,N1,N36,N73,N30'),

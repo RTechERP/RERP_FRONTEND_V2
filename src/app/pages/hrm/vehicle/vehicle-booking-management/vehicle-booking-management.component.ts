@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectorRef, Component, ViewEncapsulation, ViewContainerRef, ApplicationRef, ComponentRef, createComponent, EnvironmentInjector } from '@angular/core';
 import { inject } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { FormsModule } from '@angular/forms';
@@ -44,6 +44,9 @@ import { HasPermissionDirective } from '../../../../directives/has-permission.di
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AuthService } from '../../../../auth/auth.service';
+import { DateTimePickerEditorComponent } from './date-time-picker-editor.component';
+import { UpdateVehicleMoneyFormComponent } from './update-vehicle-money-form/update-vehicle-money-form.component';
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 @Component({
   selector: 'app-vehicle-booking-management',
   imports: [
@@ -71,6 +74,7 @@ import { AuthService } from '../../../../auth/auth.service';
     NzModalModule,
     CommonModule,
     HasPermissionDirective,
+    NzInputNumberModule,
   ],
   templateUrl: './vehicle-booking-management.component.html',
   styleUrl: './vehicle-booking-management.component.css',
@@ -84,7 +88,10 @@ export class VehicleBookingManagementComponent
     private modalService: NgbModal,
     private vehicleBookingManagementService: VehicleBookingManagementService,
     private cdRef: ChangeDetectorRef,
-    private authService: AuthService
+    private authService: AuthService,
+    private viewContainerRef: ViewContainerRef,
+    private appRef: ApplicationRef,
+    private injector: EnvironmentInjector
   ) {}
   private ngbModal = inject(NgbModal);
   @ViewChild('dataTableVehicleBookingManagement', { static: false })
@@ -98,6 +105,10 @@ export class VehicleBookingManagementComponent
   selected: any;
   vehicleBookingListId: any[] = [];
   exportingExcel: boolean = false;
+  editingCell: { cell: any; originalValue: any; rowId: number } | null = null;
+  pendingChanges: Map<number, { id: number; departureDateActual: Date }> = new Map();
+  hasPendingChanges: boolean = false;
+  savingChanges: boolean = false;
   dateStart: any = DateTime.local()
     .set({ hour: 0, minute: 0, second: 0 })
     .toISO();
@@ -844,6 +855,10 @@ export class VehicleBookingManagementComponent
       .subscribe((response: any) => {
         this.vehicleBookingManagementList = response.data || [];
         console.log(this.vehicleBookingManagementList);
+        // Clear pending changes khi reload data
+        this.pendingChanges.clear();
+        this.hasPendingChanges = false;
+        this.cdRef.detectChanges();
         this.drawTable();
       });
   }
@@ -855,12 +870,47 @@ export class VehicleBookingManagementComponent
     }
 
     if (!this.vehicleBookingManagementTable) {
+      // Tạo context menu
+      const rowMenu = [
+        {
+          label: 'Cập nhật tiền xe',
+          action: (e: any, row: any) => {
+            const rowData = row.getData();
+            this.openUpdateVehicleMoneyModal(rowData);
+          }
+        },
+        {
+          label: 'Lưu thời gian xuất phát thực tế',
+          action: (e: any, row: any) => {
+            const rowData = row.getData();
+            const rowId = rowData['ID'];
+            
+            // Kiểm tra xem dòng này có thay đổi pending không
+            if (this.pendingChanges.has(rowId)) {
+              const change = this.pendingChanges.get(rowId);
+              if (change) {
+                // Lưu thay đổi của dòng này
+                this.saveSingleChange(rowId, change.departureDateActual);
+              }
+            } else {
+              this.notification.info('Thông báo', 'Dòng này không có thay đổi để lưu.');
+            }
+          },
+          visible: (e: any, row: any) => {
+            const rowData = row.getData();
+            const rowId = rowData['ID'];
+            return this.pendingChanges.has(rowId);
+          }
+        }
+      ];
+
       this.vehicleBookingManagementTable = new Tabulator(
         this.tableElementRef.nativeElement,
         {
           ...DEFAULT_TABLE_CONFIG,
           layout: 'fitColumns',
           paginationMode: 'local',
+          rowContextMenu: rowMenu,
           groupBy: (row: any) => row.VehicleInformation || null,
           groupHeader: (value: string, count: number) => {
             if (!value)
@@ -958,6 +1008,7 @@ export class VehicleBookingManagementComponent
                   field: 'DepartureDateActual',
                   hozAlign: 'center',
                   width: 200,
+                  editor: this.createDateTimeEditor.bind(this),
                   formatter: (cell) => {
                     const value = cell.getValue();
                     if (!value) return '';
@@ -1086,7 +1137,16 @@ export class VehicleBookingManagementComponent
                   field: 'PackageQuantity',
                   width: 160,
                 },
-                { title: 'Tiền xe', field: 'VehicleMoney', width: 200 },
+                { 
+                  title: 'Tiền xe', 
+                  field: 'VehicleMoney', 
+                  width: 200,
+                  formatter: (cell: any) => {
+                    const value = cell.getValue();
+                    if (!value && value !== 0) return '';
+                    return `${Number(value).toLocaleString('vi-VN')}đ`;
+                  },
+                },
                 { title: 'Dự án', field: 'ProjectFullName', width: 300 },
               ],
             },
@@ -1136,5 +1196,257 @@ export class VehicleBookingManagementComponent
     }
 
     return true;
+  }
+
+  // Custom editor cho cột "Thời gian xuất phát thực tế" sử dụng nz-date-picker
+  createDateTimeEditor(cell: CellComponent, onRendered: any, success: any, cancel: any) {
+    const row = cell.getRow();
+    const rowData = row.getData();
+    const originalValue = cell.getValue();
+    const rowId = rowData['ID'];
+
+    // Tạo container
+    const container = document.createElement('div');
+    container.style.display = 'flex';
+    container.style.alignItems = 'center';
+    container.style.gap = '5px';
+    container.style.width = '100%';
+    container.style.position = 'relative';
+
+    // Tạo component DateTimePickerEditorComponent
+    const componentRef = createComponent(DateTimePickerEditorComponent, {
+      environmentInjector: this.injector,
+    });
+
+    // Set giá trị ban đầu
+    if (originalValue) {
+      componentRef.instance.value = originalValue instanceof Date ? originalValue : new Date(originalValue);
+    }
+
+    // Lưu thông tin editing
+    this.editingCell = { cell, originalValue, rowId };
+
+    let currentValue: Date | null = null;
+    let isClosing = false;
+
+    // Xử lý khi giá trị thay đổi
+    componentRef.instance.valueChange.subscribe((date: Date | null) => {
+      currentValue = date;
+    });
+
+    // Xử lý khi đóng picker
+    componentRef.instance.closeEditor.subscribe(() => {
+      if (isClosing) return;
+      isClosing = true;
+
+      setTimeout(() => {
+        if (this.editingCell && this.editingCell.cell === cell) {
+          const newValue = currentValue ? currentValue.toISOString() : null;
+          const originalValueStr = originalValue ? (originalValue instanceof Date ? originalValue.toISOString() : new Date(originalValue).toISOString()) : null;
+          const hasChanged = newValue !== originalValueStr;
+          
+          if (hasChanged && currentValue) {
+            // Thêm vào pending changes
+            this.addPendingChange(rowId, currentValue, originalValue);
+            success(currentValue.toISOString());
+          } else {
+            cancel();
+          }
+          this.editingCell = null;
+          componentRef.destroy();
+        }
+      }, 100);
+    });
+
+    // Attach component vào DOM
+    const hostElement = (componentRef.hostView as any).rootNodes[0];
+    if (hostElement) {
+      hostElement.style.flex = '1';
+      container.appendChild(hostElement);
+    }
+    this.appRef.attachView(componentRef.hostView);
+
+    // Xử lý khi nhấn ESC
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        isClosing = true;
+        cancel();
+        this.editingCell = null;
+        componentRef.destroy();
+        container.removeEventListener('keydown', handleKeyDown);
+      }
+    };
+    container.addEventListener('keydown', handleKeyDown);
+
+    onRendered(() => {
+      // Focus vào date picker
+      setTimeout(() => {
+        const pickerInput = container.querySelector('input');
+        if (pickerInput) {
+          pickerInput.focus();
+          pickerInput.click(); // Mở picker
+        }
+      }, 100);
+    });
+
+    return container;
+  }
+
+  // Thêm thay đổi vào danh sách pending
+  addPendingChange(id: number, departureDateActual: Date, originalValue: any) {
+    const originalValueStr = originalValue ? (originalValue instanceof Date ? originalValue.toISOString() : new Date(originalValue).toISOString()) : null;
+    const newValueStr = departureDateActual.toISOString();
+    
+    // Chỉ thêm nếu có thay đổi
+    if (newValueStr !== originalValueStr) {
+      this.pendingChanges.set(id, { id, departureDateActual });
+      this.hasPendingChanges = this.pendingChanges.size > 0;
+      this.cdRef.detectChanges();
+    }
+  }
+
+  // Lưu thay đổi của một dòng cụ thể
+  saveSingleChange(id: number, departureDateActual: Date) {
+    this.vehicleBookingManagementService.postVehicleBookingManagement({
+      ID: id,
+      DepartureDateActual: departureDateActual.toISOString()
+    }).subscribe({
+      next: () => {
+        // Xóa khỏi pending changes
+        this.pendingChanges.delete(id);
+        this.hasPendingChanges = this.pendingChanges.size > 0;
+        this.cdRef.detectChanges();
+        
+        this.notification.success('Thông báo', 'Lưu thời gian xuất phát thực tế thành công!');
+        
+        // Reload data sau khi lưu
+        setTimeout(() => this.getVehicleBookingManagement(), 100);
+      },
+      error: (error) => {
+        console.error('Lỗi khi lưu:', error);
+        this.notification.error('Thông báo', 'Lỗi khi lưu thời gian xuất phát thực tế!');
+      }
+    });
+  }
+
+  // Mở modal cập nhật tiền xe
+  openUpdateVehicleMoneyModal(rowData: any) {
+    const modalRef = this.modalService.open(UpdateVehicleMoneyFormComponent, {
+      centered: true,
+      size: 'md',
+      backdrop: 'static',
+      keyboard: false
+    });
+
+    // Truyền dữ liệu vào modal
+    modalRef.componentInstance.vehicleMoney = rowData['VehicleMoney'] || null;
+
+    // Xử lý khi lưu
+    modalRef.componentInstance.save.subscribe((vehicleMoney: number) => {
+      const request = {
+        ID: rowData['ID'],
+        VehicleMoney: vehicleMoney
+      };
+
+      this.vehicleBookingManagementService.postVehicleBookingManagement(request).subscribe({
+        next: () => {
+          this.notification.success('Thông báo', 'Cập nhật tiền xe thành công!');
+          modalRef.close();
+          // Reload data sau khi lưu
+          setTimeout(() => this.getVehicleBookingManagement(), 100);
+        },
+        error: (error) => {
+          console.error('Lỗi khi lưu:', error);
+          this.notification.error('Thông báo', 'Lỗi khi cập nhật tiền xe!');
+        }
+      });
+    });
+
+    // Xử lý khi đóng modal
+    modalRef.result.then(
+      () => {
+        // Modal closed
+      },
+      () => {
+        // Modal dismissed
+      }
+    );
+  }
+
+  // Lưu tất cả thay đổi
+  saveAllChanges() {
+    if (this.pendingChanges.size === 0) {
+      return;
+    }
+
+    this.savingChanges = true;
+    const changes = Array.from(this.pendingChanges.values());
+    const requests = changes.map(change => 
+      this.vehicleBookingManagementService.postVehicleBookingManagement({
+        ID: change.id,
+        DepartureDateActual: change.departureDateActual.toISOString()
+      }).pipe(
+        catchError((error) => {
+          console.error(`Lỗi khi lưu ID ${change.id}:`, error);
+          return of({ success: false, id: change.id, error });
+        })
+      )
+    );
+
+    forkJoin(requests).subscribe({
+      next: (responses: any[]) => {
+        const successCount = responses.filter(r => r.success !== false).length;
+        const failCount = responses.filter(r => r.success === false).length;
+
+        if (successCount > 0) {
+          this.notification.success(
+            'Thông báo',
+            `Lưu thành công ${successCount} thay đổi!`
+          );
+        }
+
+        if (failCount > 0) {
+          this.notification.error(
+            'Thông báo',
+            `Có ${failCount} thay đổi lưu thất bại!`
+          );
+        }
+
+        // Xóa pending changes và reload data
+        this.pendingChanges.clear();
+        this.hasPendingChanges = false;
+        this.savingChanges = false;
+        this.cdRef.detectChanges();
+        
+        // Reload data sau khi lưu
+        setTimeout(() => this.getVehicleBookingManagement(), 100);
+      },
+      error: (error) => {
+        console.error('Lỗi khi lưu:', error);
+        this.notification.error('Thông báo', 'Lỗi khi lưu thay đổi!');
+        this.savingChanges = false;
+        this.cdRef.detectChanges();
+      }
+    });
+  }
+
+  // Hàm lưu thời gian xuất phát thực tế (giữ lại để tương thích)
+  saveDepartureDateActual(id: number, departureDateActual: Date) {
+    const request = {
+      ID: id,
+      DepartureDateActual: departureDateActual.toISOString()
+    };
+
+    this.vehicleBookingManagementService.postVehicleBookingManagement(request).subscribe({
+      next: () => {
+        this.notification.success('Thông báo', 'Lưu thời gian xuất phát thực tế thành công!');
+        // Reload data sau khi lưu
+        setTimeout(() => this.getVehicleBookingManagement(), 100);
+      },
+      error: (error) => {
+        console.error('Lỗi khi lưu:', error);
+        this.notification.error('Thông báo', 'Lỗi khi lưu thời gian xuất phát thực tế!');
+      }
+    });
   }
 }

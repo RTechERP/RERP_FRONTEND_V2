@@ -23,10 +23,9 @@
                 required
                 nzShowSearch
                 nzAllowClear
-                [nzServerSearch]="true"
+             
                 (nzSearchChange)="requesterSearchChange($event)"
-                [nzNotFoundContent]="notFoundContent"
-                [nzLoading]="requesterLoading"
+             
                 [nzDisabled]="isEditMode && !isVPP"
               >
                 <nz-option-group *ngFor="let group of employeeGroups" [nzLabel]="group.department">

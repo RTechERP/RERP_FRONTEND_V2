@@ -28,6 +28,7 @@ import { ProjectPartlistPriceRequestFormComponent } from '../../../old/project-p
 import { ProjectPartlistPriceRequestComponent } from '../../../old/project-partlist-price-request/project-partlist-price-request.component';
 import { ProjectPartlistPurchaseRequestDetailComponent } from '../../../purchase/project-partlist-purchase-request/project-partlist-purchase-request-detail/project-partlist-purchase-request-detail.component';
 import { MenuEventService } from '../../../systems/menus/menu-service/menu-event.service';
+import { UnsubscriptionError } from 'rxjs';
 @Component({
   selector: 'app-office-supply-request-summary',
   standalone: true,
@@ -497,6 +498,14 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit, AfterViewIni
         Quantity: totalQuantity - quantityHCM,
         Unit: rowData['OfficeSupplyUnit'] || rowData['Unit'] || rowData['UnitCount'] || '',
         UnitCount: rowData['OfficeSupplyUnit'] || rowData['Unit'] || rowData['UnitCount'] || '',
+        ProjectPartlistID:0,
+        UnitPrice:0,
+        TotalPrice:0,
+        SupplyUnitID:0,
+        Note:'',
+        JobRequirementID:0,
+        IsJobRequirement:true,
+        IsCommercialProduct:false
       };
 
       dataToSend.push(record);
@@ -525,9 +534,7 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit, AfterViewIni
     modalRef.result.then(
       (result) => {
         if (result === 'saved') {
-          this.notification.success(NOTIFICATION_TITLE.success, 'Tạo yêu cầu báo giá thành công!');
-          // Có thể reload dữ liệu nếu cần
-          // this.getDataOfficeSupplyRequestSummary();
+       
         }
       },
       (dismissed) => {

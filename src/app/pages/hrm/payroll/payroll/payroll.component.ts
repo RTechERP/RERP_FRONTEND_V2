@@ -39,6 +39,9 @@ import { MainLayoutComponent } from '../../../../layouts/main-layout/main-layout
 import { PayrollReportComponent } from '../payroll-report/payroll-report.component';
 import { BonusDeductionComponent } from '../bonus-deduction/bonus-deduction.component';
 import { HasPermissionDirective } from "../../../../directives/has-permission.directive";
+import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { from, EMPTY, of } from 'rxjs';
+import { concatMap, catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-payroll',
@@ -65,7 +68,7 @@ import { HasPermissionDirective } from "../../../../directives/has-permission.di
     NzModalModule,
     CommonModule,
     HasPermissionDirective
-],
+  ],
   templateUrl: './payroll.component.html',
   styleUrl: './payroll.component.css'
 })
@@ -213,6 +216,7 @@ export class PayrollComponent implements OnInit, AfterViewInit {
   }
 
   handlePayrollAction(type: string) {
+    let selected = this.tb_Payroll.getSelectedData();
     if (type === 'create') {
       const modalRef = this.modalService.open(PayrollDetailComponent, {
         backdrop: 'static',
@@ -240,6 +244,13 @@ export class PayrollComponent implements OnInit, AfterViewInit {
 
     switch (type) {
       case 'update': {
+        if (selected.length != 1) {
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            `Vui lòng chỉ chọn 1 bảng lương để sửa!`
+          );
+        }
+
         if (last?.isApproved === true) {
           this.notification.create(
             'warning',
@@ -263,95 +274,156 @@ export class PayrollComponent implements OnInit, AfterViewInit {
       }
 
       case 'delete': {
-        if (last?.isApproved === true) {
-          this.notification.create(
-            'warning',
-            'Thông báo',
-            `${last.Name} đã được duyệt, không thể xóa!`
+        if (selected.length <= 0) {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            `Vui lòng chọn bảng lương cần xóa!`
           );
           return;
         }
+
         this.modal.confirm({
           nzTitle: 'Xác nhận xóa',
-          nzContent: `Bạn có chắc chắn muốn xóa bảng lương "${last.Name}" không?`,
+          nzContent: `Bạn có chắc chắn muốn xóa "${selected.length}" bảng lương không?
+                      Những bảng lương đã duyệt sẽ được bỏ qua!`,
           nzOkText: 'Xóa',
           nzCancelText: 'Hủy',
           nzOnOk: () => {
-            this.payrollService.deleteEmployeePayroll(last.ID).subscribe({
-              next: (data) => {
-                if (data.status == 1) {
-                  this.notification.create('success', 'Thành công', `Đã xóa bảng lương "${last.Name}".`);
-                } else {
-                  this.notification.create('error', 'Lỗi', `Không thể xóa bảng lương "${last.Name}".`);
+            from(selected)
+              .pipe(
+                concatMap((row: any) => {
+                  if (row.isApproved === true) {
+                    return EMPTY;
+                  }
+                  return this.payrollService.deleteEmployeePayroll(row.ID).pipe(
+                    catchError(err => {
+                      this.notification.error(
+                        NOTIFICATION_TITLE.error,
+                        `Lỗi xóa bảng lương "${row.Name}".`
+                      );
+                      return of(null);
+                    })
+                  );
+                })
+              )
+              .subscribe({
+                next: (res: any) => {
+
+                },
+                complete: () => {
+                  this.notification.success(
+                    NOTIFICATION_TITLE.success,
+                    'Xóa dữ liệu hoàn tất!'
+                  );
+                  this.resetMain();
                 }
-                this.resetMain();
-              },
-              error: () => {
-                this.notification.create('error', 'Lỗi', `Không thể xóa bảng lương "${last.Name}".`);
-              }
-            });
+              });
+
           }
         });
+
         break;
       }
 
       case 'approve': {
-        if (last?.isApproved === true) {
-          this.notification.create('info', 'Thông báo', `${last.Name} đã được duyệt rồi.`);
+        if (selected.length <= 0) {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            `Vui lòng chọn bảng lương cần duyệt!`
+          );
           return;
         }
+
         this.modal.confirm({
           nzTitle: 'Xác nhận duyệt',
-          nzContent: `Bạn có chắc chắn muốn duyệt bảng lương "${last.Name}" không?`,
+          nzContent: `Bạn có chắc chắn muốn duyệt "${selected.length}" bảng lương không? Những bảng lương đã duyệt sẽ bị bỏ qua.`,
           nzOkText: 'Duyệt',
           nzOkType: 'primary',
           nzCancelText: 'Hủy',
           nzOnOk: () => {
-            this.payrollService.approvedEmployeePayroll(last.ID, true).subscribe({
-              next: (data) => {
-                if (data.status == 1) {
-                  this.notification.create('success', 'Thành công', `Đã duyệt bảng lương "${last.Name}".`);
-                } else {
-                  this.notification.create('error', 'Lỗi', `Không thể duyệt bảng lương "${last.Name}".`);
+            from(selected)
+              .pipe(
+                concatMap((row: any) => {
+                  if (row.isApproved !== false) {
+                    return EMPTY;
+                  }
+
+                  return this.payrollService.approvedEmployeePayroll(row.ID, true).pipe(
+                    catchError(err => {
+                      this.notification.error(
+                        NOTIFICATION_TITLE.error,
+                        `Lỗi duyệt bảng lương "${row.Name}".`
+                      );
+                      return of(null);
+                    })
+                  );
+                })
+              )
+              .subscribe({
+                next: (res: any) => {
+                },
+                complete: () => {
+                  this.notification.success(
+                    NOTIFICATION_TITLE.success,
+                    'Hoàn tất duyệt bảng lương!'
+                  );
+                  this.resetMain();
                 }
-                this.resetMain();
-              },
-              error: () => {
-                this.notification.create('error', 'Lỗi', `Không thể duyệt bảng lương "${last.Name}".`);
-              }
-            });
+              });
           }
         });
+
         break;
       }
 
       case 'unapprove': {
-        if (last?.isApproved !== true) {
-          this.notification.create('info', 'Thông báo', `${last.Name} chưa được duyệt, không thể hủy.`);
+        if (selected.length <= 0) {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            `Vui lòng chọn bảng lương cần hủy duyệt!`
+          );
           return;
         }
+
         this.modal.confirm({
           nzTitle: 'Xác nhận hủy duyệt',
-          nzContent: `Bạn có chắc chắn muốn hủy duyệt bảng lương "${last.Name}" không?`,
+          nzContent: `Bạn có chắc chắn muốn hủy duyệt "${selected.length}" bảng lương không? Những bảng lương chưa được duyệt sẽ bị bỏ qua.`,
           nzOkText: 'Hủy duyệt',
-          nzOkDanger: true,
-          nzCancelText: 'Thoát',
+          nzOkType: 'primary',
+          nzCancelText: 'Hủy',
           nzOnOk: () => {
-            this.payrollService.approvedEmployeePayroll(last.ID, false).subscribe({
-              next: (data) => {
-                if (data.status == 1) {
-                  this.notification.create('success', 'Thành công', `Đã hủy duyệt bảng lương "${last.Name}".`);
-                } else {
-                  this.notification.create('error', 'Lỗi', `Không thể hủy duyệt bảng lương "${last.Name}".`);
+            from(selected)
+              .pipe(
+                concatMap((row: any) => {
+                  if (row.isApproved !== true) {
+                    return EMPTY;
+                  }
+
+                  return this.payrollService.approvedEmployeePayroll(row.ID, false).pipe(
+                    catchError(err => {
+                      this.notification.error(
+                        NOTIFICATION_TITLE.error,
+                        `Lỗi hủy duyệt bảng lương "${row.Name}".`
+                      );
+                      return of(null);
+                    })
+                  );
+                })
+              )
+              .subscribe({
+                next: (res: any) => {
+                },
+                complete: () => {
+                  this.notification.success(
+                    NOTIFICATION_TITLE.success,
+                    'Hoàn tất hủy duyệt bảng lương!'
+                  );
+                  this.resetMain();
                 }
-                this.resetMain();
-              },
-              error: () => {
-                this.notification.create('error', 'Lỗi', `Không thể hủy duyệt bảng lương "${last.Name}".`);
-              }
-            });
+              });
           }
         });
+
         break;
       }
       // báo cáo bảng lương

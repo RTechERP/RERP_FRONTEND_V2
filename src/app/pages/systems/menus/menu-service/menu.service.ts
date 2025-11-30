@@ -105,11 +105,13 @@ import { EmployeeCurricularComponent } from '../../../hrm/employee-management/em
 import { EmployeeErrorComponent } from '../../../hrm/employee-management/employee-error/employee-error.component';
 import { EmployeeTimekeepingComponent } from '../../../hrm/employee-management/employee-timekeeping/employee-timekeeping.component';
 import { EmployeeSyntheticComponent } from '../../../hrm/employee-management/employee-synthetic/employee-synthetic/employee-synthetic.component';
-import { AssignWorkComponent } from '../../../purchase/assign-work/assign-work.component';
+
 import { AppComponent } from '../../../../app.component';
 import { BonusCoefficientComponent } from '../../../old/bonus-coefficient/bonus-coefficient.component';
 import { ProductRtcQrCodeComponent } from '../../../old/product-rtc-qr-code/product-rtc-qr-code/product-rtc-qr-code.component';
+import { ProjectPartlistPurchaseRequestComponent } from '../../../purchase/project-partlist-purchase-request/project-partlist-purchase-request.component';
 import { ProjectPartlistPriceRequestComponent } from '../../../old/project-partlist-price-request/project-partlist-price-request.component';
+import { PONCCComponent } from '../../../purchase/poncc/poncc.component';
 import { EmployeeSaleManagerComponent } from '../../../old/employee-sale-manager/employee-sale-manager.component';
 
 import { RequestInvoiceComponent } from '../../../old/request-invoice/request-invoice.component';
@@ -1792,10 +1794,50 @@ export class MenuService {
             key: 'AssignWorkComponent',
             title: 'Phân công công việc',
             isOpen: true,
-            isPermission: this.permissionService.hasPermission('N33,N1'),
+            isPermission:
+              this.permissionService.hasPermission('N33,N1'), 
             comp: AssignWorkComponent,
             //   icon: 'assets/icon/layers.png',
           },
+          {
+            kind: 'leaf',
+            key: 'PonccComponent',
+            title: 'PO NCC',
+            isOpen: true,
+            isPermission:
+              this.permissionService.hasPermission('N33,N35,N36,N1,N52,N38,N54'), 
+            comp: PONCCComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+          {
+            kind: 'leaf',
+            key: 'ProjectPartlistPurchaseRequestComponent',
+            title: 'Yêu cầu mua hàng',
+            isOpen: true,
+            isPermission:
+              this.permissionService.hasPermission('N33,N35,N1,N36'), 
+            comp: ProjectPartlistPurchaseRequestComponent,
+            //   icon: 'assets/icon/layers.png',
+          },
+          // {
+          //   kind: 'leaf',
+          //   key: 'ProjectPartlistPriceRequestComponent',
+          //   title: 'Yêu cầu báo giá',
+          //   isOpen: true,
+          //   isPermission:
+          //     this.permissionService.hasPermission('N33,N35,N1,N36'),
+          //   comp: ProjectPartlistPriceRequestComponent,
+          //   //   icon: 'assets/icon/layers.png',
+          // },
+          // {
+          //   kind: 'leaf',
+          //   key: 'AssignWorkComponent',
+          //   title: 'Phân công công việc',
+          //   isOpen: true,
+          //   isPermission: this.permissionService.hasPermission('N33,N1'),
+          //   comp: AssignWorkComponent,
+          //   //   icon: 'assets/icon/layers.png',
+          // },
         ],
       },
       //#endregion

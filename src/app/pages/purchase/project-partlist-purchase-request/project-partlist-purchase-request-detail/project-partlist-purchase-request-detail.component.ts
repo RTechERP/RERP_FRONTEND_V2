@@ -317,8 +317,7 @@ export class ProjectPartlistPurchaseRequestDetailComponent implements OnInit, Af
   }
 
   getSupplierSale() {
-    // this.supplierSaleService.getNCC().subscribe({
-    this.supplierSaleService.getAllSupplierSale().subscribe({
+    this.supplierSaleService.getNCC().subscribe({
       next: (response: any) => {
         this.supplierSales = response.data;
       },

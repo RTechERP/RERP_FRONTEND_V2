@@ -5,23 +5,18 @@
         <div class="d-flex justify-content-between align-items-center">
           <h6 class="m-0 ms-2">Tìm kiếm</h6>
           <button class="border-0 me-2 btn" nz-button nzSize="small" nzType="default" nzDanger
-              (click)="toggleSearchPanel()">
-              <nz-icon nzType="close" nzTheme="outline" />
+            (click)="toggleSearchPanel()">
+            <nz-icon nzType="close" nzTheme="outline" />
           </button>
-      </div>
+        </div>
         <div class="card-body">
           <form nz-form [nzLayout]="'vertical'">
             <!-- Thời gian -->
             <nz-form-item class="searchform">
               <nz-form-label>Thời gian</nz-form-label>
               <nz-form-control>
-                <nz-date-picker 
-                  nzMode="month" 
-                  [nzFormat]="monthFormat"
-                  [(ngModel)]="searchParams.month" 
-                  name="month"
-                  nzPlaceHolder="Chọn tháng"      
-                  class="w-100">
+                <nz-date-picker nzMode="month" [nzFormat]="monthFormat" [(ngModel)]="searchParams.month" name="month"
+                  nzPlaceHolder="Chọn tháng" class="w-100">
                 </nz-date-picker>
               </nz-form-control>
             </nz-form-item>
@@ -30,15 +25,9 @@
             <nz-form-item>
               <nz-form-label>Phòng ban</nz-form-label>
               <nz-form-control>
-                <nz-select nzShowSearch nzAllowClear
-                  [(ngModel)]="searchParams.departmentId"
-                  name="departmentId"
-                  nzPlaceHolder="Chọn phòng ban"
-                  class="w-100">
-                  <nz-option
-                    *ngFor="let dept of dataDeparment"
-                    [nzValue]="dept.ID"
-                    [nzLabel]="dept.Name">
+                <nz-select nzShowSearch nzAllowClear [(ngModel)]="searchParams.departmentId" name="departmentId"
+                  nzPlaceHolder="Chọn phòng ban" class="w-100">
+                  <nz-option *ngFor="let dept of dataDeparment" [nzValue]="dept.ID" [nzLabel]="dept.Name">
                     <div class="row text-center">
                       <div class="col-4 fs-12">{{ dept.Code }}</div>
                       <div class="col-4 fs-12">{{ dept.Name }}</div>
@@ -48,12 +37,13 @@
               </nz-form-control>
             </nz-form-item>
 
-          
+
           </form>
         </div>
         <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
           <button nz-button nzType="default" nzSize="small" (click)="resetform()" class="btn">Đặt lại</button>
-          <button nz-button nzType="primary" nzSize="small" (click)="searchData(searchParams.month)" class="btn">Tìm kiếm</button>
+          <button nz-button nzType="primary" nzSize="small" (click)="searchData(searchParams.month)" class="btn">Tìm
+            kiếm</button>
         </div>
       </div>
     </nz-splitter-panel>
@@ -65,19 +55,32 @@
             <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()" class="btn">
               <i nz-icon nzType="search"></i>
             </button>
-       
-                <button nz-button nzType="default" nzSize="small" (click)="exportToExcel()" *hasPermission="'N2,N34,N1'">
-                            <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" />Xuất Excel
-                        </button>
+
+            <button nz-button nzType="default" nzSize="small" (click)="exportToExcel()" *hasPermission="'N2,N34,N1'">
+              <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" />Xuất Excel
+            </button>
+            <button nz-button nzType="default" nzSize="small" (click)="createPriceRequest()"
+              *hasPermission="'N2,N34,N1'">
+              <img src="assets/icon/hr_price_request_24.png" alt="Yêu cầu báo giá" />Yêu cầu báo giá
+            </button>
+            <button nz-button nzType="default" nzSize="small" (click)="viewPriceRequest()" *hasPermission="'N2,N34,N1'">
+              <img src="assets/icon/hr_view_price_request_24.png" alt="Xem yêu cầu báo giá" />Xem yêu cầu báo giá
+            </button>
+            <!-- <button nz-button nzType="default" nzSize="small" (click)="createPurchaseRequest()"
+              *hasPermission="'N2,N34,N1'">
+              <img src="assets/icon/action_export_excel_16.png" alt="Yêu cầu mua hàng" />Yêu cầu mua hàng
+            </button>
+            <button nz-button nzType="default" nzSize="small" (click)="viewPriceRequest()" *hasPermission="'N2,N34,N1'">
+              <img src="assets/icon/action_export_excel_16.png" alt="Xem yêu cầu mua hàng" />Xem yêu cầu mua hàng
+            </button> -->
           </div>
         </div>
         <div class="card-body p-0 flex-grow-1 d-flex flex-column">
           <nz-spin [nzSpinning]="isLoading" nzTip="Đang tải..." style="height: 100%; flex-grow: 1;">
             <div id="office-supply-request-summary-table" style="height: 100%;"></div>
-          </nz-spin>      
+          </nz-spin>
         </div>
       </div>
     </nz-splitter-panel>
   </nz-splitter>
 </ng-container>
-     

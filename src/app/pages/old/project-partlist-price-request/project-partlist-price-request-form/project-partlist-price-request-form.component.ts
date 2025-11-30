@@ -77,6 +77,7 @@ export class ProjectPartlistPriceRequestFormComponent
   @Input() jobRequirementID: number = 0;
     @Input() projectTypeID: number = 0;
     @Input() initialPriceRequestTypeID: number | null = null;
+    @Input() isVPP: boolean = false;
 
   @Output() closeModal = new EventEmitter<void>();
   @Output() formSubmitted = new EventEmitter<void>();

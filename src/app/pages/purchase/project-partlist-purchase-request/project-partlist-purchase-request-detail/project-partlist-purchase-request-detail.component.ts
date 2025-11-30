@@ -1,6 +1,25 @@
-import { Component, ElementRef, OnInit, ViewChild, AfterViewInit, AfterViewChecked, IterableDiffers, TemplateRef, input, Input, inject } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnInit,
+  ViewChild,
+  AfterViewInit,
+  AfterViewChecked,
+  IterableDiffers,
+  TemplateRef,
+  input,
+  Input,
+  inject,
+} from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, NonNullableFormBuilder } from '@angular/forms';
+import {
+  FormsModule,
+  ReactiveFormsModule,
+  FormBuilder,
+  FormGroup,
+  Validators,
+  NonNullableFormBuilder,
+} from '@angular/forms';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
@@ -75,13 +94,14 @@ import { TsAssetManagementFormComponent } from '../../../hrm/asset/asset/ts-asse
     NzSpinModule,
     NzTreeSelectModule,
     NzInputNumberModule,
-    NzCheckboxModule
+    NzCheckboxModule,
   ],
   templateUrl: './project-partlist-purchase-request-detail.component.html',
-  styleUrl: './project-partlist-purchase-request-detail.component.css'
+  styleUrl: './project-partlist-purchase-request-detail.component.css',
 })
-export class ProjectPartlistPurchaseRequestDetailComponent implements OnInit, AfterViewInit {
-
+export class ProjectPartlistPurchaseRequestDetailComponent
+  implements OnInit, AfterViewInit
+{
   //#region Khai báo biến
   constructor(
     public activeModal: NgbActiveModal,
@@ -94,8 +114,8 @@ export class ProjectPartlistPurchaseRequestDetailComponent implements OnInit, Af
     private pokhService: PokhService,
     private whService: WarehouseReleaseRequestService,
     private currencyService: CurrencyService,
-    private projectPartlistPurchaseRequestService: ProjectPartlistPurchaseRequestService,
-  ) { }
+    private projectPartlistPurchaseRequestService: ProjectPartlistPurchaseRequestService
+  ) {}
 
   @Input() projectPartlistDetail: any;
   validateForm!: FormGroup;
@@ -141,25 +161,33 @@ export class ProjectPartlistPurchaseRequestDetailComponent implements OnInit, Af
 
       Note: [''],
       LeadTime: [0],
-      IsImport: [false]
+      IsImport: [false],
     });
 
-    ['UnitPrice', 'Quantity', 'VAT', 'CurrencyRate'].forEach(field => {
-      this.validateForm.get(field)?.valueChanges.pipe(distinctUntilChanged()).subscribe(() => {
-        setTimeout(() => this.updatePrice(), 0);
+    ['UnitPrice', 'Quantity', 'VAT', 'CurrencyRate'].forEach((field) => {
+      this.validateForm
+        .get(field)
+        ?.valueChanges.pipe(distinctUntilChanged())
+        .subscribe(() => {
+          setTimeout(() => this.updatePrice(), 0);
+        });
+    });
+
+    this.validateForm
+      .get('IsImport')
+      ?.valueChanges.pipe(distinctUntilChanged())
+      .subscribe(() => {
+        setTimeout(() => this.updateDisableByIsImport(), 0);
       });
-    });
 
-    this.validateForm.get('IsImport')?.valueChanges.pipe(distinctUntilChanged()).subscribe(() => {
-      setTimeout(() => this.updateDisableByIsImport(), 0);
-    });
-
-    this.validateForm.get('ProductSaleID')?.valueChanges.pipe(distinctUntilChanged()).subscribe(() => {
-      setTimeout(() => this.getProductSale(), 0);
-    });
+    this.validateForm
+      .get('ProductSaleID')
+      ?.valueChanges.pipe(distinctUntilChanged())
+      .subscribe(() => {
+        setTimeout(() => this.getProductSale(), 0);
+      });
   }
   //#endregion
-
 
   ngOnInit(): void {
     this.initForm();
@@ -172,12 +200,9 @@ export class ProjectPartlistPurchaseRequestDetailComponent implements OnInit, Af
     this.loadData();
   }
 
-  ngAfterViewInit(): void {
-
-  }
+  ngAfterViewInit(): void {}
 
   loadData() {
-
     if (this.projectPartlistDetail != null) {
       let data = this.projectPartlistDetail;
       console.log(data);
@@ -218,28 +243,43 @@ export class ProjectPartlistPurchaseRequestDetailComponent implements OnInit, Af
         Note: data.Note ?? '',
         LeadTime: data.TotalDayLeadTime ?? '',
 
-        IsImport: data.IsImport ?? false
+        IsImport: data.IsImport ?? false,
       });
 
       // Disable các control khi isDisable = true
       if (this.isDisable) {
         const controlsToDisable = [
-          'Maker', 'StatusRequest', 'ProductName', 'Unit', 'ProductGroupID', 'TotalPriceExchange',
-          'TotalMoneyVAT', 'UnitFactoryExportPrice', 'UnitImportPrice', 'TotalImportPrice', 'CurrencyRate'
+          'Maker',
+          'StatusRequest',
+          'ProductName',
+          'Unit',
+          'ProductGroupID',
+          'TotalPriceExchange',
+          'TotalMoneyVAT',
+          'UnitFactoryExportPrice',
+          'UnitImportPrice',
+          'TotalImportPrice',
+          'CurrencyRate',
         ];
 
         this.updateEditForm(controlsToDisable, false);
       }
 
       if (!this.IsTechBought) {
-        const controlsToDisable = ['CurrencyID', 'VAT', 'SupplierSaleID', 'IsImport', 'LeadTime'];
+        const controlsToDisable = [
+          'CurrencyID',
+          'VAT',
+          'SupplierSaleID',
+          'IsImport',
+          'LeadTime',
+        ];
         this.updateEditForm(controlsToDisable, false);
       }
     } else this.isDisable = false;
   }
 
   updateEditForm(list: any[], status: boolean) {
-    list.forEach(controlName => {
+    list.forEach((controlName) => {
       if (status) this.validateForm.get(controlName)?.enable();
       else this.validateForm.get(controlName)?.disable();
     });
@@ -248,13 +288,16 @@ export class ProjectPartlistPurchaseRequestDetailComponent implements OnInit, Af
   formatAmount = (value: number | string): string => {
     if (value === null || value === undefined || value === '') return '';
     const num = Number(value);
-    return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    return num.toLocaleString('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    });
   };
 
   // Parser: chuyển 12,345.67 → 12345.67
   parseAmount = (value: string): number => {
     if (!value) return 0;
-    const cleaned = value.replace(/,/g, '');  // bỏ dấu phẩy
+    const cleaned = value.replace(/,/g, ''); // bỏ dấu phẩy
     return Number(cleaned);
   };
 
@@ -283,10 +326,8 @@ export class ProjectPartlistPurchaseRequestDetailComponent implements OnInit, Af
   getEmployee() {
     this.projectService.getUsers().subscribe({
       next: (response: any) => {
-        this.employeeBuys = this.employeeRequests = this.projectService.createdDataGroup(
-          response.data,
-          'DepartmentName'
-        );
+        this.employeeBuys = this.employeeRequests =
+          this.projectService.createdDataGroup(response.data, 'DepartmentName');
       },
       error: (error) => {
         this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
@@ -317,7 +358,7 @@ export class ProjectPartlistPurchaseRequestDetailComponent implements OnInit, Af
   }
 
   getSupplierSale() {
-    this.supplierSaleService.getNCC().subscribe({
+    this.supplierSaleService.getAllSupplierSale().subscribe({
       next: (response: any) => {
         this.supplierSales = response.data;
       },
@@ -327,9 +368,7 @@ export class ProjectPartlistPurchaseRequestDetailComponent implements OnInit, Af
     });
   }
 
-  onSubmit() {
-
-  }
+  onSubmit() {}
 
   onStatusChange(value: any) {
     let noteValue = '';
@@ -366,37 +405,47 @@ export class ProjectPartlistPurchaseRequestDetailComponent implements OnInit, Af
 
     const totalPrice = unitPrice * quantity;
     const totalPriceExchange = totalPrice * currencyRate;
-    const totalMoneyVAT = totalPrice + (totalPrice * vat / 100);
+    const totalMoneyVAT = totalPrice + (totalPrice * vat) / 100;
 
     this.validateForm.patchValue({
       TotalPrice: totalPrice,
       TotalPriceExchange: totalPriceExchange,
-      TotalMoneyVAT: totalMoneyVAT
+      TotalMoneyVAT: totalMoneyVAT,
     });
   }
 
-
   updateDisableByIsImport() {
     let isImport = this.validateForm.value.IsImport;
-    let controlsToDisable = ['UnitFactoryExportPrice', 'UnitImportPrice', 'TotalImportPrice'];
+    let controlsToDisable = [
+      'UnitFactoryExportPrice',
+      'UnitImportPrice',
+      'TotalImportPrice',
+    ];
     this.updateEditForm(controlsToDisable, isImport);
   }
 
   onCurrencyChange(selectedCurrencyID: number): void {
     try {
-      const currency = this.currencys.find(c => c.ID === selectedCurrencyID) ?? {
-        Code: '', CurrencyRate: 0, DateStart: new Date(), DateExpried: new Date()
+      const currency = this.currencys.find(
+        (c) => c.ID === selectedCurrencyID
+      ) ?? {
+        Code: '',
+        CurrencyRate: 0,
+        DateStart: new Date(),
+        DateExpried: new Date(),
       };
 
       const now = new Date();
-      const isExpired = (currency.DateExpried < now || currency.DateStart > now) && currency.Code.toLowerCase().trim() !== 'vnd';
+      const isExpired =
+        (currency.DateExpried < now || currency.DateStart > now) &&
+        currency.Code.toLowerCase().trim() !== 'vnd';
 
       this.validateForm.patchValue({
-        CurrencyRate: !isExpired ? currency.CurrencyRate : 0
+        CurrencyRate: !isExpired ? currency.CurrencyRate : 0,
       });
 
       this.updatePrice();
-    } catch (ex: any) { }
+    } catch (ex: any) {}
   }
 
   getProductSale() {
@@ -407,22 +456,27 @@ export class ProjectPartlistPurchaseRequestDetailComponent implements OnInit, Af
     } else {
       this.validateForm.get('ProductName')?.enable();
     }
-    this.projectPartlistPurchaseRequestService.getProductSaleById(productSaleId).subscribe({
-      next: (response: any) => {
-        if (response.data) {
-          this.validateForm.patchValue({
-            ProductName: response.data.ProductName,
-            Maker: response.data.Maker,
-            Unit: response.data.Unit,
-            ProductGroupID: response.data.ProductGroupID,
-            HistoryPrice: response.data.HistoryPrice,
-          });
-        }
-      },
-      error: (error) => {
-        this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
-      },
-    });
+    this.projectPartlistPurchaseRequestService
+      .getProductSaleById(productSaleId)
+      .subscribe({
+        next: (response: any) => {
+          if (response.data) {
+            this.validateForm.patchValue({
+              ProductName: response.data.ProductName,
+              Maker: response.data.Maker,
+              Unit: response.data.Unit,
+              ProductGroupID: response.data.ProductGroupID,
+              HistoryPrice: response.data.HistoryPrice,
+            });
+          }
+        },
+        error: (error) => {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            error.error.message
+          );
+        },
+      });
   }
 
   onAddProductSale() {
@@ -459,7 +513,7 @@ export class ProjectPartlistPurchaseRequestDetailComponent implements OnInit, Af
 
     modalRef.result.then(
       () => this.getProducts(),
-      () => { }
+      () => {}
     );
   }
 
@@ -474,7 +528,10 @@ export class ProjectPartlistPurchaseRequestDetailComponent implements OnInit, Af
 
     // Kiểm tra người mua
     if (this.projectPartlistDetail?.ID <= 0 && data.EmployeeBuyID <= 0) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn người mua');
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Vui lòng chọn người mua'
+      );
       return;
     }
 
@@ -483,15 +540,29 @@ export class ProjectPartlistPurchaseRequestDetailComponent implements OnInit, Af
       const dateNow = new Date();
 
       // Reset time to start of day for accurate day calculation
-      const deadlineDate = new Date(deadline.getFullYear(), deadline.getMonth(), deadline.getDate());
-      const nowDate = new Date(dateNow.getFullYear(), dateNow.getMonth(), dateNow.getDate());
+      const deadlineDate = new Date(
+        deadline.getFullYear(),
+        deadline.getMonth(),
+        deadline.getDate()
+      );
+      const nowDate = new Date(
+        dateNow.getFullYear(),
+        dateNow.getMonth(),
+        dateNow.getDate()
+      );
 
-      const timeSpan = Math.floor((deadlineDate.getTime() - nowDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      const timeSpan =
+        Math.floor(
+          (deadlineDate.getTime() - nowDate.getTime()) / (1000 * 60 * 60 * 24)
+        ) + 1;
 
       // Kiểm tra deadline tối thiểu
       if (dateNow.getHours() < 15) {
         if (timeSpan < 2) {
-          this.notification.error(NOTIFICATION_TITLE.error, 'Deadline tối thiếu là 2 ngày từ ngày hiện tại!');
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'Deadline tối thiếu là 2 ngày từ ngày hiện tại!'
+          );
           return;
         }
       } else if (timeSpan < 3) {
@@ -505,7 +576,10 @@ export class ProjectPartlistPurchaseRequestDetailComponent implements OnInit, Af
       // Kiểm tra deadline phải là ngày làm việc (T2-T6)
       const deadlineDay = deadline.getDay();
       if (deadlineDay === 0 || deadlineDay === 6) {
-        this.notification.error(NOTIFICATION_TITLE.error, 'Deadline phải là ngày làm việc (T2 - T6)!');
+        this.notification.error(
+          NOTIFICATION_TITLE.error,
+          'Deadline phải là ngày làm việc (T2 - T6)!'
+        );
         return;
       }
 
@@ -535,10 +609,15 @@ export class ProjectPartlistPurchaseRequestDetailComponent implements OnInit, Af
 
     // Kiểm tra Ghi chú khi IsTechBought = true
     if (this.IsTechBought && (!data.Note || data.Note.trim() === '')) {
-      this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn ghi chú!');
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Vui lòng chọn ghi chú!'
+      );
       return;
     }
-    let selectedProduct = this.products.find(p => p.ID === data.ProductSaleID);
+    let selectedProduct = this.products.find(
+      (p) => p.ID === data.ProductSaleID
+    );
 
     let model = {
       ID: this.projectPartlistDetail?.ID ?? 0,
@@ -572,12 +651,15 @@ export class ProjectPartlistPurchaseRequestDetailComponent implements OnInit, Af
       Note: data.Note,
 
       IsTechBought: this.IsTechBought,
-      ProjectPartListID: this.projectPartlistDetail?.ProjectPartListID ?? 0
+      ProjectPartListID: this.projectPartlistDetail?.ProjectPartListID ?? 0,
     };
 
     this.projectPartlistPurchaseRequestService.saveDataDetail(model).subscribe({
       next: (response: any) => {
-        this.notification.success(NOTIFICATION_TITLE.success, 'Lưu thành công!');
+        this.notification.success(
+          NOTIFICATION_TITLE.success,
+          'Lưu thành công!'
+        );
         this.activeModal.dismiss();
       },
       error: (error) => {

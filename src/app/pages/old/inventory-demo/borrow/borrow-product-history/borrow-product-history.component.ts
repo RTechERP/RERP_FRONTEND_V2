@@ -76,7 +76,7 @@ export class BorrowProductHistoryComponent implements OnInit {
   // INTEGRATION: Input/Output để hoạt động như modal từ bill import technical
   @Input() isModalMode: boolean = false; // Chế độ modal hay standalone
   @Output() productsExported = new EventEmitter<any[]>(); // Emit data khi xuất
-  public activeModal = inject(NgbActiveModal); // Để đóng modal
+  public activeModal = inject(NgbActiveModal, { optional: true }); // Để đóng modal
 
   constructor(
     private injector: EnvironmentInjector,
@@ -122,7 +122,6 @@ export class BorrowProductHistoryComponent implements OnInit {
     }
     this.loadDate();
     this.loadEmployee();
-    this.drawTbProductHistory(this.tb_productHistoryContainer.nativeElement);
   }
 
   ngAfterViewInit(): void {
@@ -909,8 +908,8 @@ formatter: function (cell: any) {
     // Emit data về parent component
     this.productsExported.emit(selectedProducts);
     
-    // Đóng modal
-    this.activeModal.close(selectedProducts);
+    // Đóng modal (chỉ khi được mở như modal)
+    this.activeModal?.close(selectedProducts);
   }
   productHistoryBorrowDetail() {
     const modalRef = this.modalService.open(

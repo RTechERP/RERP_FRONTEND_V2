@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild, Inject, Optional } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, Inject, Optional, ElementRef } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { CommonModule } from '@angular/common';
@@ -65,6 +65,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
   styleUrl: './history-borrow-sale.component.css',
 })
 export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
+  @ViewChild('tableHistoryBorrowSaleRef', { static: true }) tableHistoryBorrowSaleRef!: ElementRef;
   constructor(
     private historyBorrowSaleService: HistoryBorrowSaleService,
     private notification: NzNotificationService,
@@ -495,7 +496,7 @@ export class HistoryBorrowSaleComponent implements OnInit, AfterViewInit {
   }
 
   drawTable() {
-    this.table = new Tabulator('#table_HistoryBorrowSale', {
+    this.table = new Tabulator(this.tableHistoryBorrowSaleRef.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       reactiveData: false, // Tắt reactiveData khi dùng AJAX
       layout: 'fitDataFill',

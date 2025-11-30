@@ -1,5 +1,5 @@
 import { NzNotificationService } from 'ng-zorro-antd/notification'
-import { Component, OnInit, Input, Output, EventEmitter, inject, AfterViewInit, Optional, Inject } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, inject, AfterViewInit, Optional, Inject, ViewChild, ElementRef } from '@angular/core';
 import { DateTime } from 'luxon';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -54,6 +54,9 @@ import { BillExportTechnicalFormComponent } from '../../bill-export-technical/bi
   styleUrls: ['./material-detail-of-product-rtc.component.css']
 })
 export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewInit {
+  @ViewChild('tbBorrowRef', { static: true }) tbBorrowRef!: ElementRef;
+  @ViewChild('tbExportRef', { static: true }) tbExportRef!: ElementRef;
+  @ViewChild('tbImportRef', { static: true }) tbImportRef!: ElementRef;
   @Output() closeModal = new EventEmitter<void>();
   @Input() productRTCID1!: number;
   @Input() warehouseID1!: number;
@@ -165,7 +168,7 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
     });
   }
   drawTBImport() {
-    this.tableImport = new Tabulator('#tbImport', {
+    this.tableImport = new Tabulator(this.tbImportRef.nativeElement, {
       data: this.listImport,
       layout: 'fitData',
       height: '41vh',
@@ -238,7 +241,7 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
   }
 
   drawTBExport() {
-    this.tableExport = new Tabulator('#tbExport', {
+    this.tableExport = new Tabulator(this.tbExportRef.nativeElement, {
       data: this.listExport,
       layout: 'fitData',
       height: '41vh',
@@ -317,7 +320,7 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
     });
   }
   drawTBBorrow() {
-    this.tableBorrow = new Tabulator('#tbBorrow', {
+    this.tableBorrow = new Tabulator(this.tbBorrowRef.nativeElement, {
       data: this.listBorrow,
       layout: 'fitData',
       height: '78vh',

@@ -233,6 +233,7 @@ export class MenuService {
                     comp: BillImportComponent,
                     data: {
                       warehouseCode: 'HN',
+                      warehouseID: 1,
                     },
                     //   icon: 'assets/icon/layers.png',
                   },
@@ -497,7 +498,7 @@ export class MenuService {
                       'N27,N29,N50,N1,N36,N52,N35,N33,N34,N69'
                     ),
                     comp: BillImportComponent,
-                    data: { warehouseCode: 'HCM' },
+                    data: { warehouseCode: 'HCM', warehouseID: 2 },
                   },
                   {
                     kind: 'leaf',

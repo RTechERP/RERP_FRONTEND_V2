@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild, Inject, Optional } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, Inject, Optional, ElementRef } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { CommonModule } from '@angular/common';
@@ -56,6 +56,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
   styleUrl: './history-import-export.component.css',
 })
 export class HistoryImportExportComponent implements OnInit, AfterViewInit {
+  @ViewChild('tableHistoryImportExportRef', { static: true }) tableHistoryImportExportRef!: ElementRef;
   constructor(
     private historyImportExportService: HistoryImportExportService,
     private notification: NzNotificationService,
@@ -259,7 +260,7 @@ warehouseCode: string = 'HN';
   }
   //ve bang
   drawTable() {
-    this.table = new Tabulator('#table_HistoryImportExport', {
+    this.table = new Tabulator(this.tableHistoryImportExportRef.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       data: this.dataTable,
       layout: 'fitDataFill',

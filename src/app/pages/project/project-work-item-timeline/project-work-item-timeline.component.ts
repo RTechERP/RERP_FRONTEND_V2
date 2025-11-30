@@ -253,8 +253,12 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
   drawTbProjectWorkItemTimeline(container: HTMLElement) {
     this.tb_projectWorkItemTimeline = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
-      pagination: false,
-      layout: 'fitColumns',      // Yes
+     
+      layout: 'fitColumns',  
+      pagination: true,
+      paginationMode: 'local',
+      paginationSize: 50,
+      paginationSizeSelector: [10, 30, 50, 100, 300, 500],
      // columnMinWidth: 35,          // Cột ngày nhỏ nhất 35px
       maxHeight: '100%',           // Tùy chọn: giới hạn chiều cao
       renderHorizontal: 'virtual', // Tối ưu hiệu năng khi nhiều cột
@@ -342,6 +346,9 @@ export class ProjectWorkItemTimelineComponent implements OnInit, AfterViewInit {
           ],
         },
       ],
+    });
+    this.tb_projectWorkItemTimeline.on("pageLoaded", () => {
+      this.tb_projectWorkItemTimeline.redraw();
     });
   }
 

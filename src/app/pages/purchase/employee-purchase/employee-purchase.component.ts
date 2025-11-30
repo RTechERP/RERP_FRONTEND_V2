@@ -337,6 +337,7 @@ export class EmployeePurchaseComponent
       size: 'lg',
       backdrop: 'static',
       keyboard: false,
+      centered: true,
     });
 
     modalRef.componentInstance.employeePurchaseID = 0;

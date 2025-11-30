@@ -9,7 +9,8 @@ import {
   ViewEncapsulation,
   ViewChild,
   ElementRef,
-  Input,
+  Inject,
+  Optional,
 } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
@@ -79,11 +80,13 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
   styleUrls: ['./tb-product-rtc.component.css'],
 })
 export class TbProductRtcComponent implements OnInit, AfterViewInit {
+  warehouseCode: string = 'HN';
   dataInput: any = {};
   constructor(
     private notification: NzNotificationService,
     private tbProductRtcService: TbProductRtcService,
-    private modal: NzModalService
+    private modal: NzModalService,
+    @Optional() @Inject('tabData') private tabData: any
   ) {}
   productTable: Tabulator | null = null;
   selectedRow: any = '';
@@ -94,7 +97,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
   productGroupID: number = 0;
   keyWord: string = '';
   checkAll: number = 0;
-  warehouseID: number = 1;
+ warehouseID: number = 1;
   productRTCID: number = 0;
   productGroupNo: string = '';
   Size: number = 100000;
@@ -102,7 +105,14 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
   searchMode: string = 'group';
   modalData: any = [];
   private ngbModal = inject(NgbModal);
-  ngOnInit() {}
+  ngOnInit() {
+    if (this.tabData?.warehouseID) {
+      this.warehouseID = this.tabData.warehouseID;
+    }
+    if (this.tabData?.warehouseCode) {
+      this.warehouseCode = this.tabData.warehouseCode;
+    }
+  }
   ngAfterViewInit(): void {
     this.getGroup();
     this.getProduct();
@@ -127,7 +137,6 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
       .getProductRTC(request)
       .subscribe((response: any) => {
         this.productData = response.data.products || [];
-        // console.log('product', this.productData);
         this.drawTable();
       });
   }
@@ -185,13 +194,14 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
           page: params.page || 1,
           size: params.size || 50,
         };
-        // console.log('POST Request:', request);
         return this.tbProductRtcService.getProductRTC(request).toPromise();
       },
       ajaxResponse: (url, params, response) => {
         return {
           data: response.data.products || [],
           last_page: response.data.TotalPage?.[0]?.TotalPage || 1,
+          
+
         };
       },
       //   placeholder: 'Không có dữ liệu',
@@ -256,11 +266,17 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
           title: 'Đồ mượn khách',
           field: 'BorrowCustomer',
           hozAlign: 'center',
-          formatter: 'tickCross',
-          formatterParams: {
-            allowEmpty: true,
-            allowTruthy: true, // Cho phép true hiển thị tick
-          },
+       formatter: function (cell: any) {
+              const value = cell.getValue();
+              const checked =
+                value === true ||
+                value === 'true' ||
+                value === 1 ||
+                value === '1';
+              return `<input type="checkbox" ${
+                checked ? 'checked' : ''
+              } style="pointer-events: none; accent-color: #1677ff;" />`;
+            },
         },
         { title: 'Part Number', field: 'PartNumber', minWidth: 120 },
         { title: 'Serial Number', field: 'SerialNumber', minWidth: 120 },
@@ -480,7 +496,6 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
       }))
     };
 
-    console.log('Payload xóa:', payload);
 
     // Hiển thị confirm
     this.modal.confirm({
@@ -552,7 +567,6 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
       );
       return;
     }
-    console.log("dnhgdhfgdhfgd",selected[0]);
     const selectedProduct = { ...selected[0] };
     const modalRef = this.ngbModal.open(TbProductRtcFormComponent, {
       size: 'xl',

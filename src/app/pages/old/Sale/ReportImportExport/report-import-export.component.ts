@@ -4,7 +4,8 @@ import {
   AfterViewInit,
   ViewChild,
   NgZone,
-  Input,
+  Inject,
+  Optional,
 } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
@@ -94,7 +95,7 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
 
   sizeSearch: string = '0';
   dateFormat = 'dd/MM/yyyy';
-@Input() warehousecode: string = 'HN';
+  warehousecode: string = 'HN';
   ExportID: number = 0;
 
   searchParams = {
@@ -143,9 +144,16 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
     private modalService: NgbModal,
     private modal: NzModalService,
     private productsaleService: ProductsaleServiceService,
-    private zone: NgZone
+    private zone: NgZone,
+    @Optional() @Inject('tabData') private tabData: any
   ) {}
   ngOnInit(): void {
+    if (this.tabData?.warehousecode) {
+      this.warehousecode = this.tabData.warehousecode;
+    } else if (this.tabData?.warehouseCode) {
+      this.warehousecode = this.tabData.warehouseCode;
+    }
+    this.searchParams.warehouseCode = this.warehousecode;
     this.getDataProductGroup();
   }
   ngAfterViewInit(): void {
@@ -180,8 +188,6 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
           this.dataProductGroup = Array.isArray(res.data) ? res.data : [];
           this.searchParams.group = this.dataProductGroup[0].ID;
 
-          console.log('Data Product Group:', this.dataProductGroup);
-
           // Vẽ bảng sau khi có dữ liệu
           this.drawTable_ProductGroup();
 
@@ -214,7 +220,6 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
             Note: data.Note,
             AddressBox: data.AddressBox,
           };
-          console.log('newproduct', this.newProductSale);
 
           // Tải dữ liệu location cho nhóm sản phẩm đã chọn
           this.productsaleService
@@ -290,7 +295,6 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
           this.listEmployee = Array.isArray(employeeRes.data)
             ? employeeRes.data
             : [];
-          console.log('listEmployee', this.listEmployee);
         }
 
         // Mở modal sau khi đã load xong dữ liệu
@@ -496,7 +500,6 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
       reactiveData: true,
       rowFormatter: function (row) {
         const data = row.getData();
-        console.log('Row data:', data); // Kiểm tra dữ liệu của từng dòng
         if (data['IsVisible'] === false) {
           row.getElement().style.backgroundColor = '#990011FF';
           row.getElement().style.color = '#D9D9D9';
@@ -661,7 +664,6 @@ export class ReportImportExportComponent implements OnInit, AfterViewInit {
     }
     this.tableReport.on('rowDblClick', (e: MouseEvent, row: any) => {
       const rowData = row.getData();
-      console.log('hahah', rowData);
       this.productID = rowData['ProductSaleID'];
       this.zone.run(() => {
         this.openModalNewProduct();

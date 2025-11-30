@@ -93,7 +93,7 @@ export class ProjectItemProblemComponent implements OnInit, AfterViewInit {
     this.workItemService.saveProjectItemProblem(payload).subscribe({
       next: (response: any) => {
         if (response.status === 1) {
-          this.notification.success('Thành công', response.message || 'Thêm vấn đề thành công!');
+          this.notification.success('Thông báo', response.message || 'Thêm phát sinh vấn đề thành công!');
           // Reset form
           this.form.reset();
           // Reload data

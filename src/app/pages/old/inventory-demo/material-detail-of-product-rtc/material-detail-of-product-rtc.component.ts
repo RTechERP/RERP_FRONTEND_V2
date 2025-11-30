@@ -168,7 +168,7 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
     this.tableImport = new Tabulator('#tbImport', {
       data: this.listImport,
       layout: 'fitData',
-      height: '100%',
+      height: '41vh',
       columns: [
         {
           title: "STT",
@@ -241,7 +241,7 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
     this.tableExport = new Tabulator('#tbExport', {
       data: this.listExport,
       layout: 'fitData',
-      height: '100%',
+      height: '41vh',
       columns: [
         {
           title: "STT",
@@ -320,7 +320,7 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
     this.tableBorrow = new Tabulator('#tbBorrow', {
       data: this.listBorrow,
       layout: 'fitData',
-      height: '100%',
+      height: '78vh',
       movableColumns: true,
       reactiveData: true,
       columns: [
@@ -336,7 +336,8 @@ export class MaterialDetailOfProductRtcComponent implements OnInit, AfterViewIni
           field: "ID",
           hozAlign: "right",
           headerHozAlign: "center",
-          width: 150
+          width: 150,
+          visible: false
         },
         {
           title: "Ngày mượn",

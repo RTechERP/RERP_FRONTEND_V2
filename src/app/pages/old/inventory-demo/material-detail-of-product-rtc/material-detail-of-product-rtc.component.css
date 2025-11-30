@@ -1,0 +1,5 @@
+/* Custom padding for tab titles */
+::ng-deep .custom-tab-title .ant-tabs-tab {
+  padding: 12px 16px;
+}
+

@@ -118,11 +118,21 @@
               *hasPermission="'N34,N71,N1'">
               <img src="assets/icon/action_unapproved_16.png" />Hủy duyệt
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportToExcel()">
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportToExcel()" [nzLoading]="exportingExcel">
               <img src="assets/icon/action_export_excel_16.png" />Xuất excel
             </button>
             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onExportVehicleSchedule()">
               <img src="assets/icon/btn_vehicle_schedule_16.png" />Lịch trình xe
+            </button>
+            <button 
+              *ngIf="hasPendingChanges" 
+              class="fs-12" 
+              nz-button 
+              nzType="primary" 
+              nzSize="small" 
+              (click)="saveAllChanges()"
+              [nzLoading]="savingChanges">
+              <nz-icon nzType="save" nzTheme="outline" />Lưu thay đổi
             </button>
 
           </div>

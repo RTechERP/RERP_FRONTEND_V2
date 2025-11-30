@@ -99,7 +99,6 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
   ) {
     // When opened from inventory via menuEventService, data comes through injector
     if (this.tabData) {
-      console.log('tabData received in constructor:', this.tabData);
 
       this.code = this.tabData.code || '';
       this.suplier = this.tabData.suplier || '';
@@ -111,13 +110,6 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
       this.productSaleID = this.tabData.productSaleID || 0;
       this.wareHouseCode = this.tabData.wareHouseCode || '';
       this.oProductSaleModel = this.tabData.oProductSaleModel;
-
-      console.log('Properties set from tabData:', {
-        productSaleID: this.productSaleID,
-        wareHouseCode: this.wareHouseCode,
-        code: this.code,
-        productName: this.productName
-      });
     }
   }
   dtProduct: any[] = [];
@@ -143,84 +135,57 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
   totalLast: number = 0;
 
   ngOnInit() {
-    console.log('ngOnInit called');
-    console.log('ngOnInit - productSaleID:', this.productSaleID);
-    console.log('ngOnInit - wareHouseCode:', this.wareHouseCode);
 
     // Data will be loaded in ngAfterViewInit after tables are initialized
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    // This is called when @Input values change
-    console.log('ngOnChanges called', changes);
-    console.log('All inputs:', {
-      productSaleID: this.productSaleID,
-      wareHouseCode: this.wareHouseCode,
-      code: this.code,
-      productName: this.productName,
-      numberDauKy: this.numberDauKy,
-      numberCuoiKy: this.numberCuoiKy,
-      import: this.import,
-      export: this.export,
-      suplier: this.suplier,
-      oProductSaleModel: this.oProductSaleModel
-    });
+  
 
     // Update from oProductSaleModel if provided (has priority)
     if (changes['oProductSaleModel'] && this.oProductSaleModel) {
-      console.log('oProductSaleModel received:', this.oProductSaleModel);
+     
 
       // Try to access ProductSaleID (capital P)
       if (this.oProductSaleModel.ProductSaleID !== undefined) {
         this.productSaleID = this.oProductSaleModel.ProductSaleID;
-        console.log('Set productSaleID from oProductSaleModel.ProductSaleID:', this.productSaleID);
       }
       // Try productSaleID (lowercase p)
       else if (this.oProductSaleModel.productSaleID !== undefined) {
         this.productSaleID = this.oProductSaleModel.productSaleID;
-        console.log('Set productSaleID from oProductSaleModel.productSaleID:', this.productSaleID);
       }
     }
 
     // Check for direct productSaleID input
     if (changes['productSaleID'] && this.productSaleID) {
-      console.log('Direct productSaleID input:', this.productSaleID);
+      
     }
 
     // Check for wareHouseCode input
     if (changes['wareHouseCode'] && this.wareHouseCode) {
-      console.log('Direct wareHouseCode input:', this.wareHouseCode);
+
     }
 
-    console.log('Final values - productSaleID:', this.productSaleID, 'wareHouseCode:', this.wareHouseCode);
+    
 
     // Check if productSaleID or wareHouseCode changed and both have values
     if ((changes['productSaleID'] || changes['wareHouseCode'] || changes['oProductSaleModel']) &&
         this.productSaleID && this.wareHouseCode) {
-      console.log('Conditions met, will load data');
+      
       // Only load if tables are already initialized
       if (this.table_DataImport) {
-        console.log('Tables initialized, calling loaddata()');
+        
         this.loaddata();
-      } else {
-        console.log('Tables not initialized yet, will load in ngAfterViewInit');
-      }
-    } else {
-      console.log('Conditions not met:', {
-        hasChanges: !!(changes['productSaleID'] || changes['wareHouseCode'] || changes['oProductSaleModel']),
-        productSaleID: this.productSaleID,
-        wareHouseCode: this.wareHouseCode
-      });
+      } 
+         
     }
+  
   }
 
   ngAfterViewInit() {
     // Initialize tables after view is ready
     this.initializeTables();
 
-    // Load data if inputs are already set
-    console.log('ngAfterViewInit - productSaleID:', this.productSaleID);
-    console.log('ngAfterViewInit - wareHouseCode:', this.wareHouseCode);
 
     if (this.productSaleID && this.wareHouseCode) {
       this.loaddata();
@@ -241,7 +206,6 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
             this.dtRequestExport = res.data.dtRequestExport || [];
             this.dtHold = res.data.dtHold || [];
             this.dtCbProduct = res.data.dtCbProduct || [];
-            console.log('dtCbProduct:',this.dtCbProduct);
 
             // Fill product information from dtProduct
             if (this.dtProduct && this.dtProduct.length > 0) {
@@ -253,23 +217,9 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
               this.import = product.TotalImport?.toString() || '0';
               this.export = product.TotalExport?.toString() || '0';
 
-              console.log('Product info filled:', {
-                productName: this.productName,
-                code: this.code,
-                numberDauKy: this.numberDauKy,
-                numberCuoiKy: this.numberCuoiKy
-              });
+
             }
 
-            console.log('res data', res.data) ;
-            console.log('res dtProduct', res.data.dtProduct) ;
-            console.log('res dtImport', res.data.dtImport) ;
-            console.log('res dtExport', res.data.dtExport) ;
-            console.log('res dtRequestImport', res.data.dtRequestImport) ;
-            console.log('res dtRequestExport', res.data.dtRequestExport) ;
-            console.log('res dtHold', res.data.dtHold) ;
-
-            // Update tables with new data
             this.updateTableData();
           }
         },
@@ -298,35 +248,22 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
       this.table_Data.replaceData(this.dtHold);
     }
 
-    // Calculate totals after updating data
     this.calculator();
   }
 
-  // Calculate totals similar to C# Calculator function
   calculator() {
-    // Sum Qty from Import table
     this.totalImport = this.dtImport.reduce((sum, row) => sum + (parseFloat(row.Qty) || 0), 0);
-
-    // Sum Qty from Export table
     this.totalExport = this.dtExport.reduce((sum, row) => sum + (parseFloat(row.Qty) || 0), 0);
-
-    // Sum Qty from Request Export table
     this.totalRequestExport = this.dtRequestExport.reduce((sum, row) => sum + (parseFloat(row.Qty) || 0), 0);
-
-    // Sum TotalQuantityRemain from Hold table
     this.totalKeep = this.dtHold.reduce((sum, row) => sum + (parseFloat(row.TotalQuantityRemain) || 0), 0);
-
-    // Calculate final total: NumberDauKy + Import - Export - RequestExport - Keep
     const numberDauKy = parseFloat(this.numberDauKy) || 0;
     this.totalLast = numberDauKy + this.totalImport - this.totalExport - this.totalRequestExport - this.totalKeep;
   }
 
-  // Handle product selection change
   onProductChange(productSaleID: number) {
     if (productSaleID) {
       this.productSaleID = productSaleID;
 
-      // Find selected product in dropdown to get product name
       const selectedProduct = this.dtProduct.find(p => p.ProductSaleID === productSaleID);
       if (selectedProduct) {
         this.productName = selectedProduct.ProductName || selectedProduct.productname || '';
@@ -337,14 +274,10 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
     }
   }
 
-  // Refresh data
   refreshData() {
     this.loaddata();
   }
-
-  // Open BillImportDetail modal
   openBillImportDetail(rowData: any) {
-    console.log('rowdataa',rowData);
 
     const modalRef = this.modalService.open(BillImportDetailComponent, {
       centered: true,
@@ -365,9 +298,7 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
     });
   }
 
-  // Open BillExportDetail modal
   openBillExportDetail(rowData: any) {
-        console.log('rowdataa',rowData);
     const modalRef = this.modalService.open(BillExportDetailComponent, {
       centered: true,
       windowClass: 'full-screen-modal',
@@ -376,13 +307,10 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
       keyboard: false,
     });
 
-    // Truyền dữ liệu giống như BillExportComponent
     modalRef.componentInstance.newBillExport = rowData;
     modalRef.componentInstance.isCheckmode = true;
     modalRef.componentInstance.id = rowData.ID || rowData.id || 0;
     modalRef.componentInstance.warehouseCode = this.wareHouseCode;
-
-    // Reload data after modal closes
     modalRef.result.catch((result) => {
       if (result == true) {
         this.loaddata();
@@ -390,7 +318,6 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
     });
   }
   initializeTables() {
-    // Context menu for import tables
     const contextMenuImport = [
       {
         label: '<i class="fa fa-eye"></i> Xem chi tiết',
@@ -532,9 +459,6 @@ export class ChiTietSanPhamSaleComponent implements OnInit, AfterViewInit, OnCha
           const data = row.getData();
           const remain = parseFloat(data['Remain']) || 0;
           const status = data['Status'] || 0;
-            console.log('statuscc',status);
-            console.log('remain',remain);
-
           if (remain > 0 && status == 0) {
             row.getElement().style.backgroundColor = '#FFFF00';
           }

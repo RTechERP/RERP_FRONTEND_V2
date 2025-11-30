@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { BillImportTechnicalService } from '../bill-import-technical/bill-import-technical-service/bill-import-technical.service';
 import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
-import { AfterViewInit, Component, OnInit,inject, ViewEncapsulation, ViewChild, ElementRef, Input } from '@angular/core';
+import { AfterViewInit, Component, OnInit,inject, ViewEncapsulation, ViewChild, ElementRef, Inject, Optional } from '@angular/core';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzButtonModule, NzButtonSize } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -31,6 +31,7 @@ import { BillImportTechnicalFormComponent } from '../bill-import-technical/bill-
 import { BillExportTechnicalFormComponent } from '../bill-export-technical/bill-export-technical-form/bill-export-technical-form.component';
 import { BillExportTechnicalService } from '../bill-export-technical/bill-export-technical-service/bill-export-technical.service';
 import { NOTIFICATION_TITLE } from '../../../app.config';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 @Component({
   standalone: true,
   imports: [
@@ -105,9 +106,13 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private modalService: NgbModal,
      private billImportTechnicalService: BillImportTechnicalService,
-     private billExportTechnicalService: BillExportTechnicalService
+     private billExportTechnicalService: BillExportTechnicalService,
+     @Optional() @Inject('tabData') private tabData: any
   ) { }
   ngOnInit() {
+    if (this.tabData?.warehouseID) {
+      this.warehouseID = this.tabData.warehouseID;
+    }
   }
   ngAfterViewInit(): void {
     this.drawTable();
@@ -176,25 +181,13 @@ export class ProductReportNewComponent implements OnInit, AfterViewInit {
     ];
     //Vẽ bảng lịch sử nhập xuất
     this.historyBillTable = new Tabulator('#dataTableHistoryBill', {
-      layout: "fitDataStretch",
-      pagination: true,
-      selectableRows: 5,
+      ...DEFAULT_TABLE_CONFIG,
       rowContextMenu: rowMenu,
-      height: '100%',
       ajaxURL: this.productReportNewService.getInventoryNCCAjax(),
       ajaxConfig: "POST",
       paginationMode: 'remote',
-      columnDefaults: {
-        headerWordWrap: true,
-        headerVertical: false,
-        headerHozAlign: "center",
-        minWidth: 60,
-        resizable: true
-      },
-      movableColumns: true,
-      paginationSize: 30,
-      paginationSizeSelector: [5, 10, 20, 50, 100],
-      reactiveData: true,
+      height: '100%',
+     
       ajaxRequestFunc: (url, config, params) => {
         // lấy ngày đầu tháng và cuối tháng
         const now = DateTime.now();

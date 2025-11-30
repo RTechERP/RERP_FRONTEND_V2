@@ -5,6 +5,8 @@ import {
   ViewChild,
   NgZone,
   ElementRef,
+  Inject,
+  Optional,
 } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
@@ -103,7 +105,8 @@ export class InventoryComponent implements OnInit, AfterViewInit {
     private modalService: NgbModal,
     private modal: NzModalService,
     private zone: NgZone,
-    private menuEventService: MenuEventService
+    private menuEventService: MenuEventService,
+    @Optional() @Inject('tabData') private tabData: any
   ) {}
 
   id: number = 0;
@@ -111,7 +114,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
 
   dataUpdate: any = [];
 
-  wareHouseCode: string = 'HN';
+  warehouseCode: string = 'HN';
   productGroupID: number = 0;
 
   table_productgroupInven: any;
@@ -154,7 +157,11 @@ export class InventoryComponent implements OnInit, AfterViewInit {
     FirmID: 0,
     Note: '',
   };
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    if (this.tabData?.warehouseCode) {
+      this.warehouseCode = this.tabData.warehouseCode;
+    }
+  }
   ngAfterViewInit(): void {
     this.drawTable_ProductGroup();
     this.drawTable_PGWareHouse();
@@ -321,9 +328,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.lstTonCk = lstTonCk;
     modalRef.componentInstance.KhoTypeID = khoTypeID;
     modalRef.componentInstance.wareHouseCode = this.getWarehouseCode(warehouseID);
-    console.log('inventorykhotype',khoTypeID);
 
-    // Set billExport WarehouseID (C# line 121)
     modalRef.componentInstance.newBillExport = {
       ...modalRef.componentInstance.newBillExport,
       WarehouseID: warehouseID,
@@ -341,7 +346,6 @@ export class InventoryComponent implements OnInit, AfterViewInit {
         }
       })
       .catch((error) => {
-        console.log('Modal dismissed:', error);
       });
   }
 
@@ -351,7 +355,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
   private getWarehouseCode(warehouseID: number): string {
     // Match C# logic: frm.WarehouseCode = VP (where VP is current warehouse)
     // Use current wareHouseCode from component state
-    return this.wareHouseCode || 'HN';
+    return this.warehouseCode || 'HN';
   }
   //#region dong mo modal
   // updateProductSale() {
@@ -411,13 +415,12 @@ export class InventoryComponent implements OnInit, AfterViewInit {
   getProductGroup() {
     this.isLoadingProductGroup = true;
     this.productsaleSV
-      .getdataProductGroup(this.wareHouseCode, false)
+      .getdataProductGroup(this.warehouseCode, false)
       .subscribe({
         next: (res) => {
           this.isLoadingProductGroup = false;
           if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
             this.dataProductGroup = res.data;
-            console.log('this.dataProductGroupAPI', this.dataProductGroup);
             // Chỉ gán ID nếu chưa có ID được chọn
             if (!this.productGroupID) {
               this.getDataProductGroupWareHouse(res.data[0].ID);
@@ -445,7 +448,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
       });
   }
   getDataProductGroupWareHouse(id: number) {
-    this.inventoryService.getPGWH(id, this.wareHouseCode).subscribe({
+    this.inventoryService.getPGWH(id, this.warehouseCode).subscribe({
       next: (res) => {
         if (res?.data) {
           // this.listPGWareHouse = Array.isArray(res.data) ? res.data : [];
@@ -524,11 +527,6 @@ export class InventoryComponent implements OnInit, AfterViewInit {
         next: (res) => {
           if (res?.data && res.data.length > 0) {
             this.newProductGroup.EmployeeID = res.data[0].EmployeeID ?? 0;
-            console.log(
-              'this.newProductGroup.EmployeeID',
-              this.newProductGroup.EmployeeID
-            );
-            console.log('data', res.data);
           }
           this.newProductGroup.WareHouseID = 1;
           const modalRef = this.modalService.open(ProductGroupDetailComponent, {
@@ -675,7 +673,6 @@ export class InventoryComponent implements OnInit, AfterViewInit {
   @ViewChild('tablePGWarehouse') tablePGWarehouseRef!: ElementRef;
   @ViewChild('tableInventory') tableInventoryRef!: ElementRef;
   drawTable_ProductGroup() {
-    console.log('this.dataProductGroup', this.dataProductGroup);
 
     this.table_productgroupInven = new Tabulator(
       this.tableProductGroupRef.nativeElement,
@@ -717,9 +714,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
         }
         const rowData = selectrow[0].getData();
         this.productGroupID = rowData['ID'];
-        console.log('rowDataID', this.productGroupID);
 
-        console.log('Selected ID:', this.productGroupID);
         this.getInventory();
         this.getDataProductGroupWareHouse(this.productGroupID);
       }
@@ -841,7 +836,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
             .getInventoryPagination(
               this.searchParam.checkedAll,
               this.searchParam.Find,
-              this.wareHouseCode,
+              this.warehouseCode,
               this.searchParam.checkedStock,
               this.productGroupID,
               size,
@@ -852,7 +847,7 @@ export class InventoryComponent implements OnInit, AfterViewInit {
                 if (res?.data) {
                   // Tabulator expects { last_page, data } format
                   resolve({
-                    last_page: res.totalPages || Math.ceil(res.totalRecords / size),
+                    last_page: res.data[0].TotalPage,
                     data: res.data,
                   });
                 } else {
@@ -879,11 +874,16 @@ export class InventoryComponent implements OnInit, AfterViewInit {
           field: 'IsFix',
           hozAlign: 'center',
           headerHozAlign: 'center',
-          formatter: (cell) => {
+        formatter: function (cell: any) {
               const value = cell.getValue();
-              console.log('isFix:',value);
-              
-              return `<input type="checkbox" ${!!value ? 'checked' : ''} disabled />`;
+              const checked =
+                value === true ||
+                value === 'true' ||
+                value === 1 ||
+                value === '1';
+              return `<input type="checkbox" ${
+                checked ? 'checked' : ''
+              } style="pointer-events: none; accent-color: #1677ff;" />`;
             },
         },
         {
@@ -1065,11 +1065,9 @@ export class InventoryComponent implements OnInit, AfterViewInit {
       import: productData.Import?.toString() || '0',
       export: productData.Export?.toString() || '0',
       productSaleID: productData.ProductSaleID || 0,
-      wareHouseCode: this.wareHouseCode || 'HN',
+      wareHouseCode: this.warehouseCode || 'HN',
       oProductSaleModel: productData,
     };
-    console.log('tabData', tabData);
-    // Mở tab mới với component ChiTietSanPhamSaleComponent
     this.menuEventService.openNewTab(
       ChiTietSanPhamSaleComponent,
       `Chi tiết: ${productData.ProductCode || 'Sản phẩm'}`,

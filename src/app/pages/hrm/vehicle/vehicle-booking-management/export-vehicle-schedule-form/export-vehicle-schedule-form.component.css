@@ -4,7 +4,7 @@
 
 .tabulator {
   font-size: 0.75rem;
-  border: 1px solid !important;
+  /* border: 1px solid !important; */
 }
 
 .tabulator-cell {
@@ -14,13 +14,13 @@
 .fs-12 {
   font-size: 0.75rem;
 }
-.custom-border {
-  border: 1px ;  /* Màu viền mặc định của Ant Design */
-  border-radius: 4px;         /* Bo góc 4px */
-  padding: 16px;              /* Tạo khoảng đệm bên trong */
-  transition: all 0.3s;       /* Hiệu ứng mượt khi hover */
+/* .custom-border {
+  border: 1px ;
+  border-radius: 4px;        
+  padding: 16px;           
+  transition: all 0.3s;     
 
-}
+} */
 
 /* Đảm bảo empty state hiển thị đúng trong bảng */
 ::ng-deep .ant-table-tbody > tr.ant-table-placeholder {
@@ -40,9 +40,6 @@
   color: #999;
   height: calc(81vh - 100px);
   padding: 0;
-  border-top: 2px solid #808080;
-  border-bottom: 2px solid #808080;
-  border-left: 1px solid #D3D3D3;
-  border-right: 1px solid #D3D3D3;
+  border-style: solid;
 }
 

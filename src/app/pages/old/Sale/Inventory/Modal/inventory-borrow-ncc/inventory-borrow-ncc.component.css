@@ -1,8 +1,37 @@
+:host {
+  font-size: 12px !important;
+}
+
+:host * {
+  font-size: 12px !important;
+}
+
+.fs-12 {
+  font-size: 12px !important;
+}
+
 ::ng-deep .ant-form-inline .ant-form-item {
-    margin-right: 4px !important; 
-    margin-bottom: 0 !important;  
-  }
+  margin-right: 4px !important; 
+  margin-bottom: 0 !important;  
+}
+
 .modalborrow {
   height: 95vh;
+}
+
+.tabulator {
+  font-size: 12px !important;
+}
+
+.tabulator-cell {
+  font-size: 12px !important;
+}
+
+.tabulator-header {
+  font-size: 12px !important;
+}
+
+.tabulator-header-cell {
+  font-size: 12px !important;
 }
 

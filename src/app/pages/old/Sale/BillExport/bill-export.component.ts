@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild, Input } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, Inject, Optional, Input } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 
@@ -96,7 +96,7 @@ interface BillExport {
 })
 
 export class BillExportComponent implements OnInit, AfterViewInit {
-  @Input() warehouseCode: string = "HN";
+  warehouseCode: string = "HN";
     selectedRow: any = "";
   dataProductGroup: any[] = [];
   data: any[] = [];
@@ -170,15 +170,18 @@ export class BillExportComponent implements OnInit, AfterViewInit {
     private modal: NzModalService,
     private modalService: NgbModal,
     private route: ActivatedRoute // hỡ trợ router,
-    ,private appUserService: AppUserService
+    ,private appUserService: AppUserService,
+    @Optional() @Inject('tabData') private tabData: any
   ) { }
   ngOnInit(): void {
     // Đọc wareHouseCode từ query params
    // Đọc wareHouseCode từ query params
    this.route.queryParams.subscribe(params => {
     this.warehouseCode = params['warehouseCode'] || '';
-    console.log('warehouseCode in BillExportComponent:', this.warehouseCode);
   });
+    if (this.tabData?.warehouseCode) {
+      this.warehouseCode = this.tabData.warehouseCode;
+    }
     this.getProductGroup();
   }
   ngAfterViewInit(): void {
@@ -214,7 +217,6 @@ export class BillExportComponent implements OnInit, AfterViewInit {
       next: (res) => {
         if (res?.data && Array.isArray(res.data)) {
           this.dataProductGroup = res.data;
-          console.log('>>> Kết quả getProductGroup:', res);
           this.selectedKhoTypes = this.dataProductGroup.map((item) => item.ID);
           this.searchParams.listproductgroupID =
             this.selectedKhoTypes.join(',');
@@ -260,7 +262,6 @@ export class BillExportComponent implements OnInit, AfterViewInit {
   searchData() {
     this.loadDataBillExport();
     this.getBillExportDetail(this.id);
-    console.log('searchparams', this.searchParams);
   }
   onCheckboxChange() {
     this.loadDataBillExport();
@@ -283,7 +284,6 @@ export class BillExportComponent implements OnInit, AfterViewInit {
     } else {
       this.billExportService.approved(this.data[0], apr).subscribe({
         next: (res) => {
-          console.log('Approval response:', res);
           if (res.status === 1) {
             this.notification.success(NOTIFICATION_TITLE.success,
               res.message || 'Thành công!'
@@ -351,7 +351,6 @@ export class BillExportComponent implements OnInit, AfterViewInit {
       this.id = 0;
       return;
     }
-    console.log('is', this.isCheckmode);
     const modalRef = this.modalService.open(BillExportDetailComponent, {
       centered: true,
       // windowClass: 'full-screen-modal',
@@ -377,7 +376,6 @@ export class BillExportComponent implements OnInit, AfterViewInit {
       next: (res) => {
         if (res.status === 1) {
           this.selectBillExport = res.data;
-          console.log('seelct:', this.selectBillExport);
         } else {
           this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Lỗi');
         }
@@ -639,6 +637,8 @@ export class BillExportComponent implements OnInit, AfterViewInit {
             hozAlign: 'left',
             headerHozAlign: 'center',
             width: 160,
+
+            bottomCalc: 'count',
           },
           {
             title: 'Phòng ban',
@@ -648,7 +648,6 @@ export class BillExportComponent implements OnInit, AfterViewInit {
             width: 200,
             resizable: true,
             variableHeight: true,
-            bottomCalc: 'count',
           },
           {
             title: 'Mã NV',

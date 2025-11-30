@@ -133,7 +133,7 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
           solutionVersions = (response.data || []).map((v: any) => ({
             ID: v.ID,
             Code: v.Code,
-            Name: `${v.Code} - Giải pháp`
+            Name: `${v.Code} - Giải pháp-${v.ProjectTypeName.trim()}`
           }));
         }
         checkAndMergeVersions();
@@ -151,7 +151,7 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
           poVersions = (poResponse.data || []).map((v: any) => ({
             ID: v.ID,
             Code: v.Code,
-            Name: `${v.Code} - PO`
+            Name: `${v.Code} - PO-${v.ProjectTypeName.trim()}`
           }));
         }
         checkAndMergeVersions();
@@ -397,6 +397,17 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
       const ws = this.workbook?.getWorksheet(sheetName);
       if (!ws) {
         throw new Error(`Sheet "${sheetName}" không tồn tại trong workbook.`);
+      }
+
+      // Đọc ô D2 và so sánh với projectCode
+      let cellD2 = ws.getCell("D2");
+      let projectCodeExcel = this.getCellText(cellD2.master ?? cellD2).trim();
+      
+      // So sánh với projectCode
+      if (projectCodeExcel && this.projectCode && projectCodeExcel !== this.projectCode.trim()) {
+        this.notification.error('Thông báo', `Mã dự án excel [${projectCodeExcel}] khác với [${this.projectCode}]. Vui lòng kiểm tra lại`);
+        this.resetExcelImportState();
+        return;
       }
 
       const rows: any[] = [];
@@ -652,7 +663,7 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
         PriceOrder: row.PriceOrder || 0,
         OrderDate: this.parseDate(row.OrderDate),
         ExpectedReturnDate: this.parseDate(row.ExpectedReturnDate),
-        Status: row.Status || 0,
+        Status: (isNaN(row.Status)) ? 0 : Number(row.Status),
         Quality: row.Quality?.toString()?.trim() || "",
         Note: row.Note?.toString()?.trim() || "",
         ReasonProblem: row.ReasonProblem?.toString()?.trim() || "",
@@ -749,7 +760,7 @@ export class ImportExcelPartlistComponent implements OnInit, AfterViewInit {
         PriceOrder: row.PriceOrder || 0,
         OrderDate: this.parseDate(row.OrderDate),
         ExpectedReturnDate: this.parseDate(row.ExpectedReturnDate),
-        Status: row.Status || 0,
+        Status: (isNaN(row.Status)) ? 0 : Number(row.Status),
         Quality: row.Quality?.toString()?.trim() || "",
         Note: row.Note?.toString()?.trim() || "",
         ReasonProblem: row.ReasonProblem?.toString()?.trim() || "",

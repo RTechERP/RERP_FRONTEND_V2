@@ -54,3 +54,12 @@
 ::ng-deep .main-tab .ant-tabs-tabpane {
   height: 100%;
 }
+
+.card-header {
+  overflow-x: auto;
+}
+
+.card-header .d-flex {
+  flex-wrap: nowrap;
+  min-width: fit-content;
+}

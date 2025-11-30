@@ -16,14 +16,14 @@
                         <nz-form-item>
                             <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
                             <nz-form-control [nzSpan]="24">
-                                <nz-date-picker [(ngModel)]="filters.dateStart" nzFormat="dd/MM/yyyy" class="w-100"
+                                <nz-date-picker [(ngModel)]="filters.dateStart" name="dateStart" nzFormat="dd/MM/yyyy" class="w-100"
                                     nzSize="small"></nz-date-picker>
                             </nz-form-control>
                         </nz-form-item>
                         <nz-form-item class="mt-2">
                             <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
                             <nz-form-control [nzSpan]="24">
-                                <nz-date-picker [(ngModel)]="filters.dateEnd" nzFormat="dd/MM/yyyy" class="w-100"
+                                <nz-date-picker [(ngModel)]="filters.dateEnd" name="dateEnd" nzFormat="dd/MM/yyyy" class="w-100"
                                     nzSize="small"></nz-date-picker>
                             </nz-form-control>
                         </nz-form-item>
@@ -42,7 +42,7 @@
                         <nz-form-item class="mt-2">
                             <nz-form-label class="fs-12" [nzSpan]="24">Chọn dự án</nz-form-label>
                             <nz-form-control [nzSpan]="24">
-                                <nz-select class="w-100" [(ngModel)]="filters.projectId" nzShowSearch nzAllowClear
+                                <nz-select class="w-100" [(ngModel)]="filters.projectId" name="projectId" nzShowSearch nzAllowClear
                                     nzSize="small" nzPlaceHolder="Chọn dự án">
                                     <nz-option *ngFor="let item of dtproject"
                                         [nzLabel]="item.ProjectCode + '--' + item.ProjectName"
@@ -53,14 +53,14 @@
                         <nz-form-item class="mt-2">
                             <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
                             <nz-form-control [nzSpan]="24">
-                                <input nz-input placeholder="Nhập từ khóa" nzSize="small" />
+                                <input nz-input placeholder="Nhập từ khóa" nzSize="small" [(ngModel)]="filters.keyword" name="keyword" />
                             </nz-form-control>
                         </nz-form-item>
                         <nz-form-item class="mt-2">
                             <nz-form-label class="fs-12" [nzSpan]="24">PO:</nz-form-label>
                             <nz-form-control [nzSpan]="24">
-                                <nz-select class="w-100" [nzMaxTagCount]="4" nzMode="multiple"
-                                    nzPlaceHolder="Chọn lĩnh vực dự án" nzSize="small" [(ngModel)]="filters.poKHID">
+                                <nz-select class="w-100" nzShowSearch nzAllowClear
+                                    nzPlaceHolder="Chọn PO" nzSize="small" [(ngModel)]="filters.poKHID" name="poKHID">
                                     <nz-option *ngFor="let item of dtPOKH" [nzLabel]="item.POCode"
                                         [nzValue]="item.ID"></nz-option>
                                 </nz-select>
@@ -85,41 +85,47 @@
                         <button nz-button nzType="default" nzSize="small" (click)="ToggleSearchPanel()">
                             <nz-icon nzType="search" />
                         </button>
-                        <button class="fs-12" nz-button nzType="default" (click)="OnAddClick()" nzSize="small">
+                        <button class="fs-12" nz-button nzType="default" *hasPermission="'N27,N34,N69,N80'" (click)="OnAddClick()" nzSize="small">
                             <nz-icon nzType="plus" /> Thêm
                         </button>
-                        <button class="fs-12" nz-button nzType="default" (click)="OnEditClick()" nzSize="small">
+                        <button class="fs-12" nz-button nzType="default" *hasPermission="'N27,N34,N69,N80'" (click)="OnEditClick()" nzSize="small">
                             <nz-icon nzType="edit" nzTheme="fill" />Sửa
                         </button>
-                        <button class="fs-12" nz-button nzType="default" (click)="OnSaveData()" nzSize="small">
+                        <button class="fs-12" nz-button nzType="default" (click)="OnSaveData()" *hasPermission="'N35,N1'" nzSize="small">
                             <nz-icon nzType="save" nzTheme="fill" />Lưu dữ liệu
                         </button>
-                        <button class="fs-12" nz-button nzType="default" (click)="CheckPrice(true)" nzSize="small">
+                        <button class="fs-12" nz-button nzType="default" (click)="CheckPrice(true)" *hasPermission="'N35,N1'" nzSize="small">
                             <nz-icon nzType="schedule" nzTheme="fill" />Check giá
                         </button>
-                        <button class="fs-12" nz-button nzType="default" (click)="QuotePrice()" nzSize="small">
+                        <button class="fs-12" nz-button nzType="default" (click)="QuotePrice()" *hasPermission="'N35,N1'" nzSize="small">
                             <nz-icon nzType="dollar-circle" nzTheme="fill" />Báo giá
                         </button>
-                        <button class="fs-12" nz-button nzType="default" (click)="QuotePrice(1)" nzSize="small">
+                        <button class="fs-12" nz-button nzType="default" (click)="QuotePrice(1)" *hasPermission="'N35,N1'" nzSize="small">
                             <nz-icon nzType="close-circle" nzTheme="fill" />Hủy báo giá
                         </button>
-                        <button class="fs-12" nz-button nzType="default" (click)="QuotePrice(3)" nzSize="small">
+                        <button class="fs-12" nz-button nzType="default" (click)="QuotePrice(3)" *hasPermission="'N35,N1'" nzSize="small">
                             <nz-icon nzType="check-square" nzTheme="fill" />Hoàn thành
                         </button>
-                        <button class="fs-12" nz-button nzType="default" (click)="QuotePrice(0)" nzSize="small">
+                        <button class="fs-12" nz-button nzType="default" (click)="QuotePrice(0)" *hasPermission="'N35,N1'" nzSize="small">
                             <nz-icon nzType="close-square" nzTheme="fill" />Hủy hoàn thành
                         </button>
-                        <button class="fs-12" nz-button nzType="default" (click)="OnDeleteClick()" nzSize="small">
+                        <button class="fs-12" nz-button nzType="default" (click)="OnDeleteClick()" *hasPermission="'N35,N1'" nzSize="small">
                             <nz-icon nzType="delete" nzTheme="fill" />Xóa
                         </button>
-                        <button class="fs-12" nz-button nzType="default" (click)="DownloadFile()" nzSize="small">
+                        <button *hasPermission="'N35,N1'" class="fs-12" nz-button nzType="default" (click)="DownloadFile()" nzSize="small">
                             <nz-icon nzType="file-zip" nzTheme="fill" />Tải xuống
                         </button>
-                        <button class="fs-12" nz-button nzType="default" nzSize="small">
+                        <button *hasPermission="'N35,N1'" class="fs-12" nz-button nzType="default" (click)="OpenAddSupplierModal()" nzSize="small">
                             <nz-icon nzType="plus-circle" nzTheme="fill" />Thêm nhà cung cấp
                         </button>
+                        <button *hasPermission="'N34,N69,N80'" class="fs-12" nz-button nzType="default" (click)="OpenRequestBuyModal()" nzSize="small">
+                            <nz-icon nzType="plus-circle" nzTheme="fill" />Yêu cầu mua
+                        </button>
+                        <button *hasPermission="'N27,N34,N69,N80'" class="fs-12" nz-button nzType="default" (click)="OpenImportExcel()" nzSize="small">
+                            <nz-icon nzType="plus-circle" nzTheme="fill" />Nhập Excel
+                        </button>
                         <div class="btn-group">
-                            <button class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
+                            <button *hasPermission="'N27,N34,N69,N80'" class="fs-12" nz-button nzType="default" nzSize="small" nz-dropdown
                                 [nzDropdownMenu]="menu">
                                 <nz-icon nzType="file-excel" nzTheme="fill" />Xuất Excel
                                 <i nz-icon nzType="down"></i>
@@ -141,6 +147,7 @@
                                 </ul>
                             </nz-dropdown-menu>
                         </div>
+
                     </div>
                 </div>
                 <div class="card-body p-0">
@@ -149,25 +156,25 @@
                             <div class="custom-tabs-container">
                                 <ul class="nav nav-tabs" id="customTab" role="tablist">
                                     <li class="nav-item" role="presentation"
-                                        *ngFor="let type of projectTypes; let i = index">
+                                        *ngFor="let type of getVisibleProjectTypes(); let i = index">
                                         <a class="nav-link" [class.active]="activeTabId === type.ProjectTypeID"
                                             [id]="'tab-' + type.ProjectTypeID" data-bs-toggle="tab"
                                             [href]="'#pane-' + type.ProjectTypeID" role="tab"
                                             [attr.aria-controls]="'pane-' + type.ProjectTypeID"
                                             [attr.aria-selected]="activeTabId === type.ProjectTypeID"
                                             (click)="SelectProjectType(type.ProjectTypeID)">
-                                            {{ type.ProjectTypeName }}
+                                            {{ type.ProjectTypeName | uppercase }}
                                         </a>
                                     </li>
                                 </ul>
 
                                 <div class="tab-content p-0" id="customTabContent">
-                                    <div class="tab-pane fade" *ngFor="let type of projectTypes"
+                                    <div class="tab-pane fade" *ngFor="let type of getVisibleProjectTypes()"
                                         [class.show]="activeTabId === type.ProjectTypeID"
                                         [class.active]="activeTabId === type.ProjectTypeID"
                                         [id]="'pane-' + type.ProjectTypeID" role="tabpanel"
                                         [attr.aria-labelledby]="'tab-' + type.ProjectTypeID">
-                                        <div class="p-1">
+                                        <div class="table-container p-1">
                                             <div [id]="'datatable-' + type.ProjectTypeID"
                                                 class="tabulator-container container-fluid p-0"></div>
                                         </div>
@@ -181,6 +188,30 @@
         </nz-splitter-panel>
     </nz-splitter>
 </ng-container>
+<ng-template #rejectReasonTpl>
+  <div class="mb-2">Vui lòng nhập lý do từ chối:</div>
+  <textarea nz-input [(ngModel)]="rejectReason" rows="3" placeholder="Nhập lý do..." class="w-100"></textarea>
+</ng-template>
+<ng-template #requestBuyTpl>
+  <div class="mb-2">
+    <label class="form-label">Deadline</label>
+    <nz-date-picker [(ngModel)]="requestBuyDeadline" nzFormat="dd/MM/yyyy" class="w-100" nzSize="small"></nz-date-picker>
+  </div>
+  <div class="text-muted">Chỉ cần nhập Deadline. Các thông tin khác (VPP, JobRequirementID) đã có sẵn từ Input.</div>
+</ng-template>
+<app-tabulator-popup *ngIf="showSupplierPopup"
+  [data]="dtSupplierSale"
+  [columns]="supplierColumns"
+  [searchFields]="supplierSearchFields"
+  [height]="'300px'"
+  (rowSelected)="onSupplierSelected($event)"
+  (closed)="onSupplierPopupClosed()"
+  [style.position]="'absolute'"
+  [style.top]="supplierPopupPosition.top"
+  [style.left]="supplierPopupPosition.left"
+  [style.zIndex]="1000"
+  [style.width]="'500px'"
+></app-tabulator-popup>
 <app-project-partlist-price-request-form *ngIf="showDetailModal" [dataInput]="modalData"
     (formSubmitted)="OnFormSubmit()" (closeModal)="showDetailModal = false">
 </app-project-partlist-price-request-form>

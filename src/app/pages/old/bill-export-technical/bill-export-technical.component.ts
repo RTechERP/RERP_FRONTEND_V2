@@ -1,4 +1,4 @@
-import { inject } from '@angular/core';
+import { inject, Inject, Optional } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
@@ -65,6 +65,7 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
   constructor(private notification: NzNotificationService,
     private billExportTechnicalService: BillExportTechnicalService,
     private appUserService: AppUserService,
+    @Optional() @Inject('tabData') private tabData: any
   ) { }
   private ngbModal = inject(NgbModal);
   selectedRow: any = "";
@@ -76,7 +77,7 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
   filterText: string = '';
   Size: number = 100000;
   Page: number = 1;
-  warehouseID: number | null = null;
+ warehouseID: number =1;
   selectedApproval: number | null = null;
   isSearchVisible: boolean = false;
   //List  Dữ liệu phiếu xuất
@@ -95,6 +96,9 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
     { ID: 1, Name: 'Đã duyệt' }
   ];
   ngOnInit() {
+    if (this.tabData?.warehouseID) {
+      this.warehouseID = this.tabData.warehouseID;
+    }
   }
   ngAfterViewInit(): void {
     this.drawTable();
@@ -103,7 +107,7 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
   public drawTable(): void {
     this.billExportTechnicalTable = new Tabulator('#dataTableBillExportTechnical', {
       layout: "fitDataStretch",
-      height: '90vh',
+      height: '100%',
       pagination: true,
       selectableRows: 5,
       movableColumns: true,
@@ -152,62 +156,44 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
         {
           title: 'Duyệt',
           field: 'Status',
-          formatter: function (cell: any) {
-            const value = cell.getValue();
-            const checked = value === true || value === 'true' || value === 1 || value === '1';
-            return `<input type="checkbox" ${checked ? 'checked' : ''} disabled/>`;
-          },
+formatter: function (cell: any) {
+              const value = cell.getValue();
+              const checked =
+                value === true ||
+                value === 'true' ||
+                value === 1 ||
+                value === '1';
+              return `<input type="checkbox" ${
+                checked ? 'checked' : ''
+              } style="pointer-events: none; accent-color: #1677ff;" />`;
+            },
           hozAlign: 'center',
           headerHozAlign: 'center',
         },
-        { title: "Mã phiếu", field: "Code" },
-        { title: "Loại phiếu", field: "BillTypeText" },
-        { title: "Khách hàng", field: "CustomerName" },
-        { title: "Mã khách hàng", field: "CustomerCode" },
-        { title: "Tên viết tắt KH", field: "CustomerShortName" },
-        { title: "Người nhận", field: "Receiver" },
-        { title: "Người giao", field: "Deliver" },
-        { title: "Phòng ban", field: "DepartmentName" },
-        { title: "Dự án", field: "ProjectName" },
-        { title: "Kho", field: "WarehouseType" },
         {
-          title: "Ngày dự kiến",
-          field: "ExpectedDate",
+          title: "Ngày Duyệt / Hủy duyệt",
+          field: "ApprovalDate",
           formatter: formatDateCell,
           hozAlign: "center"
         },
+        { title: "Người Duyệt / Hủy duyệt", field: "EmployeeApproveName" },
+        { title: "Loại", field: "BillTypeText" },
+        { title: "Mã phiếu xuất", field: "Code" },
+        { title: "Dự án", field: "ProjectName" },
+        { title: "Nhà cung cấp", field: "NameNCC" },
+        { title: "Khách hàng", field: "CustomerName" },
+        { title: "Người giao", field: "Deliver" },
+        { title: "Phòng ban", field: "DepartmentName" },
+        { title: "Mã nhân viên", field: "EmployeeCode" },
+        { title: "Người nhận", field: "Receiver" },
         {
           title: "Ngày tạo",
           field: "CreatedDate",
           formatter: formatDateCell,
           hozAlign: "center"
         },
-        { title: "Người tạo", field: "CreatedBy" },
-        {
-          title: "Ngày cập nhật",
-          field: "UpdatedDate",
-          formatter: formatDateCell,
-          hozAlign: "center"
-        },
-        { title: "Người cập nhật", field: "UpdatedBy" },
-        { title: "Người duyệt", field: "EmployeeApproveName" },
-        { title: "Mã nhân viên", field: "EmployeeCode" },
-        { title: "Ghi chú", field: "Note" },
-        // Các cột ẩn nhưng giữ lại nếu cần dùng
-        { title: "ID", field: "ID", visible: false },
-        { title: "Row", field: "RowNumber", visible: false },
-        { title: "ID khách hàng", field: "CustomerID", visible: false },
-        { title: "ID người nhận", field: "ReceiverID", visible: false },
-        { title: "ID người giao", field: "DeliverID", visible: false },
-        { title: "ID kho", field: "WarehouseID", visible: false },
-        { title: "ID NCC", field: "SupplierID", visible: false },
-        { title: "Mã NCC", field: "CodeNCC", visible: false },
-        { title: "Tên NCC", field: "NameNCC", visible: false },
-        { title: "Người bán NCC", field: "SupplierSaleID", visible: false },
-        { title: "CheckAddHistory", field: "CheckAddHistoryProductRTC", visible: false },
-        { title: "StatusBIT", field: "StatusBIT", visible: false },
-        { title: "ID người duyệt", field: "ApproverID", visible: false },
-        { title: "Ngày duyệt", field: "DateStatus", formatter: formatDateCell, visible: false }
+        { title: "Loại kho", field: "WarehouseType" },
+        { title: "Địa chỉ", field: "Addres" },
       ],
     });
     this.billExportTechnicalTable.on('rowClick', (evt: UIEvent, row: RowComponent) => {
@@ -231,57 +217,21 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
       this.billExportTechnicalDetailTable = new Tabulator('#dataexportDetail', {
         data: this.billExportTechnicalDetailData,
         layout: "fitDataStretch",
-        paginationSize: 5,
-        height: '86vh',
+        pagination:false,
+        height: '100%',
         movableColumns: true,
         reactiveData: true,
         columns: [
-          { title: 'Tên sản phẩm', field: 'ProductName' },
-          { title: 'STT', field: 'STT', hozAlign: 'center', width: 60, visible: false },
-          { title: 'Mã phiếu PO', field: 'BillCodePO', visible: false },
-          { title: 'Serial', field: 'ProductCode' },
-          { title: 'Mã QR sản phẩm', field: 'ProductQRCode', visible: false },
-          { title: 'Mã sản phẩm RTC', field: 'ProductCodeRTC', visible: false },
-          { title: 'Số lượng', field: 'Quantity', hozAlign: 'center' },
-          { title: 'Đơn vị tính', field: 'UnitName', hozAlign: 'center' },
-          { title: 'Tên tài sản', field: 'TSAssetName', visible: false },
-          { title: 'Tình trạng hàng', field: 'WarehouseType' },
+          { title: 'STT', formatter: "rownum", hozAlign: 'center', width: 60 },
+          { title: 'Mã QRCode', field: 'ProductQRCode' },
+          { title: 'Mã sản phẩm', field: 'ProductCode' },
           { title: 'Mã nội bộ', field: 'InternalCode' },
+          { title: 'Tên sản phẩm', field: 'ProductName' },
+          { title: 'Số lượng', field: 'Quantity', hozAlign: 'center' },
+          { title: 'ĐVT', field: 'UnitName', hozAlign: 'center' },
+          { title: 'Tình trạng hàng', field: 'WarehouseType' },
           { title: 'Hãng', field: 'Maker' },
-          { title: 'Người cần mượn', field: 'EmployeeBorrowName' },
-          { title: 'Hạn trả NCC', field: 'DeadlineReturnNCC', formatter: formatDateCell },
           { title: 'Ghi chú', field: 'Note' },
-          { title: 'Mã tài sản NCC', field: 'TSCodeNCC', visible: false },
-          { title: 'Đơn vị tính (count)', field: 'UnitCountName', visible: false },
-          { title: 'Số lượng yêu cầu', field: 'QtyRequest', hozAlign: 'center', visible: false },
-          { title: 'Tổng số lượng', field: 'TotalQuantity', hozAlign: 'center', visible: false },
-          { title: 'Giá', field: 'Price', hozAlign: 'right', formatter: 'money', formatterParams: { thousand: ',', precision: 0 }, visible: false },
-          { title: 'Tổng giá', field: 'TotalPrice', hozAlign: 'right', formatter: 'money', formatterParams: { thousand: ',', precision: 0 }, visible: false },
-          { title: 'Người tạo', field: 'CreatedBy', visible: false },
-          { title: 'Ngày tạo', field: 'CreatedDate', formatter: formatDateCell, visible: false },
-          { title: 'Người cập nhật', field: 'UpdatedBy', visible: false },
-          { title: 'Ngày cập nhật', field: 'UpdatedDate', formatter: formatDateCell, visible: false },
-          {
-            title: 'Mượn từ NCC?', field: 'IsBorrowSupplier', hozAlign: 'center',
-            formatter: (cell) => {
-              const val = cell.getValue();
-              return val === true || val === 1 ? "Có" : (val === false || val === 0 ? "Không" : "");
-            }, visible: false
-          },
-          { title: 'Ngày yêu cầu phiếu', field: 'DateSomeBill', formatter: formatDateCell, visible: false },
-          { title: 'Mã dự án', field: 'ProjectCode', visible: false },
-          { title: 'Tên dự án', field: 'ProjectName', visible: false },
-          { title: 'ID dự án', field: 'ProjectID', visible: false },
-          { title: 'ID sản phẩm', field: 'ProductID', visible: false },
-          { title: 'ID QR sản phẩm RTC', field: 'ProductRTCQRCodeID', visible: false },
-          { title: 'ID chi tiết PO NCC', field: 'PONCCDetailID', visible: false },
-          { title: 'ID mượn', field: 'EmployeeIDBorrow', visible: false },
-          { title: 'ID lịch sử RTC', field: 'HistoryProductRTCID', visible: false },
-          { title: 'ID phiếu', field: 'BillImportTechID', visible: false },
-          { title: 'ID', field: 'ID', visible: false },
-          { title: 'Một số phiếu liên quan', field: 'SomeBill', visible: false },
-          { title: 'ID đơn vị', field: 'UnitID', visible: false },
-          { title: 'ID kho', field: 'WarehouseID', visible: false },
         ]
       });
     }
@@ -337,45 +287,46 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
     });
   }
   onApprove() {
-    const selectedIds = this.getSelectedIds();
     const selectedRow = this.billExportTechnicalTable?.getSelectedData()?.[0];
     if (!selectedRow) {
       this.notification.warning('Cảnh báo', 'Vui lòng chọn biên bản cần duyệt!');
       return;
     }
-    const currentEmployeeID = this.appUserService.employeeID;
-    if (selectedRow.ApproverID && currentEmployeeID && selectedRow.ApproverID !== currentEmployeeID) {
-      this.notification.error('Lỗi', `Chỉ người duyệt được chỉ định (ID: ${selectedRow.ApproverID}) mới có quyền duyệt phiếu này!`);
-      return;
-    }
-    this.billExportTechnicalService.approveAction(selectedIds, 'approve').subscribe({
-      next: () => {
-        this.notification.success(NOTIFICATION_TITLE.success, 'Duyệt biên bản thành công!');
-        this.billExportTechnicalTable?.setData();
-        this.drawTable();
+
+    this.billExportTechnicalService.approveBill(selectedRow.ID, true).subscribe({
+      next: (res) => {
+        if (res.status === 1) {
+          this.notification.success(NOTIFICATION_TITLE.success, res.message || 'Duyệt phiếu thành công!');
+          this.billExportTechnicalTable?.setData();
+        } else {
+          this.notification.error(NOTIFICATION_TITLE.error, res.message || 'Có lỗi xảy ra khi duyệt phiếu!');
+        }
       },
       error: (err) => {
-        this.notification.warning(NOTIFICATION_TITLE.error, 'Lỗi kết nối máy chủ!');
+        const errorMsg = err?.error?.message || 'Lỗi kết nối máy chủ!';
+        this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
       }
     });
   }
   onUnApprove() {
-    const selectedIds = this.getSelectedIds();
-    const currentEmployeeID = this.appUserService.employeeID;
-    const ALLOWED_UNAPPROVER_ID = 54;
-    if (currentEmployeeID !== ALLOWED_UNAPPROVER_ID) {
-      this.notification.error('Lỗi', `Chỉ người có ID ${ALLOWED_UNAPPROVER_ID} mới có quyền bỏ duyệt phiếu!`);
+    const selectedRow = this.billExportTechnicalTable?.getSelectedData()?.[0];
+    if (!selectedRow) {
+      this.notification.warning('Cảnh báo', 'Vui lòng chọn biên bản cần bỏ duyệt!');
       return;
     }
-    this.billExportTechnicalService.approveAction(selectedIds, 'unapprove').subscribe({
-      next: () => {
-        this.notification.success(NOTIFICATION_TITLE.success, 'duyệt biên bản thành công!');
-        this.billExportTechnicalTable?.setData();
-        this.drawTable();
+
+    this.billExportTechnicalService.approveBill(selectedRow.ID, false).subscribe({
+      next: (res) => {
+        if (res.status === 1) {
+          this.notification.success(NOTIFICATION_TITLE.success, res.message || 'Bỏ duyệt phiếu thành công!');
+          this.billExportTechnicalTable?.setData();
+        } else {
+          this.notification.error(NOTIFICATION_TITLE.error, res.message || 'Có lỗi xảy ra khi bỏ duyệt phiếu!');
+        }
       },
       error: (err) => {
-
-        this.notification.warning(NOTIFICATION_TITLE.error, 'Lỗi kết nối máy chủ!');
+        const errorMsg = err?.error?.message || 'Lỗi kết nối máy chủ!';
+        this.notification.error(NOTIFICATION_TITLE.error, errorMsg);
       }
     });
   }
@@ -386,6 +337,11 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
       backdrop: 'static',
       keyboard: false,
       windowClass: 'full-screen-modal',
+    });
+
+    // Lắng nghe sự kiện lưu dữ liệu thành công để reload table
+    modalRef.componentInstance.formSubmitted.subscribe(() => {
+      this.billExportTechnicalTable?.setData();
     });
   }
   // Hàm xuất Excel
@@ -454,5 +410,10 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
     modalRef.componentInstance.dataEdit = selectedRow;
     const currentDetails = this.billExportTechnicalDetailTable?.getData?.() || [];
     modalRef.componentInstance.dataInput = { details: currentDetails };
+
+    // Lắng nghe sự kiện lưu dữ liệu thành công để reload table
+    modalRef.componentInstance.formSubmitted.subscribe(() => {
+      this.billExportTechnicalTable?.setData();
+    });
   }
 }

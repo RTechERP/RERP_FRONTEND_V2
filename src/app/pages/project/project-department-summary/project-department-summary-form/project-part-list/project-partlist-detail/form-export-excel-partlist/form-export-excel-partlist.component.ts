@@ -170,7 +170,7 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
       data: this.partListData || [],
       layout: 'fitDataStretch',
       ...DEFAULT_TABLE_CONFIG,
-      paginationMode: 'local',
+      pagination:false,
       rowHeader: false,
       dataTree: true,
       dataTreeStartExpanded: true,
@@ -229,6 +229,7 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
                                     title: 'Tên vật tư',
                                     field: 'GroupMaterial',
                                     width: 150,
+                                    formatter:'textarea'
                                   }
                                 ]
                               },
@@ -283,6 +284,7 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
                                       field: 'ProductCode',
                                       width: 150,
                                       headerHozAlign: 'left',
+                                      formatter:'textarea'
                                     }
                                   ]
                                 }
@@ -486,8 +488,8 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
                               formatter: (cell: any) => this.formatNumber(cell.getValue()),
                             },
                 
-                            { title: 'Tiến độ', field: 'StatusText', width: 120 },
-                            { title: 'Nhà cung cấp', field: 'NameNCCPriceQuote', width: 180 },
+                            { title: 'Tiến độ', field: 'LeadTime', width: 120 },
+                            { title: 'Nhà cung cấp', field: 'NameNCCPriceQuote', width: 180 ,  formatter:'textarea'},
                 
                             {
                               title: 'Ngày yêu cầu đặt hàng',
@@ -495,41 +497,54 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
                               width: 160,
                               formatter: (cell: any) => this.formatDate(cell.getValue()),
                             },
-                            { title: 'Tiến độ yêu cầu', field: 'ProgressRequest', width: 150 },
+                            { title: 'Tiến độ yêu cầu', field: 'LeadTimePurchase', width: 150 },
                 
                             {
                               title: 'SL đặt thực tế',
-                              field: 'QtyOrderActual',
+                              field: '',
                               width: 120,
                               hozAlign: 'right',
                               formatter: (cell: any) => this.formatNumber(cell.getValue()),
                             },
-                            {
-                              title: 'SL đã nhận',
-                              field: 'QuantityReturn',
-                              width: 120,
+                            { title: 'Nhà cung cấp mua', field: 'SupplierNamePurchase', width: 120 , formatter:'textarea'},
+                            { title: 'Giá đặt mua', field: 'PriceOrder', width: 150,
                               hozAlign: 'right',
                               formatter: (cell: any) => this.formatNumber(cell.getValue()),
                             },
-                
-                            { title: 'Mã NCC đặt hàng', field: 'SupplierCodePurchase', width: 150 },
-                
-                            { title: 'Số PO', field: 'BillCodePurchase', width: 120 },
-                            {
-                              title: 'Ngày PO',
-                              field: 'PODate',
-                              width: 120,
+                            { title: 'Ngày đặt hàng thực tế', field: 'RequestDatePurchase', width: 150,
                               formatter: (cell: any) => this.formatDate(cell.getValue()),
-                            },
-                
-                            {
-                              title: 'Giá báo',
-                              field: 'UnitPriceQuote',
-                              hozAlign: 'right',
-                              width: 120,
+                             },
+                             { title: 'Dự kiến hàng về', field: 'ExpectedReturnDate', width: 150,
+                              formatter: (cell: any) => this.formatDate(cell.getValue()),
+                             },
+                             {
+                              title: 'Tình trạng', field: 'StatusText', width: 150,
+                             },
+                             {
+                              title: 'Chất lượng', field: 'Quality', width: 150,
+                             },
+                             {
+                              title: 'Ghi chú', field: 'Note', width:300,
+                              formatter:'textarea'
+                             },
+                             {
+                              title: 'Lý do phát sinh', field: 'ReasonProblem', width: 300,
+                              formatter:'textarea'
+                             },
+                             {
+                              title: 'Mã đặc biệt', field: 'SpecialCode', width: 150,
+                             },
+                             {
+                              title: 'Đơn giá Pur báo', field: 'UnitPriceQuote', width: 150,
                               formatter: (cell: any) => this.formatNumber(cell.getValue()),
-                            },
-                            { title: 'Loại tiền Pur báo', field: 'CurrencyQuote', width: 140 },
+                             },
+                             {
+                              title: 'Thành tiền Pur báo', field: 'TotalPriceQuote1', width: 150,
+                              formatter: (cell: any) => this.formatNumber(cell.getValue()),
+                             },
+                             {
+                              title: 'Loại tiền Pur báo', field: 'CurrencyQuote', width: 140,
+                             },                
                             {
                               title: 'Tỷ giá báo',
                               field: 'CurrencyRateQuote',
@@ -586,10 +601,10 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
                               formatter: (cell: any) => this.formatNumber(cell.getValue()),
                             },
                             { title: 'Mã nội bộ', field: 'ProductNewCode', width: 120 },
-                            { title: 'Số HĐ đầu vào', field: 'BillImportCode', width: 150 },
+                            { title: 'Số HĐ đầu vào', field: 'SomeBill', width: 150 },
                             {
                               title: 'SL đã về',
-                              field: 'QuantityReturn2',
+                              field: 'QuantityReturn',
                               width: 100,
                               hozAlign: 'right',
                               formatter: (cell: any) => this.formatNumber(cell.getValue()),
@@ -645,37 +660,41 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
 
     // ===== HEADER SECTION (Rows 1-6) =====
     // Row 1: Title "DANH MỤC VẬT TƯ"
-    worksheet.getCell('C1').value = 'DANH MỤC VẬT TƯ';
-    worksheet.getCell('C1').font = { bold: true, size: 14 };
-    worksheet.getCell('C1').alignment = { horizontal: 'center' };
+   // ===== MERGE CELLS (HEADER) =====
+worksheet.mergeCells('A1:A3');
+worksheet.mergeCells('B1:B3');
+worksheet.mergeCells('A4:B4');
+worksheet.mergeCells('A5:B5');
 
-    // Row 2: Mã dự án và BM03
-    worksheet.getCell('C2').value = 'Mã dự án:';
-    worksheet.getCell('C2').alignment = { horizontal: 'right' };
-    worksheet.getCell('D2').value = this.projectCode || '';
-    worksheet.getCell('G2').value = '';
+worksheet.mergeCells('C1:F1'); 
+// worksheet.mergeCells('C2:D2');
+worksheet.mergeCells('G2:I2');
+worksheet.mergeCells('G3:I3');
 
-    // Row 3: Tên dự án và Ban hành lần
-    worksheet.getCell('C3').value = 'Tên dự án';
-    worksheet.getCell('C3').alignment = { horizontal: 'right' };
-    worksheet.getCell('D3').value = this.projectName || '';
-    worksheet.getCell('G3').value = 'BM03-RTC.TE-QT01\nBan hành lần: 02';
-    
-    // Row 4: Người lập, Kiểm tra, Phê duyệt và Ngày ở G4
-    worksheet.getCell('G4').value = 'Ngày';
+// ===== HEADER VALUES =====
+worksheet.getCell('C1').value = 'DANH MỤC VẬT TƯ';
+worksheet.getCell('C1').font = { bold: true, size: 14 };
+worksheet.getCell('C1').alignment = { horizontal: 'center', vertical: 'middle' };
 
-    // Row 4: Người lập, Kiểm tra, Phê duyệt
-    worksheet.getCell('A4').value = 'Người lập:';
-    worksheet.getCell('E4').value = 'Kiểm tra:';
-    worksheet.getCell('H4').value = 'Phê duyệt:';
+worksheet.getCell('C2').value = 'Mã dự án:';
+worksheet.getCell('C2').alignment = { horizontal: 'right' };
+worksheet.getCell('D2').value = this.projectCode || '';
 
-    // Row 5: Empty row for spacing
+worksheet.getCell('C3').value = 'Tên dự án';
+worksheet.getCell('C3').alignment = { horizontal: 'right' };
+worksheet.getCell('D3').value = this.projectName || '';
 
-    // Row 6: Ngày cho Người lập, Kiểm tra, Phê duyệt
-    worksheet.getCell('A6').value = 'Ngày:';
-    worksheet.getCell('G6').value = DateTime.now().toFormat('dd/MM/yyyy');
-    worksheet.getCell('E6').value = 'Ngày:';
-    worksheet.getCell('H6').value = 'Ngày:';
+worksheet.getCell('G3').value = 'BM03-RTC.TE-QT01\nBan hành lần: 02';
+worksheet.getCell('G3').alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+
+worksheet.getCell('A4').value = 'Người lập:';
+worksheet.getCell('E4').value = 'Kiểm tra:';
+worksheet.getCell('H4').value = 'Phê duyệt:';
+
+worksheet.getCell('A6').value = 'Ngày:';
+worksheet.getCell('G6').value = DateTime.now().toFormat('dd/MM/yyyy');
+worksheet.getCell('E6').value = 'Ngày:';
+worksheet.getCell('H6').value = 'Ngày:';
 
     // ===== DATA HEADER (Row 7) =====
     const exportColumns = [
@@ -690,16 +709,22 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
       { header: 'Đơn vị', field: 'Unit', width: 10 },
       { header: 'Đơn giá KT nhập', field: 'Price', width: 15, isNumber: true },
       { header: 'Thành tiền KT nhập', field: 'Amount', width: 18, isNumber: true },
-      { header: 'Tiến độ', field: 'StatusText', width: 15 },
+      { header: 'Tiến độ', field: 'LeadTime', width: 15 },
       { header: 'Nhà cung cấp', field: 'NameNCCPriceQuote', width: 20 },
       { header: 'Ngày yêu cầu đặt hàng', field: 'RequestDate', width: 20, isDate: true },
-      { header: 'Tiến độ yêu cầu', field: 'ProgressRequest', width: 18 },
+      { header: 'Tiến độ yêu cầu', field: 'LeadTimePurchase', width: 18 },  
       { header: 'SL đặt thực tế', field: 'QtyOrderActual', width: 15, isNumber: true },
-      { header: 'SL đã nhận', field: 'QuantityReturn', width: 12, isNumber: true },
-      { header: 'Mã NCC đặt hàng', field: 'SupplierCodePurchase', width: 18 },
-      { header: 'Số PO', field: 'BillCodePurchase', width: 15 },
-      { header: 'Ngày PO', field: 'PODate', width: 12, isDate: true },
-      { header: 'Giá báo', field: 'UnitPriceQuote', width: 15, isNumber: true },
+      { header: 'NCC mua hàng', field: 'SupplierNamePurchase', width: 18 },
+      { header: 'Giá đặt mua', field: 'PriceOrder', width: 15, isNumber: true },
+      { header: 'Ngày đặt hàng thực tế', field: 'RequestDatePurchase', width: 18, isDate: true },
+      { header: 'Dự kiến hàng về', field: 'ExpectedReturnDate', width: 18, isDate: true },
+      { header: 'Tình trạng', field: 'StatusText', width: 12 },
+      { header: 'Chất lượng', field: 'Quality', width: 12 },
+      { header: 'Note', field: 'Note', width: 20 },
+      { header: 'Lý do phát sinh', field: 'ReasonProblem', width: 20 },
+      { header: 'Mã đặc biệt', field: 'SpecialCode', width: 15 },
+      { header: 'Đơn giá Pur báo', field: 'UnitPriceQuote', width: 15, isNumber: true },
+      { header: 'Thành tiền Pur báo', field: 'TotalPriceQuote1', width: 18, isNumber: true },
       { header: 'Loại tiền Pur báo', field: 'CurrencyQuote', width: 18 },
       { header: 'Tỷ giá báo', field: 'CurrencyRateQuote', width: 12, isNumber: true },
       { header: 'Thành tiền quy đổi báo giá (VNĐ)', field: 'TotalPriceExchangeQuote', width: 25, isNumber: true },
@@ -709,11 +734,12 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
       { header: 'Tỷ giá mua', field: 'CurrencyRatePurchase', width: 12, isNumber: true },
       { header: 'Thành tiền quy đổi mua (VNĐ)', field: 'TotalPriceExchangePurchase', width: 25, isNumber: true },
       { header: 'Leadtime Pur báo giá', field: 'LeadTimeQuote', width: 20 },
+      
       { header: 'Leadtime Pur đặt mua', field: 'LeadTimePurchase', width: 20 },
-      { header: 'SL đã về', field: 'QuantityReturn', width: 12, isNumber: true },
+        { header: 'SL đã về', field: 'QuantityReturn', width: 12, isNumber: true },
       { header: 'Mã nội bộ', field: 'ProductNewCode', width: 15 },
-      { header: 'Số HĐ đầu vào', field: 'BillImportCode', width: 18 },
-      { header: 'SL đã về (2)', field: 'QuantityReturn2', width: 12, isNumber: true },
+      { header: 'Số HĐ đầu vào', field: 'SomeBill', width: 18 },
+      { header: 'SL đã về', field: 'QuantityReturn', width: 12, isNumber: true },
       { header: 'SL đã xuất', field: 'TotalExport', width: 12, isNumber: true },
       { header: 'SL còn lại', field: 'RemainQuantity', width: 12, isNumber: true },
     ];
@@ -787,6 +813,14 @@ export class FormExportExcelPartlistComponent implements OnInit, AfterViewInit {
             cell.numFmt = '#,##0.00';
           }
         }
+      });
+      excelRow.eachCell((cell, colNumber) => {
+        const colDef = exportColumns[colNumber - 1];
+        cell.alignment = {
+          vertical: 'middle',
+          wrapText: true,
+          horizontal: colDef?.isNumber ? 'right' : 'left'
+        };
       });
 
       // Highlight group rows (rows without TT or with parent indicator)

@@ -1,6 +1,7 @@
 import {
   Component,
   OnInit,
+  AfterViewInit,
   Input,
   Output,
   EventEmitter,
@@ -35,6 +36,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { RowComponent } from "tabulator-tables";
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 @Component({
   selector: 'app-vehicle-booking-file-images-form',
@@ -52,12 +54,13 @@ import { RowComponent } from "tabulator-tables";
     NzInputModule,
     NzButtonModule,
     NzModalModule,
-    NzInputNumberModule
+    NzInputNumberModule,
+    NzSpinModule
   ],
   templateUrl: './vehicle-booking-file-images-form.component.html',
   styleUrl: './vehicle-booking-file-images-form.component.css'
 })
-export class VehicleBookingFileImagesFormComponent implements OnInit {
+export class VehicleBookingFileImagesFormComponent implements OnInit, AfterViewInit {
   constructor(
     private notification: NzNotificationService,
     private modal: NzModalService,
@@ -73,10 +76,24 @@ export class VehicleBookingFileImagesFormComponent implements OnInit {
   vehicleTypeID: any;
   vehicleImageList: any[] = [];
   listID: any[] = [];
+  loading: boolean = false;
+  
+  get hasImages(): boolean {
+    return this.vehicleImageList && this.vehicleImageList.length > 0 && 
+           this.vehicleImageList.some((item: any) => item.urlImage);
+  }
+  
   ngOnInit(): void {
     console.log("dataInput", this.dataInput);
-    this.getListImage();
+  }
+
+  ngAfterViewInit(): void {
+    // Khởi tạo bảng trước với dữ liệu rỗng
     this.drawTbVehicleCategory();
+    // Sau đó mới load dữ liệu
+    setTimeout(() => {
+      this.getListImage();
+    }, 100);
   }
   convertProjectToList() {
     for (const item of this.dataInput) {
@@ -92,16 +109,29 @@ export class VehicleBookingFileImagesFormComponent implements OnInit {
     }
   }
   getListImage() {
+    this.listID = []; // Reset listID trước khi convert
     this.convertProjectToList();
     console.log("listID", this.listID);
+    this.loading = true;
     this.vehicleBookingManagementService.getListImage(this.listID).subscribe({
       next: (response: any) => {
         console.log("response.data", response.data);
-        this.vehicleImageList = response.data;
-        this.drawTbVehicleCategory();
+        this.vehicleImageList = response.data || [];
+        // Cập nhật dữ liệu vào bảng đã khởi tạo
+        if (this.tb_ExportVehicleSchedule) {
+          this.tb_ExportVehicleSchedule.setData(this.vehicleImageList);
+        }
+        this.loading = false;
       },
       error: (error: any) => {
         console.error('Lỗi:', error);
+        this.loading = false;
+        this.vehicleImageList = [];
+        // Cập nhật bảng với dữ liệu rỗng
+        if (this.tb_ExportVehicleSchedule) {
+          this.tb_ExportVehicleSchedule.setData([]);
+        }
+        this.notification.error('Thông báo', 'Lỗi khi tải ảnh kiện hàng!');
       }
     });
   }
@@ -109,6 +139,15 @@ export class VehicleBookingFileImagesFormComponent implements OnInit {
 
   tb_ExportVehicleSchedule: Tabulator | null = null;
   drawTbVehicleCategory() {
+    // Destroy bảng cũ nếu đã tồn tại
+    if (this.tb_ExportVehicleSchedule) {
+      try {
+        this.tb_ExportVehicleSchedule.destroy();
+      } catch (e) {
+        console.warn('Error destroying old table:', e);
+      }
+    }
+    
     this.tb_ExportVehicleSchedule = new Tabulator('#example-table', {
 
       height: "80vh",

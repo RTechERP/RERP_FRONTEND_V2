@@ -3,7 +3,8 @@ import {
   OnInit,
   AfterViewInit,
   ViewChild,
-  Input,
+  Inject,
+  Optional,
 } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
@@ -101,9 +102,10 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     private notification: NzNotificationService,
     private modal: NzModalService,
     private modalService: NgbModal,
-    private appUserService: AppUserService
+    private appUserService: AppUserService,
+    @Optional() @Inject('tabData') private tabData: any
   ) {}
-  @Input() wareHouseCode: string = 'HN';
+  wareHouseCode: string = 'HN';
   newBillImport: BillImport = {
     BillImportCode: '',
     ReciverID: 0,
@@ -168,6 +170,9 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     { ID: 4, Name: 'Yêu cầu nhập kho' },
   ];
   ngOnInit(): void {
+    if (this.tabData?.warehouseCode) {
+      this.wareHouseCode = this.tabData.warehouseCode;
+    }
     this.getProductGroup();
   }
   ngAfterViewInit(): void {
@@ -298,7 +303,6 @@ export class BillImportComponent implements OnInit, AfterViewInit {
       this.id = 0;
       return;
     }
-    console.log('is', this.isCheckmode);
     const modalRef = this.modalService.open(BillImportDetailComponent, {
       centered: true,
       size: 'xl',
@@ -329,7 +333,6 @@ export class BillImportComponent implements OnInit, AfterViewInit {
         next: (res) => {
           if (res?.data && Array.isArray(res.data)) {
             this.dataProductGroup = res.data;
-            console.log('>>> Kết quả getProductGroup:', res);
             this.selectedKhoTypes = this.dataProductGroup.map(
               (item) => item.ID
             );
@@ -372,7 +375,6 @@ export class BillImportComponent implements OnInit, AfterViewInit {
       next: (res) => {
         if (res.status === 1) {
           this.selectBillImport = res.data;
-          console.log('seelct:', this.selectBillImport);
         } else {
           this.notification.warning(
             NOTIFICATION_TITLE.warning,
@@ -459,7 +461,6 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     // Gọi API với danh sách phiếu có kèm billImportDetails
     this.billImportService.approved(billsWithDetails, apr).subscribe({
       next: (res) => {
-        console.log('Approval response:', res);
         if (res.status === 1) {
           this.notification.success(
             NOTIFICATION_TITLE.success,
@@ -791,8 +792,6 @@ export class BillImportComponent implements OnInit, AfterViewInit {
       billDocumentImports: [],
     }));
 
-    console.log('payload', payload);
-
     const billCodes = billsToDelete
       .map((bill) => bill.BillImportCode)
       .join(', ');
@@ -1057,11 +1056,16 @@ export class BillImportComponent implements OnInit, AfterViewInit {
             field: 'Status',
             hozAlign: 'center',
             headerHozAlign: 'center',
-            formatter: (cell) => {
+formatter: function (cell: any) {
               const value = cell.getValue();
+              const checked =
+                value === true ||
+                value === 'true' ||
+                value === 1 ||
+                value === '1';
               return `<input type="checkbox" ${
-                value === true ? 'checked' : ''
-              } disabled />`;
+                checked ? 'checked' : ''
+              } style="pointer-events: none; accent-color: #1677ff;" />`;
             },
           },
           {
@@ -1379,21 +1383,21 @@ export class BillImportComponent implements OnInit, AfterViewInit {
             field: 'CurrencyList',
             hozAlign: 'left',
             headerHozAlign: 'center',
-            // visible: false,
+            visible: false,
           },
           {
             title: 'VAT',
             field: 'VAT',
             hozAlign: 'right',
             headerHozAlign: 'center',
-            // visible: false,
+            visible: false,
           },
           {
             title: 'PONCCCodeList',
             field: 'PONCCCodeList',
             hozAlign: 'left',
             headerHozAlign: 'center',
-            // visible: false,
+            visible: false,
           },
         ],
       });
@@ -1413,7 +1417,6 @@ export class BillImportComponent implements OnInit, AfterViewInit {
         this.id = rowData['ID'];
         this.sizeTbDetail = null;
         this.data = [rowData];
-        console.log('dhdgdfgd', this.data);
         this.getBillImportDetail(this.id);
         this.getBillImportByID(this.id);
       });

@@ -22,46 +22,35 @@
   font-size: 12px;
 }
 
-/* Bôi màu toàn bộ ô header cho T7 và CN, không tô màu các cell trong cột */
-/* Header group (T7, CN) - tô màu toàn bộ ô header */
-::ng-deep .weekend-header-group,
-::ng-deep .weekend-header-group *,
-::ng-deep .weekend-header-group .tabulator-col-group,
-::ng-deep .weekend-header-group .tabulator-col-group *,
-::ng-deep .weekend-header-group .tabulator-col-group-element,
-::ng-deep .weekend-header-group .tabulator-col-group-element *,
-::ng-deep .weekend-header-group .tabulator-col-header,
-::ng-deep .weekend-header-group .tabulator-col-header *,
-::ng-deep .weekend-header-group .tabulator-col-content,
-::ng-deep .weekend-header-group .tabulator-col-content * {
+/* T7, CN (header group) */
+::ng-deep app-employee-synthetic .tabulator-header .tabulator-col-group.weekend-header-group,
+::ng-deep app-employee-synthetic .tabulator-header .tabulator-col-group.weekend-header-group:hover,
+::ng-deep app-employee-synthetic .tabulator-header .tabulator-col-group.weekend-header-group .tabulator-col-content,
+::ng-deep app-employee-synthetic .tabulator-header .tabulator-col-group.weekend-header-group .tabulator-col-content:hover {
+  background: #e9b003 !important;
   background-color: #e9b003 !important;
   font-weight: bold;
   font-size: 12px;
 }
 
-/* Header column (số ngày) - tô màu toàn bộ ô header */
-::ng-deep .weekend-column,
-::ng-deep .weekend-column *,
-::ng-deep .weekend-column .tabulator-col,
-::ng-deep .weekend-column .tabulator-col *,
-::ng-deep .weekend-column .tabulator-col-element,
-::ng-deep .weekend-column .tabulator-col-element *,
-::ng-deep .weekend-column .tabulator-col-header,
-::ng-deep .weekend-column .tabulator-col-header *,
-::ng-deep .weekend-column .tabulator-col-content,
-::ng-deep .weekend-column .tabulator-col-content * {
+/* Header số ngày cuối tuần (1, 2, …) */
+::ng-deep app-employee-synthetic .tabulator-header .tabulator-col.weekend-column,
+::ng-deep app-employee-synthetic .tabulator-header .tabulator-col.weekend-column:hover,
+::ng-deep app-employee-synthetic .tabulator-header .tabulator-col.weekend-column .tabulator-col-content,
+::ng-deep app-employee-synthetic .tabulator-header .tabulator-col.weekend-column .tabulator-col-content:hover {
+  background: #e9b003 !important;
   background-color: #e9b003 !important;
   font-weight: bold;
   font-size: 12px;
 }
 
-/* Đảm bảo không tô màu các cell trong cột weekend */
-::ng-deep .weekend-header-group .tabulator-cell,
-::ng-deep .weekend-column .tabulator-cell,
-::ng-deep .weekend-header-group .tabulator-row .tabulator-cell,
-::ng-deep .weekend-column .tabulator-row .tabulator-cell,
-::ng-deep .weekend-header-group .tabulator-row,
-::ng-deep .weekend-column .tabulator-row {
-  background-color: transparent !important;
+/* Cell dữ liệu các cột cuối tuần */
+::ng-deep app-employee-synthetic .tabulator-cell.weekend-column,
+::ng-deep app-employee-synthetic .tabulator-cell.weekend-column:hover,
+::ng-deep app-employee-synthetic .tabulator-row .tabulator-cell.weekend-column,
+::ng-deep app-employee-synthetic .tabulator-row:hover .tabulator-cell.weekend-column,
+::ng-deep app-employee-synthetic .tabulator-row:nth-child(even) .tabulator-cell.weekend-column,
+::ng-deep app-employee-synthetic .tabulator-row:nth-child(odd) .tabulator-cell.weekend-column {
+  background: #e9b003 !important;
+  background-color: #e9b003 !important;
 }
-

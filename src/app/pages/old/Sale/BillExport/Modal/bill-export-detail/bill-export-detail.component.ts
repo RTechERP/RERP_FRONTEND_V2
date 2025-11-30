@@ -30,7 +30,7 @@ import { Observable, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
 import { CommonModule } from '@angular/common';
-import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { TabulatorFull as Tabulator, ColumnDefinition } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { RowComponent } from 'tabulator-tables';
 import * as ExcelJS from 'exceljs';
@@ -49,6 +49,7 @@ import { BillExportService } from '../../bill-export-service/bill-export.service
 import { ProductsaleServiceService } from '../../../ProductSale/product-sale-service/product-sale-service.service';
 import { DateTime } from 'luxon';
 import { SelectControlComponent } from '../select-control/select-control.component';
+import { TabulatorPopupComponent } from '../../../../../../shared/components/tabulator-popup/tabulator-popup.component';
 import { BillImportServiceService } from '../../../BillImport/bill-import-service/bill-import-service.service';
 import { DEFAULT_TABLE_CONFIG } from '../../../../../../tabulator-default.config';
 import { NOTIFICATION_TITLE } from '../../../../../../app.config';
@@ -115,6 +116,7 @@ interface BillExport {
     NzDatePickerModule,
     ProductSaleDetailComponent,
     SelectControlComponent,
+    TabulatorPopupComponent,
     HasPermissionDirective,
     NzSpinModule,
   ],
@@ -210,6 +212,31 @@ export class BillExportDetailComponent
   };
   validateForm: FormGroup;
   private destroy$ = new Subject<void>();
+
+  // Popup state management
+  showProductPopup: boolean = false;
+  showProjectPopup: boolean = false;
+  currentEditingCell: any = null;
+  popupPosition: { top: string; left: string } = { top: '0px', left: '0px' };
+
+  // Product popup columns
+  productPopupColumns: ColumnDefinition[] = [
+    { title: 'Mã SP', field: 'ProductCode', width: 120, headerHozAlign: 'center' },
+    { title: 'Mã nội bộ', field: 'ProductNewCode', width: 120, headerHozAlign: 'center' },
+    { title: 'Tên SP', field: 'ProductName', width: 250, headerHozAlign: 'center' },
+    { title: 'ĐVT', field: 'Unit', width: 80, headerHozAlign: 'center' },
+    { title: 'SL tồn', field: 'TotalInventory', width: 100, headerHozAlign: 'center', hozAlign: 'right' },
+  ];
+
+  productSearchFields: string[] = ['ProductCode', 'ProductNewCode', 'ProductName'];
+
+  // Project popup columns
+  projectPopupColumns: ColumnDefinition[] = [
+    { title: 'Mã dự án', field: 'ProjectCode', width: 150, headerHozAlign: 'center' },
+    { title: 'Tên dự án', field: 'ProjectName', width: 300, headerHozAlign: 'center' },
+  ];
+
+  projectSearchFields: string[] = ['ProjectCode', 'ProjectName'];
 
   constructor(
     private modalService: NgbModal,
@@ -384,13 +411,7 @@ export class BillExportDetailComponent
 
     // LUỒNG RIÊNG: ProjectPartList → BillExport (Yêu cầu xuất kho từ dự án)
     if (this.isFromProjectPartList) {
-      // DEBUG: Check if newBillExport has data
-      console.log('🔍 DEBUG isFromProjectPartList - this.newBillExport:', this.newBillExport);
-      console.log('🔍 DEBUG - Code:', this.newBillExport.Code);
-      console.log('🔍 DEBUG - UserID:', this.newBillExport.UserID);
-      console.log('🔍 DEBUG - SenderID:', this.newBillExport.SenderID);
-      console.log('🔍 DEBUG - CustomerID:', this.newBillExport.CustomerID);
-      console.log('🔍 DEBUG - KhoTypeID:', this.newBillExport.KhoTypeID);
+      
 
       // Matching C# frmBillExportDetail_Load + loadBillExportDetail logic when isPOKH = true
       // Bind ALL form fields from newBillExport (matching C# code)
@@ -421,7 +442,6 @@ export class BillExportDetailComponent
             next: (res: any) => {
               const userId = res?.data?.[0]?.UserID || 0;
               if (userId > 0) {
-                console.log('Auto-filling SenderID from ProductGroupWareHouse:', userId);
                 this.validateForm.patchValue({ SenderID: userId });
                 this.newBillExport.SenderID = userId;
               }
@@ -432,22 +452,10 @@ export class BillExportDetailComponent
           });
       }
 
-      console.log('ProjectPartList flow - Bound all form data:', {
-        Code: this.newBillExport.Code,
-        Status: this.newBillExport.Status,
-        CustomerID: this.newBillExport.CustomerID,
-        KhoTypeID: this.newBillExport.KhoTypeID,
-        UserID: this.newBillExport.UserID,
-        SenderID: this.newBillExport.SenderID,
-        SupplierID: this.newBillExport.SupplierID,
-        WarehouseID: this.newBillExport.WarehouseID
-      });
 
-      // changeCustomer sẽ được gọi tự động từ getDataCbbCustomer() callback
     }
     // LUỒNG RIÊNG: Warehouse Release Request → BillExport
     else if (this.isFromWarehouseRelease) {
-      console.log('🔍 DEBUG WarehouseRelease - BEFORE patchValue, this.newBillExport.Status:', this.newBillExport.Status);
 
       // Bind ALL master fields from newBillExport (similar to ProjectPartList flow)
       this.validateForm.patchValue({
@@ -476,7 +484,6 @@ export class BillExportDetailComponent
             next: (res: any) => {
               const userId = res?.data?.[0]?.UserID || 0;
               if (userId > 0) {
-                console.log('WarehouseRelease - Auto-filling SenderID from ProductGroupWareHouse:', userId);
                 this.validateForm.patchValue({ SenderID: userId });
                 this.newBillExport.SenderID = userId;
               }
@@ -491,23 +498,9 @@ export class BillExportDetailComponent
       if (!this.newBillExport.Code || this.newBillExport.Code === '') {
         this.getNewCode();
       }
-
-      console.log('WarehouseRelease flow - Bound all form data:', {
-        Code: this.newBillExport.Code,
-        Status: this.newBillExport.Status,
-        CustomerID: this.newBillExport.CustomerID,
-        KhoTypeID: this.newBillExport.KhoTypeID,
-        UserID: this.newBillExport.UserID,
-        SenderID: this.newBillExport.SenderID,
-        SupplierID: this.newBillExport.SupplierID,
-        WarehouseID: this.newBillExport.WarehouseID
-      });
-
-      // changeCustomer sẽ được gọi tự động từ getDataCbbCustomer() callback
     }
     // LUỒNG: Flow khác có KhoTypeID (backup)
     else if (this.KhoTypeID > 0 && !this.isBorrow) {
-      // Skip this block when isBorrow = true (will be handled below)
       this.validateForm.patchValue({
         Status: 6, // Yêu cầu xuất kho
         KhoTypeID: this.KhoTypeID,
@@ -522,16 +515,12 @@ export class BillExportDetailComponent
     }
 
     if (this.isPOKH && !this.isFromProjectPartList && !this.isFromWarehouseRelease) {
-      // Skip if from ProjectPartList or WarehouseRelease (đã xử lý ở trên)
       this.validateForm.patchValue({ Status: 6 });
       this.newBillExport.Status = 6;
     }
 
     // LUỒNG: Xuất trả NCC (Status = 5)
     if (this.isReturnToSupplier) {
-      console.log('🔍 DEBUG isReturnToSupplier - this.newBillExport:', this.newBillExport);
-
-      // Bind ALL master fields from newBillExport
       this.validateForm.patchValue({
         Code: this.newBillExport.Code || '',
         Status: 5, // Xuất trả NCC
@@ -543,13 +532,10 @@ export class BillExportDetailComponent
         CreatDate: this.newBillExport.CreatDate || new Date(),
       });
 
-      // Sync back to model
       this.newBillExport.Status = 5;
 
-      // Get new code for return bill (after Status is set)
       this.getNewCode();
 
-      // Auto-fill SenderID from ProductGroupWareHouse
       if (this.newBillExport.KhoTypeID > 0 && this.newBillExport.WarehouseID > 0) {
         this.productSaleService
           .getdataProductGroupWareHouse(this.newBillExport.KhoTypeID, this.newBillExport.WarehouseID)
@@ -557,7 +543,6 @@ export class BillExportDetailComponent
             next: (res: any) => {
               const userId = res?.data?.[0]?.UserID || 0;
               if (userId > 0) {
-                console.log('Auto-filling SenderID for return to supplier:', userId);
                 this.validateForm.patchValue({ SenderID: userId });
                 this.newBillExport.SenderID = userId;
               }
@@ -570,7 +555,6 @@ export class BillExportDetailComponent
 
       // Fill detail data from selectedList
       if (this.selectedList && this.selectedList.length > 0) {
-        console.log('isReturnToSupplier - filling detail data from selectedList:', this.selectedList);
         this.dataTableBillExportDetail = this.selectedList.map((item: any) => ({
           ID: item.ID || 0,
           ProductID: item.ProductID || 0,
@@ -592,13 +576,7 @@ export class BillExportDetailComponent
         }));
       }
 
-      console.log('Return to supplier flow - Bound all form data:', {
-        Code: this.newBillExport.Code,
-        Status: this.newBillExport.Status,
-        SupplierID: this.newBillExport.SupplierID,
-        KhoTypeID: this.newBillExport.KhoTypeID,
-        WarehouseID: this.newBillExport.WarehouseID
-      });
+
     }
     else if (this.isBorrow) {
       // Set Status = 7 (Yêu cầu mượn) (C# line 145)
@@ -622,7 +600,6 @@ export class BillExportDetailComponent
           .subscribe({
             next: (res: any) => {
               const userId = res?.data?.[0]?.UserID || 0;
-              console.log('Setting SenderID for borrow bill:', userId);
               this.validateForm.patchValue({ SenderID: userId });
               this.newBillExport.SenderID = userId;
             },
@@ -635,7 +612,6 @@ export class BillExportDetailComponent
 
       // Fill detail data from selectedList (matching C# form lines 143-155)
       if (this.selectedList && this.selectedList.length > 0) {
-        console.log('isBorrow - filling detail data from selectedList:', this.selectedList);
         this.dataTableBillExportDetail = this.selectedList.map((item: any) => ({
           ID: item.ID || 0,
           POKHDetailID: item.POKHDetailID || 0,
@@ -674,7 +650,6 @@ export class BillExportDetailComponent
           POKHDetailIDActual: item.POKHDetailIDActual || 0,
           PONumber: item.PONumber || '',
         }));
-        console.log('Mapped dataTableBillExportDetail:', this.dataTableBillExportDetail);
 
         // Trigger changeProductGroup to load product options (needed for dropdowns)
         // Then refresh table after product options are loaded
@@ -719,11 +694,9 @@ export class BillExportDetailComponent
       ?.valueChanges.pipe(takeUntil(this.destroy$))
       .subscribe((newValue: number) => {
         this.changeStatus();
-        console.log('change status calling.....');
 
       });
 
-    // Listen for KhoTypeID changes to auto-set SenderID (matching C# cbKhoType_EditValueChanged)
     this.validateForm
       .get('KhoTypeID')
       ?.valueChanges.pipe(takeUntil(this.destroy$))
@@ -741,8 +714,6 @@ export class BillExportDetailComponent
   ngAfterViewInit(): void {
     this.drawTable();
 
-    // C# form lines 164-171: Load inventory project for all rows when creating new bill (ID <= 0)
-    // Trigger after table is drawn and data is loaded
     setTimeout(() => {
       if (
         !this.isCheckmode &&
@@ -750,11 +721,7 @@ export class BillExportDetailComponent
       ) {
         const tableData = this.table_billExportDetail?.getData() || [];
         if (tableData.length > 0) {
-          console.log(
-            'Auto-loading inventory project for',
-            tableData.length,
-            'rows'
-          );
+
           tableData.forEach((row: any, index: number) => {
             this.loadInventoryProjectForRow(row, index);
           });
@@ -807,7 +774,6 @@ export class BillExportDetailComponent
           if (this.newBillExport.IsApproved) {
             this.isFormDisabled = true;
             this.validateForm.disable();
-            console.log('Form disabled: Bill is approved');
           }
         } else {
           this.notification.warning(
@@ -834,7 +800,6 @@ export class BillExportDetailComponent
       next: (res) => {
         if (res?.data) {
           const rawData = Array.isArray(res.data) ? res.data : [res.data];
-          console.log('Convert datatable from bill import', rawData);
 
           this.dataTableBillExportDetail = rawData.map((item: any) => {
             const productInfo =
@@ -1089,7 +1054,6 @@ export class BillExportDetailComponent
   loadOptionProject() {
     this.billExportService.getOptionProject().subscribe({
       next: (res: any) => {
-        console.log('pj', res.data);
         const projectData = res.data;
         if (Array.isArray(projectData)) {
           this.projectOptions = projectData
@@ -1125,10 +1089,6 @@ export class BillExportDetailComponent
   }
 
   changeProductGroup(ID: number) {
-    console.log('=== changeProductGroup START ===');
-    console.log('KhoTypeID:', ID);
-    console.log('newBillExport.Id:', this.newBillExport.Id);
-    console.log('newBillExport.WarehouseID:', this.newBillExport.WarehouseID);
 
     if (!ID) {
       this.productOptions = [];
@@ -1140,33 +1100,24 @@ export class BillExportDetailComponent
 
     // Special handling for Kho Vision (ID = 4) - set minimum date
     if (ID === 4 && (!this.newBillExport.Id || this.newBillExport.Id <= 0)) {
-      // Set minimum date to 2025-05-28 for new bills in Kho Vision
-      console.log('Kho Vision selected - minimum date should be 2025-05-28');
     }
 
     // Auto-set SenderID from ProductGroupWarehouse (matching C# cbKhoType_EditValueChanged)
     // Only when creating new bill, not when updating existing bill
     if (!this.newBillExport.Id || this.newBillExport.Id <= 0) {
-      console.log('Condition passed: new bill, will try to set SenderID');
       const warehouseID = this.newBillExport.WarehouseID || 0;
-      console.log('WarehouseID value:', warehouseID);
 
       if (warehouseID > 0) {
-        console.log('Calling getdataProductGroupWareHouse with KhoTypeID:', ID, 'WarehouseID:', warehouseID);
         this.productSaleService
           .getdataProductGroupWareHouse(ID, warehouseID)
           .subscribe({
             next: (res: any) => {
-              console.log('ProductGroupWarehouse API response:', res);
               if (res?.data && res.data.length > 0) {
                 const userId = res.data[0].UserID || 0;
-                console.log('Auto-setting SenderID from KhoType change:', userId);
                 this.validateForm.patchValue({ SenderID: userId });
                 this.newBillExport.SenderID = userId;
               } else {
-                // Default SenderID logic: For HCM warehouse = 88, for others = current user
                 const defaultSenderId = this.wareHouseCode?.includes('HCM') ? 88 : 0;
-                console.log('No ProductGroupWarehouse data, using default SenderID:', defaultSenderId);
                 this.validateForm.patchValue({ SenderID: defaultSenderId });
               }
             },
@@ -1176,11 +1127,7 @@ export class BillExportDetailComponent
               this.validateForm.patchValue({ SenderID: defaultSenderId });
             },
           });
-      } else {
-        console.log('WarehouseID is 0 or empty, cannot fetch ProductGroupWarehouse');
       }
-    } else {
-      console.log('Skipping SenderID auto-set: existing bill (Id > 0)');
     }
 
     // truyền đúng tham số theo BE: warehouseCode + productGroupID
@@ -1209,7 +1156,6 @@ export class BillExportDetailComponent
             }));
         } else {
           this.productOptions = [];
-          console.warn('Dữ liệu sản phẩm không phải mảng:', productData);
         }
         if (this.checkConvert == true) {
           this.getBillExportDetailConvert([this.id]);
@@ -1217,8 +1163,6 @@ export class BillExportDetailComponent
           // Skip reload when isBorrow = true to preserve selectedList data
           this.getBillExportDetailID();
         }
-        // Don't reload when isAddExport or isBorrow is true - data is loaded in ngOnInit
-        // This prevents duplicate loading when converting from bill import or borrow request
       },
       error: (err: any) => {
         console.error(err);
@@ -1240,12 +1184,10 @@ export class BillExportDetailComponent
       .getNewCodeBillExport(this.newBillExport.Status)
       .subscribe({
         next: (res: any) => {
-          console.log('New code received:', res);
           this.newBillExport.Code = res?.data ?? '';
           this.validateForm.patchValue({ Code: this.newBillExport.Code });
         },
         error: (err: any) => {
-          console.error(err);
           this.notification.error(
             'Thông báo',
             'Có lỗi xảy ra khi lấy mã phiếu'
@@ -1272,9 +1214,6 @@ export class BillExportDetailComponent
 
     // Special handling for Kho Vision (ID = 4) - set minimum date
     if (khoTypeID === 4 && (!this.newBillExport.Id || this.newBillExport.Id <= 0)) {
-      // Set minimum date to 2025-05-28 for new bills in Kho Vision
-      // This would need to be handled in the date picker component
-      console.log('Kho Vision selected - minimum date should be 2025-05-28');
     }
 
     // Only auto-set SenderID when creating new bill (not when updating existing bill)
@@ -1295,7 +1234,6 @@ export class BillExportDetailComponent
         next: (res: any) => {
           if (res?.data && res.data.length > 0) {
             const userId = res.data[0].UserID || 0;
-            console.log('Auto-setting SenderID from KhoType change:', userId);
             this.validateForm.patchValue({ SenderID: userId });
             this.newBillExport.SenderID = userId;
           } else {
@@ -1321,7 +1259,6 @@ export class BillExportDetailComponent
     this.billExportService.getWarehouses().subscribe({
       next: (res: any) => {
         const list = res.data || [];
-        console.log('Warehouse list:', list);
 
         // Find current warehouse by WarehouseCode (e.g., HN, HCM)
         const currentWarehouse = list.find(
@@ -1332,7 +1269,6 @@ export class BillExportDetailComponent
 
         if (currentWarehouse) {
           const warehouseID = currentWarehouse.ID || 0;
-          console.log('Found WarehouseID:', warehouseID, 'for code:', this.wareHouseCode);
           this.newBillExport.WarehouseID = warehouseID;
         } else {
           console.warn('Warehouse not found for code:', this.wareHouseCode);
@@ -1407,14 +1343,11 @@ export class BillExportDetailComponent
   getDataCbbCustomer() {
     this.billExportService.getCbbCustomer().subscribe({
       next: (res: any) => {
-        console.log('Raw response:', res);
         // Updated to match new API response structure
         this.dataCbbCustomer = Array.isArray(res.data) ? res.data : [];
-        console.log('dataCbbCustomer:', this.dataCbbCustomer);
 
         // Sau khi load xong customer data, trigger changeCustomer nếu đang ở flow ProjectPartList hoặc WarehouseRelease
         if ((this.isFromProjectPartList || this.isFromWarehouseRelease) && this.newBillExport.CustomerID > 0) {
-          console.log('Customer data loaded, triggering changeCustomer for CustomerID:', this.newBillExport.CustomerID);
           this.changeCustomer();
         }
       },
@@ -1441,9 +1374,7 @@ export class BillExportDetailComponent
     if (customer && customer.Address) {
       this.newBillExport.Address = customer.Address;
       this.validateForm.patchValue({ Address: customer.Address });
-      console.log('Address from customer:', customer.Address);
     } else {
-      console.warn('Không tìm thấy địa chỉ khách hàng trong dataCbbCustomer');
       this.newBillExport.Address = '';
       this.validateForm.patchValue({ Address: '' });
     }
@@ -1466,7 +1397,6 @@ export class BillExportDetailComponent
     // AddressStockID is for delivery address selection
     // Address is for customer's main address (from Customer.Address)
     // So we don't update Address when AddressStockID changes
-    console.log('AddressStockID changed to:', id);
   }
 
   onStatusChange(status: number) {
@@ -1475,7 +1405,6 @@ export class BillExportDetailComponent
     if (status === 2) {
       this.validateForm.get('RequestDate')?.disable();
       this.validateForm.patchValue({ RequestDate: null });
-      console.log('Status changed to "Đã xuất kho" - RequestDate disabled and cleared');
     } else if (status === 6) {
       // Status = 6 means "Yêu cầu xuất kho" (Request warehouse release)
       // When status is "Yêu cầu xuất kho", set RequestDate to current date
@@ -1483,10 +1412,8 @@ export class BillExportDetailComponent
       const today = new Date();
       this.validateForm.patchValue({ RequestDate: today });
       this.newBillExport.RequestDate = today;
-      console.log('Status changed to "Yêu cầu xuất kho" - RequestDate set to today');
     } else {
       this.validateForm.get('RequestDate')?.enable();
-      console.log('Status changed - RequestDate enabled');
     }
   }
 
@@ -1609,6 +1536,117 @@ export class BillExportDetailComponent
       return container;
     };
   }
+
+  // Toggle Product Popup
+  toggleProductPopup(cell: any) {
+    this.currentEditingCell = cell;
+    const cellElement = cell.getElement();
+    const rect = cellElement.getBoundingClientRect();
+    
+    // Calculate position
+    const viewportHeight = window.innerHeight;
+    const popupHeight = 350;
+    const spaceBelow = viewportHeight - rect.bottom;
+    
+    if (spaceBelow >= popupHeight) {
+      this.popupPosition = {
+        top: `${rect.bottom + window.scrollY}px`,
+        left: `${rect.left + window.scrollX}px`
+      };
+    } else {
+      this.popupPosition = {
+        top: `${rect.top + window.scrollY - popupHeight}px`,
+        left: `${rect.left + window.scrollX}px`
+      };
+    }
+    
+    this.showProductPopup = true;
+  }
+
+  // Toggle Project Popup
+  toggleProjectPopup(cell: any) {
+    this.currentEditingCell = cell;
+    const cellElement = cell.getElement();
+    const rect = cellElement.getBoundingClientRect();
+    
+    // Calculate position
+    const viewportHeight = window.innerHeight;
+    const popupHeight = 350;
+    const spaceBelow = viewportHeight - rect.bottom;
+    
+    if (spaceBelow >= popupHeight) {
+      this.popupPosition = {
+        top: `${rect.bottom + window.scrollY}px`,
+        left: `${rect.left + window.scrollX}px`
+      };
+    } else {
+      this.popupPosition = {
+        top: `${rect.top + window.scrollY - popupHeight}px`,
+        left: `${rect.left + window.scrollX}px`
+      };
+    }
+    
+    this.showProjectPopup = true;
+  }
+
+  // Handle Product Selection
+  onProductSelected(selectedProduct: any) {
+    if (!this.currentEditingCell) return;
+    
+    const row = this.currentEditingCell.getRow();
+    const productValue = selectedProduct.value || selectedProduct.ID;
+    
+    // Update row with selected product data
+    row.update({
+      ProductID: productValue,
+      ProductCode: selectedProduct.ProductCode,
+      ProductNewCode: selectedProduct.ProductNewCode,
+      Unit: selectedProduct.Unit || '',
+      TotalInventory: selectedProduct.TotalInventory || 0,
+      ProductName: selectedProduct.ProductName,
+    });
+
+    // Trigger inventory loading if needed
+    const rowData = row.getData();
+    if (this.newBillExport.Status === 2 || this.newBillExport.Status === 6) {
+      this.loadInventoryProjectForRow(rowData);
+    }
+
+    this.showProductPopup = false;
+    this.currentEditingCell = null;
+  }
+
+  // Handle Project Selection
+  onProjectSelected(selectedProject: any) {
+    if (!this.currentEditingCell) return;
+    
+    const row = this.currentEditingCell.getRow();
+    const projectValue = selectedProject.value || selectedProject.ID;
+    
+    // Update row with selected project data
+    row.update({
+      ProjectID: projectValue,
+      ProjectCodeExport: selectedProject.ProjectCode,
+      InventoryProjectIDs: [projectValue],
+    });
+
+    // Trigger inventory loading if needed
+    const rowData = row.getData();
+    if (this.newBillExport.Status === 2 || this.newBillExport.Status === 6) {
+      this.loadInventoryProjectForRow(rowData);
+    }
+
+    this.showProjectPopup = false;
+    this.currentEditingCell = null;
+  }
+
+  // Handle Popup Close
+  onPopupClosed() {
+    this.showProductPopup = false;
+    this.showProjectPopup = false;
+    this.currentEditingCell = null;
+  }
+
   openSerialModal(
     rowData: any,
     row: RowComponent,
@@ -1629,7 +1667,6 @@ export class BillExportDetailComponent
 
     modalRef.result.then(
       (serials: { ID: number; Serial: string }[]) => {
-        console.log('Serials returned:', serials);
         if (Array.isArray(serials) && serials.length > 0) {
           const serialsID = serials.map((s) => s.ID).join(',');
           row.update({ SerialNumber: serialsID });
@@ -1639,13 +1676,11 @@ export class BillExportDetailComponent
         }
       },
       (reason) => {
-        console.log('Modal dismissed:', reason);
       }
     );
   }
 
   drawTable() {
-    console.log('data', this.dataTableBillExportDetail);
     if (this.table_billExportDetail) {
       this.table_billExportDetail.replaceData(this.dataTableBillExportDetail);
     } else {
@@ -1682,14 +1717,8 @@ export class BillExportDetailComponent
                   nzOnOk: () => {
                     const row = cell.getRow();
                     const rowData = row.getData();
-                    console.log('Row Data:', rowData);
-                    console.log('ID to delete:', rowData['ID']);
                     if (rowData['ID']) {
                       this.deletedDetailIds.push(rowData['ID']);
-                      console.log(
-                        'Updated deletedDetailIds:',
-                        this.deletedDetailIds
-                      );
                     }
                     row.delete();
                   },
@@ -1724,16 +1753,6 @@ export class BillExportDetailComponent
             hozAlign: 'left',
             headerHozAlign: 'center',
             width: 450,
-            editor: this.createdControl(
-              SelectControlComponent,
-              this.injector,
-              this.appRef,
-              () => this.productOptions,
-              {
-                valueField: 'value',
-                labelField: 'label',
-              }
-            ),
             formatter: (cell) => {
               const val = cell.getValue();
               if (!val) {
@@ -1757,30 +1776,8 @@ export class BillExportDetailComponent
               // Chỉ hiển thị ProductCode khi đã chọn
               return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${productCode}</p> <i class="fas fa-angle-down"></i></div>`;
             },
-            cellEdited: (cell) => {
-              const row = cell.getRow();
-              const newValue = cell.getValue();
-              const selectedProduct = this.productOptions.find(
-                (p: any) => p.value === newValue
-              );
-              if (selectedProduct) {
-                row.update({
-                  ProductCode: selectedProduct.ProductCode,
-                  ProductNewCode: selectedProduct.ProductNewCode,
-                  Unit: selectedProduct.Unit || '',
-                  TotalInventory: selectedProduct.TotalInventory || 0,
-                  ProductName: selectedProduct.ProductName,
-                });
-
-                // treeList1_CellValueChanged: if (e.Column.FieldName == "ProductID")
-                const rowData = row.getData();
-                if (
-                  this.newBillExport.Status === 2 ||
-                  this.newBillExport.Status === 6
-                ) {
-                  this.loadInventoryProjectForRow(rowData);
-                }
-              }
+            cellClick: (e, cell) => {
+              this.toggleProductPopup(cell);
             },
           },
           {
@@ -1839,16 +1836,6 @@ export class BillExportDetailComponent
             hozAlign: 'left',
             headerHozAlign: 'center',
             width: 200,
-            editor: this.createdControl(
-              SelectControlComponent,
-              this.injector,
-              this.appRef,
-              () => this.projectOptions,
-              {
-                valueField: 'value',
-                labelField: 'label',
-              }
-            ),
             formatter: (cell) => {
               const val = cell.getValue();
               if (!val) {
@@ -1870,26 +1857,8 @@ export class BillExportDetailComponent
               const projectName = project ? project.ProjectCode || project.label : val;
               return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${projectName}</p> <i class="fas fa-angle-down"></i></div>`;
             },
-            cellEdited: (cell) => {
-              const row = cell.getRow();
-              const newValue = cell.getValue();
-              const selectedProject = this.projectOptions.find(
-                (p: any) => p.value === newValue
-              );
-              if (selectedProject) {
-                row.update({
-                  ProjectCodeExport: selectedProject.ProjectCode,
-                  InventoryProjectIDs: [newValue],
-                });
-                // treeList1_CellValueChanged: if (e.Column.FieldName == "ProjectCodeExport")
-                const rowData = row.getData();
-                if (
-                  this.newBillExport.Status === 2 ||
-                  this.newBillExport.Status === 6
-                ) {
-                  this.loadInventoryProjectForRow(rowData);
-                }
-              }
+            cellClick: (e, cell) => {
+              this.toggleProjectPopup(cell);
             },
           },
           {
@@ -2825,7 +2794,6 @@ export class BillExportDetailComponent
         ),
         DeletedDetailIds: this.deletedDetailIds || [],
       };
-      console.log('Payload:', payload);
       this.billExportService.saveBillExport(payload).subscribe({
         next: (res) => {
           if (res.status === 1) {

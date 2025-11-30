@@ -47,7 +47,6 @@ import { ProjectTypeDetailFolderComponent } from '../project-type-form/project-t
 import { debounceTime } from 'rxjs';
 import { NgZone } from '@angular/core';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
-
 import {
   AbstractControl,
   FormBuilder,
@@ -245,6 +244,7 @@ export class ProjectTypeComponent implements OnInit, AfterViewInit {
   //Khởi tạo tree folder
   drawTbFolderTree(container: HTMLElement) {
     this.tb_folderTree = new Tabulator(container, {
+      ...DEFAULT_TABLE_CONFIG,
       height: '89vh',
       layout: 'fitColumns',
       dataTree: true,
@@ -317,7 +317,7 @@ export class ProjectTypeComponent implements OnInit, AfterViewInit {
     // console.log("status: " + status);
     if (status == 1) {
       if (selectedIDs.length != 1) {
-        this.notification.error('', this.createdText('Vui lòng chọn dự án!'), {
+        this.notification.warning('Thông báo', this.createdText('Vui lòng chọn dự án!'), {
           nzStyle: { fontSize: '0.75rem' },
         });
         return;
@@ -345,8 +345,8 @@ export class ProjectTypeComponent implements OnInit, AfterViewInit {
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
 
     if (selectedIDs.length <= 0) {
-      this.notification.error(
-        '',
+      this.notification.warning(
+        'Thông báo',
         this.createdText('Vui lòng chọn ít nhất 1 kiểu dự án để xóa!'),
         {
           nzStyle: { fontSize: '0.75rem' },
@@ -378,7 +378,7 @@ export class ProjectTypeComponent implements OnInit, AfterViewInit {
             this.searchProjects();
           },
           error: (error:any) => {
-            this.notification.error('', error.error.message, {
+            this.notification.error('Thông báo', error.error.message, {
               nzStyle: { fontSize: '0.75rem' },
             });
             console.error('Lỗi:', error);
@@ -394,8 +394,8 @@ export class ProjectTypeComponent implements OnInit, AfterViewInit {
       (row: any) => row.getData().ID
     );
     if (selectedProjectIDs.length !== 1) {
-      this.notification.error(
-        '',
+      this.notification.warning(
+        'Thông báo',
         this.createdText('Vui lòng chọn 1 kiểu dự án!'),
         {
           nzStyle: { fontSize: '0.75rem' },
@@ -448,7 +448,7 @@ export class ProjectTypeComponent implements OnInit, AfterViewInit {
     let selectedRows = this.tb_folderTree.getSelectedRows();
     let selectedIDs = selectedRows.map((row: any) => row.getData().ID);
     if (selectedIDs.length <= 0) {
-      this.notification.error(
+      this.notification.warning(
         'Thông báo','Vui lòng chọn ít nhất 1 folder để xóa!'
       );
       return;
@@ -475,7 +475,7 @@ export class ProjectTypeComponent implements OnInit, AfterViewInit {
             this.getFolderByProjectType();
           },
           error: (error:any) => {
-            this.notification.error('', this.createdText('Lỗi xóa folder!'), {
+            this.notification.error('Thông báo', error.error.message, {
               nzStyle: { fontSize: '0.75rem' },
             });
             console.error('Lỗi:', error);

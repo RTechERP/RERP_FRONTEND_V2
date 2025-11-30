@@ -1,67 +1,128 @@
 <div class="modal-header bg-primary p-2">
-  <h6 class="modal-title text-white" id="priceRequestModalLabel">
-    CHI TIẾT BÁO GIÁ
-  </h6>
-  <button
-    type="button"
-    class="btn-close"
-    aria-label="Close"
-    (click)="close()"
-  ></button>
+  <h6 class="modal-title text-white">CHI TIẾT YÊU CẦU</h6>
+  <button type="button" class="btn-close btn-close-white" aria-label="Close" (click)="close()"></button>
 </div>
 
-<div class="modal-body">
-  <form class="row g-3">
-    <div class="col-md-6">
-      <label for="requesterSelect" class="form-label"> Người yêu cầu </label>
-      <nz-form-item>
-        <nz-form-control [nzSpan]="24">
-          <nz-select
-            id="requesterSelect"
-            [(ngModel)]="requester"
-            name="requesterId"
-            nzShowSearch
-            nzAllowClear
-            nzPlaceHolder="Chọn người yêu cầu"
-            [nzServerSearch]="true"
-            (nzSearchChange)="requesterSearchChange($event)"
-            [nzNotFoundContent]="notFoundContent"
-            [nzLoading]="requesterLoading"
-          >
-            <nz-option
-              class="cdk-overlay-container"
-              *ngFor="let item of users"
-              [nzValue]="item.ID"
-              [nzLabel]="item.FullName"
-            ></nz-option>
-          </nz-select>
-        </nz-form-control>
-      </nz-form-item>
-    </div>
-    <div class="col-md-6">
-      <label for="requestDate" class="form-label"> Ngày yêu cầu </label>
-      <input
-        id="requestDate"
-        type="date"
-        class="form-control fs-12"
-        [(ngModel)]="requestDate"
-        name="requestDate"
-      />
-    </div>
+<div class="modal-body p-1" style="max-height: 70vh; overflow-y: auto; overflow-x: hidden;">
+  <form nz-form class="row g-3">
+    <nz-row [nzGutter]="16" class="mt-2">
+      <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8">
+        <nz-form-item class="col-md-12">
+          <nz-form-label [nzSpan]="24">Người yêu cầu<span class="text-danger ps-1 me-1"> (*)
+            </span>
+          </nz-form-label>
+          <nz-form-control [nzSpan]="24" [nzErrorTip]="'Chọn người yêu cầu'">
+            <nz-input-group required nzSearch nzSize="default" class="w-100">
+              <nz-select
+                nzSize="default"
+                id="requesterSelect"
+                [(ngModel)]="requester"
+                name="requesterId"
+                nzPlaceHolder="Chọn người yêu cầu"
+                class="fs-12 w-100"
+                required
+                nzShowSearch
+                nzAllowClear
+                [nzServerSearch]="true"
+                (nzSearchChange)="requesterSearchChange($event)"
+                [nzNotFoundContent]="notFoundContent"
+                [nzLoading]="requesterLoading"
+                [nzDisabled]="isEditMode"
+              >
+                <nz-option-group *ngFor="let group of employeeGroups" [nzLabel]="group.department">
+                  <nz-option
+                    class="cdk-overlay-container"
+                    *ngFor="let item of group.items"
+                    [nzValue]="item.ID"
+                    [nzLabel]="item.Code + ' - ' + item.FullName"
+                  ></nz-option>
+                </nz-option-group>
+              </nz-select>
+            </nz-input-group>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+      <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8">
+        <nz-form-item class="col-md-12">
+          <nz-form-label [nzSpan]="24">Ngày yêu cầu<span class="text-danger ps-1 me-1"> (*)
+            </span>
+          </nz-form-label>
+          <nz-form-control [nzSpan]="24" [nzErrorTip]="'Chọn ngày yêu cầu'">
+            <nz-date-picker
+              [(ngModel)]="requestDate"
+              name="requestDate"
+              nzFormat="dd/MM/yyyy"
+              nzSize="default"
+              style="width: 100%"
+              nzPlaceHolder="Chọn ngày yêu cầu"
+            ></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+      <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8">
+        <nz-form-item class="col-md-12">
+          <nz-form-label [nzSpan]="24">Loại yêu cầu<span class="text-danger ps-1 me-1"> (*)
+            </span>
+          </nz-form-label>
+          <nz-form-control [nzSpan]="24" [nzErrorTip]="'Chọn loại yêu cầu'">
+            <nz-select
+              nzSize="default"
+              id="priceRequestTypeSelect"
+              [(ngModel)]="priceRequestTypeID"
+              name="priceRequestTypeID"
+              (ngModelChange)="onPriceRequestTypeChange($event)"
+              nzPlaceHolder="Chọn loại yêu cầu"
+              class="fs-12 w-100"
+              required
+              [nzLoading]="priceRequestTypeLoading"
+            >
+              <nz-option
+                *ngFor="let item of priceRequestTypes"
+                [nzValue]="item.ID"
+                [nzLabel]="item.RequestTypeName"
+              ></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </nz-col>
+    </nz-row>
+    
+    <nz-row [nzGutter]="5" class="mt-2">
+      <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="24">
+        <div class="d-flex gap-2 mb-1">
+          <!-- <button nz-button nzType="primary" nzSize="small" (click)="addRow()">
+            <nz-icon nzType="plus"></nz-icon>
+            Thêm dòng
+          </button> -->
+        </div>
+        <div #table class="w-100 mt-2"></div>
+      </nz-col>
+    </nz-row>
   </form>
-
-  <button class="btn btn-sm btn-primary mt-3" (click)="addRow()">
-    + Thêm dòng
-  </button>
-
-  <div #table class="mt-2"></div>
+</div>
+<div class="modal-footer">
+  <button nz-button nzType="default" nzDanger (click)="close()">Đóng</button>
+  <button nz-button nzType="primary" (click)="saveAndClose()">Lưu</button>
 </div>
 
-<div class="modal-footer">
-  <button type="button" class="btn btn-outline-danger" (click)="close()">
-    Đóng
-  </button>
-  <button type="button" class="btn btn-primary" (click)="saveAndClose()">
-    Lưu dữ liệu
-  </button>
+<!-- Template cho popup table
+<ng-template #childTableTemplate let-row="row">
+  <div class="child-tabulator"></div>
+</ng-template>
+
+ <ng-container #vcHost></ng-container> -->
+
+ <div *ngIf="showProductPopup" 
+     style="position: fixed; z-index: 10000; min-width: 500px; max-width: 700px;"
+     [style.top]="productPopupPosition.top"
+     [style.left]="productPopupPosition.left">
+  <app-tabulator-popup
+    [data]="dtProductSale"
+    [columns]="productColumns"
+    [searchFields]="productSearchFields"
+    [searchPlaceholder]="'Tìm kiếm sản phẩm...'"
+    [height]="'300px'"
+    (rowSelected)="onProductSelected($event)"
+    (closed)="onPopupClosed()"
+  ></app-tabulator-popup>
 </div>

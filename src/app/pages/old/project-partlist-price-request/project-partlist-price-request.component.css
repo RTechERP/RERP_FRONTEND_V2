@@ -28,3 +28,19 @@
 ::ng-deep .ant-select-selection-item {
   color: black !important;
 }
+#customTabContent{
+  height: 90vh;
+}
+.table-container{
+  height: 90vh;
+}
+
+.card-header {
+  overflow-x: auto;
+}
+
+.card-header .d-flex {
+  flex-wrap: nowrap;
+  min-width: fit-content;
+}
+

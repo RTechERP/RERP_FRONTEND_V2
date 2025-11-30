@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild, Input } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, Inject, Optional } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { CommonModule } from '@angular/common';
@@ -60,9 +60,10 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
     private historyImportExportService: HistoryImportExportService,
     private notification: NzNotificationService,
     private modal: NzModalService,
-    private modalService: NgbModal
+    private modalService: NgbModal,
+    @Optional() @Inject('tabData') private tabData: any
   ) {}
-@Input() warehouseCode: string = 'HN';
+warehouseCode: string = 'HN';
   cbbStatus: any = [
     { ID: -1, Name: '--Tất cả--' },
     { ID: 0, Name: 'Phiếu nhập' },
@@ -86,6 +87,9 @@ export class HistoryImportExportComponent implements OnInit, AfterViewInit {
     pageSize: 100000,
   };
   ngOnInit(): void {
+    if (this.tabData?.warehouseCode) {
+      this.warehouseCode = this.tabData.warehouseCode;
+    }
     this.loadData();
   }
   ngAfterViewInit(): void {

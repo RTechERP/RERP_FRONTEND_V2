@@ -5,6 +5,7 @@ import {
   ViewChild,
   Inject,
   Optional,
+  ElementRef,
 } from '@angular/core';
 import { NgbModal, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
@@ -97,6 +98,9 @@ interface BillImport {
   styleUrl: './bill-import.component.css',
 })
 export class BillImportComponent implements OnInit, AfterViewInit {
+  @ViewChild('tableBillImportRef', { static: true }) tableBillImportRef!: ElementRef;
+  @ViewChild('tableBillImportDetailRef', { static: true }) tableBillImportDetailRef!: ElementRef;
+  
   constructor(
     private billImportService: BillImportServiceService,
     private notification: NzNotificationService,
@@ -172,6 +176,8 @@ export class BillImportComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     if (this.tabData?.warehouseCode) {
       this.wareHouseCode = this.tabData.warehouseCode;
+      // Cập nhật searchParams với giá trị từ tabData
+      this.searchParams.warehousecode = this.wareHouseCode;
     }
     this.getProductGroup();
   }
@@ -995,7 +1001,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
     if (this.table_billImport) {
       this.table_billImport.setData();
     } else {
-      this.table_billImport = new Tabulator('#table_billImport', {
+      this.table_billImport = new Tabulator(this.tableBillImportRef.nativeElement, {
         ...DEFAULT_TABLE_CONFIG,
         paginationMode: 'remote',
         ajaxURL: 'dummy',
@@ -1004,6 +1010,7 @@ export class BillImportComponent implements OnInit, AfterViewInit {
             this.isLoadTable = true;
             const updatedParams = {
               ...this.searchParams,
+
               pageNumber: params.page || 1,
               pageSize: params.size || 50,
             };
@@ -1434,7 +1441,7 @@ formatter: function (cell: any) {
     if (this.table_billImportDetail) {
       this.table_billImportDetail.replaceData(this.dataTableBillImportDetail);
     } else {
-      this.table_billImportDetail = new Tabulator('#table_billimportdetail', {
+      this.table_billImportDetail = new Tabulator(this.tableBillImportDetailRef.nativeElement, {
         ...DEFAULT_TABLE_CONFIG,
         data: this.dataTableBillImportDetail,
         layout: 'fitDataStretch',

@@ -86,7 +86,7 @@
             </button>
             <button nz-button nzType="default" nzSize="small"
               (click)=" openModalBillImportDetail(false)">
-              <img class="btn-action-icon" src="assets/icon/action_add_24.svg" *hasPermission="'N27,N1,N33,N34,N69'" alt="Thêm" /> Thêm
+              <img class="btn-action-icon" src="assets/icon/action_add_item_16.png" *hasPermission="'N27,N1,N33,N34,N69'" alt="Thêm" /> Thêm
             </button>
             <button class="btn-edit" nz-button nzType="default" nzSize="small" *hasPermission="'N27,N1,N33,N34,N69'"
               (click)=" openModalBillImportDetail(true)">
@@ -97,22 +97,22 @@
             </button>
             |
             <button class="fs-12 btn" nz-button nzType="default" nzSize="small" *hasPermission="'N11,N50,N1'" (click)="IsApproved(true)">
-              <img class="btn-action-icon"src="assets/icon/contract.png" alt="Nhận chứng từ" /> Nhận chứng từ
+              <img class="btn-action-icon" src="assets/icon/action_check_24.svg" alt="Nhận chứng từ" /> Nhận chứng từ
             </button>
             <button class="fs-12 btn" nz-button nzType="default" nzSize="small" *hasPermission="'N11,N1,N18'" (click)="IsApproved(false)">
-              <img class="btn-action-icon"src="assets/icon/reject.png" alt="Hủy chứng từ" /> Hủy chứng từ
+              <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" alt="Hủy chứng từ" /> Hủy chứng từ
             </button>
             <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="onExportExcel()">
-              <img class="btn-action-icon"src="assets/icon/excel.png" alt="Xuất Excel" /> Xuất Excel
+              <img class="btn-action-icon" src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" /> Xuất Excel
             </button>
             <button class="fs-12 btn" nz-button nzType="default" nzSize="small" *hasPermission="'N27,N1,N33,N34,N69'" (click)="convertExport()">
               <img class="btn-action-icon" src="assets/icon/export_warehouse.png" alt="Xuất hàng"  /> Xuất hàng
             </button>
             <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="onExportExcelKT()">
-              <img class="btn-action-icon" src="assets/icon/excel.png" alt="Excel KT" /> Excel KT
+              <img class="btn-action-icon" src="assets/icon/action_export_excel_16.png" alt="Excel KT" /> Excel KT
             </button>
             <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
-              <img class="btn-action-icon" src="assets/icon/export_list.png" alt="Xuất danh sách" /> Xuất danh sách
+              <img class="btn-action-icon" src="assets/icon/action_export_excel_16.png" alt="Xuất danh sách" /> Xuất danh sách
             </button>
             <!-- <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="addAttachment()">
                             <nz-icon nzType="file-add" nzTheme="outline" /> Thêm file
@@ -121,7 +121,7 @@
                             <nz-icon nzType="close-square" nzTheme="outline" /> Xóa file
                         </button> -->
             <button class="fs-12 btn" nz-button nzType="default" nzSize="small" (click)="openFolderTree()">
-              <nz-icon nzType="folder-open" nzTheme="outline" /> Cây thư mục
+              <img class="btn-action-icon" src="assets/icon/tree_folder_16.png" alt="Cây thư mục" /> Cây thư mục
             </button>
             <button class="fs-12 btn" nz-button nzType="default" nzSize="small" *hasPermission="'N52,N36,N1,N34'"
               (click)=" openModalBillDocumentImport()">
@@ -142,7 +142,7 @@
               <!-- <div id="table_billImport"></div> -->
               <div class="position-relative h-100">
 
-                <div id="table_billImport" style="height: 100%;"></div>
+                <div #tableBillImportRef style="height: 100%;"></div>
               </div>
             </nz-splitter-panel>
 
@@ -158,7 +158,7 @@
 
                 <nz-tab  nzTitle="Thông tin phiếu nhập">
                   <nz-spin [nzSpinning]="isDetailLoad" nzTip="Đang tải dữ liệu...">
-                    <div id="table_billimportdetail"></div>
+                    <div #tableBillImportDetailRef></div>
                   </nz-spin>
                 </nz-tab>
               </nz-tabset>

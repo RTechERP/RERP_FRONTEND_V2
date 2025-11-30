@@ -107,7 +107,7 @@
     <nz-splitter-panel nzResizable="false" [nzMin]="20" [nzMax]="80">
       <nz-tabset class="borrow-tab custom-tab-title">
         <nz-tab nzTitle="Danh sách Mượn">
-          <div id="tbBorrow" style="height: 100%; width: 100%;"></div>
+          <div #tbBorrowRef style="height: 100%; width: 100%;"></div>
         </nz-tab>
       </nz-tabset>
     </nz-splitter-panel>
@@ -119,7 +119,7 @@
         <nz-splitter-panel nzResizable="true" [nzMin]="20" [nzMax]="80">
           <nz-tabset class="export-tab custom-tab-title">
             <nz-tab nzTitle="Danh sách Xuất">
-              <div id="tbExport" style="height: 100%; width: 100%;"></div>
+              <div #tbExportRef style="height: 100%; width: 100%;"></div>
             </nz-tab>
           </nz-tabset>
         </nz-splitter-panel>
@@ -128,7 +128,7 @@
         <nz-splitter-panel nzResizable="false" [nzMin]="20" [nzMax]="80">
           <nz-tabset class="import-tab custom-tab-title">
             <nz-tab nzTitle="Danh sách Nhập">
-              <div id="tbImport" style="height: 100%; width: 100%;"></div>
+              <div #tbImportRef style="height: 100%; width: 100%;"></div>
             </nz-tab>
           </nz-tabset>
         </nz-splitter-panel>

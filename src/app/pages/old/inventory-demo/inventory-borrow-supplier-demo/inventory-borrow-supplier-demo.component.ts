@@ -1,5 +1,5 @@
 import { NzNotificationService } from 'ng-zorro-antd/notification'
-import { Component, OnInit, Input, Output, EventEmitter, inject, AfterViewInit } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, inject, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { DateTime } from 'luxon';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -48,6 +48,7 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
   styleUrls: ['./inventory-borrow-supplier-demo.component.css']
 })
 export class InventoryBorrowSupplierDemoComponent implements OnInit, AfterViewInit {
+  @ViewChild('dataTableProductInventoryDemoRef', { static: true }) dataTableProductInventoryDemoRef!: ElementRef;
   @Output() closeModal = new EventEmitter<void>();
   private ngbModal = inject(NgbModal);
   public activeModal = inject(NgbActiveModal, { optional: true });
@@ -202,7 +203,7 @@ export class InventoryBorrowSupplierDemoComponent implements OnInit, AfterViewIn
       }
       return menu;
     };
-    this.productTable = new Tabulator('#dataTableProductInventoryDemo', {
+    this.productTable = new Tabulator(this.dataTableProductInventoryDemoRef.nativeElement, {
       layout: "fitDataStretch",
       pagination: true,
       selectableRows: 5,

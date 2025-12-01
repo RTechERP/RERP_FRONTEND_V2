@@ -42,11 +42,10 @@
                 placeholder="Nhập từ khóa"
                 style="width: 250px"
                 [(ngModel)]="keyword"
-                (keyup.enter)="getAllMeetingType()"
+                (keyup.enter)="onsearch()"
+                (ngModelChange)="onsearch()"
               />
-              <button nz-button nzType="default" nzSize="small" (click)="getAllMeetingType()" class="btn">
-                <nz-icon nzType="search" />
-              </button>
+
             </div>
           </div>
           <div

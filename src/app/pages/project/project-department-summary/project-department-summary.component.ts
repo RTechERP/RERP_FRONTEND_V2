@@ -249,7 +249,7 @@ getUserTeam() {
       this.searchParams.departmentID,
       this.searchParams.userID,
       this.searchParams.projectTypeID, 
-      this.searchParams.keyword,
+      this.searchParams.keyword.trim() ? this.searchParams.keyword.trim() : '',
       this.searchParams.userTeamID).subscribe({
       next: (res:any) => {
         if (res.status===1) {

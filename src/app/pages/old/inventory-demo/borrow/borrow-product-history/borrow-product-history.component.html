@@ -30,7 +30,7 @@
               <nz-form-label class="fs-12" [nzSpan]="24">Nhân viên</nz-form-label>
               <nz-form-control [nzSpan]="24">
                 <nz-select class="w-100" nzShowSearch nzPlaceHolder="Chọn nhân viên" [(ngModel)]="userID" name="userID"
-                  (ngModelChange)="onEmployeeChange($event)" >
+                  (ngModelChange)="onEmployeeChange($event)">
                   <ng-container *ngFor="let group of employees">
                     <nz-option-group [nzLabel]="'-- Phòng ban: ' + group.label">
                       <nz-option *ngFor="let option of group.options"
@@ -41,13 +41,12 @@
                 </nz-select>
               </nz-form-control>
             </nz-form-item>
-           
+
             <nz-form-item class="mt-2">
               <nz-form-label class="fs-12" [nzSpan]="24">Trạng thái</nz-form-label>
               <nz-form-control [nzSpan]="24">
-                <nz-select [(ngModel)]="selectedStatus" (ngModelChange)="onStatusChange($event)"
-                  [nzMode]="'multiple'" [nzPlaceHolder]="'Chọn trạng thái'" [nzMaxTagCount]="1"
-                  class="w-100" name="selectedStatus">
+                <nz-select [(ngModel)]="selectedStatus" (ngModelChange)="onStatusChange($event)" [nzMode]="'multiple'"
+                  [nzPlaceHolder]="'Chọn trạng thái'" [nzMaxTagCount]="1" class="w-100" name="selectedStatus">
                   <nz-option nzLabel="Đã trả" nzValue="0"></nz-option>
                   <nz-option nzLabel="Đang mượn" nzValue="1"></nz-option>
                   <nz-option nzLabel="Thiết bị đã mất" nzValue="2"></nz-option>
@@ -81,51 +80,58 @@
             <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
               <nz-icon nzType="search" />
             </button>
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="productHistoryDetail()">
-              <nz-icon nzType="plus-square" nzTheme="outline" /> Đăng ký mượn
+            <button nz-button nzSize="small" class="fs-12 button button-succes btn-add"
+              (click)="productHistoryDetail()">
+              <img src="assets/icon/action_add_item_16.png" alt="Thêm mới " />
+              Đăng ký mượn
             </button>
             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="returnProduct()">
-              <nz-icon nzType="rollback" nzTheme="outline" /> Trả thiết bị
+              <img src="assets/icon/return_16.png" alt="Trả thiết bị" class="me-1" /> Trả thiết bị
             </button>
             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="approveBorrowing()">
-              <nz-icon nzType="file-done" nzTheme="outline" /> Duyệt mượn
+              <img src="assets/icon/action_approved_16.png" alt="Duyệt mượn" class="me-1" /> Duyệt mượn
             </button>
             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="refresh()">
-              <nz-icon nzType="reload" nzTheme="outline" /> Làm mới
+              <img src="assets/icon/refresh_16.png" alt="làm mới" class="me-1" /> Làm mới
             </button>
             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="editBorrower()">
-              <nz-icon nzType="edit" nzTheme="outline" /> Sửa người mượn
+              <img src="assets/icon/person_edit_16.png" alt="làm mới" class="me-1" /> Sửa người mượn
             </button>
             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="expiredProduct()">
-              <nz-icon nzType="warning" nzTheme="outline" /> Quá hạn
+              <img src="assets/icon/expire_16.png" alt="làm mới" class="me-1" /> Quá hạn
             </button>
-
-            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="exportExcel()">
-              <nz-icon nzType="file-excel" nzTheme="outline" /> Xuất excel
+              <button
+              class="fs-12"
+              nz-button
+              nzType="default"
+              nzSize="small"
+              (click)="exportExcel()"
+            >
+                <img src="assets/icon/action_export_excel_16.png" alt="Xuất Excel" class="me-1" /> Xuất Excel
             </button>
             <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="historyError()">
-              <nz-icon nzType="alert" nzTheme="outline" />Danh sách lỗi
+              <img src="assets/icon/error_list_16.png" alt="làm mới" class="me-1" /> Danh sách lỗi
             </button>
 
-            <!-- INTEGRATION: Nút Xuất chỉ hiển thị khi mở từ bill import technical -->
-            <button *ngIf="isModalMode" class="fs-12" nz-button nzType="primary" nzSize="small" (click)="exportSelectedProducts()">
-              <nz-icon nzType="export" nzTheme="outline" /> Xuất
-            </button>
-
-            <span class="ms-auto">
-              <nz-form-label style="text-align: right;padding-right: 5px;"><span>Gia hạn đến: </span></nz-form-label>
-              <nz-date-picker name="dateExtend" [(ngModel)]="dateExtend" class="fs-12 w-40" nzSize="small"
-                nzFormat="dd/MM/yyyy" nzAllowClear="false"></nz-date-picker>
-              <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="extendBorrowing()">
-                <nz-icon nzType="clock-circle" nzTheme="outline" /> Gia hạn
+              <!-- INTEGRATION: Nút Xuất chỉ hiển thị khi mở từ bill import technical -->
+              <button *ngIf="isModalMode" class="fs-12" nz-button nzType="primary" nzSize="small"
+                (click)="exportSelectedProducts()">
+                <nz-icon nzType="export" nzTheme="outline" /> Xuất
               </button>
-            </span>
 
+              <span class="ms-auto d-flex align-items-center gap-1">
+                <nz-form-label class="mb-0" style="text-align: right;padding-right: 5px;"><span>Gia hạn đến: </span></nz-form-label>
+                <nz-date-picker name="dateExtend" [(ngModel)]="dateExtend" class="fs-12" nzSize="small"
+                  nzFormat="dd/MM/yyyy" nzAllowClear="false"></nz-date-picker>
+                <button type="button" nz-button nzType="primary" nzSize="small" (click)="extendBorrowing()">
+                  Gia hạn
+                </button>
+              </span>
+            </div>
           </div>
         </div>
         <div class="card-body p-0">
           <div #tb_productHistory></div>
-        </div>
       </div>
     </nz-splitter-panel>
   </nz-splitter>

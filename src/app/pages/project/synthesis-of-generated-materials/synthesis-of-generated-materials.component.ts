@@ -314,7 +314,7 @@ export class SynthesisOfGeneratedMaterialsComponent
         ? DateTime.fromJSDate(new Date(this.dateEnd)).toISO()
         : null,
       projectId: this.projectId ? this.projectId : 0,
-      keyword: this.keyword ? this.keyword : '',
+    keyword: this.keyword.trim() ? this.keyword.trim() : '',
     };
 
     this.projectService.getSynthesisOfGeneratedMaterials(data).subscribe({

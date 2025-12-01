@@ -683,7 +683,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       dateTimeE: DateTime.fromJSDate(new Date(this.dateEnd))
         .set({ hour: 23, minute: 59, second: 59 })
         .toFormat('yyyy-MM-dd HH:mm:ss'),
-      keyword: this.keyword || '',
+      keyword: this.keyword.trim() || '',
       customerID: this.customerId || 0,
       saleID: this.userId || 0,
       projectType: projectTypeStr || '',
@@ -1129,7 +1129,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        this.notification.error('Thông báo', 'Lỗi khi mở thư mục dự án!');
+        this.notification.error('Thông báo', error.error.message || 'Lỗi khi mở thư mục dự án!');
         console.error('Lỗi:', error);
       }
     });
@@ -1161,11 +1161,11 @@ export class ProjectComponent implements OnInit, AfterViewInit {
     modalRef.result.catch((reason) => {
       if (reason == true) {
         if (status == 0) {
-          this.notification.success('Thông báo', this.createdText('Đã thêm dự án tahnfh c!'), {
+          this.notification.success('Thông báo', this.createdText('Đã thêm dự án thành công!'), {
             nzStyle: { fontSize: '0.75rem' },
           });
         } else {
-          this.notification.success('Cập nhật', this.createdText('Đã sửa dự án! thành công'), {
+          this.notification.success('Cập nhật', this.createdText('Đã sửa dự án thành công'), {
             nzStyle: { fontSize: '0.75rem' },
           });
         }

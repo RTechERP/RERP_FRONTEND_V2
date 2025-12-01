@@ -321,7 +321,7 @@ export class MeetingMinuteComponent implements OnInit, AfterViewInit {
     const DateEnd = DateTime.fromJSDate(new Date(this.searchParams.DateEnd));
     this.meetingMinuteService
       .getMeetingMinutes(
-        this.searchParams.Keywords,
+        this.searchParams.Keywords.trim() || '',
         this.toLocalISOString(this.searchParams.DateStart),
         this.toLocalISOString(this.searchParams.DateEnd),
         this.searchParams.MeetingTypeID

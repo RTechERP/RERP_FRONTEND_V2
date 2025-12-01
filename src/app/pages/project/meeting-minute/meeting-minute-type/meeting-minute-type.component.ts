@@ -141,6 +141,44 @@ export class MeetingMinuteTypeComponent implements OnInit, AfterViewInit{
       },
     });
   }
+
+  onsearch() {
+    if (!this.tb_meetingMinuteType) {
+      return;
+    }
+
+    // Nếu keyword rỗng, xóa filter
+    if (!this.keyword || this.keyword.trim() === '') {
+      this.tb_meetingMinuteType.clearFilter();
+      return;
+    }
+
+    // Áp dụng filter
+    this.applyFilter();
+  }
+
+  private applyFilter() {
+    if (!this.tb_meetingMinuteType) {
+      return;
+    }
+
+    const keyword = this.keyword.trim().toLowerCase();
+
+    // Sử dụng custom filter function để tìm kiếm trong nhiều field
+    this.tb_meetingMinuteType.setFilter((data: any) => {
+      // Kiểm tra trong các field: TypeCode, TypeName, TypeContent
+      const typeCode = (data.TypeCode || '').toString().toLowerCase();
+      const typeName = (data.TypeName || '').toString().toLowerCase();
+      const typeContent = (data.TypeContent || '').toString().toLowerCase();
+
+      // Tìm kiếm trong bất kỳ field nào
+      return (
+        typeCode.includes(keyword) ||
+        typeName.includes(keyword) ||
+        typeContent.includes(keyword)
+      );
+    });
+  }
   onDeleteLeaders() {
     const selectedRows = this.tb_meetingMinuteType.getSelectedRows();
     

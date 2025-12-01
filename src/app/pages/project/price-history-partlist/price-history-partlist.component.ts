@@ -127,7 +127,7 @@ export class PriceHistoryPartlistComponent implements OnInit, AfterViewInit{
       projectId: this.projectId ? this.projectId : 0,
       supplierSaleId: this.supplierId ? this.supplierId : 0,
       employeeRequestId: this.employeeRequestId ? this.employeeRequestId : 0,
-      keyword: this.keyword ? this.keyword : '',
+      keyword: this.keyword.trim() ? this.keyword.trim() : '',
     };
 
     this.projectService.getPriceHistoryPartlist(data).subscribe({

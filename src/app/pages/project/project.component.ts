@@ -683,7 +683,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
       dateTimeE: DateTime.fromJSDate(new Date(this.dateEnd))
         .set({ hour: 23, minute: 59, second: 59 })
         .toFormat('yyyy-MM-dd HH:mm:ss'),
-      keyword: this.keyword || '',
+      keyword: this.keyword.trim() || '',
       customerID: this.customerId || 0,
       saleID: this.userId || 0,
       projectType: projectTypeStr || '',

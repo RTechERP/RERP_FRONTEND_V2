@@ -219,7 +219,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
       projectId: this.projectId ? this.projectId : 0,
       technicalId: this.technicalId ? this.technicalId : 0,
       saleId: this.saleId ? this.saleId : 0,
-      keyword: this.keyword ? this.keyword : '',
+      keyword: this.keyword.trim() ? this.keyword.trim() : '',
     };
 
     this.projectService.getDataProjectSurvey(data).subscribe({

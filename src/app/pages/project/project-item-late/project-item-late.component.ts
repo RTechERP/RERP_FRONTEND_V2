@@ -373,7 +373,7 @@ export class ProjectItemLateComponent implements OnInit, AfterViewInit {
       dateEnd: this.dateEnd
         ? DateTime.fromJSDate(new Date(this.dateEnd)).toISO()
         : null,
-      keyword: this.keyword ? this.keyword : '',
+      keyword: this.keyword.trim() ? this.keyword.trim() : '',
     };
 
     this.projectService.getProjectItemLate(data).subscribe({

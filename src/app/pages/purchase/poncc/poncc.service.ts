@@ -146,4 +146,22 @@ export class PONCCService {
   updatePONCC(data: any[]) {
     return this.http.post<any>(`${this.baseUrl}update-poncc`, data);
   }
+
+  // Lấy tổng hợp PO NCC
+  getPONCCSummary(request: {
+    FilterText?: string;
+    DateStart?: string;
+    DateEnd?: string;
+    SupplierID?: number;
+    Status?: number;
+    EmployeeID?: number;
+  }): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}get-po-ncc-summary`, request).pipe(
+      map((res: any) => ({
+        data: Array.isArray(res?.data) ? res.data : res?.data || [],
+        status: res?.status,
+        message: res?.message
+      }))
+    );
+  }
 }

@@ -20,6 +20,7 @@ import { SupplierSaleService } from '../supplier-sale/supplier-sale.service';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { NzSpinComponent } from "ng-zorro-antd/spin";
 import { PonccDetailComponent } from './poncc-detail/poncc-detail.component';
+import { PonccSummaryComponent } from './poncc-summary/poncc-summary.component';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 
 @Component({
@@ -816,5 +817,13 @@ export class PONCCComponent implements OnInit, AfterViewInit {
     window.URL.revokeObjectURL(url);
   }
 
-  
+  onOpenSummary() {
+    const modalRef = this.modalService.open(PonccSummaryComponent, {
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+      windowClass: 'full-screen-modal',
+      size: 'xl',
+    });
+  }
 }

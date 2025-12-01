@@ -7,6 +7,7 @@ export interface PONCCFilter {
   Keyword?: string;
   PageNumber?: number;
   PageSize?: number;
+  POType?: number; // 0=Commercial, 1=Borrow
 }
 
 export interface PONCCSummary {

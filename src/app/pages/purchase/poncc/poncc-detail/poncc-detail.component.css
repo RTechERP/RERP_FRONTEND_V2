@@ -6,6 +6,16 @@
   all: revert;
 }
 
+.ant-splitter-panel {
+  position: relative;
+}
+
+.tabulator {
+  font-size: 0.75rem !important;
+  /* position: absolute !important; */
+  width: 100% !important;
+}
+
 .tabulator-cell {
   padding: 0px;
 }
@@ -49,42 +59,6 @@
   border: none;
 }
 
-.ant-form-item {
+.ant-form-item{
   margin-bottom: 12px;
-}
-
-/* Tabulator table styling */
-.tabulator {
-  font-size: 0.75rem !important;
-  width: 100% !important;
-}
-
-/* Đảm bảo tabset và tab content có chiều cao đầy đủ */
-:host ::ng-deep .ant-tabs {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-:host ::ng-deep .ant-tabs-content-holder {
-  flex: 1;
-  overflow: hidden;
-}
-
-:host ::ng-deep .ant-tabs-tabpane {
-  height: 100%;
-  overflow: hidden;
-}
-
-:host ::ng-deep .ant-splitter {
-  height: 100% !important;
-}
-
-:host ::ng-deep .ant-splitter-panel {
-  overflow: hidden;
-}
-
-/* Detail table container needs to scroll */
-:host ::ng-deep .tabulator-tableholder {
-  overflow: auto !important;
 }

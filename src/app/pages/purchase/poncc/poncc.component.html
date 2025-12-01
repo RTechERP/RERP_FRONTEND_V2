@@ -1,20 +1,61 @@
 <ng-container class="w-100">
-  <nz-splitter nzDirection="vertical">
-    <nz-splitter-panel [nzSize]="'100%'">
-      <nz-splitter>
-        <!-- Master (left) -->
-        <nz-splitter-panel [nzSize]="'55%'">
-          <div class="card h-100 border-0 rounded-0">
-            <div class="card-header bg-white p-1 d-flex align-items-center justify-content-between">
-              <div class="d-flex flex-wrap gap-1 align-items-center">
-                <nz-date-picker nzFormat="dd/MM/yyyy" [(ngModel)]="dateStart" name="dateStart"></nz-date-picker>
-                <nz-date-picker nzFormat="dd/MM/yyyy" [(ngModel)]="dateEnd" name="dateEnd"></nz-date-picker>
-                <nz-select nzShowSearch nzAllowClear class="w-25" [(ngModel)]="supplierId" name="supplier" nzPlaceHolder="Nhà cung cấp">
+  <nz-splitter>
+    <nz-splitter-panel [nzSize]="sizeSearch">
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-1">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="m-0 ms-2">Tìm kiếm</h6>
+            <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+              (click)="toggleSearchPanel()">
+              <nz-icon nzType="close" nzTheme="outline" />
+            </button>
+          </div>
+        </div>
+        <div class="card-body" style="height: 84vh;">
+          <form nz-form nzLayout="vertical">
+            <!-- Date range -->
+            <nz-form-item>
+              <nz-form-label class="fs-12">Từ ngày</nz-form-label>
+              <nz-form-control>
+                <nz-date-picker nzFormat="dd/MM/yyyy" class="w-100" [(ngModel)]="dateStart" nzAllowClear="false"
+                  name="dateStart"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12">Đến ngày</nz-form-label>
+              <nz-form-control>
+                <nz-date-picker nzFormat="dd/MM/yyyy" class="w-100" [(ngModel)]="dateEnd" nzAllowClear="false"
+                  name="dateEnd"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12">Nhà cung cấp</nz-form-label>
+              <nz-form-control>
+                <nz-select nzShowSearch nzAllowClear class="w-100" [(ngModel)]="supplierId" name="supplier"
+                  nzPlaceHolder="Nhà cung cấp">
                   <nz-option *ngFor="let s of suppliers" [nzValue]="s.ID" [nzLabel]="s.NameNCC"></nz-option>
                 </nz-select>
-                <nz-select nzShowSearch nzAllowClear class="w-25" [(ngModel)]="employeeId" name="employee" nzPlaceHolder="Nhân viên mua">
-                  <nz-option *ngFor="let e of employees" [nzValue]="e.ID" [nzLabel]="e.FullName"></nz-option>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12">Nhân viên</nz-form-label>
+              <nz-form-control>
+                <nz-select name="employeeId" [(ngModel)]="employeeId" class="w-100" nzShowSearch nzAllowClear
+                  nzPlaceHolder="--Chọn nhân viên--">
+                  <ng-container *ngFor="let group of employees">
+                    <nz-option-group [nzLabel]="group.label">
+                      <nz-option *ngFor="let option of group.options"
+                        [nzLabel]="option.item.Code +' - '+ option.item.FullName" [nzValue]="option.item.EmployeeID">
+                      </nz-option>
+                    </nz-option-group>
+                  </ng-container>
                 </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12">Trạng thái</nz-form-label>
+              <nz-form-control>
                 <nz-select [(ngModel)]="status" name="status" nzPlaceHolder="Trạng thái">
                   <nz-option [nzValue]="-1" nzLabel="--Tất cả--"></nz-option>
                   <nz-option [nzValue]="0" nzLabel="Đang tiến hành"></nz-option>
@@ -22,43 +63,113 @@
                   <nz-option [nzValue]="2" nzLabel="Đã thanh toán"></nz-option>
                   <nz-option [nzValue]="3" nzLabel="Huỷ"></nz-option>
                 </nz-select>
-                <input nz-input class="w-25" [(ngModel)]="keyword" name="keyword" placeholder="Từ khoá" (keyup.enter)="onSearch()" />
-                <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">Tìm kiếm</button>
-              </div>
-              <div class="d-flex gap-1">
-                <button nz-button nzType="primary" nzSize="small" (click)="onAdd()">
-                  <i nz-icon nzType="plus" nzTheme="outline"></i> Thêm mới
-                </button>
-                <button nz-button nzType="default" nzSize="small" (click)="onEdit()">
-                  <i nz-icon nzType="edit" nzTheme="outline"></i> Sửa
-                </button>
-                <button nz-button nzType="default" nzSize="small" nzDanger (click)="onDelete()">
-                  <i nz-icon nzType="delete" nzTheme="outline"></i> Xóa
-                </button>
-                <button nz-button nzType="default" nzSize="small" (click)="onApprove(true)">Duyệt</button>
-                <button nz-button nzType="default" nzSize="small" (click)="onApprove(false)">Huỷ duyệt</button>
-                <button nz-button nzType="default" nzSize="small" (click)="onRequestImport(1)">Y/C nhập kho HN</button>
-                <button nz-button nzType="default" nzSize="small" (click)="onRequestImport(2)">Y/C nhập kho HCM</button>
-              </div>
-            </div>
-            <div class="card-body p-0">
-              <div #masterContainer class="table-container"></div>
-            </div>
-          </div>
-        </nz-splitter-panel>
+              </nz-form-control>
+            </nz-form-item>
+            <nz-form-item class="mt-2">
+              <nz-form-label class="fs-12">Từ khóa</nz-form-label>
+              <nz-form-control>
+                <input nz-input class="w-100" [(ngModel)]="keyword" name="keyword" placeholder="Từ khoá"
+                  (keyup.enter)="onSearch()" />
+              </nz-form-control>
+            </nz-form-item>
+          </form>
+        </div>
+        <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+          <button nz-button nzType="default" nzSize="small" (click)="resetSearch()">Đặt lại</button>
+          <button nz-button nzType="primary" nzSize="small" (click)="onSearch()">Tìm kiếm</button>
+        </div>
+      </div>
+    </nz-splitter-panel>
 
-        <!-- Detail (right) -->
-        <nz-splitter-panel [nzSize]="'45%'">
-          <div class="card h-100 border-0 rounded-0">
-            <div class="card-header bg-white p-1 d-flex align-items-center justify-content-between">
-              <h6 class="m-0 ms-2">Chi tiết PO NCC</h6>
-            </div>
-            <div class="card-body p-0">
-              <div #detailContainer class="table-container"></div>
-            </div>
+    <nz-splitter-panel nzSize="100%">
+      <div class="card h-100 border-0 rounded-0">
+        <div class="card-header bg-white p-1">
+          <div class="d-flex gap-1">
+            <button nz-button nzType="default" nzSize="small" (click)="toggleSearchPanel()">
+              <nz-icon nzType="search" />
+            </button>
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onAddPoncc()"
+              *hasPermission="'N35,N33,N1'">
+              <img class="btn-action-icon" src="assets/icon/action_add_24.svg" alt="Thêm" />Thêm
+            </button>
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onEditPoncc()"
+              *hasPermission="'N35,N33,N1'">
+              <img class="btn-action-icon" src="assets/icon/action_edit_24.svg" alt="Sửa" />Sửa
+            </button>
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onDeletePoncc()"
+              *hasPermission="'N35,N33,N1'">
+              <img class="btn-action-icon" src="assets/icon/action_delete_24.svg" alt="Xóa" />Xóa
+            </button>
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onApprovePoncc(true)"
+              *hasPermission="'N35,N33,N1'">
+              <img class="btn-action-icon" src="assets/icon/action_check_24.svg" alt="Duyệt" />Duyệt
+            </button>
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onApprovePoncc(false)"
+              *hasPermission="'N35,N33,N1'">
+              <img class="btn-action-icon" src="assets/icon/action_cancle_24.svg" alt="Hủy duyệt" />Hủy duyệt
+            </button>
+            <button class="fs-12" nz-button nzType="default" nzSize="small">
+              <img class="btn-action-icon" src="assets/icon/action_print_24.svg" alt="Hủy duyệt" />In PO
+            </button>
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onCopyPO()"
+              *hasPermission="'N35,N33,N1'">
+              <img class="btn-action-icon" src="assets/icon/action_copy_24.svg" alt="Copy" />Copy
+            </button>
+            <button class="fs-12" nz-button nzType="default" nzSize="small" (click)="onExportToExcel()"
+              *hasPermission="'N35,N33,N1'">
+              <img class="btn-action-icon" src="assets/icon/action_export_excel_24.svg" alt="Xuất excel" />Xuất excel
+            </button>
+            <!-- <button class="fs-12" nz-button nzType="default" nzSize="small" *hasPermission="'N35,N33,N1'">
+              <img class="btn-action-icon" src="assets/icon/action_import_24.svg" alt="Nhập kho" />Nhập kho
+            </button>
+            <button class="fs-12" nz-button nzType="default" nzSize="small" *hasPermission="'N35,N33,N1'">
+              <img class="btn-action-icon" src="assets/icon/action_money_24.svg" alt="Đề nghị thanh toán" />Đề nghị
+              thanh toán
+            </button>
+            <button class="fs-12" nz-button nzType="default" nzSize="small" *hasPermission="'N35,N33,N1'">
+              <img class="btn-action-icon" src="assets/icon/action_summary_24.svg" alt="Tổng hợp" />Tổng hợp
+            </button> -->
           </div>
-        </nz-splitter-panel>
-      </nz-splitter>
+        </div>
+        <div class="card-body p-0 ps-1">
+          <div *ngIf="isLoading">
+            <nz-spin [nzSpinning]="isLoading" nzSimple [style]="{
+              position: 'absolute',
+              top: '0',
+              left: '0',
+              width: '100%',
+              height: '100%',
+              background: 'rgba(255,255,255,0.4)',
+              zIndex: '999',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }"></nz-spin>
+          </div>
+          <nz-splitter nzLayout="vertical">
+            <!-- Panel trên: chứa 2 tab -->
+            <nz-splitter-panel [nzSize]="'65%'">
+              <nz-tabset [(nzSelectedIndex)]="activeTabIndex" (nzSelectedIndexChange)="onTabChange($event)">
+                <nz-tab nzTitle="PO Thương mại">
+                  <div class="tab-content-container">
+                    <div #table_poThuongMai class="tabulator"></div>
+                  </div>
+                </nz-tab>
+                <nz-tab nzTitle="PO Mượn">
+                  <div class="tab-content-container">
+                    <div #table_poMuon class="tabulator"></div>
+                  </div>
+                </nz-tab>
+              </nz-tabset>
+            </nz-splitter-panel>
+
+            <!-- Panel dưới: chi tiết -->
+            <nz-splitter-panel [nzSize]="'35%'">
+              <div #table_ponccdetail style="height: 100%;"></div>
+            </nz-splitter-panel>
+          </nz-splitter>
+        </div>
+      </div>
     </nz-splitter-panel>
   </nz-splitter>
 </ng-container>

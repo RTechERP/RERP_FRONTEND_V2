@@ -131,5 +131,7 @@ export class ProjectPartlistPurchaseRequestService {
     );
   }
 
-
+  validateAddPoncc(items: any[]): Observable<any> {
+    return this.http.post<any>(this.baseUrl + `validate-add-poncc`, items);
+  }
 }

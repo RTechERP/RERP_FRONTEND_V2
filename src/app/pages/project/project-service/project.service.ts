@@ -154,6 +154,10 @@ export class ProjectService {
   getProjectDetails(id: number): Observable<any> {
     return this.http.get<any>(this.urlProject + `get-project-details?id=${id}`);
   }
+  // Mở thư mục dự án
+  openProjectFolder(projectId: number): Observable<any> {
+    return this.http.get<any>(this.urlProject + `open/${projectId}`);
+  }
   // lấy chi tiết dự án
   getProject(id: number): Observable<any> {
     return this.http.get<any>(this.urlProject + `get-project?id=${id}`);
@@ -1054,7 +1058,7 @@ export class ProjectService {
       files.forEach((file) => {
         formData.append('files', file);
       });
-      formData.append('key', 'TrainingRegistration');  //192.268.1.190/duan/Projects
+      formData.append('key', 'Projects');  //192.268.1.190/duan/Projects
       if (subPath && subPath.trim()) {
         formData.append('subPath', subPath.trim());
       }

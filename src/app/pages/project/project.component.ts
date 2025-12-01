@@ -1109,10 +1109,30 @@ export class ProjectComponent implements OnInit, AfterViewInit {
   }
   //#endregion
   openFolder() {
-    window.open(
-      environment.host + 'api/share/software/Template/ExportExcel/',
-      '_blank'
-    );
+    if(this.tb_projects.getSelectedRows().length == 0) {
+      this.notification.error('Thông báo', 'Vui lòng chọn dự án!');
+      return;
+    };
+    let selectedRows = this.tb_projects.getSelectedRows();
+    let projectId = selectedRows[0].getData().ID;
+    
+    this.projectService.openProjectFolder(projectId).subscribe({
+      next: (response: any) => {
+        debugger;
+        if (response.status==1 && response.data) {
+          // Xử lý URL: loại bỏ dấu / đầu tiên nếu có để tránh double slash
+          let path = response.data.startsWith('/') ? response.data.substring(1) : response.data;
+          let url = environment.host + path;
+          window.open(url, '_blank');
+        } else {
+          this.notification.error('Thông báo', response.message || 'Không thể mở thư mục dự án!');
+        }
+      },
+      error: (error) => {
+        this.notification.error('Thông báo', 'Lỗi khi mở thư mục dự án!');
+        console.error('Lỗi:', error);
+      }
+    });
   }
 
   //#region thêm/sửa dự án 0 thêm 1 sửa

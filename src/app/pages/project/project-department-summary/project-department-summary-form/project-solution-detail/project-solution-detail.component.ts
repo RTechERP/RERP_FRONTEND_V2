@@ -330,7 +330,63 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
       return;
     }
     const valueRaw = this.form.getRawValue();
+
+    // Upload file mới trước (nếu có) để lấy ServerPath
+    const filesToUpload: File[] = this.fileSolutionData
+      .filter((f) => f.File && !f.ServerPath)
+      .map((f) => f.File!);
     
+    const subPath = this.getSubPath();
+    
+    // Kiểm tra nếu có file mới nhưng không có subPath
+    if (filesToUpload.length > 0 && !subPath) {
+      this.notification.error(
+        'Thông báo',
+        'Không thể xác định đường dẫn lưu file. Vui lòng kiểm tra thông tin dự án!',
+        {
+          nzStyle: { fontSize: '0.75rem' },
+        }
+      );
+      return;
+    }
+    
+    // Nếu có file mới cần upload
+    if (filesToUpload.length > 0 && subPath) {
+      this.notification.info('Đang upload', 'Đang tải file lên...');
+      this.projectWorkerService.uploadMultipleFiles(filesToUpload, subPath).subscribe({
+        next: (res: any) => {
+          if (res?.status === 1 && res?.data?.length > 0) {
+            // Cập nhật ServerPath vào fileSolutionData sau khi upload thành công
+            let fileIndex = 0;
+            this.fileSolutionData.forEach((f) => {
+              if (f.File && !f.ServerPath && res.data[fileIndex]) {
+                f.ServerPath = res.data[fileIndex].FilePath || res.data[fileIndex].ServerPath;
+                fileIndex++;
+              }
+            });
+          }
+          
+          // Sau khi upload xong, gọi save
+          this.callSaveSolutionApi(valueRaw);
+        },
+        error: (error: any) => {
+          console.error('Lỗi upload file:', error);
+          this.notification.error(
+            'Thông báo',
+            'Upload file thất bại. Vui lòng thử lại!',
+            {
+              nzStyle: { fontSize: '0.75rem' },
+            }
+          );
+        }
+      });
+    } else {
+      // Không có file mới, save trực tiếp
+      this.callSaveSolutionApi(valueRaw);
+    }
+  }
+
+  callSaveSolutionApi(valueRaw: any): void {
     // Map dữ liệu từ form sang DTO theo API
     const payload: any = {
       ID: this.solutionId || 0,
@@ -364,42 +420,21 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
         this.notification.error('Lỗi', error.message || 'Có lỗi xảy ra khi lưu dữ liệu');
       }
     });
-
-    const filesToUpload: File[] = this.fileSolutionData
-      .filter((f) => f.File && !f.ServerPath)
-      .map((f) => f.File!);
-    const subPath = this.getSubPath();
-    console.log('filesToUpload', filesToUpload);
-    if (filesToUpload.length > 0 && subPath) {
-      this.notification.info('Đang upload', 'Đang tải file lên...');
-      this.projectWorkerService.uploadMultipleFiles(filesToUpload, subPath).subscribe({
-        next: (res: any) => {
-          if (res?.data?.length > 0) {
-            let fileIndex = 0;
-            this.fileSolutionData.forEach((f) => {
-              if (f.File && !f.ServerPath && res.data[fileIndex]) {
-                f.ServerPath = res.data[fileIndex].FilePath;
-                fileIndex++;
-              }
-            });
-          }
-        }
-      });
-    }
   }
 
   prepareFileData(): any[] {
     const fileData: any[] = [];
-    const subPath = this.getSubPath();
-    // Xử lý file đã có (có ID)
-    console.log('fileSolutionData', this.fileSolutionData);
-    this.fileSolutionData.forEach((file: any) => {
+    
+    // Lấy danh sách file không bị xóa
+    const activeFiles = this.fileSolutionData.filter(
+      (file: any) => !file.IsDeleted
+    );
+    
+    activeFiles.forEach((file: any) => {
       if (!file) return; // Bỏ qua nếu file là null/undefined
       
-      if (file.ID) {
+      if (file.ID && file.ID > 0) {
         // File đã tồn tại, cần update
-        console.log('file', file);
-        
         // Lấy extension từ FileName hoặc FileNameOrigin nếu có
         let extension = '';
         const fileName = file.FileNameOrigin || file.FileName || '';
@@ -418,11 +453,8 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
           ServerPath: file.ServerPath || '',
           ProjectSolutionID: file.ProjectSolutionID || this.solutionId,
         });
-      } else if (file.File) {
-        // File mới, cần upload và create
-        // Lưu ý: Cần upload file trước, sau đó mới tạo record
-        console.log('file', file);
-        
+      } else if (file.File && file.ServerPath) {
+        // File mới đã upload, cần create
         // Lấy extension từ file name
         let extension = '';
         if (file.File && file.File.name) {
@@ -433,14 +465,13 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
         }
         
         fileData.push({
-          ID: file.ID || 0,
-          FileNameOrigin: file.FileName || (file.File ? file.File.name : ''),
+          ID: 0,
+          FileNameOrigin: file.FileNameOrigin || file.FileName || (file.File ? file.File.name : ''),
           OriginPath: file.OriginPath || (file.File ? file.File.name : ''),
           Extension: extension,
           ServerPath: file.ServerPath || '',
           ProjectSolutionID: file.ProjectSolutionID || this.solutionId,
         });
-        console.log('fileData1', fileData);
       }
     });
 
@@ -471,6 +502,9 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
           OriginPath: file.name,
           FileNameOrigin: file.name,
           File: file,
+          ServerPath: '', // Chưa có ServerPath, sẽ được cập nhật sau khi upload
+          ID: 0,
+          IsDeleted: false,
         };
 
         this.fileSolutionData.push(newFile);
@@ -515,7 +549,7 @@ export class ProjectSolutionDetailComponent implements OnInit, AfterViewInit {
           frozen: true,
           headerSort: false,
           titleFormatter: () =>
-            `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm file"></i></div>`,
+            `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-white cursor-pointer" title="Thêm file"></i></div>`,
           headerClick: () => {
             this.openFileSelector();
           },

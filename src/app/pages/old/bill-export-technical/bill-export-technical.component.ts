@@ -1,4 +1,4 @@
-import { inject, Inject, Optional } from '@angular/core';
+import { ElementRef, inject, Inject, Optional, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
@@ -95,6 +95,9 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
     { ID: 0, Name: 'Chưa duyệt' },
     { ID: 1, Name: 'Đã duyệt' }
   ];
+  @ViewChild('billExportTechnicalTableRef', { static: true }) billExportTechnicalTableRef!: ElementRef;
+  @ViewChild('billExportTechnicalDetailTableRef', { static: true }) billExportTechnicalDetailTableRef!: ElementRef;
+
   ngOnInit() {
     if (this.tabData?.warehouseID) {
       this.warehouseID = this.tabData.warehouseID;
@@ -105,7 +108,7 @@ export class BillExportTechnicalComponent implements OnInit, AfterViewInit {
   }
   // Hàm vẽ bảng Tabulator cho phiếu xuất kỹ thuật, thiếu cái load quay quay như number
   public drawTable(): void {
-    this.billExportTechnicalTable = new Tabulator('#dataTableBillExportTechnical', {
+    this.billExportTechnicalTable = new Tabulator(this.billExportTechnicalTableRef.nativeElement, {
       layout: "fitDataStretch",
       height: '100%',
       pagination: true,
@@ -214,7 +217,7 @@ formatter: function (cell: any) {
     if (this.billExportTechnicalDetailTable) {
       this.billExportTechnicalDetailTable.setData(this.billExportTechnicalDetailData);
     } else {
-      this.billExportTechnicalDetailTable = new Tabulator('#dataexportDetail', {
+      this.billExportTechnicalDetailTable = new Tabulator(this.billExportTechnicalDetailTableRef.nativeElement, {
         data: this.billExportTechnicalDetailData,
         layout: "fitDataStretch",
         pagination:false,

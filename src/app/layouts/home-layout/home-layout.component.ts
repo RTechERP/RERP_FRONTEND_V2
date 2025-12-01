@@ -223,6 +223,7 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
   }
 
   menus: MenuItem[] = [];
+  menuQuickAccess: any[] = [];
 
   constructor(
     private notification: NzNotificationService,
@@ -238,9 +239,16 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
     this.menus = this.menuService
       .getMenus()
       .sort((a, b) => (a.stt ?? 1) - (b.stt ?? 1));
+
+    let menuPerson: MenuItem[] = this.menuService
+      .getMenus()
+      .filter((x) => x.key == 'person');
+    console.log('this.menuPerson', menuPerson);
+    this.menuQuickAccess = menuPerson;
   }
 
   ngOnInit(): void {
+    console.log('this.menuQuickAccess', this.menuQuickAccess);
     // console.log('this.menus', this.menus);
     this.setResponsivePageSize();
     this.getMenuParents();

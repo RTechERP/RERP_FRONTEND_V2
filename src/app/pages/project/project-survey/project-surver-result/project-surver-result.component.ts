@@ -13,12 +13,12 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
-import { ProjectService } from '../../project-service/project.service';
+import { ProjectSurveyService } from '../project-survey-service/project-survey.service';
 import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { DateTime } from 'luxon';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
-
+import { AuthService } from '../../../../auth/auth.service';
 @Component({
   selector: 'app-project-surver-result',
   standalone: true,
@@ -48,6 +48,7 @@ export class ProjectSurverResultComponent implements OnInit, AfterViewInit {
   @Input() employeeID: number = 0;
   @Input() projects: any[] = [];
   @Input() employees: any[] = [];
+  @Input() canEdit: boolean = true;
 
   @ViewChild('tb_projectSurveyFile', { static: false })
   tb_projectSurveyFileElement!: ElementRef;
@@ -60,14 +61,16 @@ export class ProjectSurverResultComponent implements OnInit, AfterViewInit {
   // Form data
   fileListResult: any[] = [];
   fileDeletedIds: any[] = [];
-
+  canSave: boolean = false;
+  currentUser: any = null;
   constructor(
     private notification: NzNotificationService,
     private activeModal: NgbActiveModal,
     private cdr: ChangeDetectorRef,
-    private projectService: ProjectService,
+    private projectSurveyService: ProjectSurveyService,
     private modal: NzModalService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -80,6 +83,68 @@ export class ProjectSurverResultComponent implements OnInit, AfterViewInit {
       employeeIdResult: [{ value: this.employeeID || 0, disabled: true }],
       dateResult: [{ value: DateTime.local().toISO(), disabled: true }],
       result: ['', [Validators.required, this.trimRequiredValidator]],
+    });
+  }
+
+
+  downloadFile() {
+    if (!this.fileListResult || this.fileListResult.length === 0) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
+      return;
+    }
+
+    const file = this.fileListResult[0];
+
+    if (!file.FilePath) {
+      this.notification.error('Thông báo', 'Không có đường dẫn file để tải xuống!');
+      return;
+    }
+
+    // Hiển thị loading message
+    this.notification.info('Thông báo', 'Đang tải xuống file...', {
+      nzDuration: 2000,
+    });
+
+    this.projectSurveyService.downloadFile(file.FilePath).subscribe({
+      next: (arrayBuffer: ArrayBuffer) => {
+        // Chuyển đổi ArrayBuffer thành Blob
+        const blob = new Blob([arrayBuffer]);
+        
+        // Kiểm tra xem có phải là blob hợp lệ không
+        if (blob && blob.size > 0) {
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = file.FileName || file.FileNameOrigin || 'downloaded_file';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          this.notification.success('Thông báo', 'Tải xuống thành công!');
+        } else {
+          this.notification.error('Thông báo', 'File tải về không hợp lệ!');
+        }
+      },
+      error: (res: any) => {
+        console.error('Lỗi khi tải file:', res);
+
+        // Nếu error response là blob (có thể server trả về lỗi dạng blob)
+        if (res.error instanceof Blob) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const errorText = JSON.parse(reader.result as string);
+              this.notification.error('Thông báo', errorText.message || 'Tải xuống thất bại!');
+            } catch {
+              this.notification.error('Thông báo', 'Tải xuống thất bại!');
+            }
+          };
+          reader.readAsText(res.error);
+        } else {
+          const errorMsg = res?.error?.message || res?.message || 'Tải xuống thất bại! Vui lòng thử lại.';
+          this.notification.error('Thông báo', errorMsg);
+        }
+      },
     });
   }
 
@@ -117,7 +182,7 @@ export class ProjectSurverResultComponent implements OnInit, AfterViewInit {
       let data = {
         projectSurveyDetailId: this.projectSurveyDetailId,
       };
-      this.projectService.getDetailByid(data).subscribe({
+      this.projectSurveyService.getDetailByid(data).subscribe({
         next: (response: any) => {
           if (response.status === 1) {
             // Fill form data
@@ -199,7 +264,7 @@ export class ProjectSurverResultComponent implements OnInit, AfterViewInit {
     // Nếu có file mới cần upload
     if (filesToUpload.length > 0 && subPath) {
       this.notification.info('Đang upload', 'Đang tải file lên...');
-      this.projectService.uploadMultipleFiles(filesToUpload, subPath).subscribe({
+      this.projectSurveyService.uploadMultipleFiles(filesToUpload, subPath).subscribe({
         next: (res: any) => {
           if (res?.data?.length > 0) {
             // Cập nhật ServerPath vào fileListResult sau khi upload thành công
@@ -251,7 +316,7 @@ export class ProjectSurverResultComponent implements OnInit, AfterViewInit {
     formData.append('projectSurveyDetailId', `${this.projectSurveyDetailId}`);
     formData.append('projectId', `${this.projectId}`);
 
-    this.projectService.saveProjectSurveyResult(formData).subscribe({
+    this.projectSurveyService.saveProjectSurveyResult(formData).subscribe({
       next: (response: any) => {
         if (response.status === 1) {
           this.notification.success(

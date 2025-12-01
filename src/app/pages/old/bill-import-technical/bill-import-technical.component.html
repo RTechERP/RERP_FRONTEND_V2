@@ -86,10 +86,10 @@
 
         <nz-splitter style="height: 86vh;" [nzLayout]="'vertical'">
           <nz-splitter-panel [nzCollapsible]="true" nzResizable="true">
-            <div id="dataTableBillImportTechnical" style="height: 100%;"></div>
+            <div #billImportTechnicalTableRef style="height: 100%;"></div>
           </nz-splitter-panel>
           <nz-splitter-panel [nzCollapsible]="true" nzResizable="true" [nzSize]="sizeTbDetail">
-            <div id="databledetailta" style="height: 100%; "></div>
+            <div #billImportTechnicalDetailTableRef style="height: 100%; "></div>
           </nz-splitter-panel>
         </nz-splitter>
       </div>

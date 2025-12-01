@@ -35,10 +35,6 @@
   height: 90vh;
 }
 
-.card-header {
-  overflow-x: auto;
-}
-
 .card-header .d-flex {
   flex-wrap: nowrap;
   min-width: fit-content;

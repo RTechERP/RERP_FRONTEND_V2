@@ -1,10 +1,10 @@
-import { Component, OnInit, ViewEncapsulation, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation, AfterViewInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OfficeSupplyRequestSummaryService } from './office-supply-request-summary-service/office-supply-request-summary-service.service';
 
 import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzModalModule } from 'ng-zorro-antd/modal';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { NzMessageModule } from 'ng-zorro-antd/message';
@@ -23,6 +23,12 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
+import { NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
+import { ProjectPartlistPriceRequestFormComponent } from '../../../old/project-partlist-price-request/project-partlist-price-request-form/project-partlist-price-request-form.component';
+import { ProjectPartlistPriceRequestComponent } from '../../../old/project-partlist-price-request/project-partlist-price-request.component';
+import { ProjectPartlistPurchaseRequestDetailComponent } from '../../../purchase/project-partlist-purchase-request/project-partlist-purchase-request-detail/project-partlist-purchase-request-detail.component';
+import { MenuEventService } from '../../../systems/menus/menu-service/menu-event.service';
+import { UnsubscriptionError } from 'rxjs';
 @Component({
   selector: 'app-office-supply-request-summary',
   standalone: true,
@@ -41,7 +47,8 @@ import { NOTIFICATION_TITLE } from '../../../../app.config';
     NzSelectModule,
     NzDatePickerModule,
     NzSpinModule,
-    HasPermissionDirective
+    HasPermissionDirective,
+    NgbModalModule
   ],
   templateUrl: './office-supply-request-summary.component.html',
   styleUrl: './office-supply-request-summary.component.css',
@@ -63,10 +70,14 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit, AfterViewIni
   isLoading = false;
   monthFormat = 'MM/yyyy';
 
+  private ngbModal = inject(NgbModal);
+  private modalService = inject(NzModalService);
+
   constructor(
     private officeSupplyRequestSummaryService: OfficeSupplyRequestSummaryService,
     private message: NzMessageService,
     private notification: NzNotificationService,
+    private menuEventService: MenuEventService
   ) { }
 
   ngOnInit(): void {
@@ -434,6 +445,197 @@ export class OfficeSupplyRequestSummaryComponent implements OnInit, AfterViewIni
       keyword: ''
     }
     this.getDataOfficeSupplyRequestSummary();
+  }
+
+  createPriceRequest(): void {
+    if (!this.table) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Bảng chưa được khởi tạo!');
+      return;
+    }
+
+    // Lấy các dòng được chọn
+    const selectedRows = this.table.getSelectedRows();
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn sản phẩm muốn báo giá!');
+      return;
+    }
+
+    // Hiển thị confirm dialog
+    this.modalService.confirm({
+      nzTitle: 'Xác nhận',
+      nzContent: 'Bạn có xác nhận yêu cầu báo giá những sản phẩm đã chọn?',
+      nzOkText: 'Xác nhận',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        this.processPriceRequest(selectedRows);
+      }
+    });
+  }
+
+  private processPriceRequest(selectedRows: any[]): void {
+    let countSTT = 0;
+    const dataToSend: any[] = [];
+
+    selectedRows.forEach((row) => {
+      const rowData = row.getData();
+
+      // Lấy các giá trị từ dữ liệu
+      const totalQuantity = Number(rowData['TotalQuantity'] || 0);
+      const quantityHCM = Number(rowData['HCM'] || 0);
+
+      // Chỉ lấy dòng có totalQuantity - quantityHCM > 0
+      if (totalQuantity - quantityHCM <= 0) {
+        return;
+      }
+
+      countSTT++;
+
+      // Tạo record mới theo format giống WinForm
+      const record: any = {
+        STT: countSTT,
+        ProductCode: rowData['CodeRTC'] || rowData['ProductCode'] || '',
+        ProductName: rowData['OfficeSupplyName'] || rowData['ProductName'] || '',
+        Quantity: totalQuantity - quantityHCM,
+        Unit: rowData['OfficeSupplyUnit'] || rowData['Unit'] || rowData['UnitCount'] || '',
+        UnitCount: rowData['OfficeSupplyUnit'] || rowData['Unit'] || rowData['UnitCount'] || '',
+        ProjectPartlistID:0,
+        UnitPrice:0,
+        TotalPrice:0,
+        SupplyUnitID:0,
+        Note:'',
+        JobRequirementID:0,
+        IsJobRequirement:true,
+        IsCommercialProduct:false
+      };
+
+      dataToSend.push(record);
+    });
+
+    if (dataToSend.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có sản phẩm nào thỏa mãn điều kiện (Tổng số lượng - Số lượng HCM > 0)!');
+      return;
+    }
+
+    // Mở modal form yêu cầu báo giá
+    const modalRef = this.ngbModal.open(ProjectPartlistPriceRequestFormComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: false,
+      centered: true,
+    });
+
+    // Set các Input properties theo logic WinForm: frmProjectPartlistPriceRequestDetailNew(0,3)
+    modalRef.componentInstance.dataInput = dataToSend;
+    modalRef.componentInstance.jobRequirementID = 0;
+    modalRef.componentInstance.projectTypeID = 0;
+    modalRef.componentInstance.initialPriceRequestTypeID = 3; // Hàng HR (giống WinForm)
+    modalRef.componentInstance.isVPP = true; // Set flag isVPP = true
+
+    modalRef.result.then(
+      (result) => {
+        if (result === 'saved') {
+       
+        }
+      },
+      (dismissed) => {
+        console.log('Modal dismissed');
+      }
+    );
+  }
+
+  viewPriceRequest(): void {
+    // Mở new tab với ProjectPartlistPriceRequestComponent
+    // Type = 3 (hàng HR) tương ứng với activeTabId = -2 (HCNS) theo mapping
+    const title = 'Yêu cầu báo giá';
+    const data = {
+      initialTabId: -2, // -2 là tab HCNS (tương ứng với type = 3 hàng HR)
+      isVPP: true
+    };
+
+    this.menuEventService.openNewTab(
+      ProjectPartlistPriceRequestComponent,
+      title,
+      data
+    );
+  }
+
+  createPurchaseRequest(): void {
+    if (!this.table) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Bảng chưa được khởi tạo!');
+      return;
+    }
+
+    // Lấy các dòng được chọn
+    const selectedRows = this.table.getSelectedRows();
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn sản phẩm muốn yêu cầu mua hàng!');
+      return;
+    }
+
+    // Hiển thị confirm dialog
+    this.modalService.confirm({
+      nzTitle: 'Xác nhận',
+      nzContent: 'Bạn có xác nhận yêu cầu mua những sản phẩm đã chọn?',
+      nzOkText: 'Xác nhận',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        this.processPurchaseRequest(selectedRows);
+      }
+    });
+  }
+
+  private processPurchaseRequest(selectedRows: any[]): void {
+    // Xử lý từng dòng đã chọn - mở modal cho từng sản phẩm
+    selectedRows.forEach((row) => {
+      const rowData = row.getData();
+
+      // Lấy các giá trị từ dữ liệu
+      const codeRTC = rowData['CodeRTC'] || rowData['ProductCode'] || '';
+      const unit = rowData['OfficeSupplyUnit'] || rowData['Unit'] || rowData['UnitCount'] || '';
+      const totalQuantity = Number(rowData['TotalQuantity'] || 0);
+      const totalPrice = Number(rowData['TotalPrice'] || 0);
+      const unitPrice = Number(rowData['UnitPrice'] || 0);
+
+      // Tạo object dữ liệu để truyền vào form purchase request
+      const purchaseRequestData = {
+        ID: 0,
+        ProductCode: codeRTC,
+        ProductName: rowData['OfficeSupplyName'] || rowData['ProductName'] || '',
+        ProductSaleID: 0,
+        ProductGroupID: 0,
+        EmployeeID: 0,
+        EmployeeIDRequestApproved: 0,
+        Quantity: totalQuantity,
+        UnitName: unit,
+        UnitPrice: unitPrice,
+        TotalPrice: totalPrice,
+        DateReturnExpected: null,
+        Note: '',
+        IsTechBought: false
+      };
+
+      // Mở modal form yêu cầu mua hàng
+      const modalRef = this.ngbModal.open(ProjectPartlistPurchaseRequestDetailComponent, {
+        size: 'xl',
+        backdrop: 'static',
+        keyboard: false,
+        centered: true,
+      });
+
+      // Truyền dữ liệu vào component qua @Input projectPartlistDetail
+      modalRef.componentInstance.projectPartlistDetail = purchaseRequestData;
+
+      modalRef.result.then(
+        (result) => {
+          this.notification.success(NOTIFICATION_TITLE.success, 'Tạo yêu cầu mua hàng thành công!');
+          // Có thể reload dữ liệu nếu cần
+          // this.getDataOfficeSupplyRequestSummary();
+        },
+        (dismissed) => {
+          console.log('Modal dismissed');
+        }
+      );
+    });
   }
 
 } 

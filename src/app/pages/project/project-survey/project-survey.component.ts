@@ -573,9 +573,13 @@ export class ProjectSurveyComponent implements AfterViewInit {
         );
         return;
       }
+      debugger;
       // Kiểm tra quyền sửa: nếu không phải chủ sở hữu và không phải admin thì không có quyền
       if(selectedRows[0].EmployeeID != this.currentUser.EmployeeID && !this.currentUser.IsAdmin){
         canEdit = false; // Không có quyền sửa, nhưng vẫn mở modal để xem
+      }
+      if(selectedRows[0].EmployeeID1 != this.currentUser.EmployeeID && !this.currentUser.IsAdmin){
+        canEdit = false;
       }
     }
 
@@ -609,6 +613,16 @@ export class ProjectSurveyComponent implements AfterViewInit {
       this.notification.error(
        NOTIFICATION_TITLE.error,
         `Vui lòng chọn yêu cầu cần ${statusText}!`,
+        {
+          nzStyle: { fontSize: '0.75rem' },
+        }
+      );
+      return;
+    }
+    debugger;
+    if(this.currentUser.EmployeeID != selectedRows[0].LeaderID){
+      this.notification.error(NOTIFICATION_TITLE.error,
+        `Bạn không thể ${statusText} yêu cầu của leader [${selectedRows[0].FullNameLeaderTBP}]!`,
         {
           nzStyle: { fontSize: '0.75rem' },
         }
@@ -1155,18 +1169,21 @@ export class ProjectSurveyComponent implements AfterViewInit {
 
     let employeeID = selectedRows[0]['EmployeeID'];
     let prjSurveyDetailID = selectedRows[0]['ProjectSurveyDetailID'];
+    let canEdit = true;
 
-    if (
-      this.currentUser.EmployeeID != employeeID &&
-      !this.currentUser.IsAdmin
-    ) {
-      this.notification.error(
-       NOTIFICATION_TITLE.error,
-        `Bạn không được nhập kết quả của người khác!`,
-      );
-      return;
+    // if (
+    //   this.currentUser.EmployeeID != employeeID &&
+    //   !this.currentUser.IsAdmin
+    // ) {
+    //   this.notification.error(
+    //    NOTIFICATION_TITLE.error,
+    //     `Bạn không được nhập kết quả của người khác!`,
+    //   );
+    //   return;
+    // }
+    if(selectedRows[0].EmployeeID1 != this.currentUser.EmployeeID && !this.currentUser.IsAdmin){
+      canEdit = false;
     }
-
     let modalRef = this.modalService.open(ProjectSurverResultComponent, {
       centered: true,
       size: 'xl',
@@ -1181,7 +1198,7 @@ export class ProjectSurveyComponent implements AfterViewInit {
     modalRef.componentInstance.employeeID = employeeID;
     modalRef.componentInstance.projects = this.projects;
     modalRef.componentInstance.employees = this.employees;
-
+    modalRef.componentInstance.canEdit = canEdit;
     modalRef.result.catch((reason) => {
       if (reason == true || reason?.success) {
         this.getDataProjectSurvey();

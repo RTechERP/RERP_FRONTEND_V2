@@ -16,7 +16,14 @@
             <div #tb_Table id="tb_Table" style="height: 100%;"></div>
         </nz-splitter-panel>
         <nz-splitter-panel nzDefaultSize="20%" [nzCollapsible]="true" nzResizable="true">
-            <div #tb_File id="tb_File" style="height: 100%;"></div>
+            <div class="p-2">
+                <h6 class="mb-2">File đính kèm</h6>
+                <div class="mb-2">
+                    <input type="file" multiple class="form-control form-control-sm"
+                        style="font-size: 11px;" (change)="onFileSelected($event)">
+                </div>
+            </div>
+            <div #tb_File id="tb_File" style="height: calc(100% - 100px);"></div>
         </nz-splitter-panel>
     </nz-splitter>
     <div class="modal-footer py-1">

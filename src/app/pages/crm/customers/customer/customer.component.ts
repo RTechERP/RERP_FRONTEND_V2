@@ -188,14 +188,14 @@ export class CustomerComponent implements OnInit, AfterViewInit {
   }
 
   getEmployeeData(): void {
-    this.customerService.getEmployees(0).subscribe({
+    this.customerService.getEmployees().subscribe({
       next: (response) => {
         if (response.status === 1) {
           this.filterSaleUserData = response.data;
         } else {
           this.notification.error(
             NOTIFICATION_TITLE.error,
-            'Lỗi khi tải tệp POKH: ' + response.message
+            'Có lỗi xảy ra khi tải danh sách nhân viên: ' + response.message
           );
         }
       },

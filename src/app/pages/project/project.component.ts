@@ -1129,7 +1129,7 @@ export class ProjectComponent implements OnInit, AfterViewInit {
         }
       },
       error: (error) => {
-        this.notification.error('Thông báo', 'Lỗi khi mở thư mục dự án!');
+        this.notification.error('Thông báo', error.error.message || 'Lỗi khi mở thư mục dự án!');
         console.error('Lỗi:', error);
       }
     });

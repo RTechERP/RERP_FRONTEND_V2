@@ -362,7 +362,7 @@ export class ProjectPartlistPurchaseRequestDetailComponent
       next: (response: any) => {
         this.supplierSales = response.data;
       },
-      error: (error) => {
+      error: (error: any) => {
         this.notification.error(NOTIFICATION_TITLE.error, error.error.message);
       },
     });

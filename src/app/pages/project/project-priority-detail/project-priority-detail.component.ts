@@ -186,16 +186,32 @@ export class ProjectPriorityDetailComponent implements OnInit {
   caculatorPriority() {
     let totalPriority = 0;
 
-    const allData = this.projectService.getSelectedRowsRecursive(
-      this.tb_projectPriority.getData()
-    );
+    // Lấy dữ liệu trực tiếp từ bảng thay vì dùng getSelectedRowsRecursive
+    // vì getSelectedRowsRecursive không trả về field Priority
+    const allData = this.tb_projectPriority.getData();
 
-    allData.forEach((row: any) => {
-      if (row['Selected']) {
-        totalPriority += row['Priority'];
-      }
-    });
-    this.priority = parseFloat(totalPriority.toFixed(2));
+    // Hàm đệ quy để duyệt qua tất cả các dòng (bao gồm cả children)
+    const calculateRecursive = (data: any[]): void => {
+      data.forEach((row: any) => {
+        if (row['Selected']) {
+          // Lấy giá trị Priority từ row gốc
+          const priorityValue = parseFloat(row['Priority']) || 0;
+          if (!isNaN(priorityValue)) {
+            totalPriority += priorityValue;
+          }
+        }
+        
+        // Đệ quy vào children nếu có
+        if (row._children && Array.isArray(row._children) && row._children.length > 0) {
+          calculateRecursive(row._children);
+        }
+      });
+    };
+
+    calculateRecursive(allData);
+    
+    // Đảm bảo kết quả không phải NaN
+    this.priority = isNaN(totalPriority) ? 0 : parseFloat(totalPriority.toFixed(2));
   }
 
   openProjectPriorityDetailModal(num: any) {

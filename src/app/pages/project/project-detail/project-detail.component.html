@@ -509,6 +509,6 @@
 
 <ng-template #dateChangeStatus>
   <nz-form-label class="">Ngày thay đổi <span class="text-danger">*</span></nz-form-label>
-  <nz-date-picker formControlName="dateChangeStatus" class="w-100" nzFormat="dd/MM/yyyy"
-      (ngModelChange)="onDateChange($event)" nzSize="default" [nzAllowClear]="false"></nz-date-picker>
+  <nz-date-picker [(ngModel)]="dateChangeStatus" name="dateChangeStatus" class="w-100" nzFormat="dd/MM/yyyy"
+      nzSize="default" [nzAllowClear]="false" (ngModelChange)="onDateChangeStatusChange($event)"></nz-date-picker>
 </ng-template>

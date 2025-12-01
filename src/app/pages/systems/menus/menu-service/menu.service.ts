@@ -2829,10 +2829,10 @@ export class MenuService {
 
     const urlOld = 'http://113.190.234.64:8081';
     if (window.location.hostname != 'localhost') {
-      urlTo = urlOld + router;
-      // window.location.origin.replace(window.location.port, '8081') + router;
-      urlLogin = urlOld + '/Home/LoginNew';
-      window.location.origin.replace(window.location.port, '8081') +
+      urlTo =
+        window.location.origin.replace(window.location.port, '8081') + router;
+      urlLogin =
+        window.location.origin.replace(window.location.port, '8081') +
         '/Home/LoginNew';
     }
 

@@ -37,7 +37,10 @@ import { ProjectPartlistPurchaseRequestDetailComponent } from './project-partlis
 import { WarehouseReleaseRequestService } from '../../old/warehouse-release-request/warehouse-release-request/warehouse-release-request.service';
 import { HistoryPriceComponent } from './history-price/history-price.component';
 import { AppUserService } from '../../../services/app-user.service';
+import { PermissionService } from '../../../services/permission.service';
 import * as ExcelJS from 'exceljs';
+import { SupplierSaleService } from '../supplier-sale/supplier-sale.service';
+import { PonccDetailComponent } from '../poncc/poncc-detail/poncc-detail.component';
 @Component({
   selector: 'app-project-partlist-purchase-request',
   imports: [
@@ -70,6 +73,8 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
     private projectService: ProjectService,
     private whService: WarehouseReleaseRequestService,
     private appUserService: AppUserService,
+    private suplierSaleService: SupplierSaleService,
+    private permissionService: PermissionService,
     @Optional() public activeModal?: NgbActiveModal
   ) { }
 
@@ -84,6 +89,7 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
   isLoading = false;
   lstPOKH: any[] = [];
   lstWarehouses: any[] = [];
+  requestTypes: any[] = [];
   // Filters
   dateStart: Date = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   dateEnd: Date = new Date(new Date().getFullYear(), new Date().getMonth() + 2, 0);
@@ -235,7 +241,7 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
     TotalBN: 'Tồn sử dụng BN',
     ParentProductCodePO: 'Mã cha',
     WarehouseID: 'Kho',
-    IsPaidLater: 'Đã trả sau',
+    IsPaidLater: 'Đợi trả sau',
   };
 
   // Cấu hình độ rộng cột (px)
@@ -503,8 +509,8 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
   getRequestTypes() {
     this.srv.getRequestTypes().subscribe({
       next: (types: RequestType[]) => {
+        this.requestTypes = types || [];
         this.tabs = (types || []).map((t) => ({ id: t.ID, title: t.RequestTypeName.toUpperCase() }));
-        // Sau khi có tabs, tải dữ liệu
         this.onSearch();
       },
       error: (err) => this.notify.error('Lỗi', 'Không tải được loại yêu cầu'),
@@ -699,7 +705,6 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
       'DateApprovedTBP',
       'IsRequestApproved',
       'IsApprovedBGD',
-      'IsPaidLater',
       'TT',
       'CustomerName',
     ].forEach((f) => {
@@ -885,7 +890,7 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
     // Boolean fields: chỉ hiển thị checkbox, KHÔNG cho edit/toggle
     const boolExclude = new Set<string>(['IsApprovedBGDText']);
     const boolCandidates = this.FORM_COLUMN_ORDER
-      .filter((f: string) => f.startsWith('Is'))
+      .filter((f: string) => f.startsWith('Is') && f !== 'IsPaidLater')
       .filter((f: string) => !boolExclude.has(f))
       .concat(['IsImport', 'IsStock']);
     boolCandidates.forEach((f) => {
@@ -903,6 +908,27 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
         (col as any).editable = false;
         delete (col as any).cellClick;
         delete (col as any).editor;
+      }
+    });
+
+    ['IsPaidLater'].forEach((f) => {
+      const col = columnsMap.get(f);
+      if (col) {
+        col.width = 60;
+        col.formatter = function (cell: any) {
+          const value = cell.getValue();
+          const checked = value === true || value === 'true' || value === 1 || value === '1';
+          return `<input type="checkbox" ${checked ? 'checked' : ''} style="accent-color: #1677ff; cursor: pointer;" />`;
+        };
+        col.hozAlign = 'center';
+        (col as any).headerHozAlign = 'center';
+
+        // Cho phép click để toggle giá trị
+        (col as any).cellClick = (e: any, cell: any) => {
+          const currentValue = cell.getValue();
+          const newValue = !currentValue;
+          cell.setValue(newValue);
+        };
       }
     });
 
@@ -1000,65 +1026,93 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
 
   // Menu chuột phải trên dòng (theo ảnh WinForms)
   private buildRowContextMenu(idx: number): any[] {
-    return [
-      {
-        label: '<img class="btn-action-icon pt-0 ps-0" src="assets/icon/action_export_excel_24.svg" />Xuất Excel',
-        menu: [
-          {
-            label: 'Xuất SP chọn',
-            action: () => this.exportExcel(idx, false)
-          },
-          {
-            label: 'Xuất tất cả',
-            action: () => this.exportExcel(idx, true)
-          }
-        ]
-      },
-      {
+    // Kiểm tra quyền N35 và N1
+    const hasN35Permission = this.permissionService.hasPermission('N35');
+    const hasN1Permission = this.permissionService.hasPermission('N1');
+    const hasN35OrN1 = hasN35Permission || hasN1Permission;
+
+    const menuItems: any[] = [];
+
+    // Xuất Excel - luôn hiển thị
+    menuItems.push({
+      label: '<img class="btn-action-icon pt-0 ps-0" src="assets/icon/action_export_excel_24.svg" />Xuất Excel',
+      menu: [
+        {
+          label: 'Xuất SP chọn',
+          action: () => this.exportExcel(idx, false)
+        },
+        {
+          label: 'Xuất tất cả',
+          action: () => this.exportExcel(idx, true)
+        }
+      ]
+    });
+
+    // Duplicate - yêu cầu quyền N35 hoặc N1
+    if (hasN35OrN1) {
+      menuItems.push({
         label: '<img class="btn-action-icon pt-0 ps-0" src="assets/icon/action_copy_24.svg" />Duplicate',
         action: () => this.duplicateRow(idx)
-      },
-      {
-        label: '<img class="btn-action-icon pt-0 ps-0" src="assets/icon/action_history_24.svg" />Lịch sử hỏi giá',
-        action: () => this.onHistoryPrice(idx)
-      },
-      {
+      });
+    }
+
+    // Lịch sử hỏi giá - luôn hiển thị
+    menuItems.push({
+      label: '<img class="btn-action-icon pt-0 ps-0" src="assets/icon/action_history_24.svg" />Lịch sử hỏi giá',
+      action: () => this.onHistoryPrice(idx)
+    });
+
+    // Hàng nhập khẩu - yêu cầu quyền N35 hoặc N1
+    if (hasN35OrN1) {
+      menuItems.push({
         label: '<img class="btn-action-icon pt-0 ps-0" src="assets/icon/action_check_24.svg" />Hàng nhập khẩu',
         action: () => this.updateProductImport(idx, true)
-      },
-      {
+      });
+
+      menuItems.push({
         label: '<img class="btn-action-icon pt-0 ps-0" src="assets/icon/action_cancle_24.svg" />Hủy hàng nhập khẩu',
         action: () => this.updateProductImport(idx, false)
-      },
-      {
+      });
+    }
+
+    // Yêu cầu duyệt mua - yêu cầu quyền N35 hoặc N1
+    if (hasN35OrN1) {
+      menuItems.push({
         label: '<img class="btn-action-icon pt-0 ps-0" src="assets/icon/action_check_24.svg" />Yêu cầu duyệt mua',
         action: () => this.onRequestApproved(idx, true)
-      },
-      {
+      });
+
+      menuItems.push({
         label: '<img class="btn-action-icon pt-0 ps-0" src="assets/icon/action_cancle_24.svg" />Hủy yêu cầu duyệt mua',
         action: () => this.onRequestApproved(idx, false)
-      },
-      // {
-      //   label: '<img class="btn-action-icon pt-0 ps-0" src="assets/icon/action_import_wh_24.svg" />Nhập kho',
-      //   action: () => this.onUpdate()
-      // },
-      // {
-      //   label: '<img class="btn-action-icon pt-0 ps-0" src="assets/icon/action_eye_24.svg" />Xem PO',
-      //   action: () => this.onUpdate()
-      // },
-      { separator: true },
-      {
+      });
+    }
+
+    // Separator nếu có ít nhất một item phía trên và phía dưới
+    if (menuItems.length > 0) {
+      menuItems.push({ separator: true });
+    }
+
+    // Giữ hàng - yêu cầu quyền N35 hoặc N1
+    if (hasN35OrN1) {
+      menuItems.push({
         label: '<img class="btn-action-icon pt-0 ps-0" src="assets/icon/action_check_24.svg" />Giữ hàng',
         action: () => this.onKeepProduct(idx)
-      },
-      {
+      });
+    }
+
+    // Cập nhật mã nội bộ - yêu cầu quyền N35 hoặc N1
+    if (hasN35OrN1) {
+      menuItems.push({
         label: '<img class="btn-action-icon pt-0 ps-0" src="assets/icon/action_reset_24.svg" />Cập nhật mã nội bộ',
         action: () => this.updateInternalCode(idx),
         disabled: function (component: any) {
           return idx !== 3;
         },
-      },
-    ];
+      });
+    }
+
+    return menuItems;
   }
   //#endregion
 
@@ -1069,7 +1123,7 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
     const editableFields = [
       'Quantity', 'UnitPrice', 'UnitImportPrice', 'VAT', 'TargetPrice',
       'CurrencyID', 'ProductGroupID', 'SupplierSaleID', 'Note',
-      'CurrencyRate', 'UnitMoney'
+      'CurrencyRate', 'UnitMoney', 'IsPaidLater'
     ];
 
     // So sánh từng trường
@@ -2235,4 +2289,228 @@ export class ProjectPartlistPurchaseRequestComponent implements OnInit, AfterVie
       });
     }
   }
+
+  onAddPoncc() {
+    if (this.changedRows.length > 0) {
+      this.notify.warning(NOTIFICATION_TITLE.warning, `Dữ liệu đã thay đổi!\nVui lòng lưu lại dữ liệu hoặc load lại trước khi thao tác!`);
+      return;
+    }
+
+    // Lấy bảng hiện tại đang active
+    const currentTable = this.tables[this.activeTabIndex];
+
+    if (!currentTable) {
+      this.notify.warning(NOTIFICATION_TITLE.warning, 'Không tìm thấy bảng dữ liệu!');
+      return;
+    }
+
+    // Lấy các dòng đã chọn
+    const selectedRows = currentTable.getSelectedRows();
+
+    if (!selectedRows || selectedRows.length <= 0) {
+      this.notify.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn sản phẩm muốn Tạo PO NCC!');
+      return;
+    }
+
+    // Lấy data từ các dòng đã chọn
+    const selectedData = selectedRows.map((row: any) => row.getData());
+
+    // Check validate: danh sách sản phẩm có cùng nhà cung cấp không
+    const listSupplierSale: number[] = [];
+
+    selectedData.forEach((row: any) => {
+      const id = Number(row.ID || 0);
+      if (id <= 0) return;
+
+      const supplierSaleId = Number(row.SupplierSaleID || 0);
+      if (supplierSaleId > 0 && !listSupplierSale.includes(supplierSaleId)) {
+        listSupplierSale.push(supplierSaleId);
+      }
+    });
+
+    // Kiểm tra nếu có nhiều hơn 1 nhà cung cấp
+    if (listSupplierSale.length > 1) {
+      this.notify.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chỉ chọn sản phẩm từ 1 Nhà cung cấp!');
+      return;
+    }
+
+    // Kiểm tra nếu không có nhà cung cấp nào
+    if (listSupplierSale.length === 0) {
+      this.notify.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn sản phẩm có Nhà cung cấp!');
+      return;
+    }
+
+    // Thu thập danh sách ID hợp lệ để gửi lên API
+    const validData: any[] = [];
+    selectedData.forEach((row: any) => {
+      const id = Number(row.ID || 0);
+      if (id > 0) {
+        validData.push(row);
+      }
+    });
+
+    if (validData.length === 0) {
+      this.notify.warning(NOTIFICATION_TITLE.warning, 'Không có sản phẩm hợp lệ để tạo PO!');
+      return;
+    }
+
+    // Gọi API validate
+    this.isLoading = true;
+    this.srv.validateAddPoncc(validData).subscribe({
+      next: (rs) => {
+        this.isLoading = false;
+
+        this.modal.confirm({
+          nzTitle: `Bạn có chắc muốn tạo PO NCC danh sách sản phẩm đã chọn không?
+          \nNhững sản phẩm chưa được BGĐ duyệt sẽ tự động được bỏ qua!`,
+          nzOkText: 'Ok',
+          nzOkType: 'primary',
+          nzCancelText: 'Hủy',
+          nzOkDanger: false,
+          nzClosable: false,
+          nzOnOk: () => {
+            const { listRequest, currencys } = this.preparePonccData(validData);
+
+            const uniqueCurrencies = [...new Set(currencys)]; // Lọc distinct
+            const currencyID = uniqueCurrencies.length > 1 ? 0 : (uniqueCurrencies[0] || 0);
+            this.suplierSaleService.getSupplierSaleByID(listSupplierSale[0]).subscribe({
+              next: (rs) => {
+                this.isLoading = false;
+                let data = rs.data;
+                let poncc = {
+                  SupplierSaleID: listSupplierSale[0],
+                  AccountNumberSupplier: data.SoTK,
+                  BankSupplier: data.NganHang,
+                  AddressSupplier: data.AddressNCC,
+                  MaSoThueNCC: data.MaSoThue,
+                  EmployeeID: this.appUserService.employeeID,
+                  CurrencyID: currencyID,
+                }
+
+                const modalRef = this.modalService.open(PonccDetailComponent, {
+                  backdrop: 'static',
+                  keyboard: false,
+                  centered: true,
+                  windowClass: 'full-screen-modal',
+                });
+
+                // Pass data to modal component
+                modalRef.componentInstance.poncc = poncc;
+                modalRef.componentInstance.ponccDetail = listRequest || [];
+                modalRef.componentInstance.isAddPoYCMH = true;
+
+                // Reload table after modal closes
+                modalRef.result.finally(() => {
+                  this.onSearch();
+                });
+
+
+              },
+              error: (error) => {
+                this.isLoading = false;
+                this.notify.error(NOTIFICATION_TITLE.error, error.error?.message || 'Lỗi khi validate dữ liệu!');
+              }
+            });
+          },
+        });
+
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.notify.error(NOTIFICATION_TITLE.error, error.error?.message || 'Lỗi khi validate dữ liệu!');
+      }
+    });
+
+  }
+
+  private preparePonccData(selectedData: any[]): { listRequest: any[], currencys: number[] } {
+    const listRequest: any[] = [];
+    const currencys: number[] = [];
+    let stt = 0;
+    selectedData.forEach((row: any) => {
+      const id = Number(row.ID || 0);
+      if (id <= 0) return;
+      stt++;
+      // Lấy các giá trị từ row
+      const requestTypeID = Number(row.ProjectPartlistPurchaseRequestTypeID || 0);
+      const isApprovedBGD = Boolean(row.IsApprovedBGD);
+      const isCommercialProduct = Boolean(row.IsCommercialProduct);
+      const isTechBought = Boolean(row.IsTechBought);
+      const isTBPAprroved = Boolean(row.IsApprovedTBP);
+      const isBorrowProduct = Number(row.TicketType || 0); // 0: mua, 1: mượn
+      const productRtcId = Number(row.ProductRTCID || 0);
+      const jobRequirementID = Number(row.JobRequirementID || 0);
+
+      const IsIgnoreBGD = this.requestTypes.find((x: any) => x.ID === requestTypeID)?.IsIgnoreBGD || false;
+
+      // Validation logic theo WinForm
+      if (jobRequirementID <= 0) {
+        if (isBorrowProduct === 0) { // Mua
+          if (!isApprovedBGD && !isCommercialProduct && !isTechBought && productRtcId <= 0 && !IsIgnoreBGD) {
+            return; // Skip row này
+          }
+        } else { // Mượn
+          if (!isTBPAprroved) {
+            return; // Skip row này
+          }
+        }
+      }
+
+      // Lấy các giá trị cần thiết
+      const productId = Number(row.ProductSaleID || 0);
+      const productRTCID = Number(row.ProductRTCID || 0);
+      const quantity = Number(row.Quantity || 0);
+      const unitPrice = Number(row.UnitPrice || 0);
+      let projectId = Number(row.ProjectID || 0);
+      let projectName = String(row.ProjectName || '');
+      const deadline = row.DateReturnExpected ? new Date(row.DateReturnExpected) : null;
+      const productCode = String(row.ProductCode || '');
+      const vat = Number(row.VAT || 0);
+      const totaMoneyVAT = Number(row.TotaMoneyVAT || 0);
+      const ticketType = Number(row.TicketType || 0);
+      const dateReturnEstimated = row.DateReturnEstimated ? new Date(row.DateReturnEstimated) : null;
+
+      // Xử lý projectName cho hàng thương mại không có projectId
+      if (isCommercialProduct && projectId <= 0) {
+        const customerCode = String(row.CustomerCode || '');
+        const poNumber = String(row.PONumber || '');
+        projectName = `${customerCode}_${poNumber}`;
+      }
+
+      // Lấy tên loại kho từ ProductGroupID
+      const ProductGroupID = Number(row.ProductGroupID || 0);
+      const isRTCTab = this.activeTabIndex === 2 || this.activeTabIndex === 3;
+      const productGroupData = isRTCTab ? this.productRTC : this.productGroups;
+      const productGroup = productGroupData.find((x: any) => x.ID === ProductGroupID);
+      const ProductGroupName = productGroup?.ProductGroupName || '';
+
+      // Tạo request object
+      const request = {
+        ...row,
+        STT: stt,
+        ID: 0,
+        ProductCodeOfSupplier: String(row.GuestCode || ''),
+        ProductGroupName: ProductGroupName,
+        PriceHistory: Number(row.HistoryPrice || 0),
+        VATMoney: totaMoneyVAT,
+        VAT: vat,
+        ThanhTien: Number(row.TotalPrice || 0),
+        // TotalPrice: Number(row.TotalPrice || 0),
+        QtyRequest: Number(row.Quantity || 0),
+        IsBill: totaMoneyVAT > 0 ? true : false,
+        IsPurchase: false
+      };
+
+      listRequest.push(request);
+
+      // Thu thập currency IDs
+      const currencyId = Number(row.CurrencyID || 0);
+      if (currencyId > 0) {
+        currencys.push(currencyId);
+      }
+    });
+
+    return { listRequest, currencys };
+  }
+
 }

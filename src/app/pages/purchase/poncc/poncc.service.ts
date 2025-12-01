@@ -7,7 +7,7 @@ import { PONCCFilter, PONCCSaveRequest } from './poncc.model';
 @Injectable({ providedIn: 'root' })
 export class PONCCService {
   private baseUrl = environment.host + 'api/PONCC/';
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getAll(filter: PONCCFilter): Observable<any> {
     let httpParams = new HttpParams();
@@ -19,8 +19,9 @@ export class PONCCService {
     if (filter.Status !== undefined && filter.Status !== null) httpParams = httpParams.set('status', filter.Status.toString());
     if (filter.PageNumber) httpParams = httpParams.set('pageNumber', filter.PageNumber.toString());
     if (filter.PageSize) httpParams = httpParams.set('pageSize', filter.PageSize.toString());
+    if (filter.POType) httpParams = httpParams.set('poType', filter.POType.toString());
 
-    return this.http.get<any>(`${this.baseUrl}get-poncc`, { params: httpParams }).pipe(
+    return this.http.get<any>(`${this.baseUrl}get-all`, { params: httpParams }).pipe(
       map((res: any) => ({
         data: Array.isArray(res?.data?.data) ? res.data.data : [],
         totalPage: res?.data?.totalPage || []
@@ -28,8 +29,8 @@ export class PONCCService {
     );
   }
 
-  saveData(payload: PONCCSaveRequest): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}savedata`, payload);
+  saveData(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}save-data`, payload);
   }
 
   delete(id: number): Observable<any> {
@@ -41,12 +42,11 @@ export class PONCCService {
   }
 
   getDetails(ponccId: number): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}get-poncc-detail/${ponccId}`).pipe(
-      map((res: any) => ({
-        poncc: res?.data?.poncc || {},
-        details: Array.isArray(res?.data?.details) ? res.data.details : []
-      }))
-    );
+    return this.http.get<any>(`${this.baseUrl}data-detail?ponccId=${ponccId}`);
+  }
+
+  getPoncc(ponccId: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}poncc?ponccId=${ponccId}`);
   }
 
   approve(ids: number[], isApproved: boolean): Observable<any> {
@@ -88,6 +88,24 @@ export class PONCCService {
     );
   }
 
+  getProductSale(): Observable<any[]> {
+    return this.http.get<any>(this.baseUrl + 'product-sale').pipe(
+      map((res: any) => (Array.isArray(res?.data) ? res.data : res?.data || res || []))
+    );
+  }
+
+  getProductRTC(): Observable<any[]> {
+    return this.http.get<any>(this.baseUrl + 'product-rtc').pipe(
+      map((res: any) => (Array.isArray(res?.data) ? res.data : res?.data || res || []))
+    );
+  }
+
+  getProjects(): Observable<any[]> {
+    return this.http.get<any>(this.baseUrl + 'projects').pipe(
+      map((res: any) => (Array.isArray(res?.data) ? res.data : res?.data || res || []))
+    );
+  }
+
   // Code generation endpoints
   generatePOCode(supplierID: number, currencyID: number): Observable<any> {
     const params = new HttpParams()
@@ -103,5 +121,29 @@ export class PONCCService {
     return this.http.get<any>(`${this.baseUrl}generate-bill-code`, { params }).pipe(
       map((res: any) => res?.data || '')
     );
+  }
+
+  getPOCode(productCode: string) {
+    return this.http.get<any>(`${this.baseUrl}po-code?productCode=${productCode}`);
+  }
+
+  deletedPonccDetail(poDetailId: number) {
+    return this.http.delete<any>(`${this.baseUrl}deleted-poncc-detail?poDetailId=${poDetailId}`);
+  }
+
+  getBillCode(poTypeId: number) {
+    return this.http.get<any>(`${this.baseUrl}load-bill-code?poTypeId=${poTypeId}`);
+  }
+
+  getHistoryPrice(productId: number, productCode: string) {
+    return this.http.get<any>(`${this.baseUrl}history-price?productId=${productId}&productCode=${productCode}`);
+  }
+
+  checkPoCode(id: number, pOCode: string, billCode: string) {
+    return this.http.get<any>(`${this.baseUrl}check-po-code?id=${id}&pOCode=${pOCode}&billCode=${billCode}`);
+  }
+
+  updatePONCC(data: any[]) {
+    return this.http.post<any>(`${this.baseUrl}update-poncc`, data);
   }
 }

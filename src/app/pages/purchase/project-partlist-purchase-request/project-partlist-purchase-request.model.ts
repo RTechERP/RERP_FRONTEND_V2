@@ -22,12 +22,13 @@ export interface RequestType {
   ID: number;
   RequestTypeName: string;
   RequestTypeCode: string;
+  IsIgnoreBGD: boolean;
 }
 
 export interface Currency {
   ID: number;
   Code: string;
   CurrencyRate: number;
-  DateStart:string | Date
-  DateExpried:string | Date
+  DateStart: string | Date
+  DateExpried: string | Date
 }

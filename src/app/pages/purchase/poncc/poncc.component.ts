@@ -9,10 +9,18 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSplitterModule } from 'ng-zorro-antd/splitter';
-import { NzModalService } from 'ng-zorro-antd/modal';
+import { NzTabSetComponent, NzTabComponent } from 'ng-zorro-antd/tabs';
+import { NzModalService, NzModalModule } from 'ng-zorro-antd/modal';
 import { TabulatorFull as Tabulator, ColumnDefinition, RowComponent, CellComponent } from 'tabulator-tables';
 import { PONCCService } from './poncc.service';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { ProjectService } from '../../project/project-service/project.service';
+import { NOTIFICATION_TITLE } from '../../../app.config';
+import { SupplierSaleService } from '../supplier-sale/supplier-sale.service';
+import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
+import { NzSpinComponent } from "ng-zorro-antd/spin";
+import { PonccDetailComponent } from './poncc-detail/poncc-detail.component';
+import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 
 @Component({
   selector: 'app-poncc',
@@ -27,16 +35,24 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
     NzInputModule,
     NzSelectModule,
     NzSplitterModule,
+    NzTabSetComponent,
+    NzTabComponent,
+    NzSpinComponent,
+    NzModalModule,
+    HasPermissionDirective
   ],
   templateUrl: './poncc.component.html',
   styleUrls: ['./poncc.component.css'],
 })
 export class PONCCComponent implements OnInit, AfterViewInit {
-  @ViewChild('masterContainer', { static: true }) masterRef!: ElementRef;
-  @ViewChild('detailContainer', { static: true }) detailRef!: ElementRef;
+  @ViewChild('table_poThuongMai', { static: false }) tablePoThuongMaiRef!: ElementRef;
+  @ViewChild('table_poMuon', { static: false }) tablePoMuonRef!: ElementRef;
+  @ViewChild('table_ponccdetail', { static: false }) detailRef!: ElementRef;
 
-  tableMaster!: Tabulator;
+  tablePoThuongMai!: Tabulator;
+  tablePoMuon!: Tabulator;
   tableDetail!: Tabulator;
+  activeTabIndex: number = 0;
 
   // Filters
   dateStart: Date = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
@@ -47,16 +63,21 @@ export class PONCCComponent implements OnInit, AfterViewInit {
   keyword: string = '';
   pageNumber = 1;
   pageSize = 1000;
-
+  sizeSearch: string = '0';
+  sizeTbDetail: any = '0';
   suppliers: any[] = [];
   employees: any[] = [];
+  isLoading: boolean = false;
 
   constructor(
     private srv: PONCCService,
-    private notify: NzNotificationService,
     private modal: NzModalService,
-    private modalService: NgbModal
-  ) {}
+    private notify: NzNotificationService,
+    private projectService: ProjectService,
+    private notification: NzNotificationService,
+    private supplierSaleService: SupplierSaleService,
+    private modalService: NgbModal,
+  ) { }
 
   ngOnInit(): void {
     this.loadLookups();
@@ -64,114 +85,53 @@ export class PONCCComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     this.initTables();
+    this.initDetailTable();
+    setTimeout(() => {
+      this.onSearch();
+    }, 0);
+  }
+
+  toggleSearchPanel() {
+    this.sizeSearch = this.sizeSearch == '0' ? '22%' : '0';
+  }
+
+  /**
+   * Reset all search filters to default values
+   */
+  resetSearch(): void {
+    this.dateStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    this.dateEnd = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
+    this.supplierId = 0;
+    this.employeeId = 0;
+    this.status = -1;
+    this.keyword = '';
+
+    // Optionally trigger search after reset
     this.onSearch();
   }
 
   private loadLookups() {
-    this.srv.getSuppliers().subscribe({ next: (res) => (this.suppliers = res || []) });
-    this.srv.getEmployees(0).subscribe({ next: (res) => (this.employees = res || []) });
-  }
-
-  private headerMenu(table: any): any[] {
-    const menu: any[] = [];
-    const columns = (table?.getColumns?.() || []) as any[];
-    columns.forEach((column: any) => {
-      const icon = document.createElement('i');
-      icon.classList.add('fas');
-      icon.classList.add(column.isVisible() ? 'fa-check-square' : 'fa-square');
-
-      const label = document.createElement('span');
-      const title = document.createElement('span');
-      title.textContent = ' ' + (column.getDefinition().title || column.getField());
-      label.appendChild(icon);
-      label.appendChild(title);
-
-      menu.push({
-        label: label,
-        action: (_e: any) => {
-          column.toggle();
-          icon.classList.toggle('fa-check-square', column.isVisible());
-          icon.classList.toggle('fa-square', !column.isVisible());
-        },
-      });
+    this.projectService.getUsers().subscribe({
+      next: (response: any) => {
+        this.employees = this.projectService.createdDataGroup(
+          response.data,
+          'DepartmentName'
+        );
+      },
+      error: (error) => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách nhân viên: ' + error.message);
+      },
     });
-    return menu;
-  }
-
-  private initTables(): void {
-    const masterCols: ColumnDefinition[] = [
-      { title: 'Duyệt', field: 'IsApproved', formatter: 'tickCross', hozAlign: 'center', headerHozAlign: 'center' },
-      { title: 'Trạng thái', field: 'StatusText', headerMenu: [] as any },
-      { title: 'Số PO', field: 'POCode', headerMenu: [] as any },
-      { title: 'Tổng tiền', field: 'TotalMoneyPO', formatter: (c) => this.formatNumber(c.getValue()), hozAlign: 'right', headerHozAlign: 'right', headerMenu: [] as any },
-      { title: 'Nhà cung cấp', field: 'NameNCC', headerMenu: [] as any },
-      { title: 'Ngày PO', field: 'RequestDate', formatter: (c) => this.formatDate(c.getValue()), hozAlign: 'center', headerHozAlign: 'center', headerMenu: [] as any },
-      { title: 'NV mua', field: 'FullName', headerMenu: [] as any },
-      { title: 'Loại tiền', field: 'CurrencyText', headerMenu: [] as any },
-      { title: 'Ngày giao hàng', field: 'DeliveryDate', formatter: (c) => this.formatDate(c.getValue()), hozAlign: 'center', headerHozAlign: 'center', headerMenu: [] as any },
-      { title: 'Số đơn hàng', field: 'BillCode', headerMenu: [] as any },
-      { title: 'Điều khoản TT', field: 'RulePayName', headerMenu: [] as any },
-      { title: 'Công ty', field: 'CompanyText', headerMenu: [] as any },
-      { title: 'Loại PO', field: 'POTypeText', headerMenu: [] as any },
-    ];
-
-    this.tableMaster = new Tabulator(this.masterRef.nativeElement, {
-      layout: 'fitDataFill',
-      height: '86vh',
-      reactiveData: true,
-      selectableRows: 1,
-      data: [],
-      rowContextMenu: () => this.buildRowContextMenu(),
-      columns: masterCols,
+    this.supplierSaleService.getNCC().subscribe({
+      next: (res) => (this.suppliers = res.data || []),
+      error: (error) => {
+        this.notification.error(NOTIFICATION_TITLE.error, 'Lỗi khi tải danh sách nhà cung cấp: ' + error.message);
+      },
     });
-    const items = this.headerMenu(this.tableMaster);
-    masterCols.forEach((col) => ((col as any).headerMenu = items));
-
-    this.tableMaster.on('rowSelected', (row: RowComponent) => {
-      const id = Number((row.getData() as any)?.ID) || 0;
-      if (id > 0) this.loadDetails(id);
-    });
-
-    const detailCols: ColumnDefinition[] = [
-      { title: 'Mã SP', field: 'ProductCode' },
-      { title: 'Tên SP', field: 'ProductName' },
-      { title: 'Mã nội bộ', field: 'ProductNewCode' },
-      { title: 'ĐVT', field: 'Unit', hozAlign: 'center', headerHozAlign: 'center' },
-      { title: 'SL yêu cầu', field: 'QtyRequest', formatter: (c) => this.formatNumber(c.getValue()), hozAlign: 'right', headerHozAlign: 'right' },
-      { title: 'Đơn giá', field: 'UnitPrice', formatter: (c) => this.formatNumber(c.getValue()), hozAlign: 'right', headerHozAlign: 'right' },
-      { title: 'Thành tiền', field: 'TotalPrice', formatter: (c) => this.formatNumber(c.getValue()), hozAlign: 'right', headerHozAlign: 'right' },
-      { title: '% VAT', field: 'VAT', formatter: (c) => this.formatNumber(c.getValue(), 0), hozAlign: 'right', headerHozAlign: 'right' },
-      { title: 'Tiền VAT', field: 'VATMoney', formatter: (c) => this.formatNumber(c.getValue()), hozAlign: 'right', headerHozAlign: 'right' },
-      { title: 'Mã DA', field: 'ProjectCode' },
-      { title: 'Tên DA', field: 'ProjectName' },
-      { title: 'Deadline', field: 'DeadlineDelivery', formatter: (c) => this.formatDate(c.getValue()), hozAlign: 'center', headerHozAlign: 'center' },
-      { title: 'Ghi chú', field: 'Note' },
-    ];
-    this.tableDetail = new Tabulator(this.detailRef.nativeElement, {
-      layout: 'fitDataFill',
-      height: '86vh',
-      reactiveData: true,
-      data: [],
-      columns: detailCols,
-    });
-  }
-
-  private formatNumber(v: any, digits = 2): string {
-    const n = Number(v);
-    if (!isFinite(n)) return '';
-    return n.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
-  }
-  private formatDate(val: any): string {
-    if (!val) return '';
-    try {
-      const d = new Date(val);
-      if (isNaN(d.getTime())) return '';
-      const p2 = (x: number) => String(x).padStart(2, '0');
-      return `${p2(d.getDate())}/${p2(d.getMonth() + 1)}/${d.getFullYear()}`;
-    } catch { return ''; }
   }
 
   onSearch(): void {
+    this.isLoading = true;
     const filter = {
       DateStart: new Date(this.dateStart.setHours(0, 0, 0, 0)).toISOString(),
       DateEnd: new Date(this.dateEnd.setHours(23, 59, 59, 999)).toISOString(),
@@ -181,178 +141,680 @@ export class PONCCComponent implements OnInit, AfterViewInit {
       Keyword: this.keyword?.trim() || '',
       PageNumber: this.pageNumber,
       PageSize: this.pageSize,
+      POType: this.activeTabIndex, // 0: PO thương mại, 1: PO mượn
     };
+
     this.srv.getAll(filter).subscribe({
-      next: (rows) => this.tableMaster?.setData(rows || []),
-      error: () => this.notify.error('Lỗi', 'Không tải được dữ liệu PO NCC'),
+      next: (rows) => {
+        const currentTable = this.activeTabIndex === 0 ? this.tablePoThuongMai : this.tablePoMuon;
+        currentTable?.setData(rows.data || []);
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+        this.notify.error('Lỗi', 'Không tải được dữ liệu PO NCC');
+      },
     });
+  }
+
+  onTabChange(index: number): void {
+    this.activeTabIndex = index;
+    this.onSearch();
   }
 
   private loadDetails(poid: number): void {
+    this.isLoading = true;
     this.srv.getDetails(poid).subscribe({
-      next: (rows) => this.tableDetail?.setData(rows || []),
-      error: () => this.notify.error('Lỗi', 'Không tải được chi tiết'),
+      next: (res: any) => {
+        console.log(res);
+        this.tableDetail?.setData(res.data.data || []);
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+        this.notify.error('Lỗi', 'Không tải được chi tiết');
+      },
     });
   }
 
-  // Row context menu actions
-  private buildRowContextMenu(): any[] {
-    return [
-      { label: 'Duyệt', action: () => this.onApprove(true) },
-      { label: 'Huỷ duyệt', action: () => this.onApprove(false) },
-      { label: 'Yêu cầu nhập kho (HN)', action: () => this.onRequestImport(1) },
-      { label: 'Yêu cầu nhập kho (HCM)', action: () => this.onRequestImport(2) },
-      { label: 'Yêu cầu nhập kho (BN)', action: () => this.onRequestImport(3) },
-      { label: 'Yêu cầu nhập kho (HP)', action: () => this.onRequestImport(4) },
+  private initTables() {
+    const columns: ColumnDefinition[] = [
+      {
+        title: 'Duyệt', field: 'IsApproved', hozAlign: 'center', width: 70, headerSort: false, frozen: true,
+        formatter: function (cell: any) {
+          const value = cell.getValue();
+          const checked = value === true || value === 'true' || value === 1 || value === '1';
+          return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
+        },
+      },
+      { title: 'Trạng thái', field: 'StatusText', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea', frozen: true, },
+      {
+        title: 'Ngày PO', field: 'RequestDate', width: 100, headerSort: false, hozAlign: 'center', frozen: true,
+        formatter: (cell: any) => this.formatDateDDMMYYYY(cell.getValue())
+      },
+      {
+        title: 'Ngày giao hàng', field: 'DeliveryDate', width: 100, headerSort: false, hozAlign: 'center', frozen: true,
+        formatter: (cell: any) => this.formatDateDDMMYYYY(cell.getValue())
+      },
+      { title: 'Số PO', field: 'POCode', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea', bottomCalc: 'count' },
+      { title: 'Số đơn hàng', field: 'BillCode', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea', bottomCalc: 'count' },
+      {
+        title: 'Tổng tiền', field: 'TotalMoneyPO', width: 120, headerSort: false, hozAlign: 'right',
+        bottomCalc: 'sum', bottomCalcFormatter: (cell: any) => this.formatNumberEnUS(cell.getValue()),
+        formatter: (cell: any) => this.formatNumberEnUS(cell.getValue())
+      },
+      { title: 'Loại tiền', field: 'CurrencyText', width: 80, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
+      {
+        title: 'Tỷ giá', field: 'CurrencyRate', width: 100, headerSort: false, hozAlign: 'right',
+        bottomCalc: 'sum', bottomCalcFormatter: (cell: any) => this.formatNumberEnUS(cell.getValue()),
+        formatter: (cell: any) => this.formatNumberEnUS(cell.getValue())
+      },
+      { title: 'Nhà cung cấp', field: 'NameNCC', width: 200, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
+
+      { title: 'Nhân viên mua', field: 'FullName', width: 150, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
+
+      {
+        title: 'Công nợ', field: 'DeptSupplier', width: 120, headerSort: false, hozAlign: 'center',
+        formatter: function (cell: any) {
+          const value = cell.getValue();
+          const checked = value === true || value === 'true' || value === 1 || value === '1';
+          return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
+        },
+      },
+      {
+        title: 'Phí ngân hàng', field: 'BankCharge', width: 120, headerSort: false, hozAlign: 'right',
+        bottomCalc: 'sum', bottomCalcFormatter: (cell: any) => this.formatNumberEnUS(cell.getValue()),
+        formatter: (cell: any) => this.formatNumberEnUS(cell.getValue())
+      },
+      { title: 'Điều khoản TT', field: 'RulePayName', width: 150, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
+      { title: 'Công ty', field: 'CompanyText', width: 150, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
+
+
+      { title: 'Fedex account', field: 'FedexAccount', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
+      { title: 'Điều khoản Incoterm', field: 'RuleIncoterm', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
+      { title: 'Chứng từ NCC', field: 'SupplierVoucher', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
+      { title: 'Xuất xứ', field: 'OriginItem', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
+      { title: 'Diễn giải', field: 'Note', width: 200, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
+
+      { title: 'Loại PO', field: 'POTypeText', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
     ];
-  }
 
-  private getSelectedMaster(): any[] {
-    return (this.tableMaster?.getSelectedData() as any[]) || [];
-  }
-
-  onApprove(isApproved: boolean): void {
-    const rows = this.getSelectedMaster();
-    if (!rows.length) {
-      this.notify.warning('Thông báo', 'Chọn PO để cập nhật');
-      return;
+    if (this.tablePoThuongMaiRef) {
+      this.tablePoThuongMai = new Tabulator(this.tablePoThuongMaiRef.nativeElement, {
+        ...DEFAULT_TABLE_CONFIG,
+        columns: columns,
+        height: '52vh',
+        data: [],
+        layout: 'fitDataStretch',
+        selectableRows: true,
+        paginationMode: 'local',
+      } as any);
+      this.tablePoThuongMai.on('rowSelectionChanged', (data: any[], rows: any[]) => {
+        if (data.length > 0) {
+          console.log(data[0].ID);
+          this.loadDetails(data[0].ID);
+          this.sizeTbDetail = '35%';
+        } else {
+          this.sizeTbDetail = '0';
+          this.tableDetail?.clearData();
+        }
+      });
     }
-    const ids = rows.map((r) => Number(r['ID'])).filter((x) => x > 0);
-    if (!ids.length) return;
-    this.srv.approve(ids, isApproved).subscribe({
-      next: () => {
-        this.notify.success('Thành công', isApproved ? 'Đã duyệt' : 'Đã huỷ duyệt');
-        this.onSearch();
+
+    if (this.tablePoMuonRef) {
+      this.tablePoMuon = new Tabulator(this.tablePoMuonRef.nativeElement, {
+        ...DEFAULT_TABLE_CONFIG,
+        columns: columns,
+        height: '52vh',
+        layout: 'fitDataStretch',
+        data: [],
+        selectableRows: true,
+        paginationMode: 'local',
+      });
+      this.tablePoMuon.on('rowSelectionChanged', (data: any[], rows: any[]) => {
+        if (data.length > 0) {
+          this.loadDetails(data[0].ID);
+          this.sizeTbDetail = '35%';
+        } else {
+          this.sizeTbDetail = '0';
+          this.tableDetail?.clearData();
+        }
+      });
+    }
+  }
+
+  private initDetailTable() {
+    const columns: ColumnDefinition[] = [
+      { title: 'STT', field: 'STT', width: 50, headerSort: false, hozAlign: 'center', formatter: 'textarea', frozen: true, },
+      { title: 'Mã sản phẩm', field: 'ProductCode', width: 120, headerSort: false, frozen: true, hozAlign: 'left', formatter: 'textarea' },
+      { title: 'Tên sản phẩm', field: 'ProductName', width: 200, headerSort: false, frozen: true, hozAlign: 'left', formatter: 'textarea' },
+      { title: 'Mã nội bộ', field: 'ProductNewCode', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
+      { title: 'Tên nhóm', field: 'ProductGroupName', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
+      { title: 'Mã SP NCC', field: 'ProductCodeOfSupplier', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
+      { title: 'Mã cha', field: 'ParentProductCode', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
+      { title: 'Mã dự án', field: 'ProjectCode', width: 120, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
+      { title: 'Tên dự án', field: 'ProjectName', width: 200, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
+
+      { title: 'ĐVT', field: 'UnitName', width: 80, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
+
+
+      { title: 'SL yêu cầu', field: 'QtyRequest', width: 100, headerSort: false, hozAlign: 'right', bottomCalc: 'sum', formatter: (cell: any) => this.formatNumberEnUS(cell.getValue(), 0) },
+      { title: 'SL đã yêu cầu', field: 'QuantityRequested', width: 100, headerSort: false, hozAlign: 'right', formatter: (cell: any) => this.formatNumberEnUS(cell.getValue(), 0) },
+      { title: 'SL đã về', field: 'QuantityReturn', width: 100, headerSort: false, hozAlign: 'right', formatter: (cell: any) => this.formatNumberEnUS(cell.getValue(), 0) },
+      { title: 'SL còn lại', field: 'QuantityRemain', width: 100, headerSort: false, hozAlign: 'right', formatter: (cell: any) => this.formatNumberEnUS(cell.getValue(), 0) },
+
+      { title: 'Đơn giá', field: 'UnitPrice', width: 120, headerSort: false, hozAlign: 'right', formatter: (cell: any) => this.formatNumberEnUS(cell.getValue()) },
+      { title: 'Thành tiền', field: 'ThanhTien', width: 120, headerSort: false, hozAlign: 'right', bottomCalc: 'sum', formatter: (cell: any) => this.formatNumberEnUS(cell.getValue()) },
+
+      { title: 'VAT (%)', field: 'VAT', width: 80, headerSort: false, hozAlign: 'right', formatter: 'textarea' },
+      { title: 'Tổng tiền VAT', field: 'VATMoney', width: 120, headerSort: false, hozAlign: 'right', bottomCalc: 'sum', formatter: (cell: any) => this.formatNumberEnUS(cell.getValue()) },
+      {
+        title: 'Hóa đơn', field: 'IsBill', hozAlign: 'center', width: 80, headerSort: false,
+        formatter: function (cell: any) {
+          const value = cell.getValue();
+          const checked = value === true || value === 'true' || value === 1 || value === '1';
+          return `<input type="checkbox" ${checked ? 'checked' : ''} style="pointer-events: none; accent-color: #1677ff;" />`;
+        },
       },
-      error: () => this.notify.error('Lỗi', 'Cập nhật duyệt thất bại'),
+
+      { title: 'Chiết khấu (%)', field: 'DiscountPercent', width: 100, headerSort: false, hozAlign: 'right', formatter: 'textarea' },
+      { title: 'Tiền chiết khấu', field: 'Discount', width: 120, headerSort: false, hozAlign: 'right', bottomCalc: 'sum', formatter: (cell: any) => this.formatNumberEnUS(cell.getValue()) },
+
+      { title: 'Phí vận chuyển', field: 'FeeShip', width: 120, headerSort: false, hozAlign: 'right', bottomCalc: 'sum', formatter: (cell: any) => this.formatNumberEnUS(cell.getValue()) },
+      { title: 'Tổng tiền', field: 'TotalPrice', width: 120, headerSort: false, hozAlign: 'right', bottomCalc: 'sum', formatter: (cell: any) => this.formatNumberEnUS(cell.getValue()) },
+
+      { title: 'Deadline giao hàng', field: 'DeadlineDelivery', width: 100, headerSort: false, hozAlign: 'center', formatter: (cell: any) => this.formatDateDDMMYYYY(cell.getValue()) },
+      { title: 'Ngày dự kiến', field: 'ExpectedDate', width: 100, headerSort: false, hozAlign: 'center', formatter: (cell: any) => this.formatDateDDMMYYYY(cell.getValue()) },
+      { title: 'Ngày thực tế', field: 'ActualDate', width: 100, headerSort: false, hozAlign: 'center', formatter: (cell: any) => this.formatDateDDMMYYYY(cell.getValue()) },
+
+      { title: 'Giá bán', field: 'PriceSale', width: 120, headerSort: false, hozAlign: 'right', formatter: (cell: any) => this.formatNumberEnUS(cell.getValue()) },
+      { title: 'Giá lịch sử', field: 'PriceHistory', width: 120, headerSort: false, hozAlign: 'right', formatter: (cell: any) => this.formatNumberEnUS(cell.getValue()) },
+      { title: 'Giá thầu', field: 'BiddingPrice', width: 120, headerSort: false, hozAlign: 'right', formatter: (cell: any) => this.formatNumberEnUS(cell.getValue()) },
+
+      { title: 'Diễn giải', field: 'Note', width: 200, headerSort: false, hozAlign: 'left', formatter: 'textarea' },
+    ];
+
+    if (this.detailRef) {
+      this.tableDetail = new Tabulator(this.detailRef.nativeElement, {
+        ...DEFAULT_TABLE_CONFIG,
+        columns: columns,
+        layout: 'fitDataStretch',
+        height: '100%',
+        data: [],
+        pagination: false,
+      });
+    }
+  }
+
+  private formatNumberEnUS(v: any, digits: number = 2): string {
+    const n = Number(v);
+    if (!isFinite(n)) return '';
+    return n.toLocaleString('en-US', {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
     });
   }
 
-  onRequestImport(warehouseID: number): void {
-    const rows = this.getSelectedMaster();
-    if (!rows.length) {
-      this.notify.warning('Thông báo', 'Chọn PO để yêu cầu nhập kho');
-      return;
+  private formatDateDDMMYYYY(val: any): string {
+    if (!val) return '';
+    try {
+      const d = new Date(val);
+      if (isNaN(d.getTime())) return '';
+      const p2 = (n: number) => String(n).padStart(2, '0');
+      return `${p2(d.getDate())}/${p2(d.getMonth() + 1)}/${d.getFullYear()}`;
+    } catch {
+      return '';
     }
-    const ids = rows.map((r) => Number(r['ID'])).filter((x) => x > 0);
-    if (!ids.length) return;
-    this.srv.requestImport(warehouseID, ids).subscribe({
-      next: () => {
-        this.notify.success('Thành công', `Đã yêu cầu nhập kho (${warehouseID})`);
-        this.onSearch();
-      },
-      error: () => this.notify.error('Lỗi', 'Yêu cầu nhập kho thất bại'),
-    });
   }
 
-  onAdd(): void {
-    // Open PONCCDetail modal in create mode
-    const modalRef = this.modalService.open(PONCCDetailComponent, {
-      centered: true,
-      size: 'xl',
+  onAddPoncc() {
+    const modalRef = this.modalService.open(PonccDetailComponent, {
       backdrop: 'static',
       keyboard: false,
-    });
-
-    const instance = modalRef.componentInstance as any;
-    instance.mode = 'create-new';
-
-    modalRef.result.then(
-      (result) => {
-        if (result === 'saved') {
-          this.notify.success('Thành công', 'Đã tạo PO mới!');
-          this.onSearch();
-        }
-      },
-      () => {}
-    );
-  }
-
-  onEdit(): void {
-    const rows = this.getSelectedMaster();
-    if (!rows.length) {
-      this.notify.warning('Thông báo', 'Chọn PO để sửa');
-      return;
-    }
-    if (rows.length > 1) {
-      this.notify.warning('Thông báo', 'Chỉ chọn 1 PO để sửa');
-      return;
-    }
-
-    const po = rows[0];
-    const poID = Number(po['ID']);
-    if (!poID) return;
-
-    // Open PONCCDetail modal in edit mode
-    const modalRef = this.modalService.open(PONCCDetailComponent, {
       centered: true,
-      size: 'xl',
-      backdrop: 'static',
-      keyboard: false,
+      windowClass: 'full-screen-modal',
     });
-
-    const instance = modalRef.componentInstance as any;
-    instance.mode = 'edit';
-    instance.poID = poID;
-    instance.initialPOCode = po['POCode'];
-    instance.initialBillCode = po['BillCode'];
-
-    modalRef.result.then(
-      (result) => {
-        if (result === 'saved') {
-          this.notify.success('Thành công', 'Đã cập nhật PO!');
-          this.onSearch();
-        }
-      },
-      () => {}
-    );
+    modalRef.result.finally(() => {
+      this.onSearch();
+    });
   }
 
-  onDelete(): void {
-    const rows = this.getSelectedMaster();
-    if (!rows.length) {
-      this.notify.warning('Thông báo', 'Chọn PO để xóa');
+  onEditPoncc() {
+    // Get selected row from current active table
+    const currentTable = this.activeTabIndex === 0 ? this.tablePoThuongMai : this.tablePoMuon;
+    const selectedRows = currentTable?.getSelectedData();
+
+    // Validate selection
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một PO để sửa');
       return;
     }
 
-    const po = rows[0];
-    const poID = Number(po['ID']);
-    const isApproved = po['IsApproved'];
-    const totalImport = Number(po['TotalImport']) || 0;
+    const selectedPO = selectedRows[0];
 
-    // Validate delete permissions
-    if (isApproved) {
-      this.notify.error('Lỗi', 'PO đã được duyệt, không thể xóa!');
+    // Show loading
+    this.isLoading = true;
+
+    // Load detail data from API
+    this.srv.getDetails(selectedPO.ID).subscribe({
+      next: (detailResponse: any) => {
+        this.isLoading = false;
+
+        // Open modal with master and detail data
+        const modalRef = this.modalService.open(PonccDetailComponent, {
+          backdrop: 'static',
+          keyboard: false,
+          centered: true,
+          windowClass: 'full-screen-modal',
+        });
+
+        // Pass data to modal component
+        modalRef.componentInstance.poncc = selectedPO;
+        modalRef.componentInstance.dtRef = detailResponse.data.dtRef || [];; // Master PO data
+        modalRef.componentInstance.ponccDetail = detailResponse.data.data || []; // Detail items
+
+        // Reload table after modal closes
+        modalRef.result.finally(() => {
+          this.onSearch();
+        });
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.notify.error('Lỗi', 'Không thể tải chi tiết PO');
+      }
+    });
+  }
+
+  /**
+   * Delete selected PO(s)
+   * Logic: Skip approved POs or POs with import slips (TotalImport > 0)
+   * Soft delete by setting IsDeleted = true
+   */
+  onDeletePoncc() {
+    const currentTable = this.activeTabIndex === 0 ? this.tablePoThuongMai : this.tablePoMuon;
+    const selectedRows = currentTable?.getSelectedData();
+
+    // Validate selection
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn PO muốn xóa!');
       return;
     }
 
-    if (totalImport > 0) {
-      this.notify.error('Lỗi', 'PO đã có phiếu nhập kho, không thể xóa!');
-      return;
-    }
-
-    // Confirm delete
     this.modal.confirm({
       nzTitle: 'Xác nhận xóa',
-      nzContent: `Bạn có chắc chắn muốn xóa PO: ${po['POCode']}?`,
+      nzContent: `Bạn có chắc muốn xóa danh sách PO đã chọn không?<br>
+                  <strong>Lưu ý:</strong> Những PO đã được duyệt hoặc đã có phiếu nhập sẽ bỏ qua!`,
       nzOkText: 'Xóa',
+      nzOkType: 'primary',
       nzOkDanger: true,
       nzCancelText: 'Hủy',
       nzOnOk: () => {
-        this.srv.delete(poID).subscribe({
-          next: () => {
-            this.notify.success('Thành công', 'Đã xóa PO!');
+        // Filter POs that can be deleted
+        const posToDelete: any[] = [];
+        const skippedPOs: string[] = [];
+
+        selectedRows.forEach((po: any) => {
+          // Skip if ID is invalid
+          if (!po.ID || po.ID <= 0) {
+            return;
+          }
+
+          // Skip if already approved
+          if (po.IsApproved === true || po.IsApproved === 1 || po.IsApproved === '1') {
+            skippedPOs.push(`${po.POCode} (đã duyệt)`);
+            return;
+          }
+
+          // Skip if has import slips
+          if (po.TotalImport && po.TotalImport > 0) {
+            skippedPOs.push(`${po.POCode} (đã có phiếu nhập)`);
+            return;
+          }
+
+          // Add to delete list
+          posToDelete.push({
+            ...po,
+            IsDeleted: true
+          });
+        });
+
+        // Check if there are POs to delete
+        if (posToDelete.length === 0) {
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            'Không có PO nào có thể xóa. Tất cả đều đã được duyệt hoặc đã có phiếu nhập!'
+          );
+          return;
+        }
+
+        // Show loading
+        this.isLoading = true;
+
+        // Call API to soft delete (update IsDeleted = true)
+        this.srv.updatePONCC(posToDelete).subscribe({
+          next: (response: any) => {
+            this.isLoading = false;
+
+            // Show success message
+            let message = `Đã xóa thành công ${posToDelete.length} PO`;
+            if (skippedPOs.length > 0) {
+              message += `<br><br><strong>Bỏ qua ${skippedPOs.length} PO:</strong><br>` + skippedPOs.join('<br>');
+            }
+
+            this.notification.success(NOTIFICATION_TITLE.success, message);
+
+            // Reload table
             this.onSearch();
           },
           error: (err) => {
-            const msg = err?.error?.message || 'Xóa PO thất bại';
-            this.notify.error('Lỗi', msg);
-          },
+            this.isLoading = false;
+            this.notification.error(NOTIFICATION_TITLE.error, 'Không thể xóa PO. Vui lòng thử lại!');
+          }
         });
-      },
+      }
     });
   }
-}
 
-// Note: PONCCDetailComponent will be created in Phase 4
-declare const PONCCDetailComponent: any;
+  onApprovePoncc(isApprove: boolean): void {
+    const isApproveText = isApprove ? 'duyệt' : 'hủy duyệt';
+    const currentTable = this.activeTabIndex === 0 ? this.tablePoThuongMai : this.tablePoMuon;
+    const selectedRows = currentTable?.getSelectedData();
+
+    // Validate selection
+    if (!selectedRows || selectedRows.length <= 0) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        `Vui lòng chọn PO muốn ${isApproveText}!`
+      );
+      return;
+    }
+
+    // Confirmation dialog
+    this.modal.confirm({
+      nzTitle: `Xác nhận ${isApproveText}`,
+      nzContent: `Bạn có chắc muốn ${isApproveText} danh sách PO đã chọn không?`,
+      nzOkText: isApprove ? 'Duyệt' : 'Hủy duyệt',
+      nzOkType: 'primary',
+      nzCancelText: 'Hủy',
+      nzOnOk: () => {
+        // Collect valid POs
+        const listPONCC: any[] = [];
+        selectedRows.forEach((po: any) => {
+          if (po.ID && po.ID > 0) {
+            listPONCC.push(po);
+          }
+        });
+
+        // Check if there are valid POs
+        if (listPONCC.length <= 0) {
+          this.notification.warning(
+            NOTIFICATION_TITLE.warning,
+            'Không có PO hợp lệ để cập nhật!'
+          );
+          return;
+        }
+
+        // Prepare data for update - only send necessary fields
+        const updateData = listPONCC.map(po => ({
+          ID: po.ID,
+          IsApproved: isApprove
+        }));
+
+        // Show loading
+        this.isLoading = true;
+
+        // Call API to update IsApproved
+        this.srv.updatePONCC(updateData).subscribe({
+          next: (response: any) => {
+            this.isLoading = false;
+            this.notification.success(
+              NOTIFICATION_TITLE.success,
+              `Đã ${isApproveText} thành công ${listPONCC.length} PO`
+            );
+
+            this.onSearch();
+          },
+          error: (err: any) => {
+            this.isLoading = false;
+            this.notification.error(
+              NOTIFICATION_TITLE.error,
+              `Không thể ${isApproveText} PO. Vui lòng thử lại!`
+            );
+          }
+        });
+      }
+    });
+  }
+
+  onCopyPO() {
+    // Get selected row from current active table
+    const currentTable = this.activeTabIndex === 0 ? this.tablePoThuongMai : this.tablePoMuon;
+    const selectedRows = currentTable?.getSelectedData();
+
+    // Validate selection
+    if (!selectedRows || selectedRows.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một PO để sao chép');
+      return;
+    }
+
+    const selectedPO = selectedRows[0];
+
+    // Show loading
+    this.isLoading = true;
+
+    // Load detail data from API
+    this.srv.getDetails(selectedPO.ID).subscribe({
+      next: (detailResponse: any) => {
+        this.isLoading = false;
+
+        // Open modal with master and detail data
+        const modalRef = this.modalService.open(PonccDetailComponent, {
+          backdrop: 'static',
+          keyboard: false,
+          centered: true,
+          windowClass: 'full-screen-modal',
+        });
+
+        const details = detailResponse.data.data.map((row: any) => ({
+          ...row,
+          ID: 0,
+          PONCCID: 0,
+          ProjectPartlistPurchaseRequestID: 0
+        }));
+
+        // Pass data to modal component
+        modalRef.componentInstance.poncc = selectedPO;
+        modalRef.componentInstance.isCopy = true;
+        modalRef.componentInstance.dtRef = []; // Master PO data
+        modalRef.componentInstance.ponccDetail = details || []; // Detail items
+
+        // Reload table after modal closes
+        modalRef.result.finally(() => {
+          this.onSearch();
+        });
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.notify.error('Lỗi', 'Không thể tải chi tiết PO');
+      }
+    });
+  }
+
+  /**
+   * Export master table to Excel with footer using ExcelJS
+   */
+  async onExportToExcel(): Promise<void> {
+    const currentTable = this.activeTabIndex === 0 ? this.tablePoThuongMai : this.tablePoMuon;
+
+    if (!currentTable) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất!');
+      return;
+    }
+
+    const data = currentTable.getData();
+    if (!data || data.length === 0) {
+      this.notification.warning(NOTIFICATION_TITLE.warning, 'Không có dữ liệu để xuất!');
+      return;
+    }
+
+    const tabName = this.activeTabIndex === 0 ? 'PO Thương mại' : 'PO Mượn';
+
+    // Format dates for filename: DDMMYY
+    const formatDate = (date: Date | null): string => {
+      if (!date) return new Date().toLocaleDateString('en-GB').split('/').map(p => p.padStart(2, '0')).join('').slice(0, 6);
+      const d = new Date(date);
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = String(d.getFullYear()).slice(-2);
+      return `${day}${month}${year}`;
+    };
+
+    const dateStartStr = formatDate(this.dateStart);
+    const dateEndStr = formatDate(this.dateEnd);
+    const fileName = `DanhSachPO_${dateStartStr}_${dateEndStr}.xlsx`;
+
+    // Use ExcelJS to create workbook
+    const ExcelJS = await import('exceljs');
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet(tabName);
+
+    // Get visible columns
+    const columns = currentTable.getColumns();
+    const visibleColumns = columns
+      .map((col: any) => col.getDefinition())
+      .filter((def: any) => def.formatter !== 'rowSelection');
+
+    const headers = visibleColumns.map((def: any) => def.title);
+
+    // Add header row
+    const headerRow = worksheet.addRow(headers);
+    headerRow.font = { bold: true, color: { argb: 'FF000000' } };
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFE7E6E6' }
+    };
+    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+    headerRow.height = 25;
+
+    // Detect columns with bottomCalc
+    const sumFields: string[] = [];
+    const countFields: string[] = [];
+    visibleColumns.forEach((col: any) => {
+      if (col.bottomCalc === 'sum') {
+        sumFields.push(col.field);
+      } else if (col.bottomCalc === 'count') {
+        countFields.push(col.field);
+      }
+    });
+
+    // Initialize totals
+    const totals: any = {};
+    sumFields.forEach(field => totals[field] = 0);
+    countFields.forEach(field => totals[field] = 0);
+
+    // Add data rows
+    data.forEach((row: any) => {
+      const rowData = visibleColumns.map((col: any) => {
+        const field = col.field;
+        let value = row[field];
+
+        // Calculate sum
+        if (sumFields.includes(field) && value) {
+          totals[field] += Number(value) || 0;
+        }
+
+        // Calculate count
+        if (countFields.includes(field)) {
+          totals[field] += 1;
+        }
+
+        // Format boolean
+        if (typeof value === 'boolean') {
+          return value ? 'V' : 'X';
+        }
+
+        // Format date
+        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+          value = new Date(value);
+        }
+
+        return value;
+      });
+
+      const dataRow = worksheet.addRow(rowData);
+      dataRow.alignment = { vertical: 'middle', wrapText: true };
+
+      dataRow.eachCell((cell, colNumber) => {
+        const field = visibleColumns[colNumber - 1]?.field;
+
+        if (sumFields.includes(field)) {
+          if (typeof cell.value === 'number') {
+            cell.numFmt = '#,##0';
+          }
+        }
+
+        if (cell.value instanceof Date) {
+          cell.numFmt = 'dd/mm/yyyy';
+        }
+      });
+    });
+
+    // Add footer row
+    const footerData = visibleColumns.map((col: any) => {
+      const field = col.field;
+
+      if (sumFields.includes(field)) {
+        return totals[field];
+      }
+
+      if (countFields.includes(field)) {
+        return totals[field];
+      }
+
+      if (field === visibleColumns[0].field) {
+        return 'Tổng cộng';
+      }
+
+      return '';
+    });
+
+    const footerRow = worksheet.addRow(footerData);
+    footerRow.font = { bold: true };
+    footerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFD3D3D3' }
+    };
+    footerRow.alignment = { vertical: 'middle', horizontal: 'left' };
+
+    footerRow.eachCell((cell, colNumber) => {
+      const field = visibleColumns[colNumber - 1]?.field;
+      if (sumFields.includes(field) || countFields.includes(field)) {
+        cell.numFmt = '#,##0';
+      }
+    });
+
+    // Auto-fit columns
+    worksheet.columns.forEach((column: any, index: number) => {
+      let maxLength = headers[index]?.length || 10;
+      column.eachCell({ includeEmpty: false }, (cell: any) => {
+        const cellValue = cell.value ? cell.value.toString() : '';
+        maxLength = Math.max(maxLength, cellValue.length);
+      });
+      column.width = Math.min(Math.max(maxLength + 2, 10), 50);
+    });
+
+    // Download file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  
+}

@@ -52,12 +52,15 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { map, catchError, of, forkJoin } from 'rxjs';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzMessageService } from 'ng-zorro-antd/message';
 import * as ExcelJS from 'exceljs';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 
 import { RequestInvoiceStatusLinkService } from './request-invoice-status-link-service/request-invoice-status-link.service';
 import { RequestInvoiceStatusComponent } from '../request-invoice-status/request-invoice-status.component';
+import { RequestInvoiceDetailService } from '../request-invoice-detail/request-invoice-detail-service/request-invoice-detail-service.service';
+import { RequestInvoiceService } from '../request-invoice/request-invoice-service/request-invoice-service.service';
 @Component({
   selector: 'app-request-invoice-status-link',
   imports: [
@@ -104,6 +107,8 @@ export class RequestInvoiceStatusLinkComponent implements OnInit, AfterViewInit 
   fileData: any[] = [];
   selectStatusData: any[] = [];
   listIdsStatusDel: number[] = [];
+  deletedFileIds: number[] = [];
+  selectedFile: any = null;
   private readonly SUPPLEMENT_STATUS_VALUE = 4;
   approvedStatus: any[] = [
     { value: 1, label: 'Chờ duyệt' },
@@ -116,8 +121,11 @@ export class RequestInvoiceStatusLinkComponent implements OnInit, AfterViewInit 
     private modalService: NgbModal,
     private modal: NzModalService,
     private notification: NzNotificationService,
+    private message: NzMessageService,
     private fb: FormBuilder,
-    private requestInvoiceStatusLinkService: RequestInvoiceStatusLinkService
+    private requestInvoiceStatusLinkService: RequestInvoiceStatusLinkService,
+    private requestInvoiceDetailService: RequestInvoiceDetailService,
+    private requestInvoiceService: RequestInvoiceService
   ) { }
 
   ngOnInit(): void {
@@ -132,7 +140,7 @@ export class RequestInvoiceStatusLinkComponent implements OnInit, AfterViewInit 
   }
 
   closeModal() {
-    this.activeModal.close();
+    this.activeModal.close({ success: true, reloadData: true });
   }
 
   loadStatusInvoice() {
@@ -175,8 +183,18 @@ export class RequestInvoiceStatusLinkComponent implements OnInit, AfterViewInit 
     this.requestInvoiceStatusLinkService.getStatusInvoiceFile(this.requestInvoiceID).subscribe(
       (response) => {
         if (response.status === 1) {
-          this.fileData = response.data;
-          if (this.fileData.length > 0 && this.tb_File) {
+          this.fileData = response.data.map((file: any) => ({
+            ...file,
+            fileName: file.FileName || file.fileName,
+            FileName: file.FileName || file.fileName,
+            fileSize: file.FileSize ? this.formatFileSize(file.FileSize) : '',
+            fileType: file.FileName ? this.getFileType(file.FileName) : '',
+            uploadDate: file.UploadDate
+              ? new Date(file.UploadDate).toLocaleDateString('vi-VN')
+              : new Date().toLocaleDateString('vi-VN'),
+            ServerPath: file.ServerPath || file.serverPath || '',
+          }));
+          if (this.tb_File) {
             this.tb_File.replaceData(this.fileData);
           }
         } else {
@@ -242,6 +260,10 @@ export class RequestInvoiceStatusLinkComponent implements OnInit, AfterViewInit 
     this.requestInvoiceStatusLinkService.saveStatusInvoice(payload).subscribe(
       (response) => {
         if (response?.status === 1) {
+          // Upload files sau khi lưu thành công
+          if (this.fileData.length > 0 || this.deletedFileIds.length > 0) {
+            this.uploadFiles(this.requestInvoiceID);
+          }
           this.notification.success(
             NOTIFICATION_TITLE.success,
             response?.message || 'Lưu dữ liệu thành công.'
@@ -273,6 +295,7 @@ export class RequestInvoiceStatusLinkComponent implements OnInit, AfterViewInit 
       layout: 'fitColumns',
       data: this.mainData,
       height: '100%',
+      rowHeader: false,
       columns: [
         {
           title: 'ID',
@@ -300,7 +323,7 @@ export class RequestInvoiceStatusLinkComponent implements OnInit, AfterViewInit 
           title: 'Tình trạng',
           field: 'IsApproved',
           sorter: 'number',
-          width: "20%",
+          width: "10%",
           editor: 'list',
           editorParams: {
             values: this.approvedStatus.map(x => ({
@@ -331,7 +354,7 @@ export class RequestInvoiceStatusLinkComponent implements OnInit, AfterViewInit 
           title: 'Lý do yêu cầu bổ sung chứng từ',
           field: 'AmendReason',
           sorter: 'string',
-          width: "30%",
+          width: "45%",
           editor: 'textarea',
           editable: (cell) =>
             this.requiresAmendReason(cell.getRow().getData()),
@@ -347,13 +370,67 @@ export class RequestInvoiceStatusLinkComponent implements OnInit, AfterViewInit 
       console.error('tb_File element not found');
       return;
     }
+
+    const contextMenuItems = [
+      {
+        label: 'Tải xuống',
+        action: () => {
+          if (this.selectedFile) {
+            this.downloadFile(this.selectedFile);
+          } else {
+            this.notification.warning(
+              NOTIFICATION_TITLE.warning,
+              'Vui lòng chọn file để tải xuống!'
+            );
+          }
+        },
+      },
+    ];
+
     this.tb_File = new Tabulator(this.tb_FileElement.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       layout: 'fitColumns',
       data: this.fileData,
-      height: '100%',
+      pagination: false,
+      height: '80%',
       rowHeader: false,
+      selectableRows: 1,
+      rowContextMenu: contextMenuItems,
       columns: [
+        {
+          title: '',
+          field: 'actions',
+          width: '10%',
+          hozAlign: 'center',
+          formatter: () =>
+            `<button class="btn text-danger p-0 border-0" style="font-size:15px;">
+              <i class="bi bi-trash3"></i>
+            </button>`,
+          cellClick: (_e, cell) => {
+            const row = cell.getRow();
+            const rowData = row.getData();
+            const fileName = rowData['fileName'] || rowData['FileName'] || '';
+
+            this.modal.confirm({
+              nzTitle: 'Xác nhận xóa',
+              nzContent: fileName
+                ? `Bạn có chắc chắn muốn xóa file "${fileName}"?`
+                : 'Bạn có chắc chắn muốn xóa file này?',
+              nzOkText: 'Đồng ý',
+              nzCancelText: 'Hủy',
+              nzOkDanger: true,
+              nzOnOk: () => {
+                const rowId = rowData['ID'];
+                if (rowId && !this.deletedFileIds.includes(rowId)) {
+                  this.deletedFileIds.push(rowId);
+                }
+
+                row.delete();
+                this.fileData = this.tb_File.getData();
+              },
+            });
+          },
+        },
         {
           title: 'ID',
           field: 'ID',
@@ -362,12 +439,27 @@ export class RequestInvoiceStatusLinkComponent implements OnInit, AfterViewInit 
           visible: false,
         },
         {
-          title: 'File',
-          field: 'FileName',
+          title: 'Tên file',
+          field: 'fileName',
           sorter: 'string',
-          width: "105%",
         }
       ],
+    });
+
+    this.tb_File.on('rowSelected', (row: RowComponent) => {
+      this.selectedFile = row.getData();
+    });
+
+    this.tb_File.on('rowDeselected', () => {
+      const selectedRows = this.tb_File.getSelectedRows();
+      if (selectedRows.length === 0) {
+        this.selectedFile = null;
+      }
+    });
+
+    this.tb_File.on('rowDblClick', (_e, row: RowComponent) => {
+      this.selectedFile = row.getData();
+      this.downloadFile(this.selectedFile);
     });
   }
 
@@ -445,4 +537,221 @@ export class RequestInvoiceStatusLinkComponent implements OnInit, AfterViewInit 
   private requiresAmendReason(rowData: any): boolean {
     return rowData?.['IsApproved'] === this.SUPPLEMENT_STATUS_VALUE;
   }
+
+  //#region : Hàm xử lý upload files
+  onFileSelected(event: any) {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      const MAX_FILE_SIZE = 50 * 1024 * 1024;
+      Array.from(files).forEach((file) => {
+        const fileObj = file as File;
+        if (fileObj.size > MAX_FILE_SIZE) {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            `File ${fileObj.name} vượt quá giới hạn dung lượng cho phép (50MB)`
+          );
+          return;
+        }
+        this.addFileToTable(fileObj);
+      });
+    }
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  getFileType(fileName: string): string {
+    return fileName.split('.').pop()?.toUpperCase() || '';
+  }
+
+  addFileToTable(file: File): void {
+    const newFile = {
+      fileName: file.name,
+      FileName: file.name,
+      fileSize: this.formatFileSize(file.size),
+      fileType: this.getFileType(file.name),
+      uploadDate: new Date().toLocaleDateString('vi-VN'),
+      file: file,
+      ServerPath: '',
+    };
+    this.fileData = [...this.fileData, newFile];
+    if (this.tb_File) {
+      this.tb_File.setData(this.fileData);
+    }
+  }
+
+  downloadFile(file: any): void {
+    if (!file) {
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn file để tải xuống!'
+      );
+      return;
+    }
+    const fullPath = this.buildFullFilePath(file);
+    const fileName =
+      file.FileName || file.fileName || file.FileNameOrigin || 'downloaded_file';
+    if (!fullPath) {
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Không xác định được đường dẫn file! (Có thể file mới chưa được upload lên server).'
+      );
+      return;
+    }
+    this.downloadFromServer(fullPath, fileName);
+  }
+
+  private buildFullFilePath(file: any): string {
+    if (!file) {
+      return '';
+    }
+    const serverPath =
+      (file.ServerPath || file.serverPath || '').toString().trim();
+    const fileName =
+      (file.FileName ||
+        file.fileName ||
+        file.FileNameOrigin ||
+        '').toString().trim();
+
+    if (!serverPath) {
+      return '';
+    }
+
+    if (fileName && serverPath.toLowerCase().includes(fileName.toLowerCase())) {
+      return serverPath;
+    }
+
+    if (!fileName) {
+      return serverPath;
+    }
+
+    const normalizedPath = serverPath.replace(/[\\/]+$/, '');
+    return `${normalizedPath}\\${fileName}`;
+  }
+
+  private downloadFromServer(fullPath: string, fileName: string): void {
+    if (!fullPath) {
+      this.notification.error(
+        NOTIFICATION_TITLE.error,
+        'Không xác định được đường dẫn file!'
+      );
+      return;
+    }
+
+    const loadingMsg = this.message.loading('Đang tải xuống file...', {
+      nzDuration: 0,
+    }).messageId;
+
+    this.requestInvoiceService.downloadFile(fullPath).subscribe({
+      next: (blob: Blob) => {
+        this.message.remove(loadingMsg);
+        if (blob && blob.size > 0) {
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = fileName || 'downloaded_file';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          this.notification.success('Thông báo', 'Tải xuống thành công!');
+        } else {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            'File tải về không hợp lệ!'
+          );
+        }
+      },
+      error: (err) => {
+        this.message.remove(loadingMsg);
+        if (err?.error instanceof Blob) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const errText = JSON.parse(reader.result as string);
+              this.notification.error(
+                NOTIFICATION_TITLE.error,
+                errText.message || 'Tải xuống thất bại!'
+              );
+            } catch {
+              this.notification.error(
+                NOTIFICATION_TITLE.error,
+                'Tải xuống thất bại!'
+              );
+            }
+          };
+          reader.readAsText(err.error);
+        } else {
+          this.notification.error(
+            NOTIFICATION_TITLE.error,
+            err?.error?.message || err?.message || 'Tải xuống thất bại!'
+          );
+        }
+      },
+    });
+  }
+
+  uploadFiles(RIID: number) {
+    // Lọc ra các file mới có thuộc tính file (giống cách làm bên TrainingRegistration)
+    const newFiles = this.fileData.filter(
+      (fileObj: any) => fileObj.file
+    );
+    const hasDeletedFiles = this.deletedFileIds.length > 0;
+
+    // Nếu không có file mới và không có file bị xóa thì không gọi API
+    if (newFiles.length === 0 && !hasDeletedFiles) {
+      return;
+    }
+
+    if (newFiles.length > 0) {
+      const formData = new FormData();
+
+      // Thêm từng file mới vào FormData
+      newFiles.forEach((fileObj: any) => {
+        formData.append('files', fileObj.file);
+      });
+
+      // key: để backend nhận biết loại tài liệu
+      formData.append('key', 'TuanBeoTest');
+
+      // Tạo subPath dựa trên RequestInvoiceID
+      const sanitize = (s: string) =>
+        s.replace(/[<>:"/\\|?*\u0000-\u001F]/g, '').trim();
+
+      const subPath = [
+        'RequestInvoiceStatus',
+        sanitize(RIID.toString())
+      ].join('/');
+
+      formData.append('subPath', subPath);
+
+      // Gọi API upload
+      this.requestInvoiceDetailService.uploadFiles(formData, RIID, 2).subscribe({
+        next: () => {
+          console.log('Upload files thành công');
+        },
+        error: (error) => {
+          this.notification.error('Thông báo', 'Lỗi upload files: ' + error);
+        },
+      });
+    }
+
+    // Xử lý xóa files
+    if (hasDeletedFiles) {
+      this.requestInvoiceDetailService.deleteFiles(this.deletedFileIds).subscribe({
+        next: () => {
+          this.deletedFileIds = [];
+        },
+        error: (error) => {
+          this.notification.error('Lỗi xóa files:', error);
+        },
+      });
+    }
+  }
+  //#endregion
 }

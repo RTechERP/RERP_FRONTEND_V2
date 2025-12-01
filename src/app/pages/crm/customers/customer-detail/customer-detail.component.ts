@@ -373,7 +373,7 @@ if (this.tb_AddressTable) {
   }
 
   loadEmployee() {
-    this.customerService.getEmployees(0).subscribe({
+    this.customerService.getEmployees().subscribe({
       next: (res: any) => {
         const employeeData = res.data;
         if (Array.isArray(employeeData)) {

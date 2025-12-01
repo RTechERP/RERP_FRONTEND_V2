@@ -38,12 +38,8 @@ export class CustomerServiceService {
       params: request, // Angular tự chuyển object thành query string
     });
   }
-  getEmployees(status: number): Observable<any> {
-    return this.http.get<any>(this._urlE + 'get-employees', {
-      params: {
-        status: status.toString(),
-      },
-    });
+  getEmployees(): Observable<any> {
+    return this.http.get<any>(environment.host + 'api/ViewPOKH/' + 'get-user');
   }
 
   getMainDataAjax(): string {

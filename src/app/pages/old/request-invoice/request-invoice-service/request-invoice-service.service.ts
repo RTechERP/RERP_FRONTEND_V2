@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
@@ -9,7 +9,8 @@ import { environment } from '../../../../../environments/environment';
 })
 export class RequestInvoiceService {
   private _url = environment.host + 'api/RequestInvoice/';
-  constructor(private http: HttpClient) {}
+  private _urlSummary = environment.host + 'api/RequestInvoiceSummary/';
+  constructor(private http: HttpClient) { }
 
   getRequestInvoice(
     dateStart: Date,
@@ -34,4 +35,46 @@ export class RequestInvoiceService {
       },
     });
   }
+
+  getRequestInvoiceById(id: number): Observable<any> {
+    return this.http.get<any>(this._url + 'get-request-invoice-by-id', {
+      params: {
+        id: id.toString(),
+      },
+    });
+  }
+
+  getPOKHFile(pokhId: number): Observable<any> {
+    return this.http.get<any>(this._url + 'get-pokh-file', {
+      params: {
+        pokhId: pokhId.toString(),
+      },
+    });
+  }
+
+  downloadFile(filePath: string): Observable<Blob> {
+    const params = new HttpParams().set('path', filePath);
+    return this.http.get(`${environment.host}api/home/download`, {
+      params,
+      responseType: 'blob',
+    });
+  }
+
+  getRequestInvoiceSummary(dateStart: Date, dateEnd: Date, customerId: number, userId: number, status: number, keywords: string): Observable<any> {
+    return this.http.get<any>(this._urlSummary + 'get-request-invoice-summary', {
+      params: {
+        dateStart: dateStart.toISOString(),
+        dateEnd: dateEnd.toISOString(),
+        customerId: customerId.toString(),
+        userId: userId.toString(),
+        status: status.toString(),
+        keyWords: keywords,
+      },
+    });
+  }
+
+  getCustomer(): Observable<any> {
+    return this.http.get<any>(this._urlSummary + 'get-customer');
+  }
+
 }

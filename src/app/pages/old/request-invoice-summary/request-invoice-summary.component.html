@@ -1,1 +1,118 @@
-<p>request-invoice-summary works!</p>
+<div style="display: flex; flex-direction: column; height: 99.6vh; position: relative;">
+
+    <ng-container class="w-100 h-100 d-flex flex-column">
+        <!-- quotation-kh-detail.component.html -->
+        <div class="modal-header bg-primary text-uppercase py-2">
+            <h6 class="modal-title text-white">TỔNG HỢP YÊU CẦU XUẤT HÓA ĐƠN</h6>
+            <button type="button" class="btn-close" (click)="closeModal()" aria-label="Close"></button>
+        </div>
+        <div class="card-header bg-white p-1" style="overflow-x: auto; flex-shrink: 0;">
+            <div class="d-flex gap-1">
+                <button style="min-width: 25px;" nz-button nzType="default" nzSize="small"
+                    (click)="toggleSearchPanel()">
+                    <nz-icon nzType="search"></nz-icon>
+                </button>
+                <button class="fs-12" nz-button nzType="default" nzSize="small" title="Xuất Excel"
+                    (click)="exportToExcel()">
+                    <img src="assets/icon/excel.png" alt="Xuất Excel" /> Xuất Excel
+                </button>
+                <button class="fs-12" nz-button nzType="default" nzSize="small" title="Quản lý trạng thái"
+                    (click)="openRequestInvoiceStatusLinkModal()">
+                    <img src="assets/icon/summary_check_16.png" alt="Cập nhật trạng thái" /> Quản lý trạng thái
+                </button>
+            </div>
+        </div>
+        <nz-splitter>
+            <nz-splitter-panel [nzSize]="sizeSearch" nzResizable="false">
+                <div class="card h-100 border-0 rounded-0">
+                    <div class="card-header bg-white p-1">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="m-0 ms-2">Tìm kiếm</h6>
+                            <button class="border-0 me-2" nz-button nzSize="small" nzType="default" nzDanger
+                                (click)="toggleSearchPanel()">
+                                <nz-icon nzType="close" nzTheme="outline" />
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <form nz-form>
+                            <nz-form-item>
+                                <nz-form-label class="fs-12" [nzSpan]="24">Từ ngày</nz-form-label>
+                                <nz-form-control [nzSpan]="24">
+                                    <nz-date-picker name="startDate" class="w-100" nzSize="small"
+                                        [(ngModel)]="dateStart"></nz-date-picker>
+                                </nz-form-control>
+                            </nz-form-item>
+                            <nz-form-item class="mt-2">
+                                <nz-form-label class="fs-12" [nzSpan]="24">Đến ngày</nz-form-label>
+                                <nz-form-control [nzSpan]="24">
+                                    <nz-date-picker name="endDate" class="w-100" nzSize="small"
+                                        [(ngModel)]="dateEnd"></nz-date-picker>
+                                </nz-form-control>
+                            </nz-form-item>
+                            <nz-form-item class="mt-2">
+                                <nz-form-label class="fs-12" [nzSpan]="24">Khách hàng</nz-form-label>
+                                <nz-form-control [nzSpan]="24">
+                                    <nz-select name="userId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
+                                        nzPlaceHolder="Người phụ trách" [(ngModel)]="customerId">
+                                        <nz-option *ngFor="let item of customers" [nzValue]="item.ID"
+                                            [nzLabel]="item.FullName"></nz-option>
+                                    </nz-select>
+                                </nz-form-control>
+                            </nz-form-item>
+                            <nz-form-item class="mt-2">
+                                <nz-form-label class="fs-12" [nzSpan]="24">Người yêu cầu</nz-form-label>
+                                <nz-form-control [nzSpan]="24">
+                                    <nz-select name="userId" class="w-100" nzShowSearch nzAllowClear nzSize="small"
+                                        nzPlaceHolder="Người phụ trách" [(ngModel)]="userId">
+                                        <nz-option *ngFor="let item of users" [nzValue]="item.ID"
+                                            [nzLabel]="item.FullName"></nz-option>
+                                    </nz-select>
+                                </nz-form-control>
+                            </nz-form-item>
+                            <nz-form-item class="mt-2">
+                                <nz-form-label class="fs-12" [nzSpan]="24">Từ khóa</nz-form-label>
+                                <nz-form-control [nzSpan]="24">
+                                    <input name="filterText" nz-input placeholder="Nhập từ khóa" nzSize="small"
+                                        [(ngModel)]="keywords" />
+                                </nz-form-control>
+                            </nz-form-item>
+                        </form>
+                    </div>
+                    <div class="card-footer bg-white p-1 d-flex gap-1 justify-content-end">
+                        <button nz-button nzType="primary" nzSize="small" (click)="loadMainData()">
+                            Tìm kiếm
+                        </button>
+                    </div>
+                </div>
+            </nz-splitter-panel>
+            <nz-splitter-panel>
+                <nz-splitter>
+                    <nz-splitter-panel>
+                        <div #tb_Table id="tb_Table" style="height: 100%;"></div>
+                    </nz-splitter-panel>
+                    <nz-splitter-panel nzDefaultSize="20%" [nzCollapsible]="true" nzResizable="true">
+                        <div class="card h-100 border-0 rounded-0 d-flex flex-column">
+                            <nz-tabset [nzTabPosition]="'top'" class="flex-grow-1 d-flex flex-column">
+                                <nz-tab nzTitle="Danh sách file">
+                                    <div class="card-body p-0 flex-grow-1" style="overflow: hidden;">
+                                        <div #tb_File id="tb_File" class="h-100"></div>
+                                    </div>
+                                </nz-tab>
+                                <nz-tab nzTitle="File PO">
+                                    <div class="card-body p-0 flex-grow-1" style="overflow: hidden;">
+                                        <div #tb_FilePO id="tb_FilePO" class="h-100"></div>
+                                    </div>
+                                </nz-tab>
+                            </nz-tabset>
+                        </div>
+                    </nz-splitter-panel>
+                </nz-splitter>
+            </nz-splitter-panel>
+        </nz-splitter>
+        <div class="modal-footer py-1">
+            <button nz-button nzType="default" nzDanger="true" nzSize="default" (click)="closeModal()">Đóng</button>
+            <!-- <button nz-button nzType="primary" nzSize="default" (click)="saveAndClose()">Lưu</button> -->
+        </div>
+    </ng-container>
+</div>

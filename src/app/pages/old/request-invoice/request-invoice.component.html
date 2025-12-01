@@ -17,12 +17,13 @@
       <button class="fs-12" nz-button nzType="default" nzSize="small" title="Cây thư mục">
         <nz-icon nzType="folder-view"></nz-icon> Cây thư mục
       </button>
-      <button class="fs-12" nz-button nzType="default" nzSize="small" title="Tổng hợp">
-        <nz-icon nzType="folder-view"></nz-icon> Tổng hợp
+      <button class="fs-12" nz-button nzType="default" nzSize="small" title="Tổng hợp"
+        (click)="openRequestInvoiceSummary()">
+        <img src="assets/icon/summary_check_16.png" alt="Tổng hợp" /> Tổng hợp
       </button>
-      <button class="fs-12" nz-button nzType="default" nzSize="small" title="Cập nhật trạng thái"
+      <button class="fs-12" nz-button nzType="default" nzSize="small" title="Cập nhật trạng thái" *hasPermission="'N36'"
         (click)="openRequestInvoiceStatusLinkModal()">
-        <nz-icon nzType="folder-view"></nz-icon> Cập nhật trạng thái
+        <img src="assets/icon/update_status_16.png" alt="Cập nhật trạng thái" /> Cập nhật trạng thái
       </button>
     </div>
   </div>
@@ -95,9 +96,18 @@
               </nz-splitter-panel>
               <nz-splitter-panel nzDefaultSize="20%" [nzCollapsible]="true" nzResizable="true">
                 <div class="card h-100 border-0 rounded-0 d-flex flex-column">
-                  <div class="card-body p-0 flex-grow-1" style="overflow: hidden;">
-                    <div #tb_File id="tb_File" class="h-100"></div>
-                  </div>
+                  <nz-tabset [nzTabPosition]="'top'" class="flex-grow-1 d-flex flex-column">
+                    <nz-tab nzTitle="Danh sách file">
+                      <div class="card-body p-0 flex-grow-1" style="overflow: hidden;">
+                        <div #tb_File id="tb_File" class="h-100"></div>
+                      </div>
+                    </nz-tab>
+                    <nz-tab nzTitle="File PO">
+                      <div class="card-body p-0 flex-grow-1" style="overflow: hidden;">
+                        <div #tb_POFile id="tb_POFile" class="h-100"></div>
+                      </div>
+                    </nz-tab>
+                  </nz-tabset>
                 </div>
               </nz-splitter-panel>
             </nz-splitter>

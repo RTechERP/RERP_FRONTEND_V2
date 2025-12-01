@@ -1652,7 +1652,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
             title: 'Mã Sản Phẩm (Cũ)',
             field: 'ProductCode',
             sorter: 'string',
-            width: 100,
+            width: 150,
           },
           {
             title: 'Tên sản phẩm',
@@ -1968,7 +1968,7 @@ export class PokhComponent implements OnInit, AfterViewInit {
           title: 'Tên file',
           field: 'FileName',
           sorter: 'string',
-          width: '90%',
+          width: '100%',
         },
       ],
     });

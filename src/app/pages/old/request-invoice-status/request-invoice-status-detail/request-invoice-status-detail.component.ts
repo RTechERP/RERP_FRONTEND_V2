@@ -55,6 +55,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import * as ExcelJS from 'exceljs';
 import { NOTIFICATION_TITLE } from '../../../../app.config';
 import { HasPermissionDirective } from '../../../../directives/has-permission.directive';
+import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
 
 import { RequestInvoiceStatusLinkService } from '../../request-invoice-status-link/request-invoice-status-link-service/request-invoice-status-link.service';
 

@@ -96,6 +96,7 @@ import { WFHComponent } from '../../../hrm/employee-management/employee-wfh/WFH.
 import { MeetingMinuteTypeComponent } from '../../../project/meeting-minute/meeting-minute-type/meeting-minute-type.component';
 import { ProjectAgvSummaryComponent } from '../../../project/project-agv-summary/project-agv-summary.component';
 import { FoodOrderComponent } from '../../../hrm/food-order/food-order.component';
+// import { ProjectPartlistPurchaseRequestComponent } from '../../../project/project-department-summary/project-department-summary-form/project-part-list/project-part-list-purchase-request/project-part-list-purchase-request.component';
 import { SupplierSaleComponent } from '../../../purchase/supplier-sale/supplier-sale.component';
 import { EmployeeNoFingerprintComponent } from '../../../hrm/employee-management/employee-no-fingerprint/employee-no-fingerprint.component';
 

@@ -54,6 +54,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { map, catchError, of, forkJoin } from 'rxjs';
 import { NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { NzMessageService } from 'ng-zorro-antd/message';
 import * as ExcelJS from 'exceljs';
 
 import { RequestInvoiceService } from './request-invoice-service/request-invoice-service.service';
@@ -63,6 +64,7 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
 import { RequestInvoiceStatusLinkComponent } from '../request-invoice-status-link/request-invoice-status-link.component';
+import { RequestInvoiceSummaryComponent } from '../request-invoice-summary/request-invoice-summary.component';
 
 @Component({
   selector: 'app-request-invoice',
@@ -103,15 +105,19 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
   tb_MainTableElement!: ElementRef;
   @ViewChild('tb_Detail', { static: false }) tb_DetailTableElement!: ElementRef;
   @ViewChild('tb_File', { static: false }) tb_FileTableElement!: ElementRef;
+  @ViewChild('tb_POFile', { static: false })
+  tb_POFileElement!: ElementRef;
 
   private mainTable!: Tabulator;
   private detailTable!: Tabulator;
   private fileTable!: Tabulator;
+  private tb_POFile!: Tabulator;
 
   constructor(
     private modalService: NgbModal,
     private RequestInvoiceService: RequestInvoiceService,
     private notification: NzNotificationService,
+    private message: NzMessageService,
     private modal: NzModalService,
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
@@ -122,7 +128,10 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
   data: any[] = [];
   dataDetail: any[] = [];
   dataFile: any[] = [];
+  POFiles: any[] = [];
   selectedId: number = 0;
+  selectedFile: any = null;
+  selectedPOFile: any = null;
 
   filters: any = {
     filterText: '',
@@ -159,6 +168,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
     this.initMainTable();
     this.initDetailTable();
     this.initFileTable();
+    this.initPOFileTable();
   }
 
   loadMainData(startDate: Date, endDate: Date, keywords: string): void {
@@ -196,6 +206,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
         if (response.status === 1) {
           this.dataDetail = response.data;
           this.dataFile = response.files;
+          this.selectedFile = null; // Reset selected file
           if (this.detailTable) {
             this.detailTable.setData(this.dataDetail);
           }
@@ -211,6 +222,24 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
       },
     });
   }
+
+  loadPOKHFile(POKHID: number): void {
+    this.RequestInvoiceService.getPOKHFile(POKHID).subscribe(
+      (response) => {
+        if (response.status === 1) {
+          this.POFiles = response.data;
+          this.selectedPOFile = null; // Reset selected PO file
+          if (this.tb_POFile) {
+            this.tb_POFile.setData(this.POFiles);
+          }
+        }
+      },
+      (error) => {
+        console.error('Lỗi kết nối khi tải POKHFile:', error);
+      }
+    );
+  }
+
   onEdit() {
     if (!this.selectedId) {
       this.notification.error(NOTIFICATION_TITLE.error, 'Vui lòng chọn bản ghi cần sửa');
@@ -236,13 +265,15 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
             RequestInvoiceDetailComponent,
             {
               centered: true,
-              size: 'xl',
+              // size: 'xl',
+              windowClass: 'full-screen-modal',
               backdrop: 'static',
             }
           );
           modalRef.componentInstance.groupedData = groupedData;
           modalRef.componentInstance.isEditMode = true;
           modalRef.componentInstance.selectedId = this.selectedId;
+          modalRef.componentInstance.POKHID = DETAIL[0]?.POKHID || 0;
           modalRef.result.then(
             (result) => {
               if (result.success && result.reloadData) {
@@ -265,6 +296,29 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
         this.notification.error(NOTIFICATION_TITLE.error, error);
       },
     });
+  }
+
+  openRequestInvoiceSummary() {
+    const modalRef = this.modalService.open(RequestInvoiceSummaryComponent, {
+      centered: true,
+      backdrop: 'static',
+      windowClass: 'full-screen-modal',
+    });
+
+    modalRef.result.then(
+      (result) => {
+        if (result.success && result.reloadData) {
+          this.loadMainData(
+            this.filters.startDate,
+            this.filters.endDate,
+            this.filters.filterText
+          );
+        }
+      },
+      (reason) => {
+        console.log('Modal closed');
+      }
+    );
   }
 
   openRequestInvoiceStatusLinkModal(): void {
@@ -298,7 +352,8 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
   openModal() {
     const modalRef = this.modalService.open(RequestInvoiceDetailComponent, {
       centered: true,
-      size: 'xl',
+      // size: 'xl',
+      windowClass: 'full-screen-modal',
       backdrop: 'static',
     });
     modalRef.componentInstance.groupedData = [
@@ -410,14 +465,18 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
         {
           title: 'Deadline',
           field: 'DealineUrgency',
-          sorter: 'string',
+          sorter: 'date',
           width: 100,
+          formatter: (cell) => {
+            const value = cell.getValue();
+            return value ? DateTime.fromISO(value).toFormat('dd/MM/yyyy') : '';
+          },
         },
         { title: 'Mã lệnh', field: 'Code', sorter: 'string', width: 200 },
         {
           title: 'Ngày yêu cầu',
           field: 'DateRequest',
-          sorter: 'string',
+          sorter: 'date',
           width: 200,
           formatter: (cell) => {
             const value = cell.getValue();
@@ -538,7 +597,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
             {
               title: 'Ngày hóa đơn',
               field: 'InvoiceDate',
-              sorter: 'string',
+              sorter: 'date',
               width: 150,
               formatter: (cell) => {
                 const value = cell.getValue();
@@ -556,7 +615,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
             {
               title: 'Ngày đặt hàng',
               field: 'RequestDate',
-              sorter: 'string',
+              sorter: 'date',
               width: 150,
               formatter: (cell) => {
                 const date = cell.getValue();
@@ -566,7 +625,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
             {
               title: 'Ngày hàng về',
               field: 'DateRequestImport',
-              sorter: 'string',
+              sorter: 'date',
               width: 150,
               formatter: (cell) => {
                 const date = cell.getValue();
@@ -589,7 +648,7 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
             {
               title: 'Ngày hàng về dự kiến',
               field: 'ExpectedDate',
-              sorter: 'string',
+              sorter: 'date',
               width: 150,
               formatter: (cell) => {
                 const date = cell.getValue();
@@ -606,8 +665,171 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
         }
       ],
     });
+
+    this.detailTable.on('rowClick', (e: any, row: RowComponent) => {
+      const POKHID = row.getData()['POKHID'];
+      this.loadPOKHFile(POKHID);
+    });
   }
+  private buildFullFilePath(file: any): string {
+    if (!file) {
+      return '';
+    }
+    const serverPath = (file.ServerPath || '').trim();
+    const fileName = (file.FileName || file.FileNameOrigin || '').trim();
+
+    if (!serverPath) {
+      return '';
+    }
+
+    // Nếu ServerPath đã chứa tên file thì dùng luôn
+    if (fileName && serverPath.toLowerCase().includes(fileName.toLowerCase())) {
+      return serverPath;
+    }
+
+    if (!fileName) {
+      return serverPath;
+    }
+
+    const normalizedPath = serverPath.replace(/[\\/]+$/, '');
+    return `${normalizedPath}\\${fileName}`;
+  }
+
+  downloadFile(file: any): void {
+    if (!file || !file.ServerPath) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
+      return;
+    }
+
+    const fullPath = this.buildFullFilePath(file);
+    if (!fullPath) {
+      this.notification.error('Thông báo', 'Không xác định được đường dẫn file!');
+      return;
+    }
+
+    // Hiển thị loading message
+    const loadingMsg = this.message.loading('Đang tải xuống file...', {
+      nzDuration: 0,
+    }).messageId;
+
+    this.RequestInvoiceService.downloadFile(fullPath).subscribe({
+      next: (blob: Blob) => {
+        this.message.remove(loadingMsg);
+
+        // Kiểm tra xem có phải là blob hợp lệ không
+        if (blob && blob.size > 0) {
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = file.FileName || file.FileNameOrigin || 'downloaded_file';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          this.notification.success('Thông báo', 'Tải xuống thành công!');
+        } else {
+          this.notification.error('Thông báo', 'File tải về không hợp lệ!');
+        }
+      },
+      error: (res: any) => {
+        this.message.remove(loadingMsg);
+        console.error('Lỗi khi tải file:', res);
+
+        // Nếu error response là blob (có thể server trả về lỗi dạng blob)
+        if (res.error instanceof Blob) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const errorText = JSON.parse(reader.result as string);
+              this.notification.error('Thông báo', errorText.message || 'Tải xuống thất bại!');
+            } catch {
+              this.notification.error('Thông báo', 'Tải xuống thất bại!');
+            }
+          };
+          reader.readAsText(res.error);
+        } else {
+          const errorMsg = res?.error?.message || res?.message || 'Tải xuống thất bại! Vui lòng thử lại.';
+          this.notification.error('Thông báo', errorMsg);
+        }
+      },
+    });
+  }
+
+  downloadPOFile(file: any): void {
+    if (!file || !file.ServerPath) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
+      return;
+    }
+
+    const fullPath = this.buildFullFilePath(file);
+    if (!fullPath) {
+      this.notification.error('Thông báo', 'Không xác định được đường dẫn file!');
+      return;
+    }
+
+    // Hiển thị loading message
+    const loadingMsg = this.message.loading('Đang tải xuống file...', {
+      nzDuration: 0,
+    }).messageId;
+
+    this.RequestInvoiceService.downloadFile(fullPath).subscribe({
+      next: (blob: Blob) => {
+        this.message.remove(loadingMsg);
+
+        // Kiểm tra xem có phải là blob hợp lệ không
+        if (blob && blob.size > 0) {
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = file.FileName || file.FileNameOrigin || 'downloaded_file';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          this.notification.success('Thông báo', 'Tải xuống thành công!');
+        } else {
+          this.notification.error('Thông báo', 'File tải về không hợp lệ!');
+        }
+      },
+      error: (res: any) => {
+        this.message.remove(loadingMsg);
+        console.error('Lỗi khi tải file:', res);
+
+        // Nếu error response là blob (có thể server trả về lỗi dạng blob)
+        if (res.error instanceof Blob) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const errorText = JSON.parse(reader.result as string);
+              this.notification.error('Thông báo', errorText.message || 'Tải xuống thất bại!');
+            } catch {
+              this.notification.error('Thông báo', 'Tải xuống thất bại!');
+            }
+          };
+          reader.readAsText(res.error);
+        } else {
+          const errorMsg = res?.error?.message || res?.message || 'Tải xuống thất bại! Vui lòng thử lại.';
+          this.notification.error('Thông báo', errorMsg);
+        }
+      },
+    });
+  }
+
   initFileTable(): void {
+    // Tạo context menu
+    const contextMenuItems: any[] = [
+      {
+        label: 'Tải xuống',
+        action: () => {
+          if (this.selectedFile) {
+            this.downloadFile(this.selectedFile);
+          } else {
+            this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
+          }
+        }
+      }
+    ];
+
     this.fileTable = new Tabulator(this.tb_FileTableElement.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       data: this.dataFile,
@@ -615,12 +837,20 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
       height: '100%',
       selectableRows: 1,
       rowHeader: false,
+      rowContextMenu: contextMenuItems,
       columns: [
         {
           title: 'Tên file',
           field: 'FileName',
           sorter: 'string',
           width: '100%',
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (value) {
+              return `<span style="color: #1890ff; text-decoration: underline; cursor: pointer;">${value}</span>`;
+            }
+            return '';
+          }
         },
         {
           title: 'Server Path',
@@ -629,6 +859,87 @@ export class RequestInvoiceComponent implements OnInit, AfterViewInit {
           visible: false,
         },
       ],
+    });
+
+    // Thêm sự kiện rowSelected để lưu file được chọn
+    this.fileTable.on('rowSelected', (row: RowComponent) => {
+      const rowData = row.getData();
+      this.selectedFile = rowData;
+    });
+
+    this.fileTable.on('rowDeselected', (row: RowComponent) => {
+      const selectedRows = this.fileTable!.getSelectedRows();
+      if (selectedRows.length === 0) {
+        this.selectedFile = null;
+      }
+    });
+
+    // Double click để tải file
+    this.fileTable.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
+      const rowData = row.getData();
+      this.selectedFile = rowData;
+      this.downloadFile(rowData);
+    });
+  }
+
+  initPOFileTable(): void {
+    // Tạo context menu
+    const contextMenuItems: any[] = [
+      {
+        label: 'Tải xuống',
+        action: () => {
+          if (this.selectedPOFile) {
+            this.downloadPOFile(this.selectedPOFile);
+          } else {
+            this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
+          }
+        }
+      }
+    ];
+
+    this.tb_POFile = new Tabulator(this.tb_POFileElement.nativeElement, {
+      ...DEFAULT_TABLE_CONFIG,
+      data: this.POFiles,
+      layout: 'fitDataFill',
+      height: '100%',
+      selectableRows: 1,
+      rowHeader: false,
+      rowContextMenu: contextMenuItems,
+      columns: [
+        {
+          title: 'Tên file',
+          field: 'FileName',
+          sorter: 'string',
+          width: '100%',
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (value) {
+              return `<span style="color: #1890ff; text-decoration: underline; cursor: pointer;">${value}</span>`;
+            }
+            return '';
+          }
+        },
+      ],
+    });
+
+    // Thêm sự kiện rowSelected để lưu file được chọn
+    this.tb_POFile.on('rowSelected', (row: RowComponent) => {
+      const rowData = row.getData();
+      this.selectedPOFile = rowData;
+    });
+
+    this.tb_POFile.on('rowDeselected', (row: RowComponent) => {
+      const selectedRows = this.tb_POFile!.getSelectedRows();
+      if (selectedRows.length === 0) {
+        this.selectedPOFile = null;
+      }
+    });
+
+    // Double click để tải file
+    this.tb_POFile.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
+      const rowData = row.getData();
+      this.selectedPOFile = rowData;
+      this.downloadPOFile(rowData);
     });
   }
 }

@@ -408,6 +408,7 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
             projectTypeId: response.data.TypeProject <= 0 ? 1 : response.data.TypeProject,
             projectIdleader:response.data.ID,
             projectStatusIdDetail:response.data.ProjectStatus,
+            projectStatusId: response.data.ProjectStatus, // Cập nhật projectStatusId vào form
           });
         },
         error: (error: any) => {
@@ -547,7 +548,18 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
 
   getDayChange() {
     const projectStatusId = this.formGroup.get('projectStatusId')?.value;
-    if (projectStatusId == this.oldStatusId || this.projectId <= 0) return;
+    
+    // Cập nhật projectStatusId từ form
+    this.projectStatusId = projectStatusId;
+    
+    if (projectStatusId == this.oldStatusId || this.projectId <= 0) {
+      // Nếu trạng thái không thay đổi, reset dateChangeStatus
+      this.dateChangeStatus = null;
+      return;
+    }
+
+    // Reset dateChangeStatus khi mở modal mới để tránh giữ giá trị cũ
+    this.dateChangeStatus = null;
 
     const modalRef = this.modal.create({
       nzContent: this.dateChangeStatusContainer,
@@ -558,15 +570,18 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
           nzDanger: true,
           onClick: () => {
             this.formGroup.patchValue({ projectStatusId: this.oldStatusId });
+            this.projectStatusId = this.oldStatusId;
             this.dateChangeStatus = null;
             modalRef.close();
           },
         },
         {
-          label: 'Lưu',
+          label: 'Xác nhận',
           type: 'primary',
           onClick: () => {
-            if (!this.dateChangeStatus) {
+            // Kiểm tra bằng hàm helper
+            if (!this.isValidDateChangeStatus()) {
+              console.log('dateChangeStatus value:', this.dateChangeStatus, 'type:', typeof this.dateChangeStatus);
               this.notification.error(
                 '',
                 'Vui lòng chọn ngày thay đổi trạng thái!',
@@ -575,9 +590,8 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
                 }
               );
             } else {
-              this.notification.success('', 'Đã lưu thay đổi!', {
-                nzStyle: { fontSize: '0.75rem' },
-              });
+              console.log('dateChangeStatus confirmed:', this.dateChangeStatus);
+              // Chỉ lưu giá trị ngày, không hiển thị thông báo "Đã lưu" vì chưa lưu vào DB
               modalRef.close();
             }
           },
@@ -679,6 +693,28 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
     console.log(this.dateChangeStatus);
   }
 
+  onDateChangeStatusChange(date: any) {
+    // Hàm này được gọi khi date picker trong modal thay đổi
+    this.dateChangeStatus = date;
+    console.log('onDateChangeStatusChange - date:', date, 'type:', typeof date, 'isValid:', date instanceof Date);
+  }
+
+  // Hàm helper để kiểm tra dateChangeStatus có giá trị hợp lệ không
+  private isValidDateChangeStatus(): boolean {
+    if (!this.dateChangeStatus) {
+      return false;
+    }
+    // Kiểm tra nếu là Date object
+    if (this.dateChangeStatus instanceof Date) {
+      return !isNaN(this.dateChangeStatus.getTime());
+    }
+    // Kiểm tra nếu là string rỗng
+    if (typeof this.dateChangeStatus === 'string' && this.dateChangeStatus.trim() === '') {
+      return false;
+    }
+    return true;
+  }
+
   saveDataProject() {
     // Kiểm tra mã dự án nếu đang edit
     if (this.projectId > 0) {
@@ -723,11 +759,19 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    // Lấy projectStatusId từ form để đảm bảo giá trị mới nhất
+    const currentProjectStatusId = this.formGroup.get('projectStatusId')?.value;
+    this.projectStatusId = currentProjectStatusId;
+
+    // Kiểm tra nếu trạng thái đã thay đổi nhưng chưa có ngày thay đổi
     if (
       !this.dateChangeStatus &&
-      this.oldStatusId != this.projectStatusId &&
+      this.oldStatusId != currentProjectStatusId &&
       this.projectId > 0
     ) {
+      // Reset dateChangeStatus khi mở modal mới
+      this.dateChangeStatus = null;
+      
       const modalRef = this.modal.create({
         nzContent: this.dateChangeStatusContainer,
         nzFooter: [
@@ -736,27 +780,40 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
             type: 'default',
             nzDanger: true,
             onClick: () => {
-              modalRef.close(), (this.dateChangeStatus = null);
+              this.dateChangeStatus = null;
+              modalRef.close();
             },
           },
           {
             label: 'Lưu',
             type: 'primary',
             onClick: () => {
-              if (!this.dateChangeStatus) {
+              // Kiểm tra lại dateChangeStatus trước khi lưu bằng hàm helper
+              if (!this.isValidDateChangeStatus()) {
+                console.log('dateChangeStatus value in save modal:', this.dateChangeStatus, 'type:', typeof this.dateChangeStatus);
                 this.notification.error(
                   'Thông báo',
                   'Vui lòng chọn ngày thay đổi trạng thái!',
                 );
-              } else {
-                this.notification.success('Thông báo', 'Đã lưu thay đổi!');
-                modalRef.close();
+                return;
               }
+              console.log('dateChangeStatus confirmed in save:', this.dateChangeStatus);
+              // Đóng modal và tiếp tục lưu dữ liệu
+              modalRef.close();
+              // Gọi continueSave để lưu thực sự sau khi đã có dateChangeStatus
+              this.continueSave(projectTypeLinks);
             },
           },
         ],
       });
+      return; // Dừng lại, không tiếp tục lưu
     }
+
+    // Tiếp tục lưu dữ liệu nếu đã có dateChangeStatus hoặc không cần kiểm tra
+    this.continueSave(projectTypeLinks);
+  }
+
+  continueSave(projectTypeLinks: any[]) {
 
     console.log(
       DateTime.fromJSDate(new Date(this.dateChangeStatus)).isValid
@@ -1234,6 +1291,40 @@ export class ProjectDetailComponent implements OnInit, AfterViewInit {
       const control = this.formGroup.get(key);
       return !control || control.invalid || control.value === '' || control.value == null;
     });
+    
+    // Kiểm tra mức ưu tiên có giá trị hợp lệ
+    const priorityControl = this.formGroup.get('priority');
+    const priorityValue = priorityControl?.value;
+    
+    if (!priorityControl || priorityValue === '' || priorityValue == null || priorityValue === undefined) {
+      this.notification.error('Thông báo', 'Vui lòng nhập mức ưu tiên!');
+      priorityControl?.markAsTouched();
+      this.formGroup.markAllAsTouched();
+      return false;
+    }
+    
+    // Kiểm tra priority là số và lớn hơn 0
+    const priorityNum = parseFloat(priorityValue);
+    if (isNaN(priorityNum) || priorityNum <= 0) {
+      this.notification.error('Thông báo', 'Mức ưu tiên phải là số lớn hơn 0!');
+      priorityControl?.markAsTouched();
+      this.formGroup.markAllAsTouched();
+      return false;
+    }
+
+    // Kiểm tra bảng kiểu dự án có ít nhất 1 dòng được chọn
+    if (this.tb_projectTypeLinks) {
+      const allData = this.tb_projectTypeLinks.getData();
+      const projectTypeLinks = this.projectService.getSelectedRowsRecursive(allData);
+      
+      // Chỉ kiểm tra nếu projectTypeId <= 1 (Dự án hoặc Thương mại)
+      if (this.projectTypeId <= 1 && projectTypeLinks.length === 0) {
+        this.notification.error('Thông báo', 'Vui lòng chọn ít nhất 1 kiểu dự án trong bảng!');
+        this.formGroup.markAllAsTouched();
+        return false;
+      }
+    }
+    
     if (invalidFields.length > 0) 
       {
       this.formGroup.markAllAsTouched();

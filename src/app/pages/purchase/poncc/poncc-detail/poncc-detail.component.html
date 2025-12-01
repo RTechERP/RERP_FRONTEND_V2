@@ -67,7 +67,7 @@
                                                 </div>
                                             </nz-form-label>
                                             <nz-form-control nzErrorTip="Vui lòng chọn NCC!">
-                                                <nz-select name="SupplierSaleID" formControlName="SupplierSaleID"
+                                                <nz-select name="SupplierSaleID" formControlName="SupplierSaleID" nzShowSearch nzAllowClear
                                                     (ngModelChange)="onSupplierChange($event)" nzPlaceHolder="Chọn NCC">
                                                     <nz-option *ngFor="let item of supplierSales" [nzValue]="item.ID"
                                                         [nzLabel]="item.CodeNCC+' - '+ item.NameNCC">
@@ -223,7 +223,7 @@
                     </div>
                     <div nz-col [nzSpan]="6">
                         <fieldset class="reset m-0 mb-2">
-                            <legend class="reset fs-12 p-0 mb-2">HÃNG</legend>
+                            <legend class="reset fs-12 p-0 mb-2">HÀNG</legend>
                             <form nz-form [formGroup]="companyForm" class="container-fluid" nzLayout="vertical">
                                 <div nz-row [nzGutter]="16">
                                     <div nz-col [nzSpan]="12">

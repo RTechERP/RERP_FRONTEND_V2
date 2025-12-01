@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 
@@ -106,7 +106,7 @@ export class ProjectSurveyService {
     files.forEach((file) => {
       formData.append('files', file);
     });
-    formData.append('key', 'MeetingMinutes');
+    formData.append('key', 'Projects');
     if (subPath && subPath.trim()) {
       formData.append('subPath', subPath.trim());
     }
@@ -114,10 +114,11 @@ export class ProjectSurveyService {
   }
 
   // Download file
-  downloadFile(path: string): Observable<ArrayBuffer> {
-    return this.http.get<ArrayBuffer>(`${this.apiUrl}home/download`, {
-      params: { path },
-      responseType: 'arraybuffer' as 'json'
+  downloadFile(filePath: string): Observable<Blob> {
+    const params = new HttpParams().set('path', filePath);
+    return this.http.get(`${this.apiUrl}home/download`, {
+      params,
+      responseType: 'blob',
     });
   }
 }

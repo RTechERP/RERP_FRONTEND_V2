@@ -50,7 +50,7 @@ export class WorkItemServiceService {
     files.forEach((file) => {
       formData.append('files', file);
     });
-    formData.append('key', 'TrainingRegistration');
+    formData.append('key', 'Projects');
     if (subPath && subPath.trim()) {
       formData.append('subPath', subPath.trim());
     }

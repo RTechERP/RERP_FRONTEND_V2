@@ -97,6 +97,7 @@ export class BorrowProductHistoryDetailComponent implements OnInit {
   checkAll: any = 1;
   filter: any = '';
   warehouseID: any = 1;
+  @Input() warehouseType: number = 1;
 
   users: any[] = []; // get user select option
 
@@ -142,7 +143,7 @@ export class BorrowProductHistoryDetailComponent implements OnInit {
 
   }
   getProductRTCDetail() {
-    this.borrowService.getProductRTCDetail(this.productGroupID, this.keyword, this.checkAll, this.filter, this.warehouseID).subscribe({
+    this.borrowService.getProductRTCDetail(this.productGroupID, this.keyword, this.checkAll, this.filter, this.warehouseID, this.warehouseType).subscribe({
       next: (response: any) => {
         this.tb_productRTCDetailBody.setData(response.data);
       },
@@ -166,7 +167,7 @@ export class BorrowProductHistoryDetailComponent implements OnInit {
         { field: "Serial", type: "like", value: keyword },
         { field: "Maker", type: "like", value: keyword },
         { field: "AddressBox", type: "like", value: keyword },
-        { field: "Note", type: "like", value: keyword }
+        // { field: "Note", type: "like", value: keyword }
       ]
     ]);
   }
@@ -193,7 +194,7 @@ export class BorrowProductHistoryDetailComponent implements OnInit {
         { title: 'Hãng', field: 'Maker', hozAlign: 'left', headerHozAlign: 'center' },
         { title: 'Số lượng hiện có', field: 'InventoryReal', hozAlign: 'right', headerHozAlign: 'center' },
         { title: 'Vị trí (Hộp)', field: 'AddressBox', hozAlign: 'left', headerHozAlign: 'center' },
-        { title: 'Note', field: 'Note', hozAlign: 'left', headerHozAlign: 'center', width:200 },
+        // { title: 'Note', field: 'Note', hozAlign: 'left', headerHozAlign: 'center', width:200 },
       ],
     });
     // Lắng nghe sự kiện chọn

@@ -77,7 +77,8 @@ export class BorrowProductHistoryComponent implements OnInit {
   @Input() isModalMode: boolean = false; // Chế độ modal hay standalone
   @Output() productsExported = new EventEmitter<any[]>(); // Emit data khi xuất
   public activeModal = inject(NgbActiveModal, { optional: true }); // Để đóng modal
-
+  warehouseType: number = 0;
+  
   constructor(
     private injector: EnvironmentInjector,
     private appRef: ApplicationRef,
@@ -117,8 +118,9 @@ export class BorrowProductHistoryComponent implements OnInit {
   //#endregion
   //#region Hàm chạy khi mở chương trình
   ngOnInit(): void {
-    if (this.tabData?.warehouseID) {
+    if (this.tabData) {
       this.warehouseID = this.tabData.warehouseID;
+      this.warehouseType = this.tabData.warehouseType;
     }
     this.loadDate();
     this.loadEmployee();
@@ -521,6 +523,7 @@ export class BorrowProductHistoryComponent implements OnInit {
             : '1',
 
         isDeleted: 0,
+        warehouseType: this.warehouseType ?? 0,
       },
       ajaxResponse: (url, params, res) => {
         let totalPage = 0;
@@ -825,6 +828,7 @@ formatter: function (cell: any) {
       size: 'xl',
     });
     modalRef.componentInstance.HistoryProductID = ID;
+    modalRef.componentInstance.warehouseType = this.warehouseType;
   }
   addErrorPersonal(ID: number) {
     const modalRef = this.modalService.open(
@@ -935,6 +939,8 @@ formatter: function (cell: any) {
         modalDialogClass: 'modal-fullscreen modal-dialog-scrollable',
       }
     );
+    modalRef.componentInstance.warehouseType = this.warehouseType;
+    
     modalRef.result.finally(() => {
       this.drawTbProductHistory(this.tb_productHistoryContainer.nativeElement);
     });

@@ -9,7 +9,8 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { TabulatorFull as Tabulator, RowComponent } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { DEFAULT_TABLE_CONFIG } from '../../tabulator-default.config';
 import { ProjectService } from '../project/project-service/project.service';
@@ -50,6 +51,8 @@ export class ProjectRequestComponent implements OnInit, AfterViewInit {
   
   selectedRequest: any = null;
   selectedSolution: any = null;
+  selectedRequestFile: any = null;
+  selectedSolutionFile: any = null;
 
   @ViewChild('tb_request', { static: false }) tb_requestContainer!: ElementRef;
   @ViewChild('tb_solution', { static: false }) tb_solutionContainer!: ElementRef;
@@ -73,6 +76,7 @@ export class ProjectRequestComponent implements OnInit, AfterViewInit {
     private ngbModal: NgbModal,
     //private modalService: NgbModal,  
     public activeModal: NgbActiveModal,
+    private message: NzMessageService,
   ) {}
 
   ngOnInit() {
@@ -586,6 +590,16 @@ export class ProjectRequestComponent implements OnInit, AfterViewInit {
   drawTbRequestFile() {
     if (!this.tb_requestFileContainer) return;
     
+    // Tạo context menu
+    const contextMenuItems: any[] = [
+      {
+        label: 'Tải xuống',
+        action: () => {
+          this.downloadRequestFile();
+        }
+      }
+    ];
+    
     this.tb_requestFile = new Tabulator(this.tb_requestFileContainer.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
       height: '100%',
@@ -595,19 +609,59 @@ export class ProjectRequestComponent implements OnInit, AfterViewInit {
       index: 'ID',
       rowHeader: false,
       paginationMode: 'local',
+      selectableRows: 1,
+      rowContextMenu: contextMenuItems,
       columns: [
         {
           title: 'Tên file',
           field: 'FileNameOrigin',
           headerHozAlign: 'center',
           hozAlign: 'left',
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (value) {
+              return `<span style="color: #1890ff; text-decoration: underline; cursor: pointer;">${value}</span>`;
+            }
+            return '';
+          },
         },
       ],
+    });
+
+    // Thêm sự kiện rowSelected
+    this.tb_requestFile.on('rowSelected', (row: RowComponent) => {
+      const rowData = row.getData();
+      this.selectedRequestFile = rowData;
+    });
+
+    // Thêm sự kiện rowDeselected
+    this.tb_requestFile.on('rowDeselected', (row: RowComponent) => {
+      const selectedRows = this.tb_requestFile.getSelectedRows();
+      if (selectedRows.length === 0) {
+        this.selectedRequestFile = null;
+      }
+    });
+
+    // Double click vào tên file để tải xuống
+    this.tb_requestFile.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
+      const rowData = row.getData();
+      this.selectedRequestFile = rowData;
+      this.downloadRequestFile();
     });
   }
 
   drawTbSolutionFile() {
     if (!this.tb_solutionFileContainer) return;
+    
+    // Tạo context menu
+    const contextMenuItems: any[] = [
+      {
+        label: 'Tải xuống',
+        action: () => {
+          this.downloadSolutionFile();
+        }
+      }
+    ];
     
     this.tb_solutionFile = new Tabulator(this.tb_solutionFileContainer.nativeElement, {
       ...DEFAULT_TABLE_CONFIG,
@@ -618,14 +672,44 @@ export class ProjectRequestComponent implements OnInit, AfterViewInit {
       index: 'ID',
       rowHeader: false,
       paginationMode: 'local',
+      selectableRows: 1,
+      rowContextMenu: contextMenuItems,
       columns: [
         {
           title: 'Tên file',
           field: 'FileNameOrigin',
           headerHozAlign: 'center',
           hozAlign: 'left',
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (value) {
+              return `<span style="color: #1890ff; text-decoration: underline; cursor: pointer;">${value}</span>`;
+            }
+            return '';
+          },
         },
       ],
+    });
+
+    // Thêm sự kiện rowSelected
+    this.tb_solutionFile.on('rowSelected', (row: RowComponent) => {
+      const rowData = row.getData();
+      this.selectedSolutionFile = rowData;
+    });
+
+    // Thêm sự kiện rowDeselected
+    this.tb_solutionFile.on('rowDeselected', (row: RowComponent) => {
+      const selectedRows = this.tb_solutionFile.getSelectedRows();
+      if (selectedRows.length === 0) {
+        this.selectedSolutionFile = null;
+      }
+    });
+
+    // Double click vào tên file để tải xuống
+    this.tb_solutionFile.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
+      const rowData = row.getData();
+      this.selectedSolutionFile = rowData;
+      this.downloadSolutionFile();
     });
   }
 
@@ -982,6 +1066,132 @@ export class ProjectRequestComponent implements OnInit, AfterViewInit {
             this.notification.error('Lỗi', errorMessage);
           },
         });
+      },
+    });
+  }
+  //#endregion
+
+  //#region Download File
+  downloadRequestFile() {
+    const file = this.selectedRequestFile || (this.dataRequestFile && this.dataRequestFile.length > 0 ? this.dataRequestFile[0] : null);
+
+    if (!file) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
+      return;
+    }
+
+    const filePath = file.FilePath || file.ServerPath || file.FileName;
+    if (!filePath) {
+      this.notification.error('Thông báo', 'Không có đường dẫn file để tải xuống!');
+      return;
+    }
+
+    // Hiển thị loading message
+    const loadingMsg = this.message.loading('Đang tải xuống file...', {
+      nzDuration: 0,
+    }).messageId;
+
+    this.projectRequestService.downloadFile(filePath).subscribe({
+      next: (blob: Blob) => {
+        this.message.remove(loadingMsg);
+
+        // Kiểm tra xem có phải là blob hợp lệ không
+        if (blob && blob.size > 0) {
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = file.FileNameOrigin || file.FileName || 'downloaded_file';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          this.notification.success('Thông báo', 'Tải xuống thành công!');
+        } else {
+          this.notification.error('Thông báo', 'File tải về không hợp lệ!');
+        }
+      },
+      error: (res: any) => {
+        this.message.remove(loadingMsg);
+        console.error('Lỗi khi tải file:', res);
+
+        // Nếu error response là blob (có thể server trả về lỗi dạng blob)
+        if (res.error instanceof Blob) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const errorText = JSON.parse(reader.result as string);
+              this.notification.error('Thông báo', errorText.message || 'Tải xuống thất bại!');
+            } catch {
+              this.notification.error('Thông báo', 'Tải xuống thất bại!');
+            }
+          };
+          reader.readAsText(res.error);
+        } else {
+          const errorMsg = res?.error?.message || res?.message || 'Tải xuống thất bại! Vui lòng thử lại.';
+          this.notification.error('Thông báo', errorMsg);
+        }
+      },
+    });
+  }
+
+  downloadSolutionFile() {
+    const file = this.selectedSolutionFile || (this.dataSolutionFile && this.dataSolutionFile.length > 0 ? this.dataSolutionFile[0] : null);
+
+    if (!file) {
+      this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
+      return;
+    }
+
+    const filePath = file.FilePath || file.ServerPath || file.FileName;
+    if (!filePath) {
+      this.notification.error('Thông báo', 'Không có đường dẫn file để tải xuống!');
+      return;
+    }
+
+    // Hiển thị loading message
+    const loadingMsg = this.message.loading('Đang tải xuống file...', {
+      nzDuration: 0,
+    }).messageId;
+
+    this.projectRequestService.downloadFile(filePath).subscribe({
+      next: (blob: Blob) => {
+        this.message.remove(loadingMsg);
+
+        // Kiểm tra xem có phải là blob hợp lệ không
+        if (blob && blob.size > 0) {
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = file.FileNameOrigin || file.FileName || 'downloaded_file';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          this.notification.success('Thông báo', 'Tải xuống thành công!');
+        } else {
+          this.notification.error('Thông báo', 'File tải về không hợp lệ!');
+        }
+      },
+      error: (res: any) => {
+        this.message.remove(loadingMsg);
+        console.error('Lỗi khi tải file:', res);
+
+        // Nếu error response là blob (có thể server trả về lỗi dạng blob)
+        if (res.error instanceof Blob) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const errorText = JSON.parse(reader.result as string);
+              this.notification.error('Thông báo', errorText.message || 'Tải xuống thất bại!');
+            } catch {
+              this.notification.error('Thông báo', 'Tải xuống thất bại!');
+            }
+          };
+          reader.readAsText(res.error);
+        } else {
+          const errorMsg = res?.error?.message || res?.message || 'Tải xuống thất bại! Vui lòng thử lại.';
+          this.notification.error('Thông báo', errorMsg);
+        }
       },
     });
   }

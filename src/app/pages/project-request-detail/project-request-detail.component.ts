@@ -313,7 +313,63 @@ export class ProjectRequestDetailComponent implements OnInit, AfterViewInit {
         return;
       }
     }
+
+    // Upload file mới trước (nếu có) để lấy ServerPath
+    const filesToUpload: File[] = this.fileRequestData
+      .filter((f) => f.File && !f.ServerPath)
+      .map((f) => f.File!);
     
+    const subPath = this.getSubPath();
+    
+    // Kiểm tra nếu có file mới nhưng không có subPath
+    if (filesToUpload.length > 0 && !subPath) {
+      this.notification.error(
+        'Thông báo',
+        'Không thể xác định đường dẫn lưu file. Vui lòng kiểm tra thông tin dự án!',
+        {
+          nzStyle: { fontSize: '0.75rem' },
+        }
+      );
+      return;
+    }
+    
+    // Nếu có file mới cần upload
+    if (filesToUpload.length > 0 && subPath) {
+      this.notification.info('Đang upload', 'Đang tải file lên...');
+      this.projectWorkerService.uploadMultipleFiles(filesToUpload, subPath).subscribe({
+        next: (res: any) => {
+          if (res?.status === 1 && res?.data?.length > 0) {
+            // Cập nhật ServerPath vào fileRequestData sau khi upload thành công
+            let fileIndex = 0;
+            this.fileRequestData.forEach((f) => {
+              if (f.File && !f.ServerPath && res.data[fileIndex]) {
+                f.ServerPath = res.data[fileIndex].FilePath || res.data[fileIndex].ServerPath;
+                fileIndex++;
+              }
+            });
+          }
+          
+          // Sau khi upload xong, gọi save
+          this.callSaveRequestApi(valueRaw);
+        },
+        error: (error: any) => {
+          console.error('Lỗi upload file:', error);
+          this.notification.error(
+            'Thông báo',
+            'Upload file thất bại. Vui lòng thử lại!',
+            {
+              nzStyle: { fontSize: '0.75rem' },
+            }
+          );
+        }
+      });
+    } else {
+      // Không có file mới, save trực tiếp
+      this.callSaveRequestApi(valueRaw);
+    }
+  }
+
+  callSaveRequestApi(valueRaw: any): void {
     // Map dữ liệu từ form sang DTO theo API
     const payload: any = {
       ID: this.requestId || 0,
@@ -338,37 +394,7 @@ export class ProjectRequestDetailComponent implements OnInit, AfterViewInit {
       next: (response: any) => {
         if (response.status === 1) {
           this.notification.success('Thành công', response.message || 'Lưu dữ liệu thành công!');
-          
-          // Upload file trước khi đóng modal
-          const filesToUpload: File[] = this.fileRequestData
-            .filter((f) => f.File && !f.ServerPath)
-            .map((f) => f.File!);
-          const subPath = this.getSubPath();
-          
-          if (filesToUpload.length > 0 && subPath) {
-            this.notification.info('Đang upload', 'Đang tải file lên...');
-            this.projectWorkerService.uploadMultipleFiles(filesToUpload, subPath).subscribe({
-              next: (res: any) => {
-                if (res?.data?.length > 0) {
-                  let fileIndex = 0;
-                  this.fileRequestData.forEach((f) => {
-                    if (f.File && !f.ServerPath && res.data[fileIndex]) {
-                      f.ServerPath = res.data[fileIndex].FilePath;
-                      fileIndex++;
-                    }
-                  });
-                }
-                this.closeModal();
-              },
-              error: (error: any) => {
-                console.error('Error uploading files:', error);
-                // Vẫn đóng modal dù upload lỗi
-                this.closeModal();
-              }
-            });
-          } else {
-            this.closeModal();
-          }
+          this.closeModal();
         } else {
           this.notification.error('Lỗi', response.message || 'Không thể lưu dữ liệu');
         }
@@ -382,12 +408,16 @@ export class ProjectRequestDetailComponent implements OnInit, AfterViewInit {
 
   prepareFileData(): any[] {
     const fileData: any[] = [];
-    const subPath = this.getSubPath();
     
-    this.fileRequestData.forEach((file: any) => {
+    // Lấy danh sách file không bị xóa
+    const activeFiles = this.fileRequestData.filter(
+      (file: any) => !file.IsDeleted
+    );
+    
+    activeFiles.forEach((file: any) => {
       if (!file) return;
       
-      if (file.ID) {
+      if (file.ID && file.ID > 0) {
         // File đã tồn tại, cần update
         let extension = '';
         const fileName = file.FileNameOrigin || file.FileName || '';
@@ -406,8 +436,8 @@ export class ProjectRequestDetailComponent implements OnInit, AfterViewInit {
           ServerPath: file.ServerPath || '',
           ProjectRequestID: file.ProjectRequestID || this.requestId,
         });
-      } else if (file.File) {
-        // File mới, cần upload và create
+      } else if (file.File && file.ServerPath) {
+        // File mới đã upload, cần create
         let extension = '';
         if (file.File && file.File.name) {
           const parts = file.File.name.split('.');
@@ -417,8 +447,8 @@ export class ProjectRequestDetailComponent implements OnInit, AfterViewInit {
         }
         
         fileData.push({
-          ID: file.ID || 0,
-          FileNameOrigin: file.FileName || (file.File ? file.File.name : ''),
+          ID: 0,
+          FileNameOrigin: file.FileNameOrigin || file.FileName || (file.File ? file.File.name : ''),
           OriginPath: file.OriginPath || (file.File ? file.File.name : ''),
           Extension: extension,
           ServerPath: file.ServerPath || '',
@@ -446,6 +476,9 @@ export class ProjectRequestDetailComponent implements OnInit, AfterViewInit {
           OriginPath: file.name,
           FileNameOrigin: file.name,
           File: file,
+          ServerPath: '', // Chưa có ServerPath, sẽ được cập nhật sau khi upload
+          ID: 0,
+          IsDeleted: false,
         };
 
         this.fileRequestData.push(newFile);
@@ -490,7 +523,7 @@ export class ProjectRequestDetailComponent implements OnInit, AfterViewInit {
           frozen: true,
           headerSort: false,
           titleFormatter: () =>
-            `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-success cursor-pointer" title="Thêm file"></i></div>`,
+            `<div style="display: flex; justify-content: center; align-items: center; height: 100%;"><i class="fas fa-plus text-white cursor-pointer" title="Thêm file"></i></div>`,
           headerClick: () => {
             this.openFileSelector();
           },

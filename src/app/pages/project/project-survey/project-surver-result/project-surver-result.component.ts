@@ -13,8 +13,9 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
+import { NzMessageService } from 'ng-zorro-antd/message';
 import { ProjectSurveyService } from '../project-survey-service/project-survey.service';
-import { TabulatorFull as Tabulator } from 'tabulator-tables';
+import { TabulatorFull as Tabulator, RowComponent } from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator_simple.min.css';
 import { DateTime } from 'luxon';
 import { DEFAULT_TABLE_CONFIG } from '../../../../tabulator-default.config';
@@ -63,6 +64,8 @@ export class ProjectSurverResultComponent implements OnInit, AfterViewInit {
   fileDeletedIds: any[] = [];
   canSave: boolean = false;
   currentUser: any = null;
+  selectedFileData: any = null;
+  
   constructor(
     private notification: NzNotificationService,
     private activeModal: NgbActiveModal,
@@ -70,7 +73,8 @@ export class ProjectSurverResultComponent implements OnInit, AfterViewInit {
     private projectSurveyService: ProjectSurveyService,
     private modal: NzModalService,
     private fb: FormBuilder,
-    private authService: AuthService
+    private authService: AuthService,
+    private message: NzMessageService
   ) {}
 
   ngOnInit(): void {
@@ -88,34 +92,35 @@ export class ProjectSurverResultComponent implements OnInit, AfterViewInit {
 
 
   downloadFile() {
-    if (!this.fileListResult || this.fileListResult.length === 0) {
+    // Sử dụng selectedFileData nếu có (từ table selection), nếu không thì lấy từ fileListResult
+    const file = this.selectedFileData || (this.fileListResult && this.fileListResult.length > 0 ? this.fileListResult[0] : null);
+
+    if (!file) {
       this.notification.warning('Thông báo', 'Vui lòng chọn một file để tải xuống!');
       return;
     }
 
-    const file = this.fileListResult[0];
-
-    if (!file.FilePath) {
+    const filePath = file.FilePath || file.ServerPath;
+    if (!filePath) {
       this.notification.error('Thông báo', 'Không có đường dẫn file để tải xuống!');
       return;
     }
 
     // Hiển thị loading message
-    this.notification.info('Thông báo', 'Đang tải xuống file...', {
-      nzDuration: 2000,
-    });
+    const loadingMsg = this.message.loading('Đang tải xuống file...', {
+      nzDuration: 0,
+    }).messageId;
 
-    this.projectSurveyService.downloadFile(file.FilePath).subscribe({
-      next: (arrayBuffer: ArrayBuffer) => {
-        // Chuyển đổi ArrayBuffer thành Blob
-        const blob = new Blob([arrayBuffer]);
-        
+    this.projectSurveyService.downloadFile(filePath).subscribe({
+      next: (blob: Blob) => {
+        this.message.remove(loadingMsg);
+
         // Kiểm tra xem có phải là blob hợp lệ không
         if (blob && blob.size > 0) {
           const url = window.URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
-          link.download = file.FileName || file.FileNameOrigin || 'downloaded_file';
+          link.download = file.FileName || file.FileNameOrigin || file.name || 'downloaded_file';
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
@@ -126,6 +131,7 @@ export class ProjectSurverResultComponent implements OnInit, AfterViewInit {
         }
       },
       error: (res: any) => {
+        this.message.remove(loadingMsg);
         console.error('Lỗi khi tải file:', res);
 
         // Nếu error response là blob (có thể server trả về lỗi dạng blob)
@@ -179,6 +185,9 @@ export class ProjectSurverResultComponent implements OnInit, AfterViewInit {
 
   loadDetail(): void {
     if (this.projectSurveyDetailId > 0) {
+      // Reset fileDeletedIds khi load lại
+      this.fileDeletedIds = [];
+      
       let data = {
         projectSurveyDetailId: this.projectSurveyDetailId,
       };
@@ -198,8 +207,8 @@ export class ProjectSurverResultComponent implements OnInit, AfterViewInit {
               result: result,
             });
 
-            // Load files
-            const files = response.data.files || [];
+            // Load files - chỉ load file chưa bị xóa
+            const files = (response.data.files || []).filter((f: any) => !f.IsDeleted);
             this.fileListResult = files.map((file: any) => ({
               uid: Math.random().toString(36).substring(2) + Date.now(),
               name: file.FileName || '',
@@ -209,8 +218,10 @@ export class ProjectSurverResultComponent implements OnInit, AfterViewInit {
               originFile: null,
               FileName: file.FileName || '',
               ServerPath: file.ServerPath || '',
-              OriginName: file.FileName || '',
+              OriginName: file.OriginPath || file.FileName || '',
               ID: file.ID || 0,
+              IsDeleted: false,
+              isDeleted: false,
             }));
 
             // Update table
@@ -261,6 +272,18 @@ export class ProjectSurverResultComponent implements OnInit, AfterViewInit {
     
     const subPath = this.getSubPath();
     
+    // Kiểm tra nếu có file mới nhưng không có subPath
+    if (filesToUpload.length > 0 && !subPath) {
+      this.notification.error(
+        'Thông báo',
+        'Không thể xác định đường dẫn lưu file. Vui lòng kiểm tra thông tin dự án!',
+        {
+          nzStyle: { fontSize: '0.75rem' },
+        }
+      );
+      return;
+    }
+    
     // Nếu có file mới cần upload
     if (filesToUpload.length > 0 && subPath) {
       this.notification.info('Đang upload', 'Đang tải file lên...');
@@ -277,7 +300,7 @@ export class ProjectSurverResultComponent implements OnInit, AfterViewInit {
             });
           }
           
-          // Sau khi upload xong, gọi save như cũ
+          // Sau khi upload xong, gọi save
           this.callSaveProjectSurveyResultApi(result);
         },
         error: (error: any) => {
@@ -298,30 +321,22 @@ export class ProjectSurverResultComponent implements OnInit, AfterViewInit {
   }
 
   callSaveProjectSurveyResultApi(result: string): void {
-    // Giữ nguyên logic save cũ với FormData
-    const formData = new FormData();
-    let data = this.projects.find((p: any) => p.ID === this.projectId);
-    let year = data?.CreatedDate ? new Date(data.CreatedDate).getFullYear() : new Date().getFullYear();
+    // Tạo payload theo ProjectSurveyResultDTO
+    const payload: any = {
+      result: typeof result === 'string' ? result.trim() : result,
+      projectId: this.projectId,
+      projectSurveyDetailId: this.projectSurveyDetailId || 0,
+      projectTypeId: this.projectTypeId || 0,
+      file: this.prepareFileData(),
+      deletedFileID: this.fileDeletedIds.length > 0 ? this.fileDeletedIds : null,
+    };
 
-    // Append files
-    this.fileListResult.forEach((f) => {
-      if (f.originFile) {
-        formData.append('files', f.originFile as File, f.name);
-      }
-    });
-
-    formData.append('projectSurveyId', `${this.projectSurveyId}`);
-    formData.append('projectTypeId', `${this.projectTypeId}`);
-    formData.append('result', result);
-    formData.append('projectSurveyDetailId', `${this.projectSurveyDetailId}`);
-    formData.append('projectId', `${this.projectId}`);
-
-    this.projectSurveyService.saveProjectSurveyResult(formData).subscribe({
+    this.projectSurveyService.saveProjectSurveyResult(payload).subscribe({
       next: (response: any) => {
         if (response.status === 1) {
           this.notification.success(
             'Thông báo',
-            'Đã lưu kết quả khảo sát!',
+            response.message || 'Đã lưu kết quả khảo sát!',
             {
               nzStyle: { fontSize: '0.75rem' },
             }
@@ -341,13 +356,52 @@ export class ProjectSurverResultComponent implements OnInit, AfterViewInit {
         console.error('Lỗi:', error);
         this.notification.error(
           'Thông báo',
-          `Lỗi lưu kết quả khảo sát!`,
+          error?.error?.message || 'Lỗi lưu kết quả khảo sát!',
           {
             nzStyle: { fontSize: '0.75rem' },
           }
         );
       },
     });
+  }
+
+  prepareFileData(): any[] {
+    const fileData: any[] = [];
+    
+    // Lấy danh sách file không bị xóa
+    const activeFiles = this.fileListResult.filter(
+      (file: any) => !file.isDeleted && !file.IsDeleted
+    );
+    
+    activeFiles.forEach((file: any) => {
+      if (!file) return;
+      
+      if (file.ID && file.ID > 0) {
+        // File đã tồn tại, cần update
+        fileData.push({
+          ID: file.ID || 0,
+          FileName: file.FileName || file.name || '',
+          OriginPath: file.OriginName || file.name || '',
+          ServerPath: file.ServerPath || '',
+          ProjectSurveyDetailID: this.projectSurveyDetailId,
+          ProjectSurveyID: this.projectSurveyId || null,
+          IsDeleted: false,
+        });
+      } else if (file.originFile && file.ServerPath) {
+        // File mới đã upload, cần create
+        fileData.push({
+          ID: 0,
+          FileName: file.FileName || file.name || '',
+          OriginPath: file.OriginName || file.name || '',
+          ServerPath: file.ServerPath || '',
+          ProjectSurveyDetailID: this.projectSurveyDetailId,
+          ProjectSurveyID: this.projectSurveyId || null,
+          IsDeleted: false,
+        });
+      }
+    });
+    
+    return fileData;
   }
 
   getSubPath(): string {
@@ -403,6 +457,7 @@ export class ProjectSurverResultComponent implements OnInit, AfterViewInit {
         FileName: file.name || file.FileName,
         ServerPath: file.ServerPath || '',
         OriginName: file.name || file.OriginName,
+        FilePath: file.ServerPath || '',
         file: file,
       }));
       
@@ -419,6 +474,16 @@ export class ProjectSurverResultComponent implements OnInit, AfterViewInit {
       }
     }
     
+    // Tạo context menu
+    const contextMenuItems: any[] = [
+      {
+        label: 'Tải xuống',
+        action: () => {
+          this.downloadFile();
+        }
+      }
+    ];
+    
     this.tb_projectSurveyFile = new Tabulator(container, {
       ...DEFAULT_TABLE_CONFIG,
       height: '100%',
@@ -426,11 +491,14 @@ export class ProjectSurverResultComponent implements OnInit, AfterViewInit {
       locale: 'vi',
       rowHeader: false,
       pagination: false,
+      selectableRows: 1,
+      rowContextMenu: contextMenuItems,
       data: this.fileListResult.map((file: any) => ({
         ID: file.ID || 0,
         FileName: file.name || file.FileName,
         ServerPath: file.ServerPath || '',
         OriginName: file.name || file.OriginName,
+        FilePath: file.ServerPath || '',
         file: file,
       })),
       placeholder: 'Chưa có file đính kèm',
@@ -443,16 +511,22 @@ export class ProjectSurverResultComponent implements OnInit, AfterViewInit {
           frozen: true,
           formatter: (cell) => {
             const data = cell.getRow().getData();
-            let isDeleted = data['IsDeleted'];
-            return !isDeleted && data['ID'] <= 0
+            let isDeleted = data['IsDeleted'] || data['isDeleted'];
+            return !isDeleted
               ? `<button id="btn-header-click" class="btn text-danger p-0 border-0" style="font-size: 0.75rem;"><i class="fas fa-trash"></i></button>`
               : '';
           },
           cellClick: (e, cell) => {
+            // Chỉ xử lý khi click vào icon hoặc button
+            const target = e.target as HTMLElement;
+            if (!target.classList.contains('fas') && !target.classList.contains('fa-trash') && target.tagName !== 'BUTTON') {
+              return;
+            }
+            
             let data = cell.getRow().getData();
             let id = data['ID'];
             let fileName = data['FileName'];
-            if (id > 0) return;
+            
             this.modal.confirm({
               nzTitle: `Bạn có chắc chắn muốn xóa file`,
               nzContent: `${fileName}?`,
@@ -462,15 +536,26 @@ export class ProjectSurverResultComponent implements OnInit, AfterViewInit {
               nzOkDanger: true,
               nzOnOk: () => {
                 if (id > 0) {
-                  if (!this.fileDeletedIds.includes(id))
+                  // File đã tồn tại trên server, thêm vào danh sách xóa
+                  if (!this.fileDeletedIds.includes(id)) {
                     this.fileDeletedIds.push(id);
-                  this.tb_projectSurveyFile.deleteRow(cell.getRow());
-                } else {
-                  this.fileListResult = this.fileListResult.filter(
-                    (f) => f.name !== fileName
+                  }
+                  // Đánh dấu file là đã xóa trong fileListResult
+                  const fileToDelete = this.fileListResult.find(
+                    (f) => f.ID === id
                   );
-                  this.tb_projectSurveyFile.deleteRow(cell.getRow());
+                  if (fileToDelete) {
+                    fileToDelete.IsDeleted = true;
+                    fileToDelete.isDeleted = true;
+                  }
+                } else {
+                  // File mới chưa upload, xóa trực tiếp khỏi danh sách
+                  this.fileListResult = this.fileListResult.filter(
+                    (f) => f.name !== fileName && f.FileName !== fileName
+                  );
                 }
+                // Xóa khỏi table
+                this.updateFileTable();
               },
             });
           },
@@ -481,9 +566,37 @@ export class ProjectSurverResultComponent implements OnInit, AfterViewInit {
           field: 'FileName',
           headerHozAlign: 'center',
           widthGrow: 1,
-          formatter: 'textarea',
+          formatter: (cell: any) => {
+            const value = cell.getValue();
+            if (value) {
+              return `<span style="color: #1890ff; text-decoration: underline; cursor: pointer;">${value}</span>`;
+            }
+            return '';
+          },
         },
       ],
+    });
+
+    // Thêm sự kiện rowSelected
+    this.tb_projectSurveyFile.on('rowSelected', (row: RowComponent) => {
+      const rowData = row.getData();
+      this.selectedFileData = rowData['file'] || rowData;
+    });
+
+    // Thêm sự kiện rowDeselected
+    this.tb_projectSurveyFile.on('rowDeselected', (row: RowComponent) => {
+      const selectedRows = this.tb_projectSurveyFile.getSelectedRows();
+      if (selectedRows.length === 0) {
+        this.selectedFileData = null;
+      }
+    });
+
+    // Double click vào tên file để tải xuống
+    this.tb_projectSurveyFile.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
+      const rowData = row.getData();
+      // Set selectedFileData để downloadFile() có thể sử dụng
+      this.selectedFileData = rowData['file'] || rowData;
+      this.downloadFile();
     });
   }
 }

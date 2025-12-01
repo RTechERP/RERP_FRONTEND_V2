@@ -50,4 +50,13 @@ export class ProjectRequestServiceService {
   saveRequest(payload: any): Observable<any> {
     return this.http.post<any>(this._urlProjectSolution + 'save-request', payload);
   }
+
+  // Download file
+  downloadFile(filePath: string): Observable<Blob> {
+    const params = new HttpParams().set('path', filePath);
+    return this.http.get(`${this._url}home/download`, {
+      params,
+      responseType: 'blob',
+    });
+  }
 }

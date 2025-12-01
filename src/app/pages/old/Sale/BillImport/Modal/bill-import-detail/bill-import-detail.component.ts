@@ -126,8 +126,7 @@ interface BillImport {
   styleUrl: './bill-import-detail.component.css',
 })
 export class BillImportDetailComponent
-  implements OnInit, AfterViewInit, OnDestroy
-{
+  implements OnInit, AfterViewInit, OnDestroy {
   cbbStatusPur: any = [
     { ID: 1, Name: 'Đã bàn giao' },
     { ID: 2, Name: 'Hủy bàn giao' },
@@ -142,7 +141,6 @@ export class BillImportDetailComponent
   table_DocumnetImport: any;
   dataTableDocumnetImport: any[] = [];
 
-  @Input() WarehouseCode = 'HN';
   isLoading: boolean = false;
   deletedDetailIds: number[] = [];
 
@@ -162,7 +160,7 @@ export class BillImportDetailComponent
   projectOptions: any = [];
   billID: number = 0;
   deliverID: number = 0;
-  labelReceiver:string='';
+  labelReceiver: string = '';
   isApproved: boolean = false;
 
   // Label động theo loại phiếu
@@ -182,9 +180,28 @@ export class BillImportDetailComponent
   @Input() id: number = 0;
   @Input() isEmbedded: boolean = false; // Để biết component đang được nhúng trong tab hay modal độc lập
 
+  @Input() WarehouseCode = 'HN';
+  @Input() poNCCId = 0;
   @Output() saveSuccess = new EventEmitter<void>(); // Emit khi save thành công trong chế độ embedded
 
-  isEditPM:boolean=true;
+  @Input() newBillImport: BillImport = {
+    Id: 0,
+    BillImportCode: '',
+    ReciverID: 0,
+    Reciver: '',
+    DeliverID: 0,
+    Deliver: '',
+    KhoType: '',
+    KhoTypeID: 0,
+    WarehouseID: 1,
+    BillTypeNew: 0,
+    SupplierID: 0,
+    Supplier: '',
+    CreatDate: new Date(),
+    RulePayID: 0,
+    DateRequestImport: new Date(),
+  };
+  isEditPM: boolean = true;
   cbbStatus: any = [
     { ID: 0, Name: 'Phiếu nhập kho' },
     { ID: 1, Name: 'Phiếu trả' },
@@ -214,23 +231,7 @@ export class BillImportDetailComponent
     FirmID: 0,
     Note: '',
   };
-  @Input() newBillImport: BillImport = {
-    Id: 0,
-    BillImportCode: '',
-    ReciverID: 0,
-    Reciver: '',
-    DeliverID: 0,
-    Deliver: '',
-    KhoType: '',
-    KhoTypeID: 0,
-    WarehouseID: 1,
-    BillTypeNew: 0,
-    SupplierID: 0,
-    Supplier: '',
-    CreatDate: new Date(),
-    RulePayID: 0,
-    DateRequestImport: new Date(),
-  };
+
 
   validateForm: FormGroup;
   private destroy$ = new Subject<void>();
@@ -309,8 +310,8 @@ export class BillImportDetailComponent
     // Khởi tạo activePur ban đầu
     this.updateActivePur();
 
-    if(this.id>0){
-      this.billImportService.getBillImportByID(this.id).subscribe((res)=>{
+    if (this.id > 0) {
+      this.billImportService.getBillImportByID(this.id).subscribe((res) => {
         const data = res.data;
         if (data && (data.Status === true || data.Status === 1)) {
           this.isApproved = true;
@@ -531,10 +532,10 @@ export class BillImportDetailComponent
         DueDate: item.DueDate ? new Date(item.DueDate) : null,
         TaxReduction: item.TaxReduction || 0,
         COFormE: item.COFormE || 0,
-        ReturnStatus:item.ReturnStatus||0,
-        BillExportDetailID:item.BorrowID || 0,
-        CodeMaPhieuMuon:item.BorrowCode ||'',
-        ProjectCode:item.ProjectCode || ''
+        ReturnStatus: item.ReturnStatus || 0,
+        BillExportDetailID: item.BorrowID || 0,
+        CodeMaPhieuMuon: item.BorrowCode || '',
+        ProjectCode: item.ProjectCode || ''
       };
     });
 
@@ -1474,7 +1475,7 @@ export class BillImportDetailComponent
           this.notification.warning(
             NOTIFICATION_TITLE.warning,
             res.message ||
-              (this.isCheckmode ? 'Cập nhật thất bại!' : 'Thêm mới thất bại!')
+            (this.isCheckmode ? 'Cập nhật thất bại!' : 'Thêm mới thất bại!')
           );
         }
       },
@@ -1568,9 +1569,8 @@ export class BillImportDetailComponent
       let data = getData();
       data = data.map((p: any) => ({
         ...p,
-        productLabel: `${p.ProductNewCode || ''} | ${p.ProductCode || ''} | ${
-          p.ProductName || ''
-        }`,
+        productLabel: `${p.ProductNewCode || ''} | ${p.ProductCode || ''} | ${p.ProductName || ''
+          }`,
       }));
       componentRef.instance.id = cell.getValue();
       componentRef.instance.data = data;
@@ -1588,7 +1588,7 @@ export class BillImportDetailComponent
 
       container.appendChild((componentRef.hostView as any).rootNodes[0]);
       appRef.attachView(componentRef.hostView);
-      onRendered(() => {});
+      onRendered(() => { });
 
       return container;
     };
@@ -1599,11 +1599,11 @@ export class BillImportDetailComponent
     this.currentEditingCell = cell;
     const cellElement = cell.getElement();
     const rect = cellElement.getBoundingClientRect();
-    
+
     const viewportHeight = window.innerHeight;
     const popupHeight = 350;
     const spaceBelow = viewportHeight - rect.bottom;
-    
+
     if (spaceBelow >= popupHeight) {
       this.popupPosition = {
         top: `${rect.bottom + window.scrollY}px`,
@@ -1615,7 +1615,7 @@ export class BillImportDetailComponent
         left: `${rect.left + window.scrollX}px`
       };
     }
-    
+
     this.showProductPopup = true;
   }
 
@@ -1624,11 +1624,11 @@ export class BillImportDetailComponent
     this.currentEditingCell = cell;
     const cellElement = cell.getElement();
     const rect = cellElement.getBoundingClientRect();
-    
+
     const viewportHeight = window.innerHeight;
     const popupHeight = 350;
     const spaceBelow = viewportHeight - rect.bottom;
-    
+
     if (spaceBelow >= popupHeight) {
       this.popupPosition = {
         top: `${rect.bottom + window.scrollY}px`,
@@ -1640,17 +1640,17 @@ export class BillImportDetailComponent
         left: `${rect.left + window.scrollX}px`
       };
     }
-    
+
     this.showProjectPopup = true;
   }
 
   // Handle Product Selection
   onProductSelected(selectedProduct: any) {
     if (!this.currentEditingCell) return;
-    
+
     const row = this.currentEditingCell.getRow();
     const productValue = selectedProduct.value || selectedProduct.ID;
-    
+
     row.update({
       ProductID: productValue,
       ProductCode: selectedProduct.ProductCode,
@@ -1667,10 +1667,10 @@ export class BillImportDetailComponent
   // Handle Project Selection
   onProjectSelected(selectedProject: any) {
     if (!this.currentEditingCell) return;
-    
+
     const row = this.currentEditingCell.getRow();
     const projectValue = selectedProject.value || selectedProject.ID;
-    
+
     row.update({
       ProjectID: projectValue,
       ProjectCodeExport: selectedProject.ProjectCode,
@@ -1751,7 +1751,7 @@ export class BillImportDetailComponent
           this.dataHistory &&
           this.dataHistory.length > 0
         ) {
-          this.isEditPM=false;
+          this.isEditPM = false;
           this.mapDataHistoryToTable();
 
         } else if (this.isCheckmode) {
@@ -1959,7 +1959,7 @@ export class BillImportDetailComponent
               hozAlign: 'left',
               headerHozAlign: 'center',
               editor: 'input',
-              frozen:true,
+              frozen: true,
 
               width: 450,
             },
@@ -2514,7 +2514,7 @@ export class BillImportDetailComponent
               hozAlign: 'left',
               headerHozAlign: 'center',
               cellClick: (_e: any, cell: any) => {
-                if(!this.isEditPM) return;
+                if (!this.isEditPM) return;
                 const row = cell.getRow();
                 const rowData = row.getData();
                 this.openBillReturnModal(rowData, row);
@@ -2669,9 +2669,8 @@ export class BillImportDetailComponent
                 const st = this.cbbStatusPur.find(
                   (p: any) => p.ID === parseInt(val) || p.ID === val
                 );
-                return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${
-                  st ? st.Name : val
-                }</p><i class="fas fa-angle-down"></i></div>`;
+                return `<div class="d-flex justify-content-between align-items-center"><p class="w-100 m-0">${st ? st.Name : val
+                  }</p><i class="fas fa-angle-down"></i></div>`;
               },
             },
             {

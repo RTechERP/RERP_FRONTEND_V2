@@ -61,6 +61,7 @@ export class TbProductRtcImportExcelComponent implements OnInit {
   @Input() lastAddedIdProduct: number | null = null;
   @Input() searchText: string = '';
   @Input() id: number = 0;
+  @Input() warehouseType: number = 1;
   emPloyeeLists: any[] = [];
   filePath: string = '';
   excelSheets: string[] = [];
@@ -709,10 +710,12 @@ export class TbProductRtcImportExcelComponent implements OnInit {
       this.locationData = response.data.location;
       console.log('Location', this.locationData);
     });
-    this.tbProductRtcService.getProductRTCGroup().subscribe((resppon: any) => {
-      this.productGroupData = resppon.data;
-      console.log('Group', this.productGroupData);
-    });
+    this.tbProductRtcService
+      .getProductRTCGroup(this.warehouseType)
+      .subscribe((resppon: any) => {
+        this.productGroupData = resppon.data;
+        console.log('Group', this.productGroupData);
+      });
   }
   private getUnitIdByName(unitName: string): number {
     const key = (unitName || '').trim().toLowerCase();

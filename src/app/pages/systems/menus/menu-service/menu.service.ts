@@ -439,6 +439,43 @@ export class MenuService {
                   },
                 ],
               },
+
+              {
+                kind: 'group',
+                key: 'agv',
+                title: 'Phòng AGV',
+                isOpen: true,
+                isPermission: this.permissionService.hasPermission(''),
+                //   icon: 'assets/icon/layers.png',
+                children: [
+                  {
+                    kind: 'leaf',
+                    key: 'InventoryDemoComponent_HN',
+                    title: 'TỒN KHO',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: InventoryDemoComponent,
+                    data: {
+                      warehouseID: 1,
+                      warehouseType: 2,
+                    },
+                    //   icon: 'assets/icon/layers.png',
+                  },
+
+                  {
+                    kind: 'leaf',
+                    key: 'BorrowProductHistoryComponent_HN',
+                    title: 'LỊCH SỬ MƯỢN',
+                    isOpen: true,
+                    isPermission: this.permissionService.hasPermission(''),
+                    comp: BorrowProductHistoryComponent,
+                    data: {
+                      warehouseID: 1,
+                      warehouseType: 2,
+                    },
+                  },
+                ],
+              },
             ],
           },
           {

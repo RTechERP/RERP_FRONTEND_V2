@@ -1,7 +1,11 @@
 import { inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NgbDropdownModule, NgbModal, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
+import {
+  NgbDropdownModule,
+  NgbModal,
+  NgbModalModule,
+} from '@ng-bootstrap/ng-bootstrap';
 import {
   AfterViewInit,
   Component,
@@ -45,7 +49,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TbProductRtcService } from './tb-product-rtc-service/tb-product-rtc.service';
 import { TbProductRtcImportExcelComponent } from './tb-product-rtc-import-excel/tb-product-rtc-import-excel.component';
 import { DEFAULT_TABLE_CONFIG } from '../../../tabulator-default.config';
-import { NzModalModule,NzModalService } from 'ng-zorro-antd/modal';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { HasPermissionDirective } from '../../../directives/has-permission.directive';
 import { NOTIFICATION_TITLE } from '../../../app.config';
 @Component({
@@ -73,7 +77,7 @@ import { NOTIFICATION_TITLE } from '../../../app.config';
     NgbModalModule,
     NzModalModule,
     HasPermissionDirective,
-    NgbDropdownModule // thêm để dùng ngbDropdown
+    NgbDropdownModule, // thêm để dùng ngbDropdown
   ],
   selector: 'app-tb-product-rtc',
   templateUrl: './tb-product-rtc.component.html',
@@ -97,30 +101,35 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
   productGroupID: number = 0;
   keyWord: string = '';
   checkAll: number = 0;
- warehouseID: number = 1;
+  warehouseID: number = 1;
   productRTCID: number = 0;
   productGroupNo: string = '';
   Size: number = 100000;
   Page: number = 1;
   searchMode: string = 'group';
   modalData: any = [];
+  warehouseType = 1;
   private ngbModal = inject(NgbModal);
   ngOnInit() {
-    if (this.tabData?.warehouseID) {
-      this.warehouseID = this.tabData.warehouseID;
+    if (this.tabData) {
+      this.warehouseID = this.tabData.warehouseID || 1;
+      this.warehouseCode = this.tabData.warehouseCode || 'HN';
+      this.warehouseType = this.tabData.warehouseType || 1;
     }
-    if (this.tabData?.warehouseCode) {
-      this.warehouseCode = this.tabData.warehouseCode;
-    }
+    // if (this.tabData?.warehouseCode) {
+    //   this.warehouseCode = this.tabData.warehouseCode;
+    // }
   }
   ngAfterViewInit(): void {
     this.getGroup();
     this.getProduct();
   }
   getGroup() {
-    this.tbProductRtcService.getProductRTCGroup().subscribe((resppon: any) => {
-      this.productGroupData = resppon.data;
-    });
+    this.tbProductRtcService
+      .getProductRTCGroup(this.warehouseType)
+      .subscribe((resppon: any) => {
+        this.productGroupData = resppon.data;
+      });
   }
   getProduct() {
     const request = {
@@ -200,8 +209,6 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
         return {
           data: response.data.products || [],
           last_page: response.data.TotalPage?.[0]?.TotalPage || 1,
-          
-
         };
       },
       //   placeholder: 'Không có dữ liệu',
@@ -266,17 +273,17 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
           title: 'Đồ mượn khách',
           field: 'BorrowCustomer',
           hozAlign: 'center',
-       formatter: function (cell: any) {
-              const value = cell.getValue();
-              const checked =
-                value === true ||
-                value === 'true' ||
-                value === 1 ||
-                value === '1';
-              return `<input type="checkbox" ${
-                checked ? 'checked' : ''
-              } style="pointer-events: none; accent-color: #1677ff;" />`;
-            },
+          formatter: function (cell: any) {
+            const value = cell.getValue();
+            const checked =
+              value === true ||
+              value === 'true' ||
+              value === 1 ||
+              value === '1';
+            return `<input type="checkbox" ${
+              checked ? 'checked' : ''
+            } style="pointer-events: none; accent-color: #1677ff;" />`;
+          },
         },
         { title: 'Part Number', field: 'PartNumber', minWidth: 120 },
         { title: 'Serial Number', field: 'SerialNumber', minWidth: 120 },
@@ -284,7 +291,11 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
         { title: 'Người tạo', field: 'CreatedBy', visible: false },
         { title: 'Input Value', field: 'InputValue', visible: false },
         { title: 'Output Value', field: 'OutputValue', visible: false },
-        { title: 'Rated Current (A)', field: 'CurrentIntensityMax', visible: false },
+        {
+          title: 'Rated Current (A)',
+          field: 'CurrentIntensityMax',
+          visible: false,
+        },
         { title: 'Mã nhóm RTC', field: 'ProductGroupRTCID', visible: false },
         { title: 'ID vị trí', field: 'ProductLocationID', visible: false },
         { title: 'UnitCountID', field: 'UnitCountID', visible: false },
@@ -335,26 +346,24 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
         { title: 'AddressBox', field: 'AddressBox', visible: false },
       ],
     });
-    this.productTable.on(
-      'rowDblClick',
-      (e: UIEvent, row: RowComponent) => {
-        const selectedProduct =row.getData();
-        const modalRef = this.ngbModal.open(TbProductRtcFormComponent, {
-          size: 'xl',
-          backdrop: 'static',
-          keyboard: false,
-          centered: true,
-        });
-        modalRef.componentInstance.dataInput = selectedProduct;
-        modalRef.result.then(
-          (result) => {
-            this.getProduct();
-          },
-          () => {
-            console.log('Modal dismissed');
-          }
-        );
+    this.productTable.on('rowDblClick', (e: UIEvent, row: RowComponent) => {
+      const selectedProduct = row.getData();
+      const modalRef = this.ngbModal.open(TbProductRtcFormComponent, {
+        size: 'xl',
+        backdrop: 'static',
+        keyboard: false,
+        centered: true,
       });
+      modalRef.componentInstance.dataInput = selectedProduct;
+      modalRef.result.then(
+        (result) => {
+          this.getProduct();
+        },
+        () => {
+          console.log('Modal dismissed');
+        }
+      );
+    });
   }
   onAddGroupProduct() {
     const modalRef = this.ngbModal.open(TbProductGroupRtcFormComponent, {
@@ -391,6 +400,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
       centered: true,
     });
     modalRef.componentInstance.dataInput = { ...selectedGroup, isEdit: true };
+    modalRef.componentInstance.warehouseType = this.warehouseType;
     modalRef.result.then(
       (result) => {
         this.getGroup();
@@ -414,7 +424,10 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
     );
 
     if (!selectedGroup) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn một nhóm vật tư để xóa!');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn một nhóm vật tư để xóa!'
+      );
       return;
     }
 
@@ -441,17 +454,26 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
         this.tbProductRtcService.saveData(payload).subscribe({
           next: (res) => {
             if (res.status === 1) {
-              this.notification.success(NOTIFICATION_TITLE.success, 'Đã xóa nhóm vật tư thành công!');
+              this.notification.success(
+                NOTIFICATION_TITLE.success,
+                'Đã xóa nhóm vật tư thành công!'
+              );
               this.productGroupID = 0;
               setTimeout(() => this.getGroup(), 100);
               setTimeout(() => this.getProduct(), 100);
             } else {
-              this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể xóa nhóm!');
+              this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                res.message || 'Không thể xóa nhóm!'
+              );
             }
           },
           error: (err) => {
             console.error('Lỗi xóa nhóm:', err);
-            this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xóa nhóm sản phẩm!');
+            this.notification.error(
+              NOTIFICATION_TITLE.error,
+              'Có lỗi xảy ra khi xóa nhóm sản phẩm!'
+            );
           },
         });
       },
@@ -467,16 +489,17 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
   onDeleteProduct() {
     const selectedRows = this.productTable?.getSelectedData();
     if (!selectedRows || selectedRows.length === 0) {
-      this.notification.warning(NOTIFICATION_TITLE.warning, 'Vui lòng chọn ít nhất một thiết bị để xóa!');
+      this.notification.warning(
+        NOTIFICATION_TITLE.warning,
+        'Vui lòng chọn ít nhất một thiết bị để xóa!'
+      );
       return;
     }
 
     // Tạo chuỗi tên thiết bị
     let nameDisplay = '';
     selectedRows.forEach((item: any, index: number) => {
-
-        nameDisplay += item.ProductName + ',';
-
+      nameDisplay += item.ProductName + ',';
     });
 
     if (selectedRows.length > 10) {
@@ -492,10 +515,9 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
     const payload = {
       productRTCs: selectedRows.map((row: any) => ({
         ID: row.ID,
-        IsDelete: true
-      }))
+        IsDelete: true,
+      })),
     };
-
 
     // Hiển thị confirm
     this.modal.confirm({
@@ -506,18 +528,26 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
       nzOkDanger: true,
       nzOnOk: () => {
         this.tbProductRtcService.saveData(payload).subscribe({
-
           next: (res) => {
             if (res.status === 1) {
-              this.notification.success(NOTIFICATION_TITLE.success, 'Đã xóa thiết bị thành công!');
+              this.notification.success(
+                NOTIFICATION_TITLE.success,
+                'Đã xóa thiết bị thành công!'
+              );
               this.getProduct(); // Tải lại dữ Concerns liệu
             } else {
-              this.notification.warning(NOTIFICATION_TITLE.warning, res.message || 'Không thể xóa thiết bị!');
+              this.notification.warning(
+                NOTIFICATION_TITLE.warning,
+                res.message || 'Không thể xóa thiết bị!'
+              );
             }
           },
           error: (err) => {
             console.error('Lỗi xóa:', err);
-            this.notification.error(NOTIFICATION_TITLE.error, 'Có lỗi xảy ra khi xóa thiết bị!');
+            this.notification.error(
+              NOTIFICATION_TITLE.error,
+              'Có lỗi xảy ra khi xóa thiết bị!'
+            );
           },
         });
       },
@@ -530,6 +560,15 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
       keyboard: false,
       centered: true,
     });
+    modalRef.componentInstance.warehouseType = this.warehouseType;
+    modalRef.result.then(
+      (result) => {
+        this.getProduct();
+      },
+      () => {
+        console.log('Modal dismissed');
+      }
+    );
   }
   onAddProducRTC() {
     // nếu productGroupID là 0, undefined, null => gán null
@@ -549,7 +588,8 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
       ...this.modalData,
       ProductGroupRTCID: selectedGroup,
     };
-
+    // modalRef.componentInstance.warehouseType = this.warehouseType
+    modalRef.componentInstance.warehouseType = this.warehouseType;
     modalRef.result.then(
       (result) => {
         this.getProduct();
@@ -575,6 +615,7 @@ export class TbProductRtcComponent implements OnInit, AfterViewInit {
       centered: true,
     });
     modalRef.componentInstance.dataInput = selectedProduct;
+    modalRef.componentInstance.warehouseType = this.warehouseType;
     modalRef.result.then(
       (result) => {
         this.getProduct();

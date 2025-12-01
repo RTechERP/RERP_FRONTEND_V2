@@ -116,7 +116,7 @@
                                 <label class="form-check-label" for="rememberMe">Nhớ mật khẩu</label>
                             </div>
 
-                            <button type="submit" class="btn btn-primary mb-2">ĐĂNG NHẬP</button>
+                            <button type="submit" class="btn btn-primary mb-2" [disabled]="isLoading">ĐĂNG NHẬP</button>
                             <p class="text-danger" *ngIf="errorMessage">{{ errorMessage }}</p>
                         </form>
 
@@ -127,4 +127,8 @@
             </div>
         </div>
     </div>
+</div>
+<!-- Fullscreen spinner overlay -->
+<div *ngIf="isLoading" class="fullscreen-spinner-overlay">
+    <nz-spin [nzSize]="'default'"></nz-spin>
 </div>

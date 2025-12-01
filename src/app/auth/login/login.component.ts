@@ -11,9 +11,10 @@ import { CommonModule } from '@angular/common';
 import { log } from 'ng-zorro-antd/core/logger';
 import { AuthService } from '../auth.service';
 import { jwtDecode } from 'jwt-decode';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, NzSpinModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
@@ -21,6 +22,7 @@ export class LoginComponent {
   loginForm: FormGroup;
   errorMessage = '';
   submitted = false;
+  isLoading = false;
   token: any;
   constructor(
     private formBuilder: FormBuilder,
@@ -36,21 +38,22 @@ export class LoginComponent {
   onLogin(): void {
     this.submitted = true;
     if (this.loginForm.invalid) return;
-
+    this.isLoading = true;
+    this.errorMessage = '';
     this.authService.login(this.loginForm.value).subscribe({
       next: (res) => {
+        this.isLoading = false;
         this.token = this.authService.getToken();
         try {
           const decoded: any = jwtDecode(this.token);
-        //   console.log('decoded token:', decoded);
         } catch (error) {
           console.error('Invalid token', error);
         }
-        // console.log('token login:', this.token);
         this.router.navigate(['/home']);
       },
       error: (err) => {
-        this.errorMessage = err.error.message;
+        this.isLoading = false;
+        this.errorMessage = err?.error?.message || 'Đăng nhập thất bại';
       },
     });
   }

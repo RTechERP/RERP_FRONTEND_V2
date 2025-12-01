@@ -5,7 +5,9 @@ import {
   Component,
   ElementRef,
   HostListener,
+  Injector,
   OnInit,
+  Type,
   ViewChild,
 } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -62,6 +64,8 @@ import { environment } from '../../../environments/environment';
 import { AppUserService } from '../../services/app-user.service';
 import { MenusComponent } from '../../pages/old/menus/menus.component';
 import {
+  GroupItem,
+  LeafItem,
   MenuItem,
   MenuService,
 } from '../../pages/systems/menus/menu-service/menu.service';
@@ -145,7 +149,7 @@ interface WorkStatus {
     NzCollapseModule,
     NzListModule,
     NzCalendarModule,
-    HasPermissionDirective,
+    // HasPermissionDirective,
     NzTabsModule,
   ],
   templateUrl: './home-layout.component.html',
@@ -201,12 +205,12 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
         x.HolidayDay === date.getDate()
     );
 
-    let isSaturday = this.scheduleWorkSaturdays.some(
-      (x) =>
-        x.WorkYear === date.getFullYear() &&
-        x.WorkMonth === date.getMonth() + 1 &&
-        x.WorkDay === date.getDate()
-    );
+    // let isSaturday = this.scheduleWorkSaturdays.some(
+    //   (x) =>
+    //     x.WorkYear === date.getFullYear() &&
+    //     x.WorkMonth === date.getMonth() + 1 &&
+    //     x.WorkDay === date.getDate()
+    // );
     // console.log(isHoliday);
     return isHoliday;
   }
@@ -234,21 +238,23 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
     private holidayService: HolidayServiceService,
     private router: Router,
     private appUserService: AppUserService,
-    public menuService: MenuService
+    public menuService: MenuService,
+    private injector: Injector
   ) {
     this.menus = this.menuService
       .getMenus()
       .sort((a, b) => (a.stt ?? 1) - (b.stt ?? 1));
 
-    let menuPerson: MenuItem[] = this.menuService
+    this.menuQuickAccess = this.menuService
       .getMenus()
       .filter((x) => x.key == 'person');
-    console.log('this.menuPerson', menuPerson);
-    this.menuQuickAccess = menuPerson;
   }
 
+  isGroup = (m: MenuItem): m is GroupItem => m.kind === 'group';
+  isLeaf = (m: MenuItem): m is LeafItem => m.kind === 'leaf';
+
   ngOnInit(): void {
-    console.log('this.menuQuickAccess', this.menuQuickAccess);
+    // console.log('this.menuQuickAccess', this.menuQuickAccess);
     // console.log('this.menus', this.menus);
     this.setResponsivePageSize();
     this.getMenuParents();
@@ -259,21 +265,45 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {}
 
-  newTab(routerLink: string[], title: string): void {
-    const { length } = this.dynamicTabs;
-    const newTabId = length + 1;
-    // const title = `NewTab${newTabId}`;
-    this.dynamicTabs = [
-      ...this.dynamicTabs,
-      {
-        title,
-        content: title,
-        routerLink: routerLink,
-        queryParams: {
-          tab: newTabId,
-        },
-      },
-    ];
+  //   newTab(routerLink: string[], title: string): void {
+  //     const { length } = this.dynamicTabs;
+  //     const newTabId = length + 1;
+  //     // const title = `NewTab${newTabId}`;
+  //     this.dynamicTabs = [
+  //       ...this.dynamicTabs,
+  //       {
+  //         title,
+  //         content: title,
+  //         routerLink: routerLink,
+  //         queryParams: {
+  //           tab: newTabId,
+  //         },
+  //       },
+  //     ];
+  //   }
+
+  selectedIndex = 0;
+  newTab(comp: Type<any>, title: string, data?: any) {
+    // if (this.isMobile) {
+    //   this.isCollapsed = !this.isCollapsed;
+    // }
+
+    const idx = this.dynamicTabs.findIndex((t) => t.title === title);
+    if (idx >= 0) {
+      this.selectedIndex = idx;
+      return;
+    }
+
+    const injector = Injector.create({
+      providers: [{ provide: 'tabData', useValue: data }],
+      parent: this.injector,
+    });
+
+    this.dynamicTabs = [...this.dynamicTabs, { title, comp, injector }];
+    setTimeout(() => (this.selectedIndex = this.dynamicTabs.length - 1));
+
+    // Lưu tabs vào localStorage
+    // this.saveTabs();
   }
 
   onPick(n: NotifyItem) {
@@ -501,7 +531,7 @@ export class HomeLayoutComponent implements OnInit, AfterViewInit {
         this.holidays = response.data.holidays;
         this.scheduleWorkSaturdays = response.data.scheduleWorkSaturdays;
 
-        //   console.log(response);
+        console.log(response);
       },
       error: (err: any) => {
         this.notification.error(NOTIFICATION_TITLE.error, err.error.message);

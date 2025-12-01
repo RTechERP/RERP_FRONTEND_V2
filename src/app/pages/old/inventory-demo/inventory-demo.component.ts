@@ -93,10 +93,12 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
   productGroupNo: string = '';
   searchMode: string = 'group';
   // List BillType for Orange color (Gift/Sell/Return)
-  listBillType: number[] = [0, 3]; 
+  listBillType: number[] = [0, 3];
   // tb sản phẩm kho Demo
   productTable: Tabulator | null = null;
-  
+
+  warehouseType = 1;
+
   @ViewChild('tableDeviceTemp') tableDeviceTemp!: ElementRef;
   @ViewChild('productTableRef', { static: true }) productTableRef!: ElementRef;
 
@@ -116,14 +118,17 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
     }, 0);
   }
   ngOnInit(): void {
-    if (this.tabData?.warehouseID) {
-      this.warehouseID = this.tabData.warehouseID;
+    if (this.tabData) {
+      this.warehouseID = this.tabData.warehouseID || 1;
+      this.warehouseType = this.tabData.warehouseType || 1;
     }
   }
   getGroup() {
-    this.tbProductRtcService.getProductRTCGroup().subscribe((resppon: any) => {
-      this.productGroupData = resppon.data;
-    });
+    this.tbProductRtcService
+      .getProductRTCGroup(this.warehouseType)
+      .subscribe((resppon: any) => {
+        this.productGroupData = resppon.data;
+      });
   }
   // ấn hiện splizt tìm kiếm
   toggleSearchPanel(): void {
@@ -221,11 +226,11 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
             field: 'ProductName',
             formatter: this.cellColorFormatter.bind(this),
           },
-                    {
+          {
             title: 'Vị trí (Hộp)',
             field: 'LocationName',
           },
-                              {
+          {
             title: 'Vị trí Modula',
             field: 'ModulaLocationName',
           },
@@ -240,11 +245,11 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
             title: 'Hãng',
             field: 'Maker',
           },
-                    {
+          {
             title: 'ĐVT',
             field: 'UnitCountName',
           },
-                    {
+          {
             title: 'Đang mượn',
             field: 'NumberBorrowing',
             bottomCalc: 'sum',
@@ -265,14 +270,14 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
             hozAlign: 'right',
             headerHozAlign: 'center',
           },
-                    {
+          {
             title: 'SL kế toán',
             field: 'InventoryLate',
             bottomCalc: 'sum',
             hozAlign: 'right',
             headerHozAlign: 'center',
           },
-                    {
+          {
             title: 'SL kho quản lý',
             field: 'QuantityManager',
             bottomCalc: 'sum',
@@ -299,7 +304,7 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
             hozAlign: 'right',
             headerHozAlign: 'center',
           },
-{
+          {
             title: 'Tồn kho Modula',
             field: 'TotalQuantityInArea',
             bottomCalc: 'sum', // tính tổng
@@ -310,7 +315,7 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
             title: 'Mã kho HCM',
             field: 'CodeHCM',
           },
-                    {
+          {
             title: 'Ảnh',
             field: 'LocationImg',
           },
@@ -318,7 +323,7 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
             title: 'Tên nhóm',
             field: 'ProductGroupName',
           },
-                    {
+          {
             title: 'Mã kế toán',
             field: 'ProductCodeRTC',
           },
@@ -343,26 +348,27 @@ export class InventoryDemoComponent implements OnInit, AfterViewInit {
             //   } style="pointer-events: none; accent-color: #1677ff;" />`;
             // },
           },
-                    {
+          {
             title: 'Part Number',
             field: 'PartNumber',
           },
-                    {
+          {
             title: 'Serial',
             field: 'SerialNumber',
-          },          {
+          },
+          {
             title: 'Code',
             field: 'Serial',
           },
-                    {
+          {
             title: 'NCC',
             field: 'NmaeNCC',
           },
-                              {
+          {
             title: 'Người nhập',
             field: 'Deliver',
           },
-                              {
+          {
             title: 'Mã phiếu nhập',
             field: 'BillCode',
           },
